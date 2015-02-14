@@ -47,6 +47,7 @@ main() {
   runReflectiveTests(ConstantValueComputerTest);
   runReflectiveTests(ConstantVisitorTest);
   runReflectiveTests(ContentCacheTest);
+  runReflectiveTests(CustomUriResolverTest);
   runReflectiveTests(DartObjectImplTest);
   runReflectiveTests(DartUriResolverTest);
   runReflectiveTests(DeclaredVariablesTest);
@@ -7724,6 +7725,35 @@ class FileUriResolverTest {
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
     expect(result, isNull);
+  }
+}
+
+
+@reflectiveTest
+class CustomUriResolverTest {
+  void test_creation() {
+    expect(new CustomUriResolver({}), isNotNull);
+  }
+
+  void test_resolve_unknown_uri() {
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': '/path/to/library.dart',
+    });
+    Source result = resolver.resolveAbsolute(
+        parseUriWithException("custom:non_library"));
+    expect(result, isNull);
+  }
+
+  void test_resolve_uri() {
+    String path =
+        FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': path,
+    });
+    Source result = resolver.resolveAbsolute(
+        parseUriWithException("custom:library"));
+    expect(result, isNotNull);
+    expect(result.fullName, path);
   }
 }
 

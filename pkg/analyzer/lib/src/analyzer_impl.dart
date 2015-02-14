@@ -140,6 +140,7 @@ class AnalyzerImpl {
 
   void prepareAnalysisContext(JavaFile sourceFile, Source source) {
     List<UriResolver> resolvers = [
+        new CustomUriResolver(options.customUrlMappings),
         new DartUriResolver(sdk),
         new FileUriResolver()];
     // may be add package resolver

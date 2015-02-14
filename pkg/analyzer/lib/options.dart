@@ -65,11 +65,16 @@ class CommandLineOptions {
   /** Whether to treat warnings as fatal */
   final bool warningsAreFatal;
 
+  /** A table mapping library URIs to the file system path where the library
+   *  source is located.
+   */
+  final Map<String, String> customUrlMappings;
+
   /**
    * Initialize options from the given parsed [args].
    */
   CommandLineOptions._fromArgs(ArgResults args, Map<String,
-      String> definedVariables)
+      String> definedVariables, Map<String, String> customUrlMappings)
       : dartSdkPath = args['dart-sdk'],
         this.definedVariables = definedVariables,
         disableHints = args['no-hints'],
@@ -86,7 +91,8 @@ class CommandLineOptions {
         showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
         sourceFiles = args.rest,
         warmPerf = args['warm-perf'],
-        warningsAreFatal = args['fatal-warnings'];
+        warningsAreFatal = args['fatal-warnings'],
+        this.customUrlMappings = customUrlMappings;
 
   /**
    * Parse [args] into [CommandLineOptions] describing the specified
@@ -199,6 +205,12 @@ class CommandLineOptions {
             help: 'Display this help message',
             defaultsTo: false,
             negatable: false)
+        ..addOption(
+            'url-mapping',
+            help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
+                  'analyzer to use "library.dart" as the source for an import '
+                  'of "libraryUri"',
+            allowMultiple: true)
         //
         // Hidden flags.
         //
@@ -260,7 +272,17 @@ class CommandLineOptions {
           exit(15);
         }
       }
-      return new CommandLineOptions._fromArgs(results, definedVariables);
+      Map<String, String> customUrlMappings = <String, String>{};
+      for (String mapping in results['url-mapping']) {
+        List<String> splitMapping = mapping.split(',');
+        if (splitMapping.length != 2) {
+          _showUsage(parser);
+          exit(15);
+        }
+        customUrlMappings[splitMapping[0]] = splitMapping[1];
+      }
+      return new CommandLineOptions._fromArgs(
+          results, definedVariables, customUrlMappings);
     } on FormatException catch (e) {
       print(e.message);
       _showUsage(parser);
