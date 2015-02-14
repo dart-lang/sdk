@@ -3303,10 +3303,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisContextImpl_TaskData(null, false);
     }
     LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-    unitEntry.setStateInLibrary(
-        DartEntry.VERIFICATION_ERRORS,
-        librarySource,
-        CacheState.IN_PROCESS);
     return new AnalysisContextImpl_TaskData(
         new GenerateDartErrorsTask(this, unitSource, unit, libraryElement),
         false);
@@ -3347,10 +3343,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return _createResolveDartLibraryTask(librarySource, libraryEntry);
       }
     }
-    dartEntry.setStateInLibrary(
-        DartEntry.HINTS,
-        librarySource,
-        CacheState.IN_PROCESS);
     return new AnalysisContextImpl_TaskData(
         new GenerateDartHintsTask(this, units, libraryElement),
         false);
@@ -3391,10 +3383,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return _createResolveDartLibraryTask(librarySource, libraryEntry);
       }
     }
-    dartEntry.setStateInLibrary(
-        DartEntry.LINTS,
-        librarySource,
-        CacheState.IN_PROCESS);
     //TODO(pquitslund): revisit if we need all units or whether one will do
     return new AnalysisContextImpl_TaskData(
         new GenerateDartLintsTask(this, units, libraryElement),
@@ -3410,7 +3398,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisContextImpl_TaskData _createGetContentTask(Source source,
       SourceEntry sourceEntry) {
-    sourceEntry.setState(SourceEntry.CONTENT, CacheState.IN_PROCESS);
     return new AnalysisContextImpl_TaskData(
         new GetContentTask(this, source),
         false);
@@ -3427,7 +3414,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     Token tokenStream = dartEntry.getValue(DartEntry.TOKEN_STREAM);
     dartEntry.setState(DartEntry.TOKEN_STREAM, CacheState.FLUSHED);
-    dartEntry.setState(DartEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
     return new AnalysisContextImpl_TaskData(
         new ParseDartTask(
             this,
@@ -3447,7 +3433,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     String content = htmlEntry.getValue(SourceEntry.CONTENT);
     htmlEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
-    htmlEntry.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
     return new AnalysisContextImpl_TaskData(
         new ParseHtmlTask(this, source, content),
         false);
@@ -3496,7 +3481,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (htmlEntry.getState(HtmlEntry.PARSED_UNIT) != CacheState.VALID) {
       return _createParseHtmlTask(source, htmlEntry);
     }
-    htmlEntry.setState(HtmlEntry.RESOLVED_UNIT, CacheState.IN_PROCESS);
     return new AnalysisContextImpl_TaskData(
         new ResolveHtmlTask(
             this,
@@ -3521,7 +3505,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     String content = dartEntry.getValue(SourceEntry.CONTENT);
     dartEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
-    dartEntry.setState(DartEntry.SCAN_ERRORS, CacheState.IN_PROCESS);
     return new AnalysisContextImpl_TaskData(
         new ScanDartTask(this, source, content),
         false);
@@ -3962,7 +3945,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           if (elementState == CacheState.INVALID ||
               (isPriority && elementState == CacheState.FLUSHED)) {
 //            return createResolveDartLibraryTask(librarySource, (DartEntry) libraryEntry);
-            libraryEntry.setState(DartEntry.ELEMENT, CacheState.IN_PROCESS);
             return new AnalysisContextImpl_TaskData(
                 new ResolveDartLibraryTask(this, source, librarySource),
                 false);
@@ -3984,10 +3966,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //            }
             // Possibly replace with:
 //             return createResolveDartLibraryTask(librarySource, (DartEntry) libraryEntry);
-            dartEntry.setStateInLibrary(
-                DartEntry.RESOLVED_UNIT,
-                librarySource,
-                CacheState.IN_PROCESS);
             return new AnalysisContextImpl_TaskData(
                 new ResolveDartLibraryTask(this, source, librarySource),
                 false);
@@ -7232,30 +7210,35 @@ abstract class CacheRetentionPolicy {
 }
 
 /**
- * The enumeration `CacheState` defines the possible states of cached data.
+ * The possible states of cached data.
  */
 class CacheState extends Enum<CacheState> {
   /**
-   * The data is not in the cache and the last time an attempt was made to compute the data an
-   * exception occurred, making it pointless to attempt.
+   * The data is not in the cache and the last time an attempt was made to
+   * compute the data an exception occurred, making it pointless to attempt to
+   * compute the data again.
    *
    * Valid Transitions:
-   * * [INVALID] if a source was modified that might cause the data to be computable
+   * * [INVALID] if a source was modified that might cause the data to be
+   *   computable
    */
   static const CacheState ERROR = const CacheState('ERROR', 0);
 
   /**
-   * The data is not in the cache because it was flushed from the cache in order to control memory
-   * usage. If the data is recomputed, results do not need to be reported.
+   * The data is not in the cache because it was flushed from the cache in order
+   * to control memory usage. If the data is recomputed, results do not need to
+   * be reported.
    *
    * Valid Transitions:
    * * [IN_PROCESS] if the data is being recomputed
-   * * [INVALID] if a source was modified that causes the data to need to be recomputed
+   * * [INVALID] if a source was modified that causes the data to need to be
+   *   recomputed
    */
   static const CacheState FLUSHED = const CacheState('FLUSHED', 1);
 
   /**
-   * The data might or might not be in the cache but is in the process of being recomputed.
+   * The data might or might not be in the cache but is in the process of being
+   * recomputed.
    *
    * Valid Transitions:
    * * [ERROR] if an exception occurred while trying to compute the data
@@ -7264,7 +7247,8 @@ class CacheState extends Enum<CacheState> {
   static const CacheState IN_PROCESS = const CacheState('IN_PROCESS', 2);
 
   /**
-   * The data is not in the cache and needs to be recomputed so that results can be reported.
+   * The data is not in the cache and needs to be recomputed so that results can
+   * be reported.
    *
    * Valid Transitions:
    * * [IN_PROCESS] if an attempt is being made to recompute the data
@@ -7276,7 +7260,8 @@ class CacheState extends Enum<CacheState> {
    *
    * Valid Transitions:
    * * [FLUSHED] if the data is removed in order to manage memory usage
-   * * [INVALID] if a source was modified in such a way as to invalidate the previous data
+   * * [INVALID] if a source was modified in such a way as to invalidate the
+   *   previous data
    */
   static const CacheState VALID = const CacheState('VALID', 4);
 
