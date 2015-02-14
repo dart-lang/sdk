@@ -16,8 +16,11 @@ class ResolverOptions {
   /// List of paths used for the multi-package resolver.
   final List<String> packagePaths;
 
+  /// Whether to infer return types and field types from overriden members.
+  final bool inferFromOverrides;
+
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const []});
+      this.packagePaths: const [], this.inferFromOverrides: true});
 }
 
 /// Options used by ddc's RestrictedRules.
@@ -32,7 +35,7 @@ class RulesOptions {
 }
 
 /// General options used by the dev compiler.
-class CompilerOptions implements RulesOptions {
+class CompilerOptions implements RulesOptions, ResolverOptions {
   /// Whether to check the sdk libraries.
   final bool checkSdk;
 
@@ -63,14 +66,34 @@ class CompilerOptions implements RulesOptions {
   final bool useColors;
 
   /// Whether to use covariant generics
+  @override
   final bool covariantGenerics;
 
   /// Whether to inject casts between Dart assignable types.
+  @override
   final bool relaxedCasts;
+
+  /// Whether to resolve 'package:' uris using the multi-package resolver.
+  @override
+  final bool useMultiPackage;
+
+  /// Package root when resolving 'package:' urls the standard way.
+  @override
+  final String packageRoot;
+
+  /// List of paths used for the multi-package resolver.
+  @override
+  final List<String> packagePaths;
+
+  /// Whether to infer return types and field types from overriden members.
+  @override
+  final bool inferFromOverrides;
 
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.dumpSrcDir, this.forceCompile: false,
       this.formatOutput: false, this.outputDir, this.outputDart: false,
       this.useColors: true, this.covariantGenerics: true,
-      this.relaxedCasts: true});
+      this.relaxedCasts: true, this.useMultiPackage: false,
+      this.packageRoot: 'packages/', this.packagePaths: const [],
+      this.inferFromOverrides: true});
 }

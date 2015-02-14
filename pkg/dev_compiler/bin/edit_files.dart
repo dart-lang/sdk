@@ -112,7 +112,8 @@ void main(List<String> argv) {
   }
 
   var filename = args.rest.first;
-  var typeResolver = new TypeResolver.fromDir(sdkDir.path);
+  var typeResolver =
+      new TypeResolver.fromDir(sdkDir.path, new ResolverOptions());
 
   Map json = JSON.decode(new File(filename).readAsStringSync());
   var summary = GlobalSummary.parse(json);

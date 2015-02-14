@@ -13,12 +13,12 @@ import 'package:unittest/unittest.dart';
 
 main(args) {
   useCompactVMConfiguration();
-
-  var realSdk = new TypeResolver.fromDir(getSdkDir(args).path);
+  var options = new CompilerOptions();
+  var realSdk = new TypeResolver.fromDir(getSdkDir(args).path, options);
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
   test('checker can run on itself ', () {
-    compile('$testDir/../all_tests.dart', realSdk, new CompilerOptions(),
+    compile('$testDir/../all_tests.dart', realSdk, options,
         new LogReporter());
   });
 }

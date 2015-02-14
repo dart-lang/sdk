@@ -43,23 +43,27 @@ import 'package:ddc/devc.dart' show compile;
 ///     });
 ///
 CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
-    CheckerReporter reporter, covariantGenerics: true, relaxedCasts: true}) {
+    CheckerReporter reporter, covariantGenerics: true, relaxedCasts: true,
+    inferFromOverrides: true}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
   var testUriResolver = new _TestUriResolver(testFiles);
+  var options = new CompilerOptions(
+      covariantGenerics: covariantGenerics,
+      relaxedCasts: relaxedCasts,
+      inferFromOverrides: inferFromOverrides);
   var resolver = sdkDir == null
-      ? new TypeResolver.fromMock(mockSdkSources,
+      ? new TypeResolver.fromMock(mockSdkSources, options,
           otherResolvers: [testUriResolver])
-      : new TypeResolver.fromDir(sdkDir, otherResolvers: [testUriResolver]);
+      : new TypeResolver.fromDir(sdkDir, options,
+          otherResolvers: [testUriResolver]);
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
-  var options = new CompilerOptions(
-      covariantGenerics: covariantGenerics, relaxedCasts: relaxedCasts);
   var results = compile('/main.dart', resolver, options, reporter);
 
   // Extract expectations from the comments in the test files.

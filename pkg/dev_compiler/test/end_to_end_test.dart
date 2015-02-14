@@ -12,13 +12,13 @@ import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 main() {
-  var mockSdk = new TypeResolver.fromMock(mockSdkSources);
+  var options = new CompilerOptions();
+  var mockSdk = new TypeResolver.fromMock(mockSdkSources, options);
 
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
   _check(testfile) {
-    compile('$testDir/$testfile.dart', mockSdk, new CompilerOptions(),
-        new LogReporter());
+    compile('$testDir/$testfile.dart', mockSdk, options, new LogReporter());
   }
 
   test('checker runs correctly (end-to-end)', () {

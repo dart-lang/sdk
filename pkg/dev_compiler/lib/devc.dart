@@ -48,7 +48,7 @@ CheckerResults compile(
   var libraries = <LibraryInfo>[];
   var rules = new RestrictedRules(resolver.context.typeProvider, reporter,
       options: options);
-  var codeChecker = new CodeChecker(rules, reporter);
+  var codeChecker = new CodeChecker(rules, reporter, options);
   var generators = <CodeGenerator>[];
   if (options.dumpSrcDir != null) {
     generators.add(new EmptyDartGenerator(

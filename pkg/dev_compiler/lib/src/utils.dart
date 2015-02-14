@@ -92,6 +92,73 @@ Iterable<Source> partsOf(CompilationUnit unit, AnalysisContext context) {
   }).where((d) => d != null);
 }
 
+/// Looks up the declaration that matches [member] in [type] or its superclasses
+/// and interfaces, and returns its declared type.
+// TODO(sigmund): add this to lookUp* in analyzer. The difference here is that
+// we also look in interfaces in addition to superclasses.
+FunctionType searchTypeFor(InterfaceType start, ExecutableElement member) {
+  var getMemberTypeHelper = _memberTypeGetter(member);
+  FunctionType search(InterfaceType type, bool first) {
+    if (type == null) return null;
+    var res = null;
+    if (!first) {
+      res = getMemberTypeHelper(type);
+      if (res != null) return res;
+    }
+
+    for (var m in type.mixins.reversed) {
+      res = search(m, false);
+      if (res != null) return res;
+    }
+
+    res = search(type.superclass, false);
+    if (res != null) return res;
+
+    for (var i in type.interfaces) {
+      res = search(i, false);
+      if (res != null) return res;
+    }
+
+    return null;
+  }
+
+  return search(start, true);
+}
+
+/// Looks up the declaration that matches [member] in [type] and returns it's
+/// declared type.
+FunctionType getMemberType(InterfaceType type, ExecutableElement member) =>
+    _memberTypeGetter(member)(type);
+
+typedef FunctionType _MemberTypeGetter(InterfaceType type);
+
+_MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
+  String memberName = member.name;
+  final isGetter = member is PropertyAccessorElement && member.isGetter;
+  final isSetter = member is PropertyAccessorElement && member.isSetter;
+
+  FunctionType f(InterfaceType type) {
+    ExecutableElement baseMethod;
+    try {
+      if (isGetter) {
+        assert(!isSetter);
+        // Look for getter or field.
+        baseMethod = type.getGetter(memberName);
+      } else if (isSetter) {
+        baseMethod = type.getSetter(memberName);
+      } else {
+        baseMethod = type.getMethod(memberName);
+      }
+    } catch (e) {
+      // TODO(sigmund): remove this try-catch block (see issue #48).
+    }
+    if (baseMethod == null || baseMethod.isStatic) return null;
+    return baseMethod.type;
+  }
+  ;
+  return f;
+}
+
 /// Returns an ANSII color escape sequence corresponding to [levelName]. Colors
 /// are defined for: severe, error, warning, or info. Returns null if the level
 /// name is not recognized.

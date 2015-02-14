@@ -213,4 +213,297 @@ main() {
     '''
     });
   });
+
+  test('infer type on overridden fields', () {
+    testChecker({
+      '/main.dart': '''
+        class A {
+          int x = 2;
+        }
+
+        class B extends A {
+          /*severe:InferableOverride*/get x => 3;
+        }
+
+        foo() {
+          String y = /*info:DownCast*/new B().x;
+          int z = /*info:DownCast*/new B().x;
+        }
+    '''
+    }, inferFromOverrides: false);
+
+    testChecker({
+      '/main.dart': '''
+        class A {
+          int x = 2;
+        }
+
+        class B extends A {
+          get x => 3;
+        }
+
+        foo() {
+          String y = /*severe:StaticTypeError*/new B().x;
+          int z = new B().x;
+        }
+    '''
+    }, inferFromOverrides: true);
+
+    testChecker({
+      '/main.dart': '''
+        class A {
+          int x = 2;
+        }
+
+        class B implements A {
+          /*severe:InferableOverride*/get x => 3;
+        }
+
+        foo() {
+          String y = /*info:DownCast*/new B().x;
+          int z = /*info:DownCast*/new B().x;
+        }
+    '''
+    }, inferFromOverrides: false);
+
+    testChecker({
+      '/main.dart': '''
+        class A {
+          int x = 2;
+        }
+
+        class B implements A {
+          get x => 3;
+        }
+
+        foo() {
+          String y = /*severe:StaticTypeError*/new B().x;
+          int z = new B().x;
+        }
+    '''
+    }, inferFromOverrides: true);
+  });
+
+  test('infer types on generic instantiations', () {
+    for (bool infer in [true, false]) {
+      testChecker({
+        '/main.dart': '''
+          class A<T> {
+            T x;
+          }
+
+          class B implements A<int> {
+            /*severe:InvalidMethodOverride*/dynamic get x => 3;
+          }
+
+          foo() {
+            String y = /*info:DownCast*/new B().x;
+            int z = /*info:DownCast*/new B().x;
+          }
+      '''
+      }, inferFromOverrides: infer);
+    }
+
+    testChecker({
+      '/main.dart': '''
+        class A<T> {
+          T x;
+        }
+
+        class B implements A<int> {
+          /*severe:InferableOverride*/get x => 3;
+        }
+
+        foo() {
+          String y = /*info:DownCast*/new B().x;
+          int z = /*info:DownCast*/new B().x;
+        }
+    '''
+    }, inferFromOverrides: false);
+    testChecker({
+      '/main.dart': '''
+        class A<T> {
+          T x;
+          T w;
+        }
+
+        class B implements A<int> {
+          get x => 3;
+          get w => /*severe:StaticTypeError*/"hello";
+        }
+
+        foo() {
+          String y = /*severe:StaticTypeError*/new B().x;
+          int z = new B().x;
+        }
+    '''
+    }, inferFromOverrides: true);
+
+    testChecker({
+      '/main.dart': '''
+        class A<T> {
+          T x;
+        }
+
+        class B<E> extends A<E> {
+          E y;
+          get x => y;
+        }
+
+        foo() {
+          int y = /*severe:StaticTypeError*/new B<String>().x;
+          String z = new B<String>().x;
+        }
+    '''
+    }, inferFromOverrides: true);
+
+    testChecker({
+      '/main.dart': '''
+        abstract class I<E> {
+          String m(a, String f(v, T e));
+        }
+
+        abstract class A<E> implements I<E> {
+          const A();
+          String m(a, String f(v, T e));
+        }
+
+        abstract class M {
+          int y;
+        }
+
+        class B<E> extends A<E> implements M {
+          const B();
+          int get y => 0;
+
+          m(a, f(v, T e)) {}
+        }
+
+        foo () {
+          int y = /*severe:StaticTypeError*/new B().m(null, null);
+          String z = new B().m(null, null);
+        }
+    '''
+    }, inferFromOverrides: true);
+  });
+
+  // TODO(sigmund): enable this test, it's currently flaky (see issue #48).
+  skip_test('infer types on generic instantiations in library cycle', () {
+    testChecker({
+      '/a.dart': '''
+          import 'main.dart';
+        abstract class I<E> {
+          A<E> m(a, String f(v, T e));
+        }
+      ''',
+      '/main.dart': '''
+          import 'a.dart';
+
+        abstract class A<E> implements I<E> {
+          const A();
+
+          E value;
+        }
+
+        abstract class M {
+          int y;
+        }
+
+        class B<E> extends A<E> implements M {
+          const B();
+          int get y => 0;
+
+          m(a, f(v, T e)) {}
+        }
+
+        foo () {
+          int y = /*severe:StaticTypeError*/new B<String>().m(null, null).value;
+          String z = new B<String>().m(null, null).value;
+        }
+    '''
+    }, inferFromOverrides: true);
+  });
+
+  test('do not infer overriden fields that explicitly say dynamic', () {
+    for (bool infer in [true, false]) {
+      testChecker({
+        '/main.dart': '''
+          class A {
+            int x = 2;
+          }
+
+          class B implements A {
+            /*severe:InvalidMethodOverride*/dynamic get x => 3;
+          }
+
+          foo() {
+            String y = /*info:DownCast*/new B().x;
+            int z = /*info:DownCast*/new B().x;
+          }
+      '''
+      }, inferFromOverrides: infer);
+    }
+  });
+
+  test('conflicts can happen', () {
+    testChecker({
+      '/main.dart': '''
+        class I1 {
+          int x;
+        }
+        class I2 extends I1 {
+          int y;
+        }
+
+        class A {
+          final I1 a;
+        }
+
+        class B {
+          final I2 a;
+        }
+
+        class C1 extends A implements B {
+          /*severe:InvalidMethodOverride*/get a => null;
+        }
+
+        // Here we infer from B, which is more precise.
+        class C2 extends B implements A {
+          get a => null;
+        }
+    '''
+    }, inferFromOverrides: true);
+
+    testChecker({
+      '/main.dart': '''
+        class I1 {
+          int x;
+        }
+        class I2 {
+          int y;
+        }
+
+        class I3 implements I1, I2 {
+          int x;
+          int y;
+        }
+
+        class A {
+          final I1 a;
+        }
+
+        class B {
+          final I2 a;
+        }
+
+        class C1 extends A implements B {
+          I3 get a => null;
+        }
+
+        class C2 extends A implements B {
+          /*severe:InvalidMethodOverride*/get a => null;
+        }
+    '''
+    }, inferFromOverrides: true);
+  });
 }

@@ -435,7 +435,7 @@ class InferableOverride extends InvalidOverride {
       DartType subType, DartType baseType)
       : super(node, element, base, subType, baseType);
 
-  Level get level => Level.WARNING;
+  Level get level => Level.SEVERE;
   String get message => _messageHelper('Invalid but inferable override');
 }
 

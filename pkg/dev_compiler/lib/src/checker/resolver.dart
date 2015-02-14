@@ -19,6 +19,7 @@ import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart';
+import 'package:ddc/src/utils.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 
@@ -26,15 +27,15 @@ final _log = new logger.Logger('ddc.src.resolver');
 
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {
-  final InternalAnalysisContext context = _initContext();
+  final InternalAnalysisContext context;
 
   final Map<Uri, Source> _sources = <Uri, Source>{};
 
-  TypeResolver(DartUriResolver sdkResolver,
-      {List otherResolvers, ResolverOptions options}) {
+  TypeResolver(DartUriResolver sdkResolver, ResolverOptions options,
+      {List otherResolvers})
+      : context = _initContext(options.inferFromOverrides) {
     var resolvers = [sdkResolver];
     if (otherResolvers == null) {
-      if (options == null) options = new ResolverOptions();
       resolvers.add(new FileUriResolver());
       resolvers.add(options.useMultiPackage
           ? new MultiPackageResolver(options.packagePaths)
@@ -46,17 +47,19 @@ class TypeResolver {
   }
 
   /// Creates a [TypeResolver] that uses a mock 'dart:' library contents.
-  TypeResolver.fromMock(Map<String, String> mockSources,
-      {List otherResolvers, ResolverOptions options})
-      : this(new MockDartSdk(mockSources, reportMissing: true).resolver,
-          otherResolvers: otherResolvers, options: options);
+  TypeResolver.fromMock(
+      Map<String, String> mockSources, ResolverOptions options,
+      {List otherResolvers})
+      : this(
+          new MockDartSdk(mockSources, reportMissing: true).resolver, options,
+          otherResolvers: otherResolvers);
 
   /// Creates a [TypeResolver] that uses the SDK at the given [sdkPath].
-  TypeResolver.fromDir(String sdkPath,
-      {List otherResolvers, ResolverOptions options})
+  TypeResolver.fromDir(String sdkPath, ResolverOptions options,
+      {List otherResolvers})
       : this(
           new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath))),
-          otherResolvers: otherResolvers, options: options);
+          options, otherResolvers: otherResolvers);
 
   /// Find the corresponding [Source] for [uri].
   Source findSource(Uri uri) {
@@ -85,12 +88,15 @@ class TypeResolver {
 }
 
 /// Creates an analysis context that contains our restricted typing rules.
-InternalAnalysisContext _initContext() {
+InternalAnalysisContext _initContext(bool inferFromOverrides) {
   var options = new AnalysisOptionsImpl()..cacheSize = 512;
   InternalAnalysisContext res = AnalysisEngine.instance.createAnalysisContext();
-  return res
-    ..analysisOptions = options
-    ..resolverVisitorFactory = RestrictedResolverVisitor.constructor;
+  res.analysisOptions = options;
+  res.resolverVisitorFactory = RestrictedResolverVisitor.constructor;
+  if (inferFromOverrides) {
+    res.typeResolverVisitorFactory = RestrictedTypeResolverVisitor.constructor;
+  }
+  return res;
 }
 
 /// Overrides the default [ResolverVisitor] to comply with DDC's restricted
@@ -176,4 +182,56 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
   // TODO(vsm): in visitFunctionDeclaration: Should we ever use the expression
   // type in a (...) => expr or just the written type?
 
+}
+
+class RestrictedTypeResolverVisitor extends TypeResolverVisitor {
+  RestrictedTypeResolverVisitor(
+      Library library, Source source, TypeProvider typeProvider)
+      : super.con1(library, source, typeProvider);
+
+  static TypeResolverVisitor constructor(
+          Library library, Source source, TypeProvider typeProvider) =>
+      new RestrictedTypeResolverVisitor(library, source, typeProvider);
+
+  @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    var res = super.visitVariableDeclaration(node);
+
+    var element = node.element;
+    VariableDeclarationList parent = node.parent;
+    // only infer types if it was left blank
+    if (!element.type.isDynamic || parent.type != null) return res;
+
+    // const fields and top-levels will be inferred from the initializer value
+    // somewhere else.
+    if (parent.isConst) return res;
+
+    // If the type was omitted on a field, we can infer it from a supertype.
+    if (node.element is FieldElement) {
+      var getter = element.getter;
+      var type = searchTypeFor(element.enclosingElement.type, getter);
+      if (type != null && !type.returnType.isDynamic) {
+        var newType = type.returnType;
+        element.type = newType;
+        getter.returnType = newType;
+        if (!element.isFinal) element.setter.parameters[0].type = newType;
+      }
+    }
+    return res;
+  }
+
+  @override
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    var res = super.visitMethodDeclaration(node);
+    var element = node.element;
+    if ((element is MethodElement || element is PropertyAccessorElement) &&
+        element.returnType.isDynamic &&
+        node.returnType == null) {
+      var type = searchTypeFor(element.enclosingElement.type, element);
+      if (type != null && !type.returnType.isDynamic) {
+        element.returnType = type.returnType;
+      }
+    }
+    return res;
+  }
 }

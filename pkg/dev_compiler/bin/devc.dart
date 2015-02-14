@@ -85,19 +85,8 @@ void main(List<String> argv) {
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
   if (!args['dump-info']) setupLogger(level, print);
 
-  var resolverOptions = new ResolverOptions(
-      useMultiPackage: args['use-multi-package'],
-      packageRoot: args['package-root'],
-      packagePaths: args['package-paths'].split(','));
-
-  var typeResolver = shouldMockSdk
-      ? new TypeResolver.fromMock(mockSdkSources, options: resolverOptions)
-      : new TypeResolver.fromDir(dartSdkPath, options: resolverOptions);
-
-  var filename = args.rest.first;
-  var compilerOptions = new CompilerOptions(
+  var options = new CompilerOptions(
       checkSdk: args['sdk-check'],
-      covariantGenerics: args['covariant-generics'],
       dumpInfo: args['dump-info'],
       dumpInfoFile: args['dump-info-file'],
       dumpSrcDir: args['dump-src-to'],
@@ -105,9 +94,17 @@ void main(List<String> argv) {
       formatOutput: args['dart-gen-fmt'],
       outputDart: args['dart-gen'],
       outputDir: args['out'],
+      covariantGenerics: args['covariant-generics'],
       relaxedCasts: args['relaxed-casts'],
-      useColors: useColors);
+      useColors: useColors,
+      useMultiPackage: args['use-multi-package'],
+      packageRoot: args['package-root'],
+      packagePaths: args['package-paths'].split(','));
 
-  var result = compile(filename, typeResolver, compilerOptions);
+  var typeResolver = shouldMockSdk
+      ? new TypeResolver.fromMock(mockSdkSources, options)
+      : new TypeResolver.fromDir(dartSdkPath, options);
+  var filename = args.rest.first;
+  var result = compile(filename, typeResolver, options);
   exit(result.failure ? 1 : 0);
 }

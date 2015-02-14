@@ -50,7 +50,12 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  var realSdk = new TypeResolver.fromDir(getSdkDir(arguments).path);
+  var options = new CompilerOptions(
+      outputDir: actualDir,
+      useColors: false,
+      outputDart: dartGen,
+      formatOutput: dartGen);
+  var realSdk = new TypeResolver.fromDir(getSdkDir(arguments).path, options);
 
   // Validate that old output is gone before running.
   // TODO(jmesserly): it'd be nice to do all cleanup here, including removing
@@ -66,11 +71,6 @@ main(arguments) {
     test('devc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      var options = new CompilerOptions(
-          outputDir: actualDir,
-          useColors: false,
-          outputDart: dartGen,
-          formatOutput: dartGen);
       var result = compile(filePath, realSdk, options);
       var success = !result.failure;
 
@@ -92,7 +92,6 @@ main(arguments) {
     // generated against a specific SDK version.
     // TODO(jmesserly): eventually we should track compiler messages.
     // For now we're just trying to get decent code generation.
-    var testSdk = new TypeResolver.fromDir(path.join(testDir, 'sdk'));
 
     var options = new CompilerOptions(
         outputDir: actualDir,
@@ -100,6 +99,7 @@ main(arguments) {
         forceCompile: true,
         outputDart: dartGen,
         formatOutput: dartGen);
+    var testSdk = new TypeResolver.fromDir(path.join(testDir, 'sdk'), options);
     var result = compile('dart:core', testSdk, options);
 
     var coreDir = dartGen ? 'dart.core' : 'core';

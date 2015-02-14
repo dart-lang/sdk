@@ -7,7 +7,9 @@ import 'package:ddc_analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart' show CheckerReporter;
+import 'package:ddc/src/utils.dart' show getMemberType;
 import 'rules.dart';
 
 /// Checks for overriding declarations of fields and methods. This is used to
@@ -17,7 +19,9 @@ class _OverrideChecker {
   bool _failure = false;
   final TypeRules _rules;
   final CheckerReporter _reporter;
-  _OverrideChecker(this._rules, this._reporter);
+  final bool _inferFromOverrides;
+  _OverrideChecker(this._rules, this._reporter, CompilerOptions options)
+      : _inferFromOverrides = options.inferFromOverrides;
 
   void check(ClassDeclaration node) {
     if (node.element.type.isObject) return;
@@ -242,28 +246,6 @@ class _OverrideChecker {
     }
   }
 
-  /// Looks up the declaration that matches [member] in [type] and returns it's
-  /// declared type.
-  FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
-    ExecutableElement baseMethod;
-    String memberName = member.name;
-
-    final isGetter = member is PropertyAccessorElement && member.isGetter;
-    final isSetter = member is PropertyAccessorElement && member.isSetter;
-
-    if (isGetter) {
-      assert(!isSetter);
-      // Look for getter or field.
-      baseMethod = type.getGetter(memberName);
-    } else if (isSetter) {
-      baseMethod = type.getSetter(memberName);
-    } else {
-      baseMethod = type.getMethod(memberName);
-    }
-    if (baseMethod == null) return null;
-    return _rules.elementType(baseMethod);
-  }
-
   /// Checks that [element] correctly overrides its corresponding member in
   /// [type]. Returns `true` if an override was found, that is, if [element] has
   /// a corresponding member in [type] that it overrides.
@@ -296,7 +278,7 @@ class _OverrideChecker {
 
     FunctionType subType = _rules.elementType(element);
     // TODO(vsm): Test for generic
-    FunctionType baseType = _getMemberType(type, element);
+    FunctionType baseType = getMemberType(type, element);
 
     if (baseType == null) return false;
     if (!_rules.isAssignable(subType, baseType)) {
@@ -324,7 +306,7 @@ class _OverrideChecker {
 
   bool _isInferableOverride(ExecutableElement element, AstNode node,
       FunctionType subType, FunctionType baseType) {
-    if (node == null) return false;
+    if (_inferFromOverrides || node == null) return false;
     final isGetter = element is PropertyAccessorElement && element.isGetter;
     if (isGetter && element.isSynthetic) {
       var field = node.parent.parent;
@@ -354,10 +336,11 @@ class CodeChecker extends RecursiveAstVisitor {
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
 
-  CodeChecker(TypeRules rules, CheckerReporter reporter)
+  CodeChecker(
+      TypeRules rules, CheckerReporter reporter, CompilerOptions options)
       : _rules = rules,
         _reporter = reporter,
-        _overrideChecker = new _OverrideChecker(rules, reporter);
+        _overrideChecker = new _OverrideChecker(rules, reporter, options);
 
   visitComment(Comment node) {
     // skip, no need to do typechecking inside comments (they may contain
