@@ -6,6 +6,7 @@ library library_names;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/util.dart';
 
 const desc =
     'DO name libraries and source files using lowercase_with_underscores.';
@@ -32,11 +33,6 @@ supports symbolic imports.
 * `library peg-parser;`
 ```
 ''';
-
-final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z]+))+$');
-
-bool isLowerCaseUnderScore(String id) =>
-    _lowerCaseUnderScore.hasMatch(id);
 
 class LibraryNames extends LintRule {
   LibraryNames()

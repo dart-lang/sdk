@@ -16,7 +16,7 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
-import 'package:linter/src/rules/library_names.dart';
+import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
@@ -253,7 +253,7 @@ defineRuleUnitTests() {
       good.forEach(
           (s) => test('"$s"', () => expect(isLowerCaseUnderScore(s), isTrue)));
 
-      var bad = ['Foo', 'fooBar', 'foo_Bar', 'foo_', '_f', 'F_B'];
+      var bad = ['Foo', 'fooBar', 'foo_Bar', 'foo_', '_f', 'F_B', 'JS', 'JSON'];
       bad.forEach(
           (s) => test('"$s"', () => expect(isLowerCaseUnderScore(s), isFalse)));
     });

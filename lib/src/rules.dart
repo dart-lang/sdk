@@ -8,6 +8,7 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/library_names.dart';
+import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
@@ -20,6 +21,7 @@ final Map<String, LintRule> ruleMap = {
   'camel_case_types': new CamelCaseTypes(),
   'empty_constructor_bodies': new EmptyConstructorBodies(),
   'library_names' : new LibraryNames(),
+  'library_prefixes' : new LibraryPrefixes(),
   'one_member_abstracts': new OneMemberAbstracts(),
   'super_goes_last': new SuperGoesLast(),
   'type_init_formals': new TypeInitFormals(),
