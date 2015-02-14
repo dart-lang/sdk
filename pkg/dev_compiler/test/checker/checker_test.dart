@@ -832,6 +832,18 @@ main() {
     });
   });
 
+  test('Function typing and subtyping: void', () {
+    testChecker({
+      '/main.dart': '''
+
+      class A {
+        void bar() => null;
+        void foo() => bar; // allowed
+      }
+   '''
+    });
+  });
+
   test('Closure wrapping of literals', () {
     testChecker({
       '/main.dart': '''

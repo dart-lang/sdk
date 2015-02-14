@@ -398,6 +398,9 @@ class RestrictedRules extends TypeRules {
   // Returns the error coercion if the types cannot be coerced
   // according to our current criteria.
   Coercion _coerceTo(DartType fromT, DartType toT, [bool wrap = false]) {
+    // We can use anything as void
+    if (toT.isVoid) return Coercion.identity(toT);
+
     // fromT <: toT, no coercion needed
     if (isSubTypeOf(fromT, toT)) return Coercion.identity(toT);
 
@@ -406,9 +409,6 @@ class RestrictedRules extends TypeRules {
     if (fromT.isDynamic && toT == provider.objectType) {
       return Coercion.identity(toT);
     }
-
-    // We can use anything as void
-    if (toT.isVoid) return Coercion.identity(toT);
 
     // For now, we always wrap closures.
     if (wrap && fromT is FunctionType && toT is FunctionType) {
