@@ -100,10 +100,10 @@ class Generator {
             <p>Group: $group</p>
             <p>Kind: $kind</p>
             <p>Maturity: $maturity</p>
-            <p class="view"><a href="https://github.com/dart-lang/dart_lint">View the Project on GitHub <small>dart-lang/dart_lint</small></a></p>
+            <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
                <li><a href="https://www.dartlang.org/articles/style-guide/">See the <strong>Style Guide</strong></a></li>
-               <li><a href="https://github.com/dart-lang/dart_lint">View On <strong>GitHub</strong></a></li>
+               <li><a href="http://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
             </ul>
          </header>
          <section>
@@ -135,7 +135,7 @@ rules are considered stable, while others may be marked **EXPERIMENTAL**
 to indicate that they are under review.
 
 These rules are under active development.  Feedback is 
-[welcome](https://github.com/dart-lang/dart_lint/issues)!
+[welcome](https://github.com/dart-lang/linter/issues)!
 ''';
 
 String get enumerateKinds => Kind.supported
@@ -184,13 +184,13 @@ class Indexer {
    <body>
       <div class="wrapper">
          <header>
-            <a href="http://dart-lang.github.io/dart_lint/">
+            <a href="http://dart-lang.github.io/linter/">
                <h1>Dart Lint</h1>
             </a>
             <p>Lint Rules</p>
-            <p class="view"><a href="https://github.com/dart-lang/dart_lint">View the Project on GitHub <small>dartlang/dart_lint</small></a></p>
+            <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dartlang/linter</small></a></p>
             <ul>
-               <li><a href="https://github.com/dart-lang/dart_lint">View On <strong>GitHub</strong></a></li>
+               <li><a href="https://github.com/dart-lang/linter">View On <strong>GitHub</strong></a></li>
             </ul>
          </header>
          <section>
