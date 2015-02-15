@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_computer.dart';
 import 'package:analysis_server/src/services/completion/combinator_computer.dart';
+import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
@@ -20,24 +21,24 @@ import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
 
-// Relevance highest to lowest
-const int DART_RELEVANCE_HIGH = 2000;
-const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
-const int DART_RELEVANCE_PARAMETER = 1059;
-const int DART_RELEVANCE_INHERITED_FIELD = 1058;
-const int DART_RELEVANCE_LOCAL_FIELD = 1058;
-const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
-const int DART_RELEVANCE_INHERITED_METHOD = 1057;
-const int DART_RELEVANCE_LOCAL_ACCESSOR = 1057;
-const int DART_RELEVANCE_LOCAL_METHOD = 1057;
-const int DART_RELEVANCE_LOCAL_FUNCTION = 1056;
-const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
-const int DART_RELEVANCE_KEYWORD = 1055;
+const int DART_RELEVANCE_COMMON_USAGE = 1200;
 const int DART_RELEVANCE_DEFAULT = 1000;
+const int DART_RELEVANCE_HIGH = 2000;
+const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
+const int DART_RELEVANCE_INHERITED_FIELD = 1058;
+const int DART_RELEVANCE_INHERITED_METHOD = 1057;
+const int DART_RELEVANCE_KEYWORD = 1055;
+const int DART_RELEVANCE_LOCAL_ACCESSOR = 1057;
+const int DART_RELEVANCE_LOCAL_FIELD = 1058;
+const int DART_RELEVANCE_LOCAL_FUNCTION = 1056;
+const int DART_RELEVANCE_LOCAL_METHOD = 1057;
+const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
+const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
 const int DART_RELEVANCE_LOW = 500;
+const int DART_RELEVANCE_PARAMETER = 1059;
 
 /**
  * The base class for computing code completion suggestions.
@@ -69,9 +70,10 @@ class DartCompletionManager extends CompletionManager {
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionComputer> computers;
+  CommonUsageComputer commonUsageComputer;
 
   DartCompletionManager(AnalysisContext context, this.searchEngine,
-      Source source, this.cache, [this.computers])
+      Source source, this.cache, [this.computers, this.commonUsageComputer])
       : super(context, source) {
     if (computers == null) {
       computers = [
@@ -81,6 +83,9 @@ class DartCompletionManager extends CompletionManager {
           new CombinatorComputer(),
           new ImportedComputer(),
           new InvocationComputer()];
+    }
+    if (commonUsageComputer == null) {
+      commonUsageComputer = new CommonUsageComputer();
     }
   }
 
@@ -141,6 +146,7 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
+      commonUsageComputer.computeFast(request);
       sendResults(request, todo.isEmpty);
       return todo;
     });
@@ -179,6 +185,7 @@ class DartCompletionManager extends CompletionManager {
               request.performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
+                commonUsageComputer.computeFull(request);
                 sendResults(request, last);
               }
             });

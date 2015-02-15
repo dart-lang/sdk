@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart' as protocol show Element,
     ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -450,7 +451,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         searchEngine,
         testSource,
         cache,
-        [computer]);
+        [computer],
+        new CommonUsageComputer({}));
     var result = _completionManager.computeFast(request);
     expect(request.replacementOffset, isNotNull);
     expect(request.replacementLength, isNotNull);
@@ -2493,6 +2495,19 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('X');
       assertNotSuggested('Object');
       assertNotSuggested('==');
+    });
+  }
+
+  test_new_instance() {
+    addTestSource('import "dart:math"; class A {x() {new Random().^}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationMethod('nextBool', 'Random', 'bool');
+      assertSuggestInvocationMethod('nextDouble', 'Random', 'double');
+      assertSuggestInvocationMethod('nextInt', 'Random', 'int');
+      assertNotSuggested('Random');
+      assertNotSuggested('Object');
+      assertNotSuggested('A');
     });
   }
 

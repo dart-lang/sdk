@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'arglist_computer_test.dart' as arglist_test;
 import 'combinator_computer_test.dart' as combinator_test;
+import 'common_usage_computer_test.dart' as common_usage_computer_test;
 import 'completion_computer_test.dart' as completion_computer_test;
 import 'completion_manager_test.dart' as completion_manager_test;
 import 'completion_target_test.dart' as completion_target_test;
@@ -23,6 +24,7 @@ main() {
   group('completion', () {
     arglist_test.main();
     combinator_test.main();
+    common_usage_computer_test.main();
     completion_computer_test.main();
     completion_manager_test.main();
     completion_target_test.main();

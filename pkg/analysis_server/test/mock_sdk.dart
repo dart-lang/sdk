@@ -108,6 +108,8 @@ library dart.async;
 import 'dart:math';
 
 class Future<T> {
+  factory Future.delayed(Duration duration, [T computation()]) => null;
+  factory Future.value([value]) => null;
   static Future wait(List<Future> futures) => null;
 }
 
@@ -143,7 +145,11 @@ num max(num a, num b) => 0;
 external double cos(num x);
 external double sin(num x);
 external double sqrt(num x);
-class Random {}
+class Random {
+  bool nextBool() => true;
+  double nextDouble() => 2.0;
+  int nextInt() => 1;
+}
 ''');
 
   static const _MockSdkLibrary LIB_HTML =

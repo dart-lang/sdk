@@ -158,7 +158,7 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Process a `completion.getSuggestions` request.
    */
-  Response processRequest(Request request) {
+  Response processRequest(Request request, [CompletionManager manager]) {
     performance = new CompletionPerformance();
     // extract params
     CompletionGetSuggestionsParams params =
@@ -168,7 +168,9 @@ class CompletionDomainHandler implements RequestHandler {
     AnalysisContext context = server.getAnalysisContext(params.file);
     Source source = server.getSource(params.file);
     recordRequest(performance, context, source, params.offset);
-    CompletionManager manager = completionManagerFor(context, source);
+    if (manager == null) {
+      manager = completionManagerFor(context, source);
+    }
     CompletionRequest completionRequest =
         new CompletionRequest(params.offset, performance);
     int notificationCount = 0;
