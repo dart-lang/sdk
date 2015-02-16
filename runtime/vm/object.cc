@@ -1084,7 +1084,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   const Class& stacktrace_cls = Class::Handle(isolate,
                                               Class::New<Stacktrace>());
-  RegisterClass(stacktrace_cls, Symbols::StackTrace(), core_lib);
+  RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
   pending_classes.Add(stacktrace_cls);
   // Super type set below, after Object is allocated.
 
