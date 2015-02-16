@@ -69,8 +69,7 @@ class ModelEmitter {
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
     fragments.skip(1).forEach((DeferredFragment deferredUnit) {
-      js.Expression ast =
-          emitDeferredFragment(deferredUnit, mainFragment.holders);
+      js.Expression ast = emitDeferredFragment(deferredUnit, program.holders);
       String code = js.prettyPrint(ast, compiler).getText();
       totalSize += code.length;
       compiler.outputProvider(deferredUnit.outputFileName, deferredExtension)
@@ -111,17 +110,17 @@ class ModelEmitter {
 
     Map<String, dynamic> holes =
       {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
-       'holders': emitHolders(fragment.holders),
-         'tearOff': buildTearOffCode(backend),
-         'parseFunctionDescriptor':
+       'holders': emitHolders(program.holders),
+       'tearOff': buildTearOffCode(backend),
+       'parseFunctionDescriptor':
            js.js.statement(parseFunctionDescriptorBoilerplate),
        'cyclicThrow':
-         backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
+           backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
        'outputContainsConstantList': program.outputContainsConstantList,
        'embeddedGlobals': emitEmbeddedGlobals(program),
        'constants': emitConstants(fragment.constants),
        'staticNonFinals':
-         emitStaticNonFinalFields(fragment.staticNonFinalFields),
+            emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
        'eagerClasses': emitEagerClassInitializations(fragment.libraries),
        'invokeMain': fragment.invokeMain,

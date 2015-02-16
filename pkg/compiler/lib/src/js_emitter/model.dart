@@ -15,6 +15,7 @@ import '../common.dart';
 
 class Program {
   final List<Fragment> fragments;
+  final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool outputContainsNativeClasses;
   final bool hasIsolateSupport;
@@ -30,6 +31,7 @@ class Program {
   final MetadataCollector _metadataCollector;
 
   Program(this.fragments,
+          this.holders,
           this.loadMap,
           this.typeToInterceptorMap,
           this._metadataCollector,
@@ -95,8 +97,7 @@ abstract class Fragment {
            this.staticLazilyInitializedFields,
            this.constants);
 
-  bool get isMainFragment => mainFragment == this;
-  MainFragment get mainFragment;
+  bool get isMainFragment;
 }
 
 /**
@@ -107,7 +108,6 @@ abstract class Fragment {
  */
 class MainFragment extends Fragment {
   final js.Statement invokeMain;
-  final List<Holder> holders;
 
   MainFragment(OutputUnit outputUnit,
                String outputFileName,
@@ -115,8 +115,7 @@ class MainFragment extends Fragment {
                List<Library> libraries,
                List<StaticField> staticNonFinalFields,
                List<StaticField> staticLazilyInitializedFields,
-               List<Constant> constants,
-               this.holders)
+               List<Constant> constants)
       : super(outputUnit,
               outputFileName,
               libraries,
@@ -124,22 +123,18 @@ class MainFragment extends Fragment {
               staticLazilyInitializedFields,
               constants);
 
-  MainFragment get mainFragment => this;
+  bool get isMainFragment => true;
 }
 
 /**
  * An output (file) for deferred code.
  */
 class DeferredFragment extends Fragment {
-  final MainFragment mainFragment;
   final String name;
-
-  List<Holder> get holders => mainFragment.holders;
 
   DeferredFragment(OutputUnit outputUnit,
                    String outputFileName,
                    this.name,
-                   this.mainFragment,
                    List<Library> libraries,
                    List<StaticField> staticNonFinalFields,
                    List<StaticField> staticLazilyInitializedFields,
@@ -150,6 +145,8 @@ class DeferredFragment extends Fragment {
               staticNonFinalFields,
               staticLazilyInitializedFields,
               constants);
+
+  bool get isMainFragment => false;
 }
 
 class Constant {

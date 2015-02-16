@@ -104,21 +104,24 @@ class ProgramBuilder {
     _unneededNativeClasses =
         _task.nativeEmitter.prepareNativeClasses(nativeClasses);
 
-    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
-    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
-        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
+    MainFragment mainFragment = _buildMainFragment(_registry.mainLibrariesMap);
+    Iterable<Fragment> deferredFragments =
+        _registry.deferredLibrariesMap.map(_buildDeferredFragment);
 
-    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
-    outputs[0] = mainOutput;
-    outputs.setAll(1, deferredOutputs);
+    List<Fragment> fragments = new List<Fragment>(_registry.librariesMapCount);
+    fragments[0] = mainFragment;
+    fragments.setAll(1, deferredFragments);
 
     _markEagerClasses();
 
     bool containsNativeClasses =
         nativeClasses.length != _unneededNativeClasses.length;
 
+    List<Holder> holders = _registry.holders.toList(growable: false);
+
     return new Program(
-        outputs,
+        fragments,
+        holders,
         _buildLoadMap(),
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
@@ -149,7 +152,7 @@ class ProgramBuilder {
     return stubGenerator.generateTypeToInterceptorMap();
   }
 
-  MainFragment _buildMainOutput(LibrariesMap librariesMap) {
+  MainFragment _buildMainFragment(LibrariesMap librariesMap) {
     // Construct the main output from the libraries and the registered holders.
     MainFragment result = new MainFragment(
         librariesMap.outputUnit,
@@ -158,8 +161,7 @@ class ProgramBuilder {
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
-        _buildConstants(librariesMap),
-        _registry.holders.toList(growable: false));
+        _buildConstants(librariesMap));
     _outputs[librariesMap.outputUnit] = result;
     return result;
   }
@@ -170,13 +172,11 @@ class ProgramBuilder {
     return generator.generateInvokeMain();
   }
 
-  DeferredFragment _buildDeferredOutput(MainFragment mainOutput,
-                                      LibrariesMap librariesMap) {
+  DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
     DeferredFragment result = new DeferredFragment(
         librariesMap.outputUnit,
         backend.deferredPartFileName(librariesMap.name, addExtension: false),
                                      librariesMap.name,
-        mainOutput,
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
@@ -213,6 +213,10 @@ class ProgramBuilder {
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = false;
     bool isLazy = false;
+
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a static field. (Note that the $ holder is already registered
+    // earlier).
     return new StaticField(element,
                            name, _registry.registerHolder(r'$'), code,
                            isFinal, isLazy);
@@ -245,6 +249,9 @@ class ProgramBuilder {
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = element.isFinal;
     bool isLazy = true;
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a static field. (Note that the $ holder is already registered
+    // earlier).
     return new StaticField(element,
                            name, _registry.registerHolder(r'$'), code,
                            isFinal, isLazy);
@@ -387,6 +394,8 @@ class ProgramBuilder {
 
     String name = namer.getNameOfClass(element);
     String holderName = namer.globalObjectFor(element);
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a class.
     Holder holder = _registry.registerHolder(holderName);
     bool isInstantiated =
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
@@ -554,6 +563,8 @@ class ProgramBuilder {
         new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
     Map<String, Set<ClassElement>> specializedGetInterceptors =
@@ -617,6 +628,8 @@ class ProgramBuilder {
         new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
     List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
@@ -649,6 +662,8 @@ class ProgramBuilder {
       callName = namer.invocationName(callSelector);
     }
 
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a static method.
     return new StaticDartMethod(element,
                                 name, _registry.registerHolder(holder), code,
                                 _generateParameterStubs(element, needsTearOff),
