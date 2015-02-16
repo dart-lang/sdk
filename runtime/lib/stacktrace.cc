@@ -10,27 +10,6 @@
 
 namespace dart {
 
-// Get a full stack trace.
-// Arg0: stack trace object.
-// Return value: String that represents the full stack trace.
-DEFINE_NATIVE_ENTRY(Stacktrace_getFullStacktrace, 1) {
-  const Stacktrace& trace =
-      Stacktrace::CheckedHandle(arguments->NativeArgAt(0));
-  return trace.FullStacktrace();
-}
-
-
-// Get a concise and pertinent stack trace.
-// Arg0: stack trace object.
-// Return value: String that represents the concise and pertinent stack trace.
-DEFINE_NATIVE_ENTRY(Stacktrace_getStacktrace, 1) {
-  const Stacktrace& trace =
-      Stacktrace::CheckedHandle(arguments->NativeArgAt(0));
-  intptr_t frame_index = 0;
-  return String::New(trace.ToCStringInternal(&frame_index));
-}
-
-
 static void IterateFrames(const GrowableObjectArray& code_list,
                           const GrowableObjectArray& pc_offset_list) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
