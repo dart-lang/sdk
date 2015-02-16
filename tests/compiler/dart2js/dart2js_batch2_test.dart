@@ -37,11 +37,10 @@ Future<Directory> createTempDir() {
 Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
-    Directory sunflowerDir = new Directory.fromUri(
-        Platform.script.resolve('../../../third_party/sunflower'));
-
-    print("Copying '${sunflowerDir.path}' to '${tmpDir.path}'.");
-    copyDirectory(sunflowerDir, tmpDir);
+    String newPath = path.join(directory.path, "dart2js_batch2_run.dart");
+    File source =
+        new File(Platform.script.resolve("dart2js_batch2_run.dart").path);
+    source.copySync(newPath);
   });
 }
 
@@ -60,14 +59,10 @@ Future launchDart2Js(_) {
 }
 
 Future runTests(Process process) {
-  String inFile = path.join(tmpDir.path, 'web/sunflower.dart');
+  String inFile = path.join(tmpDir.path, 'dart2js_batch2_run.dart');
   String outFile = path.join(tmpDir.path, 'out.js');
-  String outFile2 = path.join(tmpDir.path, 'out2.js');
 
   process.stdin.writeln('--out="$outFile" "$inFile"');
-  process.stdin.writeln('--out="$outFile2" "$inFile"');
-  process.stdin.writeln('too many arguments');
-  process.stdin.writeln(r'"non existing file.dart"');
   process.stdin.close();
   Future<String> output = process.stdout.transform(UTF8.decoder).join();
   Future<String> errorOut = process.stderr.transform(UTF8.decoder).join();
@@ -76,12 +71,7 @@ Future runTests(Process process) {
       String stdoutOutput = result[0];
       String stderrOutput = result[1];
 
-      Expect.equals(4, ">>> EOF STDERR".allMatches(stderrOutput).length);
-      Expect.equals(4, ">>>".allMatches(stderrOutput).length);
-
-      Expect.equals(2, ">>> TEST OK".allMatches(stdoutOutput).length);
-      Expect.equals(2, ">>> TEST FAIL".allMatches(stdoutOutput).length);
-      Expect.equals(4, ">>>".allMatches(stdoutOutput).length);
+      Expect.isFalse(stdoutOutput.contains("crashed"));
     });
 }
 

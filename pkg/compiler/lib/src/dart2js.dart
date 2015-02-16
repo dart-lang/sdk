@@ -654,6 +654,9 @@ var compileFunc = api.compile;
 
 Future<api.CompilationResult> internalMain(List<String> arguments) {
   Future onError(exception, trace) {
+    // If we are already trying to exit, just continue exiting.
+    if (exception == _EXIT_SIGNAL) throw exception;
+
     try {
       print('The compiler crashed: $exception');
     } catch (ignored) {
