@@ -3581,6 +3581,25 @@ class GenericState extends InstanceState {
     }
     return BoolState.from(this == rightOperand);
   }
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    List<String> fieldNames = _fieldMap.keys.toList();
+    fieldNames.sort();
+    bool first = true;
+    for (String fieldName in fieldNames) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write('; ');
+      }
+      buffer.write(fieldName);
+      buffer.write(' = ');
+      buffer.write(_fieldMap[fieldName]);
+    };
+    return buffer.toString();
+  }
 }
 
 /**
@@ -4594,6 +4613,23 @@ class ListState extends InstanceState {
     }
     return BoolState.from(this == rightOperand);
   }
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('[');
+    bool first = true;
+    _elements.forEach((DartObjectImpl element) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(', ');
+      }
+      buffer.write(element);
+    });
+    buffer.write(']');
+    return buffer.toString();
+  }
 }
 
 /**
@@ -4686,6 +4722,25 @@ class MapState extends InstanceState {
       return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.from(this == rightOperand);
+  }
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('{');
+    bool first = true;
+    _entries.forEach((DartObjectImpl key, DartObjectImpl value) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(', ');
+      }
+      buffer.write(key);
+      buffer.write(' = ');
+      buffer.write(value);
+    });
+    buffer.write('}');
+    return buffer.toString();
   }
 }
 

@@ -4,49 +4,90 @@
 
 library analysis_server.src.status.ast_writer;
 
-import 'dart:convert';
+import 'dart:collection';
 
-import 'package:analysis_server/src/get_handler.dart';
+import 'package:analysis_server/src/status/tree_writer.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A visitor that will produce an HTML representation of an AST structure.
  */
-class AstWriter extends UnifyingAstVisitor {
-  /**
-   * The buffer on which the HTML is to be written.
-   */
-  final StringBuffer buffer;
-
-  /**
-   * The current level of indentation.
-   */
-  int indentLevel = 0;
-
-  /**
-   * A list containing the exceptions that were caught while attempting to write
-   * out an AST structure.
-   */
-  List<CaughtException> exceptions = <CaughtException>[];
-
+class AstWriter extends UnifyingAstVisitor with TreeWriter {
   /**
    * Initialize a newly created element writer to write the HTML representation
    * of visited nodes on the given [buffer].
    */
-  AstWriter(this.buffer);
+  AstWriter(StringBuffer buffer) {
+    this.buffer = buffer;
+  }
 
   @override
   void visitNode(AstNode node) {
     _writeNode(node);
+    writeProperties(_computeProperties(node));
     indentLevel++;
     try {
       node.visitChildren(this);
     } finally {
       indentLevel--;
     }
+  }
+
+  /**
+   * Write a representation of the properties of the given [node] to the buffer.
+   */
+  Map<String, Object> _computeProperties(AstNode node) {
+    Map<String, Object> properties = new HashMap<String, Object>();
+
+    properties['name'] = _getName(node);
+    if (node is BinaryExpression) {
+      properties['static element'] = node.staticElement;
+      properties['static type'] = node.staticType;
+      properties['propagated element'] = node.propagatedElement;
+      properties['propagated type'] = node.propagatedType;
+    } else if (node is CompilationUnit) {
+      properties['element'] = node.element;
+    } else if (node is ExportDirective) {
+      properties['element'] = node.element;
+      properties['source'] = node.source;
+    } else if (node is FunctionExpressionInvocation) {
+      properties['static element'] = node.staticElement;
+      properties['static type'] = node.staticType;
+      properties['propagated element'] = node.propagatedElement;
+      properties['propagated type'] = node.propagatedType;
+    } else if (node is ImportDirective) {
+      properties['element'] = node.element;
+      properties['source'] = node.source;
+    } else if (node is LibraryDirective) {
+      properties['element'] = node.element;
+    } else if (node is PartDirective) {
+      properties['element'] = node.element;
+      properties['source'] = node.source;
+    } else if (node is PartOfDirective) {
+      properties['element'] = node.element;
+    } else if (node is PostfixExpression) {
+      properties['static element'] = node.staticElement;
+      properties['static type'] = node.staticType;
+      properties['propagated element'] = node.propagatedElement;
+      properties['propagated type'] = node.propagatedType;
+    } else if (node is PrefixExpression) {
+      properties['static element'] = node.staticElement;
+      properties['static type'] = node.staticType;
+      properties['propagated element'] = node.propagatedElement;
+      properties['propagated type'] = node.propagatedType;
+    } else if (node is SimpleIdentifier) {
+      properties['static element'] = node.staticElement;
+      properties['static type'] = node.staticType;
+      properties['propagated element'] = node.propagatedElement;
+      properties['propagated type'] = node.propagatedType;
+    } else if (node is SimpleStringLiteral) {
+      properties['value'] = node.value;
+    } else if (node is Expression) {
+      properties['static type'] = node.staticType;
+      properties['propagated type'] = node.propagatedType;
+    }
+
+    return properties;
   }
 
   /**
@@ -109,23 +150,11 @@ class AstWriter extends UnifyingAstVisitor {
     return buffer.toString();
   }
 
-  void _indent([int extra = 0]) {
-    for (int i = 0; i < indentLevel; i++) {
-      buffer.write('&#x250A;&nbsp;&nbsp;&nbsp;');
-    }
-    if (extra > 0) {
-      buffer.write('&#x250A;&nbsp;&nbsp;&nbsp;');
-      for (int i = 1; i < extra; i++) {
-        buffer.write('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
-      }
-    }
-  }
-
   /**
    * Write a representation of the given [node] to the buffer.
    */
   void _writeNode(AstNode node) {
-    _indent();
+    indent();
     buffer.write(node.runtimeType);
     buffer.write(' <span style="color:gray">[');
     buffer.write(node.offset);
@@ -133,90 +162,5 @@ class AstWriter extends UnifyingAstVisitor {
     buffer.write(node.offset + node.length - 1);
     buffer.write(']</span>');
     buffer.write('<br>');
-    _writeProperty('name', _getName(node));
-    if (node is BinaryExpression) {
-      _writeProperty('static element', node.staticElement);
-      _writeProperty('static type', node.staticType);
-      _writeProperty('propagated element', node.propagatedElement);
-      _writeProperty('propagated type', node.propagatedType);
-    } else if (node is CompilationUnit) {
-      _writeProperty("element", node.element);
-    } else if (node is ExportDirective) {
-      _writeProperty("element", node.element);
-      _writeProperty("source", node.source);
-    } else if (node is FunctionExpressionInvocation) {
-      _writeProperty('static element', node.staticElement);
-      _writeProperty('static type', node.staticType);
-      _writeProperty('propagated element', node.propagatedElement);
-      _writeProperty('propagated type', node.propagatedType);
-    } else if (node is ImportDirective) {
-      _writeProperty("element", node.element);
-      _writeProperty("source", node.source);
-    } else if (node is LibraryDirective) {
-      _writeProperty("element", node.element);
-    } else if (node is PartDirective) {
-      _writeProperty("element", node.element);
-      _writeProperty("source", node.source);
-    } else if (node is PartOfDirective) {
-      _writeProperty("element", node.element);
-    } else if (node is PostfixExpression) {
-      _writeProperty('static element', node.staticElement);
-      _writeProperty('static type', node.staticType);
-      _writeProperty('propagated element', node.propagatedElement);
-      _writeProperty('propagated type', node.propagatedType);
-    } else if (node is PrefixExpression) {
-      _writeProperty('static element', node.staticElement);
-      _writeProperty('static type', node.staticType);
-      _writeProperty('propagated element', node.propagatedElement);
-      _writeProperty('propagated type', node.propagatedType);
-    } else if (node is SimpleIdentifier) {
-      _writeProperty('static element', node.staticElement);
-      _writeProperty('static type', node.staticType);
-      _writeProperty('propagated element', node.propagatedElement);
-      _writeProperty('propagated type', node.propagatedType);
-    } else if (node is SimpleStringLiteral) {
-      _writeProperty("value", node.value);
-    } else if (node is Expression) {
-      _writeProperty('static type', node.staticType);
-      _writeProperty('propagated type', node.propagatedType);
-    }
-  }
-
-  /**
-   * Write the [value] of the property with the given [name].
-   */
-  void _writeProperty(String name, Object value) {
-    if (value != null) {
-      String valueString = null;
-      try {
-        if (value is Source) {
-          valueString = 'Source (uri="${value.uri}", path="${value.fullName}")';
-        } else {
-          valueString = value.toString();
-        }
-      } catch (exception, stackTrace) {
-        exceptions.add(new CaughtException(exception, stackTrace));
-      }
-      _indent(2);
-      buffer.write('$name = ');
-      if (valueString == null) {
-        buffer.write('<span style="color: #FF0000">');
-        buffer.write(HTML_ESCAPE.convert(value.runtimeType.toString()));
-        buffer.write('</span>');
-      } else {
-        buffer.write(HTML_ESCAPE.convert(valueString));
-        if (value is Element && value is! LibraryElement) {
-          String name = value.name;
-          if (name != null) {
-            buffer.write('&nbsp;&nbsp;[');
-            buffer.write(GetHandler.makeLink(GetHandler.INDEX_ELEMENT_BY_NAME, {
-              'name': name
-            }, 'search index'));
-            buffer.write(']');
-          }
-        }
-      }
-      buffer.write('<br>');
-    }
   }
 }
