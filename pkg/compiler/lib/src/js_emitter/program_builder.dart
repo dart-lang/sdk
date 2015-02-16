@@ -209,6 +209,9 @@ class ProgramBuilder {
   StaticField _buildStaticField(Element element) {
     JavaScriptConstantCompiler handler = backend.constants;
     ConstantValue initialValue = handler.getInitialValueFor(element).value;
+    // TODO(zarah): The holder should not be registered during building of
+    // a static field.
+    _registry.registerHolder(namer.globalObjectForConstant(initialValue));
     js.Expression code = _task.emitter.constantReference(initialValue);
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = false;
