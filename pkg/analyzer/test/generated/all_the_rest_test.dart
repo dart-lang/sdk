@@ -2401,6 +2401,35 @@ class ContentCacheTest {
 
 
 @reflectiveTest
+class CustomUriResolverTest {
+  void test_creation() {
+    expect(new CustomUriResolver({}), isNotNull);
+  }
+
+  void test_resolve_unknown_uri() {
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': '/path/to/library.dart',
+    });
+    Source result = resolver.resolveAbsolute(
+        parseUriWithException("custom:non_library"));
+    expect(result, isNull);
+  }
+
+  void test_resolve_uri() {
+    String path =
+        FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': path,
+    });
+    Source result = resolver.resolveAbsolute(
+        parseUriWithException("custom:library"));
+    expect(result, isNotNull);
+    expect(result.fullName, path);
+  }
+}
+
+
+@reflectiveTest
 class DartObjectImplTest extends EngineTestCase {
   TypeProvider _typeProvider = new TestTypeProvider();
 
@@ -6169,6 +6198,48 @@ class ElementBuilderTest extends EngineTestCase {
     expect(variable.setter, isNotNull);
   }
 
+  void test_visitVariableDeclaration_top_const_hasInitializer() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String variableName = "v";
+    VariableDeclaration variableDeclaration =
+        AstFactory.variableDeclaration2(variableName, AstFactory.integer(42));
+    AstFactory.variableDeclarationList2(Keyword.CONST, [variableDeclaration]);
+    variableDeclaration.accept(builder);
+    List<TopLevelVariableElement> variables = holder.topLevelVariables;
+    expect(variables, hasLength(1));
+    TopLevelVariableElement variable = variables[0];
+    expect(variable, new isInstanceOf<ConstTopLevelVariableElementImpl>());
+    expect(variable.initializer, isNotNull);
+    expect(variable.name, variableName);
+    expect(variable.isConst, isTrue);
+    expect(variable.isFinal, isFalse);
+    expect(variable.isSynthetic, isFalse);
+    expect(variable.getter, isNotNull);
+    expect(variable.setter, isNull);
+  }
+
+  void test_visitVariableDeclaration_top_final() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String variableName = "v";
+    VariableDeclaration variableDeclaration =
+        AstFactory.variableDeclaration2(variableName, null);
+    AstFactory.variableDeclarationList2(Keyword.FINAL, [variableDeclaration]);
+    variableDeclaration.accept(builder);
+    List<TopLevelVariableElement> variables = holder.topLevelVariables;
+    expect(variables, hasLength(1));
+    TopLevelVariableElement variable = variables[0];
+    expect(variable, isNotNull);
+    expect(variable.initializer, isNull);
+    expect(variable.name, variableName);
+    expect(variable.isConst, isFalse);
+    expect(variable.isFinal, isTrue);
+    expect(variable.isSynthetic, isFalse);
+    expect(variable.getter, isNotNull);
+    expect(variable.setter, isNull);
+  }
+
   void _useParameterInMethod(FormalParameter formalParameter, int blockOffset,
       int blockEnd) {
     Block block = AstFactory.block();
@@ -6793,7 +6864,6 @@ class ErrorReporterTest extends EngineTestCase {
   }
 }
 
-
 @reflectiveTest
 class ErrorSeverityTest extends EngineTestCase {
   void test_max_error_error() {
@@ -7352,6 +7422,7 @@ class ExitDetectorTest extends ParserTestCase {
   }
 }
 
+
 /**
  * Tests for the [ExitDetector] that require that the AST be resolved.
  *
@@ -7725,35 +7796,6 @@ class FileUriResolverTest {
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
     expect(result, isNull);
-  }
-}
-
-
-@reflectiveTest
-class CustomUriResolverTest {
-  void test_creation() {
-    expect(new CustomUriResolver({}), isNotNull);
-  }
-
-  void test_resolve_unknown_uri() {
-    UriResolver resolver = new CustomUriResolver({
-      'custom:library': '/path/to/library.dart',
-    });
-    Source result = resolver.resolveAbsolute(
-        parseUriWithException("custom:non_library"));
-    expect(result, isNull);
-  }
-
-  void test_resolve_uri() {
-    String path =
-        FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
-    UriResolver resolver = new CustomUriResolver({
-      'custom:library': path,
-    });
-    Source result = resolver.resolveAbsolute(
-        parseUriWithException("custom:library"));
-    expect(result, isNotNull);
-    expect(result.fullName, path);
   }
 }
 

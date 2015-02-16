@@ -3192,7 +3192,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       getter.getter = true;
       _currentHolder.addAccessor(getter);
       variable.getter = getter;
-      if (!isFinal) {
+      if (!isConst && !isFinal) {
         PropertyAccessorElementImpl setter =
             new PropertyAccessorElementImpl.forVariable(variable);
         setter.setter = true;
