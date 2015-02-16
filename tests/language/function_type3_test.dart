@@ -5,10 +5,10 @@
 import "package:expect/expect.dart";
 
 class A<T> {
-  @NoInlining()
+  @NoInline()
   A();
 
-  @NoInlining()
+  @NoInline()
   foo() => new B<T>();
 }
 
