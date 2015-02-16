@@ -2574,7 +2574,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     if (type.isMalformed) {
       registerBackendStaticInvocation(backend.getThrowTypeError(), registry);
     }
-    if (!type.treatAsRaw || type.containsTypeVariables) {
+    if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
       // TODO(johnniwinther): Investigate why this is needed.
       registerBackendStaticInvocation(
           backend.getSetRuntimeTypeInfo(), registry);
