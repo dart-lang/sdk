@@ -1337,7 +1337,7 @@ class SsaBuilder extends ResolvedVisitor {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(element)) {
-        return InlineWeeder.canBeInlined(function.node, -1, false);
+        return InlineWeeder.canBeInlined(function, -1, false);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
       // case we miss my doing nothing is inlining very simple constructors
@@ -1364,7 +1364,7 @@ class SsaBuilder extends ResolvedVisitor {
 
       if (backend.functionsToAlwaysInline.contains(function)) {
         // Inline this function regardless of it's size.
-        assert(InlineWeeder.canBeInlined(function.node, -1, false,
+        assert(InlineWeeder.canBeInlined(function, -1, false,
                                          allowLoops: true));
         return true;
       }
@@ -1387,9 +1387,8 @@ class SsaBuilder extends ResolvedVisitor {
         useMaxInliningNodes = false;
       }
       bool canInline;
-      ast.FunctionExpression functionNode = function.node;
       canInline = InlineWeeder.canBeInlined(
-          functionNode, maxInliningNodes, useMaxInliningNodes);
+          function, maxInliningNodes, useMaxInliningNodes);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -6451,12 +6450,13 @@ class InlineWeeder extends ast.Visitor {
                this.useMaxInliningNodes,
                this.allowLoops);
 
-  static bool canBeInlined(ast.FunctionExpression functionExpression,
+  static bool canBeInlined(FunctionElement function,
                            int maxInliningNodes,
                            bool useMaxInliningNodes,
                            {bool allowLoops: false}) {
     InlineWeeder weeder =
         new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
+    ast.FunctionExpression functionExpression = function.node;
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);

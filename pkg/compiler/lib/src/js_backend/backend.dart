@@ -2305,6 +2305,10 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
+    if (element.isFunction && annotations.noInline(element)) {
+      inlineCache.markAsNonInlinable(element);
+    }
+
     LibraryElement library = element.library;
     if (!library.isPlatformLibrary && !library.canUseNative) return;
     bool hasNoInline = false;
@@ -2430,20 +2434,20 @@ class Annotations {
   static final Uri PACKAGE_EXPECT =
       new Uri(scheme: 'package', path: 'expect/expect.dart');
 
-  ClassElement expectNoInliningClass;
+  ClassElement expectNoInlineClass;
   ClassElement expectTrustTypeAnnotationsClass;
   ClassElement expectAssumeDynamicClass;
 
   void onLibraryScanned(LibraryElement library) {
     if (library.canonicalUri == PACKAGE_EXPECT) {
-      expectNoInliningClass = library.find('NoInlining');
+      expectNoInlineClass = library.find('NoInline');
       expectTrustTypeAnnotationsClass = library.find('TrustTypeAnnotations');
       expectAssumeDynamicClass = library.find('AssumeDynamic');
-      if (expectNoInliningClass == null ||
+      if (expectNoInlineClass == null ||
           expectTrustTypeAnnotationsClass == null ||
           expectAssumeDynamicClass == null) {
         // This is not the package you're looking for.
-        expectNoInliningClass = null;
+        expectNoInlineClass = null;
         expectTrustTypeAnnotationsClass = null;
         expectAssumeDynamicClass = null;
       }
@@ -2451,8 +2455,9 @@ class Annotations {
   }
 
   /// Returns `true` if inlining is disabled for [element].
-  bool noInlining(Element element) {
-    return _hasAnnotation(element, expectNoInliningClass);
+  bool noInline(Element element) {
+    // TODO(floitsch): restrict to test directory.
+    return _hasAnnotation(element, expectNoInlineClass);
   }
 
   /// Returns `true` if parameter and returns types should be trusted for

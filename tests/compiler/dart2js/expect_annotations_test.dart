@@ -24,11 +24,11 @@ int methodAssumeDynamic(String arg) => arg.length;
 @TrustTypeAnnotations()
 int methodTrustTypeAnnotations(String arg) => arg.length;
 
-@NoInlining()
-int methodNoInlining(String arg) => arg.length;
+@NoInline()
+int methodNoInline(String arg) => arg.length;
 
-@NoInlining() @TrustTypeAnnotations()
-int methodNoInliningTrustTypeAnnotations(String arg) => arg.length;
+@NoInline() @TrustTypeAnnotations()
+int methodNoInlineTrustTypeAnnotations(String arg) => arg.length;
 
 @AssumeDynamic() @TrustTypeAnnotations()
 int methodAssumeDynamicTrustTypeAnnotations(String arg) => arg.length;
@@ -39,9 +39,9 @@ void main(List<String> args) {
   print(methodAssumeDynamic('foo'));
   print(methodTrustTypeAnnotations(42));
   print(methodTrustTypeAnnotations("fourtyTwo"));
-  print(methodNoInlining('bar'));
-  print(methodNoInliningTrustTypeAnnotations(42));
-  print(methodNoInliningTrustTypeAnnotations("fourtyTwo"));
+  print(methodNoInline('bar'));
+  print(methodNoInlineTrustTypeAnnotations(42));
+  print(methodNoInlineTrustTypeAnnotations("fourtyTwo"));
   print(methodAssumeDynamicTrustTypeAnnotations(null));
 }
 """
@@ -52,8 +52,8 @@ main() {
   asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     JavaScriptBackend backend = compiler.backend;
-    Expect.isNotNull(backend.annotations.expectNoInliningClass,
-        'NoInliningClass is unresolved.');
+    Expect.isNotNull(backend.annotations.expectNoInlineClass,
+        'NoInlineClass is unresolved.');
     Expect.isNotNull(backend.annotations.expectTrustTypeAnnotationsClass,
         'TrustTypeAnnotations is unresolved.');
     Expect.isNotNull(backend.annotations.expectAssumeDynamicClass,
@@ -74,7 +74,7 @@ main() {
     }
 
     void test(String name,
-              {bool expectNoInlining: false,
+              {bool expectNoInline: false,
                bool expectTrustTypeAnnotations: false,
                TypeMask expectedParameterType: null,
                TypeMask expectedReturnType: null,
@@ -82,9 +82,9 @@ main() {
        Element method = compiler.mainApp.find(name);
        Expect.isNotNull(method);
        Expect.equals(
-           expectNoInlining,
-           backend.annotations.noInlining(method),
-           "Unexpected annotation of @NoInlining on '$method'.");
+           expectNoInline,
+           backend.annotations.noInline(method),
+           "Unexpected annotation of @NoInline on '$method'.");
        Expect.equals(
            expectTrustTypeAnnotations,
            backend.annotations.trustTypeAnnotations(method),
@@ -112,9 +112,9 @@ main() {
     test('methodTrustTypeAnnotations',
         expectTrustTypeAnnotations: true,
         expectedParameterType: jsStringType);
-    test('methodNoInlining', expectNoInlining: true);
-    test('methodNoInliningTrustTypeAnnotations',
-         expectNoInlining: true,
+    test('methodNoInline', expectNoInline: true);
+    test('methodNoInlineTrustTypeAnnotations',
+         expectNoInline: true,
          expectTrustTypeAnnotations: true,
          expectedParameterType: jsStringType,
          expectedReturnType: jsIntType);
