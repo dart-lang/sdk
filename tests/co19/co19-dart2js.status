@@ -3650,6 +3650,7 @@ LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # Please triage t
 LayoutTests/fast/loader/about-blank-hash-change_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/loader/hashchange-event-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/loader/onhashchange-attribute-listeners_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/loader/scroll-position-restored-on-back_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: RuntimeError # Please triage this failure
@@ -3699,6 +3700,7 @@ LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # Pleas
 LayoutTests/fast/replaced/container-width-zero_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/replaced/preferred-widths_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-height-text-controls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-width_t01: RuntimeError # Please triage this failure
@@ -6475,7 +6477,7 @@ LayoutTests/fast/events/scoped/editing-commands_t01: RuntimeError # Please triag
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/selectstart-prevent-selectall_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/submit-reset-nested-bubble_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/events/wheelevent-constructor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/eventsource/eventsource-attribute-listeners_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/eventsource/eventsource-constructor_t01: RuntimeError # Please triage this failure
@@ -7948,7 +7950,7 @@ LayoutTests/fast/css/link-alternate-stylesheet-2_t01: RuntimeError # Please tria
 LayoutTests/fast/css/link-alternate-stylesheet-3_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-alternate-stylesheet-4_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-alternate-stylesheet-5_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/link-disabled-attr-parser_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/link-disabled-attr-parser_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/list-item-text-align_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/margin-start-end_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/max-device-aspect-ratio_t01: Pass, RuntimeError # Please triage this failure
