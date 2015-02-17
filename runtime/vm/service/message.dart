@@ -34,6 +34,20 @@ class Message {
     params.addAll(rpcParams);
   }
 
+  static String _methodNameFromUri(Uri uri) {
+    if (uri == null) {
+      return '';
+    }
+    if (uri.pathSegments.length == 0) {
+      return '';
+    }
+    return uri.pathSegments[0];
+  }
+
+  Message.fromUri(Uri uri) : method = _methodNameFromUri(uri) {
+    params.addAll(uri.queryParameters);
+  }
+
   dynamic toJson() {
     return {
       'path': path,

@@ -655,6 +655,7 @@ Dart_Handle ServiceIsolate::GetSource(const char* name) {
     }
     i++;
   }
+  FATAL1("vm-service: Could not find embedded source file: %s ", name);
   return Dart_Null();
 }
 
