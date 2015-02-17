@@ -58,6 +58,8 @@ const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";
 const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
 const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
+const ARGUMENT_COUNT_PROPERTY = r"$argumentCount";
+const DEFAULT_VALUES_PROPERTY = r"$defaultValues";
 
 /// Returns the type given the name of a class.
 /// This function is called by the runtime when computing rti.

@@ -24,8 +24,11 @@ import 'js_emitter.dart' show
     RuntimeTypeGenerator,
     TypeTestProperties;
 
+import '../elements/elements.dart' show ParameterElement;
+
 import '../universe/universe.dart' show Universe;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../constants/expressions.dart' show ConstantExpression, ConstantValue;
 
 part 'registry.dart';
 
@@ -461,6 +464,26 @@ class ProgramBuilder {
     }
   }
 
+  /* Map | List */ _computeParameterDefaultValues(FunctionSignature signature) {
+    var /* Map | List */ optionalParameterDefaultValues;
+    if (signature.optionalParametersAreNamed) {
+      optionalParameterDefaultValues = new Map<String, ConstantValue>();
+      signature.forEachOptionalParameter((ParameterElement parameter) {
+        ConstantExpression def =
+            backend.constants.getConstantForVariable(parameter);
+        optionalParameterDefaultValues[parameter.name] = def.value;
+      });
+    } else {
+      optionalParameterDefaultValues = <ConstantValue>[];
+      signature.forEachOptionalParameter((ParameterElement parameter) {
+        ConstantExpression def =
+            backend.constants.getConstantForVariable(parameter);
+        optionalParameterDefaultValues.add(def.value);
+      });
+    }
+    return optionalParameterDefaultValues;
+  }
+
   DartMethod _buildMethod(FunctionElement element) {
     String name = namer.getNameOfInstanceMember(element);
     js.Expression code = backend.generatedCode[element];
@@ -521,11 +544,22 @@ class ProgramBuilder {
       memberType = element.type;
     }
 
+    int requiredParameterCount;
+    var /* List | Map */ optionalParameterDefaultValues;
+    if (canBeApplied || canBeReflected) {
+      FunctionSignature signature = element.functionSignature;
+      requiredParameterCount = signature.requiredParameterCount;
+      optionalParameterDefaultValues =
+          _computeParameterDefaultValues(signature);
+    }
+
     return new InstanceMethod(element, name, code,
         _generateParameterStubs(element, canTearOff), callName, memberType,
         needsTearOff: canTearOff, tearOffName: tearOffName,
         isClosure: isClosure, aliasName: aliasName,
-        canBeApplied: canBeApplied, canBeReflected: canBeReflected);
+        canBeApplied: canBeApplied, canBeReflected: canBeReflected,
+        requiredParameterCount: requiredParameterCount,
+        optionalParameterDefaultValues: optionalParameterDefaultValues);
   }
 
   List<ParameterStubMethod> _generateParameterStubs(FunctionElement element,
@@ -665,6 +699,15 @@ class ProgramBuilder {
       callName = namer.invocationName(callSelector);
     }
 
+    int requiredParameterCount;
+    var /* List | Map */ optionalParameterDefaultValues;
+    if (canBeApplied || canBeReflected) {
+      FunctionSignature signature = element.functionSignature;
+      requiredParameterCount = signature.requiredParameterCount;
+      optionalParameterDefaultValues =
+          _computeParameterDefaultValues(signature);
+    }
+
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static method.
     return new StaticDartMethod(element,
@@ -674,7 +717,10 @@ class ProgramBuilder {
                                 needsTearOff: needsTearOff,
                                 tearOffName: tearOffName,
                                 canBeApplied: canBeApplied,
-                                canBeReflected: canBeReflected);
+                                canBeReflected: canBeReflected,
+                                requiredParameterCount: requiredParameterCount,
+                                optionalParameterDefaultValues:
+                                  optionalParameterDefaultValues);
   }
 
   void _registerConstants(OutputUnit outputUnit,

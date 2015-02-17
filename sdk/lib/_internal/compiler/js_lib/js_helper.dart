@@ -1043,6 +1043,68 @@ class Primitives {
             namedArgumentList));
   }
 
+  static applyFunctionNewEmitter(Function function,
+                                 List positionalArguments,
+                                 Map<String, dynamic> namedArguments) {
+    if (namedArguments == null) {
+      int requiredParameterCount = JS('int', r'#[#]', function,
+          JS_GET_NAME("REQUIRED_PARAMETER_PROPERTY"));
+      int argumentCount = positionalArguments.length;
+      if (argumentCount < requiredParameterCount) {
+        return functionNoSuchMethod(function, positionalArguments, null);
+      }
+      String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
+      var jsStub = JS('var', r'#[#]', function, selectorName);
+      if (jsStub == null) {
+        // Do a dynamic call.
+        var interceptor = getInterceptor(function);
+        var jsFunction = JS('', '#[#]', interceptor,
+            JS_GET_NAME('CALL_CATCH_ALL'));
+        var defaultValues = JS('var', r'#[#]', function,
+            JS_GET_NAME("DEFAULT_VALUES_PROPERTY"));
+        if (!JS('bool', '# instanceof Array', defaultValues)) {
+          // The function expects named arguments!
+          return functionNoSuchMethod(function, positionalArguments, null);
+        }
+        int defaultsLength = JS('int', "#.length", defaultValues);
+        int maxArguments = requiredParameterCount + defaultsLength;
+        if (argumentCount > maxArguments) {
+          // The function expects less arguments!
+          return functionNoSuchMethod(function, positionalArguments, null);
+        }
+        List arguments = new List.from(positionalArguments);
+        List missingDefaults = JS('JSArray', '#.slice(#)', defaultValues,
+            argumentCount - requiredParameterCount);
+        arguments.addAll(missingDefaults);
+        return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+      }
+      return JS('var', '#.apply(#, #)', jsStub, function, positionalArguments);
+    } else {
+      var interceptor = getInterceptor(function);
+      var jsFunction = JS('', '#[#]', interceptor,
+          JS_GET_NAME('CALL_CATCH_ALL'));
+      var defaultValues = JS('JSArray', r'#[#]', function,
+          JS_GET_NAME("DEFAULT_VALUES_PROPERTY"));
+      List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
+      List arguments = new List.from(positionalArguments);
+      int used = 0;
+      for (String key in keys) {
+        var value = namedArguments[key];
+        if (value != null) {
+          used++;
+          arguments.add(value);
+        } else {
+          arguments.add(JS('var', r'#[#]', defaultValues, key));
+        }
+      }
+      if (used != namedArguments.length) {
+        return functionNoSuchMethod(function, positionalArguments,
+            namedArguments);
+      }
+      return JS('var', r'#.apply(#, #)', jsFunction, function, arguments);
+    }
+  }
+
   static applyFunction(Function function,
                        List positionalArguments,
                        Map<String, dynamic> namedArguments) {
@@ -1110,7 +1172,7 @@ class Primitives {
     // TODO(ahe): The following code can be shared with
     // JsInstanceMirror.invoke.
     var interceptor = getInterceptor(function);
-    var jsFunction = JS('', '#["call*"]', interceptor);
+    var jsFunction = JS('', '#[#]', interceptor, JS_GET_NAME('CALL_CATCH_ALL'));
 
     if (jsFunction == null) {
       return functionNoSuchMethod(
@@ -1994,7 +2056,8 @@ abstract class Closure implements Function {
     // through the namer.
     var function = JS('', '#[#]', functions, 0);
     String name = JS('String|Null', '#.\$stubName', function);
-    String callName = JS('String|Null', '#.\$callName', function);
+    String callName = JS('String|Null', '#[#]', function,
+        JS_GET_NAME("CALL_NAME_PROPERTY"));
 
     var functionType;
     if (reflectionInfo is List) {
@@ -2096,14 +2159,19 @@ abstract class Closure implements Function {
     JS('', '#[#] = #', prototype, callName, trampoline);
     for (int i = 1; i < functions.length; i++) {
       var stub = functions[i];
-      var stubCallName = JS('String|Null', '#.\$callName', stub);
+      var stubCallName = JS('String|Null', '#[#]', stub,
+          JS_GET_NAME("CALL_NAME_PROPERTY"));
       if (stubCallName != null) {
         JS('', '#[#] = #', prototype, stubCallName,
            isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
       }
     }
 
-    JS('', '#["call*"] = #', prototype, trampoline);
+    JS('', '#[#] = #', prototype, JS_GET_NAME('CALL_CATCH_ALL'), trampoline);
+    String reqArgProperty = JS_GET_NAME("REQUIRED_PARAMETER_PROPERTY");
+    String defValProperty = JS_GET_NAME("DEFAULT_VALUES_PROPERTY");
+    JS('', '#.# = #.#', prototype, reqArgProperty, function, reqArgProperty);
+    JS('', '#.# = #.#', prototype, defValProperty, function, defValProperty);
 
     return constructor;
   }
