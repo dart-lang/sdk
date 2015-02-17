@@ -25,12 +25,13 @@ class SsaFunctionCompiler implements FunctionCompiler {
       JavaScriptBackend backend = builder.backend;
 
       AsyncRewriter rewriter = null;
+
       if (element.asyncMarker == AsyncMarker.ASYNC) {
         rewriter = new AsyncRewriter(
             backend.compiler,
             backend.compiler.currentElement,
-            thenHelper:
-                backend.emitter.staticFunctionAccess(backend.getThenHelper()),
+            asyncHelper:
+                backend.emitter.staticFunctionAccess(backend.getAsyncHelper()),
             newCompleter: backend.emitter.staticFunctionAccess(
                 backend.getCompleterConstructor()),
             safeVariableName: backend.namer.safeVariableName);
@@ -44,6 +45,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.getSyncStarIterableConstructor()),
             yieldStarExpression: backend.emitter.staticFunctionAccess(
                 backend.getYieldStar()),
+            uncaughtErrorExpression: backend.emitter.staticFunctionAccess(
+                backend.getSyncStarUncaughtError()),
             safeVariableName: backend.namer.safeVariableName);
       }
       else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
@@ -51,7 +54,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
             backend.compiler,
             backend.compiler.currentElement,
             streamHelper: backend.emitter.staticFunctionAccess(
-                backend.getStreamHelper()),
+                backend.getAsyncStarHelper()),
             streamOfController: backend.emitter.staticFunctionAccess(
                 backend.getStreamOfController()),
             newController: backend.emitter.staticFunctionAccess(

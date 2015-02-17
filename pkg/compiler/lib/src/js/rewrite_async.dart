@@ -4,12 +4,16 @@
 
 library rewrite_async;
 
-// TODO(sigurdm): Throws in catch-handlers are handled wrong.
 // TODO(sigurdm): Avoid using variables in templates. It could blow up memory
 // use.
+// TODO(sigurdm): Move the try/catch expression to a js_helper function.
+// That would also simplify the sync* case, where the error can just be thrown.
 
 import "dart:math" show max;
 import 'dart:collection';
+
+import 'package:_internal/compiler/js_lib/shared/async_await_error_codes.dart'
+    as error_codes;
 
 import "js.dart" as js;
 
@@ -37,14 +41,39 @@ class AsyncRewriter extends js.NodeVisitor {
 
   Map<js.Node, int> continueLabels = new Map<js.Node, int>();
   Map<js.Node, int> breakLabels = new Map<js.Node, int>();
-  Map<js.Node, int> finallyLabels = new Map<js.Node, int>();
-  int exitLabel;
 
-  // A stack of all enclosing jump targets (including the function for
-  // representing the target of a return, and all enclosing try-blocks that have
-  // finally part, this way ensuring all the finally blocks between a jump and
-  // its target are run before the jump.
-  List<js.Node> targetsAndTries = new List<js.Node>();
+  /// The label of a finally part.
+  Map<js.Block, int> finallyLabels = new Map<js.Block, int>();
+
+  /// The label of the catch handler of a [js.Try] or a [js.Fun] or [js.Catch].
+  ///
+  /// These mark the points an error can be consumed.
+  ///
+  /// - The handler of a [js.Fun] is the outermost and will rethrow the error.
+  /// - The handler of a [js.Try] will run the catch handler.
+  /// - The handler of a [js.Catch] is a synthetic handler that ensures the
+  ///   right finally blocks are run if an error is thrown inside a
+  ///   catch-handler.
+  Map<js.Node, int> handlerLabels = new Map<js.Node, int>();
+
+  int exitLabel;
+  int rethrowLabel;
+
+  /// A stack of all (surrounding) jump targets.
+  ///
+  /// Jump targets are:
+  ///
+  /// * The function, signalling a return or uncaught throw.
+  /// * Loops.
+  /// * LabeledStatements (also used for 'continue' when attached to loops).
+  /// * Try statements, for catch and finally handlers.
+  /// * Catch handlers, when inside a catch-part of a try, the catch-handler is
+  ///   used to associate with a synthetic handler that will ensure the right
+  ///   finally blocks are visited.
+  ///
+  /// When jumping to a target it is necessary to visit all finallies that
+  /// are on the way to target (i.e. more nested than the jump target).
+  List<js.Node> jumpTargets = new List<js.Node>();
 
   List<int> continueStack = new List<int>();
   List<int> breakStack = new List<int>();
@@ -54,8 +83,6 @@ class AsyncRewriter extends js.NodeVisitor {
       new List<Pair<String, String>>();
 
   PreTranslationAnalysis analysis;
-
-  List<int> errorHandlerLabels = new List<int>();
 
   final Function safeVariableName;
 
@@ -86,13 +113,17 @@ class AsyncRewriter extends js.NodeVisitor {
   ///   }
   /// }
   ///
-  /// It is a parameter to the [helperName] function, so that [thenHelper] and
-  /// [streamHelper] can call [helperName] with the result of an awaited Future.
+  /// It is a parameter to the [bodyName] function, so that [asyncHelper] and
+  /// [streamHelper] can call [bodyName] with the result of an awaited Future.
   String resultName;
+
+  /// A parameter to the [bodyName] function. Indicating if we are in success
+  /// or error case.
+  String errorCodeName;
 
   /// The name of the inner function that is scheduled to do each await/yield,
   /// and called to do a new iteration for sync*.
-  String helperName;
+  String bodyName;
 
   /// The Completer that will finish an async function.
   ///
@@ -121,8 +152,15 @@ class AsyncRewriter extends js.NodeVisitor {
   /// the last.
   String nextName;
 
+  /// The stack of labels of finally blocks to assign to [nextName] if the
+  /// async* [StreamSubscription] was canceled during a yield.
+  String nextWhenCanceledName;
+
   /// The current returned value (a finally block may overwrite it).
   String returnValueName;
+
+  /// If we are in the process of handling an error, stores the current error.
+  String currentErrorName;
 
   /// The label of the outer loop.
   ///
@@ -131,7 +169,7 @@ class AsyncRewriter extends js.NodeVisitor {
   String outerLabelName;
 
   /// If javascript `this` is used, it is accessed via this variable, in the
-  /// [helperName] function.
+  /// [bodyName] function.
   String selfName;
 
   // These expressions are hooks for communicating with the runtime.
@@ -141,19 +179,21 @@ class AsyncRewriter extends js.NodeVisitor {
   /// For an await it is called with:
   ///
   /// - The value to await
-  /// - The [helperName]
-  /// - The [completerName]
-  /// - A JavaScript function that is executed if the future completed with
-  ///   an error. That function is responsible for executing the right error
-  ///   handler and/or finally blocks).
+  /// - The body function [bodyName]
+  /// - The completer object [completerName]
   ///
   /// For a return it is called with:
   ///
   /// - The value to complete the completer with.
-  /// - null
-  /// - The [completerName]
-  /// - null.
-  final js.Expression thenHelper;
+  /// - [error_codes.SUCCESS]
+  /// - The completer object [completerName]
+  ///
+  /// For a throw it is called with:
+  ///
+  /// - The error to complete the completer with.
+  /// - [error_codes.ERROR]
+  /// - The completer object [completerName]
+  final js.Expression asyncHelper;
 
   /// The function called by an async* function to simulate an await, yield or
   /// yield*.
@@ -162,11 +202,8 @@ class AsyncRewriter extends js.NodeVisitor {
   ///
   /// - The value to await/yieldExpression(value to yield)/
   /// yieldStarExpression(stream to yield)
-  /// - The [helperName]
-  /// - The [controllerName]
-  /// - A JavaScript function that is executed if the future completed with
-  ///   an error. That function is responsible for executing the right error
-  ///   handler and/or finally blocks).
+  /// - The body function [bodyName]
+  /// - The controller object [controllerName]
   ///
   /// For a return it is called with:
   ///
@@ -192,7 +229,7 @@ class AsyncRewriter extends js.NodeVisitor {
   final js.Expression streamOfController;
 
   /// Contructor creating the Iterable for a sync* method. Called with
-  /// [helperName].
+  /// [bodyName].
   final js.Expression newIterable;
 
   /// A JS Expression that creates a marker showing that iteration is over.
@@ -209,6 +246,9 @@ class AsyncRewriter extends js.NodeVisitor {
   ///
   /// Called with the stream to yield from.
   final js.Expression yieldStarExpression;
+
+  /// Used by sync* functions to throw exeptions.
+  final js.Expression uncaughtErrorExpression;
 
   final DiagnosticListener diagnosticListener;
   // For error reporting only.
@@ -235,7 +275,7 @@ class AsyncRewriter extends js.NodeVisitor {
 
   AsyncRewriter(this.diagnosticListener,
                 spannable,
-                {this.thenHelper,
+                {this.asyncHelper,
                  this.streamHelper,
                  this.streamOfController,
                  this.newCompleter,
@@ -244,6 +284,7 @@ class AsyncRewriter extends js.NodeVisitor {
                  this.newIterable,
                  this.yieldExpression,
                  this.yieldStarExpression,
+                 this.uncaughtErrorExpression,
                  this.safeVariableName})
       : _spannable = spannable;
 
@@ -263,14 +304,17 @@ class AsyncRewriter extends js.NodeVisitor {
     // To avoid name collisions with existing names, the fresh names are
     // generated after the analysis.
     resultName = freshName("result");
+    errorCodeName = freshName("errorCode");
     completerName = freshName("completer");
     controllerName = freshName("controller");
-    helperName = freshName("helper");
+    bodyName = freshName("body");
     gotoName = freshName("goto");
     handlerName = freshName("handler");
     errorName = freshName("error");
     nextName = freshName("next");
+    nextWhenCanceledName = freshName("nextWhenCanceled");
     returnValueName = freshName("returnValue");
+    currentErrorName = freshName("currentError");
     outerLabelName = freshName("outer");
     selfName = freshName("self");
 
@@ -278,9 +322,8 @@ class AsyncRewriter extends js.NodeVisitor {
   }
 
   js.Expression get currentErrorHandler {
-    return errorHandlerLabels.isEmpty
-        ? new js.LiteralNull()
-        : js.number(errorHandlerLabels.last);
+    return js.number(handlerLabels[jumpTargets.lastWhere(
+        (node) => handlerLabels[node] != null)]);
   }
 
   int allocateTempVar() {
@@ -542,7 +585,7 @@ class AsyncRewriter extends js.NodeVisitor {
   /// through all the enclosing finally blocks). The jump to here is made in
   /// [visitReturn].
   ///
-  /// Returning from an async method calls the [thenHelper] with the result.
+  /// Returning from an async method calls the [asyncHelper] with the result.
   /// (the result might have been stored in [returnValueName] by some finally
   /// block).
   ///
@@ -561,26 +604,40 @@ class AsyncRewriter extends js.NodeVisitor {
         String returnValue =
             analysis.hasExplicitReturns ? returnValueName : "null";
         addStatement(js.js.statement(
-            "return #thenHelper($returnValue, null, $completerName, null)", {
-          "thenHelper": thenHelper
-        }));
+            "return #thenHelper($returnValue, #successCode, "
+                "$completerName, null)", {
+             "thenHelper": asyncHelper,
+             "successCode": js.number(error_codes.SUCCESS)}));
         break;
       case const js.AsyncModifier.syncStar():
         addStatement(new js.Return(new js.Call(endOfIteration, [])));
         break;
       case const js.AsyncModifier.asyncStar():
         addStatement(js.js.statement(
-            "return #streamHelper(null, null, $controllerName, null)", {
-          "streamHelper": streamHelper
-        }));
+            "return #streamHelper(null, #successCode, $controllerName)", {
+          "streamHelper": streamHelper,
+          "successCode": js.number(error_codes.SUCCESS)}));
         break;
       default:
         diagnosticListener.internalError(
             spannable, "Internal error, unexpected asyncmodifier $async");
     }
+    if (isAsync || isAsyncStar) {
+      beginLabel(rethrowLabel);
+      addStatement(js.js.statement(
+          "return #thenHelper($currentErrorName, #errorCode, "
+          "${isAsync ? completerName : controllerName})", {
+            "thenHelper": isAsync ? asyncHelper : streamHelper,
+            "errorCode": js.number(error_codes.ERROR)}));
+    } else {
+      assert(isSyncStar);
+      beginLabel(rethrowLabel);
+      addStatement(new js.Return(new js.Call(uncaughtErrorExpression,
+          [new js.VariableUse(currentErrorName)])));
+    }
   }
 
-  /// The initial call to [thenHelper]/[streamHelper].
+  /// The initial call to [asyncHelper]/[streamHelper].
   ///
   /// There is no value to await/yield, so the first argument is `null` and
   /// also the errorCallback is `null`.
@@ -590,8 +647,8 @@ class AsyncRewriter extends js.NodeVisitor {
   js.Statement generateInitializer() {
     if (isAsync) {
       return js.js.statement(
-          "return #thenHelper(null, $helperName, $completerName, null);", {
-        "thenHelper": thenHelper
+          "return #asyncHelper(null, $bodyName, $completerName, null);", {
+        "asyncHelper": asyncHelper
       });
     } else if (isAsyncStar) {
       return js.js.statement(
@@ -607,17 +664,17 @@ class AsyncRewriter extends js.NodeVisitor {
   /// Rewrites an async/sync*/async* function to a normal Javascript function.
   ///
   /// The control flow is flattened by simulating 'goto' using a switch in a
-  /// loop and a state variable [gotoName] inside a helper-function that can be
-  /// called back by [thenHelper]/[streamHelper]/the [Iterator].
+  /// loop and a state variable [gotoName] inside a nested function [bodyName]
+  /// that can be called back by [asyncHelper]/[asyncStarHelper]/the [Iterator].
   ///
   /// Local variables are hoisted outside the helper.
   ///
   /// Awaits in async/async* are translated to code that remembers the current
   /// location (so the function can resume from where it was) followed by a call
-  /// to the [thenHelper]. The helper sets up the waiting for the awaited value
+  /// to the [asyncHelper]. The helper sets up the waiting for the awaited value
   /// and returns a future which is immediately returned by the translated
   /// await.
-  /// Yields in async* are translated to a call to the [streamHelper]. They,
+  /// Yields in async* are translated to a call to the [asyncStarHelper]. They,
   /// too, need to be prepared to be interrupted in case the stream is paused or
   /// canceled. (Currently we always suspend - this is different from the spec,
   /// see `streamHelper` in `js_helper.dart`).
@@ -635,7 +692,7 @@ class AsyncRewriter extends js.NodeVisitor {
   ///   return bar(p);
   /// }
   ///
-  /// Becomes:
+  /// Becomes (without error handling):
   ///
   /// function(x, y, z) {
   ///   var goto = 0, returnValue, completer = new Completer(), p;
@@ -644,17 +701,17 @@ class AsyncRewriter extends js.NodeVisitor {
   ///       switch (goto) {
   ///         case 0:
   ///           goto = 1 // Remember where to continue when the future succeeds.
-  ///           return thenHelper(foo(), helper, completer, null);
+  ///           return thenHelper(foo(), helper, completer);
   ///         case 1:
   ///           p = result;
   ///           returnValue = bar(p);
   ///           goto = 2;
   ///           break;
   ///         case 2:
-  ///           return thenHelper(returnValue, null, completer, null)
+  ///           return thenHelper(returnValue, null, completer)
   ///       }
   ///     }
-  ///     return thenHelper(null, helper, completer, null);
+  ///     return thenHelper(null, helper, completer);
   ///   }
   /// }
   ///
@@ -689,11 +746,16 @@ class AsyncRewriter extends js.NodeVisitor {
   ///   var goto = 0;
   ///   var returnValue;
   ///   var completer = new Completer();
-  ///   var handler = null;
+  ///   var handler = 8; // Outside try-blocks go to the rethrow label.
   ///   var p;
+  ///   var storedError;
   ///   // The result can be either the result of an awaited future, or an
   ///   // error if the future completed with an error.
-  ///   function helper(result) {
+  ///   function helper(errorCode, result) {
+  ///     if (errorCode == 1) {
+  ///       storedError = result;
+  ///       goto = handler;
+  ///     }
   ///     while (true) {
   ///       try {
   ///         switch (goto) {
@@ -718,7 +780,9 @@ class AsyncRewriter extends js.NodeVisitor {
   ///             goto = 5; // finally handler for outer try.
   ///             break;
   ///           case 4: // catch handler for outer try.
-  ///             e = result;
+  ///             handler = 5; // If the handler throws, do the finally ..
+  ///             next = [8] // ... and rethrow.
+  ///             e = storedError;
   ///             handle(e);
   ///             // Fall through to finally.
   ///           case 5: // finally handler for outer try.
@@ -728,14 +792,16 @@ class AsyncRewriter extends js.NodeVisitor {
   ///             break;
   ///           case 6: // Exiting outer try.
   ///           case 7: // return
-  ///             return thenHelper(returnValue, null, completer, null);
+  ///             return thenHelper(returnValue, 0, completer);
+  ///           case 8: // Rethrow
+  ///             return thenHelper(storedError, 1, completer);
   ///         }
   ///       } catch (error) {
-  ///         result = error;
+  ///         storedError = error;
   ///         goto = handler;
   ///       }
   ///     }
-  ///     return thenHelper(null, helper, completer, null);
+  ///     return thenHelper(null, helper, completer);
   ///   }
   /// }
   ///
@@ -748,10 +814,12 @@ class AsyncRewriter extends js.NodeVisitor {
     // [visitDartYield].
     exitLabel =
         analysis.hasExplicitReturns || isAsyncStar ? newLabel("return") : null;
+    rethrowLabel = newLabel("rethrow");
+    handlerLabels[node] = rethrowLabel;
     js.Statement body = node.body;
-    targetsAndTries.add(node);
+    jumpTargets.add(node);
     visitStatement(body);
-    targetsAndTries.removeLast();
+    jumpTargets.removeLast();
     addExit();
 
     List<js.SwitchClause> clauses = labelledParts.keys.map((label) {
@@ -762,17 +830,13 @@ class AsyncRewriter extends js.NodeVisitor {
     if (hasJumpThoughOuterLabel) {
       helperBody = js.js.statement("$outerLabelName: #", [helperBody]);
     }
-    if (hasTryBlocks) {
-      helperBody = js.js.statement("""
-          try {
-            #body
-          } catch ($errorName){
-            if ($handlerName === null)
-              throw $errorName;
-            $resultName = $errorName;
-            $gotoName = $handlerName;
-          }""", {"body": helperBody});
-    }
+    helperBody = js.js.statement("""
+        try {
+          #body
+        } catch ($errorName){
+          $currentErrorName = $errorName;
+          $gotoName = $handlerName;
+        }""", {"body": helperBody});
     List<js.VariableInitialization> inits = <js.VariableInitialization>[];
 
     js.VariableInitialization makeInit(String name, js.Expression initValue) {
@@ -785,16 +849,18 @@ class AsyncRewriter extends js.NodeVisitor {
       inits.add(makeInit(completerName, new js.New(newCompleter, [])));
     } else if (isAsyncStar) {
       inits.add(makeInit(controllerName,
-          new js.Call(newController, [new js.VariableUse(helperName)])));
+          new js.Call(newController, [new js.VariableUse(bodyName)])));
     }
-    if (hasTryBlocks) {
-      inits.add(makeInit(handlerName, new js.LiteralNull()));
-    }
+    inits.add(makeInit(handlerName, js.number(rethrowLabel)));
+    inits.add(makeInit(currentErrorName, null));
     if (hasJumpThroughFinally || analysis.hasYield) {
       inits.add(makeInit(nextName, null));
     }
     if (analysis.hasExplicitReturns && isAsync) {
       inits.add(makeInit(returnValueName, null));
+    }
+    if (isSyncStar) {
+      inits.add(makeInit(resultName, null));
     }
     if (analysis.hasThis && !isSyncStar) {
       // Sync* functions must remember `this` on the level of the outer
@@ -807,6 +873,7 @@ class AsyncRewriter extends js.NodeVisitor {
     inits.addAll(new Iterable.generate(tempVarHighWaterMark,
         (int i) => makeInit(useTempVar(i + 1).name, null)));
     js.VariableDeclarationList varDecl = new js.VariableDeclarationList(inits);
+    // TODO(sigurdm): Explain the difference between these cases.
     if (isSyncStar) {
       return js.js("""
           function (#params) {
@@ -814,7 +881,7 @@ class AsyncRewriter extends js.NodeVisitor {
               var $selfName = this;
             return new #newIterable(function () {
               #varDecl;
-              return function $helperName($resultName) {
+              return function $bodyName() {
                 while (true)
                   #helperBody;
               };
@@ -831,15 +898,33 @@ class AsyncRewriter extends js.NodeVisitor {
     return js.js("""
         function (#params) {
           #varDecl;
-          function $helperName($resultName) {
+          function $bodyName($errorCodeName, $resultName) {
+            if (#hasYield)
+              switch ($errorCodeName) {
+                case #streamWasCanceled:
+                  $nextName = $nextWhenCanceledName;
+                  $gotoName = $nextName.pop();
+                  break;
+                case #errorCode:
+                  $currentErrorName = $resultName;
+                  $gotoName = $handlerName;
+              }
+            else
+              if ($errorCodeName == #errorCode) {
+                  $currentErrorName = $resultName;
+                  $gotoName = $handlerName;
+              }
             while (true)
               #helperBody;
           }
           #init;
         }""", {
       "params": node.params,
-      "helperBody": helperBody,
       "varDecl": varDecl,
+      "streamWasCanceled": js.number(error_codes.STREAM_WAS_CANCELED),
+      "errorCode": js.number(error_codes.ERROR),
+      "hasYield": analysis.hasYield,
+      "helperBody": helperBody,
       "init": generateInitializer()
     });
   }
@@ -888,7 +973,7 @@ class AsyncRewriter extends js.NodeVisitor {
     }
   }
 
-  /// An await is translated to a call to [thenHelper]/[streamHelper].
+  /// An await is translated to a call to [asyncHelper]/[streamHelper].
   ///
   /// See the comments of [visitFun] for an example.
   @override
@@ -897,23 +982,13 @@ class AsyncRewriter extends js.NodeVisitor {
     int afterAwait = newLabel("returning from await.");
     withExpression(node.expression, (js.Expression value) {
       addStatement(setGotoVariable(afterAwait));
-      js.Expression errorCallback = errorHandlerLabels.isEmpty
-          ? new js.LiteralNull()
-          : js.js("""
-            function($errorName) {
-              $gotoName = #currentHandler;
-              $helperName($errorName);
-            }""", {"currentHandler": currentErrorHandler});
-
       addStatement(js.js.statement("""
-          return #thenHelper(#value,
-                             $helperName,
-                             ${isAsync ? completerName : controllerName},
-                             #errorCallback);
+          return #asyncHelper(#value,
+                              $bodyName,
+                              ${isAsync ? completerName : controllerName});
           """, {
-        "thenHelper": isAsync ? thenHelper : streamHelper,
+        "asyncHelper": isAsync ? asyncHelper : streamHelper,
         "value": value,
-        "errorCallback": errorCallback
       }));
     }, store: false);
     beginLabel(afterAwait);
@@ -1073,9 +1148,8 @@ class AsyncRewriter extends js.NodeVisitor {
     // the jump.
     // The bottom of the stack is the label where the jump goes to.
     List<int> jumpStack = new List<int>();
-    for (js.Node node in targetsAndTries.reversed) {
-      if (node is js.Try) {
-        assert(node.finallyPart != null);
+    for (js.Node node in jumpTargets.reversed) {
+      if (finallyLabels[node] != null) {
         jumpStack.add(finallyLabels[node]);
       } else if (node == target) {
         jumpStack.add(targetLabel);
@@ -1120,9 +1194,9 @@ class AsyncRewriter extends js.NodeVisitor {
 
     beginLabel(startLabel);
 
-    targetsAndTries.add(node);
+    jumpTargets.add(node);
     visitStatement(node.body);
-    targetsAndTries.removeLast();
+    jumpTargets.removeLast();
 
     beginLabel(continueLabel);
     withExpression(node.condition, (js.Expression condition) {
@@ -1191,9 +1265,9 @@ class AsyncRewriter extends js.NodeVisitor {
             new js.Prefix("!", condition), gotoAndBreak(afterLabel)));
       }, store: false);
     }
-    targetsAndTries.add(node);
+    jumpTargets.add(node);
     visitStatement(node.body);
-    targetsAndTries.removeLast();
+    jumpTargets.removeLast();
     if (node.update != null) {
       beginLabel(continueLabel);
       visitExpressionIgnoreResult(node.update);
@@ -1294,9 +1368,9 @@ class AsyncRewriter extends js.NodeVisitor {
     continueLabels[node] = continueLabel;
 
     beginLabel(continueLabel);
-    targetsAndTries.add(node);
+    jumpTargets.add(node);
     visitStatement(node.body);
-    targetsAndTries.removeLast();
+    jumpTargets.removeLast();
     beginLabel(breakLabel);
   }
 
@@ -1502,13 +1576,13 @@ class AsyncRewriter extends js.NodeVisitor {
       }
     }
 
-    targetsAndTries.add(node);
+    jumpTargets.add(node);
     for (int i = 0; i < labels.length; i++) {
       beginLabel(labels[i]);
       visitStatement(node.cases[i].body);
     }
     beginLabel(after);
-    targetsAndTries.removeLast();
+    jumpTargets.removeLast();
   }
 
   @override
@@ -1523,12 +1597,30 @@ class AsyncRewriter extends js.NodeVisitor {
     }, store: false);
   }
 
-  setErrorHandler() {
+  setErrorHandler([int errorHandler]) {
     addExpressionStatement(new js.Assignment(
-        new js.VariableUse(handlerName), currentErrorHandler));
+        new js.VariableUse(handlerName),
+        errorHandler == null ? currentErrorHandler : js.number(errorHandler)));
   }
 
-  @override
+  List<int> _finalliesUpToAndEnclosingHandler() {
+    List<int> result = new List<int>();
+    for (int i = jumpTargets.length - 1; i >= 0; i--) {
+      js.Node node = jumpTargets[i];
+      int handlerLabel = handlerLabels[node];
+      if (handlerLabel != null) {
+        result.add(handlerLabel);
+        break;
+      }
+      int finallyLabel = finallyLabels[node];
+      if (finallyLabel != null) {
+        result.add(finallyLabel);
+      }
+    }
+    return result.reversed.toList();
+  }
+
+  /// See the comments of [visitFun] for more explanation.
   void visitTry(js.Try node) {
     if (!shouldTransform(node)) {
       js.Block body = translateInBlock(node.body);
@@ -1542,31 +1634,48 @@ class AsyncRewriter extends js.NodeVisitor {
       addStatement(new js.Try(body, catchPart, finallyPart));
       return;
     }
+
     hasTryBlocks = true;
-    int handlerLabel = newLabel("catch");
+    int uncaughtLabel = newLabel("uncaught");
+    int handlerLabel = (node.catchPart == null)
+        ? uncaughtLabel
+        : newLabel("catch");
+
     int finallyLabel = newLabel("finally");
     int afterFinallyLabel = newLabel("after finally");
-    errorHandlerLabels.add(handlerLabel);
+    if (node.finallyPart != null) {
+      finallyLabels[node.finallyPart] = finallyLabel;
+      jumpTargets.add(node.finallyPart);
+    }
+
+    handlerLabels[node] = handlerLabel;
+    jumpTargets.add(node);
+
     // Set the error handler here. It must be cleared on every path out;
     // normal and error exit.
     setErrorHandler();
-    if (node.finallyPart != null) {
-      finallyLabels[node] = finallyLabel;
-      targetsAndTries.add(node);
-    }
+
     visitStatement(node.body);
-    errorHandlerLabels.removeLast();
-    addStatement(
-        js.js.statement("$nextName = [#];", [js.number(afterFinallyLabel)]));
+
+    js.Node last = jumpTargets.removeLast();
+    assert(last == node);
+
     if (node.finallyPart == null) {
       setErrorHandler();
       addGoto(afterFinallyLabel);
     } else {
-      // The handler is set as the first thing in the finally block.
+      // The handler is reset as the first thing in the finally block.
+      addStatement(
+          js.js.statement("$nextName = [#];", [js.number(afterFinallyLabel)]));
       addGoto(finallyLabel);
     }
-    beginLabel(handlerLabel);
+
     if (node.catchPart != null) {
+      beginLabel(handlerLabel);
+      // [uncaughtLabel] is the handler for the code in the catch-part.
+      // It ensures that [nextName] is set up to run the right finally blocks.
+      handlerLabels[node.catchPart] = uncaughtLabel;
+      jumpTargets.add(node.catchPart);
       setErrorHandler();
       // The catch declaration name can shadow outer variables, so a fresh name
       // is needed to avoid collisions.  See Ecma 262, 3rd edition,
@@ -1576,19 +1685,46 @@ class AsyncRewriter extends js.NodeVisitor {
       variableRenamings
           .add(new Pair(node.catchPart.declaration.name, errorRename));
       addExpressionStatement(new js.Assignment(
-          new js.VariableUse(errorRename), new js.VariableUse(resultName)));
+          new js.VariableUse(errorRename),
+          new js.VariableUse(currentErrorName)));
       visitStatement(node.catchPart.body);
       variableRenamings.removeLast();
+      if (node.finallyPart != null) {
+        // The error has been caught, so after the finally, continue after the
+        // try.
+        addStatement(js.js.statement("$nextName = [#];",
+                                     [js.number(afterFinallyLabel)]));
+        addGoto(finallyLabel);
+      } else {
+        addGoto(afterFinallyLabel);
+      }
+      js.Node last = jumpTargets.removeLast();
+      assert(last == node.catchPart);
+    }
+
+    // The "uncaught"-handler tells the finally-block to continue with
+    // the enclosing finally-blocks until the current catch-handler.
+    beginLabel(uncaughtLabel);
+
+    List<int> enclosingFinallies = _finalliesUpToAndEnclosingHandler();
+
+    int nextLabel = enclosingFinallies.removeLast();
+    if (enclosingFinallies.isNotEmpty) {
+      // [enclosingFinallies] can be empty if there is no surrounding finally
+      // blocks. Then [nextLabel] will be [rethrowLabel].
+      addStatement(
+          js.js.statement("$nextName = #;", new js.ArrayInitializer(
+              enclosingFinallies.map(js.number).toList())));
+    }
+    if (node.finallyPart == null) {
+      // The finally-block belonging to [node] will be visited because of
+      // fallthrough. If it does not exist, add an explicit goto.
+      addGoto(nextLabel);
     }
     if (node.finallyPart != null) {
-      targetsAndTries.removeLast();
-      setErrorHandler();
-      // This belongs to the catch-part, but is only needed if there is a
-      // `finally`. Therefore it is in this branch.
-      // This is needed even if there is no explicit catch-branch, because
-      // if an exception is raised the finally part has to be run.
-      addStatement(
-          js.js.statement("$nextName = [#];", [js.number(afterFinallyLabel)]));
+      js.Node last = jumpTargets.removeLast();
+      assert(last == node.finallyPart);
+
       beginLabel(finallyLabel);
       setErrorHandler();
       visitStatement(node.finallyPart);
@@ -1658,9 +1794,9 @@ class AsyncRewriter extends js.NodeVisitor {
             new js.Prefix("!", condition), gotoAndBreak(afterLabel)));
       }, store: false);
     }
-    targetsAndTries.add(node);
+    jumpTargets.add(node);
     visitStatement(node.body);
-    targetsAndTries.removeLast();
+    jumpTargets.removeLast();
     addGoto(continueLabel);
     beginLabel(afterLabel);
   }
@@ -1683,36 +1819,28 @@ class AsyncRewriter extends js.NodeVisitor {
   ///
   /// yield/yield* in an async* function is translated much like the `await` is
   /// translated in [visitAwait], only the object is wrapped in a
-  /// [yieldExpression]/[yieldStarExpression] to let [streamHelper] distinguish.
-  ///
-  /// Because there is no Future that can fail (as there is in await) null is
-  /// passed as the errorCallback.
+  /// [yieldExpression]/[yieldStarExpression] to let [asyncStarHelper]
+  /// distinguish them.
+  /// Also [nextWhenCanceledName] is set up to contain the finally blocks that
+  /// must be run in case the stream was canceled.
   void addAsyncYield(js.DartYield node, js.Expression expression) {
     assert(isAsyncStar);
     // Find all the finally blocks that should be performed if the stream is
     // canceled during the yield.
     // At the bottom of the stack is the return label.
     List<int> enclosingFinallyLabels = <int>[exitLabel];
-    enclosingFinallyLabels.addAll(targetsAndTries
-        .where((js.Node node) => node is js.Try)
-        .map((js.Try node) => finallyLabels[node]));
-    int destinationOnCancel = enclosingFinallyLabels.removeLast();
-    js.ArrayInitializer finallyListInitializer = new js.ArrayInitializer(
-        enclosingFinallyLabels.map(js.number).toList());
+    enclosingFinallyLabels.addAll(jumpTargets
+        .where((js.Node node) => finallyLabels[node] != null)
+        .map((js.Block node) => finallyLabels[node]));
+    addStatement(js.js.statement("$nextWhenCanceledName = #",
+        [new js.ArrayInitializer(enclosingFinallyLabels.map(js.number)
+            .toList())]));
     addStatement(js.js.statement("""
         return #streamHelper(#yieldExpression(#expression),
-            $helperName, $controllerName, function () {
-              if (#notEmptyFinallyList)
-                $nextName = #finallyList;
-              $gotoName = #destinationOnCancel;
-              $helperName();
-            });""", {
+            $bodyName, $controllerName);""", {
       "streamHelper": streamHelper,
       "yieldExpression": node.hasStar ? yieldStarExpression : yieldExpression,
       "expression": expression,
-      "notEmptyFinallyList": enclosingFinallyLabels.isNotEmpty,
-      "finallyList": finallyListInitializer,
-      "destinationOnCancel": js.number(destinationOnCancel)
     }));
   }
 

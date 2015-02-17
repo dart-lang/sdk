@@ -98,6 +98,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'assertIsSubtype': 'assertIsSubtype(subtype, supertype, message) {}',
   'assertSubtype': 'assertSubtype(object, isField, checks, asField) {}',
   'assertSubtypeOfRuntimeType': 'assertSubtypeOfRuntimeType(object, type) {}',
+  'asyncHelper': 'asyncHelper(object, asyncBody, completer) {}',
   'boolConversionCheck': 'boolConversionCheck(x) {}',
   'boolTypeCast': 'boolTypeCast(value) {}',
   'boolTypeCheck': 'boolTypeCheck(value) {}',
@@ -209,8 +210,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'stringTypeCheck': 'stringTypeCheck(x) {}',
   'subtypeCast': 'subtypeCast(object, isField, checks, asField) {}',
   'subtypeOfRuntimeTypeCast': 'subtypeOfRuntimeTypeCast(object, type) {}',
-  'thenHelper':
-      'thenHelper(object, helperCallback, completer, errorCallback) {}',
   'throwAbstractClassInstantiationError':
       'throwAbstractClassInstantiationError(className) {}',
   'throwCyclicInit': 'throwCyclicInit(staticName) {}',

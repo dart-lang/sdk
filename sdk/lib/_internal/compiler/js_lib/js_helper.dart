@@ -4,6 +4,8 @@
 
 library _js_helper;
 
+import 'dart:_async_await_error_codes' as async_error_codes;
+
 import 'dart:_js_embedded_names' show
     GET_TYPE_FROM_NAME,
     GET_ISOLATE_TAG,
@@ -26,13 +28,13 @@ import 'dart:_isolate_helper' show
     leaveJsAsync;
 
 import 'dart:async' show
-  Future,
-  DeferredLoadException,
-  Completer,
-  StreamController,
-  Stream,
-  StreamSubscription,
-  scheduleMicrotask;
+    Future,
+    DeferredLoadException,
+    Completer,
+    StreamController,
+    Stream,
+    StreamSubscription,
+    scheduleMicrotask;
 
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
@@ -3556,59 +3558,62 @@ void mainHasTooManyParameters() {
 ///
 /// If [object] is not a future it will be wrapped in a `new Future.value`.
 ///
-/// If [helperCallback] is null it indicates a return from the async function,
-/// and we complete the completer with object.
+/// If [asyncBody] is [async_error_codes.SUCCESS]/[async_error_codes.ERROR] it
+/// indicates a return or throw from the async function, and
+/// complete/completeError is called on [completer] with [object].
 ///
-/// Otherwise [helperCallback] is set up to be called when the future is
-/// successfull and [errorCallback] if it is completed with an error.
-///
-/// If helperCallback or errorCallback throws we complete the completer with the
-/// error.
+/// Otherwise [asyncBody] is set up to be called when the future is completed
+/// with a code [async_error_codes.SUCCESS]/[async_error_codes.ERROR] depending
+/// on the success of the future.
 ///
 /// Returns the future of the completer for convenience of the first call.
-dynamic thenHelper(dynamic object,
-                   dynamic /* js function */ helperCallback,
-                   Completer completer,
-                   dynamic /* js function */ errorCallback) {
-  if (helperCallback == null) {
+dynamic asyncHelper(dynamic object,
+                    dynamic /* js function */ bodyFunctionOrErrorCode,
+                    Completer completer) {
+  if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
     completer.complete(object);
+    return;
+  } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
+    // The error is a js-error.
+    completer.completeError(unwrapException(object),
+                            getTraceFromException(object));
     return;
   }
   Future future = object is Future ? object : new Future.value(object);
-  future.then(_wrapJsFunctionForThenHelper(helperCallback, completer),
-              onError: (errorCallback == null)
-                  ? null
-                  : _wrapJsFunctionForThenHelper(errorCallback, completer));
+  future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                      async_error_codes.SUCCESS),
+      onError: _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                       async_error_codes.ERROR));
   return completer.future;
 }
 
-Function _wrapJsFunctionForThenHelper(dynamic /* js function */ function,
-                                      Completer completer) {
+Function _wrapJsFunctionForAsync(dynamic /* js function */ function,
+                                 int errorCode) {
   return (result) {
-    try {
-      JS('', '#(#)', function, result);
-    } catch (e, st) {
-      completer.completeError(e, st);
-    }
+    JS('', '#(#, #)', function, errorCode, result);
   };
 }
-
 
 /// Implements the runtime support for async* functions.
 ///
 /// Called by the transformed function for each original return, await, yield,
 /// yield* and before starting the function.
 ///
-/// When the async* function wants to return it calls this function. with
-/// [helperCallback] == null, the streamHelper takes this as signal to close the
-/// stream.
+/// When the async* function wants to return it calls this function with
+/// [asyncBody] == [async_error_codes.SUCCESS], the asyncStarHelper takes this
+/// as signal to close the stream.
 ///
-/// If the async* function wants to do a yield or yield* it calls this function
-/// with [object] being an [IterationMarker]. In this case [errorCallback] has a
-/// special meaning; it is a callback that will run all enclosing finalizers.
+/// When the async* function wants to signal that an uncaught error was thrown,
+/// it calls this function with [asyncBody] == [async_error_codes.ERROR],
+/// the streamHelper takes this as signal to addError [object] to the
+/// [controller] and close it.
+///
+/// If the async* function wants to do a yield or yield*, it calls this function
+/// with [object] being an [IterationMarker].
 ///
 /// In the case of a yield or yield*, if the stream subscription has been
-/// canceled [errorCallback] is scheduled.
+/// canceled, schedules [asyncBody] to be called with
+/// [async_error_codes.STREAM_WAS_CANCELED].
 ///
 /// If [object] is a single-yield [IterationMarker], adds the value of the
 /// [IterationMarker] to the stream. If the stream subscription has been
@@ -3618,30 +3623,32 @@ Function _wrapJsFunctionForThenHelper(dynamic /* js function */ function,
 /// If [object] is a yield-star [IterationMarker], starts listening to the
 /// yielded stream, and adds all events and errors to our own controller (taking
 /// care if the subscription has been paused or canceled) - when the sub-stream
-/// is done, schedules [helperCallback] again.
+/// is done, schedules [asyncBody] again.
 ///
 /// If the async* function wants to do an await it calls this function with
 /// [object] not and [IterationMarker].
 ///
 /// If [object] is not a [Future], it is wrapped in a `Future.value`.
-/// The [helperCallback] is called on successfull completion of the
-/// future.
-///
-/// If [helperCallback] or [errorCallback] throws the error is added to the
-/// stream.
-void streamHelper(dynamic object,
-                     dynamic /* js function */ helperCallback,
-                     AsyncStarStreamController controller,
-                     dynamic /* js function */ errorCallback) {
-  if (helperCallback == null) {
+/// The [asyncBody] is called on completion of the future (see [asyncHelper].
+void asyncStarHelper(dynamic object,
+                     dynamic /* int | js function */ bodyFunctionOrErrorCode,
+                     AsyncStarStreamController controller) {
+  if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
     // This happens on return from the async* function.
+    controller.close();
+    return;
+  } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
+    // The error is a js-error.
+    controller.addError(unwrapException(object),
+                        getTraceFromException(object));
     controller.close();
     return;
   }
 
   if (object is IterationMarker) {
     if (controller.stopRunning) {
-      _wrapJsFunctionForStream(errorCallback, controller)();
+      _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+          async_error_codes.STREAM_WAS_CANCELED)(null);
       return;
     }
     if (object.state == IterationMarker.YIELD_SINGLE) {
@@ -3652,7 +3659,9 @@ void streamHelper(dynamic object,
       }
       // TODO(sigurdm): We should not suspend here according to the spec.
       scheduleMicrotask(() {
-          _wrapJsFunctionForStream(helperCallback, controller)(null);
+        _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                async_error_codes.SUCCESS)
+            (null);
       });
       return;
     } else if (object.state == IterationMarker.YIELD_STAR) {
@@ -3663,17 +3672,18 @@ void streamHelper(dynamic object,
       // TODO(sigurdm): The spec is not very clear here. Clarify with Gilad.
       controller.addStream(stream).then((_) {
         controller.isAdding = false;
-        _wrapJsFunctionForStream(helperCallback, controller)(null);
+        _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                async_error_codes.SUCCESS)(null);
       });
       return;
     }
   }
 
   Future future = object is Future ? object : new Future.value(object);
-  future.then(_wrapJsFunctionForStream(helperCallback, controller),
-              onError: errorCallback == null
-                  ? null
-                  : _wrapJsFunctionForStream(errorCallback, controller));
+  future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                      async_error_codes.SUCCESS),
+              onError: _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                               async_error_codes.ERROR));
 }
 
 Stream streamOfController(AsyncStarStreamController controller) {
@@ -3701,11 +3711,13 @@ class AsyncStarStreamController {
   AsyncStarStreamController(helperCallback) {
     controller = new StreamController(
       onListen: () {
-        scheduleMicrotask(() => JS('', '#(null)', helperCallback));
+        scheduleMicrotask(() {
+          JS('', '#(#, null)', helperCallback, async_error_codes.SUCCESS);
+        });
       },
       onResume: () {
         if (!isAdding) {
-          streamHelper(null, helperCallback, this, null);
+          asyncStarHelper(null, helperCallback, this);
         }
       }, onCancel: () {
         stopRunning = true;
@@ -3717,22 +3729,11 @@ makeAsyncStarController(helperCallback) {
   return new AsyncStarStreamController(helperCallback);
 }
 
-Function _wrapJsFunctionForStream(dynamic /* js function */ function,
-                                  AsyncStarStreamController controller) {
-  return (result) {
-    try {
-      JS('', '#(#)', function, result);
-    } catch (e, st) {
-      controller.addError(e, st);
-    }
-  };
-}
-
-
 class IterationMarker {
   static const YIELD_SINGLE = 0;
   static const YIELD_STAR = 1;
   static const ITERATION_ENDED = 2;
+  static const UNCAUGHT_ERROR = 3;
 
   final value;
   final int state;
@@ -3751,11 +3752,15 @@ class IterationMarker {
     return new IterationMarker._(YIELD_SINGLE, value);
   }
 
+  static uncaughtError(dynamic error) {
+    return new IterationMarker._(UNCAUGHT_ERROR, error);
+  }
+
   toString() => "IterationMarker($state, $value)";
 }
 
 class SyncStarIterator implements Iterator {
-  final Function _helper;
+  final Function _body;
 
   // If [runningNested] this is the nested iterator, otherwise it is the
   // current value.
@@ -3764,8 +3769,8 @@ class SyncStarIterator implements Iterator {
 
   get current => _runningNested ? _current.current : _current;
 
-  SyncStarIterator(helper)
-      : _helper = ((arg) => JS('', '#(#)', helper, arg));
+  SyncStarIterator(body)
+      : _body = (() => JS('', '#()', body));
 
   bool moveNext() {
     if (_runningNested) {
@@ -3775,12 +3780,16 @@ class SyncStarIterator implements Iterator {
         _runningNested = false;
       }
     }
-    _current = _helper(null);
+    _current = _body();
     if (_current is IterationMarker) {
       if (_current.state == IterationMarker.ITERATION_ENDED) {
         _current = null;
-        // Rely on [_helper] to repeatedly return `ITERATION_ENDED`.
+        // Rely on [_body] to repeatedly return `ITERATION_ENDED`.
         return false;
+      } else if (_current.state == IterationMarker.UNCAUGHT_ERROR) {
+        // Rely on [_body] to repeatedly return `UNCAUGHT_ERROR`.
+        // This is a wrapped exception, so we use JavaScript throw to throw it.
+        JS('', 'throw #', _current.value);
       } else {
         assert(_current.state == IterationMarker.YIELD_STAR);
         _current = _current.value.iterator;
@@ -3799,7 +3808,7 @@ class SyncStarIterable extends IterableBase {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //
-  // Each invocation should give a helper with fresh state.
+  // Each invocation should give a body with fresh state.
   final dynamic /* js function */ _outerHelper;
 
   SyncStarIterable(this._outerHelper);

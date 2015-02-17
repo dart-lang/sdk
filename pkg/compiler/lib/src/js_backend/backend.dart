@@ -1600,8 +1600,8 @@ class JavaScriptBackend extends Backend {
     return findHelper("throwCyclicInit");
   }
 
-  Element getThenHelper() {
-    return findHelper("thenHelper");
+  Element getAsyncHelper() {
+    return findHelper("asyncHelper");
   }
 
   Element getYieldStar() {
@@ -1616,8 +1616,14 @@ class JavaScriptBackend extends Backend {
     return classElement.lookupLocalMember("yieldSingle");
   }
 
-  Element getStreamHelper() {
-    return findHelper("streamHelper");
+  Element getSyncStarUncaughtError() {
+    ClassElement classElement = findHelper("IterationMarker");
+    classElement.ensureResolved(compiler);
+    return classElement.lookupLocalMember("uncaughtError");
+  }
+
+  Element getAsyncStarHelper() {
+    return findHelper("asyncStarHelper");
   }
 
   Element getStreamOfController() {
@@ -2409,7 +2415,7 @@ class JavaScriptBackend extends Backend {
                            Enqueuer enqueuer,
                            Registry registry) {
     if (element.asyncMarker == AsyncMarker.ASYNC) {
-      enqueue(enqueuer, getThenHelper(), registry);
+      enqueue(enqueuer, getAsyncHelper(), registry);
       enqueue(enqueuer, getCompleterConstructor(), registry);
       enqueue(enqueuer, getStreamIteratorConstructor(), registry);
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
@@ -2417,9 +2423,10 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
       enqueue(enqueuer, getEndOfIteration(), registry);
       enqueue(enqueuer, getYieldStar(), registry);
+      enqueue(enqueuer, getSyncStarUncaughtError(), registry);
     } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
       enqueuer.registerInstantiatedClass(getASyncStarController(), registry);
-      enqueue(enqueuer, getStreamHelper(), registry);
+      enqueue(enqueuer, getAsyncStarHelper(), registry);
       enqueue(enqueuer, getStreamOfController(), registry);
       enqueue(enqueuer, getYieldSingle(), registry);
       enqueue(enqueuer, getYieldStar(), registry);
