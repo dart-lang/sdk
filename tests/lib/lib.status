@@ -50,6 +50,7 @@ mirrors/invoke_private_wrong_library_test: CompileTimeError # Issue 12164
 mirrors/library_declarations_test/none: RuntimeError # Issue 13439, Issue 13733
 mirrors/library_exports_shown_test: RuntimeError # Issue 6490
 mirrors/library_exports_hidden_test: RuntimeError # Issue 6490
+mirrors/library_imports_deferred_test: RuntimeError # Issue 6490
 mirrors/library_imports_metadata_test: RuntimeError # Issue 6490
 mirrors/library_imports_bad_metadata_test/none: RuntimeError # Issue 6490
 mirrors/library_imports_shown_test: RuntimeError # Issue 6490

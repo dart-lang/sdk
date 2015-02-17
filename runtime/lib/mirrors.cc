@@ -381,7 +381,8 @@ static RawInstance* CreateCombinatorMirror(const Object& identifiers,
 static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
                                                   const Namespace& ns,
                                                   const String& prefix,
-                                                  bool is_import) {
+                                                  const bool is_import,
+                                                  const bool is_deferred) {
   const Library& importee = Library::Handle(ns.library());
   const Instance& importee_mirror =
       Instance::Handle(CreateLibraryMirror(importee));
@@ -414,14 +415,14 @@ static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
     UNREACHABLE();
   }
 
-  const Array& args = Array::Handle(Array::New(6));
+  const Array& args = Array::Handle(Array::New(7));
   args.SetAt(0, importer);
   args.SetAt(1, importee_mirror);
   args.SetAt(2, combinators);
   args.SetAt(3, prefix);
   args.SetAt(4, Bool::Get(is_import));
-  args.SetAt(5, metadata);
-  // is_deferred?
+  args.SetAt(5, Bool::Get(is_deferred));
+  args.SetAt(6, metadata);
   return CreateMirror(Symbols::_LocalLibraryDependencyMirror(), args);
 }
 
@@ -443,7 +444,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   for (intptr_t i = 0; i < ports.Length(); i++) {
     ns ^= ports.At(i);
     if (!ns.IsNull()) {
-      dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
+      dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true, false);
       if (!dep.IsNull()) {
         deps.Add(dep);
       }
@@ -454,7 +455,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   ports = lib.exports();
   for (intptr_t i = 0; i < ports.Length(); i++) {
     ns ^= ports.At(i);
-    dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, false);
+    dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, false, false);
     if (!dep.IsNull()) {
       deps.Add(dep);
     }
@@ -472,7 +473,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
       for (intptr_t i = 0; i < ports.Length(); i++) {
         ns ^= ports.At(i);
         if (!ns.IsNull()) {
-          dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
+          dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true,
+                                              lib_prefix.is_deferred_load());
           if (!dep.IsNull()) {
             deps.Add(dep);
           }

@@ -1327,6 +1327,7 @@ class _LocalLibraryDependencyMirror
   final List<CombinatorMirror> combinators;
   final Symbol prefix;
   final bool isImport;
+  final bool isDeferred;
   final List<InstanceMirror> metadata;
 
   _LocalLibraryDependencyMirror(this.sourceLibrary,
@@ -1334,6 +1335,7 @@ class _LocalLibraryDependencyMirror
                                 this.combinators,
                                 prefixString,
                                 this.isImport,
+                                this.isDeferred,
                                 unwrappedMetadata)
       : prefix = _s(prefixString),
         metadata = new UnmodifiableListView(unwrappedMetadata.map(reflect));

@@ -604,6 +604,10 @@ abstract class LibraryDependencyMirror implements Mirror {
   /// Is `true` if this dependency is an export.
   bool get isExport;
 
+  /// Returns true iff this dependency is a deferred import. Otherwise returns
+  /// false.
+  bool get isDeferred;
+
   /// Returns the library mirror of the library that imports or exports the
   /// [targetLibrary].
   LibraryMirror get sourceLibrary;
