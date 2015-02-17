@@ -223,6 +223,14 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * backlog for the underlying OS listen setup. If [backlog] has the
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
+   *
+   * The optional argument [shared] specify whether additional binds
+   * to the same `address`, `port` and `v6Only` combination is
+   * possible from the same Dart process. If `shared` is `true` and
+   * additional binds are performed, then the incoming connections
+   * will be distributed between that set of `RawServerSocket`s. One
+   * way of using this is to have number of isolates between which
+   * incoming connections are distributed.
    */
   external static Future<RawServerSocket> bind(address,
                                                int port,
@@ -249,8 +257,9 @@ abstract class RawServerSocket implements Stream<RawSocket> {
   /**
    * Get the [RawServerSocketReference].
    *
-   * WARNING: This feature is *highly experimental* and currently only works on
-   * Linux. The API is most likely going to change in the near future.
+   * WARNING: This feature is *highly experimental* and currently only
+   * works on Linux. The API will be removed in Dart 1.10. Use the
+   * `shared` optional argument on the `bind` method instead.
    *
    * The returned [RawServerSocketReference] can be used to create other
    * [RawServerSocket]s listening on the same port,
@@ -260,6 +269,9 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * The [RawServerSocketReference] can be distributed to other isolates through
    * a [RawSendPort].
    */
+
+  @Deprecated('This will be removed in Dart 1.10. Use the '
+              '`shared` optional argument on the `bind` method instead.')
   RawServerSocketReference get reference;
 }
 
@@ -270,6 +282,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
  * WARNING: This class is used with [RawServerSocket.reference] which is highly
  * experimental.
  */
+@Deprecated('This will be removed in Dart 1.10.')
 abstract class RawServerSocketReference {
   /**
    * Create a new [RawServerSocket], from this reference.
@@ -315,6 +328,14 @@ abstract class ServerSocket implements Stream<Socket> {
    * backlog for the underlying OS listen setup. If [backlog] has the
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
+   *
+   * The optional argument [shared] specify whether additional binds
+   * to the same `address`, `port` and `v6Only` combination is
+   * possible from the same Dart process. If `shared` is `true` and
+   * additional binds are performed, then the incoming connections
+   * will be distributed between that set of `ServerSocket`s. One way
+   * of using this is to have number of isolates between which
+   * incoming connections are distributed.
    */
   external static Future<ServerSocket> bind(address,
                                             int port,
@@ -341,8 +362,9 @@ abstract class ServerSocket implements Stream<Socket> {
   /**
    * Get the [ServerSocketReference].
    *
-   * WARNING: This feature is *highly experimental* and currently only works on
-   * Linux. The API is most likely going to change in the near future.
+   * WARNING: This feature is *highly experimental* and currently only
+   * works on Linux. The API will be removed in Dart 1.10. Use the
+   * `shared` optional argument on the `bind` method instead.
    *
    * The returned [ServerSocketReference] can be used to create other
    * [ServerSocket]s listening on the same port,
@@ -352,6 +374,8 @@ abstract class ServerSocket implements Stream<Socket> {
    * The [ServerSocketReference] can be distributed to other isolates through a
    * [SendPort].
    */
+  @Deprecated('This will be removed in Dart 1.10. Use the '
+              '`shared` optional argument on the `bind` method instead.')
   ServerSocketReference get reference;
 }
 
@@ -362,6 +386,7 @@ abstract class ServerSocket implements Stream<Socket> {
  * WARNING: This class is used with [ServerSocket.reference] which is highly
  * experimental.
  */
+@Deprecated('This will be removed in Dart 1.10.')
 abstract class ServerSocketReference {
   /**
    * Create a new [ServerSocket], from this reference.

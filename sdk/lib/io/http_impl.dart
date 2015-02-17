@@ -2160,26 +2160,33 @@ class _HttpServer
   Duration _idleTimeout;
   Timer _idleTimer;
 
-  static Future<HttpServer> bind(address, int port, int backlog) {
-    return ServerSocket.bind(address, port, backlog: backlog).then((socket) {
-      return new _HttpServer._(socket, true);
-    });
+  static Future<HttpServer> bind(
+      address, int port, int backlog, bool v6Only, bool shared) {
+    return ServerSocket.bind(
+        address, port, backlog: backlog, v6Only: v6Only, shared: shared)
+            .then((socket) {
+              return new _HttpServer._(socket, true);
+            });
   }
 
   static Future<HttpServer> bindSecure(address,
                                        int port,
                                        int backlog,
+                                       bool v6Only,
                                        String certificate_name,
-                                       bool requestClientCertificate) {
+                                       bool requestClientCertificate,
+                                       bool shared) {
     return SecureServerSocket.bind(
         address,
         port,
         certificate_name,
         backlog: backlog,
-        requestClientCertificate: requestClientCertificate)
-        .then((socket) {
-          return new _HttpServer._(socket, true);
-        });
+        v6Only: v6Only,
+        requestClientCertificate: requestClientCertificate,
+        shared: shared)
+            .then((socket) {
+              return new _HttpServer._(socket, true);
+            });
   }
 
   _HttpServer._(this._serverSocket, this._closeServer) {

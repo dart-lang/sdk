@@ -222,9 +222,8 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
    * (IPv6) and version 4 (IPv4) connections will be accepted. To
-   * restrict this to version 6 (IPv6) only, use [HttpServer.listenOn]
-   * with a [ServerSocket] configured for IP version 6 connections
-   * only.
+   * restrict this to version 6 (IPv6) only, use [v6Only] to set
+   * version 6 only.
    *
    * If [port] has the value [:0:] an ephemeral port will be chosen by
    * the system. The actual port used can be retrieved using the
@@ -234,11 +233,21 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * backlog for the underlying OS listen setup. If [backlog] has the
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
+   *
+   * The optional argument [shared] specify whether additional binds
+   * to the same `address`, `port` and `v6Only` combination is
+   * possible from the same Dart process. If `shared` is `true` and
+   * additional binds are performed, then the incoming connections
+   * will be distributed between that set of `HttpServer`s. One way of
+   * using this is to have number of isolates between which incoming
+   * connections are distributed.
    */
   static Future<HttpServer> bind(address,
                                  int port,
-                                 {int backlog: 0})
-      => _HttpServer.bind(address, port, backlog);
+                                 {int backlog: 0,
+                                  bool v6Only: false,
+                                  bool shared: false})
+      => _HttpServer.bind(address, port, backlog, v6Only, shared);
 
   /**
    * The [address] can either be a [String] or an
@@ -254,9 +263,8 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
    * (IPv6) and version 4 (IPv4) connections will be accepted. To
-   * restrict this to version 6 (IPv6) only, use [HttpServer.listenOn]
-   * with a [ServerSocket] configured for IP version 6 connections
-   * only.
+   * restrict this to version 6 (IPv6) only, use [v6Only] to set
+   * version 6 only.
    *
    * If [port] has the value [:0:] an ephemeral port will be chosen by
    * the system. The actual port used can be retrieved using the
@@ -271,18 +279,30 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * is looked up in the certificate database, and is used as the server
    * certificate. If [requestClientCertificate] is true, the server will
    * request clients to authenticate with a client certificate.
+   *
+   * The optional argument [shared] specify whether additional binds
+   * to the same `address`, `port` and `v6Only` combination is
+   * possible from the same Dart process. If `shared` is `true` and
+   * additional binds are performed, then the incoming connections
+   * will be distributed between that set of `HttpServer`s. One way of
+   * using this is to have number of isolates between which incoming
+   * connections are distributed.
    */
 
   static Future<HttpServer> bindSecure(address,
                                        int port,
                                        {int backlog: 0,
+                                        bool v6Only: false,
                                         String certificateName,
-                                        bool requestClientCertificate: false})
+                                        bool requestClientCertificate: false,
+                                        bool shared: false})
       => _HttpServer.bindSecure(address,
                                 port,
                                 backlog,
+                                v6Only,
                                 certificateName,
-                                requestClientCertificate);
+                                requestClientCertificate,
+                                shared);
 
   /**
    * Attaches the HTTP server to an existing [ServerSocket]. When the
