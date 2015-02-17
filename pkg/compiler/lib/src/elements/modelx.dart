@@ -2670,7 +2670,7 @@ abstract class ClassElementX extends BaseClassElementX {
 
 class EnumClassElementX extends ClassElementX implements EnumClassElement {
   final Enum node;
-  Iterable<FieldElement> _enumValues;
+  List<FieldElement> _enumValues;
 
   EnumClassElementX(String name, Element enclosing, int id, this.node)
       : super(name, enclosing, id, STATE_NOT_STARTED);
@@ -2692,13 +2692,13 @@ class EnumClassElementX extends ClassElementX implements EnumClassElement {
 
   List<DartType> computeTypeParameters(Compiler compiler) => const <DartType>[];
 
-  Iterable<FieldElement> get enumValues {
+  List<FieldElement> get enumValues {
     assert(invariant(this, _enumValues != null,
         message: "enumValues has not been computed for $this."));
     return _enumValues;
   }
 
-  void set enumValues(Iterable<FieldElement> values) {
+  void set enumValues(List<FieldElement> values) {
     assert(invariant(this, _enumValues == null,
         message: "enumValues has already been computed for $this."));
     _enumValues = values;

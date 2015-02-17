@@ -1430,7 +1430,7 @@ abstract class MixinApplicationElement extends ClassElement {
 /// Enum declaration.
 abstract class EnumClassElement extends ClassElement {
   /// The static fields implied by the enum values.
-  Iterable<FieldElement> get enumValues;
+  List<FieldElement> get enumValues;
 }
 
 /// The label entity defined by a labeled statement.
