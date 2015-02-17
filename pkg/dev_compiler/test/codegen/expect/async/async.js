@@ -1351,7 +1351,7 @@ var async;
             } else {
               controller.add(newValue);
             }
-          }).bind(this), dart.as(onError: addError, core.Function), {onDone: controller.close});
+          }).bind(this), {onError: dart.as(addError, core.Function), onDone: controller.close});
         }
         if (this.isBroadcast) {
           controller = new StreamController.broadcast({onListen: onListen, onCancel: (() => {
@@ -1389,7 +1389,7 @@ var async;
               subscription.pause();
               controller.addStream(newStream).whenComplete(subscription.resume);
             }
-          }).bind(this), dart.as(onError: eventSink._addError, core.Function), {onDone: controller.close});
+          }).bind(this), {onError: dart.as(eventSink._addError, core.Function), onDone: controller.close});
         }
         if (this.isBroadcast) {
           controller = new StreamController.broadcast({onListen: onListen, onCancel: (() => {
@@ -2335,7 +2335,7 @@ var async;
     class _AddStreamState {
       constructor(controller, source, cancelOnError) {
         this.addStreamFuture = new _Future();
-        this.addSubscription = source.listen(dart.as(controller._add, /* Unimplemented type (dynamic) → void */), dart.as(onError: cancelOnError ? makeErrorHandler(controller) : controller._addError, core.Function), {onDone: controller._close, cancelOnError: cancelOnError});
+        this.addSubscription = source.listen(dart.as(controller._add, /* Unimplemented type (dynamic) → void */), {onError: dart.as(cancelOnError ? makeErrorHandler(controller) : controller._addError, core.Function), onDone: controller._close, cancelOnError: cancelOnError});
       }
       static makeErrorHandler(controller) { return ((e, s) => {
         controller._addError(e, s);

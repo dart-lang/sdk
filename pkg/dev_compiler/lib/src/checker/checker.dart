@@ -396,9 +396,19 @@ class CodeChecker extends RecursiveAstVisitor {
       }
       DartType expectedType = _rules.elementType(element);
       if (expectedType == null) expectedType = _rules.provider.dynamicType;
-      list[i] = checkAssignment(arg, expectedType);
+      list[i] = checkArgument(arg, expectedType);
     }
     return true;
+  }
+
+  Expression checkArgument(Expression arg, DartType expectedType) {
+    // Preserve named argument structure, so their immediate parent is the
+    // method invocation.
+    if (arg is NamedExpression) {
+      arg.expression = checkAssignment(arg.expression, expectedType);
+      return arg;
+    }
+    return checkAssignment(arg, expectedType);
   }
 
   void checkFunctionApplication(

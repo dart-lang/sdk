@@ -421,7 +421,7 @@ class _AddStreamState<T> {
                 controller._add is __t100),
             onError: ((__x104) => DDC$RT.cast(__x104, dynamic, Function,
                     "CastGeneral",
-                    """line 746, column 41 of dart:async/stream_controller.dart: """,
+                    """line 746, column 50 of dart:async/stream_controller.dart: """,
                     __x104 is Function, true))(cancelOnError
                 ? makeErrorHandler(controller)
                 : controller._addError),

@@ -123,7 +123,7 @@ abstract class Stream<T> {
         }
       },
           onError: DDC$RT.cast(addError, dynamic, Function, "CastGeneral",
-              """line 338, column 11 of dart:async/stream.dart: """,
+              """line 338, column 20 of dart:async/stream.dart: """,
               addError is Function, true),
           onDone: controller.close);
     }
@@ -165,7 +165,7 @@ abstract class Stream<T> {
       },
           onError: DDC$RT.cast(eventSink._addError, dynamic, Function,
               "CastGeneral",
-              """line 395, column 11 of dart:async/stream.dart: """,
+              """line 395, column 20 of dart:async/stream.dart: """,
               eventSink._addError is Function, true),
           onDone: controller.close);
     }
