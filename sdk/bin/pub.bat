@@ -23,11 +23,6 @@ IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set VM_OPTIONS=
 
-rem Give the VM extra memory for dart2js.
-rem # TODO(rnystrom): Remove when #8355 is fixed.
-rem See comments regarding options below in dart2js shell script.
-set VM_OPTIONS=%VM_OPTIONS% --old_gen_heap_size=1024
-
 rem Use the Dart binary in the built SDK so pub can find the version file next
 rem to it.
 set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
