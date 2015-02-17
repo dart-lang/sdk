@@ -212,11 +212,11 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $runtime == chrome || $runtime == ff || $runtime == ContentShellOnAndroid ]
-convert/streamed_conversion_utf8_encode_test: Skip # Times out. Issue 22050
-convert/streamed_conversion_json_utf8_encode_test: Skip # Times out. Issue 22050
-convert/streamed_conversion_json_utf8_decode_test: Skip # Times out. Issue 22050
-async/slow_consumer2_test: Skip # Times out. Issue 22050
-async/stream_timeout_test: Skip # Times out. Issue 22050
+convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
@@ -264,15 +264,15 @@ async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failur
 
 [$compiler == none && $runtime == ContentShellOnAndroid ]
 async/stream_timeout_test: RuntimeError, Pass # Issue 19127
-async/slow_consumer3_test: Skip # Times out flakily. Issue 20956
-async/slow_consumer2_test: Skip # Times out flakily. Issue 20956
-convert/streamed_conversion_utf8_encode_test: Skip # Times out or passes. Issue 19127
-convert/streamed_conversion_utf8_decode_test: Skip # Times out or passes. Issue 19127
-mirrors/lazy_static_test: Skip # Times out. Issue 19127
-mirrors/mirrors_reader_test: Skip # Times out. Issue 19127
+async/slow_consumer3_test: SkipSlow # Times out flakily. Issue 20956
+async/slow_consumer2_test: SkipSlow # Times out flakily. Issue 20956
+convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out or passes. Issue 19127
+convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out or passes. Issue 19127
+mirrors/lazy_static_test: SkipSlow # Times out. Issue 19127
+mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
-mirrors/mirrors_reader_test: Skip # Times out. Issue 20806.
+mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 
 [ $compiler == dart2dart ]
 # Deferred loading is not supported by dart2dart.

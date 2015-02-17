@@ -138,13 +138,13 @@ generic_instanceof3_test: Pass, Crash # Issue 17440.
 [ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
 stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
-large_class_declaration_test: Skip # Times out. Issue 20352
+large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) && $mode == debug ]
-large_class_declaration_test: Skip # Times out. Issue 20352
+large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
-gc_test: Skip # Times out flakily. Issue 20956
+gc_test: SkipSlow # Times out flakily. Issue 20956
 
 [ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151

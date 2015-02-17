@@ -126,9 +126,9 @@ io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
 io/file_read_special_device_test: Fail # Issue 17440
 
 [ $arch == mips && $mode == debug ]
-io/web_socket_test: Skip # Times out. Issue 20352
+io/web_socket_test: SkipSlow # Times out. Issue 20352
 io/test_runner_test: Skip # Flakily times out in a subtest. Issue 201351
-full_coverage_test: Skip # Times out. Issue 20352
+full_coverage_test: SkipSlow # Times out. Issue 20352
 io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too slow.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]

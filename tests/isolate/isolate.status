@@ -109,7 +109,7 @@ start_paused_test: Fail, OK   # Issue 13921 Dom isolates don't support spawnFunc
 object_leak_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 spawn_uri_missing_from_isolate_test: RuntimeError # Issue 17649
-spawn_uri_missing_test: Skip # Times out.
+spawn_uri_missing_test: SkipSlow # Times out.
 isolate_current_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
