@@ -1077,11 +1077,22 @@ class Primitives {
     String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
+      var interceptor = getInterceptor(function);
+      jsFunction = JS('', '#["call*"]', interceptor);
 
-      // TODO(ahe): This might occur for optional arguments if there is no call
-      // selector with that many arguments.
-
-      return functionNoSuchMethod(function, positionalArguments, null);
+      if (jsFunction == null) {
+        return functionNoSuchMethod(function, positionalArguments, null);
+      }
+      ReflectionInfo info = new ReflectionInfo(jsFunction);
+      int maxArgumentCount = info.requiredParameterCount +
+          info.optionalParameterCount;
+      if (info.areOptionalParametersNamed || maxArgumentCount < argumentCount) {
+        return functionNoSuchMethod(function, positionalArguments, null);
+      }
+      arguments = new List.from(arguments);
+      for (int pos = argumentCount; pos < maxArgumentCount; pos++) {
+        arguments.add(info.defaultValue(pos));
+      }
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
