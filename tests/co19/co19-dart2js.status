@@ -5334,6 +5334,8 @@ WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-i
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-table-insertion-mode/end-tag-table_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/appending-to-a-template/template-child-nodes_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
@@ -7341,6 +7343,8 @@ WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-i
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-table-insertion-mode/end-tag-table_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/appending-to-a-template/template-child-nodes_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
@@ -9213,6 +9217,8 @@ WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-i
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-table-insertion-mode/end-tag-table_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/appending-to-a-template/template-child-nodes_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
