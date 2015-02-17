@@ -165,9 +165,8 @@
     <dl>
       <dt>--no-index</dt>
       <dd>
-      An indication that no indexer calls will be made to the analysis server,
-      and thus, no index should be created. If this flag is passed and an API is
-      used that requires an index, then an <tt>NO_INDEX_GENERATED</tt> exception
+      Disable the server from generating an index. If this flag is passed and an
+      API is used that requires an index, then an error, <tt>NO_INDEX_GENERATED</tt>,
       will be thrown. The set of API calls that require an index include:
       refactoring calls, code completions and searching.
       <!-- TODO(jwren/scheglov): make sure that this of APIs that is complete. -->
