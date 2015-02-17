@@ -199,6 +199,17 @@ dt.typeDefinition {
       </ul>
       </dd>
     </dl>
+    <dl>
+      <dt>--no-index</dt>
+      <dd>
+      An indication that no indexer calls will be made to the analysis server,
+      and thus, no index should be created. If this flag is passed and an API is
+      used that requires an index, then an <tt>NO_INDEX_GENERATED</tt> exception
+      will be thrown. The set of API calls that require an index include:
+      refactoring calls, code completions and searching.
+      
+      </dd>
+    </dl>
     </blockquote>
     <h2 class="domain"><a name="domain_server">Domain: server</a></h2>
       <p>
@@ -3102,7 +3113,7 @@ dt.typeDefinition {
           </dd><dt class="value">INVALID_OVERLAY_CHANGE</dt><dd>
             
             <p>
-              An analysis.updateContent request contained a
+              An "analysis.updateContent" request contained a
               ChangeContentOverlay object which can't be applied, due
               to an edit having an offset or length that is out of
               range.
@@ -3116,6 +3127,12 @@ dt.typeDefinition {
             
             <p>
               A malformed request was received.
+            </p>
+          </dd><dt class="value">NO_INDEX_GENERATED</dt><dd>
+            
+            <p>
+              The "--no-index" flag was passed when the analysis server created,
+              but this API call requires an index to have been generated.              
             </p>
           </dd><dt class="value">REFACTORING_REQUEST_CANCELLED</dt><dd>
             
