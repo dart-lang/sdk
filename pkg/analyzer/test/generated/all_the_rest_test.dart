@@ -38,6 +38,10 @@ import '../reflective_tests.dart';
 import 'parser_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:path/src/context.dart';
 
 
 main() {
@@ -8546,6 +8550,32 @@ class SourceFactoryTest {
         result.fullName,
         FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
   }
+
+  void test_resolveUri_nonAbsolute_relative_package() {
+    MemoryResourceProvider provider = new MemoryResourceProvider();
+    Context context = provider.pathContext;
+    String packagePath = context.joinAll([context.separator, 'path', 'to', 'package']);
+    String libPath = context.joinAll([packagePath, 'lib']);
+    String dirPath = context.joinAll([libPath, 'dir']);
+    String firstPath = context.joinAll([dirPath, 'first.dart']);
+    String secondPath = context.joinAll([dirPath, 'second.dart']);
+
+    provider.newFolder(packagePath);
+    Folder libFolder =  provider.newFolder(libPath);
+    provider.newFolder(dirPath);
+    File firstFile = provider.newFile(firstPath, '');
+    provider.newFile(secondPath, '');
+
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider, {'package' : [libFolder]});
+    SourceFactory factory = new SourceFactory([resolver]);
+    Source librarySource = firstFile.createSource(Uri.parse('package:package/dir/first.dart'));
+
+    Source result = factory.resolveUri(librarySource, 'second.dart');
+    expect(result, isNotNull);
+    expect(result.fullName, secondPath);
+    expect(result.uri.toString(), 'package:package/dir/second.dart');
+  }
+
   void test_restoreUri() {
     JavaFile file1 = FileUtilities2.createFile("/some/file1.dart");
     JavaFile file2 = FileUtilities2.createFile("/some/file2.dart");

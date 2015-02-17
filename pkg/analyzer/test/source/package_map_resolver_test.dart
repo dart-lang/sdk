@@ -162,13 +162,13 @@ class _PackageMapUriResolverTest {
       Source source = _createFileSource('/pkgA/lib/libA.dart');
       Uri uri = resolver.restoreAbsolute(source);
       expect(uri, isNotNull);
-      expect(uri.path, 'package:pkgA/libA.dart');
+      expect(uri.toString(), 'package:pkgA/libA.dart');
     }
     {
       Source source = _createFileSource('/pkgB/lib/src/libB.dart');
       Uri uri = resolver.restoreAbsolute(source);
       expect(uri, isNotNull);
-      expect(uri.path, 'package:pkgB/src/libB.dart');
+      expect(uri.toString(), 'package:pkgB/src/libB.dart');
     }
     {
       Source source = _createFileSource('/no/such/file');

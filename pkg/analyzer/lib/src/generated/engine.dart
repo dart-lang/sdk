@@ -10312,7 +10312,7 @@ class ParseHtmlTask_getLibrarySources extends ht.RecursiveXmlVisitor<Object> {
     }
     if (scriptAttribute != null) {
       try {
-        Uri uri = new Uri(path: scriptAttribute.text);
+        Uri uri = Uri.parse(scriptAttribute.text);
         String fileName = uri.path;
         Source librarySource =
             _task.context.sourceFactory.resolveUri(_task.source, fileName);
