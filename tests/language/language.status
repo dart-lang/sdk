@@ -68,6 +68,8 @@ async_await_syntax_test/d03a: CompileTimeError # Issue 21404
 sync_generator3_test/test2: Fail # Issue 22300
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
+async_throw_in_catch_test: Timeout # Issue 22445, 22446
+asyncstar_throw_in_catch_test: RuntimeError # Issue 21404
 async_await_syntax_test/a03a: RuntimeError # Issue 21404
 async_await_syntax_test/a03b: RuntimeError # Issue 21404
 async_await_syntax_test/a09a: RuntimeError # Issue 21404
