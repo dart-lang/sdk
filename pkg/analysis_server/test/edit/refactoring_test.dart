@@ -28,6 +28,7 @@ main() {
   runReflectiveTests(InlineMethodTest);
   runReflectiveTests(MoveFileTest);
   runReflectiveTests(RenameTest);
+  runReflectiveTests(_NoSearchEngine);
 }
 
 
@@ -636,6 +637,11 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
       List<RefactoringKind> kinds = getRefactoringsAtString(search);
       expect(kinds, contains(RefactoringKind.RENAME));
     });
+  }
+
+  @override
+  Index createIndex() {
+    return createLocalMemoryIndex();
   }
 
   /**
@@ -1742,5 +1748,48 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     server.handlers = [new EditDomainHandler(server),];
     createProject();
     handler = new EditDomainHandler(server);
+  }
+}
+
+
+@reflectiveTest
+class _NoSearchEngine extends _AbstractGetRefactoring_Test {
+  @override
+  Index createIndex() {
+    return null;
+  }
+
+  test_getAvailableRefactorings() async {
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    await waitForTasksFinished();
+    Request request =
+        new EditGetAvailableRefactoringsParams(testFile, 0, 0).toRequest('0');
+    return _assertErrorResposeNoIndex(request);
+  }
+
+  test_getRefactoring_noSearchEngine() async {
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    await waitForTasksFinished();
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+        testFile,
+        0,
+        0,
+        true).toRequest('0');
+    return _assertErrorResposeNoIndex(request);
+  }
+
+  _assertErrorResposeNoIndex(Request request) async {
+    Response response = await serverChannel.sendRequest(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }

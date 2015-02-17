@@ -89,14 +89,14 @@ class AnalysisServer {
   final ResourceProvider resourceProvider;
 
   /**
-   * The [Index] for this server.
+   * The [Index] for this server, may be `null` if indexing is disabled.
    */
   final Index index;
 
   /**
-   * The [SearchEngine] for this server.
+   * The [SearchEngine] for this server, may be `null` if indexing is disabled.
    */
-  SearchEngine searchEngine;
+  final SearchEngine searchEngine;
 
   /**
    * [ContextManager] which handles the mapping from analysis roots
@@ -242,11 +242,12 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, this.resourceProvider,
-      PackageMapProvider packageMapProvider, this.index,
+      PackageMapProvider packageMapProvider, Index _index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
-      this.instrumentationService, {this.rethrowExceptions: true}) {
+      this.instrumentationService, {this.rethrowExceptions: true})
+      : index = _index,
+        searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
-    searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue();
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
@@ -1103,6 +1104,7 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool noErrorNotification = false;
+  bool noIndex = false;
   String fileReadMode = 'as-is';
 }
 

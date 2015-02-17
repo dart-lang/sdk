@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/correction/source_range.dart' as
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -44,7 +43,6 @@ typedef bool Predicate<E>(E argument);
 class FixProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
-  final SearchEngine searchEngine;
   final CompilationUnit unit;
   final AnalysisError error;
   AnalysisContext context;
@@ -69,7 +67,7 @@ class FixProcessor {
   AstNode node;
   AstNode coveredNode;
 
-  FixProcessor(this.searchEngine, this.unit, this.error) {
+  FixProcessor(this.unit, this.error) {
     unitElement = unit.element;
     context = unitElement.context;
     unitSource = unitElement.source;

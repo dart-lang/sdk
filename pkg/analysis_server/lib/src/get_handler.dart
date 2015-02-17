@@ -867,6 +867,9 @@ class GetHandler {
       return _returnFailure(request, 'Analysis server not running');
     }
     Index index = analysisServer.index;
+    if (index == null) {
+      return _returnFailure(request, 'Indexing is disabled');
+    }
     String name = request.uri.queryParameters[INDEX_ELEMENT_NAME];
     if (name == null) {
       return _returnFailure(

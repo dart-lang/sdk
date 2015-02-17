@@ -117,8 +117,7 @@ class EditDomainHandler implements RequestHandler {
         server.getResolvedCompilationUnits(params.file);
     if (units.isNotEmpty) {
       CompilationUnit unit = units[0];
-      List<Assist> assists =
-          computeAssists(searchEngine, unit, params.offset, params.length);
+      List<Assist> assists = computeAssists(unit, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
@@ -128,6 +127,10 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response getAvailableRefactorings(Request request) {
+    if (searchEngine == null) {
+      return new Response.noIndexGenerated(request);
+    }
+    // prepare parameters
     var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -170,7 +173,7 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes = computeFixes(searchEngine, unit, error);
+            List<Fix> fixes = computeFixes(unit, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);
@@ -250,6 +253,9 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response _getRefactoring(Request request) {
+    if (searchEngine == null) {
+      return new Response.noIndexGenerated(request);
+    }
     if (refactoringManager.hasPendingRequest) {
       refactoringManager.cancel();
       _newRefactoringManager();

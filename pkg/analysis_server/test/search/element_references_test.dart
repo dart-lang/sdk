@@ -7,6 +7,7 @@ library test.search.element_references;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -16,6 +17,7 @@ import 'abstract_search_domain.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(ElementReferencesTest);
+  runReflectiveTests(_NoSearchEngine);
 }
 
 
@@ -702,5 +704,28 @@ class A<T> {
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'T f;');
     assertHasResult(SearchResultKind.REFERENCE, 'T m()');
+  }
+}
+
+
+@reflectiveTest
+class _NoSearchEngine extends AbstractSearchDomainTest {
+  @override
+  Index createIndex() {
+    return null;
+  }
+
+  test_requestError_noSearchEngine() async {
+    addTestFile('''
+main() {
+  var vvv = 1;
+  print(vvv);
+}
+''');
+    Request request =
+        new SearchFindElementReferencesParams(testFile, 0, false).toRequest('0');
+    Response response = await waitResponse(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }

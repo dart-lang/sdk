@@ -132,6 +132,11 @@ class Driver implements ServerStarter {
   static const String NO_ERROR_NOTIFICATION = "no-error-notification";
 
   /**
+   * The name of the flag used to disable the index.
+   */
+  static const String NO_INDEX = "no-index";
+
+  /**
    * The name of the option used to set the file read mode.
    */
   static const String FILE_READ_MODE = "file-read-mode";
@@ -218,6 +223,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
+    analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
@@ -345,6 +351,11 @@ class Driver implements ServerStarter {
     parser.addFlag(
         NO_ERROR_NOTIFICATION,
         help: "disable sending all analysis error notifications to the server",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
+        NO_INDEX,
+        help: "disable indexing sources",
         defaultsTo: false,
         negatable: false);
     parser.addOption(

@@ -6,7 +6,6 @@ library services.correction.assist;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -16,12 +15,11 @@ import 'package:analyzer/src/generated/source.dart';
  *
  * Returns the computed [Assist]s, not `null`.
  */
-List<Assist> computeAssists(SearchEngine searchEngine, CompilationUnit unit,
-    int offset, int length) {
+List<Assist> computeAssists(CompilationUnit unit, int offset, int length) {
   Source source = unit.element.source;
   String file = source.fullName;
   AssistProcessor processor =
-      new AssistProcessor(searchEngine, source, file, unit, offset, length);
+      new AssistProcessor(source, file, unit, offset, length);
   return processor.compute();
 }
 

@@ -6,9 +6,6 @@ library test.services.correction.fix;
 
 import 'package:analysis_server/src/protocol.dart' hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -32,9 +29,6 @@ typedef bool AnalysisErrorFilter(AnalysisError error);
 
 @reflectiveTest
 class FixProcessorTest extends AbstractSingleUnitTest {
-  Index index;
-  SearchEngineImpl searchEngine;
-
   AnalysisErrorFilter errorFilter = null;
 
   Fix fix;
@@ -42,7 +36,7 @@ class FixProcessorTest extends AbstractSingleUnitTest {
   String resultCode;
 
   void assert_undefinedFunction_create_returnType_bool(String lineWithTest) {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   bool b = true;
   $lineWithTest
@@ -73,7 +67,7 @@ bool test() {
 
   void assertNoFix(FixKind kind) {
     AnalysisError error = _findErrorToFix();
-    List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
+    List<Fix> fixes = computeFixes(testUnit, error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
         throw fail('Unexpected fix $kind in\n${fixes.join('\n')}');
@@ -103,13 +97,11 @@ bool test() {
 
   void setUp() {
     super.setUp();
-    index = createLocalMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
     verifyNoTestUnitErrors = false;
   }
 
   void test_addSync_blockFunctionBody() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 foo() {}
 main() {
   await foo();
@@ -121,14 +113,14 @@ main() {
     {
       AnalysisError error = errors[0];
       expect(error.message, "Expected to find ';'");
-      List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
+      List<Fix> fixes = computeFixes(testUnit, error);
       expect(fixes, isEmpty);
     }
     // Undefined name 'await'
     {
       AnalysisError error = errors[1];
       expect(error.message, "Undefined name 'await'");
-      List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
+      List<Fix> fixes = computeFixes(testUnit, error);
       // has exactly one fix
       expect(fixes, hasLength(1));
       Fix fix = fixes[0];
@@ -151,7 +143,7 @@ main() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
     };
-    _indexTestUnit('''
+    resolveTestUnit('''
 foo() {}
 main() => await foo();
 ''');
@@ -162,7 +154,7 @@ main() async => await foo();
   }
 
   void test_boolean() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   boolean v;
 }
@@ -175,7 +167,7 @@ main() {
   }
 
   void test_changeToStaticAccess_method() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   static foo() {}
 }
@@ -194,7 +186,7 @@ main(A a) {
   }
 
   void test_changeToStaticAccess_method_prefixLibrary() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:async' as pref;
 main(pref.Future f) {
   f.wait([]);
@@ -209,7 +201,7 @@ main(pref.Future f) {
   }
 
   void test_changeToStaticAccess_property() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   static get foo => 42;
 }
@@ -228,7 +220,7 @@ main(A a) {
   }
 
   void test_createClass() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Test v = null;
 }
@@ -245,7 +237,7 @@ class Test {
   }
 
   void test_createConstructor_insteadOfSyntheticDefault() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int field;
 
@@ -271,7 +263,7 @@ main() {
   }
 
   void test_createConstructor_named() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   method() {}
 }
@@ -294,7 +286,7 @@ main() {
   }
 
   void test_createConstructorSuperExplicit() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   A(bool p1, int p2, double p3, String p4, {p5});
 }
@@ -313,7 +305,7 @@ class B extends A {
   }
 
   void test_createConstructorSuperExplicit_hasInitializers() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   A(int p);
 }
@@ -334,7 +326,7 @@ class B extends A {
   }
 
   void test_createConstructorSuperExplicit_named() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   A.named(int p);
 }
@@ -353,7 +345,7 @@ class B extends A {
   }
 
   void test_createConstructorSuperExplicit_named_private() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   A._named(int p);
 }
@@ -365,7 +357,7 @@ class B extends A {
   }
 
   void test_createConstructorSuperImplicit() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   A(p1, int p2, List<String> p3, [int p4]);
 }
@@ -390,7 +382,7 @@ class B extends A {
   }
 
   void test_createConstructorSuperImplicit_fieldInitializer() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int _field;
   A(this._field);
@@ -417,7 +409,7 @@ class B extends A {
   }
 
   void test_createConstructorSuperImplicit_named() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   A.named(p1, int p2);
 }
@@ -442,7 +434,7 @@ class B extends A {
   }
 
   void test_createConstructorSuperImplicit_private() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   A._named(p);
 }
@@ -453,7 +445,7 @@ class B extends A {
   }
 
   void test_createField_BAD_inSDK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(List p) {
   p.foo = 1;
 }
@@ -462,7 +454,7 @@ main(List p) {
   }
 
   void test_createField_getter_multiLevel() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 class B {
@@ -492,7 +484,7 @@ main(C c) {
   }
 
   void test_createField_getter_qualified_instance() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 main(A a) {
@@ -510,7 +502,7 @@ main(A a) {
   }
 
   void test_createField_getter_qualified_instance_dynamicType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   B b;
   void f(Object p) {
@@ -534,7 +526,7 @@ class B {
   }
 
   void test_createField_getter_unqualified_instance_asInvocationArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     f(test);
@@ -555,7 +547,7 @@ f(String s) {}
   }
 
   void test_createField_getter_unqualified_instance_assignmentRhs() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     int v = test;
@@ -574,7 +566,7 @@ class A {
   }
 
   void test_createField_getter_unqualified_instance_asStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     test;
@@ -593,7 +585,7 @@ class A {
   }
 
   void test_createField_setter_generic_BAD() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 class B<T> {
@@ -617,7 +609,7 @@ class B<T> {
   }
 
   void test_createField_setter_generic_OK_local() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A<T> {
   List<T> items;
 
@@ -640,7 +632,7 @@ class A<T> {
   }
 
   void test_createField_setter_qualified_instance_hasField() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int aaa;
   int zzz;
@@ -667,7 +659,7 @@ main(A a) {
   }
 
   void test_createField_setter_qualified_instance_hasMethod() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   existingMethod() {}
 }
@@ -688,7 +680,7 @@ main(A a) {
   }
 
   void test_createField_setter_qualified_static() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 main() {
@@ -706,7 +698,7 @@ main() {
   }
 
   void test_createField_setter_unqualified_instance() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     test = 5;
@@ -725,7 +717,7 @@ class A {
   }
 
   void test_createField_setter_unqualified_static() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   static main() {
     test = 5;
@@ -745,7 +737,7 @@ class A {
 
   void test_createFile_forImport() {
     testFile = '/my/project/bin/test.dart';
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'my_file.dart';
 ''');
     AnalysisError error = _findErrorToFix();
@@ -761,7 +753,7 @@ import 'my_file.dart';
   }
 
   void test_createGetter_BAD_inSDK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(List p) {
   int v = p.foo;
 }
@@ -770,7 +762,7 @@ main(List p) {
   }
 
   void test_createGetter_multiLevel() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 class B {
@@ -800,7 +792,7 @@ main(C c) {
   }
 
   void test_createGetter_qualified_instance() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 main(A a) {
@@ -818,7 +810,7 @@ main(A a) {
   }
 
   void test_createGetter_qualified_instance_dynamicType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   B b;
   void f(Object p) {
@@ -842,7 +834,7 @@ class B {
   }
 
   void test_createGetter_setterContext() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 main(A a) {
@@ -853,7 +845,7 @@ main(A a) {
   }
 
   void test_createGetter_unqualified_instance_asInvocationArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     f(test);
@@ -874,7 +866,7 @@ f(String s) {}
   }
 
   void test_createGetter_unqualified_instance_assignmentLhs() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     test = 42;
@@ -885,7 +877,7 @@ class A {
   }
 
   void test_createGetter_unqualified_instance_assignmentRhs() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     int v = test;
@@ -904,7 +896,7 @@ class A {
   }
 
   void test_createGetter_unqualified_instance_asStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     test;
@@ -923,7 +915,7 @@ class A {
   }
 
   void test_createLocalVariable_functionType_named() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 typedef MY_FUNCTION(int p);
 foo(MY_FUNCTION f) {}
 main() {
@@ -941,7 +933,7 @@ main() {
   }
 
   void test_createLocalVariable_functionType_synthetic() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 foo(f(int p)) {}
 main() {
   foo(bar);
@@ -951,7 +943,7 @@ main() {
   }
 
   void test_createLocalVariable_read_typeAssignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int a = test;
 }
@@ -965,7 +957,7 @@ main() {
   }
 
   void test_createLocalVariable_read_typeCondition() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (!test) {
     print(42);
@@ -983,7 +975,7 @@ main() {
   }
 
   void test_createLocalVariable_read_typeInvocationArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   f(test);
 }
@@ -999,7 +991,7 @@ f(String p) {}
   }
 
   void test_createLocalVariable_write_assignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   test = 42;
 }
@@ -1012,7 +1004,7 @@ main() {
   }
 
   void test_createLocalVariable_write_assignment_compound() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   test += 42;
 }
@@ -1026,7 +1018,7 @@ main() {
   }
 
   void test_createMissingOverrides_functionTypeAlias() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 typedef int Binary(int left, int right);
 
 abstract class Emulator {
@@ -1053,7 +1045,7 @@ class MyEmulator extends Emulator {
   }
 
   void test_createMissingOverrides_functionTypedParameter() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 abstract class A {
   forEach(int f(double p1, String p2));
 }
@@ -1076,7 +1068,7 @@ class B extends A {
   }
 
   void test_createMissingOverrides_generics() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class Iterator<T> {
 }
 
@@ -1104,7 +1096,7 @@ class Test extends IterableMixin<int> {
   }
 
   void test_createMissingOverrides_getter() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 abstract class A {
   get g1;
   int get g2;
@@ -1132,7 +1124,7 @@ class B extends A {
   }
 
   void test_createMissingOverrides_importPrefix() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:async' as aaa;
 abstract class A {
   Map<aaa.Future, List<aaa.Future>> g(aaa.Future p);
@@ -1157,7 +1149,7 @@ class B extends A {
   }
 
   void test_createMissingOverrides_mergeToField_getterSetter() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int ma;
   void mb() {}
@@ -1188,7 +1180,7 @@ class B implements A {
   }
 
   void test_createMissingOverrides_method() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 abstract class A {
   m1();
   int m2();
@@ -1261,7 +1253,7 @@ class B extends A {
   }
 
   void test_createMissingOverrides_operator() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 abstract class A {
   int operator [](int index);
   void operator []=(int index, String value);
@@ -1291,7 +1283,7 @@ class B extends A {
   }
 
   void test_createMissingOverrides_setter() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 abstract class A {
   set s1(x);
   set s2(int x);
@@ -1328,7 +1320,7 @@ class B extends A {
   }
 
   void test_createNoSuchMethod() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 abstract class A {
   m1();
   int m2();
@@ -1353,7 +1345,7 @@ class B extends A {
   }
 
   void test_creatGetter_location_afterLastGetter() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int existingField;
 
@@ -1382,7 +1374,7 @@ main(A a) {
   }
 
   void test_creationFunction_forFunctionType_cascadeSecond() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   B ma() => null;
 }
@@ -1414,7 +1406,7 @@ int test(double a, String b) {
   }
 
   void test_creationFunction_forFunctionType_coreFunction() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   useFunction(g: test);
 }
@@ -1432,7 +1424,7 @@ test() {
   }
 
   void test_creationFunction_forFunctionType_dynamicArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   useFunction(test);
 }
@@ -1450,7 +1442,7 @@ int test(a, b) {
   }
 
   void test_creationFunction_forFunctionType_function() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   useFunction(test);
 }
@@ -1468,7 +1460,7 @@ int test(double a, String b) {
   }
 
   void test_creationFunction_forFunctionType_function_namedArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   useFunction(g: test);
 }
@@ -1486,7 +1478,7 @@ int test(double a, String b) {
   }
 
   void test_creationFunction_forFunctionType_method_enclosingClass_static() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   static foo() {
     useFunction(test);
@@ -1508,7 +1500,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   void test_creationFunction_forFunctionType_method_enclosingClass_static2() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   var f;
   A() : f = useFunction(test);
@@ -1528,7 +1520,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   void test_creationFunction_forFunctionType_method_targetClass() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(A a) {
   useFunction(a.test);
 }
@@ -1550,7 +1542,7 @@ useFunction(int g(double a, String b)) {}
 
   void
       test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(A a) {
   useFunction(a.test);
 }
@@ -1574,7 +1566,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   void test_creationFunction_forFunctionType_notFunctionType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(A a) {
   useFunction(a.test);
 }
@@ -1586,7 +1578,7 @@ useFunction(g) {}
   }
 
   void test_creationFunction_forFunctionType_unknownTarget() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(A a) {
   useFunction(a.test);
 }
@@ -1598,7 +1590,7 @@ useFunction(g) {}
   }
 
   void test_expectedToken_semicolon() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   print(0)
 }
@@ -1616,7 +1608,7 @@ library my_lib;
 class Test {}
 ''');
     // try to find a fix
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Test test = null;
 }
@@ -1632,7 +1624,7 @@ main() {
   }
 
   void test_importLibraryPrefix_withTopLevelVariable() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math' as pref;
 main() {
   print(pref.E);
@@ -1649,7 +1641,7 @@ main() {
   }
 
   void test_importLibraryPrefix_withType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:async' as pref;
 main() {
   pref.Stream s = null;
@@ -1670,7 +1662,7 @@ main() {
 library lib;
 myFunction() {}
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   myFunction();
 }
@@ -1690,7 +1682,7 @@ main() {
 library lib;
 myFunction() {}
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     myFunction();
@@ -1714,7 +1706,7 @@ class A {
 library lib;
 int MY_VAR = 42;
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   print(MY_VAR);
 }
@@ -1736,7 +1728,7 @@ class Test {
   const Test(int p);
 }
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 @Test(0)
 main() {
 }
@@ -1757,7 +1749,7 @@ main() {
 library lib;
 class Test {}
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Test t = null;
 }
@@ -1778,7 +1770,7 @@ main() {
 library lib;
 class Test {}
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Test t = null;
 }
@@ -1799,7 +1791,7 @@ main() {
 library lib;
 class Test {}
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Test t = null;
 }
@@ -1815,7 +1807,7 @@ main() {
   }
 
   void test_importLibrarySdk_withTopLevelVariable() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   print(PI);
 }
@@ -1831,7 +1823,7 @@ main() {
   }
 
   void test_importLibrarySdk_withTopLevelVariable_annotation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 @PI
 main() {
 }
@@ -1847,7 +1839,7 @@ main() {
   }
 
   void test_importLibrarySdk_withType_AsExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   p as Future;
 }
@@ -1862,7 +1854,7 @@ main(p) {
   }
 
   void test_importLibrarySdk_withType_invocationTarget() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Future.wait(null);
 }
@@ -1877,7 +1869,7 @@ main() {
   }
 
   void test_importLibrarySdk_withType_IsExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   p is Future;
 }
@@ -1892,7 +1884,7 @@ main(p) {
   }
 
   void test_importLibrarySdk_withType_typeAnnotation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Future f = null;
 }
@@ -1907,7 +1899,7 @@ main() {
   }
 
   void test_importLibrarySdk_withType_typeAnnotation_PrefixedIdentifier() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Future.wait;
 }
@@ -1922,7 +1914,7 @@ main() {
   }
 
   void test_importLibrarySdk_withType_typeArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   List<Future> futures = [];
 }
@@ -1937,7 +1929,7 @@ main() {
   }
 
   void test_importLibraryShow() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:async' show Stream;
 main() {
   Stream s = null;
@@ -1954,7 +1946,7 @@ main() {
   }
 
   void test_isNotNull() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   p is! Null;
 }
@@ -1967,7 +1959,7 @@ main(p) {
   }
 
   void test_isNull() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   p is Null;
 }
@@ -1980,7 +1972,7 @@ main(p) {
   }
 
   void test_makeEnclosingClassAbstract_declaresAbstractMethod() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   m();
 }
@@ -1993,7 +1985,7 @@ abstract class A {
   }
 
   void test_makeEnclosingClassAbstract_inheritsAbstractMethod() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 abstract class A {
   m();
 }
@@ -2010,7 +2002,7 @@ abstract class B extends A {
   }
 
   void test_removeParentheses_inGetterDeclaration() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int get foo() => 0;
 }
@@ -2023,7 +2015,7 @@ class A {
   }
 
   void test_removeParentheses_inGetterInvocation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int get foo => 0;
 }
@@ -2042,7 +2034,7 @@ main(A a) {
   }
 
   void test_removeUnnecessaryCast_assignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(Object p) {
   if (p is String) {
     String v = ((p as String));
@@ -2059,7 +2051,7 @@ main(Object p) {
   }
 
   void test_removeUnusedImport() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math';
 main() {
 }
@@ -2071,7 +2063,7 @@ main() {
   }
 
   void test_removeUnusedImport_anotherImportOnLine() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math'; import 'dart:async';
 
 main() {
@@ -2088,7 +2080,7 @@ main() {
   }
 
   void test_removeUnusedImport_severalLines() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import
   'dart:math';
 main() {
@@ -2103,7 +2095,7 @@ main() {
   void test_replaceImportUri_inProject() {
     testFile = '/project/bin/test.dart';
     addSource('/project/foo/bar/lib.dart', '');
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'no/matter/lib.dart';
 ''');
     performAllAnalysisTasks();
@@ -2114,7 +2106,7 @@ import '../foo/bar/lib.dart';
 
   void test_replaceImportUri_package() {
     _configureMyPkg('');
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'no/matter/my_lib.dart';
 ''');
     performAllAnalysisTasks();
@@ -2127,7 +2119,7 @@ import 'package:my_pkg/my_lib.dart';
     errorFilter = (AnalysisError error) {
       return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;
     };
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   Map<String, var> m;
 }
@@ -2140,7 +2132,7 @@ class A {
   }
 
   void test_replaceWithConstInstanceCreation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   const A();
 }
@@ -2155,7 +2147,7 @@ const a = const A();
   }
 
   void test_undefinedClass_useSimilar_fromImport() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   Stirng s = 'abc';
 }
@@ -2168,7 +2160,7 @@ main() {
   }
 
   void test_undefinedClass_useSimilar_fromThisLibrary() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class MyClass {}
 main() {
   MyCalss v = null;
@@ -2183,7 +2175,7 @@ main() {
   }
 
   void test_undefinedFunction_create_dynamicArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   dynamic v;
   test(v);
@@ -2201,7 +2193,7 @@ void test(v) {
   }
 
   void test_undefinedFunction_create_dynamicReturnType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   dynamic v = test();
 }
@@ -2217,7 +2209,7 @@ test() {
   }
 
   void test_undefinedFunction_create_fromFunction() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int v = myUndefinedFunction(1, 2.0, '3');
 }
@@ -2233,7 +2225,7 @@ int myUndefinedFunction(int i, double d, String s) {
   }
 
   void test_undefinedFunction_create_fromMethod() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     int v = myUndefinedFunction(1, 2.0, '3');
@@ -2253,7 +2245,7 @@ int myUndefinedFunction(int i, double d, String s) {
   }
 
   void test_undefinedFunction_create_generic_BAD() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A<T> {
   Map<int, T> items;
   main() {
@@ -2275,7 +2267,7 @@ void process(Map items) {
   }
 
   void test_undefinedFunction_create_generic_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   List<int> items;
   main() {
@@ -2297,7 +2289,7 @@ void process(List<int> items) {
   }
 
   void test_undefinedFunction_create_nullArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   test(null);
 }
@@ -2328,7 +2320,7 @@ void test(arg0) {
   }
 
   void test_undefinedFunction_create_returnType_fromAssignment_eq() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int v;
   v = myUndefinedFunction();
@@ -2346,7 +2338,7 @@ int myUndefinedFunction() {
   }
 
   void test_undefinedFunction_create_returnType_fromAssignment_plusEq() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int v;
   v += myUndefinedFunction();
@@ -2364,7 +2356,7 @@ num myUndefinedFunction() {
   }
 
   void test_undefinedFunction_create_returnType_fromBinary_right() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   0 + myUndefinedFunction();
 }
@@ -2380,7 +2372,7 @@ num myUndefinedFunction() {
   }
 
   void test_undefinedFunction_create_returnType_fromInitializer() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int v = myUndefinedFunction();
 }
@@ -2396,7 +2388,7 @@ int myUndefinedFunction() {
   }
 
   void test_undefinedFunction_create_returnType_fromInvocationArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 foo(int p) {}
 main() {
   foo( myUndefinedFunction() );
@@ -2414,7 +2406,7 @@ int myUndefinedFunction() {
   }
 
   void test_undefinedFunction_create_returnType_fromReturn() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 int main() {
   return myUndefinedFunction();
 }
@@ -2430,7 +2422,7 @@ int myUndefinedFunction() {
   }
 
   void test_undefinedFunction_create_returnType_void() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   myUndefinedFunction();
 }
@@ -2446,7 +2438,7 @@ void myUndefinedFunction() {
   }
 
   void test_undefinedFunction_useSimilar_fromImport() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   pritn(0);
 }
@@ -2459,7 +2451,7 @@ main() {
   }
 
   void test_undefinedFunction_useSimilar_thisLibrary() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 myFunction() {}
 main() {
   myFuntcion();
@@ -2474,7 +2466,7 @@ main() {
   }
 
   void test_undefinedMethod_create_BAD_inSDK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   List.foo();
 }
@@ -2483,7 +2475,7 @@ main() {
   }
 
   void test_undefinedMethod_create_generic_BAD() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A<T> {
   B b;
   Map<int, T> items;
@@ -2512,7 +2504,7 @@ class B {
   }
 
   void test_undefinedMethod_create_generic_OK_literal() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   B b;
   List<int> items;
@@ -2541,7 +2533,7 @@ class B {
   }
 
   void test_undefinedMethod_create_generic_OK_local() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A<T> {
   List<T> items;
   main() {
@@ -2563,7 +2555,7 @@ class A<T> {
   }
 
   void test_undefinedMethod_createQualified_fromClass() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 main() {
@@ -2582,7 +2574,7 @@ main() {
   }
 
   void test_undefinedMethod_createQualified_fromClass_hasOtherMember() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   foo() {}
 }
@@ -2604,7 +2596,7 @@ main() {
   }
 
   void test_undefinedMethod_createQualified_fromInstance() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 main(A a) {
@@ -2623,7 +2615,7 @@ main(A a) {
   }
 
   void test_undefinedMethod_createQualified_targetIsFunctionType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 typedef A();
 main() {
   A.myUndefinedMethod();
@@ -2633,7 +2625,7 @@ main() {
   }
 
   void test_undefinedMethod_createQualified_targetIsUnresolved() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   NoSuchClass.myUndefinedMethod();
 }
@@ -2642,7 +2634,7 @@ main() {
   }
 
   void test_undefinedMethod_createUnqualified_parameters() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     myUndefinedMethod(0, 1.0, '3');
@@ -2691,7 +2683,7 @@ class A {
   }
 
   void test_undefinedMethod_createUnqualified_returnType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main() {
     int v = myUndefinedMethod();
@@ -2716,7 +2708,7 @@ class A {
   }
 
   void test_undefinedMethod_createUnqualified_staticFromField() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   static var f = myUndefinedMethod();
 }
@@ -2732,7 +2724,7 @@ class A {
   }
 
   void test_undefinedMethod_createUnqualified_staticFromMethod() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   static main() {
     myUndefinedMethod();
@@ -2752,7 +2744,7 @@ class A {
   }
 
   void test_undefinedMethod_hint_createQualified_fromInstance() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
 }
 main() {
@@ -2773,7 +2765,7 @@ main() {
   }
 
   void test_undefinedMethod_useSimilar_ignoreOperators() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(Object object) {
   object.then();
 }
@@ -2782,7 +2774,7 @@ main(Object object) {
   }
 
   void test_undefinedMethod_useSimilar_qualified() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   myMethod() {}
 }
@@ -2803,7 +2795,7 @@ main() {
   }
 
   void test_undefinedMethod_useSimilar_unqualified_superClass() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   myMethod() {}
 }
@@ -2826,7 +2818,7 @@ class B extends A {
   }
 
   void test_undefinedMethod_useSimilar_unqualified_thisClass() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   myMethod() {}
   main() {
@@ -2845,7 +2837,7 @@ class A {
   }
 
   void test_useEffectiveIntegerDivision() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var a = 5;
   var b = 2;
@@ -2865,7 +2857,7 @@ main() {
    * Computes fixes and verifies that there is a fix of the given kind.
    */
   Fix _assertHasFix(FixKind kind, AnalysisError error) {
-    List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
+    List<Fix> fixes = computeFixes(testUnit, error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
         return fix;
@@ -2921,10 +2913,5 @@ main() {
       positions.add(new Position(testFile, offset));
     }
     return positions;
-  }
-
-  void _indexTestUnit(String code) {
-    resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
   }
 }
