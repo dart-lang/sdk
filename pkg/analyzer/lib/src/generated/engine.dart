@@ -3450,7 +3450,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       AnalysisContextImpl_CycleBuilder builder =
           new AnalysisContextImpl_CycleBuilder(this);
-      builder.computeCycleContaining(source);
+      PerformanceTag prevTag = PerformanceStatistics.cycles.makeCurrent();
+      try {
+        builder.computeCycleContaining(source);
+      } finally {
+        prevTag.makeCurrent();
+      }
       AnalysisContextImpl_TaskData taskData = builder.taskData;
       if (taskData != null) {
         return taskData;
@@ -10487,6 +10492,11 @@ class PerformanceStatistics {
    * The [PerformanceTag] for time spent in linting.
    */
   static PerformanceTag lint = new PerformanceTag('lint');
+
+  /**
+   * The [PerformanceTag] for time spent computing cycles.
+   */
+  static PerformanceTag cycles = new PerformanceTag('cycles');
 }
 
 /**
