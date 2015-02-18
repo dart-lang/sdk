@@ -101,9 +101,7 @@ main(arguments) {
         formatOutput: dartGen);
     var testSdk = new TypeResolver.fromDir(path.join(testDir, 'sdk'), options);
     var result = compile('dart:core', testSdk, options);
-
-    var coreDir = dartGen ? 'dart.core' : 'core';
-    var outputDir = new Directory(path.join(actualDir, coreDir));
+    var outputDir = new Directory(path.join(actualDir, 'core'));
     expect(outputDir.existsSync(), true,
         reason: '${outputDir.path} was created for dart:core');
   });

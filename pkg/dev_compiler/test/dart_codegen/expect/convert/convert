@@ -1,6 +1,6 @@
 library dart.convert;
 
-import 'dart:async' as DDC$dartDOTasync$;
+import 'dart:async' as DDC$async$;
 import 'package:ddc/runtime/dart_logging_runtime.dart' as DDC$RT;
 import 'dart:async';
 import 'dart:typed_data';

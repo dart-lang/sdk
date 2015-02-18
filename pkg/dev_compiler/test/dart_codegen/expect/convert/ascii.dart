@@ -47,10 +47,10 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
     return new _UnicodeSubsetEncoderSink(_subsetMask, sink);
   }
   Stream<List<int>> bind(Stream<String> stream) => ((__x0) => DDC$RT.cast(__x0,
-      DDC$RT.type((DDC$dartDOTasync$.Stream<dynamic> _) {}),
-      DDC$RT.type((DDC$dartDOTasync$.Stream<List<int>> _) {}), "CastDynamic",
+      DDC$RT.type((DDC$async$.Stream<dynamic> _) {}),
+      DDC$RT.type((DDC$async$.Stream<List<int>> _) {}), "CastDynamic",
       """line 113, column 52 of dart:convert/ascii.dart: """,
-      __x0 is DDC$dartDOTasync$.Stream<List<int>>, false))(super.bind(stream));
+      __x0 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
 }
 class AsciiEncoder extends _UnicodeSubsetEncoder {
   const AsciiEncoder() : super(_ASCII_MASK);
@@ -108,10 +108,10 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   }
   ByteConversionSink startChunkedConversion(Sink<String> sink);
   Stream<String> bind(Stream<List<int>> stream) => ((__x1) => DDC$RT.cast(__x1,
-      DDC$RT.type((DDC$dartDOTasync$.Stream<dynamic> _) {}),
-      DDC$RT.type((DDC$dartDOTasync$.Stream<String> _) {}), "CastDynamic",
+      DDC$RT.type((DDC$async$.Stream<dynamic> _) {}),
+      DDC$RT.type((DDC$async$.Stream<String> _) {}), "CastDynamic",
       """line 221, column 52 of dart:convert/ascii.dart: """,
-      __x1 is DDC$dartDOTasync$.Stream<String>, false))(super.bind(stream));
+      __x1 is DDC$async$.Stream<String>, false))(super.bind(stream));
 }
 class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid: false})

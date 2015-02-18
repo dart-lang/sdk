@@ -8,6 +8,7 @@ import 'package:ddc_analyzer/src/generated/element.dart'
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/info.dart';
+import 'package:ddc/src/utils.dart' show canonicalLibraryName;
 import 'package:ddc/src/report.dart';
 import 'package:ddc/src/checker/rules.dart';
 
@@ -64,12 +65,12 @@ abstract class CodeGenerator {
   }
 
   static String _getOutputDirectory(
-      LibraryInfo info, CompilationUnitElement unitElement) {
+      String name, CompilationUnitElement unitElement) {
     var uri = unitElement.source.uri.toString();
     String suffix;
     if (uri.startsWith('dart:') || _searchPaths == null) {
       // Use the library name as the directory.
-      suffix = info.name;
+      suffix = name;
     } else if (uri.startsWith('package:')) {
       suffix = uri.replaceFirst('package:', 'packages/');
       suffix = path.dirname(suffix);
@@ -92,7 +93,7 @@ abstract class CodeGenerator {
   }
 
   String makeOutputDirectory(LibraryInfo info, CompilationUnit unit) {
-    var suffix = _getOutputDirectory(info, unit.element);
+    var suffix = _getOutputDirectory(info.name, unit.element);
     var fileDir = path.join(outDir, suffix);
     var dir = new Directory(fileDir);
     if (!dir.existsSync()) {
@@ -102,12 +103,11 @@ abstract class CodeGenerator {
   }
 
   static Uri uriFor(LibraryElement lib) {
-    var info = new LibraryInfo(lib);
     var unitElement = lib.definingCompilationUnit;
     var uri = unitElement.source.uri;
     if (uri.scheme == 'dart') return uri;
     if (uri.scheme == 'package') return uri;
-    var suffix = _getOutputDirectory(info, unitElement);
+    var suffix = _getOutputDirectory(canonicalLibraryName(lib), unitElement);
     suffix = path.join(suffix, uri.pathSegments.last);
     var parts = path.split(suffix);
     var index = parts.indexOf('packages');

@@ -25,16 +25,17 @@ class CheckerResults {
 
 /// Computed information about each library.
 class LibraryInfo {
-  /// Name of the library. If not specified in a library directive, this is
-  /// inferred from the path to the file defining the library.
+  /// Canonical name of the library. This is unfortunately not derived from the
+  /// library directive as it doesn't have any meaningful rules enforced.
+  /// Instead, this is inferred from the path to the file defining the library.
   String name;
 
   /// Corresponding analyzer element.
   final LibraryElement library;
 
-  LibraryInfo(this.library) {
-    name = utils.libraryNameFromLibraryElement(library);
-  }
+  LibraryInfo(library)
+      : library = library,
+        name = utils.canonicalLibraryName(library);
 }
 
 // The abstract type of coercions mapping one type to another.

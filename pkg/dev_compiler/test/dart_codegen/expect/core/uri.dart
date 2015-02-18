@@ -447,8 +447,8 @@ class Uri {
       var pathToSplit = !path.isEmpty && path.codeUnitAt(0) == _SLASH
           ? path.substring(1)
           : path;
-      _pathSegments = ((__x12) => DDC$RT.cast(__x12, DDC$RT.type(
-                  (DDC$dartDOTcollection$.UnmodifiableListView<dynamic> _) {}),
+      _pathSegments = ((__x12) => DDC$RT.cast(__x12,
+              DDC$RT.type((DDC$collection$.UnmodifiableListView<dynamic> _) {}),
               DDC$RT.type((List<String> _) {}), "CastExact",
               """line 945, column 23 of dart:core/uri.dart: """,
               __x12 is List<String>, false))(new UnmodifiableListView(
@@ -464,8 +464,8 @@ class Uri {
   Map<String, String> get queryParameters {
     if (_queryParameters == null) {
       _queryParameters = ((__x13) => DDC$RT.cast(__x13, DDC$RT.type(
-          (DDC$dartDOTcollection$.UnmodifiableMapView<dynamic, dynamic> _) {
-      }), DDC$RT.type((Map<String, String> _) {}), "CastExact",
+              (DDC$collection$.UnmodifiableMapView<dynamic, dynamic> _) {}),
+          DDC$RT.type((Map<String, String> _) {}), "CastExact",
           """line 969, column 26 of dart:core/uri.dart: """,
           __x13 is Map<String, String>,
           false))(new UnmodifiableMapView(splitQueryString(query)));

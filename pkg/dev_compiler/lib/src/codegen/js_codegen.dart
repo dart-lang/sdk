@@ -44,7 +44,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules, this.out)
       : libraryInfo = libraryInfo,
         rules = rules,
-        _libraryName = _jsLibraryName(libraryInfo.library);
+        _libraryName = jsLibraryName(libraryInfo.library);
 
   Element get currentLibrary => libraryInfo.library;
 
@@ -676,7 +676,7 @@ $name.prototype[Symbol.iterator] = function() {
     var e = node.staticElement;
     if (e.enclosingElement is CompilationUnitElement &&
         (e.library != libraryInfo.library || _needsModuleGetter(e))) {
-      out.write('${_jsLibraryName(e.library)}.');
+      out.write('${jsLibraryName(e.library)}.');
     } else if (currentClass != null && _needsImplicitThis(e)) {
       out.write('this.');
     }
@@ -693,7 +693,7 @@ $name.prototype[Symbol.iterator] = function() {
     }
 
     if (lib != currentLibrary && lib != null) {
-      out.write(_jsLibraryName(lib));
+      out.write(jsLibraryName(lib));
       out.write('.');
     }
     out.write(name);
@@ -1940,29 +1940,21 @@ class JSGenerator extends CodeGenerator {
 
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
-    // TODO(jmesserly): library directory should be relative to its package
-    // root. For example, "package:ddc/src/codegen/js_codegen.dart" would be:
-    // "ddc/src/codegen/js_codegen.js" under the output directory.
-    var libraryName = _jsLibraryName(info.library);
-    var libraryDir = path.join(outDir, libraryName);
-    new Directory(libraryDir).createSync(recursive: true);
-    String outputPath = path.join(libraryDir, '$libraryName.js');
-
+    var outputPath = path.join(outDir, jsOutputPath(info));
+    new Directory(path.dirname(outputPath)).createSync(recursive: true);
     var out = new OutWriter(outputPath);
-
     new JSCodegenVisitor(info, rules, out).generateLibrary(units, reporter);
-
     out.close();
   }
 }
 
-/// Choose a canonical name from the library element
+/// Choose a canonical name from the library element.
 /// This never uses the library's name (the identifier in the `library`
 /// declaration) as it doesn't have any meaningful rules enforced.
+String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
+
+/// Path to file that will be generated for [info].
 // TODO(jmesserly): library directory should be relative to its package
 // root. For example, "package:ddc/src/codegen/js_codegen.dart" would be:
 // "ddc/src/codegen/js_codegen.js" under the output directory.
-String _jsLibraryName(LibraryElement library) {
-  var uri = library.source.uri;
-  return path.basenameWithoutExtension(uri.pathSegments.last);
-}
+String jsOutputPath(LibraryInfo info) => '${info.name}/${info.name}.js';

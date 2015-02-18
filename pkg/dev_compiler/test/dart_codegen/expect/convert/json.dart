@@ -69,10 +69,10 @@ class JsonEncoder extends Converter<Object, String> {
     return new _JsonEncoderSink(sink, _toEncodable, indent);
   }
   Stream<String> bind(Stream<Object> stream) => ((__x9) => DDC$RT.cast(__x9,
-      DDC$RT.type((DDC$dartDOTasync$.Stream<dynamic> _) {}),
-      DDC$RT.type((DDC$dartDOTasync$.Stream<String> _) {}), "CastDynamic",
+      DDC$RT.type((DDC$async$.Stream<dynamic> _) {}),
+      DDC$RT.type((DDC$async$.Stream<String> _) {}), "CastDynamic",
       """line 266, column 49 of dart:convert/json.dart: """,
-      __x9 is DDC$dartDOTasync$.Stream<String>, false))(super.bind(stream));
+      __x9 is DDC$async$.Stream<String>, false))(super.bind(stream));
   Converter<Object, dynamic> fuse(Converter<String, dynamic> other) {
     if (other is Utf8Encoder) {
       return new JsonUtf8Encoder(indent, _toEncodable);
@@ -147,11 +147,10 @@ class JsonUtf8Encoder extends Converter<Object, List<int>> {
   }
   Stream<List<int>> bind(Stream<Object> stream) {
     return ((__x13) => DDC$RT.cast(__x13,
-        DDC$RT.type((DDC$dartDOTasync$.Stream<dynamic> _) {}),
-        DDC$RT.type((DDC$dartDOTasync$.Stream<List<int>> _) {}), "CastDynamic",
+        DDC$RT.type((DDC$async$.Stream<dynamic> _) {}),
+        DDC$RT.type((DDC$async$.Stream<List<int>> _) {}), "CastDynamic",
         """line 391, column 12 of dart:convert/json.dart: """,
-        __x13 is DDC$dartDOTasync$.Stream<List<int>>,
-        false))(super.bind(stream));
+        __x13 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
   }
   Converter<Object, dynamic> fuse(Converter<List<int>, dynamic> other) {
     return super.fuse(other);
@@ -212,10 +211,10 @@ class JsonDecoder extends Converter<String, Object> {
   dynamic convert(String input) => _parseJson(input, _reviver);
   external StringConversionSink startChunkedConversion(Sink<Object> sink);
   Stream<Object> bind(Stream<String> stream) => ((__x14) => DDC$RT.cast(__x14,
-      DDC$RT.type((DDC$dartDOTasync$.Stream<dynamic> _) {}),
-      DDC$RT.type((DDC$dartDOTasync$.Stream<Object> _) {}), "CastDynamic",
+      DDC$RT.type((DDC$async$.Stream<dynamic> _) {}),
+      DDC$RT.type((DDC$async$.Stream<Object> _) {}), "CastDynamic",
       """line 507, column 49 of dart:convert/json.dart: """,
-      __x14 is DDC$dartDOTasync$.Stream<Object>, false))(super.bind(stream));
+      __x14 is DDC$async$.Stream<Object>, false))(super.bind(stream));
 }
 external _parseJson(String source, reviver(key, value));
 Object _defaultToEncodable(object) => object.toJson();

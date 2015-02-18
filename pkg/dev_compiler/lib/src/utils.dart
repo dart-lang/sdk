@@ -3,6 +3,7 @@ library ddc.src.utils;
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:ddc_analyzer/src/generated/ast.dart'
     show
         ImportDirective,
@@ -22,19 +23,13 @@ bool isDartPrivateLibrary(LibraryElement library) {
   return Identifier.isPrivateName(uri.path);
 }
 
-// Choose a canonical name for library
-String libraryName(String name, Uri uri) {
-  if (name != null && name != '') return name;
-
-  // Fall back on the file name.
-  var tail = uri.pathSegments.last;
-  if (tail.endsWith('.dart')) tail = tail.substring(0, tail.length - 5);
-  return tail;
-}
-
-// Choose a canonical name for library element
-String libraryNameFromLibraryElement(LibraryElement library) {
-  return libraryName(library.name, library.source.uri);
+/// Choose a canonical name from the library element. This is safe to use as a
+/// namespace in JS and Dart code generation.  This never uses the library's
+/// name (the identifier in the `library` declaration) as it doesn't have any
+/// meaningful rules enforced.
+String canonicalLibraryName(LibraryElement library) {
+  var uri = library.source.uri;
+  return path.basenameWithoutExtension(uri.pathSegments.last);
 }
 
 /// Returns all libraries transitively imported or exported from [start].

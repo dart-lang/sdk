@@ -276,7 +276,7 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
   // inference
   List<String> buildExtraImportDirectives() {
     return _extraImports.map((lib) {
-      var name = utils.libraryNameFromLibraryElement(lib);
+      var name = utils.canonicalLibraryName(lib);
       name = canonizeLibraryName(name);
       var uri = codegenerator.CodeGenerator.uriFor(lib);
       return "import '$uri' as $name;";
@@ -352,7 +352,7 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
       return super.visitSimpleIdentifier(id);
     }
     if (!utils.isDartPrivateLibrary(element.library)) {
-      var lib = utils.libraryNameFromLibraryElement(element.library);
+      var lib = utils.canonicalLibraryName(element.library);
       var libname = canonizeLibraryName(lib);
       output(libname);
       output('.');
