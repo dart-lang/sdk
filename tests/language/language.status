@@ -44,7 +44,6 @@ cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
-compile_time_constant12_test: Fail # Issue 21000
 async_await_syntax_test/a09a: CompileTimeError # Issue 21404
 async_await_syntax_test/a10a: CompileTimeError # Issue 21404
 async_await_syntax_test/b09a: CompileTimeError # Issue 21404
@@ -56,7 +55,6 @@ async_await_syntax_test/d10a: CompileTimeError # Issue 21404
 
 [ $compiler == none || ($compiler == dart2dart && $builder_tag != new_backend) ]
 async_throw_in_catch_test: Crash # Issue 22445, 22446
-compile_time_constant_c_test/01: Fail # Issue 21000
 asyncstar_throw_in_catch_test: CompileTimeError # Issue 21404
 async_await_syntax_test/a03a: CompileTimeError # Issue 21404
 async_await_syntax_test/a03b: CompileTimeError # Issue 21404
