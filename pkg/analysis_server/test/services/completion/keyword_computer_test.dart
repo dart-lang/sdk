@@ -20,6 +20,45 @@ main() {
 
 @reflectiveTest
 class KeywordComputerTest extends AbstractCompletionTest {
+  static const List<Keyword> IN_BLOCK_IN_CLASS =
+      const [
+          Keyword.ASSERT,
+          Keyword.CASE,
+          Keyword.CONTINUE,
+          Keyword.DO,
+          Keyword.FINAL,
+          Keyword.FOR,
+          Keyword.IF,
+          Keyword.NEW,
+          Keyword.RETHROW,
+          Keyword.RETURN,
+          Keyword.SUPER,
+          Keyword.SWITCH,
+          Keyword.THIS,
+          Keyword.THROW,
+          Keyword.TRY,
+          Keyword.VAR,
+          Keyword.VOID,
+          Keyword.WHILE];
+
+  static const List<Keyword> IN_BLOCK_NOT_IN_CLASS =
+      const [
+          Keyword.ASSERT,
+          Keyword.CASE,
+          Keyword.CONTINUE,
+          Keyword.DO,
+          Keyword.FINAL,
+          Keyword.FOR,
+          Keyword.IF,
+          Keyword.NEW,
+          Keyword.RETHROW,
+          Keyword.RETURN,
+          Keyword.SWITCH,
+          Keyword.THROW,
+          Keyword.TRY,
+          Keyword.VAR,
+          Keyword.VOID,
+          Keyword.WHILE];
 
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords, [int relevance
       = DART_RELEVANCE_KEYWORD]) {
@@ -267,56 +306,64 @@ class KeywordComputerTest extends AbstractCompletionTest {
         DART_RELEVANCE_HIGH);
   }
 
-  test_function_body() {
-    addTestSource('main() {^}');
+  test_function_body_inClass_constructorInitializer() {
+    addTestSource(r'''
+foo(p) {}
+class A {
+  final f;
+  A() : f = foo(() {^});
+}
+''');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(
-        [
-            Keyword.ASSERT,
-            Keyword.CASE,
-            Keyword.CONTINUE,
-            Keyword.DO,
-            Keyword.FACTORY,
-            Keyword.FINAL,
-            Keyword.FOR,
-            Keyword.IF,
-            Keyword.NEW,
-            Keyword.RETHROW,
-            Keyword.RETURN,
-            Keyword.SUPER,
-            Keyword.SWITCH,
-            Keyword.THIS,
-            Keyword.THROW,
-            Keyword.TRY,
-            Keyword.VAR,
-            Keyword.VOID,
-            Keyword.WHILE]);
+    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
   }
 
-  test_function_body2() {
+  test_function_body_inClass_field() {
+    addTestSource(r'''
+class A {
+  var f = () {^};
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
+  }
+
+  test_function_body_inClass_methodBody() {
+    addTestSource(r'''
+class A {
+  m() {
+    f() {^};
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(IN_BLOCK_IN_CLASS);
+  }
+
+  test_function_body_inClass_methodBody_inFunction() {
+    addTestSource(r'''
+class A {
+  m() {
+    f() {
+      f2() {^};
+    };
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(IN_BLOCK_IN_CLASS);
+  }
+
+  test_function_body_inUnit() {
+    addTestSource('main() {^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
+  }
+
+  test_function_body_inUnit_afterBlock() {
     addTestSource('main() {{}^}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(
-        [
-            Keyword.ASSERT,
-            Keyword.CASE,
-            Keyword.CONTINUE,
-            Keyword.DO,
-            Keyword.FACTORY,
-            Keyword.FINAL,
-            Keyword.FOR,
-            Keyword.IF,
-            Keyword.NEW,
-            Keyword.RETHROW,
-            Keyword.RETURN,
-            Keyword.SUPER,
-            Keyword.SWITCH,
-            Keyword.THIS,
-            Keyword.THROW,
-            Keyword.TRY,
-            Keyword.VAR,
-            Keyword.VOID,
-            Keyword.WHILE]);
+    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
   }
 
   test_in_class() {
@@ -362,27 +409,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
   test_method_body() {
     addTestSource('class A { foo() {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(
-        [
-            Keyword.ASSERT,
-            Keyword.CASE,
-            Keyword.CONTINUE,
-            Keyword.DO,
-            Keyword.FACTORY,
-            Keyword.FINAL,
-            Keyword.FOR,
-            Keyword.IF,
-            Keyword.NEW,
-            Keyword.RETHROW,
-            Keyword.RETURN,
-            Keyword.SUPER,
-            Keyword.SWITCH,
-            Keyword.THIS,
-            Keyword.THROW,
-            Keyword.TRY,
-            Keyword.VAR,
-            Keyword.VOID,
-            Keyword.WHILE]);
+    assertSuggestKeywords(IN_BLOCK_IN_CLASS);
   }
 
   test_named_constructor_invocation() {

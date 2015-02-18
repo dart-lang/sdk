@@ -44,27 +44,47 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitBlock(Block node) {
-    _addSuggestions(
-        [
-            Keyword.ASSERT,
-            Keyword.CASE,
-            Keyword.CONTINUE,
-            Keyword.DO,
-            Keyword.FACTORY,
-            Keyword.FINAL,
-            Keyword.FOR,
-            Keyword.IF,
-            Keyword.NEW,
-            Keyword.RETHROW,
-            Keyword.RETURN,
-            Keyword.SUPER,
-            Keyword.SWITCH,
-            Keyword.THIS,
-            Keyword.THROW,
-            Keyword.TRY,
-            Keyword.VAR,
-            Keyword.VOID,
-            Keyword.WHILE]);
+    if (_isInClassMemberBody(node)) {
+      _addSuggestions(
+          [
+              Keyword.ASSERT,
+              Keyword.CASE,
+              Keyword.CONTINUE,
+              Keyword.DO,
+              Keyword.FINAL,
+              Keyword.FOR,
+              Keyword.IF,
+              Keyword.NEW,
+              Keyword.RETHROW,
+              Keyword.RETURN,
+              Keyword.SUPER,
+              Keyword.SWITCH,
+              Keyword.THIS,
+              Keyword.THROW,
+              Keyword.TRY,
+              Keyword.VAR,
+              Keyword.VOID,
+              Keyword.WHILE]);
+    } else {
+      _addSuggestions(
+          [
+              Keyword.ASSERT,
+              Keyword.CASE,
+              Keyword.CONTINUE,
+              Keyword.DO,
+              Keyword.FINAL,
+              Keyword.FOR,
+              Keyword.IF,
+              Keyword.NEW,
+              Keyword.RETHROW,
+              Keyword.RETURN,
+              Keyword.SWITCH,
+              Keyword.THROW,
+              Keyword.TRY,
+              Keyword.VAR,
+              Keyword.VOID,
+              Keyword.WHILE]);
+    }
   }
 
   @override
@@ -230,5 +250,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       }
     }
     return false;
+  }
+
+  static bool _isInClassMemberBody(AstNode node) {
+    while (true) {
+      AstNode body = node.getAncestor((n) => n is FunctionBody);
+      if (body == null) {
+        return false;
+      }
+      AstNode parent = body.parent;
+      if (parent is ConstructorDeclaration || parent is MethodDeclaration) {
+        return true;
+      }
+      node = parent;
+    }
   }
 }
