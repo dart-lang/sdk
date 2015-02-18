@@ -55,11 +55,7 @@ REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
   isolate->object_store()->set_sticky_error(error);
 
   // Destruct all the active StackResource objects.
-  StackResource* current_resource = isolate->top_resource();
-  while (current_resource != top_) {
-    current_resource->~StackResource();
-    current_resource = isolate->top_resource();
-  }
+  StackResource::Unwind(isolate, top_);
   longjmp(environment_, value);
   UNREACHABLE();
 }

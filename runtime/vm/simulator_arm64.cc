@@ -3483,10 +3483,7 @@ void Simulator::Longjmp(uword pc,
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
   uword native_sp = buf->native_sp();
-  while (isolate->top_resource() != NULL &&
-         (reinterpret_cast<uword>(isolate->top_resource()) < native_sp)) {
-    isolate->top_resource()->~StackResource();
-  }
+  StackResource::Unwind(isolate, native_sp);
 
   // Unwind the C++ stack and continue simulation in the target frame.
   set_pc(static_cast<int64_t>(pc));
