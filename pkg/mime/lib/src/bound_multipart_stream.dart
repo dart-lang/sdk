@@ -105,7 +105,7 @@ class BoundMultipartStream {
      _controller = new StreamController(
          sync: true,
          onPause: _pauseStream,
-         onResume:_resumeStream,
+         onResume: _resumeStream,
          onCancel: () {
            _controllerState = _CONTROLLER_STATE_CANCELED;
            _tryPropagateControllerState();
@@ -203,9 +203,6 @@ class BoundMultipartStream {
      boundaryPrefix = _boundaryIndex;
 
      while ((_index < _buffer.length) && _state != _FAIL && _state != _DONE) {
-       if (_multipartController != null && _multipartController.isPaused) {
-         return;
-       }
        int byte;
        if (_index < 0) {
          byte = _boundary[boundaryPrefix + _index];
@@ -315,11 +312,11 @@ class BoundMultipartStream {
            _expectByteValue(byte, CharCode.LF);
            _multipartController = new StreamController(
                sync: true,
+               onListen: () {
+                 if (_subscription.isPaused) _subscription.resume();
+               },
                onPause: _subscription.pause,
-               onResume: () {
-                 _subscription.resume();
-                 _parse();
-               });
+               onResume: _subscription.resume);
            _controller.add(
                new _MimeMultipart(_headers, _multipartController.stream));
            _headers = null;
