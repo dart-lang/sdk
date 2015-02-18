@@ -63,10 +63,10 @@ var sunflower;
     sunflower.seeds = core.int.parse(sunflower.slider.value);
     sunflower.context.clearRect(0, 0, MAX_D, MAX_D);
     for (let i = 0; i < sunflower.seeds; i++) {
-      let theta = i * TAU / sunflower.PHI;
+      let theta = dart.notNull(i * dart.notNull(TAU)) / dart.notNull(sunflower.PHI);
       let r = math.sqrt(i) * SCALE_FACTOR;
-      let x = centerX + r * math.cos(theta);
-      let y = centerY - r * math.sin(theta);
+      let x = dart.notNull(centerX) + dart.notNull(dart.notNull(r) * math.cos(theta));
+      let y = dart.notNull(centerY) - dart.notNull(dart.notNull(r) * math.sin(theta));
       new SunflowerSeed(x, y, SEED_RADIUS).draw();
     }
     sunflower.notes.textContent = `${sunflower.seeds} seeds`;

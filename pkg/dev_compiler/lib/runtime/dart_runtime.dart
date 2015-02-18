@@ -2,6 +2,8 @@ library ddc.runtime.dart_runtime;
 
 import 'dart:mirrors';
 
+import 'package:ddc/config.dart';
+
 dynamic dload(dynamic obj, String field) {
   var symbol = new Symbol(field);
   var mirror = reflect(obj);
@@ -74,10 +76,22 @@ bool isGroundType(Type type) {
   return true;
 }
 
+final _primitiveMap = {
+  'int': int,
+  'double': double,
+  'num': num,
+  'bool': bool,
+  'String': String,
+};
+
+Set<Type> _primitives = () {
+  var types = Configuration.nonnullableTypes;
+  var set = new Set<Type>.from(types.map((t) => _primitiveMap[t]));
+  return set;
+}();
+
 bool isPrimitiveType(Type t) {
-  // TODO(vsm): Expand to bool or other types?
-  if (t == int || t == double) return true;
-  return false;
+  return _primitives.contains(t);
 }
 
 class Arity {

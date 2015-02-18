@@ -4,6 +4,7 @@ import 'package:ddc_analyzer/src/generated/ast.dart';
 import 'package:ddc_analyzer/src/generated/element.dart';
 import 'package:ddc_analyzer/src/generated/resolver.dart';
 
+import 'package:ddc/config.dart';
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart' show CheckerReporter;
@@ -28,8 +29,8 @@ abstract class TypeRules {
   bool isIntType(DartType t) => t == provider.intType;
   bool isNumType(DartType t) => t == provider.intType.superclass;
   bool isStringType(DartType t) => t == provider.stringType;
-  bool isPrimitiveType(DartType t) => false;
-  bool maybePrimitiveType(DartType t) => false;
+  bool isNonNullableType(DartType t) => false;
+  bool maybeNonNullableType(DartType t) => false;
 
   StaticInfo checkAssignment(Expression expr, DartType t);
 
@@ -85,11 +86,31 @@ class DartRules extends TypeRules {
 class RestrictedRules extends TypeRules {
   final CheckerReporter _reporter;
   final RulesOptions options;
-  final List<DartType> _primitives;
+  final List<DartType> _nonnullableTypes;
+
+  DartType _typeFromName(String name) {
+    switch (name) {
+      case 'int':
+        return provider.intType;
+      case 'double':
+        return provider.doubleType;
+      case 'num':
+        return provider.numType;
+      case 'bool':
+        return provider.boolType;
+      case 'String':
+        return provider.stringType;
+      default:
+        throw new UnsupportedError('Unsupported non-nullable type $name');
+    }
+  }
 
   RestrictedRules(TypeProvider provider, this._reporter, {this.options})
-      : _primitives = [provider.intType, provider.doubleType],
-        super(provider);
+      : _nonnullableTypes = <DartType>[],
+        super(provider) {
+    var types = Configuration.nonnullableTypes;
+    _nonnullableTypes.addAll(types.map(_typeFromName));
+  }
 
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
@@ -98,20 +119,20 @@ class RestrictedRules extends TypeRules {
     return provider.dynamicType;
   }
 
-  bool isPrimitiveType(DartType t) => _primitives.contains(t);
+  bool isNonNullableType(DartType t) => _nonnullableTypes.contains(t);
 
-  bool maybePrimitiveType(DartType t) {
+  bool maybeNonNullableType(DartType t) {
     // Return true iff t *may* be a primitive type.
     // If t is a generic type parameter, return true if it may be
     // instantiated as a primitive.
-    if (isPrimitiveType(t)) {
+    if (isNonNullableType(t)) {
       return true;
     } else if (t is TypeParameterType) {
       var bound = t.element.bound;
       if (bound == null) {
         return true;
       }
-      return _primitives.any((DartType p) => isSubTypeOf(p, bound));
+      return _nonnullableTypes.any((DartType p) => isSubTypeOf(p, bound));
     } else {
       return false;
     }
@@ -251,7 +272,7 @@ class RestrictedRules extends TypeRules {
     // FIXME: Can this be anything besides null?
     if (t1.isBottom) {
       // Return false iff t2 *may* be a primitive type.
-      return !maybePrimitiveType(t2);
+      return !maybeNonNullableType(t2);
     }
     if (t2.isBottom) return false;
 

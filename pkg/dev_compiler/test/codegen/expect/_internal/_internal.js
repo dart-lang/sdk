@@ -47,7 +47,7 @@ var _internal;
       every(test) {
         let length = this.length;
         for (let i = 0; i < length; i++) {
-          if (!test(this.elementAt(i))) return false;
+          if (!dart.notNull(test(this.elementAt(i)))) return false;
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
           }
@@ -113,7 +113,7 @@ var _internal;
       join(separator) {
         if (separator === undefined) separator = "";
         let length = this.length;
-        if (!separator.isEmpty) {
+        if (!dart.notNull(separator.isEmpty)) {
           if (length === 0) return "";
           let first = `${this.elementAt(0)}`;
           if (length !== this.length) {
@@ -213,7 +213,7 @@ var _internal;
       }
       get _endIndex() {
         let length = this._iterable.length;
-        if (this._endOrLength === null || this._endOrLength > length) return length;
+        if (dart.notNull(this._endOrLength === null) || dart.notNull(this._endOrLength > length)) return length;
         return this._endOrLength;
       }
       get _startIndex() {
@@ -224,14 +224,14 @@ var _internal;
       get length() {
         let length = this._iterable.length;
         if (this._start >= length) return 0;
-        if (this._endOrLength === null || this._endOrLength >= length) {
+        if (dart.notNull(this._endOrLength === null) || dart.notNull(this._endOrLength >= length)) {
           return length - this._start;
         }
         return this._endOrLength - this._start;
       }
       elementAt(index) {
         let realIndex = this._startIndex + index;
-        if (index < 0 || realIndex >= this._endIndex) {
+        if (dart.notNull(index < 0) || dart.notNull(realIndex >= this._endIndex)) {
           throw new core.RangeError.index(index, this, "index");
         }
         return this._iterable.elementAt(realIndex);
@@ -239,7 +239,7 @@ var _internal;
       skip(count) {
         core.RangeError.checkNotNegative(count, "count");
         let newStart = this._start + count;
-        if (this._endOrLength !== null && newStart >= this._endOrLength) {
+        if (dart.notNull(this._endOrLength !== null) && dart.notNull(newStart >= this._endOrLength)) {
           return new EmptyIterable();
         }
         return new SubListIterable(this._iterable, newStart, this._endOrLength);
@@ -258,7 +258,7 @@ var _internal;
         let growable = opt$.growable === undefined ? true : opt$.growable;
         let start = this._start;
         let end = this._iterable.length;
-        if (this._endOrLength !== null && this._endOrLength < end) end = this._endOrLength;
+        if (dart.notNull(this._endOrLength !== null) && dart.notNull(this._endOrLength < end)) end = this._endOrLength;
         let length = end - start;
         if (length < 0) length = 0;
         let result = growable ? (((_) => {
@@ -435,7 +435,7 @@ var _internal;
       get current() { return this._current; }
       moveNext() {
         if (this._currentExpansion === null) return false;
-        while (!this._currentExpansion.moveNext()) {
+        while (!dart.notNull(this._currentExpansion.moveNext())) {
           this._current = dart.as(null, T);
           if (this._iterator.moveNext()) {
             this._currentExpansion = null;
@@ -455,7 +455,7 @@ var _internal;
   let TakeIterable$ = dart.generic(function(E) {
     class TakeIterable extends collection.IterableBase$(E) {
       constructor(iterable, takeCount) {
-        if (!(typeof takeCount == "number") || takeCount < 0) {
+        if (dart.notNull(!(typeof takeCount == "number")) || dart.notNull(takeCount < 0)) {
           throw new core.ArgumentError(takeCount);
         }
         if (dart.is(iterable, EfficientLength)) {
@@ -498,7 +498,7 @@ var _internal;
         this._iterator = _iterator;
         this._remaining = _remaining;
         super();
-        dart.assert(typeof this._remaining == "number" && this._remaining >= 0);
+        dart.assert(dart.notNull(typeof this._remaining == "number") && dart.notNull(this._remaining >= 0));
       }
       moveNext() {
         this._remaining--;
@@ -542,7 +542,7 @@ var _internal;
       }
       moveNext() {
         if (this._isFinished) return false;
-        if (!this._iterator.moveNext() || !this._f(this._iterator.current)) {
+        if (dart.notNull(!dart.notNull(this._iterator.moveNext())) || dart.notNull(!dart.notNull(this._f(this._iterator.current)))) {
           this._isFinished = true;
           return false;
         }
@@ -611,7 +611,7 @@ var _internal;
         this._iterator = _iterator;
         this._skipCount = _skipCount;
         super();
-        dart.assert(typeof this._skipCount == "number" && this._skipCount >= 0);
+        dart.assert(dart.notNull(typeof this._skipCount == "number") && dart.notNull(this._skipCount >= 0));
       }
       moveNext() {
         for (let i = 0; i < this._skipCount; i++) this._iterator.moveNext();
@@ -648,10 +648,10 @@ var _internal;
         super();
       }
       moveNext() {
-        if (!this._hasSkipped) {
+        if (!dart.notNull(this._hasSkipped)) {
           this._hasSkipped = true;
           while (this._iterator.moveNext()) {
-            if (!this._f(this._iterator.current)) return true;
+            if (!dart.notNull(this._f(this._iterator.current))) return true;
           }
         }
         return this._iterator.moveNext();
@@ -773,13 +773,13 @@ var _internal;
       }
       static every(iterable, f) {
         for (let e of iterable) {
-          if (!f(e)) return false;
+          if (!dart.notNull(f(e))) return false;
         }
         return true;
       }
       static reduce(iterable, combine) {
         let iterator = iterable.iterator;
-        if (!iterator.moveNext()) throw IterableElementError.noElement();
+        if (!dart.notNull(iterator.moveNext())) throw IterableElementError.noElement();
         let value = iterator.current;
         while (iterator.moveNext()) {
           value = combine(value, iterator.current);
@@ -797,7 +797,7 @@ var _internal;
         let length = list.length;
         for (let i = 0; i < length; i++) {
           let element = list.get(i);
-          if (!test(element)) {
+          if (!dart.notNull(test(element))) {
             retained.add(element);
           }
           if (length !== list.length) {
@@ -811,18 +811,18 @@ var _internal;
         }
       }
       static isEmpty(iterable) {
-        return !iterable.iterator.moveNext();
+        return !dart.notNull(iterable.iterator.moveNext());
       }
       static first(iterable) {
         let it = iterable.iterator;
-        if (!it.moveNext()) {
+        if (!dart.notNull(it.moveNext())) {
           throw IterableElementError.noElement();
         }
         return it.current;
       }
       static last(iterable) {
         let it = iterable.iterator;
-        if (!it.moveNext()) {
+        if (!dart.notNull(it.moveNext())) {
           throw IterableElementError.noElement();
         }
         let result = null;
@@ -834,7 +834,7 @@ var _internal;
       }
       static single(iterable) {
         let it = iterable.iterator;
-        if (!it.moveNext()) throw IterableElementError.noElement();
+        if (!dart.notNull(it.moveNext())) throw IterableElementError.noElement();
         let result = it.current;
         if (it.moveNext()) throw IterableElementError.tooMany();
         return result;
@@ -1045,7 +1045,7 @@ var _internal;
       }
       static setContainsAll(set, other) {
         for (let element of other) {
-          if (!set.contains(element)) return false;
+          if (!dart.notNull(set.contains(element))) return false;
         }
         return true;
       }
@@ -1073,7 +1073,7 @@ var _internal;
       }
       static setDifference(set, other, result) {
         for (let element of set) {
-          if (!other.contains(element)) {
+          if (!dart.notNull(other.contains(element))) {
             result.add(element);
           }
         }
@@ -1240,7 +1240,7 @@ var _internal;
       get isEmpty() { return this._values.isEmpty; }
       get isNotEmpty() { return this._values.isNotEmpty; }
       containsValue(value) { return this._values.contains(value); }
-      containsKey(key) { return typeof key == "number" && key >= 0 && key < this.length; }
+      containsKey(key) { return dart.notNull(dart.notNull(typeof key == "number") && dart.notNull(key >= 0)) && dart.notNull(key < this.length); }
       forEach(f) {
         let length = this._values.length;
         for (let i = 0; i < length; i++) {
@@ -1312,11 +1312,11 @@ var _internal;
     }
     static areEqual(a, b) {
       if (core.identical(a, b)) return true;
-      if (!(dart.is(b, core.List))) return false;
+      if (!dart.notNull((dart.is(b, core.List)))) return false;
       let length = a.length;
       if (length !== dart.dload(b, "length")) return false;
       for (let i = 0; i < length; i++) {
-        if (!core.identical(a.get(i), dart.dindex(b, i))) return false;
+        if (!dart.notNull(core.identical(a.get(i), dart.dindex(b, i)))) return false;
       }
       return true;
     }
@@ -1368,7 +1368,7 @@ var _internal;
       _doSort(a, 0, a.length - 1, compare);
     }
     static sortRange(a, from, to, compare) {
-      if ((from < 0) || (to > a.length) || (to < from)) {
+      if (dart.notNull(dart.notNull((from < 0)) || dart.notNull((to > a.length))) || dart.notNull((to < from))) {
         throw "OutOfRange";
       }
       _doSort(a, from, to - 1, compare);
@@ -1384,7 +1384,7 @@ var _internal;
       for (let i = left + 1; i <= right; i++) {
         let el = a.get(i);
         let j = i;
-        while ((j > left) && (compare(a.get(j - 1), el) > 0)) {
+        while (dart.notNull((j > left)) && dart.notNull((compare(a.get(j - 1), el) > 0))) {
           a.set(j, a.get(j - 1));
           j--;
         }
@@ -1535,7 +1535,7 @@ var _internal;
       if (pivots_are_equal) {
         return;
       }
-      if (less < index1 && great > index5) {
+      if (dart.notNull(less < index1) && dart.notNull(great > index5)) {
         while (compare(a.get(less), pivot1) === 0) {
           less++;
         }
@@ -1592,7 +1592,7 @@ var _internal;
     /*constructor*/ validated(name) {
       this._name = validatePublicSymbol(name);
     }
-    ['=='](other) { return dart.is(other, Symbol) && dart.equals(this._name, dart.dload(other, "_name")); }
+    ['=='](other) { return dart.notNull(dart.is(other, Symbol)) && dart.notNull(dart.equals(this._name, dart.dload(other, "_name"))); }
     get hashCode() {
       let arbitraryPrime = 664597;
       return 536870911 & (arbitraryPrime * this._name.hashCode);
@@ -1600,14 +1600,14 @@ var _internal;
     toString() { return `Symbol("${this._name}")`; }
     static getName(symbol) { return symbol._name; }
     static validatePublicSymbol(name) {
-      if (name.isEmpty || publicSymbolPattern.hasMatch(name)) return name;
+      if (dart.notNull(name.isEmpty) || dart.notNull(publicSymbolPattern.hasMatch(name))) return name;
       if (name.startsWith('_')) {
         throw new core.ArgumentError(`"${name}" is a private identifier`);
       }
       throw new core.ArgumentError(`"${name}" is not a valid (qualified) symbol name`);
     }
     static isValidSymbol(name) {
-      return (name.isEmpty || symbolPattern.hasMatch(name));
+      return (dart.notNull(name.isEmpty) || dart.notNull(symbolPattern.hasMatch(name)));
     }
   }
   dart.defineNamedConstructor(Symbol, "unvalidated");

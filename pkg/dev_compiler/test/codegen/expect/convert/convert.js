@@ -100,7 +100,7 @@ var convert;
       for (let i = start; i < end; i++) {
         let byte = bytes.get(i);
         if ((byte & ~this._subsetMask) !== 0) {
-          if (!this._allowInvalid) {
+          if (!dart.notNull(this._allowInvalid)) {
             throw new core.FormatException(`Invalid value in input: ${byte}`);
           }
           return this._convertInvalid(bytes, start, end);
@@ -188,7 +188,7 @@ var convert;
       let length = source.length;
       core.RangeError.checkValidRange(start, end, length);
       if (start < end) {
-        if (start !== 0 || end !== length) {
+        if (dart.notNull(start !== 0) || dart.notNull(end !== length)) {
           source = source.sublist(start, end);
         }
         this.add(source);
@@ -645,7 +645,7 @@ var convert;
       let bytes = dart.as(new List.from([]), core.List$(core.List$(core.int)));
       // Function addChunk: (Uint8List, int, int) → void
       function addChunk(chunk, start, end) {
-        if (start > 0 || end < chunk.length) {
+        if (dart.notNull(start > 0) || dart.notNull(end < chunk.length)) {
           let length = end - start;
           chunk = new typed_data.Uint8List.view(chunk.buffer, chunk.offsetInBytes + start, length);
         }
@@ -726,7 +726,7 @@ var convert;
       this._sink.close();
     }
     close() {
-      if (!this._isDone) {
+      if (!dart.notNull(this._isDone)) {
         this._isDone = true;
         this._sink.close();
       }
@@ -788,7 +788,7 @@ var convert;
               this.writeCharCode(hexDigit(charCode & 15));
               break;
           }
-        } else if (charCode === QUOTE || charCode === BACKSLASH) {
+        } else if (dart.notNull(charCode === QUOTE) || dart.notNull(charCode === BACKSLASH)) {
           if (i > offset) this.writeStringSlice(s, offset, i);
           offset = i + 1;
           this.writeCharCode(BACKSLASH);
@@ -810,7 +810,7 @@ var convert;
       this._seen.add(object);
     }
     _removeSeen(object) {
-      dart.assert(!this._seen.isEmpty);
+      dart.assert(!dart.notNull(this._seen.isEmpty));
       dart.assert(core.identical(this._seen.last, object));
       this._seen.removeLast();
     }
@@ -819,7 +819,7 @@ var convert;
       this._checkCycle(object);
       try {
         let customJson = dart.dinvokef(this._toEncodable, object);
-        if (!this.writeJsonValue(customJson)) {
+        if (!dart.notNull(this.writeJsonValue(customJson))) {
           throw new JsonUnsupportedObjectError(object);
         }
         this._removeSeen(object);
@@ -932,7 +932,7 @@ var convert;
         this._indentLevel++;
         let first = true;
         map.forEach(dart.as(((key, value) => {
-          if (!first) {
+          if (!dart.notNull(first)) {
             this.writeString(",\n");
           }
           this.writeIndentation(this._indentLevel);
@@ -1037,7 +1037,7 @@ var convert;
         if (char <= 127) {
           this.writeByte(char);
         } else {
-          if ((char & 64512) === 55296 && i + 1 < end) {
+          if (dart.notNull((char & 64512) === 55296) && dart.notNull(i + 1 < end)) {
             let nextChar = string.codeUnitAt(i + 1);
             if ((nextChar & 64512) === 56320) {
               char = 65536 + ((char & 1023) << 10) + (nextChar & 1023);
@@ -1160,7 +1160,7 @@ var convert;
       } else {
         stringSink = new StringConversionSink.from(sink);
       }
-      if (!this._allowInvalid) return new _Latin1DecoderSink(stringSink);
+      if (!dart.notNull(this._allowInvalid)) return new _Latin1DecoderSink(stringSink);
       return new _Latin1AllowInvalidDecoderSink(stringSink);
     }
   }
@@ -1184,7 +1184,7 @@ var convert;
       core.RangeError.checkValidRange(start, end, source.length);
       for (let i = start; i < end; i++) {
         let char = source.get(i);
-        if (char > _LATIN1_MASK || char < 0) {
+        if (dart.notNull(char > _LATIN1_MASK) || dart.notNull(char < 0)) {
           throw new core.FormatException("Source contains non-Latin-1 characters.");
         }
       }
@@ -1205,7 +1205,7 @@ var convert;
       core.RangeError.checkValidRange(start, end, source.length);
       for (let i = start; i < end; i++) {
         let char = source.get(i);
-        if (char > _LATIN1_MASK || char < 0) {
+        if (dart.notNull(char > _LATIN1_MASK) || dart.notNull(char < 0)) {
           if (i > start) this._addSliceToSink(source, start, i, false);
           this._addSliceToSink(dart.as(/* Unimplemented const */new List.from([65533]), core.List$(core.int)), 0, 1, false);
           start = i + 1;
@@ -1269,7 +1269,7 @@ var convert;
             if (chunk.codeUnitAt(pos + 1) === _LF) {
               skip = 2;
             }
-          } else if (!isLast) {
+          } else if (!dart.notNull(isLast)) {
             return chunk.substring(start, end);
           }
         }
@@ -1364,7 +1364,7 @@ var convert;
       if (separator === undefined) separator = "";
       if (this._buffer.isNotEmpty) this._flush();
       let iterator = objects.iterator;
-      if (!iterator.moveNext()) return;
+      if (!dart.notNull(iterator.moveNext())) return;
       if (separator.isEmpty) {
         do {
           this._chunkedSink.add(dart.as(dart.dinvoke(iterator.current, "toString"), core.String));
@@ -1407,7 +1407,7 @@ var convert;
     close() {
     }
     addSlice(str, start, end, isLast) {
-      if (start !== 0 || end !== str.length) {
+      if (dart.notNull(start !== 0) || dart.notNull(end !== str.length)) {
         for (let i = start; i < end; i++) {
           this._stringSink.writeCharCode(str.codeUnitAt(i));
         }
@@ -1448,7 +1448,7 @@ var convert;
     }
     add(str) { return this._sink.add(str); }
     addSlice(str, start, end, isLast) {
-      if (start === 0 && end === str.length) {
+      if (dart.notNull(start === 0) && dart.notNull(end === str.length)) {
         this.add(str);
       } else {
         this.add(str.substring(start, end));
@@ -1553,7 +1553,7 @@ var convert;
         let lastCodeUnit = string.codeUnitAt(end - 1);
         dart.assert(_isLeadSurrogate(lastCodeUnit));
         let wasCombined = encoder._writeSurrogate(lastCodeUnit, 0);
-        dart.assert(!wasCombined);
+        dart.assert(!dart.notNull(wasCombined));
       }
       return encoder._buffer.sublist(0, encoder._bufferIndex);
     }
@@ -1594,7 +1594,7 @@ var convert;
       }
     }
     _fillBuffer(str, start, end) {
-      if (start !== end && _isLeadSurrogate(str.codeUnitAt(end - 1))) {
+      if (dart.notNull(start !== end) && dart.notNull(_isLeadSurrogate(str.codeUnitAt(end - 1)))) {
         end--;
       }
       let stringIndex = null;
@@ -1643,7 +1643,7 @@ var convert;
     }
     addSlice(str, start, end, isLast) {
       this._bufferIndex = 0;
-      if (start === end && !isLast) {
+      if (dart.notNull(start === end) && dart.notNull(!dart.notNull(isLast))) {
         return;
       }
       if (this._carry !== 0) {
@@ -1654,17 +1654,17 @@ var convert;
           dart.assert(isLast);
         }
         let wasCombined = this._writeSurrogate(this._carry, nextCodeUnit);
-        dart.assert(!wasCombined || start !== end);
+        dart.assert(dart.notNull(!dart.notNull(wasCombined)) || dart.notNull(start !== end));
         if (wasCombined) start++;
         this._carry = 0;
       }
       do {
         start = this._fillBuffer(str, start, end);
-        let isLastSlice = isLast && (start === end);
-        if (start === end - 1 && _isLeadSurrogate(str.codeUnitAt(start))) {
-          if (isLast && this._bufferIndex < this._buffer.length - 3) {
+        let isLastSlice = dart.notNull(isLast) && dart.notNull((start === end));
+        if (dart.notNull(start === end - 1) && dart.notNull(_isLeadSurrogate(str.codeUnitAt(start)))) {
+          if (dart.notNull(isLast) && dart.notNull(this._bufferIndex < this._buffer.length - 3)) {
             let hasBeenCombined = this._writeSurrogate(str.codeUnitAt(start), 0);
-            dart.assert(!hasBeenCombined);
+            dart.assert(!dart.notNull(hasBeenCombined));
           } else {
             this._carry = str.codeUnitAt(start);
           }
@@ -1745,7 +1745,7 @@ var convert;
     }
     flush() {
       if (this.hasPartialInput) {
-        if (!this._allowMalformed) {
+        if (!dart.notNull(this._allowMalformed)) {
           throw new core.FormatException("Unfinished UTF-8 octet sequence");
         }
         this._stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -1773,8 +1773,8 @@ var convert;
       }
       // Function addSingleBytes: (int, int) → void
       function addSingleBytes(from, to) {
-        dart.assert(from >= startIndex && from <= endIndex);
-        dart.assert(to >= startIndex && to <= endIndex);
+        dart.assert(dart.notNull(from >= startIndex) && dart.notNull(from <= endIndex));
+        dart.assert(dart.notNull(to >= startIndex) && dart.notNull(to <= endIndex));
         this._stringSink.write(new core.String.fromCharCodes(codeUnits, from, to));
       }
       let i = startIndex;
@@ -1787,7 +1787,7 @@ var convert;
             let unit = codeUnits.get(i);
             if ((unit & 192) !== 128) {
               expectedUnits = 0;
-              if (!this._allowMalformed) {
+              if (!dart.notNull(this._allowMalformed)) {
                 throw new core.FormatException(`Bad UTF-8 encoding 0x${unit.toRadixString(16)}`);
               }
               this._isFirstCharacter = false;
@@ -1801,20 +1801,20 @@ var convert;
           }
           while (expectedUnits > 0);
           if (value <= _LIMITS.get(extraUnits - 1)) {
-            if (!this._allowMalformed) {
+            if (!dart.notNull(this._allowMalformed)) {
               throw new core.FormatException(`Overlong encoding of 0x${value.toRadixString(16)}`);
             }
             expectedUnits = extraUnits = 0;
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           }
           if (value > _FOUR_BYTE_LIMIT) {
-            if (!this._allowMalformed) {
+            if (!dart.notNull(this._allowMalformed)) {
               throw new core.FormatException("Character outside valid Unicode range: " +
                   `0x${value.toRadixString(16)}`);
             }
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           }
-          if (!this._isFirstCharacter || value !== UNICODE_BOM_CHARACTER_RUNE) {
+          if (dart.notNull(!dart.notNull(this._isFirstCharacter)) || dart.notNull(value !== UNICODE_BOM_CHARACTER_RUNE)) {
             this._stringSink.writeCharCode(value);
           }
           this._isFirstCharacter = false;
@@ -1829,7 +1829,7 @@ var convert;
           }
           let unit = codeUnits.get(i++);
           if (unit < 0) {
-            if (!this._allowMalformed) {
+            if (!dart.notNull(this._allowMalformed)) {
               throw new core.FormatException(`Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}`);
             }
             this._stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -1845,12 +1845,12 @@ var convert;
               expectedUnits = extraUnits = 2;
               continue loop;
             }
-            if ((unit & 248) === 240 && unit < 245) {
+            if (dart.notNull((unit & 248) === 240) && dart.notNull(unit < 245)) {
               value = unit & 7;
               expectedUnits = extraUnits = 3;
               continue loop;
             }
-            if (!this._allowMalformed) {
+            if (!dart.notNull(this._allowMalformed)) {
               throw new core.FormatException(`Bad UTF-8 encoding 0x${unit.toRadixString(16)}`);
             }
             value = UNICODE_REPLACEMENT_CHARACTER_RUNE;

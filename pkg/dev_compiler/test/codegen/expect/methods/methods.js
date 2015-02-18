@@ -20,7 +20,7 @@ var methods;
     }
     w(a, opt$) {
       let b = opt$.b === undefined ? null : opt$.b;
-      return dart.notNull(a + b);
+      return dart.notNull(a + dart.notNull(b));
     }
     ww(a, opt$) {
       let b = opt$.b === undefined ? 0 : opt$.b;

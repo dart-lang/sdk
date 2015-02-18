@@ -53,7 +53,7 @@ var DeltaBlue;
     }
     satisfy(mark) {
       this.chooseMethod(dart.as(mark, core.int));
-      if (!this.isSatisfied()) {
+      if (!dart.notNull(this.isSatisfied())) {
         if (dart.equals(this.strength, REQUIRED)) {
           core.print("Could not satisfy a required constraint!");
         }
@@ -64,7 +64,7 @@ var DeltaBlue;
       let overridden = out.determinedBy;
       if (overridden !== null) overridden.markUnsatisfied();
       out.determinedBy = this;
-      if (!DeltaBlue.planner.addPropagate(this, dart.as(mark, core.int))) core.print("Cycle encountered");
+      if (!dart.notNull(DeltaBlue.planner.addPropagate(this, dart.as(mark, core.int)))) core.print("Cycle encountered");
       out.mark = dart.as(mark, core.int);
       return overridden;
     }
@@ -87,7 +87,7 @@ var DeltaBlue;
       this.satisfied = false;
     }
     chooseMethod(mark) {
-      this.satisfied = (this.myOutput.mark !== mark) && Strength.stronger(this.strength, this.myOutput.walkStrength);
+      this.satisfied = dart.notNull((this.myOutput.mark !== mark)) && dart.notNull(Strength.stronger(this.strength, this.myOutput.walkStrength));
     }
     isSatisfied() { return this.satisfied; }
     markInputs(mark) {
@@ -95,7 +95,7 @@ var DeltaBlue;
     output() { return this.myOutput; }
     recalculate() {
       this.myOutput.walkStrength = this.strength;
-      this.myOutput.stay = !this.isInput();
+      this.myOutput.stay = !dart.notNull(this.isInput());
       if (this.myOutput.stay) this.execute();
     }
     markUnsatisfied() {
@@ -138,10 +138,10 @@ var DeltaBlue;
     }
     chooseMethod(mark) {
       if (this.v1.mark === mark) {
-        this.direction = (this.v2.mark !== mark && Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
+        this.direction = (dart.notNull(this.v2.mark !== mark) && dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength))) ? FORWARD : NONE;
       }
       if (this.v2.mark === mark) {
-        this.direction = (this.v1.mark !== mark && Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
+        this.direction = (dart.notNull(this.v1.mark !== mark) && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength))) ? BACKWARD : NONE;
       }
       if (Strength.weaker(this.v1.walkStrength, this.v2.walkStrength)) {
         this.direction = Strength.stronger(this.strength, this.v1.walkStrength) ? BACKWARD : NONE;
@@ -171,7 +171,7 @@ var DeltaBlue;
     }
     inputsKnown(mark) {
       let i = this.input();
-      return i.mark === mark || i.stay || i.determinedBy === null;
+      return dart.notNull(dart.notNull(i.mark === mark) || dart.notNull(i.stay)) || dart.notNull(i.determinedBy === null);
     }
     removeFromGraph() {
       if (this.v1 !== null) this.v1.removeConstraint(this);
@@ -210,7 +210,7 @@ var DeltaBlue;
     recalculate() {
       let ihn = this.input(), out = this.output();
       out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
-      out.stay = ihn.stay && this.scale.stay && this.offset.stay;
+      out.stay = dart.notNull(dart.notNull(ihn.stay) && dart.notNull(this.scale.stay)) && dart.notNull(this.offset.stay);
       if (out.stay) this.execute();
     }
   }
@@ -274,7 +274,7 @@ var DeltaBlue;
       let todo = sources;
       while (todo.length > 0) {
         let c = todo.removeLast();
-        if (c.output().mark !== mark && c.inputsKnown(mark)) {
+        if (dart.notNull(c.output().mark !== mark) && dart.notNull(c.inputsKnown(mark))) {
           plan.addConstraint(c);
           c.output().mark = mark;
           this.addConstraintsConsumingTo(c.output(), todo);
@@ -286,7 +286,7 @@ var DeltaBlue;
       let sources = new List.from([]);
       for (let i = 0; i < constraints.length; i++) {
         let c = constraints.get(i);
-        if (c.isInput() && c.isSatisfied()) sources.add(c);
+        if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied())) sources.add(c);
       }
       return this.makePlan(sources);
     }
@@ -313,12 +313,12 @@ var DeltaBlue;
         let v = todo.removeLast();
         for (let i = 0; i < v.constraints.length; i++) {
           let c = v.constraints.get(i);
-          if (!c.isSatisfied()) unsatisfied.add(c);
+          if (!dart.notNull(c.isSatisfied())) unsatisfied.add(c);
         }
         let determining = v.determinedBy;
         for (let i = 0; i < v.constraints.length; i++) {
           let next = v.constraints.get(i);
-          if (!dart.equals(next, determining) && next.isSatisfied()) {
+          if (dart.notNull(!dart.equals(next, determining)) && dart.notNull(next.isSatisfied())) {
             next.recalculate();
             todo.add(next.output());
           }
@@ -330,7 +330,7 @@ var DeltaBlue;
       let determining = v.determinedBy;
       for (let i = 0; i < v.constraints.length; i++) {
         let c = v.constraints.get(i);
-        if (!dart.equals(c, determining) && c.isSatisfied()) coll.add(c);
+        if (dart.notNull(!dart.equals(c, determining)) && dart.notNull(c.isSatisfied())) coll.add(c);
       }
     }
   }

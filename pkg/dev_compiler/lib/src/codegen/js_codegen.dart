@@ -104,16 +104,23 @@ var $_libraryName;
     var from = node.baseType;
     var to = node.convertedType;
 
-    // num to int or num to double is just a null check.
+    // All Dart number types map to a JS double.
     if (rules.isNumType(from) &&
         (rules.isIntType(to) || rules.isDoubleType(to))) {
       // TODO(jmesserly): a lot of these checks are meaningless, as people use
       // `num` to mean "any kind of number" rather than "could be null".
       // The core libraries especially suffer from this problem, with many of
       // the `num` methods returning `num`.
-      out.write('dart.notNull(');
-      node.expression.accept(this);
-      out.write(')');
+      if (!rules.isNonNullableType(from) && rules.isNonNullableType(to)) {
+        // Converting from a nullable number to a non-nullable number
+        // only requires a null check.
+        out.write('dart.notNull(');
+        node.expression.accept(this);
+        out.write(')');
+      } else {
+        // A no-op in JavaScript.
+        node.expression.accept(this);
+      }
       return;
     }
 
@@ -517,7 +524,7 @@ $name.prototype[Symbol.iterator] = function() {
         expression.accept(this);
       } else {
         var type = rules.elementType(field.element);
-        if (rules.maybePrimitiveType(type)) {
+        if (rules.maybeNonNullableType(type)) {
           out.write('dart.as(null, ');
           _writeTypeName(type);
           out.write(')');
@@ -1052,10 +1059,24 @@ $name.prototype[Symbol.iterator] = function() {
       rules.isBoolType(t) ||
       rules.isNumType(t);
 
+  bool typeIsNonNullablePrimitiveInJS(DartType t) =>
+      typeIsPrimitiveInJS(t) && rules.isNonNullableType(t);
+
   bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) =>
       typeIsPrimitiveInJS(leftT) && typeIsPrimitiveInJS(rightT);
 
   bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
+
+  void notNull(Expression expr) {
+    var type = rules.getStaticType(expr);
+    if (rules.isNonNullableType(type)) {
+      expr.accept(this);
+    } else {
+      out.write('dart.notNull(');
+      expr.accept(this);
+      out.write(')');
+    }
+  }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -1094,15 +1115,15 @@ $name.prototype[Symbol.iterator] = function() {
       if (op.type == TokenType.TILDE_SLASH) {
         // `a ~/ b` is equivalent to `(a / b).truncate()`
         out.write('(');
-        lhs.accept(this);
+        notNull(lhs);
         out.write(' / ');
-        rhs.accept(this);
+        notNull(rhs);
         out.write(').truncate()');
       } else {
         // TODO(vsm): When do Dart ops not map to JS?
-        lhs.accept(this);
+        notNull(lhs);
         out.write(' $op ');
-        rhs.accept(this);
+        notNull(rhs);
       }
     } else if (rules.isDynamicTarget(lhs)) {
       // dynamic dispatch
@@ -1152,7 +1173,7 @@ $name.prototype[Symbol.iterator] = function() {
     var dispatchType = rules.getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
       // TODO(vsm): When do Dart ops not map to JS?
-      expr.accept(this);
+      notNull(expr);
       out.write('$op');
     } else {
       // TODO(vsm): Figure out operator calling convention / dispatch.
@@ -1169,7 +1190,7 @@ $name.prototype[Symbol.iterator] = function() {
     if (unaryOperationIsPrimitive(dispatchType)) {
       // TODO(vsm): When do Dart ops not map to JS?
       out.write('$op');
-      expr.accept(this);
+      notNull(expr);
     } else {
       // TODO(vsm): Figure out operator calling convention / dispatch.
       out.write('/* Unimplemented postfix operator: $node */');

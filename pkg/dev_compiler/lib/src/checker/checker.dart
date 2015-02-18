@@ -542,7 +542,7 @@ class CodeChecker extends RecursiveAstVisitor {
         var initializer = variable.initializer;
         if (initializer != null) {
           variable.initializer = checkAssignment(initializer, dartType);
-        } else if (_rules.maybePrimitiveType(dartType)) {
+        } else if (_rules.maybeNonNullableType(dartType)) {
           var element = variable.element;
           if (element is FieldElement && !element.isStatic) {
             // Initialized - possibly implicitly - during construction.

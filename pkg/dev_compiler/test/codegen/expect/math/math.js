@@ -13,15 +13,15 @@ var math;
   function min(a, b) {
     if (!dart.is(a, core.num)) throw new core.ArgumentError(a);
     if (!dart.is(b, core.num)) throw new core.ArgumentError(b);
-    if (a > b) return b;
-    if (a < b) return a;
+    if (dart.notNull(a) > dart.notNull(b)) return b;
+    if (dart.notNull(a) < dart.notNull(b)) return a;
     if (typeof b == "number") {
       if (typeof a == "number") {
         if (a === 0.0) {
-          return (a + b) * a * b;
+          return dart.notNull(dart.notNull((dart.notNull(a) + dart.notNull(b))) * dart.notNull(a)) * dart.notNull(b);
         }
       }
-      if (a === 0 && b.isNegative || b.isNaN) return b;
+      if (dart.notNull(dart.notNull(a === 0) && dart.notNull(b.isNegative)) || dart.notNull(b.isNaN)) return b;
       return a;
     }
     return a;
@@ -31,18 +31,18 @@ var math;
   function max(a, b) {
     if (!dart.is(a, core.num)) throw new core.ArgumentError(a);
     if (!dart.is(b, core.num)) throw new core.ArgumentError(b);
-    if (a > b) return a;
-    if (a < b) return b;
+    if (dart.notNull(a) > dart.notNull(b)) return a;
+    if (dart.notNull(a) < dart.notNull(b)) return b;
     if (typeof b == "number") {
       if (typeof a == "number") {
         if (a === 0.0) {
-          return a + b;
+          return dart.notNull(a) + dart.notNull(b);
         }
       }
       if (b.isNaN) return b;
       return a;
     }
-    if (b === 0 && a.isNegative) return b;
+    if (dart.notNull(b === 0) && dart.notNull(a.isNegative)) return b;
     return a;
   }
 
@@ -81,7 +81,7 @@ var math;
       toString() { return `Point(${this.x}, ${this.y})`; }
       ['=='](other) {
         if (!dart.is(other, Point)) return false;
-        return dart.equals(this.x, dart.dload(other, "x")) && dart.equals(this.y, dart.dload(other, "y"));
+        return dart.notNull(dart.equals(this.x, dart.dload(other, "x"))) && dart.notNull(dart.equals(this.y, dart.dload(other, "y")));
       }
       get hashCode() { return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode); }
       ['+'](other) {
@@ -93,16 +93,16 @@ var math;
       ['*'](factor) {
         return new Point(this.x['*'](factor), this.y['*'](factor));
       }
-      get magnitude() { return sqrt(this.x['*'](this.x) + this.y['*'](this.y)); }
+      get magnitude() { return sqrt(dart.notNull(this.x['*'](this.x)) + dart.notNull(this.y['*'](this.y))); }
       distanceTo(other) {
         let dx = this.x['-'](other.x);
         let dy = this.y['-'](other.y);
-        return sqrt(dx * dx + dy * dy);
+        return sqrt(dart.notNull(dart.notNull(dx) * dart.notNull(dx)) + dart.notNull(dart.notNull(dy) * dart.notNull(dy)));
       }
       squaredDistanceTo(other) {
         let dx = this.x['-'](other.x);
         let dy = this.y['-'](other.y);
-        return dart.as(dx * dx + dy * dy, T);
+        return dart.as(dart.notNull(dart.notNull(dx) * dart.notNull(dx)) + dart.notNull(dart.notNull(dy) * dart.notNull(dy)), T);
       }
     }
     return Point;
@@ -124,36 +124,36 @@ var math;
       }
       ['=='](other) {
         if (!dart.is(other, Rectangle)) return false;
-        return dart.equals(this.left, dart.dload(other, "left")) && dart.equals(this.top, dart.dload(other, "top")) && dart.equals(this.right, dart.dload(other, "right")) && dart.equals(this.bottom, dart.dload(other, "bottom"));
+        return dart.notNull(dart.notNull(dart.notNull(dart.equals(this.left, dart.dload(other, "left"))) && dart.notNull(dart.equals(this.top, dart.dload(other, "top")))) && dart.notNull(dart.equals(this.right, dart.dload(other, "right")))) && dart.notNull(dart.equals(this.bottom, dart.dload(other, "bottom")));
       }
       get hashCode() { return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode); }
       intersection(other) {
         let x0 = max(this.left, other.left);
         let x1 = min(this.left['+'](this.width), other.left['+'](other.width));
-        if (x0 <= x1) {
+        if (dart.notNull(x0) <= dart.notNull(x1)) {
           let y0 = max(this.top, other.top);
           let y1 = min(this.top['+'](this.height), other.top['+'](other.height));
-          if (y0 <= y1) {
-            return new Rectangle(x0, y0, x1 - x0, y1 - y0);
+          if (dart.notNull(y0) <= dart.notNull(y1)) {
+            return new Rectangle(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
           }
         }
         return null;
       }
       intersects(other) {
-        return (this.left['<='](other.left + other.width) && other.left <= this.left['+'](this.width) && this.top['<='](other.top + other.height) && other.top <= this.top['+'](this.height));
+        return (dart.notNull(dart.notNull(dart.notNull(this.left['<='](dart.notNull(other.left) + dart.notNull(other.width))) && dart.notNull(dart.notNull(other.left) <= dart.notNull(this.left['+'](this.width)))) && dart.notNull(this.top['<='](dart.notNull(other.top) + dart.notNull(other.height)))) && dart.notNull(dart.notNull(other.top) <= dart.notNull(this.top['+'](this.height))));
       }
       boundingBox(other) {
         let right = max(this.left['+'](this.width), other.left['+'](other.width));
         let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
         let left = min(this.left, other.left);
         let top = min(this.top, other.top);
-        return new Rectangle(left, top, right - left, bottom - top);
+        return new Rectangle(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
       }
       containsRectangle(another) {
-        return this.left['<='](another.left) && this.left['+'](this.width) >= another.left + another.width && this.top['<='](another.top) && this.top['+'](this.height) >= another.top + another.height;
+        return dart.notNull(dart.notNull(dart.notNull(this.left['<='](another.left)) && dart.notNull(dart.notNull(this.left['+'](this.width)) >= dart.notNull(dart.notNull(another.left) + dart.notNull(another.width)))) && dart.notNull(this.top['<='](another.top))) && dart.notNull(dart.notNull(this.top['+'](this.height)) >= dart.notNull(dart.notNull(another.top) + dart.notNull(another.height)));
       }
       containsPoint(another) {
-        return core.num['>='](another.x, this.left) && another.x <= this.left['+'](this.width) && core.num['>='](another.y, this.top) && another.y <= this.top['+'](this.height);
+        return dart.notNull(dart.notNull(dart.notNull(core.num['>='](another.x, this.left)) && dart.notNull(dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)))) && dart.notNull(core.num['>='](another.y, this.top))) && dart.notNull(dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height)));
       }
       get topLeft() { return new Point(this.left, this.top); }
       get topRight() { return new Point(this.left['+'](this.width), this.top); }
@@ -169,8 +169,8 @@ var math;
       constructor(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this.width = (width['<'](0)) ? /* Unimplemented postfix operator: -width */ * 0 : width;
-        this.height = (height['<'](0)) ? /* Unimplemented postfix operator: -height */ * 0 : height;
+        this.width = (width['<'](0)) ? dart.notNull(/* Unimplemented postfix operator: -width */) * 0 : width;
+        this.height = (height['<'](0)) ? dart.notNull(/* Unimplemented postfix operator: -height */) * 0 : height;
         super();
       }
       /*constructor*/ fromPoints(a, b) {
@@ -220,8 +220,8 @@ var math;
 
   // Function _clampToZero: (num) → num
   function _clampToZero(value) {
-    dart.assert(value < 0);
-    return -value * 0;
+    dart.assert(dart.notNull(value) < 0);
+    return dart.notNull(-dart.notNull(value)) * 0;
   }
 
   // Exports:
