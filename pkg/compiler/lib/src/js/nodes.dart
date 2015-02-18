@@ -69,6 +69,7 @@ abstract class NodeVisitor<T> {
   T visitInterpolatedParameter(InterpolatedParameter node);
   T visitInterpolatedSelector(InterpolatedSelector node);
   T visitInterpolatedStatement(InterpolatedStatement node);
+  T visitInterpolatedDeclaration(InterpolatedDeclaration node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -163,6 +164,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
       => visitInterpolatedNode(node);
   T visitInterpolatedStatement(InterpolatedStatement node)
       => visitInterpolatedNode(node);
+  T visitInterpolatedDeclaration(InterpolatedDeclaration node) {
+    return visitInterpolatedNode(node);
+  }
 
   // Ignore comments by default.
   T visitComment(Comment node) => null;
@@ -419,7 +423,7 @@ class Try extends Statement {
 }
 
 class Catch extends Node {
-  final VariableDeclaration declaration;
+  final Declaration declaration;
   final Block body;
 
   Catch(this.declaration, this.body);
@@ -484,7 +488,7 @@ class Default extends SwitchClause {
 }
 
 class FunctionDeclaration extends Statement {
-  final VariableDeclaration name;
+  final Declaration name;
   final Fun function;
 
   FunctionDeclaration(this.name, this.function);
@@ -547,6 +551,10 @@ abstract class Expression extends Node {
   int get precedenceLevel;
 
   Statement toStatement() => new ExpressionStatement(this);
+}
+
+abstract class Declaration implements VariableReference {
+
 }
 
 class LiteralExpression extends Expression {
@@ -620,10 +628,10 @@ class Assignment extends Expression {
 
 class VariableInitialization extends Assignment {
   /** [value] may be null. */
-  VariableInitialization(VariableDeclaration declaration, Expression value)
+  VariableInitialization(Declaration declaration, Expression value)
       : super(declaration, value);
 
-  VariableDeclaration get declaration => leftHandSide;
+  Declaration get declaration => leftHandSide;
 
   accept(NodeVisitor visitor) => visitor.visitVariableInitialization(this);
 
@@ -798,7 +806,7 @@ class VariableUse extends VariableReference {
   toString() => 'VariableUse($name)';
 }
 
-class VariableDeclaration extends VariableReference {
+class VariableDeclaration extends VariableReference implements Declaration {
   final bool allowRename;
   VariableDeclaration(String name, {this.allowRename: true}) : super(name);
 
@@ -821,7 +829,7 @@ class This extends Parameter {
 }
 
 class NamedFunction extends Expression {
-  final VariableDeclaration name;
+  final Declaration name;
   final Fun function;
 
   NamedFunction(this.name, this.function);
@@ -1091,6 +1099,26 @@ class InterpolatedStatement extends Statement with InterpolatedNode {
   accept(NodeVisitor visitor) => visitor.visitInterpolatedStatement(this);
   void visitChildren(NodeVisitor visitor) {}
   InterpolatedStatement _clone() => new InterpolatedStatement(nameOrPosition);
+}
+
+class InterpolatedDeclaration extends Expression
+                              with InterpolatedNode
+                              implements Declaration {
+  final nameOrPosition;
+
+  InterpolatedDeclaration(this.nameOrPosition);
+
+  accept(NodeVisitor visitor) => visitor.visitInterpolatedDeclaration(this);
+  void visitChildren(NodeVisitor visitor) {}
+  InterpolatedDeclaration _clone() {
+    return new InterpolatedDeclaration(nameOrPosition);
+  }
+
+  @override
+  String get name => throw "No name for the interpolated node";
+
+  @override
+  int get precedenceLevel => PRIMARY;
 }
 
 /**

@@ -4,8 +4,6 @@
 
 library rewrite_async;
 
-// TODO(sigurdm): Avoid using variables in templates. It could blow up memory
-// use.
 // TODO(sigurdm): Move the try/catch expression to a js_helper function.
 // That would also simplify the sync* case, where the error can just be thrown.
 
@@ -601,22 +599,25 @@ class AsyncRewriter extends js.NodeVisitor {
     }
     switch (async) {
       case const js.AsyncModifier.async():
-        String returnValue =
-            analysis.hasExplicitReturns ? returnValueName : "null";
         addStatement(js.js.statement(
-            "return #thenHelper($returnValue, #successCode, "
-                "$completerName, null)", {
-             "thenHelper": asyncHelper,
-             "successCode": js.number(error_codes.SUCCESS)}));
+            "return #runtimeHelper(#returnValue, #successCode, "
+                "#completer, null)", {
+             "runtimeHelper": asyncHelper,
+             "successCode": js.number(error_codes.SUCCESS),
+             "returnValue": analysis.hasExplicitReturns
+                 ? returnValueName
+                 : new js.LiteralNull(),
+             "completer": completerName}));
         break;
       case const js.AsyncModifier.syncStar():
         addStatement(new js.Return(new js.Call(endOfIteration, [])));
         break;
       case const js.AsyncModifier.asyncStar():
         addStatement(js.js.statement(
-            "return #streamHelper(null, #successCode, $controllerName)", {
+            "return #streamHelper(null, #successCode, #controller)", {
           "streamHelper": streamHelper,
-          "successCode": js.number(error_codes.SUCCESS)}));
+          "successCode": js.number(error_codes.SUCCESS),
+          "controller": controllerName}));
         break;
       default:
         diagnosticListener.internalError(
@@ -625,10 +626,11 @@ class AsyncRewriter extends js.NodeVisitor {
     if (isAsync || isAsyncStar) {
       beginLabel(rethrowLabel);
       addStatement(js.js.statement(
-          "return #thenHelper($currentErrorName, #errorCode, "
-          "${isAsync ? completerName : controllerName})", {
+          "return #thenHelper(#currentError, #errorCode, #controller)", {
             "thenHelper": isAsync ? asyncHelper : streamHelper,
-            "errorCode": js.number(error_codes.ERROR)}));
+            "errorCode": js.number(error_codes.ERROR),
+            "currentError": currentErrorName,
+            "controller": isAsync ? completerName : controllerName}));
     } else {
       assert(isSyncStar);
       beginLabel(rethrowLabel);
@@ -647,13 +649,16 @@ class AsyncRewriter extends js.NodeVisitor {
   js.Statement generateInitializer() {
     if (isAsync) {
       return js.js.statement(
-          "return #asyncHelper(null, $bodyName, $completerName, null);", {
-        "asyncHelper": asyncHelper
+          "return #asyncHelper(null, #body, #completer, null);", {
+        "asyncHelper": asyncHelper,
+        "body": bodyName,
+        "completer": completerName,
       });
     } else if (isAsyncStar) {
       return js.js.statement(
-          "return #streamOfController($controllerName);", {
-        "streamOfController": streamOfController
+          "return #streamOfController(#controller);", {
+        "streamOfController": streamOfController,
+        "controller": controllerName,
       });
     } else {
       throw diagnosticListener.internalError(
@@ -828,15 +833,21 @@ class AsyncRewriter extends js.NodeVisitor {
     js.Statement helperBody =
         new js.Switch(new js.VariableUse(gotoName), clauses);
     if (hasJumpThoughOuterLabel) {
-      helperBody = js.js.statement("$outerLabelName: #", [helperBody]);
+      helperBody = new js.LabeledStatement(outerLabelName, helperBody);
     }
     helperBody = js.js.statement("""
         try {
           #body
-        } catch ($errorName){
-          $currentErrorName = $errorName;
-          $gotoName = $handlerName;
-        }""", {"body": helperBody});
+        } catch (#error){
+          #currentError = #error;
+          #goto = #handler;
+        }""", {
+          "body": helperBody,
+          "goto": gotoName,
+          "error": errorName,
+          "currentError": currentErrorName,
+          "handler": handlerName,
+        });
     List<js.VariableInitialization> inits = <js.VariableInitialization>[];
 
     js.VariableInitialization makeInit(String name, js.Expression initValue) {
@@ -878,10 +889,10 @@ class AsyncRewriter extends js.NodeVisitor {
       return js.js("""
           function (#params) {
             if (#needsThis)
-              var $selfName = this;
+              var #self = this;
             return new #newIterable(function () {
               #varDecl;
-              return function $bodyName() {
+              return function #body() {
                 while (true)
                   #helperBody;
               };
@@ -892,27 +903,29 @@ class AsyncRewriter extends js.NodeVisitor {
         "needsThis": analysis.hasThis,
         "helperBody": helperBody,
         "varDecl": varDecl,
-        "newIterable": newIterable
+        "newIterable": newIterable,
+        "body": bodyName,
+        "self": selfName,
       });
     }
     return js.js("""
         function (#params) {
           #varDecl;
-          function $bodyName($errorCodeName, $resultName) {
+          function #bodyName(#errorCode, #result) {
             if (#hasYield)
-              switch ($errorCodeName) {
-                case #streamWasCanceled:
-                  $nextName = $nextWhenCanceledName;
-                  $gotoName = $nextName.pop();
+              switch (#errorCode) {
+                case #STREAM_WAS_CANCELED:
+                  #next = #nextWhenCanceled;
+                  #goto = #next.pop();
                   break;
-                case #errorCode:
-                  $currentErrorName = $resultName;
-                  $gotoName = $handlerName;
+                case #ERROR:
+                  #currentError = #result;
+                  #goto = #handler;
               }
             else
-              if ($errorCodeName == #errorCode) {
-                  $currentErrorName = $resultName;
-                  $gotoName = $handlerName;
+              if (#errorCode == #ERROR) {
+                  #currentError = #result;
+                  #goto = #handler;
               }
             while (true)
               #helperBody;
@@ -921,11 +934,19 @@ class AsyncRewriter extends js.NodeVisitor {
         }""", {
       "params": node.params,
       "varDecl": varDecl,
-      "streamWasCanceled": js.number(error_codes.STREAM_WAS_CANCELED),
-      "errorCode": js.number(error_codes.ERROR),
+      "STREAM_WAS_CANCELED": js.number(error_codes.STREAM_WAS_CANCELED),
+      "ERROR": js.number(error_codes.ERROR),
       "hasYield": analysis.hasYield,
       "helperBody": helperBody,
-      "init": generateInitializer()
+      "init": generateInitializer(),
+      "bodyName": bodyName,
+      "currentError": currentErrorName,
+      "goto": gotoName,
+      "handler": handlerName,
+      "next": nextName,
+      "nextWhenCanceled": nextWhenCanceledName,
+      "errorCode": errorCodeName,
+      "result": resultName,
     });
   }
 
@@ -984,11 +1005,13 @@ class AsyncRewriter extends js.NodeVisitor {
       addStatement(setGotoVariable(afterAwait));
       addStatement(js.js.statement("""
           return #asyncHelper(#value,
-                              $bodyName,
-                              ${isAsync ? completerName : controllerName});
+                              #body,
+                              #controller);
           """, {
         "asyncHelper": isAsync ? asyncHelper : streamHelper,
         "value": value,
+        "body": bodyName,
+        "controller": isAsync ? completerName : controllerName,
       }));
     }, store: false);
     beginLabel(afterAwait);
@@ -1165,7 +1188,7 @@ class AsyncRewriter extends js.NodeVisitor {
       hasJumpThroughFinally = true;
       js.Expression jsJumpStack = new js.ArrayInitializer(
           jumpStack.map((int label) => js.number(label)).toList());
-      addStatement(js.js.statement("$nextName = #", [jsJumpStack]));
+      addStatement(js.js.statement("# = #", [nextName, jsJumpStack]));
     }
     addGoto(firstTarget);
   }
@@ -1338,6 +1361,11 @@ class AsyncRewriter extends js.NodeVisitor {
   }
 
   @override
+  visitInterpolatedDeclaration(js.InterpolatedDeclaration node) {
+    return unsupported(node);
+  }
+
+  @override
   visitInterpolatedLiteral(js.InterpolatedLiteral node) => unsupported(node);
 
   @override
@@ -1485,7 +1513,7 @@ class AsyncRewriter extends js.NodeVisitor {
     js.Node target = analysis.targets[node];
     if (node.value != null) {
       withExpression(node.value, (js.Expression value) {
-        addStatement(js.js.statement("$returnValueName = #", [value]));
+        addStatement(js.js.statement("# = #", [returnValueName, value]));
       }, store: false);
     }
     translateJump(target, exitLabel);
@@ -1666,7 +1694,8 @@ class AsyncRewriter extends js.NodeVisitor {
     } else {
       // The handler is reset as the first thing in the finally block.
       addStatement(
-          js.js.statement("$nextName = [#];", [js.number(afterFinallyLabel)]));
+          js.js.statement("# = [#];",
+                          [nextName, js.number(afterFinallyLabel)]));
       addGoto(finallyLabel);
     }
 
@@ -1692,8 +1721,8 @@ class AsyncRewriter extends js.NodeVisitor {
       if (node.finallyPart != null) {
         // The error has been caught, so after the finally, continue after the
         // try.
-        addStatement(js.js.statement("$nextName = [#];",
-                                     [js.number(afterFinallyLabel)]));
+        addStatement(js.js.statement("# = [#];",
+                                     [nextName, js.number(afterFinallyLabel)]));
         addGoto(finallyLabel);
       } else {
         addGoto(afterFinallyLabel);
@@ -1713,8 +1742,8 @@ class AsyncRewriter extends js.NodeVisitor {
       // [enclosingFinallies] can be empty if there is no surrounding finally
       // blocks. Then [nextLabel] will be [rethrowLabel].
       addStatement(
-          js.js.statement("$nextName = #;", new js.ArrayInitializer(
-              enclosingFinallies.map(js.number).toList())));
+          js.js.statement("# = #;", [nextName, new js.ArrayInitializer(
+              enclosingFinallies.map(js.number).toList())]));
     }
     if (node.finallyPart == null) {
       // The finally-block belonging to [node] will be visited because of
@@ -1729,7 +1758,7 @@ class AsyncRewriter extends js.NodeVisitor {
       setErrorHandler();
       visitStatement(node.finallyPart);
       addStatement(new js.Comment("// goto the next finally handler"));
-      addStatement(js.js.statement("$gotoName = $nextName.pop();"));
+      addStatement(js.js.statement("# = #.pop();", [gotoName, nextName]));
       addBreak();
     }
     beginLabel(afterFinallyLabel);
@@ -1832,15 +1861,17 @@ class AsyncRewriter extends js.NodeVisitor {
     enclosingFinallyLabels.addAll(jumpTargets
         .where((js.Node node) => finallyLabels[node] != null)
         .map((js.Block node) => finallyLabels[node]));
-    addStatement(js.js.statement("$nextWhenCanceledName = #",
-        [new js.ArrayInitializer(enclosingFinallyLabels.map(js.number)
-            .toList())]));
+    addStatement(js.js.statement("# = #;",
+        [nextWhenCanceledName, new js.ArrayInitializer(
+            enclosingFinallyLabels.map(js.number).toList())]));
     addStatement(js.js.statement("""
-        return #streamHelper(#yieldExpression(#expression),
-            $bodyName, $controllerName);""", {
+        return #streamHelper(#yieldExpression(#expression), #body,
+            #controller);""", {
       "streamHelper": streamHelper,
       "yieldExpression": node.hasStar ? yieldStarExpression : yieldExpression,
       "expression": expression,
+      "body": bodyName,
+      "controller": controllerName,
     }));
   }
 
@@ -2085,6 +2116,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
 
   @override
   bool visitInterpolatedExpression(js.InterpolatedExpression node) {
+    return unsupported(node);
+  }
+
+  @override
+  bool visitInterpolatedDeclaration(js.InterpolatedDeclaration node) {
     return unsupported(node);
   }
 

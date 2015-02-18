@@ -185,6 +185,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return new VariableUse(value);
   }
 
+  static Expression convertStringToVariableDeclaration(String value) {
+    assert(identiferRE.hasMatch(value));
+    return new VariableDeclaration(value);
+  }
+
   Instantiator visitInterpolatedExpression(InterpolatedExpression node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
@@ -192,6 +197,16 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       if (value is Expression) return value;
       if (value is String) return convertStringToVariableUse(value);
       error('Interpolated value #$nameOrPosition is not an Expression: $value');
+    };
+  }
+
+  Instantiator visitInterpolatedDeclaration(InterpolatedDeclaration node) {
+    var nameOrPosition = node.nameOrPosition;
+    return (arguments) {
+      var value = arguments[nameOrPosition];
+      if (value is Declaration) return value;
+      if (value is String) return convertStringToVariableDeclaration(value);
+      error('Interpolated value #$nameOrPosition is not a declaration: $value');
     };
   }
 

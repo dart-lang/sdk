@@ -184,11 +184,6 @@ What is not implemented:
     array case, we would need some way to know if an ArrayInitializer argument
     should be splice or is intended as a single value.
 
- -  There are no placeholders in definition contexts:
-
-        function #(){}
-        var # = 1;
-
 */
 const JsBuilder js = const JsBuilder();
 
@@ -766,10 +761,9 @@ class MiniJsParser {
 
   Expression parseFunctionExpression() {
     String last = lastToken;
-    if (acceptCategory(ALPHA)) {
-      String functionName = last;
-      return new NamedFunction(new VariableDeclaration(functionName),
-          parseFun());
+    if (lastCategory == ALPHA || lastCategory == HASH) {
+      Declaration name = parseVariableDeclaration();
+      return new NamedFunction(name, parseFun());
     }
     return parseFun();
   }
@@ -1015,27 +1009,25 @@ class MiniJsParser {
   }
 
   VariableDeclarationList parseVariableDeclarationList() {
-    String firstVariable = lastToken;
-    expectCategory(ALPHA);
+    Declaration firstVariable = parseVariableDeclaration();
     return finishVariableDeclarationList(firstVariable);
   }
 
-  VariableDeclarationList finishVariableDeclarationList(String firstVariable) {
+  VariableDeclarationList finishVariableDeclarationList(
+      Declaration firstVariable) {
     var initialization = [];
 
-    void declare(String variable) {
+    void declare(Declaration declaration) {
       Expression initializer = null;
       if (acceptString("=")) {
         initializer = parseAssignment();
       }
-      var declaration = new VariableDeclaration(variable);
       initialization.add(new VariableInitialization(declaration, initializer));
     }
 
     declare(firstVariable);
     while (acceptCategory(COMMA)) {
-      String variable = lastToken;
-      expectCategory(ALPHA);
+      Declaration variable = parseVariableDeclaration();
       declare(variable);
     }
     return new VariableDeclarationList(initialization);
@@ -1224,20 +1216,18 @@ class MiniJsParser {
     }
 
     if (acceptString('var')) {
-      String identifier = lastToken;
-      expectCategory(ALPHA);
+      Declaration declaration = parseVariableDeclaration();
       if (acceptString('in')) {
         Expression objectExpression = parseExpression();
         expectCategory(RPAREN);
         Statement body = parseStatement();
         return new ForIn(
             new VariableDeclarationList([
-                new VariableInitialization(
-                    new VariableDeclaration(identifier), null)]),
+                new VariableInitialization(declaration, null)]),
             objectExpression,
             body);
       }
-      Expression declarations = finishVariableDeclarationList(identifier);
+      Expression declarations = finishVariableDeclarationList(declaration);
       expectCategory(SEMICOLON);
       return finishFor(declarations);
     }
@@ -1247,11 +1237,24 @@ class MiniJsParser {
     return finishFor(init);
   }
 
+  Declaration parseVariableDeclaration() {
+    if (acceptCategory(HASH)) {
+      var nameOrPosition = parseHash();
+      InterpolatedDeclaration declaration =
+          new InterpolatedDeclaration(nameOrPosition);
+      interpolatedValues.add(declaration);
+      return declaration;
+    } else {
+      String token = lastToken;
+      expectCategory(ALPHA);
+      return new VariableDeclaration(token);
+    }
+  }
+
   Statement parseFunctionDeclaration() {
-    String name = lastToken;
-    expectCategory(ALPHA);
+    Declaration name = parseVariableDeclaration();
     Expression fun = parseFun();
-    return new FunctionDeclaration(new VariableDeclaration(name), fun);
+    return new FunctionDeclaration(name, fun);
   }
 
   Statement parseTry() {
@@ -1326,11 +1329,10 @@ class MiniJsParser {
 
   Catch parseCatch() {
     expectCategory(LPAREN);
-    String identifier = lastToken;
-    expectCategory(ALPHA);
+    Declaration errorName = parseVariableDeclaration();
     expectCategory(RPAREN);
     expectCategory(LBRACE);
     Block body = parseBlock();
-    return new Catch(new VariableDeclaration(identifier), body);
+    return new Catch(errorName, body);
   }
 }
