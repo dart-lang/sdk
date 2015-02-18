@@ -14,6 +14,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, use_internal_hash_map, false, "Use internal hash map.");
+DEFINE_FLAG(bool, use_compact_hash, false, "Use compact hash map and set.");
 
 DEFINE_NATIVE_ENTRY(LinkedHashMap_allocate, 1) {
   const TypeArguments& type_arguments =
@@ -90,7 +91,14 @@ DEFINE_NATIVE_ENTRY(LinkedHashMap_getModMark, 2) {
 
 
 DEFINE_NATIVE_ENTRY(LinkedHashMap_useInternal, 0) {
+  ASSERT(!(FLAG_use_internal_hash_map && FLAG_use_compact_hash));
   return Bool::Get(FLAG_use_internal_hash_map).raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(LinkedHashMap_useCompact, 0) {
+  ASSERT(!(FLAG_use_internal_hash_map && FLAG_use_compact_hash));
+  return Bool::Get(FLAG_use_compact_hash).raw();
 }
 
 }  // namespace dart

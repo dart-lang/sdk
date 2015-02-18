@@ -918,6 +918,8 @@ patch class LinkedHashMap<K, V> {
         if (equals == null) {
           if (_useInternalCached) {
             return new _InternalLinkedHashMap<K, V>();
+          } else if (_useCompactCached) {
+            return new _CompactLinkedHashMap<K, V>();
           } else {
             return new _LinkedHashMap<K, V>();
           }
@@ -947,6 +949,8 @@ patch class LinkedHashMap<K, V> {
 
   static final bool _useInternalCached = _useInternal;
   static bool get _useInternal native "LinkedHashMap_useInternal";
+  static final bool _useCompactCached = _useCompact;
+  static bool get _useCompact native "LinkedHashMap_useCompact";
 }
 
 // Methods that are exactly the same in all three linked hash map variants.
@@ -1063,7 +1067,11 @@ patch class LinkedHashSet<E> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _LinkedHashSet<E>();
+          if (LinkedHashMap._useCompactCached) {
+            return new _CompactLinkedHashSet<E>();
+          } else {
+            return new _LinkedHashSet<E>();
+          }
         }
         hashCode = _defaultHashCode;
       } else {

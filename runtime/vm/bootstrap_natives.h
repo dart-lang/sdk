@@ -360,6 +360,7 @@ namespace dart {
   V(LinkedHashMap_toArray, 1)                                                  \
   V(LinkedHashMap_getModMark, 2)                                               \
   V(LinkedHashMap_useInternal, 0)                                              \
+  V(LinkedHashMap_useCompact, 0)                                               \
   V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
