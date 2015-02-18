@@ -257,15 +257,6 @@ Language/13_Statements/09_Switch_A09_t01: RuntimeError # Issue 16089
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # Issue 21089
 Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # Issue 21088
 Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # Issue 21088
-LayoutTests/fast/url/file-http-base_t01: Crash # Issue 21166
-LayoutTests/fast/url/file_t01: Crash # Issue 21166
-LayoutTests/fast/url/relative-unix_t01: Crash # Issue 21166
-LayoutTests/fast/url/relative-win_t01: Crash # Issue 21166
-LayoutTests/fast/url/relative_t01: Crash # Issue 21166
-LayoutTests/fast/url/segments-from-data-url_t01: Crash # Issue 21166
-LayoutTests/fast/url/segments_t01: Crash # Issue 21166
-LayoutTests/fast/url/trivial-segments_t01: Crash # Issue 21166
-LayoutTests/fast/url/trivial_t01: Crash # Issue 21166
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533

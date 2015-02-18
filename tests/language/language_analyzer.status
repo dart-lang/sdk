@@ -3,9 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-
+async_return_types_test/wrongTypeParameter: MissingStaticWarning # Issue 22410
+async_return_types_test/wrongReturnType: MissingStaticWarning # Issue 22410
+async_return_types_test/nestedFuture: MissingStaticWarning # Issue 22410
 await_backwards_compatibility_test/none: CompileTimeError # Issue 22052
 await_test: CompileTimeError # Issue 22052
+asyncstar_yield_test: StaticWarning # Issue 22411
+sync_generator1_test/01: MissingStaticWarning # Issue 22412
 
 sync_generator2_test/01: MissingCompileTimeError # Issue 22252
 sync_generator2_test/02: MissingCompileTimeError # Issue 22252
@@ -26,6 +30,7 @@ async_await_syntax_test/a05f: MissingCompileTimeError
 async_await_syntax_test/a10a: MissingStaticWarning
 async_await_syntax_test/b10a: MissingStaticWarning
 async_await_syntax_test/c10a: MissingStaticWarning
+async_await_syntax_test/d08b: MissingStaticWarning # Issue 22412
 async_await_syntax_test/d10a: MissingStaticWarning
 
 # Runtime negative test. No static errors or warnings.

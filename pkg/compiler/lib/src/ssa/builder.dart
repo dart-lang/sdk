@@ -25,12 +25,13 @@ class SsaFunctionCompiler implements FunctionCompiler {
       JavaScriptBackend backend = builder.backend;
 
       AsyncRewriter rewriter = null;
+
       if (element.asyncMarker == AsyncMarker.ASYNC) {
         rewriter = new AsyncRewriter(
             backend.compiler,
             backend.compiler.currentElement,
-            thenHelper:
-                backend.emitter.staticFunctionAccess(backend.getThenHelper()),
+            asyncHelper:
+                backend.emitter.staticFunctionAccess(backend.getAsyncHelper()),
             newCompleter: backend.emitter.staticFunctionAccess(
                 backend.getCompleterConstructor()),
             safeVariableName: backend.namer.safeVariableName);
@@ -44,6 +45,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.getSyncStarIterableConstructor()),
             yieldStarExpression: backend.emitter.staticFunctionAccess(
                 backend.getYieldStar()),
+            uncaughtErrorExpression: backend.emitter.staticFunctionAccess(
+                backend.getSyncStarUncaughtError()),
             safeVariableName: backend.namer.safeVariableName);
       }
       else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
@@ -51,7 +54,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
             backend.compiler,
             backend.compiler.currentElement,
             streamHelper: backend.emitter.staticFunctionAccess(
-                backend.getStreamHelper()),
+                backend.getAsyncStarHelper()),
             streamOfController: backend.emitter.staticFunctionAccess(
                 backend.getStreamOfController()),
             newController: backend.emitter.staticFunctionAccess(
@@ -1057,6 +1060,13 @@ class SsaBuilder extends ResolvedVisitor {
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack = <HInstruction>[];
+
+  /// Returns `true` if the current element is an `async` function.
+  bool get isBuildingAsyncFunction {
+    Element element = sourceElement;
+    return (element is FunctionElement &&
+            element.asyncMarker == AsyncMarker.ASYNC);
+  }
 
   SsaBuilder(JavaScriptBackend backend,
              CodegenWorkItem work,
@@ -5179,6 +5189,28 @@ class SsaBuilder extends ResolvedVisitor {
     emitReturn(value, node);
   }
 
+  /// Returns true if the [type] is a valid return type for an asynchronous
+  /// function.
+  ///
+  /// Asynchronous functions return a `Future`, and a valid return is thus
+  /// either dynamic, Object, or Future.
+  ///
+  /// We do not accept the internal Future implementation class.
+  bool isValidAsyncReturnType(DartType type) {
+    assert (isBuildingAsyncFunction);
+    // TODO(sigurdm): In an internal library a function could be declared:
+    //
+    // _FutureImpl foo async => 1;
+    //
+    // This should be valid (because the actual value returned from an async
+    // function is a `_FutureImpl`), but currently false is returned in this
+    // case.
+    return type.isDynamic ||
+           type.isObject ||
+           (type is InterfaceType &&
+               type.element == compiler.futureClass);
+  }
+
   visitReturn(ast.Return node) {
     if (identical(node.beginToken.stringValue, 'native')) {
       native.handleSsaNative(this, node.expression);
@@ -5190,7 +5222,19 @@ class SsaBuilder extends ResolvedVisitor {
     } else {
       visit(node.expression);
       value = pop();
-      value = potentiallyCheckOrTrustType(value, returnType);
+      if (isBuildingAsyncFunction) {
+        if (compiler.enableTypeAssertions &&
+            !isValidAsyncReturnType(returnType)) {
+          String message =
+                "Async function returned a Future, "
+                "was declared to return a $returnType.";
+          generateTypeError(node, message);
+          pop();
+          return;
+        }
+      } else {
+        value = potentiallyCheckOrTrustType(value, returnType);
+      }
     }
 
     handleInTryStatement();

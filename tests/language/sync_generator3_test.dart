@@ -34,14 +34,12 @@ g() sync* {
 }
 
 test2() {
-  var s;
-  try {
-    s = g().toString();
-  } catch (e) {
-    Expect.equals("pow!", e);
-    Expect.equals("(a, b)", s);
-    print(s);
-  }
+  Iterator i = g().iterator;
+  Expect.isTrue(i.moveNext());
+  Expect.equals("a", i.current);
+  Expect.isTrue(i.moveNext());
+  Expect.equals("b", i.current);
+  Expect.throws(() => i.moveNext(), (error) => error == "pow!");
 }
 
 main() {

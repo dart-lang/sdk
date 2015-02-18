@@ -211,6 +211,12 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       documented: false,
       platforms: DART2JS_PLATFORM),
 
+  "_async_await_error_codes": const LibraryInfo(
+      "_internal/compiler/js_lib/shared/async_await_error_codes.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
+
   "_metadata": const LibraryInfo(
       "html/html_common/metadata.dart",
       category: "Internal",

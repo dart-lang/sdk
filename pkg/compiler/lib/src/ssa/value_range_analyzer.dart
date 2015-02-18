@@ -711,6 +711,12 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       indexRange = info.newUnboundRange();
       assert(!check.index.isInteger(compiler));
     }
+    if (lengthRange == null) {
+      // We might have lost the length range due to a type conversion that
+      // asserts a non-integer type. In such a case, the program will never
+      // get to this point anyway, so no need to try and refine ranges.
+      return indexRange;
+    }
     assert(check.length.isInteger(compiler));
 
     // Check if the index is strictly below the upper bound of the length

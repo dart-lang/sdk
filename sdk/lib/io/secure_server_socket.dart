@@ -58,6 +58,14 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * To check whether a client certificate was received, check
    * SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
+   *
+   * The optional argument [shared] specify whether additional binds
+   * to the same `address`, `port` and `v6Only` combination is
+   * possible from the same Dart process. If `shared` is `true` and
+   * additional binds are performed, then the incoming connections
+   * will be distributed between that set of
+   * `SecureServerSocket`s. One way of using this is to have number of
+   * isolates between which incoming connections are distributed.
    */
   static Future<SecureServerSocket> bind(
       address,
@@ -185,6 +193,14 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * need to specify both.  To check whether a client certificate was received,
    * check SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
+   *
+   * The optional argument [shared] specify whether additional binds
+   * to the same `address`, `port` and `v6Only` combination is
+   * possible from the same Dart process. If `shared` is `true` and
+   * additional binds are performed, then the incoming connections
+   * will be distributed between that set of
+   * `RawSecureServerSocket`s. One way of using this is to have number
+   * of isolates between which incoming connections are distributed.
    */
   static Future<RawSecureServerSocket> bind(
       address,

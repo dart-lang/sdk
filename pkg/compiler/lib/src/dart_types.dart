@@ -475,7 +475,7 @@ class InterfaceType extends GenericType {
    * Returns the type as an instance of class [other], if possible, null
    * otherwise.
    */
-  DartType asInstanceOf(ClassElement other) {
+  InterfaceType asInstanceOf(ClassElement other) {
     other = other.declaration;
     if (element == other) return this;
     InterfaceType supertype = element.asInstanceOf(other);

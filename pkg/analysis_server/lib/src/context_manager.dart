@@ -36,6 +36,11 @@ const String PUBSPEC_NAME = 'pubspec.yaml';
  */
 abstract class ContextManager {
   /**
+   * The name of the `lib` directory.
+   */
+  static const String LIB_DIR_NAME = 'lib';
+
+  /**
    * [_ContextInfo] object for each included directory in the most
    * recent successful call to [setRoots].
    */
@@ -85,9 +90,9 @@ abstract class ContextManager {
   }
 
   /**
-   * Called when a new context needs to be created.
+   * Create and return a new analysis context.
    */
-  void addContext(Folder folder, UriResolver packageUriResolver);
+  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -282,7 +287,8 @@ abstract class ContextManager {
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
-  void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info) {
+  void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info,
+      bool pubspecExists, bool createPackageUri) {
     if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
       return;
     }
@@ -297,14 +303,47 @@ abstract class ContextManager {
       if (child is File) {
         if (_shouldFileBeAnalyzed(child)) {
           Source source = child.createSource();
+          if (createPackageUri) {
+            //
+            // It should be possible to generate the uri by executing:
+            //
+            //   Uri uri = info.context.sourceFactory.restoreUri(source);
+            //
+            // but for some reason this doesn't produce the same result as the
+            // code below. This needs to be investigated.
+            // (See https://code.google.com/p/dart/issues/detail?id=22463).
+            //
+            String packagePath = info.folder.path;
+            String packageName =
+                resourceProvider.pathContext.basename(packagePath);
+            String libPath =
+                resourceProvider.pathContext.join(packagePath, LIB_DIR_NAME);
+            String relPath = source.fullName.substring(libPath.length);
+            Uri uri =
+                Uri.parse('${PackageMapUriResolver.PACKAGE_SCHEME}:$packageName$relPath');
+            source = child.createSource(uri);
+          }
           changeSet.addedSource(source);
           info.sources[path] = source;
         }
       } else if (child is Folder) {
-        if (child.shortName == PACKAGES_NAME) {
+        String shortName = child.shortName;
+        if (shortName == PACKAGES_NAME) {
           continue;
         }
-        _addSourceFiles(changeSet, child, info);
+        if (pubspecExists &&
+            !createPackageUri &&
+            shortName == LIB_DIR_NAME &&
+            child.parent == info.folder) {
+          _addSourceFiles(changeSet, child, info, pubspecExists, true);
+        } else {
+          _addSourceFiles(
+              changeSet,
+              child,
+              info,
+              pubspecExists,
+              createPackageUri);
+        }
       }
     }
   }
@@ -338,15 +377,19 @@ abstract class ContextManager {
   /**
    * Create a new empty context associated with [folder].
    */
-  _ContextInfo _createContext(Folder folder, List<_ContextInfo> children) {
-    _ContextInfo info =
-        new _ContextInfo(folder, children, normalizedPackageRoots[folder.path]);
+  _ContextInfo _createContext(Folder folder, File pubspecFile,
+      List<_ContextInfo> children) {
+    _ContextInfo info = new _ContextInfo(
+        folder,
+        pubspecFile,
+        children,
+        normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
     UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
-    addContext(folder, packageUriResolver);
+    info.context = addContext(folder, packageUriResolver);
     return info;
   }
 
@@ -365,13 +408,16 @@ abstract class ContextManager {
    * Returns create pubspec-based contexts.
    */
   List<_ContextInfo> _createContexts(Folder folder, bool withPubspecOnly) {
-    // check if there is a pubspec in the folder
-    {
-      File pubspecFile = folder.getChild(PUBSPEC_NAME);
-      if (pubspecFile.exists) {
-        _ContextInfo info = _createContextWithSources(folder, <_ContextInfo>[]);
-        return [info];
-      }
+    // check whether there is a pubspec in the folder
+    File pubspecFile = folder.getChild(PUBSPEC_NAME);
+    bool pubspecExists = pubspecFile.exists;
+    if (pubspecExists) {
+      _ContextInfo info = _createContextWithSources(
+          folder,
+          pubspecFile,
+          pubspecExists,
+          <_ContextInfo>[]);
+      return [info];
     }
     // try to find subfolders with pubspec files
     List<_ContextInfo> children = <_ContextInfo>[];
@@ -386,18 +432,21 @@ abstract class ContextManager {
       return children;
     }
     // OK, create a context without a pubspec
-    _createContextWithSources(folder, children);
+    _createContextWithSources(folder, pubspecFile, pubspecExists, children);
     return children;
   }
 
   /**
-   * Create a new context associated with [folder] and fills its with sources.
+   * Create a new context associated with the given [folder]. The [pubspecFile]
+   * is the `pubspec.yaml` file contained in the folder, and [pubspecExists] is
+   * `true` if the file exists. Add any sources that are not included in one of
+   * the [children] to the context.
    */
-  _ContextInfo _createContextWithSources(Folder folder,
-      List<_ContextInfo> children) {
-    _ContextInfo info = _createContext(folder, children);
+  _ContextInfo _createContextWithSources(Folder folder, File pubspecFile,
+      bool pubspecExists, List<_ContextInfo> children) {
+    _ContextInfo info = _createContext(folder, pubspecFile, children);
     ChangeSet changeSet = new ChangeSet();
-    _addSourceFiles(changeSet, folder, info);
+    _addSourceFiles(changeSet, folder, info, pubspecExists, false);
     applyChangesToContext(folder, changeSet);
     return info;
   }
@@ -416,7 +465,7 @@ abstract class ContextManager {
    */
   void _extractContext(_ContextInfo oldInfo, File pubspecFile) {
     Folder newFolder = pubspecFile.parent;
-    _ContextInfo newInfo = _createContext(newFolder, []);
+    _ContextInfo newInfo = _createContext(newFolder, pubspecFile, []);
     newInfo.parent = oldInfo;
     // prepare sources to extract
     Map<String, Source> extractedSources = new HashMap<String, Source>();
@@ -629,6 +678,11 @@ class _ContextInfo {
   StreamSubscription<WatchEvent> changeSubscription;
 
   /**
+   * The analysis context that was created for the [folder].
+   */
+  AnalysisContext context;
+
+  /**
    * Map from full path to the [Source] object, for each source that has been
    * added to the context.
    */
@@ -640,8 +694,8 @@ class _ContextInfo {
    */
   Set<String> packageMapDependencies;
 
-  _ContextInfo(this.folder, this.children, this.packageRoot) {
-    pubspecPath = folder.getChild(PUBSPEC_NAME).path;
+  _ContextInfo(this.folder, File pubspecFile, this.children, this.packageRoot) {
+    pubspecPath = pubspecFile.path;
     for (_ContextInfo child in children) {
       child.parent = this;
     }

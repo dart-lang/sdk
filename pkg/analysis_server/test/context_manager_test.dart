@@ -4,6 +4,8 @@
 
 library test.context.directory.manager;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -27,11 +29,43 @@ main() {
 
 @reflectiveTest
 class ContextManagerTest {
+  /**
+   * The name of the 'bin' directory.
+   */
+  static const String BIN_NAME = 'bin';
+  /**
+   * The name of the 'lib' directory.
+   */
+  static const String LIB_NAME = 'lib';
+  /**
+   * The name of the 'src' directory.
+   */
+  static const String SRC_NAME = 'src';
+
+  /**
+   * The name of the 'test' directory.
+   */
+  static const String TEST_NAME = 'test';
+
   TestContextManager manager;
+
   MemoryResourceProvider resourceProvider;
+
   MockPackageMapProvider packageMapProvider;
 
   String projPath = '/my/proj';
+
+  String newFile(List<String> pathComponents, [String content = '']) {
+    String filePath = posix.joinAll(pathComponents);
+    resourceProvider.newFile(filePath, content);
+    return filePath;
+  }
+
+  String newFolder(List<String> pathComponents) {
+    String folderPath = posix.joinAll(pathComponents);
+    resourceProvider.newFolder(folderPath);
+    return folderPath;
+  }
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
@@ -172,6 +206,32 @@ class ContextManagerTest {
     expect(manager.currentContextPaths, hasLength(1));
     expect(manager.currentContextPaths, contains(projPath));
     expect(manager.currentContextFilePaths[projPath], hasLength(0));
+  }
+
+  void test_setRoots_addFolderWithPubspecAndLib() {
+    String binPath = newFolder([projPath, BIN_NAME]);
+    String libPath = newFolder([projPath, LIB_NAME]);
+    String srcPath = newFolder([libPath, SRC_NAME]);
+    String testPath = newFolder([projPath, TEST_NAME]);
+
+    newFile([projPath, PUBSPEC_NAME]);
+    String appPath = newFile([binPath, 'app.dart']);
+    newFile([libPath, 'main.dart']);
+    newFile([srcPath, 'internal.dart']);
+    String testFilePath = newFile([testPath, 'main_test.dart']);
+
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    Set<Source> sources = manager.currentContextSources[projPath];
+
+    expect(manager.currentContextPaths, hasLength(1));
+    expect(manager.currentContextPaths, contains(projPath));
+    expect(sources, hasLength(4));
+    List<String> uris =
+        sources.map((Source source) => source.uri.toString()).toList();
+    expect(uris, contains('file://$appPath'));
+    expect(uris, contains('package:proj/main.dart'));
+    expect(uris, contains('package:proj/src/internal.dart'));
+    expect(uris, contains('file://$testFilePath'));
   }
 
   void test_setRoots_addFolderWithPubspecFolders() {
@@ -792,6 +852,13 @@ class TestContextManager extends ContextManager {
       Map<String, int>>{};
 
   /**
+   * A map from the paths of contexts to a set of the sources that should be
+   * explicitly analyzed in those contexts.
+   */
+  final Map<String, Set<Source>> currentContextSources = <String,
+      Set<Source>>{};
+
+  /**
    * Map from context to package URI resolver.
    */
   final Map<String, UriResolver> currentContextPackageUriResolvers = <String,
@@ -807,24 +874,30 @@ class TestContextManager extends ContextManager {
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
   @override
-  void addContext(Folder folder, UriResolver packageUriResolver) {
+  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver) {
     String path = folder.path;
     expect(currentContextPaths, isNot(contains(path)));
     currentContextTimestamps[path] = now;
     currentContextFilePaths[path] = <String, int>{};
+    currentContextSources[path] = new HashSet<Source>();
     currentContextPackageUriResolvers[path] = packageUriResolver;
+    return null;
   }
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     Map<String, int> filePaths = currentContextFilePaths[contextFolder.path];
+    Set<Source> sources = currentContextSources[contextFolder.path];
+
     for (Source source in changeSet.addedSources) {
       expect(filePaths, isNot(contains(source.fullName)));
       filePaths[source.fullName] = now;
+      sources.add(source);
     }
     for (Source source in changeSet.removedSources) {
       expect(filePaths, contains(source.fullName));
       filePaths.remove(source.fullName);
+      sources.remove(source);
     }
     for (Source source in changeSet.changedSources) {
       expect(filePaths, contains(source.fullName));
@@ -847,6 +920,7 @@ class TestContextManager extends ContextManager {
     expect(currentContextPaths, contains(path));
     currentContextTimestamps.remove(path);
     currentContextFilePaths.remove(path);
+    currentContextSources.remove(path);
     currentContextPackageUriResolvers.remove(path);
   }
 

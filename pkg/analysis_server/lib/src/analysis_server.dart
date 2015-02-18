@@ -334,21 +334,6 @@ class AnalysisServer {
   }
 
   /**
-   * Performs all scheduled analysis operations.
-   */
-  void test_performAllAnalysisOperations() {
-    while (true) {
-      ServerOperation operation = operationQueue.takeIf((operation) {
-        return operation is PerformAnalysisOperation;
-      });
-      if (operation == null) {
-        break;
-      }
-      operation.perform(this);
-    }
-  }
-
-  /**
    * If the given notice applies to a file contained within an analysis root,
    * notify interested parties that the file has been (at least partially)
    * analyzed.
@@ -474,23 +459,6 @@ class AnalysisServer {
     return context.getErrors(source);
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Returns resolved [AstNode]s at the given [offset] of the given [file].
    *
@@ -507,6 +475,23 @@ class AnalysisServer {
     }
     return nodes;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
@@ -965,6 +950,21 @@ class AnalysisServer {
   }
 
   /**
+   * Performs all scheduled analysis operations.
+   */
+  void test_performAllAnalysisOperations() {
+    while (true) {
+      ServerOperation operation = operationQueue.takeIf((operation) {
+        return operation is PerformAnalysisOperation;
+      });
+      if (operation == null) {
+        break;
+      }
+      operation.perform(this);
+    }
+  }
+
+  /**
    * Implementation for `analysis.updateContent`.
    */
   void updateContent(String id, Map<String, dynamic> changes) {
@@ -1165,7 +1165,7 @@ class ServerContextManager extends ContextManager {
       _onContextsChangedController.stream;
 
   @override
-  void addContext(Folder folder, UriResolver packageUriResolver) {
+  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer._overlayState;
@@ -1175,6 +1175,7 @@ class ServerContextManager extends ContextManager {
     _onContextsChangedController.add(
         new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+    return context;
   }
 
   @override
