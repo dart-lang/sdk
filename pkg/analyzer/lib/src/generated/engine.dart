@@ -8664,6 +8664,16 @@ class DartEntry extends SourceEntry {
  */
 class DataDescriptor<E> {
   /**
+   * The next artificial hash code.
+   */
+  static int _NEXT_HASH_CODE = 0;
+
+  /**
+   * The artifitial hash code for this object.
+   */
+  final int _hashCode = _NEXT_HASH_CODE++;
+
+  /**
    * The name of the descriptor, used for debugging purposes.
    */
   final String _name;
@@ -8678,6 +8688,9 @@ class DataDescriptor<E> {
    * [defaultValue].
    */
   DataDescriptor(this._name, [this.defaultValue = null]);
+
+  @override
+  int get hashCode => _hashCode;
 
   @override
   String toString() => _name;

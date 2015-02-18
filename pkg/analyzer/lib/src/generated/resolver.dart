@@ -10078,6 +10078,16 @@ class ResolvableLibrary {
   static List<ResolvableLibrary> _EMPTY_ARRAY = new List<ResolvableLibrary>(0);
 
   /**
+   * The next artificial hash code.
+   */
+  static int _NEXT_HASH_CODE = 0;
+
+  /**
+   * The artifitial hash code for this object.
+   */
+  final int _hashCode = _NEXT_HASH_CODE++;
+
+  /**
    * The source specifying the defining compilation unit of this library.
    */
   final Source librarySource;
@@ -10196,6 +10206,9 @@ class ResolvableLibrary {
    * @return an array containing the libraries that are exported from this library
    */
   List<ResolvableLibrary> get exports => _exportedLibraries;
+
+  @override
+  int get hashCode => _hashCode;
 
   /**
    * Set the libraries that are imported into this library to be those in the given array.
