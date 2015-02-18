@@ -12,7 +12,7 @@ var methods;
     }
     z(b) {
       if (b === undefined) b = null;
-      return b
+      return dart.notNull(b)
     }
     zz(b) {
       if (b === undefined) b = 0;
@@ -20,7 +20,7 @@ var methods;
     }
     w(a, opt$) {
       let b = opt$.b === undefined ? null : opt$.b;
-      return a + b;
+      return dart.notNull(a + b);
     }
     ww(a, opt$) {
       let b = opt$.b === undefined ? 0 : opt$.b;

@@ -7,11 +7,11 @@ class A {
     return a;
   }
 
-  int z([int b]) => b;
+  int z([num b]) => b;
 
   int zz([int b = 0]) => b;
 
-  int w(int a, {int b}) {
+  int w(int a, {num b}) {
     return a + b;
   }
 

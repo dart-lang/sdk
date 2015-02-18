@@ -361,7 +361,7 @@ class InvalidVariableDeclaration extends StaticError {
   final DartType expectedType;
 
   InvalidVariableDeclaration(
-      TypeRules rules, VariableDeclaration declaration, this.expectedType)
+      TypeRules rules, AstNode declaration, this.expectedType)
       : super(declaration);
 
   String get message => 'Type check failed: null is not of type $expectedType';

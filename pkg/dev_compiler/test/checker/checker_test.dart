@@ -46,6 +46,12 @@ main() {
           static num z;
         }
 
+        void foo(int w, [int x = /*severe:StaticTypeError*/null, int /*severe:InvalidVariableDeclaration*/y, int z = 0]) {
+        }
+
+        void bar(int w, {int x = /*severe:StaticTypeError*/null, int /*severe:InvalidVariableDeclaration*/y, int z: 0}) {
+        }
+
         void main() {
           int /*severe:InvalidVariableDeclaration*/x;
           double /*severe:InvalidVariableDeclaration*/y;
@@ -95,6 +101,9 @@ main() {
             // TODO(vsm): This should be a runtime check:
             // Transformed to: T z = cast(null, T)
             T /*severe:InvalidVariableDeclaration*/z;
+          }
+
+          void baz(T x, [T /*severe:InvalidVariableDeclaration*/y, T z = /*severe:StaticTypeError*/null]) {
           }
         }
 

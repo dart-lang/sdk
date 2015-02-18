@@ -504,6 +504,32 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
+  visitDefaultFormalParameter(DefaultFormalParameter node) {
+    // Check that defaults have the proper subtype.
+    var parameter = node.parameter;
+    var parameterType = _rules.elementType(parameter.element);
+    assert(parameterType != null);
+    var defaultValue = node.defaultValue;
+    var defaultType;
+    if (defaultValue == null) {
+      // TODO(vsm): Should this be null?
+      defaultType = _rules.provider.bottomType;
+    } else {
+      defaultType = _rules.getStaticType(defaultValue);
+    }
+
+    // If defaultType is bottom, this enforces that parameterType is not
+    // non-nullable.
+    if (!_rules.isSubTypeOf(defaultType, parameterType)) {
+      var staticInfo = (defaultValue == null)
+          ? new InvalidVariableDeclaration(
+              _rules, node.identifier, parameterType)
+          : new StaticTypeError(_rules, defaultValue, parameterType);
+      _recordMessage(staticInfo);
+    }
+    node.visitChildren(this);
+  }
+
   visitVariableDeclarationList(VariableDeclarationList node) {
     TypeName type = node.type;
     if (type == null) {
