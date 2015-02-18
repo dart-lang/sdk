@@ -157,13 +157,15 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
     // The monitor was acquired in MessageHandler::TaskCallback().
     monitor_.Exit();
     Message::Priority saved_priority = message->priority();
+    Dart_Port saved_dest_port = message->dest_port();
     result = HandleMessage(message);
+    message = NULL;  // May be deleted by now.
     monitor_.Enter();
     if (FLAG_trace_isolates) {
       OS::Print("[.] Message handled:\n"
                 "\thandler:    %s\n"
                 "\tport:       %" Pd64 "\n",
-                name(), message->dest_port());
+                name(), saved_dest_port);
     }
     if (!result) {
       // If we hit an error, we're done processing messages.
