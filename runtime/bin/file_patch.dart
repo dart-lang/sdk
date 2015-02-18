@@ -99,7 +99,7 @@ patch class _FileSystemWatcher {
         _newWatcher();
       } catch (e) {
         _broadcastController.addError(new FileSystemException(
-            "Failed to initialize file system entity watcher"));
+            "Failed to initialize file system entity watcher", null, e));
         _broadcastController.close();
         return;
       }

@@ -117,4 +117,3 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)
-
