@@ -338,6 +338,43 @@ MatchLocals(Map localValues) {
 }
 
 
+// Used to check if local variables are visible.
+class AssertLocalsNotVisibleMatcher extends Command {
+  List<String> locals;
+  int frame_index;
+
+  AssertLocalsNotVisibleMatcher(this.locals, this.frame_index) {
+    template = {"id": 0, "command": "getStackTrace", "params": {"isolateId": 0}};
+  }
+
+  void matchResponse(Debugger debugger) {
+    super.matchResponse(debugger);
+
+    List frames = getJsonValue(debugger.currentMessage, "result:callFrames");
+    assert(frames != null);
+
+    String functionName = frames[frame_index]['functionName'];
+    List localsList = frames[frame_index]['locals'];
+    Map reportedLocals = {};
+    localsList.forEach((local) => reportedLocals[local['name']] = local['value']);
+    for (String key in locals) {
+      if (reportedLocals[key] != null) {
+        debugger.error("Error in $functionName(): local variable $key not "
+                       "expected in scope (reported value "
+                       "${reportedLocals[key]['text']})");
+        return;
+      }
+    }
+    print("Matched locals $locals");
+  }
+}
+
+
+AssertLocalsNotVisible(List<String> locals, [int frame_index = 0]) {
+  return new AssertLocalsNotVisibleMatcher(locals, frame_index);
+}
+
+
 class EventMatcher {
   String eventName;
   Map params;

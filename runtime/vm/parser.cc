@@ -6677,16 +6677,18 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   ASSERT(IsIdentifier());
   const intptr_t ident_pos = TokenPos();
   const String& ident = *CurrentLiteral();
-  LocalVariable* variable = new(Z) LocalVariable(
-      ident_pos, ident, type);
   ConsumeToken();  // Variable identifier.
   AstNode* initialization = NULL;
+  LocalVariable* variable = NULL;
   if (CurrentToken() == Token::kASSIGN) {
     // Variable initialization.
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
     AstNode* expr = ParseAwaitableExpr(
         is_const, kConsumeCascades, await_preamble);
+    const intptr_t expr_end_pos = TokenPos();
+    variable = new(Z) LocalVariable(
+        expr_end_pos, ident, type);
     initialization = new(Z) StoreLocalNode(
         assign_pos, variable, expr);
     if (is_const) {
@@ -6698,6 +6700,8 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
                 "missing initialization of 'final' or 'const' variable");
   } else {
     // Initialize variable with null.
+    variable = new(Z) LocalVariable(
+        ident_pos, ident, type);
     AstNode* null_expr = new(Z) LiteralNode(ident_pos, Instance::ZoneHandle(Z));
     initialization = new(Z) StoreLocalNode(
         ident_pos, variable, null_expr);
@@ -6705,7 +6709,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
 
   ASSERT(current_block_ != NULL);
   const intptr_t previous_pos =
-  current_block_->scope->PreviousReferencePos(ident);
+      current_block_->scope->PreviousReferencePos(ident);
   if (previous_pos >= 0) {
     ASSERT(!script_.IsNull());
     if (previous_pos > ident_pos) {
