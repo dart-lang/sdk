@@ -112,11 +112,13 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   // We cannot create the backing map on creation since hashCode interceptors
   // have not been defined when constants are created.
   Map<K, V> _getMap() {
-    if (JS('bool', r'!this.$map')) {
-      Map backingMap = new LinkedHashMap<K, V>();
-      JS('', r'this.$map = #', fillLiteralMap(_jsData, backingMap));
+    LinkedHashMap<K, V> backingMap = JS('LinkedHashMap|Null', r'#.$map', this);
+    if (backingMap == null) {
+      backingMap = new LinkedHashMap<K, V>();
+      fillLiteralMap(_jsData, backingMap);
+      JS('', r'#.$map = #', this, backingMap);
     }
-    return JS('Map', r'this.$map');
+    return backingMap;
   }
 
   bool containsValue(V needle) {
