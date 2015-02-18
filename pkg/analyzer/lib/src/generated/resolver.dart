@@ -10085,7 +10085,7 @@ class ResolvableLibrary {
   /**
    * The artifitial hash code for this object.
    */
-  final int _hashCode = _NEXT_HASH_CODE++;
+  final int _hashCode = _nextHashCode();
 
   /**
    * The source specifying the defining compilation unit of this library.
@@ -10325,6 +10325,12 @@ class ResolvableLibrary {
 
   @override
   String toString() => librarySource.shortName;
+
+  static int _nextHashCode() {
+    int next = (_NEXT_HASH_CODE + 1) & 0xFFFFFF;
+    _NEXT_HASH_CODE = next;
+    return next;
+  }
 }
 
 /**
