@@ -59,6 +59,14 @@ class DartUnitOutlineComputer {
         }
         unitContents.add(_newClassOutline(classDeclaration, classContents));
       }
+      if (unitMember is EnumDeclaration) {
+        EnumDeclaration enumDeclaration = unitMember;
+        List<Outline> constantOutlines = <Outline>[];
+        for (EnumConstantDeclaration constant in enumDeclaration.constants) {
+          constantOutlines.add(_newEnumConstant(constant));
+        }
+        unitContents.add(_newEnumOutline(enumDeclaration, constantOutlines));
+      }
       if (unitMember is TopLevelVariableDeclaration) {
         TopLevelVariableDeclaration fieldDeclaration = unitMember;
         VariableDeclarationList fields = fieldDeclaration.variables;
@@ -225,6 +233,38 @@ class DartUnitOutlineComputer {
         sourceRegion.length,
         children: nullIfEmpty(contents));
     return outline;
+  }
+
+  Outline _newEnumConstant(EnumConstantDeclaration node) {
+    SimpleIdentifier nameNode = node.name;
+    String name = nameNode.name;
+    _SourceRegion sourceRegion = _getSourceRegion(node);
+    Element element = new Element(
+        ElementKind.ENUM_CONSTANT,
+        name,
+        Element.makeFlags(
+            isPrivate: Identifier.isPrivateName(name),
+            isDeprecated: _isDeprecated(node)),
+        location: _getLocationNode(nameNode));
+    return new Outline(element, sourceRegion.offset, sourceRegion.length);
+  }
+
+  Outline _newEnumOutline(EnumDeclaration node, List<Outline> children) {
+    SimpleIdentifier nameNode = node.name;
+    String name = nameNode.name;
+    _SourceRegion sourceRegion = _getSourceRegion(node);
+    Element element = new Element(
+        ElementKind.ENUM,
+        name,
+        Element.makeFlags(
+            isPrivate: Identifier.isPrivateName(name),
+            isDeprecated: _isDeprecated(node)),
+        location: _getLocationNode(nameNode));
+    return new Outline(
+        element,
+        sourceRegion.offset,
+        sourceRegion.length,
+        children: nullIfEmpty(children));
   }
 
   Outline _newFunctionOutline(FunctionDeclaration function, bool isStatic) {

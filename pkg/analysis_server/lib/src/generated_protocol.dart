@@ -6556,6 +6556,8 @@ class Element implements HasToJson {
  *   CLASS_TYPE_ALIAS
  *   COMPILATION_UNIT
  *   CONSTRUCTOR
+ *   ENUM
+ *   ENUM_CONSTANT
  *   FIELD
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
@@ -6582,6 +6584,10 @@ class ElementKind implements Enum {
   static const COMPILATION_UNIT = const ElementKind._("COMPILATION_UNIT");
 
   static const CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
+
+  static const ENUM = const ElementKind._("ENUM");
+
+  static const ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
 
   static const FIELD = const ElementKind._("FIELD");
 
@@ -6618,7 +6624,7 @@ class ElementKind implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, FIELD, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
+  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, ENUM, ENUM_CONSTANT, FIELD, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
 
   final String name;
 
@@ -6634,6 +6640,10 @@ class ElementKind implements Enum {
         return COMPILATION_UNIT;
       case "CONSTRUCTOR":
         return CONSTRUCTOR;
+      case "ENUM":
+        return ENUM;
+      case "ENUM_CONSTANT":
+        return ENUM_CONSTANT;
       case "FIELD":
         return FIELD;
       case "FUNCTION":
