@@ -186,7 +186,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   preamble_->Add(new (Z) StoreLocalNode(
       Scanner::kNoSourcePos,
       result_param,
-      new(Z) InstanceCallNode(Scanner::kNoSourcePos,
+      new(Z) InstanceCallNode(node->token_pos(),
                               load_result_param,
                               Symbols::FutureThen(),
                               args)));
