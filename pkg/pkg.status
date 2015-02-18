@@ -185,6 +185,17 @@ analyzer2dart/test/driver_test: StaticWarning # Issue 22418
 analyzer2dart/test/sexpr_test: StaticWarning # Issue 22418
 analyzer2dart/test/tree_shaker_test: StaticWarning # Issue 22418
 analyzer2dart/test/end2end_test: StaticWarning # Issue 22418
+docgen/test/multi_library_test: StaticWarning # Issue 22475
+docgen/test/method_param_test: StaticWarning # Issue 22475
+docgen/test/async_await_test: StaticWarning # Issue 22475
+docgen/test/typedef_test: StaticWarning # Issue 22475
+docgen/test/metadata_test: StaticWarning # Issue 22475
+docgen/test/native_extensions_test: StaticWarning # Issue 22475
+docgen/test/generate_json_test: StaticWarning # Issue 22475
+docgen/test/only_lib_content_in_pkg_test: StaticWarning # Issue 22475
+docgen/test/constant_argument_test: StaticWarning # Issue 22475
+docgen/test/inherited_comments_test: StaticWarning # Issue 22475
+docgen/test/single_library_test: StaticWarning # Issue 22475
 
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.

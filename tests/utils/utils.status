@@ -24,3 +24,6 @@ dummy_compiler_test: Slow, Pass
 dummy_compiler_test: Pass, RuntimeError # Issue 17662
 recursive_import_test: Pass, RuntimeError # Issue 17662
 source_mirrors_test: Pass, RuntimeError # Issue 17662
+
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+source_mirrors_test: StaticWarning # Issue 22475
