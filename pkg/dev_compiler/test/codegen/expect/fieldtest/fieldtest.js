@@ -1,20 +1,18 @@
 var fieldtest;
 (function (fieldtest) {
   'use strict';
-  class A {
-    constructor() {
+  class A extends dart.Object {
+    A() {
       this.x = 42;
-      super();
     }
   }
 
   let B$ = dart.generic(function(T) {
-    class B {
-      constructor() {
+    class B extends dart.Object {
+      B() {
         this.x = dart.as(null, core.int);
         this.y = null;
         this.z = dart.as(null, T);
-        super();
       }
     }
     return B;

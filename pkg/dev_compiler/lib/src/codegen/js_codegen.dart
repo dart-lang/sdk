@@ -240,22 +240,20 @@ var $_libraryName;
     currentClass = node;
 
     var name = node.name.name;
-
     _beginTypeParameters(node.typeParameters, name);
-    out.write('class $name');
+    out.write('class $name extends ');
 
     if (node.withClause != null) {
-      out.write(' extends dart.mixin(');
-      if (node.extendsClause != null) {
-        _visitNode(node.extendsClause.superclass);
-      } else {
-        out.write('Object');
-      }
+      out.write('dart.mixin(');
+    }
+    if (node.extendsClause != null) {
+      _visitNode(node.extendsClause.superclass);
+    } else {
+      out.write('dart.Object');
+    }
+    if (node.withClause != null) {
       _visitNodeList(node.withClause.mixinTypes, prefix: ', ', separator: ', ');
       out.write(')');
-    } else if (node.extendsClause != null) {
-      out.write(' extends ');
-      _visitNode(node.extendsClause.superclass);
     }
 
     out.write(' {\n', 2);
@@ -274,7 +272,7 @@ var $_libraryName;
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
     if (ctors.isEmpty && !node.element.type.isObject) {
-      _generateImplicitConstructor(node, fields);
+      _generateImplicitConstructor(node, name, fields);
     }
 
     for (var member in node.members) {
@@ -344,12 +342,13 @@ $name.prototype[Symbol.iterator] = function() {
   /// Generates the implicit default constructor for class C of the form
   /// `C() : super() {}`.
   void _generateImplicitConstructor(
-      ClassDeclaration node, List<FieldDeclaration> fields) {
-    // If we don't have a method body, use the implicit JS ctor.
+      ClassDeclaration node, String name, List<FieldDeclaration> fields) {
+    // If we don't have a method body, skip this.
     if (fields.isEmpty) return;
-    out.write('constructor() {\n', 2);
+
+    out.write('$name() {\n', 2);
     _initializeFields(fields);
-    out.write('super();\n');
+    _superConstructorCall(node);
     out.write('}\n', -2);
   }
 
@@ -360,13 +359,14 @@ $name.prototype[Symbol.iterator] = function() {
       return;
     }
 
+    // We generate constructors as initializer methods in the class;
+    // this allows use of `super` for instance methods/properties.
+    // It also avoids V8 restrictions on `super` in default constructors.
+    out.write(className);
     if (node.name != null) {
-      // We generate named constructors as initializer methods in the class;
-      // this allows use of `super` for instance methods/properties.
-      out.write('/*constructor*/ ${node.name.name}(');
-    } else {
-      out.write('constructor(');
+      out.write('\$${node.name.name}');
     }
+    out.write('(');
     _visitNode(node.parameters);
     out.write(') {\n', 2);
     _generateConstructorBody(node, fields);
@@ -414,14 +414,11 @@ $name.prototype[Symbol.iterator] = function() {
       // If no superinitializer is provided, an implicit superinitializer of the
       // form `super()` is added at the end of the initializer list, unless the
       // enclosing class is class Object.
-      ClassElement element = (node.parent as ClassDeclaration).element;
       if (superCall == null) {
-        if (!element.type.isObject && !element.supertype.isObject) {
-          _superConstructorCall(node);
-        }
+        _superConstructorCall(node.parent);
       } else {
-        _superConstructorCall(
-            node, superCall.constructorName, superCall.argumentList);
+        _superConstructorCall(node.parent, node.name, superCall.constructorName,
+            superCall.argumentList);
       }
     }
 
@@ -450,22 +447,19 @@ $name.prototype[Symbol.iterator] = function() {
     out.write(');\n');
   }
 
-  void _superConstructorCall(ConstructorDeclaration ctor,
-      [SimpleIdentifier superName, ArgumentList args]) {
-
-    // If we're calling default super from a named initializer method, we need
-    // to do ES5 style `TypeName.call(this, <args>)`, otherwise we use `super`.
-    if (ctor.name != null && superName == null) {
-      _writeTypeName((ctor.parent as ClassDeclaration).element.supertype);
-      out.write('.call(this');
-      if (args != null && args.arguments.isNotEmpty) out.write(', ');
-      _visitNode(args);
-    } else {
-      out.write('super');
-      if (superName != null) out.write('.${superName.name}');
-      out.write('(');
-      _visitNode(args);
+  void _superConstructorCall(ClassDeclaration clazz, [SimpleIdentifier ctorName,
+      SimpleIdentifier superCtorName, ArgumentList args]) {
+    var element = clazz.element;
+    if (superCtorName == null &&
+        (element.type.isObject || element.supertype.isObject)) {
+      return;
     }
+
+    var supertypeName = element.supertype.name;
+    out.write('super.$supertypeName');
+    if (superCtorName != null) out.write('\$${superCtorName.name}');
+    out.write('(');
+    _visitNode(args);
     out.write(');\n');
   }
 

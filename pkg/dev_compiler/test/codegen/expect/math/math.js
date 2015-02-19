@@ -57,7 +57,7 @@ var math;
   /* Unimplemented external double sqrt(num x) ; */
   /* Unimplemented external double exp(num x) ; */
   /* Unimplemented external double log(num x) ; */
-  class _JenkinsSmiHash {
+  class _JenkinsSmiHash extends dart.Object {
     static combine(hash, value) {
       hash = 536870911 & (hash + value);
       hash = 536870911 & (hash + ((524287 & hash) << 10));
@@ -73,8 +73,8 @@ var math;
   }
 
   let Point$ = dart.generic(function(T) {
-    class Point {
-      constructor(x, y) {
+    class Point extends dart.Object {
+      Point(x, y) {
         this.x = x;
         this.y = y;
       }
@@ -109,13 +109,13 @@ var math;
   });
   let Point = Point$(dynamic);
 
-  class Random {
+  class Random extends dart.Object {
     /* Unimplemented external factory Random([int seed]); */
   }
 
   let _RectangleBase$ = dart.generic(function(T) {
-    class _RectangleBase {
-      constructor() {
+    class _RectangleBase extends dart.Object {
+      _RectangleBase() {
       }
       get right() { return dart.as(this.left['+'](this.width), T); }
       get bottom() { return dart.as(this.top['+'](this.height), T); }
@@ -166,14 +166,14 @@ var math;
 
   let Rectangle$ = dart.generic(function(T) {
     class Rectangle extends _RectangleBase$(T) {
-      constructor(left, top, width, height) {
+      Rectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
         this.width = (width['<'](0)) ? dart.notNull(/* Unimplemented postfix operator: -width */) * 0 : width;
         this.height = (height['<'](0)) ? dart.notNull(/* Unimplemented postfix operator: -height */) * 0 : height;
-        super();
+        super._RectangleBase();
       }
-      /*constructor*/ fromPoints(a, b) {
+      Rectangle$fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
         let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
         let top = dart.as(min(a.y, b.y), T);
@@ -188,14 +188,14 @@ var math;
 
   let MutableRectangle$ = dart.generic(function(T) {
     class MutableRectangle extends _RectangleBase$(T) {
-      constructor(left, top, width, height) {
+      MutableRectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
         this._width = (width['<'](0)) ? _clampToZero(width) : width;
         this._height = (height['<'](0)) ? _clampToZero(height) : height;
-        super();
+        super._RectangleBase();
       }
-      /*constructor*/ fromPoints(a, b) {
+      MutableRectangle$fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
         let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
         let top = dart.as(min(a.y, b.y), T);

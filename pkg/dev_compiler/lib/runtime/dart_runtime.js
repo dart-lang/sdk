@@ -191,21 +191,33 @@ var dart;
    * superclass (prototype).
    */
   function mixin(base/*, ...mixins*/) {
-    // Build the mixin constructor. This runs the superclass as well as each
-    // of the mixins' constructors.
-    var mixins = Array.prototype.slice.call(arguments, 1);
-    function Mixin() {
-      base.apply(this, arguments);
-      // Run mixin constructors. They cannot have arguments.
-      for (var i = 0; i< mixins.length; i++) mixins[i].call(this);
-    }
     // Inherit statics from Base to simulate ES6 class inheritance
     // Conceptually this is: `class Mixin extends base {}`
+    function Mixin() {
+      // TODO(jmesserly): since we're using initializers and not constructors,
+      // we can just skip directly to DartObject.
+      DartObject.apply(this, arguments);
+    }
     Mixin.__proto__ = base;
     Mixin.prototype = Object.create(base.prototype);
+    Mixin.prototype.constructor = Mixin;
     // Copy each mixin, with later ones overwriting earlier entries.
-    for (var i = 0; i< mixins.length; i++) {
+    var mixins = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0; i < mixins.length; i++) {
       copyProperties(Mixin.prototype, mixins[i].prototype);
+    }
+    // Create an initializer for the mixin, so when derived constructor calls
+    // super, we can correctly initialize base and mixins.
+    var baseCtor = base.prototype[base.name];
+    Mixin.prototype[base.name] = function() {
+      // Run mixin initializers. They cannot have arguments.
+      // Run them backwards so most-derived mixin is initialized first.
+      for (var i = mixins.length - 1; i >= 0; i--) {
+        var mixin = mixins[i];
+        mixin.prototype[mixin.name].call(this);
+      }
+      // Run base initializer.
+      baseCtor.apply(this, arguments);
     }
     return Mixin;
   }
@@ -256,7 +268,7 @@ var dart;
    */
   function defineNamedConstructor(clazz, name) {
     var proto = clazz.prototype;
-    var initMethod = proto[name];
+    var initMethod = proto[clazz.name + '$' + name];
     var ctor = function() { return initMethod.apply(this, arguments); }
     ctor.prototype = proto;
     clazz[name] = ctor;
@@ -309,5 +321,27 @@ var dart;
     return makeGenericType;
   }
   dart.generic = generic;
+
+
+  /**
+   * Implements Dart constructor behavior. Because of V8 `super` [constructor
+   * restrictions](https://code.google.com/p/v8/issues/detail?id=3330#c65) we
+   * cannot currently emit actual ES6 constructors with super calls. Instead
+   * we use the same trick as named constructors, and do them as instance
+   * methods that perform initialization.
+   */
+  // TODO(jmesserly): we'll need to rethink this once the ES6 spec and V8
+  // settles. See <https://github.com/dart-lang/dart-dev-compiler/issues/51>.
+  // Performance of this pattern is likely to be bad.
+  dart.Object = function Object() {
+    // Get the class name for this instance.
+    var name = this.constructor.name;
+    // Call the default constructor.
+    var result = this[name].apply(this, arguments);
+    return result === void 0 ? this : result;
+  };
+  // The initializer for dart.Object
+  dart.Object.prototype.Object = function() {};
+  dart.Object.prototype.constructor = dart.Object;
 
 })(dart || (dart = {}));

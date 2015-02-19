@@ -1,109 +1,109 @@
 var constructors;
 (function (constructors) {
   'use strict';
-  class A {
+  class A extends dart.Object {
   }
 
-  class B {
-    constructor() {
+  class B extends dart.Object {
+    B() {
     }
   }
 
-  class C {
-    /*constructor*/ named() {
+  class C extends dart.Object {
+    C$named() {
     }
   }
   dart.defineNamedConstructor(C, "named");
 
   class C2 extends C {
-    /*constructor*/ named() {
-      super.named();
+    C2$named() {
+      super.C$named();
     }
   }
   dart.defineNamedConstructor(C2, "named");
 
-  class D {
-    constructor() {
+  class D extends dart.Object {
+    D() {
     }
-    /*constructor*/ named() {
+    D$named() {
     }
   }
   dart.defineNamedConstructor(D, "named");
 
-  class E {
-    constructor(name) {
+  class E extends dart.Object {
+    E(name) {
       this.name = name;
     }
   }
 
   class F extends E {
-    constructor(name) {
-      super(name);
+    F(name) {
+      super.E(name);
     }
   }
 
-  class G {
-    constructor(p1) {
+  class G extends dart.Object {
+    G(p1) {
       if (p1 === undefined) p1 = null;
     }
   }
 
-  class H {
-    constructor(opt$) {
+  class H extends dart.Object {
+    H(opt$) {
       let p1 = opt$.p1 === undefined ? null : opt$.p1;
     }
   }
 
-  class I {
-    constructor() {
+  class I extends dart.Object {
+    I() {
       this.name = 'default';
     }
-    /*constructor*/ named(name) {
+    I$named(name) {
       this.name = name;
     }
   }
   dart.defineNamedConstructor(I, "named");
 
-  class J {
-    constructor() {
+  class J extends dart.Object {
+    J() {
       this.initialized = true;
       this.nonInitialized = null;
     }
   }
 
-  class K {
-    constructor() {
+  class K extends dart.Object {
+    K() {
       this.s = 'a';
     }
-    /*constructor*/ withS(s) {
+    K$withS(s) {
       this.s = s;
     }
   }
   dart.defineNamedConstructor(K, "withS");
 
-  class L {
-    constructor(foo) {
+  class L extends dart.Object {
+    L(foo) {
       this.foo = foo;
     }
   }
 
   class M extends L {
-    /*constructor*/ named(x) {
-      L.call(this, x + 42);
+    M$named(x) {
+      super.L(x + 42);
     }
   }
   dart.defineNamedConstructor(M, "named");
 
   class N extends M {
-    /*constructor*/ named(y) {
-      super.named(y + 100);
+    N$named(y) {
+      super.M$named(y + 100);
     }
   }
   dart.defineNamedConstructor(N, "named");
 
   class P extends N {
-    constructor(z) {
-      super.named(z + 9000);
+    P(z) {
+      super.N$named(z + 9000);
     }
   }
 

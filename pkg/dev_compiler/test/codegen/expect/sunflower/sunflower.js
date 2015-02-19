@@ -19,18 +19,17 @@ var sunflower;
     get context() { return dart.as((dart.as(querySelector("#canvas"), dom.CanvasElement)).getContext('2d'), dom.CanvasRenderingContext2D) },
   });
 
-  class Circle {
-    constructor(x, y, radius) {
+  class Circle extends dart.Object {
+    Circle(x, y, radius) {
       this.x = x;
       this.y = y;
       this.radius = radius;
     }
   }
 
-  class CirclePainter {
-    constructor() {
+  class CirclePainter extends dart.Object {
+    CirclePainter() {
       this.color = ORANGE;
-      super();
     }
     draw() {
       sunflower.context.beginPath();
@@ -45,9 +44,9 @@ var sunflower;
   }
 
   class SunflowerSeed extends dart.mixin(Circle, CirclePainter) {
-    constructor(x, y, radius, color) {
+    SunflowerSeed(x, y, radius, color) {
       if (color === undefined) color = null;
-      super(x, y, radius);
+      super.Circle(x, y, radius);
       if (color !== null) this.color = color;
     }
   }

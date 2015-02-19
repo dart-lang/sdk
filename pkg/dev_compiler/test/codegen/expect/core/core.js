@@ -1,27 +1,27 @@
 var core;
 (function (core) {
   'use strict';
-  class Deprecated {
-    constructor(expires) {
+  class Deprecated extends dart.Object {
+    Deprecated(expires) {
       this.expires = expires;
     }
     toString() { return `Deprecated feature. Will be removed ${this.expires}`; }
   }
 
-  class _Override {
-    constructor() {
+  class _Override extends dart.Object {
+    _Override() {
     }
   }
 
   let deprecated = new Deprecated("next release");
   let override = new _Override();
-  class _Proxy {
-    constructor() {
+  class _Proxy extends dart.Object {
+    _Proxy() {
     }
   }
 
   let proxy = new _Proxy();
-  class bool {
+  class bool extends dart.Object {
     /* Unimplemented external const factory bool.fromEnvironment(String name, {bool defaultValue : false}); */
     toString() {
       return this ? "true" : "false";
@@ -30,15 +30,15 @@ var core;
   dart.defineNamedConstructor(bool, "fromEnvironment");
 
   let Comparable$ = dart.generic(function(T) {
-    class Comparable {
+    class Comparable extends dart.Object {
       static compare(a, b) { return a.compareTo(b); }
     }
     return Comparable;
   });
   let Comparable = Comparable$(dynamic);
 
-  class DateTime {
-    constructor(year, month, day, hour, minute, second, millisecond) {
+  class DateTime extends dart.Object {
+    DateTime(year, month, day, hour, minute, second, millisecond) {
       if (month === undefined) month = 1;
       if (day === undefined) day = 1;
       if (hour === undefined) hour = 0;
@@ -47,7 +47,7 @@ var core;
       if (millisecond === undefined) millisecond = 0;
       DateTime.call(this, year, month, day, hour, minute, second, millisecond, false);
     }
-    /*constructor*/ utc(year, month, day, hour, minute, second, millisecond) {
+    DateTime$utc(year, month, day, hour, minute, second, millisecond) {
       if (month === undefined) month = 1;
       if (day === undefined) day = 1;
       if (hour === undefined) hour = 0;
@@ -56,7 +56,7 @@ var core;
       if (millisecond === undefined) millisecond = 0;
       utc.call(this, year, month, day, hour, minute, second, millisecond, true);
     }
-    /*constructor*/ now() {
+    DateTime$now() {
       now.call(this);
     }
     static parse(formattedString) {
@@ -108,7 +108,7 @@ var core;
         throw new FormatException("Invalid date format", formattedString);
       }
     }
-    /*constructor*/ fromMillisecondsSinceEpoch(millisecondsSinceEpoch, opt$) {
+    DateTime$fromMillisecondsSinceEpoch(millisecondsSinceEpoch, opt$) {
       let isUtc = opt$.isUtc === undefined ? false : opt$.isUtc;
       this.millisecondsSinceEpoch = millisecondsSinceEpoch;
       this.isUtc = isUtc;
@@ -258,8 +258,8 @@ var core;
   double.MIN_POSITIVE = 5e-324;
   double.MAX_FINITE = 1.7976931348623157e+308;
 
-  class Duration {
-    constructor(opt$) {
+  class Duration extends dart.Object {
+    Duration(opt$) {
       let days = opt$.days === undefined ? 0 : opt$.days;
       let hours = opt$.hours === undefined ? 0 : opt$.hours;
       let minutes = opt$.minutes === undefined ? 0 : opt$.minutes;
@@ -268,7 +268,7 @@ var core;
       let microseconds = opt$.microseconds === undefined ? 0 : opt$.microseconds;
       Duration.call(this, days * MICROSECONDS_PER_DAY + hours * MICROSECONDS_PER_HOUR + minutes * MICROSECONDS_PER_MINUTE + seconds * MICROSECONDS_PER_SECOND + milliseconds * MICROSECONDS_PER_MILLISECOND + microseconds);
     }
-    /*constructor*/ _microseconds(_duration) {
+    Duration$_microseconds(_duration) {
       this._duration = _duration;
     }
     ['+'](other) {
@@ -345,8 +345,8 @@ var core;
   Duration.MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
   Duration.ZERO = new Duration({seconds: 0});
 
-  class Error {
-    constructor() {
+  class Error extends dart.Object {
+    Error() {
     }
     static safeToString(object) {
       if (dart.notNull(dart.notNull(dart.is(object, num)) || dart.notNull(typeof object == "boolean")) || dart.notNull(null === object)) {
@@ -376,24 +376,24 @@ var core;
   }
 
   class ArgumentError extends Error {
-    constructor(message) {
+    ArgumentError(message) {
       if (message === undefined) message = null;
       this.message = message;
       this.invalidValue = null;
       this._hasValue = false;
       this.name = null;
-      super();
+      super.Error();
     }
-    /*constructor*/ value(value, name, message) {
+    ArgumentError$value(value, name, message) {
       if (name === undefined) name = null;
       if (message === undefined) message = "Invalid argument";
       this.name = name;
       this.message = message;
       this.invalidValue = value;
       this._hasValue = true;
-      Error.call(this);
+      super.Error();
     }
-    /*constructor*/ notNull(name) {
+    ArgumentError$notNull(name) {
       if (name === undefined) name = null;
       notNull.call(this, null, name, "Must not be null");
     }
@@ -416,26 +416,26 @@ var core;
   dart.defineNamedConstructor(ArgumentError, "notNull");
 
   class RangeError extends ArgumentError {
-    constructor(message) {
+    RangeError(message) {
       this.start = null;
       this.end = null;
-      super(message);
+      super.ArgumentError(message);
     }
-    /*constructor*/ value(value, name, message) {
+    RangeError$value(value, name, message) {
       if (name === undefined) name = null;
       if (message === undefined) message = null;
       this.start = null;
       this.end = null;
-      super.value(value, name, (message !== null) ? message : "Value not in range");
+      super.ArgumentError$value(value, name, (message !== null) ? message : "Value not in range");
     }
-    /*constructor*/ range(invalidValue, minValue, maxValue, name, message) {
+    RangeError$range(invalidValue, minValue, maxValue, name, message) {
       if (name === undefined) name = null;
       if (message === undefined) message = null;
       this.start = minValue;
       this.end = maxValue;
-      super.value(invalidValue, name, (message !== null) ? message : "Invalid value");
+      super.ArgumentError$value(invalidValue, name, (message !== null) ? message : "Invalid value");
     }
-    /*constructor*/ index(index, indexable, name, message, length) {
+    RangeError$index(index, indexable, name, message, length) {
       return new IndexError(index, indexable, name, message, length);
     }
     static checkValueInInterval(value, minValue, maxValue, name, message) {
@@ -498,13 +498,13 @@ var core;
   dart.defineNamedConstructor(RangeError, "index");
 
   class IndexError extends ArgumentError {
-    constructor(invalidValue, indexable, name, message, length) {
+    IndexError(invalidValue, indexable, name, message, length) {
       if (name === undefined) name = null;
       if (message === undefined) message = null;
       if (length === undefined) length = null;
       this.indexable = indexable;
       this.length = (length !== null) ? length : dart.dload(indexable, "length");
-      super.value(invalidValue, name, (message !== null) ? message : "Index out of range");
+      super.ArgumentError$value(invalidValue, name, (message !== null) ? message : "Index out of range");
     }
     get start() { return 0; }
     get end() { return this.length - 1; }
@@ -520,62 +520,62 @@ var core;
   }
 
   class FallThroughError extends Error {
-    constructor() {
-      super();
+    FallThroughError() {
+      super.Error();
     }
   }
 
   class AbstractClassInstantiationError extends Error {
-    constructor(_className) {
+    AbstractClassInstantiationError(_className) {
       this._className = _className;
-      super();
+      super.Error();
     }
     toString() { return `Cannot instantiate abstract class: '${this._className}'`; }
   }
 
   class NoSuchMethodError extends Error {
-    constructor(receiver, memberName, positionalArguments, namedArguments, existingArgumentNames) {
+    NoSuchMethodError(receiver, memberName, positionalArguments, namedArguments, existingArgumentNames) {
       if (existingArgumentNames === undefined) existingArgumentNames = null;
       this._receiver = receiver;
       this._memberName = memberName;
       this._arguments = positionalArguments;
       this._namedArguments = namedArguments;
       this._existingArgumentNames = existingArgumentNames;
-      super();
+      super.Error();
     }
     /* Unimplemented external String toString(); */
   }
 
   class UnsupportedError extends Error {
-    constructor(message) {
+    UnsupportedError(message) {
       this.message = message;
-      super();
+      super.Error();
     }
     toString() { return `Unsupported operation: ${this.message}`; }
   }
 
   class UnimplementedError extends Error {
-    constructor(message) {
+    UnimplementedError(message) {
       if (message === undefined) message = null;
       this.message = message;
-      super();
+      super.Error();
     }
     toString() { return (this.message !== null ? `UnimplementedError: ${this.message}` : "UnimplementedError"); }
   }
 
   class StateError extends Error {
-    constructor(message) {
+    StateError(message) {
       this.message = message;
-      super();
+      super.Error();
     }
     toString() { return `Bad state: ${this.message}`; }
   }
 
   class ConcurrentModificationError extends Error {
-    constructor(modifiedObject) {
+    ConcurrentModificationError(modifiedObject) {
       if (modifiedObject === undefined) modifiedObject = null;
       this.modifiedObject = modifiedObject;
-      super();
+      super.Error();
     }
     toString() {
       if (this.modifiedObject === null) {
@@ -586,38 +586,38 @@ var core;
     }
   }
 
-  class OutOfMemoryError {
-    constructor() {
+  class OutOfMemoryError extends dart.Object {
+    OutOfMemoryError() {
     }
     toString() { return "Out of Memory"; }
     get stackTrace() { return null; }
   }
 
-  class StackOverflowError {
-    constructor() {
+  class StackOverflowError extends dart.Object {
+    StackOverflowError() {
     }
     toString() { return "Stack Overflow"; }
     get stackTrace() { return null; }
   }
 
   class CyclicInitializationError extends Error {
-    constructor(variableName) {
+    CyclicInitializationError(variableName) {
       if (variableName === undefined) variableName = null;
       this.variableName = variableName;
-      super();
+      super.Error();
     }
     toString() { return this.variableName === null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`; }
   }
 
-  class Exception {
-    constructor(message) {
+  class Exception extends dart.Object {
+    Exception(message) {
       if (message === undefined) message = null;
       return new _ExceptionImplementation(message);
     }
   }
 
-  class _ExceptionImplementation {
-    constructor(message) {
+  class _ExceptionImplementation extends dart.Object {
+    _ExceptionImplementation(message) {
       if (message === undefined) message = null;
       this.message = message;
     }
@@ -627,8 +627,8 @@ var core;
     }
   }
 
-  class FormatException {
-    constructor(message, source, offset) {
+  class FormatException extends dart.Object {
+    FormatException(message, source, offset) {
       if (message === undefined) message = "";
       if (source === undefined) source = null;
       if (offset === undefined) offset = -1;
@@ -713,14 +713,14 @@ var core;
     }
   }
 
-  class IntegerDivisionByZeroException {
-    constructor() {
+  class IntegerDivisionByZeroException extends dart.Object {
+    IntegerDivisionByZeroException() {
     }
     toString() { return "IntegerDivisionByZeroException"; }
   }
 
   let Expando$ = dart.generic(function(T) {
-    class Expando {
+    class Expando extends dart.Object {
       /* Unimplemented external Expando([String name]); */
       toString() { return `Expando:${this.name}`; }
       /* Unimplemented external T operator [](Object object); */
@@ -730,7 +730,7 @@ var core;
   });
   let Expando = Expando$(dynamic);
 
-  class Function {
+  class Function extends dart.Object {
     /* Unimplemented external static apply(Function function, List positionalArguments, [Map<Symbol, dynamic> namedArguments]); */
   }
 
@@ -742,15 +742,15 @@ var core;
   }
   dart.defineNamedConstructor(int, "fromEnvironment");
 
-  class Invocation {
+  class Invocation extends dart.Object {
     get isAccessor() { return dart.notNull(this.isGetter) || dart.notNull(this.isSetter); }
   }
 
   let Iterable$ = dart.generic(function(E) {
-    class Iterable {
-      constructor() {
+    class Iterable extends dart.Object {
+      Iterable() {
       }
-      /*constructor*/ generate(count, generator) {
+      Iterable$generate(count, generator) {
         if (generator === undefined) generator = null;
         if (count <= 0) return new _internal.EmptyIterable();
         return new _GeneratorIterable(count, generator);
@@ -778,17 +778,17 @@ var core;
 
   let _GeneratorIterable$ = dart.generic(function(E) {
     class _GeneratorIterable extends collection.IterableBase$(E) {
-      constructor(_end, generator) {
+      _GeneratorIterable(_end, generator) {
         this._end = _end;
         this._start = 0;
         this._generator = (generator !== null) ? generator : _id;
-        super();
+        super.IterableBase();
       }
-      /*constructor*/ slice(_start, _end, _generator) {
+      _GeneratorIterable$slice(_start, _end, _generator) {
         this._start = _start;
         this._end = _end;
         this._generator = _generator;
-        collection.IterableBase$(E).call(this);
+        super.IterableBase();
       }
       get iterator() { return new _GeneratorIterator(this._start, this._end, this._generator); }
       get length() { return this._end - this._start; }
@@ -814,8 +814,8 @@ var core;
   let _GeneratorIterable = _GeneratorIterable$(dynamic);
 
   let _GeneratorIterator$ = dart.generic(function(E) {
-    class _GeneratorIterator {
-      constructor(_index, _end, _generator) {
+    class _GeneratorIterator extends dart.Object {
+      _GeneratorIterator(_index, _end, _generator) {
         this._index = _index;
         this._end = _end;
         this._generator = _generator;
@@ -838,25 +838,25 @@ var core;
   let _GeneratorIterator = _GeneratorIterator$(dynamic);
 
   let BidirectionalIterator$ = dart.generic(function(E) {
-    class BidirectionalIterator {
+    class BidirectionalIterator extends dart.Object {
     }
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$(dynamic);
 
   let Iterator$ = dart.generic(function(E) {
-    class Iterator {
+    class Iterator extends dart.Object {
     }
     return Iterator;
   });
   let Iterator = Iterator$(dynamic);
 
   let List$ = dart.generic(function(E) {
-    class List {
+    class List extends dart.Object {
       /* Unimplemented external factory List([int length]); */
       /* Unimplemented external factory List.filled(int length, E fill); */
       /* Unimplemented external factory List.from(Iterable elements, {bool growable : true}); */
-      /*constructor*/ generate(length, generator, opt$) {
+      List$generate(length, generator, opt$) {
         let growable = opt$.growable === undefined ? true : opt$.growable;
         let result = null;
         if (growable) {
@@ -881,20 +881,20 @@ var core;
   let List = List$(dynamic);
 
   let Map$ = dart.generic(function(K, V) {
-    class Map {
-      constructor() {
+    class Map extends dart.Object {
+      Map() {
         return new collection.LinkedHashMap();
       }
-      /*constructor*/ from(other) {
+      Map$from(other) {
         return new collection.LinkedHashMap.from(other);
       }
-      /*constructor*/ identity() {
+      Map$identity() {
         return new collection.LinkedHashMap.identity();
       }
-      /*constructor*/ fromIterable(iterable, opt$) {
+      Map$fromIterable(iterable, opt$) {
         return new collection.LinkedHashMap.fromIterable(iterable, opt$);
       }
-      /*constructor*/ fromIterables(keys, values) {
+      Map$fromIterables(keys, values) {
         return new collection.LinkedHashMap.fromIterables(keys, values);
       }
     }
@@ -906,15 +906,15 @@ var core;
   });
   let Map = Map$(dynamic, dynamic);
 
-  class Null {
-    /*constructor*/ _uninstantiable() {
+  class Null extends dart.Object {
+    Null$_uninstantiable() {
       throw new UnsupportedError('class Null cannot be instantiated');
     }
     toString() { return "null"; }
   }
   dart.defineNamedConstructor(Null, "_uninstantiable");
 
-  class num {
+  class num extends dart.Object {
     static parse(input, onError) {
       if (onError === undefined) onError = null;
       let source = input.trim();
@@ -938,8 +938,8 @@ var core;
   }
   num._parseError = false;
 
-  class Object {
-    constructor() {
+  class Object extends dart.Object {
+    Object() {
     }
     ['=='](other) { return identical(this, other); }
     /* Unimplemented external int get hashCode; */
@@ -948,7 +948,7 @@ var core;
     /* Unimplemented external Type get runtimeType; */
   }
 
-  class Pattern {
+  class Pattern extends dart.Object {
   }
 
   // Function print: (Object) → void
@@ -961,22 +961,22 @@ var core;
     }
   }
 
-  class Match {
+  class Match extends dart.Object {
   }
 
-  class RegExp {
+  class RegExp extends dart.Object {
     /* Unimplemented external factory RegExp(String source, {bool multiLine : false, bool caseSensitive : true}); */
   }
 
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
-      constructor() {
+      Set() {
         return new collection.LinkedHashSet();
       }
-      /*constructor*/ identity() {
+      Set$identity() {
         return new collection.LinkedHashSet.identity();
       }
-      /*constructor*/ from(elements) {
+      Set$from(elements) {
         return new collection.LinkedHashSet.from(elements);
       }
     }
@@ -987,18 +987,18 @@ var core;
   let Set = Set$(dynamic);
 
   let Sink$ = dart.generic(function(T) {
-    class Sink {
+    class Sink extends dart.Object {
     }
     return Sink;
   });
   let Sink = Sink$(dynamic);
 
-  class StackTrace {
+  class StackTrace extends dart.Object {
   }
 
-  class Stopwatch {
+  class Stopwatch extends dart.Object {
     get frequency() { return _frequency; }
-    constructor() {
+    Stopwatch() {
       this._start = null;
       this._stop = null;
       _initTicker();
@@ -1044,7 +1044,7 @@ var core;
   }
   Stopwatch._frequency = null;
 
-  class String {
+  class String extends dart.Object {
     /* Unimplemented external factory String.fromCharCodes(Iterable<int> charCodes, [int start = 0, int end]); */
     /* Unimplemented external factory String.fromCharCode(int charCode); */
     /* Unimplemented external const factory String.fromEnvironment(String name, {String defaultValue}); */
@@ -1054,9 +1054,9 @@ var core;
   dart.defineNamedConstructor(String, "fromEnvironment");
 
   class Runes extends collection.IterableBase$(int) {
-    constructor(string) {
+    Runes(string) {
       this.string = string;
-      super();
+      super.IterableBase();
     }
     get iterator() { return new RuneIterator(this.string); }
     get last() {
@@ -1086,14 +1086,14 @@ var core;
     return 65536 + ((start & 1023) << 10) + (end & 1023);
   }
 
-  class RuneIterator {
-    constructor(string) {
+  class RuneIterator extends dart.Object {
+    RuneIterator(string) {
       this.string = string;
       this._position = 0;
       this._nextPosition = 0;
       this._currentCodePoint = null;
     }
-    /*constructor*/ at(string, index) {
+    RuneIterator$at(string, index) {
       this.string = string;
       this._position = index;
       this._nextPosition = index;
@@ -1169,7 +1169,7 @@ var core;
   }
   dart.defineNamedConstructor(RuneIterator, "at");
 
-  class StringBuffer {
+  class StringBuffer extends dart.Object {
     /* Unimplemented external StringBuffer([Object content = ""]); */
     /* Unimplemented external int get length; */
     get isEmpty() { return this.length === 0; }
@@ -1202,19 +1202,19 @@ var core;
     /* Unimplemented external String toString(); */
   }
 
-  class StringSink {
+  class StringSink extends dart.Object {
   }
 
-  class Symbol {
-    constructor(name) {
+  class Symbol extends dart.Object {
+    Symbol(name) {
       return new _internal.Symbol(name);
     }
   }
 
-  class Type {
+  class Type extends dart.Object {
   }
 
-  class Uri {
+  class Uri extends dart.Object {
     get authority() {
       if (!dart.notNull(this.hasAuthority)) return "";
       let sb = new StringBuffer();
@@ -1407,7 +1407,7 @@ var core;
     static _fail(uri, index, message) {
       throw new FormatException(message, uri, index);
     }
-    /*constructor*/ _internal(scheme, _userInfo, _host, _port, _path, _query, _fragment) {
+    Uri$_internal(scheme, _userInfo, _host, _port, _path, _query, _fragment) {
       this.scheme = scheme;
       this._userInfo = _userInfo;
       this._host = _host;
@@ -1418,7 +1418,7 @@ var core;
       this._pathSegments = null;
       this._queryParameters = null;
     }
-    constructor(opt$) {
+    Uri(opt$) {
       let scheme = opt$.scheme === undefined ? "" : opt$.scheme;
       let userInfo = opt$.userInfo === undefined ? "" : opt$.userInfo;
       let host = opt$.host === undefined ? null : opt$.host;
@@ -1443,11 +1443,11 @@ var core;
       path = _makePath(path, 0, _stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
       return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
     }
-    /*constructor*/ http(authority, unencodedPath, queryParameters) {
+    Uri$http(authority, unencodedPath, queryParameters) {
       if (queryParameters === undefined) queryParameters = null;
       return _makeHttpUri("http", authority, unencodedPath, queryParameters);
     }
-    /*constructor*/ https(authority, unencodedPath, queryParameters) {
+    Uri$https(authority, unencodedPath, queryParameters) {
       if (queryParameters === undefined) queryParameters = null;
       return _makeHttpUri("https", authority, unencodedPath, queryParameters);
     }
@@ -1492,7 +1492,7 @@ var core;
       }
       return new Uri({scheme: scheme, userInfo: userInfo, host: host, port: port, pathSegments: unencodedPath.split("/"), queryParameters: queryParameters});
     }
-    /*constructor*/ file(path, opt$) {
+    Uri$file(path, opt$) {
       let windows = opt$.windows === undefined ? null : opt$.windows;
       windows = windows === null ? Uri._isWindows : windows;
       return dart.as(windows ? _makeWindowsFileUrl(path) : _makeFileUri(path), Uri);

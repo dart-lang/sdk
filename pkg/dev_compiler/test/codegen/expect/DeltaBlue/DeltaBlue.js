@@ -7,8 +7,8 @@ var DeltaBlue;
   }
 
   class DeltaBlue extends BenchmarkBase.BenchmarkBase {
-    constructor() {
-      super("DeltaBlue");
+    DeltaBlue() {
+      super.BenchmarkBase("DeltaBlue");
     }
     run() {
       chainTest(100);
@@ -16,8 +16,8 @@ var DeltaBlue;
     }
   }
 
-  class Strength {
-    constructor(value, name) {
+  class Strength extends dart.Object {
+    Strength(value, name) {
       this.value = value;
       this.name = name;
     }
@@ -43,8 +43,8 @@ var DeltaBlue;
   let NORMAL = new Strength(4, "normal");
   let WEAK_DEFAULT = new Strength(5, "weakDefault");
   let WEAKEST = new Strength(6, "weakest");
-  class Constraint {
-    constructor(strength) {
+  class Constraint extends dart.Object {
+    Constraint(strength) {
       this.strength = strength;
     }
     addConstraint() {
@@ -76,10 +76,10 @@ var DeltaBlue;
   }
 
   class UnaryConstraint extends Constraint {
-    constructor(myOutput, strength) {
+    UnaryConstraint(myOutput, strength) {
       this.myOutput = myOutput;
       this.satisfied = false;
-      super(strength);
+      super.Constraint(strength);
       this.addConstraint();
     }
     addToGraph() {
@@ -109,16 +109,16 @@ var DeltaBlue;
   }
 
   class StayConstraint extends UnaryConstraint {
-    constructor(v, str) {
-      super(v, str);
+    StayConstraint(v, str) {
+      super.UnaryConstraint(v, str);
     }
     execute() {
     }
   }
 
   class EditConstraint extends UnaryConstraint {
-    constructor(v, str) {
-      super(v, str);
+    EditConstraint(v, str) {
+      super.UnaryConstraint(v, str);
     }
     isInput() { return true; }
     execute() {
@@ -129,11 +129,11 @@ var DeltaBlue;
   let FORWARD = 2;
   let BACKWARD = 0;
   class BinaryConstraint extends Constraint {
-    constructor(v1, v2, strength) {
+    BinaryConstraint(v1, v2, strength) {
       this.v1 = v1;
       this.v2 = v2;
       this.direction = NONE;
-      super(strength);
+      super.Constraint(strength);
       this.addConstraint();
     }
     chooseMethod(mark) {
@@ -181,10 +181,10 @@ var DeltaBlue;
   }
 
   class ScaleConstraint extends BinaryConstraint {
-    constructor(src, scale, offset, dest, strength) {
+    ScaleConstraint(src, scale, offset, dest, strength) {
       this.scale = scale;
       this.offset = offset;
-      super(src, dest, strength);
+      super.BinaryConstraint(src, dest, strength);
     }
     addToGraph() {
       super.addToGraph();
@@ -216,16 +216,16 @@ var DeltaBlue;
   }
 
   class EqualityConstraint extends BinaryConstraint {
-    constructor(v1, v2, strength) {
-      super(v1, v2, strength);
+    EqualityConstraint(v1, v2, strength) {
+      super.BinaryConstraint(v1, v2, strength);
     }
     execute() {
       this.output().value = this.input().value;
     }
   }
 
-  class Variable {
-    constructor(name, value) {
+  class Variable extends dart.Object {
+    Variable(name, value) {
       this.constraints = new List.from([]);
       this.name = name;
       this.value = value;
@@ -243,10 +243,9 @@ var DeltaBlue;
     }
   }
 
-  class Planner {
-    constructor() {
+  class Planner extends dart.Object {
+    Planner() {
       this.currentMark = 0;
-      super();
     }
     incrementalAdd(c) {
       let mark = this.newMark();
@@ -335,10 +334,9 @@ var DeltaBlue;
     }
   }
 
-  class Plan {
-    constructor() {
+  class Plan extends dart.Object {
+    Plan() {
       this.list = new List.from([]);
-      super();
     }
     addConstraint(c) {
       this.list.add(c);

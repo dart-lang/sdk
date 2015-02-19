@@ -2,13 +2,13 @@ var _internal;
 (function (_internal) {
   'use strict';
   let POWERS_OF_TEN = /* Unimplemented const */new List.from([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
-  class EfficientLength {
+  class EfficientLength extends dart.Object {
   }
 
   let ListIterable$ = dart.generic(function(E) {
     class ListIterable extends collection.IterableBase$(E) {
-      constructor() {
-        super();
+      ListIterable() {
+        super.IterableBase();
       }
       get iterator() { return new ListIterator(this); }
       forEach(action) {
@@ -198,11 +198,11 @@ var _internal;
 
   let SubListIterable$ = dart.generic(function(E) {
     class SubListIterable extends ListIterable$(E) {
-      constructor(_iterable, _start, _endOrLength) {
+      SubListIterable(_iterable, _start, _endOrLength) {
         this._iterable = _iterable;
         this._start = _start;
         this._endOrLength = _endOrLength;
-        super();
+        super.ListIterable();
         core.RangeError.checkNotNegative(this._start, "start");
         if (this._endOrLength !== null) {
           core.RangeError.checkNotNegative(this._endOrLength, "end");
@@ -277,8 +277,8 @@ var _internal;
   let SubListIterable = SubListIterable$(dynamic);
 
   let ListIterator$ = dart.generic(function(E) {
-    class ListIterator {
-      constructor(iterable) {
+    class ListIterator extends dart.Object {
+      ListIterator(iterable) {
         this._iterable = iterable;
         this._length = iterable.length;
         this._index = 0;
@@ -305,16 +305,16 @@ var _internal;
 
   let MappedIterable$ = dart.generic(function(S, T) {
     class MappedIterable extends collection.IterableBase$(T) {
-      constructor(iterable, function) {
+      MappedIterable(iterable, function) {
         if (dart.is(iterable, EfficientLength)) {
           return new EfficientLengthMappedIterable(iterable, function);
         }
         return new MappedIterable._(iterable, function);
       }
-      /*constructor*/ _(_iterable, _f) {
+      MappedIterable$_(_iterable, _f) {
         this._iterable = _iterable;
         this._f = _f;
-        collection.IterableBase$(T).call(this);
+        super.IterableBase();
       }
       get iterator() { return new MappedIterator(this._iterable.iterator, this._f); }
       get length() { return this._iterable.length; }
@@ -331,8 +331,8 @@ var _internal;
 
   let EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
     class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
-      constructor(iterable, function) {
-        super._(dart.as(iterable, core.Iterable$(S)), function);
+      EfficientLengthMappedIterable(iterable, function) {
+        super.MappedIterable$_(dart.as(iterable, core.Iterable$(S)), function);
       }
     }
     return EfficientLengthMappedIterable;
@@ -341,11 +341,11 @@ var _internal;
 
   let MappedIterator$ = dart.generic(function(S, T) {
     class MappedIterator extends core.Iterator$(T) {
-      constructor(_iterator, _f) {
+      MappedIterator(_iterator, _f) {
         this._iterator = _iterator;
         this._f = _f;
         this._current = dart.as(null, T);
-        super();
+        super.Iterator();
       }
       moveNext() {
         if (this._iterator.moveNext()) {
@@ -363,10 +363,10 @@ var _internal;
 
   let MappedListIterable$ = dart.generic(function(S, T) {
     class MappedListIterable extends ListIterable$(T) {
-      constructor(_source, _f) {
+      MappedListIterable(_source, _f) {
         this._source = _source;
         this._f = _f;
-        super();
+        super.ListIterable();
       }
       get length() { return this._source.length; }
       elementAt(index) { return this._f(this._source.elementAt(index)); }
@@ -377,10 +377,10 @@ var _internal;
 
   let WhereIterable$ = dart.generic(function(E) {
     class WhereIterable extends collection.IterableBase$(E) {
-      constructor(_iterable, _f) {
+      WhereIterable(_iterable, _f) {
         this._iterable = _iterable;
         this._f = _f;
-        super();
+        super.IterableBase();
       }
       get iterator() { return new WhereIterator(this._iterable.iterator, this._f); }
     }
@@ -390,10 +390,10 @@ var _internal;
 
   let WhereIterator$ = dart.generic(function(E) {
     class WhereIterator extends core.Iterator$(E) {
-      constructor(_iterator, _f) {
+      WhereIterator(_iterator, _f) {
         this._iterator = _iterator;
         this._f = _f;
-        super();
+        super.Iterator();
       }
       moveNext() {
         while (this._iterator.moveNext()) {
@@ -411,10 +411,10 @@ var _internal;
 
   let ExpandIterable$ = dart.generic(function(S, T) {
     class ExpandIterable extends collection.IterableBase$(T) {
-      constructor(_iterable, _f) {
+      ExpandIterable(_iterable, _f) {
         this._iterable = _iterable;
         this._f = _f;
-        super();
+        super.IterableBase();
       }
       get iterator() { return new ExpandIterator(this._iterable.iterator, this._f); }
     }
@@ -423,8 +423,8 @@ var _internal;
   let ExpandIterable = ExpandIterable$(dynamic, dynamic);
 
   let ExpandIterator$ = dart.generic(function(S, T) {
-    class ExpandIterator {
-      constructor(_iterator, _f) {
+    class ExpandIterator extends dart.Object {
+      ExpandIterator(_iterator, _f) {
         this._iterator = _iterator;
         this._f = _f;
         this._currentExpansion = dart.as(new EmptyIterator(), core.Iterator$(T));
@@ -454,7 +454,7 @@ var _internal;
 
   let TakeIterable$ = dart.generic(function(E) {
     class TakeIterable extends collection.IterableBase$(E) {
-      constructor(iterable, takeCount) {
+      TakeIterable(iterable, takeCount) {
         if (dart.notNull(!(typeof takeCount == "number")) || dart.notNull(takeCount < 0)) {
           throw new core.ArgumentError(takeCount);
         }
@@ -463,10 +463,10 @@ var _internal;
         }
         return new TakeIterable._(iterable, takeCount);
       }
-      /*constructor*/ _(_iterable, _takeCount) {
+      TakeIterable$_(_iterable, _takeCount) {
         this._iterable = _iterable;
         this._takeCount = _takeCount;
-        collection.IterableBase$(E).call(this);
+        super.IterableBase();
       }
       get iterator() {
         return new TakeIterator(this._iterable.iterator, this._takeCount);
@@ -479,8 +479,8 @@ var _internal;
 
   let EfficientLengthTakeIterable$ = dart.generic(function(E) {
     class EfficientLengthTakeIterable extends TakeIterable$(E) {
-      constructor(iterable, takeCount) {
-        super._(iterable, takeCount);
+      EfficientLengthTakeIterable(iterable, takeCount) {
+        super.TakeIterable$_(iterable, takeCount);
       }
       get length() {
         let iterableLength = this._iterable.length;
@@ -494,10 +494,10 @@ var _internal;
 
   let TakeIterator$ = dart.generic(function(E) {
     class TakeIterator extends core.Iterator$(E) {
-      constructor(_iterator, _remaining) {
+      TakeIterator(_iterator, _remaining) {
         this._iterator = _iterator;
         this._remaining = _remaining;
-        super();
+        super.Iterator();
         dart.assert(dart.notNull(typeof this._remaining == "number") && dart.notNull(this._remaining >= 0));
       }
       moveNext() {
@@ -519,10 +519,10 @@ var _internal;
 
   let TakeWhileIterable$ = dart.generic(function(E) {
     class TakeWhileIterable extends collection.IterableBase$(E) {
-      constructor(_iterable, _f) {
+      TakeWhileIterable(_iterable, _f) {
         this._iterable = _iterable;
         this._f = _f;
-        super();
+        super.IterableBase();
       }
       get iterator() {
         return new TakeWhileIterator(this._iterable.iterator, this._f);
@@ -534,11 +534,11 @@ var _internal;
 
   let TakeWhileIterator$ = dart.generic(function(E) {
     class TakeWhileIterator extends core.Iterator$(E) {
-      constructor(_iterator, _f) {
+      TakeWhileIterator(_iterator, _f) {
         this._iterator = _iterator;
         this._f = _f;
         this._isFinished = false;
-        super();
+        super.Iterator();
       }
       moveNext() {
         if (this._isFinished) return false;
@@ -559,16 +559,16 @@ var _internal;
 
   let SkipIterable$ = dart.generic(function(E) {
     class SkipIterable extends collection.IterableBase$(E) {
-      constructor(iterable, count) {
+      SkipIterable(iterable, count) {
         if (dart.is(iterable, EfficientLength)) {
           return new EfficientLengthSkipIterable(iterable, count);
         }
         return new SkipIterable._(iterable, count);
       }
-      /*constructor*/ _(_iterable, _skipCount) {
+      SkipIterable$_(_iterable, _skipCount) {
         this._iterable = _iterable;
         this._skipCount = _skipCount;
-        collection.IterableBase$(E).call(this);
+        super.IterableBase();
         if (!(typeof this._skipCount == "number")) {
           throw new core.ArgumentError.value(this._skipCount, "count is not an integer");
         }
@@ -592,8 +592,8 @@ var _internal;
 
   let EfficientLengthSkipIterable$ = dart.generic(function(E) {
     class EfficientLengthSkipIterable extends SkipIterable$(E) {
-      constructor(iterable, skipCount) {
-        super._(iterable, skipCount);
+      EfficientLengthSkipIterable(iterable, skipCount) {
+        super.SkipIterable$_(iterable, skipCount);
       }
       get length() {
         let length = this._iterable.length - this._skipCount;
@@ -607,10 +607,10 @@ var _internal;
 
   let SkipIterator$ = dart.generic(function(E) {
     class SkipIterator extends core.Iterator$(E) {
-      constructor(_iterator, _skipCount) {
+      SkipIterator(_iterator, _skipCount) {
         this._iterator = _iterator;
         this._skipCount = _skipCount;
-        super();
+        super.Iterator();
         dart.assert(dart.notNull(typeof this._skipCount == "number") && dart.notNull(this._skipCount >= 0));
       }
       moveNext() {
@@ -626,10 +626,10 @@ var _internal;
 
   let SkipWhileIterable$ = dart.generic(function(E) {
     class SkipWhileIterable extends collection.IterableBase$(E) {
-      constructor(_iterable, _f) {
+      SkipWhileIterable(_iterable, _f) {
         this._iterable = _iterable;
         this._f = _f;
-        super();
+        super.IterableBase();
       }
       get iterator() {
         return new SkipWhileIterator(this._iterable.iterator, this._f);
@@ -641,11 +641,11 @@ var _internal;
 
   let SkipWhileIterator$ = dart.generic(function(E) {
     class SkipWhileIterator extends core.Iterator$(E) {
-      constructor(_iterator, _f) {
+      SkipWhileIterator(_iterator, _f) {
         this._iterator = _iterator;
         this._f = _f;
         this._hasSkipped = false;
-        super();
+        super.Iterator();
       }
       moveNext() {
         if (!dart.notNull(this._hasSkipped)) {
@@ -664,8 +664,8 @@ var _internal;
 
   let EmptyIterable$ = dart.generic(function(E) {
     class EmptyIterable extends collection.IterableBase$(E) {
-      constructor() {
-        super();
+      EmptyIterable() {
+        super.IterableBase();
       }
       get iterator() { return dart.as(new EmptyIterator(), core.Iterator$(E)); }
       forEach(action) {
@@ -735,8 +735,8 @@ var _internal;
   let EmptyIterable = EmptyIterable$(dynamic);
 
   let EmptyIterator$ = dart.generic(function(E) {
-    class EmptyIterator {
-      constructor() {
+    class EmptyIterator extends dart.Object {
+      EmptyIterator() {
       }
       moveNext() { return false; }
       get current() { return dart.as(null, E); }
@@ -746,14 +746,14 @@ var _internal;
   let EmptyIterator = EmptyIterator$(dynamic);
 
   let BidirectionalIterator$ = dart.generic(function(T) {
-    class BidirectionalIterator {
+    class BidirectionalIterator extends dart.Object {
     }
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$(dynamic);
 
   let IterableMixinWorkaround$ = dart.generic(function(T) {
-    class IterableMixinWorkaround {
+    class IterableMixinWorkaround extends dart.Object {
       static contains(iterable, element) {
         for (let e of iterable) {
           if (dart.equals(e, element)) return true;
@@ -1084,14 +1084,14 @@ var _internal;
   });
   let IterableMixinWorkaround = IterableMixinWorkaround$(dynamic);
 
-  class IterableElementError {
+  class IterableElementError extends dart.Object {
     static noElement() { return new core.StateError("No element"); }
     static tooMany() { return new core.StateError("Too many elements"); }
     static tooFew() { return new core.StateError("Too few elements"); }
   }
 
   let FixedLengthListMixin$ = dart.generic(function(E) {
-    class FixedLengthListMixin {
+    class FixedLengthListMixin extends dart.Object {
       set length(newLength) {
         throw new core.UnsupportedError("Cannot change the length of a fixed-length list");
       }
@@ -1137,7 +1137,7 @@ var _internal;
   let FixedLengthListMixin = FixedLengthListMixin$(dynamic);
 
   let UnmodifiableListMixin$ = dart.generic(function(E) {
-    class UnmodifiableListMixin {
+    class UnmodifiableListMixin extends dart.Object {
       set(index, value) {
         throw new core.UnsupportedError("Cannot modify an unmodifiable list");
       }
@@ -1217,9 +1217,9 @@ var _internal;
   });
   let UnmodifiableListBase = UnmodifiableListBase$(dynamic);
   class _ListIndicesIterable extends ListIterable$(core.int) {
-    constructor(_backedList) {
+    _ListIndicesIterable(_backedList) {
       this._backedList = _backedList;
-      super();
+      super.ListIterable();
     }
     get length() { return this._backedList.length; }
     elementAt(index) {
@@ -1229,8 +1229,8 @@ var _internal;
   }
 
   let ListMapView$ = dart.generic(function(E) {
-    class ListMapView {
-      constructor(_values) {
+    class ListMapView extends dart.Object {
+      ListMapView(_values) {
         this._values = _values;
       }
       get(key) { return dart.as(this.containsKey(key) ? this._values.get(key) : null, E); }
@@ -1273,9 +1273,9 @@ var _internal;
 
   let ReversedListIterable$ = dart.generic(function(E) {
     class ReversedListIterable extends ListIterable$(E) {
-      constructor(_source) {
+      ReversedListIterable(_source) {
         this._source = _source;
-        super();
+        super.ListIterable();
       }
       get length() { return this._source.length; }
       elementAt(index) { return this._source.elementAt(this._source.length - 1 - index); }
@@ -1284,21 +1284,21 @@ var _internal;
   });
   let ReversedListIterable = ReversedListIterable$(dynamic);
 
-  class UnmodifiableListError {
+  class UnmodifiableListError extends dart.Object {
     static add() { return new core.UnsupportedError("Cannot add to unmodifiable List"); }
     static change() { return new core.UnsupportedError("Cannot change the content of an unmodifiable List"); }
     static length() { return new core.UnsupportedError("Cannot change length of unmodifiable List"); }
     static remove() { return new core.UnsupportedError("Cannot remove from unmodifiable List"); }
   }
 
-  class NonGrowableListError {
+  class NonGrowableListError extends dart.Object {
     static add() { return new core.UnsupportedError("Cannot add to non-growable List"); }
     static length() { return new core.UnsupportedError("Cannot change length of non-growable List"); }
     static remove() { return new core.UnsupportedError("Cannot remove from non-growable List"); }
   }
 
   /* Unimplemented external List makeListFixedLength(List growableList) ; */
-  class Lists {
+  class Lists extends dart.Object {
     static copy(src, srcStart, dst, dstStart, count) {
       if (srcStart < dstStart) {
         for (let i = srcStart + count - 1, j = dstStart + count - 1; i >= srcStart; i--, j--) {
@@ -1363,7 +1363,7 @@ var _internal;
 
   _internal.printToZone = null;
   /* Unimplemented external void printToConsole(String line) ; */
-  class Sort {
+  class Sort extends dart.Object {
     static sort(a, compare) {
       _doSort(a, 0, a.length - 1, compare);
     }
@@ -1584,12 +1584,12 @@ var _internal;
   }
   Sort._INSERTION_SORT_THRESHOLD = 32;
 
-  class Symbol {
+  class Symbol extends dart.Object {
     /* Unimplemented external const Symbol(String name); */
-    /*constructor*/ unvalidated(_name) {
+    Symbol$unvalidated(_name) {
       this._name = _name;
     }
-    /*constructor*/ validated(name) {
+    Symbol$validated(name) {
       this._name = validatePublicSymbol(name);
     }
     ['=='](other) { return dart.notNull(dart.is(other, Symbol)) && dart.notNull(dart.equals(this._name, dart.dload(other, "_name"))); }

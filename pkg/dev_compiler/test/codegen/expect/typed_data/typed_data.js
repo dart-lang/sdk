@@ -1,14 +1,14 @@
 var typed_data;
 (function (typed_data) {
   'use strict';
-  class ByteBuffer {
+  class ByteBuffer extends dart.Object {
   }
 
-  class TypedData {
+  class TypedData extends dart.Object {
   }
 
-  class Endianness {
-    /*constructor*/ _(_littleEndian) {
+  class Endianness extends dart.Object {
+    Endianness$_(_littleEndian) {
       this._littleEndian = _littleEndian;
     }
   }
@@ -19,9 +19,9 @@ var typed_data;
     get HOST_ENDIAN() { return (new ByteData.view(new Uint16List.fromList(new List.from([1])).buffer)).getInt8(0) === 1 ? LITTLE_ENDIAN : BIG_ENDIAN },
   });
 
-  class ByteData {
+  class ByteData extends dart.Object {
     /* Unimplemented external factory ByteData(int length); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    ByteData$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asByteData(offsetInBytes, length);
@@ -29,10 +29,10 @@ var typed_data;
   }
   dart.defineNamedConstructor(ByteData, "view");
 
-  class Int8List {
+  class Int8List extends dart.Object {
     /* Unimplemented external factory Int8List(int length); */
     /* Unimplemented external factory Int8List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Int8List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt8List(offsetInBytes, length);
@@ -42,10 +42,10 @@ var typed_data;
   dart.defineNamedConstructor(Int8List, "view");
   Int8List.BYTES_PER_ELEMENT = 1;
 
-  class Uint8List {
+  class Uint8List extends dart.Object {
     /* Unimplemented external factory Uint8List(int length); */
     /* Unimplemented external factory Uint8List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Uint8List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint8List(offsetInBytes, length);
@@ -55,10 +55,10 @@ var typed_data;
   dart.defineNamedConstructor(Uint8List, "view");
   Uint8List.BYTES_PER_ELEMENT = 1;
 
-  class Uint8ClampedList {
+  class Uint8ClampedList extends dart.Object {
     /* Unimplemented external factory Uint8ClampedList(int length); */
     /* Unimplemented external factory Uint8ClampedList.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Uint8ClampedList$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint8ClampedList(offsetInBytes, length);
@@ -68,10 +68,10 @@ var typed_data;
   dart.defineNamedConstructor(Uint8ClampedList, "view");
   Uint8ClampedList.BYTES_PER_ELEMENT = 1;
 
-  class Int16List {
+  class Int16List extends dart.Object {
     /* Unimplemented external factory Int16List(int length); */
     /* Unimplemented external factory Int16List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Int16List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt16List(offsetInBytes, length);
@@ -81,10 +81,10 @@ var typed_data;
   dart.defineNamedConstructor(Int16List, "view");
   Int16List.BYTES_PER_ELEMENT = 2;
 
-  class Uint16List {
+  class Uint16List extends dart.Object {
     /* Unimplemented external factory Uint16List(int length); */
     /* Unimplemented external factory Uint16List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Uint16List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint16List(offsetInBytes, length);
@@ -94,10 +94,10 @@ var typed_data;
   dart.defineNamedConstructor(Uint16List, "view");
   Uint16List.BYTES_PER_ELEMENT = 2;
 
-  class Int32List {
+  class Int32List extends dart.Object {
     /* Unimplemented external factory Int32List(int length); */
     /* Unimplemented external factory Int32List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Int32List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt32List(offsetInBytes, length);
@@ -107,10 +107,10 @@ var typed_data;
   dart.defineNamedConstructor(Int32List, "view");
   Int32List.BYTES_PER_ELEMENT = 4;
 
-  class Uint32List {
+  class Uint32List extends dart.Object {
     /* Unimplemented external factory Uint32List(int length); */
     /* Unimplemented external factory Uint32List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Uint32List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint32List(offsetInBytes, length);
@@ -120,10 +120,10 @@ var typed_data;
   dart.defineNamedConstructor(Uint32List, "view");
   Uint32List.BYTES_PER_ELEMENT = 4;
 
-  class Int64List {
+  class Int64List extends dart.Object {
     /* Unimplemented external factory Int64List(int length); */
     /* Unimplemented external factory Int64List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Int64List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt64List(offsetInBytes, length);
@@ -133,10 +133,10 @@ var typed_data;
   dart.defineNamedConstructor(Int64List, "view");
   Int64List.BYTES_PER_ELEMENT = 8;
 
-  class Uint64List {
+  class Uint64List extends dart.Object {
     /* Unimplemented external factory Uint64List(int length); */
     /* Unimplemented external factory Uint64List.fromList(List<int> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Uint64List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asUint64List(offsetInBytes, length);
@@ -146,10 +146,10 @@ var typed_data;
   dart.defineNamedConstructor(Uint64List, "view");
   Uint64List.BYTES_PER_ELEMENT = 8;
 
-  class Float32List {
+  class Float32List extends dart.Object {
     /* Unimplemented external factory Float32List(int length); */
     /* Unimplemented external factory Float32List.fromList(List<double> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Float32List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat32List(offsetInBytes, length);
@@ -159,10 +159,10 @@ var typed_data;
   dart.defineNamedConstructor(Float32List, "view");
   Float32List.BYTES_PER_ELEMENT = 4;
 
-  class Float64List {
+  class Float64List extends dart.Object {
     /* Unimplemented external factory Float64List(int length); */
     /* Unimplemented external factory Float64List.fromList(List<double> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Float64List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat64List(offsetInBytes, length);
@@ -172,10 +172,10 @@ var typed_data;
   dart.defineNamedConstructor(Float64List, "view");
   Float64List.BYTES_PER_ELEMENT = 8;
 
-  class Float32x4List {
+  class Float32x4List extends dart.Object {
     /* Unimplemented external factory Float32x4List(int length); */
     /* Unimplemented external factory Float32x4List.fromList(List<Float32x4> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Float32x4List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat32x4List(offsetInBytes, length);
@@ -185,10 +185,10 @@ var typed_data;
   dart.defineNamedConstructor(Float32x4List, "view");
   Float32x4List.BYTES_PER_ELEMENT = 16;
 
-  class Int32x4List {
+  class Int32x4List extends dart.Object {
     /* Unimplemented external factory Int32x4List(int length); */
     /* Unimplemented external factory Int32x4List.fromList(List<Int32x4> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Int32x4List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asInt32x4List(offsetInBytes, length);
@@ -198,10 +198,10 @@ var typed_data;
   dart.defineNamedConstructor(Int32x4List, "view");
   Int32x4List.BYTES_PER_ELEMENT = 16;
 
-  class Float64x2List {
+  class Float64x2List extends dart.Object {
     /* Unimplemented external factory Float64x2List(int length); */
     /* Unimplemented external factory Float64x2List.fromList(List<Float64x2> elements); */
-    /*constructor*/ view(buffer, offsetInBytes, length) {
+    Float64x2List$view(buffer, offsetInBytes, length) {
       if (offsetInBytes === undefined) offsetInBytes = 0;
       if (length === undefined) length = null;
       return buffer.asFloat64x2List(offsetInBytes, length);
@@ -211,7 +211,7 @@ var typed_data;
   dart.defineNamedConstructor(Float64x2List, "view");
   Float64x2List.BYTES_PER_ELEMENT = 16;
 
-  class Float32x4 {
+  class Float32x4 extends dart.Object {
     /* Unimplemented external factory Float32x4(double x, double y, double z, double w); */
     /* Unimplemented external factory Float32x4.splat(double v); */
     /* Unimplemented external factory Float32x4.zero(); */
@@ -479,7 +479,7 @@ var typed_data;
   Float32x4.WWWZ = 191;
   Float32x4.WWWW = 255;
 
-  class Int32x4 {
+  class Int32x4 extends dart.Object {
     /* Unimplemented external factory Int32x4(int x, int y, int z, int w); */
     /* Unimplemented external factory Int32x4.bool(bool x, bool y, bool z, bool w); */
     /* Unimplemented external factory Int32x4.fromFloat32x4Bits(Float32x4 x); */
@@ -743,7 +743,7 @@ var typed_data;
   Int32x4.WWWZ = 191;
   Int32x4.WWWW = 255;
 
-  class Float64x2 {
+  class Float64x2 extends dart.Object {
     /* Unimplemented external factory Float64x2(double x, double y); */
     /* Unimplemented external factory Float64x2.splat(double v); */
     /* Unimplemented external factory Float64x2.zero(); */

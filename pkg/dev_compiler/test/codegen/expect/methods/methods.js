@@ -1,10 +1,9 @@
 var methods;
 (function (methods) {
   'use strict';
-  class A {
-    constructor() {
+  class A extends dart.Object {
+    A() {
       this._c = 3;
-      super();
     }
     x() { return 42; }
     y(a) {
@@ -35,14 +34,13 @@ var methods;
     }
   }
 
-  class Bar {
+  class Bar extends dart.Object {
     call(x) { return core.print(`hello from ${x}`); }
   }
 
-  class Foo {
-    constructor() {
+  class Foo extends dart.Object {
+    Foo() {
       this.bar = new Bar();
-      super();
     }
   }
 

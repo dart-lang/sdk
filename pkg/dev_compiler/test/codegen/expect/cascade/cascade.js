@@ -1,10 +1,9 @@
 var cascade;
 (function (cascade) {
   'use strict';
-  class A {
-    constructor() {
+  class A extends dart.Object {
+    A() {
       this.x = null;
-      super();
     }
   }
 

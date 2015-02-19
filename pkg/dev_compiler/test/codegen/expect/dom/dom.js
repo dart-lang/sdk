@@ -1,53 +1,52 @@
 var dom;
 (function (dom) {
   'use strict';
-  class JsType {
-    constructor(opt$) {
+  class JsType extends dart.Object {
+    JsType(opt$) {
       let name = opt$.name === undefined ? null : opt$.name;
       this.name = name;
     }
   }
 
-  class JsGlobal {
-    constructor() {
+  class JsGlobal extends dart.Object {
+    JsGlobal() {
     }
   }
 
-  class Overload {
-    constructor() {
+  class Overload extends dart.Object {
+    Overload() {
     }
   }
 
   let overload = new Overload();
   dom.document = null;
-  class Document {
+  class Document extends dart.Object {
   }
 
-  class Element {
-    constructor() {
+  class Element extends dart.Object {
+    Element() {
       this.textContent = null;
-      super();
     }
   }
 
-  class Event {
+  class Event extends dart.Object {
   }
 
   class InputElement extends Element {
-    constructor() {
+    InputElement() {
       this.value = null;
-      super();
+      super.Element();
     }
   }
 
   class CanvasElement extends Element {
   }
 
-  class RenderingContext {
+  class RenderingContext extends dart.Object {
   }
 
-  class CanvasRenderingContext2D {
-    constructor() {
+  class CanvasRenderingContext2D extends dart.Object {
+    CanvasRenderingContext2D() {
       this.globalAlpha = null;
       this.globalCompositeOperation = null;
       this.strokeStyle = null;
@@ -56,12 +55,11 @@ var dom;
       this.shadowOffsetY = null;
       this.shadowBlur = null;
       this.shadowColor = null;
-      super();
     }
   }
 
-  class CanvasDrawingStyles {
-    constructor() {
+  class CanvasDrawingStyles extends dart.Object {
+    CanvasDrawingStyles() {
       this.lineWidth = null;
       this.lineCap = null;
       this.lineJoin = null;
@@ -70,23 +68,22 @@ var dom;
       this.font = null;
       this.textAlign = null;
       this.textBaseline = null;
-      super();
     }
   }
 
-  class CanvasPathMethods {
+  class CanvasPathMethods extends dart.Object {
   }
 
-  class CanvasGradient {
+  class CanvasGradient extends dart.Object {
   }
 
-  class CanvasPattern {
+  class CanvasPattern extends dart.Object {
   }
 
-  class TextMetrics {
+  class TextMetrics extends dart.Object {
   }
 
-  class ImageData {
+  class ImageData extends dart.Object {
   }
 
   // Exports:

@@ -3,9 +3,9 @@ var collection;
   'use strict';
   let UnmodifiableListView$ = dart.generic(function(E) {
     class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {
-      constructor(source) {
+      UnmodifiableListView(source) {
         this._source = source;
-        super();
+        super.UnmodifiableListBase();
       }
       get length() { return this._source.length; }
       get(index) { return this._source.elementAt(index); }
@@ -21,24 +21,24 @@ var collection;
   function _defaultHashCode(a) { return dart.as(dart.dload(a, "hashCode"), core.int); }
 
   let HashMap$ = dart.generic(function(K, V) {
-    class HashMap {
+    class HashMap extends dart.Object {
       /* Unimplemented external factory HashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
       /* Unimplemented external factory HashMap.identity(); */
-      /*constructor*/ from(other) {
+      HashMap$from(other) {
         let result = new HashMap();
         other.forEach((k, v) => {
           result.set(k, dart.as(v, V));
         });
         return result;
       }
-      /*constructor*/ fromIterable(iterable, opt$) {
+      HashMap$fromIterable(iterable, opt$) {
         let key = opt$.key === undefined ? null : opt$.key;
         let value = opt$.value === undefined ? null : opt$.value;
         let map = new HashMap();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      /*constructor*/ fromIterables(keys, values) {
+      HashMap$fromIterables(keys, values) {
         let map = new HashMap();
         Maps._fillMapWithIterables(map, keys, values);
         return map;
@@ -78,10 +78,10 @@ var collection;
   let _HashSetBase = _HashSetBase$(dynamic);
 
   let HashSet$ = dart.generic(function(E) {
-    class HashSet {
+    class HashSet extends dart.Object {
       /* Unimplemented external factory HashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
       /* Unimplemented external factory HashSet.identity(); */
-      /*constructor*/ from(elements) {
+      HashSet$from(elements) {
         let result = new HashSet();
         for (let e of elements) result.add(e);
         return result;
@@ -94,7 +94,7 @@ var collection;
   let HashSet = HashSet$(dynamic);
 
   let IterableMixin$ = dart.generic(function(E) {
-    class IterableMixin {
+    class IterableMixin extends dart.Object {
       map(f) { return new _internal.MappedIterable(this, f); }
       where(f) { return new _internal.WhereIterable(this, f); }
       expand(f) { return new _internal.ExpandIterable(this, f); }
@@ -262,8 +262,8 @@ var collection;
   let IterableMixin = IterableMixin$(dynamic);
 
   let IterableBase$ = dart.generic(function(E) {
-    class IterableBase {
-      constructor() {
+    class IterableBase extends dart.Object {
+      IterableBase() {
       }
       map(f) { return new _internal.MappedIterable(this, f); }
       where(f) { return new _internal.WhereIterable(this, f); }
@@ -559,8 +559,8 @@ var collection;
   let IterableBase = IterableBase$(dynamic);
 
   let HasNextIterator$ = dart.generic(function(E) {
-    class HasNextIterator {
-      constructor(_iterator) {
+    class HasNextIterator extends dart.Object {
+      HasNextIterator(_iterator) {
         this._iterator = _iterator;
         this._state = _NOT_MOVED_YET;
       }
@@ -591,24 +591,24 @@ var collection;
   let HasNextIterator = HasNextIterator$(dynamic);
 
   let LinkedHashMap$ = dart.generic(function(K, V) {
-    class LinkedHashMap {
+    class LinkedHashMap extends dart.Object {
       /* Unimplemented external factory LinkedHashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
       /* Unimplemented external factory LinkedHashMap.identity(); */
-      /*constructor*/ from(other) {
+      LinkedHashMap$from(other) {
         let result = new LinkedHashMap();
         other.forEach((k, v) => {
           result.set(k, dart.as(v, V));
         });
         return result;
       }
-      /*constructor*/ fromIterable(iterable, opt$) {
+      LinkedHashMap$fromIterable(iterable, opt$) {
         let key = opt$.key === undefined ? null : opt$.key;
         let value = opt$.value === undefined ? null : opt$.value;
         let map = new LinkedHashMap();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      /*constructor*/ fromIterables(keys, values) {
+      LinkedHashMap$fromIterables(keys, values) {
         let map = new LinkedHashMap();
         Maps._fillMapWithIterables(map, keys, values);
         return map;
@@ -623,10 +623,10 @@ var collection;
   let LinkedHashMap = LinkedHashMap$(dynamic, dynamic);
 
   let LinkedHashSet$ = dart.generic(function(E) {
-    class LinkedHashSet {
+    class LinkedHashSet extends dart.Object {
       /* Unimplemented external factory LinkedHashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
       /* Unimplemented external factory LinkedHashSet.identity(); */
-      /*constructor*/ from(elements) {
+      LinkedHashSet$from(elements) {
         let result = new LinkedHashSet();
         for (let element of elements) {
           result.add(element);
@@ -642,12 +642,12 @@ var collection;
 
   let LinkedList$ = dart.generic(function(E) {
     class LinkedList extends IterableBase$(E) {
-      constructor() {
+      LinkedList() {
         this._modificationCount = 0;
         this._length = 0;
         this._next = null;
         this._previous = null;
-        super();
+        super.IterableBase();
         this._next = this._previous = this;
       }
       addFirst(entry) {
@@ -737,8 +737,8 @@ var collection;
   let LinkedList = LinkedList$(dynamic);
 
   let _LinkedListIterator$ = dart.generic(function(E) {
-    class _LinkedListIterator {
-      constructor(list) {
+    class _LinkedListIterator extends dart.Object {
+      _LinkedListIterator(list) {
         this._list = list;
         this._modificationCount = list._modificationCount;
         this._next = list._next;
@@ -762,21 +762,19 @@ var collection;
   });
   let _LinkedListIterator = _LinkedListIterator$(dynamic);
 
-  class _LinkedListLink {
-    constructor() {
+  class _LinkedListLink extends dart.Object {
+    _LinkedListLink() {
       this._next = null;
       this._previous = null;
-      super();
     }
   }
 
   let LinkedListEntry$ = dart.generic(function(E) {
-    class LinkedListEntry {
-      constructor() {
+    class LinkedListEntry extends dart.Object {
+      LinkedListEntry() {
         this._list = null;
         this._next = null;
         this._previous = null;
-        super();
       }
       get list() { return this._list; }
       unlink() {
@@ -811,7 +809,7 @@ var collection;
   let ListBase = ListBase$(dynamic);
 
   let ListMixin$ = dart.generic(function(E) {
-    class ListMixin {
+    class ListMixin extends dart.Object {
       get iterator() { return new _internal.ListIterator(this); }
       elementAt(index) { return this.get(index); }
       forEach(action) {
@@ -1220,7 +1218,7 @@ var collection;
   });
   let MapBase = MapBase$(dynamic, dynamic);
   let MapMixin$ = dart.generic(function(K, V) {
-    class MapMixin {
+    class MapMixin extends dart.Object {
       forEach(action) {
         for (let key of this.keys) {
           action(key, this.get(key));
@@ -1262,9 +1260,9 @@ var collection;
   let UnmodifiableMapBase = UnmodifiableMapBase$(dynamic, dynamic);
   let _MapBaseValueIterable$ = dart.generic(function(V) {
     class _MapBaseValueIterable extends IterableBase$(V) {
-      constructor(_map) {
+      _MapBaseValueIterable(_map) {
         this._map = _map;
-        super();
+        super.IterableBase();
       }
       get length() { return this._map.length; }
       get isEmpty() { return this._map.isEmpty; }
@@ -1279,8 +1277,8 @@ var collection;
   let _MapBaseValueIterable = _MapBaseValueIterable$(dynamic);
 
   let _MapBaseValueIterator$ = dart.generic(function(V) {
-    class _MapBaseValueIterator {
-      constructor(map) {
+    class _MapBaseValueIterator extends dart.Object {
+      _MapBaseValueIterator(map) {
         this._map = map;
         this._keys = map.keys.iterator;
         this._current = dart.as(null, V);
@@ -1300,7 +1298,7 @@ var collection;
   let _MapBaseValueIterator = _MapBaseValueIterator$(dynamic);
 
   let _UnmodifiableMapMixin$ = dart.generic(function(K, V) {
-    class _UnmodifiableMapMixin {
+    class _UnmodifiableMapMixin extends dart.Object {
       set(key, value) {
         throw new core.UnsupportedError("Cannot modify unmodifiable map");
       }
@@ -1322,8 +1320,8 @@ var collection;
   let _UnmodifiableMapMixin = _UnmodifiableMapMixin$(dynamic, dynamic);
 
   let MapView$ = dart.generic(function(K, V) {
-    class MapView {
-      constructor(map) {
+    class MapView extends dart.Object {
+      MapView(map) {
         this._map = map;
       }
       get(key) { return this._map.get(key); }
@@ -1360,7 +1358,7 @@ var collection;
     return UnmodifiableMapView;
   });
   let UnmodifiableMapView = UnmodifiableMapView$(dynamic, dynamic);
-  class Maps {
+  class Maps extends dart.Object {
     static containsValue(map, value) {
       for (let v of map.values) {
         if (dart.equals(value, v)) {
@@ -1452,11 +1450,11 @@ var collection;
   }
 
   let Queue$ = dart.generic(function(E) {
-    class Queue {
-      constructor() {
+    class Queue extends dart.Object {
+      Queue() {
         return new ListQueue();
       }
-      /*constructor*/ from(elements) {
+      Queue$from(elements) {
         return new ListQueue.from(elements);
       }
     }
@@ -1466,8 +1464,8 @@ var collection;
   let Queue = Queue$(dynamic);
 
   let DoubleLinkedQueueEntry$ = dart.generic(function(E) {
-    class DoubleLinkedQueueEntry {
-      constructor(e) {
+    class DoubleLinkedQueueEntry extends dart.Object {
+      DoubleLinkedQueueEntry(e) {
         this._element = e;
         this._previous = null;
         this._next = null;
@@ -1513,8 +1511,8 @@ var collection;
 
   let _DoubleLinkedQueueEntrySentinel$ = dart.generic(function(E) {
     class _DoubleLinkedQueueEntrySentinel extends DoubleLinkedQueueEntry$(E) {
-      constructor() {
-        super(dart.as(null, E));
+      _DoubleLinkedQueueEntrySentinel() {
+        super.DoubleLinkedQueueEntry(dart.as(null, E));
         this._link(this, this);
       }
       remove() {
@@ -1536,13 +1534,13 @@ var collection;
 
   let DoubleLinkedQueue$ = dart.generic(function(E) {
     class DoubleLinkedQueue extends IterableBase$(E) {
-      constructor() {
+      DoubleLinkedQueue() {
         this._sentinel = null;
         this._elementCount = 0;
-        super();
+        super.IterableBase();
         this._sentinel = new _DoubleLinkedQueueEntrySentinel();
       }
-      /*constructor*/ from(elements) {
+      DoubleLinkedQueue$from(elements) {
         let list = dart.as(new DoubleLinkedQueue(), Queue$(E));
         for (let e of elements) {
           list.addLast(e);
@@ -1652,8 +1650,8 @@ var collection;
   let DoubleLinkedQueue = DoubleLinkedQueue$(dynamic);
 
   let _DoubleLinkedQueueIterator$ = dart.generic(function(E) {
-    class _DoubleLinkedQueueIterator {
-      constructor(sentinel) {
+    class _DoubleLinkedQueueIterator extends dart.Object {
+      _DoubleLinkedQueueIterator(sentinel) {
         this._sentinel = sentinel;
         this._nextEntry = sentinel._next;
         this._current = dart.as(null, E);
@@ -1676,13 +1674,13 @@ var collection;
 
   let ListQueue$ = dart.generic(function(E) {
     class ListQueue extends IterableBase$(E) {
-      constructor(initialCapacity) {
+      ListQueue(initialCapacity) {
         if (initialCapacity === undefined) initialCapacity = null;
         this._head = 0;
         this._tail = 0;
         this._table = null;
         this._modificationCount = 0;
-        super();
+        super.IterableBase();
         if (dart.notNull(initialCapacity === null) || dart.notNull(initialCapacity < _INITIAL_CAPACITY)) {
           initialCapacity = _INITIAL_CAPACITY;
         } else if (!dart.notNull(_isPowerOf2(initialCapacity))) {
@@ -1691,7 +1689,7 @@ var collection;
         dart.assert(_isPowerOf2(initialCapacity));
         this._table = new core.List(initialCapacity);
       }
-      /*constructor*/ from(elements) {
+      ListQueue$from(elements) {
         if (dart.is(elements, core.List)) {
           let length = elements.length;
           let queue = dart.as(new ListQueue(length + 1), ListQueue$(E));
@@ -1936,8 +1934,8 @@ var collection;
   let ListQueue = ListQueue$(dynamic);
 
   let _ListQueueIterator$ = dart.generic(function(E) {
-    class _ListQueueIterator {
-      constructor(queue) {
+    class _ListQueueIterator extends dart.Object {
+      _ListQueueIterator(queue) {
         this._queue = queue;
         this._end = queue._tail;
         this._modificationCount = queue._modificationCount;
@@ -1961,7 +1959,7 @@ var collection;
   let _ListQueueIterator = _ListQueueIterator$(dynamic);
 
   let SetMixin$ = dart.generic(function(E) {
-    class SetMixin {
+    class SetMixin extends dart.Object {
       get isEmpty() { return this.length === 0; }
       get isNotEmpty() { return this.length !== 0; }
       clear() {
@@ -2183,8 +2181,8 @@ var collection;
   let SetBase = SetBase$(dynamic);
 
   let _SplayTreeNode$ = dart.generic(function(K) {
-    class _SplayTreeNode {
-      constructor(key) {
+    class _SplayTreeNode extends dart.Object {
+      _SplayTreeNode(key) {
         this.key = key;
         this.left = null;
         this.right = null;
@@ -2196,9 +2194,9 @@ var collection;
 
   let _SplayTreeMapNode$ = dart.generic(function(K, V) {
     class _SplayTreeMapNode extends _SplayTreeNode$(K) {
-      constructor(key, value) {
+      _SplayTreeMapNode(key, value) {
         this.value = value;
-        super(key);
+        super._SplayTreeNode(key);
       }
     }
     return _SplayTreeMapNode;
@@ -2206,14 +2204,13 @@ var collection;
   let _SplayTreeMapNode = _SplayTreeMapNode$(dynamic, dynamic);
 
   let _SplayTree$ = dart.generic(function(K) {
-    class _SplayTree {
-      constructor() {
+    class _SplayTree extends dart.Object {
+      _SplayTree() {
         this._dummy = new _SplayTreeNode(null);
         this._root = null;
         this._count = 0;
         this._modificationCount = 0;
         this._splayCount = 0;
-        super();
       }
       _splay(key) {
         if (this._root === null) return -1;
@@ -2338,7 +2335,7 @@ var collection;
   let _SplayTree = _SplayTree$(dynamic);
 
   let _TypeTest$ = dart.generic(function(T) {
-    class _TypeTest {
+    class _TypeTest extends dart.Object {
       test(v) { return dart.is(v, T); }
     }
     return _TypeTest;
@@ -2347,14 +2344,14 @@ var collection;
 
   let SplayTreeMap$ = dart.generic(function(K, V) {
     class SplayTreeMap extends _SplayTree$(K) {
-      constructor(compare, isValidKey) {
+      SplayTreeMap(compare, isValidKey) {
         if (compare === undefined) compare = null;
         if (isValidKey === undefined) isValidKey = null;
         this._comparator = (compare === null) ? core.Comparable.compare : compare;
         this._validKey = (isValidKey !== null) ? isValidKey : ((v) => dart.is(v, K));
-        super();
+        super._SplayTree();
       }
-      /*constructor*/ from(other, compare, isValidKey) {
+      SplayTreeMap$from(other, compare, isValidKey) {
         if (compare === undefined) compare = null;
         if (isValidKey === undefined) isValidKey = null;
         let result = new SplayTreeMap();
@@ -2363,7 +2360,7 @@ var collection;
         });
         return result;
       }
-      /*constructor*/ fromIterable(iterable, opt$) {
+      SplayTreeMap$fromIterable(iterable, opt$) {
         let key = opt$.key === undefined ? null : opt$.key;
         let value = opt$.value === undefined ? null : opt$.value;
         let compare = opt$.compare === undefined ? null : opt$.compare;
@@ -2372,7 +2369,7 @@ var collection;
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      /*constructor*/ fromIterables(keys, values, compare, isValidKey) {
+      SplayTreeMap$fromIterables(keys, values, compare, isValidKey) {
         if (compare === undefined) compare = null;
         if (isValidKey === undefined) isValidKey = null;
         let map = new SplayTreeMap(compare, isValidKey);
@@ -2380,10 +2377,10 @@ var collection;
         return map;
       }
       _compare(key1, key2) { return this._comparator(key1, key2); }
-      /*constructor*/ _internal() {
+      SplayTreeMap$_internal() {
         this._comparator = null;
         this._validKey = null;
-        _SplayTree$(K).call(this);
+        super._SplayTree();
       }
       get(key) {
         if (key === null) throw new core.ArgumentError(key);
@@ -2522,8 +2519,8 @@ var collection;
   let SplayTreeMap = SplayTreeMap$(dynamic, dynamic);
 
   let _SplayTreeIterator$ = dart.generic(function(T) {
-    class _SplayTreeIterator {
-      constructor(tree) {
+    class _SplayTreeIterator extends dart.Object {
+      _SplayTreeIterator(tree) {
         this._workList = new List.from([]);
         this._tree = tree;
         this._modificationCount = tree._modificationCount;
@@ -2531,7 +2528,7 @@ var collection;
         this._currentNode = null;
         this._findLeftMostDescendent(tree._root);
       }
-      /*constructor*/ startAt(tree, startKey) {
+      _SplayTreeIterator$startAt(tree, startKey) {
         this._workList = new List.from([]);
         this._tree = tree;
         this._modificationCount = tree._modificationCount;
@@ -2590,9 +2587,9 @@ var collection;
 
   let _SplayTreeKeyIterable$ = dart.generic(function(K) {
     class _SplayTreeKeyIterable extends IterableBase$(K) {
-      constructor(_tree) {
+      _SplayTreeKeyIterable(_tree) {
         this._tree = _tree;
-        super();
+        super.IterableBase();
       }
       get length() { return this._tree._count; }
       get isEmpty() { return this._tree._count === 0; }
@@ -2611,9 +2608,9 @@ var collection;
 
   let _SplayTreeValueIterable$ = dart.generic(function(K, V) {
     class _SplayTreeValueIterable extends IterableBase$(V) {
-      constructor(_map) {
+      _SplayTreeValueIterable(_map) {
         this._map = _map;
-        super();
+        super.IterableBase();
       }
       get length() { return this._map._count; }
       get isEmpty() { return this._map._count === 0; }
@@ -2625,8 +2622,8 @@ var collection;
 
   let _SplayTreeKeyIterator$ = dart.generic(function(K) {
     class _SplayTreeKeyIterator extends _SplayTreeIterator$(K) {
-      constructor(map) {
-        super(map);
+      _SplayTreeKeyIterator(map) {
+        super._SplayTreeIterator(map);
       }
       _getValue(node) { return dart.as(node.key, K); }
     }
@@ -2636,8 +2633,8 @@ var collection;
 
   let _SplayTreeValueIterator$ = dart.generic(function(K, V) {
     class _SplayTreeValueIterator extends _SplayTreeIterator$(V) {
-      constructor(map) {
-        super(map);
+      _SplayTreeValueIterator(map) {
+        super._SplayTreeIterator(map);
       }
       _getValue(node) { return dart.as(node.value, V); }
     }
@@ -2647,11 +2644,11 @@ var collection;
 
   let _SplayTreeNodeIterator$ = dart.generic(function(K) {
     class _SplayTreeNodeIterator extends _SplayTreeIterator$(_SplayTreeNode$(K)) {
-      constructor(tree) {
-        super(tree);
+      _SplayTreeNodeIterator(tree) {
+        super._SplayTreeIterator(tree);
       }
-      /*constructor*/ startAt(tree, startKey) {
-        super.startAt(tree, startKey);
+      _SplayTreeNodeIterator$startAt(tree, startKey) {
+        super._SplayTreeIterator$startAt(tree, startKey);
       }
       _getValue(node) { return dart.as(node, _SplayTreeNode$(K)); }
     }
@@ -2662,14 +2659,14 @@ var collection;
 
   let SplayTreeSet$ = dart.generic(function(E) {
     class SplayTreeSet extends dart.mixin(_SplayTree$(E), IterableMixin$(E), SetMixin$(E)) {
-      constructor(compare, isValidKey) {
+      SplayTreeSet(compare, isValidKey) {
         if (compare === undefined) compare = null;
         if (isValidKey === undefined) isValidKey = null;
         this._comparator = (compare === null) ? core.Comparable.compare : compare;
         this._validKey = (isValidKey !== null) ? isValidKey : ((v) => dart.is(v, E));
-        super();
+        super._SplayTree();
       }
-      /*constructor*/ from(elements, compare, isValidKey) {
+      SplayTreeSet$from(elements, compare, isValidKey) {
         if (compare === undefined) compare = null;
         if (isValidKey === undefined) isValidKey = null;
         let result = new SplayTreeSet(compare, isValidKey);
