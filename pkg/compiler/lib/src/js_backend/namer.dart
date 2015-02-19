@@ -301,21 +301,25 @@ class Namer implements ClosureNamer {
   String get closureInvocationSelectorName => Compiler.CALL_OPERATOR_NAME;
   bool get shouldMinify => false;
 
-  String getNameForJsGetName(Node node, String name) {
+  /// Returns the string that is to be used as the result of a call to
+  /// [JS_GET_NAME] at [node] with argument [name].
+  String getNameForJsGetName(Node node, JsGetName name) {
     switch (name) {
-      case 'GETTER_PREFIX': return getterPrefix;
-      case 'SETTER_PREFIX': return setterPrefix;
-      case 'CALL_PREFIX': return callPrefix;
-      case 'CALL_CATCH_ALL': return callCatchAllName;
-      case 'REFLECTABLE': return reflectableField;
-      case 'CLASS_DESCRIPTOR_PROPERTY': return classDescriptorProperty;
-      case 'REQUIRED_PARAMETER_PROPERTY': return requiredParameterField;
-      case 'DEFAULT_VALUES_PROPERTY': return defaultValuesField;
-      case 'CALL_NAME_PROPERTY': return callNameField;
+      case JsGetName.GETTER_PREFIX: return getterPrefix;
+      case JsGetName.SETTER_PREFIX: return setterPrefix;
+      case JsGetName.CALL_PREFIX: return callPrefix;
+      case JsGetName.CALL_CATCH_ALL: return callCatchAllName;
+      case JsGetName.REFLECTABLE: return reflectableField;
+      case JsGetName.CLASS_DESCRIPTOR_PROPERTY:
+        return classDescriptorProperty;
+      case JsGetName.REQUIRED_PARAMETER_PROPERTY:
+        return requiredParameterField;
+      case JsGetName.DEFAULT_VALUES_PROPERTY: return defaultValuesField;
+      case JsGetName.CALL_NAME_PROPERTY: return callNameField;
       default:
         compiler.reportError(
-            node, MessageKind.GENERIC,
-            {'text': 'Error: Namer has no name for "$name".'});
+          node, MessageKind.GENERIC,
+          {'text': 'Error: Namer has no name for "$name".'});
         return 'BROKEN';
     }
   }

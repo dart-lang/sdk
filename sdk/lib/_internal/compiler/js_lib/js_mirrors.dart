@@ -5,6 +5,7 @@
 library dart._js_mirrors;
 
 import 'dart:_js_embedded_names' show
+    JsGetName,
     ALL_CLASSES,
     LAZIES,
     LIBRARIES,
@@ -71,7 +72,7 @@ import 'dart:_js_names';
 const String METHODS_WITH_OPTIONAL_ARGUMENTS = r'$methodsWithOptionalArguments';
 
 bool hasReflectableProperty(var jsFunction) {
-  return JS('bool', '# in #', JS_GET_NAME("REFLECTABLE"), jsFunction);
+  return JS('bool', '# in #', JS_GET_NAME(JsGetName.REFLECTABLE), jsFunction);
 }
 
 /// No-op method that is called to inform the compiler that tree-shaking needs
@@ -650,7 +651,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
   } else {
     fields = JS('', '#[#]', descriptor,
-        JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY'));
+        JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY));
     if (fields is List) {
       fieldsMetadata = fields.getRange(1, fields.length).toList();
       fields = fields[0];
@@ -1746,7 +1747,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       parseCompactFieldSpecification(
           fieldOwner,
           JS('', '#[#]',
-              staticDescriptor, JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY')),
+              staticDescriptor,
+              JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY)),
           true, result);
     }
     return result;
@@ -2152,7 +2154,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
     if (isStatic) {
       unmangledName = mangledGlobalNames[accessorName];
     } else {
-      String getterPrefix = JS_GET_NAME('GETTER_PREFIX');
+      String getterPrefix = JS_GET_NAME(JsGetName.GETTER_PREFIX);
       unmangledName = mangledNames['$getterPrefix$accessorName'];
     }
     if (unmangledName == null) unmangledName = accessorName;
@@ -2231,7 +2233,7 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
     if (cachedFunction != null) return cachedFunction;
     disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
-    String callPrefix = "${JS_GET_NAME("CALL_PREFIX")}\$";
+    String callPrefix = "${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$";
     var extractCallName = JS('', r'''
 function(reflectee) {
   for (var property in reflectee) {
@@ -2943,7 +2945,7 @@ bool isOperatorName(String name) {
 /// Returns true if the key represent ancillary reflection data, that is, not a
 /// method.
 bool isReflectiveDataInPrototype(String key) {
-  if (key == JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY') ||
+  if (key == JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY) ||
       key == METHODS_WITH_OPTIONAL_ARGUMENTS) {
     return true;
   }
