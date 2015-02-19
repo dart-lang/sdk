@@ -33,7 +33,7 @@ DEFINE_FLAG(int, max_polymorphic_checks, 4,
 DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
     "Maximum number of polymorphic checks in equality operator,"
     " otherwise use megamorphic dispatch.");
-DEFINE_FLAG(bool, merge_sin_cos, true, "Merge sin/cos into sincos");
+DEFINE_FLAG(bool, merge_sin_cos, false, "Merge sin/cos into sincos");
 DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
