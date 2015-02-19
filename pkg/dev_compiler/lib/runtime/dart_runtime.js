@@ -195,8 +195,8 @@ var dart;
     // Conceptually this is: `class Mixin extends base {}`
     function Mixin() {
       // TODO(jmesserly): since we're using initializers and not constructors,
-      // we can just skip directly to DartObject.
-      DartObject.apply(this, arguments);
+      // we can just skip directly to dart.Object.
+      dart.Object.apply(this, arguments);
     }
     Mixin.__proto__ = base;
     Mixin.prototype = Object.create(base.prototype);
