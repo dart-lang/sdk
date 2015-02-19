@@ -72,13 +72,33 @@ class JSNumber extends Interceptor implements num {
       return JS('int', r'# + 0', truncateToDouble());  // Converts -0.0 to +0.0.
     }
     // This is either NaN, Infinity or -Infinity.
-    throw new UnsupportedError(JS("String", "''+#", this));
+    throw new UnsupportedError(JS("String", '"" + #', this));
   }
 
   int truncate() => toInt();
+
   int ceil() => ceilToDouble().toInt();
+
   int floor() => floorToDouble().toInt();
-  int round() => roundToDouble().toInt();
+
+  int round() {
+    if (this > 0) {
+      // This path excludes the special cases -0.0, NaN and -Infinity, leaving
+      // only +Infinity, for which a direct test is faster than [isFinite].
+      if (JS('bool', r'# !== (1/0)', this)) {
+        return JS('int', r'Math.round(#)', this);
+      }
+    } else if (JS('bool', '# > (-1/0)', this)) {
+      // This test excludes NaN and -Infinity, leaving only -0.0.
+      //
+      // Subtraction from zero rather than negation forces -0.0 to 0.0 so code
+      // inside Math.round and code to handle result never sees -0.0, which on
+      // some JavaScript VMs can be a slow path.
+      return JS('int', r'0 - Math.round(0 - #)', this);
+    }
+    // This is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(JS("String", '"" + #', this));
+  }
 
   double ceilToDouble() => JS('num', r'Math.ceil(#)', this);
 
