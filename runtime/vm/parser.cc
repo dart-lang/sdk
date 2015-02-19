@@ -6672,11 +6672,11 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   const intptr_t ident_pos = TokenPos();
   const String& ident = *CurrentLiteral();
   ConsumeToken();  // Variable identifier.
+  const intptr_t assign_pos = TokenPos();
   AstNode* initialization = NULL;
   LocalVariable* variable = NULL;
   if (CurrentToken() == Token::kASSIGN) {
     // Variable initialization.
-    const intptr_t assign_pos = TokenPos();
     ConsumeToken();
     AstNode* expr = ParseAwaitableExpr(
         is_const, kConsumeCascades, await_preamble);
@@ -6695,7 +6695,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   } else {
     // Initialize variable with null.
     variable = new(Z) LocalVariable(
-        ident_pos, ident, type);
+        assign_pos, ident, type);
     AstNode* null_expr = new(Z) LiteralNode(ident_pos, Instance::ZoneHandle(Z));
     initialization = new(Z) StoreLocalNode(
         ident_pos, variable, null_expr);

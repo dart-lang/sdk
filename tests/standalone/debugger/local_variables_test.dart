@@ -29,10 +29,25 @@ test() {
   }
 }
 
+test_no_init() {
+  if (true) {
+    var temp = 777;
+  }
+  if (true) {
+    var a;  // Breakpoint
+    if (true) {
+      var s = 456;
+      print(s);
+    }
+  }
+}
+
+
 main(List<String> arguments) {
   if (RunScript(testScript, arguments)) return;
   print("Hello from debuggee");
   test();
+  test_no_init();
   print("Hello again");
 }
 
@@ -44,6 +59,7 @@ var testScript = [
   MatchFrame(0, "main"),  // Should still be in "main".
   SetBreakpoint(15),  // Set breakpoint in function foo.
   SetBreakpoint(24),  // Set breakpoint in function test.
+  SetBreakpoint(37),  // Set breakpoint in function test_no_init.
   Resume(),
   MatchFrames(["test", "main"]),
   AssertLocalsNotVisible(["a"]),  // Here, a is not in scope yet.
@@ -53,4 +69,9 @@ var testScript = [
   Step(),
   MatchLocals({"y": "null"}),  // Expect y initialized to null.
   Resume(),
+  MatchFrames(["test_no_init", "main"]),
+  AssertLocalsNotVisible(["a"]),  // a is not in scope.
+  Step(),
+  MatchLocals({"a": "null"}),
+  Resume()
 ];
