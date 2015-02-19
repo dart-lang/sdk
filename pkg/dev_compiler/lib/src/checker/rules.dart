@@ -130,7 +130,7 @@ class RestrictedRules extends TypeRules {
     } else if (t is TypeParameterType) {
       var bound = t.element.bound;
       if (bound == null) {
-        return true;
+        bound = provider.dynamicType;
       }
       return _nonnullableTypes.any((DartType p) => isSubTypeOf(p, bound));
     } else {
