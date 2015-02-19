@@ -17,39 +17,15 @@ static void IterateFrames(const GrowableObjectArray& code_list,
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
-  intptr_t frames_to_skip = 2;  // _setupFullStackTrace and the catch frame.
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       offset = Smi::New(frame->pc() - code.EntryPoint());
-      if (frames_to_skip > 0) {
-        frames_to_skip--;
-      } else {
-        code_list.Add(code);
-        pc_offset_list.Add(offset);
-      }
+      code_list.Add(code);
+      pc_offset_list.Add(offset);
     }
     frame = frames.NextFrame();
   }
-}
-
-
-// Setup a full stack trace.
-// Arg0: stack trace object.
-// Return value: None.
-DEFINE_NATIVE_ENTRY(Stacktrace_setupFullStacktrace, 1) {
-  const Stacktrace& trace =
-      Stacktrace::CheckedHandle(arguments->NativeArgAt(0));
-  const GrowableObjectArray& code_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const GrowableObjectArray& pc_offset_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  IterateFrames(code_list, pc_offset_list);
-  const Array& code_array = Array::Handle(Array::MakeArray(code_list));
-  const Array& pc_offset_array =
-      Array::Handle(Array::MakeArray(pc_offset_list));
-  trace.SetCatchStacktrace(code_array, pc_offset_array);
-  return Object::null();
 }
 
 
@@ -69,7 +45,7 @@ void _printCurrentStacktrace() {
       Array::Handle(Array::MakeArray(pc_offset_list));
   const Stacktrace& stacktrace = Stacktrace::Handle(
       Stacktrace::New(code_array, pc_offset_array));
-  OS::Print("%s\n", stacktrace.ToCString());
+  OS::PrintErr("=== Current Trace:\n%s\n===\n", stacktrace.ToCString());
 }
 
 }  // namespace dart

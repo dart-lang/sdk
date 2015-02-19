@@ -7388,13 +7388,7 @@ class Stacktrace : public Instance {
 
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
-  void SetCatchStacktrace(const Array& code_array,
-                          const Array& pc_offset_array) const;
   void set_expand_inlined(bool value) const;
-
-  void Append(const Array& code_list,
-              const Array& pc_offset_list,
-              const intptr_t start_index) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
@@ -7412,8 +7406,6 @@ class Stacktrace : public Instance {
  private:
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
-  void set_catch_code_array(const Array& code_array) const;
-  void set_catch_pc_offset_array(const Array& pc_offset_array) const;
   bool expand_inlined() const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);

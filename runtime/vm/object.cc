@@ -20111,16 +20111,6 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
-void Stacktrace::set_catch_code_array(const Array& code_array) const {
-  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
-}
-
-
-void Stacktrace::set_catch_pc_offset_array(const Array& pc_offset_array) const {
-  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
-}
-
-
 void Stacktrace::set_expand_inlined(bool value) const {
   StoreNonPointer(&raw_ptr()->expand_inlined_, value);
 }
@@ -20144,68 +20134,13 @@ RawStacktrace* Stacktrace::New(const Array& code_array,
   }
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
-  result.SetCatchStacktrace(Object::empty_array(),
-                            Object::empty_array());
   result.set_expand_inlined(true);  // default.
   return result.raw();
 }
 
 
-void Stacktrace::Append(const Array& code_list,
-                        const Array& pc_offset_list,
-                        const intptr_t start_index) const {
-  ASSERT(start_index <= code_list.Length());
-  ASSERT(pc_offset_list.Length() == code_list.Length());
-  intptr_t old_length = Length();
-  intptr_t new_length = old_length + pc_offset_list.Length() - start_index;
-  if (new_length == old_length) {
-    // Nothing to append. Avoid work and an assert that growing arrays always
-    // increases their size.
-    return;
-  }
-
-  // Grow the arrays for code, pc_offset pairs to accommodate the new stack
-  // frames.
-  Isolate* isolate = Isolate::Current();
-  Array& code_array = Array::Handle(isolate, raw_ptr()->code_array_);
-  Array& pc_offset_array = Array::Handle(isolate, raw_ptr()->pc_offset_array_);
-  code_array = Array::Grow(code_array, new_length);
-  pc_offset_array = Array::Grow(pc_offset_array, new_length);
-  set_code_array(code_array);
-  set_pc_offset_array(pc_offset_array);
-  // Now append the new function and code list to the existing arrays.
-  intptr_t j = start_index;
-  PassiveObject& obj = PassiveObject::Handle(isolate);
-  for (intptr_t i = old_length; i < new_length; i++, j++) {
-    obj = code_list.At(j);
-    code_array.SetAt(i, obj);
-    obj = pc_offset_list.At(j);
-    pc_offset_array.SetAt(i, obj);
-  }
-}
-
-
-void Stacktrace::SetCatchStacktrace(const Array& code_array,
-                                    const Array& pc_offset_array) const {
-  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
-  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
-}
-
-
 RawString* Stacktrace::FullStacktrace() const {
-  const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
   intptr_t idx = 0;
-  if (!code_array.IsNull() && (code_array.Length() > 0)) {
-    const Array& pc_offset_array =
-        Array::Handle(raw_ptr()->catch_pc_offset_array_);
-    const Stacktrace& catch_trace = Stacktrace::Handle(
-        Stacktrace::New(code_array, pc_offset_array));
-    const String& throw_string =
-        String::Handle(String::New(ToCStringInternal(&idx)));
-    const String& catch_string =
-        String::Handle(String::New(catch_trace.ToCStringInternal(&idx)));
-    return String::Concat(throw_string, catch_string);
-  }
   return String::New(ToCStringInternal(&idx));
 }
 

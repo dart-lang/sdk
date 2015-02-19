@@ -5979,17 +5979,11 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
     // A stack trace variable is specified in this block, so generate code
     // to load the stack trace object (:stack_trace_var) into the stack
     // trace variable specified in this block.
-    ArgumentListNode* no_args = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
     ASSERT(stack_trace_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
         Scanner::kNoSourcePos,
         stack_trace_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
-    current_block_->statements->Add(new(Z) InstanceCallNode(
-        Scanner::kNoSourcePos,
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_param.var),
-        Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
-        no_args));
   }
 
   ASSERT(try_blocks_list_ != NULL);
@@ -8358,16 +8352,10 @@ SequenceNode* Parser::ParseCatchClauses(
       // to load the stack trace object (:stack_trace_var) into the stack
       // trace variable specified in this block.
       *needs_stack_trace = true;
-      ArgumentListNode* no_args = new(Z) ArgumentListNode(catch_pos);
       ASSERT(stack_trace_var != NULL);
       current_block_->statements->Add(new(Z) StoreLocalNode(
           catch_pos, stack_trace_param.var, new(Z) LoadLocalNode(
               catch_pos, stack_trace_var)));
-      current_block_->statements->Add(new(Z) InstanceCallNode(
-          catch_pos,
-          new(Z) LoadLocalNode(catch_pos, stack_trace_param.var),
-          Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
-          no_args));
     }
 
     // Add nested block with user-defined code.  This blocks allows
