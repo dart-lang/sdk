@@ -697,7 +697,7 @@ class ResolverTask extends CompilerTask {
     } else if (modifiers.isFinal && !element.isInstanceMember) {
       compiler.reportError(element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     } else {
-      registry.registerInstantiatedClass(compiler.nullClass);
+      registry.registerLiteralNull();
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -2529,7 +2529,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     enclosingElement = previousEnclosingElement;
 
     registry.registerClosure(function);
-    registry.registerInstantiatedClass(compiler.functionClass);
+    registry.registerLiteralFunction();
   }
 
   visitIf(If node) {
@@ -3052,10 +3052,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       if (identical(source, '++')) {
         registerBinaryOperator('+');
-        registry.registerInstantiatedClass(compiler.intClass);
+        registry.registerLiteralInt();
       } else if (identical(source, '--')) {
         registerBinaryOperator('-');
-        registry.registerInstantiatedClass(compiler.intClass);
+        registry.registerLiteralInt();
       } else if (source.endsWith('=')) {
         registerBinaryOperator(Elements.mapToUserOperator(operatorName));
       }
@@ -3086,29 +3086,27 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitLiteralInt(LiteralInt node) {
-    registry.registerInstantiatedClass(compiler.intClass);
+    registry.registerLiteralInt();
   }
 
   visitLiteralDouble(LiteralDouble node) {
-    registry.registerInstantiatedClass(compiler.doubleClass);
+    registry.registerLiteralDouble();
   }
 
   visitLiteralBool(LiteralBool node) {
-    registry.registerInstantiatedClass(compiler.boolClass);
+    registry.registerLiteralBool();
   }
 
   visitLiteralString(LiteralString node) {
-    registry.registerInstantiatedClass(compiler.stringClass);
+    registry.registerLiteralString();
   }
 
   visitLiteralNull(LiteralNull node) {
-    registry.registerInstantiatedClass(compiler.nullClass);
+    registry.registerLiteralNull();
   }
 
   visitLiteralSymbol(LiteralSymbol node) {
-    registry.registerInstantiatedClass(compiler.symbolClass);
-    registry.registerStaticUse(compiler.symbolConstructor.declaration);
-    registry.registerConstSymbol(node.slowNameString);
+    registry.registerLiteralSymbol(node.slowNameString);
     if (!validateSymbol(node, node.slowNameString, reportError: false)) {
       compiler.reportError(node,
           MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
@@ -3118,7 +3116,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
-    registry.registerInstantiatedClass(compiler.stringClass);
+    registry.registerLiteralString();
     node.visitChildren(this);
   }
 
@@ -3524,7 +3522,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    registry.registerInstantiatedClass(compiler.stringClass);
+    registry.registerLiteralString();
     registry.registerStringInterpolation();
     node.visitChildren(this);
   }
@@ -3989,7 +3987,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Node stackTraceVariable = stackTraceDefinition.definitions.nodes.head;
       VariableElementX stackTraceElement =
           registry.getDefinition(stackTraceVariable);
-      registry.registerInstantiatedClass(compiler.stackTraceClass);
       stackTraceElement.variables.type = compiler.stackTraceClass.rawType;
     }
   }
@@ -4782,7 +4779,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
 
   Identifier visitIdentifier(Identifier node) {
     // The variable is initialized to null.
-    registry.registerInstantiatedClass(compiler.nullClass);
+    registry.registerLiteralNull();
     if (definitions.modifiers.isConst) {
       compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
     }

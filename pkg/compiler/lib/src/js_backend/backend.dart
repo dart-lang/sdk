@@ -2580,8 +2580,9 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
   void onStackTraceInCatch(Registry registry) {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(backend.getTraceFromException(), registry);
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        backend.compiler.stackTraceClass, registry);
   }
-
 
   void onTypeVariableExpression(Registry registry) {
     assert(registry.isForResolution);
@@ -2709,6 +2710,45 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     assert(backend.compiler.symbolValidatedConstructor != null);
     registerBackendStaticInvocation(
         backend.compiler.symbolValidatedConstructor, registry);
+  }
+
+  void onLiteralInt(Registry registry) {
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        backend.intImplementation, registry);
+  }
+
+  void onLiteralDouble(Registry registry) {
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        backend.doubleImplementation, registry);
+  }
+
+  void onLiteralBool(Registry registry) {
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        backend.boolImplementation, registry);
+  }
+
+  void onLiteralString(Registry registry) {
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        // TODO(ahe): For some reason using [backend.stringImplementation] here
+        // confuses dart2js during override checks.
+        backend.compiler.stringClass, registry);
+  }
+
+  void onLiteralNull(Registry registry) {
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        backend.nullImplementation, registry);
+  }
+
+  void onLiteralSymbol(Registry registry) {
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        backend.compiler.symbolClass, registry);
+    backend.compiler.enqueuer.resolution.registerStaticUse(
+        backend.compiler.symbolConstructor.declaration);
+  }
+
+  void onLiteralFunction(Registry registry) {
+    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
+        backend.functionImplementation, registry);
   }
 }
 

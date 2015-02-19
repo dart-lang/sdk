@@ -524,9 +524,10 @@ abstract class Backend {
 
   void registerMainHasArguments(Enqueuer enqueuer) {}
 
-  void registerAsyncMarker(FunctionElement element,
-                             Enqueuer enqueuer,
-                             Registry registry) {}
+  void registerAsyncMarker(
+      FunctionElement element,
+      Enqueuer enqueuer,
+      Registry registry) {}
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -593,6 +594,27 @@ class ResolutionCallbacks {
 
   /// Called when resolving the `Symbol` constructor.
   void onSymbolConstructor(Registry registry) {}
+
+  /// Called when resolving a literal int.
+  void onLiteralInt(Registry registry) {}
+
+  /// Called when resolving a literal double.
+  void onLiteralDouble(Registry registry) {}
+
+  /// Called when resolving a literal bool.
+  void onLiteralBool(Registry registry) {}
+
+  /// Called when resolving a literal String.
+  void onLiteralString(Registry registry) {}
+
+  /// Called when resolving a literal null.
+  void onLiteralNull(Registry registry) {}
+
+  /// Called when resolving a literal Symbol.
+  void onLiteralSymbol(Registry registry) {}
+
+  /// Called when resolving a literal Function (aka a closure).
+  void onLiteralFunction(Registry registry) {}
 }
 
 /**

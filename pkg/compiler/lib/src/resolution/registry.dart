@@ -371,4 +371,33 @@ class ResolutionRegistry extends Registry {
   void registerAsyncMarker(FunctionElement element) {
     backend.registerAsyncMarker(element, world, this);
   }
+
+  void registerLiteralInt() {
+    backend.resolutionCallbacks.onLiteralInt(this);
+  }
+
+  void registerLiteralDouble() {
+    backend.resolutionCallbacks.onLiteralDouble(this);
+  }
+
+  void registerLiteralBool() {
+    backend.resolutionCallbacks.onLiteralBool(this);
+  }
+
+  void registerLiteralString() {
+    backend.resolutionCallbacks.onLiteralString(this);
+  }
+
+  void registerLiteralNull() {
+    backend.resolutionCallbacks.onLiteralNull(this);
+  }
+
+  void registerLiteralSymbol(String name) {
+    backend.resolutionCallbacks.onLiteralSymbol(this);
+    registerConstSymbol(name);
+  }
+
+  void registerLiteralFunction() {
+    backend.resolutionCallbacks.onLiteralFunction(this);
+  }
 }
