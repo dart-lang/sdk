@@ -2697,6 +2697,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_PrefixedIdentifier_getter() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('String get g => "one"; f() {g.^}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
   test_PrefixedIdentifier_library() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testB.dart', '''
