@@ -524,10 +524,9 @@ abstract class Backend {
 
   void registerMainHasArguments(Enqueuer enqueuer) {}
 
-  void registerAsyncMarker(
-      FunctionElement element,
-      Enqueuer enqueuer,
-      Registry registry) {}
+  void registerAsyncMarker(FunctionElement element,
+                             Enqueuer enqueuer,
+                             Registry registry) {}
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -594,27 +593,6 @@ class ResolutionCallbacks {
 
   /// Called when resolving the `Symbol` constructor.
   void onSymbolConstructor(Registry registry) {}
-
-  /// Called when resolving a literal int.
-  void onLiteralInt(Registry registry) {}
-
-  /// Called when resolving a literal double.
-  void onLiteralDouble(Registry registry) {}
-
-  /// Called when resolving a literal bool.
-  void onLiteralBool(Registry registry) {}
-
-  /// Called when resolving a literal String.
-  void onLiteralString(Registry registry) {}
-
-  /// Called when resolving a literal null.
-  void onLiteralNull(Registry registry) {}
-
-  /// Called when resolving a literal Symbol.
-  void onLiteralSymbol(Registry registry) {}
-
-  /// Called when resolving a literal Function (aka a closure).
-  void onLiteralFunction(Registry registry) {}
 }
 
 /**
@@ -827,8 +805,8 @@ abstract class Compiler implements DiagnosticListener {
 
   ClassElement typedDataClass;
 
-  /// The class for the [proxy] value defined in dart:core.
-  ClassElement proxyClass;
+  /// The constant for the [proxy] variable defined in dart:core.
+  ConstantValue proxyConstant;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The class for patch annotation defined in dart:_js_helper.
@@ -1353,6 +1331,10 @@ abstract class Compiler implements DiagnosticListener {
       functionClass.ensureResolved(this);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
+      proxyConstant =
+          resolver.constantCompiler.compileConstant(
+              coreLibrary.find('proxy')).value;
+
       if (preserveComments) {
         return libraryLoader.loadLibrary(DART_MIRRORS)
             .then((LibraryElement libraryElement) {
@@ -1421,7 +1403,6 @@ abstract class Compiler implements DiagnosticListener {
     _coreTypes.stackTraceClass = lookupCoreClass('StackTrace');
     _coreTypes.iterableClass = lookupCoreClass('Iterable');
     _coreTypes.symbolClass = lookupCoreClass('Symbol');
-    proxyClass = lookupCoreClass('_Proxy');
     if (!missingCoreClasses.isEmpty) {
       internalError(
           coreLibrary,
@@ -1693,6 +1674,12 @@ abstract class Compiler implements DiagnosticListener {
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
       if (mainMethod.computeSignature(this).parameterCount != 0) {
+        // The first argument could be a list of strings.
+        world.registerInstantiatedClass(
+            backend.listImplementation, globalDependencies);
+        world.registerInstantiatedClass(
+            backend.stringImplementation, globalDependencies);
+
         backend.registerMainHasArguments(world);
       }
       world.addToWorkList(main);

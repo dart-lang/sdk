@@ -954,12 +954,6 @@ class JavaScriptBackend extends Backend {
       assert(traceHelper != null);
       enqueueInResolution(traceHelper, registry);
     }
-
-    // TODO(ahe): Don't know who uses this class, but it wasn't correctly
-    // enqueued after we stopped compiling the @proxy constant eagerly.
-    world.registerInstantiatedClass(
-        interceptorsLibrary.findLocal('JSUInt31'), registry);
-
     registerCheckedModeHelpers(registry);
   }
 
@@ -2403,12 +2397,6 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerMainHasArguments(Enqueuer enqueuer) {
-    // The first argument could be a list of strings.
-    enqueuer.registerInstantiatedClass(
-        listImplementation, compiler.globalDependencies);
-    enqueuer.registerInstantiatedClass(
-        stringImplementation, compiler.globalDependencies);
-
     // If the main method takes arguments, this compilation could be the target
     // of Isolate.spawnUri. Strictly speaking, that can happen also if main
     // takes no arguments, but in this case the spawned isolate can't
@@ -2580,9 +2568,8 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
   void onStackTraceInCatch(Registry registry) {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(backend.getTraceFromException(), registry);
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        backend.compiler.stackTraceClass, registry);
   }
+
 
   void onTypeVariableExpression(Registry registry) {
     assert(registry.isForResolution);
@@ -2710,45 +2697,6 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     assert(backend.compiler.symbolValidatedConstructor != null);
     registerBackendStaticInvocation(
         backend.compiler.symbolValidatedConstructor, registry);
-  }
-
-  void onLiteralInt(Registry registry) {
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        backend.intImplementation, registry);
-  }
-
-  void onLiteralDouble(Registry registry) {
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        backend.doubleImplementation, registry);
-  }
-
-  void onLiteralBool(Registry registry) {
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        backend.boolImplementation, registry);
-  }
-
-  void onLiteralString(Registry registry) {
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        // TODO(ahe): For some reason using [backend.stringImplementation] here
-        // confuses dart2js during override checks.
-        backend.compiler.stringClass, registry);
-  }
-
-  void onLiteralNull(Registry registry) {
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        backend.nullImplementation, registry);
-  }
-
-  void onLiteralSymbol(Registry registry) {
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        backend.compiler.symbolClass, registry);
-    backend.compiler.enqueuer.resolution.registerStaticUse(
-        backend.compiler.symbolConstructor.declaration);
-  }
-
-  void onLiteralFunction(Registry registry) {
-    backend.compiler.enqueuer.resolution.registerInstantiatedClass(
-        backend.functionImplementation, registry);
   }
 }
 

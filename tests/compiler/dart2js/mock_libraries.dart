@@ -70,11 +70,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         operator -();
       }''',
   'print': 'print(var obj) {}',
-  'proxy': 'const proxy = const _Proxy();',
-  '_Proxy': '''
-      class _Proxy {
-        const _Proxy();
-      }''',
+  'proxy': 'const proxy = 0;',
   'Object': r'''
       class Object {
         const Object();

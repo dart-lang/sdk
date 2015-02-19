@@ -697,7 +697,7 @@ class ResolverTask extends CompilerTask {
     } else if (modifiers.isFinal && !element.isInstanceMember) {
       compiler.reportError(element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     } else {
-      registry.registerLiteralNull();
+      registry.registerInstantiatedClass(compiler.nullClass);
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -945,17 +945,9 @@ class ResolverTask extends CompilerTask {
   void _postProcessClassElement(BaseClassElementX element) {
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!element.isProxy) {
-        ConstantExpression constantExpression = metadata.constant;
-        if (constantExpression != null) {
-          ConstantValue constant = constantExpression.value;
-          if (constant.isConstructedObject) {
-            ObjectConstantValue object = constant;
-            if (object.type.element == compiler.proxyClass) {
-              element.isProxy = true;
-            }
-          }
-        }
+      if (!element.isProxy &&
+          metadata.constant.value == compiler.proxyConstant) {
+        element.isProxy = true;
       }
     }
 
@@ -2529,7 +2521,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     enclosingElement = previousEnclosingElement;
 
     registry.registerClosure(function);
-    registry.registerLiteralFunction();
+    registry.registerInstantiatedClass(compiler.functionClass);
   }
 
   visitIf(If node) {
@@ -3052,10 +3044,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       if (identical(source, '++')) {
         registerBinaryOperator('+');
-        registry.registerLiteralInt();
+        registry.registerInstantiatedClass(compiler.intClass);
       } else if (identical(source, '--')) {
         registerBinaryOperator('-');
-        registry.registerLiteralInt();
+        registry.registerInstantiatedClass(compiler.intClass);
       } else if (source.endsWith('=')) {
         registerBinaryOperator(Elements.mapToUserOperator(operatorName));
       }
@@ -3086,27 +3078,29 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitLiteralInt(LiteralInt node) {
-    registry.registerLiteralInt();
+    registry.registerInstantiatedClass(compiler.intClass);
   }
 
   visitLiteralDouble(LiteralDouble node) {
-    registry.registerLiteralDouble();
+    registry.registerInstantiatedClass(compiler.doubleClass);
   }
 
   visitLiteralBool(LiteralBool node) {
-    registry.registerLiteralBool();
+    registry.registerInstantiatedClass(compiler.boolClass);
   }
 
   visitLiteralString(LiteralString node) {
-    registry.registerLiteralString();
+    registry.registerInstantiatedClass(compiler.stringClass);
   }
 
   visitLiteralNull(LiteralNull node) {
-    registry.registerLiteralNull();
+    registry.registerInstantiatedClass(compiler.nullClass);
   }
 
   visitLiteralSymbol(LiteralSymbol node) {
-    registry.registerLiteralSymbol(node.slowNameString);
+    registry.registerInstantiatedClass(compiler.symbolClass);
+    registry.registerStaticUse(compiler.symbolConstructor.declaration);
+    registry.registerConstSymbol(node.slowNameString);
     if (!validateSymbol(node, node.slowNameString, reportError: false)) {
       compiler.reportError(node,
           MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
@@ -3116,7 +3110,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
-    registry.registerLiteralString();
+    registry.registerInstantiatedClass(compiler.stringClass);
     node.visitChildren(this);
   }
 
@@ -3522,7 +3516,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    registry.registerLiteralString();
+    registry.registerInstantiatedClass(compiler.stringClass);
     registry.registerStringInterpolation();
     node.visitChildren(this);
   }
@@ -3987,6 +3981,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Node stackTraceVariable = stackTraceDefinition.definitions.nodes.head;
       VariableElementX stackTraceElement =
           registry.getDefinition(stackTraceVariable);
+      registry.registerInstantiatedClass(compiler.stackTraceClass);
       stackTraceElement.variables.type = compiler.stackTraceClass.rawType;
     }
   }
@@ -4779,7 +4774,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
 
   Identifier visitIdentifier(Identifier node) {
     // The variable is initialized to null.
-    registry.registerLiteralNull();
+    registry.registerInstantiatedClass(compiler.nullClass);
     if (definitions.modifiers.isConst) {
       compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
     }

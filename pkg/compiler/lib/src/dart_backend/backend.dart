@@ -370,14 +370,6 @@ class DartBackend extends Backend {
     }
 
   }
-
-  void registerMainHasArguments(Enqueuer enqueuer) {
-    // The first argument could be a list of strings.
-    enqueuer.registerInstantiatedClass(
-        listImplementation, compiler.globalDependencies);
-    enqueuer.registerInstantiatedClass(
-        stringImplementation, compiler.globalDependencies);
-  }
 }
 
 class DartResolutionCallbacks extends ResolutionCallbacks {
