@@ -19,8 +19,33 @@ class ResolverOptions {
   /// Whether to infer return types and field types from overriden members.
   final bool inferFromOverrides;
 
+  /// Whether to infer types for consts and static fields by looking at
+  /// identifiers on the RHS. For example, in a constant declaration like:
+  ///
+  ///      const A = B;
+  ///
+  /// We can infer the type of `A` based on the type of `B`. The current
+  /// implementation of this inference is limited and will only work if `B` is
+  /// defined in a different library than `A`. Because this might be surprising
+  /// to users, this is turned off by default.
+  final bool inferStaticsFromIdentifiers;
+
+  /// Whether to ignore ordering issues and do a best effort in inference. When
+  /// false, inference of top-levels and statics is limited to only consider
+  /// expressions in the RHS for which the type is known precisely without
+  /// regard of the ordering in which we apply inference. Turning this flag on
+  /// will consider more expressions, including expressions where the RHS is
+  /// another identifier (which [inferStaticsFromIdentifiers]).
+  ///
+  /// Note: this option is experimental will be removed once we have a proper
+  /// implementation of inference in the future, which should handle all
+  /// ordering concerns.
+  final bool inferInNonStableOrder;
+
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const [], this.inferFromOverrides: true});
+      this.packagePaths: const [], this.inferFromOverrides: true,
+      this.inferStaticsFromIdentifiers: false,
+      this.inferInNonStableOrder: false});
 }
 
 /// Options used by ddc's RestrictedRules.
@@ -89,11 +114,21 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   @override
   final bool inferFromOverrides;
 
+  /// Whether to infer types for consts and static fields by looking at
+  /// identifiers on the RHS.
+  @override
+  final bool inferStaticsFromIdentifiers;
+
+  /// Whether to ignore ordering issue, and do a best effort in inference.
+  @override
+  final bool inferInNonStableOrder;
+
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.dumpSrcDir, this.forceCompile: false,
       this.formatOutput: false, this.outputDir, this.outputDart: false,
       this.useColors: true, this.covariantGenerics: true,
       this.relaxedCasts: true, this.useMultiPackage: false,
       this.packageRoot: 'packages/', this.packagePaths: const [],
-      this.inferFromOverrides: true});
+      this.inferFromOverrides: true, this.inferStaticsFromIdentifiers: false,
+      this.inferInNonStableOrder: false});
 }

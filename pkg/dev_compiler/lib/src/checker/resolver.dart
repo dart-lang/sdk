@@ -33,7 +33,7 @@ class TypeResolver {
 
   TypeResolver(DartUriResolver sdkResolver, ResolverOptions options,
       {List otherResolvers})
-      : context = _initContext(options.inferFromOverrides) {
+      : context = _initContext(options) {
     var resolvers = [sdkResolver];
     if (otherResolvers == null) {
       resolvers.add(new FileUriResolver());
@@ -88,12 +88,12 @@ class TypeResolver {
 }
 
 /// Creates an analysis context that contains our restricted typing rules.
-InternalAnalysisContext _initContext(bool inferFromOverrides) {
-  var options = new AnalysisOptionsImpl()..cacheSize = 512;
+InternalAnalysisContext _initContext(ResolverOptions options) {
+  var analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
   InternalAnalysisContext res = AnalysisEngine.instance.createAnalysisContext();
-  res.analysisOptions = options;
-  res.resolverVisitorFactory = RestrictedResolverVisitor.constructor;
-  if (inferFromOverrides) {
+  res.analysisOptions = analysisOptions;
+  res.resolverVisitorFactory = RestrictedResolverVisitor.constructor(options);
+  if (options.inferFromOverrides) {
     res.typeResolverVisitorFactory = RestrictedTypeResolverVisitor.constructor;
   }
   return res;
@@ -105,15 +105,16 @@ InternalAnalysisContext _initContext(bool inferFromOverrides) {
 class RestrictedResolverVisitor extends ResolverVisitor {
   final TypeProvider _typeProvider;
 
-  RestrictedResolverVisitor(
-      Library library, Source source, TypeProvider typeProvider)
+  RestrictedResolverVisitor(Library library, Source source,
+      TypeProvider typeProvider, ResolverOptions options)
       : _typeProvider = typeProvider,
         super.con1(library, source, typeProvider,
-            typeAnalyzerFactory: (r) => new RestrictedStaticTypeAnalyzer(r));
+            typeAnalyzerFactory: RestrictedStaticTypeAnalyzer
+                .constructor(options));
 
-  static ResolverVisitor constructor(
-          Library library, Source source, TypeProvider typeProvider) =>
-      new RestrictedResolverVisitor(library, source, typeProvider);
+  static constructor(options) =>
+      (Library library, Source source, TypeProvider typeProvider) =>
+          new RestrictedResolverVisitor(library, source, typeProvider, options);
 
   @override
   visitCatchClause(CatchClause node) {
@@ -135,6 +136,72 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   void promoteTypes(Expression condition) {
     // TODO(sigmund, vsm): add this back, but use strict meaning of is checks.
   }
+
+  @override
+  Object visitCompilationUnit(CompilationUnit node) {
+    // Similar to the definition in ResolverVisitor.visitCompilationUnit, but
+    // changed to visit all top-level fields first, then static fields on all
+    // classes, then all top-level functions, then the rest of the classes.
+    overrideManager.enterScope();
+    try {
+      var thisLib = node.element.enclosingElement;
+      RestrictedStaticTypeAnalyzer restrictedAnalyzer = typeAnalyzer;
+      restrictedAnalyzer._isLibraryContainedInSingleUnit.putIfAbsent(thisLib,
+          () {
+        if (thisLib.units.length > 1) return false;
+        for (var lib in thisLib.visibleLibraries) {
+          if (lib != thisLib && lib.visibleLibraries.contains(thisLib)) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      void accept(n) {
+        n.accept(this);
+      }
+      node.directives.forEach(accept);
+      var declarations = node.declarations;
+
+      declarations
+          .where((d) => d is TopLevelVariableDeclaration)
+          .forEach(accept);
+
+      // Visit classes before top-level methods so that we can visit static
+      // fields first.
+      // TODO(sigmund): consider visiting static fields only at this point
+      // (the challenge is that to visit them we first need to create the scope
+      // for the class here, and reuse it later when visiting the class
+      // declaration to ensure that we correctly construct the scopes and that
+      // we visit each static field only once).
+      declarations.where((d) => d is ClassDeclaration).forEach(accept);
+
+      declarations
+          .where((d) =>
+              d is! TopLevelVariableDeclaration && d is! ClassDeclaration)
+          .forEach(accept);
+    } finally {
+      overrideManager.exitScope();
+    }
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @override
+  void visitClassMembersInScope(ClassDeclaration node) {
+    safelyVisit(node.documentationComment);
+    node.metadata.accept(this);
+
+    // This overrides the default way members are visited so that fields are
+    // visited before method declarations.
+    for (var n in node.members) {
+      if (n is FieldDeclaration) n.accept(this);
+    }
+    for (var n in node.members) {
+      if (n is! FieldDeclaration) n.accept(this);
+    }
+  }
 }
 
 /// Overrides the default [StaticTypeAnalyzer] to adjust rules that are stricter
@@ -142,10 +209,20 @@ class RestrictedResolverVisitor extends ResolverVisitor {
 /// variables.
 class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
   final TypeProvider _typeProvider;
+  final ResolverOptions _options;
 
-  RestrictedStaticTypeAnalyzer(ResolverVisitor r)
+  // TODO(sigmund): this needs to go away. This is currently a restriction
+  // because we are not overriding things early enough in the analyzer. This
+  // restriction makes it safe to run the inference later, but only on libraries
+  // that are contained in a single file and are not part of a cycle.
+  Map<LibraryElement, bool> _isLibraryContainedInSingleUnit = {};
+
+  RestrictedStaticTypeAnalyzer(ResolverVisitor r, this._options)
       : _typeProvider = r.typeProvider,
         super(r);
+
+  static constructor(options) =>
+      (r) => new RestrictedStaticTypeAnalyzer(r, options);
 
   @override // to infer type from initializers
   visitVariableDeclaration(VariableDeclaration node) {
@@ -155,17 +232,126 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
 
   /// Infer the type of a variable based on the initializer's type.
   void _inferType(VariableDeclaration node) {
-    if (node.element is! LocalVariableElement) return;
-    Expression initializer = node.initializer;
+    var initializer = node.initializer;
     if (initializer == null) return;
 
     var declaredType = (node.parent as VariableDeclarationList).type;
     if (declaredType != null) return;
-    VariableElementImpl element = node.element;
+    var element = node.element;
     if (element.type != dynamicType) return;
+
+    // Local variables can be inferred automatically, for top-levels and fields
+    // we rule out cases that could depend on the order in which we process
+    // them.
+    if (element is! LocalVariableElement) {
+      // Only infer types if the library is not in a cycle. Otherwise we can't
+      // guarantee that we are order independent (we can't guarantee that we'll
+      // visit all top-level declarations in all libraries, before we visit
+      // methods in all libraries).
+      var thisLib = enclosingLibrary(element);
+      if (!_canBeInferredIndependently(initializer, thisLib)) return;
+    }
+
     var type = getStaticType(initializer);
     if (type == _typeProvider.bottomType) return;
     element.type = type;
+    if (element is PropertyInducingElement) {
+      element.getter.returnType = type;
+      if (!element.isFinal) element.setter.parameters[0].type = type;
+    }
+  }
+
+  /// Whether we could determine the type of an [expression] in a way
+  /// that doesn't depend on the order in which we infer types within a
+  /// strongest connected component of libraries.
+  ///
+  /// This will return true if the expression consists just of literals or
+  /// allocations, if it only uses symbols that come from libraries that are
+  /// clearly processed before the library where this expression occurs
+  /// ([thisLib]), or if it's composed of these subexpressions (excluding fields
+  /// and top-levels that could've been inferred as well).
+  ///
+  /// The [inFieldContext] is used internally when visiting nested expressions
+  /// recursively. It indicates that the subexpression will be used in the
+  /// context of a field dereference.
+  bool _canBeInferredIndependently(
+      Expression expression, LibraryElement thisLib,
+      {bool inFieldContext: false}) {
+    if (_options.inferInNonStableOrder) return true;
+    if (!_options.inferStaticsFromIdentifiers && inFieldContext) return false;
+    if (!_isLibraryContainedInSingleUnit[thisLib]) return false;
+    if (expression is Literal) return true;
+
+    if (expression is InstanceCreationExpression) {
+      if (!inFieldContext) return true;
+      var element = expression.staticElement;
+      if (element == null) {
+        print('Unexpected `null` element for $expression');
+        return false;
+      }
+      return !_sameConnectedComponent(thisLib, element);
+    }
+    if (expression is FunctionExpression) return true;
+    if (expression is CascadeExpression) {
+      return _canBeInferredIndependently(expression.target, thisLib,
+          inFieldContext: inFieldContext);
+    }
+
+    if (expression is MethodInvocation) {
+      return _canBeInferredIndependently(expression.target, thisLib,
+          inFieldContext: true);
+    }
+
+    // Binary expressions, prefix/postfix expressions are are derived from the
+    // type of the operand, which is known at this time even for classes in the
+    // same library.
+    if (expression is BinaryExpression) {
+      return _canBeInferredIndependently(expression.leftOperand, thisLib,
+          inFieldContext: false);
+    }
+    if (expression is PrefixExpression) {
+      return _canBeInferredIndependently(expression.operand, thisLib,
+          inFieldContext: false);
+    }
+    if (expression is PostfixExpression) {
+      return _canBeInferredIndependently(expression.operand, thisLib,
+          inFieldContext: false);
+    }
+
+    // Property accesses and prefix identifiers can be resolved as fields, in
+    // which case, we need to choose whether or not to infer based on the
+    // target.
+    if (expression is PropertyAccess) {
+      return _canBeInferredIndependently(expression.target, thisLib,
+          inFieldContext: true);
+    }
+    if (expression is PrefixedIdentifier) {
+      return _canBeInferredIndependently(expression.identifier, thisLib,
+          inFieldContext: true);
+    }
+
+    if (expression is SimpleIdentifier) {
+      if (!_options.inferStaticsFromIdentifiers) return false;
+      var element = expression.bestElement;
+      if (element == null) {
+        print('Unexpected `null` element for $expression');
+        return false;
+      }
+      return !_sameConnectedComponent(thisLib, element);
+    }
+    return false;
+  }
+
+  /// Whether [dependency] is in the same strongest connected component of
+  /// libraries as [declaration].
+  bool _sameConnectedComponent(LibraryElement thisLib, Element dependency) {
+    assert(dependency != null);
+    var otherLib = enclosingLibrary(dependency);
+    // Note: we would check here also whether
+    // otherLib.visibleLibraries.contains(thisLib), however because we are not
+    // inferring type on any library that belongs to a cycle or that contains
+    // parts, we know that this cannot be true.
+    return thisLib == otherLib;
   }
 
   @override // to propagate types to identifiers

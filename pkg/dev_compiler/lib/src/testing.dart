@@ -44,7 +44,8 @@ import 'package:ddc/devc.dart' show compile;
 ///
 CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
     CheckerReporter reporter, covariantGenerics: true, relaxedCasts: true,
-    inferFromOverrides: true}) {
+    inferFromOverrides: true, inferStaticsFromIdentifiers: false,
+    inferInNonStableOrder: false}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
@@ -53,7 +54,9 @@ CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
   var options = new CompilerOptions(
       covariantGenerics: covariantGenerics,
       relaxedCasts: relaxedCasts,
-      inferFromOverrides: inferFromOverrides);
+      inferFromOverrides: inferFromOverrides,
+      inferStaticsFromIdentifiers: inferStaticsFromIdentifiers,
+      inferInNonStableOrder: inferInNonStableOrder);
   var resolver = sdkDir == null
       ? new TypeResolver.fromMock(mockSdkSources, options,
           otherResolvers: [testUriResolver])

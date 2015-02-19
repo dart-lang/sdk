@@ -77,6 +77,12 @@ Iterable<Source> _importsAndExportsOf(Source source, AnalysisContext context) {
   }).where((d) => d != null);
 }
 
+/// Returns the enclosing library of [e].
+LibraryElement enclosingLibrary(Element e) {
+  while (e != null && e is! LibraryElement) e = e.enclosingElement;
+  return e;
+}
+
 /// Returns sources that are included with part directives from [unit].
 Iterable<Source> partsOf(CompilationUnit unit, AnalysisContext context) {
   return unit.directives.where((d) => d is PartDirective).map((d) {

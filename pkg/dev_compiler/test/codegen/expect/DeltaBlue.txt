@@ -14,12 +14,3 @@ info: line 142, column 37 of test/codegen/DeltaBlue.dart: mark (dynamic) will ne
 info: line 143, column 16 of test/codegen/DeltaBlue.dart: mark (dynamic) will need runtime check to cast to type int
     out.mark = mark;
                ^^^^
-info: line 417, column 27 of test/codegen/DeltaBlue.dart: WEAKEST (dynamic) will need runtime check to cast to type Strength
-  Strength walkStrength = WEAKEST;
-                          ^^^^^^^
-info: line 479, column 25 of test/codegen/DeltaBlue.dart: REQUIRED (dynamic) will need runtime check to cast to type Strength
-    Strength strength = REQUIRED;
-                        ^^^^^^^^
-info: line 574, column 24 of test/codegen/DeltaBlue.dart: WEAKEST (dynamic) will need runtime check to cast to type Strength
-    out.walkStrength = WEAKEST;
-                       ^^^^^^^

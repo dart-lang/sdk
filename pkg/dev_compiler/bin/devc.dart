@@ -47,8 +47,15 @@ final ArgParser argParser = new ArgParser()
       defaultsTo: false)
   ..addOption('package-paths', help: 'if using the multi-package resolver, '
       'the list of directories where to look for packages.', defaultsTo: '')
-  ..addFlag(
-      'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false);
+  ..addFlag('sdk-check',
+      abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
+  ..addFlag('infer-statics-from-others',
+      help: 'Infer consts/fields from definitions in other libraries',
+      defaultsTo: false)
+  ..addFlag('ignore-inference-order',
+      help: 'Allow a non-stable order of inferencing types for consts and '
+      'fields. (experimental, used to test for possible inference with a '
+      'proper implementation in the future)', defaultsTo: false);
 
 void _showUsageAndExit() {
   print('usage: dartdevc [<options>] <file.dart>\n');

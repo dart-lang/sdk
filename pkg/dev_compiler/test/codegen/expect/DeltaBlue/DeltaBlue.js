@@ -231,7 +231,7 @@ var DeltaBlue;
       this.value = value;
       this.determinedBy = null;
       this.mark = 0;
-      this.walkStrength = dart.as(WEAKEST, Strength);
+      this.walkStrength = WEAKEST;
       this.stay = true;
     }
     addConstraint(c) {
@@ -256,7 +256,7 @@ var DeltaBlue;
       c.markUnsatisfied();
       c.removeFromGraph();
       let unsatisfied = this.removePropagateFrom(out);
-      let strength = dart.as(REQUIRED, Strength);
+      let strength = REQUIRED;
       do {
         for (let i = 0; i < unsatisfied.length; i++) {
           let u = unsatisfied.get(i);
@@ -304,7 +304,7 @@ var DeltaBlue;
     }
     removePropagateFrom(out) {
       out.determinedBy = null;
-      out.walkStrength = dart.as(WEAKEST, Strength);
+      out.walkStrength = WEAKEST;
       out.stay = true;
       let unsatisfied = new List.from([]);
       let todo = new List.from([out]);
