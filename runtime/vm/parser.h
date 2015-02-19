@@ -839,6 +839,9 @@ class Parser : public ValueObject {
 
   LocalScope* async_temp_scope_;
 
+  // Indentation of parser trace.
+  intptr_t trace_indent_;
+
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };
 

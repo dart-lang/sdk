@@ -69,7 +69,11 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
 #if defined(DEBUG)
 class TraceParser : public ValueObject {
  public:
-  TraceParser(intptr_t token_pos, const Script& script, const char* msg) {
+  TraceParser(intptr_t token_pos,
+              const Script& script,
+              intptr_t* trace_indent,
+              const char* msg) {
+    indent_ = trace_indent;
     if (FLAG_trace_parser) {
       // Skips tracing of bootstrap libraries.
       if (script.HasSource()) {
@@ -79,21 +83,26 @@ class TraceParser : public ValueObject {
         OS::Print("%s (line %" Pd ", col %" Pd ", token %" Pd ")\n",
                   msg, line, column, token_pos);
       }
-      indent_++;
+      (*indent_)++;
     }
   }
-  ~TraceParser() { indent_--; }
+  ~TraceParser() {
+    if (FLAG_trace_parser) {
+      (*indent_)--;
+      ASSERT(*indent_ >= 0);
+    }
+  }
+
  private:
   void PrintIndent() {
-    for (int i = 0; i < indent_; i++) { OS::Print(". "); }
+    for (intptr_t i = 0; i < *indent_; i++) { OS::Print(". "); }
   }
-  static int indent_;
+  intptr_t* indent_;
 };
 
-int TraceParser::indent_ = 0;
 
 #define TRACE_PARSER(s) \
-  TraceParser __p__(this->TokenPos(), this->script_, s)
+  TraceParser __p__(this->TokenPos(), this->script_, &this->trace_indent_, s)
 
 #else  // not DEBUG
 #define TRACE_PARSER(s)
@@ -326,7 +335,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       try_blocks_list_(NULL),
       last_used_try_index_(0),
       unregister_pending_function_(false),
-      async_temp_scope_(NULL) {
+      async_temp_scope_(NULL),
+      trace_indent_(0) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -358,7 +368,8 @@ Parser::Parser(const Script& script,
       try_blocks_list_(NULL),
       last_used_try_index_(0),
       unregister_pending_function_(false),
-      async_temp_scope_(NULL) {
+      async_temp_scope_(NULL),
+      trace_indent_(0) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   EnsureExpressionTemp();
