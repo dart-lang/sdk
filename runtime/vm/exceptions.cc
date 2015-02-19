@@ -73,7 +73,7 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
   virtual void AddFrame(const Code& code, const Smi& offset);
 
  private:
-  static const int kNumTopframes = 3;
+  static const int kNumTopframes = Stacktrace::kPreallocatedStackdepth / 2;
 
   const Stacktrace& stacktrace_;
   intptr_t cur_index_;
