@@ -9,7 +9,10 @@ library engine.all_the_rest_test;
 
 import 'dart:collection';
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -32,16 +35,13 @@ import 'package:analyzer/src/generated/testing/html_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:path/src/context.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import 'parser_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:path/src/context.dart';
 
 
 main() {
@@ -508,10 +508,6 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     expect(value, null);
   }
 
-  void fail_plus_string_string() {
-    _assertValue4("ab", "'a' + 'b'");
-  }
-
   void fail_prefixedIdentifier_invalid() {
     EvaluationResult result = _getExpressionValue("?");
     expect(result.isValid, isTrue);
@@ -554,14 +550,6 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     expect(value, null);
   }
 
-  void fail_stringLength_complex() {
-    _assertValue3(6, "('qwe' + 'rty').length");
-  }
-
-  void fail_stringLength_simple() {
-    _assertValue3(6, "'Dvorak'.length");
-  }
-
   void test_bitAnd_int_int() {
     _assertValue3(74 & 42, "74 & 42");
   }
@@ -577,6 +565,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   void test_bitXor_int_int() {
     _assertValue3(74 ^ 42, "74 ^ 42");
   }
+
   void test_divide_double_double() {
     _assertValue2(3.2 / 2.3, "3.2 / 2.3");
   }
@@ -592,7 +581,6 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   void test_divide_int_int() {
     _assertValue3(1, "3 / 2");
   }
-
   void test_divide_int_int_byZero() {
     EvaluationResult result = _getExpressionValue("3 / 0");
     expect(result.isValid, isTrue);
@@ -631,6 +619,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   void test_leftShift_int_int() {
     _assertValue3(64, "16 << 2");
   }
+
   void test_lessThan_int_int() {
     _assertValue(true, "2 < 3");
   }
@@ -642,7 +631,6 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   void test_literal_boolean_false() {
     _assertValue(false, "false");
   }
-
   void test_literal_boolean_true() {
     _assertValue(true, "true");
   }
@@ -757,6 +745,10 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     _assertValue3(5, "2 + 3");
   }
 
+  void test_plus_string_string() {
+    _assertValue4("ab", "'a' + 'b'");
+  }
+
   void test_remainder_double_double() {
     _assertValue2(3.2 % 2.3, "3.2 % 2.3");
   }
@@ -767,6 +759,14 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_rightShift() {
     _assertValue3(16, "64 >> 2");
+  }
+
+  void test_stringLength_complex() {
+    _assertValue3(6, "('qwe' + 'rty').length");
+  }
+
+  void test_stringLength_simple() {
+    _assertValue3(6, "'Dvorak'.length");
   }
 
   void test_times_double_double() {
@@ -2414,8 +2414,8 @@ class CustomUriResolverTest {
     UriResolver resolver = new CustomUriResolver({
       'custom:library': '/path/to/library.dart',
     });
-    Source result = resolver.resolveAbsolute(
-        parseUriWithException("custom:non_library"));
+    Source result =
+        resolver.resolveAbsolute(parseUriWithException("custom:non_library"));
     expect(result, isNull);
   }
 
@@ -2425,8 +2425,8 @@ class CustomUriResolverTest {
     UriResolver resolver = new CustomUriResolver({
       'custom:library': path,
     });
-    Source result = resolver.resolveAbsolute(
-        parseUriWithException("custom:library"));
+    Source result =
+        resolver.resolveAbsolute(parseUriWithException("custom:library"));
     expect(result, isNotNull);
     expect(result.fullName, path);
   }
@@ -2436,25 +2436,6 @@ class CustomUriResolverTest {
 @reflectiveTest
 class DartObjectImplTest extends EngineTestCase {
   TypeProvider _typeProvider = new TestTypeProvider();
-
-  void fail_add_knownString_knownString() {
-    fail("New constant semantics are not yet enabled");
-    _assertAdd(_stringValue("ab"), _stringValue("a"), _stringValue("b"));
-  }
-
-  void fail_add_knownString_unknownString() {
-    fail("New constant semantics are not yet enabled");
-    _assertAdd(_stringValue(null), _stringValue("a"), _stringValue(null));
-  }
-
-  void fail_add_unknownString_knownString() {
-    fail("New constant semantics are not yet enabled");
-    _assertAdd(_stringValue(null), _stringValue(null), _stringValue("b"));
-  }
-  void fail_add_unknownString_unknownString() {
-    fail("New constant semantics are not yet enabled");
-    _assertAdd(_stringValue(null), _stringValue(null), _stringValue(null));
-  }
 
   void test_add_knownDouble_knownDouble() {
     _assertAdd(_doubleValue(3.0), _doubleValue(1.0), _doubleValue(2.0));
@@ -2492,6 +2473,14 @@ class DartObjectImplTest extends EngineTestCase {
     _assertAdd(null, _stringValue("1"), _intValue(2));
   }
 
+  void test_add_knownString_knownString() {
+    _assertAdd(_stringValue("ab"), _stringValue("a"), _stringValue("b"));
+  }
+
+  void test_add_knownString_unknownString() {
+    _assertAdd(_stringValue(null), _stringValue("a"), _stringValue(null));
+  }
+
   void test_add_unknownDouble_knownDouble() {
     _assertAdd(_doubleValue(null), _doubleValue(null), _doubleValue(2.0));
   }
@@ -2506,6 +2495,14 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_add_unknownInt_knownInt() {
     _assertAdd(_intValue(null), _intValue(null), _intValue(2));
+  }
+
+  void test_add_unknownString_knownString() {
+    _assertAdd(_stringValue(null), _stringValue(null), _stringValue("b"));
+  }
+
+  void test_add_unknownString_unknownString() {
+    _assertAdd(_stringValue(null), _stringValue(null), _stringValue(null));
   }
   void test_bitAnd_knownInt_knownInt() {
     _assertBitAnd(_intValue(2), _intValue(6), _intValue(3));
@@ -8554,21 +8551,25 @@ class SourceFactoryTest {
   void test_resolveUri_nonAbsolute_relative_package() {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     Context context = provider.pathContext;
-    String packagePath = context.joinAll([context.separator, 'path', 'to', 'package']);
+    String packagePath =
+        context.joinAll([context.separator, 'path', 'to', 'package']);
     String libPath = context.joinAll([packagePath, 'lib']);
     String dirPath = context.joinAll([libPath, 'dir']);
     String firstPath = context.joinAll([dirPath, 'first.dart']);
     String secondPath = context.joinAll([dirPath, 'second.dart']);
 
     provider.newFolder(packagePath);
-    Folder libFolder =  provider.newFolder(libPath);
+    Folder libFolder = provider.newFolder(libPath);
     provider.newFolder(dirPath);
     File firstFile = provider.newFile(firstPath, '');
     provider.newFile(secondPath, '');
 
-    PackageMapUriResolver resolver = new PackageMapUriResolver(provider, {'package' : [libFolder]});
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider, {
+      'package': [libFolder]
+    });
     SourceFactory factory = new SourceFactory([resolver]);
-    Source librarySource = firstFile.createSource(Uri.parse('package:package/dir/first.dart'));
+    Source librarySource =
+        firstFile.createSource(Uri.parse('package:package/dir/first.dart'));
 
     Source result = factory.resolveUri(librarySource, 'second.dart');
     expect(result, isNotNull);

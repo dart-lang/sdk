@@ -9,6 +9,8 @@ library engine.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/utilities_general.dart';
+
 import 'ast.dart';
 import 'element.dart';
 import 'engine.dart' show AnalysisEngine, RecordingErrorListener;
@@ -19,7 +21,6 @@ import 'scanner.dart' show Token, TokenType;
 import 'source.dart' show Source;
 import 'utilities_collection.dart';
 import 'utilities_dart.dart' show ParameterKind;
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the class `BoolState` represent the state of an object representing a boolean
@@ -1265,6 +1266,19 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   void beforeGetEvaluationResult(AstNode node) {
   }
 
+  /**
+   * Return `true` if the given [element] represents the `length` getter in
+   * class [String].
+   */
+  bool isStringLength(Element element) {
+    if (element is PropertyAccessorElement) {
+      if (element.isGetter && element.name == 'length') {
+        return element.enclosingElement == _typeProvider.stringType.element;
+      }
+    }
+    return false;
+  }
+
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
     DartObjectImpl result = null;
@@ -1547,13 +1561,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // TODO(brianwilkerson) Uncomment the lines below when the new constant
-    // support can be added.
-    //    Element element = node.getStaticElement();
-    //    if (isStringLength(element)) {
-    //      EvaluationResultImpl target = node.getPrefix().accept(this);
-    //      return target.stringLength(typeProvider, node);
-    //    }
+    // String.length
+    {
+      Element element = node.staticElement;
+      if (isStringLength(element)) {
+        DartObjectImpl prefixResult = node.prefix.accept(this);
+        return prefixResult.stringLength(_typeProvider);
+      }
+    }
+    // importPrefix.CONST
     SimpleIdentifier prefixNode = node.prefix;
     Element prefixElement = prefixNode.staticElement;
     if (prefixElement is! PrefixElement) {
@@ -1593,12 +1609,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   @override
   DartObjectImpl visitPropertyAccess(PropertyAccess node) {
     Element element = node.propertyName.staticElement;
-    // TODO(brianwilkerson) Uncomment the lines below when the new constant
-    // support can be added.
-    //    if (isStringLength(element)) {
-    //      EvaluationResultImpl target = node.getRealTarget().accept(this);
-    //      return target.stringLength(typeProvider, node);
-    //    }
+    if (isStringLength(element)) {
+      DartObjectImpl prefixResult = node.realTarget.accept(this);
+      return prefixResult.stringLength(_typeProvider);
+    }
     return _getConstantValue(node, element);
   }
 
@@ -3597,7 +3611,7 @@ class GenericState extends InstanceState {
       buffer.write(fieldName);
       buffer.write(' = ');
       buffer.write(_fieldMap[fieldName]);
-    };
+    }
     return buffer.toString();
   }
 }
@@ -3664,11 +3678,9 @@ abstract class InstanceState {
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
   InstanceState add(InstanceState rightOperand) {
-    // TODO(brianwilkerson) Uncomment the code below when the new constant
-    // support can be added.
-//    if (this instanceof StringState || rightOperand instanceof StringState) {
-//      return concatenate(rightOperand);
-//    }
+    if (this is StringState && rightOperand is StringState) {
+      return concatenate(rightOperand);
+    }
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
