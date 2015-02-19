@@ -19179,9 +19179,18 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
     uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
     tags = array.CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
+  // TODO(22501): For the heap to remain walkable by the sweeper, it must
+  // observe the creation of the filler object no later than the new length
+  // of the array. This assumption holds on ia32/x64 or if the CAS above is a
+  // full memory barrier.
+  //
+  // Also, between the CAS of the header above and the SetLength below,
+  // the array is temporarily in an inconsistent state. The header is considered
+  // the overriding source of object size by RawObject::Size, but the ASSERTs
+  // in RawObject::SizeFromClass must handle this special case.
   array.SetLength(used_len);
 
-  // Null the GrowableObjectArray, we are removing it's backing array.
+  // Null the GrowableObjectArray, we are removing its backing array.
   growable_array.SetLength(0);
   growable_array.SetData(Object::empty_array());
 
