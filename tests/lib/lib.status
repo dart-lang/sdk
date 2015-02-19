@@ -241,7 +241,7 @@ async/timer_not_available_test: SkipByDesign # only meant to test when there is 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
-mirrors/mirrors_used*: Skip # Invalid tests.
+mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
 [ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 async/schedule_microtask6_test: Fail # Issue 10910
@@ -250,10 +250,10 @@ async/multiple_timer_test: Fail, Pass # Issue 15487
 async/stream_periodic3_test: Fail, Pass # Issue 15487
 async/timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/timer_isActive_test: Fail, Pass # Issue 22352
-mirrors/immutable_collections_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
-mirrors/mirrors_reader_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
-mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
-mirrors/local_isolate_test: Skip # Issue 12188
+mirrors/immutable_collections_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
+mirrors/mirrors_reader_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
+mirrors/library_uri_io_test: SkipByDesign # Not intended for drt as it uses dart:io.
+mirrors/local_isolate_test: RuntimeError # Issue 12188
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
@@ -331,5 +331,5 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
-mirrors/immutable_collections_test: Skip  # Timeout.
+mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
