@@ -699,15 +699,16 @@ uword Isolate::GetCurrentStackPointer() {
   uword (*func)() =
       reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());
   // But for performance (and to support simulators), we normally use a local.
-  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
   uword current_sp = func();
   return current_sp;
 #else
+  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
   return stack_allocated_local_address;
 #endif
 #else
+  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
   return stack_allocated_local_address;
 #endif
 }
