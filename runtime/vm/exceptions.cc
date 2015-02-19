@@ -62,8 +62,8 @@ class RegularStacktraceBuilder : public StacktraceBuilder {
 
 class PreallocatedStacktraceBuilder : public StacktraceBuilder {
  public:
-  explicit PreallocatedStacktraceBuilder(const Stacktrace& stacktrace)
-      : stacktrace_(stacktrace),
+  explicit PreallocatedStacktraceBuilder(const Instance& stacktrace)
+  : stacktrace_(Stacktrace::Cast(stacktrace)),
         cur_index_(0) {
     ASSERT(stacktrace_.raw() ==
            Isolate::Current()->object_store()->preallocated_stack_trace());
@@ -293,7 +293,7 @@ RawStacktrace* Exceptions::CurrentStacktrace() {
 
 static void ThrowExceptionHelper(Isolate* isolate,
                                  const Instance& incoming_exception,
-                                 const Stacktrace& existing_stacktrace,
+                                 const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(isolate, incoming_exception.raw());
@@ -307,7 +307,7 @@ static void ThrowExceptionHelper(Isolate* isolate,
   uword handler_pc = 0;
   uword handler_sp = 0;
   uword handler_fp = 0;
-  Stacktrace& stacktrace = Stacktrace::Handle(isolate);
+  Instance& stacktrace = Instance::Handle(isolate);
   bool handler_exists = false;
   bool handler_needs_stacktrace = false;
   if (use_preallocated_stacktrace) {
@@ -492,7 +492,7 @@ void Exceptions::Throw(Isolate* isolate, const Instance& exception) {
 
 void Exceptions::ReThrow(Isolate* isolate,
                          const Instance& exception,
-                         const Stacktrace& stacktrace) {
+                         const Instance& stacktrace) {
   // Null object is a valid exception object.
   ThrowExceptionHelper(isolate, exception, stacktrace, true);
 }
@@ -506,7 +506,7 @@ void Exceptions::PropagateError(const Error& error) {
     // rethrow the exception in the normal fashion.
     const UnhandledException& uhe = UnhandledException::Cast(error);
     const Instance& exc = Instance::Handle(isolate, uhe.exception());
-    const Stacktrace& stk = Stacktrace::Handle(isolate, uhe.stacktrace());
+    const Instance& stk = Instance::Handle(isolate, uhe.stacktrace());
     Exceptions::ReThrow(isolate, exc, stk);
   } else {
     // Return to the invocation stub and return this error object.  The

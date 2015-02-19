@@ -13326,7 +13326,7 @@ void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawUnhandledException* UnhandledException::New(const Instance& exception,
-                                               const Stacktrace& stacktrace,
+                                               const Instance& stacktrace,
                                                Heap::Space space) {
   ASSERT(Object::unhandled_exception_class() != Class::null());
   UnhandledException& result = UnhandledException::Handle();
@@ -13364,7 +13364,7 @@ void UnhandledException::set_exception(const Instance& exception) const {
 }
 
 
-void UnhandledException::set_stacktrace(const Stacktrace& stacktrace) const {
+void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
   StorePointer(&raw_ptr()->stacktrace_, stacktrace.raw());
 }
 

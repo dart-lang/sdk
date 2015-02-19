@@ -4590,7 +4590,7 @@ class UnhandledException : public Error {
     return OFFSET_OF(RawUnhandledException, exception_);
   }
 
-  RawStacktrace* stacktrace() const { return raw_ptr()->stacktrace_; }
+  RawInstance* stacktrace() const { return raw_ptr()->stacktrace_; }
   static intptr_t stacktrace_offset() {
     return OFFSET_OF(RawUnhandledException, stacktrace_);
   }
@@ -4600,7 +4600,7 @@ class UnhandledException : public Error {
   }
 
   static RawUnhandledException* New(const Instance& exception,
-                                    const Stacktrace& stacktrace,
+                                    const Instance& stacktrace,
                                     Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
@@ -4609,7 +4609,7 @@ class UnhandledException : public Error {
   static RawUnhandledException* New(Heap::Space space = Heap::kNew);
 
   void set_exception(const Instance& exception) const;
-  void set_stacktrace(const Stacktrace& stacktrace) const;
+  void set_stacktrace(const Instance& stacktrace) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
