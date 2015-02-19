@@ -1112,7 +1112,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_register(SPREG);
 #else
-  uword stack_pos = reinterpret_cast<uword>(&arguments);
+  uword stack_pos = Isolate::GetCurrentStackPointer();
 #endif
   // Always clear the stack overflow flags.  They are meant for this
   // particular stack overflow runtime call and are not meant to

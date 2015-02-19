@@ -123,7 +123,7 @@ class Isolate : public BaseIsolate {
   static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();
-  static Isolate* Init(const char* name_prefix);
+  static Isolate* Init(const char* name_prefix, bool is_vm_isolate = false);
   void Shutdown();
 
   Isolate* ShallowCopy();
@@ -248,9 +248,14 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
+  void InitializeStackLimit();
   void SetStackLimit(uword value);
   void SetStackLimitFromStackBase(uword stack_base);
   void ClearStackLimit();
+
+  // Returns the current C++ stack pointer. Equivalent taking the address of a
+  // stack allocated local, but plays well with AddressSanitizer.
+  static uword GetCurrentStackPointer();
 
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
@@ -794,7 +799,8 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       Isolate::SetCurrent(new_isolate_);
-      new_isolate_->SetStackLimitFromStackBase(reinterpret_cast<uword>(this));
+      new_isolate_->SetStackLimitFromStackBase(
+          Isolate::GetCurrentStackPointer());
     }
   }
 

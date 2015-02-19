@@ -112,7 +112,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   {
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
-    vm_isolate_ = Isolate::Init("vm-isolate");
+    const bool is_vm_isolate = true;
+    vm_isolate_ = Isolate::Init("vm-isolate", is_vm_isolate);
     StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_,
@@ -124,6 +125,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
+    // Now that the needed stub has been generated, set the stack limit.
+    vm_isolate_->InitializeStackLimit();
     Symbols::InitOnce(vm_isolate_);
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)

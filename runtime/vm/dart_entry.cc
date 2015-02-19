@@ -31,19 +31,17 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 class ScopedIsolateStackLimits : public ValueObject {
  public:
   explicit ScopedIsolateStackLimits(Isolate* isolate)
-      : isolate_(isolate) {
+      : isolate_(isolate), stack_base_(Isolate::GetCurrentStackPointer()) {
     ASSERT(isolate_ != NULL);
     ASSERT(isolate_ == Isolate::Current());
-    uword stack_base = reinterpret_cast<uword>(this);
-    if (stack_base >= isolate_->stack_base()) {
-      isolate_->SetStackLimitFromStackBase(stack_base);
+    if (stack_base_ >= isolate_->stack_base()) {
+      isolate_->SetStackLimitFromStackBase(stack_base_);
     }
   }
 
   ~ScopedIsolateStackLimits() {
     ASSERT(isolate_ == Isolate::Current());
-    uword stack_base = reinterpret_cast<uword>(this);
-    if (isolate_->stack_base() == stack_base) {
+    if (isolate_->stack_base() == stack_base_) {
       // Bottomed out.
       isolate_->ClearStackLimit();
     }
@@ -51,6 +49,7 @@ class ScopedIsolateStackLimits : public ValueObject {
 
  private:
   Isolate* isolate_;
+  uword stack_base_;
 };
 
 

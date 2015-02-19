@@ -55,7 +55,7 @@ class SimulatorSetjmpBuffer {
     link_ = sim->last_setjmp_buffer();
     sim->set_last_setjmp_buffer(this);
     sp_ = static_cast<uword>(sim->get_register(SP));
-    native_sp_ = reinterpret_cast<uword>(&sim);  // Current C++ stack pointer.
+    native_sp_ = Isolate::GetCurrentStackPointer();
   }
 
   ~SimulatorSetjmpBuffer() {
@@ -1241,7 +1241,7 @@ void Simulator::DoBreak(Instr *instr) {
           (redirection->call_kind() == kBootstrapNativeCall) ||
           (redirection->call_kind() == kNativeCall)) {
         // Set the top_exit_frame_info of this simulator to the native stack.
-        set_top_exit_frame_info(reinterpret_cast<uword>(&buffer));
+        set_top_exit_frame_info(Isolate::GetCurrentStackPointer());
       }
       if (redirection->call_kind() == kRuntimeCall) {
         NativeArguments arguments;
