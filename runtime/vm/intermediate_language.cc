@@ -3508,8 +3508,8 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
 
 intptr_t MergedMathInstr::OutputIndexOf(intptr_t kind) {
   switch (kind) {
-    case MethodRecognizer::kMathSin: return 1;
-    case MethodRecognizer::kMathCos: return 0;
+    case MathUnaryInstr::kSin: return 1;
+    case MathUnaryInstr::kCos: return 0;
     default: UNIMPLEMENTED(); return -1;
   }
 }
