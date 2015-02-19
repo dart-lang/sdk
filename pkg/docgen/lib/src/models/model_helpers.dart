@@ -217,8 +217,9 @@ Map addAll(Map map, Iterable<DeclarationMirror> mirrors) {
 /// values of which point to a map of exported name identifiers with values
 /// corresponding to the actual DeclarationMirror.
 Map<String, Map<String, DeclarationMirror>> calcExportedItems(
-    LibrarySourceMirror library) {
+    LibrarySourceMirror library, Map visited) {
   var exports = {};
+  visited[library] = exports;
   exports['classes'] = new SplayTreeMap();
   exports['methods'] = new SplayTreeMap();
   exports['variables'] = new SplayTreeMap();
@@ -226,7 +227,8 @@ Map<String, Map<String, DeclarationMirror>> calcExportedItems(
   // Determine the classes, variables and methods that are exported for a
   // specific dependency.
   void _populateExports(LibraryDependencyMirror export, bool showExport) {
-    var transitiveExports = calcExportedItems(export.targetLibrary);
+    if (visited[export.targetLibrary] != null) return;
+    var transitiveExports = calcExportedItems(export.targetLibrary, visited);
     exports['classes'].addAll(transitiveExports['classes']);
     exports['methods'].addAll(transitiveExports['methods']);
     exports['variables'].addAll(transitiveExports['variables']);
