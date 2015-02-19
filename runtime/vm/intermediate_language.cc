@@ -1566,6 +1566,29 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
 }
 
 
+static bool IsRepresentable(const Integer& value, Representation rep) {
+  switch (rep) {
+    case kTagged:  // Smi case.
+      return value.IsSmi();
+
+    case kUnboxedInt32:
+      if (value.IsSmi() || value.IsMint()) {
+        return Utils::IsInt(32, value.AsInt64Value());
+      }
+      return false;
+
+    case kUnboxedMint:
+      return value.IsSmi() || value.IsMint();
+
+    case kUnboxedUint32:  // Only truncating Uint32 arithmetic is supported.
+    default:
+      UNREACHABLE();
+  }
+
+  return false;
+}
+
+
 RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
                                            const Integer& right) const {
   Integer& result = Integer::Handle();
@@ -1607,6 +1630,13 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
       int64_t truncated = result.AsTruncatedInt64Value();
       truncated &= RepresentationMask(representation());
       result = Integer::New(truncated);
+      ASSERT(IsRepresentable(result, representation()));
+    } else if (!IsRepresentable(result, representation())) {
+      // If this operation is not truncating it would deoptimize on overflow.
+      // Check that we match this behavior and don't produce a value that is
+      // larger than something this operation can produce. We could have
+      // specialized instructions that use this value under this assumption.
+      return Integer::null();
     }
     result ^= result.CheckAndCanonicalize(NULL);
   }

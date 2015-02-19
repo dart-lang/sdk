@@ -657,6 +657,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DeadCodeElimination::EliminateDeadPhis(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+        FlowGraphTypePropagator::Propagate(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
         // Ensure that all phis inserted by optimization passes have consistent
         // representations.
         optimizer.SelectRepresentations();

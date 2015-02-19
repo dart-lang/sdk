@@ -231,7 +231,3 @@ regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
-
-[ $runtime == vm && $arch == ia32 && $mode == release && $system == linux && $checked ]
-# This fails on the --optimization-counter-threshold=5 builder.
-hash_set_test/*: Pass, RuntimeError # Issue 22480
