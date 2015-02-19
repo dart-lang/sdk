@@ -14,8 +14,11 @@
   } catch (e) {
   }
 
-  alert('This script needs EcmaScript 6 features ' +
+  var message = 'This script needs EcmaScript 6 features ' +
       'like `class` and `=>`. Please run in a browser with support, ' +
       'for example: chrome --js-flags="--harmony-arrow-functions' +
-      ' --harmony-classes --harmony-computed-property-names"');
+      ' --harmony-classes --harmony-computed-property-names"';
+  console.error(message);
+  alert(message);
+
 })();

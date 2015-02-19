@@ -105,4 +105,23 @@ main(arguments) {
     expect(outputDir.existsSync(), true,
         reason: '${outputDir.path} was created for dart:core');
   });
+
+
+  if (!dartGen) {
+    test('devc jscodegen html_input.html', () {
+      var filePath = path.join(inputDir, 'html_input.html');
+      compilerMessages.writeln('// Messages from compiling html_input.html');
+
+      var result = compile(filePath, realSdk, options);
+      var success = !result.failure;
+
+      // Write compiler messages to disk.
+      new File(path.join(actualDir, 'html_input.txt'))
+          .writeAsStringSync(compilerMessages.toString());
+
+      var outFile = new File(path.join(actualDir, 'html_input.html'));
+      expect(outFile.existsSync(), success,
+          reason: '${outFile.path} was created iff compilation succeeds');
+    });
+  }
 }

@@ -28,12 +28,15 @@ class LibraryInfo {
   /// Canonical name of the library. This is unfortunately not derived from the
   /// library directive as it doesn't have any meaningful rules enforced.
   /// Instead, this is inferred from the path to the file defining the library.
-  String name;
+  final String name;
+
+  /// Whether this is the entry library that contains `main`.
+  final bool isEntry;
 
   /// Corresponding analyzer element.
   final LibraryElement library;
 
-  LibraryInfo(library)
+  LibraryInfo(library, this.isEntry)
       : library = library,
         name = utils.canonicalLibraryName(library);
 }
