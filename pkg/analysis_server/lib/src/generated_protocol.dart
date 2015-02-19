@@ -223,25 +223,70 @@ class ServerSetSubscriptionsResult {
     return 748820900;
   }
 }
+
 /**
  * server.connected params
+ *
+ * {
+ *   "version": String
+ * }
  */
-class ServerConnectedParams {
-  Notification toNotification() {
-    return new Notification("server.connected", null);
+class ServerConnectedParams implements HasToJson {
+  /**
+   * The version number of the analysis server.
+   */
+  String version;
+
+  ServerConnectedParams(this.version);
+
+  factory ServerConnectedParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String version;
+      if (json.containsKey("version")) {
+        version = jsonDecoder._decodeString(jsonPath + ".version", json["version"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "version");
+      }
+      return new ServerConnectedParams(version);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "server.connected params");
+    }
   }
+
+  factory ServerConnectedParams.fromNotification(Notification notification) {
+    return new ServerConnectedParams.fromJson(
+        new ResponseDecoder(null), "params", notification._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["version"] = version;
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("server.connected", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
 
   @override
   bool operator==(other) {
     if (other is ServerConnectedParams) {
-      return true;
+      return version == other.version;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 509239412;
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, version.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 
