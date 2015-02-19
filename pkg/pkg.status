@@ -32,6 +32,7 @@ analyzer/test/generated/element_test: SkipSlow  # Times out
 analyzer/test/generated/parser_test: SkipSlow  # Times out
 docgen/test/*: SkipSlow
 third_party/html5lib/test/tokenizer_test: SkipSlow  # Times out
+analysis_server/test/edit/refactoring_test: Pass,Fail  # Flaky test, issue 22492
 
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
