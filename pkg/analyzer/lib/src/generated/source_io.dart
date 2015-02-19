@@ -197,7 +197,7 @@ class FileBasedSource extends Source {
 
   @override
   bool operator ==(Object object) =>
-      object != null && object is FileBasedSource && file == object.file;
+      object is FileBasedSource && uri == object.uri;
 
   @override
   bool exists() => file.isFile();
