@@ -954,6 +954,12 @@ class JavaScriptBackend extends Backend {
       assert(traceHelper != null);
       enqueueInResolution(traceHelper, registry);
     }
+
+    // TODO(ahe): Don't know who uses this class, but it wasn't correctly
+    // enqueued after we stopped compiling the @proxy constant eagerly.
+    world.registerInstantiatedClass(
+        interceptorsLibrary.findLocal('JSUInt31'), registry);
+
     registerCheckedModeHelpers(registry);
   }
 
@@ -2397,6 +2403,12 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerMainHasArguments(Enqueuer enqueuer) {
+    // The first argument could be a list of strings.
+    enqueuer.registerInstantiatedClass(
+        listImplementation, compiler.globalDependencies);
+    enqueuer.registerInstantiatedClass(
+        stringImplementation, compiler.globalDependencies);
+
     // If the main method takes arguments, this compilation could be the target
     // of Isolate.spawnUri. Strictly speaking, that can happen also if main
     // takes no arguments, but in this case the spawned isolate can't

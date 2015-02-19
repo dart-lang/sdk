@@ -805,8 +805,8 @@ abstract class Compiler implements DiagnosticListener {
 
   ClassElement typedDataClass;
 
-  /// The constant for the [proxy] variable defined in dart:core.
-  ConstantValue proxyConstant;
+  /// The class for the [proxy] value defined in dart:core.
+  ClassElement proxyClass;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The class for patch annotation defined in dart:_js_helper.
@@ -1331,10 +1331,6 @@ abstract class Compiler implements DiagnosticListener {
       functionClass.ensureResolved(this);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
-      proxyConstant =
-          resolver.constantCompiler.compileConstant(
-              coreLibrary.find('proxy')).value;
-
       if (preserveComments) {
         return libraryLoader.loadLibrary(DART_MIRRORS)
             .then((LibraryElement libraryElement) {
@@ -1403,6 +1399,7 @@ abstract class Compiler implements DiagnosticListener {
     _coreTypes.stackTraceClass = lookupCoreClass('StackTrace');
     _coreTypes.iterableClass = lookupCoreClass('Iterable');
     _coreTypes.symbolClass = lookupCoreClass('Symbol');
+    proxyClass = lookupCoreClass('_Proxy');
     if (!missingCoreClasses.isEmpty) {
       internalError(
           coreLibrary,
@@ -1674,12 +1671,6 @@ abstract class Compiler implements DiagnosticListener {
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
       if (mainMethod.computeSignature(this).parameterCount != 0) {
-        // The first argument could be a list of strings.
-        world.registerInstantiatedClass(
-            backend.listImplementation, globalDependencies);
-        world.registerInstantiatedClass(
-            backend.stringImplementation, globalDependencies);
-
         backend.registerMainHasArguments(world);
       }
       world.addToWorkList(main);

@@ -945,9 +945,17 @@ class ResolverTask extends CompilerTask {
   void _postProcessClassElement(BaseClassElementX element) {
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!element.isProxy &&
-          metadata.constant.value == compiler.proxyConstant) {
-        element.isProxy = true;
+      if (!element.isProxy) {
+        ConstantExpression constantExpression = metadata.constant;
+        if (constantExpression != null) {
+          ConstantValue constant = constantExpression.value;
+          if (constant.isConstructedObject) {
+            ObjectConstantValue object = constant;
+            if (object.type.element == compiler.proxyClass) {
+              element.isProxy = true;
+            }
+          }
+        }
       }
     }
 
