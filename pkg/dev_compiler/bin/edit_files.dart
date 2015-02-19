@@ -15,6 +15,7 @@ import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
+import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart';
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
@@ -31,6 +32,15 @@ final ArgParser argParser = new ArgParser()
   ..addOption('exclude-pattern',
       help: 'regular expression of file names to exclude', defaultsTo: null)
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
+  ..addOption('package-root',
+      abbr: 'p',
+      help: 'Package root to resolve "package:" imports',
+      defaultsTo: 'packages/')
+  ..addFlag('use-multi-package',
+      help: 'Whether to use the multi-package resolver for "package:" imports',
+      defaultsTo: false)
+  ..addOption('package-paths', help: 'if using the multi-package resolver, '
+      'the list of directories where to look for packages.', defaultsTo: '')
   ..addFlag('help', abbr: 'h', help: 'Display this message');
 
 void _showUsageAndExit() {
@@ -112,8 +122,12 @@ void main(List<String> argv) {
   }
 
   var filename = args.rest.first;
-  var typeResolver =
-      new TypeResolver.fromDir(sdkDir.path, new ResolverOptions());
+  var options = new ResolverOptions(
+      useMultiPackage: args['use-multi-package'],
+      packageRoot: args['package-root'],
+      packagePaths: args['package-paths'].split(','));
+
+  var typeResolver = new TypeResolver.fromDir(sdkDir.path, options);
 
   Map json = JSON.decode(new File(filename).readAsStringSync());
   var summary = GlobalSummary.parse(json);
