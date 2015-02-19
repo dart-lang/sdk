@@ -4,9 +4,6 @@
 
 library rewrite_async;
 
-// TODO(sigurdm): Move the try/catch expression to a js_helper function.
-// That would also simplify the sync* case, where the error can just be thrown.
-
 import "dart:math" show max;
 import 'dart:collection';
 
@@ -701,7 +698,7 @@ class AsyncRewriter extends js.NodeVisitor {
   ///
   /// function(x, y, z) {
   ///   var goto = 0, returnValue, completer = new Completer(), p;
-  ///   function helper(result) {
+  ///   function body(result) {
   ///     while (true) {
   ///       switch (goto) {
   ///         case 0:
@@ -721,8 +718,9 @@ class AsyncRewriter extends js.NodeVisitor {
   /// }
   ///
   /// Try/catch is implemented by maintaining [handlerName] to contain the label
-  /// of the current handler. The switch is nested inside a try/catch that will
-  /// redirect the flow to the current handler.
+  /// of the current handler. If [bodyName] throws, the caller should catch the
+  /// error and recall [bodyName] with first argument [error_codes.ERROR] and
+  /// second argument the error.
   ///
   /// A `finally` clause is compiled similar to normal code, with the additional
   /// complexity that `finally` clauses need to know where to jump to after the
@@ -730,7 +728,7 @@ class AsyncRewriter extends js.NodeVisitor {
   /// sets up the variable [nextName] with a stack of finally-blocks and a final
   /// jump-target (exit, catch, ...).
   ///
-  /// function (x, y, z) async {
+  /// function(x, y, z) async {
   ///   try {
   ///     try {
   ///       throw "error";
@@ -753,57 +751,52 @@ class AsyncRewriter extends js.NodeVisitor {
   ///   var completer = new Completer();
   ///   var handler = 8; // Outside try-blocks go to the rethrow label.
   ///   var p;
-  ///   var storedError;
+  ///   var currentError;
   ///   // The result can be either the result of an awaited future, or an
   ///   // error if the future completed with an error.
-  ///   function helper(errorCode, result) {
+  ///   function body(errorCode, result) {
   ///     if (errorCode == 1) {
-  ///       storedError = result;
+  ///       currentError = result;
   ///       goto = handler;
   ///     }
   ///     while (true) {
-  ///       try {
-  ///         switch (goto) {
-  ///           case 0:
-  ///             handler = 4; // The outer catch-handler
-  ///             handler = 1; // The inner (implicit) catch-handler
-  ///             throw "error";
-  ///             next = [3];
-  ///             // After the finally (2) continue normally after the try.
-  ///             goto = 2;
-  ///             break;
-  ///           case 1: // (implicit) catch handler for inner try.
-  ///             next = [3]; // destination after the finally.
-  ///             // fall-though to the finally handler.
-  ///           case 2: // finally for inner try
-  ///             handler = 4; // catch-handler for outer try.
-  ///             finalize1();
-  ///             goto = next.pop();
-  ///             break;
-  ///           case 3: // exiting inner try.
-  ///             next = [6];
-  ///             goto = 5; // finally handler for outer try.
-  ///             break;
-  ///           case 4: // catch handler for outer try.
-  ///             handler = 5; // If the handler throws, do the finally ..
-  ///             next = [8] // ... and rethrow.
-  ///             e = storedError;
-  ///             handle(e);
-  ///             // Fall through to finally.
-  ///           case 5: // finally handler for outer try.
-  ///             handler = null;
-  ///             finalize2();
-  ///             goto = next.pop();
-  ///             break;
-  ///           case 6: // Exiting outer try.
-  ///           case 7: // return
-  ///             return thenHelper(returnValue, 0, completer);
-  ///           case 8: // Rethrow
-  ///             return thenHelper(storedError, 1, completer);
-  ///         }
-  ///       } catch (error) {
-  ///         storedError = error;
-  ///         goto = handler;
+  ///       switch (goto) {
+  ///         case 0:
+  ///           handler = 4; // The outer catch-handler
+  ///           handler = 1; // The inner (implicit) catch-handler
+  ///           throw "error";
+  ///           next = [3];
+  ///           // After the finally (2) continue normally after the try.
+  ///           goto = 2;
+  ///           break;
+  ///         case 1: // (implicit) catch handler for inner try.
+  ///           next = [3]; // destination after the finally.
+  ///           // fall-though to the finally handler.
+  ///         case 2: // finally for inner try
+  ///           handler = 4; // catch-handler for outer try.
+  ///           finalize1();
+  ///           goto = next.pop();
+  ///           break;
+  ///         case 3: // exiting inner try.
+  ///           next = [6];
+  ///           goto = 5; // finally handler for outer try.
+  ///           break;
+  ///         case 4: // catch handler for outer try.
+  ///           handler = 5; // If the handler throws, do the finally ..
+  ///           next = [8] // ... and rethrow.
+  ///           e = storedError;
+  ///           handle(e);
+  ///           // Fall through to finally.
+  ///         case 5: // finally handler for outer try.
+  ///           handler = null;
+  ///           finalize2();
+  ///           goto = next.pop();
+  ///           break;
+  ///         case 6: // Exiting outer try.
+  ///         case 7: // return
+  ///           return thenHelper(returnValue, 0, completer);
+  ///         case 8: // Rethrow
+  ///           return thenHelper(currentError, 1, completer);
   ///       }
   ///     }
   ///     return thenHelper(null, helper, completer);
@@ -835,19 +828,7 @@ class AsyncRewriter extends js.NodeVisitor {
     if (hasJumpThoughOuterLabel) {
       helperBody = new js.LabeledStatement(outerLabelName, helperBody);
     }
-    helperBody = js.js.statement("""
-        try {
-          #body
-        } catch (#error){
-          #currentError = #error;
-          #goto = #handler;
-        }""", {
-          "body": helperBody,
-          "goto": gotoName,
-          "error": errorName,
-          "currentError": currentErrorName,
-          "handler": handlerName,
-        });
+
     List<js.VariableInitialization> inits = <js.VariableInitialization>[];
 
     js.VariableInitialization makeInit(String name, js.Expression initValue) {
@@ -870,9 +851,6 @@ class AsyncRewriter extends js.NodeVisitor {
     if (analysis.hasExplicitReturns && isAsync) {
       inits.add(makeInit(returnValueName, null));
     }
-    if (isSyncStar) {
-      inits.add(makeInit(resultName, null));
-    }
     if (analysis.hasThis && !isSyncStar) {
       // Sync* functions must remember `this` on the level of the outer
       // function.
@@ -892,7 +870,11 @@ class AsyncRewriter extends js.NodeVisitor {
               var #self = this;
             return new #newIterable(function () {
               #varDecl;
-              return function #body() {
+              return function #body(#errorCode, #result) {
+                if (#errorCode == #ERROR) {
+                    #currentError = #result;
+                    #goto = #handler;
+                }
                 while (true)
                   #helperBody;
               };
@@ -903,9 +885,15 @@ class AsyncRewriter extends js.NodeVisitor {
         "needsThis": analysis.hasThis,
         "helperBody": helperBody,
         "varDecl": varDecl,
+        "errorCode": errorCodeName,
         "newIterable": newIterable,
         "body": bodyName,
         "self": selfName,
+        "result": resultName,
+        "goto": gotoName,
+        "handler": handlerName,
+        "currentError": currentErrorName,
+        "ERROR": js.number(error_codes.ERROR),
       });
     }
     return js.js("""

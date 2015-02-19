@@ -3589,8 +3589,24 @@ dynamic asyncHelper(dynamic object,
 
 Function _wrapJsFunctionForAsync(dynamic /* js function */ function,
                                  int errorCode) {
+  var protected = JS('', """
+    // Invokes [function] with [errorCode] and [result].
+    //
+    // If (and as long as) the invocation throws, calls [function] again,
+    // with an error-code.
+    function(errorCode, result) {
+      while (true) {
+        try {
+          #(errorCode, result);
+          break;
+        } catch (error) {
+          result = error;
+          errorCode = #;
+        }
+      }
+    }""", function, async_error_codes.ERROR);
   return (result) {
-    JS('', '#(#, #)', function, errorCode, result);
+    JS('', '#(#, #)', protected, errorCode, result);
   };
 }
 
@@ -3760,7 +3776,7 @@ class IterationMarker {
 }
 
 class SyncStarIterator implements Iterator {
-  final Function _body;
+  final dynamic _body;
 
   // If [runningNested] this is the nested iterator, otherwise it is the
   // current value.
@@ -3769,8 +3785,27 @@ class SyncStarIterator implements Iterator {
 
   get current => _runningNested ? _current.current : _current;
 
-  SyncStarIterator(body)
-      : _body = (() => JS('', '#()', body));
+  SyncStarIterator(this._body);
+
+  runBody() {
+    return JS('', '''
+      // Invokes [body] with [errorCode] and [result].
+      //
+      // If (and as long as) the invocation throws, calls [function] again,
+      // with an error-code.
+      (function(body) {
+        var errorValue, errorCode = #;
+        while (true) {
+          try {
+            return body(errorCode, errorValue);
+          } catch (error) {
+            errorValue = error;
+            errorCode = #
+          }
+        }
+      })(#)''', async_error_codes.SUCCESS, async_error_codes.ERROR, _body);
+  }
+
 
   bool moveNext() {
     if (_runningNested) {
@@ -3780,7 +3815,7 @@ class SyncStarIterator implements Iterator {
         _runningNested = false;
       }
     }
-    _current = _body();
+    _current = runBody();
     if (_current is IterationMarker) {
       if (_current.state == IterationMarker.ITERATION_ENDED) {
         _current = null;
