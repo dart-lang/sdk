@@ -37,12 +37,15 @@ enum_mirror_test: Skip # Issue 11511.
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 
+async_rethrow_test: RuntimeError # Issue 22523
+
 [ $compiler == none || $compiler == dart2dart ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
+
 
 async_await_syntax_test/a09a: CompileTimeError # Issue 21404
 async_await_syntax_test/a10a: CompileTimeError # Issue 21404
@@ -88,6 +91,7 @@ async_await_syntax_test/d10a: RuntimeError # Issue 21404
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
+async_rethrow_test: RuntimeError # Issue 22523
 
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
