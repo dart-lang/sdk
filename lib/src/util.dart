@@ -6,4 +6,10 @@ library linter.src.util;
 
 final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z]+))+$');
 
+final _lowerCaseUnderScoreWithDots =
+    new RegExp(r'^([a-z]+([_]?[a-z]+))+(.([a-z]+([_]?[a-z]+)))*$');
+
 bool isLowerCaseUnderScore(String id) => _lowerCaseUnderScore.hasMatch(id);
+
+bool isLowerCaseUnderScoreWithDots(String id) =>
+    _lowerCaseUnderScoreWithDots.hasMatch(id);

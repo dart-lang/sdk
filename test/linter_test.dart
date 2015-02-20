@@ -257,6 +257,31 @@ defineRuleUnitTests() {
       bad.forEach(
           (s) => test('"$s"', () => expect(isLowerCaseUnderScore(s), isFalse)));
     });
+    group('qualified lower_case_underscores', () {
+      var good = [
+        'bwu_server.shared.datastore.some_file',
+        'foo_bar.baz',
+        'foo.bar',
+        'foo_bar_baz',
+        'foo',
+        'foo.bar_baz.bang'
+      ];
+      good.forEach((s) =>
+          test('"$s"', () => expect(isLowerCaseUnderScoreWithDots(s), isTrue)));
+
+      var bad = [
+        'Foo',
+        'fooBar.',
+        '.foo_Bar',
+        'foo_',
+        '_f',
+        'F_B',
+        'JS',
+        'JSON'
+      ];
+      bad.forEach((s) => test(
+          '"$s"', () => expect(isLowerCaseUnderScoreWithDots(s), isFalse)));
+    });
   });
 }
 

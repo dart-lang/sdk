@@ -35,8 +35,7 @@ supports symbolic imports.
 ''';
 
 class LibraryNames extends LintRule {
-  LibraryNames()
-      : super(
+  LibraryNames() : super(
           name: 'LibraryNames',
           description: desc,
           details: details,
@@ -53,7 +52,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitLibraryDirective(LibraryDirective node) {
-    if (!isLowerCaseUnderScore(node.name.toString())) {
+    if (!isLowerCaseUnderScoreWithDots(node.name.toString())) {
       rule.reportLint(node);
     }
   }
