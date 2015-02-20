@@ -84,8 +84,11 @@ final _primitiveMap = {
   'String': String,
 };
 
+// TODO(vsm): Make this configurable?  Using default settings for now.
+final _typeOptions = new TypeOptions();
+
 Set<Type> _primitives = () {
-  var types = Configuration.nonnullableTypes;
+  var types = _typeOptions.nonnullableTypes;
   var set = new Set<Type>.from(types.map((t) => _primitiveMap[t]));
   return set;
 }();

@@ -4,7 +4,6 @@ import 'package:ddc_analyzer/src/generated/ast.dart';
 import 'package:ddc_analyzer/src/generated/element.dart';
 import 'package:ddc_analyzer/src/generated/resolver.dart';
 
-import 'package:ddc/config.dart';
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/options.dart';
 import 'package:ddc/src/report.dart' show CheckerReporter;
@@ -108,7 +107,7 @@ class RestrictedRules extends TypeRules {
   RestrictedRules(TypeProvider provider, this._reporter, {this.options})
       : _nonnullableTypes = <DartType>[],
         super(provider) {
-    var types = Configuration.nonnullableTypes;
+    var types = options.nonnullableTypes;
     _nonnullableTypes.addAll(types.map(_typeFromName));
   }
 

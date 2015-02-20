@@ -5,6 +5,8 @@
 /// Set of flags and options passed to the compiler
 library ddc.src.options;
 
+import 'package:ddc/config.dart';
+
 /// Options used by ddc's TypeResolver.
 class ResolverOptions {
   /// Whether to resolve 'package:' uris using the multi-package resolver.
@@ -53,8 +55,9 @@ class ResolverOptions {
       this.onlyInferConstsAndFinalFields: false});
 }
 
+// TODO(vsm): Merge RulesOptions and TypeOptions
 /// Options used by ddc's RestrictedRules.
-class RulesOptions {
+class RulesOptions extends TypeOptions {
   /// Whether to use covariant generics
   final bool covariantGenerics;
 
@@ -133,6 +136,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   @override
   final bool onlyInferConstsAndFinalFields;
 
+  /// List of non-nullable types.
+  @override
+  final List<String> nonnullableTypes;
+
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.dumpSrcDir, this.forceCompile: false,
       this.formatOutput: false, this.outputDir, this.outputDart: false,
@@ -141,5 +148,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
       this.packageRoot: 'packages/', this.packagePaths: const [],
       this.inferFromOverrides: true, this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
-      this.onlyInferConstsAndFinalFields: false});
+      this.onlyInferConstsAndFinalFields: false,
+      this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES});
 }

@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:logging/logging.dart' show Logger, Level;
 
+import 'package:ddc/config.dart';
 import 'package:ddc/devc.dart';
 import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
@@ -45,6 +46,10 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('use-multi-package',
       help: 'Whether to use the multi-package resolver for "package:" imports',
       defaultsTo: false)
+  ..addOption('nonnullable',
+      abbr: 'n',
+      help: 'Comma separated string of non-nullable types',
+      defaultsTo: null)
   ..addOption('package-paths', help: 'if using the multi-package resolver, '
       'the list of directories where to look for packages.', defaultsTo: '')
   ..addFlag('sdk-check',
@@ -115,7 +120,9 @@ void main(List<String> argv) {
       inferFromOverrides: args['infer-from-overrides'],
       inferStaticsFromIdentifiers: args['infer-transitively'],
       inferInNonStableOrder: args['infer-eagerly'],
-      onlyInferConstsAndFinalFields: args['infer-only-finals']);
+      onlyInferConstsAndFinalFields: args['infer-only-finals'],
+      nonnullableTypes: optionsToList(args['nonnullable'],
+          defaultValue: TypeOptions.NONNULLABLE_TYPES));
 
   var typeResolver = shouldMockSdk
       ? new TypeResolver.fromMock(mockSdkSources, options)
