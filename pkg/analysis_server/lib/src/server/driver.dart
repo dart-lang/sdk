@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/options.dart';
 import 'package:args/args.dart';
 
 /**
@@ -170,10 +171,10 @@ class Driver implements ServerStarter {
    * Use the given command-line [arguments] to start this server.
    */
   void start(List<String> arguments) {
-    ArgParser parser = _createArgParser();
-    ArgResults results = parser.parse(arguments);
+    CommandLineParser parser = _createArgParser();
+    ArgResults results = parser.parse(arguments, <String, String>{});
     if (results[HELP_OPTION]) {
-      _printUsage(parser);
+      _printUsage(parser.parser);
       return;
     }
 
@@ -211,7 +212,7 @@ class Driver implements ServerStarter {
       } on FormatException {
         print('Invalid port number: ${results[PORT_OPTION]}');
         print('');
-        _printUsage(parser);
+        _printUsage(parser.parser);
         exitCode = 1;
         return;
       }
@@ -309,8 +310,8 @@ class Driver implements ServerStarter {
   /**
    * Create and return the parser used to parse the command-line arguments.
    */
-  ArgParser _createArgParser() {
-    ArgParser parser = new ArgParser();
+  CommandLineParser _createArgParser() {
+    CommandLineParser parser = new CommandLineParser(alwaysIgnoreUnrecognized: true);
     parser.addOption(
         CLIENT_ID,
         help: "an identifier used to identify the client");

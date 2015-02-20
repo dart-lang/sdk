@@ -6,6 +6,7 @@ library options_test;
 
 import 'package:analyzer/options.dart';
 import 'package:unittest/unittest.dart';
+import 'package:args/args.dart';
 
 main() {
 
@@ -110,28 +111,38 @@ main() {
     });
 
     test('customUrlMappings', () {
-      CommandLineOptions options = CommandLineOptions.parse([
-          '--dart-sdk', '.',
-          '--url-mapping', 'dart:dummy,/path/to/dummy.dart',
-          'foo.dart']);
+      CommandLineOptions options = CommandLineOptions.parse(
+          [
+              '--dart-sdk',
+              '.',
+              '--url-mapping',
+              'dart:dummy,/path/to/dummy.dart',
+              'foo.dart']);
       expect(options.customUrlMappings, isNotNull);
       expect(options.customUrlMappings.isEmpty, isFalse);
-      expect(options.customUrlMappings['dart:dummy'],
-             equals('/path/to/dummy.dart'));
+      expect(
+          options.customUrlMappings['dart:dummy'],
+          equals('/path/to/dummy.dart'));
     });
 
 //    test('notice unrecognized flags', () {
-//      CommandLineOptions options = new CommandLineOptions.parse(['--bar', '--baz',
+//      CommandLineOptions options = CommandLineOptions.parse(['--bar', '--baz',
 //        'foo.dart']);
 //      expect(options, isNull);
 //    });
-//
-//    test('ignore unrecognized flags', () {
-//      CommandLineOptions options = new CommandLineOptions.parse([
-//        '--ignore_unrecognized_flags', '--bar', '--baz', 'foo.dart']);
-//      expect(options, isNotNull);
-//      expect(options.sourceFiles, equals(['foo.dart']));
-//    });
+
+    test('ignore unrecognized flags', () {
+      CommandLineOptions options = CommandLineOptions.parse(
+          [
+              '--ignore-unrecognized-flags',
+              '--bar',
+              '--baz',
+              '--dart-sdk',
+              '.',
+              'foo.dart']);
+      expect(options, isNotNull);
+      expect(options.sourceFiles, equals(['foo.dart']));
+    });
 
   });
 
