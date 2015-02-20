@@ -129,10 +129,6 @@ class SearchEngineImpl implements SearchEngine {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
         constructor,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        MatchKind.DECLARATION);
-    requestor.add(
-        constructor,
         IndexConstants.IS_REFERENCED_BY,
         MatchKind.REFERENCE);
     return requestor.merge();

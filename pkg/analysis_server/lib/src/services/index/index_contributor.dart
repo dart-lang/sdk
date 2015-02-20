@@ -220,20 +220,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement element = node.element;
-    // define
-    {
-      Location location;
-      if (node.name != null) {
-        int start = node.period.offset;
-        int end = node.name.end;
-        location = _createLocationForOffset(start, end - start);
-      } else {
-        int start = node.returnType.end;
-        location = _createLocationForOffset(start, 0);
-      }
-      recordRelationship(element, IndexConstants.NAME_IS_DEFINED_BY, location);
-    }
-    // visit children
     enterScope(element);
     try {
       return super.visitConstructorDeclaration(node);

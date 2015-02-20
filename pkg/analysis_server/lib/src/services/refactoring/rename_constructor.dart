@@ -7,6 +7,7 @@ library services.src.refactoring.rename_constructor;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -17,6 +18,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -51,11 +53,14 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future fillChange() async {
-    String replacement = newName.isEmpty ? '' : '.${newName}';
-    // update references
-    List<SearchMatch> matches = await searchEngine.searchReferences(element);
-    List<SourceReference> references = getSourceReferences(matches);
     if (!element.isSynthetic) {
+      // prepare references
+      List<SearchMatch> matches = await searchEngine.searchReferences(element);
+      List<SourceReference> references = getSourceReferences(matches);
+      // append declaration
+      references.add(_createDeclarationReference());
+      // update references
+      String replacement = newName.isEmpty ? '' : '.${newName}';
       for (SourceReference reference in references) {
         reference.addEdit(change, replacement);
       }
@@ -73,5 +78,16 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
           newName);
       result.addError(message, newLocation_fromElement(newNameMember));
     }
+  }
+
+  SourceReference _createDeclarationReference() {
+    SourceRange sourceRange;
+    if (element.periodOffset != null) {
+      sourceRange = rangeStartEnd(element.periodOffset, element.nameEnd);
+    } else {
+      sourceRange = rangeStartLength(element.nameEnd, 0);
+    }
+    String file = element.source.fullName;
+    return new SourceReference(file, sourceRange, element, true, true);
   }
 }

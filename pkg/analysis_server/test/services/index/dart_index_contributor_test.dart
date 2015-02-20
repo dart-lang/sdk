@@ -164,29 +164,6 @@ main() {
         _expectedLocation(mainElement, 'v in []'));
   }
 
-  void test_isDefinedBy_ConstructorElement() {
-    _indexTestUnit('''
-class A {
-  A() {}
-  A.foo() {}
-}''');
-    // prepare elements
-    ClassElement classA = findElement("A");
-    ConstructorElement consA =
-        findNodeElementAtString("A()", (node) => node is ConstructorDeclaration);
-    ConstructorElement consA_foo =
-        findNodeElementAtString("A.foo()", (node) => node is ConstructorDeclaration);
-    // verify
-    _assertRecordedRelation(
-        consA,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(classA, '() {}'));
-    _assertRecordedRelation(
-        consA_foo,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(classA, '.foo() {}', length: 4));
-  }
-
   void test_isDefinedBy_NameElement_method() {
     _indexTestUnit('''
 class A {

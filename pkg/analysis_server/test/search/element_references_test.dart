@@ -60,6 +60,7 @@ main() {
 ''');
     await findElementReferences('named(p)', false);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
     assertHasResult(SearchResultKind.REFERENCE, '.named(2)', 6);
   }
@@ -83,9 +84,8 @@ f(x) {
 ''');
     await findElementReferences('named(p); // A', true);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
-    assertHasResult(SearchResultKind.DECLARATION, '.named(p)', 6);
+    expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
-    expect(results, hasLength(2));
   }
 
   test_constructor_unnamed() async {
@@ -100,6 +100,7 @@ main() {
 ''');
     await findElementReferences('A(p)', false);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
     assertHasResult(SearchResultKind.REFERENCE, '(2)', 0);
   }
@@ -128,9 +129,8 @@ main() {
 ''');
     await findElementReferences('A(p)', true);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
-    assertHasResult(SearchResultKind.DECLARATION, '(p); // A', 0);
+    expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
-    expect(results, hasLength(2));
   }
 
   test_field_explicit() async {

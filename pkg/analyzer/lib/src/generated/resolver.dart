@@ -2606,9 +2606,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       Identifier returnType = node.returnType;
       if (returnType != null) {
         element.nameOffset = returnType.offset;
+        element.nameEnd = returnType.end;
       }
     } else {
       constructorName.staticElement = element;
+      element.periodOffset = node.period.offset;
+      element.nameEnd = constructorName.end;
     }
     holder.validate();
     return null;

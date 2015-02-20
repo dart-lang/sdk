@@ -211,10 +211,8 @@ main() {
 }
 ''');
     ConstructorElement element = findElement('named');
-    ClassElement elementA = findElement('A');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(elementA, MatchKind.DECLARATION, '.named() {}', length: 6),
         _expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)];
     return _verifyReferences(element, expected);
   }
