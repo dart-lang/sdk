@@ -1,0 +1,343 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of dart.convert;
+
+/**
+ * This class provides an interface for converters to
+ * efficiently transmit String data.
+ *
+ * Instead of limiting the interface to one non-chunked String it accepts
+ * partial strings or can be transformed into a byte sink that
+ * accepts UTF-8 code units.
+ *
+ * This abstract class will likely get more methods over time. Implementers are
+ * urged to extend [StringConversionSinkBase] or to mix in
+ * [StringConversionSinkMixin], to ensure that their class covers the newly
+ * added methods.
+ */
+abstract class StringConversionSink
+    extends ChunkedConversionSink<String> {
+  StringConversionSink();
+  factory StringConversionSink.withCallback(void callback(String accumulated))
+      = _StringCallbackSink;
+  factory StringConversionSink.from(Sink<String> sink)
+      = _StringAdapterSink;
+
+  /**
+   * Creates a new instance wrapping the given [sink].
+   *
+   * Every string that is added to the returned instance is forwarded to
+   * the [sink]. The instance is allowed to buffer and is not required to
+   * forward immediately.
+   */
+  factory StringConversionSink.fromStringSink(StringSink sink) =
+      _StringSinkConversionSink;
+
+  /**
+   * Adds the next [chunk] to `this`.
+   *
+   * Adds the substring defined by [start] and [end]-exclusive to `this`.
+   *
+   * If [isLast] is `true` closes `this`.
+   */
+  void addSlice(String chunk, int start, int end, bool isLast);
+
+  /**
+   * Returns `this` as a sink that accepts UTF-8 input.
+   *
+   * If used, this method must be the first and only call to `this`. It
+   * invalidates `this`. All further operations must be performed on the result.
+   */
+  ByteConversionSink asUtf8Sink(bool allowMalformed);
+  // - asRuneSink
+  // - asCodeUnitsSink
+
+  /**
+   * Returns `this` as a [ClosableStringSink].
+   *
+   * If used, this method must be the first and only call to `this`. It
+   * invalidates `this`. All further operations must be performed on the result.
+   */
+  ClosableStringSink asStringSink();
+}
+
+/**
+ * A [ClosableStringSink] extends the [StringSink] interface by adding a
+ * `close` method.
+ */
+abstract class ClosableStringSink extends StringSink {
+  /**
+   * Creates a new instance combining a [StringSink] [sink] and a callback
+   * [onClose] which is invoked when the returned instance is closed.
+   */
+  factory ClosableStringSink.fromStringSink(StringSink sink, void onClose())
+      = _ClosableStringSink;
+
+  /**
+   * Closes `this` and flushes any outstanding data.
+   */
+  void close();
+}
+
+typedef void _StringSinkCloseCallback();
+
+/**
+ * This class wraps an existing [StringSink] and invokes a
+ * closure when [close] is invoked.
+ */
+class _ClosableStringSink implements ClosableStringSink {
+  final _StringSinkCloseCallback _callback;
+  final StringSink _sink;
+
+  _ClosableStringSink(this._sink, this._callback);
+
+  void close() => _callback();
+
+  void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
+  void write(Object o) => _sink.write(o);
+  void writeln([Object o = ""]) => _sink.writeln(o);
+  void writeAll(Iterable objects, [String separator = ""])
+      => _sink.writeAll(objects, separator);
+}
+
+/**
+ * This class wraps an existing [StringConversionSink] and exposes a
+ * [ClosableStringSink] interface. The wrapped sink only needs to implement
+ * `add` and `close`.
+ */
+// TODO(floitsch): make this class public?
+class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
+  static const _MIN_STRING_SIZE = 16;
+
+  StringBuffer _buffer;
+  StringConversionSink _chunkedSink;
+
+  _StringConversionSinkAsStringSinkAdapter(this._chunkedSink)
+      : _buffer = new StringBuffer();
+
+  void close() {
+    if (_buffer.isNotEmpty) _flush();
+    _chunkedSink.close();
+  }
+
+  void writeCharCode(int charCode) {
+    _buffer.writeCharCode(charCode);
+    if (_buffer.length > _MIN_STRING_SIZE) _flush();
+  }
+
+  void write(Object o) {
+    if (_buffer.isNotEmpty) _flush();
+    String str = o.toString();
+    _chunkedSink.add(o.toString());
+  }
+
+  void writeln([Object o = ""]) {
+    _buffer.writeln(o);
+    if (_buffer.length > _MIN_STRING_SIZE) _flush();
+  }
+
+  void writeAll(Iterable objects, [String separator = ""]) {
+    if (_buffer.isNotEmpty) _flush();
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return;
+    if (separator.isEmpty) {
+      do {
+        _chunkedSink.add(iterator.current.toString());
+      } while (iterator.moveNext());
+    } else {
+      _chunkedSink.add(iterator.current.toString());
+      while (iterator.moveNext()) {
+        write(separator);
+        _chunkedSink.add(iterator.current.toString());
+      }
+    }
+  }
+
+  void _flush() {
+    String accumulated = _buffer.toString();
+    _buffer.clear();
+    _chunkedSink.add(accumulated);
+  }
+}
+
+/**
+ * This class provides a base-class for converters that need to accept String
+ * inputs.
+ */
+abstract class StringConversionSinkBase extends StringConversionSinkMixin {
+}
+
+/**
+ * This class provides a mixin for converters that need to accept String
+ * inputs.
+ */
+abstract class StringConversionSinkMixin implements StringConversionSink {
+
+  void addSlice(String str, int start, int end, bool isLast);
+  void close();
+
+  void add(String str) => addSlice(str, 0, str.length, false);
+
+  ByteConversionSink asUtf8Sink(bool allowMalformed) {
+    return new _Utf8ConversionSink(this, allowMalformed);
+  }
+
+  ClosableStringSink asStringSink() {
+    return new _StringConversionSinkAsStringSinkAdapter(this);
+  }
+}
+
+/**
+ * This class is a [StringConversionSink] that wraps a [StringSink].
+ */
+class _StringSinkConversionSink extends StringConversionSinkBase {
+  StringSink _stringSink;
+  _StringSinkConversionSink(StringSink this._stringSink);
+
+  void close() {}
+  void addSlice(String str, int start, int end, bool isLast) {
+    if (start != 0 || end != str.length) {
+      for (int i = start; i < end; i++) {
+        _stringSink.writeCharCode(str.codeUnitAt(i));
+      }
+    } else {
+      _stringSink.write(str);
+    }
+    if (isLast) close();
+  }
+
+  void add(String str) => _stringSink.write(str);
+
+  ByteConversionSink asUtf8Sink(bool allowMalformed) {
+    return new _Utf8StringSinkAdapter(this, _stringSink, allowMalformed);
+  }
+
+  ClosableStringSink asStringSink() {
+    return new ClosableStringSink.fromStringSink(_stringSink, this.close);
+  }
+}
+
+/**
+ * This class accumulates all chunks into one string
+ * and invokes a callback when the sink is closed.
+ *
+ * This class can be used to terminate a chunked conversion.
+ */
+class _StringCallbackSink extends _StringSinkConversionSink {
+  final _ChunkedConversionCallback<String> _callback;
+  _StringCallbackSink(this._callback) : super(new StringBuffer());
+
+  void close() {
+    StringBuffer buffer = _stringSink;
+    String accumulated = buffer.toString();
+    buffer.clear();
+    _callback(accumulated);
+  }
+
+  ByteConversionSink asUtf8Sink(bool allowMalformed) {
+    return new _Utf8StringSinkAdapter(
+        this, _stringSink, allowMalformed);
+  }
+}
+
+/**
+ * This class adapts a simple [ChunkedConversionSink] to a
+ * [StringConversionSink].
+ *
+ * All additional methods of the [StringConversionSink] (compared to the
+ * ChunkedConversionSink) are redirected to the `add` method.
+ */
+class _StringAdapterSink extends StringConversionSinkBase {
+  final Sink<String> _sink;
+
+  _StringAdapterSink(this._sink);
+
+  void add(String str) => _sink.add(str);
+
+  void addSlice(String str, int start, int end, bool isLast) {
+    if (start == 0 && end == str.length) {
+      add(str);
+    } else {
+      add(str.substring(start, end));
+    }
+    if (isLast) close();
+  }
+
+  void close() => _sink.close();
+}
+
+
+/**
+ * Decodes UTF-8 code units and stores them in a [StringSink].
+ */
+class _Utf8StringSinkAdapter extends ByteConversionSink {
+  final _Utf8Decoder _decoder;
+  final Sink _sink;
+
+  _Utf8StringSinkAdapter(this._sink,
+                         StringSink stringSink, bool allowMalformed)
+      : _decoder = new _Utf8Decoder(stringSink, allowMalformed);
+
+  void close() {
+    _decoder.close();
+    if(_sink != null) _sink.close();
+  }
+
+  void add(List<int> chunk) {
+    addSlice(chunk, 0, chunk.length, false);
+  }
+
+  void addSlice(List<int> codeUnits, int startIndex, int endIndex,
+                bool isLast) {
+    _decoder.convert(codeUnits, startIndex, endIndex);
+    if (isLast) close();
+  }
+}
+
+/**
+ * Decodes UTF-8 code units.
+ *
+ * Forwards the decoded strings to the given [StringConversionSink].
+ */
+// TODO(floitsch): make this class public?
+class _Utf8ConversionSink extends ByteConversionSink {
+
+  final _Utf8Decoder _decoder;
+  final StringConversionSink _chunkedSink;
+  final StringBuffer _buffer;
+  _Utf8ConversionSink(StringConversionSink sink, bool allowMalformed)
+      : this._(sink, new StringBuffer(), allowMalformed);
+
+  _Utf8ConversionSink._(this._chunkedSink, StringBuffer stringBuffer,
+                       bool allowMalformed)
+      : _decoder = new _Utf8Decoder(stringBuffer, allowMalformed),
+        _buffer = stringBuffer;
+
+  void close() {
+    _decoder.close();
+    if (_buffer.isNotEmpty) {
+      String accumulated = _buffer.toString();
+      _buffer.clear();
+      _chunkedSink.addSlice(accumulated, 0, accumulated.length, true);
+    } else  {
+      _chunkedSink.close();
+    }
+  }
+
+  void add(List<int> chunk) {
+    addSlice(chunk, 0, chunk.length, false);
+  }
+
+  void addSlice(List<int> chunk, int startIndex, int endIndex, bool isLast) {
+    _decoder.convert(chunk, startIndex, endIndex);
+    if (_buffer.isNotEmpty) {
+      String accumulated = _buffer.toString();
+      _chunkedSink.addSlice(accumulated, 0, accumulated.length, isLast);
+      _buffer.clear();
+      return;
+    }
+    if (isLast) close();
+  }
+}

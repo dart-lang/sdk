@@ -1297,7 +1297,12 @@ var _internal;
     static remove() { return new core.UnsupportedError("Cannot remove from non-growable List"); }
   }
 
-  /* Unimplemented external List makeListFixedLength(List growableList) ; */
+  // Function makeListFixedLength: (List<dynamic>) → List<dynamic>
+  function makeListFixedLength(growableList) {
+    dart.dinvoke(/* Unimplemented unknown name */JSArray, "markFixedList", growableList);
+    return growableList;
+  }
+
   class Lists extends dart.Object {
     static copy(src, srcStart, dst, dstStart, count) {
       if (srcStart < dstStart) {
@@ -1362,7 +1367,11 @@ var _internal;
   }
 
   _internal.printToZone = null;
-  /* Unimplemented external void printToConsole(String line) ; */
+  // Function printToConsole: (String) → void
+  function printToConsole(line) {
+    dart.dinvokef(/* Unimplemented unknown name */printString, `${line}`);
+  }
+
   class Sort extends dart.Object {
     static sort(a, compare) {
       _doSort(a, 0, a.length - 1, compare);
@@ -1585,7 +1594,9 @@ var _internal;
   Sort._INSERTION_SORT_THRESHOLD = 32;
 
   class Symbol extends dart.Object {
-    /* Unimplemented external const Symbol(String name); */
+    Symbol(name) {
+      this._name = name;
+    }
     Symbol$unvalidated(_name) {
       this._name = _name;
     }
@@ -1696,7 +1707,9 @@ var _internal;
   _internal.ReversedListIterable$ = ReversedListIterable$;
   _internal.UnmodifiableListError = UnmodifiableListError;
   _internal.NonGrowableListError = NonGrowableListError;
+  _internal.makeListFixedLength = makeListFixedLength;
   _internal.Lists = Lists;
+  _internal.printToConsole = printToConsole;
   _internal.Sort = Sort;
   _internal.Symbol = Symbol;
 })(_internal || (_internal = {}));

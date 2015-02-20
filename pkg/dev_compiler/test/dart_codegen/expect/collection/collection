@@ -16,3 +16,1585 @@ part 'maps.dart';
 part 'queue.dart';
 part 'set.dart';
 part 'splay_tree.dart';
+
+class _HashMap<K, V> implements HashMap<K, V> {
+  int _length = 0;
+  var _strings;
+  var _nums;
+  var _rest;
+  List _keys;
+  _HashMap();
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => !isEmpty;
+  Iterable<K> get keys {
+    return new HashMapKeyIterable<K>(this);
+  }
+  Iterable<V> get values {
+    return new MappedIterable<K, V>(keys, (each) => this[each]);
+  }
+  bool containsKey(Object key) {
+    if (_isStringKey(key)) {
+      var strings = _strings;
+      return (strings == null) ? false : _hasTableEntry(strings, key);
+    } else if (_isNumericKey(key)) {
+      var nums = _nums;
+      return (nums == null) ? false : _hasTableEntry(nums, key);
+    } else {
+      return _containsKey(key);
+    }
+  }
+  bool _containsKey(Object key) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, key);
+    return _findBucketIndex(bucket, key) >= 0;
+  }
+  bool containsValue(Object value) {
+    return _computeKeys().any((each) => this[each] == value);
+  }
+  void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
+  }
+  V operator [](Object key) {
+    if (_isStringKey(key)) {
+      var strings = _strings;
+      return ((__x63) => DDC$RT.cast(__x63, dynamic, V, "CastGeneral",
+          """line 95, column 14 of dart:collection: """, __x63 is V,
+          false))((strings == null) ? null : _getTableEntry(strings, key));
+    } else if (_isNumericKey(key)) {
+      var nums = _nums;
+      return ((__x64) => DDC$RT.cast(__x64, dynamic, V, "CastGeneral",
+          """line 98, column 14 of dart:collection: """, __x64 is V,
+          false))((nums == null) ? null : _getTableEntry(nums, key));
+    } else {
+      return _get(key);
+    }
+  }
+  V _get(Object key) {
+    var rest = _rest;
+    if (rest == null) return ((__x65) => DDC$RT.cast(__x65, Null, V,
+        "CastLiteral", """line 106, column 30 of dart:collection: """,
+        __x65 is V, false))(null);
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    return ((__x66) => DDC$RT.cast(__x66, dynamic, V, "CastGeneral",
+        """line 109, column 12 of dart:collection: """, __x66 is V,
+        false))((index < 0) ? null : JS('var', '#[#]', bucket, index + 1));
+  }
+  void operator []=(K key, V value) {
+    if (_isStringKey(key)) {
+      var strings = _strings;
+      if (strings == null) _strings = strings = _newHashTable();
+      _addHashTableEntry(strings, key, value);
+    } else if (_isNumericKey(key)) {
+      var nums = _nums;
+      if (nums == null) _nums = nums = _newHashTable();
+      _addHashTableEntry(nums, key, value);
+    } else {
+      _set(key, value);
+    }
+  }
+  void _set(K key, V value) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(key);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      _setTableEntry(rest, hash, JS('var', '[#, #]', key, value));
+      _length++;
+      _keys = null;
+    } else {
+      int index = _findBucketIndex(bucket, key);
+      if (index >= 0) {
+        JS('void', '#[#] = #', bucket, index + 1, value);
+      } else {
+        JS('void', '#.push(#, #)', bucket, key, value);
+        _length++;
+        _keys = null;
+      }
+    }
+  }
+  V putIfAbsent(K key, V ifAbsent()) {
+    if (containsKey(key)) return this[key];
+    V value = ifAbsent();
+    this[key] = value;
+    return value;
+  }
+  V remove(Object key) {
+    if (_isStringKey(key)) {
+      return _removeHashTableEntry(_strings, key);
+    } else if (_isNumericKey(key)) {
+      return _removeHashTableEntry(_nums, key);
+    } else {
+      return _remove(key);
+    }
+  }
+  V _remove(Object key) {
+    var rest = _rest;
+    if (rest == null) return ((__x67) => DDC$RT.cast(__x67, Null, V,
+        "CastLiteral", """line 166, column 30 of dart:collection: """,
+        __x67 is V, false))(null);
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    if (index < 0) return ((__x68) => DDC$RT.cast(__x68, Null, V, "CastLiteral",
+        """line 169, column 27 of dart:collection: """, __x68 is V,
+        false))(null);
+    _length--;
+    _keys = null;
+    return ((__x69) => DDC$RT.cast(__x69, dynamic, V, "CastGeneral",
+        """line 176, column 12 of dart:collection: """, __x69 is V,
+        false))(JS('var', '#.splice(#, 2)[1]', bucket, index));
+  }
+  void clear() {
+    if (_length > 0) {
+      _strings = _nums = _rest = _keys = null;
+      _length = 0;
+    }
+  }
+  void forEach(void action(K key, V value)) {
+    List keys = _computeKeys();
+    for (int i = 0, length = keys.length; i < length; i++) {
+      var key = JS('var', '#[#]', keys, i);
+      action(DDC$RT.cast(key, dynamic, K, "CastGeneral",
+              """line 190, column 14 of dart:collection: """, key is K, false),
+          this[key]);
+      if (JS('bool', '# !== #', keys, _keys)) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+  }
+  List _computeKeys() {
+    if (_keys != null) return _keys;
+    List result = new List(_length);
+    int index = 0;
+    var strings = _strings;
+    if (strings != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', strings);
+      int entries = ((__x70) => DDC$RT.cast(__x70, dynamic, int, "CastGeneral",
+          """line 206, column 21 of dart:collection: """, __x70 is int,
+          true))(JS('int', '#.length', names));
+      for (int i = 0; i < entries; i++) {
+        String key = ((__x71) => DDC$RT.cast(__x71, dynamic, String,
+            "CastGeneral", """line 208, column 22 of dart:collection: """,
+            __x71 is String, true))(JS('String', '#[#]', names, i));
+        JS('void', '#[#] = #', result, index, key);
+        index++;
+      }
+    }
+    var nums = _nums;
+    if (nums != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', nums);
+      int entries = ((__x72) => DDC$RT.cast(__x72, dynamic, int, "CastGeneral",
+          """line 218, column 21 of dart:collection: """, __x72 is int,
+          true))(JS('int', '#.length', names));
+      for (int i = 0; i < entries; i++) {
+        num key = ((__x73) => DDC$RT.cast(__x73, dynamic, num, "CastGeneral",
+            """line 222, column 19 of dart:collection: """, __x73 is num,
+            true))(JS('num', '+#[#]', names, i));
+        JS('void', '#[#] = #', result, index, key);
+        index++;
+      }
+    }
+    var rest = _rest;
+    if (rest != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', rest);
+      int entries = ((__x74) => DDC$RT.cast(__x74, dynamic, int, "CastGeneral",
+          """line 232, column 21 of dart:collection: """, __x74 is int,
+          true))(JS('int', '#.length', names));
+      for (int i = 0; i < entries; i++) {
+        var key = JS('String', '#[#]', names, i);
+        var bucket = JS('var', '#[#]', rest, key);
+        int length = ((__x75) => DDC$RT.cast(__x75, dynamic, int, "CastGeneral",
+            """line 236, column 22 of dart:collection: """, __x75 is int,
+            true))(JS('int', '#.length', bucket));
+        for (int i = 0; i < length; i += 2) {
+          var key = JS('var', '#[#]', bucket, i);
+          JS('void', '#[#] = #', result, index, key);
+          index++;
+        }
+      }
+    }
+    assert(index == _length);
+    return _keys = result;
+  }
+  void _addHashTableEntry(var table, K key, V value) {
+    if (!_hasTableEntry(table, key)) {
+      _length++;
+      _keys = null;
+    }
+    _setTableEntry(table, key, value);
+  }
+  V _removeHashTableEntry(var table, Object key) {
+    if (table != null && _hasTableEntry(table, key)) {
+      V value = ((__x76) => DDC$RT.cast(__x76, dynamic, V, "CastGeneral",
+          """line 258, column 17 of dart:collection: """, __x76 is V,
+          false))(_getTableEntry(table, key));
+      _deleteTableEntry(table, key);
+      _length--;
+      _keys = null;
+      return value;
+    } else {
+      return ((__x77) => DDC$RT.cast(__x77, Null, V, "CastLiteral",
+          """line 264, column 14 of dart:collection: """, __x77 is V,
+          false))(null);
+    }
+  }
+  static bool _isStringKey(var key) {
+    return key is String && key != '__proto__';
+  }
+  static bool _isNumericKey(var key) {
+    return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
+  }
+  int _computeHashCode(var key) {
+    return ((__x78) => DDC$RT.cast(__x78, dynamic, int, "CastGeneral",
+        """line 283, column 12 of dart:collection: """, __x78 is int,
+        true))(JS('int', '# & 0x3ffffff', key.hashCode));
+  }
+  static bool _hasTableEntry(var table, var key) {
+    var entry = JS('var', '#[#]', table, key);
+    return entry != null;
+  }
+  static _getTableEntry(var table, var key) {
+    var entry = JS('var', '#[#]', table, key);
+    return JS('bool', '# === #', entry, table) ? null : entry;
+  }
+  static void _setTableEntry(var table, var key, var value) {
+    if (value == null) {
+      JS('void', '#[#] = #', table, key, table);
+    } else {
+      JS('void', '#[#] = #', table, key, value);
+    }
+  }
+  static void _deleteTableEntry(var table, var key) {
+    JS('void', 'delete #[#]', table, key);
+  }
+  List _getBucket(var table, var key) {
+    var hash = _computeHashCode(key);
+    return ((__x79) => DDC$RT.cast(__x79, dynamic,
+        DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
+        """line 321, column 12 of dart:collection: """, __x79 is List<dynamic>,
+        true))(JS('var', '#[#]', table, hash));
+  }
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = ((__x80) => DDC$RT.cast(__x80, dynamic, int, "CastGeneral",
+        """line 326, column 18 of dart:collection: """, __x80 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i += 2) {
+      if (JS('var', '#[#]', bucket, i) == key) return i;
+    }
+    return -1;
+  }
+  static _newHashTable() {
+    var table = JS('var', 'Object.create(null)');
+    var temporaryKey = '<non-identifier-key>';
+    _setTableEntry(table, temporaryKey, table);
+    _deleteTableEntry(table, temporaryKey);
+    return table;
+  }
+}
+class _IdentityHashMap<K, V> extends _HashMap<K, V> {
+  int _computeHashCode(var key) {
+    return ((__x81) => DDC$RT.cast(__x81, dynamic, int, "CastGeneral",
+        """line 351, column 12 of dart:collection: """, __x81 is int,
+        true))(JS('int', '# & 0x3ffffff', identityHashCode(key)));
+  }
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = ((__x82) => DDC$RT.cast(__x82, dynamic, int, "CastGeneral",
+        """line 356, column 18 of dart:collection: """, __x82 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i += 2) {
+      if (identical(JS('var', '#[#]', bucket, i), key)) return i;
+    }
+    return -1;
+  }
+}
+class _CustomHashMap<K, V> extends _HashMap<K, V> {
+  final _Equality<K> _equals;
+  final _Hasher<K> _hashCode;
+  final _Predicate _validKey;
+  _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey))
+      : _validKey = (validKey != null) ? validKey : ((v) => v is K);
+  V operator [](Object key) {
+    if (!_validKey(key)) return ((__x83) => DDC$RT.cast(__x83, Null, V,
+        "CastLiteral", """line 371, column 33 of dart:collection: """,
+        __x83 is V, false))(null);
+    return super._get(key);
+  }
+  void operator []=(K key, V value) {
+    super._set(key, value);
+  }
+  bool containsKey(Object key) {
+    if (!_validKey(key)) return false;
+    return super._containsKey(key);
+  }
+  V remove(Object key) {
+    if (!_validKey(key)) return ((__x84) => DDC$RT.cast(__x84, Null, V,
+        "CastLiteral", """line 385, column 33 of dart:collection: """,
+        __x84 is V, false))(null);
+    return super._remove(key);
+  }
+  int _computeHashCode(var key) {
+    return ((__x85) => DDC$RT.cast(__x85, dynamic, int, "CastGeneral",
+        """line 393, column 12 of dart:collection: """, __x85 is int,
+        true))(JS('int', '# & 0x3ffffff', _hashCode(DDC$RT.cast(key, dynamic, K,
+            "CastGeneral", """line 393, column 49 of dart:collection: """,
+            key is K, false))));
+  }
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = ((__x86) => DDC$RT.cast(__x86, dynamic, int, "CastGeneral",
+        """line 398, column 18 of dart:collection: """, __x86 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i += 2) {
+      if (_equals(((__x87) => DDC$RT.cast(__x87, dynamic, K, "CastGeneral",
+              """line 400, column 19 of dart:collection: """, __x87 is K,
+              false))(JS('var', '#[#]', bucket, i)), DDC$RT.cast(key, dynamic,
+          K, "CastGeneral", """line 400, column 49 of dart:collection: """,
+          key is K, false))) return i;
+    }
+    return -1;
+  }
+  String toString() => Maps.mapToString(this);
+}
+class HashMapKeyIterable<E> extends IterableBase<E> implements EfficientLength {
+  final _map;
+  HashMapKeyIterable(this._map);
+  int get length => DDC$RT.cast(_map._length, dynamic, int, "CastGeneral",
+      """line 412, column 21 of dart:collection: """, _map._length is int,
+      true);
+  bool get isEmpty => _map._length == 0;
+  Iterator<E> get iterator {
+    return new HashMapKeyIterator<E>(_map, _map._computeKeys());
+  }
+  bool contains(Object element) {
+    return ((__x88) => DDC$RT.cast(__x88, dynamic, bool, "CastGeneral",
+        """line 420, column 12 of dart:collection: """, __x88 is bool,
+        true))(_map.containsKey(element));
+  }
+  void forEach(void f(E element)) {
+    List keys = ((__x89) => DDC$RT.cast(__x89, dynamic,
+        DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
+        """line 424, column 17 of dart:collection: """, __x89 is List<dynamic>,
+        true))(_map._computeKeys());
+    for (int i = 0,
+            length = ((__x90) => DDC$RT.cast(__x90, dynamic, int, "CastGeneral",
+                    """line 425, column 30 of dart:collection: """,
+                    __x90 is int, true))(JS('int', '#.length', keys));
+        i < length;
+        i++) {
+      f(((__x91) => DDC$RT.cast(__x91, dynamic, E, "CastGeneral",
+          """line 426, column 9 of dart:collection: """, __x91 is E,
+          false))(JS('var', '#[#]', keys, i)));
+      if (JS('bool', '# !== #', keys, _map._keys)) {
+        throw new ConcurrentModificationError(_map);
+      }
+    }
+  }
+}
+class HashMapKeyIterator<E> implements Iterator<E> {
+  final _map;
+  final List _keys;
+  int _offset = 0;
+  E _current;
+  HashMapKeyIterator(this._map, this._keys);
+  E get current => _current;
+  bool moveNext() {
+    var keys = _keys;
+    int offset = _offset;
+    if (JS('bool', '# !== #', keys, _map._keys)) {
+      throw new ConcurrentModificationError(_map);
+    } else if (offset >= JS('int', '#.length', keys)) {
+      _current = ((__x92) => DDC$RT.cast(__x92, Null, E, "CastLiteral",
+          """line 449, column 18 of dart:collection: """, __x92 is E,
+          false))(null);
+      return false;
+    } else {
+      _current = ((__x93) => DDC$RT.cast(__x93, dynamic, E, "CastGeneral",
+          """line 452, column 18 of dart:collection: """, __x93 is E,
+          false))(JS('var', '#[#]', keys, offset));
+      _offset = ((__x94) => DDC$RT.cast(__x94, dynamic, int, "CastGeneral",
+          """line 456, column 17 of dart:collection: """, __x94 is int,
+          true))(JS('int', '#', offset + 1));
+      return true;
+    }
+  }
+}
+class _LinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
+  int _length = 0;
+  var _strings;
+  var _nums;
+  var _rest;
+  LinkedHashMapCell _first;
+  LinkedHashMapCell _last;
+  int _modifications = 0;
+  _LinkedHashMap();
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => !isEmpty;
+  Iterable<K> get keys {
+    return new LinkedHashMapKeyIterable<K>(this);
+  }
+  Iterable<V> get values {
+    return new MappedIterable<K, V>(keys, (each) => this[each]);
+  }
+  bool containsKey(Object key) {
+    if (_isStringKey(key)) {
+      var strings = _strings;
+      if (strings == null) return false;
+      LinkedHashMapCell cell = ((__x95) => DDC$RT.cast(__x95, dynamic,
+          LinkedHashMapCell, "CastGeneral",
+          """line 505, column 32 of dart:collection: """,
+          __x95 is LinkedHashMapCell, true))(_getTableEntry(strings, key));
+      return cell != null;
+    } else if (_isNumericKey(key)) {
+      var nums = _nums;
+      if (nums == null) return false;
+      LinkedHashMapCell cell = ((__x96) => DDC$RT.cast(__x96, dynamic,
+          LinkedHashMapCell, "CastGeneral",
+          """line 510, column 32 of dart:collection: """,
+          __x96 is LinkedHashMapCell, true))(_getTableEntry(nums, key));
+      return cell != null;
+    } else {
+      return _containsKey(key);
+    }
+  }
+  bool _containsKey(Object key) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, key);
+    return _findBucketIndex(bucket, key) >= 0;
+  }
+  bool containsValue(Object value) {
+    return keys.any((each) => this[each] == value);
+  }
+  void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
+  }
+  V operator [](Object key) {
+    if (_isStringKey(key)) {
+      var strings = _strings;
+      if (strings == null) return ((__x97) => DDC$RT.cast(__x97, Null, V,
+          "CastLiteral", """line 537, column 35 of dart:collection: """,
+          __x97 is V, false))(null);
+      LinkedHashMapCell cell = ((__x98) => DDC$RT.cast(__x98, dynamic,
+          LinkedHashMapCell, "CastGeneral",
+          """line 538, column 32 of dart:collection: """,
+          __x98 is LinkedHashMapCell, true))(_getTableEntry(strings, key));
+      return ((__x99) => DDC$RT.cast(__x99, dynamic, V, "CastGeneral",
+          """line 539, column 14 of dart:collection: """, __x99 is V,
+          false))((cell == null) ? null : cell._value);
+    } else if (_isNumericKey(key)) {
+      var nums = _nums;
+      if (nums == null) return ((__x100) => DDC$RT.cast(__x100, Null, V,
+          "CastLiteral", """line 542, column 32 of dart:collection: """,
+          __x100 is V, false))(null);
+      LinkedHashMapCell cell = ((__x101) => DDC$RT.cast(__x101, dynamic,
+          LinkedHashMapCell, "CastGeneral",
+          """line 543, column 32 of dart:collection: """,
+          __x101 is LinkedHashMapCell, true))(_getTableEntry(nums, key));
+      return ((__x102) => DDC$RT.cast(__x102, dynamic, V, "CastGeneral",
+          """line 544, column 14 of dart:collection: """, __x102 is V,
+          false))((cell == null) ? null : cell._value);
+    } else {
+      return _get(key);
+    }
+  }
+  V _get(Object key) {
+    var rest = _rest;
+    if (rest == null) return ((__x103) => DDC$RT.cast(__x103, Null, V,
+        "CastLiteral", """line 552, column 30 of dart:collection: """,
+        __x103 is V, false))(null);
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    if (index < 0) return ((__x104) => DDC$RT.cast(__x104, Null, V,
+        "CastLiteral", """line 555, column 27 of dart:collection: """,
+        __x104 is V, false))(null);
+    LinkedHashMapCell cell = ((__x105) => DDC$RT.cast(__x105, dynamic,
+        LinkedHashMapCell, "CastGeneral",
+        """line 556, column 30 of dart:collection: """,
+        __x105 is LinkedHashMapCell, true))(JS('var', '#[#]', bucket, index));
+    return DDC$RT.cast(cell._value, dynamic, V, "CastGeneral",
+        """line 557, column 12 of dart:collection: """, cell._value is V,
+        false);
+  }
+  void operator []=(K key, V value) {
+    if (_isStringKey(key)) {
+      var strings = _strings;
+      if (strings == null) _strings = strings = _newHashTable();
+      _addHashTableEntry(strings, key, value);
+    } else if (_isNumericKey(key)) {
+      var nums = _nums;
+      if (nums == null) _nums = nums = _newHashTable();
+      _addHashTableEntry(nums, key, value);
+    } else {
+      _set(key, value);
+    }
+  }
+  void _set(K key, V value) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(key);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      LinkedHashMapCell cell = _newLinkedCell(key, value);
+      _setTableEntry(rest, hash, JS('var', '[#]', cell));
+    } else {
+      int index = _findBucketIndex(bucket, key);
+      if (index >= 0) {
+        LinkedHashMapCell cell = ((__x106) => DDC$RT.cast(__x106, dynamic,
+            LinkedHashMapCell, "CastGeneral",
+            """line 585, column 34 of dart:collection: """,
+            __x106 is LinkedHashMapCell,
+            true))(JS('var', '#[#]', bucket, index));
+        cell._value = value;
+      } else {
+        LinkedHashMapCell cell = _newLinkedCell(key, value);
+        JS('void', '#.push(#)', bucket, cell);
+      }
+    }
+  }
+  V putIfAbsent(K key, V ifAbsent()) {
+    if (containsKey(key)) return this[key];
+    V value = ifAbsent();
+    this[key] = value;
+    return value;
+  }
+  V remove(Object key) {
+    if (_isStringKey(key)) {
+      return _removeHashTableEntry(_strings, key);
+    } else if (_isNumericKey(key)) {
+      return _removeHashTableEntry(_nums, key);
+    } else {
+      return _remove(key);
+    }
+  }
+  V _remove(Object key) {
+    var rest = _rest;
+    if (rest == null) return ((__x107) => DDC$RT.cast(__x107, Null, V,
+        "CastLiteral", """line 613, column 30 of dart:collection: """,
+        __x107 is V, false))(null);
+    var bucket = _getBucket(rest, key);
+    int index = _findBucketIndex(bucket, key);
+    if (index < 0) return ((__x108) => DDC$RT.cast(__x108, Null, V,
+        "CastLiteral", """line 616, column 27 of dart:collection: """,
+        __x108 is V, false))(null);
+    LinkedHashMapCell cell = ((__x109) => DDC$RT.cast(__x109, dynamic,
+        LinkedHashMapCell, "CastGeneral",
+        """line 619, column 30 of dart:collection: """,
+        __x109 is LinkedHashMapCell,
+        true))(JS('var', '#.splice(#, 1)[0]', bucket, index));
+    _unlinkCell(cell);
+    return DDC$RT.cast(cell._value, dynamic, V, "CastGeneral",
+        """line 623, column 12 of dart:collection: """, cell._value is V,
+        false);
+  }
+  void clear() {
+    if (_length > 0) {
+      _strings = _nums = _rest = _first = _last = null;
+      _length = 0;
+      _modified();
+    }
+  }
+  void forEach(void action(K key, V value)) {
+    LinkedHashMapCell cell = _first;
+    int modifications = _modifications;
+    while (cell != null) {
+      action(DDC$RT.cast(cell._key, dynamic, K, "CastGeneral",
+          """line 638, column 14 of dart:collection: """, cell._key is K,
+          false), DDC$RT.cast(cell._value, dynamic, V, "CastGeneral",
+          """line 638, column 25 of dart:collection: """, cell._value is V,
+          false));
+      if (modifications != _modifications) {
+        throw new ConcurrentModificationError(this);
+      }
+      cell = cell._next;
+    }
+  }
+  void _addHashTableEntry(var table, K key, V value) {
+    LinkedHashMapCell cell = ((__x110) => DDC$RT.cast(__x110, dynamic,
+        LinkedHashMapCell, "CastGeneral",
+        """line 647, column 30 of dart:collection: """,
+        __x110 is LinkedHashMapCell, true))(_getTableEntry(table, key));
+    if (cell == null) {
+      _setTableEntry(table, key, _newLinkedCell(key, value));
+    } else {
+      cell._value = value;
+    }
+  }
+  V _removeHashTableEntry(var table, Object key) {
+    if (table == null) return ((__x111) => DDC$RT.cast(__x111, Null, V,
+        "CastLiteral", """line 656, column 31 of dart:collection: """,
+        __x111 is V, false))(null);
+    LinkedHashMapCell cell = ((__x112) => DDC$RT.cast(__x112, dynamic,
+        LinkedHashMapCell, "CastGeneral",
+        """line 657, column 30 of dart:collection: """,
+        __x112 is LinkedHashMapCell, true))(_getTableEntry(table, key));
+    if (cell == null) return ((__x113) => DDC$RT.cast(__x113, Null, V,
+        "CastLiteral", """line 658, column 30 of dart:collection: """,
+        __x113 is V, false))(null);
+    _unlinkCell(cell);
+    _deleteTableEntry(table, key);
+    return DDC$RT.cast(cell._value, dynamic, V, "CastGeneral",
+        """line 661, column 12 of dart:collection: """, cell._value is V,
+        false);
+  }
+  void _modified() {
+    _modifications = (_modifications + 1) & 0x3ffffff;
+  }
+  LinkedHashMapCell _newLinkedCell(K key, V value) {
+    LinkedHashMapCell cell = new LinkedHashMapCell(key, value);
+    if (_first == null) {
+      _first = _last = cell;
+    } else {
+      LinkedHashMapCell last = _last;
+      cell._previous = last;
+      _last = last._next = cell;
+    }
+    _length++;
+    _modified();
+    return cell;
+  }
+  void _unlinkCell(LinkedHashMapCell cell) {
+    LinkedHashMapCell previous = cell._previous;
+    LinkedHashMapCell next = cell._next;
+    if (previous == null) {
+      assert(cell == _first);
+      _first = next;
+    } else {
+      previous._next = next;
+    }
+    if (next == null) {
+      assert(cell == _last);
+      _last = previous;
+    } else {
+      next._previous = previous;
+    }
+    _length--;
+    _modified();
+  }
+  static bool _isStringKey(var key) {
+    return key is String && key != '__proto__';
+  }
+  static bool _isNumericKey(var key) {
+    return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
+  }
+  int _computeHashCode(var key) {
+    return ((__x114) => DDC$RT.cast(__x114, dynamic, int, "CastGeneral",
+        """line 721, column 12 of dart:collection: """, __x114 is int,
+        true))(JS('int', '# & 0x3ffffff', key.hashCode));
+  }
+  static _getTableEntry(var table, var key) {
+    return JS('var', '#[#]', table, key);
+  }
+  static void _setTableEntry(var table, var key, var value) {
+    assert(value != null);
+    JS('void', '#[#] = #', table, key, value);
+  }
+  static void _deleteTableEntry(var table, var key) {
+    JS('void', 'delete #[#]', table, key);
+  }
+  List _getBucket(var table, var key) {
+    var hash = _computeHashCode(key);
+    return ((__x115) => DDC$RT.cast(__x115, dynamic,
+        DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
+        """line 739, column 12 of dart:collection: """, __x115 is List<dynamic>,
+        true))(JS('var', '#[#]', table, hash));
+  }
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = ((__x116) => DDC$RT.cast(__x116, dynamic, int, "CastGeneral",
+        """line 744, column 18 of dart:collection: """, __x116 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      LinkedHashMapCell cell = ((__x117) => DDC$RT.cast(__x117, dynamic,
+          LinkedHashMapCell, "CastGeneral",
+          """line 746, column 32 of dart:collection: """,
+          __x117 is LinkedHashMapCell, true))(JS('var', '#[#]', bucket, i));
+      if (cell._key == key) return i;
+    }
+    return -1;
+  }
+  static _newHashTable() {
+    var table = JS('var', 'Object.create(null)');
+    var temporaryKey = '<non-identifier-key>';
+    _setTableEntry(table, temporaryKey, table);
+    _deleteTableEntry(table, temporaryKey);
+    return table;
+  }
+  String toString() => Maps.mapToString(this);
+}
+class _LinkedIdentityHashMap<K, V> extends _LinkedHashMap<K, V> {
+  int _computeHashCode(var key) {
+    return ((__x118) => DDC$RT.cast(__x118, dynamic, int, "CastGeneral",
+        """line 772, column 12 of dart:collection: """, __x118 is int,
+        true))(JS('int', '# & 0x3ffffff', identityHashCode(key)));
+  }
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = ((__x119) => DDC$RT.cast(__x119, dynamic, int, "CastGeneral",
+        """line 777, column 18 of dart:collection: """, __x119 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      LinkedHashMapCell cell = ((__x120) => DDC$RT.cast(__x120, dynamic,
+          LinkedHashMapCell, "CastGeneral",
+          """line 779, column 32 of dart:collection: """,
+          __x120 is LinkedHashMapCell, true))(JS('var', '#[#]', bucket, i));
+      if (identical(cell._key, key)) return i;
+    }
+    return -1;
+  }
+}
+class _LinkedCustomHashMap<K, V> extends _LinkedHashMap<K, V> {
+  final _Equality<K> _equals;
+  final _Hasher<K> _hashCode;
+  final _Predicate _validKey;
+  _LinkedCustomHashMap(
+      this._equals, this._hashCode, bool validKey(potentialKey))
+      : _validKey = (validKey != null) ? validKey : ((v) => v is K);
+  V operator [](Object key) {
+    if (!_validKey(key)) return ((__x121) => DDC$RT.cast(__x121, Null, V,
+        "CastLiteral", """line 794, column 33 of dart:collection: """,
+        __x121 is V, false))(null);
+    return super._get(key);
+  }
+  void operator []=(K key, V value) {
+    super._set(key, value);
+  }
+  bool containsKey(Object key) {
+    if (!_validKey(key)) return false;
+    return super._containsKey(key);
+  }
+  V remove(Object key) {
+    if (!_validKey(key)) return ((__x122) => DDC$RT.cast(__x122, Null, V,
+        "CastLiteral", """line 808, column 33 of dart:collection: """,
+        __x122 is V, false))(null);
+    return super._remove(key);
+  }
+  int _computeHashCode(var key) {
+    return ((__x123) => DDC$RT.cast(__x123, dynamic, int, "CastGeneral",
+        """line 816, column 12 of dart:collection: """, __x123 is int,
+        true))(JS('int', '# & 0x3ffffff', _hashCode(DDC$RT.cast(key, dynamic, K,
+            "CastGeneral", """line 816, column 49 of dart:collection: """,
+            key is K, false))));
+  }
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = ((__x124) => DDC$RT.cast(__x124, dynamic, int, "CastGeneral",
+        """line 821, column 18 of dart:collection: """, __x124 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      LinkedHashMapCell cell = ((__x125) => DDC$RT.cast(__x125, dynamic,
+          LinkedHashMapCell, "CastGeneral",
+          """line 823, column 32 of dart:collection: """,
+          __x125 is LinkedHashMapCell, true))(JS('var', '#[#]', bucket, i));
+      if (_equals(DDC$RT.cast(cell._key, dynamic, K, "CastGeneral",
+          """line 824, column 19 of dart:collection: """, cell._key is K,
+          false), DDC$RT.cast(key, dynamic, K, "CastGeneral",
+          """line 824, column 30 of dart:collection: """, key is K,
+          false))) return i;
+    }
+    return -1;
+  }
+}
+class LinkedHashMapCell {
+  final _key;
+  var _value;
+  LinkedHashMapCell _next;
+  LinkedHashMapCell _previous;
+  LinkedHashMapCell(this._key, this._value);
+}
+class LinkedHashMapKeyIterable<E> extends IterableBase<E>
+    implements EfficientLength {
+  final _map;
+  LinkedHashMapKeyIterable(this._map);
+  int get length => DDC$RT.cast(_map._length, dynamic, int, "CastGeneral",
+      """line 843, column 21 of dart:collection: """, _map._length is int,
+      true);
+  bool get isEmpty => _map._length == 0;
+  Iterator<E> get iterator {
+    return new LinkedHashMapKeyIterator<E>(_map, _map._modifications);
+  }
+  bool contains(Object element) {
+    return ((__x126) => DDC$RT.cast(__x126, dynamic, bool, "CastGeneral",
+        """line 851, column 12 of dart:collection: """, __x126 is bool,
+        true))(_map.containsKey(element));
+  }
+  void forEach(void f(E element)) {
+    LinkedHashMapCell cell = DDC$RT.cast(_map._first, dynamic,
+        LinkedHashMapCell, "CastGeneral",
+        """line 855, column 30 of dart:collection: """,
+        _map._first is LinkedHashMapCell, true);
+    int modifications = DDC$RT.cast(_map._modifications, dynamic, int,
+        "CastGeneral", """line 856, column 25 of dart:collection: """,
+        _map._modifications is int, true);
+    while (cell != null) {
+      f(DDC$RT.cast(cell._key, dynamic, E, "CastGeneral",
+          """line 858, column 9 of dart:collection: """, cell._key is E,
+          false));
+      if (modifications != _map._modifications) {
+        throw new ConcurrentModificationError(_map);
+      }
+      cell = cell._next;
+    }
+  }
+}
+class LinkedHashMapKeyIterator<E> implements Iterator<E> {
+  final _map;
+  final int _modifications;
+  LinkedHashMapCell _cell;
+  E _current;
+  LinkedHashMapKeyIterator(this._map, this._modifications) {
+    _cell = DDC$RT.cast(_map._first, dynamic, LinkedHashMapCell, "CastGeneral",
+        """line 873, column 13 of dart:collection: """,
+        _map._first is LinkedHashMapCell, true);
+  }
+  E get current => _current;
+  bool moveNext() {
+    if (_modifications != _map._modifications) {
+      throw new ConcurrentModificationError(_map);
+    } else if (_cell == null) {
+      _current = ((__x127) => DDC$RT.cast(__x127, Null, E, "CastLiteral",
+          """line 882, column 18 of dart:collection: """, __x127 is E,
+          false))(null);
+      return false;
+    } else {
+      _current = DDC$RT.cast(_cell._key, dynamic, E, "CastGeneral",
+          """line 885, column 18 of dart:collection: """, _cell._key is E,
+          false);
+      _cell = _cell._next;
+      return true;
+    }
+  }
+}
+class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
+  int _length = 0;
+  var _strings;
+  var _nums;
+  var _rest;
+  List _elements;
+  _HashSet();
+  Set<E> _newSet() => new _HashSet<E>();
+  Iterator<E> get iterator {
+    return new HashSetIterator<E>(this, _computeElements());
+  }
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => !isEmpty;
+  bool contains(Object object) {
+    if (_isStringElement(object)) {
+      var strings = _strings;
+      return (strings == null) ? false : _hasTableEntry(strings, object);
+    } else if (_isNumericElement(object)) {
+      var nums = _nums;
+      return (nums == null) ? false : _hasTableEntry(nums, object);
+    } else {
+      return _contains(object);
+    }
+  }
+  bool _contains(Object object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    return _findBucketIndex(bucket, object) >= 0;
+  }
+  E lookup(Object object) {
+    if (_isStringElement(object) || _isNumericElement(object)) {
+      return ((__x128) => DDC$RT.cast(__x128, dynamic, E, "CastGeneral",
+          """line 947, column 14 of dart:collection: """, __x128 is E,
+          false))(this.contains(object) ? object : null);
+    }
+    return _lookup(object);
+  }
+  E _lookup(Object object) {
+    var rest = _rest;
+    if (rest == null) return ((__x129) => DDC$RT.cast(__x129, Null, E,
+        "CastLiteral", """line 954, column 30 of dart:collection: """,
+        __x129 is E, false))(null);
+    var bucket = _getBucket(rest, object);
+    var index = _findBucketIndex(bucket, object);
+    if (index < 0) return ((__x130) => DDC$RT.cast(__x130, Null, E,
+        "CastLiteral", """line 957, column 27 of dart:collection: """,
+        __x130 is E, false))(null);
+    return ((__x131) => DDC$RT.cast(__x131, dynamic, E, "CastGeneral",
+        """line 958, column 12 of dart:collection: """, __x131 is E,
+        false))(bucket[index]);
+  }
+  bool add(E element) {
+    if (_isStringElement(element)) {
+      var strings = _strings;
+      if (strings == null) _strings = strings = _newHashTable();
+      return _addHashTableEntry(strings, element);
+    } else if (_isNumericElement(element)) {
+      var nums = _nums;
+      if (nums == null) _nums = nums = _newHashTable();
+      return _addHashTableEntry(nums, element);
+    } else {
+      return _add(element);
+    }
+  }
+  bool _add(E element) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(element);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      _setTableEntry(rest, hash, JS('var', '[#]', element));
+    } else {
+      int index = _findBucketIndex(bucket, element);
+      if (index >= 0) return false;
+      JS('void', '#.push(#)', bucket, element);
+    }
+    _length++;
+    _elements = null;
+    return true;
+  }
+  void addAll(Iterable<E> objects) {
+    for (E each in objects) {
+      add(each);
+    }
+  }
+  bool remove(Object object) {
+    if (_isStringElement(object)) {
+      return _removeHashTableEntry(_strings, object);
+    } else if (_isNumericElement(object)) {
+      return _removeHashTableEntry(_nums, object);
+    } else {
+      return _remove(object);
+    }
+  }
+  bool _remove(Object object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    int index = _findBucketIndex(bucket, object);
+    if (index < 0) return false;
+    _length--;
+    _elements = null;
+    JS('void', '#.splice(#, 1)', bucket, index);
+    return true;
+  }
+  void clear() {
+    if (_length > 0) {
+      _strings = _nums = _rest = _elements = null;
+      _length = 0;
+    }
+  }
+  List _computeElements() {
+    if (_elements != null) return _elements;
+    List result = new List(_length);
+    int index = 0;
+    var strings = _strings;
+    if (strings != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', strings);
+      int entries = ((__x132) => DDC$RT.cast(__x132, dynamic, int,
+          "CastGeneral", """line 1041, column 21 of dart:collection: """,
+          __x132 is int, true))(JS('int', '#.length', names));
+      for (int i = 0; i < entries; i++) {
+        String element = ((__x133) => DDC$RT.cast(__x133, dynamic, String,
+            "CastGeneral", """line 1043, column 26 of dart:collection: """,
+            __x133 is String, true))(JS('String', '#[#]', names, i));
+        JS('void', '#[#] = #', result, index, element);
+        index++;
+      }
+    }
+    var nums = _nums;
+    if (nums != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', nums);
+      int entries = ((__x134) => DDC$RT.cast(__x134, dynamic, int,
+          "CastGeneral", """line 1053, column 21 of dart:collection: """,
+          __x134 is int, true))(JS('int', '#.length', names));
+      for (int i = 0; i < entries; i++) {
+        num element = ((__x135) => DDC$RT.cast(__x135, dynamic, num,
+            "CastGeneral", """line 1057, column 23 of dart:collection: """,
+            __x135 is num, true))(JS('num', '+#[#]', names, i));
+        JS('void', '#[#] = #', result, index, element);
+        index++;
+      }
+    }
+    var rest = _rest;
+    if (rest != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', rest);
+      int entries = ((__x136) => DDC$RT.cast(__x136, dynamic, int,
+          "CastGeneral", """line 1067, column 21 of dart:collection: """,
+          __x136 is int, true))(JS('int', '#.length', names));
+      for (int i = 0; i < entries; i++) {
+        var entry = JS('String', '#[#]', names, i);
+        var bucket = JS('var', '#[#]', rest, entry);
+        int length = ((__x137) => DDC$RT.cast(__x137, dynamic, int,
+            "CastGeneral", """line 1071, column 22 of dart:collection: """,
+            __x137 is int, true))(JS('int', '#.length', bucket));
+        for (int i = 0; i < length; i++) {
+          JS('void', '#[#] = #[#]', result, index, bucket, i);
+          index++;
+        }
+      }
+    }
+    assert(index == _length);
+    return _elements = result;
+  }
+  bool _addHashTableEntry(var table, E element) {
+    if (_hasTableEntry(table, element)) return false;
+    _setTableEntry(table, element, 0);
+    _length++;
+    _elements = null;
+    return true;
+  }
+  bool _removeHashTableEntry(var table, Object element) {
+    if (table != null && _hasTableEntry(table, element)) {
+      _deleteTableEntry(table, element);
+      _length--;
+      _elements = null;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  static bool _isStringElement(var element) {
+    return element is String && element != '__proto__';
+  }
+  static bool _isNumericElement(var element) {
+    return element is num &&
+        JS('bool', '(# & 0x3ffffff) === #', element, element);
+  }
+  int _computeHashCode(var element) {
+    return ((__x138) => DDC$RT.cast(__x138, dynamic, int, "CastGeneral",
+        """line 1118, column 12 of dart:collection: """, __x138 is int,
+        true))(JS('int', '# & 0x3ffffff', element.hashCode));
+  }
+  static bool _hasTableEntry(var table, var key) {
+    var entry = JS('var', '#[#]', table, key);
+    return entry != null;
+  }
+  static void _setTableEntry(var table, var key, var value) {
+    assert(value != null);
+    JS('void', '#[#] = #', table, key, value);
+  }
+  static void _deleteTableEntry(var table, var key) {
+    JS('void', 'delete #[#]', table, key);
+  }
+  List _getBucket(var table, var element) {
+    var hash = _computeHashCode(element);
+    return ((__x139) => DDC$RT.cast(__x139, dynamic,
+        DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
+        """line 1140, column 12 of dart:collection: """,
+        __x139 is List<dynamic>, true))(JS('var', '#[#]', table, hash));
+  }
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = ((__x140) => DDC$RT.cast(__x140, dynamic, int, "CastGeneral",
+        """line 1145, column 18 of dart:collection: """, __x140 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      if (JS('var', '#[#]', bucket, i) == element) return i;
+    }
+    return -1;
+  }
+  static _newHashTable() {
+    var table = JS('var', 'Object.create(null)');
+    var temporaryKey = '<non-identifier-key>';
+    _setTableEntry(table, temporaryKey, table);
+    _deleteTableEntry(table, temporaryKey);
+    return table;
+  }
+}
+class _IdentityHashSet<E> extends _HashSet<E> {
+  Set<E> _newSet() => new _IdentityHashSet<E>();
+  int _computeHashCode(var key) {
+    return ((__x141) => DDC$RT.cast(__x141, dynamic, int, "CastGeneral",
+        """line 1172, column 12 of dart:collection: """, __x141 is int,
+        true))(JS('int', '# & 0x3ffffff', identityHashCode(key)));
+  }
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = ((__x142) => DDC$RT.cast(__x142, dynamic, int, "CastGeneral",
+        """line 1177, column 18 of dart:collection: """, __x142 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      if (identical(JS('var', '#[#]', bucket, i), element)) return i;
+    }
+    return -1;
+  }
+}
+class _CustomHashSet<E> extends _HashSet<E> {
+  _Equality<E> _equality;
+  _Hasher<E> _hasher;
+  _Predicate _validKey;
+  _CustomHashSet(this._equality, this._hasher, bool validKey(potentialKey))
+      : _validKey = (validKey != null) ? validKey : ((x) => x is E);
+  Set<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = ((__x143) => DDC$RT.cast(__x143, dynamic, int, "CastGeneral",
+        """line 1195, column 18 of dart:collection: """, __x143 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      if (_equality(((__x144) => DDC$RT.cast(__x144, dynamic, E, "CastGeneral",
+              """line 1197, column 21 of dart:collection: """, __x144 is E,
+              false))(JS('var', '#[#]', bucket, i)), DDC$RT.cast(element,
+          dynamic, E, "CastGeneral",
+          """line 1197, column 51 of dart:collection: """, element is E,
+          false))) return i;
+    }
+    return -1;
+  }
+  int _computeHashCode(var element) {
+    return ((__x145) => DDC$RT.cast(__x145, dynamic, int, "CastGeneral",
+        """line 1207, column 12 of dart:collection: """, __x145 is int,
+        true))(JS('int', '# & 0x3ffffff', _hasher(DDC$RT.cast(element, dynamic,
+            E, "CastGeneral", """line 1207, column 47 of dart:collection: """,
+            element is E, false))));
+  }
+  bool add(E object) => super._add(object);
+  bool contains(Object object) {
+    if (!_validKey(object)) return false;
+    return super._contains(object);
+  }
+  E lookup(Object object) {
+    if (!_validKey(object)) return ((__x146) => DDC$RT.cast(__x146, Null, E,
+        "CastLiteral", """line 1218, column 36 of dart:collection: """,
+        __x146 is E, false))(null);
+    return super._lookup(object);
+  }
+  bool remove(Object object) {
+    if (!_validKey(object)) return false;
+    return super._remove(object);
+  }
+}
+class HashSetIterator<E> implements Iterator<E> {
+  final _set;
+  final List _elements;
+  int _offset = 0;
+  E _current;
+  HashSetIterator(this._set, this._elements);
+  E get current => _current;
+  bool moveNext() {
+    var elements = _elements;
+    int offset = _offset;
+    if (JS('bool', '# !== #', elements, _set._elements)) {
+      throw new ConcurrentModificationError(_set);
+    } else if (offset >= JS('int', '#.length', elements)) {
+      _current = ((__x147) => DDC$RT.cast(__x147, Null, E, "CastLiteral",
+          """line 1243, column 18 of dart:collection: """, __x147 is E,
+          false))(null);
+      return false;
+    } else {
+      _current = ((__x148) => DDC$RT.cast(__x148, dynamic, E, "CastGeneral",
+          """line 1246, column 18 of dart:collection: """, __x148 is E,
+          false))(JS('var', '#[#]', elements, offset));
+      _offset = ((__x149) => DDC$RT.cast(__x149, dynamic, int, "CastGeneral",
+          """line 1250, column 17 of dart:collection: """, __x149 is int,
+          true))(JS('int', '#', offset + 1));
+      return true;
+    }
+  }
+}
+class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
+  int _length = 0;
+  var _strings;
+  var _nums;
+  var _rest;
+  LinkedHashSetCell _first;
+  LinkedHashSetCell _last;
+  int _modifications = 0;
+  _LinkedHashSet();
+  Set<E> _newSet() => new _LinkedHashSet<E>();
+  void _unsupported(String operation) {
+    throw 'LinkedHashSet: unsupported $operation';
+  }
+  Iterator<E> get iterator {
+    return ((__x150) => DDC$RT.cast(__x150,
+        DDC$RT.type((LinkedHashSetIterator<dynamic> _) {}),
+        DDC$RT.type((Iterator<E> _) {}), "CastExact",
+        """line 1291, column 12 of dart:collection: """, __x150 is Iterator<E>,
+        false))(new LinkedHashSetIterator(this, _modifications));
+  }
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => !isEmpty;
+  bool contains(Object object) {
+    if (_isStringElement(object)) {
+      var strings = _strings;
+      if (strings == null) return false;
+      LinkedHashSetCell cell = ((__x151) => DDC$RT.cast(__x151, dynamic,
+          LinkedHashSetCell, "CastGeneral",
+          """line 1302, column 32 of dart:collection: """,
+          __x151 is LinkedHashSetCell, true))(_getTableEntry(strings, object));
+      return cell != null;
+    } else if (_isNumericElement(object)) {
+      var nums = _nums;
+      if (nums == null) return false;
+      LinkedHashSetCell cell = ((__x152) => DDC$RT.cast(__x152, dynamic,
+          LinkedHashSetCell, "CastGeneral",
+          """line 1307, column 32 of dart:collection: """,
+          __x152 is LinkedHashSetCell, true))(_getTableEntry(nums, object));
+      return cell != null;
+    } else {
+      return _contains(object);
+    }
+  }
+  bool _contains(Object object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    return _findBucketIndex(bucket, object) >= 0;
+  }
+  E lookup(Object object) {
+    if (_isStringElement(object) || _isNumericElement(object)) {
+      return ((__x153) => DDC$RT.cast(__x153, dynamic, E, "CastGeneral",
+          """line 1323, column 14 of dart:collection: """, __x153 is E,
+          false))(this.contains(object) ? object : null);
+    } else {
+      return _lookup(object);
+    }
+  }
+  E _lookup(Object object) {
+    var rest = _rest;
+    if (rest == null) return ((__x154) => DDC$RT.cast(__x154, Null, E,
+        "CastLiteral", """line 1331, column 30 of dart:collection: """,
+        __x154 is E, false))(null);
+    var bucket = _getBucket(rest, object);
+    var index = _findBucketIndex(bucket, object);
+    if (index < 0) return ((__x155) => DDC$RT.cast(__x155, Null, E,
+        "CastLiteral", """line 1334, column 27 of dart:collection: """,
+        __x155 is E, false))(null);
+    return ((__x156) => DDC$RT.cast(__x156, dynamic, E, "CastGeneral",
+        """line 1335, column 12 of dart:collection: """, __x156 is E,
+        false))(bucket[index]._element);
+  }
+  void forEach(void action(E element)) {
+    LinkedHashSetCell cell = _first;
+    int modifications = _modifications;
+    while (cell != null) {
+      action(DDC$RT.cast(cell._element, dynamic, E, "CastGeneral",
+          """line 1342, column 14 of dart:collection: """, cell._element is E,
+          false));
+      if (modifications != _modifications) {
+        throw new ConcurrentModificationError(this);
+      }
+      cell = cell._next;
+    }
+  }
+  E get first {
+    if (_first == null) throw new StateError("No elements");
+    return DDC$RT.cast(_first._element, dynamic, E, "CastGeneral",
+        """line 1352, column 12 of dart:collection: """, _first._element is E,
+        false);
+  }
+  E get last {
+    if (_last == null) throw new StateError("No elements");
+    return DDC$RT.cast(_last._element, dynamic, E, "CastGeneral",
+        """line 1357, column 12 of dart:collection: """, _last._element is E,
+        false);
+  }
+  bool add(E element) {
+    if (_isStringElement(element)) {
+      var strings = _strings;
+      if (strings == null) _strings = strings = _newHashTable();
+      return _addHashTableEntry(strings, element);
+    } else if (_isNumericElement(element)) {
+      var nums = _nums;
+      if (nums == null) _nums = nums = _newHashTable();
+      return _addHashTableEntry(nums, element);
+    } else {
+      return _add(element);
+    }
+  }
+  bool _add(E element) {
+    var rest = _rest;
+    if (rest == null) _rest = rest = _newHashTable();
+    var hash = _computeHashCode(element);
+    var bucket = JS('var', '#[#]', rest, hash);
+    if (bucket == null) {
+      LinkedHashSetCell cell = _newLinkedCell(element);
+      _setTableEntry(rest, hash, JS('var', '[#]', cell));
+    } else {
+      int index = _findBucketIndex(bucket, element);
+      if (index >= 0) return false;
+      LinkedHashSetCell cell = _newLinkedCell(element);
+      JS('void', '#.push(#)', bucket, cell);
+    }
+    return true;
+  }
+  bool remove(Object object) {
+    if (_isStringElement(object)) {
+      return _removeHashTableEntry(_strings, object);
+    } else if (_isNumericElement(object)) {
+      return _removeHashTableEntry(_nums, object);
+    } else {
+      return _remove(object);
+    }
+  }
+  bool _remove(Object object) {
+    var rest = _rest;
+    if (rest == null) return false;
+    var bucket = _getBucket(rest, object);
+    int index = _findBucketIndex(bucket, object);
+    if (index < 0) return false;
+    LinkedHashSetCell cell = ((__x157) => DDC$RT.cast(__x157, dynamic,
+        LinkedHashSetCell, "CastGeneral",
+        """line 1410, column 30 of dart:collection: """,
+        __x157 is LinkedHashSetCell,
+        true))(JS('var', '#.splice(#, 1)[0]', bucket, index));
+    _unlinkCell(cell);
+    return true;
+  }
+  void removeWhere(bool test(E element)) {
+    _filterWhere(test, true);
+  }
+  void retainWhere(bool test(E element)) {
+    _filterWhere(test, false);
+  }
+  void _filterWhere(bool test(E element), bool removeMatching) {
+    LinkedHashSetCell cell = _first;
+    while (cell != null) {
+      E element = DDC$RT.cast(cell._element, dynamic, E, "CastGeneral",
+          """line 1426, column 19 of dart:collection: """, cell._element is E,
+          false);
+      LinkedHashSetCell next = cell._next;
+      int modifications = _modifications;
+      bool shouldRemove = (removeMatching == test(element));
+      if (modifications != _modifications) {
+        throw new ConcurrentModificationError(this);
+      }
+      if (shouldRemove) remove(element);
+      cell = next;
+    }
+  }
+  void clear() {
+    if (_length > 0) {
+      _strings = _nums = _rest = _first = _last = null;
+      _length = 0;
+      _modified();
+    }
+  }
+  bool _addHashTableEntry(var table, E element) {
+    LinkedHashSetCell cell = ((__x158) => DDC$RT.cast(__x158, dynamic,
+        LinkedHashSetCell, "CastGeneral",
+        """line 1447, column 30 of dart:collection: """,
+        __x158 is LinkedHashSetCell, true))(_getTableEntry(table, element));
+    if (cell != null) return false;
+    _setTableEntry(table, element, _newLinkedCell(element));
+    return true;
+  }
+  bool _removeHashTableEntry(var table, Object element) {
+    if (table == null) return false;
+    LinkedHashSetCell cell = ((__x159) => DDC$RT.cast(__x159, dynamic,
+        LinkedHashSetCell, "CastGeneral",
+        """line 1455, column 30 of dart:collection: """,
+        __x159 is LinkedHashSetCell, true))(_getTableEntry(table, element));
+    if (cell == null) return false;
+    _unlinkCell(cell);
+    _deleteTableEntry(table, element);
+    return true;
+  }
+  void _modified() {
+    _modifications = (_modifications + 1) & 0x3ffffff;
+  }
+  LinkedHashSetCell _newLinkedCell(E element) {
+    LinkedHashSetCell cell = new LinkedHashSetCell(element);
+    if (_first == null) {
+      _first = _last = cell;
+    } else {
+      LinkedHashSetCell last = _last;
+      cell._previous = last;
+      _last = last._next = cell;
+    }
+    _length++;
+    _modified();
+    return cell;
+  }
+  void _unlinkCell(LinkedHashSetCell cell) {
+    LinkedHashSetCell previous = cell._previous;
+    LinkedHashSetCell next = cell._next;
+    if (previous == null) {
+      assert(cell == _first);
+      _first = next;
+    } else {
+      previous._next = next;
+    }
+    if (next == null) {
+      assert(cell == _last);
+      _last = previous;
+    } else {
+      next._previous = previous;
+    }
+    _length--;
+    _modified();
+  }
+  static bool _isStringElement(var element) {
+    return element is String && element != '__proto__';
+  }
+  static bool _isNumericElement(var element) {
+    return element is num &&
+        JS('bool', '(# & 0x3ffffff) === #', element, element);
+  }
+  int _computeHashCode(var element) {
+    return ((__x160) => DDC$RT.cast(__x160, dynamic, int, "CastGeneral",
+        """line 1521, column 12 of dart:collection: """, __x160 is int,
+        true))(JS('int', '# & 0x3ffffff', element.hashCode));
+  }
+  static _getTableEntry(var table, var key) {
+    return JS('var', '#[#]', table, key);
+  }
+  static void _setTableEntry(var table, var key, var value) {
+    assert(value != null);
+    JS('void', '#[#] = #', table, key, value);
+  }
+  static void _deleteTableEntry(var table, var key) {
+    JS('void', 'delete #[#]', table, key);
+  }
+  List _getBucket(var table, var element) {
+    var hash = _computeHashCode(element);
+    return ((__x161) => DDC$RT.cast(__x161, dynamic,
+        DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
+        """line 1539, column 12 of dart:collection: """,
+        __x161 is List<dynamic>, true))(JS('var', '#[#]', table, hash));
+  }
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = ((__x162) => DDC$RT.cast(__x162, dynamic, int, "CastGeneral",
+        """line 1544, column 18 of dart:collection: """, __x162 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      LinkedHashSetCell cell = ((__x163) => DDC$RT.cast(__x163, dynamic,
+          LinkedHashSetCell, "CastGeneral",
+          """line 1546, column 32 of dart:collection: """,
+          __x163 is LinkedHashSetCell, true))(JS('var', '#[#]', bucket, i));
+      if (cell._element == element) return i;
+    }
+    return -1;
+  }
+  static _newHashTable() {
+    var table = JS('var', 'Object.create(null)');
+    var temporaryKey = '<non-identifier-key>';
+    _setTableEntry(table, temporaryKey, table);
+    _deleteTableEntry(table, temporaryKey);
+    return table;
+  }
+}
+class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
+  Set<E> _newSet() => new _LinkedIdentityHashSet<E>();
+  int _computeHashCode(var key) {
+    return ((__x164) => DDC$RT.cast(__x164, dynamic, int, "CastGeneral",
+        """line 1572, column 12 of dart:collection: """, __x164 is int,
+        true))(JS('int', '# & 0x3ffffff', identityHashCode(key)));
+  }
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = ((__x165) => DDC$RT.cast(__x165, dynamic, int, "CastGeneral",
+        """line 1577, column 18 of dart:collection: """, __x165 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      LinkedHashSetCell cell = ((__x166) => DDC$RT.cast(__x166, dynamic,
+          LinkedHashSetCell, "CastGeneral",
+          """line 1579, column 32 of dart:collection: """,
+          __x166 is LinkedHashSetCell, true))(JS('var', '#[#]', bucket, i));
+      if (identical(cell._element, element)) return i;
+    }
+    return -1;
+  }
+}
+class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
+  _Equality<E> _equality;
+  _Hasher<E> _hasher;
+  _Predicate _validKey;
+  _LinkedCustomHashSet(
+      this._equality, this._hasher, bool validKey(potentialKey))
+      : _validKey = (validKey != null) ? validKey : ((x) => x is E);
+  Set<E> _newSet() =>
+      new _LinkedCustomHashSet<E>(_equality, _hasher, _validKey);
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = ((__x167) => DDC$RT.cast(__x167, dynamic, int, "CastGeneral",
+        """line 1598, column 18 of dart:collection: """, __x167 is int,
+        true))(JS('int', '#.length', bucket));
+    for (int i = 0; i < length; i++) {
+      LinkedHashSetCell cell = ((__x168) => DDC$RT.cast(__x168, dynamic,
+          LinkedHashSetCell, "CastGeneral",
+          """line 1600, column 32 of dart:collection: """,
+          __x168 is LinkedHashSetCell, true))(JS('var', '#[#]', bucket, i));
+      if (_equality(DDC$RT.cast(cell._element, dynamic, E, "CastGeneral",
+          """line 1601, column 21 of dart:collection: """, cell._element is E,
+          false), DDC$RT.cast(element, dynamic, E, "CastGeneral",
+          """line 1601, column 36 of dart:collection: """, element is E,
+          false))) return i;
+    }
+    return -1;
+  }
+  int _computeHashCode(var element) {
+    return ((__x169) => DDC$RT.cast(__x169, dynamic, int, "CastGeneral",
+        """line 1611, column 12 of dart:collection: """, __x169 is int,
+        true))(JS('int', '# & 0x3ffffff', _hasher(DDC$RT.cast(element, dynamic,
+            E, "CastGeneral", """line 1611, column 47 of dart:collection: """,
+            element is E, false))));
+  }
+  bool add(E element) => super._add(element);
+  bool contains(Object object) {
+    if (!_validKey(object)) return false;
+    return super._contains(object);
+  }
+  E lookup(Object object) {
+    if (!_validKey(object)) return ((__x170) => DDC$RT.cast(__x170, Null, E,
+        "CastLiteral", """line 1622, column 36 of dart:collection: """,
+        __x170 is E, false))(null);
+    return super._lookup(object);
+  }
+  bool remove(Object object) {
+    if (!_validKey(object)) return false;
+    return super._remove(object);
+  }
+  bool containsAll(Iterable<Object> elements) {
+    for (Object element in elements) {
+      if (!_validKey(element) || !this.contains(element)) return false;
+    }
+    return true;
+  }
+  void removeAll(Iterable<Object> elements) {
+    for (Object element in elements) {
+      if (_validKey(element)) {
+        super._remove(element);
+      }
+    }
+  }
+}
+class LinkedHashSetCell {
+  final _element;
+  LinkedHashSetCell _next;
+  LinkedHashSetCell _previous;
+  LinkedHashSetCell(this._element);
+}
+class LinkedHashSetIterator<E> implements Iterator<E> {
+  final _set;
+  final int _modifications;
+  LinkedHashSetCell _cell;
+  E _current;
+  LinkedHashSetIterator(this._set, this._modifications) {
+    _cell = DDC$RT.cast(_set._first, dynamic, LinkedHashSetCell, "CastGeneral",
+        """line 1661, column 13 of dart:collection: """,
+        _set._first is LinkedHashSetCell, true);
+  }
+  E get current => _current;
+  bool moveNext() {
+    if (_modifications != _set._modifications) {
+      throw new ConcurrentModificationError(_set);
+    } else if (_cell == null) {
+      _current = ((__x171) => DDC$RT.cast(__x171, Null, E, "CastLiteral",
+          """line 1670, column 18 of dart:collection: """, __x171 is E,
+          false))(null);
+      return false;
+    } else {
+      _current = DDC$RT.cast(_cell._element, dynamic, E, "CastGeneral",
+          """line 1673, column 18 of dart:collection: """, _cell._element is E,
+          false);
+      _cell = _cell._next;
+      return true;
+    }
+  }
+}

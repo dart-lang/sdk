@@ -62,11 +62,14 @@ dartanalyzer --fatal-warnings --package-warnings bin/devc.dart | (! grep $PWD) \
   echo "There are" $fc "tests marked as known failures."
 }
 
-# Run formatter on all files that are part of the project. This checks that all
-# files are commited first. This also ignores local files that have never been
-# added to the git repo.
-(files=`git ls-files "*.dart" | grep -v test/`; git status -s $files | \
-  grep -q . \
+# Run formatter in rewrite mode on all files that are part of the project.
+# This checks that all files are commited first to git, so no state is lost.
+# The formatter ignores:
+#   * local files that have never been added to git,
+#   * subdirectories of test/ and tool/, unless explicitly added. Those dirs
+#     contain a lot of generated or external source we should not reformat.
+(files=`git ls-files 'bin/*.dart' 'lib/*.dart' test/*.dart test/checker/*.dart \
+  tool/*.dart | grep -v test/`; git status -s $files | grep -q . \
   && echo "Did not run the formatter, please commit edited files first." \
   || (echo "Running dart formatter" ; pub run dart_style:format -w $files))
 popd &> /dev/null

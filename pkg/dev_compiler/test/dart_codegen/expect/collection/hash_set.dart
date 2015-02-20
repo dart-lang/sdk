@@ -25,9 +25,34 @@ abstract class _HashSetBase<E> extends SetBase<E> {
   Set<E> toSet() => _newSet()..addAll(this);
 }
 abstract class HashSet<E> implements Set<E> {
-  external factory HashSet({bool equals(E e1, E e2), int hashCode(E e),
-      bool isValidKey(potentialKey)});
-  external factory HashSet.identity();
+  @patch factory HashSet({bool equals(E e1, E e2), int hashCode(E e),
+      bool isValidKey(potentialKey)}) {
+    if (isValidKey == null) {
+      if (hashCode == null) {
+        if (equals == null) {
+          return new _HashSet<E>();
+        }
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
+          return new _IdentityHashSet<E>();
+        }
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
+      }
+    } else {
+      if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
+      if (equals == null) {
+        equals = _defaultEquals;
+      }
+    }
+    return new _CustomHashSet<E>(equals, hashCode, isValidKey);
+  }
+  @patch factory HashSet.identity() = _IdentityHashSet<E>;
   factory HashSet.from(Iterable elements) {
     HashSet<E> result = new HashSet<E>();
     for (E e in elements) result.add(e);

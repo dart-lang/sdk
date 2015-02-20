@@ -186,7 +186,9 @@ class Utf8Decoder extends Converter<List<int>, String> {
       DDC$RT.type((DDC$async$.Stream<String> _) {}), "CastDynamic",
       """line 361, column 52 of dart:convert/utf.dart: """,
       __x31 is DDC$async$.Stream<String>, false))(super.bind(stream));
-  external Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next);
+  @patch Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next) {
+    return super.fuse(next);
+  }
 }
 const int _ONE_BYTE_LIMIT = 0x7f;
 const int _TWO_BYTE_LIMIT = 0x7ff;

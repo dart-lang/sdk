@@ -1,7 +1,8 @@
 part of dart.math;
 
 abstract class Random {
-  external factory Random([int seed]);
+  @patch factory Random([int seed]) =>
+      (seed == null) ? const _JSRandom() : new _Random(seed);
   int nextInt(int max);
   double nextDouble();
   bool nextBool();

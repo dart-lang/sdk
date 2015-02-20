@@ -1,6 +1,1380 @@
 var collection;
 (function (collection) {
   'use strict';
+  let _HashMap$ = dart.generic(function(K, V) {
+    class _HashMap extends dart.Object {
+      _HashMap() {
+        this._length = 0;
+        this._strings = null;
+        this._nums = null;
+        this._rest = null;
+        this._keys = null;
+      }
+      get length() { return this._length; }
+      get isEmpty() { return this._length === 0; }
+      get isNotEmpty() { return !dart.notNull(this.isEmpty); }
+      get keys() {
+        return new HashMapKeyIterable(this);
+      }
+      get values() {
+        return new _internal.MappedIterable(this.keys, ((each) => this.get(each)).bind(this));
+      }
+      containsKey(key) {
+        if (_isStringKey(key)) {
+          let strings = this._strings;
+          return (strings === null) ? false : _hasTableEntry(strings, key);
+        } else if (_isNumericKey(key)) {
+          let nums = this._nums;
+          return (nums === null) ? false : _hasTableEntry(nums, key);
+        } else {
+          return this._containsKey(key);
+        }
+      }
+      _containsKey(key) {
+        let rest = this._rest;
+        if (rest === null) return false;
+        let bucket = this._getBucket(rest, key);
+        return this._findBucketIndex(bucket, key) >= 0;
+      }
+      containsValue(value) {
+        return this._computeKeys().any(((each) => dart.equals(this.get(each), value)).bind(this));
+      }
+      addAll(other) {
+        other.forEach(((key, value) => {
+          this.set(key, value);
+        }).bind(this));
+      }
+      get(key) {
+        if (_isStringKey(key)) {
+          let strings = this._strings;
+          return dart.as((strings === null) ? null : _getTableEntry(strings, key), V);
+        } else if (_isNumericKey(key)) {
+          let nums = this._nums;
+          return dart.as((nums === null) ? null : _getTableEntry(nums, key), V);
+        } else {
+          return this._get(key);
+        }
+      }
+      _get(key) {
+        let rest = this._rest;
+        if (rest === null) return dart.as(null, V);
+        let bucket = this._getBucket(rest, key);
+        let index = this._findBucketIndex(bucket, key);
+        return dart.as((index < 0) ? null : dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, index + 1), V);
+      }
+      set(key, value) {
+        if (_isStringKey(key)) {
+          let strings = this._strings;
+          if (strings === null) this._strings = strings = _newHashTable();
+          this._addHashTableEntry(strings, key, value);
+        } else if (_isNumericKey(key)) {
+          let nums = this._nums;
+          if (nums === null) this._nums = nums = _newHashTable();
+          this._addHashTableEntry(nums, key, value);
+        } else {
+          this._set(key, value);
+        }
+      }
+      _set(key, value) {
+        let rest = this._rest;
+        if (rest === null) this._rest = rest = _newHashTable();
+        let hash = this._computeHashCode(key);
+        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        if (bucket === null) {
+          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#, #]', key, value));
+          this._length++;
+          this._keys = null;
+        } else {
+          let index = this._findBucketIndex(bucket, key);
+          if (index >= 0) {
+            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', bucket, index + 1, value);
+          } else {
+            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#, #)', bucket, key, value);
+            this._length++;
+            this._keys = null;
+          }
+        }
+      }
+      putIfAbsent(key, ifAbsent) {
+        if (this.containsKey(key)) return this.get(key);
+        let value = ifAbsent();
+        this.set(key, value);
+        return value;
+      }
+      remove(key) {
+        if (_isStringKey(key)) {
+          return this._removeHashTableEntry(this._strings, key);
+        } else if (_isNumericKey(key)) {
+          return this._removeHashTableEntry(this._nums, key);
+        } else {
+          return this._remove(key);
+        }
+      }
+      _remove(key) {
+        let rest = this._rest;
+        if (rest === null) return dart.as(null, V);
+        let bucket = this._getBucket(rest, key);
+        let index = this._findBucketIndex(bucket, key);
+        if (index < 0) return dart.as(null, V);
+        this._length--;
+        this._keys = null;
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#.splice(#, 2)[1]', bucket, index), V);
+      }
+      clear() {
+        if (this._length > 0) {
+          this._strings = this._nums = this._rest = this._keys = null;
+          this._length = 0;
+        }
+      }
+      forEach(action) {
+        let keys = this._computeKeys();
+        for (let i = 0, length = keys.length; i < length; i++) {
+          let key = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', keys, i);
+          action(dart.as(key, K), this.get(key));
+          if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', keys, this._keys)) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+      }
+      _computeKeys() {
+        if (this._keys !== null) return this._keys;
+        let result = new core.List(this._length);
+        let index = 0;
+        let strings = this._strings;
+        if (strings !== null) {
+          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', strings);
+          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          for (let i = 0; i < entries; i++) {
+            let key = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i), core.String);
+            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, key);
+            index++;
+          }
+        }
+        let nums = this._nums;
+        if (nums !== null) {
+          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', nums);
+          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          for (let i = 0; i < entries; i++) {
+            let key = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'num', '+#[#]', names, i), core.num);
+            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, key);
+            index++;
+          }
+        }
+        let rest = this._rest;
+        if (rest !== null) {
+          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', rest);
+          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          for (let i = 0; i < entries; i++) {
+            let key = dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i);
+            let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, key);
+            let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+            for (let i = 0; i < length; i = 2) {
+              let key = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i);
+              dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, key);
+              index++;
+            }
+          }
+        }
+        dart.assert(index === this._length);
+        return this._keys = result;
+      }
+      _addHashTableEntry(table, key, value) {
+        if (!dart.notNull(_hasTableEntry(table, key))) {
+          this._length++;
+          this._keys = null;
+        }
+        _setTableEntry(table, key, value);
+      }
+      _removeHashTableEntry(table, key) {
+        if (dart.notNull(table !== null) && dart.notNull(_hasTableEntry(table, key))) {
+          let value = dart.as(_getTableEntry(table, key), V);
+          _deleteTableEntry(table, key);
+          this._length--;
+          this._keys = null;
+          return value;
+        } else {
+          return dart.as(null, V);
+        }
+      }
+      static _isStringKey(key) {
+        return dart.notNull(typeof key == "string") && dart.notNull(!dart.equals(key, '__proto__'));
+      }
+      static _isNumericKey(key) {
+        return core.bool.&&(dart.is(key, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', key, key));
+      }
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(key, "hashCode")), core.int);
+      }
+      static _hasTableEntry(table, key) {
+        let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+        return entry !== null;
+      }
+      static _getTableEntry(table, key) {
+        let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+        return dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# === #', entry, table) ? null : entry;
+      }
+      static _setTableEntry(table, key, value) {
+        if (value === null) {
+          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, table);
+        } else {
+          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+        }
+      }
+      static _deleteTableEntry(table, key) {
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+      }
+      _getBucket(table, key) {
+        let hash = this._computeHashCode(key);
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+      }
+      _findBucketIndex(bucket, key) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i = 2) {
+          if (dart.equals(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), key)) return i;
+        }
+        return -1;
+      }
+      static _newHashTable() {
+        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let temporaryKey = '<non-identifier-key>';
+        _setTableEntry(table, temporaryKey, table);
+        _deleteTableEntry(table, temporaryKey);
+        return table;
+      }
+    }
+    return _HashMap;
+  });
+  let _HashMap = _HashMap$(dynamic, dynamic);
+
+  let _IdentityHashMap$ = dart.generic(function(K, V) {
+    class _IdentityHashMap extends _HashMap$(K, V) {
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+      }
+      _findBucketIndex(bucket, key) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i = 2) {
+          if (core.identical(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), key)) return i;
+        }
+        return -1;
+      }
+    }
+    return _IdentityHashMap;
+  });
+  let _IdentityHashMap = _IdentityHashMap$(dynamic, dynamic);
+
+  let _CustomHashMap$ = dart.generic(function(K, V) {
+    class _CustomHashMap extends _HashMap$(K, V) {
+      _CustomHashMap(_equals, _hashCode, validKey) {
+        this._equals = _equals;
+        this._hashCode = _hashCode;
+        this._validKey = (validKey !== null) ? validKey : ((v) => dart.is(v, K));
+        super._HashMap();
+      }
+      get(key) {
+        if (!dart.notNull(this._validKey(key))) return dart.as(null, V);
+        return super._get(key);
+      }
+      set(key, value) {
+        super._set(key, value);
+      }
+      containsKey(key) {
+        if (!dart.notNull(this._validKey(key))) return false;
+        return super._containsKey(key);
+      }
+      remove(key) {
+        if (!dart.notNull(this._validKey(key))) return dart.as(null, V);
+        return super._remove(key);
+      }
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hashCode(dart.as(key, K))), core.int);
+      }
+      _findBucketIndex(bucket, key) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i = 2) {
+          if (this._equals(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), K), dart.as(key, K))) return i;
+        }
+        return -1;
+      }
+      toString() { return Maps.mapToString(this); }
+    }
+    return _CustomHashMap;
+  });
+  let _CustomHashMap = _CustomHashMap$(dynamic, dynamic);
+
+  let HashMapKeyIterable$ = dart.generic(function(E) {
+    class HashMapKeyIterable extends IterableBase$(E) {
+      HashMapKeyIterable(_map) {
+        this._map = _map;
+        super.IterableBase();
+      }
+      get length() { return dart.as(dart.dload(this._map, "_length"), core.int); }
+      get isEmpty() { return dart.equals(dart.dload(this._map, "_length"), 0); }
+      get iterator() {
+        return new HashMapKeyIterator(this._map, dart.dinvoke(this._map, "_computeKeys"));
+      }
+      contains(element) {
+        return dart.as(dart.dinvoke(this._map, "containsKey", element), core.bool);
+      }
+      forEach(f) {
+        let keys = dart.as(dart.dinvoke(this._map, "_computeKeys"), core.List);
+        for (let i = 0, length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', keys), core.int); i < length; i++) {
+          f(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', keys, i), E));
+          if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', keys, dart.dload(this._map, "_keys"))) {
+            throw new core.ConcurrentModificationError(this._map);
+          }
+        }
+      }
+    }
+    return HashMapKeyIterable;
+  });
+  let HashMapKeyIterable = HashMapKeyIterable$(dynamic);
+
+  let HashMapKeyIterator$ = dart.generic(function(E) {
+    class HashMapKeyIterator extends dart.Object {
+      HashMapKeyIterator(_map, _keys) {
+        this._map = _map;
+        this._keys = _keys;
+        this._offset = 0;
+        this._current = dart.as(null, E);
+      }
+      get current() { return this._current; }
+      moveNext() {
+        let keys = this._keys;
+        let offset = this._offset;
+        if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', keys, dart.dload(this._map, "_keys"))) {
+          throw new core.ConcurrentModificationError(this._map);
+        } else if (offset['>='](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', keys))) {
+          this._current = dart.as(null, E);
+          return false;
+        } else {
+          this._current = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', keys, offset), E);
+          this._offset = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#', offset + 1), core.int);
+          return true;
+        }
+      }
+    }
+    return HashMapKeyIterator;
+  });
+  let HashMapKeyIterator = HashMapKeyIterator$(dynamic);
+
+  let _LinkedHashMap$ = dart.generic(function(K, V) {
+    class _LinkedHashMap extends dart.Object {
+      _LinkedHashMap() {
+        this._length = 0;
+        this._strings = null;
+        this._nums = null;
+        this._rest = null;
+        this._first = null;
+        this._last = null;
+        this._modifications = 0;
+      }
+      get length() { return this._length; }
+      get isEmpty() { return this._length === 0; }
+      get isNotEmpty() { return !dart.notNull(this.isEmpty); }
+      get keys() {
+        return new LinkedHashMapKeyIterable(this);
+      }
+      get values() {
+        return new _internal.MappedIterable(this.keys, ((each) => this.get(each)).bind(this));
+      }
+      containsKey(key) {
+        if (_isStringKey(key)) {
+          let strings = this._strings;
+          if (strings === null) return false;
+          let cell = dart.as(_getTableEntry(strings, key), LinkedHashMapCell);
+          return cell !== null;
+        } else if (_isNumericKey(key)) {
+          let nums = this._nums;
+          if (nums === null) return false;
+          let cell = dart.as(_getTableEntry(nums, key), LinkedHashMapCell);
+          return cell !== null;
+        } else {
+          return this._containsKey(key);
+        }
+      }
+      _containsKey(key) {
+        let rest = this._rest;
+        if (rest === null) return false;
+        let bucket = this._getBucket(rest, key);
+        return this._findBucketIndex(bucket, key) >= 0;
+      }
+      containsValue(value) {
+        return this.keys.any(((each) => dart.equals(this.get(each), value)).bind(this));
+      }
+      addAll(other) {
+        other.forEach(((key, value) => {
+          this.set(key, value);
+        }).bind(this));
+      }
+      get(key) {
+        if (_isStringKey(key)) {
+          let strings = this._strings;
+          if (strings === null) return dart.as(null, V);
+          let cell = dart.as(_getTableEntry(strings, key), LinkedHashMapCell);
+          return dart.as((cell === null) ? null : cell._value, V);
+        } else if (_isNumericKey(key)) {
+          let nums = this._nums;
+          if (nums === null) return dart.as(null, V);
+          let cell = dart.as(_getTableEntry(nums, key), LinkedHashMapCell);
+          return dart.as((cell === null) ? null : cell._value, V);
+        } else {
+          return this._get(key);
+        }
+      }
+      _get(key) {
+        let rest = this._rest;
+        if (rest === null) return dart.as(null, V);
+        let bucket = this._getBucket(rest, key);
+        let index = this._findBucketIndex(bucket, key);
+        if (index < 0) return dart.as(null, V);
+        let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, index), LinkedHashMapCell);
+        return dart.as(cell._value, V);
+      }
+      set(key, value) {
+        if (_isStringKey(key)) {
+          let strings = this._strings;
+          if (strings === null) this._strings = strings = _newHashTable();
+          this._addHashTableEntry(strings, key, value);
+        } else if (_isNumericKey(key)) {
+          let nums = this._nums;
+          if (nums === null) this._nums = nums = _newHashTable();
+          this._addHashTableEntry(nums, key, value);
+        } else {
+          this._set(key, value);
+        }
+      }
+      _set(key, value) {
+        let rest = this._rest;
+        if (rest === null) this._rest = rest = _newHashTable();
+        let hash = this._computeHashCode(key);
+        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        if (bucket === null) {
+          let cell = this._newLinkedCell(key, value);
+          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#]', cell));
+        } else {
+          let index = this._findBucketIndex(bucket, key);
+          if (index >= 0) {
+            let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, index), LinkedHashMapCell);
+            cell._value = value;
+          } else {
+            let cell = this._newLinkedCell(key, value);
+            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#)', bucket, cell);
+          }
+        }
+      }
+      putIfAbsent(key, ifAbsent) {
+        if (this.containsKey(key)) return this.get(key);
+        let value = ifAbsent();
+        this.set(key, value);
+        return value;
+      }
+      remove(key) {
+        if (_isStringKey(key)) {
+          return this._removeHashTableEntry(this._strings, key);
+        } else if (_isNumericKey(key)) {
+          return this._removeHashTableEntry(this._nums, key);
+        } else {
+          return this._remove(key);
+        }
+      }
+      _remove(key) {
+        let rest = this._rest;
+        if (rest === null) return dart.as(null, V);
+        let bucket = this._getBucket(rest, key);
+        let index = this._findBucketIndex(bucket, key);
+        if (index < 0) return dart.as(null, V);
+        let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#.splice(#, 1)[0]', bucket, index), LinkedHashMapCell);
+        this._unlinkCell(cell);
+        return dart.as(cell._value, V);
+      }
+      clear() {
+        if (this._length > 0) {
+          this._strings = this._nums = this._rest = this._first = this._last = null;
+          this._length = 0;
+          this._modified();
+        }
+      }
+      forEach(action) {
+        let cell = this._first;
+        let modifications = this._modifications;
+        while (cell !== null) {
+          action(dart.as(cell._key, K), dart.as(cell._value, V));
+          if (modifications !== this._modifications) {
+            throw new core.ConcurrentModificationError(this);
+          }
+          cell = cell._next;
+        }
+      }
+      _addHashTableEntry(table, key, value) {
+        let cell = dart.as(_getTableEntry(table, key), LinkedHashMapCell);
+        if (cell === null) {
+          _setTableEntry(table, key, this._newLinkedCell(key, value));
+        } else {
+          cell._value = value;
+        }
+      }
+      _removeHashTableEntry(table, key) {
+        if (table === null) return dart.as(null, V);
+        let cell = dart.as(_getTableEntry(table, key), LinkedHashMapCell);
+        if (cell === null) return dart.as(null, V);
+        this._unlinkCell(cell);
+        _deleteTableEntry(table, key);
+        return dart.as(cell._value, V);
+      }
+      _modified() {
+        this._modifications = (this._modifications + 1) & 67108863;
+      }
+      _newLinkedCell(key, value) {
+        let cell = new LinkedHashMapCell(key, value);
+        if (this._first === null) {
+          this._first = this._last = cell;
+        } else {
+          let last = this._last;
+          cell._previous = last;
+          this._last = last._next = cell;
+        }
+        this._length++;
+        this._modified();
+        return cell;
+      }
+      _unlinkCell(cell) {
+        let previous = cell._previous;
+        let next = cell._next;
+        if (previous === null) {
+          dart.assert(dart.equals(cell, this._first));
+          this._first = next;
+        } else {
+          previous._next = next;
+        }
+        if (next === null) {
+          dart.assert(dart.equals(cell, this._last));
+          this._last = previous;
+        } else {
+          next._previous = previous;
+        }
+        this._length--;
+        this._modified();
+      }
+      static _isStringKey(key) {
+        return dart.notNull(typeof key == "string") && dart.notNull(!dart.equals(key, '__proto__'));
+      }
+      static _isNumericKey(key) {
+        return core.bool.&&(dart.is(key, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', key, key));
+      }
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(key, "hashCode")), core.int);
+      }
+      static _getTableEntry(table, key) {
+        return dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+      }
+      static _setTableEntry(table, key, value) {
+        dart.assert(value !== null);
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+      }
+      static _deleteTableEntry(table, key) {
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+      }
+      _getBucket(table, key) {
+        let hash = this._computeHashCode(key);
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+      }
+      _findBucketIndex(bucket, key) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashMapCell);
+          if (dart.equals(cell._key, key)) return i;
+        }
+        return -1;
+      }
+      static _newHashTable() {
+        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let temporaryKey = '<non-identifier-key>';
+        _setTableEntry(table, temporaryKey, table);
+        _deleteTableEntry(table, temporaryKey);
+        return table;
+      }
+      toString() { return Maps.mapToString(this); }
+    }
+    return _LinkedHashMap;
+  });
+  let _LinkedHashMap = _LinkedHashMap$(dynamic, dynamic);
+
+  let _LinkedIdentityHashMap$ = dart.generic(function(K, V) {
+    class _LinkedIdentityHashMap extends _LinkedHashMap$(K, V) {
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+      }
+      _findBucketIndex(bucket, key) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashMapCell);
+          if (core.identical(cell._key, key)) return i;
+        }
+        return -1;
+      }
+    }
+    return _LinkedIdentityHashMap;
+  });
+  let _LinkedIdentityHashMap = _LinkedIdentityHashMap$(dynamic, dynamic);
+
+  let _LinkedCustomHashMap$ = dart.generic(function(K, V) {
+    class _LinkedCustomHashMap extends _LinkedHashMap$(K, V) {
+      _LinkedCustomHashMap(_equals, _hashCode, validKey) {
+        this._equals = _equals;
+        this._hashCode = _hashCode;
+        this._validKey = (validKey !== null) ? validKey : ((v) => dart.is(v, K));
+        super._LinkedHashMap();
+      }
+      get(key) {
+        if (!dart.notNull(this._validKey(key))) return dart.as(null, V);
+        return super._get(key);
+      }
+      set(key, value) {
+        super._set(key, value);
+      }
+      containsKey(key) {
+        if (!dart.notNull(this._validKey(key))) return false;
+        return super._containsKey(key);
+      }
+      remove(key) {
+        if (!dart.notNull(this._validKey(key))) return dart.as(null, V);
+        return super._remove(key);
+      }
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hashCode(dart.as(key, K))), core.int);
+      }
+      _findBucketIndex(bucket, key) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashMapCell);
+          if (this._equals(dart.as(cell._key, K), dart.as(key, K))) return i;
+        }
+        return -1;
+      }
+    }
+    return _LinkedCustomHashMap;
+  });
+  let _LinkedCustomHashMap = _LinkedCustomHashMap$(dynamic, dynamic);
+
+  class LinkedHashMapCell extends dart.Object {
+    LinkedHashMapCell(_key, _value) {
+      this._key = _key;
+      this._value = _value;
+      this._next = null;
+      this._previous = null;
+    }
+  }
+
+  let LinkedHashMapKeyIterable$ = dart.generic(function(E) {
+    class LinkedHashMapKeyIterable extends IterableBase$(E) {
+      LinkedHashMapKeyIterable(_map) {
+        this._map = _map;
+        super.IterableBase();
+      }
+      get length() { return dart.as(dart.dload(this._map, "_length"), core.int); }
+      get isEmpty() { return dart.equals(dart.dload(this._map, "_length"), 0); }
+      get iterator() {
+        return new LinkedHashMapKeyIterator(this._map, dart.dload(this._map, "_modifications"));
+      }
+      contains(element) {
+        return dart.as(dart.dinvoke(this._map, "containsKey", element), core.bool);
+      }
+      forEach(f) {
+        let cell = dart.as(dart.dload(this._map, "_first"), LinkedHashMapCell);
+        let modifications = dart.as(dart.dload(this._map, "_modifications"), core.int);
+        while (cell !== null) {
+          f(dart.as(cell._key, E));
+          if (modifications !== dart.dload(this._map, "_modifications")) {
+            throw new core.ConcurrentModificationError(this._map);
+          }
+          cell = cell._next;
+        }
+      }
+    }
+    return LinkedHashMapKeyIterable;
+  });
+  let LinkedHashMapKeyIterable = LinkedHashMapKeyIterable$(dynamic);
+
+  let LinkedHashMapKeyIterator$ = dart.generic(function(E) {
+    class LinkedHashMapKeyIterator extends dart.Object {
+      LinkedHashMapKeyIterator(_map, _modifications) {
+        this._map = _map;
+        this._modifications = _modifications;
+        this._cell = null;
+        this._current = dart.as(null, E);
+        this._cell = dart.as(dart.dload(this._map, "_first"), LinkedHashMapCell);
+      }
+      get current() { return this._current; }
+      moveNext() {
+        if (this._modifications !== dart.dload(this._map, "_modifications")) {
+          throw new core.ConcurrentModificationError(this._map);
+        } else if (this._cell === null) {
+          this._current = dart.as(null, E);
+          return false;
+        } else {
+          this._current = dart.as(this._cell._key, E);
+          this._cell = this._cell._next;
+          return true;
+        }
+      }
+    }
+    return LinkedHashMapKeyIterator;
+  });
+  let LinkedHashMapKeyIterator = LinkedHashMapKeyIterator$(dynamic);
+
+  let _HashSet$ = dart.generic(function(E) {
+    class _HashSet extends _HashSetBase$(E) {
+      _HashSet() {
+        this._length = 0;
+        this._strings = null;
+        this._nums = null;
+        this._rest = null;
+        this._elements = null;
+        super._HashSetBase();
+      }
+      _newSet() { return new _HashSet(); }
+      get iterator() {
+        return new HashSetIterator(this, this._computeElements());
+      }
+      get length() { return this._length; }
+      get isEmpty() { return this._length === 0; }
+      get isNotEmpty() { return !dart.notNull(this.isEmpty); }
+      contains(object) {
+        if (_isStringElement(object)) {
+          let strings = this._strings;
+          return (strings === null) ? false : _hasTableEntry(strings, object);
+        } else if (_isNumericElement(object)) {
+          let nums = this._nums;
+          return (nums === null) ? false : _hasTableEntry(nums, object);
+        } else {
+          return this._contains(object);
+        }
+      }
+      _contains(object) {
+        let rest = this._rest;
+        if (rest === null) return false;
+        let bucket = this._getBucket(rest, object);
+        return this._findBucketIndex(bucket, object) >= 0;
+      }
+      lookup(object) {
+        if (dart.notNull(_isStringElement(object)) || dart.notNull(_isNumericElement(object))) {
+          return dart.as(this.contains(object) ? object : null, E);
+        }
+        return this._lookup(object);
+      }
+      _lookup(object) {
+        let rest = this._rest;
+        if (rest === null) return dart.as(null, E);
+        let bucket = this._getBucket(rest, object);
+        let index = this._findBucketIndex(bucket, object);
+        if (index < 0) return dart.as(null, E);
+        return dart.as(bucket.get(index), E);
+      }
+      add(element) {
+        if (_isStringElement(element)) {
+          let strings = this._strings;
+          if (strings === null) this._strings = strings = _newHashTable();
+          return this._addHashTableEntry(strings, element);
+        } else if (_isNumericElement(element)) {
+          let nums = this._nums;
+          if (nums === null) this._nums = nums = _newHashTable();
+          return this._addHashTableEntry(nums, element);
+        } else {
+          return this._add(element);
+        }
+      }
+      _add(element) {
+        let rest = this._rest;
+        if (rest === null) this._rest = rest = _newHashTable();
+        let hash = this._computeHashCode(element);
+        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        if (bucket === null) {
+          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#]', element));
+        } else {
+          let index = this._findBucketIndex(bucket, element);
+          if (index >= 0) return false;
+          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#)', bucket, element);
+        }
+        this._length++;
+        this._elements = null;
+        return true;
+      }
+      addAll(objects) {
+        for (let each of objects) {
+          this.add(each);
+        }
+      }
+      remove(object) {
+        if (_isStringElement(object)) {
+          return this._removeHashTableEntry(this._strings, object);
+        } else if (_isNumericElement(object)) {
+          return this._removeHashTableEntry(this._nums, object);
+        } else {
+          return this._remove(object);
+        }
+      }
+      _remove(object) {
+        let rest = this._rest;
+        if (rest === null) return false;
+        let bucket = this._getBucket(rest, object);
+        let index = this._findBucketIndex(bucket, object);
+        if (index < 0) return false;
+        this._length--;
+        this._elements = null;
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.splice(#, 1)', bucket, index);
+        return true;
+      }
+      clear() {
+        if (this._length > 0) {
+          this._strings = this._nums = this._rest = this._elements = null;
+          this._length = 0;
+        }
+      }
+      _computeElements() {
+        if (this._elements !== null) return this._elements;
+        let result = new core.List(this._length);
+        let index = 0;
+        let strings = this._strings;
+        if (strings !== null) {
+          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', strings);
+          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          for (let i = 0; i < entries; i++) {
+            let element = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i), core.String);
+            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, element);
+            index++;
+          }
+        }
+        let nums = this._nums;
+        if (nums !== null) {
+          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', nums);
+          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          for (let i = 0; i < entries; i++) {
+            let element = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'num', '+#[#]', names, i), core.num);
+            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, element);
+            index++;
+          }
+        }
+        let rest = this._rest;
+        if (rest !== null) {
+          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', rest);
+          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          for (let i = 0; i < entries; i++) {
+            let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i);
+            let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, entry);
+            let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+            for (let i = 0; i < length; i++) {
+              dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #[#]', result, index, bucket, i);
+              index++;
+            }
+          }
+        }
+        dart.assert(index === this._length);
+        return this._elements = result;
+      }
+      _addHashTableEntry(table, element) {
+        if (_hasTableEntry(table, element)) return false;
+        _setTableEntry(table, element, 0);
+        this._length++;
+        this._elements = null;
+        return true;
+      }
+      _removeHashTableEntry(table, element) {
+        if (dart.notNull(table !== null) && dart.notNull(_hasTableEntry(table, element))) {
+          _deleteTableEntry(table, element);
+          this._length--;
+          this._elements = null;
+          return true;
+        } else {
+          return false;
+        }
+      }
+      static _isStringElement(element) {
+        return dart.notNull(typeof element == "string") && dart.notNull(!dart.equals(element, '__proto__'));
+      }
+      static _isNumericElement(element) {
+        return core.bool.&&(dart.is(element, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', element, element));
+      }
+      _computeHashCode(element) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(element, "hashCode")), core.int);
+      }
+      static _hasTableEntry(table, key) {
+        let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+        return entry !== null;
+      }
+      static _setTableEntry(table, key, value) {
+        dart.assert(value !== null);
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+      }
+      static _deleteTableEntry(table, key) {
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+      }
+      _getBucket(table, element) {
+        let hash = this._computeHashCode(element);
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+      }
+      _findBucketIndex(bucket, element) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          if (dart.equals(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), element)) return i;
+        }
+        return -1;
+      }
+      static _newHashTable() {
+        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let temporaryKey = '<non-identifier-key>';
+        _setTableEntry(table, temporaryKey, table);
+        _deleteTableEntry(table, temporaryKey);
+        return table;
+      }
+    }
+    return _HashSet;
+  });
+  let _HashSet = _HashSet$(dynamic);
+
+  let _IdentityHashSet$ = dart.generic(function(E) {
+    class _IdentityHashSet extends _HashSet$(E) {
+      _newSet() { return new _IdentityHashSet(); }
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+      }
+      _findBucketIndex(bucket, element) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          if (core.identical(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), element)) return i;
+        }
+        return -1;
+      }
+    }
+    return _IdentityHashSet;
+  });
+  let _IdentityHashSet = _IdentityHashSet$(dynamic);
+
+  let _CustomHashSet$ = dart.generic(function(E) {
+    class _CustomHashSet extends _HashSet$(E) {
+      _CustomHashSet(_equality, _hasher, validKey) {
+        this._equality = _equality;
+        this._hasher = _hasher;
+        this._validKey = (validKey !== null) ? validKey : ((x) => dart.is(x, E));
+        super._HashSet();
+      }
+      _newSet() { return new _CustomHashSet(this._equality, this._hasher, this._validKey); }
+      _findBucketIndex(bucket, element) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          if (this._equality(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), E), dart.as(element, E))) return i;
+        }
+        return -1;
+      }
+      _computeHashCode(element) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hasher(dart.as(element, E))), core.int);
+      }
+      add(object) { return super._add(object); }
+      contains(object) {
+        if (!dart.notNull(this._validKey(object))) return false;
+        return super._contains(object);
+      }
+      lookup(object) {
+        if (!dart.notNull(this._validKey(object))) return dart.as(null, E);
+        return super._lookup(object);
+      }
+      remove(object) {
+        if (!dart.notNull(this._validKey(object))) return false;
+        return super._remove(object);
+      }
+    }
+    return _CustomHashSet;
+  });
+  let _CustomHashSet = _CustomHashSet$(dynamic);
+
+  let HashSetIterator$ = dart.generic(function(E) {
+    class HashSetIterator extends dart.Object {
+      HashSetIterator(_set, _elements) {
+        this._set = _set;
+        this._elements = _elements;
+        this._offset = 0;
+        this._current = dart.as(null, E);
+      }
+      get current() { return this._current; }
+      moveNext() {
+        let elements = this._elements;
+        let offset = this._offset;
+        if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', elements, dart.dload(this._set, "_elements"))) {
+          throw new core.ConcurrentModificationError(this._set);
+        } else if (offset['>='](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', elements))) {
+          this._current = dart.as(null, E);
+          return false;
+        } else {
+          this._current = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', elements, offset), E);
+          this._offset = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#', offset + 1), core.int);
+          return true;
+        }
+      }
+    }
+    return HashSetIterator;
+  });
+  let HashSetIterator = HashSetIterator$(dynamic);
+
+  let _LinkedHashSet$ = dart.generic(function(E) {
+    class _LinkedHashSet extends _HashSetBase$(E) {
+      _LinkedHashSet() {
+        this._length = 0;
+        this._strings = null;
+        this._nums = null;
+        this._rest = null;
+        this._first = null;
+        this._last = null;
+        this._modifications = 0;
+        super._HashSetBase();
+      }
+      _newSet() { return new _LinkedHashSet(); }
+      _unsupported(operation) {
+        throw `LinkedHashSet: unsupported ${operation}`;
+      }
+      get iterator() {
+        return dart.as(new LinkedHashSetIterator(this, this._modifications), core.Iterator$(E));
+      }
+      get length() { return this._length; }
+      get isEmpty() { return this._length === 0; }
+      get isNotEmpty() { return !dart.notNull(this.isEmpty); }
+      contains(object) {
+        if (_isStringElement(object)) {
+          let strings = this._strings;
+          if (strings === null) return false;
+          let cell = dart.as(_getTableEntry(strings, object), LinkedHashSetCell);
+          return cell !== null;
+        } else if (_isNumericElement(object)) {
+          let nums = this._nums;
+          if (nums === null) return false;
+          let cell = dart.as(_getTableEntry(nums, object), LinkedHashSetCell);
+          return cell !== null;
+        } else {
+          return this._contains(object);
+        }
+      }
+      _contains(object) {
+        let rest = this._rest;
+        if (rest === null) return false;
+        let bucket = this._getBucket(rest, object);
+        return this._findBucketIndex(bucket, object) >= 0;
+      }
+      lookup(object) {
+        if (dart.notNull(_isStringElement(object)) || dart.notNull(_isNumericElement(object))) {
+          return dart.as(this.contains(object) ? object : null, E);
+        } else {
+          return this._lookup(object);
+        }
+      }
+      _lookup(object) {
+        let rest = this._rest;
+        if (rest === null) return dart.as(null, E);
+        let bucket = this._getBucket(rest, object);
+        let index = this._findBucketIndex(bucket, object);
+        if (index < 0) return dart.as(null, E);
+        return dart.as(dart.dload(bucket.get(index), "_element"), E);
+      }
+      forEach(action) {
+        let cell = this._first;
+        let modifications = this._modifications;
+        while (cell !== null) {
+          action(dart.as(cell._element, E));
+          if (modifications !== this._modifications) {
+            throw new core.ConcurrentModificationError(this);
+          }
+          cell = cell._next;
+        }
+      }
+      get first() {
+        if (this._first === null) throw new core.StateError("No elements");
+        return dart.as(this._first._element, E);
+      }
+      get last() {
+        if (this._last === null) throw new core.StateError("No elements");
+        return dart.as(this._last._element, E);
+      }
+      add(element) {
+        if (_isStringElement(element)) {
+          let strings = this._strings;
+          if (strings === null) this._strings = strings = _newHashTable();
+          return this._addHashTableEntry(strings, element);
+        } else if (_isNumericElement(element)) {
+          let nums = this._nums;
+          if (nums === null) this._nums = nums = _newHashTable();
+          return this._addHashTableEntry(nums, element);
+        } else {
+          return this._add(element);
+        }
+      }
+      _add(element) {
+        let rest = this._rest;
+        if (rest === null) this._rest = rest = _newHashTable();
+        let hash = this._computeHashCode(element);
+        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        if (bucket === null) {
+          let cell = this._newLinkedCell(element);
+          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#]', cell));
+        } else {
+          let index = this._findBucketIndex(bucket, element);
+          if (index >= 0) return false;
+          let cell = this._newLinkedCell(element);
+          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#)', bucket, cell);
+        }
+        return true;
+      }
+      remove(object) {
+        if (_isStringElement(object)) {
+          return this._removeHashTableEntry(this._strings, object);
+        } else if (_isNumericElement(object)) {
+          return this._removeHashTableEntry(this._nums, object);
+        } else {
+          return this._remove(object);
+        }
+      }
+      _remove(object) {
+        let rest = this._rest;
+        if (rest === null) return false;
+        let bucket = this._getBucket(rest, object);
+        let index = this._findBucketIndex(bucket, object);
+        if (index < 0) return false;
+        let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#.splice(#, 1)[0]', bucket, index), LinkedHashSetCell);
+        this._unlinkCell(cell);
+        return true;
+      }
+      removeWhere(test) {
+        this._filterWhere(test, true);
+      }
+      retainWhere(test) {
+        this._filterWhere(test, false);
+      }
+      _filterWhere(test, removeMatching) {
+        let cell = this._first;
+        while (cell !== null) {
+          let element = dart.as(cell._element, E);
+          let next = cell._next;
+          let modifications = this._modifications;
+          let shouldRemove = (removeMatching === test(element));
+          if (modifications !== this._modifications) {
+            throw new core.ConcurrentModificationError(this);
+          }
+          if (shouldRemove) this.remove(element);
+          cell = next;
+        }
+      }
+      clear() {
+        if (this._length > 0) {
+          this._strings = this._nums = this._rest = this._first = this._last = null;
+          this._length = 0;
+          this._modified();
+        }
+      }
+      _addHashTableEntry(table, element) {
+        let cell = dart.as(_getTableEntry(table, element), LinkedHashSetCell);
+        if (cell !== null) return false;
+        _setTableEntry(table, element, this._newLinkedCell(element));
+        return true;
+      }
+      _removeHashTableEntry(table, element) {
+        if (table === null) return false;
+        let cell = dart.as(_getTableEntry(table, element), LinkedHashSetCell);
+        if (cell === null) return false;
+        this._unlinkCell(cell);
+        _deleteTableEntry(table, element);
+        return true;
+      }
+      _modified() {
+        this._modifications = (this._modifications + 1) & 67108863;
+      }
+      _newLinkedCell(element) {
+        let cell = new LinkedHashSetCell(element);
+        if (this._first === null) {
+          this._first = this._last = cell;
+        } else {
+          let last = this._last;
+          cell._previous = last;
+          this._last = last._next = cell;
+        }
+        this._length++;
+        this._modified();
+        return cell;
+      }
+      _unlinkCell(cell) {
+        let previous = cell._previous;
+        let next = cell._next;
+        if (previous === null) {
+          dart.assert(dart.equals(cell, this._first));
+          this._first = next;
+        } else {
+          previous._next = next;
+        }
+        if (next === null) {
+          dart.assert(dart.equals(cell, this._last));
+          this._last = previous;
+        } else {
+          next._previous = previous;
+        }
+        this._length--;
+        this._modified();
+      }
+      static _isStringElement(element) {
+        return dart.notNull(typeof element == "string") && dart.notNull(!dart.equals(element, '__proto__'));
+      }
+      static _isNumericElement(element) {
+        return core.bool.&&(dart.is(element, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', element, element));
+      }
+      _computeHashCode(element) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(element, "hashCode")), core.int);
+      }
+      static _getTableEntry(table, key) {
+        return dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+      }
+      static _setTableEntry(table, key, value) {
+        dart.assert(value !== null);
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+      }
+      static _deleteTableEntry(table, key) {
+        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+      }
+      _getBucket(table, element) {
+        let hash = this._computeHashCode(element);
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+      }
+      _findBucketIndex(bucket, element) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashSetCell);
+          if (dart.equals(cell._element, element)) return i;
+        }
+        return -1;
+      }
+      static _newHashTable() {
+        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let temporaryKey = '<non-identifier-key>';
+        _setTableEntry(table, temporaryKey, table);
+        _deleteTableEntry(table, temporaryKey);
+        return table;
+      }
+    }
+    return _LinkedHashSet;
+  });
+  let _LinkedHashSet = _LinkedHashSet$(dynamic);
+
+  let _LinkedIdentityHashSet$ = dart.generic(function(E) {
+    class _LinkedIdentityHashSet extends _LinkedHashSet$(E) {
+      _newSet() { return new _LinkedIdentityHashSet(); }
+      _computeHashCode(key) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+      }
+      _findBucketIndex(bucket, element) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashSetCell);
+          if (core.identical(cell._element, element)) return i;
+        }
+        return -1;
+      }
+    }
+    return _LinkedIdentityHashSet;
+  });
+  let _LinkedIdentityHashSet = _LinkedIdentityHashSet$(dynamic);
+
+  let _LinkedCustomHashSet$ = dart.generic(function(E) {
+    class _LinkedCustomHashSet extends _LinkedHashSet$(E) {
+      _LinkedCustomHashSet(_equality, _hasher, validKey) {
+        this._equality = _equality;
+        this._hasher = _hasher;
+        this._validKey = (validKey !== null) ? validKey : ((x) => dart.is(x, E));
+        super._LinkedHashSet();
+      }
+      _newSet() { return new _LinkedCustomHashSet(this._equality, this._hasher, this._validKey); }
+      _findBucketIndex(bucket, element) {
+        if (bucket === null) return -1;
+        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        for (let i = 0; i < length; i++) {
+          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashSetCell);
+          if (this._equality(dart.as(cell._element, E), dart.as(element, E))) return i;
+        }
+        return -1;
+      }
+      _computeHashCode(element) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hasher(dart.as(element, E))), core.int);
+      }
+      add(element) { return super._add(element); }
+      contains(object) {
+        if (!dart.notNull(this._validKey(object))) return false;
+        return super._contains(object);
+      }
+      lookup(object) {
+        if (!dart.notNull(this._validKey(object))) return dart.as(null, E);
+        return super._lookup(object);
+      }
+      remove(object) {
+        if (!dart.notNull(this._validKey(object))) return false;
+        return super._remove(object);
+      }
+      containsAll(elements) {
+        for (let element of elements) {
+          if (dart.notNull(!dart.notNull(this._validKey(element))) || dart.notNull(!dart.notNull(this.contains(element)))) return false;
+        }
+        return true;
+      }
+      removeAll(elements) {
+        for (let element of elements) {
+          if (this._validKey(element)) {
+            super._remove(element);
+          }
+        }
+      }
+    }
+    return _LinkedCustomHashSet;
+  });
+  let _LinkedCustomHashSet = _LinkedCustomHashSet$(dynamic);
+
+  class LinkedHashSetCell extends dart.Object {
+    LinkedHashSetCell(_element) {
+      this._element = _element;
+      this._next = null;
+      this._previous = null;
+    }
+  }
+
+  let LinkedHashSetIterator$ = dart.generic(function(E) {
+    class LinkedHashSetIterator extends dart.Object {
+      LinkedHashSetIterator(_set, _modifications) {
+        this._set = _set;
+        this._modifications = _modifications;
+        this._cell = null;
+        this._current = dart.as(null, E);
+        this._cell = dart.as(dart.dload(this._set, "_first"), LinkedHashSetCell);
+      }
+      get current() { return this._current; }
+      moveNext() {
+        if (this._modifications !== dart.dload(this._set, "_modifications")) {
+          throw new core.ConcurrentModificationError(this._set);
+        } else if (this._cell === null) {
+          this._current = dart.as(null, E);
+          return false;
+        } else {
+          this._current = dart.as(this._cell._element, E);
+          this._cell = this._cell._next;
+          return true;
+        }
+      }
+    }
+    return LinkedHashSetIterator;
+  });
+  let LinkedHashSetIterator = LinkedHashSetIterator$(dynamic);
+
   let UnmodifiableListView$ = dart.generic(function(E) {
     class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {
       UnmodifiableListView(source) {
@@ -22,8 +1396,37 @@ var collection;
 
   let HashMap$ = dart.generic(function(K, V) {
     class HashMap extends dart.Object {
-      /* Unimplemented external factory HashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
-      /* Unimplemented external factory HashMap.identity(); */
+      HashMap(opt$) {
+        let equals = opt$.equals === undefined ? null : opt$.equals;
+        let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
+        let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
+        if (isValidKey === null) {
+          if (hashCode === null) {
+            if (equals === null) {
+              return new _HashMap();
+            }
+            hashCode = _defaultHashCode;
+          } else {
+            if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
+              return new _IdentityHashMap();
+            }
+            if (equals === null) {
+              equals = _defaultEquals;
+            }
+          }
+        } else {
+          if (hashCode === null) {
+            hashCode = _defaultHashCode;
+          }
+          if (equals === null) {
+            equals = _defaultEquals;
+          }
+        }
+        return new _CustomHashMap(equals, hashCode, isValidKey);
+      }
+      HashMap$identity() {
+        return new _IdentityHashMap();
+      }
       HashMap$from(other) {
         let result = new HashMap();
         other.forEach((k, v) => {
@@ -79,8 +1482,37 @@ var collection;
 
   let HashSet$ = dart.generic(function(E) {
     class HashSet extends dart.Object {
-      /* Unimplemented external factory HashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
-      /* Unimplemented external factory HashSet.identity(); */
+      HashSet(opt$) {
+        let equals = opt$.equals === undefined ? null : opt$.equals;
+        let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
+        let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
+        if (isValidKey === null) {
+          if (hashCode === null) {
+            if (equals === null) {
+              return new _HashSet();
+            }
+            hashCode = _defaultHashCode;
+          } else {
+            if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
+              return new _IdentityHashSet();
+            }
+            if (equals === null) {
+              equals = _defaultEquals;
+            }
+          }
+        } else {
+          if (hashCode === null) {
+            hashCode = _defaultHashCode;
+          }
+          if (equals === null) {
+            equals = _defaultEquals;
+          }
+        }
+        return new _CustomHashSet(equals, hashCode, isValidKey);
+      }
+      HashSet$identity() {
+        return new _IdentityHashSet();
+      }
       HashSet$from(elements) {
         let result = new HashSet();
         for (let e of elements) result.add(e);
@@ -592,8 +2024,37 @@ var collection;
 
   let LinkedHashMap$ = dart.generic(function(K, V) {
     class LinkedHashMap extends dart.Object {
-      /* Unimplemented external factory LinkedHashMap({bool equals(K key1, K key2), int hashCode(K key), bool isValidKey(potentialKey)}); */
-      /* Unimplemented external factory LinkedHashMap.identity(); */
+      LinkedHashMap(opt$) {
+        let equals = opt$.equals === undefined ? null : opt$.equals;
+        let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
+        let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
+        if (isValidKey === null) {
+          if (hashCode === null) {
+            if (equals === null) {
+              return new _LinkedHashMap();
+            }
+            hashCode = _defaultHashCode;
+          } else {
+            if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
+              return new _LinkedIdentityHashMap();
+            }
+            if (equals === null) {
+              equals = _defaultEquals;
+            }
+          }
+        } else {
+          if (hashCode === null) {
+            hashCode = _defaultHashCode;
+          }
+          if (equals === null) {
+            equals = _defaultEquals;
+          }
+        }
+        return new _LinkedCustomHashMap(equals, hashCode, isValidKey);
+      }
+      LinkedHashMap$identity() {
+        return new _LinkedIdentityHashMap();
+      }
       LinkedHashMap$from(other) {
         let result = new LinkedHashMap();
         other.forEach((k, v) => {
@@ -624,8 +2085,37 @@ var collection;
 
   let LinkedHashSet$ = dart.generic(function(E) {
     class LinkedHashSet extends dart.Object {
-      /* Unimplemented external factory LinkedHashSet({bool equals(E e1, E e2), int hashCode(E e), bool isValidKey(potentialKey)}); */
-      /* Unimplemented external factory LinkedHashSet.identity(); */
+      LinkedHashSet(opt$) {
+        let equals = opt$.equals === undefined ? null : opt$.equals;
+        let hashCode = opt$.hashCode === undefined ? null : opt$.hashCode;
+        let isValidKey = opt$.isValidKey === undefined ? null : opt$.isValidKey;
+        if (isValidKey === null) {
+          if (hashCode === null) {
+            if (equals === null) {
+              return new _LinkedHashSet();
+            }
+            hashCode = _defaultHashCode;
+          } else {
+            if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
+              return new _LinkedIdentityHashSet();
+            }
+            if (equals === null) {
+              equals = _defaultEquals;
+            }
+          }
+        } else {
+          if (hashCode === null) {
+            hashCode = _defaultHashCode;
+          }
+          if (equals === null) {
+            equals = _defaultEquals;
+          }
+        }
+        return new _LinkedCustomHashSet(equals, hashCode, isValidKey);
+      }
+      LinkedHashSet$identity() {
+        return new _LinkedIdentityHashSet();
+      }
       LinkedHashSet$from(elements) {
         let result = new LinkedHashSet();
         for (let element of elements) {
@@ -2786,6 +4276,20 @@ var collection;
   let SplayTreeSet = SplayTreeSet$(dynamic);
 
   // Exports:
+  collection.HashMapKeyIterable = HashMapKeyIterable;
+  collection.HashMapKeyIterable$ = HashMapKeyIterable$;
+  collection.HashMapKeyIterator = HashMapKeyIterator;
+  collection.HashMapKeyIterator$ = HashMapKeyIterator$;
+  collection.LinkedHashMapCell = LinkedHashMapCell;
+  collection.LinkedHashMapKeyIterable = LinkedHashMapKeyIterable;
+  collection.LinkedHashMapKeyIterable$ = LinkedHashMapKeyIterable$;
+  collection.LinkedHashMapKeyIterator = LinkedHashMapKeyIterator;
+  collection.LinkedHashMapKeyIterator$ = LinkedHashMapKeyIterator$;
+  collection.HashSetIterator = HashSetIterator;
+  collection.HashSetIterator$ = HashSetIterator$;
+  collection.LinkedHashSetCell = LinkedHashSetCell;
+  collection.LinkedHashSetIterator = LinkedHashSetIterator;
+  collection.LinkedHashSetIterator$ = LinkedHashSetIterator$;
   collection.UnmodifiableListView = UnmodifiableListView;
   collection.UnmodifiableListView$ = UnmodifiableListView$;
   collection.HashMap = HashMap;

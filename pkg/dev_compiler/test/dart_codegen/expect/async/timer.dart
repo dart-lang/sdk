@@ -27,9 +27,21 @@ abstract class Timer {
   }
   void cancel();
   bool get isActive;
-  external static Timer _createTimer(Duration duration, void callback());
-  external static Timer _createPeriodicTimer(
-      Duration duration, void callback(Timer timer));
+  @patch static Timer _createTimer(Duration duration, void callback()) {
+    int milliseconds = duration.inMilliseconds;
+    if (milliseconds < 0) milliseconds = 0;
+    return ((__x137) => DDC$RT.cast(__x137, dynamic, Timer, "CastExact",
+        """line 111, column 12 of dart:async/timer.dart: """, __x137 is Timer,
+        true))(new TimerImpl(milliseconds, callback));
+  }
+  @patch static Timer _createPeriodicTimer(
+      Duration duration, void callback(Timer timer)) {
+    int milliseconds = duration.inMilliseconds;
+    if (milliseconds < 0) milliseconds = 0;
+    return ((__x138) => DDC$RT.cast(__x138, dynamic, Timer, "CastExact",
+        """line 118, column 12 of dart:async/timer.dart: """, __x138 is Timer,
+        true))(new TimerImpl.periodic(milliseconds, callback));
+  }
 }
 typedef dynamic __t133(dynamic __u134);
 typedef void __t135(Timer __u136);

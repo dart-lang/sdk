@@ -18,7 +18,6 @@ main(args) {
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
   test('checker can run on itself ', () {
-    compile('$testDir/../all_tests.dart', realSdk, options,
-        new LogReporter());
+    compile('$testDir/../all_tests.dart', realSdk, options, new LogReporter());
   });
 }

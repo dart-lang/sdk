@@ -13,9 +13,20 @@ class Error {
     }
     return _objectToString(object);
   }
-  external static String _stringToSafeString(String string);
-  external static String _objectToString(Object object);
-  external StackTrace get stackTrace;
+  @patch static String _stringToSafeString(String string) {
+    return ((__x14) => DDC$RT.cast(__x14, dynamic, String, "CastGeneral",
+        """line 89, column 12 of dart:core/errors.dart: """, __x14 is String,
+        true))(jsonEncodeNative(string));
+  }
+  @patch static String _objectToString(Object object) {
+    return ((__x15) => DDC$RT.cast(__x15, dynamic, String, "CastGeneral",
+        """line 94, column 12 of dart:core/errors.dart: """, __x15 is String,
+        true))(Primitives.objectToString(object));
+  }
+  @patch StackTrace get stackTrace => ((__x16) => DDC$RT.cast(__x16, dynamic,
+      StackTrace, "CastGeneral",
+      """line 98, column 32 of dart:core/errors.dart: """, __x16 is StackTrace,
+      true))(Primitives.extractStackTrace(this));
 }
 class AssertionError extends Error {}
 class TypeError extends AssertionError {}
@@ -82,7 +93,7 @@ class RangeError extends ArgumentError {
   static void checkValidIndex(int index, var indexable,
       [String name, int length, String message]) {
     if (length == null) length = DDC$RT.cast(indexable.length, dynamic, int,
-        "CastGeneral", """line 281, column 34 of dart:core/errors.dart: """,
+        "CastGeneral", """line 287, column 34 of dart:core/errors.dart: """,
         indexable.length is int, true);
     if (index < 0 || index >= length) {
       if (name == null) name = "index";
@@ -166,7 +177,43 @@ class NoSuchMethodError extends Error {
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
         _existingArgumentNames = existingArgumentNames;
-  external String toString();
+  @patch String toString() {
+    StringBuffer sb = new StringBuffer();
+    int i = 0;
+    if (_arguments != null) {
+      for (; i < _arguments.length; i++) {
+        if (i > 0) {
+          sb.write(", ");
+        }
+        sb.write(Error.safeToString(_arguments[i]));
+      }
+    }
+    if (_namedArguments != null) {
+      _namedArguments.forEach((Symbol key, var value) {
+        if (i > 0) {
+          sb.write(", ");
+        }
+        sb.write(_symbolToString(key));
+        sb.write(": ");
+        sb.write(Error.safeToString(value));
+        i++;
+      });
+    }
+    if (_existingArgumentNames == null) {
+      return "NoSuchMethodError : method not found: '$_memberName'\n" "Receiver: ${Error.safeToString(_receiver)}\n" "Arguments: [$sb]";
+    } else {
+      String actualParameters = sb.toString();
+      sb = new StringBuffer();
+      for (int i = 0; i < _existingArgumentNames.length; i++) {
+        if (i > 0) {
+          sb.write(", ");
+        }
+        sb.write(_existingArgumentNames[i]);
+      }
+      String formalParameters = sb.toString();
+      return "NoSuchMethodError: incorrect number of arguments passed to " "method named '$_memberName'\n" "Receiver: ${Error.safeToString(_receiver)}\n" "Tried calling: $_memberName($actualParameters)\n" "Found: $_memberName($formalParameters)";
+    }
+  }
 }
 class UnsupportedError extends Error {
   final String message;

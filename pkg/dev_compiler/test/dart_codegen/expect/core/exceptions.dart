@@ -32,10 +32,10 @@ class FormatException implements Exception {
       offset = -1;
     }
     if (offset == -1) {
-      String source = ((__x3) => DDC$RT.cast(__x3, dynamic, String,
+      String source = ((__x17) => DDC$RT.cast(__x17, dynamic, String,
           "CastGeneral",
           """line 113, column 23 of dart:core/exceptions.dart: """,
-          __x3 is String, true))(this.source);
+          __x17 is String, true))(this.source);
       if (source.length > 78) {
         source = source.substring(0, 75) + "...";
       }
@@ -45,9 +45,9 @@ class FormatException implements Exception {
     int lineStart = 0;
     bool lastWasCR;
     for (int i = 0; i < offset; i++) {
-      int char = ((__x4) => DDC$RT.cast(__x4, dynamic, int, "CastGeneral",
-          """line 123, column 18 of dart:core/exceptions.dart: """, __x4 is int,
-          true))(source.codeUnitAt(i));
+      int char = ((__x18) => DDC$RT.cast(__x18, dynamic, int, "CastGeneral",
+          """line 123, column 18 of dart:core/exceptions.dart: """,
+          __x18 is int, true))(source.codeUnitAt(i));
       if (char == 0x0a) {
         if (lineStart != i || !lastWasCR) {
           lineNum++;
@@ -69,9 +69,9 @@ class FormatException implements Exception {
         """line 141, column 19 of dart:core/exceptions.dart: """,
         source.length is int, true);
     for (int i = offset; i < source.length; i++) {
-      int char = ((__x5) => DDC$RT.cast(__x5, dynamic, int, "CastGeneral",
-          """line 143, column 18 of dart:core/exceptions.dart: """, __x5 is int,
-          true))(source.codeUnitAt(i));
+      int char = ((__x19) => DDC$RT.cast(__x19, dynamic, int, "CastGeneral",
+          """line 143, column 18 of dart:core/exceptions.dart: """,
+          __x19 is int, true))(source.codeUnitAt(i));
       if (char == 0x0a || char == 0x0d) {
         lineEnd = i;
         break;
@@ -96,9 +96,9 @@ class FormatException implements Exception {
         prefix = postfix = "...";
       }
     }
-    String slice = ((__x6) => DDC$RT.cast(__x6, dynamic, String, "CastGeneral",
-        """line 171, column 20 of dart:core/exceptions.dart: """,
-        __x6 is String, true))(source.substring(start, end));
+    String slice = ((__x20) => DDC$RT.cast(__x20, dynamic, String,
+        "CastGeneral", """line 171, column 20 of dart:core/exceptions.dart: """,
+        __x20 is String, true))(source.substring(start, end));
     int markOffset = offset - start + prefix.length;
     return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
   }

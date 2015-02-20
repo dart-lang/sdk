@@ -1,6 +1,10 @@
 var async;
 (function (async) {
   'use strict';
+  dart.copyProperties(async, {
+    get _hasDocument() { return dart.equals(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', 'typeof document'), 'object'); },
+  });
+
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
     if (dart.is(errorHandler, ZoneBinaryCallback)) {
@@ -439,7 +443,10 @@ var async;
       this.libraryName = libraryName;
       this.uri = uri;
     }
-    /* Unimplemented external Future<Null> load(); */
+    load() {
+      throw 'DeferredLibrary not supported. ' +
+          'please use the `import "lib.dart" deferred as lib` syntax.';
+    }
   }
 
   class DeferredLoadException extends dart.Object {
@@ -1245,7 +1252,9 @@ var async;
   }
 
   class _AsyncRun extends dart.Object {
-    /* Unimplemented external static void _scheduleImmediate(void callback()); */
+    static _scheduleImmediate(callback) {
+      dart.dinvokef(/* Unimplemented unknown name */scheduleImmediateClosure, callback);
+    }
   }
 
   let Stream$ = dart.generic(function(T) {
@@ -3761,8 +3770,16 @@ var async;
     static run(callback) {
       new Timer(core.Duration.ZERO, callback);
     }
-    /* Unimplemented external static Timer _createTimer(Duration duration, void callback()); */
-    /* Unimplemented external static Timer _createPeriodicTimer(Duration duration, void callback(Timer timer)); */
+    static _createTimer(duration, callback) {
+      let milliseconds = duration.inMilliseconds;
+      if (milliseconds < 0) milliseconds = 0;
+      return dart.as(new TimerImpl(milliseconds, callback), Timer);
+    }
+    static _createPeriodicTimer(duration, callback) {
+      let milliseconds = duration.inMilliseconds;
+      if (milliseconds < 0) milliseconds = 0;
+      return dart.as(new dart.dload(/* Unimplemented unknown name */TimerImpl, "periodic")(milliseconds, callback), Timer);
+    }
   }
   dart.defineNamedConstructor(Timer, "periodic");
 

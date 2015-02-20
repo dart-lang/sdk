@@ -1,11 +1,42 @@
 part of dart.core;
 
 abstract class String implements Comparable<String>, Pattern {
-  external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]);
-  external factory String.fromCharCode(int charCode);
-  external const factory String.fromEnvironment(String name,
-      {String defaultValue});
+  @patch factory String.fromCharCodes(Iterable<int> charCodes,
+      [int start = 0, int end]) {
+    if (charCodes is! JSArray) {
+      return ((__x36) => DDC$RT.cast(__x36, dynamic, String, "CastGeneral",
+          """line 99, column 15 of dart:core/string.dart: """, __x36 is String,
+          true))(_stringFromIterable(charCodes, start, end));
+    }
+    List list = DDC$RT.cast(charCodes, DDC$RT.type((Iterable<int> _) {}),
+        DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
+        """line 102, column 18 of dart:core/string.dart: """,
+        charCodes is List<dynamic>, true);
+    int len = list.length;
+    if (start < 0 || start > len) {
+      throw new RangeError.range(start, 0, len);
+    }
+    if (end == null) {
+      end = len;
+    } else if (end < start || end > len) {
+      throw new RangeError.range(end, start, len);
+    }
+    if (start > 0 || end < len) {
+      list = list.sublist(start, end);
+    }
+    return ((__x37) => DDC$RT.cast(__x37, dynamic, String, "CastGeneral",
+        """line 116, column 13 of dart:core/string.dart: """, __x37 is String,
+        true))(Primitives.stringFromCharCodes(list));
+  }
+  @patch factory String.fromCharCode(int charCode) {
+    return ((__x38) => DDC$RT.cast(__x38, dynamic, String, "CastGeneral",
+        """line 121, column 13 of dart:core/string.dart: """, __x38 is String,
+        true))(Primitives.stringFromCharCode(charCode));
+  }
+  @patch factory String.fromEnvironment(String name, {String defaultValue}) {
+    throw new UnsupportedError(
+        'String.fromEnvironment can only be used as a const constructor');
+  }
   String operator [](int index);
   int codeUnitAt(int index);
   int get length;
@@ -85,9 +116,9 @@ class RuneIterator implements BidirectionalIterator<int> {
       throw new ArgumentError('Index inside surrogate pair: $index');
     }
   }
-  int get rawIndex => ((__x9) => DDC$RT.cast(__x9, dynamic, int, "CastGeneral",
-      """line 665, column 24 of dart:core/string.dart: """, __x9 is int,
-      true))((_position != _nextPosition) ? _position : null);
+  int get rawIndex => ((__x39) => DDC$RT.cast(__x39, dynamic, int,
+      "CastGeneral", """line 645, column 24 of dart:core/string.dart: """,
+      __x39 is int, true))((_position != _nextPosition) ? _position : null);
   void set rawIndex(int rawIndex) {
     RangeError.checkValidIndex(rawIndex, string, "rawIndex");
     reset(rawIndex);
@@ -100,7 +131,7 @@ class RuneIterator implements BidirectionalIterator<int> {
     _currentCodePoint = null;
   }
   int get current => DDC$RT.cast(_currentCodePoint, num, int, "CastGeneral",
-      """line 702, column 23 of dart:core/string.dart: """,
+      """line 682, column 23 of dart:core/string.dart: """,
       _currentCodePoint is int, true);
   int get currentSize => _nextPosition - _position;
   String get currentAsString {

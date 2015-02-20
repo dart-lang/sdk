@@ -1,6 +1,226 @@
 var convert;
 (function (convert) {
   'use strict';
+  // Function _convertJsonToDart: (dynamic, (dynamic, dynamic) → dynamic) → dynamic
+  function _convertJsonToDart(json, reviver) {
+    dart.assert(reviver !== null);
+    // Function walk: (dynamic) → dynamic
+    function walk(e) {
+      if (dart.dbinary(dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# == null', e), "||", dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'typeof # != "object"', e))) {
+        return e;
+      }
+      if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
+        for (let i = 0; i['<'](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', e)); i++) {
+          let item = dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', e, i);
+          dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', e, i, reviver(i, walk(item)));
+        }
+        return e;
+      }
+      let map = new _JsonMap(e);
+      let processed = map._processed;
+      let keys = map._computeKeys();
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys.get(i);
+        let revived = reviver(key, walk(dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', e, key)));
+        dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', processed, key, revived);
+      }
+      map._original = processed;
+      return map;
+    }
+    return reviver(null, walk(json));
+  }
+
+  // Function _convertJsonToDartLazy: (dynamic) → dynamic
+  function _convertJsonToDartLazy(object) {
+    if (object === null) return null;
+    if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'typeof # != "object"', object)) {
+      return object;
+    }
+    if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
+      return new _JsonMap(object);
+    }
+    for (let i = 0; i['<'](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', object)); i++) {
+      let item = dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', object, i);
+      dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', object, i, _convertJsonToDartLazy(item));
+    }
+    return object;
+  }
+
+  class _JsonMap extends dart.Object {
+    _JsonMap(_original) {
+      this._processed = _newJavaScriptObject();
+      this._original = _original;
+      this._data = null;
+    }
+    get(key) {
+      if (this._isUpgraded) {
+        return this._upgradedMap.get(key);
+      } else if (!(typeof key == "string")) {
+        return null;
+      } else {
+        let result = _getProperty(this._processed, dart.as(key, core.String));
+        if (_isUnprocessed(result)) result = this._process(dart.as(key, core.String));
+        return result;
+      }
+    }
+    get length() { return this._isUpgraded ? this._upgradedMap.length : this._computeKeys().length; }
+    get isEmpty() { return this.length === 0; }
+    get isNotEmpty() { return this.length > 0; }
+    get keys() {
+      if (this._isUpgraded) return this._upgradedMap.keys;
+      return new _JsonMapKeyIterable(this);
+    }
+    get values() {
+      if (this._isUpgraded) return this._upgradedMap.values;
+      return new _internal.MappedIterable(this._computeKeys(), ((each) => this.get(each)).bind(this));
+    }
+    set(key, value) {
+      if (this._isUpgraded) {
+        this._upgradedMap.set(key, value);
+      } else if (this.containsKey(key)) {
+        let processed = this._processed;
+        _setProperty(processed, dart.as(key, core.String), value);
+        let original = this._original;
+        if (!dart.notNull(core.identical(original, processed))) {
+          _setProperty(original, dart.as(key, core.String), null);
+        }
+      } else {
+        this._upgrade().set(key, value);
+      }
+    }
+    addAll(other) {
+      other.forEach(((key, value) => {
+        this.set(key, value);
+      }).bind(this));
+    }
+    containsValue(value) {
+      if (this._isUpgraded) return this._upgradedMap.containsValue(value);
+      let keys = this._computeKeys();
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys.get(i);
+        if (dart.equals(this.get(key), value)) return true;
+      }
+      return false;
+    }
+    containsKey(key) {
+      if (this._isUpgraded) return this._upgradedMap.containsKey(key);
+      if (!(typeof key == "string")) return false;
+      return _hasProperty(this._original, dart.as(key, core.String));
+    }
+    putIfAbsent(key, ifAbsent) {
+      if (this.containsKey(key)) return this.get(key);
+      let value = ifAbsent();
+      this.set(key, value);
+      return value;
+    }
+    remove(key) {
+      if (dart.notNull(!dart.notNull(this._isUpgraded)) && dart.notNull(!dart.notNull(this.containsKey(key)))) return null;
+      return this._upgrade().remove(key);
+    }
+    clear() {
+      if (this._isUpgraded) {
+        this._upgradedMap.clear();
+      } else {
+        if (this._data !== null) {
+          dart.dinvoke(this._data, "clear");
+        }
+        this._original = this._processed = null;
+        this._data = dart.map();
+      }
+    }
+    forEach(f) {
+      if (this._isUpgraded) return this._upgradedMap.forEach(f);
+      let keys = this._computeKeys();
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys.get(i);
+        let value = _getProperty(this._processed, key);
+        if (_isUnprocessed(value)) {
+          value = _convertJsonToDartLazy(_getProperty(this._original, key));
+          _setProperty(this._processed, key, value);
+        }
+        f(key, value);
+        if (!dart.notNull(core.identical(keys, this._data))) {
+          throw new core.ConcurrentModificationError(this);
+        }
+      }
+    }
+    toString() { return collection.Maps.mapToString(this); }
+    get _isUpgraded() { return this._processed === null; }
+    get _upgradedMap() {
+      dart.assert(this._isUpgraded);
+      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'LinkedHashMap', '#', this._data), core.Map);
+    }
+    _computeKeys() {
+      dart.assert(!dart.notNull(this._isUpgraded));
+      let keys = dart.as(this._data, core.List);
+      if (keys === null) {
+        keys = this._data = _getPropertyNames(this._original);
+      }
+      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'JSExtendableArray', '#', keys), core.List$(core.String));
+    }
+    _upgrade() {
+      if (this._isUpgraded) return this._upgradedMap;
+      let result = dart.map();
+      let keys = this._computeKeys();
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys.get(i);
+        result.set(key, this.get(key));
+      }
+      if (keys.isEmpty) {
+        keys.add(null);
+      } else {
+        keys.clear();
+      }
+      this._original = this._processed = null;
+      this._data = result;
+      dart.assert(this._isUpgraded);
+      return result;
+    }
+    _process(key) {
+      if (!dart.notNull(_hasProperty(this._original, key))) return null;
+      let result = _convertJsonToDartLazy(_getProperty(this._original, key));
+      return _setProperty(this._processed, key, result);
+    }
+    static _hasProperty(object, key) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key), core.bool); }
+    static _getProperty(object, key) { return dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', object, key); }
+    static _setProperty(object, key, value) { return dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', object, key, value); }
+    static _getPropertyNames(object) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'JSExtendableArray', 'Object.keys(#)', object), core.List); }
+    static _isUnprocessed(object) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'typeof(#)=="undefined"', object), core.bool); }
+    static _newJavaScriptObject() { return dart.dinvokef(/* Unimplemented unknown name */JS, '=Object', 'Object.create(null)'); }
+  }
+
+  class _JsonMapKeyIterable extends _internal.ListIterable {
+    _JsonMapKeyIterable(_parent) {
+      this._parent = _parent;
+      super.ListIterable();
+    }
+    get length() { return this._parent.length; }
+    elementAt(index) {
+      return dart.as(this._parent._isUpgraded ? this._parent.keys.elementAt(index) : this._parent._computeKeys().get(index), core.String);
+    }
+    get iterator() {
+      return dart.as(this._parent._isUpgraded ? this._parent.keys.iterator : this._parent._computeKeys().iterator, core.Iterator);
+    }
+    contains(key) { return this._parent.containsKey(key); }
+  }
+
+  class _JsonDecoderSink extends _StringSinkConversionSink {
+    _JsonDecoderSink(_reviver, _sink) {
+      this._reviver = _reviver;
+      this._sink = _sink;
+      super._StringSinkConversionSink(new core.StringBuffer());
+    }
+    close() {
+      super.close();
+      let buffer = dart.as(this._stringSink, core.StringBuffer);
+      let accumulated = buffer.toString();
+      buffer.clear();
+      let decoded = _parseJson(accumulated, this._reviver);
+      this._sink.add(decoded);
+      this._sink.close();
+    }
+  }
+
   let ASCII = new AsciiCodec();
   let _ASCII_MASK = 127;
   class AsciiCodec extends Encoding {
@@ -740,11 +960,29 @@ var convert;
       super.Converter();
     }
     convert(input) { return _parseJson(input, this._reviver); }
-    /* Unimplemented external StringConversionSink startChunkedConversion(Sink<Object> sink); */
+    startChunkedConversion(sink) {
+      return new _JsonDecoderSink(this._reviver, sink);
+    }
     bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.Object)); }
   }
 
-  /* Unimplemented external _parseJson(String source, reviver(key, value)) ; */
+  // Function _parseJson: (String, (dynamic, dynamic) → dynamic) → dynamic
+  function _parseJson(source, reviver) {
+    if (!(typeof source == "string")) throw new core.ArgumentError(source);
+    let parsed = null;
+    try {
+      parsed = dart.dinvokef(/* Unimplemented unknown name */JS, '=Object|JSExtendableArray|Null|bool|num|String', 'JSON.parse(#)', source);
+    }
+    catch (e) {
+      throw new core.FormatException(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', 'String(#)', e));
+    }
+    if (reviver === null) {
+      return _convertJsonToDartLazy(parsed);
+    } else {
+      return _convertJsonToDart(parsed, reviver);
+    }
+  }
+
   // Function _defaultToEncodable: (dynamic) → Object
   function _defaultToEncodable(object) { return dart.dinvoke(object, "toJson"); }
 
@@ -1705,7 +1943,9 @@ var convert;
       return stringSink.asUtf8Sink(this._allowMalformed);
     }
     bind(stream) { return dart.as(super.bind(stream), async.Stream$(core.String)); }
-    /* Unimplemented external Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next); */
+    fuse(next) {
+      return super.fuse(next);
+    }
   }
 
   let _ONE_BYTE_LIMIT = 127;

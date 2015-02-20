@@ -7,6 +7,7 @@ import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
 import "dart:convert" show UTF8, LATIN1, Encoding;
 import "dart:math" show Random;
+import "dart:_internal" as _symbol_dev;
 part "annotations.dart";
 part "bool.dart";
 part "comparable.dart";
@@ -40,3 +41,18 @@ part "string_sink.dart";
 part "symbol.dart";
 part "type.dart";
 part "uri.dart";
+
+String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(DDC$RT.cast(
+    symbol, Symbol, Symbol, "CastGeneral",
+    """line 196, column 69 of dart:core: """, symbol is Symbol, true));
+_symbolMapToStringMap(Map<Symbol, dynamic> map) {
+  if (map == null) return null;
+  var result = new Map<String, dynamic>();
+  map.forEach((Symbol key, value) {
+    result[_symbolToString(key)] = value;
+  });
+  return result;
+}
+class _ListConstructorSentinel extends JSInt {
+  const _ListConstructorSentinel();
+}
