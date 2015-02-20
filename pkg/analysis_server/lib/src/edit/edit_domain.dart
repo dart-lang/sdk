@@ -126,38 +126,6 @@ class EditDomainHandler implements RequestHandler {
     return new EditGetAssistsResult(changes).toResponse(request.id);
   }
 
-  Response getAvailableRefactorings(Request request) {
-    if (searchEngine == null) {
-      return new Response.noIndexGenerated(request);
-    }
-    // prepare parameters
-    var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
-    String file = params.file;
-    int offset = params.offset;
-    int length = params.length;
-    // add refactoring kinds
-    List<RefactoringKind> kinds = <RefactoringKind>[];
-    // try EXTRACT_*
-    if (length != 0) {
-      kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
-      kinds.add(RefactoringKind.EXTRACT_METHOD);
-    }
-    // try RENAME
-    {
-      List<Element> elements = server.getElementsAtOffset(file, offset);
-      if (elements.isNotEmpty) {
-        Element element = elements[0];
-        RenameRefactoring renameRefactoring =
-            new RenameRefactoring(searchEngine, element);
-        if (renameRefactoring != null) {
-          kinds.add(RefactoringKind.RENAME);
-        }
-      }
-    }
-    // respond
-    return new EditGetAvailableRefactoringsResult(kinds).toResponse(request.id);
-  }
-
   Response getFixes(Request request) {
     var params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
@@ -201,7 +169,7 @@ class EditDomainHandler implements RequestHandler {
       } else if (requestName == EDIT_GET_ASSISTS) {
         return getAssists(request);
       } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
-        return getAvailableRefactorings(request);
+        return _getAvailableRefactorings(request);
       } else if (requestName == EDIT_GET_FIXES) {
         return getFixes(request);
       } else if (requestName == EDIT_GET_REFACTORING) {
@@ -250,6 +218,56 @@ class EditDomainHandler implements RequestHandler {
     List<SourceEdit> edits = sorter.sort();
     SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
     return new EditSortMembersResult(fileEdit).toResponse(request.id);
+  }
+
+  Response _getAvailableRefactorings(Request request) {
+    if (searchEngine == null) {
+      return new Response.noIndexGenerated(request);
+    }
+    _getAvailableRefactoringsImpl(request);
+    return Response.DELAYED_RESPONSE;
+  }
+
+  Future _getAvailableRefactoringsImpl(Request request) async {
+    // prepare parameters
+    var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
+    String file = params.file;
+    int offset = params.offset;
+    int length = params.length;
+    // add refactoring kinds
+    List<RefactoringKind> kinds = <RefactoringKind>[];
+    // try EXTRACT_*
+    if (length != 0) {
+      kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
+      kinds.add(RefactoringKind.EXTRACT_METHOD);
+    }
+    // check elements
+    {
+      List<Element> elements = server.getElementsAtOffset(file, offset);
+      if (elements.isNotEmpty) {
+        Element element = elements[0];
+        // try CONVERT_METHOD_TO_GETTER
+        if (element is ExecutableElement) {
+          Refactoring refactoring =
+              new ConvertMethodToGetterRefactoring(searchEngine, element);
+          RefactoringStatus status = await refactoring.checkInitialConditions();
+          if (!status.hasFatalError) {
+            kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
+          }
+        }
+        // try RENAME
+        {
+          RenameRefactoring renameRefactoring =
+              new RenameRefactoring(searchEngine, element);
+          if (renameRefactoring != null) {
+            kinds.add(RefactoringKind.RENAME);
+          }
+        }
+      }
+    }
+    // respond
+    var result = new EditGetAvailableRefactoringsResult(kinds);
+    server.sendResponse(result.toResponse(request.id));
   }
 
   Response _getRefactoring(Request request) {
