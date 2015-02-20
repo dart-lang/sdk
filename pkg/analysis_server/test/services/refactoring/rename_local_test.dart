@@ -5,18 +5,16 @@
 library test.services.refactoring.rename_local;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
-import 'package:analysis_server/src/services/correction/status.dart';
-
 
 main() {
   groupSep = ' | ';
   runReflectiveTests(RenameLocalTest);
 }
-
 
 @reflectiveTest
 class RenameLocalTest extends RenameRefactoringTest {
@@ -144,6 +142,31 @@ class A {
         RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Usage of field "A.newName" declared in "test.dart" '
             'will be shadowed by renamed local variable.',
+        expectedContextSearch: 'newName);');
+  }
+
+  test_checkFinalConditions_shadows_classMember_namedParameter() async {
+    indexTestUnit('''
+class A {
+  foo({test: 1}) {
+  }
+}
+class B extends A {
+  var newName = 1;
+  foo({test: 2}) {
+    print(newName);
+  }
+}
+''');
+    createRenameRefactoringAtString('test: 1}');
+    // check status
+    refactoring.newName = 'newName';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: 'Usage of field "B.newName" declared in "test.dart" '
+            'will be shadowed by renamed parameter.',
         expectedContextSearch: 'newName);');
   }
 
@@ -411,7 +434,7 @@ main() {
 ''');
   }
 
-  test_createChange_parameter_namedInOtherFile() async {
+  test_createChange_parameter_named_inOtherFile() async {
     indexTestUnit('''
 class A {
   A({test});
@@ -437,6 +460,66 @@ class A {
 import 'test.dart';
 main() {
   new A(newName: 2);
+}
+''');
+  }
+
+  test_createChange_parameter_named_updateHierarchy() async {
+    indexUnit('/test2.dart', '''
+library test2;
+class A {
+  void foo({int test: 1}) {
+    print(test);
+  }
+}
+class B extends A {
+  void foo({int test: 2}) {
+    print(test);
+  }
+}
+''');
+    indexTestUnit('''
+import 'test2.dart';
+main() {
+  new A().foo(test: 10);
+  new B().foo(test: 20);
+  new C().foo(test: 30);
+}
+class C extends A {
+  void foo({int test: 3}) {
+    print(test);
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test: 20');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    await assertSuccessfulRefactoring('''
+import 'test2.dart';
+main() {
+  new A().foo(newName: 10);
+  new B().foo(newName: 20);
+  new C().foo(newName: 30);
+}
+class C extends A {
+  void foo({int newName: 3}) {
+    print(newName);
+  }
+}
+''');
+    assertFileChangeResult('/test2.dart', '''
+library test2;
+class A {
+  void foo({int newName: 1}) {
+    print(newName);
+  }
+}
+class B extends A {
+  void foo({int newName: 2}) {
+    print(newName);
+  }
 }
 ''');
   }
