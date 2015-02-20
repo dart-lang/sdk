@@ -202,7 +202,22 @@ class ConstantLiteralEmitter
 
   @override
   jsAst.Expression visitInt(IntConstantValue constant, [_]) {
-    return new jsAst.LiteralNumber('${constant.primitiveValue}');
+    int primitiveValue = constant.primitiveValue;
+    // Since we are in JavaScript we can shorten long integers to their
+    // shorter exponential representation.
+    // For example: "1e+4" is shorter than "10000".
+    //
+    // Note that this shortening apparently loses precision for big numbers
+    // (like 1234567890123456789012345 which becomes 1.2345678901234568e+24).
+    // However, since JavaScript engines implicitly convert to double, these
+    // digits are lost anyway.
+    if (primitiveValue.abs() >= 10000) {
+      String exponential = primitiveValue.toStringAsExponential();
+      String decimal = primitiveValue.toString();
+      return new jsAst.LiteralNumber(
+          (exponential.length < decimal.length) ? exponential : decimal);
+    }
+    return new jsAst.LiteralNumber('$primitiveValue');
   }
 
   @override
