@@ -8312,8 +8312,11 @@ class LibraryResolver {
     try {
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
-          TypeResolverVisitor visitor =
-              new TypeResolverVisitor.con1(library, source, _typeProvider);
+          TypeResolverVisitorFactory typeResolverVisitorFactory =
+              analysisContext.typeResolverVisitorFactory;
+          TypeResolverVisitor visitor = (typeResolverVisitorFactory == null)
+              ? new TypeResolverVisitor.con1(library, source, _typeProvider)
+              : typeResolverVisitorFactory(library, source, _typeProvider);
           library.getAST(source).accept(visitor);
         }
       }
@@ -8595,8 +8598,11 @@ class LibraryResolver {
         CompilationUnit ast = library.getAST(source);
         ast.accept(
             new VariableResolverVisitor.con1(library, source, _typeProvider));
-        ResolverVisitor visitor =
-            new ResolverVisitor.con1(library, source, _typeProvider);
+        ResolverVisitorFactory visitorFactory =
+            analysisContext.resolverVisitorFactory;
+        ResolverVisitor visitor = visitorFactory != null
+            ? visitorFactory(library, source, _typeProvider)
+            : new ResolverVisitor.con1(library, source, _typeProvider);
         ast.accept(visitor);
       }
     } finally {
@@ -10375,6 +10381,14 @@ class ResolverErrorCode extends ErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
+typedef ResolverVisitor ResolverVisitorFactory(
+    Library library, Source source, TypeProvider typeProvider);
+
+typedef TypeResolverVisitor TypeResolverVisitorFactory(
+    Library library, Source source, TypeProvider typeProvider);
+
+typedef StaticTypeAnalyzer StaticTypeAnalyzerFactory(ResolverVisitor visitor);
+
 /**
  * Instances of the class `ResolverVisitor` are used to resolve the nodes within a single
  * compilation unit.
@@ -10453,12 +10467,18 @@ class ResolverVisitor extends ScopedVisitor {
    * @param typeProvider the object used to access the types from the core library
    */
   ResolverVisitor.con1(Library library, Source source,
-      TypeProvider typeProvider)
+      TypeProvider typeProvider, {StaticTypeAnalyzer typeAnalyzer,
+      StaticTypeAnalyzerFactory typeAnalyzerFactory})
       : super.con1(library, source, typeProvider) {
     this._inheritanceManager = library.inheritanceManager;
     this._elementResolver = new ElementResolver(this);
-    this._typeAnalyzer = new StaticTypeAnalyzer(this);
+    this._typeAnalyzer = typeAnalyzer != null
+        ? typeAnalyzer
+        : (typeAnalyzerFactory != null
+            ? typeAnalyzerFactory(this)
+            : new StaticTypeAnalyzer(this));
   }
+
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -13961,11 +13981,20 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    _hasReferenceToSuper = false;
+    super.visitClassDeclaration(node);
+    ClassElementImpl classElement = _getClassElement(node.name);
+    if (classElement != null)  {
+      classElement.hasReferenceToSuper = _hasReferenceToSuper;
+    }
+  }
+
+  @override
+  void visitClassDeclarationInScope(ClassDeclaration node) {
+    super.visitClassDeclarationInScope(node);
     ExtendsClause extendsClause = node.extendsClause;
     WithClause withClause = node.withClause;
     ImplementsClause implementsClause = node.implementsClause;
-    _hasReferenceToSuper = false;
-    super.visitClassDeclaration(node);
     ClassElementImpl classElement = _getClassElement(node.name);
     InterfaceType superclassType = null;
     if (extendsClause != null) {
@@ -13989,7 +14018,6 @@ class TypeResolverVisitor extends ScopedVisitor {
         }
       }
       classElement.supertype = superclassType;
-      classElement.hasReferenceToSuper = _hasReferenceToSuper;
     }
     _resolve(classElement, withClause, implementsClause);
     return null;

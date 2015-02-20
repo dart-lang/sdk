@@ -1066,6 +1066,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   CompilationUnit incrementalResolutionValidation_lastUnit;
 
+  /** A factory to override how [ResolverVisitor] is created. */
+  ResolverVisitorFactory resolverVisitorFactory;
+
+  /** A factory to override how [TypeResolverVisitor] is created. */
+  TypeResolverVisitorFactory typeResolverVisitorFactory;
+
   /**
    * Initialize a newly created analysis context.
    */
@@ -9711,6 +9717,12 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @throws AnalysisException if dart:core cannot be resolved
    */
   TypeProvider get typeProvider;
+
+  /** A factory to override how [ResolverVisitor] is created. */
+  ResolverVisitorFactory get resolverVisitorFactory;
+
+  /** A factory to override how [TypeResolverVisitor] is created. */
+  TypeResolverVisitorFactory get typeResolverVisitorFactory;
 
   /**
    * Add the given source with the given information to this context.

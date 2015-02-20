@@ -6056,6 +6056,19 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getTypeProvider");
     return null;
   }
+
+  @override
+  TypeResolverVisitorFactory get typeResolverVisitorFactory {
+    fail("Unexpected invocation of getTypeResolverVisitorFactory");
+    return null;
+  }
+
+  @override
+  ResolverVisitorFactory get resolverVisitorFactory {
+    fail("Unexpected invocation of getResolverVisitorFactory");
+    return null;
+  }
+
   @override
   void addListener(AnalysisListener listener) {
     fail("Unexpected invocation of addListener");
