@@ -1297,7 +1297,7 @@ var _internal;
     static remove() { return new core.UnsupportedError("Cannot remove from non-growable List"); }
   }
 
-  // Function makeListFixedLength: (List<dynamic>) → List<dynamic>
+  // Function makeListFixedLength: (List<dynamic>) → List
   function makeListFixedLength(growableList) {
     dart.dinvoke(/* Unimplemented unknown name */JSArray, "markFixedList", growableList);
     return growableList;

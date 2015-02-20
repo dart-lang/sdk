@@ -90,7 +90,7 @@ class TypeResolver {
 /// Creates an analysis context that contains our restricted typing rules.
 InternalAnalysisContext _initContext(ResolverOptions options) {
   var analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
-  InternalAnalysisContext res = AnalysisEngine.instance.createAnalysisContext();
+  AnalysisContextImpl res = AnalysisEngine.instance.createAnalysisContext();
   res.analysisOptions = analysisOptions;
   res.resolverVisitorFactory = RestrictedResolverVisitor.constructor(options);
   if (options.inferFromOverrides) {
@@ -257,7 +257,9 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     element.type = type;
     if (element is PropertyInducingElement) {
       element.getter.returnType = type;
-      if (!element.isFinal) element.setter.parameters[0].type = type;
+      if (!element.isFinal && !element.isConst) {
+        element.setter.parameters[0].type = type;
+      }
     }
   }
 

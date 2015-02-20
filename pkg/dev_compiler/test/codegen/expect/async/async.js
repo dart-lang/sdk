@@ -4194,17 +4194,17 @@ var async;
     }
   }
 
-  // Function _rootRegisterCallback: (Zone, ZoneDelegate, Zone, () → dynamic) → () → dynamic
+  // Function _rootRegisterCallback: (Zone, ZoneDelegate, Zone, () → dynamic) → ZoneCallback
   function _rootRegisterCallback(self, parent, zone, f) {
     return f;
   }
 
-  // Function _rootRegisterUnaryCallback: (Zone, ZoneDelegate, Zone, (dynamic) → dynamic) → (dynamic) → dynamic
+  // Function _rootRegisterUnaryCallback: (Zone, ZoneDelegate, Zone, (dynamic) → dynamic) → ZoneUnaryCallback
   function _rootRegisterUnaryCallback(self, parent, zone, f) {
     return f;
   }
 
-  // Function _rootRegisterBinaryCallback: (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic) → (dynamic, dynamic) → dynamic
+  // Function _rootRegisterBinaryCallback: (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic) → ZoneBinaryCallback
   function _rootRegisterBinaryCallback(self, parent, zone, f) {
     return f;
   }

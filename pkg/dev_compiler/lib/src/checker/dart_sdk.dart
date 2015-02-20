@@ -143,6 +143,7 @@ final Map<String, String> mockSdkSources = {
         class Future<T> {
           Future then(callback) {}
         }
+        class Stream<T> {}
   ''',
   'dart:html': '''
         library dart.html;
