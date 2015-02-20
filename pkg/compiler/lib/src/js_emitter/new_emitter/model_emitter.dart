@@ -115,8 +115,8 @@ class ModelEmitter {
        'tearOff': buildTearOffCode(backend),
        'parseFunctionDescriptor':
            js.js.statement(parseFunctionDescriptorBoilerplate,
-               {'argCnt': js.string(namer.requiredParameterField),
-                'defArgValues': js.string(namer.defaultValuesField),
+               {'argumentCount': js.string(namer.requiredParameterField),
+                'defaultArgumentValues': js.string(namer.defaultValuesField),
                 'callName': js.string(namer.callNameField)}),
 
        'cyclicThrow':
@@ -128,6 +128,8 @@ class ModelEmitter {
             emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
        'callName': js.string(namer.callNameField),
+       'argumentCount': js.string(namer.requiredParameterField),
+       'defaultArgumentValues': js.string(namer.defaultValuesField),
        'eagerClasses': emitEagerClassInitializations(fragment.libraries),
        'invokeMain': fragment.invokeMain,
        'code': code};
@@ -619,9 +621,9 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       proto[tearOffName] =
           tearOff(funs, reflectionInfo, false, name, isIntercepted);
     }
-    if (descriptor[pos] != null) {
-      f[#argCnt] = descriptor[pos];
-      f[#defArgValues] = descriptor[pos + 1];
+    if (pos < descriptor.length) {
+      f[#argumentCount] = descriptor[pos];
+      f[#defaultArgumentValues] = descriptor[pos + 1];
     }
   } else {
     proto[name] = descriptor;
@@ -831,7 +833,10 @@ function parseFunctionDescriptor(proto, name, descriptor) {
         fun[#callName] = descriptor[1];
         holder[name] = fun;
         funs = [fun];
-        for (var pos = 4; pos < descriptor.length; pos += 3) {
+        // We iterate in blocks of 3 but have to stop before we reach the
+        // (optional) two trailing items. To accomplish this, we only iterate
+        // until we reach length - 2.
+        for (var pos = 4; pos < descriptor.length - 2; pos += 3) {
           var stubName = descriptor[pos];
           fun = compile(stubName, descriptor[pos + 2]);
           fun[#callName] = descriptor[pos + 1];
@@ -842,6 +847,10 @@ function parseFunctionDescriptor(proto, name, descriptor) {
           // functions, reflectionInfo, isStatic, name, isIntercepted.
           holder[descriptor[2]] = 
               tearOff(funs, descriptor[3], true, name, false);
+        }
+        if (pos < descriptor.length) {
+          fun[#argumentCount] = descriptor[pos];
+          fun[#defaultArgumentValues] = descriptor[pos + 1];
         }
       }
 
