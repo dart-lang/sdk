@@ -42,10 +42,15 @@ class ResolverOptions {
   /// ordering concerns.
   final bool inferInNonStableOrder;
 
+  /// Restrict inference of fields and top-levels to those that are final and
+  /// const.
+  final bool onlyInferConstsAndFinalFields;
+
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
       this.packagePaths: const [], this.inferFromOverrides: true,
       this.inferStaticsFromIdentifiers: false,
-      this.inferInNonStableOrder: false});
+      this.inferInNonStableOrder: false,
+      this.onlyInferConstsAndFinalFields: false});
 }
 
 /// Options used by ddc's RestrictedRules.
@@ -123,6 +128,11 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   @override
   final bool inferInNonStableOrder;
 
+  /// Restrict inference of fields and top-levels to those that are final and
+  /// const.
+  @override
+  final bool onlyInferConstsAndFinalFields;
+
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.dumpSrcDir, this.forceCompile: false,
       this.formatOutput: false, this.outputDir, this.outputDart: false,
@@ -130,5 +140,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
       this.relaxedCasts: true, this.useMultiPackage: false,
       this.packageRoot: 'packages/', this.packagePaths: const [],
       this.inferFromOverrides: true, this.inferStaticsFromIdentifiers: false,
-      this.inferInNonStableOrder: false});
+      this.inferInNonStableOrder: false,
+      this.onlyInferConstsAndFinalFields: false});
 }

@@ -244,6 +244,11 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     // we rule out cases that could depend on the order in which we process
     // them.
     if (element is! LocalVariableElement) {
+      if (_options.onlyInferConstsAndFinalFields &&
+          !element.isConst &&
+          !element.isFinal) {
+        return;
+      }
       // Only infer types if the library is not in a cycle. Otherwise we can't
       // guarantee that we are order independent (we can't guarantee that we'll
       // visit all top-level declarations in all libraries, before we visit

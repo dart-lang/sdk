@@ -49,13 +49,18 @@ final ArgParser argParser = new ArgParser()
       'the list of directories where to look for packages.', defaultsTo: '')
   ..addFlag('sdk-check',
       abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
-  ..addFlag('infer-statics-from-others',
+  ..addFlag('infer-from-overrides',
+      help: 'Infer unspecified types of fields and return types from '
+      'definitions in supertypes', defaultsTo: true)
+  ..addFlag('infer-transitively',
       help: 'Infer consts/fields from definitions in other libraries',
       defaultsTo: false)
-  ..addFlag('ignore-inference-order',
-      help: 'Allow a non-stable order of inferencing types for consts and '
-      'fields. (experimental, used to test for possible inference with a '
-      'proper implementation in the future)', defaultsTo: false);
+  ..addFlag('infer-only-finals',
+      help: 'Do not infer non-const or non-final fields', defaultsTo: false)
+  ..addFlag('infer-eagerly',
+      help: 'experimental: allows a non-stable order of transitive inference on'
+      ' consts and fields. This is used to test for possible inference with a '
+      'proper implementation in the future.', defaultsTo: false);
 
 void _showUsageAndExit() {
   print('usage: dartdevc [<options>] <file.dart>\n');
@@ -106,7 +111,11 @@ void main(List<String> argv) {
       useColors: useColors,
       useMultiPackage: args['use-multi-package'],
       packageRoot: args['package-root'],
-      packagePaths: args['package-paths'].split(','));
+      packagePaths: args['package-paths'].split(','),
+      inferFromOverrides: args['infer-from-overrides'],
+      inferStaticsFromIdentifiers: args['infer-transitively'],
+      inferInNonStableOrder: args['infer-eagerly'],
+      onlyInferConstsAndFinalFields: args['infer-only-finals']);
 
   var typeResolver = shouldMockSdk
       ? new TypeResolver.fromMock(mockSdkSources, options)
