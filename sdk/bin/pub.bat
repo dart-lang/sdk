@@ -23,6 +23,11 @@ IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set VM_OPTIONS=
 
+rem We allow extra vm options to be passed in through an environment variable.
+if not "_%DART_VM_OPTIONS%_" == "__" (
+  set VM_OPTIONS=%VM_OPTIONS% %DART_VM_OPTIONS%
+)
+
 rem Use the Dart binary in the built SDK so pub can find the version file next
 rem to it.
 set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32

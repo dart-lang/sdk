@@ -19,10 +19,10 @@ IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set VM_OPTIONS=
 
-rem Give the VM extra memory for dart2js.
-rem # TODO(rnystrom): Remove when #8355 is fixed.
-rem See comments regarding options below in dart2js shell script.
-set VM_OPTIONS=%VM_OPTIONS% --old_gen_heap_size=1024
+rem We allow extra vm options to be passed in through an environment variable.
+if not "_%DART_VM_OPTIONS%_" == "__" (
+  set VM_OPTIONS=%VM_OPTIONS% %DART_VM_OPTIONS%
+)
 
 "%BIN_DIR%\dart" %VM_OPTIONS% "%BIN_DIR%\snapshots\pub.dart.snapshot" %*
 
