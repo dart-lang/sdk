@@ -588,9 +588,6 @@ be removed in a future version:
     Do not generate a call to main if either of the following
     libraries are used: dart:dom, dart:html dart:io.
 
-  --enable-concrete-type-inference
-    Enable experimental concrete type inference.
-
   --disable-native-live-type-analysis
     Disable the optimization that removes unused native types from dart:html
     and related libraries.
