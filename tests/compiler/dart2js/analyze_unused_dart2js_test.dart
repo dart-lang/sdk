@@ -23,10 +23,6 @@ const Map<String, List<String>> WHITE_LIST = const {
 
   // Some things in dart_printer are not yet used
   "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
-
-  // MethodElement
-  // TODO(20377): Why is MethodElement unused?
-  "lib/src/elements/elements.dart": const [" is never "]
 };
 
 void main() {

@@ -1864,7 +1864,7 @@ abstract class BaseFunctionElementX
 }
 
 abstract class FunctionElementX extends BaseFunctionElementX
-    with AnalyzableElementX implements MemberElement {
+    with AnalyzableElementX implements MethodElement {
   FunctionElementX(String name,
                    ElementKind kind,
                    Modifiers modifiers,
@@ -2934,8 +2934,6 @@ class TypeVariableElementX extends ElementX with AstElementMixin
   bool get hasNode => true;
 
   Node parseNode(compiler) => node;
-
-  String toString() => "${enclosingElement.toString()}.${name}";
 
   Token get position => node.getBeginToken();
 

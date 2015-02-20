@@ -1358,6 +1358,8 @@ void testTypeLiteral(MockCompiler compiler) {
   // Check access in assignment.
   check('m(Type val) => val = Class;');
   check('m(int val) => val = Class;', warnings: NOT_ASSIGNABLE);
+  check('m(Type val) => val = dynamic;');
+  check('m(int val) => val = dynamic;', warnings: NOT_ASSIGNABLE);
 
   // Check access as argument.
   check('m(Type val) => m(int);');
@@ -1374,6 +1376,10 @@ void testTypeLiteral(MockCompiler compiler) {
   // Check static method access.
   check('m() => Class.method();');
   check('m() => (Class).method();', warnings: MessageKind.METHOD_NOT_FOUND);
+
+  // Check access in invocation.
+  check('m() => Class();', warnings: MessageKind.NOT_CALLABLE);
+  check('m() => dynamic();', warnings: MessageKind.NOT_CALLABLE);
 }
 
 Future testInitializers(MockCompiler compiler) {
