@@ -347,7 +347,13 @@ class DartMethod extends Method {
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
   final bool canBeReflected;
-  final DartType type;
+
+  // Is non-null if [needsTearOff] or [canBeReflected].
+  //
+  // If the type is encoded in the metadata table this field contains an index
+  // into the table. Otherwise the type contains type variables in which case
+  // this field holds a function computing the function signature.
+  final js.Expression functionType;
 
   // Signature information for this method. This is only required and stored
   // here if the method [canBeApplied] or [canBeReflected]
@@ -360,10 +366,10 @@ class DartMethod extends Method {
   final String callName;
 
   DartMethod(Element element, String name, js.Expression code,
-             this.parameterStubs, this.callName, this.type,
+             this.parameterStubs, this.callName,
              {this.needsTearOff, this.tearOffName, this.canBeApplied,
               this.canBeReflected, this.requiredParameterCount,
-              this.optionalParameterDefaultValues})
+              this.optionalParameterDefaultValues, this.functionType})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
@@ -386,7 +392,7 @@ class InstanceMethod extends DartMethod {
 
   InstanceMethod(Element element, String name, js.Expression code,
                  List<ParameterStubMethod> parameterStubs,
-                 String callName, DartType type,
+                 String callName,
                  {bool needsTearOff,
                   String tearOffName,
                   this.aliasName,
@@ -394,14 +400,16 @@ class InstanceMethod extends DartMethod {
                   bool canBeReflected,
                   int requiredParameterCount,
                   /* List | Map */ optionalParameterDefaultValues,
-                  this.isClosure})
-      : super(element, name, code, parameterStubs, callName, type,
+                  this.isClosure,
+                  js.Expression functionType})
+      : super(element, name, code, parameterStubs, callName,
               needsTearOff: needsTearOff,
               tearOffName: tearOffName,
               canBeApplied: canBeApplied,
               canBeReflected: canBeReflected,
               requiredParameterCount: requiredParameterCount,
-              optionalParameterDefaultValues: optionalParameterDefaultValues) {
+              optionalParameterDefaultValues: optionalParameterDefaultValues,
+              functionType: functionType) {
     assert(isClosure != null);
   }
 }
@@ -445,17 +453,19 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
   StaticDartMethod(Element element, String name, this.holder,
                    js.Expression code, List<ParameterStubMethod> parameterStubs,
-                   String callName, DartType type,
+                   String callName,
                    {bool needsTearOff, String tearOffName, bool canBeApplied,
                     bool canBeReflected, int requiredParameterCount,
-                    /* List | Map */ optionalParameterDefaultValues})
-      : super(element, name, code, parameterStubs, callName, type,
+                    /* List | Map */ optionalParameterDefaultValues,
+                    js.Expression functionType})
+      : super(element, name, code, parameterStubs, callName,
               needsTearOff: needsTearOff,
               tearOffName : tearOffName,
               canBeApplied : canBeApplied,
               canBeReflected : canBeReflected,
               requiredParameterCount: requiredParameterCount,
-              optionalParameterDefaultValues: optionalParameterDefaultValues);
+              optionalParameterDefaultValues: optionalParameterDefaultValues,
+              functionType: functionType);
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {

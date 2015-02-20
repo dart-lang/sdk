@@ -631,15 +631,6 @@ function parseFunctionDescriptor(proto, name, descriptor) {
 }
 """;
 
-  js.Expression _generateFunctionType(DartType memberType) {
-    if (memberType.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return backend.rti.getSignatureEncoding(memberType, thisAccess);
-    } else {
-      return js.number(backend.emitter.metadataCollector.reifyType(memberType));
-    }
-  }
-
   js.Expression _encodeOptionalParameterDefaultValues(DartMethod method) {
     js.Expression result;
     // TODO(herhut): Replace [js.LiteralNull] with [js.ArrayHole].
@@ -688,7 +679,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
           bool isIntercepted = backend.isInterceptedMethod(method.element);
           data.add(new js.LiteralBool(isIntercepted));
           data.add(js.string(method.tearOffName));
-          data.add(_generateFunctionType(method.type));
+          data.add((method.functionType));
         }
 
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
@@ -737,7 +728,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
         var data = [unparse(compiler, method.code)];
         data.add(js.string(method.callName));
         data.add(js.string(method.tearOffName));
-        data.add(_generateFunctionType(method.type));
+        data.add(method.functionType);
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
         if (method.canBeApplied) {
           data.add(js.number(method.requiredParameterCount));

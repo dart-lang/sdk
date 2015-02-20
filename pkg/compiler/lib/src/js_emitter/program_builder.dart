@@ -544,6 +544,11 @@ class ProgramBuilder {
       memberType = element.type;
     }
 
+    js.Expression functionType;
+    if (canTearOff || canBeReflected) {
+      functionType = _generateFunctionType(memberType);
+    }
+
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
@@ -554,12 +559,22 @@ class ProgramBuilder {
     }
 
     return new InstanceMethod(element, name, code,
-        _generateParameterStubs(element, canTearOff), callName, memberType,
+        _generateParameterStubs(element, canTearOff), callName,
         needsTearOff: canTearOff, tearOffName: tearOffName,
         isClosure: isClosure, aliasName: aliasName,
         canBeApplied: canBeApplied, canBeReflected: canBeReflected,
         requiredParameterCount: requiredParameterCount,
-        optionalParameterDefaultValues: optionalParameterDefaultValues);
+        optionalParameterDefaultValues: optionalParameterDefaultValues,
+        functionType: functionType);
+  }
+
+  js.Expression _generateFunctionType(DartType type) {
+    if (type.containsTypeVariables) {
+      js.Expression thisAccess = js.js(r'this.$receiver');
+      return backend.rti.getSignatureEncoding(type, thisAccess);
+    } else {
+      return js.number(backend.emitter.metadataCollector.reifyType(type));
+    }
   }
 
   List<ParameterStubMethod> _generateParameterStubs(FunctionElement element,
@@ -692,11 +707,17 @@ class ProgramBuilder {
     String tearOffName =
         needsTearOff ? namer.getStaticClosureName(element) : null;
 
+
     String callName = null;
     if (needsTearOff) {
       Selector callSelector =
           new Selector.fromElement(element).toCallSelector();
       callName = namer.invocationName(callSelector);
+    }
+    js.Expression functionType;
+    DartType type = element.type;
+    if (needsTearOff || canBeReflected) {
+      functionType = _generateFunctionType(type);
     }
 
     int requiredParameterCount;
@@ -713,14 +734,15 @@ class ProgramBuilder {
     return new StaticDartMethod(element,
                                 name, _registry.registerHolder(holder), code,
                                 _generateParameterStubs(element, needsTearOff),
-                                callName, element.type,
+                                callName,
                                 needsTearOff: needsTearOff,
                                 tearOffName: tearOffName,
                                 canBeApplied: canBeApplied,
                                 canBeReflected: canBeReflected,
                                 requiredParameterCount: requiredParameterCount,
                                 optionalParameterDefaultValues:
-                                  optionalParameterDefaultValues);
+                                  optionalParameterDefaultValues,
+                                functionType: functionType);
   }
 
   void _registerConstants(OutputUnit outputUnit,

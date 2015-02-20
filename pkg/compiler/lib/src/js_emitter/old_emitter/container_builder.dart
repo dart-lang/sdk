@@ -23,6 +23,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool isClosure = method is InstanceMethod && method.isClosure;
     String superAlias = method is InstanceMethod ? method.aliasName : null;
     bool hasSuperAlias = superAlias != null;
+    jsAst.Expression memberTypeExpression = method.functionType;
 
     bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
@@ -126,28 +127,13 @@ class ContainerBuilder extends CodeEmitterHelper {
       tearOffInfo.add(new jsAst.LiteralString(callSelectorString));
     }
 
-    jsAst.Expression memberTypeExpression;
-    if (canTearOff || canBeReflected) {
-      DartType memberType = method.type;
-      if (memberType.containsTypeVariables) {
-        jsAst.Expression thisAccess = js(r'this.$receiver');
-        memberTypeExpression =
-            backend.rti.getSignatureEncoding(memberType, thisAccess);
-      } else {
-        memberTypeExpression =
-            js.number(task.metadataCollector.reifyType(memberType));
-      }
-    } else {
-      memberTypeExpression = js('null');
-    }
-
     expressions
         ..addAll(tearOffInfo)
         ..add((tearOffName == null || member.isAccessor)
               ? js("null") : js.string(tearOffName))
         ..add(js.number(requiredParameterCount))
         ..add(js.number(optionalParameterCount))
-        ..add(memberTypeExpression)
+        ..add(memberTypeExpression == null ? js("null") : memberTypeExpression)
         ..addAll(task.metadataCollector
             .reifyDefaultArguments(member).map(js.number));
 
