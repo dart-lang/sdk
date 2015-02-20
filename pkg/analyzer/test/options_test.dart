@@ -5,8 +5,10 @@
 library options_test;
 
 import 'package:analyzer/options.dart';
-import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
+import 'package:unittest/unittest.dart';
+
+import 'reflective_tests.dart';
 
 main() {
 
@@ -146,4 +148,20 @@ main() {
 
   });
 
+  runReflectiveTests(CommandLineParserTest);
+}
+
+
+@reflectiveTest
+class CommandLineParserTest {
+  test_ignoreUnrecognizedOptions() {
+    CommandLineParser parser =
+        new CommandLineParser(alwaysIgnoreUnrecognized: true);
+    parser.addOption('optionA');
+    parser.addFlag('flagA');
+    ArgResults argResults =
+        parser.parse(['--optionA=1', '--optionB=2', '--flagA'], {});
+    expect(argResults['optionA'], '1');
+    expect(argResults['flagA'], isTrue);
+  }
 }

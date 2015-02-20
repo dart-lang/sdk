@@ -396,7 +396,7 @@ class CommandLineParser {
     return remainingArgs;
   }
 
-  List<String> _filterUnknowns(args) {
+  List<String> _filterUnknowns(List<String> args) {
 
     // Only filter args if the ignore flag is specified, or if
     // _alwaysIgnoreUnrecognized was set to true
@@ -409,11 +409,18 @@ class CommandLineParser {
       //  _knownFlags.contains(arg.substring(2)));
 
       // Filter all unrecognized flags and options.
-      var filtered = <String>[];
-      for (var i = 0; i < args.length; ++i) {
-        var arg = args[i];
+      List<String> filtered = <String>[];
+      for (int i = 0; i < args.length; ++i) {
+        String arg = args[i];
         if (arg.startsWith('--') && arg.length > 2) {
-          if (!_knownFlags.contains(arg.substring(2))) {
+          String option = arg.substring(2);
+          // strip the last '=value'
+          int equalsOffset = option.lastIndexOf('=');
+          if (equalsOffset != -1) {
+            option = option.substring(0, equalsOffset);
+          }
+          // check the option
+          if (!_knownFlags.contains(option)) {
             //print('remove: $arg');
             //"eat" params by advancing to the next flag/option
             i = _getNextFlagIndex(args, i);
