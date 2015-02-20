@@ -819,8 +819,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save new context and C++ ABI callee-saved registers.
 
-  // The saved vm tag and the top exit frame.
-  const intptr_t kPreservedSlots = 2;
+  // The saved vm tag, top resource, and top exit frame info.
+  const intptr_t kPreservedSlots = 3;
   const intptr_t kPreservedRegSpace =
       kWordSize * (kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount +
                    kPreservedSlots);
@@ -850,23 +850,25 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save the current VMTag on the stack.
   __ lw(T1, Address(T2, Isolate::vm_tag_offset()));
-  __ sw(T1, Address(SP, 1 * kWordSize));
+  __ sw(T1, Address(SP, 2 * kWordSize));
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(T0, VMTag::kDartTagId);
   __ sw(T0, Address(T2, Isolate::vm_tag_offset()));
 
-  // Save the top exit frame info. Use T0 as a temporary register.
+  // Save top resource and top exit frame info. Use T0 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ lw(T0, Address(T2, Isolate::top_resource_offset()));
+  __ sw(ZR, Address(T2, Isolate::top_resource_offset()));
+  __ sw(T0, Address(SP, 1 * kWordSize));
   __ lw(T0, Address(T2, Isolate::top_exit_frame_info_offset()));
   __ sw(ZR, Address(T2, Isolate::top_exit_frame_info_offset()));
-
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -22);
+  ASSERT(kExitLinkSlotFromEntryFp == -23);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
   // After the call, The stack pointer is restored to this location.
-  // Pushed S0-7, F20-31, T0, T1 = 22.
+  // Pushed S0-7, F20-31, T0, T0, T1 = 23.
 
   // Load arguments descriptor array into S4, which is passed to Dart code.
   __ lw(S4, Address(A1, VMHandles::kOffsetOfRawPtrInHandle));
@@ -906,11 +908,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadIsolate(S6);
 
   // Restore the current VMTag from the stack.
-  __ lw(T1, Address(SP, 1 * kWordSize));
+  __ lw(T1, Address(SP, 2 * kWordSize));
   __ sw(T1, Address(S6, Isolate::vm_tag_offset()));
 
-  // Restore the saved top exit frame info back into the Isolate structure.
-  // Uses T0 as a temporary register for this.
+  // Restore the saved top resource and top exit frame info back into the
+  // Isolate structure. Uses T0 as a temporary register for this.
+  __ lw(T0, Address(SP, 1 * kWordSize));
+  __ sw(T0, Address(S6, Isolate::top_resource_offset()));
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ sw(T0, Address(S6, Isolate::top_exit_frame_info_offset()));
 

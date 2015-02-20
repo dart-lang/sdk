@@ -764,14 +764,17 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadImmediate(R5, VMTag::kDartTagId);
   __ StoreToOffset(kWord, R5, R8, Isolate::vm_tag_offset());
 
-  // Save the top exit frame info. Use R5 as a temporary register.
+  // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ LoadFromOffset(kWord, R5, R8, Isolate::top_exit_frame_info_offset());
+  __ LoadFromOffset(kWord, R4, R8, Isolate::top_resource_offset());
   __ LoadImmediate(R6, 0);
+  __ StoreToOffset(kWord, R6, R8, Isolate::top_resource_offset());
   __ StoreToOffset(kWord, R6, R8, Isolate::top_exit_frame_info_offset());
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -25);
+  __ Push(R4);
+  ASSERT(kExitLinkSlotFromEntryFp == -26);
   __ Push(R5);
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -807,11 +810,12 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize);
 
   __ LoadIsolate(R8);
-
-  // Restore the saved top exit frame info back into the Isolate structure.
-  // Uses R5 as a temporary register for this.
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure. Uses R5 as a temporary register for this.
   __ Pop(R5);
   __ StoreToOffset(kWord, R5, R8, Isolate::top_exit_frame_info_offset());
+  __ Pop(R5);
+  __ StoreToOffset(kWord, R5, R8, Isolate::top_resource_offset());
 
   // Restore the current VMTag from the stack.
   __ Pop(R4);

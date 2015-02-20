@@ -65,10 +65,10 @@ class StackResource {
   // StackResource is to break the header include cycles.
   Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
 
-  // Destroy stack resources of isolate from top until stack_pointer, exclusive.
-  static void Unwind(Isolate* isolate, uword stack_pointer);
+  // Destroy stack resources of isolate until top exit frame.
+  static void Unwind(Isolate* isolate) { UnwindAbove(isolate, NULL); }
   // Destroy stack resources of isolate above new_top, exclusive.
-  static void Unwind(Isolate* isolate, StackResource* new_top);
+  static void UnwindAbove(Isolate* isolate, StackResource* new_top);
 
  private:
   BaseIsolate* const isolate_;  // Current isolate for this stack resource.

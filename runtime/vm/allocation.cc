@@ -36,23 +36,7 @@ void* ZoneAllocated::operator new(uword size, Zone* zone) {
 }
 
 
-void StackResource::Unwind(Isolate* isolate, uword stack_pointer) {
-  while (isolate->top_resource() != NULL &&
-         (reinterpret_cast<uword>(isolate->top_resource()) < stack_pointer)) {
-    isolate->top_resource()->~StackResource();
-  }
-#if defined(DEBUG)
-  // All remaining stack resources should be below stack_pointer.
-  StackResource* current = isolate->top_resource();
-  while (current != NULL) {
-    ASSERT(reinterpret_cast<uword>(current) >= stack_pointer);
-    current = current->previous_;
-  }
-#endif  // DEBUG
-}
-
-
-void StackResource::Unwind(Isolate* isolate, StackResource* new_top) {
+void StackResource::UnwindAbove(Isolate* isolate, StackResource* new_top) {
   StackResource* current_resource = isolate->top_resource();
   while (current_resource != new_top) {
     current_resource->~StackResource();

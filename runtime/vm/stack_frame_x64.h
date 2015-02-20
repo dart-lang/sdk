@@ -46,9 +46,9 @@ static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
 
 // Entry and exit frame layout.
 #if defined(_WIN64)
-static const int kExitLinkSlotFromEntryFp = -30;
+static const int kExitLinkSlotFromEntryFp = -31;
 #else
-static const int kExitLinkSlotFromEntryFp = -8;
+static const int kExitLinkSlotFromEntryFp = -9;
 #endif  // defined(_WIN64)
 
 }  // namespace dart

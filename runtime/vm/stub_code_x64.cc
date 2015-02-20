@@ -740,11 +740,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
-  // Save the top exit frame info. Use RAX as a temporary register.
+  // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ movq(RAX, Address(kIsolateReg, Isolate::top_resource_offset()));
+  __ pushq(RAX);
+  __ movq(Address(kIsolateReg, Isolate::top_resource_offset()),
+          Immediate(0));
+  __ movq(RAX, Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  __ movq(RAX, Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
   __ pushq(RAX);
 #if defined(DEBUG)
   {
@@ -756,7 +760,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-
   __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -798,9 +801,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
-  // Restore the saved top exit frame info back into the Isolate structure.
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure.
   __ LoadIsolate(kIsolateReg);
   __ popq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
+  __ popq(Address(kIsolateReg, Isolate::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
   __ popq(Address(kIsolateReg, Isolate::vm_tag_offset()));

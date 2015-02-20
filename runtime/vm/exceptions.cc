@@ -220,10 +220,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
-  StackResource::Unwind(isolate, stack_pointer);
-  // There should be some stack resources left, since we never cross the
-  // bottommost C++ frame with its handlescope, etc.
-  ASSERT(isolate->top_resource() != NULL);
+  StackResource::Unwind(isolate);
 
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to

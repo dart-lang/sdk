@@ -55,7 +55,6 @@ class SimulatorSetjmpBuffer {
     link_ = sim->last_setjmp_buffer();
     sim->set_last_setjmp_buffer(this);
     sp_ = static_cast<uword>(sim->get_register(R31, R31IsSP));
-    native_sp_ = Isolate::GetCurrentStackPointer();
   }
 
   ~SimulatorSetjmpBuffer() {
@@ -66,11 +65,9 @@ class SimulatorSetjmpBuffer {
   SimulatorSetjmpBuffer* link() { return link_; }
 
   uword sp() { return sp_; }
-  uword native_sp() { return native_sp_; }
 
  private:
   uword sp_;
-  uword native_sp_;
   Simulator* simulator_;
   SimulatorSetjmpBuffer* link_;
   jmp_buf buffer_;
@@ -3482,8 +3479,7 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  uword native_sp = buf->native_sp();
-  StackResource::Unwind(isolate, native_sp);
+  StackResource::Unwind(isolate);
 
   // Unwind the C++ stack and continue simulation in the target frame.
   set_pc(static_cast<int64_t>(pc));

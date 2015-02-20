@@ -42,7 +42,7 @@ static const int kCallerSpSlotFromFp = 2;
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
 
 // Entry and exit frame layout.
-static const int kExitLinkSlotFromEntryFp = -5;
+static const int kExitLinkSlotFromEntryFp = -6;
 
 }  // namespace dart
 
