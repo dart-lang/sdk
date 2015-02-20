@@ -121,5 +121,3 @@ class Timer {
     return new TimerImpl.periodic(milliseconds, callback);
   }
 }
-
-bool get _hasDocument => JS('String', 'typeof document') == 'object';
