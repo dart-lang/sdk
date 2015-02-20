@@ -17,7 +17,7 @@ var async;
   // Function _registerErrorHandler: (Function, Zone) → Function
   function _registerErrorHandler(errorHandler, zone) {
     if (dart.is(errorHandler, ZoneBinaryCallback)) {
-      return zone.registerBinaryCallback(dart.as(errorHandler, /* Unimplemented type (dynamic, dynamic) → dynamic */));
+      return zone.registerBinaryCallback(errorHandler);
     } else {
       return zone.registerUnaryCallback(dart.as(errorHandler, /* Unimplemented type (dynamic) → dynamic */));
     }
@@ -1037,7 +1037,7 @@ var async;
               if (dart.notNull(matchesTest) && dart.notNull(errorCallback !== null)) {
                 try {
                   if (dart.is(errorCallback, ZoneBinaryCallback)) {
-                    listenerValueOrError = zone.runBinary(dart.as(errorCallback, /* Unimplemented type (dynamic, dynamic) → dynamic */), asyncError.error, asyncError.stackTrace);
+                    listenerValueOrError = zone.runBinary(errorCallback, asyncError.error, asyncError.stackTrace);
                   } else {
                     listenerValueOrError = zone.runUnary(dart.as(errorCallback, /* Unimplemented type (dynamic) → dynamic */), asyncError.error);
                   }
@@ -1104,11 +1104,11 @@ var async;
               if (dart.is(chainSource, _Future)) {
                 if (chainSource._isComplete) {
                   result._isChained = true;
-                  source = dart.as(chainSource, _Future);
+                  source = chainSource;
                   listeners = new _FutureListener.chain(result);
                   continue;
                 } else {
-                  _chainCoreFuture(dart.as(chainSource, _Future), result);
+                  _chainCoreFuture(chainSource, result);
                 }
               } else {
                 _chainForeignFuture(chainSource, result);
@@ -4259,7 +4259,7 @@ var async;
     let valueMap = null;
     if (zoneValues === null) {
       if (dart.is(zone, _Zone)) {
-        valueMap = dart.as(zone._map, core.Map);
+        valueMap = zone._map;
       } else {
         valueMap = new collection.HashMap();
       }
@@ -4424,7 +4424,7 @@ var async;
       errorHandler = (self, parent, zone, error, stackTrace) => {
         try {
           if (dart.is(onError, ZoneBinaryCallback)) {
-            return self.parent.runBinary(dart.as(onError, /* Unimplemented type (dynamic, dynamic) → dynamic */), error, stackTrace);
+            return self.parent.runBinary(onError, error, stackTrace);
           }
           return self.parent.runUnary(dart.as(onError, /* Unimplemented type (dynamic) → dynamic */), error);
         }

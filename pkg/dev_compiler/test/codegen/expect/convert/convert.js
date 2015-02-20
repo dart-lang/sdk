@@ -348,7 +348,7 @@ var convert;
     startChunkedConversion(sink) {
       let stringSink = null;
       if (dart.is(sink, StringConversionSink)) {
-        stringSink = dart.as(sink, StringConversionSink);
+        stringSink = sink;
       } else {
         stringSink = new StringConversionSink.from(sink);
       }
@@ -889,7 +889,7 @@ var convert;
     startChunkedConversion(sink) {
       let byteSink = null;
       if (dart.is(sink, ByteConversionSink)) {
-        byteSink = dart.as(sink, ByteConversionSink);
+        byteSink = sink;
       } else {
         byteSink = new ByteConversionSink.from(sink);
       }
@@ -1393,7 +1393,7 @@ var convert;
     startChunkedConversion(sink) {
       let stringSink = null;
       if (dart.is(sink, StringConversionSink)) {
-        stringSink = dart.as(sink, StringConversionSink);
+        stringSink = sink;
       } else {
         stringSink = new StringConversionSink.from(sink);
       }
@@ -1936,7 +1936,7 @@ var convert;
     startChunkedConversion(sink) {
       let stringSink = null;
       if (dart.is(sink, StringConversionSink)) {
-        stringSink = dart.as(sink, StringConversionSink);
+        stringSink = sink;
       } else {
         stringSink = new StringConversionSink.from(sink);
       }

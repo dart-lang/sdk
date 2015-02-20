@@ -391,7 +391,7 @@ var core;
         return object.toString();
       }
       if (typeof object == "string") {
-        return _stringToSafeString(dart.as(object, String));
+        return _stringToSafeString(object);
       }
       return _objectToString(object);
     }

@@ -18,7 +18,7 @@ var math;
     if (typeof b == "number") {
       if (typeof a == "number") {
         if (a === 0.0) {
-          return dart.notNull(dart.notNull((dart.notNull(a) + dart.notNull(b))) * dart.notNull(a)) * dart.notNull(b);
+          return (a + b) * a * b;
         }
       }
       if (dart.notNull(dart.notNull(a === 0) && dart.notNull(b.isNegative)) || dart.notNull(b.isNaN)) return b;
@@ -36,7 +36,7 @@ var math;
     if (typeof b == "number") {
       if (typeof a == "number") {
         if (a === 0.0) {
-          return dart.notNull(a) + dart.notNull(b);
+          return a + b;
         }
       }
       if (b.isNaN) return b;

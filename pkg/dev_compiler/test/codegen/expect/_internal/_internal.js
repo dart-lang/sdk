@@ -980,7 +980,7 @@ var _internal;
         let otherList = null;
         let otherStart = null;
         if (dart.is(from, core.List)) {
-          otherList = dart.as(from, core.List);
+          otherList = from;
           otherStart = skipCount;
         } else {
           otherList = from.skip(skipCount).toList({growable: false});

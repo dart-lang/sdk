@@ -3,11 +3,11 @@ part of dart.async;
 abstract class Stream<T> {
   Stream();
   factory Stream.fromFuture(Future<T> future) {
-    _StreamController<T> controller = ((__x41) => DDC$RT.cast(__x41,
+    _StreamController<T> controller = ((__x35) => DDC$RT.cast(__x35,
         DDC$RT.type((StreamController<T> _) {}),
         DDC$RT.type((_StreamController<T> _) {}), "CastExact",
         """line 87, column 39 of dart:async/stream.dart: """,
-        __x41 is _StreamController<T>,
+        __x35 is _StreamController<T>,
         false))(new StreamController<T>(sync: true));
     future.then((value) {
       controller._add(DDC$RT.cast(value, dynamic, T, "CastGeneral",
@@ -28,15 +28,15 @@ abstract class Stream<T> {
   }
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)]) {
-    if (computation == null) computation = ((__x48) => DDC$RT.wrap(
-        (dynamic f(dynamic __u43)) {
-      dynamic c(dynamic x0) => ((__x42) => DDC$RT.cast(__x42, Null, T,
+    if (computation == null) computation = ((__x42) => DDC$RT.wrap(
+        (dynamic f(dynamic __u37)) {
+      dynamic c(dynamic x0) => ((__x36) => DDC$RT.cast(__x36, Null, T,
           "CastResult", """line 126, column 44 of dart:async/stream.dart: """,
-          __x42 is T, false))(f(x0));
+          __x36 is T, false))(f(x0));
       return f == null ? null : c;
-    }, __x48, __t46, DDC$RT.type((__t44<T> _) {}), "Wrap",
+    }, __x42, __t40, DDC$RT.type((__t38<T> _) {}), "Wrap",
         """line 126, column 44 of dart:async/stream.dart: """,
-        __x48 is __t44<T>))(((i) => null));
+        __x42 is __t38<T>))(((i) => null));
     Timer timer;
     int computationCount = 0;
     StreamController<T> controller;
@@ -76,11 +76,11 @@ abstract class Stream<T> {
   }
   factory Stream.eventTransformed(
       Stream source, EventSink mapSink(EventSink<T> sink)) {
-    return ((__x49) => DDC$RT.cast(__x49,
+    return ((__x43) => DDC$RT.cast(__x43,
         DDC$RT.type((_BoundSinkStream<dynamic, dynamic> _) {}),
         DDC$RT.type((Stream<T> _) {}), "CastExact",
         """line 216, column 12 of dart:async/stream.dart: """,
-        __x49 is Stream<T>, false))(new _BoundSinkStream(source, mapSink));
+        __x43 is Stream<T>, false))(new _BoundSinkStream(source, mapSink));
   }
   bool get isBroadcast => false;
   Stream<T> asBroadcastStream(
@@ -204,19 +204,19 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen((T element) {
       if (seenFirst) {
-        _runUserCode(() => combine(value, element), ((__x55) => DDC$RT.wrap(
-            (dynamic f(T __u50)) {
+        _runUserCode(() => combine(value, element), ((__x49) => DDC$RT.wrap(
+            (dynamic f(T __u44)) {
           dynamic c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam",
               """line 500, column 24 of dart:async/stream.dart: """, x0 is T,
               false));
           return f == null ? null : c;
-        }, __x55, DDC$RT.type((__t53<T> _) {}), __t51, "WrapLiteral",
+        }, __x49, DDC$RT.type((__t47<T> _) {}), __t45, "WrapLiteral",
             """line 500, column 24 of dart:async/stream.dart: """,
-            __x55 is __t51))((T newValue) {
+            __x49 is __t45))((T newValue) {
           value = newValue;
-        }), ((__x59) => DDC$RT.cast(__x59, dynamic, __t56, "CastGeneral",
+        }), ((__x53) => DDC$RT.cast(__x53, dynamic, __t50, "CastGeneral",
             """line 501, column 24 of dart:async/stream.dart: """,
-            __x59 is __t56,
+            __x53 is __t50,
             false))(_cancelAndErrorClosure(subscription, result)));
       } else {
         value = element;
@@ -242,8 +242,8 @@ abstract class Stream<T> {
     subscription = this.listen((T element) {
       _runUserCode(() => combine(value, element), (newValue) {
         value = newValue;
-      }, ((__x60) => DDC$RT.cast(__x60, dynamic, __t56, "CastGeneral",
-          """line 534, column 11 of dart:async/stream.dart: """, __x60 is __t56,
+      }, ((__x54) => DDC$RT.cast(__x54, dynamic, __t50, "CastGeneral",
+          """line 534, column 11 of dart:async/stream.dart: """, __x54 is __t50,
           false))(_cancelAndErrorClosure(subscription, result)));
     }, onError: (e, st) {
       result._completeError(e, DDC$RT.cast(st, dynamic, StackTrace,
@@ -280,20 +280,20 @@ abstract class Stream<T> {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
     subscription = this.listen((T element) {
-      _runUserCode(() => (element == needle), ((__x64) => DDC$RT.wrap(
-          (dynamic f(bool __u61)) {
+      _runUserCode(() => (element == needle), ((__x58) => DDC$RT.wrap(
+          (dynamic f(bool __u55)) {
         dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam",
             """line 597, column 13 of dart:async/stream.dart: """, x0 is bool,
             true));
         return f == null ? null : c;
-      }, __x64, __t62, __t51, "WrapLiteral",
+      }, __x58, __t56, __t45, "WrapLiteral",
           """line 597, column 13 of dart:async/stream.dart: """,
-          __x64 is __t51))((bool isMatch) {
+          __x58 is __t45))((bool isMatch) {
         if (isMatch) {
           _cancelAndValue(subscription, future, true);
         }
-      }), ((__x65) => DDC$RT.cast(__x65, dynamic, __t56, "CastGeneral",
-          """line 602, column 13 of dart:async/stream.dart: """, __x65 is __t56,
+      }), ((__x59) => DDC$RT.cast(__x59, dynamic, __t50, "CastGeneral",
+          """line 602, column 13 of dart:async/stream.dart: """, __x59 is __t50,
           false))(_cancelAndErrorClosure(subscription, future)));
     }, onError: future._completeError, onDone: () {
       future._complete(false);
@@ -304,9 +304,9 @@ abstract class Stream<T> {
     _Future future = new _Future();
     StreamSubscription subscription;
     subscription = this.listen((T element) {
-      _runUserCode(() => action(element), (_) {}, ((__x66) => DDC$RT.cast(__x66,
-          dynamic, __t56, "CastGeneral",
-          """line 628, column 13 of dart:async/stream.dart: """, __x66 is __t56,
+      _runUserCode(() => action(element), (_) {}, ((__x60) => DDC$RT.cast(__x60,
+          dynamic, __t50, "CastGeneral",
+          """line 628, column 13 of dart:async/stream.dart: """, __x60 is __t50,
           false))(_cancelAndErrorClosure(subscription, future)));
     }, onError: future._completeError, onDone: () {
       future._complete(null);
@@ -317,20 +317,20 @@ abstract class Stream<T> {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
     subscription = this.listen((T element) {
-      _runUserCode(() => test(element), ((__x68) => DDC$RT.wrap(
-          (dynamic f(bool __u67)) {
+      _runUserCode(() => test(element), ((__x62) => DDC$RT.wrap(
+          (dynamic f(bool __u61)) {
         dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam",
             """line 652, column 13 of dart:async/stream.dart: """, x0 is bool,
             true));
         return f == null ? null : c;
-      }, __x68, __t62, __t51, "WrapLiteral",
+      }, __x62, __t56, __t45, "WrapLiteral",
           """line 652, column 13 of dart:async/stream.dart: """,
-          __x68 is __t51))((bool isMatch) {
+          __x62 is __t45))((bool isMatch) {
         if (!isMatch) {
           _cancelAndValue(subscription, future, false);
         }
-      }), ((__x69) => DDC$RT.cast(__x69, dynamic, __t56, "CastGeneral",
-          """line 657, column 13 of dart:async/stream.dart: """, __x69 is __t56,
+      }), ((__x63) => DDC$RT.cast(__x63, dynamic, __t50, "CastGeneral",
+          """line 657, column 13 of dart:async/stream.dart: """, __x63 is __t50,
           false))(_cancelAndErrorClosure(subscription, future)));
     }, onError: future._completeError, onDone: () {
       future._complete(true);
@@ -341,20 +341,20 @@ abstract class Stream<T> {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
     subscription = this.listen((T element) {
-      _runUserCode(() => test(element), ((__x71) => DDC$RT.wrap(
-          (dynamic f(bool __u70)) {
+      _runUserCode(() => test(element), ((__x65) => DDC$RT.wrap(
+          (dynamic f(bool __u64)) {
         dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam",
             """line 689, column 13 of dart:async/stream.dart: """, x0 is bool,
             true));
         return f == null ? null : c;
-      }, __x71, __t62, __t51, "WrapLiteral",
+      }, __x65, __t56, __t45, "WrapLiteral",
           """line 689, column 13 of dart:async/stream.dart: """,
-          __x71 is __t51))((bool isMatch) {
+          __x65 is __t45))((bool isMatch) {
         if (isMatch) {
           _cancelAndValue(subscription, future, true);
         }
-      }), ((__x72) => DDC$RT.cast(__x72, dynamic, __t56, "CastGeneral",
-          """line 694, column 13 of dart:async/stream.dart: """, __x72 is __t56,
+      }), ((__x66) => DDC$RT.cast(__x66, dynamic, __t50, "CastGeneral",
+          """line 694, column 13 of dart:async/stream.dart: """, __x66 is __t50,
           false))(_cancelAndErrorClosure(subscription, future)));
     }, onError: future._completeError, onDone: () {
       future._complete(false);
@@ -404,37 +404,37 @@ abstract class Stream<T> {
   Future drain([var futureValue]) =>
       listen(null, cancelOnError: true).asFuture(futureValue);
   Stream<T> take(int count) {
-    return ((__x73) => DDC$RT.cast(__x73,
+    return ((__x67) => DDC$RT.cast(__x67,
         DDC$RT.type((_TakeStream<dynamic> _) {}), DDC$RT.type((Stream<T> _) {}),
         "CastExact", """line 819, column 12 of dart:async/stream.dart: """,
-        __x73 is Stream<T>, false))(new _TakeStream(this, count));
+        __x67 is Stream<T>, false))(new _TakeStream(this, count));
   }
   Stream<T> takeWhile(bool test(T element)) {
-    return ((__x74) => DDC$RT.cast(__x74,
+    return ((__x68) => DDC$RT.cast(__x68,
         DDC$RT.type((_TakeWhileStream<dynamic> _) {}),
         DDC$RT.type((Stream<T> _) {}), "CastExact",
         """line 841, column 12 of dart:async/stream.dart: """,
-        __x74 is Stream<T>, false))(new _TakeWhileStream(this, test));
+        __x68 is Stream<T>, false))(new _TakeWhileStream(this, test));
   }
   Stream<T> skip(int count) {
-    return ((__x75) => DDC$RT.cast(__x75,
+    return ((__x69) => DDC$RT.cast(__x69,
         DDC$RT.type((_SkipStream<dynamic> _) {}), DDC$RT.type((Stream<T> _) {}),
         "CastExact", """line 852, column 12 of dart:async/stream.dart: """,
-        __x75 is Stream<T>, false))(new _SkipStream(this, count));
+        __x69 is Stream<T>, false))(new _SkipStream(this, count));
   }
   Stream<T> skipWhile(bool test(T element)) {
-    return ((__x76) => DDC$RT.cast(__x76,
+    return ((__x70) => DDC$RT.cast(__x70,
         DDC$RT.type((_SkipWhileStream<dynamic> _) {}),
         DDC$RT.type((Stream<T> _) {}), "CastExact",
         """line 868, column 12 of dart:async/stream.dart: """,
-        __x76 is Stream<T>, false))(new _SkipWhileStream(this, test));
+        __x70 is Stream<T>, false))(new _SkipWhileStream(this, test));
   }
   Stream<T> distinct([bool equals(T previous, T next)]) {
-    return ((__x77) => DDC$RT.cast(__x77,
+    return ((__x71) => DDC$RT.cast(__x71,
         DDC$RT.type((_DistinctStream<dynamic> _) {}),
         DDC$RT.type((Stream<T> _) {}), "CastExact",
         """line 885, column 12 of dart:async/stream.dart: """,
-        __x77 is Stream<T>, false))(new _DistinctStream(this, equals));
+        __x71 is Stream<T>, false))(new _DistinctStream(this, equals));
   }
   Future<T> get first {
     _Future<T> future = new _Future<T>();
@@ -452,8 +452,8 @@ abstract class Stream<T> {
   }
   Future<T> get last {
     _Future<T> future = new _Future<T>();
-    T result = ((__x78) => DDC$RT.cast(__x78, Null, T, "CastLiteral",
-        """line 936, column 16 of dart:async/stream.dart: """, __x78 is T,
+    T result = ((__x72) => DDC$RT.cast(__x72, Null, T, "CastLiteral",
+        """line 936, column 16 of dart:async/stream.dart: """, __x72 is T,
         false))(null);
     bool foundResult = false;
     StreamSubscription subscription;
@@ -475,8 +475,8 @@ abstract class Stream<T> {
   }
   Future<T> get single {
     _Future<T> future = new _Future<T>();
-    T result = ((__x79) => DDC$RT.cast(__x79, Null, T, "CastLiteral",
-        """line 970, column 16 of dart:async/stream.dart: """, __x79 is T,
+    T result = ((__x73) => DDC$RT.cast(__x73, Null, T, "CastLiteral",
+        """line 970, column 16 of dart:async/stream.dart: """, __x73 is T,
         false))(null);
     bool foundResult = false;
     StreamSubscription subscription;
@@ -508,21 +508,21 @@ abstract class Stream<T> {
     _Future<dynamic> future = new _Future();
     StreamSubscription subscription;
     subscription = this.listen((T value) {
-      _runUserCode(() => test(value), ((__x81) => DDC$RT.wrap(
-          (dynamic f(bool __u80)) {
+      _runUserCode(() => test(value), ((__x75) => DDC$RT.wrap(
+          (dynamic f(bool __u74)) {
         dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam",
             """line 1031, column 11 of dart:async/stream.dart: """, x0 is bool,
             true));
         return f == null ? null : c;
-      }, __x81, __t62, __t51, "WrapLiteral",
+      }, __x75, __t56, __t45, "WrapLiteral",
           """line 1031, column 11 of dart:async/stream.dart: """,
-          __x81 is __t51))((bool isMatch) {
+          __x75 is __t45))((bool isMatch) {
         if (isMatch) {
           _cancelAndValue(subscription, future, value);
         }
-      }), ((__x82) => DDC$RT.cast(__x82, dynamic, __t56, "CastGeneral",
+      }), ((__x76) => DDC$RT.cast(__x76, dynamic, __t50, "CastGeneral",
           """line 1036, column 11 of dart:async/stream.dart: """,
-          __x82 is __t56,
+          __x76 is __t50,
           false))(_cancelAndErrorClosure(subscription, future)));
     }, onError: future._completeError, onDone: () {
       if (defaultValue != null) {
@@ -539,28 +539,28 @@ abstract class Stream<T> {
   }
   Future<dynamic> lastWhere(bool test(T element), {Object defaultValue()}) {
     _Future<dynamic> future = new _Future();
-    T result = ((__x83) => DDC$RT.cast(__x83, Null, T, "CastLiteral",
-        """line 1064, column 16 of dart:async/stream.dart: """, __x83 is T,
+    T result = ((__x77) => DDC$RT.cast(__x77, Null, T, "CastLiteral",
+        """line 1064, column 16 of dart:async/stream.dart: """, __x77 is T,
         false))(null);
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen((T value) {
-      _runUserCode(() => true == test(value), ((__x85) => DDC$RT.wrap(
-          (dynamic f(bool __u84)) {
+      _runUserCode(() => true == test(value), ((__x79) => DDC$RT.wrap(
+          (dynamic f(bool __u78)) {
         dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam",
             """line 1071, column 11 of dart:async/stream.dart: """, x0 is bool,
             true));
         return f == null ? null : c;
-      }, __x85, __t62, __t51, "WrapLiteral",
+      }, __x79, __t56, __t45, "WrapLiteral",
           """line 1071, column 11 of dart:async/stream.dart: """,
-          __x85 is __t51))((bool isMatch) {
+          __x79 is __t45))((bool isMatch) {
         if (isMatch) {
           foundResult = true;
           result = value;
         }
-      }), ((__x86) => DDC$RT.cast(__x86, dynamic, __t56, "CastGeneral",
+      }), ((__x80) => DDC$RT.cast(__x80, dynamic, __t50, "CastGeneral",
           """line 1077, column 11 of dart:async/stream.dart: """,
-          __x86 is __t56,
+          __x80 is __t50,
           false))(_cancelAndErrorClosure(subscription, future)));
     }, onError: future._completeError, onDone: () {
       if (foundResult) {
@@ -581,21 +581,21 @@ abstract class Stream<T> {
   }
   Future<T> singleWhere(bool test(T element)) {
     _Future<T> future = new _Future<T>();
-    T result = ((__x87) => DDC$RT.cast(__x87, Null, T, "CastLiteral",
-        """line 1108, column 16 of dart:async/stream.dart: """, __x87 is T,
+    T result = ((__x81) => DDC$RT.cast(__x81, Null, T, "CastLiteral",
+        """line 1108, column 16 of dart:async/stream.dart: """, __x81 is T,
         false))(null);
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen((T value) {
-      _runUserCode(() => true == test(value), ((__x89) => DDC$RT.wrap(
-          (dynamic f(bool __u88)) {
+      _runUserCode(() => true == test(value), ((__x83) => DDC$RT.wrap(
+          (dynamic f(bool __u82)) {
         dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam",
             """line 1115, column 11 of dart:async/stream.dart: """, x0 is bool,
             true));
         return f == null ? null : c;
-      }, __x89, __t62, __t51, "WrapLiteral",
+      }, __x83, __t56, __t45, "WrapLiteral",
           """line 1115, column 11 of dart:async/stream.dart: """,
-          __x89 is __t51))((bool isMatch) {
+          __x83 is __t45))((bool isMatch) {
         if (isMatch) {
           if (foundResult) {
             try {
@@ -608,9 +608,9 @@ abstract class Stream<T> {
           foundResult = true;
           result = value;
         }
-      }), ((__x90) => DDC$RT.cast(__x90, dynamic, __t56, "CastGeneral",
+      }), ((__x84) => DDC$RT.cast(__x84, dynamic, __t50, "CastGeneral",
           """line 1129, column 11 of dart:async/stream.dart: """,
-          __x90 is __t56,
+          __x84 is __t50,
           false))(_cancelAndErrorClosure(subscription, future)));
     }, onError: future._completeError, onDone: () {
       if (foundResult) {
@@ -651,9 +651,9 @@ abstract class Stream<T> {
     void onData(T event) {
       timer.cancel();
       controller.add(event);
-      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t91,
+      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t85,
           "CastGeneral", """line 1219, column 43 of dart:async/stream.dart: """,
-          timeout is __t91, false));
+          timeout is __t85, false));
     }
     void onError(error, StackTrace stackTrace) {
       timer.cancel();
@@ -661,9 +661,9 @@ abstract class Stream<T> {
           controller is _BroadcastStreamController);
       var eventSink = controller;
       eventSink._addError(error, stackTrace);
-      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t91,
+      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t85,
           "CastGeneral", """line 1227, column 43 of dart:async/stream.dart: """,
-          timeout is __t91, false));
+          timeout is __t85, false));
     }
     void onDone() {
       timer.cancel();
@@ -678,35 +678,35 @@ abstract class Stream<T> {
         };
       } else {
         onTimeout = zone.registerUnaryCallback(DDC$RT.wrap(
-            (void f(EventSink<dynamic> __u92)) {
+            (void f(EventSink<dynamic> __u86)) {
           void c(EventSink<dynamic> x0) => f(DDC$RT.cast(x0, dynamic,
               DDC$RT.type((EventSink<dynamic> _) {}), "CastParam",
               """line 1245, column 48 of dart:async/stream.dart: """,
               x0 is EventSink<dynamic>, true));
           return f == null ? null : c;
-        }, onTimeout, __t93, __t51, "Wrap",
+        }, onTimeout, __t87, __t45, "Wrap",
             """line 1245, column 48 of dart:async/stream.dart: """,
-            onTimeout is __t51));
+            onTimeout is __t45));
         _ControllerEventSinkWrapper wrapper =
             new _ControllerEventSinkWrapper(null);
         timeout = () {
           wrapper._sink = controller;
-          zone.runUnaryGuarded(DDC$RT.wrap((void f(EventSink<dynamic> __u95)) {
+          zone.runUnaryGuarded(DDC$RT.wrap((void f(EventSink<dynamic> __u89)) {
             void c(EventSink<dynamic> x0) => f(DDC$RT.cast(x0, dynamic,
                 DDC$RT.type((EventSink<dynamic> _) {}), "CastParam",
                 """line 1250, column 32 of dart:async/stream.dart: """,
                 x0 is EventSink<dynamic>, true));
             return f == null ? null : c;
-          }, onTimeout, __t93, __t51, "Wrap",
+          }, onTimeout, __t87, __t45, "Wrap",
               """line 1250, column 32 of dart:async/stream.dart: """,
-              onTimeout is __t51), wrapper);
+              onTimeout is __t45), wrapper);
           wrapper._sink = null;
         };
       }
       subscription = this.listen(onData, onError: onError, onDone: onDone);
-      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t91,
+      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t85,
           "CastGeneral", """line 1256, column 43 of dart:async/stream.dart: """,
-          timeout is __t91, false));
+          timeout is __t85, false));
     }
     Future onCancel() {
       timer.cancel();
@@ -721,9 +721,9 @@ abstract class Stream<T> {
       subscription.pause();
     }, () {
       subscription.resume();
-      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t91,
+      timer = zone.createTimer(timeLimit, DDC$RT.cast(timeout, Function, __t85,
           "CastGeneral", """line 1275, column 53 of dart:async/stream.dart: """,
-          timeout is __t91, false));
+          timeout is __t85, false));
     }, onCancel);
     return controller.stream;
   }
@@ -793,11 +793,11 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
     _sink.close();
   }
 }
-typedef T __t44<T>(int __u45);
-typedef dynamic __t46(dynamic __u47);
-typedef dynamic __t51(dynamic __u52);
-typedef dynamic __t53<T>(T __u54);
-typedef dynamic __t56(dynamic __u57, StackTrace __u58);
-typedef dynamic __t62(bool __u63);
-typedef void __t91();
-typedef void __t93(EventSink<dynamic> __u94);
+typedef T __t38<T>(int __u39);
+typedef dynamic __t40(dynamic __u41);
+typedef dynamic __t45(dynamic __u46);
+typedef dynamic __t47<T>(T __u48);
+typedef dynamic __t50(dynamic __u51, StackTrace __u52);
+typedef dynamic __t56(bool __u57);
+typedef void __t85();
+typedef void __t87(EventSink<dynamic> __u88);

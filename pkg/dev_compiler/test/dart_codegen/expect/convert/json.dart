@@ -135,10 +135,7 @@ class JsonUtf8Encoder extends Converter<Object, List<int>> {
   ChunkedConversionSink<Object> startChunkedConversion(Sink<List<int>> sink) {
     ByteConversionSink byteSink;
     if (sink is ByteConversionSink) {
-      byteSink = DDC$RT.cast(sink, DDC$RT.type((Sink<List<int>> _) {}),
-          ByteConversionSink, "CastGeneral",
-          """line 381, column 18 of dart:convert/json.dart: """,
-          sink is ByteConversionSink, true);
+      byteSink = sink;
     } else {
       byteSink = new ByteConversionSink.from(sink);
     }

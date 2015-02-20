@@ -3184,7 +3184,7 @@ var collection;
           let length = elements.length;
           let queue = dart.as(new ListQueue(length + 1), ListQueue$(E));
           dart.assert(queue._table.length > length);
-          let sourceList = dart.as(elements, core.List);
+          let sourceList = elements;
           queue._table.setRange(0, length, dart.as(sourceList, core.Iterable$(E)), 0);
           queue._tail = length;
           return queue;

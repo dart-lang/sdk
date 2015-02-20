@@ -13,14 +13,14 @@ abstract class Timer {
       return Zone.current.createPeriodicTimer(duration, callback);
     }
     return Zone.current.createPeriodicTimer(duration, Zone.current
-        .bindUnaryCallback(DDC$RT.wrap((void f(Timer __u132)) {
+        .bindUnaryCallback(DDC$RT.wrap((void f(Timer __u126)) {
       void c(Timer x0) => f(DDC$RT.cast(x0, dynamic, Timer, "CastParam",
           """line 80, column 50 of dart:async/timer.dart: """, x0 is Timer,
           true));
       return f == null ? null : c;
-    }, callback, __t135, __t133, "Wrap",
+    }, callback, __t129, __t127, "Wrap",
         """line 80, column 50 of dart:async/timer.dart: """,
-        callback is __t133), runGuarded: true));
+        callback is __t127), runGuarded: true));
   }
   static void run(void callback()) {
     new Timer(Duration.ZERO, callback);
@@ -30,18 +30,18 @@ abstract class Timer {
   @patch static Timer _createTimer(Duration duration, void callback()) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return ((__x137) => DDC$RT.cast(__x137, dynamic, Timer, "CastExact",
-        """line 111, column 12 of dart:async/timer.dart: """, __x137 is Timer,
+    return ((__x131) => DDC$RT.cast(__x131, dynamic, Timer, "CastExact",
+        """line 111, column 12 of dart:async/timer.dart: """, __x131 is Timer,
         true))(new TimerImpl(milliseconds, callback));
   }
   @patch static Timer _createPeriodicTimer(
       Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return ((__x138) => DDC$RT.cast(__x138, dynamic, Timer, "CastExact",
-        """line 118, column 12 of dart:async/timer.dart: """, __x138 is Timer,
+    return ((__x132) => DDC$RT.cast(__x132, dynamic, Timer, "CastExact",
+        """line 118, column 12 of dart:async/timer.dart: """, __x132 is Timer,
         true))(new TimerImpl.periodic(milliseconds, callback));
   }
 }
-typedef dynamic __t133(dynamic __u134);
-typedef void __t135(Timer __u136);
+typedef dynamic __t127(dynamic __u128);
+typedef void __t129(Timer __u130);

@@ -239,11 +239,7 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
           """line 399, column 28 of dart:collection/queue.dart: """,
           __x35 is ListQueue<E>, false))(new ListQueue(length + 1));
       assert(queue._table.length > length);
-      List sourceList = DDC$RT.cast(elements,
-          DDC$RT.type((Iterable<dynamic> _) {}),
-          DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
-          """line 401, column 25 of dart:collection/queue.dart: """,
-          elements is List<dynamic>, true);
+      List sourceList = elements;
       queue._table.setRange(0, length, DDC$RT.cast(sourceList,
           DDC$RT.type((List<dynamic> _) {}), DDC$RT.type((Iterable<E> _) {}),
           "CastDynamic",

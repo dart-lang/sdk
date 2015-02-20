@@ -1,10 +1,10 @@
 part of dart.async;
 
 abstract class Future<T> {
-  static final _Future _nullFuture = ((__x13) => DDC$RT.cast(__x13,
+  static final _Future _nullFuture = ((__x10) => DDC$RT.cast(__x10,
       DDC$RT.type((Future<dynamic> _) {}), DDC$RT.type((_Future<dynamic> _) {}),
       "CastExact", """line 98, column 38 of dart:async/future.dart: """,
-      __x13 is _Future<dynamic>, true))(new Future.value(null));
+      __x10 is _Future<dynamic>, true))(new Future.value(null));
   factory Future(computation()) {
     _Future result = new _Future<T>();
     Timer.run(() {
@@ -107,12 +107,12 @@ abstract class Future<T> {
     }
     for (Future future in futures) {
       int pos = remaining++;
-      future.then(((__x19) => DDC$RT.wrap((dynamic f(Object __u14)) {
+      future.then(((__x16) => DDC$RT.wrap((dynamic f(Object __u11)) {
         dynamic c(Object x0) => f(x0);
         return f == null ? null : c;
-      }, __x19, __t17, __t15, "WrapLiteral",
+      }, __x16, __t14, __t12, "WrapLiteral",
           """line 294, column 19 of dart:async/future.dart: """,
-          __x19 is __t15))((Object value) {
+          __x16 is __t12))((Object value) {
         remaining--;
         if (values != null) {
           values[pos] = value;
@@ -132,10 +132,10 @@ abstract class Future<T> {
       }), onError: handleError);
     }
     if (remaining == 0) {
-      return ((__x20) => DDC$RT.cast(__x20, DDC$RT.type((Future<dynamic> _) {}),
+      return ((__x17) => DDC$RT.cast(__x17, DDC$RT.type((Future<dynamic> _) {}),
           DDC$RT.type((Future<List<dynamic>> _) {}), "CastExact",
           """line 313, column 14 of dart:async/future.dart: """,
-          __x20 is Future<List<dynamic>>, false))(new Future.value(const []));
+          __x17 is Future<List<dynamic>>, false))(new Future.value(const []));
     }
     values = new List(remaining);
     return result;
@@ -150,20 +150,20 @@ abstract class Future<T> {
   static Future doWhile(f()) {
     _Future doneSignal = new _Future();
     var nextIteration;
-    nextIteration = Zone.current.bindUnaryCallback(((__x24) => DDC$RT.wrap(
-        (dynamic f(bool __u21)) {
+    nextIteration = Zone.current.bindUnaryCallback(((__x21) => DDC$RT.wrap(
+        (dynamic f(bool __u18)) {
       dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam",
           """line 359, column 52 of dart:async/future.dart: """, x0 is bool,
           true));
       return f == null ? null : c;
-    }, __x24, __t22, __t15, "WrapLiteral",
+    }, __x21, __t19, __t12, "WrapLiteral",
         """line 359, column 52 of dart:async/future.dart: """,
-        __x24 is __t15))((bool keepGoing) {
+        __x21 is __t12))((bool keepGoing) {
       if (keepGoing) {
-        new Future.sync(f).then(DDC$RT.cast(nextIteration, dynamic, __t15,
+        new Future.sync(f).then(DDC$RT.cast(nextIteration, dynamic, __t12,
             "CastGeneral",
             """line 361, column 33 of dart:async/future.dart: """,
-            nextIteration is __t15, false), onError: doneSignal._completeError);
+            nextIteration is __t12, false), onError: doneSignal._completeError);
       } else {
         doneSignal._complete(null);
       }
@@ -211,6 +211,6 @@ void _completeWithErrorCallback(_Future result, error, stackTrace) {
 }
 Object _nonNullError(Object error) =>
     (error != null) ? error : new NullThrownError();
-typedef dynamic __t15(dynamic __u16);
-typedef dynamic __t17(Object __u18);
-typedef dynamic __t22(bool __u23);
+typedef dynamic __t12(dynamic __u13);
+typedef dynamic __t14(Object __u15);
+typedef dynamic __t19(bool __u20);

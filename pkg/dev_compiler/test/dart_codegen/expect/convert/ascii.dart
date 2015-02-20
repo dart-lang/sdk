@@ -119,10 +119,7 @@ class AsciiDecoder extends _UnicodeSubsetDecoder {
   ByteConversionSink startChunkedConversion(Sink<String> sink) {
     StringConversionSink stringSink;
     if (sink is StringConversionSink) {
-      stringSink = DDC$RT.cast(sink, DDC$RT.type((Sink<String> _) {}),
-          StringConversionSink, "CastGeneral",
-          """line 237, column 20 of dart:convert/ascii.dart: """,
-          sink is StringConversionSink, true);
+      stringSink = sink;
     } else {
       stringSink = new StringConversionSink.from(sink);
     }

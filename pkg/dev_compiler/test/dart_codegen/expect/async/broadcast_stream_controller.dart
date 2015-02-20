@@ -30,11 +30,11 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
           false), onData, onError, onDone, cancelOnError) {
     _next = _previous = this;
   }
-  _BroadcastStreamController get _controller => ((__x5) => DDC$RT.cast(__x5,
+  _BroadcastStreamController get _controller => ((__x2) => DDC$RT.cast(__x2,
       DDC$RT.type((_StreamControllerLifecycle<T> _) {}),
       DDC$RT.type((_BroadcastStreamController<dynamic> _) {}), "CastGeneral",
       """line 40, column 49 of dart:async/broadcast_stream_controller.dart: """,
-      __x5 is _BroadcastStreamController<dynamic>, true))(super._controller);
+      __x2 is _BroadcastStreamController<dynamic>, true))(super._controller);
   bool _expectsEvent(int eventId) => (_eventState & _STATE_EVENT_ID) == eventId;
   void _toggleEventId() {
     _eventState ^= _STATE_EVENT_ID;
@@ -175,11 +175,11 @@ abstract class _BroadcastStreamController<T>
   Future addStream(Stream<T> stream, {bool cancelOnError: true}) {
     if (!_mayAddEvent) throw _addEventError();
     _state |= _STATE_ADDSTREAM;
-    _addStreamState = ((__x6) => DDC$RT.cast(__x6,
+    _addStreamState = ((__x3) => DDC$RT.cast(__x3,
         DDC$RT.type((_AddStreamState<dynamic> _) {}),
         DDC$RT.type((_AddStreamState<T> _) {}), "CastExact",
         """line 268, column 23 of dart:async/broadcast_stream_controller.dart: """,
-        __x6 is _AddStreamState<T>,
+        __x3 is _AddStreamState<T>,
         false))(new _AddStreamState(this, stream, cancelOnError));
     return _addStreamState.addStreamFuture;
   }
@@ -269,18 +269,18 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
   }
   void _sendDone() {
     if (!_isEmpty) {
-      _forEachListener(((__x12) => DDC$RT.wrap(
-          (dynamic f(_BroadcastSubscription<T> __u7)) {
+      _forEachListener(((__x9) => DDC$RT.wrap(
+          (dynamic f(_BroadcastSubscription<T> __u4)) {
         dynamic c(_BroadcastSubscription<T> x0) => f(DDC$RT.cast(x0,
             DDC$RT.type((_BufferingStreamSubscription<T> _) {}),
             DDC$RT.type((_BroadcastSubscription<T> _) {}), "CastParam",
             """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """,
             x0 is _BroadcastSubscription<T>, false));
         return f == null ? null : c;
-      }, __x12, DDC$RT.type((__t10<T> _) {}), DDC$RT.type((__t8<T> _) {}),
+      }, __x9, DDC$RT.type((__t7<T> _) {}), DDC$RT.type((__t5<T> _) {}),
           "WrapLiteral",
           """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """,
-          __x12 is __t8<T>))((_BroadcastSubscription<T> subscription) {
+          __x9 is __t5<T>))((_BroadcastSubscription<T> subscription) {
         subscription._close();
       }));
     } else {
@@ -408,5 +408,5 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   bool get isPaused => _pauseCount > 0;
   Future asFuture([Object value]) => new _Future();
 }
-typedef void __t8<T>(_BufferingStreamSubscription<T> __u9);
-typedef dynamic __t10<T>(_BroadcastSubscription<T> __u11);
+typedef void __t5<T>(_BufferingStreamSubscription<T> __u6);
+typedef dynamic __t7<T>(_BroadcastSubscription<T> __u8);

@@ -132,11 +132,6 @@ class RestrictedResolverVisitor extends ResolverVisitor {
     return super.visitCatchClause(node);
   }
 
-  @override // removes type promotion
-  void promoteTypes(Expression condition) {
-    // TODO(sigmund, vsm): add this back, but use strict meaning of is checks.
-  }
-
   @override
   Object visitCompilationUnit(CompilationUnit node) {
     // Similar to the definition in ResolverVisitor.visitCompilationUnit, but

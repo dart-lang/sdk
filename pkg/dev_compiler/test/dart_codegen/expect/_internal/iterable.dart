@@ -857,10 +857,7 @@ class IterableMixinWorkaround<T> {
     List otherList;
     int otherStart;
     if (from is List) {
-      otherList = DDC$RT.cast(from, DDC$RT.type((Iterable<dynamic> _) {}),
-          DDC$RT.type((List<dynamic> _) {}), "CastGeneral",
-          """line 1048, column 19 of dart:_internal/iterable.dart: """,
-          from is List<dynamic>, true);
+      otherList = from;
       otherStart = skipCount;
     } else {
       otherList = from.skip(skipCount).toList(growable: false);

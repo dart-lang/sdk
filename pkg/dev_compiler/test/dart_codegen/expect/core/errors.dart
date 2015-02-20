@@ -7,9 +7,7 @@ class Error {
       return object.toString();
     }
     if (object is String) {
-      return _stringToSafeString(DDC$RT.cast(object, Object, String,
-          "CastGeneral", """line 82, column 34 of dart:core/errors.dart: """,
-          object is String, true));
+      return _stringToSafeString(object);
     }
     return _objectToString(object);
   }

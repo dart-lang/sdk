@@ -10,15 +10,12 @@ _invokeErrorHandler(
 }
 Function _registerErrorHandler(Function errorHandler, Zone zone) {
   if (errorHandler is ZoneBinaryCallback) {
-    return zone.registerBinaryCallback(DDC$RT.cast(errorHandler, Function, __t0,
-        "CastGeneral",
-        """line 18, column 40 of dart:async/async_error.dart: """,
-        errorHandler is __t0, false));
+    return zone.registerBinaryCallback(errorHandler);
   } else {
-    return zone.registerUnaryCallback(DDC$RT.cast(errorHandler, Function, __t3,
+    return zone.registerUnaryCallback(DDC$RT.cast(errorHandler, Function, __t0,
         "CastGeneral",
         """line 20, column 39 of dart:async/async_error.dart: """,
-        errorHandler is __t3, false));
+        errorHandler is __t0, false));
   }
 }
 class _UncaughtAsyncError extends AsyncError {
@@ -41,5 +38,4 @@ class _UncaughtAsyncError extends AsyncError {
     return result;
   }
 }
-typedef dynamic __t0(dynamic __u1, dynamic __u2);
-typedef dynamic __t3(dynamic __u4);
+typedef dynamic __t0(dynamic __u1);

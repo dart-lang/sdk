@@ -77,22 +77,22 @@ class _FutureListener {
   bool get handlesComplete => (state == STATE_WHENCOMPLETE);
   _FutureOnValue get _onValue {
     assert(handlesValue);
-    return DDC$RT.cast(callback, Function, __t25, "CastGeneral",
+    return DDC$RT.cast(callback, Function, __t22, "CastGeneral",
         """line 112, column 12 of dart:async/future_impl.dart: """,
-        callback is __t25, false);
+        callback is __t22, false);
   }
   Function get _onError => errorCallback;
   _FutureErrorTest get _errorTest {
     assert(hasErrorTest);
-    return DDC$RT.cast(callback, Function, __t27, "CastGeneral",
+    return DDC$RT.cast(callback, Function, __t24, "CastGeneral",
         """line 117, column 12 of dart:async/future_impl.dart: """,
-        callback is __t27, false);
+        callback is __t24, false);
   }
   _FutureAction get _whenCompleteAction {
     assert(handlesComplete);
-    return DDC$RT.cast(callback, Function, __t29, "CastGeneral",
+    return DDC$RT.cast(callback, Function, __t26, "CastGeneral",
         """line 121, column 12 of dart:async/future_impl.dart: """,
-        callback is __t29, false);
+        callback is __t26, false);
   }
 }
 class _Future<T> implements Future<T> {
@@ -128,14 +128,14 @@ class _Future<T> implements Future<T> {
   Future then(f(T value), {Function onError}) {
     _Future result = new _Future();
     if (!identical(result._zone, _ROOT_ZONE)) {
-      f = result._zone.registerUnaryCallback(DDC$RT.wrap((dynamic f(T __u30)) {
+      f = result._zone.registerUnaryCallback(DDC$RT.wrap((dynamic f(T __u27)) {
         dynamic c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam",
             """line 208, column 46 of dart:async/future_impl.dart: """, x0 is T,
             false));
         return f == null ? null : c;
-      }, f, DDC$RT.type((__t31<T> _) {}), __t25, "Wrap",
+      }, f, DDC$RT.type((__t28<T> _) {}), __t22, "Wrap",
           """line 208, column 46 of dart:async/future_impl.dart: """,
-          f is __t25));
+          f is __t22));
       if (onError != null) {
         onError = _registerErrorHandler(onError, result._zone);
       }
@@ -147,16 +147,16 @@ class _Future<T> implements Future<T> {
     _Future result = new _Future();
     if (!identical(result._zone, _ROOT_ZONE)) {
       onError = _registerErrorHandler(onError, result._zone);
-      if (test != null) test = ((__x35) => DDC$RT.wrap(
-          (dynamic f(dynamic __u34)) {
-        dynamic c(dynamic x0) => ((__x33) => DDC$RT.cast(__x33, dynamic, bool,
+      if (test != null) test = ((__x32) => DDC$RT.wrap(
+          (dynamic f(dynamic __u31)) {
+        dynamic c(dynamic x0) => ((__x30) => DDC$RT.cast(__x30, dynamic, bool,
             "CastResult",
             """line 221, column 32 of dart:async/future_impl.dart: """,
-            __x33 is bool, true))(f(x0));
+            __x30 is bool, true))(f(x0));
         return f == null ? null : c;
-      }, __x35, __t25, __t27, "Wrap",
+      }, __x32, __t22, __t24, "Wrap",
           """line 221, column 32 of dart:async/future_impl.dart: """,
-          __x35 is __t27))(result._zone.registerUnaryCallback(test));
+          __x32 is __t24))(result._zone.registerUnaryCallback(test));
     }
     _addListener(new _FutureListener.catchError(result, onError, test));
     return result;
@@ -172,10 +172,10 @@ class _Future<T> implements Future<T> {
         """line 233, column 12 of dart:async/future_impl.dart: """,
         result is Future<T>, false);
   }
-  Stream<T> asStream() => ((__x36) => DDC$RT.cast(__x36,
+  Stream<T> asStream() => ((__x33) => DDC$RT.cast(__x33,
       DDC$RT.type((Stream<dynamic> _) {}), DDC$RT.type((Stream<T> _) {}),
       "CastExact", """line 236, column 27 of dart:async/future_impl.dart: """,
-      __x36 is Stream<T>, false))(new Stream.fromFuture(this));
+      __x33 is Stream<T>, false))(new Stream.fromFuture(this));
   void _markPendingCompletion() {
     if (!_mayComplete) throw new StateError("Future already completed");
     _state = _PENDING_COMPLETE;
@@ -391,10 +391,10 @@ class _Future<T> implements Future<T> {
           if (listener.hasErrorTest) {
             _FutureErrorTest test = listener._errorTest;
             try {
-              matchesTest = ((__x37) => DDC$RT.cast(__x37, dynamic, bool,
+              matchesTest = ((__x34) => DDC$RT.cast(__x34, dynamic, bool,
                   "CastGeneral",
                   """line 499, column 29 of dart:async/future_impl.dart: """,
-                  __x37 is bool, true))(zone.runUnary(test, asyncError.error));
+                  __x34 is bool, true))(zone.runUnary(test, asyncError.error));
             } catch (e, s) {
               listenerValueOrError = identical(asyncError.error, e)
                   ? asyncError
@@ -407,16 +407,13 @@ class _Future<T> implements Future<T> {
           if (matchesTest && errorCallback != null) {
             try {
               if (errorCallback is ZoneBinaryCallback) {
-                listenerValueOrError = zone.runBinary(DDC$RT.cast(errorCallback,
-                    Function, __t38, "CastGeneral",
-                    """line 511, column 55 of dart:async/future_impl.dart: """,
-                    errorCallback is __t38,
-                    false), asyncError.error, asyncError.stackTrace);
+                listenerValueOrError = zone.runBinary(
+                    errorCallback, asyncError.error, asyncError.stackTrace);
               } else {
                 listenerValueOrError = zone.runUnary(DDC$RT.cast(errorCallback,
-                    Function, __t25, "CastGeneral",
+                    Function, __t22, "CastGeneral",
                     """line 515, column 54 of dart:async/future_impl.dart: """,
-                    errorCallback is __t25, false), asyncError.error);
+                    errorCallback is __t22, false), asyncError.error);
               }
             } catch (e, s) {
               listenerValueOrError = identical(asyncError.error, e)
@@ -486,19 +483,11 @@ class _Future<T> implements Future<T> {
           if (chainSource is _Future) {
             if (chainSource._isComplete) {
               result._isChained = true;
-              source = DDC$RT.cast(chainSource,
-                  DDC$RT.type((Future<dynamic> _) {}),
-                  DDC$RT.type((_Future<dynamic> _) {}), "CastGeneral",
-                  """line 593, column 24 of dart:async/future_impl.dart: """,
-                  chainSource is _Future<dynamic>, true);
+              source = chainSource;
               listeners = new _FutureListener.chain(result);
               continue;
             } else {
-              _chainCoreFuture(DDC$RT.cast(chainSource,
-                  DDC$RT.type((Future<dynamic> _) {}),
-                  DDC$RT.type((_Future<dynamic> _) {}), "CastGeneral",
-                  """line 597, column 32 of dart:async/future_impl.dart: """,
-                  chainSource is _Future<dynamic>, true), result);
+              _chainCoreFuture(chainSource, result);
             }
           } else {
             _chainForeignFuture(chainSource, result);
@@ -557,8 +546,7 @@ class _Future<T> implements Future<T> {
     return result;
   }
 }
-typedef dynamic __t25(dynamic __u26);
-typedef bool __t27(dynamic __u28);
-typedef dynamic __t29();
-typedef dynamic __t31<T>(T __u32);
-typedef dynamic __t38(dynamic __u39, dynamic __u40);
+typedef dynamic __t22(dynamic __u23);
+typedef bool __t24(dynamic __u25);
+typedef dynamic __t26();
+typedef dynamic __t28<T>(T __u29);
