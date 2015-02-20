@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.2.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.3.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -109,6 +109,12 @@
       field is the ‘params’ field, whose structure is dependent on the
       kind of notification being sent. The structure of this field is
       described with each notification.
+    </p>
+    <p>
+      In order to be backward compatible, clients should ignore fields that were
+      not specified in the version of the API on which they were based. Clients
+      should also use the server.getVersion request to test that the version of
+      the server supports an API before using it.
     </p>
     <h3>Eventual Consistency</h3>
     <p>
@@ -215,6 +221,12 @@
           It is not possible to subscribe to or unsubscribe from this
           notification.
         </p>
+       <params>
+          <field name="version">
+            <ref>String</ref>
+            <p>The version number of the analysis server.</p>
+          </field>
+        </params>
       </notification>
       <notification event="error">
         <p>

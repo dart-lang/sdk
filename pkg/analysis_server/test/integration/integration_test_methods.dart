@@ -87,6 +87,12 @@ abstract class IntegrationTestMixin {
    * let the client know that it started correctly.
    *
    * It is not possible to subscribe to or unsubscribe from this notification.
+   *
+   * Parameters
+   *
+   * version ( String )
+   *
+   *   The version number of the analysis server.
    */
   Stream<ServerConnectedParams> onServerConnected;
 
@@ -1531,7 +1537,7 @@ abstract class IntegrationTestMixin {
     switch (event) {
       case "server.connected":
         expect(params, isServerConnectedParams);
-        _onServerConnected.add(new ServerConnectedParams());
+        _onServerConnected.add(new ServerConnectedParams.fromJson(decoder, 'params', params));
         break;
       case "server.error":
         expect(params, isServerErrorParams);

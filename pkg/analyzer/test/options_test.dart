@@ -30,6 +30,8 @@ main() {
       expect(options.sourceFiles, equals(['foo.dart']));
       expect(options.warmPerf, isFalse);
       expect(options.warningsAreFatal, isFalse);
+      expect(options.customUrlMappings, isNotNull);
+      expect(options.customUrlMappings.isEmpty, isTrue);
     });
 
     test('batch', () {
@@ -105,6 +107,17 @@ main() {
       CommandLineOptions options =
           CommandLineOptions.parse(['--dart-sdk', '.', '--fatal-warnings', 'foo.dart']);
       expect(options.warningsAreFatal, isTrue);
+    });
+
+    test('customUrlMappings', () {
+      CommandLineOptions options = CommandLineOptions.parse([
+          '--dart-sdk', '.',
+          '--url-mapping', 'dart:dummy,/path/to/dummy.dart',
+          'foo.dart']);
+      expect(options.customUrlMappings, isNotNull);
+      expect(options.customUrlMappings.isEmpty, isFalse);
+      expect(options.customUrlMappings['dart:dummy'],
+             equals('/path/to/dummy.dart'));
     });
 
 //    test('notice unrecognized flags', () {

@@ -36,7 +36,8 @@ def BuildOptions():
   result.add_option("--url_mapping",
       default=[],
       action="append",
-      help="mapping from url to file name, used when generating snapshots")
+      help=("mapping from url to file name, used when generating snapshots " +
+            "E.g.: --url_mapping=fileUri,/path/to/file.dart"))
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")

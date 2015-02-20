@@ -67,7 +67,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.1.0';
+  static final String VERSION = '1.3.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -267,7 +267,8 @@ class AnalysisServer {
         _performance = performanceAfterStartup;
       });
     });
-    Notification notification = new ServerConnectedParams().toNotification();
+    Notification notification =
+        new ServerConnectedParams(VERSION).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
   }
@@ -1292,4 +1293,39 @@ class ServerPerformance {
       }
     }
   }
+}
+
+
+/**
+ * Container with global [AnalysisServer] performance statistics.
+ */
+class ServerPerformanceStatistics {
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._updateIndex.
+   */
+  static PerformanceTag index = new PerformanceTag('index');
+
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._sendNotices.
+   */
+  static PerformanceTag notices = new PerformanceTag('notices');
+
+  /**
+   * The [PerformanceTag] for time spent performing a _DartIndexOperation.
+   */
+  static PerformanceTag indexOperation = new PerformanceTag('indexOperation');
+
+  /**
+   * The [PerformanceTag] for time spent between calls to
+   * AnalysisServer.performOperation when the server is not idle.
+   */
+  static PerformanceTag intertask = new PerformanceTag('intertask');
+
+  /**
+   * The [PerformanceTag] for time spent between calls to
+   * AnalysisServer.performOperation when the server is idle.
+   */
+  static PerformanceTag idle = new PerformanceTag('idle');
 }

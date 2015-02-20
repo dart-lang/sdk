@@ -62,8 +62,15 @@ final Matcher isServerSetSubscriptionsResult = isNull;
 
 /**
  * server.connected params
+ *
+ * {
+ *   "version": String
+ * }
  */
-final Matcher isServerConnectedParams = isNull;
+final Matcher isServerConnectedParams = new LazyMatcher(() => new MatchesJsonObject(
+  "server.connected params", {
+    "version": isString
+  }));
 
 /**
  * server.error params
