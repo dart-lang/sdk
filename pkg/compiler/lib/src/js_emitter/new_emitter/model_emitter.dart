@@ -887,23 +887,19 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   }
 
   function setupClass(name, holder, descriptor) {
-    var ensureResolved = function() {
+    var patch = function() {
       var constructor = compileConstructor(name, descriptor);
       holder[name] = constructor;
       constructor.ensureResolved = function() { return this; };
-      return constructor;
-    };
-
-    var patch = function() {
-      var constructor = ensureResolved();
+      if (this === patch) return constructor;  // Was used as "ensureResolved".
       var object = new constructor();
       constructor.apply(object, arguments);
       return object;
     };
 
-    // We store the ensureResolved function on the patch function to make it
+    // We store the patch function on itself to make it
     // possible to resolve superclass references without constructing instances.
-    patch.ensureResolved = ensureResolved;
+    patch.ensureResolved = patch;
     holder[name] = patch;
   }
 
