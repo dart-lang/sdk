@@ -142,10 +142,10 @@ class RestrictedResolverVisitor extends ResolverVisitor {
     // Similar to the definition in ResolverVisitor.visitCompilationUnit, but
     // changed to visit all top-level fields first, then static fields on all
     // classes, then all top-level functions, then the rest of the classes.
+    RestrictedStaticTypeAnalyzer restrictedAnalyzer = typeAnalyzer_J2DAccessor;
     overrideManager.enterScope();
     try {
       var thisLib = node.element.enclosingElement;
-      RestrictedStaticTypeAnalyzer restrictedAnalyzer = typeAnalyzer;
       restrictedAnalyzer._isLibraryContainedInSingleUnit.putIfAbsent(thisLib,
           () {
         if (thisLib.units.length > 1) return false;
@@ -183,8 +183,8 @@ class RestrictedResolverVisitor extends ResolverVisitor {
     } finally {
       overrideManager.exitScope();
     }
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+    node.accept(elementResolver_J2DAccessor);
+    node.accept(restrictedAnalyzer);
     return null;
   }
 
@@ -238,7 +238,7 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     var declaredType = (node.parent as VariableDeclarationList).type;
     if (declaredType != null) return;
     var element = node.element;
-    if (element.type != dynamicType) return;
+    if (element.type != _typeProvider.dynamicType) return;
 
     // Local variables can be inferred automatically, for top-levels and fields
     // we rule out cases that could depend on the order in which we process
@@ -257,8 +257,8 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
       if (!_canBeInferredIndependently(initializer, thisLib)) return;
     }
 
-    var type = getStaticType(initializer);
-    if (type == _typeProvider.bottomType) return;
+    var type = initializer.staticType;
+    if (type == null || type == _typeProvider.bottomType) return;
     element.type = type;
     if (element is PropertyInducingElement) {
       element.getter.returnType = type;
