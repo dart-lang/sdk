@@ -11,6 +11,7 @@ await_for_cancel_test: RuntimeError # Issue 21404
 asyncstar_yield_test: Fail # Issue 21404
 asyncstar_yieldstar_test: Fail # Issue 21404
 asyncstar_concat_test: Fail # Issue 21404
+async_rethrow_test: RuntimeError # Issue 22523
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -91,7 +92,6 @@ async_await_syntax_test/d10a: RuntimeError # Issue 21404
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
-async_rethrow_test: RuntimeError # Issue 22523
 
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
