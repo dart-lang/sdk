@@ -730,7 +730,7 @@ static const MethodParameter* get_isolate_params[] = {
 };
 
 
-static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
+static bool GetIsolate(Isolate* isolate, JSONStream* js) {
   isolate->PrintJSON(js, false);
   return true;
 }
@@ -742,7 +742,7 @@ static const MethodParameter* get_stack_params[] = {
 };
 
 
-static bool HandleIsolateGetStack(Isolate* isolate, JSONStream* js) {
+static bool GetStack(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Stack");
@@ -787,14 +787,14 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
 }
 
 
-static bool HandleIsolateTriggerEchoEvent(Isolate* isolate, JSONStream* js) {
+static bool _TriggerEchoEvent(Isolate* isolate, JSONStream* js) {
   Service::SendEchoEvent(isolate, js->LookupParam("text"));
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
 }
 
 
-static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
+static bool _Echo(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
 }
@@ -1248,8 +1248,7 @@ static const MethodParameter* get_inbound_references_params[] = {
 };
 
 
-static bool HandleIsolateGetInboundReferences(Isolate* isolate,
-                                              JSONStream* js) {
+static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1353,8 +1352,7 @@ static const MethodParameter* get_retaining_path_params[] = {
 };
 
 
-static bool HandleIsolateGetRetainingPath(Isolate* isolate,
-                                          JSONStream* js) {
+static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1402,7 +1400,7 @@ static const MethodParameter* get_retained_size_params[] = {
 };
 
 
-static bool HandleIsolateGetRetainedSize(Isolate* isolate, JSONStream* js) {
+static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1455,7 +1453,7 @@ static const MethodParameter* eval_params[] = {
 };
 
 
-static bool HandleIsolateEval(Isolate* isolate, JSONStream* js) {
+static bool Eval(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1522,7 +1520,7 @@ static const MethodParameter* get_call_site_data_params[] = {
 };
 
 
-static bool HandleIsolateGetCallSiteData(Isolate* isolate, JSONStream* js) {
+static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   Object& obj = Object::Handle(LookupHeapObject(isolate, target_id, NULL));
   if (obj.raw() == Object::sentinel().raw()) {
@@ -1590,7 +1588,7 @@ static const MethodParameter* get_instances_params[] = {
 };
 
 
-static bool HandleIsolateGetInstances(Isolate* isolate, JSONStream* js) {
+static bool GetInstances(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("classId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "classId");
@@ -1699,7 +1697,7 @@ static const MethodParameter* get_coverage_params[] = {
 };
 
 
-static bool HandleIsolateGetCoverage(Isolate* isolate, JSONStream* js) {
+static bool GetCoverage(Isolate* isolate, JSONStream* js) {
   if (!js->HasParam("targetId")) {
     CodeCoverage::PrintJSON(isolate, js, NULL);
     return true;
@@ -1745,7 +1743,7 @@ static const MethodParameter* add_breakpoint_params[] = {
 };
 
 
-static bool HandleIsolateAddBreakpoint(Isolate* isolate, JSONStream* js) {
+static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   const char* line_param = js->LookupParam("line");
   intptr_t line = UIntParameter::Parse(line_param);
   const char* script_id = js->LookupParam("scriptId");
@@ -1774,8 +1772,7 @@ static const MethodParameter* add_breakpoint_at_entry_params[] = {
 };
 
 
-static bool HandleIsolateAddBreakpointAtEntry(Isolate* isolate,
-                                              JSONStream* js) {
+static bool AddBreakpointAtEntry(Isolate* isolate, JSONStream* js) {
   const char* function_id = js->LookupParam("functionId");
   Object& obj = Object::Handle(LookupHeapObject(isolate, function_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsFunction()) {
@@ -1802,7 +1799,7 @@ static const MethodParameter* remove_breakpoint_params[] = {
 };
 
 
-static bool HandleIsolateRemoveBreakpoint(Isolate* isolate, JSONStream* js) {
+static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
   if (!js->HasParam("breakpointId")) {
     PrintMissingParamError(js, "breakpointId");
     return true;
@@ -1919,13 +1916,13 @@ static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
 }
 
 
-static const MethodParameter* get_metric_list_params[] = {
+static const MethodParameter* get_isolate_metric_list_params[] = {
   ISOLATE_PARAMETER,
   NULL,
 };
 
 
-static bool HandleIsolateGetMetricList(Isolate* isolate, JSONStream* js) {
+static bool GetIsolateMetricList(Isolate* isolate, JSONStream* js) {
   bool native_metrics = false;
   if (js->HasParam("type")) {
     if (js->ParamIs("type", "Native")) {
@@ -1947,13 +1944,13 @@ static bool HandleIsolateGetMetricList(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* get_metric_params[] = {
+static const MethodParameter* get_isolate_metric_params[] = {
   ISOLATE_PARAMETER,
   NULL,
 };
 
 
-static bool HandleIsolateGetMetric(Isolate* isolate, JSONStream* js) {
+static bool GetIsolateMetric(Isolate* isolate, JSONStream* js) {
   const char* metric_id = js->LookupParam("metricId");
   if (metric_id == NULL) {
     PrintMissingParamError(js, "metricId");
@@ -1985,7 +1982,7 @@ static const MethodParameter* get_vm_metric_list_params[] = {
 };
 
 
-static bool HandleVMGetMetricList(Isolate* isolate, JSONStream* js) {
+static bool GetVMMetricList(Isolate* isolate, JSONStream* js) {
   return false;
 }
 
@@ -1996,7 +1993,7 @@ static const MethodParameter* get_vm_metric_params[] = {
 };
 
 
-static bool HandleVMGetMetric(Isolate* isolate, JSONStream* js) {
+static bool GetVMMetric(Isolate* isolate, JSONStream* js) {
   const char* metric_id = js->LookupParam("metricId");
   if (metric_id == NULL) {
     PrintMissingParamError(js, "metricId");
@@ -2011,7 +2008,7 @@ static const MethodParameter* resume_params[] = {
 };
 
 
-static bool HandleIsolateResume(Isolate* isolate, JSONStream* js) {
+static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
@@ -2063,7 +2060,7 @@ static const MethodParameter* get_breakpoints_params[] = {
 };
 
 
-static bool HandleIsolateGetBreakpoints(Isolate* isolate, JSONStream* js) {
+static bool GetBreakpoints(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "BreakpointList");
   JSONArray jsarr(&jsobj, "breakpoints");
@@ -2078,7 +2075,7 @@ static const MethodParameter* pause_params[] = {
 };
 
 
-static bool HandleIsolatePause(Isolate* isolate, JSONStream* js) {
+static bool Pause(Isolate* isolate, JSONStream* js) {
   // TODO(turnidge): Don't double-interrupt the isolate here.
   isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
   JSONObject jsobj(js);
@@ -2094,7 +2091,7 @@ static const MethodParameter* get_tag_profile_params[] = {
 };
 
 
-static bool HandleIsolateGetTagProfile(Isolate* isolate, JSONStream* js) {
+static bool GetTagProfile(Isolate* isolate, JSONStream* js) {
   JSONObject miniProfile(js);
   miniProfile.AddProperty("type", "TagProfile");
   miniProfile.AddProperty("id", "profile/tag");
@@ -2130,7 +2127,7 @@ static const MethodParameter* get_cpu_profile_params[] = {
 };
 
 
-static bool HandleIsolateGetCpuProfile(Isolate* isolate, JSONStream* js) {
+static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
   ProfilerService::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   ProfilerService::PrintJSON(js, tag_order);
@@ -2144,8 +2141,7 @@ static const MethodParameter* get_allocation_profile_params[] = {
 };
 
 
-static bool HandleIsolateGetAllocationProfile(Isolate* isolate,
-                                              JSONStream* js) {
+static bool GetAllocationProfile(Isolate* isolate, JSONStream* js) {
   bool should_reset_accumulator = false;
   bool should_collect = false;
   if (js->HasParam("reset")) {
@@ -2183,7 +2179,7 @@ static const MethodParameter* get_heap_map_params[] = {
 };
 
 
-static bool HandleIsolateGetHeapMap(Isolate* isolate, JSONStream* js) {
+static bool GetHeapMap(Isolate* isolate, JSONStream* js) {
   isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
   return true;
 }
@@ -2195,7 +2191,7 @@ static const MethodParameter* request_heap_snapshot_params[] = {
 };
 
 
-static bool HandleIsolateRequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
+static bool RequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
   Service::SendGraphEvent(isolate);
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
@@ -2251,7 +2247,7 @@ static const MethodParameter* get_object_by_address_params[] = {
 };
 
 
-static bool HandleIsolateGetObjectByAddress(Isolate* isolate, JSONStream* js) {
+static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
   const char* addr_str = js->LookupParam("address");
   if (addr_str == NULL) {
     PrintMissingParamError(js, "address");
@@ -2276,8 +2272,8 @@ static bool HandleIsolateGetObjectByAddress(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleIsolateRespondWithMalformedJson(Isolate* isolate,
-                                                  JSONStream* js) {
+static bool _RespondWithMalformedJson(Isolate* isolate,
+                                      JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("a", "a");
   JSONObject jsobj1(js);
@@ -2290,8 +2286,8 @@ static bool HandleIsolateRespondWithMalformedJson(Isolate* isolate,
 }
 
 
-static bool HandleIsolateRespondWithMalformedObject(Isolate* isolate,
-                                                    JSONStream* js) {
+static bool _RespondWithMalformedObject(Isolate* isolate,
+                                        JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("bart", "simpson");
   return true;
@@ -2304,7 +2300,7 @@ static const MethodParameter* get_object_params[] = {
 };
 
 
-static bool HandleIsolateGetObject(Isolate* isolate, JSONStream* js) {
+static bool GetObject(Isolate* isolate, JSONStream* js) {
   const char* id = js->LookupParam("objectId");
   if (id == NULL) {
     PrintMissingParamError(js, "objectId");
@@ -2345,7 +2341,7 @@ static const MethodParameter* get_class_list_params[] = {
 };
 
 
-static bool HandleIsolateGetClassList(Isolate* isolate, JSONStream* js) {
+static bool GetClassList(Isolate* isolate, JSONStream* js) {
   ClassTable* table = isolate->class_table();
   JSONObject jsobj(js);
   table->PrintToJSONObject(&jsobj);
@@ -2359,8 +2355,7 @@ static const MethodParameter* get_type_arguments_list_params[] = {
 };
 
 
-static bool HandleIsolateGetTypeArgumentsList(Isolate* isolate,
-                                              JSONStream* js) {
+static bool GetTypeArgumentsList(Isolate* isolate, JSONStream* js) {
   bool only_with_instantiations = false;
   if (js->ParamIs("onlyWithInstantiations", "true")) {
     only_with_instantiations = true;
@@ -2414,7 +2409,7 @@ static const MethodParameter* get_vm_params[] = {
 };
 
 
-static bool HandleVM(Isolate* isolate, JSONStream* js) {
+static bool GetVM(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
   jsobj.AddProperty("id", "vm");
@@ -2451,7 +2446,7 @@ static const MethodParameter* get_flag_list_params[] = {
 };
 
 
-static bool HandleVMFlagList(Isolate* isolate, JSONStream* js) {
+static bool GetFlagList(Isolate* isolate, JSONStream* js) {
   Flags::PrintJSON(js);
   return true;
 }
@@ -2463,7 +2458,7 @@ static const MethodParameter* set_flags_params[] = {
 };
 
 
-static bool HandleVMSetFlag(Isolate* isolate, JSONStream* js) {
+static bool SetFlag(Isolate* isolate, JSONStream* js) {
   const char* flag_name = js->LookupParam("name");
   if (flag_name == NULL) {
     PrintMissingParamError(js, "name");
@@ -2490,75 +2485,75 @@ static bool HandleVMSetFlag(Isolate* isolate, JSONStream* js) {
 
 
 static ServiceMethodDescriptor service_methods_[] = {
-  { "_echo", HandleIsolateEcho,
+  { "_echo", _Echo,
     NULL },
-  { "_respondWithMalformedJson", HandleIsolateRespondWithMalformedJson,
+  { "_respondWithMalformedJson", _RespondWithMalformedJson,
     NULL },
-  { "_respondWithMalformedObject", HandleIsolateRespondWithMalformedObject,
+  { "_respondWithMalformedObject", _RespondWithMalformedObject,
     NULL },
-  { "_triggerEchoEvent", HandleIsolateTriggerEchoEvent,
+  { "_triggerEchoEvent", _TriggerEchoEvent,
     NULL },
-  { "addBreakpoint", HandleIsolateAddBreakpoint,
+  { "addBreakpoint", AddBreakpoint,
     add_breakpoint_params },
-  { "addBreakpointAtEntry", HandleIsolateAddBreakpointAtEntry,
+  { "addBreakpointAtEntry", AddBreakpointAtEntry,
     add_breakpoint_at_entry_params },
-  { "eval", HandleIsolateEval,
+  { "eval", Eval,
     eval_params },
-  { "getAllocationProfile", HandleIsolateGetAllocationProfile,
+  { "getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
-  { "getBreakpoints", HandleIsolateGetBreakpoints,
+  { "getBreakpoints", GetBreakpoints,
     get_breakpoints_params },
-  { "getCallSiteData", HandleIsolateGetCallSiteData,
+  { "getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
-  { "getClassList", HandleIsolateGetClassList,
+  { "getClassList", GetClassList,
     get_class_list_params },
-  { "getCoverage", HandleIsolateGetCoverage,
+  { "getCoverage", GetCoverage,
     get_coverage_params },
-  { "getCpuProfile", HandleIsolateGetCpuProfile,
+  { "getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
-  { "getFlagList", HandleVMFlagList ,
+  { "getFlagList", GetFlagList ,
     get_flag_list_params },
-  { "getHeapMap", HandleIsolateGetHeapMap,
+  { "getHeapMap", GetHeapMap,
     get_heap_map_params },
-  { "getInboundReferences", HandleIsolateGetInboundReferences,
+  { "getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
-  { "getInstances", HandleIsolateGetInstances,
+  { "getInstances", GetInstances,
     get_instances_params },
-  { "getIsolate", HandleIsolate,
+  { "getIsolate", GetIsolate,
     get_isolate_params },
-  { "getIsolateMetric", HandleIsolateGetMetric,
-    get_metric_params },
-  { "getIsolateMetricList", HandleIsolateGetMetricList,
-    get_metric_list_params },
-  { "getObject", HandleIsolateGetObject,
+  { "getIsolateMetric", GetIsolateMetric,
+    get_isolate_metric_params },
+  { "getIsolateMetricList", GetIsolateMetricList,
+    get_isolate_metric_list_params },
+  { "getObject", GetObject,
     get_object_params },
-  { "getObjectByAddress", HandleIsolateGetObjectByAddress,
+  { "getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
-  { "getRetainedSize", HandleIsolateGetRetainedSize,
+  { "getRetainedSize", GetRetainedSize,
     get_retained_size_params },
-  { "getRetainingPath", HandleIsolateGetRetainingPath,
+  { "getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
-  { "getStack", HandleIsolateGetStack,
+  { "getStack", GetStack,
     get_stack_params },
-  { "getTagProfile", HandleIsolateGetTagProfile,
+  { "getTagProfile", GetTagProfile,
     get_tag_profile_params },
-  { "getTypeArgumentsList", HandleIsolateGetTypeArgumentsList,
+  { "getTypeArgumentsList", GetTypeArgumentsList,
     get_type_arguments_list_params },
-  { "getVM", HandleVM ,
+  { "getVM", GetVM,
     get_vm_params },
-  { "getVMMetric", HandleVMGetMetric,
+  { "getVMMetric", GetVMMetric,
     get_vm_metric_params },
-  { "getVMMetricList", HandleVMGetMetricList,
+  { "getVMMetricList", GetVMMetricList,
     get_vm_metric_list_params },
-  { "pause", HandleIsolatePause,
+  { "pause", Pause,
     pause_params },
-  { "removeBreakpoint", HandleIsolateRemoveBreakpoint,
+  { "removeBreakpoint", RemoveBreakpoint,
     remove_breakpoint_params },
-  { "resume", HandleIsolateResume,
+  { "resume", Resume,
     resume_params },
-  { "requestHeapSnapshot", HandleIsolateRequestHeapSnapshot,
+  { "requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
-  { "setFlag", HandleVMSetFlag ,
+  { "setFlag", SetFlag ,
     set_flags_params },
 };
 
