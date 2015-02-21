@@ -33,6 +33,8 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('force-compile',
       help: 'Compile code with static errors', defaultsTo: false)
   ..addFlag('help', abbr: 'h', help: 'Display this message')
+  ..addFlag('ignore-types',
+      help: 'Ignore types during codegen', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
   ..addFlag('mock-sdk',
       abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
@@ -109,6 +111,7 @@ void main(List<String> argv) {
       dumpSrcDir: args['dump-src-to'],
       forceCompile: args['force-compile'],
       formatOutput: args['dart-gen-fmt'],
+      ignoreTypes: args['ignore-types'],
       outputDart: args['dart-gen'],
       outputDir: args['out'],
       covariantGenerics: args['covariant-generics'],

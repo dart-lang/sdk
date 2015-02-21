@@ -1052,10 +1052,11 @@ $name.prototype[Symbol.iterator] = function() {
   bool _isJSBuiltinType(DartType t) =>
       rules.isNumType(t) || rules.isStringType(t) || rules.isBoolType(t);
 
-  bool typeIsPrimitiveInJS(DartType t) => rules.isIntType(t) ||
-      rules.isDoubleType(t) ||
-      rules.isBoolType(t) ||
-      rules.isNumType(t);
+  bool typeIsPrimitiveInJS(DartType t) => !rules.isDynamic(t) &&
+      (rules.isIntType(t) ||
+          rules.isDoubleType(t) ||
+          rules.isBoolType(t) ||
+          rules.isNumType(t));
 
   bool typeIsNonNullablePrimitiveInJS(DartType t) =>
       typeIsPrimitiveInJS(t) && rules.isNonNullableType(t);

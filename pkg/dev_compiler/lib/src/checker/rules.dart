@@ -37,25 +37,10 @@ abstract class TypeRules {
 
   DartType elementType(Element e);
 
-  /// Returns `true` if the target expression is dynamic.
-  bool isDynamicTarget(Expression expr) => getStaticType(expr).isDynamic;
-
-  /// Returns `true` if the expression is a dynamic property access or prefixed
-  /// identifier.
-  bool isDynamicGet(Expression expr) {
-    var t = getStaticType(expr);
-    // TODO(jmesserly): we should not allow all property gets on `Function`
-    return t.isDynamic || t.isDartCoreFunction;
-  }
-
-  /// Returns `true` if the expression is a dynamic function call or method
-  /// invocation.
-  bool isDynamicCall(Expression call) {
-    var t = getStaticType(call);
-    // TODO(jmesserly): fix handling of types with `call` methods. These are not
-    // FunctionType, but they also aren't dynamic calls.
-    return t.isDynamic || t.isDartCoreFunction || t is! FunctionType;
-  }
+  bool isDynamic(DartType t);
+  bool isDynamicTarget(Expression expr);
+  bool isDynamicGet(Expression expr);
+  bool isDynamicCall(Expression call);
 }
 
 class DartRules extends TypeRules {
@@ -80,6 +65,12 @@ class DartRules extends TypeRules {
   DartType elementType(Element e) {
     return (e as dynamic).type;
   }
+
+  /// By default, all invocations are dynamic in Dart.
+  bool isDynamic(DartType t) => true;
+  bool isDynamicTarget(Expression expr) => true;
+  bool isDynamicGet(Expression expr) => true;
+  bool isDynamicCall(Expression call) => true;
 }
 
 class RestrictedRules extends TypeRules {
@@ -472,5 +463,30 @@ class RestrictedRules extends TypeRules {
 
   DartType elementType(Element e) {
     return (e as dynamic).type;
+  }
+
+  bool isDynamic(DartType t) => options.ignoreTypes || t.isDynamic;
+
+  /// Returns `true` if the target expression is dynamic.
+  bool isDynamicTarget(Expression expr) =>
+      options.ignoreTypes || getStaticType(expr).isDynamic;
+
+  /// Returns `true` if the expression is a dynamic property access or prefixed
+  /// identifier.
+  bool isDynamicGet(Expression expr) {
+    if (options.ignoreTypes) return true;
+    var t = getStaticType(expr);
+    // TODO(jmesserly): we should not allow all property gets on `Function`
+    return t.isDynamic || t.isDartCoreFunction;
+  }
+
+  /// Returns `true` if the expression is a dynamic function call or method
+  /// invocation.
+  bool isDynamicCall(Expression call) {
+    if (options.ignoreTypes) return true;
+    var t = getStaticType(call);
+    // TODO(jmesserly): fix handling of types with `call` methods. These are not
+    // FunctionType, but they also aren't dynamic calls.
+    return t.isDynamic || t.isDartCoreFunction || t is! FunctionType;
   }
 }

@@ -64,7 +64,11 @@ class RulesOptions extends TypeOptions {
   /// Whether to inject casts between Dart assignable types.
   final bool relaxedCasts;
 
-  RulesOptions({this.covariantGenerics: true, this.relaxedCasts: true});
+  /// Whether to use static types for code generation.
+  final bool ignoreTypes;
+
+  RulesOptions({this.covariantGenerics: true, this.relaxedCasts: true,
+      this.ignoreTypes: false});
 }
 
 /// General options used by the dev compiler.
@@ -140,13 +144,18 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   @override
   final List<String> nonnullableTypes;
 
+  /// Whether to use static types for code generation.
+  @override
+  final bool ignoreTypes;
+
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.dumpSrcDir, this.forceCompile: false,
-      this.formatOutput: false, this.outputDir, this.outputDart: false,
-      this.useColors: true, this.covariantGenerics: true,
-      this.relaxedCasts: true, this.useMultiPackage: false,
-      this.packageRoot: 'packages/', this.packagePaths: const [],
-      this.inferFromOverrides: true, this.inferStaticsFromIdentifiers: false,
+      this.formatOutput: false, this.ignoreTypes: false, this.outputDir,
+      this.outputDart: false, this.useColors: true,
+      this.covariantGenerics: true, this.relaxedCasts: true,
+      this.useMultiPackage: false, this.packageRoot: 'packages/',
+      this.packagePaths: const [], this.inferFromOverrides: true,
+      this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES});
