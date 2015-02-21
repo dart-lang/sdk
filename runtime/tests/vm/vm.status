@@ -37,9 +37,6 @@ cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
-[ $system == windows && $mode == debug ]
-cc/IsolateSpawn: Crash # Issue 22488
-
 [ $system == linux ]
 cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
