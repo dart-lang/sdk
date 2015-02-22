@@ -11,6 +11,7 @@
 library hash_map2_test;
 import "package:expect/expect.dart";
 import 'dart:collection';
+import 'dart:math' as math;
 
 testSet(Set newSet(), Set newSetFrom(Iterable from)) {
 
@@ -260,7 +261,7 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     List keys = [];
     // Powers of two
     for (int i = 65; i >= 2; --i) {
-      keys.add(new Mutable(1 << i));
+      keys.add(new Mutable(math.pow(2, i)));
     }
     for (var key in keys) {
       Expect.isTrue(set.add(key));
