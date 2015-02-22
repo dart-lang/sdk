@@ -254,6 +254,21 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     set.add(-0.0);
     Expect.identical(-0.0, set.lookup(0.0));
   }
+
+  {  // Test special hash codes
+    Set set = newSet();
+    List keys = [];
+    // Powers of two
+    for (int i = 65; i >= 2; --i) {
+      keys.add(new Mutable(1 << i));
+    }
+    for (var key in keys) {
+      Expect.isTrue(set.add(key));
+    }
+    for (var key in keys) {
+      Expect.isTrue(set.contains(key));
+    }
+  }
 }
 
 

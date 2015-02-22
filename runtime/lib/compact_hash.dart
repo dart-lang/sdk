@@ -32,10 +32,12 @@ abstract class _HashBase {
   int _hashMask = int.is64Bit() ?
       (1 << (32 - _INITIAL_INDEX_BITS)) - 1 :
       (1 << (30 - _INITIAL_INDEX_BITS)) - 1;
-  
-  static int _hashPattern(int fullHash, int hashMask, int size) =>
-      // TODO(koda): Consider keeping bit length and use left shift.
-      (fullHash == 0) ? (size >> 1) : (fullHash & hashMask) * (size >> 1);
+
+  static int _hashPattern(int fullHash, int hashMask, int size) {
+    final int maskedHash = fullHash & hashMask;
+    // TODO(koda): Consider keeping bit length and use left shift.
+    return (maskedHash == 0) ? (size >> 1) : maskedHash * (size >> 1);
+  }
 
   // Linear probing.
   static int _firstProbe(int fullHash, int sizeMask) {
@@ -124,7 +126,7 @@ class _CompactLinkedHashMap<K, V>
       _rehash();
       this[key] = value;
     } else {
-      assert(0 <= hashPattern && hashPattern <  (1 << 32));
+      assert(1 <= hashPattern && hashPattern <  (1 << 32));
       final int index = _usedData >> 1;
       assert((index & hashPattern) == 0);
       _index[i] = hashPattern | index;
@@ -403,7 +405,7 @@ class _CompactLinkedHashSet<K>
       add(key);
     } else {
       final int insertionPoint = (firstDeleted >= 0) ? firstDeleted : i;
-      assert(0 <= hashPattern && hashPattern < (1 << 32));
+      assert(1 <= hashPattern && hashPattern < (1 << 32));
       assert((hashPattern & _usedData) == 0);
       _index[insertionPoint] = hashPattern | _usedData;
       _data[_usedData++] = key;
