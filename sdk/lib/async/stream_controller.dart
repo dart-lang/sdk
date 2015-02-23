@@ -53,10 +53,9 @@ abstract class StreamController<T> implements StreamSink<T> {
   /**
    * A controller with a [stream] that supports only one single subscriber.
    *
-   * If [sync] is true, events may be passed directly to the stream's listener
-   * during an [add], [addError] or [close] call. If [sync] is false, the event
-   * will be passed to the listener at a later time, after the code creating
-   * the event has returned.
+   * If [sync] is true, the returned stream controller is a
+   * [SynchronousStreamController], and must be used with the care
+   * and attention necessary to not break the [Stream] contract.
    *
    * The controller will buffer all incoming events until the subscriber is
    * registered.
@@ -108,10 +107,13 @@ abstract class StreamController<T> implements StreamSink<T> {
    *
    * If [sync] is true, events may be fired directly by the stream's
    * subscriptions during an [add], [addError] or [close] call.
-   * If [sync] is false, the event will be fired at a later time,
-   * after the code adding the event has completed.
+   * The returned stream controller is a [SynchronousStreamController],
+   * and must be used with the care and attention necessary to not break
+   * the [Stream] contract.
    *
-   * When [sync] is false, no guarantees are given with regard to when
+   * If [sync] is false, the event will always be fired at a later time,
+   * after the code adding the event has completed.
+   * In that case, no guarantees are given with regard to when
    * multiple listeners get the events, except that each listener will get
    * all events in the correct order. Each subscription handles the events
    * individually.
@@ -201,6 +203,103 @@ abstract class StreamController<T> implements StreamSink<T> {
   Future addStream(Stream<T> source, {bool cancelOnError: true});
 }
 
+
+/**
+ * A stream controller that delivers its events synchronously.
+ *
+ * A synchronous stream controller is intended for cases where
+ * an already asynchronous event triggers an event on a stream.
+ *
+ * Instead of adding the event to the stream in a later microtask,
+ * causing extra latency, the event is instead fired immediately by the
+ * synchronous stream controller, as if the stream event was
+ * the current event or microtask.
+ *
+ * The synchronous stream controller can be used to break the contract
+ * on [Stream], and it must be used carefully to avoid doing so.
+ *
+ * The only advantage to using a [SynchronousStreamController] over a
+ * normal [StreamController] is the improved latency.
+ * Only use the synchronous version if the improvement is significant,
+ * and if its use is safe. Otherwise just use a normal stream controller,
+ * which will always have the correct behavior for a [Stream], and won't
+ * accidentally break other code.
+ *
+ * Adding events to a synchronous controller should only happen as the
+ * very last part of a the handling of the original event.
+ * At that point, adding an event to the stream is equivalent to
+ * returning to the event loop and adding the event in the next microtask.
+ *
+ * Each listener callback will be run as if it was a top-level event
+ * or microtask. This means that if it throws, the error will be reported as
+ * uncaught as soon as possible.
+ * This is one reason to add the event as the last thing in the original event
+ * handler - any action done after adding the event will delay the report of
+ * errors in the event listener callbacks.
+ *
+ * If an event is added in a setting that isn't known to be another event,
+ * it may cause the stream's listener to get that event before the listener
+ * is ready to handle it. We promise that after calling [Stream.listen],
+ * you won't get any events until the code doing the listen has completed.
+ * Calling [add] in response to a function call of unknown origin may break
+ * that promise.
+ *
+ * An [onListen] callback from the controller is *not* an asynchronous event,
+ * and adding events to the controller in the `onListen` callback is always
+ * wrong. The events will be delivered before the listener has even received
+ * the subscription yet.
+ *
+ * The synchronous broadcast stream controller also has a restrictions that a
+ * normal stream controller does not:
+ * The [add], [addError], [close] and [addStream] methods *must not* be
+ * called while an event is being delivered.
+ * That is, if a callback on a subscription on the controller's stream causes
+ * a call to any of the functions above, the call will fail.
+ * A broadcast stream may have more than one listener, and if an
+ * event is added synchronously while another is being also in the process
+ * of being added, the latter event might reach some listeners before
+ * the former. To prevent that, an event cannot be added while a previous
+ * event is being fired.
+ * This guarantees that an event is fully delivered when the
+ * first [add], [addError] or [close] returns,
+ * and further events will be delivered in the correct order.
+ *
+ * This still only guarantees that the event is delivered to the subscription.
+ * If the subscription is paused, the actual callback may still happen later,
+ * and the event will instead be buffered by the subscription.
+ * Barring pausing, and the following buffered events that haven't been
+ * delivered yet, callbacks will be called synchronously when an event is added.
+ *
+ * Adding an event to a synchronous non-broadcast stream controller while
+ * another event is in progress may cause the second event to be delayed
+ * and not be delivered synchronously, and until that event is delivered,
+ * the controller will not act synchronously.
+ */
+abstract class SynchronousStreamController<T> implements StreamController<T> {
+  /**
+   * Adds event to the controller's stream.
+   *
+   * As [StreamController.add], but must not be called while an event is
+   * being added by [add], [addError] or [close].
+   */
+  void add(T data);
+
+  /**
+   * Adds error to the controller's stream.
+   *
+   * As [StreamController.addError], but must not be called while an event is
+   * being added by [add], [addError] or [close].
+   */
+  void addError(Object error, StackTrace stackTrace);
+
+  /**
+   * Closes the controller's stream.
+   *
+   * As [StreamController.close], but must not be called while an event is
+   * being added by [add], [addError] or [close].
+   */
+  Future close();
+}
 
 abstract class _StreamControllerLifecycle<T> {
   StreamSubscription<T> _subscribe(
@@ -421,8 +520,8 @@ abstract class _StreamController<T> implements StreamController<T>,
    * Send or enqueue an error event.
    */
   void addError(Object error, [StackTrace stackTrace]) {
-    error = _nonNullError(error);
     if (!_mayAddEvent) throw _badEventState();
+    error = _nonNullError(error);
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
       error = _nonNullError(replacement.error);
@@ -440,7 +539,8 @@ abstract class _StreamController<T> implements StreamController<T>,
    * You are allowed to close the controller more than once, but only the first
    * call has any effect.
    *
-   * After closing, no further events may be added using [add] or [addError].
+   * After closing, no further events may be added using [add], [addError]
+   * or [addStream].
    *
    * The returned future is completed when the done event has been delivered.
    */
@@ -590,7 +690,10 @@ abstract class _StreamController<T> implements StreamController<T>,
 }
 
 abstract class _SyncStreamControllerDispatch<T>
-    implements _StreamController<T> {
+    implements _StreamController<T>, SynchronousStreamController<T> {
+  int get _state;
+  void set _state(int state);
+
   void _sendData(T data) {
     _subscription._add(data);
   }

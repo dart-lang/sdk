@@ -47,10 +47,18 @@ void testStream(String name, StreamController controller, Stream stream) {
                 expect(Zone.current, newZone1);
               }));
             });
-            controller.add(87);
+            if (controller is SynchronousStreamController) {
+              scheduleMicrotask(() => controller.add(87));
+            } else {
+              controller.add(87);
+            }
           }));
         });
-        controller.add(37);
+        if (controller is SynchronousStreamController) {
+          scheduleMicrotask(() => controller.add(37));
+        } else {
+          controller.add(37);
+        }
       }));
     });
     controller.add(42);
