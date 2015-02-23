@@ -78,6 +78,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
 
   @override
+  int get modificationStamp {
+    try {
+      io.File file = _entry as io.File;
+      return file.lastModifiedSync().millisecondsSinceEpoch;
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(path, exception.message);
+    }
+  }
+
+  @override
   Source createSource([Uri uri]) {
     io.File file = _entry as io.File;
     JavaFile javaFile = new JavaFile(file.absolute.path);

@@ -16,22 +16,6 @@ import 'file_system.dart';
 
 
 /**
- * Exception thrown when a memory [Resource] file operation fails.
- */
-class MemoryResourceException {
-  final path;
-  final message;
-
-  MemoryResourceException(this.path, this.message);
-
-  @override
-  String toString() {
-    return "MemoryResourceException(path=$path; message=$message)";
-  }
-}
-
-
-/**
  * An in-memory implementation of [ResourceProvider].
  * Use `/` as a path separator.
  */
@@ -159,15 +143,21 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   @override
   bool get exists => false;
 
-  String get _content {
-    throw new MemoryResourceException(path, "File '$path' could not be read");
+  int get modificationStamp {
+    int stamp = _provider._pathToTimestamp[path];
+    if (stamp == null) {
+      throw new FileSystemException(path, "File does not exist");
+    }
+    return stamp;
   }
 
-  int get _timestamp => _provider._pathToTimestamp[path];
+  String get _content {
+    throw new FileSystemException(path, 'File could not be read');
+  }
 
   @override
   Source createSource([Uri uri]) {
-    throw new MemoryResourceException(path, "File '$path' could not be read");
+    throw new FileSystemException(path, 'File could not be read');
   }
 
   @override
@@ -184,15 +174,21 @@ class _MemoryFile extends _MemoryResource implements File {
   _MemoryFile(MemoryResourceProvider provider, String path)
       : super(provider, path);
 
+  int get modificationStamp {
+    int stamp = _provider._pathToTimestamp[path];
+    if (stamp == null) {
+      throw new FileSystemException(path, 'File does not exist.');
+    }
+    return stamp;
+  }
+
   String get _content {
     String content = _provider._pathToContent[path];
     if (content == null) {
-      throw new MemoryResourceException(path, "File '$path' does not exist");
+      throw new FileSystemException(path, "File does not exist");
     }
     return content;
   }
-
-  int get _timestamp => _provider._pathToTimestamp[path];
 
   @override
   Source createSource([Uri uri]) {
@@ -239,7 +235,13 @@ class _MemoryFileSource extends Source {
   bool get isInSystemLibrary => uriKind == UriKind.DART_URI;
 
   @override
-  int get modificationStamp => _file._timestamp;
+  int get modificationStamp {
+    try {
+      return _file.modificationStamp;
+    } on FileSystemException catch (e) {
+      return -1;
+    }
+  }
 
   @override
   String get shortName => _file.shortName;

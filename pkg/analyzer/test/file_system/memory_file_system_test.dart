@@ -17,7 +17,7 @@ import 'package:watcher/watcher.dart';
 
 var _isFile = new isInstanceOf<File>();
 var _isFolder = new isInstanceOf<Folder>();
-var _isMemoryResourceException = new isInstanceOf<MemoryResourceException>();
+var _isFileSystemException = new isInstanceOf<FileSystemException>();
 
 
 main() {
@@ -30,13 +30,13 @@ main() {
       provider = new MemoryResourceProvider();
     });
 
-    test('MemoryResourceException', () {
-      var exception = new MemoryResourceException('/my/path', 'my message');
+    test('FileSystemException', () {
+      var exception = new FileSystemException('/my/path', 'my message');
       expect(exception.path, '/my/path');
       expect(exception.message, 'my message');
       expect(
           exception.toString(),
-          'MemoryResourceException(path=/my/path; message=my message)');
+          'FileSystemException(path=/my/path; message=my message)');
     });
 
     group('Watch', () {
@@ -281,6 +281,23 @@ main() {
         expect(file.isOrContains('/foo/bar'), isFalse);
       });
 
+      group('modificationStamp', () {
+        test('exists', () {
+          String path = '/foo/bar/file.txt';
+          File file = provider.newFile(path, 'qwerty');
+          expect(file.modificationStamp, isNonNegative);
+        });
+
+        test('does not exist', () {
+          String path = '/foo/bar/file.txt';
+          File file = provider.newFile(path, 'qwerty');
+          provider.deleteFile(path);
+          expect(() {
+            file.modificationStamp;
+          }, throwsA(_isFileSystemException));
+        });
+      });
+
       test('shortName', () {
         File file = provider.getResource('/foo/bar/file.txt');
         expect(file.shortName, 'file.txt');
@@ -485,7 +502,7 @@ main() {
         test('contents', () {
           expect(() {
             source.contents;
-          }, throwsA(_isMemoryResourceException));
+          }, throwsA(_isFileSystemException));
         });
 
         test('encoding', () {
@@ -498,6 +515,10 @@ main() {
 
         test('fullName', () {
           expect(source.fullName, '/foo/test.dart');
+        });
+
+        test('modificationStamp', () {
+          expect(source.modificationStamp, -1);
         });
 
         test('shortName', () {
