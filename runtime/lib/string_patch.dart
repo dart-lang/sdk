@@ -799,7 +799,7 @@ class _StringBase {
   static String _interpolateSingle(Object o) {
     final s = o.toString();
     if (s is! String) {
-      throw new ArgumentError(o);
+      throw new ArgumentError(s);
     }
     return s;
   }
