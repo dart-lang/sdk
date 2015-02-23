@@ -1780,6 +1780,9 @@ unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
   if (ex == null) return null;
+  if (ex is ExceptionAndStackTrace) {
+    return saveStackTrace(ex.dartException);
+  }
   if (JS('bool', 'typeof # !== "object"', ex)) return ex;
 
   if (JS('bool', r'"dartException" in #', ex)) {
@@ -1903,7 +1906,12 @@ unwrapException(ex) {
  * Called by generated code to fetch the stack trace from an
  * exception. Should never return null.
  */
-StackTrace getTraceFromException(exception) => new _StackTrace(exception);
+StackTrace getTraceFromException(exception) {
+  if (exception is ExceptionAndStackTrace) {
+    return exception.stackTrace;
+  }
+  return new _StackTrace(exception);
+}
 
 class _StackTrace implements StackTrace {
   var _exception;
@@ -3551,6 +3559,15 @@ void mainHasTooManyParameters() {
   throw new MainError("'main' expects too many parameters.");
 }
 
+/// A wrapper around an exception, much like the one created by [wrapException]
+/// but with a pre-given stack-trace.
+class ExceptionAndStackTrace {
+  dynamic dartException;
+  StackTrace stackTrace;
+
+  ExceptionAndStackTrace(this.dartException, this.stackTrace);
+}
+
 /// Runtime support for async-await transformation.
 ///
 /// This function is called by a transformed function on each await and return
@@ -3582,8 +3599,12 @@ dynamic asyncHelper(dynamic object,
   Future future = object is Future ? object : new Future.value(object);
   future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
                                       async_error_codes.SUCCESS),
-      onError: _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                       async_error_codes.ERROR));
+      onError: (dynamic error, StackTrace stackTrace) {
+        ExceptionAndStackTrace wrapped =
+            new ExceptionAndStackTrace(error, stackTrace);
+        return _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                       async_error_codes.ERROR)(wrapped);
+      });
   return completer.future;
 }
 
@@ -3698,8 +3719,13 @@ void asyncStarHelper(dynamic object,
   Future future = object is Future ? object : new Future.value(object);
   future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
                                       async_error_codes.SUCCESS),
-              onError: _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                               async_error_codes.ERROR));
+              onError: (error, StackTrace stackTrace) {
+                ExceptionAndStackTrace wrapped =
+                    new ExceptionAndStackTrace(error, stackTrace);
+                return _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                               async_error_codes.ERROR)
+                    (wrapped);
+              });
 }
 
 Stream streamOfController(AsyncStarStreamController controller) {
