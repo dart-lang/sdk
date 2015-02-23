@@ -58,24 +58,11 @@ const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";
 const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
 const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
+const ARGUMENT_COUNT_PROPERTY = r"$argumentCount";
+const DEFAULT_VALUES_PROPERTY = r"$defaultValues";
 
 /// Returns the type given the name of a class.
 /// This function is called by the runtime when computing rti.
 const GET_TYPE_FROM_NAME = 'getTypeFromName';
 const TYPE_TO_INTERCEPTOR_MAP = "typeToInterceptorMap";
-
-/// Names that are supported by [JS_GET_NAME].
-// TODO(herhut): Make entries lower case (as in fields) and find a better name.
-enum JsGetName {
-  GETTER_PREFIX,
-  SETTER_PREFIX,
-  CALL_PREFIX,
-  CALL_CATCH_ALL,
-  REFLECTABLE,
-  CLASS_DESCRIPTOR_PROPERTY,
-  REQUIRED_PARAMETER_PROPERTY,
-  DEFAULT_VALUES_PROPERTY,
-  CALL_NAME_PROPERTY
-}
-
 

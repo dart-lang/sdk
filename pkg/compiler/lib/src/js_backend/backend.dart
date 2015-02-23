@@ -73,8 +73,6 @@ class JavaScriptBackend extends Backend {
       new Uri(scheme: 'dart', path: '_js_mirrors');
   static final Uri DART_JS_NAMES =
       new Uri(scheme: 'dart', path: '_js_names');
-  static final Uri DART_EMBEDDED_NAMES =
-      new Uri(scheme: 'dart', path: '_js_embedded_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
   static final Uri DART_HTML =
@@ -365,9 +363,6 @@ class JavaScriptBackend extends Backend {
 
   /// Holds the method "requiresPreamble" in _js_helper.
   FunctionElement requiresPreambleMarker;
-
-  /// Holds the class for the [JsGetName] enum.
-  EnumClassElement jsGetNameEnum;
 
   /// True if a call to preserveMetadataMarker has been seen.  This means that
   /// metadata must be retained for dart:mirrors to work correctly.
@@ -1881,8 +1876,6 @@ class JavaScriptBackend extends Backend {
         preserveLibraryNamesMarker = find(library, 'preserveLibraryNames');
       } else if (uri == DART_JS_NAMES) {
         preserveNamesMarker = find(library, 'preserveNames');
-      } else if (uri == DART_EMBEDDED_NAMES) {
-        jsGetNameEnum = find(library, 'JsGetName');
       } else if (uri == DART_HTML) {
         htmlLibraryIsLoaded = true;
       }

@@ -4,8 +4,6 @@
 
 library _foreign_helper;
 
-import 'dart:_js_embedded_names' show JsGetName;
-
 /**
  * Emits a JavaScript code fragment parameterized by arguments.
  *
@@ -242,7 +240,7 @@ String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG() {}
 String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
 
 /// Returns the JS name for [name] from the Namer.
-String JS_GET_NAME(JsGetName name) {}
+String JS_GET_NAME(String name) {}
 
 /// Reads an embedded global.
 ///

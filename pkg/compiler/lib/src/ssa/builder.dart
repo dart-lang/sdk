@@ -3741,20 +3741,16 @@ class SsaBuilder extends ResolvedVisitor {
       }
       return;
     }
-    Element element = elements[argument];
-    if (element == null ||
-        element is! FieldElement ||
-        element.enclosingClass != backend.jsGetNameEnum) {
+    ast.LiteralString string = argument.asLiteralString();
+    if (string == null) {
       compiler.reportError(
           argument, MessageKind.GENERIC,
-          {'text': 'Error: Expected a JsGetName enum value.'});
+          {'text': 'Error: Expected a literal string.'});
     }
-    EnumClassElement enumClass = element.enclosingClass;
-    int index = enumClass.enumValues.indexOf(element);
     stack.add(
         addConstantString(
             backend.namer.getNameForJsGetName(
-                argument, JsGetName.values[index])));
+                argument, string.dartString.slowToString())));
   }
 
   void handleForeignJsEmbeddedGlobal(ast.Send node) {

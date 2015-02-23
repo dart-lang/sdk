@@ -5,7 +5,6 @@
 library dart._js_names;
 
 import 'dart:_js_embedded_names' show
-    JsGetName,
     MANGLED_GLOBAL_NAMES,
     MANGLED_NAMES;
 
@@ -54,9 +53,9 @@ Map<String, String> computeMangledNames(jsMangledNames, bool isGlobal) {
   preserveNames();
   var keys = extractKeys(jsMangledNames);
   var result = <String, String>{};
-  String getterPrefix = JS_GET_NAME(JsGetName.GETTER_PREFIX);
+  String getterPrefix = JS_GET_NAME('GETTER_PREFIX');
   int getterPrefixLength = getterPrefix.length;
-  String setterPrefix = JS_GET_NAME(JsGetName.SETTER_PREFIX);
+  String setterPrefix = JS_GET_NAME('SETTER_PREFIX');
   for (String key in keys) {
     String value = JS('String', '#[#]', jsMangledNames, key);
     result[key] = value;
