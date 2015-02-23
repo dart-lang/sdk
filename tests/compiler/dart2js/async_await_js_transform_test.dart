@@ -101,7 +101,7 @@ function(b) {
           case 8:
             // while condition
             __handler = 10;
-            inner: {
+            inner:
               while (true) {
                 __next = [6];
                 // goto finally
@@ -109,7 +109,6 @@ function(b) {
                 break __outer1;
                 break;
               }
-            }
             while (true) {
               __next = [1, 4];
               // goto finally
@@ -984,9 +983,9 @@ function(x, y, k) {
           break;
         case 14:
           // case
-          if (a) {
+          if (a)
             throw new Error();
-          } else {
+          else {
             // goto while condition
             __goto = 3;
             break;
