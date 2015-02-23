@@ -330,7 +330,7 @@ class Not extends Expression {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitNot(this, arg);
 }
 
-class FunctionExpression extends Expression {
+class FunctionExpression extends Expression implements DartSpecificNode {
   final FunctionDefinition definition;
 
   FunctionExpression(this.definition) {
@@ -348,7 +348,7 @@ class FunctionExpression extends Expression {
 /// being recursive or having a return type.
 /// The [variable] must not occur as the left-hand side of an [Assign] or
 /// any other [FunctionDeclaration].
-class FunctionDeclaration extends Statement {
+class FunctionDeclaration extends Statement implements DartSpecificNode {
   Variable variable;
   final FunctionDefinition definition;
   Statement next;
@@ -612,7 +612,7 @@ class FunctionDefinition extends Node implements ExecutableDefinition {
   applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
 }
 
-abstract class Initializer implements Expression {}
+abstract class Initializer implements Expression, DartSpecificNode {}
 
 class FieldInitializer extends Initializer {
   final FieldElement element;
@@ -656,6 +656,8 @@ class ConstructorDefinition extends FunctionDefinition {
 }
 
 abstract class JsSpecificNode implements Node {}
+
+abstract class DartSpecificNode implements Node {}
 
 class CreateBox extends Expression implements JsSpecificNode {
   accept(ExpressionVisitor visitor) => visitor.visitCreateBox(this);
