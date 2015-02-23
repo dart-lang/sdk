@@ -13987,6 +13987,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (classElement != null)  {
       classElement.hasReferenceToSuper = _hasReferenceToSuper;
     }
+    return null;
   }
 
   @override
