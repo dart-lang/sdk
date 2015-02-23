@@ -260,8 +260,8 @@ class EmptyStatement extends Statement {
 
 class If extends Statement {
   final Expression condition;
-  final Statement then;
-  final Statement otherwise;
+  final Node then;
+  final Node otherwise;
 
   If(this.condition, this.then, this.otherwise);
   If.noElse(this.condition, this.then) : this.otherwise = new EmptyStatement();
