@@ -1922,7 +1922,8 @@ class _StackTrace implements StackTrace {
     if (_trace != null) return JS('String', '#', _trace);
 
     String trace;
-    if (JS('bool', 'typeof # === "object"', _exception)) {
+    if (JS('bool', '# !== null', _exception) &&
+        JS('bool', 'typeof # === "object"', _exception)) {
       trace = JS("String|Null", r"#.stack", _exception);
     }
     return _trace = (trace == null) ? '' : trace;
