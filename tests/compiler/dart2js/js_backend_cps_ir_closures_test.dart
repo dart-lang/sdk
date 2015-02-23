@@ -117,6 +117,20 @@ function() {
     }
   }
 }"""),
+
+  const TestEntry.forMethod('function(A#b)', """
+class A {
+  a() => 1;
+  b() => () => a();
+}
+main() {
+  print(new A().b()());
+}
+""",
+r"""
+function() {
+  return new V.A_b_closure(this);
+}"""),
 ];
 
 void main() {
