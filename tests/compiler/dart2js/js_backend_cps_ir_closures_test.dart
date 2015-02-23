@@ -21,13 +21,12 @@ main(x) {
 """,
 r"""
 function(x) {
-  var box_0, a, v0;
+  var box_0, a;
   box_0 = {};
   box_0.x_0 = x;
   a = new V.main_a(box_0);
   x = box_0.x_0;
-  v0 = "1";
-  box_0.x_0 = J.getInterceptor$ns(x).$add(x, v0);
+  box_0.x_0 = J.getInterceptor$ns(x).$add(x, "1");
   P.print(a.call$0());
   return null;
 }"""),
@@ -56,13 +55,12 @@ main() {
 """,
 r"""
 function() {
-  var box_0, a, x, v0;
+  var box_0, a, x;
   box_0 = {};
   box_0.x_0 = 122;
   a = new V.main_closure(box_0);
   x = box_0.x_0;
-  v0 = 1;
-  box_0.x_0 = J.getInterceptor$ns(x).$add(x, v0);
+  box_0.x_0 = J.getInterceptor$ns(x).$add(x, 1);
   P.print(a.call$0());
   return null;
 }"""),
@@ -80,13 +78,12 @@ main() {
 """,
 r"""
 function() {
-  var box_0, a, x, v0;
+  var box_0, a, x;
   box_0 = {};
   box_0.x_0 = 122;
   a = new V.main_closure(box_0);
   x = box_0.x_0;
-  v0 = 1;
-  box_0.x_0 = J.getInterceptor$ns(x).$add(x, v0);
+  box_0.x_0 = J.getInterceptor$ns(x).$add(x, 1);
   P.print(a.call$0().call$0());
   return null;
 }"""),
@@ -102,20 +99,15 @@ main() {
 """,
 r"""
 function() {
-  var a, i, v0, v1;
+  var a, i;
   a = null;
   i = 0;
-  while (true) {
-    v0 = 10;
-    if (P.identical(J.getInterceptor$n(i).$lt(i, v0), true)) {
-      a = new V.main_closure(i);
-      v1 = 1;
-      i = J.getInterceptor$ns(i).$add(i, v1);
-    } else {
-      P.print(a.call$0());
-      return null;
-    }
+  while (P.identical(J.getInterceptor$n(i).$lt(i, 10), true)) {
+    a = new V.main_closure(i);
+    i = J.getInterceptor$ns(i).$add(i, 1);
   }
+  P.print(a.call$0());
+  return null;
 }"""),
 
   const TestEntry.forMethod('function(A#b)', """

@@ -159,14 +159,9 @@ main() {
 """,
 r"""
 function() {
-  var x, y, w, z, q, v0;
-  x = "x";
-  y = "y";
-  w = "w";
-  z = "z";
-  q = null;
+  var v0;
   v0 = new V.Foo();
-  v0.Bar$5$q$w$y$z(x, q, w, y, z);
+  v0.Bar$5$q$w$y$z("x", null, "w", "y", "z");
   return v0;
 }"""),
 ];

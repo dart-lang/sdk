@@ -19,10 +19,9 @@ main() {
 }""",
 r"""
 function() {
-  var g, v0;
+  var g;
   g = 1;
-  v0 = 3;
-  P.print(J.getInterceptor$ns(g).$add(g, v0));
+  P.print(J.getInterceptor$ns(g).$add(g, 3));
   return null;
 }"""),
   const TestEntry("""
@@ -38,7 +37,7 @@ main() {
 }""",
 r"""
 function() {
-  var l, i, v0, x, j, v1, v2, v3;
+  var l, i, v0, x, j, v1;
   l = ["hest", ["h", "e", "s", "t"]];
   P.print(J.getInterceptor$as(l).get$length(l));
   i = 0;
@@ -52,11 +51,9 @@ function() {
           v1 = J.getInterceptor$as(x).get$length(x);
           if (P.identical(J.getInterceptor$n(j).$lt(j, v1), true)) {
             P.print(J.getInterceptor$as(x).$index(x, j));
-            v2 = 1;
-            j = J.getInterceptor$ns(j).$add(j, v2);
+            j = J.getInterceptor$ns(j).$add(j, 1);
           } else {
-            v3 = 1;
-            i = J.getInterceptor$ns(i).$add(i, v3);
+            i = J.getInterceptor$ns(i).$add(i, 1);
             continue L0;
           }
         }
