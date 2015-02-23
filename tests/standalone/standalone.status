@@ -39,14 +39,14 @@ io/socket_many_connections_test: Skip
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: Fail # Issue 13921
 typed_array_int64_uint64_test: Fail # Issue 13921
-typed_data_isolate_test: Skip # This test uses dart:io
-io/*: Skip # Don't run tests using dart:io in the browser
+typed_data_isolate_test: SkipByDesign # This test uses dart:io
+io/*: SkipByDesign # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
-debugger/*: Skip # Do not run standalone debugger tests in browser.
+debugger/*: SkipByDesign # Do not run standalone debugger tests in browser.
 coverage_test: Skip
 full_coverage_test: Skip
 http_launch_test: Skip
-vmservice/*: Skip # Do not run standalone vm service tests in browser.
+vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
 javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip

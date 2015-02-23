@@ -57,7 +57,7 @@ mirrors/library_imports_shown_test: RuntimeError # Issue 6490
 mirrors/library_imports_hidden_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 6490
-mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
+mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/local_function_is_static_test: RuntimeError # Issue 6335
 mirrors/lru_test: Skip # dart2js_native/lru_test is used instead
 mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
@@ -252,7 +252,7 @@ async/timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: spawnFunction i
 async/timer_isActive_test: Fail, Pass # Issue 22352
 mirrors/immutable_collections_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/mirrors_reader_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
-mirrors/library_uri_io_test: SkipByDesign # Not intended for drt as it uses dart:io.
+mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/local_isolate_test: RuntimeError # Issue 12188
 
 [ $compiler == none && $runtime == drt && $system == windows ]
