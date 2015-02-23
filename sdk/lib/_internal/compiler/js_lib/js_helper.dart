@@ -3724,16 +3724,18 @@ class AsyncStarStreamController {
   addError(error, stackTrace) => controller.addError(error, stackTrace);
   close() => controller.close();
 
-  AsyncStarStreamController(helperCallback) {
+  AsyncStarStreamController(body) {
     controller = new StreamController(
       onListen: () {
         scheduleMicrotask(() {
-          JS('', '#(#, null)', helperCallback, async_error_codes.SUCCESS);
+          Function wrapped = _wrapJsFunctionForAsync(body,
+                                                     async_error_codes.SUCCESS);
+          wrapped(null);
         });
       },
       onResume: () {
         if (!isAdding) {
-          asyncStarHelper(null, helperCallback, this);
+          asyncStarHelper(null, body, this);
         }
       }, onCancel: () {
         stopRunning = true;
@@ -3741,8 +3743,8 @@ class AsyncStarStreamController {
   }
 }
 
-makeAsyncStarController(helperCallback) {
-  return new AsyncStarStreamController(helperCallback);
+makeAsyncStarController(body) {
+  return new AsyncStarStreamController(body);
 }
 
 class IterationMarker {
