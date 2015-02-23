@@ -23,28 +23,30 @@ Future throws(Function f, Function check) async {
 }
 
 Future testArguments(connectFunction) async {
+  var sourceAddress;
   asyncStart();
   var server = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
-  server.listen((_) { throw 'Connection unexpected'; },
-                onDone: () => asyncEnd());
+  server.listen((_) {
+    throw 'Unexpected connection from address $sourceAddress';
+  }, onDone: () => asyncEnd());
 
   asyncStart();
   // Illegal type for sourceAddress.
-  for (var sourceAddress in ['www.google.com', 'abc']) {
+  for (sourceAddress in ['www.google.com', 'abc']) {
     await throws(() => connectFunction('127.0.0.1',
                                        server.port,
                                        sourceAddress: sourceAddress),
                  (e) => e is ArgumentError);
   }
   // Unsupported local address.
-  for (var sourceAddress in ['8.8.8.8', new InternetAddress('8.8.8.8')]) {
+  for (sourceAddress in ['8.8.8.8', new InternetAddress('8.8.8.8')]) {
     await throws(() => connectFunction('127.0.0.1',
                                        server.port,
                                        sourceAddress: sourceAddress),
                  (e) => e is SocketException);
   }
   // Address family mismatch.
-  for (var sourceAddress in ['::1', InternetAddress.LOOPBACK_IP_V6]) {
+  for (sourceAddress in ['::1', InternetAddress.LOOPBACK_IP_V6]) {
     await throws(() => connectFunction('127.0.0.1',
                                        server.port,
                                        sourceAddress: sourceAddress),
