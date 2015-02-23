@@ -290,7 +290,7 @@ abstract class SynchronousStreamController<T> implements StreamController<T> {
    * As [StreamController.addError], but must not be called while an event is
    * being added by [add], [addError] or [close].
    */
-  void addError(Object error, StackTrace stackTrace);
+  void addError(Object error, [StackTrace stackTrace]);
 
   /**
    * Closes the controller's stream.
