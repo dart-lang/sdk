@@ -257,11 +257,9 @@ class RuntimeTypes {
 
   void computeRequiredChecks() {
     Set<DartType> isChecks = compiler.codegenWorld.isChecks;
-    bool hasFunctionTypeCheck =
-        isChecks.any((type) => identical(type.kind, TypeKind.FUNCTION));
-    Set<DartType> instantiatedTypesAndClosures = hasFunctionTypeCheck
-        ? computeInstantiatedTypesAndClosures(compiler.codegenWorld)
-        : compiler.codegenWorld.instantiatedTypes;
+    // These types are needed for is-checks against function types.
+    Set<DartType> instantiatedTypesAndClosures =
+        computeInstantiatedTypesAndClosures(compiler.codegenWorld);
     computeInstantiatedArguments(instantiatedTypesAndClosures, isChecks);
     computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
     cachedRequiredChecks =
