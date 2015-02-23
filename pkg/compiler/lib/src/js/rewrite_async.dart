@@ -848,6 +848,9 @@ class AsyncRewriter extends js.NodeVisitor {
     if (hasJumpThroughFinally || analysis.hasYield) {
       inits.add(makeInit(nextName, null));
     }
+    if (isAsyncStar && analysis.hasYield) {
+      inits.add(makeInit(nextWhenCanceledName, null));
+    }
     if (analysis.hasExplicitReturns && isAsync) {
       inits.add(makeInit(returnValueName, null));
     }
