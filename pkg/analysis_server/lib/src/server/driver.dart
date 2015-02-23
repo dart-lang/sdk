@@ -17,6 +17,7 @@ import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
@@ -91,6 +92,12 @@ class Driver implements ServerStarter {
    */
   static const String INCREMENTAL_RESOLUTION_VALIDATION =
       "incremental-resolution-validation";
+
+  /**
+   * The name of the option used to cause instrumentation to also be written to
+   * a local file.
+   */
+  static const String INSTRUMENTATION_LOG_FILE = "instrumentation-log-file";
 
   /**
    * The name of the option used to enable instrumentation.
@@ -238,6 +245,13 @@ class Driver implements ServerStarter {
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
 
+    if (instrumentationServer != null) {
+      String filePath = results[INSTRUMENTATION_LOG_FILE];
+      if (filePath != null) {
+        instrumentationServer = new MulticastInstrumentationServer(
+            [instrumentationServer, new FileInstrumentationServer(filePath)]);
+      }
+    }
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
     service.logVersion(
@@ -311,7 +325,8 @@ class Driver implements ServerStarter {
    * Create and return the parser used to parse the command-line arguments.
    */
   CommandLineParser _createArgParser() {
-    CommandLineParser parser = new CommandLineParser(alwaysIgnoreUnrecognized: true);
+    CommandLineParser parser =
+        new CommandLineParser(alwaysIgnoreUnrecognized: true);
     parser.addOption(
         CLIENT_ID,
         help: "an identifier used to identify the client");
@@ -339,6 +354,9 @@ class Driver implements ServerStarter {
         help: "enable validation of incremental resolution results (slow)",
         defaultsTo: false,
         negatable: false);
+    parser.addOption(
+        INSTRUMENTATION_LOG_FILE,
+        help: "the path of the file to which instrumentation data will be written");
     parser.addFlag(
         INTERNAL_PRINT_TO_CONSOLE,
         help: "enable sending `print` output to the console",
