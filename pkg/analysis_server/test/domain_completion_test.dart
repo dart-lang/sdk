@@ -571,7 +571,11 @@ class MockCompletionManager implements CompletionManager {
  * Mock [AnaysisContext] for tracking usage of onSourcesChanged.
  */
 class MockContext implements AnalysisContext {
+  static final SourceFactory DEFAULT_SOURCE_FACTORY = new SourceFactory([]);
+
   MockStream<SourcesChangedEvent> mockStream;
+
+  SourceFactory sourceFactory = DEFAULT_SOURCE_FACTORY;
 
   MockContext() {
     mockStream = new MockStream<SourcesChangedEvent>();
@@ -688,10 +692,10 @@ main() {
 }
     ''');
     await waitForTasksFinished();
-      Request request =
-          new CompletionGetSuggestionsParams(testFile, 0).toRequest('0');
-      Response response = handler.handleRequest(request);
-      expect(response.error, isNotNull);
-      expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, 0).toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }

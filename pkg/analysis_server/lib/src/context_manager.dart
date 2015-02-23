@@ -272,7 +272,7 @@ abstract class ContextManager {
           continue;
         }
         // do add the file
-        Source source = child.createSource();
+        Source source = createSourceInContext(info.context, child);
         changeSet.addedSource(source);
         info.sources[path] = source;
       } else if (child is Folder) {
@@ -287,8 +287,7 @@ abstract class ContextManager {
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
-  void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info,
-      bool pubspecExists, bool createPackageUri) {
+  void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info) {
     if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
       return;
     }
@@ -302,27 +301,7 @@ abstract class ContextManager {
       // add files, recurse into folders
       if (child is File) {
         if (_shouldFileBeAnalyzed(child)) {
-          Source source = child.createSource();
-          if (createPackageUri) {
-            //
-            // It should be possible to generate the uri by executing:
-            //
-            //   Uri uri = info.context.sourceFactory.restoreUri(source);
-            //
-            // but for some reason this doesn't produce the same result as the
-            // code below. This needs to be investigated.
-            // (See https://code.google.com/p/dart/issues/detail?id=22463).
-            //
-            String packagePath = info.folder.path;
-            String packageName =
-                resourceProvider.pathContext.basename(packagePath);
-            String libPath =
-                resourceProvider.pathContext.join(packagePath, LIB_DIR_NAME);
-            String relPath = source.fullName.substring(libPath.length);
-            Uri uri =
-                Uri.parse('${PackageMapUriResolver.PACKAGE_SCHEME}:$packageName$relPath');
-            source = child.createSource(uri);
-          }
+          Source source = createSourceInContext(info.context, child);
           changeSet.addedSource(source);
           info.sources[path] = source;
         }
@@ -331,19 +310,7 @@ abstract class ContextManager {
         if (shortName == PACKAGES_NAME) {
           continue;
         }
-        if (pubspecExists &&
-            !createPackageUri &&
-            shortName == LIB_DIR_NAME &&
-            child.parent == info.folder) {
-          _addSourceFiles(changeSet, child, info, pubspecExists, true);
-        } else {
-          _addSourceFiles(
-              changeSet,
-              child,
-              info,
-              pubspecExists,
-              createPackageUri);
-        }
+        _addSourceFiles(changeSet, child, info);
       }
     }
   }
@@ -394,6 +361,20 @@ abstract class ContextManager {
   }
 
   /**
+   * Create a new context associated with the given [folder]. The [pubspecFile]
+   * is the `pubspec.yaml` file contained in the folder. Add any sources that
+   * are not included in one of the [children] to the context.
+   */
+  _ContextInfo _createContextWithSources(Folder folder, File pubspecFile,
+      List<_ContextInfo> children) {
+    _ContextInfo info = _createContext(folder, pubspecFile, children);
+    ChangeSet changeSet = new ChangeSet();
+    _addSourceFiles(changeSet, folder, info);
+    applyChangesToContext(folder, changeSet);
+    return info;
+  }
+
+  /**
    * Creates a new context associated with [folder].
    *
    * If there are subfolders with 'pubspec.yaml' files, separate contexts
@@ -410,13 +391,9 @@ abstract class ContextManager {
   List<_ContextInfo> _createContexts(Folder folder, bool withPubspecOnly) {
     // check whether there is a pubspec in the folder
     File pubspecFile = folder.getChild(PUBSPEC_NAME);
-    bool pubspecExists = pubspecFile.exists;
-    if (pubspecExists) {
-      _ContextInfo info = _createContextWithSources(
-          folder,
-          pubspecFile,
-          pubspecExists,
-          <_ContextInfo>[]);
+    if (pubspecFile.exists) {
+      _ContextInfo info =
+          _createContextWithSources(folder, pubspecFile, <_ContextInfo>[]);
       return [info];
     }
     // try to find subfolders with pubspec files
@@ -432,23 +409,8 @@ abstract class ContextManager {
       return children;
     }
     // OK, create a context without a pubspec
-    _createContextWithSources(folder, pubspecFile, pubspecExists, children);
+    _createContextWithSources(folder, pubspecFile, children);
     return children;
-  }
-
-  /**
-   * Create a new context associated with the given [folder]. The [pubspecFile]
-   * is the `pubspec.yaml` file contained in the folder, and [pubspecExists] is
-   * `true` if the file exists. Add any sources that are not included in one of
-   * the [children] to the context.
-   */
-  _ContextInfo _createContextWithSources(Folder folder, File pubspecFile,
-      bool pubspecExists, List<_ContextInfo> children) {
-    _ContextInfo info = _createContext(folder, pubspecFile, children);
-    ChangeSet changeSet = new ChangeSet();
-    _addSourceFiles(changeSet, folder, info, pubspecExists, false);
-    applyChangesToContext(folder, changeSet);
-    return info;
   }
 
   /**
@@ -523,7 +485,7 @@ abstract class ContextManager {
           File file = resource;
           if (_shouldFileBeAnalyzed(file)) {
             ChangeSet changeSet = new ChangeSet();
-            Source source = file.createSource();
+            Source source = createSourceInContext(info.context, file);
             changeSet.addedSource(source);
             applyChangesToContext(folder, changeSet);
             info.sources[path] = source;
@@ -626,6 +588,21 @@ abstract class ContextManager {
     UriResolver packageUriResolver =
         _computePackageUriResolver(info.folder, info);
     updateContextPackageUriResolver(info.folder, packageUriResolver);
+  }
+
+  /**
+   * Create and return a source representing the given [file] within the given
+   * [context].
+   */
+  static Source createSourceInContext(AnalysisContext context, File file) {
+    // TODO(brianwilkerson) Optimize this, by allowing support for source
+    // factories to restore URI's from a file path rather than a source.
+    Source source = file.createSource();
+    if (context == null) {
+      return source;
+    }
+    Uri uri = context.sourceFactory.restoreUri(source);
+    return file.createSource(uri);
   }
 
   static bool _shouldFileBeAnalyzed(File file) {

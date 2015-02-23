@@ -374,7 +374,7 @@ class AnalysisServer {
       return null;
     }
     // check if there is a context that analyzed this source
-    return getAnalysisContextForSource(getSource(path));
+    return getAnalysisContextForSource(_getSourceWithoutContext(path));
   }
 
   /**
@@ -497,32 +497,6 @@ class AnalysisServer {
 //  }
 
   /**
-   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
-   *
-   * May be empty, but not `null`.
-   */
-  List<CompilationUnit> getResolvedCompilationUnits(String path) {
-    List<CompilationUnit> units = <CompilationUnit>[];
-    // prepare AnalysisContext
-    AnalysisContext context = getAnalysisContext(path);
-    if (context == null) {
-      return units;
-    }
-    // add a unit for each unit/library combination
-    Source unitSource = getSource(path);
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    for (Source librarySource in librarySources) {
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, librarySource);
-      if (unit != null) {
-        units.add(unit);
-      }
-    }
-    // done
-    return units;
-  }
-
-  /**
    * Returns the [CompilationUnit] of the Dart file with the given [path] that
    * should be used to resend notifications for already resolved unit.
    * Returns `null` if the file is not a part of any context, library has not
@@ -550,6 +524,32 @@ class AnalysisServer {
   }
 
   /**
+   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
+   *
+   * May be empty, but not `null`.
+   */
+  List<CompilationUnit> getResolvedCompilationUnits(String path) {
+    List<CompilationUnit> units = <CompilationUnit>[];
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(path);
+    if (context == null) {
+      return units;
+    }
+    // add a unit for each unit/library combination
+    Source unitSource = getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    for (Source librarySource in librarySources) {
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      if (unit != null) {
+        units.add(unit);
+      }
+    }
+    // done
+    return units;
+  }
+
+  /**
    * Return the [Source] of the Dart file with the given [path].
    */
   Source getSource(String path) {
@@ -563,7 +563,7 @@ class AnalysisServer {
     }
     // file-based source
     File file = resourceProvider.getResource(path);
-    return file.createSource();
+    return ContextManager.createSourceInContext(getAnalysisContext(path), file);
   }
 
   /**
@@ -1069,6 +1069,24 @@ class AnalysisServer {
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(options);
     });
+  }
+
+  /**
+   * Return the [Source] of the Dart file with the given [path], assuming that
+   * we do not know the context in which the path should be interpreted.
+   */
+  Source _getSourceWithoutContext(String path) {
+    // try SDK
+    {
+      Uri uri = resourceProvider.pathContext.toUri(path);
+      Source sdkSource = defaultSdk.fromFileUri(uri);
+      if (sdkSource != null) {
+        return sdkSource;
+      }
+    }
+    // file-based source
+    File file = resourceProvider.getResource(path);
+    return file.createSource();
   }
 
   /**

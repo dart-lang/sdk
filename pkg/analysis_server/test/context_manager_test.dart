@@ -189,15 +189,6 @@ class ContextManagerTest {
     expect(filePaths, isEmpty);
   }
 
-  void test_setRoots_addFolderWithoutPubspec() {
-    packageMapProvider.packageMap = null;
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // verify
-    expect(manager.currentContextPaths, hasLength(1));
-    expect(manager.currentContextPaths, contains(projPath));
-    expect(manager.currentContextFilePaths[projPath], hasLength(0));
-  }
-
   void test_setRoots_addFolderWithPubspec() {
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
@@ -219,6 +210,9 @@ class ContextManagerTest {
     newFile([libPath, 'main.dart']);
     newFile([srcPath, 'internal.dart']);
     String testFilePath = newFile([testPath, 'main_test.dart']);
+
+    packageMapProvider.packageMap['proj'] =
+        [resourceProvider.getResource(libPath)];
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     Set<Source> sources = manager.currentContextSources[projPath];
@@ -272,6 +266,15 @@ class ContextManagerTest {
     _checkPackageMap(
         subProjectB,
         equals(packageMapProvider.packageMaps[subProjectB]));
+  }
+
+  void test_setRoots_addFolderWithoutPubspec() {
+    packageMapProvider.packageMap = null;
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // verify
+    expect(manager.currentContextPaths, hasLength(1));
+    expect(manager.currentContextPaths, contains(projPath));
+    expect(manager.currentContextFilePaths[projPath], hasLength(0));
   }
 
   void test_setRoots_addPackageRoot() {
@@ -468,17 +471,6 @@ class ContextManagerTest {
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
   }
 
-  void test_setRoots_removeFolderWithoutPubspec() {
-    packageMapProvider.packageMap = null;
-    // add one root - there is a context
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(manager.currentContextPaths, hasLength(1));
-    // set empty roots - no contexts
-    manager.setRoots(<String>[], <String>[], <String, String>{});
-    expect(manager.currentContextPaths, hasLength(0));
-    expect(manager.currentContextFilePaths, hasLength(0));
-  }
-
   void test_setRoots_removeFolderWithPubspec() {
     // create a pubspec
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
@@ -528,6 +520,17 @@ class ContextManagerTest {
     manager.assertContextFiles(subProjectA, [subProjectA_file]);
   }
 
+  void test_setRoots_removeFolderWithoutPubspec() {
+    packageMapProvider.packageMap = null;
+    // add one root - there is a context
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    expect(manager.currentContextPaths, hasLength(1));
+    // set empty roots - no contexts
+    manager.setRoots(<String>[], <String>[], <String, String>{});
+    expect(manager.currentContextPaths, hasLength(0));
+    expect(manager.currentContextFilePaths, hasLength(0));
+  }
+
   void test_setRoots_removePackageRoot() {
     String packagePathFoo = '/package1/foo';
     String packageRootPath = '/package2/foo';
@@ -574,6 +577,21 @@ class ContextManagerTest {
     });
   }
 
+  test_watch_addFileInSubfolder() {
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // empty folder initially
+    Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
+    expect(filePaths, hasLength(0));
+    // add file in subfolder
+    String filePath = posix.join(projPath, 'foo', 'bar.dart');
+    resourceProvider.newFile(filePath, 'contents');
+    // the file was added
+    return pumpEventQueue().then((_) {
+      expect(filePaths, hasLength(1));
+      expect(filePaths, contains(filePath));
+    });
+  }
+
   test_watch_addFile_excluded() {
     // prepare paths
     String project = '/project';
@@ -592,21 +610,6 @@ class ContextManagerTest {
     return pumpEventQueue().then((_) {
       manager.assertContextPaths([project]);
       manager.assertContextFiles(project, [fileA]);
-    });
-  }
-
-  test_watch_addFileInSubfolder() {
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // empty folder initially
-    Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
-    expect(filePaths, hasLength(0));
-    // add file in subfolder
-    String filePath = posix.join(projPath, 'foo', 'bar.dart');
-    resourceProvider.newFile(filePath, 'contents');
-    // the file was added
-    return pumpEventQueue().then((_) {
-      expect(filePaths, hasLength(1));
-      expect(filePaths, contains(filePath));
     });
   }
 
@@ -881,7 +884,10 @@ class TestContextManager extends ContextManager {
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
     currentContextPackageUriResolvers[path] = packageUriResolver;
-    return null;
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    context.sourceFactory =
+        new SourceFactory(packageUriResolver == null ? [] : [packageUriResolver]);
+    return context;
   }
 
   @override
