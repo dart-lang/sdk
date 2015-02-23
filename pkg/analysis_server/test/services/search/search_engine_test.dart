@@ -243,7 +243,7 @@ class A {
     Element main = findElement('main');
     Element fieldParameter = findElement('field', ElementKind.PARAMETER);
     var expected = [
-        _expectId(fieldParameter, MatchKind.REFERENCE, 'field}'),
+        _expectId(fieldParameter, MatchKind.WRITE, 'field}'),
         _expectId(main, MatchKind.REFERENCE, 'field: 1'),
         _expectId(main, MatchKind.READ, 'field); // ref-nq'),
         _expectIdQ(main, MatchKind.READ, 'field); // ref-q'),

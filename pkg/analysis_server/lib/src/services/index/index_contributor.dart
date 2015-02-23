@@ -229,6 +229,22 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   @override
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    SimpleIdentifier fieldName = node.fieldName;
+    Expression expression = node.expression;
+    // field reference is write here
+    if (fieldName != null) {
+      Element element = fieldName.staticElement;
+      Location location = _createLocationForNode(fieldName);
+      _store.recordRelationship(element, IndexConstants.IS_WRITTEN_BY, location);
+    }
+    // index expression
+    if (expression != null) {
+      expression.accept(this);
+    }
+  }
+
+  @override
   Object visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
     // in 'class B = A;' actually A constructors are invoked
@@ -457,7 +473,11 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+      Relationship relationship = peekElement() == element ?
+          IndexConstants.IS_WRITTEN_BY :
+          IndexConstants.IS_REFERENCED_BY;
+      _store.recordRelationship(element.field, relationship, location);
+      return null;
     }
     // record specific relations
     if (element is ClassElement ||

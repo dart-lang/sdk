@@ -138,6 +138,7 @@ main() {
 class A {
   var fff; // declaration
   A(this.fff); // in constructor
+  A.named() : fff = 1;
   m() {
     fff = 2;
     fff += 3;
@@ -154,9 +155,10 @@ main(A a) {
 ''');
     await findElementReferences('fff; // declaration', false);
     expect(searchElement.kind, ElementKind.FIELD);
-    expect(results, hasLength(10));
+    expect(results, hasLength(11));
     assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
-    assertHasResult(SearchResultKind.REFERENCE, 'fff); // in constructor');
+    assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
+    assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
     // m()
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
@@ -218,7 +220,7 @@ class A {
     expect(searchElement.kind, ElementKind.FIELD);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
-    assertHasResult(SearchResultKind.REFERENCE, 'fff); // in constructor');
+    assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }

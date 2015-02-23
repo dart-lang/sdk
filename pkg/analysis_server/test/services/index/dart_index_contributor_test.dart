@@ -792,75 +792,50 @@ class A {
         _expectedLocation(constructorA, '.bar();', length: 4));
   }
 
-  void test_isReferencedBy_ConstructorFieldInitializer() {
-    _indexTestUnit('''
-class A {
-  int field;
-  A() : field = 5;
-}
-''');
-    // prepare elements
-    ConstructorElement constructorElement =
-        findNodeElementAtString("A()", (node) => node is ConstructorDeclaration);
-    FieldElement fieldElement = findElement("field");
-    // verify
-    _assertRecordedRelation(
-        fieldElement,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(constructorElement, 'field = 5'));
-  }
-
   void test_isReferencedBy_FieldElement() {
     _indexTestUnit('''
 class A {
   var field;
-  main() {
-    this.field = 5; // q
-    print(this.field); // q
-    field = 5; // nq
+  A({this.field});
+  m() {
+    field = 1; // nq
     print(field); // nq
   }
 }
+main(A a) {
+  a.field = 2; // q
+  print(a.field); // q
+  new A(field: 3);
+}
 ''');
     // prepare elements
+    Element mElement = findElement("m");
     Element mainElement = findElement("main");
     FieldElement fieldElement = findElement("field");
     PropertyAccessorElement getter = fieldElement.getter;
     PropertyAccessorElement setter = fieldElement.setter;
-    // verify
+    // m()
     _assertRecordedRelation(
         setter,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocationQ(mainElement, 'field = 5; // q'));
+        _expectedLocation(mElement, 'field = 1; // nq'));
+    _assertRecordedRelation(
+        getter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mElement, 'field); // nq'));
+    // main()
+    _assertRecordedRelation(
+        setter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocationQ(mainElement, 'field = 2; // q'));
     _assertRecordedRelation(
         getter,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocationQ(mainElement, 'field); // q'));
     _assertRecordedRelation(
-        setter,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'field = 5; // nq'));
-    _assertRecordedRelation(
-        getter,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'field); // nq'));
-  }
-
-  void test_isReferencedBy_FieldFormalParameterElement() {
-    _indexTestUnit('''
-class A {
-  int field;
-  A(this.field);
-}
-''');
-    // prepare elements
-    FieldElement fieldElement = findElement("field");
-    Element fieldParameterElement = findNodeElementAtString("field);");
-    // verify
-    _assertRecordedRelation(
         fieldElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(fieldParameterElement, 'field);'));
+        _expectedLocation(mainElement, 'field: 3'));
   }
 
   void test_isReferencedBy_FunctionElement() {
@@ -1301,6 +1276,41 @@ class A<T> {
         typeParameterElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(variableElement, 'T v'));
+  }
+
+  void test_isWrittenBy_ConstructorFieldInitializer() {
+    _indexTestUnit('''
+class A {
+  int field;
+  A() : field = 5;
+}
+''');
+    // prepare elements
+    ClassElement classElement = findElement('A');
+    ConstructorElement constructorElement = classElement.constructors[0];
+    FieldElement fieldElement = findElement("field");
+    // verify
+    _assertRecordedRelation(
+        fieldElement,
+        IndexConstants.IS_WRITTEN_BY,
+        _expectedLocation(constructorElement, 'field = 5'));
+  }
+
+  void test_isWrittenBy_FieldElement_fieldFormalParameter() {
+    _indexTestUnit('''
+class A {
+  int field;
+  A(this.field);
+}
+''');
+    // prepare elements
+    FieldElement fieldElement = findElement("field");
+    Element fieldParameterElement = findNodeElementAtString("field);");
+    // verify
+    _assertRecordedRelation(
+        fieldElement,
+        IndexConstants.IS_WRITTEN_BY,
+        _expectedLocation(fieldParameterElement, 'field);'));
   }
 
   void test_isWrittenBy_ParameterElement() {

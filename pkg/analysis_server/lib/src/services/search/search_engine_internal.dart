@@ -141,6 +141,7 @@ class SearchEngineImpl implements SearchEngine {
     _Requestor requestor = new _Requestor(_index);
     // field itself
     requestor.add(field, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
+    requestor.add(field, IndexConstants.IS_WRITTEN_BY, MatchKind.WRITE);
     // getter
     if (getter != null) {
       requestor.add(getter, IndexConstants.IS_REFERENCED_BY, MatchKind.READ);
