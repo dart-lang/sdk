@@ -25,7 +25,12 @@ class Namer implements ClosureNamer {
   ];
 
   static const reservedPropertySymbols =
-      const <String>["__proto__", "prototype", "constructor", "call"];
+      const <String>[
+        "__proto__", "prototype", "constructor", "call",
+        // "use strict" disallows the use of "arguments" and "eval" as
+        // variable names or property names. See ECMA-262, Edition 5.1,
+        // section 11.1.5 (for the property names).
+        "eval", "arguments"];
 
   // Symbols that we might be using in our JS snippets.
   static const reservedGlobalSymbols = const <String>[
