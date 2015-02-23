@@ -289,46 +289,20 @@ class JsBuilder {
     return new Template.withStatementResult(ast);
   }
 
-  static RegExp _stringEscapeRegExp =
-      new RegExp('\\\\|\n|"|\b|\t|\v|\u2028|\u2029');
-
   /// Creates a literal js string from [value].
   LiteralString escapedString(String value) {
-    // Relevant sections of ECMA-262:
-    //
-    //     7.3 Line Terminators
-    //       LineTerminator ::
-    //          <LF>
-    //          <CR>
-    //          <LS>
-    //          <PS>
-    //
-    //     7.8.4 String Literals
-    //       StringLiteral ::
-    //          " DoubleStringCharacters? "
-    //          ' SingleStringCharacters? '
-    //
-    //       DoubleStringCharacters ::
-    //          DoubleStringCharacter DoubleStringCharacters?
-    //
-    //       DoubleStringCharacter ::
-    //          SourceCharacter but not one of " or \ or LineTerminator
-    //          \ EscapeSequence
-    //          LineContinuation
-    //
+   // Start by escaping the backslashes.
+    String escaped = value.replaceAll('\\', '\\\\');
     // Do not escape unicode characters and ' because they are allowed in the
     // string literal anyway.
-    String escaped = value.replaceAllMapped(_stringEscapeRegExp, (Match match) {
+    escaped = escaped.replaceAllMapped(new RegExp('\n|"|\b|\t|\v'), (match) {
       switch (match.group(0)) {
-        case "\\" : return r"\\";
         case "\n" : return r"\n";
         case "\"" : return r'\"';
         case "\b" : return r"\b";
         case "\t" : return r"\t";
         case "\f" : return r"\f";
         case "\v" : return r"\v";
-        case "\u2028" : return r"\u2028";
-        case "\u2029" : return r"\u2029";
       }
     });
     LiteralString result = string(escaped);

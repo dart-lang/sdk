@@ -256,7 +256,9 @@ class ConstantLiteralEmitter
    */
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
-    return js.escapedString(constant.primitiveValue.slowToString());
+    StringBuffer sb = new StringBuffer();
+    writeJsonEscapedCharsOn(constant.primitiveValue.slowToString(), sb);
+    return new jsAst.LiteralString('"$sb"');
   }
 
   @override
