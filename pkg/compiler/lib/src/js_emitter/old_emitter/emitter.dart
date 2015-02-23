@@ -420,10 +420,9 @@ class OldEmitter implements Emitter {
 
   /** Needs defineClass to be defined. */
   jsAst.Expression buildInheritFrom() {
-    jsAst.Expression result = js(r'''
+    jsAst.Expression result = js(r"""
         function() {
           function tmp() {}
-          var hasOwnProperty = Object.prototype.hasOwnProperty;
           return function (constructor, superConstructor) {
             if (superConstructor == null) {
               // Fix up the the Dart Object class' prototype.
@@ -435,10 +434,10 @@ class OldEmitter implements Emitter {
             tmp.prototype = superConstructor.prototype;
             var object = new tmp();
             var properties = constructor.prototype;
-            for (var member in properties) {
-              if (hasOwnProperty.call(properties, member)) {
-                object[member] = properties[member];
-              }
+            var members = Object.keys(properties);
+            for (var i = 0; i < members.length; i++) {
+              var member = members[i];
+              object[member] = properties[member];
             }
             // Use a function for `true` here, as functions are stored in the
             // hidden class and not as properties in the object.
@@ -448,7 +447,7 @@ class OldEmitter implements Emitter {
             return object;
           };
         }()
-      ''', { 'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
+      """, { 'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
              'isObject' : namer.operatorIs(compiler.objectClass) });
     if (compiler.hasIncrementalSupport) {
       result = js(
@@ -498,9 +497,11 @@ class OldEmitter implements Emitter {
             var mixin = allClasses[mixinClass];
             var mixinPrototype = mixin.prototype;
             var clsPrototype = allClasses[cls].prototype;
-            for (var d in mixinPrototype) {
-              if (hasOwnProperty.call(mixinPrototype, d) &&
-                  !hasOwnProperty.call(clsPrototype, d))
+
+            var properties = Object.keys(mixinPrototype);
+            for (var i = 0; i < properties.length; i++) {
+              var d = properties[i];
+              if (!hasOwnProperty.call(clsPrototype, d))
                 clsPrototype[d] = mixinPrototype[d];
             }
           }
@@ -1014,10 +1015,12 @@ class OldEmitter implements Emitter {
         $finishIsolateConstructorName = function (oldIsolate) {
           var isolateProperties = oldIsolate.#isolatePropertiesName;
           function Isolate() {
-            var hasOwnProperty = Object.prototype.hasOwnProperty;
-            for (var staticName in isolateProperties)
-              if (hasOwnProperty.call(isolateProperties, staticName))
-                this[staticName] = isolateProperties[staticName];
+
+            var staticNames = Object.keys(isolateProperties);
+            for (var i = 0; i < staticNames.length; i++) {
+              var staticName = staticNames[i];
+              this[staticName] = isolateProperties[staticName];
+            }
 
             // Reset lazy initializers to null.
             // When forcing the object to fast mode (below) v8 will consider
@@ -1025,8 +1028,9 @@ class OldEmitter implements Emitter {
             // (after the first call to the getter), we would have a map
             // transition.
             var lazies = init.lazies;
-            for (var lazyInit in lazies) {
-               this[lazies[lazyInit]] = null;
+            var lazyInitializers = lazies ? Object.keys(lazies) : [];
+            for (var i = 0; i < lazyInitializers.length; i++) {
+               this[lazies[lazyInitializers[i]]] = null;
             }
 
             // Use the newly created object as prototype. In Chrome,
@@ -1037,8 +1041,8 @@ class OldEmitter implements Emitter {
             new ForceEfficientMap();
 
             // Now, after being a fast map we can set the lazies again.
-            for (var lazyInit in lazies) {
-              var lazyInitName = lazies[lazyInit];
+            for (var i = 0; i < lazyInitializers.length; i++) {
+              var lazyInitName = lazies[lazyInitializers[i]];
               this[lazyInitName] = isolateProperties[lazyInitName];
             }
           }
