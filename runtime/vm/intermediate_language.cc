@@ -1589,6 +1589,41 @@ static bool IsRepresentable(const Integer& value, Representation rep) {
 }
 
 
+RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
+  Integer& result = Integer::Handle();
+
+  switch (op_kind()) {
+    case Token::kNEGATE:
+      result = value.ArithmeticOp(Token::kMUL, Smi::Handle(Smi::New(-1)));
+      break;
+
+    case Token::kBIT_NOT:
+      if (value.IsSmi()) {
+        result = Integer::New(~Smi::Cast(value).Value());
+      } else if (value.IsMint()) {
+        result = Integer::New(~Mint::Cast(value).value());
+      }
+      break;
+
+    default:
+      UNREACHABLE();
+  }
+
+  if (!result.IsNull()) {
+    if (!IsRepresentable(result, representation())) {
+      // If this operation is not truncating it would deoptimize on overflow.
+      // Check that we match this behavior and don't produce a value that is
+      // larger than something this operation can produce. We could have
+      // specialized instructions that use this value under this assumption.
+      return Integer::null();
+    }
+    result ^= result.CheckAndCanonicalize(NULL);
+  }
+
+  return result.raw();
+}
+
+
 RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
                                            const Integer& right) const {
   Integer& result = Integer::Handle();
@@ -2309,22 +2344,48 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
 }
 
 
-// Recognize the pattern (a & b) == 0 where left is a bitwise and operation
-// and right is a constant 0.
-static bool RecognizeTestPattern(Value* left, Value* right) {
-  if (!right->BindsToConstant()) {
+static bool BindsToGivenConstant(Value* v, intptr_t expected) {
+  return v->BindsToConstant() &&
+      v->BoundConstant().IsSmi() &&
+      (Smi::Cast(v->BoundConstant()).Value() == expected);
+}
+
+
+// Recognize patterns (a & b) == 0 and (a & 2^n) != 2^n.
+static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
+  if (!right->BindsToConstant() || !right->BoundConstant().IsSmi()) {
     return false;
   }
 
-  const Object& value = right->BoundConstant();
-  if (!value.IsSmi() || (Smi::Cast(value).Value() != 0)) {
+  const intptr_t value = Smi::Cast(right->BoundConstant()).Value();
+  if ((value != 0) && !Utils::IsPowerOfTwo(value)) {
     return false;
   }
 
-  Definition* left_defn = left->definition();
-  return left_defn->IsBinarySmiOp() &&
-      (left_defn->AsBinarySmiOp()->op_kind() == Token::kBIT_AND) &&
-      left_defn->HasOnlyUse(left);
+
+  BinarySmiOpInstr* mask_op = left->definition()->AsBinarySmiOp();
+  if ((mask_op == NULL) ||
+      (mask_op->op_kind() != Token::kBIT_AND) ||
+      !mask_op->HasOnlyUse(left)) {
+    return false;
+  }
+
+  if (value == 0) {
+    // Recognized (a & b) == 0 pattern.
+    *negate = false;
+    return true;
+  }
+
+  // Recognize
+  if (BindsToGivenConstant(mask_op->left(), value) ||
+      BindsToGivenConstant(mask_op->right(), value)) {
+    // Recognized (a & 2^n) == 2^n pattern. It's equivalent to (a & 2^n) != 0
+    // so we need to negate original comparison.
+    *negate = true;
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -2372,10 +2433,14 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   } else if (comparison()->IsEqualityCompare() &&
              comparison()->operation_cid() == kSmiCid) {
     BinarySmiOpInstr* bit_and = NULL;
-    if (RecognizeTestPattern(comparison()->left(), comparison()->right())) {
+    bool negate = false;
+    if (RecognizeTestPattern(comparison()->left(),
+                             comparison()->right(),
+                             &negate)) {
       bit_and = comparison()->left()->definition()->AsBinarySmiOp();
     } else if (RecognizeTestPattern(comparison()->right(),
-                                    comparison()->left())) {
+                                    comparison()->left(),
+                                    &negate)) {
       bit_and = comparison()->right()->definition()->AsBinarySmiOp();
     }
     if (bit_and != NULL) {
@@ -2384,7 +2449,8 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       TestSmiInstr* test = new TestSmiInstr(
           comparison()->token_pos(),
-          comparison()->kind(),
+          negate ? Token::NegateComparison(comparison()->kind())
+                 : comparison()->kind(),
           bit_and->left()->Copy(isolate),
           bit_and->right()->Copy(isolate));
       ASSERT(!CanDeoptimize());

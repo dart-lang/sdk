@@ -6633,6 +6633,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  RawInteger* Evaluate(const Integer& value) const;
+
   DEFINE_INSTRUCTION_TYPE_CHECK(UnaryIntegerOp)
 
  private:
