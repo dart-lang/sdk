@@ -255,7 +255,7 @@ rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 
-[ ($runtime == safari && $builder_tag == mac10_7) || $runtime == safarimobilesim ]
+[ $runtime == safarimobilesim ]
 indexeddb_1_test/supported: Fail
 element_types_test/supported_template: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type
@@ -268,7 +268,7 @@ input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 touchevent_test/supported: Fail
 
-[ $runtime == safari && ($builder_tag == mac10_8 || $builder_tag == mac10_9) ]
+[ $runtime == safari ]
 indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
