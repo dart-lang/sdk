@@ -39,6 +39,7 @@ import '../elements/visitor.dart' show
 
 import '../js_backend/codegen/task.dart';
 import 'patch_resolver.dart';
+import '../resolution/resolution.dart' show ResolutionRegistry;
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

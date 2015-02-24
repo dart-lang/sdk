@@ -114,7 +114,7 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   Map<K, V> _getMap() {
     LinkedHashMap<K, V> backingMap = JS('LinkedHashMap|Null', r'#.$map', this);
     if (backingMap == null) {
-      backingMap = new LinkedHashMap<K, V>();
+      backingMap = new JsLinkedHashMap<K, V>();
       fillLiteralMap(_jsData, backingMap);
       JS('', r'#.$map = #', this, backingMap);
     }

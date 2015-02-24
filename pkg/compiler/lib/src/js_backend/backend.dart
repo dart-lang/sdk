@@ -2670,17 +2670,23 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendInstantiation(backend.compiler.listClass, registry);
   }
 
-  void onConstantMap(Registry registry) {
+  void onMapLiteral(ResolutionRegistry registry,
+                    DartType type,
+                    bool isConstant) {
     assert(registry.isForResolution);
     void enqueue(String name) {
       Element e = backend.find(backend.jsHelperLibrary, name);
       registerBackendInstantiation(e, registry);
     }
 
-    enqueue(JavaScriptMapConstant.DART_CLASS);
-    enqueue(JavaScriptMapConstant.DART_PROTO_CLASS);
-    enqueue(JavaScriptMapConstant.DART_STRING_CLASS);
-    enqueue(JavaScriptMapConstant.DART_GENERAL_CLASS);
+    if (isConstant) {
+      enqueue(JavaScriptMapConstant.DART_CLASS);
+      enqueue(JavaScriptMapConstant.DART_PROTO_CLASS);
+      enqueue(JavaScriptMapConstant.DART_STRING_CLASS);
+      enqueue(JavaScriptMapConstant.DART_GENERAL_CLASS);
+    } else {
+      registry.registerInstantiatedType(type);
+    }
   }
 
   /// Called when resolving the `Symbol` constructor.

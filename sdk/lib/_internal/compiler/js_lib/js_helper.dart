@@ -21,6 +21,7 @@ import 'dart:_js_embedded_names' show
     NATIVE_SUPERCLASS_TAG_NAME;
 
 import 'dart:collection';
+
 import 'dart:_isolate_helper' show
     IsolateNatives,
     enterJsAsync,
@@ -67,7 +68,7 @@ import 'dart:_foreign_helper' show
 
 import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
-import 'dart:_internal' show MappedIterable;
+import 'dart:_internal' show MappedIterable, EfficientLength;
 
 import 'dart:_native_typed_data';
 
@@ -83,6 +84,7 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
+part 'linked_hash_map.dart';
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 /// them.

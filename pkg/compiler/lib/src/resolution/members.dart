@@ -3716,11 +3716,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       compiler.reportError(arguments,
           MessageKind.TYPE_VARIABLE_IN_CONSTANT);
     }
-    registry.setType(node, mapType);
-    registry.registerInstantiatedType(mapType);
-    if (node.isConst) {
-      registry.registerConstantMap();
-    }
+    registry.registerMapLiteral(node, mapType, node.isConst);
     registry.registerRequiredType(mapType, enclosingElement);
     node.visitChildren(this);
     if (node.isConst) {

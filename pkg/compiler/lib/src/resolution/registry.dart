@@ -262,6 +262,11 @@ class ResolutionRegistry extends Registry {
     world.registerInstantiatedClass(compiler.typeClass, this);
   }
 
+  void registerMapLiteral(Node node, DartType type, bool isConstant) {
+    setType(node, type);
+    backend.resolutionCallbacks.onMapLiteral(this, type, isConstant);
+  }
+
   // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
   // needed to lookup types in the current scope.
   void registerJsCall(Node node, ResolverVisitor visitor) {
@@ -312,10 +317,6 @@ class ResolutionRegistry extends Registry {
 
   void registerStringInterpolation() {
     backend.resolutionCallbacks.onStringInterpolation(this);
-  }
-
-  void registerConstantMap() {
-    backend.resolutionCallbacks.onConstantMap(this);
   }
 
   void registerFallThroughError() {
