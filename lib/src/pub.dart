@@ -250,7 +250,7 @@ class _PSNode implements PSNode {
   final SourceSpan span;
 
   _PSNode(YamlNode node)
-      : text = node.value.toString(),
+      : text = node.value == null ? null : node.value.toString(),
         span = node.span;
 
   @override

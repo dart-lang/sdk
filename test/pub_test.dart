@@ -17,6 +17,7 @@ authors:
   - Bill
   - Ted
 description: Style linter for Dart.
+documentation:
 homepage: https://github.com/dart-lang/linter
 dependencies:
   transmogrify:
@@ -51,7 +52,11 @@ dev_dependencies:
       testValue('name', ps.name, equals('linter'));
       testKeySpan('name', ps.name, startOffset: 0, endOffset: 4);
       testValueSpan('name', ps.name, startOffset: 6, endOffset: 12);
-      testEntry('documentation', ps.documentation, isNull);
+      group('documentation', () {
+        test('no value', () {
+          expect(ps.documentation.value.text, isNull);
+        });
+      });
       testValue('homepage', ps.homepage,
           equals('https://github.com/dart-lang/linter'));
       testValue(
@@ -81,8 +86,8 @@ dev_dependencies:
         PSHost host = dep.host;
         testValue('name', host.name, equals('transmogrify'));
         testValue('url', host.url, equals('http://your-package-server.com'));
-        testKeySpan('name', host.name, startOffset: 222, endOffset: 226);
-        testValueSpan('name', host.name, startOffset: 228, endOffset: 240);
+        testKeySpan('name', host.name, startOffset: 237, endOffset: 241);
+        testValueSpan('name', host.name, startOffset: 243, endOffset: 255);
       });
 
       group('git', () {
