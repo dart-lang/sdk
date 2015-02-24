@@ -25,14 +25,12 @@ void test({bool minify}) {
 
     if (minify) {
       Expect.isTrue(jsOutput.contains('123e5')); // Shorter than 12300000.
-      Expect.isTrue(jsOutput.contains('12345678901234568e8'));
-      Expect.isTrue(jsOutput.contains('17976931348623157e292'));
       Expect.isFalse(jsOutput.contains('12300000'));
     } else {
       Expect.isTrue(jsOutput.contains('12300000'));
-      Expect.isTrue(jsOutput.contains('1.2345678901234568e+24'));
-      Expect.isTrue(jsOutput.contains('1.7976931348623157e+308'));
     }
+    Expect.isTrue(jsOutput.contains('12345678901234568e8'));
+    Expect.isTrue(jsOutput.contains('17976931348623157e292'));
     Expect.isFalse(jsOutput.contains('1234567890123456789012345'));
     // The decimal expansion of double.MAX_FINITE has 308 digits. We only check
     // for its prefix.
