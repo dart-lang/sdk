@@ -8,9 +8,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the class [ByteStreamClientChannel] implement a
@@ -120,11 +122,15 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    ServerCommunicationChannel.ToJson.start();
-    String jsonEncoding = JSON.encode(notification.toJson());
-    ServerCommunicationChannel.ToJson.stop();
-    _outputLine(jsonEncoding);
-    _instrumentationService.logNotification(jsonEncoding);
+    PerformanceTag prevTag =
+        ServerPerformanceStatistics.serverChannel.makeCurrent();
+    try {
+      String jsonEncoding = JSON.encode(notification.toJson());
+      _outputLine(jsonEncoding);
+      _instrumentationService.logNotification(jsonEncoding);
+    } finally {
+      prevTag.makeCurrent();
+    }
   }
 
   @override
@@ -134,11 +140,15 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    ServerCommunicationChannel.ToJson.start();
-    String jsonEncoding = JSON.encode(response.toJson());
-    ServerCommunicationChannel.ToJson.stop();
-    _outputLine(jsonEncoding);
-    _instrumentationService.logResponse(jsonEncoding);
+    PerformanceTag prevTag =
+        ServerPerformanceStatistics.serverChannel.makeCurrent();
+    try {
+      String jsonEncoding = JSON.encode(response.toJson());
+      _outputLine(jsonEncoding);
+      _instrumentationService.logResponse(jsonEncoding);
+    } finally {
+      prevTag.makeCurrent();
+    }
   }
 
   /**
@@ -157,16 +167,20 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    _instrumentationService.logRequest(data);
-    // Parse the string as a JSON descriptor and process the resulting
-    // structure as a request.
-    ServerCommunicationChannel.FromJson.start();
-    Request request = new Request.fromString(data);
-    ServerCommunicationChannel.FromJson.stop();
-    if (request == null) {
-      sendResponse(new Response.invalidRequestFormat());
-      return;
+    PerformanceTag prevTag =
+        ServerPerformanceStatistics.serverChannel.makeCurrent();
+    try {
+      _instrumentationService.logRequest(data);
+      // Parse the string as a JSON descriptor and process the resulting
+      // structure as a request.
+      Request request = new Request.fromString(data);
+      if (request == null) {
+        sendResponse(new Response.invalidRequestFormat());
+        return;
+      }
+      onRequest(request);
+    } finally {
+      prevTag.makeCurrent();
     }
-    onRequest(request);
   }
 }

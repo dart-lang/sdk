@@ -572,32 +572,38 @@ class AnalysisServer {
   void handleRequest(Request request) {
     _performance.logRequest(request);
     runZoned(() {
-      int count = handlers.length;
-      for (int i = 0; i < count; i++) {
-        try {
-          Response response = handlers[i].handleRequest(request);
-          if (response == Response.DELAYED_RESPONSE) {
+      PerformanceTag prevTag =
+          ServerPerformanceStatistics.serverRequests.makeCurrent();
+      try {
+        int count = handlers.length;
+        for (int i = 0; i < count; i++) {
+          try {
+            Response response = handlers[i].handleRequest(request);
+            if (response == Response.DELAYED_RESPONSE) {
+              return;
+            }
+            if (response != null) {
+              channel.sendResponse(response);
+              return;
+            }
+          } on RequestFailure catch (exception) {
+            channel.sendResponse(exception.response);
             return;
-          }
-          if (response != null) {
+          } catch (exception, stackTrace) {
+            RequestError error =
+                new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+            if (stackTrace != null) {
+              error.stackTrace = stackTrace.toString();
+            }
+            Response response = new Response(request.id, error: error);
             channel.sendResponse(response);
             return;
           }
-        } on RequestFailure catch (exception) {
-          channel.sendResponse(exception.response);
-          return;
-        } catch (exception, stackTrace) {
-          RequestError error =
-              new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
-          if (stackTrace != null) {
-            error.stackTrace = stackTrace.toString();
-          }
-          Response response = new Response(request.id, error: error);
-          channel.sendResponse(response);
-          return;
         }
+        channel.sendResponse(new Response.unknownRequest(request));
+      } finally {
+        prevTag.makeCurrent();
       }
-      channel.sendResponse(new Response.unknownRequest(request));
     }, onError: (exception, stackTrace) {
       sendServerErrorNotification(exception, stackTrace, fatal: true);
     });
@@ -1359,4 +1365,14 @@ class ServerPerformanceStatistics {
    * PerformAnalysisOperation._sendNotices.
    */
   static PerformanceTag notices = new PerformanceTag('notices');
+
+  /**
+   * The [PerformanceTag] for time spent in server comminication channels.
+   */
+  static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
+
+  /**
+   * The [PerformanceTag] for time spent in server request handlers.
+   */
+  static PerformanceTag serverRequests = new PerformanceTag('serverRequests');
 }

@@ -2288,72 +2288,76 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (_TRACE_PERFORM_TASK) {
       print("----------------------------------------");
     }
-    int getStart = JavaSystem.currentTimeMillis();
-    AnalysisTask task = nextAnalysisTask;
-    int getEnd = JavaSystem.currentTimeMillis();
-    if (task == null && _validateCacheConsistency()) {
-      task = nextAnalysisTask;
-    }
-    if (task == null) {
-      _validateLastIncrementalResolutionResult();
-      if (_performAnalysisTaskStopwatch != null) {
-        AnalysisEngine.instance.instrumentationService.logPerformance(
-            AnalysisPerformanceKind.FULL,
-            _performAnalysisTaskStopwatch,
-            'context_id=$_id');
-        _performAnalysisTaskStopwatch = null;
+    PerformanceTag prevTag = PerformanceStatistics.performAnaysis.makeCurrent();
+    try {
+      int getStart = JavaSystem.currentTimeMillis();
+      AnalysisTask task = nextAnalysisTask;
+      int getEnd = JavaSystem.currentTimeMillis();
+      if (task == null && _validateCacheConsistency()) {
+        task = nextAnalysisTask;
+      }
+      if (task == null) {
+        _validateLastIncrementalResolutionResult();
+        if (_performAnalysisTaskStopwatch != null) {
+          AnalysisEngine.instance.instrumentationService.logPerformance(
+              AnalysisPerformanceKind.FULL,
+              _performAnalysisTaskStopwatch,
+              'context_id=$_id');
+          _performAnalysisTaskStopwatch = null;
+        }
+        return new AnalysisResult(
+            _getChangeNotices(true),
+            getEnd - getStart,
+            null,
+            -1);
+      }
+      if (_performAnalysisTaskStopwatch == null) {
+        _performAnalysisTaskStopwatch = new Stopwatch()..start();
+      }
+      String taskDescription = task.toString();
+      _notifyAboutToPerformTask(taskDescription);
+      if (_TRACE_PERFORM_TASK) {
+        print(taskDescription);
+      }
+      int performStart = JavaSystem.currentTimeMillis();
+      try {
+        task.perform(_resultRecorder);
+      } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Could not perform analysis task: $taskDescription",
+            new CaughtException(exception, stackTrace));
+      } on AnalysisException catch (exception, stackTrace) {
+        if (exception.cause is! JavaIOException) {
+          AnalysisEngine.instance.logger.logError(
+              "Internal error while performing the task: $task",
+              new CaughtException(exception, stackTrace));
+        }
+      }
+      int performEnd = JavaSystem.currentTimeMillis();
+      List<ChangeNotice> notices = _getChangeNotices(false);
+      int noticeCount = notices.length;
+      for (int i = 0; i < noticeCount; i++) {
+        ChangeNotice notice = notices[i];
+        Source source = notice.source;
+        // TODO(brianwilkerson) Figure out whether the compilation unit is
+        // always resolved, or whether we need to decide whether to invoke the
+        // "parsed" or "resolved" method. This might be better done when
+        // recording task results in order to reduce the chance of errors.
+//        if (notice.getCompilationUnit() != null) {
+//          notifyResolvedDart(source, notice.getCompilationUnit());
+//        } else if (notice.getHtmlUnit() != null) {
+//          notifyResolvedHtml(source, notice.getHtmlUnit());
+//        }
+        _notifyErrors(source, notice.errors, notice.lineInfo);
       }
       return new AnalysisResult(
-          _getChangeNotices(true),
+          notices,
           getEnd - getStart,
-          null,
-          -1);
+          task.runtimeType.toString(),
+          performEnd - performStart);
+    } finally {
+      prevTag.makeCurrent();
     }
-    if (_performAnalysisTaskStopwatch == null) {
-      _performAnalysisTaskStopwatch = new Stopwatch()..start();
-    }
-    String taskDescription = task.toString();
-    _notifyAboutToPerformTask(taskDescription);
-    if (_TRACE_PERFORM_TASK) {
-      print(taskDescription);
-    }
-    int performStart = JavaSystem.currentTimeMillis();
-    try {
-      task.perform(_resultRecorder);
-    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logInformation(
-          "Could not perform analysis task: $taskDescription",
-          new CaughtException(exception, stackTrace));
-    } on AnalysisException catch (exception, stackTrace) {
-      if (exception.cause is! JavaIOException) {
-        AnalysisEngine.instance.logger.logError(
-            "Internal error while performing the task: $task",
-            new CaughtException(exception, stackTrace));
-      }
-    }
-    int performEnd = JavaSystem.currentTimeMillis();
-    List<ChangeNotice> notices = _getChangeNotices(false);
-    int noticeCount = notices.length;
-    for (int i = 0; i < noticeCount; i++) {
-      ChangeNotice notice = notices[i];
-      Source source = notice.source;
-
-      // TODO(brianwilkerson) Figure out whether the compilation unit is always
-      // resolved, or whether we need to decide whether to invoke the "parsed"
-      // or "resolved" method. This might be better done when recording task
-      // results in order to reduce the chance of errors.
-      //      if (notice.getCompilationUnit() != null) {
-      //        notifyResolvedDart(source, notice.getCompilationUnit());
-      //      } else if (notice.getHtmlUnit() != null) {
-      //        notifyResolvedHtml(source, notice.getHtmlUnit());
-      //      }
-      _notifyErrors(source, notice.errors, notice.lineInfo);
-    }
-    return new AnalysisResult(
-        notices,
-        getEnd - getStart,
-        task.runtimeType.toString(),
-        performEnd - performStart);
   }
 
   @override
@@ -10522,6 +10526,11 @@ class PerformanceStatistics {
    * The [PerformanceTag] for time spent computing cycles.
    */
   static PerformanceTag cycles = new PerformanceTag('cycles');
+
+  /**
+   * The [PerformanceTag] for time spent in other phases of analysis.
+   */
+  static PerformanceTag performAnaysis = new PerformanceTag('performAnaysis');
 }
 
 /**
