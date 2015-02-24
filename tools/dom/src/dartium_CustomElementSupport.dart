@@ -49,6 +49,11 @@ ClassMirror _validateCustomType(Type type) {
   }
 
   var className = MirrorSystem.getName(cls.simpleName);
+  if (cls.isAbstract) {
+    throw new UnsupportedError('Invalid custom element '
+        'class $className is abstract.');
+  }
+
   var createdConstructor = cls.declarations[new Symbol('$className.created')];
   if (createdConstructor == null ||
       createdConstructor is! MethodMirror ||
