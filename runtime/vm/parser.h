@@ -602,6 +602,9 @@ class Parser : public ValueObject {
   void AddCatchParamsToScope(CatchParamDesc* exception_param,
                              CatchParamDesc* stack_trace_param,
                              LocalScope* scope);
+  void AddSavedExceptionAndStacktraceToScope(LocalVariable* exception_var,
+                                             LocalVariable* stack_trace_var,
+                                             LocalScope* scope);
   // Parse all the catch clause of a try.
   SequenceNode* ParseCatchClauses(intptr_t handler_pos,
                                   LocalVariable* exception_var,

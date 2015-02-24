@@ -4000,7 +4000,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
 void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   InlineBailout("EffectGraphVisitor::VisitCatchClauseNode (exception)");
-  // Restores current context from local variable ':saved_context'.
+  // Restores current context from local variable ':saved_try_context_var'.
   BuildRestoreContext(node->context_var());
 
   EffectGraphVisitor for_catch(owner());
@@ -4016,7 +4016,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   ASSERT(try_handler_index != original_handler_index);
   owner()->set_try_index(try_handler_index);
 
-  // Preserve current context into local variable '%saved_context'.
+  // Preserve current context into local variable ':saved_try_context_var'.
   BuildSaveContext(node->context_var());
 
   EffectGraphVisitor for_try(owner());
@@ -4057,25 +4057,26 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   catch_block->Visit(&for_catch);
   owner()->set_catch_try_index(prev_catch_try_index);
 
-  // NOTE: The implicit variables ':saved_context', ':exception_var'
-  // and ':stacktrace_var' can never be captured variables.
+  // NOTE: The implicit variables ':saved_try_context_var', ':exception_var'
+  // and ':stack_trace_var' can never be captured variables.
+  ASSERT(!catch_block->context_var().is_captured());
   ASSERT(!catch_block->exception_var().is_captured());
   ASSERT(!catch_block->stacktrace_var().is_captured());
 
   CatchBlockEntryInstr* catch_entry =
       new(I) CatchBlockEntryInstr(owner()->AllocateBlockId(),
-                               catch_handler_index,
-                               catch_block->handler_types(),
-                               try_handler_index,
-                               catch_block->exception_var(),
-                               catch_block->stacktrace_var(),
-                               catch_block->needs_stacktrace());
+                                  catch_handler_index,
+                                  catch_block->handler_types(),
+                                  try_handler_index,
+                                  catch_block->exception_var(),
+                                  catch_block->stacktrace_var(),
+                                  catch_block->needs_stacktrace());
   owner()->AddCatchEntry(catch_entry);
   AppendFragment(catch_entry, for_catch);
 
   if (for_catch.is_open()) {
     JoinEntryInstr* join = new(I) JoinEntryInstr(owner()->AllocateBlockId(),
-                                              original_handler_index);
+                                                 original_handler_index);
     for_catch.Goto(join);
     if (is_open()) Goto(join);
     exit_ = join;
@@ -4107,12 +4108,12 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     types.SetAt(0, Type::Handle(I, Type::DynamicType()));
     CatchBlockEntryInstr* finally_entry =
         new(I) CatchBlockEntryInstr(owner()->AllocateBlockId(),
-                                 original_handler_index,
-                                 types,
-                                 catch_handler_index,
-                                 catch_block->exception_var(),
-                                 catch_block->stacktrace_var(),
-                                 catch_block->needs_stacktrace());
+                                    original_handler_index,
+                                    types,
+                                    catch_handler_index,
+                                    catch_block->exception_var(),
+                                    catch_block->stacktrace_var(),
+                                    catch_block->needs_stacktrace());
     owner()->AddCatchEntry(finally_entry);
     AppendFragment(finally_entry, for_finally);
   }

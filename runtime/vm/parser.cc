@@ -5973,29 +5973,34 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   LocalVariable* context_var = current_block_->scope->LookupVariable(
       Symbols::SavedTryContextVar(), false);
   ASSERT(context_var != NULL);
+
   LocalVariable* exception_var = current_block_->scope->LookupVariable(
       Symbols::ExceptionVar(), false);
+  ASSERT(exception_var != NULL);
   if (exception_param.var != NULL) {
     // Generate code to load the exception object (:exception_var) into
     // the exception variable specified in this block.
-    ASSERT(exception_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
         Scanner::kNoSourcePos,
         exception_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
   }
+
   LocalVariable* stack_trace_var =
       current_block_->scope->LookupVariable(Symbols::StackTraceVar(), false);
+  ASSERT(stack_trace_var != NULL);
   if (stack_trace_param.var != NULL) {
     // A stack trace variable is specified in this block, so generate code
     // to load the stack trace object (:stack_trace_var) into the stack
     // trace variable specified in this block.
-    ASSERT(stack_trace_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
         Scanner::kNoSourcePos,
         stack_trace_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
   }
+
+  AddSavedExceptionAndStacktraceToScope(
+      exception_var, stack_trace_var, current_block_->scope);
 
   ASSERT(try_blocks_list_ != NULL);
   ASSERT(innermost_function().IsAsyncClosure() ||
@@ -8203,12 +8208,62 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
     var->set_is_final();
     bool added_to_scope = scope->AddVariable(var);
     if (!added_to_scope) {
+      // The name of the exception param is reused for the stack trace param.
       ReportError(stack_trace_param->token_pos,
                   "name '%s' already exists in scope",
                   stack_trace_param->name->ToCString());
-       }
+    }
     stack_trace_param->var = var;
   }
+}
+
+
+// Populate local scope of the catch block with the saved exception and saved
+// stack trace.
+void Parser::AddSavedExceptionAndStacktraceToScope(
+    LocalVariable* exception_var,
+    LocalVariable* stack_trace_var,
+    LocalScope* scope) {
+  ASSERT(innermost_function().IsAsyncClosure() ||
+         innermost_function().IsAsyncFunction() ||
+         innermost_function().IsSyncGenClosure() ||
+         innermost_function().IsSyncGenerator());
+  // Add :saved_exception_var and :saved_stack_trace_var to scope.
+  // They will automatically get captured.
+  LocalVariable* saved_exception_var = new (Z) LocalVariable(
+      Scanner::kNoSourcePos,
+      Symbols::SavedExceptionVar(),
+      Type::ZoneHandle(Z, Type::DynamicType()));
+  saved_exception_var->set_is_final();
+  scope->AddVariable(saved_exception_var);
+  LocalVariable* saved_stack_trace_var = new (Z) LocalVariable(
+      Scanner::kNoSourcePos,
+      Symbols::SavedStackTraceVar(),
+      Type::ZoneHandle(Z, Type::DynamicType()));
+  saved_exception_var->set_is_final();
+  scope->AddVariable(saved_stack_trace_var);
+
+  // Generate code to load the exception object (:exception_var) into
+  // the saved exception variable (:saved_exception_var) used to rethrow.
+  saved_exception_var = current_block_->scope->LookupVariable(
+      Symbols::SavedExceptionVar(), false);
+  ASSERT(saved_exception_var != NULL);
+  ASSERT(exception_var != NULL);
+  current_block_->statements->Add(new(Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      saved_exception_var,
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
+
+  // Generate code to load the stack trace object (:stack_trace_var) into
+  // the saved stacktrace variable (:saved_stack_trace_var) used to rethrow.
+  saved_stack_trace_var = current_block_->scope->LookupVariable(
+      Symbols::SavedStackTraceVar(), false);
+  ASSERT(saved_stack_trace_var != NULL);
+  ASSERT(stack_trace_var != NULL);
+  current_block_->statements->Add(new(Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      saved_stack_trace_var,
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
 }
 
 
@@ -8345,7 +8400,9 @@ SequenceNode* Parser::ParseCatchClauses(
     // following code:
     // 1) Store exception object and stack trace object into user-defined
     //    variables (as needed).
-    // 2) Nested block with source code from catch clause block.
+    // 2) In async code, save exception object and stack trace object into
+    //    captured :saved_exception_var and :saved_stack_trace_var.
+    // 3) Nested block with source code from catch clause block.
     OpenBlock();
     AddCatchParamsToScope(&exception_param, &stack_trace_param,
                           current_block_->scope);
@@ -8393,6 +8450,8 @@ SequenceNode* Parser::ParseCatchClauses(
       } else {
         parsed_function()->reset_saved_try_ctx_vars();
       }
+      AddSavedExceptionAndStacktraceToScope(
+          exception_var, stack_trace_var, current_block_->scope);
     }
 
     current_block_->statements->Add(ParseNestedStatement(false, NULL));
@@ -8537,7 +8596,7 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
 
 
 // Restore the currently relevant :saved_try_context_var on the stack
-// from the captured :async_saved_try_cts_var.
+// from the captured :async_saved_try_ctx_var_.
 // * Try blocks: Set the context variable for this try block.
 // * Catch/finally blocks: Set the context variable for any outer try block (if
 //   existent).
@@ -8931,16 +8990,31 @@ AstNode* Parser::ParseStatement() {
     if ((try_blocks_list_ == NULL) || !try_blocks_list_->inside_catch()) {
       ReportError(statement_pos, "rethrow of an exception is not valid here");
     }
-    // The exception and stack trace variables are bound in the block
-    // containing the try.
-    LocalScope* scope = try_blocks_list_->try_block()->scope->parent();
-    ASSERT(scope != NULL);
-    LocalVariable* excp_var =
-        scope->LocalLookupVariable(Symbols::ExceptionVar());
+
+    // If in async code, use :saved_exception_var and :saved_stack_trace_var
+    // instead of :exception_var and :stack_trace_var.
+    LocalVariable* excp_var;
+    LocalVariable* trace_var;
+    if (innermost_function().IsAsyncClosure() ||
+        innermost_function().IsAsyncFunction() ||
+        innermost_function().IsSyncGenClosure() ||
+        innermost_function().IsSyncGenerator()) {
+      // The saved exception and stack trace variables are bound in the block
+      // containing the catch. So start looking in the current scope.
+      LocalScope* scope = current_block_->scope;
+      excp_var = scope->LookupVariable(Symbols::SavedExceptionVar(), false);
+      trace_var = scope->LookupVariable(Symbols::SavedStackTraceVar(), false);
+    } else {
+      // The exception and stack trace variables are bound in the block
+      // containing the try. Look in the try scope directly.
+      LocalScope* scope = try_blocks_list_->try_block()->scope->parent();
+      ASSERT(scope != NULL);
+      excp_var = scope->LocalLookupVariable(Symbols::ExceptionVar());
+      trace_var = scope->LocalLookupVariable(Symbols::StackTraceVar());
+    }
     ASSERT(excp_var != NULL);
-    LocalVariable* trace_var =
-        scope->LocalLookupVariable(Symbols::StackTraceVar());
     ASSERT(trace_var != NULL);
+
     statement = new(Z) ThrowNode(
         statement_pos,
         new(Z) LoadLocalNode(statement_pos, excp_var),

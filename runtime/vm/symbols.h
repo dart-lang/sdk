@@ -79,6 +79,8 @@ class ObjectPointerVisitor;
   V(StackTraceParameter, ":stack_trace")                                       \
   V(ExceptionVar, ":exception_var")                                            \
   V(StackTraceVar, ":stack_trace_var")                                         \
+  V(SavedExceptionVar, ":saved_exception_var")                                 \
+  V(SavedStackTraceVar, ":saved_stack_trace_var")                              \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
   V(Library, "library")                                                        \
