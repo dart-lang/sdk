@@ -709,7 +709,7 @@ function(c, i) async {
 }
 """, """
 function(c, i) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, x, y, __error1, __error2;
+  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next, x, y, __error1, __error2;
   function __body(__errorCode, __result) {
     if (__errorCode == 1) {
       __currentError = __result;
