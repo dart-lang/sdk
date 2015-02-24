@@ -5,6 +5,7 @@
 library linter.test.pub;
 
 import 'package:linter/src/pub.dart';
+import 'package:mock/mock.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
@@ -98,6 +99,31 @@ dev_dependencies:
             'url', git.url, equals('git://github.com/munificent/kittens.git'));
       });
     });
+    group('visiting', () {
+      test('smoke', () {
+        var spy = new MockVisitor();
+        ps.accept(spy);
+        spy
+          ..getLogs(callsTo('visitPackageAuthor')).verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageAuthors')).verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageDependencies'))
+              .verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageDependency'))
+              .verify(happenedExactly(7))
+          ..getLogs(callsTo('visitPackageDescription'))
+              .verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageDevDependencies'))
+              .verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageDevDependency'))
+              .verify(happenedExactly(2))
+          ..getLogs(callsTo('visitPackageDocumentation'))
+              .verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageHomepage')).verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageName')).verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageAuthors')).verify(happenedExactly(1))
+          ..getLogs(callsTo('visitPackageVersion')).verify(happenedExactly(1));
+      });
+    });
   });
 }
 
@@ -164,4 +190,8 @@ testValueSpan(String label, PSEntry node, {int startOffset, int endOffset}) {
       testSpan(node.value.span, startOffset: startOffset, endOffset: endOffset);
     });
   });
+}
+
+class MockVisitor extends Mock implements PubSpecVisitor {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-PSEntry findEntry(YamlMap map, String key) {
+PSEntry _findEntry(YamlMap map, String key) {
   PSEntry entry = null;
   map.nodes.forEach((k, v) {
     if (k is YamlScalar && key == k.toString()) {
@@ -37,8 +37,8 @@ PSGitRepo _processGitRepo(YamlScalar key, YamlNode v) {
   // ref: some-branch
   _PSGitRepo repo = new _PSGitRepo();
   repo.token = new _PSNode(key);
-  repo.ref = findEntry(hostMap, 'ref');
-  repo.url = findEntry(hostMap, 'url');
+  repo.ref = _findEntry(hostMap, 'ref');
+  repo.url = _findEntry(hostMap, 'url');
   return repo;
 }
 
@@ -51,8 +51,8 @@ PSHost _processHost(YamlScalar key, YamlNode v) {
   // url: http://your-package-server.com
   _PSHost host = new _PSHost();
   host.token = new _PSNode(key);
-  host.name = findEntry(hostMap, 'name');
-  host.url = findEntry(hostMap, 'url');
+  host.name = _findEntry(hostMap, 'name');
+  host.url = _findEntry(hostMap, 'url');
   return host;
 }
 
@@ -127,6 +127,21 @@ abstract class PubSpec {
   PSEntry get homepage;
   PSEntry get name;
   PSEntry get version;
+  accept(PubSpecVisitor visitor);
+}
+
+abstract class PubSpecVisitor<T> {
+  T visitPackageAuthor(PSEntry author) => null;
+  T visitPackageAuthors(PSNodeList authors) => null;
+  T visitPackageDependencies(PSDependencyList dependencies) => null;
+  T visitPackageDependency(PSDependency dependency) => null;
+  T visitPackageDescription(PSEntry description) => null;
+  T visitPackageDevDependencies(PSDependencyList dependencies) => null;
+  T visitPackageDevDependency(PSDependency dependency) => null;
+  T visitPackageDocumentation(PSEntry documentation) => null;
+  T visitPackageHomepage(PSEntry homepage) => null;
+  T visitPackageName(PSEntry name) => null;
+  T visitPackageVersion(PSEntry version) => null;
 }
 
 class _PSDependency extends PSDependency {
@@ -285,6 +300,38 @@ class _PubSpec implements PubSpec {
 
   _PubSpec(String src) {
     _parse(src);
+  }
+
+  void accept(PubSpecVisitor visitor) {
+    if (author != null) {
+      visitor.visitPackageAuthor(author);
+    }
+    if (authors != null) {
+      visitor.visitPackageAuthors(authors);
+    }
+    if (description != null) {
+      visitor.visitPackageDescription(description);
+    }
+    if (documentation != null) {
+      visitor.visitPackageDocumentation(documentation);
+    }
+    if (homepage != null) {
+      visitor.visitPackageHomepage(homepage);
+    }
+    if (name != null) {
+      visitor.visitPackageName(name);
+    }
+    if (version != null) {
+      visitor.visitPackageVersion(version);
+    }
+    if (dependencies != null) {
+      visitor.visitPackageDependencies(dependencies);
+      dependencies.forEach((d) => visitor.visitPackageDependency(d));
+    }
+    if (devDependencies != null) {
+      visitor.visitPackageDevDependencies(devDependencies);
+      devDependencies.forEach((d) => visitor.visitPackageDevDependency(d));
+    }
   }
 
   @override
