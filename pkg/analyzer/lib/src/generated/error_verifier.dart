@@ -3813,12 +3813,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         visitedClasses.add(superclassElement);
         LibraryElement superclassLibrary = superclassElement.library;
         // Check fields.
-        List<FieldElement> fieldElts = superclassElement.fields;
-        for (FieldElement fieldElt in fieldElts) {
-          // We need the same name.
-          if (fieldElt.name != executableElementName) {
-            continue;
-          }
+        FieldElement fieldElt = superclassElement.getField(executableElementName);
+        if (fieldElt != null) {
           // Ignore if private in a different library - cannot collide.
           if (executableElementPrivate &&
               _currentLibrary != superclassLibrary) {
@@ -4587,16 +4583,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     //
     // Store in local sets the set of all method and accessor names
     //
-    List<MethodElement> methods = _enclosingClass.methods;
-    for (MethodElement method in methods) {
-      String methodName = method.name;
+    MethodElement method =
+        _enclosingClass.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
+    if (method != null) {
       // If the enclosing class declares the method noSuchMethod(), then return.
       // From Spec:  It is a static warning if a concrete class does not have an
       // implementation for a method in any of its superinterfaces unless it
       // declares its own noSuchMethod method (7.10).
-      if (methodName == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
-        return false;
-      }
+      return false;
     }
     HashSet<ExecutableElement> missingOverrides =
         new HashSet<ExecutableElement>();
