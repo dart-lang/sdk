@@ -6838,7 +6838,7 @@ abstract class AnalysisTask {
     try {
       internalPerform();
     } on AnalysisException catch (exception) {
-      throw exception;
+      rethrow;
     } catch (exception, stackTrace) {
       throw new AnalysisException(
           exception.toString(),
