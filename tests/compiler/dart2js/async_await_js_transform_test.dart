@@ -36,7 +36,7 @@ function(a) async {
 function(a) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __self = this;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -86,7 +86,7 @@ function(a) {
 function(b) {
   var __goto = 0, __completer = new Completer(), __handler = 2, __currentError, __next, __returnValue, __helper;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -199,7 +199,7 @@ function(c) async {
 function(c) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, __temp1;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -256,7 +256,7 @@ function(c) {
 function(d2) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, g, h, __temp1;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -393,7 +393,7 @@ function(x, y) async {
 function(x, y) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -480,7 +480,7 @@ function(x, y) {
 function(f) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -545,7 +545,7 @@ function(g) async {
 function(g) {
   var __goto = 0, __completer = new Completer(), __handler = 2, __currentError, __returnValue, i, __temp1;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -630,7 +630,7 @@ function(g) {
 function(a, h) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, x, __temp1, __temp2;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -711,7 +711,7 @@ function(c, i) async {
 function(c, i) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next, x, y, __error1, __error2;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -821,7 +821,7 @@ function(c, i) {
 function(x, y, j) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __temp1, __temp2, __temp3;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
@@ -904,7 +904,7 @@ function(x, y, k) async {
 function(x, y, k) {
   var __goto = 0, __completer = new Completer(), __handler = 2, __currentError, __returnValue, __temp1;
   function __body(__errorCode, __result) {
-    if (__errorCode == 1) {
+    if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
     }
