@@ -1,3 +1,7 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // Some examples of how the dart type system/checked mode interacts with dart type unsoundness.
 // Suppose we were to "trust types" in the following sense: if the program passes the dart
 // type checker, assume that all checks implied by checked mode would have passed, and

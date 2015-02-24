@@ -1,3 +1,7 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /// Encapsulates how to invoke the analyzer resolver and overrides how it
 /// computes types on expressions to use our restricted set of types.
 library ddc.src.checker.resolver;
@@ -10,8 +14,7 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
-import 'package:analyzer/src/generated/sdk_io.dart'
-    show DirectoryBasedDartSdk;
+import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/source_io.dart';
