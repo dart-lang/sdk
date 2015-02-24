@@ -2290,7 +2290,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return PerformanceStatistics.performAnaysis.makeCurrentWhile(() {
       int getStart = JavaSystem.currentTimeMillis();
-      AnalysisTask task = nextAnalysisTask;
+      AnalysisTask task =
+          PerformanceStatistics.nextTask.makeCurrentWhile(() => nextAnalysisTask);
       int getEnd = JavaSystem.currentTimeMillis();
       if (task == null && _validateCacheConsistency()) {
         task = nextAnalysisTask;
@@ -6820,7 +6821,8 @@ abstract class AnalysisTask {
           "Task failed: $taskDescription",
           new CaughtException(exception, stackTrace));
     }
-    return accept(visitor);
+    return PerformanceStatistics.analysisTaskVisitor.makeCurrentWhile(
+        () => accept(visitor));
   }
 
   @override
@@ -10519,6 +10521,19 @@ class PerformanceStatistics {
    * The [PerformanceTag] for time spent in other phases of analysis.
    */
   static PerformanceTag performAnaysis = new PerformanceTag('performAnaysis');
+
+  /**
+   * The [PerformanceTag] for time spent in the analysis task visitor after
+   * tasks are complete.
+   */
+  static PerformanceTag analysisTaskVisitor =
+      new PerformanceTag('analysisTaskVisitor');
+
+  /**
+   * The [PerformanceTag] for time spent in the getter
+   * AnalysisContextImpl.nextAnalysisTask.
+   */
+  static var nextTask = new PerformanceTag('nextAnalysisTask');
 }
 
 /**

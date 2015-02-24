@@ -1365,4 +1365,9 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in server request handlers.
    */
   static PerformanceTag serverRequests = new PerformanceTag('serverRequests');
+
+  /**
+   * The [PerformanceTag] for time spent in split store microtasks.
+   */
+  static PerformanceTag splitStore = new PerformanceTag('splitStore');
 }

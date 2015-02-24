@@ -16,6 +16,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 /**
@@ -115,10 +117,12 @@ class FileNodeManager implements NodeManager {
     }
     // write the node
     return new Future.microtask(() {
-      _DataOutputStream stream = new _DataOutputStream();
-      _writeNode(node, stream);
-      var bytes = stream.getBytes();
-      return _fileManager.write(name, bytes);
+      return ServerPerformanceStatistics.splitStore.makeCurrentWhile(() {
+        _DataOutputStream stream = new _DataOutputStream();
+        _writeNode(node, stream);
+        var bytes = stream.getBytes();
+        return _fileManager.write(name, bytes);
+      });
     }).catchError((exception, stackTrace) {
       _logger.logError(
           'Exception during reading index file ${name}',
