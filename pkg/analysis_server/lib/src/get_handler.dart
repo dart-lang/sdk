@@ -119,15 +119,15 @@ class GetHandler {
   static const String DESCRIPTOR_QUERY_PARAM = 'descriptor';
 
   /**
-   * Query parameter used to represent the index in the [_overlayContents].
-   */
-  static const String ID_PARAM = 'id';
-
-  /**
    * Query parameter used to represent the name of elements to search for, when
    * accessing [INDEX_ELEMENT_BY_NAME].
    */
   static const String INDEX_ELEMENT_NAME = 'name';
+
+  /**
+   * Query parameter used to represent the path of an overlayed file.
+   */
+  static const String PATH_PARAM = 'path';
 
   /**
    * Query parameter used to represent the source to search for, when accessing
@@ -157,7 +157,7 @@ class GetHandler {
   /**
    * Contents of overlay files.
    */
-  final Map<int, String> _overlayContents = <int, String>{};
+  final Map<String, String> _overlayContents = <String, String>{};
 
   /**
    * Initialize a newly created handler for GET requests.
@@ -715,7 +715,6 @@ class GetHandler {
     List<String> implicitNames = <String>[];
     Map<String, String> links = new HashMap<String, String>();
     List<CaughtException> exceptions = <CaughtException>[];
-    Map<String, int> overlayMap = new HashMap<String, int>();
     AnalysisContextImpl context = analysisServer.folderMap[folder];
     priorityNames =
         context.prioritySources.map((Source source) => source.fullName).toList();
@@ -740,15 +739,13 @@ class GetHandler {
         links[sourceName] = link;
       }
     });
-    _overlayContents.clear();
-    int count = 0;
-    context.visitContentCache((Source source, int stamp, String contents) {
-      count++;
-      overlayMap[source.fullName] = count;
-      _overlayContents[count] = contents;
-    });
     explicitNames.sort();
     implicitNames.sort();
+
+    _overlayContents.clear();
+    context.visitContentCache((Source source, int stamp, String contents) {
+      _overlayContents[source.fullName] = contents;
+    });
 
     void _writeFiles(StringBuffer buffer, String title, List<String> fileNames)
         {
@@ -761,9 +758,9 @@ class GetHandler {
           buffer.write('<tr><td>');
           buffer.write(links[fileName]);
           buffer.write('</td><td>');
-          if (overlayMap.containsKey(fileName)) {
+          if (_overlayContents.containsKey(fileName)) {
             buffer.write(makeLink(OVERLAY_PATH, {
-              ID_PARAM: overlayMap[fileName].toString()
+              PATH_PARAM: fileName
             }, 'overlay'));
           }
           buffer.write('</td></tr>');
@@ -933,12 +930,11 @@ class GetHandler {
   }
 
   void _returnOverlayContents(HttpRequest request) {
-    String idString = request.requestedUri.queryParameters[ID_PARAM];
-    if (idString == null) {
-      return _returnFailure(request, 'Query parameter $ID_PARAM required');
+    String path = request.requestedUri.queryParameters[PATH_PARAM];
+    if (path == null) {
+      return _returnFailure(request, 'Query parameter $PATH_PARAM required');
     }
-    int id = int.parse(idString);
-    String contents = _overlayContents[id];
+    String contents = _overlayContents[path];
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(
@@ -967,22 +963,19 @@ class GetHandler {
           [],
           (StringBuffer buffer) {
         buffer.write('<table border="1">');
-        int count = 0;
         _overlayContents.clear();
-        analysisServer.folderMap.forEach((_, AnalysisContextImpl context) {
-          context.visitContentCache(
-              (Source source, int stamp, String contents) {
-            count++;
-            buffer.write('<tr>');
-            String linkRef = '$OVERLAY_PATH?id=$count';
-            String linkText = HTML_ESCAPE.convert(source.toString());
-            buffer.write('<td><a href="$linkRef">$linkText</a></td>');
-            buffer.write(
-                '<td>${new DateTime.fromMillisecondsSinceEpoch(stamp)}</td>');
-            buffer.write('</tr>');
-            _overlayContents[count] = contents;
-          });
+        ContentCache overlayState = analysisServer.overlayState;
+        overlayState.accept((Source source, int stamp, String contents) {
+          String fileName = source.fullName;
+          buffer.write('<tr>');
+          String link = makeLink(OVERLAY_PATH, {
+            PATH_PARAM: fileName
+          }, fileName);
+          DateTime time = new DateTime.fromMillisecondsSinceEpoch(stamp);
+          _writeRow(buffer, [link, time]);
+          _overlayContents[fileName] = contents;
         });
+        int count = _overlayContents.length;
         buffer.write('<tr><td colspan="2">Total: $count entries.</td></tr>');
         buffer.write('</table>');
       });
@@ -1022,6 +1015,9 @@ class GetHandler {
         buffer.write('</p>');
         buffer.write('<p>');
         buffer.write(makeLink(STATUS_PATH, {}, 'Server status'));
+        buffer.write('</p>');
+        buffer.write('<p>');
+        buffer.write(makeLink(OVERLAYS_PATH, {}, 'File overlays'));
         buffer.write('</p>');
       });
     });

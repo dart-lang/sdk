@@ -230,7 +230,7 @@ class AnalysisServer {
    * The current state of overlays from the client.  This is used as the
    * content cache for all contexts.
    */
-  ContentCache _overlayState = new ContentCache();
+  final ContentCache overlayState = new ContentCache();
 
   /**
    * Initialize a newly created server to receive requests from and send
@@ -979,7 +979,7 @@ class AnalysisServer {
       Source source = getSource(file);
       operationQueue.sourceAboutToChange(source);
       // Prepare the new contents.
-      String oldContents = _overlayState.getContents(source);
+      String oldContents = overlayState.getContents(source);
       String newContents;
       if (change is AddContentOverlay) {
         newContents = change.content;
@@ -1010,7 +1010,7 @@ class AnalysisServer {
         // Protocol parsing should have ensured that we never get here.
         throw new AnalysisException('Illegal change type');
       }
-      _overlayState.setContents(source, newContents);
+      overlayState.setContents(source, newContents);
       // Update all contexts.
       for (InternalAnalysisContext context in folderMap.values) {
         if (context.handleContentsChanged(
@@ -1194,7 +1194,7 @@ class ServerContextManager extends ContextManager {
   AnalysisContext addContext(Folder folder, UriResolver packageUriResolver) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
-    context.contentCache = analysisServer._overlayState;
+    context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
