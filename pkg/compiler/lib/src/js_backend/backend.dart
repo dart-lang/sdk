@@ -88,7 +88,6 @@ class JavaScriptBackend extends Backend {
   /// size/complexity heuristics.
   static const Map<String, List<String>> ALWAYS_INLINE =
       const <String, List<String>> {
-    'IterableMixinWorkaround': const <String>['forEach'],
   };
 
   String get patchVersion => USE_NEW_EMITTER ? 'new' : 'old';
