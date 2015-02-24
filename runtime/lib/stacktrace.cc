@@ -45,7 +45,7 @@ void _printCurrentStacktrace() {
       Array::Handle(Array::MakeArray(pc_offset_list));
   const Stacktrace& stacktrace = Stacktrace::Handle(
       Stacktrace::New(code_array, pc_offset_array));
-  OS::PrintErr("=== Current Trace:\n%s\n===\n", stacktrace.ToCString());
+  OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 }
 
 }  // namespace dart
