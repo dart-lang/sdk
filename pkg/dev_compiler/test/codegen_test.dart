@@ -4,9 +4,9 @@
 library ddc.test.codegen_test;
 
 import 'dart:io';
-import 'package:ddc_analyzer/src/generated/engine.dart'
+import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, Logger;
-import 'package:ddc_analyzer/src/generated/java_engine.dart'
+import 'package:analyzer/src/generated/java_engine.dart'
     show CaughtException;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;

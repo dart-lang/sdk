@@ -6,9 +6,9 @@ library ddc.src.checker.multi_package_resolver;
 
 import 'dart:io';
 
-import 'package:ddc_analyzer/src/generated/java_io.dart';
-import 'package:ddc_analyzer/src/generated/source.dart';
-import 'package:ddc_analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' show join;
 
 /// A package resolver that supports a non-standard package layout, where

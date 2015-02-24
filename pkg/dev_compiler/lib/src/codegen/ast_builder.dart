@@ -1,8 +1,8 @@
 library ddc.src.codegen.ast_builder;
 
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/scanner.dart';
-import 'package:ddc_analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:logging/logging.dart' as logger;
 
 final _log = new logger.Logger('ddc.ast_builder');

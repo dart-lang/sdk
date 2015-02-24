@@ -4,9 +4,9 @@ library ddc.src.info;
 
 import 'dart:mirrors';
 
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/element.dart';
-import 'package:ddc_analyzer/src/generated/scanner.dart'
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/scanner.dart'
     show Token, TokenType, SyntheticStringToken;
 import 'package:logging/logging.dart' show Level;
 

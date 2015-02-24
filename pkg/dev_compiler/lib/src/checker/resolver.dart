@@ -2,19 +2,19 @@
 /// computes types on expressions to use our restricted set of types.
 library ddc.src.checker.resolver;
 
-import 'package:ddc_analyzer/analyzer.dart';
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/element.dart';
-import 'package:ddc_analyzer/src/generated/engine.dart';
-import 'package:ddc_analyzer/src/generated/error.dart';
-import 'package:ddc_analyzer/src/generated/java_io.dart' show JavaFile;
-import 'package:ddc_analyzer/src/generated/resolver.dart';
-import 'package:ddc_analyzer/src/generated/static_type_analyzer.dart';
-import 'package:ddc_analyzer/src/generated/sdk_io.dart'
+import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/sdk_io.dart'
     show DirectoryBasedDartSdk;
-import 'package:ddc_analyzer/src/generated/source.dart' show DartUriResolver;
-import 'package:ddc_analyzer/src/generated/source.dart' show Source;
-import 'package:ddc_analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
+import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/options.dart';

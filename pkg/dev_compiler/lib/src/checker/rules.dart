@@ -1,8 +1,8 @@
 library ddc.src.checker.rules;
 
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/element.dart';
-import 'package:ddc_analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/options.dart';

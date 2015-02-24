@@ -1,7 +1,7 @@
 name: ddc
 description: Dart dev checker / compiler
 dependencies:
-  ddc_analyzer:
+  analyzer:
     git:
       url: git@github.com:dart-lang/ddc_analyzer.git
       ref: master

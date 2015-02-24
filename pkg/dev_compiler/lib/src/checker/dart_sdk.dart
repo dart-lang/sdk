@@ -3,9 +3,9 @@
 /// definitions to provide mock sdks.
 library ddc.src.checker.dart_sdk;
 
-import 'package:ddc_analyzer/src/generated/engine.dart';
-import 'package:ddc_analyzer/src/generated/sdk.dart';
-import 'package:ddc_analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
 /// used to speed up execution when most of the core libraries is not needed.

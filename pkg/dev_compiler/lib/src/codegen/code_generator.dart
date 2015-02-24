@@ -2,8 +2,8 @@ library ddc.src.codegen.code_generator;
 
 import 'dart:io';
 
-import 'package:ddc_analyzer/src/generated/ast.dart' show CompilationUnit;
-import 'package:ddc_analyzer/src/generated/element.dart'
+import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
+import 'package:analyzer/src/generated/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:path/path.dart' as path;
 

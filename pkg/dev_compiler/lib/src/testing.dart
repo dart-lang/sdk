@@ -1,9 +1,9 @@
 library ddc.src.testing;
 
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/element.dart';
-import 'package:ddc_analyzer/src/generated/engine.dart' show TimestampedData;
-import 'package:ddc_analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';

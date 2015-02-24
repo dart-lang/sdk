@@ -5,8 +5,8 @@ import 'dart:math' show max;
 
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:logging/logging.dart';
 
 import 'info.dart';

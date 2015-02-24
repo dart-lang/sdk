@@ -1,9 +1,9 @@
 library ddc.src.checker.checker;
 
-import 'package:ddc_analyzer/analyzer.dart';
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/element.dart';
-import 'package:ddc_analyzer/src/generated/scanner.dart' show Token, TokenType;
+import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:logging/logging.dart' as logger;
 
 import 'package:ddc/src/info.dart';

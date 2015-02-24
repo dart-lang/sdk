@@ -1,8 +1,8 @@
 library ddc.src.codegen.reify_coercions;
 
-import 'package:ddc_analyzer/analyzer.dart' as analyzer;
-import 'package:ddc_analyzer/src/generated/ast.dart';
-import 'package:ddc_analyzer/src/generated/element.dart';
+import 'package:analyzer/analyzer.dart' as analyzer;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:source_span/source_span.dart' show SourceFile;
 
