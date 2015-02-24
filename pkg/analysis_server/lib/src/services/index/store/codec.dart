@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/index/store/collection.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 /**
@@ -136,12 +137,19 @@ class ElementCodec {
   }
 
   /**
-   * Returns an integer that corresponds to an approximated location of [element].
+   * Returns an integer that corresponds to the name of [element].
    */
   int encodeHash(Element element) {
-    List<int> path = _getLocationPathLimited(element);
-    int index = _encodePath(path);
-    return index;
+    String elementName = element.displayName;
+    int elementNameId = _stringCodec.encode(elementName);
+    LibraryElement libraryElement = element.library;
+    if (libraryElement != null) {
+      String libraryPath = libraryElement.source.fullName;
+      int libraryPathId = _stringCodec.encode(libraryPath);
+      return JenkinsSmiHash.combine(libraryPathId, elementNameId);
+    } else {
+      return elementNameId;
+    }
   }
 
   /**
@@ -241,25 +249,6 @@ class ElementCodec {
       }
       return path;
     }
-  }
-
-  /**
-   * Returns an approximation of the [element]'s location.
-   */
-  List<int> _getLocationPathLimited(Element element) {
-    String firstComponent;
-    {
-      LibraryElement libraryElement = element.library;
-      if (libraryElement != null) {
-        firstComponent = libraryElement.source.fullName;
-      } else {
-        firstComponent = 'null';
-      }
-    }
-    String lastComponent = element.displayName;
-    int firstId = _stringCodec.encode(firstComponent);
-    int lastId = _stringCodec.encode(lastComponent);
-    return <int>[firstId, lastId];
   }
 
   static bool _hasLocalOffset(List<String> components) {
