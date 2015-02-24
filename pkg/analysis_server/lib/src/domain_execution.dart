@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the class [ExecutionDomainHandler] implement a [RequestHandler]
@@ -158,30 +159,36 @@ class ExecutionDomainHandler implements RequestHandler {
   }
 
   void _fileAnalyzed(ChangeNotice notice) {
-    Source source = notice.source;
-    String filePath = source.fullName;
-    if (!_isInAnalysisRoot(filePath)) {
-      return;
-    }
-    AnalysisContext context = server.getAnalysisContext(filePath);
-    if (AnalysisEngine.isDartFileName(filePath)) {
-      ExecutableKind kind = ExecutableKind.NOT_EXECUTABLE;
-      if (context.isClientLibrary(source)) {
-        kind = ExecutableKind.CLIENT;
-        if (context.isServerLibrary(source)) {
-          kind = ExecutableKind.EITHER;
-        }
-      } else if (context.isServerLibrary(source)) {
-        kind = ExecutableKind.SERVER;
+    PerformanceTag prevTag =
+        ServerPerformanceStatistics.executionNotifications.makeCurrent();
+    try {
+      Source source = notice.source;
+      String filePath = source.fullName;
+      if (!_isInAnalysisRoot(filePath)) {
+        return;
       }
-      server.sendNotification(
-          new ExecutionLaunchDataParams(filePath, kind: kind).toNotification());
-    } else if (AnalysisEngine.isHtmlFileName(filePath)) {
-      List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
-      server.sendNotification(
-          new ExecutionLaunchDataParams(
-              filePath,
-              referencedFiles: _getFullNames(libraries)).toNotification());
+      AnalysisContext context = server.getAnalysisContext(filePath);
+      if (AnalysisEngine.isDartFileName(filePath)) {
+        ExecutableKind kind = ExecutableKind.NOT_EXECUTABLE;
+        if (context.isClientLibrary(source)) {
+          kind = ExecutableKind.CLIENT;
+          if (context.isServerLibrary(source)) {
+            kind = ExecutableKind.EITHER;
+          }
+        } else if (context.isServerLibrary(source)) {
+          kind = ExecutableKind.SERVER;
+        }
+        server.sendNotification(
+            new ExecutionLaunchDataParams(filePath, kind: kind).toNotification());
+      } else if (AnalysisEngine.isHtmlFileName(filePath)) {
+        List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
+        server.sendNotification(
+            new ExecutionLaunchDataParams(
+                filePath,
+                referencedFiles: _getFullNames(libraries)).toNotification());
+      }
+    } finally {
+      prevTag.makeCurrent();
     }
   }
 

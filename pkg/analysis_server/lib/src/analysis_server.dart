@@ -1326,16 +1326,16 @@ class ServerPerformance {
  */
 class ServerPerformanceStatistics {
   /**
+   * The [PerformanceTag] for time spent in [ExecutionDomainHandler].
+   */
+  static PerformanceTag executionNotifications =
+      new PerformanceTag('executionNotifications');
+
+  /**
    * The [PerformanceTag] for time spent in
    * PerformAnalysisOperation._updateIndex.
    */
   static PerformanceTag index = new PerformanceTag('index');
-
-  /**
-   * The [PerformanceTag] for time spent in
-   * PerformAnalysisOperation._sendNotices.
-   */
-  static PerformanceTag notices = new PerformanceTag('notices');
 
   /**
    * The [PerformanceTag] for time spent performing a _DartIndexOperation.
@@ -1353,4 +1353,10 @@ class ServerPerformanceStatistics {
    * AnalysisServer.performOperation when the server is idle.
    */
   static PerformanceTag idle = new PerformanceTag('idle');
+
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._sendNotices.
+   */
+  static PerformanceTag notices = new PerformanceTag('notices');
 }
