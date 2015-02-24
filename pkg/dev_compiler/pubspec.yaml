@@ -20,6 +20,11 @@ dependencies:
 dev_dependencies:
   unittest: ^0.11.0
   pub_semver: ^1.1.0
+dependency_overrides:
+  analyzer:
+    git:
+      url: git@github.com:dart-lang/ddc_analyzer.git
+      ref: master
 executables:
   # Similar to "analyzer.dart" and its command line "dartanalyzer", we use
   # "dartdevc" and "devc.dart"
