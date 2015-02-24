@@ -200,6 +200,34 @@ class ConstantLiteralEmitter
     return new jsAst.LiteralNull();
   }
 
+  /// Reduces the size of exponential representations when minification is
+  /// enabled.
+  ///
+  /// Removes the "+" after the exponential sign, and removes the "." before the
+  /// "e". For example `1.23e+5` is changed to `123e3`.
+  String _shortenExponentialRepresentation(String numberString) {
+    if (numberString.length < 4) return numberString;
+    if (numberString[1] == "e" && numberString[2] == "+") {
+      // For example: "1e+5". Remove the "+".
+      return "${numberString[0]}e${numberString.substring(2)}";
+    }
+    if (numberString[1] != ".") return numberString;
+    int digitsAfterDotCount = 0;
+    int pos = 2;
+    while (pos < numberString.length && numberString[pos] != "e") {
+      pos++;
+      digitsAfterDotCount++;
+    }
+    if (pos >= numberString.length) return numberString;
+    int exponent = int.parse(numberString.substring(pos + 1));
+    if (exponent <= digitsAfterDotCount) return numberString;
+    String digitsAfterDot = numberString.substring(2, pos);
+    int shiftedExponent = exponent - digitsAfterDotCount;
+    String result = "${numberString[0]}${digitsAfterDot}e$shiftedExponent";
+    assert(double.parse(result) == double.parse(numberString));
+    return result;
+  }
+
   @override
   jsAst.Expression visitInt(IntConstantValue constant, [_]) {
     int primitiveValue = constant.primitiveValue;
@@ -208,11 +236,13 @@ class ConstantLiteralEmitter
     // For example: "1e+4" is shorter than "10000".
     //
     // Note that this shortening apparently loses precision for big numbers
-    // (like 1234567890123456789012345 which becomes 1.2345678901234568e+24).
-    // However, since JavaScript engines implicitly convert to double, these
-    // digits are lost anyway.
-    if (primitiveValue.abs() >= 10000) {
-      String exponential = primitiveValue.toStringAsExponential();
+    // (like 1234567890123456789012345 which becomes 12345678901234568e8).
+    // However, since JavaScript engines represent all numbers as doubles,
+    // these digits are lost anyway.
+    int cutOffValue = compiler.enableMinification ? 10000 : 1e20.toInt();
+    if (primitiveValue.abs() >= cutOffValue) {
+      String exponential = _shortenExponentialRepresentation(
+          primitiveValue.toStringAsExponential());
       String decimal = primitiveValue.toString();
       return new jsAst.LiteralNumber(
           (exponential.length < decimal.length) ? exponential : decimal);
@@ -230,7 +260,8 @@ class ConstantLiteralEmitter
     } else if (value == -double.INFINITY) {
       return js("-1/0");
     } else {
-      return new jsAst.LiteralNumber("$value");
+      String shortened = _shortenExponentialRepresentation("$value");
+      return new jsAst.LiteralNumber(shortened);
     }
   }
 
