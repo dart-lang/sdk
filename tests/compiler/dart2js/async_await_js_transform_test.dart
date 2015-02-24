@@ -315,9 +315,9 @@ function(d2) {
           c = __result;
           d = foo1() || foo2();
           __temp1 = foo1();
-          if (__temp1)
+          if (__temp1) {
             __result = __temp1;
-          else {
+          } else {
             // goto then
             __goto = 10;
             break;
@@ -344,9 +344,9 @@ function(d2) {
         case 16:
           // returning from await.
           __temp1 = __result;
-          if (__temp1)
+          if (__temp1) {
             __result = __temp1;
-          else {
+          } else {
             // goto then
             __goto = 14;
             break;
