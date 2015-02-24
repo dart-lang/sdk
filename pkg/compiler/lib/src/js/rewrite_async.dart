@@ -360,9 +360,6 @@ class AsyncRewriter extends js.NodeVisitor {
   /// True if the function has any try blocks containing await.
   bool hasTryBlocks = false;
 
-  /// True if any return, break or continue passes through a finally.
-  bool hasJumpThroughFinally = false;
-
   /// True if the traversion currently is inside a loop or switch for which
   /// [shouldTransform] is false.
   bool insideUntranslatedBreakable = false;
@@ -845,7 +842,7 @@ class AsyncRewriter extends js.NodeVisitor {
     }
     inits.add(makeInit(handlerName, js.number(rethrowLabel)));
     inits.add(makeInit(currentErrorName, null));
-    if (hasJumpThroughFinally || analysis.hasYield) {
+    if (analysis.hasFinally || (isAsyncStar && analysis.hasYield)) {
       inits.add(makeInit(nextName, null));
     }
     if (isAsyncStar && analysis.hasYield) {
@@ -1176,7 +1173,6 @@ class AsyncRewriter extends js.NodeVisitor {
     // now.
     int firstTarget = jumpStack.removeLast();
     if (jumpStack.isNotEmpty) {
-      hasJumpThroughFinally = true;
       js.Expression jsJumpStack = new js.ArrayInitializer(
           jumpStack.map((int label) => js.number(label)).toList());
       addStatement(js.js.statement("# = #", [nextName, jsJumpStack]));
@@ -1905,6 +1901,8 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
 
   bool hasYield = false;
 
+  bool hasFinally = false;
+
   // The function currently being analyzed.
   js.Fun currentFunction;
 
@@ -2260,6 +2258,7 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
     bool catchPart = (node.catchPart == null) ? false : visit(node.catchPart);
     bool finallyPart =
         (node.finallyPart == null) ? false : visit(node.finallyPart);
+    if (finallyPart != null) hasFinally = true;
     return body || catchPart || finallyPart;
   }
 
