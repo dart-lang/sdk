@@ -177,6 +177,29 @@ class _PackageMapUriResolverTest {
     }
   }
 
+  void test_restoreAmbiguous() {
+    const file1 = '/foo1/lib/bar.dart';
+    const file2 = '/foo2/lib/bar.dart';
+    provider.newFile(file1, 'library bar');
+    provider.newFile(file2, 'library bar');
+    PackageMapUriResolver resolver =
+        new PackageMapUriResolver(provider, <String, List<Folder>>{
+      'foo': [
+          provider.getResource('/foo1/lib'),
+          provider.getResource('/foo2/lib')]
+    });
+    // Restoring file1 should yield a package URI, and that package URI should
+    // resolve back to file1.
+    Source source1 = _createFileSource(file1);
+    Uri uri1 = resolver.restoreAbsolute(source1);
+    expect(uri1.toString(), 'package:foo/bar.dart');
+    expect(resolver.resolveAbsolute(uri1).fullName, file1);
+    // Restoring file2 should not yield a package URI, because there is no URI
+    // that resolves to file2.
+    Source source2 = _createFileSource(file2);
+    expect(resolver.restoreAbsolute(source2), isNull);
+  }
+
   Source _createFileSource(String path) {
     return new NonExistingSource(path, UriKind.FILE_URI);
   }
