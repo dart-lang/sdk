@@ -267,20 +267,43 @@ class GetHandler {
           'Analysis Server - Analysis Performance',
           [],
           (StringBuffer buffer) {
-        void writeRow(PerformanceTag tag) {
-          _writeRow(buffer, [tag.elapsedMs, tag.label], classes: ["right", null]);
-        }
 
         buffer.write('<h3>Analysis Performance</h3>');
-        buffer.write('<p><b>Time spent in each phase of analysis</b></p>');
-        buffer.write(
-            '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-        _writeRow(buffer, ['Time (in ms)', 'Analysis Phase'], header: true);
-        PerformanceTag.all.forEach(writeRow);
-        buffer.write('</table>');
 
-        Map<DataDescriptor, Map<CacheState, int>> transitionMap = SourceEntry.transitionMap;
-        buffer.write('<p><b>Number of times a state transitioned to VALID (grouped by descriptor)</b></p>');
+        {
+          buffer.write('<p><b>Time spent in each phase of analysis</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(
+              buffer,
+              ['Time (in ms)', 'Percent', 'Analysis Phase'],
+              header: true);
+          // prepare sorted tags
+          List<PerformanceTag> tags = PerformanceTag.all.toList();
+          tags.remove(ServerPerformanceStatistics.idle);
+          tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
+          // prepare total time
+          int totalTime = 0;
+          tags.forEach((PerformanceTag tag) {
+            totalTime += tag.elapsedMs;
+          });
+          // write rows
+          void writeRow(PerformanceTag tag) {
+            double percent = (tag.elapsedMs * 100) / totalTime;
+            String percentStr = '${percent.toStringAsFixed(2)}%';
+            _writeRow(
+                buffer,
+                [tag.elapsedMs, percentStr, tag.label],
+                classes: ["right", "right", null]);
+          }
+          tags.forEach(writeRow);
+          buffer.write('</table>');
+        }
+
+        Map<DataDescriptor, Map<CacheState, int>> transitionMap =
+            SourceEntry.transitionMap;
+        buffer.write(
+            '<p><b>Number of times a state transitioned to VALID (grouped by descriptor)</b></p>');
         if (transitionMap.isEmpty) {
           buffer.write('<p>none</p>');
         } else {
