@@ -99,7 +99,7 @@ class Int64 implements IntX {
 
       d1 = d1 * radix + carry;
       carry = d1 >> _BITS;
-      d1 = _MASK & d1;;
+      d1 = _MASK & d1;
 
       d2 = d2 * radix + carry;
       d2 = _MASK2 & d2;
@@ -202,9 +202,9 @@ class Int64 implements IntX {
   factory Int64.fromInts(int top, int bottom) {
     top &= 0xffffffff;
     bottom &= 0xffffffff;
-    int d0 = bottom & _MASK;
-    int d1 = ((top & 0xfff) << 10) | ((bottom >> _BITS) & 0x3ff);
-    int d2 = (top >> 12) & _MASK2;
+    int d0 = _MASK & bottom;
+    int d1 = ((0xfff & top) << 10) | (0x3ff & (bottom >> _BITS));
+    int d2 = _MASK2 & (top >> 12);
     return new Int64._bits(d0, d1, d2);
   }
 
@@ -312,12 +312,9 @@ class Int64 implements IntX {
 
     // Propagate high bits from c0 -> c1, c1 -> c2.
     c1 += c0 >> _BITS;
-    c0 &= _MASK;
     c2 += c1 >> _BITS;
-    c1 &= _MASK;
-    c2 &= _MASK2;
 
-    return new Int64._bits(c0, c1, c2);
+    return Int64._masked(c0, c1, c2);
   }
 
   Int64 operator %(other) => _divide(this, other, _RETURN_MOD);
@@ -347,7 +344,7 @@ class Int64 implements IntX {
     int a0 = _l ^ o._l;
     int a1 = _m ^ o._m;
     int a2 = _h ^ o._h;
-    return new Int64._bits(a0, a1, a2);
+    return Int64._masked(a0, a1, a2);
   }
 
   Int64 operator ~() {
@@ -1028,7 +1025,7 @@ class Int64 implements IntX {
     }
 
     if (!aNeg) {
-      return new Int64._bits(_MASK & r0, r1, r2);  // Masking for type inferrer.
+      return Int64._masked(r0, r1, r2);  // Masking for type inferrer.
     }
 
     if (what == _RETURN_MOD) {
