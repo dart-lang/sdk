@@ -80,6 +80,12 @@ abstract class PerformanceTag {
   PerformanceTag makeCurrent();
 
   /**
+   * Make this the current tag for the isolate, run [f], and restore the
+   * previous tag. Returns the result of invoking [f].
+   */
+  makeCurrentWhile(f());
+
+  /**
    * Reset the total time tracked by all [PerformanceTag]s to zero.
    */
   static void reset() {
@@ -114,7 +120,8 @@ class _PerformanceTagImpl implements PerformanceTag {
   final Stopwatch stopwatch;
 
   _PerformanceTagImpl(String label)
-      : userTag = new UserTag(label), stopwatch = new Stopwatch() {
+      : userTag = new UserTag(label),
+        stopwatch = new Stopwatch() {
     all.add(this);
   }
 
@@ -135,5 +142,14 @@ class _PerformanceTagImpl implements PerformanceTag {
     current = this;
     userTag.makeCurrent();
     return previous;
+  }
+
+  makeCurrentWhile(f()) {
+    PerformanceTag prevTag = makeCurrent();
+    try {
+      return f();
+    } finally {
+      prevTag.makeCurrent();
+    }
   }
 }

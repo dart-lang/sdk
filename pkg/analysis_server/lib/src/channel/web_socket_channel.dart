@@ -12,7 +12,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 /**
@@ -107,18 +106,14 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
       instrumentationService.logRequest(data);
       // Parse the string as a JSON descriptor and process the resulting
       // structure as a request.
-      PerformanceTag prevTag =
-          ServerPerformanceStatistics.serverChannel.makeCurrent();
-      try {
+      ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
         Request request = new Request.fromString(data);
         if (request == null) {
           sendResponse(new Response.invalidRequestFormat());
           return;
         }
         onRequest(request);
-      } finally {
-        prevTag.makeCurrent();
-      }
+      });
     } else if (data is List<int>) {
       // TODO(brianwilkerson) Implement a more efficient protocol.
       sendResponse(new Response.invalidRequestFormat());
@@ -129,27 +124,19 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
 
   @override
   void sendNotification(Notification notification) {
-    PerformanceTag prevTag =
-        ServerPerformanceStatistics.serverChannel.makeCurrent();
-    try {
+    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       String jsonEncoding = JSON.encode(notification.toJson());
       socket.add(jsonEncoding);
       instrumentationService.logNotification(jsonEncoding);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   @override
   void sendResponse(Response response) {
-    PerformanceTag prevTag =
-        ServerPerformanceStatistics.serverChannel.makeCurrent();
-    try {
+    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       String jsonEncoding = JSON.encode(response.toJson());
       socket.add(jsonEncoding);
       instrumentationService.logResponse(jsonEncoding);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 }

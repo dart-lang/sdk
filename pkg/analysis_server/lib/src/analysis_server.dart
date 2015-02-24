@@ -572,9 +572,7 @@ class AnalysisServer {
   void handleRequest(Request request) {
     _performance.logRequest(request);
     runZoned(() {
-      PerformanceTag prevTag =
-          ServerPerformanceStatistics.serverRequests.makeCurrent();
-      try {
+      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
         int count = handlers.length;
         for (int i = 0; i < count; i++) {
           try {
@@ -601,9 +599,7 @@ class AnalysisServer {
           }
         }
         channel.sendResponse(new Response.unknownRequest(request));
-      } finally {
-        prevTag.makeCurrent();
-      }
+      });
     }, onError: (exception, stackTrace) {
       sendServerErrorNotification(exception, stackTrace, fatal: true);
     });
@@ -1336,12 +1332,6 @@ class ServerPerformanceStatistics {
    */
   static PerformanceTag executionNotifications =
       new PerformanceTag('executionNotifications');
-
-  /**
-   * The [PerformanceTag] for time spent in
-   * PerformAnalysisOperation._updateIndex.
-   */
-  static PerformanceTag index = new PerformanceTag('index');
 
   /**
    * The [PerformanceTag] for time spent performing a _DartIndexOperation.

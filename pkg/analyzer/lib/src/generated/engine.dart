@@ -2288,8 +2288,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (_TRACE_PERFORM_TASK) {
       print("----------------------------------------");
     }
-    PerformanceTag prevTag = PerformanceStatistics.performAnaysis.makeCurrent();
-    try {
+    return PerformanceStatistics.performAnaysis.makeCurrentWhile(() {
       int getStart = JavaSystem.currentTimeMillis();
       AnalysisTask task = nextAnalysisTask;
       int getEnd = JavaSystem.currentTimeMillis();
@@ -2355,9 +2354,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           getEnd - getStart,
           task.runtimeType.toString(),
           performEnd - performStart);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   @override
@@ -3460,12 +3457,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       AnalysisContextImpl_CycleBuilder builder =
           new AnalysisContextImpl_CycleBuilder(this);
-      PerformanceTag prevTag = PerformanceStatistics.cycles.makeCurrent();
-      try {
+      PerformanceStatistics.cycles.makeCurrentWhile(() {
         builder.computeCycleContaining(source);
-      } finally {
-        prevTag.makeCurrent();
-      }
+      });
       AnalysisContextImpl_TaskData taskData = builder.taskData;
       if (taskData != null) {
         return taskData;
@@ -8796,8 +8790,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
 
   @override
   void internalPerform() {
-    PerformanceTag prevTag = PerformanceStatistics.errors.makeCurrent();
-    try {
+    PerformanceStatistics.errors.makeCurrentWhile(() {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       TypeProvider typeProvider = context.typeProvider;
@@ -8826,9 +8819,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
           new InheritanceManager(libraryElement));
       _unit.accept(errorVerifier);
       _errors = errorListener.getErrorsForSource(source);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   /**
@@ -10065,8 +10056,7 @@ class ParseDartTask extends AnalysisTask {
     //
     // Then parse the token stream.
     //
-    PerformanceTag prevTag = PerformanceStatistics.parse.makeCurrent();
-    try {
+    PerformanceStatistics.parse.makeCurrentWhile(() {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(source, errorListener);
       AnalysisOptions options = context.analysisOptions;
@@ -10100,9 +10090,7 @@ class ParseDartTask extends AnalysisTask {
         }
       }
       _errors = errorListener.getErrorsForSource(source);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   /**
@@ -11301,8 +11289,7 @@ class ResolveDartUnitTask extends AnalysisTask {
     //
     // Perform additional error checking.
     //
-    PerformanceTag prevTag = PerformanceStatistics.errors.makeCurrent();
-    try {
+    PerformanceStatistics.errors.makeCurrentWhile(() {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       ErrorVerifier errorVerifier = new ErrorVerifier(
           errorReporter,
@@ -11316,9 +11303,7 @@ class ResolveDartUnitTask extends AnalysisTask {
       // call to ConstantVerifier.
 //       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _libraryElement, typeProvider);
 //       unit.accept(constantVerifier);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
     //
     // Capture the results.
     //
@@ -11546,22 +11531,21 @@ class ScanDartTask extends AnalysisTask {
 
   @override
   void internalPerform() {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    PerformanceTag prevTag = PerformanceStatistics.scan.makeCurrent();
-    try {
-      Scanner scanner =
-          new Scanner(source, new CharSequenceReader(_content), errorListener);
-      scanner.preserveComments = context.analysisOptions.preserveComments;
-      _tokenStream = scanner.tokenize();
-      _lineInfo = new LineInfo(scanner.lineStarts);
-      _errors = errorListener.getErrorsForSource(source);
-    } catch (exception, stackTrace) {
-      throw new AnalysisException(
-          "Exception",
-          new CaughtException(exception, stackTrace));
-    } finally {
-      prevTag.makeCurrent();
-    }
+    PerformanceStatistics.scan.makeCurrentWhile(() {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      try {
+        Scanner scanner =
+            new Scanner(source, new CharSequenceReader(_content), errorListener);
+        scanner.preserveComments = context.analysisOptions.preserveComments;
+        _tokenStream = scanner.tokenize();
+        _lineInfo = new LineInfo(scanner.lineStarts);
+        _errors = errorListener.getErrorsForSource(source);
+      } catch (exception, stackTrace) {
+        throw new AnalysisException(
+            "Exception",
+            new CaughtException(exception, stackTrace));
+      }
+    });
   }
 }
 

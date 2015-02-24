@@ -12,7 +12,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the class [ByteStreamClientChannel] implement a
@@ -122,15 +121,11 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    PerformanceTag prevTag =
-        ServerPerformanceStatistics.serverChannel.makeCurrent();
-    try {
+    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       String jsonEncoding = JSON.encode(notification.toJson());
       _outputLine(jsonEncoding);
       _instrumentationService.logNotification(jsonEncoding);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   @override
@@ -140,15 +135,11 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    PerformanceTag prevTag =
-        ServerPerformanceStatistics.serverChannel.makeCurrent();
-    try {
+    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       String jsonEncoding = JSON.encode(response.toJson());
       _outputLine(jsonEncoding);
       _instrumentationService.logResponse(jsonEncoding);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   /**
@@ -167,9 +158,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    PerformanceTag prevTag =
-        ServerPerformanceStatistics.serverChannel.makeCurrent();
-    try {
+    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       _instrumentationService.logRequest(data);
       // Parse the string as a JSON descriptor and process the resulting
       // structure as a request.
@@ -179,8 +168,6 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
         return;
       }
       onRequest(request);
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 }

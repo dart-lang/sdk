@@ -42,16 +42,13 @@ class LintGenerator {
       : _linters = linters != null ? linters : LINTERS;
 
   void generate() {
-    PerformanceTag prevTag = PerformanceStatistics.lint.makeCurrent();
-    try {
+    PerformanceStatistics.lint.makeCurrentWhile(() {
       _compilationUnits.forEach((cu) {
         if (cu.element != null) {
           _generate(cu, cu.element.source);
         }
       });
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   void _generate(CompilationUnit unit, Source source) {

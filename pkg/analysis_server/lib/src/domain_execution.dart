@@ -13,7 +13,6 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the class [ExecutionDomainHandler] implement a [RequestHandler]
@@ -159,9 +158,7 @@ class ExecutionDomainHandler implements RequestHandler {
   }
 
   void _fileAnalyzed(ChangeNotice notice) {
-    PerformanceTag prevTag =
-        ServerPerformanceStatistics.executionNotifications.makeCurrent();
-    try {
+    ServerPerformanceStatistics.executionNotifications.makeCurrentWhile(() {
       Source source = notice.source;
       String filePath = source.fullName;
       if (!_isInAnalysisRoot(filePath)) {
@@ -187,9 +184,7 @@ class ExecutionDomainHandler implements RequestHandler {
                 filePath,
                 referencedFiles: _getFullNames(libraries)).toNotification());
       }
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   /**

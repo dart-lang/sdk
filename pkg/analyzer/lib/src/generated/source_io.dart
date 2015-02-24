@@ -129,12 +129,9 @@ class FileBasedSource extends Source {
 
   @override
   TimestampedData<String> get contents {
-    PerformanceTag prevTag = PerformanceStatistics.io.makeCurrent();
-    try {
+    return PerformanceStatistics.io.makeCurrentWhile(() {
       return contentsFromFile;
-    } finally {
-      prevTag.makeCurrent();
-    }
+    });
   }
 
   /**
