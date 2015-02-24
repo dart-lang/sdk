@@ -5,6 +5,7 @@
 import 'package:unittest/unittest.dart';
 
 import 'linter_test.dart' as linter_test;
+import 'pub_test.dart' as pub_test;
 
 main() {
   // Tidy up the unittest output.
@@ -13,4 +14,5 @@ main() {
   // useCompactVMConfiguration();
 
   linter_test.main();
+  pub_test.main();
 }
