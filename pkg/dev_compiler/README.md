@@ -1,5 +1,5 @@
-dart-dev-compiler
-=================
+dev_compiler
+============
 
 This is an **experimental** Dart->JavaScript compiler designed to create
 idiomatic, readable JavaScript output. We're investigating this because
