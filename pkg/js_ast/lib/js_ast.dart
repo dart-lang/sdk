@@ -4,10 +4,10 @@
 
 library js_ast;
 
-import 'precedence.dart';
-import 'characters.dart' as charCodes;
+import 'src/precedence.dart';
+import 'src/characters.dart' as charCodes;
 
-part 'nodes.dart';
-part 'builder.dart';
-part 'printer.dart';
-part 'template.dart';
+part 'src/nodes.dart';
+part 'src/builder.dart';
+part 'src/printer.dart';
+part 'src/template.dart';

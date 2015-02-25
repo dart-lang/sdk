@@ -4,9 +4,8 @@
 
 library js;
 
-// TODO(sra): This will become a package import.
-import 'js_ast.dart';
-export 'js_ast.dart';
+import 'package:js_ast/js_ast.dart';
+export 'package:js_ast/js_ast.dart';
 
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformation;
