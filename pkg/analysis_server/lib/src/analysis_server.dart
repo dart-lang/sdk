@@ -1357,6 +1357,11 @@ class ServerPerformanceStatistics {
   static PerformanceTag notices = new PerformanceTag('notices');
 
   /**
+   * The [PerformanceTag] for time spent running pub.
+   */
+  static PerformanceTag pub = new PerformanceTag('pub');
+
+  /**
    * The [PerformanceTag] for time spent in server comminication channels.
    */
   static PerformanceTag serverChannel = new PerformanceTag('serverChannel');

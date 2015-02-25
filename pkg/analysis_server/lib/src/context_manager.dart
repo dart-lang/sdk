@@ -7,6 +7,7 @@ library context.directory.manager;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -326,8 +327,10 @@ abstract class ContextManager {
       return new PackageUriResolver([new JavaFile(info.packageRoot)]);
     } else {
       beginComputePackageMap();
-      PackageMapInfo packageMapInfo =
-          _packageMapProvider.computePackageMap(folder);
+      PackageMapInfo packageMapInfo;
+      ServerPerformanceStatistics.pub.makeCurrentWhile(() {
+        packageMapInfo = _packageMapProvider.computePackageMap(folder);
+      });
       endComputePackageMap();
       info.packageMapDependencies = packageMapInfo.dependencies;
       if (packageMapInfo.packageMap == null) {
@@ -357,20 +360,6 @@ abstract class ContextManager {
     });
     UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
     info.context = addContext(folder, packageUriResolver);
-    return info;
-  }
-
-  /**
-   * Create a new context associated with the given [folder]. The [pubspecFile]
-   * is the `pubspec.yaml` file contained in the folder. Add any sources that
-   * are not included in one of the [children] to the context.
-   */
-  _ContextInfo _createContextWithSources(Folder folder, File pubspecFile,
-      List<_ContextInfo> children) {
-    _ContextInfo info = _createContext(folder, pubspecFile, children);
-    ChangeSet changeSet = new ChangeSet();
-    _addSourceFiles(changeSet, folder, info);
-    applyChangesToContext(folder, changeSet);
     return info;
   }
 
@@ -411,6 +400,20 @@ abstract class ContextManager {
     // OK, create a context without a pubspec
     _createContextWithSources(folder, pubspecFile, children);
     return children;
+  }
+
+  /**
+   * Create a new context associated with the given [folder]. The [pubspecFile]
+   * is the `pubspec.yaml` file contained in the folder. Add any sources that
+   * are not included in one of the [children] to the context.
+   */
+  _ContextInfo _createContextWithSources(Folder folder, File pubspecFile,
+      List<_ContextInfo> children) {
+    _ContextInfo info = _createContext(folder, pubspecFile, children);
+    ChangeSet changeSet = new ChangeSet();
+    _addSourceFiles(changeSet, folder, info);
+    applyChangesToContext(folder, changeSet);
+    return info;
   }
 
   /**
