@@ -82,7 +82,7 @@ stringReplaceFirstRE(receiver, regexp, to, startIndex) {
   if (match == null) return receiver;
   var start = match.start;
   var end = match.end;
-  return "${receiver.substring(0,start)}$to${receiver.substring(end)}";
+  return stringReplaceRangeUnchecked(receiver, start, end, to);
 }
 
 const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
@@ -197,8 +197,8 @@ stringReplaceFirstUnchecked(receiver, from, to, int startIndex) {
   if (from is String) {
     int index = receiver.indexOf(from, startIndex);
     if (index < 0) return receiver;
-    return '${receiver.substring(0, index)}$to'
-           '${receiver.substring(index + from.length)}';
+    int end = index + from.length;
+    return stringReplaceRangeUnchecked(receiver, index, end, to);
   }
   if (from is JSSyntaxRegExp) {
     return startIndex == 0 ?
@@ -225,4 +225,11 @@ stringReplaceFirstMappedUnchecked(receiver, from, replace,
 
 stringJoinUnchecked(array, separator) {
   return JS('String', r'#.join(#)', array, separator);
+}
+
+String stringReplaceRangeUnchecked(String receiver,
+                                   int start, int end, String replacement) {
+  var prefix = JS('String', '#.substring(0, #)', receiver, start);
+  var suffix = JS('String', '#.substring(#)', receiver, end);
+  return "$prefix$replacement$suffix";
 }

@@ -210,6 +210,29 @@ main() {
   var n = new Naughty();
   Expect.throws(
     () => "foo-bar".replaceFirstMapped("bar", (v) { return n; }));
+
+  for (var string in ["", "x", "foo", "x\u2000z"]) {
+    for (var replacement in ["", "foo", string]) {
+      for (int start = 0; start <= string.length; start++) {
+        var expect;
+        for (int end = start; end <= string.length; end++) {
+          expect = string.substring(0, start) +
+                   replacement +
+                   string.substring(end);
+          Expect.equals(expect, string.replaceRange(start, end, replacement),
+                        '"$string"[$start:$end]="$replacement"');
+        }
+        // Reuse expect from "end == string.length" case when omitting end.
+        Expect.equals(expect, string.replaceRange(start, null, replacement),
+                      '"$string"[$start:]="$replacement"');
+      }
+    }
+    Expect.throws(() => string.replaceRange(0, 0, null));
+    Expect.throws(() => string.replaceRange(0, 0, 42));
+    Expect.throws(() => string.replaceRange(0, 0, ["x"]));
+    Expect.throws(() => string.replaceRange(-1, 0, "x"));
+    Expect.throws(() => string.replaceRange(0, string.length + 1, "x"));
+  }
 }
 
 // Fails to return a String on toString, throws if converted by "$naughty".
