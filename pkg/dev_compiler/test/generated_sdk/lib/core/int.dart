@@ -18,7 +18,18 @@ part of dart.core;
  * It is a compile-time error for a class to attempt to extend or implement int.
  */
 abstract class int extends num {
-  @patch
+  /**
+   * Returns the integer value of the given environment declaration [name].
+   *
+   * The result is the same as would be returned by:
+   *
+   *     int.parse(const String.fromEnvironment(name, defaultValue: ""),
+   *               (_) => defaultValue)
+   *
+   * Example:
+   *
+   *     const int.fromEnvironment("defaultPort", defaultValue: 80)
+   */
   factory int.fromEnvironment(String name, {int defaultValue}) {
     throw new UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
@@ -239,7 +250,31 @@ abstract class int extends num {
    */
   String toRadixString(int radix);
 
-  @patch
+  /**
+   * Parse [source] as an integer literal and return its value.
+   *
+   * The [radix] must be in the range 2..36. The digits used are
+   * first the decimal digits 0..9, and then the letters 'a'..'z'.
+   * Accepts capital letters as well.
+   *
+   * If no [radix] is given then it defaults to 10, unless the string starts
+   * with "0x", "-0x" or "+0x", in which case the radix is set to 16 and the
+   * "0x" is ignored.
+   *
+   * The [source] must be a non-empty sequence of base-[radix] digits,
+   * optionally prefixed with a minus or plus sign ('-' or '+').
+   *
+   * It must always be the case for an int [:n:] and radix [:r:] that
+   * [:n == int.parse(n.toRadixString(r), radix: r):].
+   *
+   * If the [source] is not a valid integer literal, optionally prefixed by a
+   * sign, the [onError] is called with the [source] as argument, and its return
+   * value is used instead. If no [onError] is provided, a [FormatException]
+   * is thrown.
+   *
+   * The [onError] function is only invoked if [source] is a [String]. It is
+   * not invoked if the [source] is, for example, `null`.
+   */
   static int parse(String source,
                          { int radix,
                            int onError(String source) }) {

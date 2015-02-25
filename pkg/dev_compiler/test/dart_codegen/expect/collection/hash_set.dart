@@ -25,7 +25,7 @@ abstract class _HashSetBase<E> extends SetBase<E> {
   Set<E> toSet() => _newSet()..addAll(this);
 }
 abstract class HashSet<E> implements Set<E> {
-  @patch factory HashSet({bool equals(E e1, E e2), int hashCode(E e),
+  factory HashSet({bool equals(E e1, E e2), int hashCode(E e),
       bool isValidKey(potentialKey)}) {
     if (isValidKey == null) {
       if (hashCode == null) {
@@ -52,7 +52,7 @@ abstract class HashSet<E> implements Set<E> {
     }
     return new _CustomHashSet<E>(equals, hashCode, isValidKey);
   }
-  @patch factory HashSet.identity() = _IdentityHashSet<E>;
+  factory HashSet.identity() = _IdentityHashSet<E>;
   factory HashSet.from(Iterable elements) {
     HashSet<E> result = new HashSet<E>();
     for (E e in elements) result.add(e);

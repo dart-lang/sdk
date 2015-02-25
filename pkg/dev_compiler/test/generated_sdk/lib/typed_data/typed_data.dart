@@ -147,7 +147,11 @@ class Endianness {
  *     int huh = bdata.getInt32(0);
  */
 abstract class ByteData implements TypedData {
-  @patch factory ByteData(int length) = NativeByteData;
+  /**
+   * Creates a [ByteData] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory ByteData(int length) = NativeByteData;
 
   /**
    * Creates an [ByteData] _view_ of the specified region in the specified
@@ -418,9 +422,17 @@ abstract class ByteData implements TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Int8List implements List<int>, TypedData {
-  @patch factory Int8List(int length) = NativeInt8List;
+  /**
+   * Creates an [Int8List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Int8List(int length) = NativeInt8List;
 
-  @patch factory Int8List.fromList(List<int> elements) =
+  /**
+   * Creates a [Int8List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Int8List.fromList(List<int> elements) =
       NativeInt8List.fromList;
 
   /**
@@ -450,9 +462,17 @@ abstract class Int8List implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Uint8List implements List<int>, TypedData {
-  @patch factory Uint8List(int length) = NativeUint8List;
+  /**
+   * Creates a [Uint8List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Uint8List(int length) = NativeUint8List;
 
-  @patch factory Uint8List.fromList(List<int> elements) =
+  /**
+   * Creates a [Uint8List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Uint8List.fromList(List<int> elements) =
       NativeUint8List.fromList;
 
   /**
@@ -483,9 +503,17 @@ abstract class Uint8List implements List<int>, TypedData {
  * Indexed store clamps the value to range 0..0xFF.
  */
 abstract class Uint8ClampedList implements List<int>, TypedData {
-  @patch factory Uint8ClampedList(int length) = NativeUint8ClampedList;
+  /**
+   * Creates a [Uint8ClampedList] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Uint8ClampedList(int length) = NativeUint8ClampedList;
 
-  @patch factory Uint8ClampedList.fromList(List<int> elements) =
+  /**
+   * Creates a [Uint8ClampedList] of the same size as the [elements]
+   * list and copies over the values clamping when needed.
+   */
+  factory Uint8ClampedList.fromList(List<int> elements) =
       NativeUint8ClampedList.fromList;
 
   /**
@@ -515,9 +543,17 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Int16List implements List<int>, TypedData {
-  @patch factory Int16List(int length) = NativeInt16List;
+  /**
+   * Creates an [Int16List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Int16List(int length) = NativeInt16List;
 
-  @patch factory Int16List.fromList(List<int> elements) =
+  /**
+   * Creates a [Int16List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Int16List.fromList(List<int> elements) =
       NativeInt16List.fromList;
 
   /**
@@ -550,9 +586,17 @@ abstract class Int16List implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Uint16List implements List<int>, TypedData {
-  @patch factory Uint16List(int length) = NativeUint16List;
+  /**
+   * Creates a [Uint16List] of the specified length (in elements), all
+   * of whose elements are initially zero.
+   */
+  factory Uint16List(int length) = NativeUint16List;
 
-  @patch factory Uint16List.fromList(List<int> elements) =
+  /**
+   * Creates a [Uint16List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Uint16List.fromList(List<int> elements) =
       NativeUint16List.fromList;
 
   /**
@@ -585,9 +629,17 @@ abstract class Uint16List implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Int32List implements List<int>, TypedData {
-  @patch factory Int32List(int length) = NativeInt32List;
+  /**
+   * Creates an [Int32List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Int32List(int length) = NativeInt32List;
 
-  @patch factory Int32List.fromList(List<int> elements) =
+  /**
+   * Creates a [Int32List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Int32List.fromList(List<int> elements) =
       NativeInt32List.fromList;
 
   /**
@@ -620,9 +672,17 @@ abstract class Int32List implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Uint32List implements List<int>, TypedData {
-  @patch factory Uint32List(int length) = NativeUint32List;
+  /**
+   * Creates a [Uint32List] of the specified length (in elements), all
+   * of whose elements are initially zero.
+   */
+  factory Uint32List(int length) = NativeUint32List;
 
-  @patch factory Uint32List.fromList(List<int> elements) =
+  /**
+   * Creates a [Uint32List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Uint32List.fromList(List<int> elements) =
       NativeUint32List.fromList;
 
   /**
@@ -655,11 +715,19 @@ abstract class Uint32List implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Int64List implements List<int>, TypedData {
-  @patch factory Int64List(int length) {
+  /**
+   * Creates an [Int64List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Int64List(int length) {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
 
-  @patch factory Int64List.fromList(List<int> elements) {
+  /**
+   * Creates a [Int64List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Int64List.fromList(List<int> elements) {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
 
@@ -693,11 +761,19 @@ abstract class Int64List implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Uint64List implements List<int>, TypedData {
-  @patch factory Uint64List(int length) {
+  /**
+   * Creates a [Uint64List] of the specified length (in elements), all
+   * of whose elements are initially zero.
+   */
+  factory Uint64List(int length) {
     throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
 
-  @patch factory Uint64List.fromList(List<int> elements) {
+  /**
+   * Creates a [Uint64List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Uint64List.fromList(List<int> elements) {
     throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
 
@@ -733,9 +809,17 @@ abstract class Uint64List implements List<int>, TypedData {
  * the default [List] implementation.
  */
 abstract class Float32List implements List<double>, TypedData {
-  @patch factory Float32List(int length) = NativeFloat32List;
+  /**
+   * Creates a [Float32List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Float32List(int length) = NativeFloat32List;
 
-  @patch factory Float32List.fromList(List<double> elements) =
+  /**
+   * Creates a [Float32List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Float32List.fromList(List<double> elements) =
       NativeFloat32List.fromList;
 
   /**
@@ -769,9 +853,17 @@ abstract class Float32List implements List<double>, TypedData {
  * the default [List] implementation.
  */
 abstract class Float64List implements List<double>, TypedData {
-  @patch factory Float64List(int length) = NativeFloat64List;
+  /**
+   * Creates a [Float64List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  factory Float64List(int length) = NativeFloat64List;
 
-  @patch factory Float64List.fromList(List<double> elements) =
+  /**
+   * Creates a [Float64List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Float64List.fromList(List<double> elements) =
       NativeFloat64List.fromList;
 
   /**
@@ -804,9 +896,17 @@ abstract class Float64List implements List<double>, TypedData {
  * space- and time-efficient than the default [List] implementation.
  */
 abstract class Float32x4List implements List<Float32x4>, TypedData {
-  @patch factory Float32x4List(int length) = NativeFloat32x4List;
+  /**
+   * Creates a [Float32x4List] of the specified length (in elements),
+   * all of whose elements are initially zero.
+   */
+  factory Float32x4List(int length) = NativeFloat32x4List;
 
-  @patch factory Float32x4List.fromList(List<Float32x4> elements) =
+  /**
+   * Creates a [Float32x4List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Float32x4List.fromList(List<Float32x4> elements) =
       NativeFloat32x4List.fromList;
 
   /**
@@ -839,9 +939,17 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
  * space- and time-efficient than the default [List] implementation.
  */
 abstract class Int32x4List implements List<Int32x4>, TypedData {
-  @patch factory Int32x4List(int length) = NativeInt32x4List;
+  /**
+   * Creates a [Int32x4List] of the specified length (in elements),
+   * all of whose elements are initially zero.
+   */
+  factory Int32x4List(int length) = NativeInt32x4List;
 
-  @patch factory Int32x4List.fromList(List<Int32x4> elements) =
+  /**
+   * Creates a [Int32x4List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Int32x4List.fromList(List<Int32x4> elements) =
       NativeInt32x4List.fromList;
 
   /**
@@ -874,9 +982,17 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
  * space- and time-efficient than the default [List] implementation.
  */
 abstract class Float64x2List implements List<Float64x2>, TypedData {
-  @patch factory Float64x2List(int length) = NativeFloat64x2List;
+  /**
+   * Creates a [Float64x2List] of the specified length (in elements),
+   * all of whose elements have all lanes set to zero.
+   */
+  factory Float64x2List(int length) = NativeFloat64x2List;
 
-  @patch factory Float64x2List.fromList(List<Float64x2> elements) =
+  /**
+   * Creates a [Float64x2List] with the same length as the [elements] list
+   * and copies over the elements.
+   */
+  factory Float64x2List.fromList(List<Float64x2> elements) =
       NativeFloat64x2List.fromList;
 
   /**
@@ -909,13 +1025,15 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
  * The lanes are "x", "y", "z", and "w" respectively.
  */
 abstract class Float32x4 {
-  @patch factory Float32x4(double x, double y, double z, double w) =
+  factory Float32x4(double x, double y, double z, double w) =
       NativeFloat32x4;
-  @patch factory Float32x4.splat(double v) = NativeFloat32x4.splat;
-  @patch factory Float32x4.zero() = NativeFloat32x4.zero;
-  @patch factory Float32x4.fromInt32x4Bits(Int32x4 x) =
+  factory Float32x4.splat(double v) = NativeFloat32x4.splat;
+  factory Float32x4.zero() = NativeFloat32x4.zero;
+  factory Float32x4.fromInt32x4Bits(Int32x4 x) =
       NativeFloat32x4.fromInt32x4Bits;
-  @patch factory Float32x4.fromFloat64x2(Float64x2 v) =
+  /// Sets the x and y lanes to their respective values in [v] and sets the z
+  /// and w lanes to 0.0.
+  factory Float32x4.fromFloat64x2(Float64x2 v) =
       NativeFloat32x4.fromFloat64x2;
 
   /// Addition operator.
@@ -1264,10 +1382,10 @@ abstract class Float32x4 {
  * The lanes are "x", "y", "z", and "w" respectively.
  */
 abstract class Int32x4 {
-  @patch factory Int32x4(int x, int y, int z, int w) = NativeInt32x4;
-  @patch factory Int32x4.bool(bool x, bool y, bool z, bool w) =
+  factory Int32x4(int x, int y, int z, int w) = NativeInt32x4;
+  factory Int32x4.bool(bool x, bool y, bool z, bool w) =
       NativeInt32x4.bool;
-  @patch factory Int32x4.fromFloat32x4Bits(Float32x4 x) =
+  factory Int32x4.fromFloat32x4Bits(Float32x4 x) =
       NativeInt32x4.fromFloat32x4Bits;
 
   /// The bit-wise or operator.
@@ -1602,10 +1720,11 @@ abstract class Int32x4 {
  * The lanes are "x" and "y" respectively.
  */
 abstract class Float64x2 {
-  @patch factory Float64x2(double x, double y) = NativeFloat64x2;
-  @patch factory Float64x2.splat(double v) = NativeFloat64x2.splat;
-  @patch factory Float64x2.zero() = NativeFloat64x2.zero;
-  @patch factory Float64x2.fromFloat32x4(Float32x4 v) =
+  factory Float64x2(double x, double y) = NativeFloat64x2;
+  factory Float64x2.splat(double v) = NativeFloat64x2.splat;
+  factory Float64x2.zero() = NativeFloat64x2.zero;
+  /// Uses the "x" and "y" lanes from [v].
+  factory Float64x2.fromFloat32x4(Float32x4 v) =
       NativeFloat64x2.fromFloat32x4;
 
   /// Addition operator.

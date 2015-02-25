@@ -1,7 +1,7 @@
 part of dart.core;
 
 abstract class int extends num {
-  @patch factory int.fromEnvironment(String name, {int defaultValue}) {
+  factory int.fromEnvironment(String name, {int defaultValue}) {
     throw new UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
   }
@@ -29,10 +29,9 @@ abstract class int extends num {
   double truncateToDouble();
   String toString();
   String toRadixString(int radix);
-  @patch static int parse(String source,
-      {int radix, int onError(String source)}) {
+  static int parse(String source, {int radix, int onError(String source)}) {
     return ((__x24) => DDC$RT.cast(__x24, dynamic, int, "CastGeneral",
-        """line 246, column 12 of dart:core/int.dart: """, __x24 is int,
+        """line 281, column 12 of dart:core/int.dart: """, __x24 is int,
         true))(Primitives.parseInt(source, radix, onError));
   }
 }

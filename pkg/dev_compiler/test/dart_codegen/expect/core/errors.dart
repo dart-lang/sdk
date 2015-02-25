@@ -11,19 +11,19 @@ class Error {
     }
     return _objectToString(object);
   }
-  @patch static String _stringToSafeString(String string) {
+  static String _stringToSafeString(String string) {
     return ((__x14) => DDC$RT.cast(__x14, dynamic, String, "CastGeneral",
         """line 89, column 12 of dart:core/errors.dart: """, __x14 is String,
         true))(jsonEncodeNative(string));
   }
-  @patch static String _objectToString(Object object) {
+  static String _objectToString(Object object) {
     return ((__x15) => DDC$RT.cast(__x15, dynamic, String, "CastGeneral",
-        """line 94, column 12 of dart:core/errors.dart: """, __x15 is String,
+        """line 93, column 12 of dart:core/errors.dart: """, __x15 is String,
         true))(Primitives.objectToString(object));
   }
-  @patch StackTrace get stackTrace => ((__x16) => DDC$RT.cast(__x16, dynamic,
+  StackTrace get stackTrace => ((__x16) => DDC$RT.cast(__x16, dynamic,
       StackTrace, "CastGeneral",
-      """line 98, column 32 of dart:core/errors.dart: """, __x16 is StackTrace,
+      """line 96, column 32 of dart:core/errors.dart: """, __x16 is StackTrace,
       true))(Primitives.extractStackTrace(this));
 }
 class AssertionError extends Error {}
@@ -91,7 +91,7 @@ class RangeError extends ArgumentError {
   static void checkValidIndex(int index, var indexable,
       [String name, int length, String message]) {
     if (length == null) length = DDC$RT.cast(indexable.length, dynamic, int,
-        "CastGeneral", """line 287, column 34 of dart:core/errors.dart: """,
+        "CastGeneral", """line 285, column 34 of dart:core/errors.dart: """,
         indexable.length is int, true);
     if (index < 0 || index >= length) {
       if (name == null) name = "index";
@@ -175,7 +175,7 @@ class NoSuchMethodError extends Error {
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
         _existingArgumentNames = existingArgumentNames;
-  @patch String toString() {
+  String toString() {
     StringBuffer sb = new StringBuffer();
     int i = 0;
     if (_arguments != null) {

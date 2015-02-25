@@ -84,17 +84,15 @@ class Error {
     return _objectToString(object);
   }
 
-  @patch
+  /** Convert string to a valid string literal with no control characters. */
   static String _stringToSafeString(String string) {
     return jsonEncodeNative(string);
   }
 
-  @patch
   static String _objectToString(Object object) {
     return Primitives.objectToString(object);
   }
 
-  @patch
   StackTrace get stackTrace => Primitives.extractStackTrace(this);
 }
 
@@ -460,7 +458,6 @@ class NoSuchMethodError extends Error {
         _namedArguments = namedArguments,
         _existingArgumentNames = existingArgumentNames;
 
-  @patch
   String toString() {
     StringBuffer sb = new StringBuffer();
     int i = 0;

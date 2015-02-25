@@ -7,7 +7,7 @@ int _defaultHashCode(a) => DDC$RT.cast(a.hashCode, dynamic, int, "CastGeneral",
 typedef bool _Equality<K>(K a, K b);
 typedef int _Hasher<K>(K object);
 abstract class HashMap<K, V> implements Map<K, V> {
-  @patch factory HashMap({bool equals(K key1, K key2), int hashCode(K key),
+  factory HashMap({bool equals(K key1, K key2), int hashCode(K key),
       bool isValidKey(potentialKey)}) {
     if (isValidKey == null) {
       if (hashCode == null) {
@@ -34,12 +34,12 @@ abstract class HashMap<K, V> implements Map<K, V> {
     }
     return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
-  @patch factory HashMap.identity() = _IdentityHashMap<K, V>;
+  factory HashMap.identity() = _IdentityHashMap<K, V>;
   factory HashMap.from(Map other) {
     HashMap<K, V> result = new HashMap<K, V>();
     other.forEach((k, v) {
       result[k] = DDC$RT.cast(v, dynamic, V, "CastGeneral",
-          """line 74, column 40 of dart:collection/hash_map.dart: """, v is V,
+          """line 112, column 40 of dart:collection/hash_map.dart: """, v is V,
           false);
     });
     return result;

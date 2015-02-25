@@ -14,7 +14,7 @@ class Symbol implements core.Symbol {
       '^(?:$operatorRE\$|$publicIdentifierRE(?:=?\$|[.](?!\$)))+?\$');
   static final RegExp symbolPattern =
       new RegExp('^(?:$operatorRE\$|$identifierRE(?:=?\$|[.](?!\$)))+?\$');
-  @patch const Symbol(String name) : this._name = name;
+  const Symbol(String name) : this._name = name;
   const Symbol.unvalidated(this._name);
   Symbol.validated(String name) : this._name = validatePublicSymbol(name);
   bool operator ==(other) => other is Symbol && _name == other._name;

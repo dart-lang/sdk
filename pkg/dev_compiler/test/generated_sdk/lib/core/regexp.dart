@@ -118,7 +118,12 @@ abstract class Match {
  *     Iterable<Match> matches = exp.allMatches(str);
  */
 abstract class RegExp implements Pattern {
-  @patch
+  /**
+   * Constructs a regular expression.
+   *
+   * Throws a [FormatException] if [source] is not valid regular
+   * expression syntax.
+   */
   factory RegExp(String source,
                        {bool multiLine: false,
                         bool caseSensitive: true})

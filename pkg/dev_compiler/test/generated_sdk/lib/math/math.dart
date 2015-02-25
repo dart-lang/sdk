@@ -127,50 +127,142 @@ num max(num a, num b) {
   return a;
 }
 
-@patch
+/**
+ * A variant of [atan].
+ *
+ * Converts both arguments to doubles.
+ *
+ * Returns the angle between the positive x-axis and the vector ([b],[a]).
+ * The result, in radians, is in the range -PI..PI.
+ *
+ * If [b] is positive, this is the same as [:atan(b/a):].
+ *
+ * The result is negative when [a] is negative (including when [a] is the
+ * double -0.0).
+ *
+ * If [a] is equal to zero, the vector ([b],[a]) is considered parallel to
+ * the x-axis, even if [b] is also equal to zero. The sign of [b] determines
+ * the direction of the vector along the x-axis.
+ *
+ * Returns NaN if either argument is NaN.
+ */
 double atan2(num a, num b)
   => JS('double', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
 
-@patch
+/**
+ * Returns [x] to the power of [exponent].
+ *
+ * If [x] is an [int] and [exponent] is a non-negative [int], the result is
+ * an [int], otherwise both arguments are converted to doubles first, and the
+ * result is a [double].
+ *
+ * For integers, the power is always equal to the mathematical result of `x` to
+ * the power `exponent`, only limited by the available memory.
+ *
+ * For doubles, `pow(x, y)` handles edge cases as follows:
+ *
+ * - if `y` is zero (0.0 or -0.0), the result is always 1.0.
+ * - if `x` is 1.0, the result is always 1.0.
+ * - otherwise, if either `x` or `y` is NaN then the result is NaN.
+ * - if `x` is negative (but not -0.0) and `y` is a finite non-integer, the
+ *   result is NaN.
+ * - if `x` is Infinity and `y` is negative, the result is 0.0.
+ * - if `x` is Infinity and `y` is positive, the result is Infinity.
+ * - if `x` is 0.0 and `y` is negative, the result is Infinity.
+ * - if `x` is 0.0 and `y` is positive, the result is 0.0.
+ * - if `x` is -Infinity or -0.0 and `y` is an odd integer, then the result is
+ *   `-pow(-x ,y)`.
+ * - if `x` is -Infinity or -0.0 and `y` is not an odd integer, then the result
+ *   is the same as `pow(-x , y)`.
+ * - if `y` is Infinity and the absolute value of `x` is less than 1, the
+ *   result is 0.0.
+ * - if `y` is Infinity and `x` is -1, the result is 1.0.
+ * - if `y` is Infinity and the absolute value of `x` is greater than 1,
+ *   the result is Infinity.
+ * - if `y` is -Infinity, the result is `1/pow(x, Infinity)`.
+ *
+ * This corresponds to the `pow` function defined in the IEEE Standard 754-2008.
+ *
+ * Notice that an [int] result cannot overflow, but a [double] result might
+ * be [double.INFINITY].
+ */
 num pow(num x, num exponent) {
   checkNum(x);
   checkNum(exponent);
   return JS('num', r'Math.pow(#, #)', x, exponent);
 }
 
-@patch
+/**
+ * Converts [x] to a double and returns the sine of the value.
+ *
+ * If [x] is not a finite number, the result is NaN.
+ */
 double sin(num x)
   => JS('double', r'Math.sin(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a double and returns the cosine of the value.
+ *
+ * If [x] is not a finite number, the result is NaN.
+ */
 double cos(num x)
   => JS('double', r'Math.cos(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a double and returns the tangent of the value.
+ *
+ * The tangent function is equivalent to [:sin(x)/cos(x):] and may be
+ * infinite (positive or negative) when [:cos(x):] is equal to zero.
+ * If [x] is not a finite number, the result is NaN.
+ */
 double tan(num x)
   => JS('double', r'Math.tan(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a double and returns the arc cosine of the value.
+ *
+ * Returns a value in the range -PI..PI, or NaN if [x] is outside
+ * the range -1..1.
+ */
 double acos(num x)
   => JS('double', r'Math.acos(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a double and returns the arc sine of the value.
+ * Returns a value in the range -PI..PI, or  NaN if [x] is outside
+ * the range -1..1.
+ */
 double asin(num x)
   => JS('double', r'Math.asin(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a dobule and returns the arc tangent of the vlaue.
+ * Returns a value in the range -PI/2..PI/2, or NaN if [x] is NaN.
+ */
 double atan(num x)
   => JS('double', r'Math.atan(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a double and returns the positive square root of the value.
+ *
+ * Returns -0.0 if [x] is -0.0, and NaN if [x] is otherwise negative or NaN.
+ */
 double sqrt(num x)
   => JS('double', r'Math.sqrt(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a double and returns the natural exponent, [E],
+ * to the power [x].
+ * Returns NaN if [x] is NaN.
+ */
 double exp(num x)
   => JS('double', r'Math.exp(#)', checkNum(x));
 
-@patch
+/**
+ * Converts [x] to a double and returns the natural logarithm of the value.
+ * Returns negative infinity if [x] is equal to zero.
+ * Returns NaN if [x] is NaN or less than zero.
+ */
 double log(num x)
   => JS('double', r'Math.log(#)', checkNum(x));
 

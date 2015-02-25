@@ -171,12 +171,13 @@ class PatchApplier extends RecursiveAstVisitor {
     var patchNode = patches[name];
     if (patchNode == null) throw 'patch not found for $name: $node';
 
-    var code = patchCode.substring(patchNode.offset, patchNode.end);
+    Annotation patch = patchNode.metadata.lastWhere(_isPatchAnnotation);
+    var code = patchCode.substring(patch.endToken.next.offset, patchNode.end);
 
     // For some node like static fields, the node's offset doesn't include
-    // the external keyword.
-    var begin = math.min(node.offset, externalKeyword.offset);
-    edits.replace(begin, node.end, code);
+    // the external keyword. Also starting from the keyword lets us preserve
+    // documentation comments.
+    edits.replace(externalKeyword.offset, node.end, code);
   }
 }
 

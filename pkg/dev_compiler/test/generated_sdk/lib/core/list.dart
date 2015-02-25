@@ -52,7 +52,28 @@ part of dart.core;
  * break the iteration.
  */
 abstract class List<E> implements Iterable<E>, EfficientLength {
-  @patch
+  /**
+   * Creates a list of the given length.
+   *
+   * The created list is fixed-length if [length] is provided.
+   *
+   *     List fixedLengthList = new List(3);
+   *     fixedLengthList.length;     // 3
+   *     fixedLengthList.length = 1; // Error
+   *
+   * The list has length 0 and is growable if [length] is omitted.
+   *
+   *     List growableList = new List();
+   *     growableList.length; // 0;
+   *     growableList.length = 3;
+   *
+   * To create a growable list with a given length, just assign the length
+   * right after creation:
+   *
+   *     List growableList = new List()..length = 500;
+   *
+   * The [length] must not be negative or null, if it is provided.
+   */
   factory List([int length = const _ListConstructorSentinel()]) {
     if (length == const _ListConstructorSentinel()) {
       return new JSArray<E>.emptyGrowable();
@@ -60,7 +81,14 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
     return new JSArray<E>.fixed(length);
   }
 
-  @patch
+  /**
+   * Creates a fixed-length list of the given length, and initializes the
+   * value at each position with [fill]:
+   *
+   *     new List<int>.filled(3, 0); // [0, 0, 0]
+   *
+   * The [length] must not be negative or null.
+   */
   factory List.filled(int length, E fill) {
     List result = new JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
@@ -71,7 +99,14 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
     return result;
   }
 
-  @patch
+  /**
+   * Creates a list containing all [elements].
+   *
+   * The [Iterator] of [elements] provides the order of the elements.
+   *
+   * This constructor returns a growable list when [growable] is true;
+   * otherwise, it returns a fixed-length list.
+   */
   factory List.from(Iterable elements, { bool growable: true }) {
     List<E> list = new List<E>();
     for (E e in elements) {

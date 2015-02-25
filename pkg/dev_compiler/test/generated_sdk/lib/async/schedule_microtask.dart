@@ -135,7 +135,7 @@ void scheduleMicrotask(void callback()) {
 }
 
 class _AsyncRun {
-  @patch
+  /** Schedule the given callback before any other event in the event-loop. */
   static void _scheduleImmediate(void callback()) {
     scheduleImmediateClosure(callback);
   }

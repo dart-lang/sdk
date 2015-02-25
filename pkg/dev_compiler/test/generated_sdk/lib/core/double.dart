@@ -167,7 +167,40 @@ abstract class double extends num {
    */
   String toString();
 
-  @patch
+  /**
+   * Parse [source] as an double literal and return its value.
+   *
+   * Accepts an optional sign (`+` or `-`) followed by either the characters
+   * "Infinity", the characters "NaN" or a floating-point representation.
+   * A floating-point representation is composed of a mantissa and an optional
+   * exponent part. The mantissa is either a decimal point (`.`) followed by a
+   * sequence of (decimal) digits, or a sequence of digits
+   * optionally followed by a decimal point and optionally more digits. The
+   * (optional) exponent part consists of the character "e" or "E", an optional
+   * sign, and one or more digits.
+   *
+   * Leading and trailing whitespace is ignored.
+   *
+   * If the [source] is not a valid double literal, the [onError]
+   * is called with the [source] as argument, and its return value is
+   * used instead. If no `onError` is provided, a [FormatException]
+   * is thrown instead.
+   *
+   * The [onError] function is only invoked if [source] is a [String] with an
+   * invalid format. It is not invoked if the [source] is invalid for some
+   * other reason, for example by being `null`.
+   *
+   * Examples of accepted strings:
+   *
+   *     "3.14"
+   *     "  3.14 \xA0"
+   *     "0."
+   *     ".0"
+   *     "-1.e3"
+   *     "1234E+7"
+   *     "+.12e-9"
+   *     "-NaN"
+   */
   static double parse(String source,
                             [double onError(String source)]) {
     return Primitives.parseDouble(source, onError);

@@ -349,7 +349,30 @@ abstract class NonGrowableListError {
       => new UnsupportedError("Cannot remove from non-growable List");
 }
 
-@patch
+/**
+ * Converts a growable list to a fixed length list with the same elements.
+ *
+ * For internal use only.
+ * Only works on growable lists as created by `[]` or `new List()`.
+ * May throw on any other list.
+ *
+ * The operation is efficient. It doesn't copy the elements, but converts
+ * the existing list directly to a fixed length list.
+ * That means that it is a destructive conversion.
+ * The original list should not be used afterwards.
+ *
+ * The returned list may be the same list as the orginal,
+ * or it may be a different list (according to [identical]).
+ * The original list may have changed type to be a fixed list,
+ * or become empty or been otherwise modified.
+ * It will still be a valid object, so references to it will not, e.g., crash
+ * the runtime if accessed, but no promises are made wrt. its contents.
+ *
+ * This unspecified behavior is the reason the function is not exposed to
+ * users. We allow the underlying implementation to make the most efficient
+ * conversion, at the cost of leaving the original list in an unspecified
+ * state.
+ */
 List makeListFixedLength(List growableList) {
   JSArray.markFixedList(growableList);
   return growableList;

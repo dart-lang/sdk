@@ -1,8 +1,8 @@
 part of dart.collection;
 
 abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
-  @patch factory LinkedHashMap({bool equals(K key1, K key2),
-      int hashCode(K key), bool isValidKey(potentialKey)}) {
+  factory LinkedHashMap({bool equals(K key1, K key2), int hashCode(K key),
+      bool isValidKey(potentialKey)}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -28,12 +28,12 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
     }
     return new _LinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
-  @patch factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
+  factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
   factory LinkedHashMap.from(Map other) {
     LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
     other.forEach((k, v) {
       result[k] = DDC$RT.cast(v, dynamic, V, "CastGeneral",
-          """line 65, column 40 of dart:collection/linked_hash_map.dart: """,
+          """line 99, column 40 of dart:collection/linked_hash_map.dart: """,
           v is V, false);
     });
     return result;

@@ -11,7 +11,11 @@ part of dart.math;
  * pseudo-random bits that are not suitable for cryptographic purposes.
  */
 abstract class Random {
-  @patch
+  /**
+   * Creates a random-number generator. The optional parameter [seed] is used
+   * to initialize the internal state of the generator. The implementation of
+   * the random stream can change between releases of the library.
+   */
   factory Random([int seed]) =>
       (seed == null) ? const _JSRandom() : new _Random(seed);
 

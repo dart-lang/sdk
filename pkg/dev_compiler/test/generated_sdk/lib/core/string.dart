@@ -91,7 +91,26 @@ part of dart.core;
  * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-strings-and-regular-expressions)
  */
 abstract class String implements Comparable<String>, Pattern {
-  @patch
+  /**
+   * Allocates a new String for the specified [charCodes].
+   *
+   * The [charCodes] can be UTF-16 code units or runes. If a char-code value is
+   * 16-bit, it is copied verbatim:
+   *
+   *     new String.fromCharCodes([68]); // 'D'
+   *
+   * If a char-code value is greater than 16-bits, it is decomposed into a
+   * surrogate pair:
+   *
+   *     var clef = new String.fromCharCodes([0x1D11E]);
+   *     clef.codeUnitAt(0); // 0xD834
+   *     clef.codeUnitAt(1); // 0xDD1E
+   *
+   * If [start] and [end] is provided, only the values of [charCodes]
+   * at positions from `start` to, but not including, `end`, are used.
+   * The `start` and `end` values must satisfy
+   * `0 <= start <= end <= charCodes.length`.
+   */
   factory String.fromCharCodes(Iterable<int> charCodes,
                                [int start = 0, int end]) {
     // If possible, recognize typed lists too.
@@ -116,12 +135,38 @@ abstract class String implements Comparable<String>, Pattern {
     return Primitives.stringFromCharCodes(list);
   }
 
-  @patch
+  /**
+   * Allocates a new String for the specified [charCode].
+   *
+   * If the [charCode] can be represented by a single UTF-16 code unit, the new
+   * string contains a single code unit. Otherwise, the [length] is 2 and
+   * the code units form a surrogate pair. See documentation for
+   * [fromCharCodes].
+   *
+   * Creating a String with half of a surrogate pair is allowed.
+   */
   factory String.fromCharCode(int charCode) {
     return Primitives.stringFromCharCode(charCode);
   }
 
-  @patch
+  /**
+   * Returns the string value of the environment declaration [name].
+   *
+   * Environment declarations are provided by the surrounding system compiling
+   * or running the Dart program. Declarations map a string key to a string
+   * value.
+   *
+   * If [name] is not declared in the environment, the result is instead
+   * [defaultValue].
+   *
+   * Example of getting a value:
+   *
+   *     const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
+   *
+   * Example of checking whether a declaration is there at all:
+   *
+   *     var isDeclared = const String.fromEnvironment("maybeDeclared") != null;
+   */
   factory String.fromEnvironment(String name, {String defaultValue}) {
     throw new UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');

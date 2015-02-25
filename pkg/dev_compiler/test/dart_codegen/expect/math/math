@@ -47,43 +47,42 @@ num max(num a, num b) {
   if (b == 0 && a.isNegative) return b;
   return a;
 }
-@patch double atan2(num a, num b) => ((__x13) => DDC$RT.cast(__x13, dynamic,
-    double, "CastGeneral", """line 132, column 6 of dart:math: """,
-    __x13 is double,
+double atan2(num a, num b) => ((__x13) => DDC$RT.cast(__x13, dynamic, double,
+    "CastGeneral", """line 150, column 6 of dart:math: """, __x13 is double,
     true))(JS('double', r'Math.atan2(#, #)', checkNum(a), checkNum(b)));
-@patch num pow(num x, num exponent) {
+num pow(num x, num exponent) {
   checkNum(x);
   checkNum(exponent);
   return ((__x14) => DDC$RT.cast(__x14, dynamic, num, "CastGeneral",
-      """line 138, column 10 of dart:math: """, __x14 is num,
+      """line 192, column 10 of dart:math: """, __x14 is num,
       true))(JS('num', r'Math.pow(#, #)', x, exponent));
 }
-@patch double sin(num x) => ((__x15) => DDC$RT.cast(__x15, dynamic, double,
-    "CastGeneral", """line 143, column 6 of dart:math: """, __x15 is double,
+double sin(num x) => ((__x15) => DDC$RT.cast(__x15, dynamic, double,
+    "CastGeneral", """line 201, column 6 of dart:math: """, __x15 is double,
     true))(JS('double', r'Math.sin(#)', checkNum(x)));
-@patch double cos(num x) => ((__x16) => DDC$RT.cast(__x16, dynamic, double,
-    "CastGeneral", """line 147, column 6 of dart:math: """, __x16 is double,
+double cos(num x) => ((__x16) => DDC$RT.cast(__x16, dynamic, double,
+    "CastGeneral", """line 209, column 6 of dart:math: """, __x16 is double,
     true))(JS('double', r'Math.cos(#)', checkNum(x)));
-@patch double tan(num x) => ((__x17) => DDC$RT.cast(__x17, dynamic, double,
-    "CastGeneral", """line 151, column 6 of dart:math: """, __x17 is double,
+double tan(num x) => ((__x17) => DDC$RT.cast(__x17, dynamic, double,
+    "CastGeneral", """line 219, column 6 of dart:math: """, __x17 is double,
     true))(JS('double', r'Math.tan(#)', checkNum(x)));
-@patch double acos(num x) => ((__x18) => DDC$RT.cast(__x18, dynamic, double,
-    "CastGeneral", """line 155, column 6 of dart:math: """, __x18 is double,
+double acos(num x) => ((__x18) => DDC$RT.cast(__x18, dynamic, double,
+    "CastGeneral", """line 228, column 6 of dart:math: """, __x18 is double,
     true))(JS('double', r'Math.acos(#)', checkNum(x)));
-@patch double asin(num x) => ((__x19) => DDC$RT.cast(__x19, dynamic, double,
-    "CastGeneral", """line 159, column 6 of dart:math: """, __x19 is double,
+double asin(num x) => ((__x19) => DDC$RT.cast(__x19, dynamic, double,
+    "CastGeneral", """line 236, column 6 of dart:math: """, __x19 is double,
     true))(JS('double', r'Math.asin(#)', checkNum(x)));
-@patch double atan(num x) => ((__x20) => DDC$RT.cast(__x20, dynamic, double,
-    "CastGeneral", """line 163, column 6 of dart:math: """, __x20 is double,
+double atan(num x) => ((__x20) => DDC$RT.cast(__x20, dynamic, double,
+    "CastGeneral", """line 243, column 6 of dart:math: """, __x20 is double,
     true))(JS('double', r'Math.atan(#)', checkNum(x)));
-@patch double sqrt(num x) => ((__x21) => DDC$RT.cast(__x21, dynamic, double,
-    "CastGeneral", """line 167, column 6 of dart:math: """, __x21 is double,
+double sqrt(num x) => ((__x21) => DDC$RT.cast(__x21, dynamic, double,
+    "CastGeneral", """line 251, column 6 of dart:math: """, __x21 is double,
     true))(JS('double', r'Math.sqrt(#)', checkNum(x)));
-@patch double exp(num x) => ((__x22) => DDC$RT.cast(__x22, dynamic, double,
-    "CastGeneral", """line 171, column 6 of dart:math: """, __x22 is double,
+double exp(num x) => ((__x22) => DDC$RT.cast(__x22, dynamic, double,
+    "CastGeneral", """line 259, column 6 of dart:math: """, __x22 is double,
     true))(JS('double', r'Math.exp(#)', checkNum(x)));
-@patch double log(num x) => ((__x23) => DDC$RT.cast(__x23, dynamic, double,
-    "CastGeneral", """line 175, column 6 of dart:math: """, __x23 is double,
+double log(num x) => ((__x23) => DDC$RT.cast(__x23, dynamic, double,
+    "CastGeneral", """line 267, column 6 of dart:math: """, __x23 is double,
     true))(JS('double', r'Math.log(#)', checkNum(x)));
 const int _POW2_32 = 0x100000000;
 class _JSRandom implements Random {
@@ -93,14 +92,14 @@ class _JSRandom implements Random {
       throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
     }
     return ((__x24) => DDC$RT.cast(__x24, dynamic, int, "CastGeneral",
-        """line 186, column 12 of dart:math: """, __x24 is int,
+        """line 278, column 12 of dart:math: """, __x24 is int,
         true))(JS("int", "(Math.random() * #) >>> 0", max));
   }
   double nextDouble() => ((__x25) => DDC$RT.cast(__x25, dynamic, double,
-      "CastGeneral", """line 193, column 26 of dart:math: """, __x25 is double,
+      "CastGeneral", """line 285, column 26 of dart:math: """, __x25 is double,
       true))(JS("double", "Math.random()"));
   bool nextBool() => ((__x26) => DDC$RT.cast(__x26, dynamic, bool,
-      "CastGeneral", """line 198, column 22 of dart:math: """, __x26 is bool,
+      "CastGeneral", """line 290, column 22 of dart:math: """, __x26 is bool,
       true))(JS("bool", "Math.random() < 0.5"));
 }
 class _Random implements Random {
@@ -189,7 +188,7 @@ class _Random implements Random {
       _nextState();
       rnd32 = _lo;
       result = ((__x27) => DDC$RT.cast(__x27, num, int, "CastGeneral",
-          """line 332, column 16 of dart:math: """, __x27 is int,
+          """line 424, column 16 of dart:math: """, __x27 is int,
           true))(rnd32.remainder(max));
     } while ((rnd32 - result + max) >= _POW2_32);
     return result;

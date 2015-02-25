@@ -134,11 +134,13 @@ class Stopwatch {
    */
   static int _frequency;
 
-  @patch
+  /**
+   * Initializes the time-measuring system. *Must* initialize the [_frequency]
+   * variable.
+   */
   static void _initTicker() {
     Primitives.initTicker();
     _frequency = Primitives.timerFrequency;
   }
-  @patch
   static int _now() => Primitives.timerTicks();
 }

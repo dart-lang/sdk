@@ -11,10 +11,10 @@ abstract class Match {
   Pattern get pattern;
 }
 abstract class RegExp implements Pattern {
-  @patch factory RegExp(String source,
+  factory RegExp(String source,
       {bool multiLine: false, bool caseSensitive: true}) => ((__x33) => DDC$RT
               .cast(__x33, dynamic, RegExp, "CastExact",
-                  """line 125, column 8 of dart:core/regexp.dart: """,
+                  """line 130, column 8 of dart:core/regexp.dart: """,
                   __x33 is RegExp, true))(new JSSyntaxRegExp(source,
           multiLine: multiLine, caseSensitive: caseSensitive));
   Match firstMatch(String input);

@@ -98,7 +98,6 @@ class Symbol implements core.Symbol {
   static final RegExp symbolPattern = new RegExp(
       '^(?:$operatorRE\$|$identifierRE(?:=?\$|[.](?!\$)))+?\$');
 
-  @patch
   const Symbol(String name)
       : this._name = name;
 
