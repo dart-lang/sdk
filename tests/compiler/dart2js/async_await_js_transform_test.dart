@@ -101,7 +101,7 @@ function(b) {
           case 8:
             // while condition
             __handler = 10;
-            inner: {
+            inner:
               while (true) {
                 __next = [6];
                 // goto finally
@@ -109,7 +109,6 @@ function(b) {
                 break __outer1;
                 break;
               }
-            }
             while (true) {
               __next = [1, 4];
               // goto finally
@@ -315,9 +314,9 @@ function(d2) {
           c = __result;
           d = foo1() || foo2();
           __temp1 = foo1();
-          if (__temp1) {
+          if (__temp1)
             __result = __temp1;
-          } else {
+          else {
             // goto then
             __goto = 10;
             break;
@@ -344,9 +343,9 @@ function(d2) {
         case 16:
           // returning from await.
           __temp1 = __result;
-          if (__temp1) {
+          if (__temp1)
             __result = __temp1;
-          } else {
+          else {
             // goto then
             __goto = 14;
             break;
@@ -984,9 +983,9 @@ function(x, y, k) {
           break;
         case 14:
           // case
-          if (a) {
+          if (a)
             throw new Error();
-          } else {
+          else {
             // goto while condition
             __goto = 3;
             break;
