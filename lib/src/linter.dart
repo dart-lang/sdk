@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:linter/src/analysis.dart';
+import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 
 final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
@@ -61,12 +62,14 @@ abstract class DartLinter {
   factory DartLinter.forRules(RuleSet ruleSet) =>
       new DartLinter(new LinterOptions(ruleSet));
 
+  LinterOptions get options;
+
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile);
 
   Iterable<AnalysisErrorInfo> lintLibrarySource(
       {String libraryName, String libraryContents});
 
-  LinterOptions get options;
+  Iterable<AnalysisErrorInfo> lintPubSpecSource({String contents});
 }
 
 class Group {
@@ -168,41 +171,6 @@ follow, depending on circumstances, precedents, and your own preference.
   int compareTo(Kind other) => this.ordinal - other.ordinal;
 }
 
-/// Describes a lint rule.
-abstract class LintRule extends Linter implements Comparable<LintRule> {
-
-  /// Description (in markdown format) suitable for display in a detailed lint
-  /// description.
-  final String details;
-  /// Short description suitable for display in console output.
-  final String description;
-  /// Lint group (for example, 'Style Guide')
-  final Group group;
-  /// Lint kind (DO|DON'T|PREFER|AVOID|CONSIDER).
-  final Kind kind;
-  /// Lint maturity (STABLE|EXPERIMENTAL).
-  final Maturity maturity;
-  /// Lint name.
-  final CamelCaseString name;
-
-  LintRule({String name, this.group, this.kind, this.description, this.details,
-      this.maturity: Maturity.STABLE}) : name = new CamelCaseString(name);
-
-  @override
-  int compareTo(LintRule other) {
-    var k = kind.compareTo(other.kind);
-    if (k != 0) {
-      return k;
-    }
-    return name.value.compareTo(other.name.value);
-  }
-
-  void reportLint(AstNode node) {
-    reporter.reportErrorForNode(
-        new LintCode(name.value, description), node, []);
-  }
-}
-
 /// Thrown when an error occurs in linting.
 class LinterException implements Exception {
 
@@ -224,6 +192,52 @@ class LinterOptions extends DriverOptions {
       (AnalysisError error) => error.errorCode.type == ErrorType.LINT;
   LinterOptions(this._enabledLints);
   Iterable<Linter> get enabledLints => _enabledLints();
+}
+
+/// Describes a lint rule.
+abstract class LintRule extends Linter implements Comparable<LintRule> {
+
+  /// Description (in markdown format) suitable for display in a detailed lint
+  /// description.
+  final String details;
+  /// Short description suitable for display in console output.
+  final String description;
+  /// Lint group (for example, 'Style Guide')
+  final Group group;
+  /// Lint kind (DO|DON'T|PREFER|AVOID|CONSIDER).
+  final Kind kind;
+  /// Lint maturity (STABLE|EXPERIMENTAL).
+  final Maturity maturity;
+  /// Lint name.
+  final CamelCaseString name;
+
+  LintRule({String name, this.group, this.kind, this.description, this.details,
+      this.maturity: Maturity.STABLE})
+      : name = new CamelCaseString(name);
+
+  @override
+  int compareTo(LintRule other) {
+    var k = kind.compareTo(other.kind);
+    if (k != 0) {
+      return k;
+    }
+    return name.value.compareTo(other.name.value);
+  }
+
+  /// Return a visitor to be passed to pubspecs to perform lint
+  /// analysis.
+  /// Lint errors are reported via this [Linter]'s error [reporter].
+  PubSpecVisitor getPubSpecVisitor() => null;
+
+  void reportLint(AstNode node) {
+    reporter.reportErrorForNode(
+        new LintCode(name.value, description), node, []);
+  }
+
+  void reportPubLint(PSNode node) {
+    reporter.reportErrorForOffset(new LintCode(name.value, description),
+        node.span.start.offset, node.span.length);
+  }
 }
 
 class Maturity implements Comparable<Maturity> {
@@ -310,6 +324,29 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       {String libraryName, String libraryContents}) => _registerAndRun(
           () => new AnalysisDriver.forSource(
               new _StringSource(libraryContents, libraryName), options));
+
+  @override
+  Iterable<AnalysisErrorInfo> lintPubSpecSource({String contents}) {
+
+    //TODO: error handling
+    var spec = new PubSpec.parse(contents);
+
+    for (Linter lint in options.enabledLints) {
+      if (lint is LintRule) {
+        LintRule rule = lint;
+        var visitor = rule.getPubSpecVisitor();
+        if (visitor != null) {
+          try {
+            spec.accept(visitor);
+          } on Exception catch (e) {
+            reporter.exception(new LinterException(e.toString()));
+          }
+        }
+      }
+    }
+    //TODO: collect and return errors
+    return null;
+  }
 
   @override
   onError(AnalysisError error) => errors.add(error);

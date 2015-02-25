@@ -14,6 +14,7 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:cli_util/cli_util.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/util.dart';
@@ -98,6 +99,15 @@ void defineLinterEngineTests() {
             libraryContents: 'library testLibrary;');
         expect(visited, isTrue);
       });
+
+      test('pubspec', () {
+        bool visited;
+        var options =
+            new LinterOptions(() => [new MockLinter((n) => visited = true)]);
+        new SourceLinter(options).lintPubSpecSource(contents: 'name: foo_bar');
+        expect(visited, isTrue);
+      });
+
       test('error collecting', () {
         var error = new AnalysisError.con1(new StringSource('foo', ''),
             new LintCode('MockLint', 'This is a test...'));
@@ -347,8 +357,8 @@ main() {
 }
 
 AnnotationMatcher matchesAnnotation(
-    String message, ErrorType type, int lineNumber) =>
-        new AnnotationMatcher(new Annotation(message, type, lineNumber));
+        String message, ErrorType type, int lineNumber) =>
+    new AnnotationMatcher(new Annotation(message, type, lineNumber));
 
 void testRule(String ruleName, File file) {
   test('$ruleName', () {
@@ -381,9 +391,9 @@ void testRule(String ruleName, File file) {
   });
 }
 
-typedef nodeVisitor(AstNode node);
+typedef nodeVisitor(node);
 
-typedef AstVisitor VisitorCallback();
+typedef dynamic /* AstVisitor, PubSpecVisitor*/ VisitorCallback();
 
 class Annotation {
   final String message;
@@ -415,9 +425,8 @@ class AnnotationMatcher extends Matcher {
   Description describe(Description description) =>
       description.addDescriptionOf(_expected);
 
-  bool matches(item, Map matchState) {
-    return item is Annotation && _matches(item as Annotation);
-  }
+  bool matches(item, Map matchState) =>
+      item is Annotation && _matches(item as Annotation);
 
   bool _matches(Annotation other) {
     // Only test messages if they're specified in the expectation
@@ -444,6 +453,9 @@ class MockLinter extends LintRule {
   }
 
   @override
+  PubSpecVisitor getPubSpecVisitor() => visitorCallback();
+
+  @override
   AstVisitor getVisitor() => visitorCallback();
 }
 
@@ -454,12 +466,18 @@ class MockLintRule extends LintRule {
   AstVisitor getVisitor() => new MockVisitor(null);
 }
 
-class MockVisitor extends GeneralizingAstVisitor {
+class MockVisitor extends GeneralizingAstVisitor with PubSpecVisitor {
   final nodeVisitor;
 
   MockVisitor(this.nodeVisitor);
 
   visitNode(AstNode node) {
+    if (nodeVisitor != null) {
+      nodeVisitor(node);
+    }
+  }
+
+  visitPackageName(PSEntry node) {
     if (nodeVisitor != null) {
       nodeVisitor(node);
     }
