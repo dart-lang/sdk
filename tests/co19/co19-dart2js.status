@@ -1466,12 +1466,10 @@ LayoutTests/fast/canvas/canvas-lineDash_t01: RuntimeError # Please triage this f
 LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-putImageData_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-resize-after-paint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-shadowBlur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-strokePath-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-set-properties-with-non-invertible-ctm_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-stroke-zeroSizeGradient_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokePath-gradient-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeRect-alpha-shadow_t01: Pass, RuntimeError # Please triage this failure
@@ -1780,7 +1778,6 @@ LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # P
 LayoutTests/fast/css/parsing-css-escapes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-nonascii_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-nth-child_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/parsing-object-fit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-object-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-selector-error-recovery_t01: RuntimeError # Please triage this failure
@@ -1831,7 +1828,6 @@ LayoutTests/fast/css/word-break-user-modify-allowed-values_t01: RuntimeError # P
 LayoutTests/fast/css/zoom-property-parsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-line_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-underline-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
@@ -1956,8 +1952,6 @@ LayoutTests/fast/dom/MutationObserver/added-out-of-order_t01: RuntimeError # Ple
 LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/removed-out-of-order_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Please triage this failure
@@ -2939,6 +2933,18 @@ WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Ti
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+LayoutTests/fast/dom/Window/window-scroll-arguments_t01: RuntimeError # Issue 22564
+WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError # Issue 22564
+
+[ $compiler == dart2js && $runtime == ff && $system != windows ]
+LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/parsing-object-fit_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-style_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == safari ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
