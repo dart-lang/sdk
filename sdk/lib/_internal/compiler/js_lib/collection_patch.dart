@@ -544,7 +544,7 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
       LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
-      if (identical(cell.key, key)) return i;
+      if (identical(cell.hashMapCellKey, key)) return i;
     }
     return -1;
   }
@@ -589,7 +589,7 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
       LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
-      if (_equals(cell.key, key)) return i;
+      if (_equals(cell.hashMapCellKey, key)) return i;
     }
     return -1;
   }
