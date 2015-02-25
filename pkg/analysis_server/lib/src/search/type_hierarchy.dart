@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/element.dart';
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
+  LibraryElement _pivotLibrary;
   ElementKind _pivotKind;
   String _pivotName;
 
@@ -33,6 +34,7 @@ class TypeHierarchyComputer {
    * Returns the computed type hierarchy, maybe `null`.
    */
   Future<List<TypeHierarchyItem>> compute(Element element) {
+    _pivotLibrary = element.library;
     _pivotKind = element.kind;
     _pivotName = element.name;
     if (element is ExecutableElement &&
@@ -136,16 +138,36 @@ class TypeHierarchyComputer {
     return itemId;
   }
 
-  ExecutableElement _findMemberElement(ClassElement classElement) {
+  ExecutableElement _findMemberElement(ClassElement clazz) {
+    ExecutableElement result;
+    // try to find in the class itself
     if (_pivotKind == ElementKind.METHOD) {
-      return classElement.getMethod(_pivotName);
+      result = clazz.getMethod(_pivotName);
+    } else if (_pivotKind == ElementKind.GETTER) {
+      result = clazz.getGetter(_pivotName);
+    } else if (_pivotKind == ElementKind.SETTER) {
+      result = clazz.getSetter(_pivotName);
     }
-    if (_pivotKind == ElementKind.GETTER) {
-      return classElement.getGetter(_pivotName);
+    if (result != null) {
+      return result;
     }
-    if (_pivotKind == ElementKind.SETTER) {
-      return classElement.getSetter(_pivotName);
+    // try to find in the class mixin
+    for (InterfaceType mixin in clazz.mixins.reversed) {
+      ClassElement mixinElement = mixin.element;
+      if (_pivotKind == ElementKind.METHOD) {
+        result = mixinElement.lookUpMethod(_pivotName, _pivotLibrary);
+      }
+      if (_pivotKind == ElementKind.GETTER) {
+        result = mixinElement.lookUpGetter(_pivotName, _pivotLibrary);
+      }
+      if (_pivotKind == ElementKind.SETTER) {
+        result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
+      }
+      if (result != null) {
+        return result;
+      }
     }
+    // not found
     return null;
   }
 }

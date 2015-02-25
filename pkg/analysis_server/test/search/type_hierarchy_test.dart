@@ -484,6 +484,92 @@ class D extends C {
         findOffset('test() {} // in D'));
   }
 
+  test_member_ofMixin_getter() async {
+    addTestFile('''
+abstract class Base {
+  get test; // in Base
+}
+class Mixin {
+  get test => null; // in Mixin
+}
+class Derived1 extends Base with Mixin {}
+class Derived2 extends Base {
+  get test => null; // in Derived2
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test; // in Base');
+    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
+    Element memberBase = itemBase.memberElement;
+    Element member1 = item1.memberElement;
+    Element member2 = item2.memberElement;
+    expect(memberBase, isNotNull);
+    expect(member1, isNotNull);
+    expect(member2, isNotNull);
+    expect(memberBase.location.offset, findOffset('test; // in Base'));
+    expect(member1.location.offset, findOffset('test => null; // in Mixin'));
+    expect(member2.location.offset, findOffset('test => null; // in Derived2'));
+  }
+
+  test_member_ofMixin_method() async {
+    addTestFile('''
+abstract class Base {
+  void test(); // in Base
+}
+class Mixin {
+  void test() {} // in Mixin
+}
+class Derived1 extends Base with Mixin {}
+class Derived2 extends Base {
+  void test() {} // in Derived2
+}
+''');
+    List<TypeHierarchyItem> items =
+        await _getTypeHierarchy('test(); // in Base');
+    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
+    Element memberBase = itemBase.memberElement;
+    Element member1 = item1.memberElement;
+    Element member2 = item2.memberElement;
+    expect(memberBase, isNotNull);
+    expect(member1, isNotNull);
+    expect(member2, isNotNull);
+    expect(memberBase.location.offset, findOffset('test(); // in Base'));
+    expect(member1.location.offset, findOffset('test() {} // in Mixin'));
+    expect(member2.location.offset, findOffset('test() {} // in Derived2'));
+  }
+
+  test_member_ofMixin_setter() async {
+    addTestFile('''
+abstract class Base {
+  set test(x); // in Base
+}
+class Mixin {
+  set test(x) {} // in Mixin
+}
+class Derived1 extends Base with Mixin {}
+class Derived2 extends Base {
+  set test(x) {} // in Derived2
+}
+''');
+    List<TypeHierarchyItem> items =
+        await _getTypeHierarchy('test(x); // in Base');
+    var itemBase = items.firstWhere((e) => e.classElement.name == 'Base');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'Derived1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'Derived2');
+    Element memberBase = itemBase.memberElement;
+    Element member1 = item1.memberElement;
+    Element member2 = item2.memberElement;
+    expect(memberBase, isNotNull);
+    expect(member1, isNotNull);
+    expect(member2, isNotNull);
+    expect(memberBase.location.offset, findOffset('test(x); // in Base'));
+    expect(member1.location.offset, findOffset('test(x) {} // in Mixin'));
+    expect(member2.location.offset, findOffset('test(x) {} // in Derived2'));
+  }
+
   test_member_operator() async {
     addTestFile('''
 class A {
