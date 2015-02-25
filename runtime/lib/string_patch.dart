@@ -579,6 +579,7 @@ class _StringBase {
     int length = this.length;
     end = RangeError.checkValidRange(start, end, length);
     bool replacementIsOneByte = replacement._isOneByte;
+    if (start == 0 && end == length) return replacement;
     int replacementLength = replacement.length;
     int totalLength = start + (length - end) + replacementLength;
     if (replacementIsOneByte && this._isOneByte) {

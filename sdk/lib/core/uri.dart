@@ -753,8 +753,8 @@ class Uri {
   }
 
   static _makeFileUri(String path) {
-    String sep = "/";
-  if (path.startsWith(sep)) {
+    const String sep = "/";
+    if (path.startsWith(sep)) {
       // Absolute file:// URI.
       return new Uri(scheme: "file", pathSegments: path.split(sep));
     } else {
@@ -764,23 +764,23 @@ class Uri {
   }
 
   static _makeWindowsFileUrl(String path) {
-    if (path.startsWith("\\\\?\\")) {
-      if (path.startsWith("\\\\?\\UNC\\")) {
-        path = "\\${path.substring(7)}";
+    if (path.startsWith(r"\\?\")) {
+      if (path.startsWith(r"UNC\", 4)) {
+        path = path.replaceRange(0, 7, r'\');
       } else {
         path = path.substring(4);
         if (path.length < 3 ||
             path.codeUnitAt(1) != _COLON ||
             path.codeUnitAt(2) != _BACKSLASH) {
           throw new ArgumentError(
-              "Windows paths with \\\\?\\ prefix must be absolute");
+              r"Windows paths with \\?\ prefix must be absolute");
         }
       }
     } else {
-      path = path.replaceAll("/", "\\");
+      path = path.replaceAll("/", r'\');
     }
-    String sep = "\\";
-    if (path.length > 1 && path[1] == ":") {
+    const String sep = r'\';
+    if (path.length > 1 && path.codeUnitAt(1) == _COLON) {
       _checkWindowsDriveLetter(path.codeUnitAt(0), true);
       if (path.length == 2 || path.codeUnitAt(2) != _BACKSLASH) {
         throw new ArgumentError(
@@ -792,14 +792,14 @@ class Uri {
       return new Uri(scheme: "file", pathSegments: pathSegments);
     }
 
-    if (path.length > 0 && path[0] == sep) {
-      if (path.length > 1 && path[1] == sep) {
+    if (path.startsWith(sep)) {
+      if (path.startsWith(sep, 1)) {
         // Absolute file:// URI with host.
-        int pathStart = path.indexOf("\\", 2);
+        int pathStart = path.indexOf(r'\', 2);
         String hostPart =
-            pathStart == -1 ? path.substring(2) : path.substring(2, pathStart);
+            (pathStart < 0) ? path.substring(2) : path.substring(2, pathStart);
         String pathPart =
-            pathStart == -1 ? "" : path.substring(pathStart + 1);
+            (pathStart < 0) ? "" : path.substring(pathStart + 1);
         var pathSegments = pathPart.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
         return new Uri(
@@ -1387,8 +1387,8 @@ class Uri {
       baseEnd = newEnd;
       backCount--;
     }
-    return base.substring(0, baseEnd + 1) +
-           reference.substring(refStart - 3 * backCount);
+    return base.replaceRange(baseEnd + 1, null,
+                             reference.substring(refStart - 3 * backCount));
   }
 
   bool _hasDotSegments(String path) {
