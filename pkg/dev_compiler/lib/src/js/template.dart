@@ -260,6 +260,43 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  Instantiator visitInterpolatedMethod(InterpolatedMethod node) {
+    var nameOrPosition = node.nameOrPosition;
+    return (arguments) {
+      var value = arguments[nameOrPosition];
+      Method toMethod(item) {
+        if (item is Method) return item;
+        return error('Interpolated value #$nameOrPosition is not a Method '
+            'or List of Methods: $value');
+      }
+      if (value is Iterable) return value.map(toMethod);
+      return toMethod(value);
+    };
+  }
+
+  Instantiator visitInterpolatedPropertyName(InterpolatedPropertyName node) {
+    var nameOrPosition = node.nameOrPosition;
+    return (arguments) {
+      var item = arguments[nameOrPosition];
+      if (item is PropertyName) return item;
+      if (item is String) return new PropertyName(item);
+      return error('Interpolated value #$nameOrPosition is not a '
+          'PropertyName or String: $item');
+    };
+  }
+
+  Instantiator visitInterpolatedVariableDeclaration(
+        InterpolatedVariableDeclaration node) {
+    var nameOrPosition = node.nameOrPosition;
+    return (arguments) {
+      var item = arguments[nameOrPosition];
+      if (item is VariableDeclaration) return item;
+      if (item is String) return new VariableDeclaration(item);
+      return error('Interpolated value #$nameOrPosition is not a '
+          'VariableDeclaration or String: $item');
+    };
+  }
+
   Instantiator visitSplayableStatement(Node node) {
     if (node is InterpolatedStatement) {
       var nameOrPosition = node.nameOrPosition;
@@ -404,6 +441,18 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  Instantiator visitForOf(ForOf node) {
+    Instantiator makeLeftHandSide = visit(node.leftHandSide);
+    Instantiator makeObject = visit(node.iterable);
+    Instantiator makeBody = visit(node.body);
+    return (arguments) {
+      return new ForOf(
+          makeLeftHandSide(arguments),
+          makeObject(arguments),
+          makeBody(arguments));
+    };
+  }
+
   TODO(String name) {
     throw new UnimplementedError('$this.$name');
   }
@@ -511,7 +560,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         var result = instantiator(arguments);
         declarations.add(result);
       }
-      return new VariableDeclarationList(declarations);
+      return new VariableDeclarationList(node.keyword, declarations);
     };
   }
 
@@ -598,6 +647,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => new VariableUse(node.name);
 
   Instantiator visitThis(This node) => (arguments) => new This();
+  Instantiator visitSuper(Super node) => (arguments) => new Super();
 
   Instantiator visitVariableDeclaration(VariableDeclaration node) =>
       (arguments) => new VariableDeclaration(node.name);
@@ -619,7 +669,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         new NamedFunction(makeDeclaration(arguments), makeFunction(arguments));
   }
 
-  Instantiator visitFun(Fun node) {
+  Instantiator visitFunctionExpression(FunctionExpression node) {
     List<Instantiator> paramMakers = node.params.map(visitSplayable).toList();
     Instantiator makeBody = visit(node.body);
     // TODO(sra): Avoid copying params if no interpolation or forced copying.
@@ -633,10 +683,20 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           params.add(result);
         }
       }
-      Statement body = makeBody(arguments);
-      return new Fun(params, body);
+      var body = makeBody(arguments);
+      if (node is ArrowFun) {
+        return new ArrowFun(params, body);
+      } else if (node is Fun) {
+        return new Fun(params, body);
+      } else {
+        throw "Unknown FunctionExpression type ${node.runtimeType}: $node";
+      }
     };
   }
+
+  Instantiator visitFun(Fun node) => visitFunctionExpression(node);
+
+  Instantiator visitArrowFun(ArrowFun node) => visitFunctionExpression(node);
 
   Instantiator visitLiteralBool(LiteralBool node) =>
       (arguments) => new LiteralBool(node.value);
@@ -670,7 +730,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitObjectInitializer(ObjectInitializer node) {
     List<Instantiator> propertyMakers =
         node.properties.map(visitSplayable).toList();
-    bool isOneLiner = node.isOneLiner;
     return (arguments) {
       List<Property> properties = <Property>[];
       for (Instantiator instantiator in propertyMakers) {
@@ -681,7 +740,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           properties.add(result);
         }
       }
-      return new ObjectInitializer(properties, isOneLiner: isOneLiner);
+      return new ObjectInitializer(properties);
     };
   }
 
@@ -693,10 +752,80 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  Instantiator visitPropertyName(PropertyName node) =>
+      (arguments) => new PropertyName(node.name);
+
   Instantiator visitRegExpLiteral(RegExpLiteral node) =>
       (arguments) => new RegExpLiteral(node.pattern);
 
-  Instantiator visitComment(Comment node) => TODO('visitComment');
+  Instantiator visitTemplateString(TemplateString node) {
+    Iterable makeElements =
+        node.elements.map((e) => e is String ? e : visit(e));
+    return (arguments) {
+      return new TemplateString(makeElements
+          .map((m) => m is String ? m : m(arguments))
+          .toList(growable: false));
+    };
+  }
+
+  Instantiator visitTaggedTemplate(TaggedTemplate node) {
+    Instantiator makeTag = visit(node.tag);
+    Instantiator makeTemplate = visit(node.template);
+    return (arguments) {
+      return new TaggedTemplate(makeTag(arguments), makeTemplate(arguments));
+    };
+  }
+
+  Instantiator visitClassDeclaration(ClassDeclaration node) {
+    Instantiator makeClass = visit(node.classExpr);
+    return (arguments) {
+      return new ClassDeclaration(makeClass(arguments));
+    };
+  }
+
+  Instantiator visitClassExpression(ClassExpression node) {
+    List<Instantiator> makeMethods = node.methods.map(visitSplayableExpression)
+        .toList(growable: true);
+    Instantiator makeName = visit(node.name);
+    Instantiator makeHeritage = visit(node.heritage);
+
+    return (arguments) {
+      var methods = <Method>[];
+      for (Instantiator instantiator in makeMethods) {
+        var result = instantiator(arguments);
+        if (result is Iterable) {
+          methods.addAll(result);
+        } else {
+          methods.add(result);
+        }
+      }
+      return new ClassExpression(
+          makeName(arguments), makeHeritage(arguments), methods);
+    };
+  }
+
+  Instantiator visitMethod(Method node) {
+    Instantiator makeName = visit(node.name);
+    Instantiator makeFunction = visit(node.function);
+    return (arguments) {
+      return new Method(
+          makeName(arguments),
+          makeFunction(arguments),
+          isGetter: node.isGetter,
+          isSetter: node.isSetter,
+          isStatic: node.isStatic);
+    };
+  }
+
+  Instantiator visitComment(Comment node) =>
+      (arguments) => new Comment(node.comment);
+
+  Instantiator visitCommentExpression(CommentExpression node) {
+    Instantiator makeExpr = visit(node.expression);
+    return (arguments) {
+      return new CommentExpression(node.comment, makeExpr(arguments));
+    };
+  }
 
   Instantiator visitAwait(Await node) {
     Instantiator makeExpression = visit(node.expression);

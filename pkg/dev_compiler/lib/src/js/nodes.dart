@@ -13,6 +13,7 @@ abstract class NodeVisitor<T> {
   T visitIf(If node);
   T visitFor(For node);
   T visitForIn(ForIn node);
+  T visitForOf(ForOf node);
   T visitWhile(While node);
   T visitDo(Do node);
   T visitContinue(Continue node);
@@ -42,12 +43,14 @@ abstract class NodeVisitor<T> {
 
   T visitVariableUse(VariableUse node);
   T visitThis(This node);
+  T visitSuper(Super node);
   T visitVariableDeclaration(VariableDeclaration node);
   T visitParameter(Parameter node);
   T visitAccess(PropertyAccess node);
 
   T visitNamedFunction(NamedFunction node);
   T visitFun(Fun node);
+  T visitArrowFun(ArrowFun node);
 
   T visitLiteralBool(LiteralBool node);
   T visitLiteralString(LiteralString node);
@@ -59,16 +62,27 @@ abstract class NodeVisitor<T> {
   T visitObjectInitializer(ObjectInitializer node);
   T visitProperty(Property node);
   T visitRegExpLiteral(RegExpLiteral node);
+  T visitTemplateString(TemplateString node);
+  T visitTaggedTemplate(TaggedTemplate node);
 
   T visitAwait(Await node);
 
+  T visitClassDeclaration(ClassDeclaration node);
+  T visitClassExpression(ClassExpression node);
+  T visitMethod(Method node);
+  T visitPropertyName(PropertyName node);
+
   T visitComment(Comment node);
+  T visitCommentExpression(CommentExpression node);
 
   T visitInterpolatedExpression(InterpolatedExpression node);
   T visitInterpolatedLiteral(InterpolatedLiteral node);
   T visitInterpolatedParameter(InterpolatedParameter node);
   T visitInterpolatedSelector(InterpolatedSelector node);
   T visitInterpolatedStatement(InterpolatedStatement node);
+  T visitInterpolatedMethod(InterpolatedMethod node);
+  T visitInterpolatedPropertyName(InterpolatedPropertyName node);
+  T visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -90,6 +104,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitIf(If node) => visitStatement(node);
   T visitFor(For node) => visitLoop(node);
   T visitForIn(ForIn node) => visitLoop(node);
+  T visitForOf(ForOf node) => visitLoop(node);
   T visitWhile(While node) => visitLoop(node);
   T visitDo(Do node) => visitLoop(node);
   T visitContinue(Continue node) => visitJump(node);
@@ -134,9 +149,12 @@ class BaseVisitor<T> implements NodeVisitor<T> {
       => visitVariableReference(node);
   T visitParameter(Parameter node) => visitVariableDeclaration(node);
   T visitThis(This node) => visitParameter(node);
+  T visitSuper(Super node) => visitParameter(node);
 
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
-  T visitFun(Fun node) => visitExpression(node);
+  T visitFunctionExpression(FunctionExpression node) => visitExpression(node);
+  T visitFun(Fun node) => visitFunctionExpression(node);
+  T visitArrowFun(ArrowFun node) => visitFunctionExpression(node);
 
   T visitLiteral(Literal node) => visitExpression(node);
 
@@ -150,6 +168,13 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitObjectInitializer(ObjectInitializer node) => visitExpression(node);
   T visitProperty(Property node) => visitNode(node);
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
+  T visitTemplateString(TemplateString node) => visitExpression(node);
+  T visitTaggedTemplate(TaggedTemplate node) => visitExpression(node);
+
+  T visitClassDeclaration(ClassDeclaration node) => visitStatement(node);
+  T visitClassExpression(ClassExpression node) => visitExpression(node);
+  T visitMethod(Method node) => visitProperty(node);
+  T visitPropertyName(PropertyName node) => visitExpression(node);
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
 
@@ -163,9 +188,16 @@ class BaseVisitor<T> implements NodeVisitor<T> {
       => visitInterpolatedNode(node);
   T visitInterpolatedStatement(InterpolatedStatement node)
       => visitInterpolatedNode(node);
+  T visitInterpolatedMethod(InterpolatedMethod node)
+      => visitInterpolatedNode(node);
+  T visitInterpolatedPropertyName(InterpolatedPropertyName node)
+      => visitInterpolatedNode(node);
+  T visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node)
+      => visitInterpolatedNode(node);
 
   // Ignore comments by default.
   T visitComment(Comment node) => null;
+  T visitCommentExpression(CommentExpression node) => null;
 
   T visitAwait(Await node) => visitExpression(node);
   T visitDartYield(DartYield node) => visitStatement(node);
@@ -227,7 +259,9 @@ abstract class Statement extends Node {
 
 class Block extends Statement {
   final List<Statement> statements;
-  Block(this.statements);
+  Block(this.statements) {
+    assert(!statements.any((s) => s is! Statement));
+  }
   Block.empty() : this.statements = <Statement>[];
 
   accept(NodeVisitor visitor) => visitor.visitBlock(this);
@@ -316,6 +350,25 @@ class ForIn extends Loop {
   }
 
   ForIn _clone() => new ForIn(leftHandSide, object, body);
+}
+
+class ForOf extends Loop {
+  // Note that [VariableDeclarationList] is a subclass of [Expression].
+  // Therefore we can type the leftHandSide as [Expression].
+  final Expression leftHandSide;
+  final Expression iterable;
+
+  ForOf(this.leftHandSide, this.iterable, Statement body) : super(body);
+
+  accept(NodeVisitor visitor) => visitor.visitForOf(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    leftHandSide.accept(visitor);
+    iterable.accept(visitor);
+    body.accept(visitor);
+  }
+
+  ForIn _clone() => new ForIn(leftHandSide, iterable, body);
 }
 
 class While extends Loop {
@@ -577,9 +630,11 @@ class LiteralExpression extends Expression {
  * AST.
  */
 class VariableDeclarationList extends Expression {
+  /** The `var` or `let` keyword used for this variable declaration list. */
+  final String keyword;
   final List<VariableInitialization> declarations;
 
-  VariableDeclarationList(this.declarations);
+  VariableDeclarationList(this.keyword, this.declarations);
 
   accept(NodeVisitor visitor) => visitor.visitVariableDeclarationList(this);
 
@@ -589,7 +644,8 @@ class VariableDeclarationList extends Expression {
     }
   }
 
-  VariableDeclarationList _clone() => new VariableDeclarationList(declarations);
+  VariableDeclarationList _clone() =>
+      new VariableDeclarationList(keyword, declarations);
 
   int get precedenceLevel => EXPRESSION;
 }
@@ -806,6 +862,16 @@ class VariableDeclaration extends VariableReference {
   VariableDeclaration _clone() => new VariableDeclaration(name);
 }
 
+class PropertyName extends Expression {
+  final String name;
+  PropertyName(this.name);
+
+  accept(NodeVisitor visitor) => visitor.visitPropertyName(this);
+  visitChildren(NodeVisitor visitor) {}
+  int get precedenceLevel => PRIMARY;
+  PropertyName _clone() => new PropertyName(name);
+}
+
 class Parameter extends VariableDeclaration {
   Parameter(String name) : super(name);
 
@@ -818,6 +884,15 @@ class This extends Parameter {
 
   accept(NodeVisitor visitor) => visitor.visitThis(this);
   This _clone() => new This();
+}
+
+// `super` is more restricted in the ES6 spec, but for simplicity we accept
+// it anywhere that `this` is accepted.
+class Super extends Parameter {
+  Super() : super("super");
+
+  accept(NodeVisitor visitor) => visitor.visitSuper(this);
+  Super _clone() => new Super();
 }
 
 class NamedFunction extends Expression {
@@ -837,7 +912,12 @@ class NamedFunction extends Expression {
   int get precedenceLevel => CALL;
 }
 
-class Fun extends Expression {
+abstract class FunctionExpression extends Expression {
+  List<Parameter> get params;
+  get body; // Expression or block
+}
+
+class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
   final AsyncModifier asyncModifier;
@@ -854,6 +934,27 @@ class Fun extends Expression {
   Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
 
   int get precedenceLevel => CALL;
+}
+
+class ArrowFun extends FunctionExpression {
+  final List<Parameter> params;
+  final body; // Expression or Block
+
+  ArrowFun(this.params, this.body);
+
+  accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    for (Parameter param in params) param.accept(visitor);
+    body.accept(visitor);
+  }
+
+  ArrowFun _clone() => new ArrowFun(params, body);
+
+  /// Ensure parens always get generated if necessary.
+  // TODO(jmesserly): I'm not sure the printer is handling this correctly for
+  // function() { ... } either.
+  int get precedenceLevel => ASSIGNMENT;
 }
 
 class AsyncModifier {
@@ -985,16 +1086,11 @@ class ArrayHole extends Expression {
 
 class ObjectInitializer extends Expression {
   final List<Property> properties;
-  final bool isOneLiner;
 
   /**
    * Constructs a new object-initializer containing the given [properties].
-   *
-   * [isOneLiner] describes the behaviour when pretty-printing (non-minified).
-   * If true print all properties on the same line.
-   * If false print each property on a seperate line.
    */
-  ObjectInitializer(this.properties, {this.isOneLiner: true});
+  ObjectInitializer(this.properties);
 
   accept(NodeVisitor visitor) => visitor.visitObjectInitializer(this);
 
@@ -1002,17 +1098,18 @@ class ObjectInitializer extends Expression {
     for (Property init in properties) init.accept(visitor);
   }
 
-  ObjectInitializer _clone() =>
-      new ObjectInitializer(properties, isOneLiner: isOneLiner);
+  ObjectInitializer _clone() => new ObjectInitializer(properties);
 
   int get precedenceLevel => PRIMARY;
 }
 
 class Property extends Node {
-  final Literal name;
+  final Expression name;
   final Expression value;
 
-  Property(this.name, this.value);
+  Property(this.name, this.value) {
+    assert(name is! VariableDeclaration);
+  }
 
   accept(NodeVisitor visitor) => visitor.visitProperty(this);
 
@@ -1022,6 +1119,106 @@ class Property extends Node {
   }
 
   Property _clone() => new Property(name, value);
+}
+
+// TODO(jmesserly): parser does not support this yet.
+class TemplateString extends Expression {
+  /**
+   * The parts of this template string: a sequence of [String]s and
+   * [Expression]s. Strings and expressions will alternate, for example:
+   *
+   *     `foo${1 + 2} bar ${'hi'}`
+   *
+   * would be represented by:
+   *
+   *     ['foo', new JS.Binary('+', js.number(1), js.number(2)),
+   *      ' bar ', new JS.LiteralString("'hi'")]
+   */
+  final List elements;
+  TemplateString(this.elements);
+
+  accept(NodeVisitor visitor) => visitor.visitTemplateString(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    for (var element in elements) {
+      if (element is Expression) element.accept(visitor);
+    }
+  }
+
+  TemplateString _clone() => new TemplateString(elements);
+
+  int get precedenceLevel => PRIMARY;
+}
+
+// TODO(jmesserly): parser does not support this yet.
+class TaggedTemplate extends Expression {
+  final Expression tag;
+  final TemplateString template;
+
+  TaggedTemplate(this.tag, this.template);
+
+  accept(NodeVisitor visitor) => visitor.visitTaggedTemplate(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    tag.accept(visitor);
+    template.accept(visitor);
+  }
+
+  TaggedTemplate _clone() => new TaggedTemplate(tag, template);
+
+  int get precedenceLevel => CALL;
+}
+
+class ClassDeclaration extends Statement {
+  final ClassExpression classExpr;
+
+  ClassDeclaration(this.classExpr);
+
+  accept(NodeVisitor visitor) => visitor.visitClassDeclaration(this);
+  visitChildren(NodeVisitor visitor) => classExpr.accept(visitor);
+  ClassDeclaration _clone() => new ClassDeclaration(classExpr);
+}
+
+class ClassExpression extends Expression {
+  final VariableDeclaration name;
+  final Expression heritage; // Can be null.
+  final List<Method> methods;
+
+  ClassExpression(this.name, this.heritage, this.methods);
+
+  accept(NodeVisitor visitor) => visitor.visitClassExpression(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    name.accept(visitor);
+    heritage.accept(visitor);
+    for (Method element in methods) element.accept(visitor);
+  }
+
+  ClassExpression _clone() => new ClassExpression(name, heritage, methods);
+
+  int get precedenceLevel => PRIMARY;
+}
+
+class Method extends Property {
+  final bool isGetter;
+  final bool isSetter;
+  final bool isStatic;
+
+  Method(Expression name, Fun function,
+      {this.isGetter: false, this.isSetter: false, this.isStatic: false})
+      : super(name, function);
+
+  Fun get function => super.value;
+
+  accept(NodeVisitor visitor) => visitor.visitMethod(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    name.accept(visitor);
+    function.accept(visitor);
+  }
+
+  Method _clone() => new Method(name, function,
+      isGetter: isGetter, isSetter: isSetter, isStatic: isStatic);
 }
 
 /// Tag class for all interpolated positions.
@@ -1093,6 +1290,60 @@ class InterpolatedStatement extends Statement with InterpolatedNode {
   InterpolatedStatement _clone() => new InterpolatedStatement(nameOrPosition);
 }
 
+// TODO(jmesserly): generalize this to InterpolatedProperty?
+class InterpolatedMethod extends Expression with InterpolatedNode
+    implements Method {
+  final nameOrPosition;
+
+  InterpolatedMethod(this.nameOrPosition);
+
+  accept(NodeVisitor visitor) => visitor.visitInterpolatedMethod(this);
+  void visitChildren(NodeVisitor visitor) {}
+  InterpolatedMethod _clone() => new InterpolatedMethod(nameOrPosition);
+
+  int get precedenceLevel => PRIMARY;
+  Expression get name => _unsupported;
+  Expression get value => _unsupported;
+  bool get isGetter => _unsupported;
+  bool get isSetter => _unsupported;
+  bool get isStatic => _unsupported;
+  Fun get function => _unsupported;
+  get _unsupported => throw '$runtimeType does not support this member.';
+}
+
+class InterpolatedPropertyName extends Expression with InterpolatedNode
+    implements PropertyName {
+  final nameOrPosition;
+
+  InterpolatedPropertyName(this.nameOrPosition);
+
+  accept(NodeVisitor visitor) => visitor.visitInterpolatedPropertyName(this);
+  void visitChildren(NodeVisitor visitor) {}
+  InterpolatedPropertyName _clone() =>
+      new InterpolatedPropertyName(nameOrPosition);
+
+  int get precedenceLevel => PRIMARY;
+  String get name => throw '$runtimeType does not support this member.';
+  bool get allowRename => false;
+}
+
+class InterpolatedVariableDeclaration extends Expression with InterpolatedNode
+    implements VariableDeclaration {
+  final nameOrPosition;
+
+  InterpolatedVariableDeclaration(this.nameOrPosition);
+
+  accept(NodeVisitor visitor) =>
+      visitor.visitInterpolatedVariableDeclaration(this);
+  void visitChildren(NodeVisitor visitor) {}
+  InterpolatedVariableDeclaration _clone() =>
+      new InterpolatedVariableDeclaration(nameOrPosition);
+
+  int get precedenceLevel => PRIMARY;
+  String get name => throw '$runtimeType does not support this member.';
+  bool get allowRename => false;
+}
+
 /**
  * [RegExpLiteral]s, despite being called "Literal", do not inherit from
  * [Literal]. Indeed, regular expressions in JavaScript have a side-effect and
@@ -1145,4 +1396,23 @@ class Comment extends Statement {
   Comment _clone() => new Comment(comment);
 
   void visitChildren(NodeVisitor visitor) {}
+}
+
+/**
+ * A comment for expressions.
+ *
+ * Extends [Expression] so we can add comments before expressions.
+ * Has the highest possible precedence, so we don't add parentheses around it.
+ */
+class CommentExpression extends Expression {
+  final String comment;
+  final Expression expression;
+
+  CommentExpression(this.comment, this.expression);
+
+  int get precedenceLevel => PRIMARY;
+  accept(NodeVisitor visitor) => visitor.visitCommentExpression(this);
+  CommentExpression _clone() => new CommentExpression(comment, expression);
+
+  void visitChildren(NodeVisitor visitor) => expression.accept(visitor);
 }

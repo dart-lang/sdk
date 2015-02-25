@@ -4,7 +4,7 @@
 
 library ddc.src.codegen.js_codegen;
 
-import 'dart:io' show Directory;
+import 'dart:io' show Directory, File;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
@@ -14,6 +14,10 @@ import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
 import 'package:path/path.dart' as path;
 
+// TODO(jmesserly): import from its own package
+import 'package:dev_compiler/src/js/js_ast.dart' as JS;
+import 'package:dev_compiler/src/js/js_ast.dart' show js;
+
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/report.dart';
@@ -21,12 +25,11 @@ import 'package:dev_compiler/src/utils.dart';
 import 'code_generator.dart';
 
 // This must match the optional parameter name used in runtime.js
-const String optionalParameters = r'opt$';
+const String _jsNamedParameterName = r'opt$';
 
 class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
-  final OutWriter out;
   final String _libraryName;
 
   /// The variable for the target of the current `..` cascade expression.
@@ -39,72 +42,69 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
 
-  static final int _indexExpressionPrecedence =
-      new IndexExpression.forTarget(null, null, null, null).precedence;
-
-  static final int _prefixExpressionPrecedence =
-      new PrefixExpression(null, null).precedence;
-
-  JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules, this.out)
+  JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules)
       : libraryInfo = libraryInfo,
         rules = rules,
         _libraryName = jsLibraryName(libraryInfo.library);
 
   Element get currentLibrary => libraryInfo.library;
 
-  void generateLibrary(
+  JS.Block generateLibrary(
       Iterable<CompilationUnit> units, CheckerReporter reporter) {
-    out.write("""
-var $_libraryName;
-(function ($_libraryName) {
-  'use strict';
-""", 2);
-
+    var body = <JS.Statement>[];
     for (var unit in units) {
       // TODO(jmesserly): this is needed because RestrictedTypeRules can send
       // messages to CheckerReporter, for things like missing types.
       // We should probably refactor so this can't happen.
-
       var source = unit.element.source;
       _constEvaluator = new ConstantEvaluator(source, rules.provider);
       reporter.enterSource(source);
-      unit.accept(this);
+      body.add(unit.accept(this));
       reporter.leaveSource();
     }
 
-    if (_exports.isNotEmpty) out.write('// Exports:\n');
+    if (_exports.isNotEmpty) body.add(js.comment('Exports:'));
 
     // TODO(jmesserly): make these immutable in JS?
     for (var name in _exports) {
-      out.write('${_libraryName}.$name = $name;\n');
+      body.add(js.statement('#.# = #;', [_libraryName, name, name]));
     }
 
-    out.write("""
-})($_libraryName || ($_libraryName = {}));
-""", -2);
+    var name = _libraryName;
+    return new JS.Block([
+      js.statement('var #;', name),
+      js.statement('''
+        (function (#) {
+          'use strict';
+          #;
+        })(# || (# = {}));
+      ''', [name, body, name, name])
+    ]);
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _visitNode(node.scriptTag);
-    _visitNodeList(node.directives);
+  JS.Statement visitCompilationUnit(CompilationUnit node) {
+    // TODO(jmesserly): scriptTag, directives.
+    var body = <JS.Statement>[];
     for (var child in node.declarations) {
       // Attempt to group adjacent fields/properties.
-      if (child is! TopLevelVariableDeclaration) _flushLazyFields();
-      if (child is! FunctionDeclaration) _flushLibraryProperties();
+      if (child is! TopLevelVariableDeclaration) _flushLazyFields(body);
+      if (child is! FunctionDeclaration) _flushLibraryProperties(body);
 
-      child.accept(this);
+      var code = child.accept(this);
+      if (code != null) body.add(code);
     }
     // Flush any unwritten fields/properties.
-    _flushLazyFields();
-    _flushLibraryProperties();
+    _flushLazyFields(body);
+    _flushLibraryProperties(body);
+    return _statement(body);
   }
 
   bool isPublic(String name) => !name.startsWith('_');
 
   /// Conversions that we don't handle end up here.
   @override
-  void visitConversion(Conversion node) {
+  visitConversion(Conversion node) {
     var from = node.baseType;
     var to = node.convertedType;
 
@@ -118,56 +118,41 @@ var $_libraryName;
       if (!rules.isNonNullableType(from) && rules.isNonNullableType(to)) {
         // Converting from a nullable number to a non-nullable number
         // only requires a null check.
-        out.write('dart.notNull(');
-        node.expression.accept(this);
-        out.write(')');
+        return js.call('dart.notNull(#)', node.expression.accept(this));
       } else {
         // A no-op in JavaScript.
-        node.expression.accept(this);
+        return node.expression.accept(this);
       }
-      return;
     }
 
-    _writeCast(node.expression, to);
+    return _emitCast(node.expression, to);
   }
 
   @override
-  void visitAsExpression(AsExpression node) {
-    _writeCast(node.expression, node.type.type);
-  }
+  visitAsExpression(AsExpression node) =>
+      _emitCast(node.expression, node.type.type);
 
-  void _writeCast(Expression node, DartType type) {
-    out.write('dart.as(');
-    node.accept(this);
-    out.write(', ');
-    _writeTypeName(type);
-    out.write(')');
-  }
+  _emitCast(Expression node, DartType type) =>
+      js.call('dart.as(#)', [[node.accept(this), _emitTypeName(type)]]);
 
   @override
-  void visitIsExpression(IsExpression node) {
-    // Generate `is` as `instanceof` or `typeof` depending on the RHS type.
-    if (node.notOperator != null) out.write('!');
-
+  visitIsExpression(IsExpression node) {
+    // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
+    JS.Expression result;
     var type = node.type.type;
-    var lhs = node.expression;
+    var lhs = node.expression.accept(this);
     var typeofName = _jsTypeofName(type);
     if (typeofName != null) {
-      if (node.notOperator != null) out.write('(');
-      out.write('typeof ');
-      // We're going to replace the `is` operator with higher-precedence prefix
-      // `typeof` operator, so add parens around the left side if necessary.
-      _visitExpression(lhs, _prefixExpressionPrecedence);
-      out.write(' == "$typeofName"');
-      if (node.notOperator != null) out.write(')');
+      result = js.call('typeof # == #', [lhs, typeofName]);
     } else {
       // Always go through a runtime helper, because implicit interfaces.
-      out.write('dart.is(');
-      lhs.accept(this);
-      out.write(', ');
-      _writeTypeName(type);
-      out.write(')');
+      result = js.call('dart.is(#, #)', [lhs, _emitTypeName(type)]);
     }
+
+    if (node.notOperator != null) {
+      return js.call('!#', result);
+    }
+    return result;
   }
 
   String _jsTypeofName(DartType t) {
@@ -178,93 +163,64 @@ var $_libraryName;
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
     // TODO(vsm): Do we need to record type info the generated code for a
     // typedef?
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    _visitNode(node.name);
-    _visitNode(node.typeArguments);
-  }
+  JS.Expression visitTypeName(TypeName node) => _emitTypeName(node.type);
 
   @override
-  void visitTypeArgumentList(TypeArgumentList node) {
-    out.write('\$(');
-    _visitNodeList(node.arguments, separator: ', ');
-    out.write(')');
-  }
-
-  @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
     var name = node.name.name;
-    _beginTypeParameters(node.typeParameters, name);
-    out.write('class $name extends dart.mixin(');
-    _visitNodeList(node.withClause.mixinTypes, separator: ', ');
-    out.write(') {}\n\n');
-    _endTypeParameters(node.typeParameters, name);
+    var heritage =
+        js.call('dart.mixin(#)', [_visitList(node.withClause.mixinTypes)]);
+    var classDecl = new JS.ClassDeclaration(
+        new JS.ClassExpression(new JS.VariableDeclaration(name), heritage, []));
     if (isPublic(name)) _exports.add(name);
+    return _addTypeParameters(node.typeParameters, name, classDecl);
   }
 
   @override
-  void visitTypeParameter(TypeParameter node) {
-    out.write(node.name.name);
-  }
+  visitTypeParameter(TypeParameter node) => new JS.Parameter(node.name.name);
 
-  void _beginTypeParameters(TypeParameterList node, String name) {
-    if (node == null) return;
-    out.write('let ${name}\$ = dart.generic(function(');
-    _visitNodeList(node.typeParameters, separator: ', ');
-    out.write(') {\n', 2);
-  }
+  JS.Statement _addTypeParameters(
+      TypeParameterList node, String name, JS.Statement clazz) {
+    if (node == null) return clazz;
 
-  void _endTypeParameters(TypeParameterList node, String name) {
-    if (node == null) return;
-    // Return the specialized class.
-    out.write('return $name;\n');
-    out.write('});\n', -2);
-    // Construct the "default" version of the generic type for easy interop.
-    out.write('let $name = ${name}\$(');
-    for (int i = 0, len = node.typeParameters.length; i < len; i++) {
-      if (i > 0) out.write(', ');
-      // TODO(jmesserly): we may not want this to be `dynamic` if the generic
-      // has a lower bound, e.g. `<T extends SomeType>`.
-      // https://github.com/dart-lang/dart-dev-compiler/issues/38
-      out.write('dynamic');
-    }
-    out.write(');\n');
+    var genericName = '$name\$';
+    var genericDef = js.statement(
+        'let # = dart.generic(function(#) { #; return #; });', [
+      genericName,
+      _visitList(node.typeParameters),
+      clazz,
+      name
+    ]);
+
+    // TODO(jmesserly): we may not want this to be `dynamic` if the generic
+    // has a lower bound, e.g. `<T extends SomeType>`.
+    // https://github.com/dart-lang/dart-dev-compiler/issues/38
+    var typeArgs = new List.filled(node.typeParameters.length, 'dynamic');
+
+    var dynInst = js.statement('let # = #(#);', [name, genericName, typeArgs]);
+
     // TODO(jmesserly): is it worth exporting both names? Alternatively we could
     // put the generic type constructor on the <dynamic> instance.
     if (isPublic(name)) _exports.add('${name}\$');
+    return new JS.Block([genericDef, dynInst]);
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  JS.Statement visitClassDeclaration(ClassDeclaration node) {
     currentClass = node;
 
+    var body = <JS.Statement>[];
+
     var name = node.name.name;
-    _beginTypeParameters(node.typeParameters, name);
-    out.write('class $name extends ');
-
-    if (node.withClause != null) {
-      out.write('dart.mixin(');
-    }
-    if (node.extendsClause != null) {
-      _visitNode(node.extendsClause.superclass);
-    } else {
-      out.write('dart.Object');
-    }
-    if (node.withClause != null) {
-      _visitNodeList(node.withClause.mixinTypes, prefix: ', ', separator: ', ');
-      out.write(')');
-    }
-
-    out.write(' {\n', 2);
-
-    var ctors = new List<ConstructorDeclaration>();
-    var fields = new List<FieldDeclaration>();
-    var staticFields = new List<FieldDeclaration>();
+    var ctors = <ConstructorDeclaration>[];
+    var fields = <FieldDeclaration>[];
+    var staticFields = <FieldDeclaration>[];
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         ctors.add(member);
@@ -273,29 +229,61 @@ var $_libraryName;
       }
     }
 
+    var jsMethods = <JS.Method>[];
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
     if (ctors.isEmpty && !node.element.type.isObject) {
-      _generateImplicitConstructor(node, name, fields);
+      jsMethods.add(_emitImplicitConstructor(node, name, fields));
     }
 
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
-        _generateConstructor(member, name, fields);
+        jsMethods.add(_emitConstructor(member, name, fields));
       } else if (member is MethodDeclaration) {
-        member.accept(this);
+        jsMethods.add(member.accept(this));
       }
     }
 
-    out.write('}\n', -2);
+    // Support for adapting dart:core Iterator/Iterable to ES6 versions.
+    // This lets them use for-of loops transparently.
+    // https://github.com/lukehoban/es6features#iterators--forof
+    if (node.element.library.isDartCore && node.element.name == 'Iterable') {
+      JS.Fun body = js.call('''function() {
+        var iterator = this.iterator;
+        return {
+          next() {
+            var done = iterator.moveNext();
+            return { done: done, current: done ? void 0 : iterator.current };
+          }
+        };
+      }''');
+      jsMethods.add(new JS.Method(js.call('Symbol.iterator'), body));
+    }
+
+    JS.Expression heritage;
+    if (node.extendsClause != null) {
+      heritage = _visit(node.extendsClause.superclass);
+    } else {
+      heritage = js.call('dart.Object');
+    }
+    if (node.withClause != null) {
+      var mixins = _visitList(node.withClause.mixinTypes);
+      mixins.insert(0, heritage);
+      heritage = js.call('dart.mixin(#)', [mixins]);
+    }
+    body.add(new JS.ClassDeclaration(new JS.ClassExpression(
+        new JS.VariableDeclaration(name), heritage,
+        jsMethods.where((m) => m != null).toList(growable: false))));
 
     if (isPublic(name)) _exports.add(name);
 
     // Named constructors
     for (ConstructorDeclaration member in ctors) {
       if (member.name != null) {
-        var ctorName = member.name.name;
-        out.write('dart.defineNamedConstructor($name, "$ctorName");\n');
+        body.add(js.statement('dart.defineNamedConstructor(#, #);', [
+          name,
+          js.string(member.name.name, "'")
+        ]));
       }
     }
 
@@ -303,96 +291,72 @@ var $_libraryName;
     var lazyStatics = <VariableDeclaration>[];
     for (FieldDeclaration member in staticFields) {
       for (VariableDeclaration field in member.fields.variables) {
-        var prefix = '$name.${field.name.name}';
-        if (field.initializer == null) {
-          out.write('$prefix = null;\n');
-        } else if (field.isConst || _isFieldInitConstant(field)) {
-          out.write('$prefix = ');
-          field.initializer.accept(this);
-          out.write(';\n');
+        var fieldName = field.name.name;
+        if (field.isConst || _isFieldInitConstant(field)) {
+          var init = _visit(field.initializer);
+          if (init == null) init = new JS.LiteralNull();
+          body.add(js.statement('#.# = #;', [name, fieldName, init]));
         } else {
           lazyStatics.add(field);
         }
       }
     }
-    _writeLazyFields(name, lazyStatics);
+    var lazy = _emitLazyFields(name, lazyStatics);
+    if (lazy != null) body.add(lazy);
 
-    // Support for adapting dart:core Iterator/Iterable to ES6 versions.
-    // This lets them use for-of loops transparently.
-    // https://github.com/lukehoban/es6features#iterators--forof
-    // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-iterable-interface
-    // TODO(jmesserly): put this straight in the class as an instance method,
-    // once V8 supports symbols for method names: `[Symbol.iterator]() { ... }`.
-    if (node.element.library.isDartCore && node.element.name == 'Iterable') {
-      out.write('''
-$name.prototype[Symbol.iterator] = function() {
-  var iterator = this.iterator;
-  return {
-    next: function() {
-      var done = iterator.moveNext();
-      return { done: done, current: done ? void 0 : iterator.current };
-    }
-  };
-};
-''');
-    }
-
-    _endTypeParameters(node.typeParameters, name);
-
-    out.write('\n');
     currentClass = null;
+    return _addTypeParameters(node.typeParameters, name, _statement(body));
   }
 
   /// Generates the implicit default constructor for class C of the form
   /// `C() : super() {}`.
-  void _generateImplicitConstructor(
+  JS.Method _emitImplicitConstructor(
       ClassDeclaration node, String name, List<FieldDeclaration> fields) {
     // If we don't have a method body, skip this.
-    if (fields.isEmpty) return;
+    if (fields.isEmpty) return null;
 
-    out.write('$name() {\n', 2);
-    _initializeFields(fields);
-    _superConstructorCall(node);
-    out.write('}\n', -2);
+    var body = _initializeFields(fields);
+    var superCall = _superConstructorCall(node);
+    if (superCall != null) body = [[body, superCall]];
+    return new JS.Method(
+        new JS.PropertyName(name), js.call('function() { #; }', body));
   }
 
-  void _generateConstructor(ConstructorDeclaration node, String className,
+  JS.Method _emitConstructor(ConstructorDeclaration node, String className,
       List<FieldDeclaration> fields) {
-    if (node.externalKeyword != null) {
-      out.write('/* Unimplemented $node */\n');
-      return;
-    }
+    if (node.externalKeyword != null) return null;
+
+    var name = _constructorName(className, node.name);
 
     // We generate constructors as initializer methods in the class;
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
-    out.write(className);
-    if (node.name != null) {
-      out.write('\$${node.name.name}');
-    }
-    out.write('(');
-    _visitNode(node.parameters);
-    out.write(') {\n', 2);
-    _generateConstructorBody(node, fields);
-    out.write('}\n', -2);
+    return new JS.Method(new JS.PropertyName(name), new JS.Fun(
+        node.parameters.accept(this), _emitConstructorBody(node, fields)));
   }
 
-  void _generateConstructorBody(
+  String _constructorName(String className, SimpleIdentifier name) {
+    if (name == null) return className;
+    return '$className\$${name.name}';
+  }
+
+  JS.Block _emitConstructorBody(
       ConstructorDeclaration node, List<FieldDeclaration> fields) {
     // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
     if (node.redirectedConstructor != null) {
-      out.write('return new ');
-      node.redirectedConstructor.accept(this);
-      out.write('(');
-      _visitNode(node.parameters);
-      out.write(');\n');
-      return;
+      return js.statement('{ return new #(#); }', [
+        node.redirectedConstructor.accept(this),
+        node.parameters.accept(this)
+      ]);
     }
+
+    var body = <JS.Statement>[];
 
     // Generate optional/named argument value assignment. These can not have
     // side effects, and may be used by the constructor's initializers, so it's
     // nice to do them first.
-    _generateArgumentInitializers(node.parameters);
+    var init = _emitArgumentInitializers(node.parameters);
+    if (init != null) body.add(init);
 
     // Redirecting constructors: these are not allowed to have initializers,
     // and the redirecting ctor invocation runs before field initializers.
@@ -400,8 +364,8 @@ $name.prototype[Symbol.iterator] = function() {
         (i) => i is RedirectingConstructorInvocation, orElse: () => null);
 
     if (redirectCall != null) {
-      redirectCall.accept(this);
-      return;
+      body.add(redirectCall.accept(this));
+      return new JS.Block(body);
     }
 
     // Initializers only run for non-factory constructors.
@@ -410,7 +374,7 @@ $name.prototype[Symbol.iterator] = function() {
       // These are expanded into each non-redirecting constructor.
       // In the future we may want to create an initializer function if we have
       // multiple constructors, but it needs to be balanced against readability.
-      _initializeFields(fields, node.parameters, node.initializers);
+      body.add(_initializeFields(fields, node.parameters, node.initializers));
 
       var superCall = node.initializers.firstWhere(
           (i) => i is SuperConstructorInvocation, orElse: () => null);
@@ -418,53 +382,39 @@ $name.prototype[Symbol.iterator] = function() {
       // If no superinitializer is provided, an implicit superinitializer of the
       // form `super()` is added at the end of the initializer list, unless the
       // enclosing class is class Object.
-      if (superCall == null) {
-        _superConstructorCall(node.parent);
-      } else {
-        _superConstructorCall(node.parent, node.name, superCall.constructorName,
-            superCall.argumentList);
-      }
+      var jsSuper = _superConstructorCall(node.parent, superCall);
+      if (jsSuper != null) body.add(jsSuper);
     }
 
-    var body = node.body;
-    if (body is BlockFunctionBody) {
-      body.block.statements.accept(this);
-    } else if (body is ExpressionFunctionBody) {
-      _visitNode(body.expression, prefix: 'return ', suffix: ';\n');
-    } else {
-      assert(body is EmptyFunctionBody);
-    }
+    body.add(node.body.accept(this));
+    return new JS.Block(body);
   }
 
   @override
-  void visitRedirectingConstructorInvocation(
+  JS.Statement visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var parent = node.parent as ConstructorDeclaration;
+    ClassDeclaration classDecl = node.parent.parent;
+    var className = classDecl.name.name;
 
-    if (parent.name != null) {
-      out.write(parent.name.name);
-    } else {
-      _writeTypeName((parent.parent as ClassDeclaration).element.type);
-    }
-    out.write('.call(this');
-    _visitArgumentsWithCommaPrefix(node.argumentList);
-    out.write(');\n');
+    var name = _constructorName(className, node.constructorName);
+    return js.statement('this.#(#);', [name, node.argumentList.accept(this)]);
   }
 
-  void _superConstructorCall(ClassDeclaration clazz, [SimpleIdentifier ctorName,
-      SimpleIdentifier superCtorName, ArgumentList args]) {
+  JS.Statement _superConstructorCall(ClassDeclaration clazz,
+      [SuperConstructorInvocation node]) {
+    var superCtorName = node != null ? node.constructorName : null;
+
     var element = clazz.element;
     if (superCtorName == null &&
         (element.type.isObject || element.supertype.isObject)) {
-      return;
+      return null;
     }
 
     var supertypeName = element.supertype.name;
-    out.write('super.$supertypeName');
-    if (superCtorName != null) out.write('\$${superCtorName.name}');
-    out.write('(');
-    _visitNode(args);
-    out.write(');\n');
+    var name = _constructorName(supertypeName, superCtorName);
+
+    var args = node != null ? node.argumentList.accept(this) : [];
+    return js.statement('super.#(#);', [name, args]);
   }
 
   /// Initialize fields. They follow the sequence:
@@ -473,9 +423,10 @@ $name.prototype[Symbol.iterator] = function() {
   ///   2. field initializing parameters,
   ///   3. constructor field initializers,
   ///   4. initialize fields not covered in 1-3
-  void _initializeFields(List<FieldDeclaration> fields,
+  JS.Statement _initializeFields(List<FieldDeclaration> fields,
       [FormalParameterList parameters,
       NodeList<ConstructorInitializer> initializers]) {
+    var body = <JS.Statement>[];
 
     // Run field initializers if they can have side-effects.
     var unsetFields = new Map<String, VariableDeclaration>();
@@ -484,7 +435,8 @@ $name.prototype[Symbol.iterator] = function() {
         if (_isFieldInitConstant(field)) {
           unsetFields[field.name.name] = field;
         } else {
-          _visitNode(field, suffix: ';\n');
+          body.add(js.statement(
+              '# = #;', [field.name.accept(this), _visitInitializer(field)]));
         }
       }
     }
@@ -495,7 +447,7 @@ $name.prototype[Symbol.iterator] = function() {
         if (p is DefaultFormalParameter) p = p.parameter;
         if (p is FieldFormalParameter) {
           var name = p.identifier.name;
-          out.write('this.$name = $name;\n');
+          body.add(js.statement('this.# = #;', [name, name]));
           unsetFields.remove(name);
         }
       }
@@ -505,10 +457,10 @@ $name.prototype[Symbol.iterator] = function() {
     if (initializers != null) {
       for (var init in initializers) {
         if (init is ConstructorFieldInitializer) {
-          init.fieldName.accept(this);
-          out.write(' = ');
-          init.expression.accept(this);
-          out.write(';\n');
+          body.add(js.statement('# = #;', [
+            init.fieldName.accept(this),
+            init.expression.accept(this)
+          ]));
           unsetFields.remove(init.fieldName.name);
         }
       }
@@ -516,25 +468,29 @@ $name.prototype[Symbol.iterator] = function() {
 
     // Initialize all remaining fields
     unsetFields.forEach((name, field) {
-      out.write('this.$name = ');
-      var expression = field.initializer;
-      if (expression != null) {
-        expression.accept(this);
+      JS.Expression value;
+      if (field.initializer != null) {
+        value = field.initializer.accept(this);
       } else {
         var type = rules.elementType(field.element);
         if (rules.maybeNonNullableType(type)) {
-          out.write('dart.as(null, ');
-          _writeTypeName(type);
-          out.write(')');
+          value = js.call('dart.as(null, #)', _emitTypeName(type));
         } else {
-          out.write('null');
+          value = new JS.LiteralNull();
         }
       }
-      out.write(';\n');
+      body.add(js.statement('this.# = #;', [name, value]));
     });
+
+    return _statement(body);
   }
 
   FormalParameterList _parametersOf(node) {
+    // Note: ConstructorDeclaration is intentionally skipped here so we can
+    // emit the argument initializers in a different place.
+    // TODO(jmesserly): clean this up. If we can model ES6 spread/rest args, we
+    // could handle argument initializers more consistently in a separate
+    // lowering pass.
     if (node is MethodDeclaration) return node.parameters;
     if (node is FunctionDeclaration) node = node.functionExpression;
     if (node is FunctionExpression) return node.parameters;
@@ -546,507 +502,495 @@ $name.prototype[Symbol.iterator] = function() {
     return parameters.parameters.any((p) => p.kind != ParameterKind.REQUIRED);
   }
 
-  void _generateArgumentInitializers(FormalParameterList parameters) {
-    if (parameters == null) return;
+  JS.Statement _emitArgumentInitializers(FormalParameterList parameters) {
+    if (parameters == null || !_hasArgumentInitializers(parameters)) {
+      return null;
+    }
+
+    var body = [];
     for (var param in parameters.parameters) {
       // TODO(justinfagnani): rename identifier if necessary
       var name = param.identifier.name;
 
       if (param.kind == ParameterKind.NAMED) {
-        out.write('let $name = opt\$.$name === undefined ? ');
-        if (param is DefaultFormalParameter && param.defaultValue != null) {
-          param.defaultValue.accept(this);
-        } else {
-          out.write('null');
-        }
-        out.write(' : opt\$.$name;\n');
+        body.add(js.statement('let # = opt\$.# === void 0 ? # : opt\$.#;', [
+          name,
+          name,
+          _defaultParamValue(param),
+          name
+        ]));
       } else if (param.kind == ParameterKind.POSITIONAL) {
-        out.write('if ($name === undefined) $name = ');
-        if (param is DefaultFormalParameter && param.defaultValue != null) {
-          param.defaultValue.accept(this);
-        } else {
-          out.write('null');
-        }
-        out.write(';\n');
+        body.add(js.statement('if (# === void 0) # = #;', [
+          name,
+          name,
+          _defaultParamValue(param)
+        ]));
       }
     }
+    return _statement(body);
+  }
+
+  JS.Expression _defaultParamValue(FormalParameter param) {
+    if (param is DefaultFormalParameter && param.defaultValue != null) {
+      return param.defaultValue.accept(this);
+    } else {
+      return new JS.LiteralNull();
+    }
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isAbstract) return;
-    if (node.externalKeyword != null) {
-      out.write('/* Unimplemented $node */\n');
-      return;
-    }
+  JS.Method visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAbstract || node.externalKeyword != null) return null;
 
-    if (node.isStatic) {
-      out.write('static ');
-    }
-    if (node.isGetter) {
-      out.write('get ');
-    } else if (node.isSetter) {
-      out.write('set ');
-    }
+    var params = _visit(node.parameters);
+    if (params == null) params = [];
 
-    var name = _canonicalMethodName(node.name.name);
-    out.write('$name(');
-    _visitNode(node.parameters);
-    out.write(') ');
-    _visitNode(node.body);
-    out.write('\n');
+    return new JS.Method(new JS.PropertyName(_jsMethodName(node.name.name)),
+        new JS.Fun(params, node.body.accept(this)),
+        isGetter: node.isGetter,
+        isSetter: node.isSetter,
+        isStatic: node.isStatic);
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  JS.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     assert(node.parent is CompilationUnit);
 
-    if (node.externalKeyword != null) {
-      // TODO(jmesserly): the toString visitor in Analyzer doesn't include the
-      // external keyword for FunctionDeclaration.
-      out.write('/* Unimplemented external $node */\n');
-      return;
-    }
+    if (node.externalKeyword != null) return null;
 
     if (node.isGetter || node.isSetter) {
       // Add these later so we can use getter/setter syntax.
       _properties.add(node);
-    } else {
-      _flushLibraryProperties();
-      _writeFunctionDeclaration(node);
+      return null;
     }
-  }
 
-  void _writeFunctionDeclaration(FunctionDeclaration node) {
+    var body = <JS.Statement>[];
+    _flushLibraryProperties(body);
+
     var name = node.name.name;
+    body.add(js.comment('Function $name: ${node.element.type}'));
 
-    if (node.isGetter) {
-      out.write('get ');
-    } else if (node.isSetter) {
-      out.write('set ');
-    } else {
-      out.write("// Function $name: ${node.element.type}\n");
-      out.write('function ');
-    }
+    body.add(new JS.FunctionDeclaration(new JS.VariableDeclaration(name),
+        node.functionExpression.accept(this)));
 
-    out.write('$name');
-    node.functionExpression.accept(this);
+    if (isPublic(name)) _exports.add(name);
+    return _statement(body);
+  }
 
-    if (!node.isGetter && !node.isSetter) {
-      out.write('\n');
-      if (isPublic(name)) _exports.add(name);
-      out.write('\n');
-    }
+  JS.Method _emitTopLevelProperty(FunctionDeclaration node) {
+    var name = node.name.name;
+    if (isPublic(name)) _exports.add(name);
+    return new JS.Method(
+        new JS.PropertyName(name), node.functionExpression.accept(this),
+        isGetter: node.isGetter, isSetter: node.isSetter);
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
+  JS.Expression visitFunctionExpression(FunctionExpression node) {
+    var params = _visit(node.parameters);
+    if (params == null) params = [];
+
     if (node.parent is FunctionDeclaration) {
-      out.write('(');
-      _visitNode(node.parameters);
-      out.write(') ');
-      node.body.accept(this);
+      return new JS.Fun(params, node.body.accept(this));
     } else {
-      var bindThis = _needsBindThis(node.body);
-      if (bindThis) out.write("(");
-      out.write("(");
-      _visitNode(node.parameters);
-      out.write(") => ");
-      var body = node.body;
-      if (body is ExpressionFunctionBody) body = body.expression;
-      body.accept(this);
-      if (bindThis) out.write(").bind(this)");
+      var bindThis = _maybeBindThis(node.body);
+
+      String code;
+      AstNode body;
+      var nodeBody = node.body;
+      if (nodeBody is ExpressionFunctionBody) {
+        code = '(#) => #';
+        body = nodeBody.expression;
+      } else {
+        code = '(#) => { #; }';
+        body = nodeBody;
+      }
+      return js.call('($code)$bindThis', [params, body.accept(this)]);
     }
   }
 
   @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+  JS.Statement visitFunctionDeclarationStatement(
+      FunctionDeclarationStatement node) {
     var func = node.functionDeclaration;
     if (func.isGetter || func.isSetter) {
-      out.write('/* Unimplemented function get/set statement: $node */');
-      return;
+      return js.comment('Unimplemented function get/set statement: $node');
     }
 
-    var name = func.name.name;
-    out.write("// Function $name: ${func.element.type}\n");
-    out.write('function $name');
-    func.functionExpression.accept(this);
-    out.write('\n');
+    var name = new JS.VariableDeclaration(func.name.name);
+    return new JS.Block([
+      js.comment("// Function ${func.name.name}: ${func.element.type}\n"),
+      new JS.FunctionDeclaration(name, func.functionExpression.accept(this))
+    ]);
   }
 
   /// Writes a simple identifier. This can handle implicit `this` as well as
   /// going through the qualified library name if necessary.
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
+  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
     var e = node.staticElement;
     if (e == null) {
-      out.write('/* Unimplemented unknown name */');
-    } else {
-      if (e.enclosingElement is CompilationUnitElement &&
-          (e.library != libraryInfo.library || _needsModuleGetter(e))) {
-        out.write('${jsLibraryName(e.library)}.');
-      } else if (currentClass != null && _needsImplicitThis(e)) {
-        out.write('this.');
-      }
+      return js.commentExpression(
+          'Unimplemented unknown name', new JS.VariableUse(node.name));
     }
-    out.write(node.name);
+    var name = node.name;
+    if (e.enclosingElement is CompilationUnitElement &&
+        (e.library != libraryInfo.library || _needsModuleGetter(e))) {
+      return js.call('#.#', [jsLibraryName(e.library), name]);
+    } else if (currentClass != null && _needsImplicitThis(e)) {
+      return js.call('this.#', name);
+    }
+    return new JS.VariableUse(name);
   }
 
-  void _writeTypeName(DartType type) {
+  JS.Expression _emitTypeName(DartType type) {
     var name = type.name;
     var lib = type.element.library;
     if (name == '') {
       // TODO(jmesserly): remove when we're using coercion reifier.
-      out.write('/* Unimplemented type $type */');
-      return;
+      return _unimplementedCall('Unimplemented type $type');
     }
 
-    if (lib != currentLibrary && lib != null) {
-      out.write(jsLibraryName(lib));
-      out.write('.');
-    }
-    out.write(name);
-
+    var typeArgs = null;
     if (type is ParameterizedType) {
       // TODO(jmesserly): this is a workaround for an analyzer bug, see:
       // https://github.com/dart-lang/dart-dev-compiler/commit/a212d59ad046085a626dd8d16881cdb8e8b9c3fa
       if (type is! FunctionType || type.element is FunctionTypeAlias) {
         var args = type.typeArguments;
         if (args.any((a) => a != rules.provider.dynamicType)) {
-          out.write('\$(');
-          for (var arg in args) {
-            if (arg != args.first) out.write(', ');
-            _writeTypeName(arg);
-          }
-          out.write(')');
+          name = '$name\$';
+          typeArgs = args.map(_emitTypeName);
         }
       }
     }
+
+    JS.Expression result;
+    if (lib != currentLibrary && lib != null) {
+      result = js.call('#.#', [jsLibraryName(lib), name]);
+    } else {
+      result = new JS.VariableUse(name);
+    }
+
+    if (typeArgs != null) {
+      result = js.call('#(#)', [result, typeArgs]);
+    }
+    return result;
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
+  JS.Node visitAssignmentExpression(AssignmentExpression node) {
     var lhs = node.leftHandSide;
     var rhs = node.rightHandSide;
     if (lhs is IndexExpression) {
+      String code;
       var target = _getTarget(lhs);
       if (rules.isDynamicTarget(target)) {
-        out.write('dart.dsetindex(');
-        target.accept(this);
-        out.write(', ');
-        lhs.index.accept(this);
-        out.write(', ');
-        rhs.accept(this);
-        out.write(')');
+        code = 'dart.dsetindex(#, #, #)';
       } else {
-        target.accept(this);
-        out.write('.set(');
-        lhs.index.accept(this);
-        out.write(', ');
-        rhs.accept(this);
-        out.write(')');
+        code = '#.set(#, #)';
       }
-      return;
+      return js.call(code, [
+        target.accept(this),
+        lhs.index.accept(this),
+        rhs.accept(this)
+      ]);
     }
 
     if (lhs is PropertyAccess) {
       var target = _getTarget(lhs);
       if (rules.isDynamicTarget(target)) {
-        out.write('dart.dput(');
-        target.accept(this);
-        out.write(', "${lhs.propertyName.name}", ');
-        rhs.accept(this);
-        out.write(')');
-        return;
+        return js.call('dart.dput(#, #, #)', [
+          target.accept(this),
+          js.string(lhs.propertyName.name, "'"),
+          rhs.accept(this)
+        ]);
       }
     }
 
-    lhs.accept(this);
-    out.write(' = ');
-    rhs.accept(this);
-  }
+    if (node.parent is ExpressionStatement &&
+        rhs is CascadeExpression &&
+        _isStateless(lhs, rhs)) {
+      // Special case: cascade assignment to a variable in a statement.
+      // We can reuse the variable to desugar it:
+      //    result = []..length = length;
+      // becomes:
+      //    result = [];
+      //    result.length = length;
+      var savedCascadeTemp = _cascadeTarget;
+      _cascadeTarget = lhs;
 
-  @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    var parameters = _parametersOf(node.parent);
-    var initArgs = parameters != null && _hasArgumentInitializers(parameters);
-    if (initArgs) {
-      out.write('{\n', 2);
-      _generateArgumentInitializers(parameters);
-    } else {
-      out.write('{ ');
+      var body = [];
+      body.add(
+          js.statement('# = #;', [lhs.accept(this), rhs.target.accept(this)]));
+      for (var section in rhs.cascadeSections) {
+        body.add(new JS.ExpressionStatement(section.accept(this)));
+      }
+
+      _cascadeTarget = savedCascadeTemp;
+      return _statement(body);
     }
-    out.write('return ');
-    node.expression.accept(this);
-    if (initArgs) {
-      out.write('\n}', -2);
-    } else {
-      out.write('; }');
-    }
+
+    return js.call('# = #', [lhs.accept(this), rhs.accept(this)]);
   }
 
   @override
-  void visitEmptyFunctionBody(EmptyFunctionBody node) {
-    out.write('{}');
+  JS.Block visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    var initArgs = _emitArgumentInitializers(_parametersOf(node.parent));
+    var ret = new JS.Return(node.expression.accept(this));
+    return new JS.Block(initArgs != null ? [initArgs, ret] : [ret]);
   }
 
   @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    out.write('{\n', 2);
-    _generateArgumentInitializers(_parametersOf(node.parent));
-    _visitNodeList(node.block.statements);
-    out.write('}', -2);
+  JS.Block visitEmptyFunctionBody(EmptyFunctionBody node) => new JS.Block([]);
+
+  @override
+  JS.Block visitBlockFunctionBody(BlockFunctionBody node) {
+    var initArgs = _emitArgumentInitializers(_parametersOf(node.parent));
+    var block = visitBlock(node.block);
+    if (initArgs != null) return new JS.Block([initArgs, block]);
+    return block;
   }
 
   @override
-  void visitBlock(Block node) {
-    out.write("{\n", 2);
-    node.statements.accept(this);
-    out.write("}\n", -2);
-  }
+  JS.Block visitBlock(Block node) => new JS.Block(_visitList(node.statements));
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  JS.Expression visitMethodInvocation(MethodInvocation node) {
     var target = node.isCascaded ? _cascadeTarget : node.target;
 
     if (rules.isDynamicCall(node.methodName)) {
+      var args = node.argumentList.accept(this);
       if (target != null) {
-        out.write('dart.dinvoke(');
-        target.accept(this);
-        out.write(', "${node.methodName.name}"');
+        return js.call('dart.dinvoke(#, #, #)', [
+          target.accept(this),
+          js.string(node.methodName.name, "'"),
+          args
+        ]);
       } else {
-        out.write('dart.dinvokef(');
-        node.methodName.accept(this);
+        return js.call(
+            'dart.dinvokef(#, #)', [node.methodName.accept(this), args]);
       }
-
-      _visitArgumentsWithCommaPrefix(node.argumentList);
-      out.write(')');
-      return;
     }
 
     // TODO(jmesserly): if this resolves to a getter returning a function with
     // a call method, we don't generate the `.call` correctly.
+
+    var targetJs;
     if (target != null) {
-      target.accept(this);
-      out.write('.${node.methodName.name}');
+      targetJs = js.call('#.#', [target.accept(this), node.methodName.name]);
     } else {
-      node.methodName.accept(this);
+      targetJs = node.methodName.accept(this);
     }
 
-    out.write('(');
-    node.argumentList.accept(this);
-    out.write(')');
+    return js.call('#(#)', [targetJs, node.argumentList.accept(this)]);
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  JS.Expression visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    var code;
     if (rules.isDynamicCall(node.function)) {
-      out.write('dart.dinvokef(');
-      node.function.accept(this);
-      _visitArgumentsWithCommaPrefix(node.argumentList);
-      out.write(')');
+      code = 'dart.dinvokef(#, #)';
     } else {
-      node.function.accept(this);
-      out.write('(');
-      node.argumentList.accept(this);
-      out.write(')');
+      code = '#(#)';
     }
+    return js.call(
+        code, [node.function.accept(this), node.argumentList.accept(this)]);
   }
 
-  /// Writes an argument list. This does not write the parens, because sometimes
-  /// a parameter will need to be added before the start of the list, so
-  /// writing parens is the responsibility of the parent node.
   @override
-  void visitArgumentList(ArgumentList node) {
-    var args = node.arguments;
-
-    bool hasNamed = false;
-    for (int i = 0; i < args.length; i++) {
-      if (i > 0) out.write(', ');
-
-      var arg = args[i];
+  List<JS.Expression> visitArgumentList(ArgumentList node) {
+    var args = <JS.Expression>[];
+    var named = <JS.Property>[];
+    for (var arg in node.arguments) {
       if (arg is NamedExpression) {
-        if (!hasNamed) out.write('{');
-        hasNamed = true;
-      }
-      arg.accept(this);
-    }
-    if (hasNamed) out.write('}');
-  }
-
-  void _visitArgumentsWithCommaPrefix(ArgumentList node) {
-    if (node == null) return;
-    if (node.arguments.isNotEmpty) out.write(', ');
-    visitArgumentList(node);
-  }
-
-  @override
-  void visitNamedExpression(NamedExpression node) {
-    assert(node.parent is ArgumentList);
-    node.name.accept(this);
-    out.write(' ');
-    node.expression.accept(this);
-  }
-
-  @override
-  void visitFormalParameterList(FormalParameterList node) {
-    int length = node.parameters.length;
-    bool hasOptionalParameters = false;
-    bool hasPositionalParameters = false;
-
-    for (int i = 0; i < length; i++) {
-      var param = node.parameters[i];
-      if (param.kind == ParameterKind.NAMED) {
-        hasOptionalParameters = true;
+        named.add(visitNamedExpression(arg));
       } else {
-        if (hasPositionalParameters) out.write(', ');
-        hasPositionalParameters = true;
-        param.accept(this);
+        args.add(arg.accept(this));
       }
     }
-    if (hasOptionalParameters) {
-      if (hasPositionalParameters) out.write(', ');
-      out.write(optionalParameters);
+    if (named.isNotEmpty) {
+      args.add(new JS.ObjectInitializer(named));
     }
+    return args;
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    // Named parameters are handled as a single object, so we skip individual
-    // parameters
-    if (node.kind != ParameterKind.NAMED) {
-      out.write(node.identifier.name);
+  JS.Property visitNamedExpression(NamedExpression node) {
+    assert(node.parent is ArgumentList);
+    return new JS.Property(new JS.PropertyName(node.name.label.name),
+        node.expression.accept(this));
+  }
+
+  @override
+  List<JS.Parameter> visitFormalParameterList(FormalParameterList node) {
+    var result = <JS.Parameter>[];
+    for (FormalParameter param in node.parameters) {
+      if (param.kind == ParameterKind.NAMED) {
+        result.add(new JS.Parameter(_jsNamedParameterName));
+        break;
+      }
+      result.add(new JS.Parameter(param.identifier.name));
     }
+    return result;
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    // Named parameters are handled as a single object, so we skip individual
-    // parameters
-    if (node.kind != ParameterKind.NAMED) {
-      out.write(node.identifier.name);
-    }
-  }
+  JS.Statement visitExpressionStatement(ExpressionStatement node) =>
+      _expressionStatement(node.expression.accept(this));
+
+  // Some expressions may choose to generate themselves as JS statements
+  // if their parent is in a statement context.
+  // TODO(jmesserly): refactor so we handle the special cases here, and
+  // can use better return types on the expression visit methods.
+  JS.Statement _expressionStatement(expr) =>
+      expr is JS.Statement ? expr : new JS.ExpressionStatement(expr);
 
   @override
-  void visitExpressionStatement(ExpressionStatement node) {
-    node.expression.accept(this);
-    out.write(';\n');
-  }
+  JS.EmptyStatement visitEmptyStatement(EmptyStatement node) =>
+      new JS.EmptyStatement();
 
   @override
-  void visitEmptyStatement(EmptyStatement node) {
-    out.write(';\n');
-  }
+  JS.Statement visitAssertStatement(AssertStatement node) =>
+      // TODO(jmesserly): only emit in checked mode.
+      js.statement('dart.assert(#);', node.condition.accept(this));
 
   @override
-  void visitAssertStatement(AssertStatement node) {
-    // TODO(jmesserly): only emit in checked mode.
-    _visitNode(node.condition, prefix: 'dart.assert(', suffix: ');\n');
-  }
+  JS.Return visitReturnStatement(ReturnStatement node) =>
+      new JS.Return(_visit(node.expression));
 
   @override
-  void visitReturnStatement(ReturnStatement node) {
-    out.write('return');
-    _visitNode(node.expression, prefix: ' ');
-    out.write(';\n');
-  }
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    var body = <JS.Statement>[];
 
-  @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var field in node.variables.variables) {
-      var name = field.name.name;
       if (field.isConst) {
         // constant fields don't change, so we can generate them as `let`
         // but add them to the module's exports
-        _visitNode(field, prefix: 'let ', suffix: ';\n');
+        var name = field.name.name;
+        body.add(js.statement('let # = #;', [
+          new JS.VariableDeclaration(name),
+          _visitInitializer(field)
+        ]));
         if (isPublic(name)) _exports.add(name);
       } else if (_isFieldInitConstant(field)) {
-        _visitNode(field, suffix: ';\n');
+        body.add(js.statement(
+            '# = #;', [field.name.accept(this), _visitInitializer(field)]));
       } else {
         _lazyFields.add(field);
       }
     }
+
+    return _statement(body);
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _visitNodeList(node.variables, prefix: 'let ', separator: ', ');
-  }
+  visitVariableDeclarationList(VariableDeclarationList node) {
+    var last = node.variables.last;
+    var lastInitializer = last.initializer;
 
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    node.name.accept(this);
-    out.write(' = ');
-    if (node.initializer != null) {
-      node.initializer.accept(this);
+    List<JS.VariableInitialization> variables;
+    if (lastInitializer is CascadeExpression &&
+        node.parent is VariableDeclarationStatement) {
+      // Special case: cascade as variable initializer
+      //
+      // We can reuse the variable to desugar it:
+      //    var result = []..length = length;
+      // becomes:
+      //    var result = [];
+      //    result.length = length;
+      var savedCascadeTemp = _cascadeTarget;
+      _cascadeTarget = last.name;
+
+      variables = _visitList(node.variables.take(node.variables.length - 1));
+      variables.add(new JS.VariableInitialization(
+          new JS.VariableDeclaration(last.name.name),
+          lastInitializer.target.accept(this)));
+
+      var result = <JS.Expression>[
+        new JS.VariableDeclarationList('let', variables)
+      ];
+      result.addAll(_visitList(lastInitializer.cascadeSections));
+      _cascadeTarget = savedCascadeTemp;
+      return _statement(result.map((e) => new JS.ExpressionStatement(e)));
     } else {
-      // explicitly initialize to null, so we don't need to worry about
-      // `undefined`.
-      // TODO(jmesserly): do this only for vars that aren't definitely assigned.
-      out.write('null');
+      variables = _visitList(node.variables);
     }
+
+    return new JS.VariableDeclarationList('let', variables);
   }
 
-  void _flushLazyFields() {
-    if (_lazyFields.isEmpty) return;
+  @override
+  JS.VariableInitialization visitVariableDeclaration(VariableDeclaration node) {
+    var name = new JS.VariableDeclaration(node.name.name);
+    return new JS.VariableInitialization(name, _visitInitializer(node));
+  }
 
-    _writeLazyFields(_libraryName, _lazyFields);
-    out.write('\n');
+  JS.Expression _visitInitializer(VariableDeclaration node) {
+    var value = _visit(node.initializer);
+    // explicitly initialize to null, to avoid getting `undefined`.
+    // TODO(jmesserly): do this only for vars that aren't definitely assigned.
+    return value != null ? value : new JS.LiteralNull();
+  }
 
+  void _flushLazyFields(List<JS.Statement> body) {
+    var code = _emitLazyFields(_libraryName, _lazyFields);
+    if (code != null) body.add(code);
     _lazyFields.clear();
   }
 
-  void _writeLazyFields(String objExpr, List<VariableDeclaration> fields) {
-    if (fields.isEmpty) return;
+  JS.Statement _emitLazyFields(
+      String objExpr, List<VariableDeclaration> fields) {
+    if (fields.isEmpty) return null;
 
-    out.write('dart.defineLazyProperties($objExpr, {\n', 2);
+    var methods = [];
     for (var node in fields) {
       var name = node.name.name;
-      out.write('get $name() { return ');
-      node.initializer.accept(this);
-      out.write(' },\n');
-      // TODO(jmesserly): we're using a dummy setter to indicate writable.
-      if (!node.isFinal) out.write('set $name(x) {},\n');
+      methods.add(new JS.Method(new JS.PropertyName(name),
+          js.call('function() { return #; }', node.initializer.accept(this)),
+          isGetter: true));
+
+      // TODO(jmesserly): use a dummy setter to indicate writable.
+      if (!node.isFinal) {
+        methods.add(new JS.Method(
+            new JS.PropertyName(name), js.call('function() {}'),
+            isSetter: true));
+      }
     }
-    out.write('});\n', -2);
+
+    return js.statement(
+        'dart.defineLazyProperties(#, { # })', [objExpr, methods]);
   }
 
-  void _flushLibraryProperties() {
+  void _flushLibraryProperties(List<JS.Statement> body) {
     if (_properties.isEmpty) return;
-
-    out.write('dart.copyProperties($_libraryName, {\n', 2);
-    for (var node in _properties) {
-      _writeFunctionDeclaration(node);
-      out.write(',\n');
-    }
-    out.write('});\n\n', -2);
-
+    body.add(js.statement('dart.copyProperties(#, { # });', [
+      _libraryName,
+      _properties.map(_emitTopLevelProperty)
+    ]));
     _properties.clear();
   }
 
   @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _visitNode(node.variables);
-    out.write(';\n');
-  }
+  JS.Statement visitVariableDeclarationStatement(
+          VariableDeclarationStatement node) =>
+      _expressionStatement(node.variables.accept(this));
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    node.type.name.accept(this);
+  visitConstructorName(ConstructorName node) {
+    var typeName = node.type.name.accept(this);
     if (node.name != null) {
-      out.write('.');
-      node.name.accept(this);
+      return js.call('#.#', [typeName, node.name.name]);
     }
+    return typeName;
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    out.write('new ');
-    node.constructorName.accept(this);
-    out.write('(');
-    node.argumentList.accept(this);
-    out.write(')');
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    return js.call('new #(#)', [
+      node.constructorName.accept(this),
+      node.argumentList.accept(this)
+    ]);
   }
 
   /// True if this type is built-in to JS, and we use the values unwrapped.
@@ -1070,133 +1014,112 @@ $name.prototype[Symbol.iterator] = function() {
 
   bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
 
-  void notNull(Expression expr) {
+  JS.Expression notNull(Expression expr) {
     var type = rules.getStaticType(expr);
     if (rules.isNonNullableType(type)) {
-      expr.accept(this);
+      return expr.accept(this);
     } else {
-      out.write('dart.notNull(');
-      expr.accept(this);
-      out.write(')');
+      return js.call('dart.notNull(#)', expr.accept(this));
     }
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  JS.Expression visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
-    var lhs = node.leftOperand;
-    var rhs = node.rightOperand;
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var leftType = rules.getStaticType(left);
+    var rightType = rules.getStaticType(right);
 
-    var dispatchType = rules.getStaticType(lhs);
-    var otherType = rules.getStaticType(rhs);
-
+    var code;
     if (op.type.isEqualityOperator) {
       // If we statically know LHS or RHS is null we can generate a clean check.
       // We can also do this if the left hand side is a primitive type, because
       // we know then it doesn't have an overridden.
-      if (_isNull(lhs) || _isNull(rhs) || typeIsPrimitiveInJS(dispatchType)) {
-        lhs.accept(this);
+      if (_isNull(left) || _isNull(right) || typeIsPrimitiveInJS(leftType)) {
         // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-strict-equality-comparison
-        out.write(op.type == TokenType.EQ_EQ ? ' === ' : ' !== ');
-        rhs.accept(this);
+        code = op.type == TokenType.EQ_EQ ? '# === #' : '# !== #';
       } else {
-        // TODO(jmesserly): it would be nice to use just "equals", perhaps
-        // by importing this name.
-        if (op.type == TokenType.BANG_EQ) out.write('!');
-        out.write('dart.equals(');
-        lhs.accept(this);
-        out.write(', ');
-        rhs.accept(this);
-        out.write(')');
+        var bang = op.type == TokenType.BANG_EQ ? '!' : '';
+        code = '${bang}dart.equals(#, #)';
       }
-    } else if (binaryOperationIsPrimitive(dispatchType, otherType)) {
+      return js.call(code, [left.accept(this), right.accept(this)]);
+    } else if (binaryOperationIsPrimitive(leftType, rightType)) {
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
       // TODO(jmesserly): it would be nice to just inline the method from core,
       // instead of special cases here.
-
       if (op.type == TokenType.TILDE_SLASH) {
         // `a ~/ b` is equivalent to `(a / b).truncate()`
-        out.write('(');
-        notNull(lhs);
-        out.write(' / ');
-        notNull(rhs);
-        out.write(').truncate()');
+        code = '(# / #).truncate()';
       } else {
         // TODO(vsm): When do Dart ops not map to JS?
-        notNull(lhs);
-        out.write(' $op ');
-        notNull(rhs);
+        code = '# $op #';
       }
-    } else if (rules.isDynamicTarget(lhs)) {
-      // dynamic dispatch
-      out.write('dart.dbinary(');
-      lhs.accept(this);
-      out.write(', "${op.lexeme}", ');
-      rhs.accept(this);
-      out.write(')');
-    } else if (_isJSBuiltinType(dispatchType)) {
-      // TODO(jmesserly): we'd get better readability from the static-dispatch
-      // pattern below. Consider:
-      //
-      //     "hello"['+']"world"
-      // vs
-      //     core.String['+']("hello", "world")
-      //
-      // Infix notation is much more readable, which is a bit part of why
-      // C# added its extension methods feature. However this would require
-      // adding these methods to String.prototype/Number.prototype in JS.
-      _writeTypeName(dispatchType);
-      out.write(_canonicalMethodInvoke(op.lexeme));
-      out.write('(');
-      lhs.accept(this);
-      out.write(', ');
-      rhs.accept(this);
-      out.write(')');
+      return js.call(code, [notNull(left), notNull(right)]);
     } else {
-      // Generic static-dispatch, user-defined operator code path.
-
-      // We're going to replace the operator with high-precedence "." or "[]",
-      // so add parens around the left side if necessary.
-      _visitExpression(lhs, _indexExpressionPrecedence);
-      out.write(_canonicalMethodInvoke(op.lexeme));
-      out.write('(');
-      rhs.accept(this);
-      out.write(')');
+      var opString = js.string(op.lexeme, "'");
+      if (rules.isDynamicTarget(left)) {
+        // dynamic dispatch
+        return js.call('dart.dbinary(#, #, #)', [
+          left.accept(this),
+          opString,
+          right.accept(this)
+        ]);
+      } else if (_isJSBuiltinType(leftType)) {
+        // TODO(jmesserly): we'd get better readability from the static-dispatch
+        // pattern below. Consider:
+        //
+        //     "hello"['+']"world"
+        // vs
+        //     core.String['+']("hello", "world")
+        //
+        // Infix notation is much more readable, which is a bit part of why
+        // C# added its extension methods feature. However this would require
+        // adding these methods to String.prototype/Number.prototype in JS.
+        return js.call('#.#(#, #)', [
+          _emitTypeName(leftType),
+          opString,
+          left.accept(this),
+          right.accept(this)
+        ]);
+      } else {
+        // Generic static-dispatch, user-defined operator code path.
+        return js.call(
+            '#.#(#)', [left.accept(this), opString, right.accept(this)]);
+      }
     }
   }
 
   bool _isNull(Expression expr) => expr is NullLiteral;
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
+  JS.Expression visitPostfixExpression(PostfixExpression node) {
     var op = node.operator;
     var expr = node.operand;
 
     var dispatchType = rules.getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
       // TODO(vsm): When do Dart ops not map to JS?
-      notNull(expr);
-      out.write('$op');
+      return js.call('#$op', notNull(expr));
     } else {
       // TODO(vsm): Figure out operator calling convention / dispatch.
-      out.write('/* Unimplemented postfix operator: $node */');
+      return visitExpression(node);
     }
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
+  JS.Expression visitPrefixExpression(PrefixExpression node) {
     var op = node.operator;
     var expr = node.operand;
 
     var dispatchType = rules.getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
       // TODO(vsm): When do Dart ops not map to JS?
-      out.write('$op');
-      notNull(expr);
+      return js.call('$op#', notNull(expr));
     } else {
       // TODO(vsm): Figure out operator calling convention / dispatch.
-      out.write('/* Unimplemented postfix operator: $node */');
+      return visitExpression(node);
     }
   }
 
@@ -1204,53 +1127,24 @@ $name.prototype[Symbol.iterator] = function() {
   // [PropertyAccess]. The code generation for those is handled in their
   // respective visit methods.
   @override
-  void visitCascadeExpression(CascadeExpression node) {
+  JS.Node visitCascadeExpression(CascadeExpression node) {
     var savedCascadeTemp = _cascadeTarget;
 
     var parent = node.parent;
-    var grandparent = parent.parent;
+    JS.Node result;
     if (_isStateless(node.target, node)) {
       // Special case: target is stateless, so we can just reuse it.
       _cascadeTarget = node.target;
 
       if (parent is ExpressionStatement) {
-        _visitNodeList(node.cascadeSections, separator: ';\n');
+        var sections = _visitList(node.cascadeSections);
+        result = _statement(sections.map((e) => new JS.ExpressionStatement(e)));
       } else {
         // Use comma expression. For example:
         //    (sb.write(1), sb.write(2), sb)
-        out.write('(');
-        _visitNodeList(node.cascadeSections, separator: ', ', suffix: ', ');
-        _cascadeTarget.accept(this);
-        out.write(')');
+        var sections = _visitListToBinary(node.cascadeSections, ',');
+        result = new JS.Binary(',', sections, _cascadeTarget.accept(this));
       }
-    } else if (parent is AssignmentExpression &&
-        grandparent is ExpressionStatement &&
-        _isStateless(parent.leftHandSide, node)) {
-
-      // Special case: assignment to a variable in a statement.
-      // We can reuse the variable to desugar it:
-      //    result = []..length = length;
-      // becomes:
-      //    result = [];
-      //    result.length = length;
-      _cascadeTarget = parent.leftHandSide;
-      node.target.accept(this);
-      out.write(';\n');
-      _visitNodeList(node.cascadeSections, separator: ';\n');
-    } else if (parent is VariableDeclaration &&
-        grandparent is VariableDeclarationList &&
-        grandparent.variables.last == parent) {
-
-      // Special case: variable declaration
-      // We can reuse the variable to desugar it:
-      //    var result = []..length = length;
-      // becomes:
-      //    var result = [];
-      //    result.length = length;
-      _cascadeTarget = parent.name;
-      node.target.accept(this);
-      out.write(';\n');
-      _visitNodeList(node.cascadeSections, separator: ';\n');
     } else {
       // In the general case we need to capture the target expression into
       // a temporary. This uses a lambda to get a temporary scope, and it also
@@ -1263,19 +1157,21 @@ $name.prototype[Symbol.iterator] = function() {
           new LocalVariableElementImpl.forNode(_cascadeTarget);
       _cascadeTarget.staticType = node.target.staticType;
 
-      out.write('((${_cascadeTarget.name}) => {\n', 2);
-      _visitNodeList(node.cascadeSections, separator: ';\n', suffix: ';\n');
+      var body = _visitList(node.cascadeSections);
       if (node.parent is! ExpressionStatement) {
-        out.write('return ${_cascadeTarget.name};\n');
+        body.add(js.statement('return #;', _cascadeTarget.name));
       }
-      out.write('})', -2);
-      if (_needsBindThis(node.cascadeSections)) out.write('.bind(this)');
-      out.write('(');
-      node.target.accept(this);
-      out.write(')');
+
+      var bindThis = _maybeBindThis(node.cascadeSections);
+      result = js.call('((#) => { # })$bindThis(#)', [
+        _cascadeTarget.name,
+        body,
+        node.target.accept(this)
+      ]);
     }
 
     _cascadeTarget = savedCascadeTemp;
+    return result;
   }
 
   /// True is the expression can be evaluated multiple times without causing
@@ -1299,75 +1195,57 @@ $name.prototype[Symbol.iterator] = function() {
   }
 
   @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
-    out.write('(');
-    node.expression.accept(this);
-    out.write(')');
-  }
+  visitParenthesizedExpression(ParenthesizedExpression node) =>
+      // The printer handles precedence so we don't need to.
+      node.expression.accept(this);
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    node.identifier.accept(this);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    node.identifier.accept(this);
-  }
-
-  @override
-  void visitThisExpression(ThisExpression node) {
-    out.write('this');
-  }
-
-  @override
-  void visitSuperExpression(SuperExpression node) {
-    out.write('super');
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.prefix.staticElement is PrefixElement) {
+  visitSimpleFormalParameter(SimpleFormalParameter node) =>
       node.identifier.accept(this);
+
+  @override
+  visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+      node.identifier.accept(this);
+
+  @override
+  JS.This visitThisExpression(ThisExpression node) => new JS.This();
+
+  @override
+  JS.Super visitSuperExpression(SuperExpression node) => new JS.Super();
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.prefix.staticElement is PrefixElement) {
+      return node.identifier.accept(this);
     } else {
-      _visitGet(node.prefix, node.identifier);
+      return _visitGet(node.prefix, node.identifier);
     }
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _visitGet(_getTarget(node), node.propertyName);
-  }
+  visitPropertyAccess(PropertyAccess node) =>
+      _visitGet(_getTarget(node), node.propertyName);
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
-  void _visitGet(Expression target, SimpleIdentifier name) {
+  _visitGet(Expression target, SimpleIdentifier name) {
     if (rules.isDynamicTarget(target)) {
-      // TODO(jmesserly): this won't work if we're left hand side of assignment.
-      out.write('dart.dload(');
-      target.accept(this);
-      out.write(', "${name.name}")');
+      return js.call(
+          'dart.dload(#, #)', [target.accept(this), js.string(name.name, "'")]);
     } else {
-      target.accept(this);
-      out.write('.${name.name}');
+      return js.call('#.#', [target.accept(this), name.name]);
     }
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
+  visitIndexExpression(IndexExpression node) {
     var target = _getTarget(node);
+    var code;
     if (rules.isDynamicTarget(target)) {
-      out.write('dart.dindex(');
-      target.accept(this);
-      out.write(', ');
-      node.index.accept(this);
-      out.write(')');
+      code = 'dart.dindex(#, #)';
     } else {
-      target.accept(this);
-      out.write(_canonicalMethodInvoke('[]'));
-      out.write('(');
-      node.index.accept(this);
-      out.write(')');
+      code = '#.get(#)';
     }
+    return js.call(code, [target.accept(this), node.index.accept(this)]);
   }
 
   /// Gets the target of a [PropertyAccess] or [IndexExpression].
@@ -1379,368 +1257,261 @@ $name.prototype[Symbol.iterator] = function() {
   }
 
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    node.condition.accept(this);
-    out.write(' ? ');
-    node.thenExpression.accept(this);
-    out.write(' : ');
-    node.elseExpression.accept(this);
+  visitConditionalExpression(ConditionalExpression node) {
+    return js.call('# ? # : #', [
+      node.condition.accept(this),
+      node.thenExpression.accept(this),
+      node.elseExpression.accept(this)
+    ]);
   }
 
   @override
-  void visitThrowExpression(ThrowExpression node) {
+  visitThrowExpression(ThrowExpression node) {
+    var expr = node.expression.accept(this);
     if (node.parent is ExpressionStatement) {
-      out.write('throw ');
-      node.expression.accept(this);
+      return js.statement('throw #;', expr);
     } else {
-      // TODO(jmesserly): move this into runtime helper?
-      out.write('(function(e) { throw e }(');
-      node.expression.accept(this);
-      out.write(')');
+      return js.call('dart.throw_(#)', expr);
     }
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
-    out.write('if (');
-    node.condition.accept(this);
-    out.write(') ');
-    var then = node.thenStatement;
-    if (then is Block) {
-      out.write('{\n', 2);
-      _visitNodeList((then as Block).statements);
-      out.write('}', -2);
-    } else {
-      _visitNode(then);
+  JS.If visitIfStatement(IfStatement node) {
+    return new JS.If(node.condition.accept(this), _visit(node.thenStatement),
+        _visitOrEmpty(node.elseStatement));
+  }
+
+  @override
+  JS.For visitForStatement(ForStatement node) {
+    var init = _visit(node.initialization);
+    if (init == null) init = _visit(node.variables);
+    return new JS.For(init, _visit(node.condition),
+        _visitListToBinary(node.updaters, ','), _visit(node.body));
+  }
+
+  @override
+  JS.While visitWhileStatement(WhileStatement node) {
+    return new JS.While(node.condition.accept(this), node.body.accept(this));
+  }
+
+  @override
+  JS.Do visitDoStatement(DoStatement node) {
+    return new JS.Do(node.body.accept(this), node.condition.accept(this));
+  }
+
+  @override
+  JS.ForOf visitForEachStatement(ForEachStatement node) {
+    var init = _visit(node.identifier);
+    if (init == null) {
+      init = js.call('let #', node.loopVariable.identifier.name);
     }
-    var elseClause = node.elseStatement;
-    if (elseClause != null) {
-      out.write(' else ');
-      elseClause.accept(this);
-    } else if (then is Block) {
-      out.write('\n');
-    }
+    return new JS.ForOf(
+        init, node.iterable.accept(this), node.body.accept(this));
   }
 
   @override
-  void visitForStatement(ForStatement node) {
-    Expression initialization = node.initialization;
-    out.write("for (");
-    if (initialization != null) {
-      initialization.accept(this);
-    } else if (node.variables != null) {
-      _visitNode(node.variables);
-    }
-    out.write(";");
-    _visitNode(node.condition, prefix: " ");
-    out.write(";");
-    _visitNodeList(node.updaters, prefix: " ", separator: ", ");
-    out.write(") ");
-    _visitNode(node.body);
+  visitBreakStatement(BreakStatement node) {
+    var label = node.label;
+    return new JS.Break(label != null ? label.name : null);
   }
 
   @override
-  void visitWhileStatement(WhileStatement node) {
-    out.write("while (");
-    _visitNode(node.condition);
-    out.write(") ");
-    _visitNode(node.body);
+  visitContinueStatement(ContinueStatement node) {
+    var label = node.label;
+    return new JS.Continue(label != null ? label.name : null);
   }
 
   @override
-  void visitDoStatement(DoStatement node) {
-    out.write("do ");
-    _visitNode(node.body);
-    if (node.body is! Block) out.write(' ');
-    out.write("while (");
-    _visitNode(node.condition);
-    out.write(");\n");
+  visitTryStatement(TryStatement node) {
+    return new JS.Try(_visit(node.body), _visitCatch(node.catchClauses),
+        _visit(node.finallyBlock));
   }
 
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    out.write('for (');
-    if (node.loopVariable != null) {
-      _visitNode(node.loopVariable.identifier, prefix: 'let ');
-    } else {
-      _visitNode(node.identifier);
-    }
-    out.write(' of ');
-    _visitNode(node.iterable);
-    out.write(') ');
-    _visitNode(node.body);
-  }
+  _visitCatch(NodeList<CatchClause> clauses) {
+    if (clauses == null || clauses.isEmpty) return null;
 
-  @override
-  void visitBreakStatement(BreakStatement node) {
-    out.write("break");
-    _visitNode(node.label, prefix: " ");
-    out.write(";\n");
-  }
+    // TODO(jmesserly): need a better way to get a temporary variable.
+    // This could incorrectly shadow a user's name.
+    var name = '\$e';
 
-  @override
-  void visitContinueStatement(ContinueStatement node) {
-    out.write("continue");
-    _visitNode(node.label, prefix: " ");
-    out.write(";\n");
-  }
-
-  @override
-  void visitTryStatement(TryStatement node) {
-    out.write('try ');
-    _visitNode(node.body);
-    if (node.body is! Block) out.write(' ');
-
-    var clauses = node.catchClauses;
-    if (clauses != null && clauses.isNotEmpty) {
-      // TODO(jmesserly): need a better way to get a temporary variable.
-      // This could incorrectly shadow a user's name.
-      var name = '\$e';
-
-      if (clauses.length == 1) {
-        // Special case for a single catch.
-        var clause = clauses.single;
-        if (clause.exceptionParameter != null) {
-          name = clause.exceptionParameter.name;
-        }
+    if (clauses.length == 1) {
+      // Special case for a single catch.
+      var clause = clauses.single;
+      if (clause.exceptionParameter != null) {
+        name = clause.exceptionParameter.name;
       }
-
-      out.write('catch ($name) {\n', 2);
-      for (var clause in clauses) {
-        _visitCatchClause(clause, name);
-      }
-      out.write('}\n', -2);
     }
-    _visitNode(node.finallyBlock, prefix: 'finally ');
+
+    var catchBody = _statement(clauses.map((c) => _visitCatchClause(c, name)));
+
+    return new JS.Catch(new JS.VariableDeclaration(name), catchBody);
   }
 
-  void _visitCatchClause(CatchClause node, String varName) {
+  JS.Statement _statement(Iterable stmts) {
+    var s = stmts is List ? stmts : new List<JS.Statement>.from(stmts);
+    // TODO(jmesserly): empty block singleton?
+    if (s.length == 0) return new JS.Block([]);
+    if (s.length == 1) return s[0];
+    return new JS.Block(s);
+  }
+
+  JS.Statement _visitCatchClause(CatchClause node, String varName) {
+    var body = [];
     if (node.catchKeyword != null) {
-      if (node.exceptionType != null) {
-        out.write('if (dart.is($varName, ');
-        _writeTypeName(node.exceptionType.type);
-        out.write(')) {\n', 2);
-      }
-
       var name = node.exceptionParameter;
       if (name != null && name.name != varName) {
-        out.write('let $name = $varName;\n');
+        body.add(js.statement('let # = #;', [name.accept(this), varName]));
       }
-
       if (node.stackTraceParameter != null) {
-        var stackName = node.stackTraceParameter.name;
-        out.write('let $stackName = dart.stackTrace($name);\n');
+        var stackVar = node.stackTraceParameter.name;
+        body.add(js.statement(
+            'let # = dart.stackTrace(#);', [stackVar, name.accept(this)]));
       }
     }
 
-    // If we can, avoid generating a nested { ... } block.
-    var body = node.body;
-    if (body is Block) {
-      body.statements.accept(this);
-    } else {
-      body.accept(this);
-    }
+    body.add(node.body.accept(this));
 
-    if (node.exceptionType != null) out.write('}\n', -2);
+    if (node.exceptionType != null) {
+      return js.statement('if (dart.is(#, #)) #;', [
+        varName,
+        _emitTypeName(node.exceptionType.type),
+        _statement(body)
+      ]);
+    }
+    return _statement(body);
   }
 
   @override
-  void visitSwitchCase(SwitchCase node) {
-    _visitNodeList(node.labels, separator: " ", suffix: " ");
-    out.write("case ");
-    _visitNode(node.expression);
-    out.write(":\n", 2);
-    _visitNodeList(node.statements);
-    out.write('', -2);
+  JS.Case visitSwitchCase(SwitchCase node) {
+    var expr = node.expression.accept(this);
+    var body = _visitList(node.statements);
+    if (node.labels.isNotEmpty) {
+      body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
+    }
     // TODO(jmesserly): make sure we are statically checking fall through
+    return new JS.Case(expr, new JS.Block(body));
   }
 
   @override
-  void visitSwitchDefault(SwitchDefault node) {
-    _visitNodeList(node.labels, separator: " ", suffix: " ");
-    out.write("default:\n", 2);
-    _visitNodeList(node.statements);
-    out.write('', -2);
+  JS.Default visitSwitchDefault(SwitchDefault node) {
+    var body = _visitList(node.statements);
+    if (node.labels.isNotEmpty) {
+      body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
+    }
+    // TODO(jmesserly): make sure we are statically checking fall through
+    return new JS.Default(new JS.Block(body));
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
-    out.write("switch (");
-    _visitNode(node.expression);
-    out.write(") {\n", 2);
-    _visitNodeList(node.members);
-    out.write("}\n", -2);
+  JS.Switch visitSwitchStatement(SwitchStatement node) =>
+      new JS.Switch(node.expression.accept(this), _visitList(node.members));
+
+  @override
+  JS.Statement visitLabeledStatement(LabeledStatement node) {
+    var result = _visit(node.statement);
+    for (var label in node.labels.reversed) {
+      result = new JS.LabeledStatement(label.label.name, result);
+    }
+    return result;
   }
 
   @override
-  void visitLabel(Label node) {
-    _visitNode(node.label);
-    out.write(':');
-  }
+  visitIntegerLiteral(IntegerLiteral node) => js.number(node.value);
 
   @override
-  void visitLabeledStatement(LabeledStatement node) {
-    _visitNodeList(node.labels, separator: " ", suffix: " ");
-    _visitNode(node.statement);
-  }
+  visitDoubleLiteral(DoubleLiteral node) => js.number(node.value);
 
   @override
-  void visitIntegerLiteral(IntegerLiteral node) {
-    out.write('${node.value}');
-  }
+  visitNullLiteral(NullLiteral node) => new JS.LiteralNull();
 
   @override
-  void visitDoubleLiteral(DoubleLiteral node) {
-    out.write('${node.value}');
-  }
-
-  @override
-  void visitNullLiteral(NullLiteral node) {
-    out.write('null');
-  }
-
-  @override
-  void visitListLiteral(ListLiteral node) {
+  visitListLiteral(ListLiteral node) {
+    // TODO(jmesserly): make this faster. We're wasting an array.
+    var list = js.call('new List.from(#)', [
+      new JS.ArrayInitializer(_visitList(node.elements))
+    ]);
     if (node.constKeyword != null) {
-      out.write('/* Unimplemented const */');
+      list = js.commentExpression('Unimplemented const', list);
     }
-    // TODO(jmesserly): make this faster.
-    out.write('new List.from([');
-    _visitNodeList(node.elements, separator: ', ');
-    out.write('])');
+    return list;
   }
 
   @override
-  void visitMapLiteral(MapLiteral node) {
-    out.write('dart.map(');
+  visitMapLiteral(MapLiteral node) {
     var entries = node.entries;
-    if (entries != null && entries.isNotEmpty) {
-      // Use JS object literal notation if possible, otherwise use an array.
-      if (entries.every((e) => e.key is SimpleStringLiteral)) {
-        out.write('{\n', 2);
-        _visitMapLiteralEntries(entries, separator: ': ');
-        out.write('\n}', -2);
-      } else {
-        out.write('[\n', 2);
-        _visitMapLiteralEntries(entries, separator: ', ');
-        out.write('\n]', -2);
+    var mapArguments = null;
+    if (entries.isEmpty) return js.call('dart.map()');
+
+    // Use JS object literal notation if possible, otherwise use an array.
+    if (entries.every((e) => e.key is SimpleStringLiteral)) {
+      var props = [];
+      for (var e in entries) {
+        var key = (e.key as SimpleStringLiteral).value;
+        var value = e.value.accept(this);
+        props.add(new JS.Property(js.escapedString(key), value));
       }
-    }
-    out.write(')');
-  }
-
-  void _visitMapLiteralEntries(NodeList<MapLiteralEntry> nodes,
-      {String separator}) {
-    if (nodes == null) return;
-    int size = nodes.length;
-    if (size == 0) return;
-
-    for (int i = 0; i < size; i++) {
-      if (i > 0) out.write(',\n');
-      var node = nodes[i];
-      node.key.accept(this);
-      out.write(separator);
-      node.value.accept(this);
-    }
-  }
-
-  @override
-  void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    if (node.isSingleQuoted) {
-      var escaped = _escapeForJs(node.stringValue, "'");
-      out.write("'$escaped'");
+      mapArguments = new JS.ObjectInitializer(props);
     } else {
-      var escaped = _escapeForJs(node.stringValue, '"');
-      out.write('"$escaped"');
+      var values = [];
+      for (var e in entries) {
+        values.add(e.key.accept(this));
+        values.add(e.value.accept(this));
+      }
+      mapArguments = new JS.ArrayInitializer(values);
     }
+    return js.call('dart.map(#)', [mapArguments]);
   }
 
   @override
-  void visitAdjacentStrings(AdjacentStrings node) {
-    // These are typically used for splitting long strings across lines, so
-    // generate accordingly, with each on its own line and +4 indent.
-
-    // TODO(jmesserly): we could linebreak before the first string too, but
-    // that means inserting a linebreak in expression context, which might
-    // not be valid and leaves trailing whitespace.
-    for (int i = 0, last = node.strings.length - 1; i <= last; i++) {
-      if (i == 1) {
-        out.write(' +\n', 4);
-      } else if (i > 1) {
-        out.write(' +\n');
-      }
-      node.strings[i].accept(this);
-      if (i == last && i > 0) {
-        out.write('', -4);
-      }
-    }
-  }
+  JS.LiteralString visitSimpleStringLiteral(SimpleStringLiteral node) =>
+      js.escapedString(node.value, node.isSingleQuoted ? "'" : '"');
 
   @override
-  void visitStringInterpolation(StringInterpolation node) {
-    out.write('`');
-    _visitNodeList(node.elements);
-    out.write('`');
-  }
+  JS.Expression visitAdjacentStrings(AdjacentStrings node) =>
+      _visitListToBinary(node.strings, '+');
 
   @override
-  void visitInterpolationString(InterpolationString node) {
-    out.write(_escapeForJs(node.value, '`'));
-  }
-
-  /// Escapes the string from [value], handling escape sequences as needed.
-  /// The surrounding [quote] style must be supplied to know which quotes to
-  /// escape, but quotes are not added to the resulting string.
-  String _escapeForJs(String value, String quote) {
-    // Start by escaping the backslashes.
-    String escaped = value.replaceAll('\\', '\\\\');
-    // Do not escape unicode characters and ' because they are allowed in the
-    // string literal anyway.
-    return escaped.replaceAllMapped(new RegExp('\n|$quote|\b|\t|\v'), (m) {
-      switch (m.group(0)) {
-        case "\n":
-          return r"\n";
-        case "\b":
-          return r"\b";
-        case "\t":
-          return r"\t";
-        case "\f":
-          return r"\f";
-        case "\v":
-          return r"\v";
-        // Quotes are only replaced if they conflict with the containing quote
-        case '"':
-          return r'\"';
-        case "'":
-          return r"\'";
-        case "`":
-          return r"\`";
-      }
-    });
-  }
-
-  @override
-  void visitInterpolationExpression(InterpolationExpression node) {
-    out.write('\${');
-    node.expression.accept(this);
+  JS.TemplateString visitStringInterpolation(StringInterpolation node) {
     // Assuming we implement toString() on our objects, we can avoid calling it
-    // in most cases. Builtin types may differ though.
-    // For example, Dart's concrete List type does not have the same toString
-    // as Array.prototype.toString().
-    out.write('}');
+    // in most cases. Builtin types may differ though. We could handle this with
+    // a tagged template.
+    return new JS.TemplateString(_visitList(node.elements));
   }
 
   @override
-  void visitBooleanLiteral(BooleanLiteral node) {
-    out.write('${node.value}');
+  String visitInterpolationString(InterpolationString node) {
+    // TODO(jmesserly): this call adds quotes, and then we strip them off.
+    var str = js.escapedString(node.value, '`').value;
+    return str.substring(1, str.length - 1);
   }
 
   @override
-  void visitDirective(Directive node) {}
+  visitInterpolationExpression(InterpolationExpression node) =>
+      node.expression.accept(this);
 
   @override
-  void visitNode(AstNode node) {
-    out.write('/* Unimplemented ${node.runtimeType}: $node */');
+  visitBooleanLiteral(BooleanLiteral node) => js.boolean(node.value);
+
+  @override
+  JS.Statement visitDeclaration(Declaration node) =>
+      js.comment('Unimplemented ${node.runtimeType}: $node');
+
+  @override
+  JS.Statement visitStatement(Statement node) =>
+      js.comment('Unimplemented ${node.runtimeType}: $node');
+
+  @override
+  JS.Expression visitExpression(Expression node) =>
+      _unimplementedCall('Unimplemented ${node.runtimeType}: $node');
+
+  JS.Expression _unimplementedCall(String comment) {
+    return js.call('dart.throw_(#)', [js.escapedString(comment)]);
+  }
+
+  @override
+  visitNode(AstNode node) {
+    // TODO(jmesserly): verify this is unreachable.
+    throw 'Unimplemented ${node.runtimeType}: $node';
   }
 
   // TODO(jmesserly): this is used to determine if the field initialization is
@@ -1775,50 +1546,34 @@ $name.prototype[Symbol.iterator] = function() {
     return element is TopLevelVariableElement && !element.isConst;
   }
 
-  /// Safely visit the expression, adding parentheses if necessary
-  void _visitExpression(Expression node, int newPrecedence) {
-    if (node == null) return;
+  _visit(AstNode node) => node != null ? node.accept(this) : null;
 
-    // If we're going to replace an expression with a higher-precedence
-    // operator, add parenthesis around it if needed.
-    var needParens = node.precedence < newPrecedence;
-    if (needParens) out.write('(');
-    node.accept(this);
-    if (needParens) out.write(')');
+  JS.Statement _visitOrEmpty(AstNode node) {
+    if (node == null) return new JS.EmptyStatement();
+    return node.accept(this);
   }
 
-  /// Safely visit the given node, with an optional prefix or suffix.
-  void _visitNode(AstNode node, {String prefix: '', String suffix: ''}) {
-    if (node == null) return;
-
-    out.write(prefix);
-    node.accept(this);
-    out.write(suffix);
+  List _visitList(Iterable<AstNode> nodes) {
+    if (nodes == null) return null;
+    var result = [];
+    for (var node in nodes) result.add(node.accept(this));
+    return result;
   }
 
-  /// Print a list of nodes, with an optional prefix, suffix, and separator.
-  void _visitNodeList(List<AstNode> nodes,
-      {String prefix: '', String suffix: '', String separator: ''}) {
-    if (nodes == null) return;
+  /// Visits a list of expressions, creating a comma expression if needed in JS.
+  JS.Expression _visitListToBinary(List<Expression> nodes, String operator) {
+    if (nodes == null || nodes.isEmpty) return null;
 
-    int size = nodes.length;
-    if (size == 0) return;
-
-    out.write(prefix);
-    for (int i = 0; i < size; i++) {
-      if (i > 0) out.write(separator);
-      nodes[i].accept(this);
+    JS.Expression result = null;
+    for (var node in nodes) {
+      var jsExpr = node.accept(this);
+      if (result == null) {
+        result = jsExpr;
+      } else {
+        result = new JS.Binary(operator, result, jsExpr);
+      }
     }
-    out.write(suffix);
-  }
-
-  /// Safely visit the given node, printing the suffix after the node if it is
-  /// non-`null`.
-  void visitToken(Token token, {String prefix: '', String suffix: ''}) {
-    if (token == null) return;
-    out.write(prefix);
-    out.write(token.lexeme);
-    out.write(suffix);
+    return result;
   }
 
   /// The following names are allowed for user-defined operators:
@@ -1839,50 +1594,18 @@ $name.prototype[Symbol.iterator] = function() {
   ///
   /// Equality is a bit special, it is generated via the Dart `equals` runtime
   /// helper, that checks for null. The user defined method is called '=='.
-  String _canonicalMethodName(String name) {
-    switch (name) {
-      case '[]':
-        return 'get';
-      case '[]=':
-        return 'set';
-      case '<':
-      case '>':
-      case '<=':
-      case '>=':
-      case '==':
-      case '-':
-      case '+':
-      case '/':
-      case '~/':
-      case '*':
-      case '%':
-      case '|':
-      case '^':
-      case '&':
-      case '<<':
-      case '>>':
-      case '~':
-        return "['$name']";
-      default:
-        return name;
-    }
+  String _jsMethodName(String name) {
+    if (name == '[]') return 'get';
+    if (name == '[]=') return 'set';
+    return name;
   }
 
-  /// The string to invoke a canonical method name, for example:
-  ///
-  ///     "[]" returns ".get"
-  ///      "+" returns "['+']"
-  String _canonicalMethodInvoke(String name) {
-    name = _canonicalMethodName(name);
-    return name.startsWith('[') ? name : '.$name';
-  }
-
-  bool _needsBindThis(node) {
-    if (currentClass == null) return false;
+  String _maybeBindThis(node) {
+    if (currentClass == null) return '';
     var visitor = _BindThisVisitor._instance;
     visitor._bindThis = false;
     node.accept(visitor);
-    return visitor._bindThis;
+    return visitor._bindThis ? '.bind(this)' : '';
   }
 
   static bool _needsImplicitThis(Element e) =>
@@ -1964,11 +1687,18 @@ class JSGenerator extends CodeGenerator {
 
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
+    JS.Block jsTree =
+        new JSCodegenVisitor(info, rules).generateLibrary(units, reporter);
+
     var outputPath = path.join(outDir, jsOutputPath(info));
     new Directory(path.dirname(outputPath)).createSync(recursive: true);
-    var out = new OutWriter(outputPath);
-    new JSCodegenVisitor(info, rules, out).generateLibrary(units, reporter);
-    out.close();
+
+    var context = new JS.SimpleJavaScriptPrintingContext();
+    var opts =
+        new JS.JavaScriptPrintingOptions(avoidKeywordsInIdentifiers: true);
+    var printer = new JS.Printer(opts, context);
+    printer.blockOutWithoutBraces(jsTree);
+    new File(outputPath).writeAsStringSync(context.getText());
   }
 }
 

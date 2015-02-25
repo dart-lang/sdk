@@ -38,6 +38,7 @@ var dart;
   }
   dart.dload = dload;
 
+  // TODO(jmesserly): this should call noSuchMethod, not throw.
   function throwNoSuchMethod(obj, name, args, opt_func) {
     if (obj === void 0) obj = opt_func;
     throw new core.NoSuchMethodError(obj, name, args);
@@ -266,6 +267,9 @@ var dart;
   }
   dart.assert = assert;
 
+  function throw_(obj) { throw obj; }
+  dart.throw_ = throw_;
+
   /**
    * Given a class and an initializer method name, creates a constructor
    * function with the same name. For example `new SomeClass.name(args)`.
@@ -341,7 +345,9 @@ var dart;
     // Get the class name for this instance.
     var name = this.constructor.name;
     // Call the default constructor.
-    var result = this[name].apply(this, arguments);
+    var init = this[name];
+    var result = void 0;
+    if (init) result = init.apply(this, arguments);
     return result === void 0 ? this : result;
   };
   // The initializer for dart.Object

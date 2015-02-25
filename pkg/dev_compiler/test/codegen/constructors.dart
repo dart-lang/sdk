@@ -80,4 +80,6 @@ class N extends M {
 
 class P extends N {
   P(int z) : super.named(z + 9000);
+  P.foo(int x) : this(x + 42);
+  P.bar() : this.foo(1);
 }

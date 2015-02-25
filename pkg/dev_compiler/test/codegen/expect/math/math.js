@@ -1,5 +1,5 @@
 var math;
-(function (math) {
+(function(math) {
   'use strict';
   let E = 2.718281828459045;
   let LN10 = 2.302585092994046;
@@ -11,78 +11,96 @@ var math;
   let SQRT2 = 1.4142135623730951;
   // Function min: (num, num) → num
   function min(a, b) {
-    if (!dart.is(a, core.num)) throw new core.ArgumentError(a);
-    if (!dart.is(b, core.num)) throw new core.ArgumentError(b);
-    if (dart.notNull(a) > dart.notNull(b)) return b;
-    if (dart.notNull(a) < dart.notNull(b)) return a;
-    if (typeof b == "number") {
-      if (typeof a == "number") {
+    if (!dart.is(a, core.num))
+      throw new core.ArgumentError(a);
+    if (!dart.is(b, core.num))
+      throw new core.ArgumentError(b);
+    if (dart.notNull(a) > dart.notNull(b))
+      return b;
+    if (dart.notNull(a) < dart.notNull(b))
+      return a;
+    if (typeof b == number) {
+      if (typeof a == number) {
         if (a === 0.0) {
           return (a + b) * a * b;
         }
       }
-      if (dart.notNull(dart.notNull(a === 0) && dart.notNull(b.isNegative)) || dart.notNull(b.isNaN)) return b;
+      if (dart.notNull(dart.notNull(a === 0) && dart.notNull(b.isNegative)) || dart.notNull(b.isNaN))
+        return b;
       return a;
     }
     return a;
   }
-
   // Function max: (num, num) → num
   function max(a, b) {
-    if (!dart.is(a, core.num)) throw new core.ArgumentError(a);
-    if (!dart.is(b, core.num)) throw new core.ArgumentError(b);
-    if (dart.notNull(a) > dart.notNull(b)) return a;
-    if (dart.notNull(a) < dart.notNull(b)) return b;
-    if (typeof b == "number") {
-      if (typeof a == "number") {
+    if (!dart.is(a, core.num))
+      throw new core.ArgumentError(a);
+    if (!dart.is(b, core.num))
+      throw new core.ArgumentError(b);
+    if (dart.notNull(a) > dart.notNull(b))
+      return a;
+    if (dart.notNull(a) < dart.notNull(b))
+      return b;
+    if (typeof b == number) {
+      if (typeof a == number) {
         if (a === 0.0) {
           return a + b;
         }
       }
-      if (b.isNaN) return b;
+      if (b.isNaN)
+        return b;
       return a;
     }
-    if (dart.notNull(b === 0) && dart.notNull(a.isNegative)) return b;
+    if (dart.notNull(b === 0) && dart.notNull(a.isNegative))
+      return b;
     return a;
   }
-
   // Function atan2: (num, num) → double
-  function atan2(a, b) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.atan2(#, #)', dart.dinvokef(/* Unimplemented unknown name */checkNum, a), dart.dinvokef(/* Unimplemented unknown name */checkNum, b)), core.double); }
-
+  function atan2(a, b) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.atan2(#, #)', dart.dinvokef(/* Unimplemented unknown name */checkNum, a), dart.dinvokef(/* Unimplemented unknown name */checkNum, b)), core.double);
+  }
   // Function pow: (num, num) → num
   function pow(x, exponent) {
     dart.dinvokef(/* Unimplemented unknown name */checkNum, x);
     dart.dinvokef(/* Unimplemented unknown name */checkNum, exponent);
     return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'num', 'Math.pow(#, #)', x, exponent), core.num);
   }
-
   // Function sin: (num) → double
-  function sin(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.sin(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function sin(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.sin(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function cos: (num) → double
-  function cos(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.cos(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function cos(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.cos(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function tan: (num) → double
-  function tan(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.tan(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function tan(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.tan(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function acos: (num) → double
-  function acos(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.acos(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function acos(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.acos(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function asin: (num) → double
-  function asin(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.asin(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function asin(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.asin(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function atan: (num) → double
-  function atan(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.atan(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function atan(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.atan(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function sqrt: (num) → double
-  function sqrt(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.sqrt(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function sqrt(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.sqrt(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function exp: (num) → double
-  function exp(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.exp(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function exp(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.exp(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   // Function log: (num) → double
-  function log(x) { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.log(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double); }
-
+  function log(x) {
+    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.log(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+  }
   let _POW2_32 = 4294967296;
   class _JSRandom extends dart.Object {
     _JSRandom() {
@@ -93,10 +111,13 @@ var math;
       }
       return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "int", "(Math.random() * #) >>> 0", max), core.int);
     }
-    nextDouble() { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "double", "Math.random()"), core.double); }
-    nextBool() { return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "bool", "Math.random() < 0.5"), core.bool); }
+    nextDouble() {
+      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "double", "Math.random()"), core.double);
+    }
+    nextBool() {
+      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "bool", "Math.random() < 0.5"), core.bool);
+    }
   }
-
   class _Random extends dart.Object {
     _Random(seed) {
       this._lo = 0;
@@ -111,40 +132,39 @@ var math;
         let high = seed & _MASK32;
         seed = ((seed - high) / _POW2_32).truncate();
         let tmplow = low << 21;
-        let tmphigh = (high << 21) | (low >> 11);
+        let tmphigh = high << 21 | low >> 11;
         tmplow = (~low & _MASK32) + tmplow;
         low = tmplow & _MASK32;
-        high = (~high + tmphigh + (((tmplow - low) / 4294967296).truncate())) & _MASK32;
+        high = ~high + tmphigh + ((tmplow - low) / 4294967296).truncate() & _MASK32;
         tmphigh = high >> 24;
-        tmplow = (low >> 24) | (high << 8);
+        tmplow = low >> 24 | high << 8;
         low = tmplow;
         high = tmphigh;
         tmplow = low * 265;
         low = tmplow & _MASK32;
-        high = (high * 265 + ((tmplow - low) / 4294967296).truncate()) & _MASK32;
+        high = high * 265 + ((tmplow - low) / 4294967296).truncate() & _MASK32;
         tmphigh = high >> 14;
-        tmplow = (low >> 14) | (high << 18);
+        tmplow = low >> 14 | high << 18;
         low = tmplow;
         high = tmphigh;
         tmplow = low * 21;
         low = tmplow & _MASK32;
-        high = (high * 21 + ((tmplow - low) / 4294967296).truncate()) & _MASK32;
+        high = high * 21 + ((tmplow - low) / 4294967296).truncate() & _MASK32;
         tmphigh = high >> 28;
-        tmplow = (low >> 28) | (high << 4);
+        tmplow = low >> 28 | high << 4;
         low = tmplow;
         high = tmphigh;
         tmplow = low << 31;
-        tmphigh = (high << 31) | (low >> 1);
+        tmphigh = high << 31 | low >> 1;
         tmplow = low;
         low = tmplow & _MASK32;
-        high = (high + tmphigh + ((tmplow - low) / 4294967296).truncate()) & _MASK32;
+        high = high + tmphigh + ((tmplow - low) / 4294967296).truncate() & _MASK32;
         tmplow = this._lo * 1037;
         this._lo = tmplow & _MASK32;
-        this._hi = (this._hi * 1037 + ((tmplow - this._lo) / 4294967296).truncate()) & _MASK32;
+        this._hi = this._hi * 1037 + ((tmplow - this._lo) / 4294967296).truncate() & _MASK32;
         this._lo = low;
         this._hi = high;
-      }
-      while (seed !== empty_seed);
+      } while (seed !== empty_seed);
       if (dart.notNull(this._hi === 0) && dart.notNull(this._lo === 0)) {
         this._lo = 23063;
       }
@@ -163,7 +183,7 @@ var math;
       let newLo = tmpLoLo + tmpHiLo + this._hi;
       this._lo = newLo & _MASK32;
       let newLoHi = newLo - this._lo;
-      this._hi = (((tmpLoHi + tmpHiHi + newLoHi) / _POW2_32).truncate()) & _MASK32;
+      this._hi = ((tmpLoHi + tmpHiHi + newLoHi) / _POW2_32).truncate() & _MASK32;
       dart.assert(this._lo < _POW2_32);
       dart.assert(this._hi < _POW2_32);
     }
@@ -171,9 +191,9 @@ var math;
       if (dart.notNull(max <= 0) || dart.notNull(max > _POW2_32)) {
         throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
       }
-      if ((max & (max - 1)) === 0) {
+      if ((max & max - 1) === 0) {
         this._nextState();
-        return this._lo & (max - 1);
+        return this._lo & max - 1;
       }
       let rnd32 = null;
       let result = null;
@@ -181,15 +201,14 @@ var math;
         this._nextState();
         rnd32 = this._lo;
         result = dart.notNull(rnd32.remainder(max));
-      }
-      while ((rnd32 - result + max) >= _POW2_32);
+      } while (rnd32 - result + max >= _POW2_32);
       return result;
     }
     nextDouble() {
       this._nextState();
-      let bits26 = this._lo & ((1 << 26) - 1);
+      let bits26 = this._lo & (1 << 26) - 1;
       this._nextState();
-      let bits27 = this._lo & ((1 << 27) - 1);
+      let bits27 = this._lo & (1 << 27) - 1;
       return (bits26 * _POW2_27_D + bits27) / _POW2_53_D;
     }
     nextBool() {
@@ -197,37 +216,44 @@ var math;
       return (this._lo & 1) === 0;
     }
   }
-  _Random._POW2_53_D = 1.0 * (9007199254740992);
+  _Random._POW2_53_D = 1.0 * 9007199254740992;
   _Random._POW2_27_D = 1.0 * (1 << 27);
   _Random._MASK32 = 4294967295;
-
   class _JenkinsSmiHash extends dart.Object {
     static combine(hash, value) {
-      hash = 536870911 & (hash + value);
-      hash = 536870911 & (hash + ((524287 & hash) << 10));
-      return hash ^ (hash >> 6);
+      hash = 536870911 & hash + value;
+      hash = 536870911 & hash + ((524287 & hash) << 10);
+      return hash ^ hash >> 6;
     }
     static finish(hash) {
-      hash = 536870911 & (hash + ((67108863 & hash) << 3));
-      hash = hash ^ (hash >> 11);
-      return 536870911 & (hash + ((16383 & hash) << 15));
+      hash = 536870911 & hash + ((67108863 & hash) << 3);
+      hash = hash ^ hash >> 11;
+      return 536870911 & hash + ((16383 & hash) << 15);
     }
-    static hash2(a, b) { return finish(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int))); }
-    static hash4(a, b, c, d) { return finish(combine(combine(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int)), dart.as(c, core.int)), dart.as(d, core.int))); }
+    static hash2(a, b) {
+      return finish(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int)));
+    }
+    static hash4(a, b, c, d) {
+      return finish(combine(combine(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int)), dart.as(c, core.int)), dart.as(d, core.int)));
+    }
   }
-
   let Point$ = dart.generic(function(T) {
     class Point extends dart.Object {
       Point(x, y) {
         this.x = x;
         this.y = y;
       }
-      toString() { return `Point(${this.x}, ${this.y})`; }
-      ['=='](other) {
-        if (!dart.is(other, Point)) return false;
-        return dart.notNull(dart.equals(this.x, dart.dload(other, "x"))) && dart.notNull(dart.equals(this.y, dart.dload(other, "y")));
+      toString() {
+        return `Point(${this.x}, ${this.y})`;
       }
-      get hashCode() { return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode); }
+      ['=='](other) {
+        if (!dart.is(other, Point))
+          return false;
+        return dart.notNull(dart.equals(this.x, dart.dload(other, 'x'))) && dart.notNull(dart.equals(this.y, dart.dload(other, 'y')));
+      }
+      get hashCode() {
+        return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode);
+      }
       ['+'](other) {
         return new Point(this.x['+'](other.x), this.y['+'](other.y));
       }
@@ -237,7 +263,9 @@ var math;
       ['*'](factor) {
         return new Point(this.x['*'](factor), this.y['*'](factor));
       }
-      get magnitude() { return sqrt(dart.notNull(this.x['*'](this.x)) + dart.notNull(this.y['*'](this.y))); }
+      get magnitude() {
+        return sqrt(dart.notNull(this.x['*'](this.x)) + dart.notNull(this.y['*'](this.y)));
+      }
       distanceTo(other) {
         let dx = this.x['-'](other.x);
         let dy = this.y['-'](other.y);
@@ -252,28 +280,34 @@ var math;
     return Point;
   });
   let Point = Point$(dynamic);
-
   class Random extends dart.Object {
     Random(seed) {
-      if (seed === undefined) seed = null;
-      return (seed === null) ? new _JSRandom() : new _Random(seed);
+      if (seed === void 0)
+        seed = null;
+      return seed === null ? new _JSRandom() : new _Random(seed);
     }
   }
-
   let _RectangleBase$ = dart.generic(function(T) {
     class _RectangleBase extends dart.Object {
       _RectangleBase() {
       }
-      get right() { return dart.as(this.left['+'](this.width), T); }
-      get bottom() { return dart.as(this.top['+'](this.height), T); }
+      get right() {
+        return dart.as(this.left['+'](this.width), T);
+      }
+      get bottom() {
+        return dart.as(this.top['+'](this.height), T);
+      }
       toString() {
         return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
       }
       ['=='](other) {
-        if (!dart.is(other, Rectangle)) return false;
-        return dart.notNull(dart.notNull(dart.notNull(dart.equals(this.left, dart.dload(other, "left"))) && dart.notNull(dart.equals(this.top, dart.dload(other, "top")))) && dart.notNull(dart.equals(this.right, dart.dload(other, "right")))) && dart.notNull(dart.equals(this.bottom, dart.dload(other, "bottom")));
+        if (!dart.is(other, Rectangle))
+          return false;
+        return dart.notNull(dart.notNull(dart.notNull(dart.equals(this.left, dart.dload(other, 'left'))) && dart.notNull(dart.equals(this.top, dart.dload(other, 'top')))) && dart.notNull(dart.equals(this.right, dart.dload(other, 'right')))) && dart.notNull(dart.equals(this.bottom, dart.dload(other, 'bottom')));
       }
-      get hashCode() { return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode); }
+      get hashCode() {
+        return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode);
+      }
       intersection(other) {
         let x0 = max(this.left, other.left);
         let x1 = min(this.left['+'](this.width), other.left['+'](other.width));
@@ -287,7 +321,7 @@ var math;
         return null;
       }
       intersects(other) {
-        return (dart.notNull(dart.notNull(dart.notNull(this.left['<='](dart.notNull(other.left) + dart.notNull(other.width))) && dart.notNull(dart.notNull(other.left) <= dart.notNull(this.left['+'](this.width)))) && dart.notNull(this.top['<='](dart.notNull(other.top) + dart.notNull(other.height)))) && dart.notNull(dart.notNull(other.top) <= dart.notNull(this.top['+'](this.height))));
+        return dart.notNull(dart.notNull(dart.notNull(this.left['<='](dart.notNull(other.left) + dart.notNull(other.width))) && dart.notNull(dart.notNull(other.left) <= dart.notNull(this.left['+'](this.width)))) && dart.notNull(this.top['<='](dart.notNull(other.top) + dart.notNull(other.height)))) && dart.notNull(dart.notNull(other.top) <= dart.notNull(this.top['+'](this.height)));
       }
       boundingBox(other) {
         let right = max(this.left['+'](this.width), other.left['+'](other.width));
@@ -302,22 +336,29 @@ var math;
       containsPoint(another) {
         return dart.notNull(dart.notNull(dart.notNull(core.num['>='](another.x, this.left)) && dart.notNull(dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)))) && dart.notNull(core.num['>='](another.y, this.top))) && dart.notNull(dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height)));
       }
-      get topLeft() { return new Point(this.left, this.top); }
-      get topRight() { return new Point(this.left['+'](this.width), this.top); }
-      get bottomRight() { return new Point(this.left['+'](this.width), this.top['+'](this.height)); }
-      get bottomLeft() { return new Point(this.left, this.top['+'](this.height)); }
+      get topLeft() {
+        return new Point(this.left, this.top);
+      }
+      get topRight() {
+        return new Point(this.left['+'](this.width), this.top);
+      }
+      get bottomRight() {
+        return new Point(this.left['+'](this.width), this.top['+'](this.height));
+      }
+      get bottomLeft() {
+        return new Point(this.left, this.top['+'](this.height));
+      }
     }
     return _RectangleBase;
   });
   let _RectangleBase = _RectangleBase$(dynamic);
-
   let Rectangle$ = dart.generic(function(T) {
     class Rectangle extends _RectangleBase$(T) {
       Rectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this.width = (width['<'](0)) ? dart.notNull(/* Unimplemented postfix operator: -width */) * 0 : width;
-        this.height = (height['<'](0)) ? dart.notNull(/* Unimplemented postfix operator: -height */) * 0 : height;
+        this.width = width['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -width")) * 0 : width;
+        this.height = height['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -height")) * 0 : height;
         super._RectangleBase();
       }
       Rectangle$fromPoints(a, b) {
@@ -328,18 +369,17 @@ var math;
         return new Rectangle(left, top, width, height);
       }
     }
-    dart.defineNamedConstructor(Rectangle, "fromPoints");
+    dart.defineNamedConstructor(Rectangle, 'fromPoints');
     return Rectangle;
   });
   let Rectangle = Rectangle$(dynamic);
-
   let MutableRectangle$ = dart.generic(function(T) {
     class MutableRectangle extends _RectangleBase$(T) {
       MutableRectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this._width = (width['<'](0)) ? _clampToZero(width) : width;
-        this._height = (height['<'](0)) ? _clampToZero(height) : height;
+        this._width = width['<'](0) ? _clampToZero(width) : width;
+        this._height = height['<'](0) ? _clampToZero(height) : height;
         super._RectangleBase();
       }
       MutableRectangle$fromPoints(a, b) {
@@ -349,28 +389,32 @@ var math;
         let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
         return new MutableRectangle(left, top, width, height);
       }
-      get width() { return this._width; }
+      get width() {
+        return this._width;
+      }
       set width(width) {
-        if (width['<'](0)) width = dart.as(_clampToZero(width), T);
+        if (width['<'](0))
+          width = dart.as(_clampToZero(width), T);
         this._width = width;
       }
-      get height() { return this._height; }
+      get height() {
+        return this._height;
+      }
       set height(height) {
-        if (height['<'](0)) height = dart.as(_clampToZero(height), T);
+        if (height['<'](0))
+          height = dart.as(_clampToZero(height), T);
         this._height = height;
       }
     }
-    dart.defineNamedConstructor(MutableRectangle, "fromPoints");
+    dart.defineNamedConstructor(MutableRectangle, 'fromPoints');
     return MutableRectangle;
   });
   let MutableRectangle = MutableRectangle$(dynamic);
-
   // Function _clampToZero: (num) → num
   function _clampToZero(value) {
     dart.assert(dart.notNull(value) < 0);
     return dart.notNull(-dart.notNull(value)) * 0;
   }
-
   // Exports:
   math.E = E;
   math.LN10 = LN10;

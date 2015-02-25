@@ -1,5 +1,5 @@
 var sunflower;
-(function (sunflower) {
+(function(sunflower) {
   'use strict';
   let ORANGE = "orange";
   let SEED_RADIUS = 2;
@@ -9,16 +9,24 @@ var sunflower;
   let centerX = MAX_D / 2;
   let centerY = centerX;
   // Function querySelector: (String) → Element
-  function querySelector(selector) { return dom.document.querySelector(selector); }
-
+  function querySelector(selector) {
+    return dom.document.querySelector(selector);
+  }
   sunflower.seeds = 0;
   dart.defineLazyProperties(sunflower, {
-    get slider() { return dart.as(querySelector("#slider"), dom.InputElement) },
-    get notes() { return querySelector("#notes") },
-    get PHI() { return (math.sqrt(5) + 1) / 2 },
-    get context() { return dart.as((dart.as(querySelector("#canvas"), dom.CanvasElement)).getContext('2d'), dom.CanvasRenderingContext2D) },
+    get slider() {
+      return dart.as(querySelector("#slider"), dom.InputElement);
+    },
+    get notes() {
+      return querySelector("#notes");
+    },
+    get PHI() {
+      return (math.sqrt(5) + 1) / 2;
+    },
+    get context() {
+      return dart.as(dart.as(querySelector("#canvas"), dom.CanvasElement).getContext('2d'), dom.CanvasRenderingContext2D);
+    }
   });
-
   class Circle extends dart.Object {
     Circle(x, y, radius) {
       this.x = x;
@@ -26,7 +34,6 @@ var sunflower;
       this.radius = radius;
     }
   }
-
   class CirclePainter extends dart.Object {
     CirclePainter() {
       this.color = ORANGE;
@@ -42,21 +49,20 @@ var sunflower;
       sunflower.context.stroke();
     }
   }
-
   class SunflowerSeed extends dart.mixin(Circle, CirclePainter) {
     SunflowerSeed(x, y, radius, color) {
-      if (color === undefined) color = null;
+      if (color === void 0)
+        color = null;
       super.Circle(x, y, radius);
-      if (color !== null) this.color = color;
+      if (color !== null)
+        this.color = color;
     }
   }
-
   // Function main: () → void
   function main() {
     sunflower.slider.addEventListener('change', (e) => draw());
     draw();
   }
-
   // Function draw: () → void
   function draw() {
     sunflower.seeds = core.int.parse(sunflower.slider.value);
@@ -70,7 +76,6 @@ var sunflower;
     }
     sunflower.notes.textContent = `${sunflower.seeds} seeds`;
   }
-
   // Exports:
   sunflower.ORANGE = ORANGE;
   sunflower.SEED_RADIUS = SEED_RADIUS;

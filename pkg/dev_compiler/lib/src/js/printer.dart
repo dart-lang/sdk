@@ -9,11 +9,13 @@ class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
+  final bool avoidKeywordsInIdentifiers;
 
   JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
-       this.preferSemicolonToNewlineInMinifiedOutput: false});
+       this.preferSemicolonToNewlineInMinifiedOutput: false,
+       this.avoidKeywordsInIdentifiers: false});
 }
 
 
@@ -344,6 +346,20 @@ class Printer implements NodeVisitor {
     blockBody(loop.body, needsSeparation: false, needsNewline: true);
   }
 
+  visitForOf(ForOf loop) {
+    outIndent("for");
+    spaceOut();
+    out("(");
+    visitNestedExpression(loop.leftHandSide, EXPRESSION,
+    newInForInit: true, newAtStatementBegin: false);
+    out(" of");
+    pendingSpace = true;
+    visitNestedExpression(loop.iterable, EXPRESSION,
+    newInForInit: false, newAtStatementBegin: false);
+    out(")");
+    blockBody(loop.body, needsSeparation: false, needsNewline: true);
+  }
+
   visitWhile(While loop) {
     outIndent("while");
     spaceOut();
@@ -540,7 +556,7 @@ class Printer implements NodeVisitor {
         // (function() { ... })().
         // ({a: 2, b: 3}.toString()).
         (newAtStatementBegin && (node is NamedFunction ||
-                                 node is Fun ||
+                                 node is FunctionExpression ||
                                  node is ObjectInitializer));
     if (needsParentheses) {
       inForInit = false;
@@ -556,7 +572,8 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList list) {
-    out("var ");
+    out(list.keyword);
+    out(" ");
     visitCommaSeparated(list.declarations, ASSIGNMENT,
                         newInForInit: inForInit, newAtStatementBegin: false);
   }
@@ -763,6 +780,10 @@ class Printer implements NodeVisitor {
     out("this");
   }
 
+  visitSuper(Super node) {
+    out("super");
+  }
+
   visitVariableDeclaration(VariableDeclaration decl) {
     out(localNamer.getName(decl.name));
   }
@@ -789,11 +810,57 @@ class Printer implements NodeVisitor {
         return false;
       }
     }
-    // TODO(floitsch): normally we should also check that the field is not a
-    // reserved word.  We don't generate fields with reserved word names except
-    // for 'super'.
-    if (field == '"super"') return false;
-    return true;
+
+    if (options.avoidKeywordsInIdentifiers) {
+      return !_isJsKeyword(field.substring(1, field.length - 1));
+    } else {
+      // TODO(floitsch): normally we should also check that the field is not a
+      // reserved word.  We don't generate fields with reserved word names except
+      // for 'super'.
+      return field != '"super"';
+    }
+  }
+
+  static bool _isJsKeyword(String keyword) {
+    switch (keyword) {
+      case "break":
+      case "case":
+      case "catch":
+      case "class":
+      case "const":
+      case "continue":
+      case "debugger":
+      case "default":
+      case "delete":
+      case "do":
+      case "else":
+      case "export":
+      case "extends":
+      case "finally":
+      case "for":
+      case "function":
+      case "if":
+      case "import":
+      case "in":
+      case "instanceof":
+      case "let":
+      case "new":
+      case "return":
+      case "static":
+      case "super":
+      case "switch":
+      case "this":
+      case "throw":
+      case "try":
+      case "typeof":
+      case "var":
+      case "void":
+      case "while":
+      case "with":
+      case "yield":
+        return true;
+    }
+    return false;
   }
 
   visitAccess(PropertyAccess access) {
@@ -827,6 +894,27 @@ class Printer implements NodeVisitor {
     VarCollector vars = new VarCollector();
     vars.visitFun(fun);
     functionOut(fun, null, vars);
+  }
+
+  visitArrowFun(ArrowFun fun) {
+    VarCollector vars = new VarCollector();
+    vars.visitArrowFun(fun);
+    localNamer.enterScope(vars);
+    out("(");
+    if (fun.params != null) {
+      visitCommaSeparated(fun.params, PRIMARY,
+          newInForInit: false, newAtStatementBegin: false);
+    }
+    out(")");
+    spaceOut();
+    out("=>");
+    if (fun.body is Expression) {
+      spaceOut();
+      fun.body.accept(this);
+    } else {
+      blockBody(fun.body, needsSeparation: false, needsNewline: false);
+    }
+    localNamer.leaveScope();
   }
 
   visitLiteralBool(LiteralBool node) {
@@ -883,20 +971,21 @@ class Printer implements NodeVisitor {
     List<Property> properties = node.properties;
     out("{");
     indentMore();
+
+    var isOneLiner = !properties.any((p) => p.value is FunctionExpression);
     for (int i = 0; i < properties.length; i++) {
-      Expression value = properties[i].value;
       if (i != 0) {
         out(",");
-        if (node.isOneLiner) spaceOut();
+        if (isOneLiner) spaceOut();
       }
-      if (!node.isOneLiner) {
+      if (!isOneLiner) {
         forceLine();
         indent();
       }
       visit(properties[i]);
     }
     indentLess();
-    if (!node.isOneLiner && !properties.isEmpty) {
+    if (!isOneLiner) {
       lineOut();
       indent();
     }
@@ -904,19 +993,7 @@ class Printer implements NodeVisitor {
   }
 
   visitProperty(Property node) {
-    if (node.name is LiteralString) {
-      LiteralString nameString = node.name;
-      String name = nameString.value;
-      if (isValidJavaScriptId(name)) {
-        out(name.substring(1, name.length - 1));
-      } else {
-        out(name);
-      }
-    } else {
-      assert(node.name is LiteralNumber);
-      LiteralNumber nameNumber = node.name;
-      out(nameNumber.value);
-    }
+    propertyNameOut(node.name);
     out(":");
     spaceOut();
     visitNestedExpression(node.value, ASSIGNMENT,
@@ -925,6 +1002,117 @@ class Printer implements NodeVisitor {
 
   visitRegExpLiteral(RegExpLiteral node) {
     out(node.pattern);
+  }
+
+  visitTemplateString(TemplateString node) {
+    out('`');
+    for (var element in node.elements) {
+      if (element is String) {
+        out(element);
+      } else {
+        out(r'${');
+        visit(element);
+        out('}');
+      }
+    }
+    out('`');
+  }
+
+  visitTaggedTemplate(TaggedTemplate node) {
+    visit(node.tag);
+    visit(node.template);
+  }
+
+  visitClassDeclaration(ClassDeclaration node) {
+    indent();
+    visit(node.classExpr);
+    lineOut();
+  }
+
+  visitClassExpression(ClassExpression node) {
+    out('class ');
+    visit(node.name);
+    if (node.heritage != null) {
+      out(' extends ');
+      visit(node.heritage);
+      spaceOut();
+    }
+    out('{');
+    lineOut();
+    indentMore();
+    for (var method in node.methods) {
+      indent();
+      visit(method);
+      lineOut();
+    }
+    indentLess();
+    indent();
+    out('}');
+  }
+
+  visitMethod(Method node) {
+    if (node.isStatic) {
+      out('static ');
+    }
+    if (node.isGetter) {
+      out('get ');
+    } else if (node.isSetter) {
+      out('set ');
+    }
+    var vars = new VarCollector();
+    vars.visitMethod(node);
+
+    propertyNameOut(node.name, inMethod: true);
+
+    localNamer.enterScope(vars);
+    out("(");
+    var fun = node.function;
+    if (fun.params != null) {
+      visitCommaSeparated(fun.params, PRIMARY,
+          newInForInit: false, newAtStatementBegin: false);
+    }
+    out(")");
+    // TODO(jmesserly): async modifiers
+    if (fun.body.statements.isEmpty) {
+      spaceOut();
+      out("{}");
+    } else {
+      blockBody(fun.body, needsSeparation: false, needsNewline: false);
+    }
+    localNamer.leaveScope();
+  }
+
+  visitPropertyName(PropertyName node) => propertyNameOut(node);
+
+  void propertyNameOut(Expression node, {bool inMethod: false}) {
+    inForInit = false;
+    atStatementBegin = false;
+
+    if (node is LiteralNumber) {
+      LiteralNumber nameNumber = node;
+      out(nameNumber.value);
+    } else {
+      String quotedName;
+      if (node is PropertyName) {
+        quotedName = "'${node.name}'";
+      } else if (node is LiteralString) {
+        quotedName = node.value;
+      }
+      if (quotedName != null) {
+        if (isValidJavaScriptId(quotedName)) {
+          out(quotedName.substring(1, quotedName.length - 1));
+        } else {
+          if (inMethod) out("[");
+          out(quotedName);
+          if (inMethod) out("]");
+        }
+      } else {
+        // ComputedPropertyName
+        out("[");
+        visit(node);
+        out("]");
+      }
+    }
   }
 
   visitLiteralExpression(LiteralExpression node) {
@@ -965,6 +1153,15 @@ class Printer implements NodeVisitor {
   visitInterpolatedSelector(InterpolatedSelector node) =>
       visitInterpolatedNode(node);
 
+  visitInterpolatedPropertyName(InterpolatedPropertyName node) =>
+      visitInterpolatedNode(node);
+
+  visitInterpolatedMethod(InterpolatedMethod node) =>
+      visitInterpolatedNode(node);
+
+  visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node) =>
+      visitInterpolatedNode(node);
+
   visitInterpolatedStatement(InterpolatedStatement node) {
     outLn('#${node.nameOrPosition}');
   }
@@ -980,6 +1177,18 @@ class Printer implements NodeVisitor {
         outIndentLn('// ${line.trim()}');
       }
     }
+  }
+
+  void visitCommentExpression(CommentExpression node) {
+    if (shouldCompressOutput) return;
+    String comment = node.comment.trim();
+    if (comment.isEmpty) return;
+    if (comment.startsWith('/*')) {
+      out(comment);
+    } else {
+      out('/* $comment */');
+    }
+    visit(node.expression);
   }
 
   void visitAwait(Await node) {
@@ -1021,7 +1230,7 @@ class VarCollector extends BaseVisitor {
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
 
-  void collectVarsInFunction(Fun fun) {
+  void collectVarsInFunction(FunctionExpression fun) {
     if (!nested) {
       nested = true;
       if (fun.params != null) {
@@ -1029,7 +1238,7 @@ class VarCollector extends BaseVisitor {
           params.add(fun.params[i].name);
         }
       }
-      visitBlock(fun.body);
+      fun.body.accept(this);
       nested = false;
     }
   }
@@ -1044,7 +1253,16 @@ class VarCollector extends BaseVisitor {
     collectVarsInFunction(namedFunction.function);
   }
 
+  void visitMethod(Method declaration) {
+    // Note that we don't bother collecting the name of the function.
+    collectVarsInFunction(declaration.function);
+  }
+
   void visitFun(Fun fun) {
+    collectVarsInFunction(fun);
+  }
+
+  void visitArrowFun(ArrowFun fun) {
     collectVarsInFunction(fun);
   }
 
@@ -1081,6 +1299,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   }
   bool visitFor(For node) => node.body.accept(this);
   bool visitForIn(ForIn node) => node.body.accept(this);
+  bool visitForOf(ForOf node) => node.body.accept(this);
   bool visitWhile(While node) => node.body.accept(this);
   bool visitDo(Do node) => false;
   bool visitContinue(Continue node) => false;
@@ -1102,6 +1321,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitLabeledStatement(LabeledStatement node)
       => node.body.accept(this);
   bool visitLiteralStatement(LiteralStatement node) => true;
+  bool visitClassDeclaration(ClassDeclaration) => false;
 
   bool visitExpression(Expression node) => false;
 }

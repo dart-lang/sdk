@@ -1,5 +1,5 @@
 var BenchmarkBase;
-(function (BenchmarkBase) {
+(function(BenchmarkBase) {
   'use strict';
   class Expect extends dart.Object {
     static equals(expected, actual) {
@@ -19,13 +19,11 @@ var BenchmarkBase;
       throw message;
     }
   }
-
   class BenchmarkBase extends dart.Object {
     BenchmarkBase(name) {
       this.name = name;
     }
-    run() {
-    }
+    run() {}
     warmup() {
       this.run();
     }
@@ -34,10 +32,8 @@ var BenchmarkBase;
         this.run();
       }
     }
-    setup() {
-    }
-    teardown() {
-    }
+    setup() {}
+    teardown() {}
     static measureFor(f, timeMinimum) {
       let time = 0;
       let iter = 0;
@@ -67,7 +63,6 @@ var BenchmarkBase;
       core.print(`${this.name}(RunTime): ${score} us.`);
     }
   }
-
   // Exports:
   BenchmarkBase.Expect = Expect;
   BenchmarkBase.BenchmarkBase = BenchmarkBase;

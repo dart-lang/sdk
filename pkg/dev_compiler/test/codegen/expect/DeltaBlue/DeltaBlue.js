@@ -1,11 +1,10 @@
 var DeltaBlue;
-(function (DeltaBlue) {
+(function(DeltaBlue) {
   'use strict';
   // Function main: () → dynamic
   function main() {
     new DeltaBlue().report();
   }
-
   class DeltaBlue extends BenchmarkBase.BenchmarkBase {
     DeltaBlue() {
       super.BenchmarkBase("DeltaBlue");
@@ -15,13 +14,14 @@ var DeltaBlue;
       projectionTest(100);
     }
   }
-
   class Strength extends dart.Object {
     Strength(value, name) {
       this.value = value;
       this.name = name;
     }
-    nextWeaker() { return /* Unimplemented const */new List.from([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST]).get(this.value); }
+    nextWeaker() {
+      return /* Unimplemented const */new List.from([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST]).get(this.value);
+    }
     static stronger(s1, s2) {
       return s1.value < s2.value;
     }
@@ -35,7 +35,6 @@ var DeltaBlue;
       return stronger(s1, s2) ? s1 : s2;
     }
   }
-
   let REQUIRED = new Strength(0, "required");
   let STRONG_PREFERRED = new Strength(1, "strongPreferred");
   let PREFERRED = new Strength(2, "preferred");
@@ -62,19 +61,23 @@ var DeltaBlue;
       this.markInputs(dart.as(mark, core.int));
       let out = this.output();
       let overridden = out.determinedBy;
-      if (overridden !== null) overridden.markUnsatisfied();
+      if (overridden !== null)
+        overridden.markUnsatisfied();
       out.determinedBy = this;
-      if (!dart.notNull(DeltaBlue.planner.addPropagate(this, dart.as(mark, core.int)))) core.print("Cycle encountered");
+      if (!dart.notNull(DeltaBlue.planner.addPropagate(this, dart.as(mark, core.int))))
+        core.print("Cycle encountered");
       out.mark = dart.as(mark, core.int);
       return overridden;
     }
     destroyConstraint() {
-      if (this.isSatisfied()) DeltaBlue.planner.incrementalRemove(this);
+      if (this.isSatisfied())
+        DeltaBlue.planner.incrementalRemove(this);
       this.removeFromGraph();
     }
-    isInput() { return false; }
+    isInput() {
+      return false;
+    }
   }
-
   class UnaryConstraint extends Constraint {
     UnaryConstraint(myOutput, strength) {
       this.myOutput = myOutput;
@@ -87,44 +90,48 @@ var DeltaBlue;
       this.satisfied = false;
     }
     chooseMethod(mark) {
-      this.satisfied = dart.notNull((this.myOutput.mark !== mark)) && dart.notNull(Strength.stronger(this.strength, this.myOutput.walkStrength));
+      this.satisfied = dart.notNull(this.myOutput.mark !== mark) && dart.notNull(Strength.stronger(this.strength, this.myOutput.walkStrength));
     }
-    isSatisfied() { return this.satisfied; }
-    markInputs(mark) {
+    isSatisfied() {
+      return this.satisfied;
     }
-    output() { return this.myOutput; }
+    markInputs(mark) {}
+    output() {
+      return this.myOutput;
+    }
     recalculate() {
       this.myOutput.walkStrength = this.strength;
       this.myOutput.stay = !dart.notNull(this.isInput());
-      if (this.myOutput.stay) this.execute();
+      if (this.myOutput.stay)
+        this.execute();
     }
     markUnsatisfied() {
       this.satisfied = false;
     }
-    inputsKnown(mark) { return true; }
+    inputsKnown(mark) {
+      return true;
+    }
     removeFromGraph() {
-      if (this.myOutput !== null) this.myOutput.removeConstraint(this);
+      if (this.myOutput !== null)
+        this.myOutput.removeConstraint(this);
       this.satisfied = false;
     }
   }
-
   class StayConstraint extends UnaryConstraint {
     StayConstraint(v, str) {
       super.UnaryConstraint(v, str);
     }
-    execute() {
-    }
+    execute() {}
   }
-
   class EditConstraint extends UnaryConstraint {
     EditConstraint(v, str) {
       super.UnaryConstraint(v, str);
     }
-    isInput() { return true; }
-    execute() {
+    isInput() {
+      return true;
     }
+    execute() {}
   }
-
   let NONE = 1;
   let FORWARD = 2;
   let BACKWARD = 0;
@@ -138,10 +145,10 @@ var DeltaBlue;
     }
     chooseMethod(mark) {
       if (this.v1.mark === mark) {
-        this.direction = (dart.notNull(this.v2.mark !== mark) && dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength))) ? FORWARD : NONE;
+        this.direction = dart.notNull(this.v2.mark !== mark) && dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
       }
       if (this.v2.mark === mark) {
-        this.direction = (dart.notNull(this.v1.mark !== mark) && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength))) ? BACKWARD : NONE;
+        this.direction = dart.notNull(this.v1.mark !== mark) && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
       }
       if (Strength.weaker(this.v1.walkStrength, this.v2.walkStrength)) {
         this.direction = Strength.stronger(this.strength, this.v1.walkStrength) ? BACKWARD : NONE;
@@ -154,17 +161,24 @@ var DeltaBlue;
       this.v2.addConstraint(this);
       this.direction = NONE;
     }
-    isSatisfied() { return this.direction !== NONE; }
+    isSatisfied() {
+      return this.direction !== NONE;
+    }
     markInputs(mark) {
       this.input().mark = mark;
     }
-    input() { return this.direction === FORWARD ? this.v1 : this.v2; }
-    output() { return this.direction === FORWARD ? this.v2 : this.v1; }
+    input() {
+      return this.direction === FORWARD ? this.v1 : this.v2;
+    }
+    output() {
+      return this.direction === FORWARD ? this.v2 : this.v1;
+    }
     recalculate() {
       let ihn = this.input(), out = this.output();
       out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = ihn.stay;
-      if (out.stay) this.execute();
+      if (out.stay)
+        this.execute();
     }
     markUnsatisfied() {
       this.direction = NONE;
@@ -174,12 +188,13 @@ var DeltaBlue;
       return dart.notNull(dart.notNull(i.mark === mark) || dart.notNull(i.stay)) || dart.notNull(i.determinedBy === null);
     }
     removeFromGraph() {
-      if (this.v1 !== null) this.v1.removeConstraint(this);
-      if (this.v2 !== null) this.v2.removeConstraint(this);
+      if (this.v1 !== null)
+        this.v1.removeConstraint(this);
+      if (this.v2 !== null)
+        this.v2.removeConstraint(this);
       this.direction = NONE;
     }
   }
-
   class ScaleConstraint extends BinaryConstraint {
     ScaleConstraint(src, scale, offset, dest, strength) {
       this.scale = scale;
@@ -193,8 +208,10 @@ var DeltaBlue;
     }
     removeFromGraph() {
       super.removeFromGraph();
-      if (this.scale !== null) this.scale.removeConstraint(this);
-      if (this.offset !== null) this.offset.removeConstraint(this);
+      if (this.scale !== null)
+        this.scale.removeConstraint(this);
+      if (this.offset !== null)
+        this.offset.removeConstraint(this);
     }
     markInputs(mark) {
       super.markInputs(mark);
@@ -211,10 +228,10 @@ var DeltaBlue;
       let ihn = this.input(), out = this.output();
       out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = dart.notNull(dart.notNull(ihn.stay) && dart.notNull(this.scale.stay)) && dart.notNull(this.offset.stay);
-      if (out.stay) this.execute();
+      if (out.stay)
+        this.execute();
     }
   }
-
   class EqualityConstraint extends BinaryConstraint {
     EqualityConstraint(v1, v2, strength) {
       super.BinaryConstraint(v1, v2, strength);
@@ -223,7 +240,6 @@ var DeltaBlue;
       this.output().value = this.input().value;
     }
   }
-
   class Variable extends dart.Object {
     Variable(name, value) {
       this.constraints = new List.from([]);
@@ -239,17 +255,18 @@ var DeltaBlue;
     }
     removeConstraint(c) {
       this.constraints.remove(c);
-      if (dart.equals(this.determinedBy, c)) this.determinedBy = null;
+      if (dart.equals(this.determinedBy, c))
+        this.determinedBy = null;
     }
   }
-
   class Planner extends dart.Object {
     Planner() {
       this.currentMark = 0;
     }
     incrementalAdd(c) {
       let mark = this.newMark();
-      for (let overridden = c.satisfy(mark); overridden !== null; overridden = overridden.satisfy(mark)) ;
+      for (let overridden = c.satisfy(mark); overridden !== null; overridden = overridden.satisfy(mark))
+        ;
     }
     incrementalRemove(c) {
       let out = c.output();
@@ -260,13 +277,15 @@ var DeltaBlue;
       do {
         for (let i = 0; i < unsatisfied.length; i++) {
           let u = unsatisfied.get(i);
-          if (dart.equals(u.strength, strength)) this.incrementalAdd(u);
+          if (dart.equals(u.strength, strength))
+            this.incrementalAdd(u);
         }
         strength = strength.nextWeaker();
-      }
-      while (!dart.equals(strength, WEAKEST));
+      } while (!dart.equals(strength, WEAKEST));
     }
-    newMark() { return ++this.currentMark; }
+    newMark() {
+      return ++this.currentMark;
+    }
     makePlan(sources) {
       let mark = this.newMark();
       let plan = new Plan();
@@ -285,7 +304,8 @@ var DeltaBlue;
       let sources = new List.from([]);
       for (let i = 0; i < constraints.length; i++) {
         let c = constraints.get(i);
-        if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied())) sources.add(c);
+        if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied()))
+          sources.add(c);
       }
       return this.makePlan(sources);
     }
@@ -312,7 +332,8 @@ var DeltaBlue;
         let v = todo.removeLast();
         for (let i = 0; i < v.constraints.length; i++) {
           let c = v.constraints.get(i);
-          if (!dart.notNull(c.isSatisfied())) unsatisfied.add(c);
+          if (!dart.notNull(c.isSatisfied()))
+            unsatisfied.add(c);
         }
         let determining = v.determinedBy;
         for (let i = 0; i < v.constraints.length; i++) {
@@ -329,11 +350,11 @@ var DeltaBlue;
       let determining = v.determinedBy;
       for (let i = 0; i < v.constraints.length; i++) {
         let c = v.constraints.get(i);
-        if (dart.notNull(!dart.equals(c, determining)) && dart.notNull(c.isSatisfied())) coll.add(c);
+        if (dart.notNull(!dart.equals(c, determining)) && dart.notNull(c.isSatisfied()))
+          coll.add(c);
       }
     }
   }
-
   class Plan extends dart.Object {
     Plan() {
       this.list = new List.from([]);
@@ -341,23 +362,27 @@ var DeltaBlue;
     addConstraint(c) {
       this.list.add(c);
     }
-    size() { return this.list.length; }
+    size() {
+      return this.list.length;
+    }
     execute() {
       for (let i = 0; i < this.list.length; i++) {
         this.list.get(i).execute();
       }
     }
   }
-
   // Function chainTest: (int) → void
   function chainTest(n) {
     DeltaBlue.planner = new Planner();
     let prev = null, first = null, last = null;
     for (let i = 0; i <= n; i++) {
       let v = new Variable("v", 0);
-      if (prev !== null) new EqualityConstraint(prev, v, REQUIRED);
-      if (i === 0) first = v;
-      if (i === n) last = v;
+      if (prev !== null)
+        new EqualityConstraint(prev, v, REQUIRED);
+      if (i === 0)
+        first = v;
+      if (i === n)
+        last = v;
       prev = v;
     }
     new StayConstraint(last, STRONG_DEFAULT);
@@ -372,7 +397,6 @@ var DeltaBlue;
       }
     }
   }
-
   // Function projectionTest: (int) → void
   function projectionTest(n) {
     DeltaBlue.planner = new Planner();
@@ -388,19 +412,22 @@ var DeltaBlue;
       new ScaleConstraint(src, scale, offset, dst, REQUIRED);
     }
     change(src, 17);
-    if (dst.value !== 1170) core.print("Projection 1 failed");
+    if (dst.value !== 1170)
+      core.print("Projection 1 failed");
     change(dst, 1050);
-    if (src.value !== 5) core.print("Projection 2 failed");
+    if (src.value !== 5)
+      core.print("Projection 2 failed");
     change(scale, 5);
     for (let i = 0; i < n - 1; i++) {
-      if (dests.get(i).value !== i * 5 + 1000) core.print("Projection 3 failed");
+      if (dests.get(i).value !== i * 5 + 1000)
+        core.print("Projection 3 failed");
     }
     change(offset, 2000);
     for (let i = 0; i < n - 1; i++) {
-      if (dests.get(i).value !== i * 5 + 2000) core.print("Projection 4 failed");
+      if (dests.get(i).value !== i * 5 + 2000)
+        core.print("Projection 4 failed");
     }
   }
-
   // Function change: (Variable, int) → void
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
@@ -411,7 +438,6 @@ var DeltaBlue;
     }
     edit.destroyConstraint();
   }
-
   DeltaBlue.planner = null;
   // Exports:
   DeltaBlue.main = main;
