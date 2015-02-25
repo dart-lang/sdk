@@ -77,21 +77,24 @@ class PackageMapUriResolver extends UriResolver {
   @override
   Uri restoreAbsolute(Source source) {
     String sourcePath = source.fullName;
+    Uri bestMatch;
+    int bestMatchLength = -1;
     for (String pkgName in packageMap.keys) {
       List<Folder> pkgFolders = packageMap[pkgName];
       for (int i = 0; i < pkgFolders.length; i++) {
         Folder pkgFolder = pkgFolders[i];
         String pkgFolderPath = pkgFolder.path;
         // TODO(paulberry): figure out the right thing to do for Windows.
-        if (sourcePath.startsWith(pkgFolderPath + '/')) {
+        if (pkgFolderPath.length > bestMatchLength && sourcePath.startsWith(pkgFolderPath + '/')) {
           String relPath = sourcePath.substring(pkgFolderPath.length + 1);
           if (_isReversibleTranslation(pkgFolders, i, relPath)) {
-            return Uri.parse('$PACKAGE_SCHEME:$pkgName/$relPath');
+            bestMatch = Uri.parse('$PACKAGE_SCHEME:$pkgName/$relPath');
+            bestMatchLength = pkgFolderPath.length;
           }
         }
       }
     }
-    return null;
+    return bestMatch;
   }
 
   /**

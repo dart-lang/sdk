@@ -200,6 +200,32 @@ class _PackageMapUriResolverTest {
     expect(resolver.restoreAbsolute(source2), isNull);
   }
 
+  void test_restoreLongestMatch() {
+    const file1 = '/foo1/bar1/lib.dart';
+    const file2 = '/foo2/bar2/lib.dart';
+    provider.newFile(file1, 'library lib');
+    provider.newFile(file2, 'library lib');
+    PackageMapUriResolver resolver =
+        new PackageMapUriResolver(provider, <String, List<Folder>>{
+      'pkg1': [
+          provider.getResource('/foo1'),
+          provider.getResource('/foo2/bar2')],
+      'pkg2': [
+          provider.getResource('/foo1/bar1'),
+          provider.getResource('/foo2')]
+    });
+    // Restoring file1 should yield a package URI for pkg2, since pkg2's match
+    // for the file path (/foo1/bar1) is longer than pkg1's match (/foo1).
+    Source source1 = _createFileSource(file1);
+    Uri uri1 = resolver.restoreAbsolute(source1);
+    expect(uri1.toString(), 'package:pkg2/lib.dart');
+    // Restoring file2 should yield a package URI for pkg1, since pkg1's match
+    // for the file path (/foo2/bar2) is longer than pkg2's match (/foo2).
+    Source source2 = _createFileSource(file2);
+    Uri uri2 = resolver.restoreAbsolute(source2);
+    expect(uri2.toString(), 'package:pkg1/lib.dart');
+  }
+
   Source _createFileSource(String path) {
     return new NonExistingSource(path, UriKind.FILE_URI);
   }
