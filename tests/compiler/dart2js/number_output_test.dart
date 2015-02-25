@@ -12,6 +12,7 @@ const MEMORY_SOURCE_FILES = const {
           print(12300000);
           print(1234567890123456789012345);
           print(double.MAX_FINITE);
+          print(-22230000);
         }'''};
 
 void test({bool minify}) {
@@ -22,12 +23,16 @@ void test({bool minify}) {
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     // Check that we use the shorter exponential representations.
     String jsOutput = collector.getOutput('', 'js');
+    print(jsOutput);
 
     if (minify) {
       Expect.isTrue(jsOutput.contains('123e5')); // Shorter than 12300000.
       Expect.isFalse(jsOutput.contains('12300000'));
+      Expect.isTrue(jsOutput.contains('-2223e4')); // Shorter than -22230000.
+      Expect.isFalse(jsOutput.contains('-22230000'));
     } else {
       Expect.isTrue(jsOutput.contains('12300000'));
+      Expect.isTrue(jsOutput.contains('-22230000'));
     }
     Expect.isTrue(jsOutput.contains('12345678901234568e8'));
     Expect.isTrue(jsOutput.contains('17976931348623157e292'));

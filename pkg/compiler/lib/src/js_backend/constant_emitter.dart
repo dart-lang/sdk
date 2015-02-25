@@ -200,30 +200,29 @@ class ConstantLiteralEmitter
     return new jsAst.LiteralNull();
   }
 
+  static final _exponentialRE = new RegExp(
+      '^'
+      '\([-+]?\)'         // 1: sign
+      '\([0-9]+\)'        // 2: leading digit(s)
+      '\(\.\([0-9]*\)\)?' // 4: fraction digits
+      'e\([-+]?[0-9]+\)'  // 5: exponent with sign
+      r'$');
+
   /// Reduces the size of exponential representations when minification is
   /// enabled.
   ///
   /// Removes the "+" after the exponential sign, and removes the "." before the
   /// "e". For example `1.23e+5` is changed to `123e3`.
   String _shortenExponentialRepresentation(String numberString) {
-    if (numberString.length < 4) return numberString;
-    if (numberString[1] == "e" && numberString[2] == "+") {
-      // For example: "1e+5". Remove the "+".
-      return "${numberString[0]}e${numberString.substring(2)}";
-    }
-    if (numberString[1] != ".") return numberString;
-    int digitsAfterDotCount = 0;
-    int pos = 2;
-    while (pos < numberString.length && numberString[pos] != "e") {
-      pos++;
-      digitsAfterDotCount++;
-    }
-    if (pos >= numberString.length) return numberString;
-    int exponent = int.parse(numberString.substring(pos + 1));
-    if (exponent <= digitsAfterDotCount) return numberString;
-    String digitsAfterDot = numberString.substring(2, pos);
-    int shiftedExponent = exponent - digitsAfterDotCount;
-    String result = "${numberString[0]}${digitsAfterDot}e$shiftedExponent";
+    Match match = _exponentialRE.firstMatch(numberString);
+    if (match == null) return numberString;
+    String sign = match[1];
+    String leadingDigits = match[2];
+    String fractionDigits = match[4];
+    int exponent = int.parse(match[5]);
+    if (fractionDigits == null) fractionDigits = '';
+    exponent -= fractionDigits.length;
+    String result = '${sign}${leadingDigits}${fractionDigits}e${exponent}';
     assert(double.parse(result) == double.parse(numberString));
     return result;
   }
@@ -231,23 +230,24 @@ class ConstantLiteralEmitter
   @override
   jsAst.Expression visitInt(IntConstantValue constant, [_]) {
     int primitiveValue = constant.primitiveValue;
-    // Since we are in JavaScript we can shorten long integers to their
-    // shorter exponential representation.
-    // For example: "1e+4" is shorter than "10000".
+    // Since we are in JavaScript we can shorten long integers to their shorter
+    // exponential representation, for example: "1e4" is shorter than "10000".
     //
     // Note that this shortening apparently loses precision for big numbers
     // (like 1234567890123456789012345 which becomes 12345678901234568e8).
-    // However, since JavaScript engines represent all numbers as doubles,
-    // these digits are lost anyway.
-    int cutOffValue = compiler.enableMinification ? 10000 : 1e20.toInt();
-    if (primitiveValue.abs() >= cutOffValue) {
-      String exponential = _shortenExponentialRepresentation(
+    // However, since JavaScript engines represent all numbers as doubles, these
+    // digits are lost anyway.
+    String representation = primitiveValue.toString();
+    String alternative = null;
+    int cutoff = compiler.enableMinification ? 10000 : 1e10.toInt();
+    if (primitiveValue.abs() >= cutoff) {
+      alternative = _shortenExponentialRepresentation(
           primitiveValue.toStringAsExponential());
-      String decimal = primitiveValue.toString();
-      return new jsAst.LiteralNumber(
-          (exponential.length < decimal.length) ? exponential : decimal);
     }
-    return new jsAst.LiteralNumber('$primitiveValue');
+    if (alternative != null && alternative.length < representation.length) {
+      representation = alternative;
+    }
+    return new jsAst.LiteralNumber(representation);
   }
 
   @override
