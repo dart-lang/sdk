@@ -1,6 +1,6 @@
 library dart.collection;
 
-import 'package:ddc/runtime/dart_logging_runtime.dart' as DDC$RT;
+import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DDC$RT;
 import 'dart:_internal';
 import 'dart:math' show Random;
 part 'collections.dart';

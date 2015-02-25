@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:ddc/runtime/dart_logging_runtime.dart' as ddc;
+import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as ddc;
 import 'package:unittest/unittest.dart';
 
 class A<T> {

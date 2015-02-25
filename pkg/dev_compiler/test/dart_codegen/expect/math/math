@@ -1,6 +1,6 @@
 library dart.math;
 
-import 'package:ddc/runtime/dart_logging_runtime.dart' as DDC$RT;
+import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DDC$RT;
 part "jenkins_smi_hash.dart";
 part "point.dart";
 part "random.dart";

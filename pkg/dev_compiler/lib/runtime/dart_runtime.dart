@@ -6,7 +6,7 @@ library ddc.runtime.dart_runtime;
 
 import 'dart:mirrors';
 
-import 'package:ddc/config.dart';
+import 'package:dev_compiler/config.dart';
 
 dynamic dload(dynamic obj, String field) {
   var symbol = new Symbol(field);

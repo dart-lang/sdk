@@ -10,10 +10,10 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:logging/logging.dart' as logger;
 
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/options.dart';
-import 'package:ddc/src/report.dart' show CheckerReporter;
-import 'package:ddc/src/utils.dart' show getMemberType;
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart' show CheckerReporter;
+import 'package:dev_compiler/src/utils.dart' show getMemberType;
 import 'rules.dart';
 
 /// Checks for overriding declarations of fields and methods. This is used to

@@ -8,9 +8,9 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/options.dart';
-import 'package:ddc/src/report.dart' show CheckerReporter;
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart' show CheckerReporter;
 
 abstract class TypeRules {
   final TypeProvider provider;

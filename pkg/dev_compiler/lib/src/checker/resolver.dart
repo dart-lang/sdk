@@ -20,9 +20,9 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart' as logger;
 
-import 'package:ddc/src/options.dart';
-import 'package:ddc/src/report.dart';
-import 'package:ddc/src/utils.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/utils.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 

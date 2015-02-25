@@ -1,6 +1,6 @@
 library b;
 
-import 'package:ddc/runtime/dart_logging_runtime.dart' as DDC$RT;
+import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DDC$RT;
 import 'a.dart';
 
 A2A f1(A2A f) => f;

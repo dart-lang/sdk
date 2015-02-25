@@ -12,11 +12,11 @@ import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:logging/logging.dart' show Logger, Level;
 
-import 'package:ddc/config.dart';
-import 'package:ddc/devc.dart';
-import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources;
-import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
-import 'package:ddc/src/options.dart';
+import 'package:dev_compiler/config.dart';
+import 'package:dev_compiler/devc.dart';
+import 'package:dev_compiler/src/checker/dart_sdk.dart' show mockSdkSources;
+import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
+import 'package:dev_compiler/src/options.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addFlag(

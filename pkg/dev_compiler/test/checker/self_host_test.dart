@@ -7,10 +7,10 @@ library ddc.test.end_to_end;
 
 import 'dart:io';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
-import 'package:ddc/devc.dart' show compile;
-import 'package:ddc/src/options.dart';
-import 'package:ddc/src/report.dart';
-import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+import 'package:dev_compiler/devc.dart' show compile;
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 import 'package:path/path.dart' as path;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';

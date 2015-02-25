@@ -18,9 +18,9 @@ import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
-import 'package:ddc/src/options.dart';
-import 'package:ddc/src/report.dart';
-import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
   ..addOption('level', help: 'Minimum error level', defaultsTo: "info")

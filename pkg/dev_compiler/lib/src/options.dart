@@ -5,7 +5,7 @@
 /// Set of flags and options passed to the compiler
 library ddc.src.options;
 
-import 'package:ddc/config.dart';
+import 'package:dev_compiler/config.dart';
 
 /// Options used by ddc's TypeResolver.
 class ResolverOptions {

@@ -8,8 +8,8 @@ library ddc.test.report_test;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:ddc/src/testing.dart';
-import 'package:ddc/src/report.dart';
+import 'package:dev_compiler/src/testing.dart';
+import 'package:dev_compiler/src/report.dart';
 
 main() {
   useCompactVMConfiguration();

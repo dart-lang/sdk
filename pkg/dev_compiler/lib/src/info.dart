@@ -14,8 +14,8 @@ import 'package:analyzer/src/generated/scanner.dart'
     show Token, TokenType, SyntheticStringToken;
 import 'package:logging/logging.dart' show Level;
 
-import 'package:ddc/src/checker/rules.dart';
-import 'package:ddc/src/utils.dart' as utils;
+import 'package:dev_compiler/src/checker/rules.dart';
+import 'package:dev_compiler/src/utils.dart' as utils;
 
 /// Represents a summary of the results collected by running the program
 /// checker.

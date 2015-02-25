@@ -1,4 +1,4 @@
-name: ddc
+name: dev_compiler
 description: Dart dev checker / compiler
 dependencies:
   analyzer:

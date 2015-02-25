@@ -10,8 +10,8 @@ import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart' show parseFragment;
 import 'package:path/path.dart' as path;
 
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/options.dart';
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart';
 
 import 'js_codegen.dart' show jsLibraryName, jsOutputPath;
 

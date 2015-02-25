@@ -13,14 +13,14 @@ import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:ddc/src/checker/dart_sdk.dart'
+import 'package:dev_compiler/src/checker/dart_sdk.dart'
     show mockSdkSources, dartSdkDirectory;
-import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
-import 'package:ddc/src/utils.dart';
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/options.dart';
-import 'package:ddc/src/report.dart';
-import 'package:ddc/devc.dart' show compile;
+import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
+import 'package:dev_compiler/src/utils.dart';
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/devc.dart' show compile;
 
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].

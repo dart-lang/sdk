@@ -14,10 +14,10 @@ import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
 import 'package:path/path.dart' as path;
 
-import 'package:ddc/src/checker/rules.dart';
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/report.dart';
-import 'package:ddc/src/utils.dart';
+import 'package:dev_compiler/src/checker/rules.dart';
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/utils.dart';
 import 'code_generator.dart';
 
 // This must match the optional parameter name used in runtime.js
@@ -1979,6 +1979,6 @@ String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
 
 /// Path to file that will be generated for [info].
 // TODO(jmesserly): library directory should be relative to its package
-// root. For example, "package:ddc/src/codegen/js_codegen.dart" would be:
+// root. For example, "package:dev_compiler/src/codegen/js_codegen.dart" would be:
 // "ddc/src/codegen/js_codegen.js" under the output directory.
 String jsOutputPath(LibraryInfo info) => '${info.name}/${info.name}.js';

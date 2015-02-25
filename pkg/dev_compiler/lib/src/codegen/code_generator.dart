@@ -11,10 +11,10 @@ import 'package:analyzer/src/generated/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:path/path.dart' as path;
 
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/utils.dart' show canonicalLibraryName;
-import 'package:ddc/src/report.dart';
-import 'package:ddc/src/checker/rules.dart';
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/utils.dart' show canonicalLibraryName;
+import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/checker/rules.dart';
 
 abstract class CodeGenerator {
   final String outDir;

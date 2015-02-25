@@ -10,9 +10,9 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:source_span/source_span.dart' show SourceFile;
 
-import 'package:ddc/src/checker/rules.dart';
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/utils.dart' as utils;
+import 'package:dev_compiler/src/checker/rules.dart';
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/utils.dart' as utils;
 
 import 'ast_builder.dart';
 

@@ -15,10 +15,10 @@ import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:path/path.dart' as path;
 
-import 'package:ddc/src/info.dart';
-import 'package:ddc/src/checker/rules.dart';
-import 'package:ddc/src/report.dart';
-import 'package:ddc/src/utils.dart' as utils;
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/checker/rules.dart';
+import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/utils.dart' as utils;
 import 'ast_builder.dart';
 import 'code_generator.dart' as codegenerator;
 import 'reify_coercions.dart' as reifier;
@@ -40,7 +40,7 @@ class DdcRuntime {
 
   String get importString {
     var name = _ddcRuntimeId;
-    var uri = "package:ddc/runtime/dart_logging_runtime.dart";
+    var uri = "package:dev_compiler/runtime/dart_logging_runtime.dart";
     return "import '$uri' as $name;";
   }
 

@@ -7,11 +7,11 @@
 library ddc.test.end_to_end;
 
 import 'dart:io';
-import 'package:ddc/devc.dart' show compile;
-import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources;
-import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
-import 'package:ddc/src/options.dart';
-import 'package:ddc/src/report.dart';
+import 'package:dev_compiler/devc.dart' show compile;
+import 'package:dev_compiler/src/checker/dart_sdk.dart' show mockSdkSources;
+import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
