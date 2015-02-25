@@ -104,8 +104,13 @@ class ElementCodec {
    * file paths instead of [Element] location URIs.
    */
   int encode(Element element, bool forKey) {
-    ElementLocationImpl location = element.location;
+    if (element is NameElement) {
+      String name = element.name;
+      int nameId = _stringCodec.encode(name);
+      return _encodePath(<int>[nameId]);
+    }
     // check the location has a cached id
+    ElementLocationImpl location = element.location;
     if (!identical(location.indexOwner, this)) {
       location.indexKeyId = null;
       location.indexLocationId = null;
