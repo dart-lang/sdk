@@ -8,10 +8,8 @@
 library ddc.test.codegen_test;
 
 import 'dart:io';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, Logger;
-import 'package:analyzer/src/generated/java_engine.dart'
-    show CaughtException;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
+import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:ddc/devc.dart';
