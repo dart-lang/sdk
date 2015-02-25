@@ -84,7 +84,7 @@ void scheduleNotificationOperations(AnalysisServer server, String file,
 
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
-  try {
+  _sendNotification(server, () {
     if (errors == null) {
       errors = <AnalysisError>[];
     }
@@ -92,27 +92,22 @@ void sendAnalysisNotificationErrors(AnalysisServer server, String file,
         protocol.doAnalysisError_listFromEngine(lineInfo, errors);
     var params = new protocol.AnalysisErrorsParams(file, serverErrors);
     server.sendNotification(params.toNotification());
-  } catch (exception, stackTrace) {
-    server.sendServerErrorNotification(exception, stackTrace);
-  }
+  });
 }
-
 
 void sendAnalysisNotificationHighlights(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  try {
+  _sendNotification(server, () {
     var regions = new DartUnitHighlightsComputer(dartUnit).compute();
     var params = new protocol.AnalysisHighlightsParams(file, regions);
     server.sendNotification(params.toNotification());
-  } catch (exception, stackTrace) {
-    server.sendServerErrorNotification(exception, stackTrace);
-  }
+  });
 }
 
 
 void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  try {
+  _sendNotification(server, () {
     var computer = new DartUnitNavigationComputer(dartUnit);
     computer.compute();
     var params = new protocol.AnalysisNavigationParams(
@@ -121,46 +116,52 @@ void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
         computer.targets,
         computer.files);
     server.sendNotification(params.toNotification());
-  } catch (exception, stackTrace) {
-    server.sendServerErrorNotification(exception, stackTrace);
-  }
+  });
 }
 
 
 void sendAnalysisNotificationOccurrences(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  try {
+  _sendNotification(server, () {
     var occurrences = new DartUnitOccurrencesComputer(dartUnit).compute();
     var params = new protocol.AnalysisOccurrencesParams(file, occurrences);
     server.sendNotification(params.toNotification());
-  } catch (exception, stackTrace) {
-    server.sendServerErrorNotification(exception, stackTrace);
-  }
+  });
 }
 
 
 void sendAnalysisNotificationOutline(AnalysisServer server, String file,
     LineInfo lineInfo, CompilationUnit dartUnit) {
-  try {
+  _sendNotification(server, () {
     var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit);
     var outline = computer.compute();
     var params = new protocol.AnalysisOutlineParams(file, outline);
     server.sendNotification(params.toNotification());
-  } catch (exception, stackTrace) {
-    server.sendServerErrorNotification(exception, stackTrace);
-  }
+  });
 }
 
 
 void sendAnalysisNotificationOverrides(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  try {
+  _sendNotification(server, () {
     var overrides = new DartUnitOverridesComputer(dartUnit).compute();
     var params = new protocol.AnalysisOverridesParams(file, overrides);
     server.sendNotification(params.toNotification());
-  } catch (exception, stackTrace) {
-    server.sendServerErrorNotification(exception, stackTrace);
-  }
+  });
+}
+
+
+/**
+ * Runs the given notification producing function [f], catching exceptions.
+ */
+void _sendNotification(AnalysisServer server, f()) {
+  ServerPerformanceStatistics.notices.makeCurrentWhile(() {
+    try {
+      f();
+    } catch (exception, stackTrace) {
+      server.sendServerErrorNotification(exception, stackTrace);
+    }
+  });
 }
 
 

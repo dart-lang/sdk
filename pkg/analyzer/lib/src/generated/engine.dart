@@ -5052,64 +5052,66 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    incrementalResolutionValidation_lastUnitSource = null;
-    incrementalResolutionValidation_lastLibrarySource = null;
-    incrementalResolutionValidation_lastUnit = null;
-    // prepare the entry
-    DartEntry dartEntry = _cache.get(unitSource);
-    if (dartEntry == null) {
-      return false;
-    }
-    // prepare the (only) library source
-    List<Source> librarySources = getLibrariesContaining(unitSource);
-    if (librarySources.length != 1) {
-      return false;
-    }
-    Source librarySource = librarySources[0];
-    // prepare the library element
-    LibraryElement libraryElement = getLibraryElement(librarySource);
-    if (libraryElement == null) {
-      return false;
-    }
-    // prepare the existing unit
-    CompilationUnit oldUnit =
-        getResolvedCompilationUnit2(unitSource, librarySource);
-    if (oldUnit == null) {
-      return false;
-    }
-    // do resolution
-    Stopwatch perfCounter = new Stopwatch()..start();
-    PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
-        typeProvider,
-        unitSource,
-        dartEntry,
-        oldUnit,
-        analysisOptions.incrementalApi);
-    bool success = resolver.resolve(newCode);
-    AnalysisEngine.instance.instrumentationService.logPerformance(
-        AnalysisPerformanceKind.INCREMENTAL,
-        perfCounter,
-        'success=$success,context_id=$_id,code_length=${newCode.length}');
-    if (!success) {
-      return false;
-    }
-    // if validation, remember the result, but throw it away
-    if (analysisOptions.incrementalValidation) {
-      incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
-      incrementalResolutionValidation_lastLibrarySource =
-          oldUnit.element.library.source;
-      incrementalResolutionValidation_lastUnit = oldUnit;
-      return false;
-    }
-    // prepare notice
-    {
-      LineInfo lineInfo = getLineInfo(unitSource);
-      ChangeNoticeImpl notice = _getNotice(unitSource);
-      notice.resolvedDartUnit = oldUnit;
-      notice.setErrors(dartEntry.allErrors, lineInfo);
-    }
-    // OK
-    return true;
+    return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
+      incrementalResolutionValidation_lastUnitSource = null;
+      incrementalResolutionValidation_lastLibrarySource = null;
+      incrementalResolutionValidation_lastUnit = null;
+      // prepare the entry
+      DartEntry dartEntry = _cache.get(unitSource);
+      if (dartEntry == null) {
+        return false;
+      }
+      // prepare the (only) library source
+      List<Source> librarySources = getLibrariesContaining(unitSource);
+      if (librarySources.length != 1) {
+        return false;
+      }
+      Source librarySource = librarySources[0];
+      // prepare the library element
+      LibraryElement libraryElement = getLibraryElement(librarySource);
+      if (libraryElement == null) {
+        return false;
+      }
+      // prepare the existing unit
+      CompilationUnit oldUnit =
+          getResolvedCompilationUnit2(unitSource, librarySource);
+      if (oldUnit == null) {
+        return false;
+      }
+      // do resolution
+      Stopwatch perfCounter = new Stopwatch()..start();
+      PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
+          typeProvider,
+          unitSource,
+          dartEntry,
+          oldUnit,
+          analysisOptions.incrementalApi);
+      bool success = resolver.resolve(newCode);
+      AnalysisEngine.instance.instrumentationService.logPerformance(
+          AnalysisPerformanceKind.INCREMENTAL,
+          perfCounter,
+          'success=$success,context_id=$_id,code_length=${newCode.length}');
+      if (!success) {
+        return false;
+      }
+      // if validation, remember the result, but throw it away
+      if (analysisOptions.incrementalValidation) {
+        incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
+        incrementalResolutionValidation_lastLibrarySource =
+            oldUnit.element.library.source;
+        incrementalResolutionValidation_lastUnit = oldUnit;
+        return false;
+      }
+      // prepare notice
+      {
+        LineInfo lineInfo = getLineInfo(unitSource);
+        ChangeNoticeImpl notice = _getNotice(unitSource);
+        notice.resolvedDartUnit = oldUnit;
+        notice.setErrors(dartEntry.allErrors, lineInfo);
+      }
+      // OK
+      return true;
+    });
   }
 
   /**
@@ -10534,6 +10536,13 @@ class PerformanceStatistics {
    * AnalysisContextImpl.nextAnalysisTask.
    */
   static var nextTask = new PerformanceTag('nextAnalysisTask');
+
+  /**
+   * The [PerformanceTag] for time spent during otherwise not accounted parts
+   * incremental of analysis.
+   */
+  static PerformanceTag incrementalAnalysis =
+      new PerformanceTag('incrementalAnalysis');
 }
 
 /**
