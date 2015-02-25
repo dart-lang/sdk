@@ -7,6 +7,8 @@
 
 library engine.source.io;
 
+import 'dart:collection';
+
 import 'engine.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -93,9 +95,23 @@ class FileBasedSource extends Source {
   static Function fileReadMode = (String s) => s;
 
   /**
+   * Map from encoded URI/filepath pair to a unique integer identifier.  This
+   * identifier is used for equality tests and hash codes.
+   *
+   * The URI and filepath are joined into a pair by separating them with an '@'
+   * character.
+   */
+  static final Map<String, int> _idTable = new HashMap<String, int>();
+
+  /**
    * The URI from which this source was originally derived.
    */
   final Uri uri;
+
+  /**
+   * The unique ID associated with this [FileBasedSource].
+   */
+  final int id;
 
   /**
    * The file represented by this source.
@@ -125,7 +141,11 @@ class FileBasedSource extends Source {
    * @param file the file represented by this source
    * @param uri the URI from which this source was originally derived
    */
-  FileBasedSource.con2(this.uri, this.file);
+  FileBasedSource.con2(Uri uri, JavaFile file)
+      : uri = uri, file = file,
+        id = _idTable.putIfAbsent(
+          '$uri@${file.getPath()}',
+          () => _idTable.length);
 
   @override
   TimestampedData<String> get contents {
@@ -168,7 +188,7 @@ class FileBasedSource extends Source {
   }
 
   @override
-  int get hashCode => file.hashCode;
+  int get hashCode => id;
 
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
@@ -194,7 +214,7 @@ class FileBasedSource extends Source {
 
   @override
   bool operator ==(Object object) =>
-      object is FileBasedSource && uri == object.uri;
+      object is FileBasedSource && id == object.id;
 
   @override
   bool exists() => file.isFile();
