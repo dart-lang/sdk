@@ -1084,7 +1084,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   const Class& stacktrace_cls = Class::Handle(isolate,
                                               Class::New<Stacktrace>());
-  RegisterClass(stacktrace_cls, Symbols::StackTrace(), core_lib);
+  RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
   pending_classes.Add(stacktrace_cls);
   // Super type set below, after Object is allocated.
 
@@ -1421,7 +1421,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, false, cls, 0);            \
+  field = Field::New(field_name, true, false, true, true, cls, 0);             \
   value = Smi::New(k##clazz##Cid);                                             \
   field.set_value(value);                                                      \
   field.set_type(Type::Handle(Type::IntType()));                               \
@@ -3058,6 +3058,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_num_native_fields(field_count);
     cls.set_is_finalized();
     cls.set_is_type_finalized();
+    cls.set_is_synthesized_class();
     library.AddClass(cls);
     return cls.raw();
   } else {
@@ -6815,6 +6816,46 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("tokenPos", token_pos());
     jsobj.AddProperty("endTokenPos", end_token_pos());
   }
+}
+
+
+RawGrowableObjectArray* Function::CollectICsWithSourcePositions() const {
+  ZoneGrowableArray<const ICData*>* ic_data_array =
+      new ZoneGrowableArray<const ICData*>();
+  RestoreICDataMap(ic_data_array);
+  const Code& code = Code::Handle(unoptimized_code());
+  const PcDescriptors& descriptors = PcDescriptors::Handle(
+      code.pc_descriptors());
+
+  const intptr_t begin_pos = token_pos();
+  const intptr_t end_pos = end_token_pos();
+
+  const Script& script = Script::Handle(this->script());
+  const GrowableObjectArray& result =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+
+  PcDescriptors::Iterator iter(descriptors,
+      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
+  while (iter.MoveNext()) {
+    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
+    if (!ic_data->IsNull()) {
+      const intptr_t token_pos = iter.TokenPos();
+      // Filter out descriptors that do not map to tokens in the source code.
+      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+        continue;
+      }
+
+      intptr_t line = -1;
+      intptr_t column = -1;
+      script.GetTokenLocation(token_pos, &line, &column);
+
+      result.Add(*ic_data);
+      result.Add(Smi::Handle(Smi::New(line)));
+      result.Add(Smi::Handle(Smi::New(column)));
+    }
+  }
+
+  return result.raw();
 }
 
 
@@ -11833,6 +11874,31 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+void ICData::PrintToJSONArray(JSONArray* jsarray,
+                              intptr_t line,
+                              intptr_t column) const {
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle();
+
+  JSONObject jsobj(jsarray);
+  jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
+  jsobj.AddProperty("line", line);
+  jsobj.AddProperty("column", column);
+  // TODO(rmacnak): Figure out how to stringify DeoptReasons().
+  // jsobj.AddProperty("deoptReasons", ...);
+
+  JSONArray cache_entries(&jsobj, "cacheEntries");
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    intptr_t cid = GetReceiverClassIdAt(i);
+    cls ^= isolate->class_table()->At(cid);
+    intptr_t count = GetCountAt(i);
+    JSONObject cache_entry(&cache_entries);
+    cache_entry.AddProperty("receiverClass", cls);
+    cache_entry.AddProperty("count", count);
+  }
+}
+
+
 static Token::Kind RecognizeArithmeticOp(const String& name) {
   ASSERT(name.IsSymbol());
   if (name.raw() == Symbols::Plus().raw()) {
@@ -13260,7 +13326,7 @@ void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawUnhandledException* UnhandledException::New(const Instance& exception,
-                                               const Stacktrace& stacktrace,
+                                               const Instance& stacktrace,
                                                Heap::Space space) {
   ASSERT(Object::unhandled_exception_class() != Class::null());
   UnhandledException& result = UnhandledException::Handle();
@@ -13298,7 +13364,7 @@ void UnhandledException::set_exception(const Instance& exception) const {
 }
 
 
-void UnhandledException::set_stacktrace(const Stacktrace& stacktrace) const {
+void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
   StorePointer(&raw_ptr()->stacktrace_, stacktrace.raw());
 }
 
@@ -19113,9 +19179,18 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
     uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
     tags = array.CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
+  // TODO(22501): For the heap to remain walkable by the sweeper, it must
+  // observe the creation of the filler object no later than the new length
+  // of the array. This assumption holds on ia32/x64 or if the CAS above is a
+  // full memory barrier.
+  //
+  // Also, between the CAS of the header above and the SetLength below,
+  // the array is temporarily in an inconsistent state. The header is considered
+  // the overriding source of object size by RawObject::Size, but the ASSERTs
+  // in RawObject::SizeFromClass must handle this special case.
   array.SetLength(used_len);
 
-  // Null the GrowableObjectArray, we are removing it's backing array.
+  // Null the GrowableObjectArray, we are removing its backing array.
   growable_array.SetLength(0);
   growable_array.SetData(Object::empty_array());
 
@@ -20045,16 +20120,6 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
-void Stacktrace::set_catch_code_array(const Array& code_array) const {
-  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
-}
-
-
-void Stacktrace::set_catch_pc_offset_array(const Array& pc_offset_array) const {
-  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
-}
-
-
 void Stacktrace::set_expand_inlined(bool value) const {
   StoreNonPointer(&raw_ptr()->expand_inlined_, value);
 }
@@ -20078,68 +20143,13 @@ RawStacktrace* Stacktrace::New(const Array& code_array,
   }
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
-  result.SetCatchStacktrace(Object::empty_array(),
-                            Object::empty_array());
   result.set_expand_inlined(true);  // default.
   return result.raw();
 }
 
 
-void Stacktrace::Append(const Array& code_list,
-                        const Array& pc_offset_list,
-                        const intptr_t start_index) const {
-  ASSERT(start_index <= code_list.Length());
-  ASSERT(pc_offset_list.Length() == code_list.Length());
-  intptr_t old_length = Length();
-  intptr_t new_length = old_length + pc_offset_list.Length() - start_index;
-  if (new_length == old_length) {
-    // Nothing to append. Avoid work and an assert that growing arrays always
-    // increases their size.
-    return;
-  }
-
-  // Grow the arrays for code, pc_offset pairs to accommodate the new stack
-  // frames.
-  Isolate* isolate = Isolate::Current();
-  Array& code_array = Array::Handle(isolate, raw_ptr()->code_array_);
-  Array& pc_offset_array = Array::Handle(isolate, raw_ptr()->pc_offset_array_);
-  code_array = Array::Grow(code_array, new_length);
-  pc_offset_array = Array::Grow(pc_offset_array, new_length);
-  set_code_array(code_array);
-  set_pc_offset_array(pc_offset_array);
-  // Now append the new function and code list to the existing arrays.
-  intptr_t j = start_index;
-  PassiveObject& obj = PassiveObject::Handle(isolate);
-  for (intptr_t i = old_length; i < new_length; i++, j++) {
-    obj = code_list.At(j);
-    code_array.SetAt(i, obj);
-    obj = pc_offset_list.At(j);
-    pc_offset_array.SetAt(i, obj);
-  }
-}
-
-
-void Stacktrace::SetCatchStacktrace(const Array& code_array,
-                                    const Array& pc_offset_array) const {
-  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
-  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
-}
-
-
 RawString* Stacktrace::FullStacktrace() const {
-  const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
   intptr_t idx = 0;
-  if (!code_array.IsNull() && (code_array.Length() > 0)) {
-    const Array& pc_offset_array =
-        Array::Handle(raw_ptr()->catch_pc_offset_array_);
-    const Stacktrace& catch_trace = Stacktrace::Handle(
-        Stacktrace::New(code_array, pc_offset_array));
-    const String& throw_string =
-        String::Handle(String::New(ToCStringInternal(&idx)));
-    const String& catch_string =
-        String::Handle(String::New(catch_trace.ToCStringInternal(&idx)));
-    return String::Concat(throw_string, catch_string);
-  }
   return String::New(ToCStringInternal(&idx));
 }
 

@@ -74,9 +74,7 @@ Future runTests(Process process) {
   return Future.wait([output, errorOut])
         .then((result) {
       String stdoutOutput = result[0];
-      print('out:\n$stdoutOutput');
       String stderrOutput = result[1];
-      print('err:\n$stderrOutput');
 
       Expect.equals(4, ">>> EOF STDERR".allMatches(stderrOutput).length);
       Expect.equals(4, ">>>".allMatches(stderrOutput).length);

@@ -149,15 +149,15 @@ class _PrefixedIdentifierSuggestionBuilder extends
     if (node is PrefixedIdentifier) {
       SimpleIdentifier prefix = node.prefix;
       if (prefix != null) {
-        if (prefix.propagatedType != null) {
+        Element element = prefix.bestElement;
+        DartType type = prefix.bestType;
+        if (element is! ClassElement && type != null && !type.isDynamic) {
           InterfaceTypeSuggestionBuilder.suggestionsFor(
               request,
-              prefix.propagatedType);
-        } else {
-          Element element = prefix.bestElement;
-          if (element != null) {
-            return element.accept(this);
-          }
+              type);
+          return new Future.value(true);
+        } else if (element != null) {
+          return element.accept(this);
         }
       }
     }

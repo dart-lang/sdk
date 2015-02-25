@@ -292,7 +292,8 @@ abstract class TestSuite {
 
     // Handle skipped tests
     if (expectations.contains(Expectation.SKIP) ||
-        expectations.contains(Expectation.SKIP_BY_DESIGN)) {
+        expectations.contains(Expectation.SKIP_BY_DESIGN) ||
+        expectations.contains(Expectation.SKIP_SLOW)) {
       return;
     }
 

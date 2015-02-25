@@ -79,6 +79,8 @@ class ObjectPointerVisitor;
   V(StackTraceParameter, ":stack_trace")                                       \
   V(ExceptionVar, ":exception_var")                                            \
   V(StackTraceVar, ":stack_trace_var")                                         \
+  V(SavedExceptionVar, ":saved_exception_var")                                 \
+  V(SavedStackTraceVar, ":saved_stack_trace_var")                              \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
   V(Library, "library")                                                        \
@@ -175,7 +177,7 @@ class ObjectPointerVisitor;
   V(_CapabilityImpl, "_CapabilityImpl")                                        \
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
   V(_SendPortImpl, "_SendPortImpl")                                            \
-  V(StackTrace, "StackTrace")                                                  \
+  V(_StackTrace, "_StackTrace")                                                \
   V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
   V(RegExp, "RegExp")                                                          \
   V(Irregexp, ":irregexp")                                                     \
@@ -285,7 +287,6 @@ class ObjectPointerVisitor;
   V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
   V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
-  V(_setupFullStackTrace, "_setupFullStackTrace")                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
   V(Malbounded, "malbounded")                                                  \

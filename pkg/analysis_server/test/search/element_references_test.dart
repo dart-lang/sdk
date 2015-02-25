@@ -7,6 +7,7 @@ library test.search.element_references;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -16,6 +17,7 @@ import 'abstract_search_domain.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(ElementReferencesTest);
+  runReflectiveTests(_NoSearchEngine);
 }
 
 
@@ -58,6 +60,7 @@ main() {
 ''');
     await findElementReferences('named(p)', false);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
     assertHasResult(SearchResultKind.REFERENCE, '.named(2)', 6);
   }
@@ -81,9 +84,8 @@ f(x) {
 ''');
     await findElementReferences('named(p); // A', true);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
-    assertHasResult(SearchResultKind.DECLARATION, '.named(p)', 6);
+    expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
-    expect(results, hasLength(2));
   }
 
   test_constructor_unnamed() async {
@@ -98,6 +100,7 @@ main() {
 ''');
     await findElementReferences('A(p)', false);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
     assertHasResult(SearchResultKind.REFERENCE, '(2)', 0);
   }
@@ -126,9 +129,8 @@ main() {
 ''');
     await findElementReferences('A(p)', true);
     expect(searchElement.kind, ElementKind.CONSTRUCTOR);
-    assertHasResult(SearchResultKind.DECLARATION, '(p); // A', 0);
+    expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
-    expect(results, hasLength(2));
   }
 
   test_field_explicit() async {
@@ -136,6 +138,7 @@ main() {
 class A {
   var fff; // declaration
   A(this.fff); // in constructor
+  A.named() : fff = 1;
   m() {
     fff = 2;
     fff += 3;
@@ -152,9 +155,10 @@ main(A a) {
 ''');
     await findElementReferences('fff; // declaration', false);
     expect(searchElement.kind, ElementKind.FIELD);
-    expect(results, hasLength(10));
+    expect(results, hasLength(11));
     assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
-    assertHasResult(SearchResultKind.REFERENCE, 'fff); // in constructor');
+    assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
+    assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
     // m()
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
@@ -216,7 +220,7 @@ class A {
     expect(searchElement.kind, ElementKind.FIELD);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
-    assertHasResult(SearchResultKind.REFERENCE, 'fff); // in constructor');
+    assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }
@@ -702,5 +706,28 @@ class A<T> {
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'T f;');
     assertHasResult(SearchResultKind.REFERENCE, 'T m()');
+  }
+}
+
+
+@reflectiveTest
+class _NoSearchEngine extends AbstractSearchDomainTest {
+  @override
+  Index createIndex() {
+    return null;
+  }
+
+  test_requestError_noSearchEngine() async {
+    addTestFile('''
+main() {
+  var vvv = 1;
+  print(vvv);
+}
+''');
+    Request request =
+        new SearchFindElementReferencesParams(testFile, 0, false).toRequest('0');
+    Response response = await waitResponse(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }

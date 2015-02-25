@@ -95,9 +95,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   /// Generates a name for the given variable. First trying with the name of
   /// the [Variable.element] if it is non-null.
   String getVariableName(tree_ir.Variable variable) {
-    // TODO(sigurdm): Handle case where the variable belongs to an enclosing
-    // function.
-    if (variable.host != currentFunction) giveup(variable);
+    // Functions are not nested in the JS backend.
+    assert(variable.host == currentFunction);
 
     // Get the name if we already have one.
     String name = variableNames[variable];
@@ -174,12 +173,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   @override
   js.Expression visitConstant(tree_ir.Constant node) {
     return buildConstant(node.expression.value);
-  }
-
-  @override
-  js.Expression visitFunctionExpression(tree_ir.FunctionExpression node) {
-    return giveup(node);
-    // TODO: implement visitFunctionExpression
   }
 
   js.Expression compileConstant(ParameterElement parameter) {
@@ -342,7 +335,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitThis(tree_ir.This node) {
-    // TODO(sigurdm): Inside a js closure this will not work.
     return new js.This();
   }
 
@@ -376,12 +368,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     accumulator.add(new js.ExpressionStatement(
         visitExpression(node.expression)));
     visitStatement(node.next);
-  }
-
-  @override
-  void visitFunctionDeclaration(tree_ir.FunctionDeclaration node) {
-    giveup(node);
-    // TODO: implement visitFunctionDeclaration
   }
 
   @override
@@ -489,18 +475,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   }
 
   @override
-  js.Expression visitFieldInitializer(tree_ir.FieldInitializer node) {
-    return giveup(node);
-    // TODO: implement FieldInitializer
-  }
-
-  @override
-  js.Expression visitSuperInitializer(tree_ir.SuperInitializer node) {
-    return giveup(node);
-    // TODO: implement SuperInitializer
-  }
-
-  @override
   js.Expression visitCreateBox(tree_ir.CreateBox node) {
     return new js.ObjectInitializer([]);
   }
@@ -528,5 +502,31 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     js.Assignment asn = new js.Assignment(field, visitExpression(node.value));
     accumulator.add(new js.ExpressionStatement(asn));
     visitStatement(node.next);
+  }
+
+  // Dart-specific IR nodes
+
+  @override
+  visitFunctionExpression(tree_ir.FunctionExpression node) {
+    return errorUnsupportedNode(node);
+  }
+
+  @override
+  visitFunctionDeclaration(tree_ir.FunctionDeclaration node) {
+    return errorUnsupportedNode(node);
+  }
+
+  @override
+  visitFieldInitializer(tree_ir.FieldInitializer node) {
+    return errorUnsupportedNode(node);
+  }
+
+  @override
+  visitSuperInitializer(tree_ir.SuperInitializer node) {
+    return errorUnsupportedNode(node);
+  }
+
+  dynamic errorUnsupportedNode(tree_ir.DartSpecificNode node) {
+    throw "Unsupported node in JS backend: $node";
   }
 }

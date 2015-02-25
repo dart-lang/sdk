@@ -55,7 +55,6 @@ class Helper2 {
     } on ArgumentError catch (e, s) {
       i = 200;
       Expect.isNotNull(e.stackTrace, "Errors need a stackTrace on throw");
-      Expect.isFalse(identical(e.stackTrace, s));
       Expect.equals(e.stackTrace.toString(), s.toString());
     }
     return i;

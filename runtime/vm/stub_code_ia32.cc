@@ -713,11 +713,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(Address(ESI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
-  // Save the top exit frame info. Use EDX as a temporary register.
+  // Save top resource and top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ movl(EDX, Address(ESI, Isolate::top_resource_offset()));
+  __ pushl(EDX);
+  __ movl(Address(ESI, Isolate::top_resource_offset()), Immediate(0));
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -5);
+  ASSERT(kExitLinkSlotFromEntryFp == -6);
   __ movl(EDX, Address(ESI, Isolate::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -761,9 +764,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
-  // Restore the saved top exit frame info back into the Isolate structure.
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure.
   __ LoadIsolate(ESI);
   __ popl(Address(ESI, Isolate::top_exit_frame_info_offset()));
+  __ popl(Address(ESI, Isolate::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
   __ popl(Address(ESI, Isolate::vm_tag_offset()));

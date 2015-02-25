@@ -1807,6 +1807,8 @@ class Function : public Object {
   }
   bool HasCode() const;
 
+  RawGrowableObjectArray* CollectICsWithSourcePositions() const;
+
   static intptr_t instructions_offset() {
     return OFFSET_OF(RawFunction, instructions_);
   }
@@ -3872,6 +3874,10 @@ class ICData : public Object {
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
 
+  void PrintToJSONArray(JSONArray* jsarray,
+                        intptr_t line,
+                        intptr_t column) const;
+
  private:
   RawArray* ic_data() const {
     return raw_ptr()->ic_data_;
@@ -4584,7 +4590,7 @@ class UnhandledException : public Error {
     return OFFSET_OF(RawUnhandledException, exception_);
   }
 
-  RawStacktrace* stacktrace() const { return raw_ptr()->stacktrace_; }
+  RawInstance* stacktrace() const { return raw_ptr()->stacktrace_; }
   static intptr_t stacktrace_offset() {
     return OFFSET_OF(RawUnhandledException, stacktrace_);
   }
@@ -4594,7 +4600,7 @@ class UnhandledException : public Error {
   }
 
   static RawUnhandledException* New(const Instance& exception,
-                                    const Stacktrace& stacktrace,
+                                    const Instance& stacktrace,
                                     Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
@@ -4603,7 +4609,7 @@ class UnhandledException : public Error {
   static RawUnhandledException* New(Heap::Space space = Heap::kNew);
 
   void set_exception(const Instance& exception) const;
-  void set_stacktrace(const Stacktrace& stacktrace) const;
+  void set_stacktrace(const Instance& stacktrace) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
@@ -7371,7 +7377,7 @@ class SendPort : public Instance {
 // Internal stacktrace object used in exceptions for printing stack traces.
 class Stacktrace : public Instance {
  public:
-  static const int kPreallocatedStackdepth = 10;
+  static const int kPreallocatedStackdepth = 30;
 
   intptr_t Length() const;
 
@@ -7382,13 +7388,7 @@ class Stacktrace : public Instance {
 
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
-  void SetCatchStacktrace(const Array& code_array,
-                          const Array& pc_offset_array) const;
   void set_expand_inlined(bool value) const;
-
-  void Append(const Array& code_list,
-              const Array& pc_offset_list,
-              const intptr_t start_index) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
@@ -7406,8 +7406,6 @@ class Stacktrace : public Instance {
  private:
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
-  void set_catch_code_array(const Array& code_array) const;
-  void set_catch_pc_offset_array(const Array& pc_offset_array) const;
   bool expand_inlined() const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);

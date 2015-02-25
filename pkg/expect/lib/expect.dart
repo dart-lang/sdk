@@ -399,8 +399,8 @@ class ExpectException implements Exception {
 
 /// Annotation class for testing of dart2js. Use this as metadata on method
 /// declarations to disable inlining of the annotated method.
-class NoInlining {
-  const NoInlining();
+class NoInline {
+  const NoInline();
 }
 
 /// Annotation class for testing of dart2js. Use this as metadata on method

@@ -129,12 +129,9 @@ class FileBasedSource extends Source {
 
   @override
   TimestampedData<String> get contents {
-    TimeCounter_TimeCounterHandle handle = PerformanceStatistics.io.start();
-    try {
+    return PerformanceStatistics.io.makeCurrentWhile(() {
       return contentsFromFile;
-    } finally {
-      _reportIfSlowIO(handle.stop());
-    }
+    });
   }
 
   /**
@@ -197,7 +194,7 @@ class FileBasedSource extends Source {
 
   @override
   bool operator ==(Object object) =>
-      object != null && object is FileBasedSource && file == object.file;
+      object is FileBasedSource && uri == object.uri;
 
   @override
   bool exists() => file.isFile();
@@ -234,23 +231,6 @@ class FileBasedSource extends Source {
       return "<unknown source>";
     }
     return file.getAbsolutePath();
-  }
-
-  /**
-   * Record the time the IO took if it was slow
-   */
-  void _reportIfSlowIO(int nanos) {
-    // TODO(brianwilkerson) Decide whether we still want to capture this data.
-//    //If slower than 10ms
-//    if (nanos > 10 * TimeCounter.NANOS_PER_MILLI) {
-//      InstrumentationBuilder builder = Instrumentation.builder2("SlowIO");
-//      try {
-//        builder.data3("fileName", fullName);
-//        builder.metric2("IO-Time-Nanos", nanos);
-//      } finally {
-//        builder.log();
-//      }
-//    }
   }
 }
 

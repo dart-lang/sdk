@@ -96,9 +96,20 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   // available enclosing binding.
   List<Assign> environment;
 
+  /// Binding environment for variables that are assigned to effectively
+  /// constant expressions (see [isEffectivelyConstant]).
+  final Map<Variable, Expression> constantEnvironment;
+
   /// Substitution map for labels. Any break to a label L should be substituted
   /// for a break to L' if L maps to L'.
   Map<Label, Jump> labelRedirects = <Label, Jump>{};
+
+  /// Rewriter for methods.
+  StatementRewriter() : constantEnvironment = <Variable, Expression>{};
+
+  /// Rewriter for nested functions.
+  StatementRewriter.nested(StatementRewriter parent)
+      : constantEnvironment = parent.constantEnvironment;
 
   /// Returns the redirect target of [label] or [label] itself if it should not
   /// be redirected.
@@ -107,9 +118,10 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return newJump != null ? newJump : jump;
   }
 
-
   rewriteExecutableDefinition(ExecutableDefinition definition) {
-    definition.body = rewriteInEmptyEnvironment(definition.body);
+    inEmptyEnvironment(() {
+      definition.body = visitStatement(definition.body);
+    });
   }
 
   void rewriteConstructorDefinition(ConstructorDefinition definition) {
@@ -118,34 +130,38 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     rewriteExecutableDefinition(definition);
   }
 
-  Statement rewriteInEmptyEnvironment(Statement body) {
+  void inEmptyEnvironment(void action()) {
     List<Assign> oldEnvironment = environment;
     environment = <Assign>[];
-
-    Statement result = visitStatement(body);
-    // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
-    // this means rebuilding the binding with a recursively unnamed definition,
-    // or else introducing a variable definition and an assignment.
+    action();
     assert(environment.isEmpty);
     environment = oldEnvironment;
-    return result;
   }
 
   Expression visitFieldInitializer(FieldInitializer node) {
-    node.body = rewriteInEmptyEnvironment(node.body);
+    inEmptyEnvironment(() {
+      node.body = visitStatement(node.body);
+    });
     return node;
   }
 
   Expression visitSuperInitializer(SuperInitializer node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = rewriteInEmptyEnvironment(node.arguments[i]);
-    }
+    inEmptyEnvironment(() {
+      for (int i = node.arguments.length - 1; i >= 0; --i) {
+        node.arguments[i] = visitStatement(node.arguments[i]);
+        assert(environment.isEmpty);
+      }
+    });
     return node;
   }
 
   Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);
 
   Expression visitVariable(Variable node) {
+    // Propagate constant to use site.
+    Expression constant = constantEnvironment[node];
+    if (constant != null) return constant;
+
     // Propagate a variable's definition to its use site if:
     // 1.  It has a single use, to avoid code growth and potential duplication
     //     of side effects, AND
@@ -160,20 +176,51 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
+  /// Returns true if [exp] has no side effects and has a constant value within
+  /// any given activation of the enclosing method.
+  bool isEffectivelyConstant(Expression exp) {
+    // TODO(asgerf): Can be made more aggressive e.g. by checking conditional
+    // expressions recursively. Determine if that is a valuable optimization
+    // and/or if it is better handled at the CPS level.
+    return exp is Constant ||
+           exp is This ||
+           exp is ReifyTypeVar ||
+           exp is Variable && constantEnvironment.containsKey(exp);
+  }
 
   Statement visitAssign(Assign node) {
-    environment.add(node);
-    Statement next = visitStatement(node.next);
-
-    if (!environment.isEmpty && environment.last == node) {
-      // The definition could not be propagated.  Residualize the let binding.
-      node.next = next;
-      environment.removeLast();
-      node.definition = visitExpression(node.definition);
-      return node;
+    if (isEffectivelyConstant(node.definition) &&
+        node.variable.writeCount == 1) {
+      // Handle constant assignments specially.
+      // They are always safe to propagate (though we should avoid duplication).
+      // Moreover, they should not prevent other expressions from propagating.
+      if (node.variable.readCount <= 1) {
+        // A single-use constant should always be propagted to its use site.
+        constantEnvironment[node.variable] = visitExpression(node.definition);
+        return visitStatement(node.next);
+      } else {
+        // With more than one use, we cannot propagate the constant.
+        // Visit the following statement without polluting [environment] so
+        // that any preceding non-constant assignments might still propagate.
+        node.next = visitStatement(node.next);
+        node.definition = visitExpression(node.definition);
+        return node;
+      }
+    } else {
+      // Try to propagate assignment, and block previous assignment until this
+      // has propagated.
+      environment.add(node);
+      Statement next = visitStatement(node.next);
+      if (!environment.isEmpty && environment.last == node) {
+        // The definition could not be propagated. Residualize the let binding.
+        node.next = next;
+        environment.removeLast();
+        node.definition = visitExpression(node.definition);
+        return node;
+      }
+      assert(!environment.contains(node));
+      return next;
     }
-    assert(!environment.contains(node));
-    return next;
   }
 
   Expression visitInvokeStatic(InvokeStatic node) {
@@ -217,13 +264,10 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   Expression visitConditional(Conditional node) {
     node.condition = visitExpression(node.condition);
 
-    List<Assign> savedEnvironment = environment;
-    environment = <Assign>[];
-    node.thenExpression = visitExpression(node.thenExpression);
-    assert(environment.isEmpty);
-    node.elseExpression = visitExpression(node.elseExpression);
-    assert(environment.isEmpty);
-    environment = savedEnvironment;
+    inEmptyEnvironment(() {
+      node.thenExpression = visitExpression(node.thenExpression);
+      node.elseExpression = visitExpression(node.elseExpression);
+    });
 
     return node;
   }
@@ -231,9 +275,10 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   Expression visitLogicalOperator(LogicalOperator node) {
     node.left = visitExpression(node.left);
 
-    environment.add(null); // impure expressions may not propagate across branch
-    node.right = visitExpression(node.right);
-    environment.removeLast();
+    // Impure expressions may not propagate across the branch.
+    inEmptyEnvironment(() {
+      node.right = visitExpression(node.right);
+    });
 
     return node;
   }
@@ -244,12 +289,12 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   }
 
   Expression visitFunctionExpression(FunctionExpression node) {
-    new StatementRewriter().rewrite(node.definition);
+    new StatementRewriter.nested(this).rewrite(node.definition);
     return node;
   }
 
   Statement visitFunctionDeclaration(FunctionDeclaration node) {
-    new StatementRewriter().rewrite(node.definition);
+    new StatementRewriter.nested(this).rewrite(node.definition);
     node.next = visitStatement(node.next);
     return node;
   }
@@ -301,10 +346,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
 
     // Do not propagate assignments into the successor statements, since they
     // may be overwritten by assignments in the body.
-    List<Assign> savedEnvironment = environment;
-    environment = <Assign>[];
-    node.next = visitStatement(node.next);
-    environment = savedEnvironment;
+    inEmptyEnvironment(() {
+      node.next = visitStatement(node.next);
+    });
 
     return node;
   }
@@ -314,16 +358,13 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
 
     // Do not propagate assignments into branches.  Doing so will lead to code
     // duplication.
-    // TODO(kmillikin): Rethink this.  Propagating some assignments (e.g.,
-    // constants or variables) is benign.  If they can occur here, they should
+    // TODO(kmillikin): Rethink this. Propagating some assignments
+    // (e.g. variables) is benign.  If they can occur here, they should
     // be handled well.
-    List<Assign> savedEnvironment = environment;
-    environment = <Assign>[];
-    node.thenStatement = visitStatement(node.thenStatement);
-    assert(environment.isEmpty);
-    node.elseStatement = visitStatement(node.elseStatement);
-    assert(environment.isEmpty);
-    environment = savedEnvironment;
+    inEmptyEnvironment(() {
+      node.thenStatement = visitStatement(node.thenStatement);
+      node.elseStatement = visitStatement(node.elseStatement);
+    });
 
     tryCollapseIf(node);
 
@@ -345,11 +386,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   Statement visitWhileTrue(WhileTrue node) {
     // Do not propagate assignments into loops.  Doing so is not safe for
     // variables modified in the loop (the initial value will be propagated).
-    List<Assign> savedEnvironment = environment;
-    environment = <Assign>[];
-    node.body = visitStatement(node.body);
-    assert(environment.isEmpty);
-    environment = savedEnvironment;
+    inEmptyEnvironment(() {
+      node.body = visitStatement(node.body);
+    });
     return node;
   }
 
@@ -396,15 +435,13 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     node.expression = visitExpression(node.expression);
     // Do not allow propagation of assignments past an expression evaluated
     // for its side effects because it risks reordering side effects.
-    // TODO(kmillikin): Rethink this.  Some propagation is benign, e.g.,
-    // constants, variables, or other pure values that are not destroyed by
+    // TODO(kmillikin): Rethink this.  Some propagation is benign,
+    // e.g. variables, or other pure values that are not destroyed by
     // the expression statement.  If they can occur here they should be
     // handled well.
-    List<Assign> savedEnvironment = environment;
-    environment = <Assign>[];
-    node.next = visitStatement(node.next);
-    assert(environment.isEmpty);
-    environment = savedEnvironment;
+    inEmptyEnvironment(() {
+      node.next = visitStatement(node.next);
+    });
     return node;
   }
 
@@ -577,11 +614,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         --innerElse.target.useCount;
 
         // Try to inline the remaining break.  Do not propagate assignments.
-        List<Assign> savedEnvironment = environment;
-        environment = <Assign>[];
-        outerIf.elseStatement = visitStatement(outerElse);
-        assert(environment.isEmpty);
-        environment = savedEnvironment;
+        inEmptyEnvironment(() {
+          outerIf.elseStatement = visitStatement(outerElse);
+        });
 
         return outerIf.elseStatement is If && innerThen is Break;
       }

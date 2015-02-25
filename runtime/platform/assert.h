@@ -237,6 +237,9 @@ T DynamicAssertionHelper::NotNull(const T p) {
 #define FATAL2(format, p1, p2)                                                 \
   dart::Assert(__FILE__, __LINE__).Fail(format, (p1), (p2))
 
+#define FATAL3(format, p1, p2, p3)                                             \
+  dart::Assert(__FILE__, __LINE__).Fail(format, (p1), (p2), (p3))
+
 #define UNIMPLEMENTED()                                                        \
   FATAL("unimplemented code")
 

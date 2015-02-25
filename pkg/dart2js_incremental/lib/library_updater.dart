@@ -290,10 +290,11 @@ class LibraryUpdater extends JsFeatures {
     }
 
     return _readUri(before.resourceUri).then((bytes) {
+      Uri uri = before.file.uri;
       String filename = before.file.filename;
       SourceFile sourceFile = bytes is String
-          ? new StringSourceFile(filename, bytes)
-          : new CachingUtf8BytesSourceFile(filename, bytes);
+          ? new StringSourceFile(uri, filename, bytes)
+          : new CachingUtf8BytesSourceFile(uri, filename, bytes);
       return before.copyWithFile(sourceFile);
     });
   }

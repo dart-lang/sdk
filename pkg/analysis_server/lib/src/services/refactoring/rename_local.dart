@@ -17,12 +17,14 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A [Refactoring] for renaming [LocalElement]s.
  */
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
+  Set<LocalElement> elements = new Set<LocalElement>();
+
   RenameLocalRefactoringImpl(SearchEngine searchEngine, LocalElement element)
       : super(searchEngine, element);
 
@@ -41,15 +43,24 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
+  Future<RefactoringStatus> checkFinalConditions() async {
     RefactoringStatus result = new RefactoringStatus();
+    // prepare all elements (usually one)
+    await _prepareElements();
     // checks the resolved CompilationUnit(s)
-    Source unitSource = element.source;
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    for (Source librarySource in librarySources) {
-      _analyzePossibleConflicts_inLibrary(result, unitSource, librarySource);
+    for (LocalElement element in elements) {
+      Source unitSource = element.source;
+      List<Source> librarySources = context.getLibrariesContaining(unitSource);
+      for (Source librarySource in librarySources) {
+        _analyzePossibleConflicts_inLibrary(
+            result,
+            unitSource,
+            librarySource,
+            element);
+      }
     }
-    return new Future.value(result);
+    // done
+    return result;
   }
 
   @override
@@ -66,19 +77,20 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() {
-    addDeclarationEdit(element);
-    return searchEngine.searchReferences(element).then(addReferenceEdits);
+  Future fillChange() async {
+    for (Element element in elements) {
+      addDeclarationEdit(element);
+      await searchEngine.searchReferences(element).then(addReferenceEdits);
+    }
   }
 
   void _analyzePossibleConflicts_inLibrary(RefactoringStatus result,
-      Source unitSource, Source librarySource) {
+      Source unitSource, Source librarySource, LocalElement element) {
     // prepare resolved unit
     CompilationUnit unit = null;
     try {
       unit = context.resolveCompilationUnit2(unitSource, librarySource);
-    } catch (e) {
-    }
+    } catch (e) {}
     if (unit == null) {
       return;
     }
@@ -86,8 +98,34 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     SourceRange elementRange = element.visibleRange;
     unit.accept(new _ConflictValidatorVisitor(this, result, elementRange));
   }
-}
 
+  /**
+   * Fills [elements] with [Element]s to rename.
+   */
+  Future _prepareElements() async {
+    Element enclosing = element.enclosingElement;
+    if (enclosing is MethodElement &&
+        element is ParameterElement &&
+        (element as ParameterElement).parameterKind == ParameterKind.NAMED) {
+      // prepare hierarchy methods
+      Set<ClassMemberElement> methods =
+          await getHierarchyMembers(searchEngine, enclosing);
+      // add named parameter from each method
+      for (ClassMemberElement method in methods) {
+        if (method is MethodElement) {
+          for (ParameterElement parameter in method.parameters) {
+            if (parameter.parameterKind == ParameterKind.NAMED &&
+                parameter.name == element.name) {
+              elements.add(parameter);
+            }
+          }
+        }
+      }
+    } else {
+      elements = new Set.from([element]);
+    }
+  }
+}
 
 class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   final RenameLocalRefactoringImpl refactoring;

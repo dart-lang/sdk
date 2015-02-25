@@ -1,16 +1,17 @@
 name: observatory
 version: 1.6.0-dev.1
-dependencies:
-  args: any
-  polymer: any
-  unittest: any
 transformers:
 - polymer:
     entry_points:
     - web/index.html
-    - web/index_devtools.html
     inline_stylesheets:
       lib/src/elements/css/shared.css: false
 - $dart2js:
     suppressWarnings: false
     $exclude: web/main.dart
+    commandLineOptions: [--show-package-warnings]
+dependencies:
+  args: any
+  polymer: any
+  unittest: any
+  usage: any

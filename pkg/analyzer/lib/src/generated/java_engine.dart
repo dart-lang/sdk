@@ -115,10 +115,6 @@ class FileNameUtilities {
   }
 }
 
-class ObjectUtilities {
-  static int combineHashCodes(int first, int second) => first * 31 + second;
-}
-
 
 class StringUtilities {
   static const String EMPTY = '';

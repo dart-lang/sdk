@@ -150,6 +150,18 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitConstructorName(ConstructorName node) {
+    AstNode parent = node.parent;
+    if (parent is InstanceCreationExpression &&
+        parent.constructorName == node) {
+      _addConstructorName(parent, node);
+    } else if (parent is ConstructorDeclaration &&
+        parent.redirectedConstructor == node) {
+      _addConstructorName(node, node);
+    }
+  }
+
+  @override
   visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
@@ -173,37 +185,6 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
     computer._addRegionForToken(node.rightBracket, node.bestElement);
-  }
-
-  @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
-    Element element = node.staticElement;
-    ConstructorName constructorName = node.constructorName;
-    if (element != null && constructorName != null) {
-      // if a synthetic constructor, navigate to the class
-      if (element.isSynthetic) {
-        ClassElement classElement = element.enclosingElement;
-        element = classElement;
-      }
-      // add regions
-      TypeName typeName = constructorName.type;
-      TypeArgumentList typeArguments = typeName.typeArguments;
-      if (typeArguments == null) {
-        computer._addRegion_nodeStart_nodeEnd(node, constructorName, element);
-      } else {
-        computer._addRegion_nodeStart_nodeEnd(node, typeName.name, element);
-        // <TypeA, TypeB>
-        typeArguments.accept(this);
-        // optional ".name"
-        if (constructorName.period != null) {
-          computer._addRegion_tokenStart_nodeEnd(
-              constructorName.period,
-              constructorName,
-              element);
-        }
-      }
-    }
-    _safelyVisit(node.argumentList);
   }
 
   @override
@@ -260,6 +241,31 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     }
     // process arguments
     _safelyVisit(node.argumentList);
+  }
+
+  void _addConstructorName(AstNode parent, ConstructorName node) {
+    Element element = node.staticElement;
+    if (element == null) {
+      return;
+    }
+    // if a synthetic constructor, navigate to the class
+    if (element.isSynthetic) {
+      element = element.enclosingElement;
+    }
+    // add regions
+    TypeName typeName = node.type;
+    TypeArgumentList typeArguments = typeName.typeArguments;
+    if (typeArguments == null) {
+      computer._addRegion_nodeStart_nodeEnd(parent, node, element);
+    } else {
+      computer._addRegion_nodeStart_nodeEnd(parent, typeName.name, element);
+      // <TypeA, TypeB>
+      typeArguments.accept(this);
+      // optional ".name"
+      if (node.period != null) {
+        computer._addRegion_tokenStart_nodeEnd(node.period, node, element);
+      }
+    }
   }
 
   void _safelyVisit(AstNode node) {

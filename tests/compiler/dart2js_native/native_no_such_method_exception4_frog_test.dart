@@ -11,7 +11,7 @@ class GetName {
   baz(x, y, z) => "baz";
 }
 
-String getName(im) => reflect(new GetName()).delegate(im);;
+String getName(im) => reflect(new GetName()).delegate(im);
 
 @Native("A")
 class A {

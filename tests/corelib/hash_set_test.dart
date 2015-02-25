@@ -1,6 +1,11 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+<<<<<<< .working
+//
+// VMOptions=
+// VMOptions=--use_compact_hash=false
+>>>>>>> .merge-right.r43886
 
 // Tests of hash set behavior, with focus in iteration and concurrent
 // modification errors.
@@ -8,6 +13,7 @@
 library hash_map2_test;
 import "package:expect/expect.dart";
 import 'dart:collection';
+import 'dart:math' as math;
 
 testSet(Set newSet(), Set newSetFrom(Iterable from)) {
 
@@ -250,6 +256,21 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.identical(1, set.lookup(1.0));
     set.add(-0.0);
     Expect.identical(-0.0, set.lookup(0.0));
+  }
+
+  {  // Test special hash codes
+    Set set = newSet();
+    List keys = [];
+    // Powers of two
+    for (int i = 65; i >= 2; --i) {
+      keys.add(new Mutable(math.pow(2, i)));
+    }
+    for (var key in keys) {
+      Expect.isTrue(set.add(key));
+    }
+    for (var key in keys) {
+      Expect.isTrue(set.contains(key));
+    }
   }
 }
 

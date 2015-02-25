@@ -4,6 +4,7 @@
 
 library dart2js.new_js_emitter.model_emitter;
 
+import '../../constants/values.dart' show ConstantValue;
 import '../../dart2jslib.dart' show Compiler;
 import '../../dart_types.dart' show DartType;
 import '../../elements/elements.dart' show ClassElement;
@@ -69,8 +70,7 @@ class ModelEmitter {
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
     fragments.skip(1).forEach((DeferredFragment deferredUnit) {
-      js.Expression ast =
-          emitDeferredFragment(deferredUnit, mainFragment.holders);
+      js.Expression ast = emitDeferredFragment(deferredUnit, program.holders);
       String code = js.prettyPrint(ast, compiler).getText();
       totalSize += code.length;
       compiler.outputProvider(deferredUnit.outputFileName, deferredExtension)
@@ -111,18 +111,25 @@ class ModelEmitter {
 
     Map<String, dynamic> holes =
       {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
-       'holders': emitHolders(fragment.holders),
-         'tearOff': buildTearOffCode(backend),
-         'parseFunctionDescriptor':
-           js.js.statement(parseFunctionDescriptorBoilerplate),
+       'holders': emitHolders(program.holders),
+       'tearOff': buildTearOffCode(backend),
+       'parseFunctionDescriptor':
+           js.js.statement(parseFunctionDescriptorBoilerplate,
+               {'argumentCount': js.string(namer.requiredParameterField),
+                'defaultArgumentValues': js.string(namer.defaultValuesField),
+                'callName': js.string(namer.callNameField)}),
+
        'cyclicThrow':
-         backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
+           backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
        'outputContainsConstantList': program.outputContainsConstantList,
        'embeddedGlobals': emitEmbeddedGlobals(program),
        'constants': emitConstants(fragment.constants),
        'staticNonFinals':
-         emitStaticNonFinalFields(fragment.staticNonFinalFields),
+            emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
+       'callName': js.string(namer.callNameField),
+       'argumentCount': js.string(namer.requiredParameterField),
+       'defaultArgumentValues': js.string(namer.defaultValuesField),
        'eagerClasses': emitEagerClassInitializations(fragment.libraries),
        'invokeMain': fragment.invokeMain,
        'code': code};
@@ -553,19 +560,27 @@ class ModelEmitter {
   /// facilitate the generation of tearOffs at runtime. The format is an array
   /// with the following fields:
   ///
-  /// [InstanceMethod.aliasName] (optional).
-  /// [Method.code]
-  /// [DartMethod.callName]
-  /// isInterceptedMethod (optional, present if [DartMethod.needsTearOff]).
-  /// [DartMethod.tearOffName] (optional, present if [DartMethod.needsTearOff]).
-  /// functionType (optional, present if [DartMethod.needsTearOff]).
+  /// * [InstanceMethod.aliasName] (optional).
+  /// * [Method.code]
+  /// * [DartMethod.callName]
+  /// * isInterceptedMethod (optional, present if [DartMethod.needsTearOff]).
+  /// * [DartMethod.tearOffName] (optional, present if
+  ///   [DartMethod.needsTearOff]).
+  /// * functionType (optional, present if [DartMethod.needsTearOff]).
   ///
   /// followed by
   ///
-  /// [ParameterStubMethod.name]
-  /// [ParameterStubMethod.code]
+  /// * [ParameterStubMethod.name]
+  /// * [ParameterStubMethod.callName]
+  /// * [ParameterStubMethod.code]
   ///
   /// for each stub in [DartMethod.parameterStubs].
+  ///
+  /// If the closure could be used in `Function.apply` (i.e.
+  /// [DartMethod.canBeApplied] is true) then the following fields are appended:
+  ///
+  /// * [DartMethod.requiredParameterCount]
+  /// * [DartMethod.optionalParameterDefaultValues]
 
   static final String parseFunctionDescriptorBoilerplate = r"""
 function parseFunctionDescriptor(proto, name, descriptor) {
@@ -582,7 +597,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
 
     proto[name] = f;
     var funs = [f];
-    f.$callName = descriptor[++pos];
+    f[#callName] = descriptor[++pos];
 
     var isInterceptedOrParameterStubName = descriptor[pos + 1];
     var isIntercepted, tearOffName, reflectionInfo;
@@ -592,9 +607,12 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       reflectionInfo = descriptor[++pos];
     }
 
-    for (++pos; pos < descriptor.length; pos += 3) {
+    // We iterate in blocks of 3 but have to stop before we reach the (optional)
+    // two trailing items. To accomplish this, we only iterate until we reach
+    // length - 2.
+    for (++pos; pos < descriptor.length - 2; pos += 3) {
       var stub = descriptor[pos + 2];
-      stub.$callName = descriptor[pos + 1];
+      stub[#callName] = descriptor[pos + 1];
       proto[descriptor[pos]] = stub;
       funs.push(stub);
     }
@@ -603,19 +621,31 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       proto[tearOffName] =
           tearOff(funs, reflectionInfo, false, name, isIntercepted);
     }
-
+    if (pos < descriptor.length) {
+      f[#argumentCount] = descriptor[pos];
+      f[#defaultArgumentValues] = descriptor[pos + 1];
+    }
   } else {
     proto[name] = descriptor;
   }
 }
 """;
 
-  js.Expression _generateFunctionType(DartType memberType) {
-    if (memberType.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return backend.rti.getSignatureEncoding(memberType, thisAccess);
+  js.Expression _encodeOptionalParameterDefaultValues(DartMethod method) {
+    js.Expression result;
+    // TODO(herhut): Replace [js.LiteralNull] with [js.ArrayHole].
+    if (method.optionalParameterDefaultValues is List) {
+      List<ConstantValue> defs = method.optionalParameterDefaultValues;
+      Iterable<js.Expression> elements = defs.map(constantEmitter.reference);
+      return new js.ArrayInitializer(elements.toList());
     } else {
-      return js.number(backend.emitter.metadataCollector.reifyType(memberType));
+      Map<String, ConstantValue> defs = method.optionalParameterDefaultValues;
+      List<js.Property> properties = <js.Property>[];
+      defs.forEach((String name, ConstantValue value) {
+        properties.add(new js.Property(js.string(name),
+            constantEmitter.reference(value)));
+      });
+      return new js.ObjectInitializer(properties);
     }
   }
 
@@ -649,10 +679,14 @@ function parseFunctionDescriptor(proto, name, descriptor) {
           bool isIntercepted = backend.isInterceptedMethod(method.element);
           data.add(new js.LiteralBool(isIntercepted));
           data.add(js.string(method.tearOffName));
-          data.add(_generateFunctionType(method.type));
+          data.add((method.functionType));
         }
 
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
+        if (method.canBeApplied) {
+          data.add(js.number(method.requiredParameterCount));
+          data.add(_encodeOptionalParameterDefaultValues(method));
+        }
         return [js.string(method.name), new js.ArrayInitializer(data)];
       } else {
         // TODO(floitsch): not the most efficient way...
@@ -694,8 +728,12 @@ function parseFunctionDescriptor(proto, name, descriptor) {
         var data = [unparse(compiler, method.code)];
         data.add(js.string(method.callName));
         data.add(js.string(method.tearOffName));
-        data.add(_generateFunctionType(method.type));
+        data.add(method.functionType);
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
+        if (method.canBeApplied) {
+          data.add(js.number(method.requiredParameterCount));
+          data.add(_encodeOptionalParameterDefaultValues(method));
+        }
         return [js.string(method.name), holderIndex,
                 new js.ArrayInitializer(data)];
       } else {
@@ -783,13 +821,16 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       function compileAllStubs() {
         var funs;
         var fun = compile(name, descriptor[0]);
-        fun.\$callName = descriptor[1];
+        fun[#callName] = descriptor[1];
         holder[name] = fun;
         funs = [fun];
-        for (var pos = 4; pos < descriptor.length; pos += 3) {
+        // We iterate in blocks of 3 but have to stop before we reach the
+        // (optional) two trailing items. To accomplish this, we only iterate
+        // until we reach length - 2.
+        for (var pos = 4; pos < descriptor.length - 2; pos += 3) {
           var stubName = descriptor[pos];
           fun = compile(stubName, descriptor[pos + 2]);
-          fun.\$callName = descriptor[pos + 1];
+          fun[#callName] = descriptor[pos + 1];
           holder[stubName] = fun;
           funs.push(fun);
         }
@@ -797,6 +838,10 @@ function parseFunctionDescriptor(proto, name, descriptor) {
           // functions, reflectionInfo, isStatic, name, isIntercepted.
           holder[descriptor[2]] = 
               tearOff(funs, descriptor[3], true, name, false);
+        }
+        if (pos < descriptor.length) {
+          fun[#argumentCount] = descriptor[pos];
+          fun[#defaultArgumentValues] = descriptor[pos + 1];
         }
       }
 
@@ -842,23 +887,19 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   }
 
   function setupClass(name, holder, descriptor) {
-    var ensureResolved = function() {
+    var patch = function() {
       var constructor = compileConstructor(name, descriptor);
       holder[name] = constructor;
       constructor.ensureResolved = function() { return this; };
-      return constructor;
-    };
-
-    var patch = function() {
-      var constructor = ensureResolved();
+      if (this === patch) return constructor;  // Was used as "ensureResolved".
       var object = new constructor();
       constructor.apply(object, arguments);
       return object;
     };
 
-    // We store the ensureResolved function on the patch function to make it
+    // We store the patch function on itself to make it
     // possible to resolve superclass references without constructing instances.
-    patch.ensureResolved = ensureResolved;
+    patch.ensureResolved = patch;
     holder[name] = patch;
   }
 

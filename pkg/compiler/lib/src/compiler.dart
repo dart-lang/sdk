@@ -589,7 +589,7 @@ class ResolutionCallbacks {
   void onSuperNoSuchMethod(Registry registry) {}
 
   /// Register that the application creates a constant map.
-  void onConstantMap(Registry registry) {}
+  void onMapLiteral(Registry registry, DartType type, bool isConstant) {}
 
   /// Called when resolving the `Symbol` constructor.
   void onSymbolConstructor(Registry registry) {}

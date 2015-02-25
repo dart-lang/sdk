@@ -205,6 +205,16 @@ dt.typeDefinition {
       </ul>
       </dd>
     </dl>
+    <dl>
+      <dt>--no-index</dt>
+      <dd>
+      Disable the server from generating an index. If this flag is passed and an
+      API is used that requires an index, then an error, <tt>NO_INDEX_GENERATED</tt>,
+      will be thrown. The set of API calls that require an index include:
+      refactoring calls, code completions and searching.
+      
+      </dd>
+    </dl>
     </blockquote>
     <h2 class="domain"><a name="domain_server">Domain: server</a></h2>
       <p>
@@ -2523,7 +2533,7 @@ dt.typeDefinition {
           An enumeration of the kinds of elements.
         </p>
         
-      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
+      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
         <p>
           A description of an executable file.
         </p>
@@ -3115,7 +3125,7 @@ dt.typeDefinition {
           </dd><dt class="value">INVALID_OVERLAY_CHANGE</dt><dd>
             
             <p>
-              An analysis.updateContent request contained a
+              An "analysis.updateContent" request contained a
               ChangeContentOverlay object which can't be applied, due
               to an edit having an offset or length that is out of
               range.
@@ -3129,6 +3139,12 @@ dt.typeDefinition {
             
             <p>
               A malformed request was received.
+            </p>
+          </dd><dt class="value">NO_INDEX_GENERATED</dt><dd>
+            
+            <p>
+              The "--no-index" flag was passed when the analysis server created,
+              but this API call requires an index to have been generated.
             </p>
           </dd><dt class="value">REFACTORING_REQUEST_CANCELLED</dt><dd>
             

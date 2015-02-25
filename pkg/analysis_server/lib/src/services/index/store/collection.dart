@@ -5,14 +5,16 @@
 library services.src.index.store.collection;
 
 import 'dart:collection';
-import 'dart:typed_data';
+import 'dart:typed_data' show Uint32List;
+
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 /**
  * A hash map with `List<int>` keys and [int] values.
  */
 class IntArrayToIntMap {
-  final Map<Int32List, int> map = new HashMap<Int32List, int>(
+  final Map<Uint32List, int> map = new HashMap<Uint32List, int>(
       equals: _intArrayEquals,
       hashCode: _intArrayHashCode);
 
@@ -20,7 +22,7 @@ class IntArrayToIntMap {
    * Returns the value for the given [key] or null if [key] is not in the map.
    */
   int operator [](List<int> key) {
-    Int32List typedKey = _getTypedKey(key);
+    Uint32List typedKey = _getTypedKey(key);
     return map[typedKey];
   }
 
@@ -31,18 +33,18 @@ class IntArrayToIntMap {
    * Otherwise the key-value pair is added to the map.
    */
   void operator []=(List<int> key, int value) {
-    Int32List typedKey = _getTypedKey(key);
+    Uint32List typedKey = _getTypedKey(key);
     map[typedKey] = value;
   }
 
   /**
-   * Returns an [Int32List] version of the given `List<int>` key.
+   * Returns an [Uint32List] version of the given `List<int>` key.
    */
-  static Int32List _getTypedKey(List<int> key) {
-    if (key is Int32List) {
+  static Uint32List _getTypedKey(List<int> key) {
+    if (key is Uint32List) {
       return key;
     }
-    return new Int32List.fromList(key);
+    return new Uint32List.fromList(key);
   }
 
   static bool _intArrayEquals(List<int> a, List<int> b) {
@@ -59,9 +61,7 @@ class IntArrayToIntMap {
   }
 
   static int _intArrayHashCode(List<int> key) {
-    return key.fold(0, (int result, int item) {
-      return 31 * result + item;
-    });
+    return key.fold(0, JenkinsSmiHash.combine);
   }
 }
 
@@ -70,7 +70,7 @@ class IntArrayToIntMap {
  * A table mapping [int] keys to sets of [int]s.
  */
 class IntToIntSetMap {
-  final Map<int, Int32List> _map = new HashMap<int, Int32List>();
+  final Map<int, Uint32List> _map = new HashMap<int, Uint32List>();
 
   /**
    * The number of key-value pairs in the map.
@@ -81,15 +81,15 @@ class IntToIntSetMap {
    * Adds the [value] to the set associated with the given [value].
    */
   void add(int key, int value) {
-    Int32List values = _map[key];
+    Uint32List values = _map[key];
     if (values == null) {
-      values = new Int32List(1);
+      values = new Uint32List(1);
       values[0] = value;
       _map[key] = values;
     }
     if (values.indexOf(value) == -1) {
       int length = values.length;
-      Int32List newSet = new Int32List(length + 1);
+      Uint32List newSet = new Uint32List(length + 1);
       newSet.setRange(0, length, values);
       newSet[length] = value;
       _map[key] = newSet;

@@ -60,6 +60,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   }
 
   void VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op);
+  void VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op);
 
   virtual void VisitBlocks() { UNREACHABLE(); }
 

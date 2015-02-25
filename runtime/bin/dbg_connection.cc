@@ -328,8 +328,9 @@ int DebuggerConnectionHandler::StartHandler(const char* address,
   OSError *os_error;
   AddressList<SocketAddress>* addresses =
       Socket::LookupAddress(address, -1, &os_error);
-  listener_fd_ = ServerSocket::CreateBindListen(
-      addresses->GetAt(0)->addr(), port_number, 1);
+  RawAddr addr = addresses->GetAt(0)->addr();
+  SocketAddress::SetAddrPort(&addr, port_number);
+  listener_fd_ = ServerSocket::CreateBindListen(addr, 1);
   delete addresses;
   if (listener_fd_ < 0) {
     fprintf(stderr, "%s", "Could not initialize debug socket\n");

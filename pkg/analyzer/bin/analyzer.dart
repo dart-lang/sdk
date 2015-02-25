@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 void main(List<String> args) {
   StringUtilities.INTERNER = new MappedInterner();
@@ -70,7 +71,7 @@ _runAnalyzer(CommandLineOptions options, String sourcePath) {
       analyzer.analyzeSync(printMode: 0);
     }
 
-    PerformanceStatistics.reset();
+    PerformanceTag.reset();
     startTime = JavaSystem.currentTimeMillis();
     analyzer = new AnalyzerImpl(sourcePath, options, startTime);
     return analyzer.analyzeSync();

@@ -28,6 +28,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -88,14 +89,14 @@ class AnalysisServer {
   final ResourceProvider resourceProvider;
 
   /**
-   * The [Index] for this server.
+   * The [Index] for this server, may be `null` if indexing is disabled.
    */
   final Index index;
 
   /**
-   * The [SearchEngine] for this server.
+   * The [SearchEngine] for this server, may be `null` if indexing is disabled.
    */
-  SearchEngine searchEngine;
+  final SearchEngine searchEngine;
 
   /**
    * [ContextManager] which handles the mapping from analysis roots
@@ -229,7 +230,7 @@ class AnalysisServer {
    * The current state of overlays from the client.  This is used as the
    * content cache for all contexts.
    */
-  ContentCache _overlayState = new ContentCache();
+  final ContentCache overlayState = new ContentCache();
 
   /**
    * Initialize a newly created server to receive requests from and send
@@ -241,11 +242,12 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, this.resourceProvider,
-      PackageMapProvider packageMapProvider, this.index,
+      PackageMapProvider packageMapProvider, Index _index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
-      this.instrumentationService, {this.rethrowExceptions: true}) {
+      this.instrumentationService, {this.rethrowExceptions: true})
+      : index = _index,
+        searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
-    searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue();
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
@@ -372,7 +374,7 @@ class AnalysisServer {
       return null;
     }
     // check if there is a context that analyzed this source
-    return getAnalysisContextForSource(getSource(path));
+    return getAnalysisContextForSource(_getSourceWithoutContext(path));
   }
 
   /**
@@ -495,32 +497,6 @@ class AnalysisServer {
 //  }
 
   /**
-   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
-   *
-   * May be empty, but not `null`.
-   */
-  List<CompilationUnit> getResolvedCompilationUnits(String path) {
-    List<CompilationUnit> units = <CompilationUnit>[];
-    // prepare AnalysisContext
-    AnalysisContext context = getAnalysisContext(path);
-    if (context == null) {
-      return units;
-    }
-    // add a unit for each unit/library combination
-    Source unitSource = getSource(path);
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    for (Source librarySource in librarySources) {
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, librarySource);
-      if (unit != null) {
-        units.add(unit);
-      }
-    }
-    // done
-    return units;
-  }
-
-  /**
    * Returns the [CompilationUnit] of the Dart file with the given [path] that
    * should be used to resend notifications for already resolved unit.
    * Returns `null` if the file is not a part of any context, library has not
@@ -548,6 +524,32 @@ class AnalysisServer {
   }
 
   /**
+   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
+   *
+   * May be empty, but not `null`.
+   */
+  List<CompilationUnit> getResolvedCompilationUnits(String path) {
+    List<CompilationUnit> units = <CompilationUnit>[];
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(path);
+    if (context == null) {
+      return units;
+    }
+    // add a unit for each unit/library combination
+    Source unitSource = getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    for (Source librarySource in librarySources) {
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      if (unit != null) {
+        units.add(unit);
+      }
+    }
+    // done
+    return units;
+  }
+
+  /**
    * Return the [Source] of the Dart file with the given [path].
    */
   Source getSource(String path) {
@@ -561,7 +563,7 @@ class AnalysisServer {
     }
     // file-based source
     File file = resourceProvider.getResource(path);
-    return file.createSource();
+    return ContextManager.createSourceInContext(getAnalysisContext(path), file);
   }
 
   /**
@@ -570,32 +572,34 @@ class AnalysisServer {
   void handleRequest(Request request) {
     _performance.logRequest(request);
     runZoned(() {
-      int count = handlers.length;
-      for (int i = 0; i < count; i++) {
-        try {
-          Response response = handlers[i].handleRequest(request);
-          if (response == Response.DELAYED_RESPONSE) {
+      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
+        int count = handlers.length;
+        for (int i = 0; i < count; i++) {
+          try {
+            Response response = handlers[i].handleRequest(request);
+            if (response == Response.DELAYED_RESPONSE) {
+              return;
+            }
+            if (response != null) {
+              channel.sendResponse(response);
+              return;
+            }
+          } on RequestFailure catch (exception) {
+            channel.sendResponse(exception.response);
             return;
-          }
-          if (response != null) {
+          } catch (exception, stackTrace) {
+            RequestError error =
+                new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+            if (stackTrace != null) {
+              error.stackTrace = stackTrace.toString();
+            }
+            Response response = new Response(request.id, error: error);
             channel.sendResponse(response);
             return;
           }
-        } on RequestFailure catch (exception) {
-          channel.sendResponse(exception.response);
-          return;
-        } catch (exception, stackTrace) {
-          RequestError error =
-              new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
-          if (stackTrace != null) {
-            error.stackTrace = stackTrace.toString();
-          }
-          Response response = new Response(request.id, error: error);
-          channel.sendResponse(response);
-          return;
         }
-      }
-      channel.sendResponse(new Response.unknownRequest(request));
+        channel.sendResponse(new Response.unknownRequest(request));
+      });
     }, onError: (exception, stackTrace) {
       sendServerErrorNotification(exception, stackTrace, fatal: true);
     });
@@ -655,6 +659,7 @@ class AnalysisServer {
    */
   void performOperation() {
     assert(performOperationPending);
+    PerformanceTag.UNKNOWN.makeCurrent();
     performOperationPending = false;
     if (!running) {
       // An error has occurred, or the connection to the client has been
@@ -669,6 +674,7 @@ class AnalysisServer {
       // This can happen if the operation queue is cleared while the operation
       // loop is in progress.  No problem; we just need to exit the operation
       // loop and wait for the next operation to be added.
+      ServerPerformanceStatistics.idle.makeCurrent();
       return;
     }
     sendStatusNotification(operation);
@@ -686,6 +692,7 @@ class AnalysisServer {
       shutdown();
     } finally {
       if (!operationQueue.isEmpty) {
+        ServerPerformanceStatistics.intertask.makeCurrent();
         _schedulePerformOperation();
       } else {
         sendStatusNotification(null);
@@ -693,6 +700,7 @@ class AnalysisServer {
           _onAnalysisCompleteCompleter.complete();
           _onAnalysisCompleteCompleter = null;
         }
+        ServerPerformanceStatistics.idle.makeCurrent();
       }
     }
   }
@@ -973,7 +981,7 @@ class AnalysisServer {
       Source source = getSource(file);
       operationQueue.sourceAboutToChange(source);
       // Prepare the new contents.
-      String oldContents = _overlayState.getContents(source);
+      String oldContents = overlayState.getContents(source);
       String newContents;
       if (change is AddContentOverlay) {
         newContents = change.content;
@@ -1004,7 +1012,7 @@ class AnalysisServer {
         // Protocol parsing should have ensured that we never get here.
         throw new AnalysisException('Illegal change type');
       }
-      _overlayState.setContents(source, newContents);
+      overlayState.setContents(source, newContents);
       // Update all contexts.
       for (InternalAnalysisContext context in folderMap.values) {
         if (context.handleContentsChanged(
@@ -1066,6 +1074,24 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [Source] of the Dart file with the given [path], assuming that
+   * we do not know the context in which the path should be interpreted.
+   */
+  Source _getSourceWithoutContext(String path) {
+    // try SDK
+    {
+      Uri uri = resourceProvider.pathContext.toUri(path);
+      Source sdkSource = defaultSdk.fromFileUri(uri);
+      if (sdkSource != null) {
+        return sdkSource;
+      }
+    }
+    // file-based source
+    File file = resourceProvider.getResource(path);
+    return file.createSource();
+  }
+
+  /**
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
@@ -1099,6 +1125,7 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool noErrorNotification = false;
+  bool noIndex = false;
   String fileReadMode = 'as-is';
 }
 
@@ -1169,7 +1196,7 @@ class ServerContextManager extends ContextManager {
   AnalysisContext addContext(Folder folder, UriResolver packageUriResolver) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
-    context.contentCache = analysisServer._overlayState;
+    context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
@@ -1246,6 +1273,41 @@ class ServerContextManager extends ContextManager {
 
 
 /**
+ * Container with global [AnalysisServer] performance statistics.
+ */
+class ServerPerformanceStatistics {
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._updateIndex.
+   */
+  static PerformanceTag index = new PerformanceTag('index');
+
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._sendNotices.
+   */
+  static PerformanceTag notices = new PerformanceTag('notices');
+
+  /**
+   * The [PerformanceTag] for time spent performing a _DartIndexOperation.
+   */
+  static PerformanceTag indexOperation = new PerformanceTag('indexOperation');
+
+  /**
+   * The [PerformanceTag] for time spent between calls to
+   * AnalysisServer.performOperation when the server is not idle.
+   */
+  static PerformanceTag intertask = new PerformanceTag('intertask');
+
+  /**
+   * The [PerformanceTag] for time spent between calls to
+   * AnalysisServer.performOperation when the server is idle.
+   */
+  static PerformanceTag idle = new PerformanceTag('idle');
+}
+
+
+/**
  * A class used by [AnalysisServer] to record performance information
  * such as request latency.
  */
@@ -1301,16 +1363,10 @@ class ServerPerformance {
  */
 class ServerPerformanceStatistics {
   /**
-   * The [PerformanceTag] for time spent in
-   * PerformAnalysisOperation._updateIndex.
+   * The [PerformanceTag] for time spent in [ExecutionDomainHandler].
    */
-  static PerformanceTag index = new PerformanceTag('index');
-
-  /**
-   * The [PerformanceTag] for time spent in
-   * PerformAnalysisOperation._sendNotices.
-   */
-  static PerformanceTag notices = new PerformanceTag('notices');
+  static PerformanceTag executionNotifications =
+      new PerformanceTag('executionNotifications');
 
   /**
    * The [PerformanceTag] for time spent performing a _DartIndexOperation.
@@ -1328,4 +1384,25 @@ class ServerPerformanceStatistics {
    * AnalysisServer.performOperation when the server is idle.
    */
   static PerformanceTag idle = new PerformanceTag('idle');
+
+  /**
+   * The [PerformanceTag] for time spent in
+   * PerformAnalysisOperation._sendNotices.
+   */
+  static PerformanceTag notices = new PerformanceTag('notices');
+
+  /**
+   * The [PerformanceTag] for time spent in server comminication channels.
+   */
+  static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
+
+  /**
+   * The [PerformanceTag] for time spent in server request handlers.
+   */
+  static PerformanceTag serverRequests = new PerformanceTag('serverRequests');
+
+  /**
+   * The [PerformanceTag] for time spent in split store microtasks.
+   */
+  static PerformanceTag splitStore = new PerformanceTag('splitStore');
 }

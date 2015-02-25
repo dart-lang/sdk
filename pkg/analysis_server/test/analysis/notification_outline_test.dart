@@ -256,6 +256,39 @@ class B {
     });
   }
 
+  test_enum() {
+    addTestFile('''
+enum MyEnum {
+  A, B, C
+}
+''');
+    return prepareOutline().then((_) {
+      Outline unitOutline = outline;
+      List<Outline> topOutlines = unitOutline.children;
+      expect(topOutlines, hasLength(1));
+      // MyEnum
+      {
+        Outline outline_MyEnum = topOutlines[0];
+        Element element_MyEnum = outline_MyEnum.element;
+        expect(element_MyEnum.kind, ElementKind.ENUM);
+        expect(element_MyEnum.name, "MyEnum");
+        {
+          Location location = element_MyEnum.location;
+          expect(location.offset, testCode.indexOf("MyEnum {"));
+          expect(location.length, 'MyEnum'.length);
+        }
+        expect(element_MyEnum.parameters, null);
+        expect(element_MyEnum.returnType, null);
+        // MyEnum children
+        List<Outline> outlines_MyEnum = outline_MyEnum.children;
+        expect(outlines_MyEnum, hasLength(3));
+        _isEnumConstant(outlines_MyEnum[0], 'A');
+        _isEnumConstant(outlines_MyEnum[1], 'B');
+        _isEnumConstant(outlines_MyEnum[2], 'C');
+      }
+    });
+  }
+
   /**
    * Code like this caused NPE in the past.
    *
@@ -759,5 +792,13 @@ set propB(int v) {}
         expect(element.returnType, "");
       }
     });
+  }
+
+  void _isEnumConstant(Outline outline, String name) {
+    Element element = outline.element;
+    expect(element.kind, ElementKind.ENUM_CONSTANT);
+    expect(element.name, name);
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
   }
 }

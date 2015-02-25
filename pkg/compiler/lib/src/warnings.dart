@@ -1271,6 +1271,11 @@ main() => A.A = 1;
   static const MessageKind MISSING_FACTORY_KEYWORD = const MessageKind(
       "Did you forget a factory keyword here?");
 
+  static const MessageKind NO_SUCH_METHOD_IN_NATIVE =
+      const MessageKind(
+          "'NoSuchMethod' is not supported for classes that extend native "
+          "classes.");
+
   static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
           "Deferred loading is not supported by the dart backend yet."

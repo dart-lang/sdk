@@ -1024,6 +1024,7 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
       case 0xF5: mnem = "fprem1"; break;
       case 0xF8: mnem = "fprem"; break;
       case 0xF7: mnem = "fincstp"; break;
+      case 0xFB: mnem = "fsincos"; break;
       case 0xFE: mnem = "fsin"; break;
       case 0xFF: mnem = "fcos"; break;
     }

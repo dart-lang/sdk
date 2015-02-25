@@ -4,10 +4,12 @@
 
 const String s = "foo";
 const int i = s.length;
+const int l = "foo".length + 1;
 
 use(x) => x;
 
 main() {
   use(s);
   use(i);
+  use(l);
 }

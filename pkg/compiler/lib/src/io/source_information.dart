@@ -23,13 +23,13 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
 /// Source information that contains start source position and optionally an
 /// end source position.
 class StartEndSourceInformation implements SourceInformation {
-  final SourceFileLocation startPosition;
-  final SourceFileLocation endPosition;
+  final SourceLocation startPosition;
+  final SourceLocation endPosition;
 
   StartEndSourceInformation(this.startPosition, [this.endPosition]);
 
   SourceSpan get sourceSpan {
-    Uri uri = Uri.parse(startPosition.sourceFile.filename);
+    Uri uri = startPosition.sourceUri;
     int begin = startPosition.offset;
     int end = endPosition == null ? begin : endPosition.offset;
     return new SourceSpan(uri, begin, end);
@@ -80,85 +80,87 @@ class StartEndSourceInformation implements SourceInformation {
     }
     // TODO(podivilov): find the right sourceFile here and remove offset
     // checks below.
-    SourceFileLocation sourcePosition, endSourcePosition;
+    SourceLocation sourcePosition, endSourcePosition;
     if (beginToken.charOffset < sourceFile.length) {
       sourcePosition =
-          new TokenSourceFileLocation(sourceFile, beginToken, name);
+          new TokenSourceLocation(sourceFile, beginToken, name);
     }
     if (endToken.charOffset < sourceFile.length) {
       endSourcePosition =
-          new TokenSourceFileLocation(sourceFile, endToken, name);
+          new TokenSourceLocation(sourceFile, endToken, name);
     }
     return new StartEndSourceInformation(sourcePosition, endSourcePosition);
   }
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('${startPosition.getSourceUrl()}:');
-    sb.write('[${startPosition.getLine()},${startPosition.getColumn()}]');
+    sb.write('${startPosition.sourceUri}:');
+    sb.write('[${startPosition.line},${startPosition.column}]');
     if (endPosition != null) {
-      sb.write('-[${endPosition.getLine()},${endPosition.getColumn()}]');
+      sb.write('-[${endPosition.line},${endPosition.column}]');
     }
     return sb.toString();
   }
 }
 
-// TODO(johnniwinther): Refactor this class to use getters.
-abstract class SourceFileLocation {
-  SourceFile sourceFile;
+/// A location in a source file.
+abstract class SourceLocation {
+  final SourceFile _sourceFile;
+  int _line;
 
-  SourceFileLocation(this.sourceFile) {
-    assert(isValid());
+  SourceLocation(this._sourceFile) {
+    assert(isValid);
   }
 
-  int line;
+  /// The absolute URI of the source file of this source location.
+  Uri get sourceUri => _sourceFile.uri;
 
+  /// The character offset of the this source location into the source file.
   int get offset;
 
-  String getSourceUrl() => sourceFile.filename;
-
-  int getLine() {
-    if (line == null) line = sourceFile.getLine(offset);
-    return line;
+  /// The 0-based line number of the [offset].
+  int get line {
+    if (_line == null) _line = _sourceFile.getLine(offset);
+    return _line;
   }
 
-  int getColumn() => sourceFile.getColumn(getLine(), offset);
+  /// The 0-base column number of the [offset] with its line.
+  int get column => _sourceFile.getColumn(line, offset);
 
-  String getSourceName();
+  /// The name associated with this source location, if any.
+  String get sourceName;
 
-  bool isValid() => offset < sourceFile.length;
+  /// `true` if the offset within the length of the source file.
+  bool get isValid => offset < _sourceFile.length;
 
   int get hashCode {
-    return getSourceUrl().hashCode * 17 +
+    return sourceUri.hashCode * 17 +
            offset.hashCode * 17 +
-           getSourceName().hashCode * 23;
+           sourceName.hashCode * 23;
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! SourceFileLocation) return false;
-    return getSourceUrl() == other.getSourceUrl() &&
+    if (other is! SourceLocation) return false;
+    return sourceUri == other.sourceUri &&
            offset == other.offset &&
-           getSourceName() == other.getSourceName();
+           sourceName == other.sourceName;
   }
 
-  String toString() => '${getSourceUrl()}:[${getLine()},${getColumn()}]';
+  String toString() => '${sourceUri}:[${line},${column}]';
 }
 
-class TokenSourceFileLocation extends SourceFileLocation {
+class TokenSourceLocation extends SourceLocation {
   final Token token;
-  final String name;
+  final String sourceName;
 
-  TokenSourceFileLocation(SourceFile sourceFile, this.token, this.name)
+  TokenSourceLocation(SourceFile sourceFile, this.token, this.sourceName)
     : super(sourceFile);
 
+  @override
   int get offset => token.charOffset;
 
-  String getSourceName() {
-    return name;
-  }
-
   String toString() {
-    return '${super.toString()}:$name';
+    return '${super.toString()}:$sourceName';
   }
 }

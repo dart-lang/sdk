@@ -36,6 +36,14 @@ import 'utilities_general.dart';
 typedef void ImplicitConstructorBuilderCallback(ClassElement classElement,
     ClassElement superclassElement, void computation());
 
+typedef ResolverVisitor ResolverVisitorFactory(Library library, Source source,
+    TypeProvider typeProvider);
+
+typedef StaticTypeAnalyzer StaticTypeAnalyzerFactory(ResolverVisitor visitor);
+
+typedef TypeResolverVisitor TypeResolverVisitorFactory(Library library,
+    Source source, TypeProvider typeProvider);
+
 typedef void VoidFunction();
 
 /**
@@ -801,9 +809,7 @@ class CompilationUnitBuilder {
    */
   CompilationUnitElementImpl buildCompilationUnit(Source source,
       CompilationUnit unit) {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    return PerformanceStatistics.resolve.makeCurrentWhile(() {
       if (unit == null) {
         return null;
       }
@@ -822,9 +828,7 @@ class CompilationUnitBuilder {
       unit.element = element;
       holder.validate();
       return element;
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 }
 
@@ -2607,9 +2611,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       Identifier returnType = node.returnType;
       if (returnType != null) {
         element.nameOffset = returnType.offset;
+        element.nameEnd = returnType.end;
       }
     } else {
       constructorName.staticElement = element;
+      element.periodOffset = node.period.offset;
+      element.nameEnd = constructorName.end;
     }
     holder.validate();
     return null;
@@ -3193,7 +3200,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       getter.getter = true;
       _currentHolder.addAccessor(getter);
       variable.getter = getter;
-      if (!isFinal) {
+      if (!isConst && !isFinal) {
         PropertyAccessorElementImpl setter =
             new PropertyAccessorElementImpl.forVariable(variable);
         setter.setter = true;
@@ -4340,6 +4347,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 }
 
+
 /**
  * Instances of the class `FunctionScope` implement the scope defined by a function.
  */
@@ -4461,9 +4469,7 @@ class HintGenerator {
   }
 
   void generateForLibrary() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.hints.start();
-    try {
+    PerformanceStatistics.hints.makeCurrentWhile(() {
       for (int i = 0; i < _compilationUnits.length; i++) {
         CompilationUnitElement element = _compilationUnits[i].element;
         if (element != null) {
@@ -4484,9 +4490,7 @@ class HintGenerator {
           definingCompilationUnitErrorReporter);
       _library.accept(
           new _UnusedElementsVerifier(_errorListener, _usedElementsVisitor.usedElements));
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   void _generateForCompilationUnit(CompilationUnit unit, Source source) {
@@ -4511,7 +4515,6 @@ class HintGenerator {
     //    unit.accept(new PubVerifier(context, errorReporter));
   }
 }
-
 
 /**
  * Instances of the class {@code HtmlTagInfo} record information about the tags used in an HTML
@@ -8223,18 +8226,14 @@ class LibraryResolver {
    * @throws AnalysisException if any of the enum members could not be built
    */
   void _buildEnumMembers() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           EnumMemberBuilder builder = new EnumMemberBuilder(_typeProvider);
           library.getAST(source).accept(builder);
         }
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -8244,9 +8243,7 @@ class LibraryResolver {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildImplicitConstructors() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       ImplicitConstructorComputer computer =
           new ImplicitConstructorComputer(_typeProvider);
       for (Library library in _librariesInCycles) {
@@ -8259,9 +8256,7 @@ class LibraryResolver {
         }
       }
       computer.compute();
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -8271,9 +8266,7 @@ class LibraryResolver {
    * @throws AnalysisException if any of the function type aliases could not be resolved
    */
   void _buildTypeAliases() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       List<LibraryResolver_TypeAliasInfo> typeAliases =
           new List<LibraryResolver_TypeAliasInfo>();
       for (Library library in _librariesInCycles) {
@@ -8294,9 +8287,7 @@ class LibraryResolver {
             new TypeResolverVisitor.con1(info._library, info._source, _typeProvider);
         info._typeAlias.accept(visitor);
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -8306,19 +8297,18 @@ class LibraryResolver {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildTypeHierarchies() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
-          TypeResolverVisitor visitor =
-              new TypeResolverVisitor.con1(library, source, _typeProvider);
+          TypeResolverVisitorFactory typeResolverVisitorFactory =
+              analysisContext.typeResolverVisitorFactory;
+          TypeResolverVisitor visitor = (typeResolverVisitorFactory == null) ?
+              new TypeResolverVisitor.con1(library, source, _typeProvider) :
+              typeResolverVisitorFactory(library, source, _typeProvider);
           library.getAST(source).accept(visitor);
         }
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -8523,9 +8513,7 @@ class LibraryResolver {
    * Compute a value for all of the constants in the libraries being analyzed.
    */
   void _performConstantEvaluation() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       ConstantValueComputer computer =
           new ConstantValueComputer(_typeProvider, analysisContext.declaredVariables);
       for (Library library in _librariesInCycles) {
@@ -8562,9 +8550,7 @@ class LibraryResolver {
           }
         }
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -8587,20 +8573,19 @@ class LibraryResolver {
    *           the library cannot be analyzed
    */
   void _resolveReferencesAndTypesInLibrary(Library library) {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (Source source in library.compilationUnitSources) {
         CompilationUnit ast = library.getAST(source);
         ast.accept(
             new VariableResolverVisitor.con1(library, source, _typeProvider));
-        ResolverVisitor visitor =
+        ResolverVisitorFactory visitorFactory =
+            analysisContext.resolverVisitorFactory;
+        ResolverVisitor visitor = visitorFactory != null ?
+            visitorFactory(library, source, _typeProvider) :
             new ResolverVisitor.con1(library, source, _typeProvider);
         ast.accept(visitor);
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -8958,18 +8943,14 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the enum members could not be built
    */
   void _buildEnumMembers() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (ResolvableLibrary library in _librariesInCycle) {
         for (Source source in library.compilationUnitSources) {
           EnumMemberBuilder builder = new EnumMemberBuilder(_typeProvider);
           library.getAST(source).accept(builder);
         }
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -8979,9 +8960,7 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildImplicitConstructors() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       ImplicitConstructorComputer computer =
           new ImplicitConstructorComputer(_typeProvider);
       for (ResolvableLibrary library in _librariesInCycle) {
@@ -8997,9 +8976,7 @@ class LibraryResolver2 {
         }
       }
       computer.compute();
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   HashMap<Source, ResolvableLibrary> _buildLibraryMap() {
@@ -9028,9 +9005,7 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the function type aliases could not be resolved
    */
   void _buildTypeAliases() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       List<LibraryResolver2_TypeAliasInfo> typeAliases =
           new List<LibraryResolver2_TypeAliasInfo>();
       for (ResolvableLibrary library in _librariesInCycle) {
@@ -9052,9 +9027,7 @@ class LibraryResolver2 {
             new TypeResolverVisitor.con4(info._library, info._source, _typeProvider);
         info._typeAlias.accept(visitor);
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -9064,9 +9037,7 @@ class LibraryResolver2 {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void _buildTypeHierarchies() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (ResolvableLibrary library in _librariesInCycle) {
         for (ResolvableCompilationUnit unit in
             library.resolvableCompilationUnits) {
@@ -9077,9 +9048,7 @@ class LibraryResolver2 {
           ast.accept(visitor);
         }
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -9101,9 +9070,7 @@ class LibraryResolver2 {
    * Compute a value for all of the constants in the libraries being analyzed.
    */
   void _performConstantEvaluation() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       ConstantValueComputer computer =
           new ConstantValueComputer(_typeProvider, analysisContext.declaredVariables);
       for (ResolvableLibrary library in _librariesInCycle) {
@@ -9129,9 +9096,7 @@ class LibraryResolver2 {
           ast.accept(constantVerifier);
         }
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -9154,9 +9119,7 @@ class LibraryResolver2 {
    *           the library cannot be analyzed
    */
   void _resolveReferencesAndTypesInLibrary(ResolvableLibrary library) {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.resolve.start();
-    try {
+    PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits)
           {
         Source source = unit.source;
@@ -9167,9 +9130,7 @@ class LibraryResolver2 {
             new ResolverVisitor.con4(library, source, _typeProvider);
         ast.accept(visitor);
       }
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   /**
@@ -9195,6 +9156,7 @@ class LibraryResolver2 {
     throw new AnalysisException("Could not resolve dart:core");
   }
 }
+
 
 /**
  * Instances of the class `TypeAliasInfo` hold information about a [TypeAlias].
@@ -9317,7 +9279,6 @@ class LibraryScope extends EnclosedScope {
     }
   }
 }
-
 
 /**
  * This class is used to replace uses of `HashMap<String, ExecutableElement>` which are not as
@@ -10080,6 +10041,33 @@ class ResolvableLibrary {
   static List<ResolvableLibrary> _EMPTY_ARRAY = new List<ResolvableLibrary>(0);
 
   /**
+<<<<<<< .working
+   * The next artificial hash code.
+   */
+  static int _NEXT_HASH_CODE = 0;
+
+  /**
+   * The artifitial hash code for this object.
+   */
+<<<<<<< .working
+  final int _hashCode = _nextHashCode();
+
+  /**
+=======
+   * The next artificial hash code.
+   */
+  static int _NEXT_HASH_CODE = 0;
+
+  /**
+   * The artifitial hash code for this object.
+   */
+  final int _hashCode = _NEXT_HASH_CODE++;
+=======
+  final int _hashCode = _nextHashCode();
+>>>>>>> .merge-right.r43886
+
+  /**
+>>>>>>> .merge-right.r43835
    * The source specifying the defining compilation unit of this library.
    */
   final Source librarySource;
@@ -10199,6 +10187,9 @@ class ResolvableLibrary {
    */
   List<ResolvableLibrary> get exports => _exportedLibraries;
 
+  @override
+  int get hashCode => _hashCode;
+
   /**
    * Set the libraries that are imported into this library to be those in the given array.
    *
@@ -10314,6 +10305,12 @@ class ResolvableLibrary {
 
   @override
   String toString() => librarySource.shortName;
+
+  static int _nextHashCode() {
+    int next = (_NEXT_HASH_CODE + 1) & 0xFFFFFF;
+    _NEXT_HASH_CODE = next;
+    return next;
+  }
 }
 
 /**
@@ -10433,12 +10430,18 @@ class ResolverVisitor extends ScopedVisitor {
    * @param typeProvider the object used to access the types from the core library
    */
   ResolverVisitor.con1(Library library, Source source,
-      TypeProvider typeProvider)
+      TypeProvider typeProvider, {StaticTypeAnalyzer typeAnalyzer,
+      StaticTypeAnalyzerFactory typeAnalyzerFactory})
       : super.con1(library, source, typeProvider) {
     this._inheritanceManager = library.inheritanceManager;
     this._elementResolver = new ElementResolver(this);
-    this._typeAnalyzer = new StaticTypeAnalyzer(this);
+    this._typeAnalyzer = typeAnalyzer != null ?
+        typeAnalyzer :
+        (typeAnalyzerFactory != null ?
+            typeAnalyzerFactory(this) :
+            new StaticTypeAnalyzer(this));
   }
+
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -13941,11 +13944,21 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    _hasReferenceToSuper = false;
+    super.visitClassDeclaration(node);
+    ClassElementImpl classElement = _getClassElement(node.name);
+    if (classElement != null) {
+      classElement.hasReferenceToSuper = _hasReferenceToSuper;
+    }
+    return null;
+  }
+
+  @override
+  void visitClassDeclarationInScope(ClassDeclaration node) {
+    super.visitClassDeclarationInScope(node);
     ExtendsClause extendsClause = node.extendsClause;
     WithClause withClause = node.withClause;
     ImplementsClause implementsClause = node.implementsClause;
-    _hasReferenceToSuper = false;
-    super.visitClassDeclaration(node);
     ClassElementImpl classElement = _getClassElement(node.name);
     InterfaceType superclassType = null;
     if (extendsClause != null) {
@@ -13969,7 +13982,6 @@ class TypeResolverVisitor extends ScopedVisitor {
         }
       }
       classElement.supertype = superclassType;
-      classElement.hasReferenceToSuper = _hasReferenceToSuper;
     }
     _resolve(classElement, withClause, implementsClause);
     return null;

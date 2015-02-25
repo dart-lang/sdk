@@ -377,7 +377,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
     if (kind == api.Diagnostic.VERBOSE_INFO && !verbose) return;
     SourceFile sourceFile;
     if (uri == null) {
-      sourceFile = new StringSourceFile('analysis', text);
+      sourceFile = new StringSourceFile.fromName('analysis', text);
     } else {
       sourceFile = compiler.sourceFiles[uri.toString()];
     }

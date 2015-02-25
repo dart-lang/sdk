@@ -1697,12 +1697,8 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitPrefixedIdentifier_staticClassMember_method() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    // set accessors
-    String propName = "m";
-    PropertyAccessorElement setter =
-        ElementFactory.setterElement(propName, false, _typeProvider.intType);
-    classA.accessors = <PropertyAccessorElement>[setter];
     // set methods
+    String propName = "m";
     MethodElement method =
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];

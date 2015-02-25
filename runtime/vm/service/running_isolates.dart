@@ -33,7 +33,7 @@ class RunningIsolates implements MessageRouter {
       return message.response;
     }
     isolateParam = isolateParam.substring('isolates/'.length);
-    if (isolateParam == 'isolates/root') {
+    if (isolateParam == 'root') {
       isolateId = _rootPortId;
     } else {
       try {

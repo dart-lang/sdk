@@ -169,8 +169,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough(argument);
   }
 
-  String getDepsOutput(Map<String, SourceFile> sourceFiles) {
-    var filenames = new List.from(sourceFiles.keys);
+  String getDepsOutput(Map<Uri, SourceFile> sourceFiles) {
+    var filenames = sourceFiles.keys.map((uri) => '$uri').toList();
     filenames.sort();
     return filenames.join("\n");
   }
@@ -588,9 +588,6 @@ be removed in a future version:
     Do not generate a call to main if either of the following
     libraries are used: dart:dom, dart:html dart:io.
 
-  --enable-concrete-type-inference
-    Enable experimental concrete type inference.
-
   --disable-native-live-type-analysis
     Disable the optimization that removes unused native types from dart:html
     and related libraries.
@@ -654,6 +651,9 @@ var compileFunc = api.compile;
 
 Future<api.CompilationResult> internalMain(List<String> arguments) {
   Future onError(exception, trace) {
+    // If we are already trying to exit, just continue exiting.
+    if (exception == _EXIT_SIGNAL) throw exception;
+
     try {
       print('The compiler crashed: $exception');
     } catch (ignored) {

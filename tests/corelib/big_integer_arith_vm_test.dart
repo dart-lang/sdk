@@ -139,6 +139,90 @@ testBigintModulo() {
   }
 }
 
+testBigintModPow() {
+  var x, e, m;
+  x = 1234567890;
+  e = 1000000001;
+  m = 19;
+  Expect.equals(11, x.modPow(e, m));
+  x = 1234567890;
+  e = 19;
+  m = 1000000001;
+  Expect.equals(122998977, x.modPow(e, m));
+  x = 19;
+  e = 1234567890;
+  m = 1000000001;
+  Expect.equals(619059596, x.modPow(e, m));
+  x = 19;
+  e = 1000000001;
+  m = 1234567890;
+  Expect.equals(84910879, x.modPow(e, m));
+  x = 1000000001;
+  e = 19;
+  m = 1234567890;
+  Expect.equals(872984351, x.modPow(e, m));
+  x = 1000000001;
+  e = 1234567890;
+  m = 19;
+  Expect.equals(0, x.modPow(e, m));
+  x = 12345678901234567890;
+  e = 10000000000000000001;
+  m = 19;
+  Expect.equals(2, x.modPow(e, m));
+  x = 12345678901234567890;
+  e = 19;
+  m = 10000000000000000001;
+  Expect.equals(3239137215315834625, x.modPow(e, m));
+  x = 19;
+  e = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(4544207837373941034, x.modPow(e, m));
+  x = 19;
+  e = 10000000000000000001;
+  m = 12345678901234567890;
+  Expect.equals(11135411705397624859, x.modPow(e, m));
+  x = 10000000000000000001;
+  e = 19;
+  m = 12345678901234567890;
+  Expect.equals(2034013733189773841, x.modPow(e, m));
+  x = 10000000000000000001;
+  e = 12345678901234567890;
+  m = 19;
+  Expect.equals(1, x.modPow(e, m));
+  x = 12345678901234567890;
+  e = 19;
+  m = 10000000000000000001;
+  Expect.equals(3239137215315834625, x.modPow(e, m));
+  x = 12345678901234567890;
+  e = 10000000000000000001;
+  m = 19;
+  Expect.equals(2, x.modPow(e, m));
+  x = 123456789012345678901234567890;
+  e = 123456789012345678901234567891;
+  m = 123456789012345678901234567899;
+  Expect.equals(116401406051033429924651549616, x.modPow(e, m));
+  x = 123456789012345678901234567890;
+  e = 123456789012345678901234567899;
+  m = 123456789012345678901234567891;
+  Expect.equals(123456789012345678901234567890, x.modPow(e, m));
+  x = 123456789012345678901234567899;
+  e = 123456789012345678901234567890;
+  m = 123456789012345678901234567891;
+  Expect.equals(35088523091000351053091545070, x.modPow(e, m));
+  x = 123456789012345678901234567899;
+  e = 123456789012345678901234567891;
+  m = 123456789012345678901234567890;
+  Expect.equals(18310047270234132455316941949, x.modPow(e, m));
+  x = 123456789012345678901234567891;
+  e = 123456789012345678901234567899;
+  m = 123456789012345678901234567890;
+  Expect.equals(1, x.modPow(e, m));
+  x = 123456789012345678901234567891;
+  e = 123456789012345678901234567890;
+  m = 123456789012345678901234567899;
+  Expect.equals(40128068573873018143207285483, x.modPow(e, m));
+}
+
 testBigintNegate() {
   var a = 0xF000000000000000F;
   var b = ~a;  // negate.
@@ -166,9 +250,10 @@ main() {
   testBigintAdd();
   testBigintSub();
   testBigintMul();
-  testBigintModulo();
   testBigintTruncDiv();
   testBigintDiv();
+  testBigintModulo();
+  testBigintModPow();
   testBigintNegate();
   testShiftAmount();
   Expect.equals(12345678901234567890, (12345678901234567890).abs());
@@ -177,5 +262,4 @@ main() {
   var b = 10000000000000000001;
   Expect.equals(false, a.hashCode == b.hashCode);
   Expect.equals(true, a.hashCode == (b - 1).hashCode);
-  // TODO(regis): Add a test for modPow once it is public.
 }

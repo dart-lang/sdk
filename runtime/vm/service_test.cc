@@ -89,7 +89,7 @@ class ServiceTestMessageHandler : public MessageHandler {
 };
 
 
-static RawArray* Eval(Dart_Handle lib, const char* expr) {
+static RawArray* EvalVM(Dart_Handle lib, const char* expr) {
   Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
   EXPECT_VALID(expr_val);
   Isolate* isolate = Isolate::Current();
@@ -101,6 +101,29 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
   Array& array = Array::Handle(Array::MakeArray(growable));
   result.SetAt(3, array);
   growable ^= result.At(4);
+  array = Array::MakeArray(growable);
+  result.SetAt(4, array);
+  return result.raw();
+}
+
+
+static RawArray* Eval(Dart_Handle lib, const char* expr) {
+  const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
+  Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
+  EXPECT_VALID(expr_val);
+  Isolate* isolate = Isolate::Current();
+  const GrowableObjectArray& value =
+      Api::UnwrapGrowableObjectArrayHandle(isolate, expr_val);
+  const Array& result = Array::Handle(Array::MakeArray(value));
+  GrowableObjectArray& growable = GrowableObjectArray::Handle();
+  growable ^= result.At(3);
+  // Append dummy isolate id to parameter values.
+  growable.Add(dummy_isolate_id);
+  Array& array = Array::Handle(Array::MakeArray(growable));
+  result.SetAt(3, array);
+  growable ^= result.At(4);
+  // Append dummy isolate id to parameter values.
+  growable.Add(dummy_isolate_id);
   array = Array::MakeArray(growable);
   result.SetAt(4, array);
   return result.raw();
@@ -1052,7 +1075,7 @@ TEST_CASE(Service_VM) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, 'getVM', [], []]");
+  service_msg = EvalVM(lib, "[0, port, 'getVM', [], []]");
 
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
@@ -1084,7 +1107,7 @@ TEST_CASE(Service_Flags) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, 'getFlagList', [], []]");
+  service_msg = EvalVM(lib, "[0, port, 'getFlagList', [], []]");
 
   // Make sure we can get the FlagList.
   Service::HandleRootMessage(service_msg);
@@ -1096,15 +1119,15 @@ TEST_CASE(Service_Flags) {
       handler.msg());
 
   // Modify a flag through the vm service.
-  service_msg = Eval(lib,
-                     "[0, port, 'setFlag', "
-                     "['name', 'value'], ['service_testing_flag', 'true']]");
+  service_msg = EvalVM(lib,
+                       "[0, port, 'setFlag', "
+                       "['name', 'value'], ['service_testing_flag', 'true']]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("Success", handler.msg());
 
   // Make sure that the flag changed.
-  service_msg = Eval(lib, "[0, port, 'getFlagList', [], []]");
+  service_msg = EvalVM(lib, "[0, port, 'getFlagList', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING(
@@ -1435,8 +1458,8 @@ TEST_CASE(Service_Profile) {
   service_msg = Eval(lib, "[0, port, 'getCpuProfile', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  // Expect profile
-  EXPECT_SUBSTRING("\"type\":\"CpuProfile\"", handler.msg());
+  // Expect error (tags required).
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   service_msg =
       Eval(lib, "[0, port, 'getCpuProfile', ['tags'], ['None']]");

@@ -466,6 +466,10 @@ class BlockCollector extends cps_ir.Visitor {
     visit(exp.body);
   }
 
+  visitLetMutable(cps_ir.LetMutable exp) {
+    visit(exp.body);
+  }
+
   visitSetField(cps_ir.SetField exp) {
     visit(exp.body);
   }

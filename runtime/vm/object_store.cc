@@ -154,14 +154,12 @@ bool ObjectStore::PreallocateObjects() {
                               Stacktrace::Handle(isolate)));
   set_preallocated_unhandled_exception(unhandled_exception);
 
-  const Array& code_array = Array::Handle(
-      isolate,
+  const Array& code_array = Array::Handle(isolate,
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  const Array& pc_offset_array = Array::Handle(
-      isolate,
+  const Array& pc_offset_array = Array::Handle(isolate,
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  const Stacktrace& stack_trace =
-      Stacktrace::Handle(Stacktrace::New(code_array, pc_offset_array));
+  const Stacktrace& stack_trace = Stacktrace::Handle(isolate,
+      Stacktrace::New(code_array, pc_offset_array));
   // Expansion of inlined functions requires additional memory at run time,
   // avoid it.
   stack_trace.set_expand_inlined(false);

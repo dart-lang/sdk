@@ -102,7 +102,7 @@ Node parseMember(String text, {DiagnosticListener diagnosticHandler}) {
 
 class MockFile extends StringSourceFile {
   MockFile(text)
-      : super('<string>', text);
+      : super.fromName('<string>', text);
 }
 
 var sourceCounter = 0;

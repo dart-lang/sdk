@@ -17,16 +17,6 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 
 
 /**
- * Creates and runs an [Index].
- */
-Index _createIndex() {
-  Index index = createLocalFileIndex();
-  index.run();
-  return index;
-}
-
-
-/**
  * Instances of the class [SocketServer] implement the common parts of
  * http-based and stdio-based analysis servers.  The primary responsibility of
  * the SocketServer is to manage the lifetime of the AnalysisServer and to
@@ -62,6 +52,7 @@ class SocketServer {
       });
       return;
     }
+
     PhysicalResourceProvider resourceProvider;
     if (analysisServerOptions.fileReadMode == 'as-is') {
       resourceProvider = PhysicalResourceProvider.INSTANCE;
@@ -73,11 +64,17 @@ class SocketServer {
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
     }
 
+    Index index = null;
+    if (!analysisServerOptions.noIndex) {
+      index = createLocalFileIndex();
+      index.run();
+    }
+
     analysisServer = new AnalysisServer(
         serverChannel,
         resourceProvider,
         new PubPackageMapProvider(resourceProvider, defaultSdk),
-        _createIndex(),
+        index,
         analysisServerOptions,
         defaultSdk,
         instrumentationService,

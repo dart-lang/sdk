@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/src/util/utilities_timing.dart';
 
 /**
  * Instances of the class [ChannelChunkSink] uses a [Converter] to translate
@@ -126,18 +125,6 @@ class ResponseConverter extends Converter<Map, Response> {
  * both [Response]s and [Notification]s.
  */
 abstract class ServerCommunicationChannel {
-  /**
-   * A stopwatch used to accumulate the amount of time spent converting
-   * incomming requests from Json to objects.
-   */
-  static final CountedStopwatch FromJson = new CountedStopwatch();
-
-  /**
-   * A stopwatch used to accumulate the amount of time spent converting outgoing
-   * responses and notifications from objects to Json.
-   */
-  static final CountedStopwatch ToJson = new CountedStopwatch();
-
   /**
    * Close the communication channel.
    */

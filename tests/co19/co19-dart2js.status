@@ -1138,8 +1138,6 @@ WebPlatformTest/html-imports/loading-import_t01: RuntimeError # Please triage th
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
@@ -2755,8 +2753,6 @@ WebPlatformTest/html-imports/loading-import_t01: RuntimeError # Please triage th
 WebPlatformTest/html-templates/additions-to-the-steps-to-clone-a-node/templates-copy-document-owner_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
@@ -3641,6 +3637,7 @@ LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # Please triage t
 LayoutTests/fast/loader/about-blank-hash-change_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/loader/hashchange-event-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/loader/onhashchange-attribute-listeners_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/loader/scroll-position-restored-on-back_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: RuntimeError # Please triage this failure
@@ -3690,6 +3687,7 @@ LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # Pleas
 LayoutTests/fast/replaced/container-width-zero_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/replaced/preferred-widths_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-height-text-controls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/table-percent-width_t01: RuntimeError # Please triage this failure
@@ -4009,8 +4007,6 @@ WebPlatformTest/html-templates/definitions/template-contents-owner-test-001_t01:
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
@@ -6466,7 +6462,7 @@ LayoutTests/fast/events/scoped/editing-commands_t01: RuntimeError # Please triag
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/selectstart-prevent-selectall_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/submit-reset-nested-bubble_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/events/wheelevent-constructor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/eventsource/eventsource-attribute-listeners_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/eventsource/eventsource-constructor_t01: RuntimeError # Please triage this failure
@@ -7337,9 +7333,9 @@ WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-body-i
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-table-insertion-mode/end-tag-table_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/appending-to-a-template/template-child-nodes_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
@@ -7939,7 +7935,7 @@ LayoutTests/fast/css/link-alternate-stylesheet-2_t01: RuntimeError # Please tria
 LayoutTests/fast/css/link-alternate-stylesheet-3_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-alternate-stylesheet-4_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-alternate-stylesheet-5_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/link-disabled-attr-parser_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/link-disabled-attr-parser_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/list-item-text-align_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/margin-start-end_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/max-device-aspect-ratio_t01: Pass, RuntimeError # Please triage this failure
@@ -9211,9 +9207,9 @@ WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-body-i
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-table-insertion-mode/end-tag-table_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/appending-to-a-template/template-child-nodes_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure

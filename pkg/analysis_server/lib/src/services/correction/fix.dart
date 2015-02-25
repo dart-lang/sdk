@@ -6,7 +6,6 @@ library services.correction.fix;
 
 import 'package:analysis_server/src/protocol.dart' show SourceChange;
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 
@@ -16,9 +15,8 @@ import 'package:analyzer/src/generated/error.dart';
  *
  * Returns the computed [Fix]s, not `null`.
  */
-List<Fix> computeFixes(SearchEngine searchEngine, CompilationUnit unit,
-    AnalysisError error) {
-  var processor = new FixProcessor(searchEngine, unit, error);
+List<Fix> computeFixes(CompilationUnit unit, AnalysisError error) {
+  var processor = new FixProcessor(unit, error);
   List<Fix> fixes = processor.compute();
   fixes.sort((Fix a, Fix b) {
     return a.kind.relevance - b.kind.relevance;

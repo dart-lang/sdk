@@ -21,25 +21,25 @@ mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 
 [ $runtime == vm && $mode == debug]
-analysis_server/test/analysis_server_test: Skip  # Times out
-analysis_server/test/completion_test: Skip  # Times out
-analysis_server/test/domain_context_test: Skip  # Times out
-analysis_server/test/domain_server_test: Skip  # Times out
-analysis_server/test/integration/analysis/reanalyze_concurrent_test: Skip # Times out
-analysis_server/test/integration/analysis/update_content_test: Skip # Times out
-analysis_server/tool/spec/check_all_test: Skip # Times out
-analyzer/test/generated/element_test: Skip  # Times out
-analyzer/test/generated/parser_test: Skip  # Times out
-docgen/test/*: Skip # Slow
-third_party/html5lib/test/tokenizer_test: Skip  # Times out
+analysis_server/test/analysis_server_test: SkipSlow  # Times out
+analysis_server/test/completion_test: SkipSlow  # Times out
+analysis_server/test/domain_context_test: SkipSlow  # Times out
+analysis_server/test/domain_server_test: SkipSlow  # Times out
+analysis_server/test/integration/analysis/reanalyze_concurrent_test: SkipSlow # Times out
+analysis_server/test/integration/analysis/update_content_test: SkipSlow # Times out
+analysis_server/tool/spec/check_all_test: SkipSlow # Times out
+analyzer/test/generated/element_test: SkipSlow  # Times out
+analyzer/test/generated/parser_test: SkipSlow  # Times out
+docgen/test/*: SkipSlow
+third_party/html5lib/test/tokenizer_test: SkipSlow  # Times out
 
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
-docgen/test/*: Skip # Too slow
+docgen/test/*: SkipSlow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
-analysis_server/*: Skip # Timeout in some tests.
+analysis_server/*: SkipSlow # Timeout in some tests.
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -48,10 +48,10 @@ collection/test/equality_test/03: Fail # Issue 1533
 collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
-docgen/test/*: Skip # Far too slow
+docgen/test/*: SkipSlow # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
-analyzer/test/generated/engine_test: Skip # Slow
+analyzer/test/generated/engine_test: SkipSlow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 
@@ -102,11 +102,11 @@ async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
-collection/test/unmodifiable_collection_test: Skip # Times out. Issue 22050
-async/test/stream_zip_test: Skip # Times out. Issue 22050
+collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
+async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
-third_party/angular_tests/browser_test: Skip # uses dart:html
+third_party/angular_tests/browser_test: SkipByDesign # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
@@ -148,23 +148,21 @@ crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
 [ $browser ]
-analysis_server/test/*: Skip # Uses dart:io.
-analysis_server/tool/spec/check_all_test: Skip # Uses dart:io.
-analyzer2dart/*: Skip # Uses dart:io.
-analyzer/test/*: Skip # Uses dart:io.
+*/test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
+analysis_server/test/*: SkipByDesign # Uses dart:io.
+analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
+analyzer/test/*: SkipByDesign # Uses dart:io.
+analyzer2dart/*: SkipByDesign # Uses dart:io.
+docgen/test/*: SkipByDesign # Uses dart:io.
 http_server/test/*: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
-observe/test/unique_message_test: Skip # Intended only as a vm test.
+observe/test/unique_message_test: SkipByDesign  # Uses dart:io.
 stub_core_library/test/*: Fail, OK # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
-third_party/angular_tests/vm_test: Skip # Uses dart:io
-
-*/test/analyzer_test: Skip  # No need to run analysis tests on browser bots
-
-# Skip tests on the browser if the test depends on dart:io
-third_party/html5lib/test/parser_test: Skip
-third_party/html5lib/test/tokenizer_test: Skip
-third_party/html5lib/test/selectors/*: Skip
+third_party/angular_tests/vm_test: SkipByDesign # Uses dart:io
+third_party/html5lib/test/parser_test: SkipByDesign # Uses dart:io.
+third_party/html5lib/test/selectors/*: SkipByDesign # Uses dart:io.
+third_party/html5lib/test/tokenizer_test: SkipByDesign # Uses dart:io.
 
 [ $arch == simarm64 ]
 # Timeout. These are not unit tests. They do not run efficiently on our
@@ -176,20 +174,21 @@ third_party/html5lib/test/selectors/*: Skip
 mutation_observer: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
-[ $browser ]
-docgen/test/*: Skip  # Uses dart:io
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
+analyzer2dart/test/driver_test: StaticWarning # Issue 22418
+analyzer2dart/test/sexpr_test: StaticWarning # Issue 22418
+analyzer2dart/test/tree_shaker_test: StaticWarning # Issue 22418
+analyzer2dart/test/end2end_test: StaticWarning # Issue 22418
 
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
 [ $unchecked ]
-third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
-third_party/angular_tests/browser_test/core/scope: Skip # Requires checked mode.
-third_party/angular_tests/browser_test/core/zone: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/angular: SkipByDesign # Requires checked mode.
+third_party/angular_tests/browser_test/core/scope: SkipByDesign # Requires checked mode.
+third_party/angular_tests/browser_test/core/zone: SkipByDesign # Requires checked mode.
 third_party/angular_tests/browser_test/directive/ng_repeat: Skip # Issue 17152
 third_party/angular_tests/browser_test/change_detection/dirty_checking_change_detector: Skip # Issue 17152
 

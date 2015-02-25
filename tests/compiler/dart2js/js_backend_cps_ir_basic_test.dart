@@ -26,8 +26,7 @@ main() {
   print('($m)');
 }""",r"""
 function() {
-  var e, l, m;
-  e = 1;
+  var l, m;
   l = [1, 2, 3];
   m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
   P.print("()");
@@ -35,7 +34,7 @@ function() {
   P.print("(" + 1 + ")");
   P.print("(" + H.S([1, 2, 3]) + ")");
   P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
-  P.print("(" + H.S(e) + ")");
+  P.print("(" + 1 + ")");
   P.print("(" + H.S(l) + ")");
   P.print("(" + H.S(m) + ")");
   return null;
@@ -54,14 +53,11 @@ main() {
 """,
 """
 function() {
-  var v0, v1;
   V.foo(0, "b");
   V.foo(1, 2);
   V.bar(3, "b", "c");
   V.bar(4, 5, "c");
-  v0 = 6;
-  v1 = 7;
-  V.bar(v0, "b", v1);
+  V.bar(6, "b", 7);
   V.bar(8, 9, 10);
   return null;
 }"""),

@@ -1167,6 +1167,16 @@ class B {
     verify([source]);
   }
 
+  void test_constEvelTypeNum_String() {
+    Source source = addSource(r'''
+const String A = 'a';
+const String B = A + 'b';
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_constMapKeyExpressionTypeImplementsEquals_abstract() {
     Source source = addSource(r'''
 abstract class B {

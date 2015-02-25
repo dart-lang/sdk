@@ -320,6 +320,16 @@ class Relationship {
   static Map<String, Relationship> _RELATIONSHIP_MAP = {};
 
   /**
+   * The next artificial hash code.
+   */
+  static int _NEXT_HASH_CODE = 0;
+
+  /**
+   * The artifitial hash code for this object.
+   */
+  final int _hashCode = _NEXT_HASH_CODE++;
+
+  /**
    * The unique identifier for this relationship.
    */
   final String identifier;
@@ -328,6 +338,9 @@ class Relationship {
    * Initialize a newly created relationship with the given unique identifier.
    */
   Relationship(this.identifier);
+
+  @override
+  int get hashCode => _hashCode;
 
   @override
   String toString() => identifier;

@@ -8,11 +8,34 @@ import 'dart:math';
 import "package:unittest/unittest.dart";
 import "package:mime/mime.dart";
 
-void _testParse(String message,
-               String boundary,
-               [List<Map> expectedHeaders,
-                List expectedParts,
-                bool expectError = false]) {
+void _writeInChunks(List<int> data,
+                    int chunkSize,
+                    StreamController<List<int>> controller) {
+  if (chunkSize == -1) chunkSize = data.length;
+
+  int written = 0;
+  for (int pos = 0; pos < data.length; pos += chunkSize) {
+    int remaining = data.length - pos;
+    int writeLength = min(chunkSize, remaining);
+    controller.add(data.sublist(pos, pos + writeLength));
+    written += writeLength;
+  }
+  controller.close();
+}
+
+
+enum TestMode {
+  IMMEDIATE_LISTEN,
+  DELAY_LISTEN,
+  PAUSE_RESUME
+}
+
+void _runParseTest(String message,
+                   String boundary,
+                   TestMode mode,
+                   [List<Map> expectedHeaders,
+                    List expectedParts,
+                    bool expectError = false]) {
   Future testWrite(List<int> data, [int chunkSize = -1]) {
     StreamController controller = new StreamController(sync: true);
 
@@ -26,12 +49,46 @@ void _testParse(String message,
       if (expectedHeaders != null) {
         expect(multipart.headers, equals(expectedHeaders[part]));
       }
-      futures.add(multipart.fold([], (buffer, data) => buffer..addAll(data))
-          .then((data) {
-            if (expectedParts[part] != null) {
-              expect(data, equals(expectedParts[part].codeUnits));
-            }
+      switch (mode) {
+        case TestMode.IMMEDIATE_LISTEN:
+          futures.add(multipart.fold([], (buffer, data) => buffer..addAll(data))
+              .then((data) {
+                if (expectedParts[part] != null) {
+                  expect(data, equals(expectedParts[part].codeUnits));
+                }
+              }));
+          break;
+
+        case TestMode.DELAY_LISTEN:
+          futures.add(new Future(() {
+            return multipart.fold([], (buffer, data) => buffer..addAll(data))
+                .then((data) {
+                  if (expectedParts[part] != null) {
+                    expect(data, equals(expectedParts[part].codeUnits));
+                  }
+                });
           }));
+          break;
+
+        case TestMode.PAUSE_RESUME:
+          var completer = new Completer();
+          futures.add(completer.future);
+          var buffer = [];
+          var subscription;
+          subscription = multipart.listen(
+              (data) {
+                buffer.addAll(data);
+                subscription.pause();
+                new Future(() => subscription.resume());
+              },
+              onDone: () {
+                if (expectedParts[part] != null) {
+                  expect(buffer, equals(expectedParts[part].codeUnits));
+                }
+                completer.complete();
+              });
+          break;
+      }
     }, onError: (error) {
       if (!expectError) throw error;
     }, onDone: () {
@@ -41,16 +98,71 @@ void _testParse(String message,
       Future.wait(futures).then(completer.complete);
     });
 
-    if (chunkSize == -1) chunkSize = data.length;
+    _writeInChunks(data, chunkSize, controller);
 
-    int written = 0;
-    for (int pos = 0; pos < data.length; pos += chunkSize) {
-      int remaining = data.length - pos;
-      int writeLength = min(chunkSize, remaining);
-      controller.add(data.sublist(pos, pos + writeLength));
-      written += writeLength;
-    }
-    controller.close();
+    return completer.future;
+  }
+
+  Future testFirstPartOnly(List<int> data, [int chunkSize = -1]) {
+    var completer = new Completer();
+    var controller = new StreamController(sync: true);
+
+    var stream = controller.stream.transform(
+        new MimeMultipartTransformer(boundary));
+
+    var subscription;
+    subscription = stream.first.then((multipart) {
+      if (expectedHeaders != null) {
+        expect(multipart.headers, equals(expectedHeaders[0]));
+      }
+      return (multipart.fold([], (b, d) => b..addAll(d)).then((data) {
+        if (expectedParts != null && expectedParts[0] != null) {
+          expect(data, equals(expectedParts[0].codeUnits));
+        }
+      }));
+    }).then((_) {
+      completer.complete();
+    });
+
+    _writeInChunks(data, chunkSize, controller);
+
+    return completer.future;
+  }
+
+  Future testCompletePartAfterCancel(List<int> data,
+                                     int parts,
+                                     [int chunkSize = -1]) {
+    var completer = new Completer();
+    var controller = new StreamController(sync: true);
+    var stream = controller.stream.transform(
+        new MimeMultipartTransformer(boundary));
+    var subscription;
+    int i = 0;
+    var futures = [];
+    subscription = stream.listen((multipart) {
+      int partIndex = i;
+
+      if (partIndex >= parts) {
+        throw 'Expected no more parts, but got one.';
+      }
+
+      if (expectedHeaders != null) {
+        expect(multipart.headers, equals(expectedHeaders[partIndex]));
+      }
+      futures.add((multipart.fold([], (b, d) => b..addAll(d)).then((data) {
+        if (expectedParts != null && expectedParts[partIndex] != null) {
+          expect(data, equals(expectedParts[partIndex].codeUnits));
+        }
+      })));
+
+      if (partIndex == (parts - 1)) {
+        subscription.cancel();
+        Future.wait(futures).then(completer.complete);
+      }
+      i++;
+    });
+
+    _writeInChunks(data, chunkSize, controller);
 
     return completer.future;
   }
@@ -63,9 +175,48 @@ void _testParse(String message,
         testWrite(data),
         testWrite(data, 10),
         testWrite(data, 2),
-        testWrite(data, 1)]),
-        completes);
+        testWrite(data, 1),
+    ]), completes);
   });
+
+  if (expectedParts.length > 0) {
+    test('test-first-part-only', () {
+      expect(Future.wait([
+          testFirstPartOnly(data),
+          testFirstPartOnly(data, 10),
+          testFirstPartOnly(data, 2),
+          testFirstPartOnly(data, 1),
+      ]), completes);
+    });
+
+    test('test-n-parts-only', () {
+      int numPartsExpected = expectedParts.length - 1;
+      if (numPartsExpected == 0) numPartsExpected = 1;
+
+      expect(Future.wait([
+        testCompletePartAfterCancel(data, numPartsExpected),
+        testCompletePartAfterCancel(data, numPartsExpected, 10),
+        testCompletePartAfterCancel(data, numPartsExpected, 2),
+        testCompletePartAfterCancel(data, numPartsExpected, 1),
+      ]), completes);
+    });
+  }
+}
+
+void _testParse(String message,
+                String boundary,
+               [List<Map> expectedHeaders,
+                List expectedParts,
+                bool expectError = false]) {
+  _runParseTest(
+      message, boundary, TestMode.IMMEDIATE_LISTEN,
+      expectedHeaders, expectedParts, expectError);
+  _runParseTest(
+      message, boundary, TestMode.DELAY_LISTEN,
+      expectedHeaders, expectedParts, expectError);
+  _runParseTest(
+      message, boundary, TestMode.PAUSE_RESUME,
+      expectedHeaders, expectedParts, expectError);
 }
 
 void _testParseValid() {

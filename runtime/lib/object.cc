@@ -20,6 +20,19 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
+// Helper function in stacktrace.cc.
+void _printCurrentStacktrace();
+
+DEFINE_NATIVE_ENTRY(DartCore_fatal, 1) {
+  // The core library code entered an unrecoverable state.
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const char* msg = instance.ToCString();
+  OS::PrintErr("Fatal error in dart:core\n");
+  _printCurrentStacktrace();
+  FATAL(msg);
+  return Object::null();
+}
+
 
 DEFINE_NATIVE_ENTRY(Object_equals, 1) {
   // Implemented in the flow graph builder.

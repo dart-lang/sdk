@@ -15,6 +15,7 @@ import 'b.dart' as b hide B1;
 export 'a.dart' show A2 hide A3, A1;
 export 'b.dart' hide B1, B2 show B3;
 import 'dart:core' as core;
+import 'c.dart' deferred as c;
 
 main() {}
 ''',
@@ -27,6 +28,9 @@ class A3 {}
 class B1 {}
 class B2 {}
 class B3 {}
+''',
+'c.dart': '''
+foo() => 499;
 '''
 };
 
@@ -44,13 +48,17 @@ void main() {
         mirrors.libraries[Uri.parse('memory:b.dart')];
     Expect.isNotNull(bLibrary);
 
+    LibrarySourceMirror cLibrary =
+        mirrors.libraries[Uri.parse('memory:c.dart')];
+    Expect.isNotNull(cLibrary);
+
     LibrarySourceMirror coreLibrary =
         mirrors.libraries[Uri.parse('dart:core')];
     Expect.isNotNull(coreLibrary);
 
     var dependencies = mainLibrary.libraryDependencies;
     Expect.isNotNull(dependencies);
-    Expect.equals(5, dependencies.length);
+    Expect.equals(6, dependencies.length);
 
     // import 'a.dart' show A1, A2;
     var dependency = dependencies[0];
@@ -60,6 +68,7 @@ void main() {
     Expect.equals(mainLibrary, dependency.sourceLibrary);
     Expect.equals(aLibrary, dependency.targetLibrary);
     Expect.isNull(dependency.prefix);
+    Expect.isFalse(dependency.isDeferred);
 
     var combinators = dependency.combinators;
     Expect.isNotNull(combinators);
@@ -79,6 +88,7 @@ void main() {
     Expect.equals(mainLibrary, dependency.sourceLibrary);
     Expect.equals(bLibrary, dependency.targetLibrary);
     Expect.equals('b', dependency.prefix);
+    Expect.isFalse(dependency.isDeferred);
 
     combinators = dependency.combinators;
     Expect.isNotNull(combinators);
@@ -98,6 +108,7 @@ void main() {
     Expect.equals(mainLibrary, dependency.sourceLibrary);
     Expect.equals(aLibrary, dependency.targetLibrary);
     Expect.isNull(dependency.prefix);
+    Expect.isFalse(dependency.isDeferred);
 
     combinators = dependency.combinators;
     Expect.isNotNull(combinators);
@@ -123,6 +134,7 @@ void main() {
     Expect.equals(mainLibrary, dependency.sourceLibrary);
     Expect.equals(bLibrary, dependency.targetLibrary);
     Expect.isNull(dependency.prefix);
+    Expect.isFalse(dependency.isDeferred);
 
     combinators = dependency.combinators;
     Expect.isNotNull(combinators);
@@ -148,6 +160,21 @@ void main() {
     Expect.equals(mainLibrary, dependency.sourceLibrary);
     Expect.equals(coreLibrary, dependency.targetLibrary);
     Expect.equals('core', dependency.prefix);
+    Expect.isFalse(dependency.isDeferred);
+
+    combinators = dependency.combinators;
+    Expect.isNotNull(combinators);
+    Expect.equals(0, combinators.length);
+
+    // import 'c.dart' deferred as c;
+    dependency = dependencies[5];
+    Expect.isNotNull(dependency);
+    Expect.isTrue(dependency.isImport);
+    Expect.isFalse(dependency.isExport);
+    Expect.equals(mainLibrary, dependency.sourceLibrary);
+    Expect.equals(cLibrary, dependency.targetLibrary);
+    Expect.equals('c', dependency.prefix);
+    Expect.isTrue(dependency.isDeferred);
 
     combinators = dependency.combinators;
     Expect.isNotNull(combinators);

@@ -24,10 +24,7 @@ main() {
 }""",
 r"""
 function(x) {
-  var v0, v1;
-  v0 = 10;
-  v1 = J.getInterceptor$ns(x).$add(x, v0);
-  return V.Base.prototype.m$1.call(this, v1);
+  return V.Base.prototype.m$1.call(this, J.getInterceptor$ns(x).$add(x, 10));
 }"""),
 
   // Reenable when we support compiling functions that

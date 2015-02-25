@@ -59,4 +59,8 @@ echo ''
 echo '***'
 echo -n 'Now run: rsync -a --delete observatory_pub_packages/ '
 echo '~/workspace/dart-third_party/observatory_pub_packages/'
+echo 'Then: '
+echo 'cd ~/workspace/dart-third_party/observatory_pub_packages/'
+echo "svn status | grep ^? | sed 's/?    //' | xargs svn add"
+echo "svn st | grep ^! | sed 's/!    //' | xargs svn rm"
 echo '***'

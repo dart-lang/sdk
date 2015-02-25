@@ -16,9 +16,28 @@ import 'package:watcher/watcher.dart';
  */
 abstract class File extends Resource {
   /**
+   * Return the last-modified stamp of the file.
+   * Throws [FileSystemException] if the file does not exist.
+   */
+  int get modificationStamp;
+
+  /**
    * Create a new [Source] instance that serves this file.
    */
   Source createSource([Uri uri]);
+}
+
+
+/**
+ * Base class for all file system exceptions.
+ */
+class FileSystemException implements Exception {
+  final String path;
+  final String message;
+
+  FileSystemException(this.path, this.message);
+
+  String toString() => 'FileSystemException(path=$path; message=$message)';
 }
 
 

@@ -325,5 +325,25 @@ switch (true) {
     testStatement('label: while (a) { label2: break label;}', [],
         'label:\n  while (a) {\n    label2:\n      break label;\n  }'),
 
+
+    testStatement('var # = 3', ['x'], 'var x = 3;'),
+    testStatement('var # = 3',
+                  [new jsAst.VariableDeclaration('x')],
+                  'var x = 3;'),
+    testStatement('var # = 3, # = #',
+                  ['x', 'y', js.number(2)],
+                  'var x = 3, y = 2;'),
+    testStatement('var #a = 3, #b = #c',
+        {"a": 'x', "b": 'y', "c": js.number(2)},
+                  'var x = 3, y = 2;'),
+    testStatement('function #() {}', ['x'], 'function x() {\n}'),
+    testStatement('function #() {}',
+                  [new jsAst.VariableDeclaration('x')],
+                  'function x() {\n}'),
+    testStatement('try {} catch (#) {}', ['x'], 'try {\n} catch (x) {\n}'),
+    testStatement('try {} catch (#a) {}', {"a": 'x'}, 'try {\n} catch (x) {\n}'),
+    testStatement('try {} catch (#a) {}',
+                  {"a": new jsAst.VariableDeclaration('x')},
+                  'try {\n} catch (x) {\n}'),
   ]));
 }

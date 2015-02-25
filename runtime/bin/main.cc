@@ -947,20 +947,6 @@ void main(int argc, char** argv) {
   // Start event handler.
   EventHandler::Start();
 
-  // Initialize the Dart VM.
-  if (!Dart_Initialize(CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
-                       DartUtils::OpenFile,
-                       DartUtils::ReadFile,
-                       DartUtils::WriteFile,
-                       DartUtils::CloseFile,
-                       DartUtils::EntropySource)) {
-    fprintf(stderr, "%s", "VM initialization failed\n");
-    fflush(stderr);
-    exit(kErrorExitCode);
-  }
-
-
-
   // Start the debugger wire protocol handler if necessary.
   if (start_debugger) {
     ASSERT(debug_port >= 0);
@@ -971,6 +957,18 @@ void main(int argc, char** argv) {
     }
   } else {
     DebuggerConnectionHandler::InitForVmService();
+  }
+
+  // Initialize the Dart VM.
+  if (!Dart_Initialize(CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
+                       DartUtils::OpenFile,
+                       DartUtils::ReadFile,
+                       DartUtils::WriteFile,
+                       DartUtils::CloseFile,
+                       DartUtils::EntropySource)) {
+    fprintf(stderr, "%s", "VM initialization failed\n");
+    fflush(stderr);
+    exit(kErrorExitCode);
   }
 
   Dart_RegisterIsolateServiceRequestCallback(

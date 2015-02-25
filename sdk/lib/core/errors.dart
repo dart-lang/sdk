@@ -171,7 +171,7 @@ class ArgumentError extends Error {
       : this.value(null, name, "Must not be null");
 
   // Helper functions for toString overridden in subclasses.
-  String get _errorName => "Invalid argument${name == null ? "(s)" : ""}";
+  String get _errorName => "Invalid argument${!_hasValue ? "(s)" : ""}";
   String get _errorExplanation => "";
 
   String toString() {
@@ -179,9 +179,9 @@ class ArgumentError extends Error {
     if (name != null) {
       nameString = " ($name)";
     }
-    var message = this.message == null ? "" : ": ${this.message}";
+    var message = (this.message == null) ? "" : ": ${this.message}";
     String prefix = "$_errorName$nameString$message";
-    if (invalidValue == null) return prefix;
+    if (!_hasValue) return prefix;
     // If we know the invalid value, we can try to describe the problem.
     String explanation = _errorExplanation;
     String errorValue = Error.safeToString(invalidValue);

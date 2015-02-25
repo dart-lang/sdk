@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -32,7 +31,6 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
-  final SearchEngine searchEngine;
   final Source source;
   final String file;
   int fileStamp;
@@ -56,7 +54,7 @@ class AssistProcessor {
 
   SourceChange change = new SourceChange('<message>');
 
-  AssistProcessor(this.searchEngine, this.source, this.file, this.unit,
+  AssistProcessor(this.source, this.file, this.unit,
       this.selectionOffset, this.selectionLength) {
     unitElement = unit.element;
     context = unitElement.context;

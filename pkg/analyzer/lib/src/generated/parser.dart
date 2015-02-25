@@ -4095,6 +4095,24 @@ class Parser {
       _injectToken(new StringToken(type, "", _currentToken.offset));
 
   /**
+   * Create and return a new token with the given [type]. The token will replace
+   * the first portion of the given [token], so it will have the same offset and
+   * will have any comments that might have preceeded the token.
+   */
+  Token _createToken(Token token, TokenType type, {bool isBegin: false}) {
+    CommentToken comments = token.precedingComments;
+    if (comments == null) {
+      if (isBegin) {
+        return new BeginToken(type, token.offset);
+      }
+      return new Token(type, token.offset);
+    } else if (isBegin) {
+      return new BeginTokenWithComment(type, token.offset, comments);
+    }
+    return new TokenWithComment(type, token.offset, comments);
+  }
+
+  /**
    * Check that the given expression is assignable and report an error if it isn't.
    *
    * <pre>
@@ -4592,18 +4610,16 @@ class Parser {
     if (currentType == TokenType.GT) {
       return true;
     } else if (currentType == TokenType.GT_GT) {
-      int offset = _currentToken.offset;
-      Token first = new Token(TokenType.GT, offset);
-      Token second = new Token(TokenType.GT, offset + 1);
+      Token first = _createToken(_currentToken, TokenType.GT);
+      Token second = new Token(TokenType.GT, _currentToken.offset + 1);
       second.setNext(_currentToken.next);
       first.setNext(second);
       _currentToken.previous.setNext(first);
       _currentToken = first;
       return true;
     } else if (currentType == TokenType.GT_EQ) {
-      int offset = _currentToken.offset;
-      Token first = new Token(TokenType.GT, offset);
-      Token second = new Token(TokenType.EQ, offset + 1);
+      Token first = _createToken(_currentToken, TokenType.GT);
+      Token second = new Token(TokenType.EQ, _currentToken.offset + 1);
       second.setNext(_currentToken.next);
       first.setNext(second);
       _currentToken.previous.setNext(first);
@@ -4611,7 +4627,7 @@ class Parser {
       return true;
     } else if (currentType == TokenType.GT_GT_EQ) {
       int offset = _currentToken.offset;
-      Token first = new Token(TokenType.GT, offset);
+      Token first = _createToken(_currentToken, TokenType.GT);
       Token second = new Token(TokenType.GT, offset + 1);
       Token third = new Token(TokenType.EQ, offset + 2);
       third.setNext(_currentToken.next);
@@ -6085,7 +6101,9 @@ class Parser {
       name = _createSyntheticIdentifier();
     }
     if (commentAndMetadata.metadata.isNotEmpty) {
-      _reportErrorForNode(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, commentAndMetadata.metadata[0]);
+      _reportErrorForNode(
+          ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
+          commentAndMetadata.metadata[0]);
     }
     return new EnumConstantDeclaration(
         commentAndMetadata.comment,
@@ -7056,7 +7074,7 @@ class Parser {
     // may be empty list literal
     if (_matches(TokenType.INDEX)) {
       BeginToken leftBracket =
-          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, _currentToken.offset);
+          _createToken(_currentToken, TokenType.OPEN_SQUARE_BRACKET, isBegin: true);
       Token rightBracket =
           new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
       leftBracket.endToken = rightBracket;
@@ -8598,9 +8616,9 @@ class Parser {
         // valid.
         //
         if (operator.type == TokenType.MINUS_MINUS) {
-          int offset = operator.offset;
-          Token firstOperator = new Token(TokenType.MINUS, offset);
-          Token secondOperator = new Token(TokenType.MINUS, offset + 1);
+          Token firstOperator = _createToken(operator, TokenType.MINUS);
+          Token secondOperator =
+              new Token(TokenType.MINUS, operator.offset + 1);
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
@@ -10018,9 +10036,10 @@ class ParserErrorCode extends ErrorCode {
       'ABSTRACT_TYPEDEF',
       "Type aliases cannot be declared to be 'abstract'");
 
-  static const ParserErrorCode ANNOTATION_ON_ENUM_CONSTANT = const ParserErrorCode(
-      'ANNOTATION_ON_ENUM_CONSTANT',
-      "Enum constants cannot have annotations");
+  static const ParserErrorCode ANNOTATION_ON_ENUM_CONSTANT =
+      const ParserErrorCode(
+          'ANNOTATION_ON_ENUM_CONSTANT',
+          "Enum constants cannot have annotations");
 
   static const ParserErrorCode ASSERT_DOES_NOT_TAKE_ASSIGNMENT =
       const ParserErrorCode(

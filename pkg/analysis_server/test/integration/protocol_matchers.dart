@@ -1199,6 +1199,8 @@ final Matcher isElement = new LazyMatcher(() => new MatchesJsonObject(
  *   CLASS_TYPE_ALIAS
  *   COMPILATION_UNIT
  *   CONSTRUCTOR
+ *   ENUM
+ *   ENUM_CONSTANT
  *   FIELD
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
@@ -1222,6 +1224,8 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "CLASS_TYPE_ALIAS",
   "COMPILATION_UNIT",
   "CONSTRUCTOR",
+  "ENUM",
+  "ENUM_CONSTANT",
   "FIELD",
   "FUNCTION",
   "FUNCTION_TYPE_ALIAS",
@@ -1817,6 +1821,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
+ *   NO_INDEX_GENERATED
  *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
@@ -1835,6 +1840,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
   "INVALID_REQUEST",
+  "NO_INDEX_GENERATED",
   "REFACTORING_REQUEST_CANCELLED",
   "SERVER_ALREADY_STARTED",
   "SERVER_ERROR",

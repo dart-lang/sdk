@@ -387,6 +387,7 @@
         '..',
       ],
       'sources': [
+        'address_sanitizer.cc',
         'gen_snapshot.cc',
         # Very limited native resolver provided.
         'builtin_gen_snapshot.cc',

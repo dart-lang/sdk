@@ -17,12 +17,14 @@ import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/options.dart';
 import 'package:args/args.dart';
 
 /**
@@ -92,6 +94,12 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
+   * The name of the option used to cause instrumentation to also be written to
+   * a local file.
+   */
+  static const String INSTRUMENTATION_LOG_FILE = "instrumentation-log-file";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -132,6 +140,11 @@ class Driver implements ServerStarter {
   static const String NO_ERROR_NOTIFICATION = "no-error-notification";
 
   /**
+   * The name of the flag used to disable the index.
+   */
+  static const String NO_INDEX = "no-index";
+
+  /**
    * The name of the option used to set the file read mode.
    */
   static const String FILE_READ_MODE = "file-read-mode";
@@ -165,10 +178,10 @@ class Driver implements ServerStarter {
    * Use the given command-line [arguments] to start this server.
    */
   void start(List<String> arguments) {
-    ArgParser parser = _createArgParser();
-    ArgResults results = parser.parse(arguments);
+    CommandLineParser parser = _createArgParser();
+    ArgResults results = parser.parse(arguments, <String, String>{});
     if (results[HELP_OPTION]) {
-      _printUsage(parser);
+      _printUsage(parser.parser);
       return;
     }
 
@@ -206,7 +219,7 @@ class Driver implements ServerStarter {
       } on FormatException {
         print('Invalid port number: ${results[PORT_OPTION]}');
         print('');
-        _printUsage(parser);
+        _printUsage(parser.parser);
         exitCode = 1;
         return;
       }
@@ -218,6 +231,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
+    analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
@@ -231,6 +245,13 @@ class Driver implements ServerStarter {
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
 
+    if (instrumentationServer != null) {
+      String filePath = results[INSTRUMENTATION_LOG_FILE];
+      if (filePath != null) {
+        instrumentationServer = new MulticastInstrumentationServer(
+            [instrumentationServer, new FileInstrumentationServer(filePath)]);
+      }
+    }
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
     service.logVersion(
@@ -303,8 +324,9 @@ class Driver implements ServerStarter {
   /**
    * Create and return the parser used to parse the command-line arguments.
    */
-  ArgParser _createArgParser() {
-    ArgParser parser = new ArgParser();
+  CommandLineParser _createArgParser() {
+    CommandLineParser parser =
+        new CommandLineParser(alwaysIgnoreUnrecognized: true);
     parser.addOption(
         CLIENT_ID,
         help: "an identifier used to identify the client");
@@ -332,6 +354,9 @@ class Driver implements ServerStarter {
         help: "enable validation of incremental resolution results (slow)",
         defaultsTo: false,
         negatable: false);
+    parser.addOption(
+        INSTRUMENTATION_LOG_FILE,
+        help: "the path of the file to which instrumentation data will be written");
     parser.addFlag(
         INTERNAL_PRINT_TO_CONSOLE,
         help: "enable sending `print` output to the console",
@@ -345,6 +370,11 @@ class Driver implements ServerStarter {
     parser.addFlag(
         NO_ERROR_NOTIFICATION,
         help: "disable sending all analysis error notifications to the server",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
+        NO_INDEX,
+        help: "disable indexing sources",
         defaultsTo: false,
         negatable: false);
     parser.addOption(

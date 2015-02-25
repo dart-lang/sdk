@@ -28,6 +28,7 @@ main() {
   runReflectiveTests(InlineMethodTest);
   runReflectiveTests(MoveFileTest);
   runReflectiveTests(RenameTest);
+  runReflectiveTests(_NoSearchEngine);
 }
 
 
@@ -627,40 +628,61 @@ void res(int a, int b) {
 
 @reflectiveTest
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
+  List<RefactoringKind> kinds;
+
   /**
    * Tests that there is a RENAME refactoring available at the [search] offset.
    */
-  Future assertHasRenameRefactoring(String code, String search) {
+  Future assertHasRenameRefactoring(String code, String search) async {
+    return assertHasKind(code, search, RefactoringKind.RENAME, true);
+  }
+
+  /**
+   * Tests that there is refactoring of the given [kind] is available at the
+   * [search] offset.
+   */
+  Future assertHasKind(String code, String search, RefactoringKind kind,
+      bool expected) async {
     addTestFile(code);
-    return waitForTasksFinished().then((_) {
-      List<RefactoringKind> kinds = getRefactoringsAtString(search);
-      expect(kinds, contains(RefactoringKind.RENAME));
-    });
+    await waitForTasksFinished();
+    await getRefactoringsAtString(search);
+    // verify
+    Matcher matcher = contains(kind);
+    if (!expected) {
+      matcher = isNot(matcher);
+    }
+    expect(kinds, matcher);
+  }
+
+  @override
+  Index createIndex() {
+    return createLocalMemoryIndex();
   }
 
   /**
    * Returns the list of available refactorings for the given [offset] and
    * [length].
    */
-  List<RefactoringKind> getRefactorings(int offset, int length) {
+  Future getRefactorings(int offset, int length) async {
     Request request = new EditGetAvailableRefactoringsParams(
         testFile,
         offset,
         length).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    serverChannel.sendRequest(request);
+    var response = await serverChannel.waitForResponse(request);
     var result = new EditGetAvailableRefactoringsResult.fromResponse(response);
-    return result.kinds;
+    kinds = result.kinds;
   }
 
   /**
    * Returns the list of available refactorings at the offset of [search].
    */
-  List<RefactoringKind> getRefactoringsAtString(String search) {
+  Future getRefactoringsAtString(String search) {
     int offset = findOffset(search);
     return getRefactorings(offset, 0);
   }
 
-  List<RefactoringKind> getRefactoringsForString(String search) {
+  Future getRefactoringsForString(String search) {
     int offset = findOffset(search);
     return getRefactorings(offset, search.length);
   }
@@ -670,20 +692,25 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     handler = new EditDomainHandler(server);
+    server.handlers = [handler];
   }
 
-  Future test_extractLocal() {
+  Future test_extractLocal() async {
     addTestFile('''
 main() {
   var a = 1 + 2;
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      var search = '1 + 2';
-      List<RefactoringKind> kinds = getRefactoringsForString(search);
-      expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
-      expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
-    });
+    await waitForTasksFinished();
+    await getRefactoringsForString('1 + 2');
+    expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+    expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
+  Future test_convertMethodToGetter_hasElement() {
+    return assertHasKind('''
+int getValue() => 42;
+''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
   Future test_rename_hasElement_class() {
@@ -791,17 +818,15 @@ main(A a) {
 ''', 'test();');
   }
 
-  Future test_rename_noElement() {
+  Future test_rename_noElement() async {
     addTestFile('''
 main() {
   // not an element
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      List<RefactoringKind> kinds =
-          getRefactoringsAtString('// not an element');
-      expect(kinds, isNot(contains(RefactoringKind.RENAME)));
-    });
+    await waitForTasksFinished();
+    await getRefactoringsAtString('// not an element');
+    expect(kinds, isNot(contains(RefactoringKind.RENAME)));
   }
 }
 
@@ -1029,8 +1054,8 @@ import 'bin/lib.dart';
 
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
-  Future<Response> sendRenameRequest(String search, String newName,
-      {String id: '0', bool validateOnly: false}) {
+  Future<Response> sendRenameRequest(String search, String newName, {String id:
+      '0', bool validateOnly: false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(
         RefactoringKind.RENAME,
@@ -1057,7 +1082,9 @@ main() {
     Response responseA = await futureA;
     // "1" was cancelled
     // "2" is successful
-    expect(responseA, isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
+    expect(
+        responseA,
+        isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
     expect(responseB, isResponseSuccess('2'));
   }
 
@@ -1326,6 +1353,27 @@ class A {
 ''');
   }
 
+  test_constructor_fromFactoryRedirectingConstructor_onClassName() {
+    addTestFile('''
+class A {
+  A() = B;
+}
+class B {
+  B() {}
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('B;', 'newName');
+    }, '''
+class A {
+  A() = B.newName;
+}
+class B {
+  B.newName() {}
+}
+''');
+  }
+
   test_constructor_fromInstanceCreation() {
     addTestFile('''
 class A {
@@ -1576,7 +1624,10 @@ main() {
       // send the second request, with the same kind, file and offset
       return waitForTasksFinished().then((_) {
         return getRefactoringResult(() {
-          return sendRenameRequest('otherName =', 'newName', validateOnly: true);
+          return sendRenameRequest(
+              'otherName =',
+              'newName',
+              validateOnly: true);
         }).then((result) {
           RenameFeedback feedback = result.feedback;
           // the refactoring was reset, so we don't get a stale result
@@ -1716,5 +1767,48 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     server.handlers = [new EditDomainHandler(server),];
     createProject();
     handler = new EditDomainHandler(server);
+  }
+}
+
+
+@reflectiveTest
+class _NoSearchEngine extends _AbstractGetRefactoring_Test {
+  @override
+  Index createIndex() {
+    return null;
+  }
+
+  test_getAvailableRefactorings() async {
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    await waitForTasksFinished();
+    Request request =
+        new EditGetAvailableRefactoringsParams(testFile, 0, 0).toRequest('0');
+    return _assertErrorResposeNoIndex(request);
+  }
+
+  test_getRefactoring_noSearchEngine() async {
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    await waitForTasksFinished();
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+        testFile,
+        0,
+        0,
+        true).toRequest('0');
+    return _assertErrorResposeNoIndex(request);
+  }
+
+  _assertErrorResposeNoIndex(Request request) async {
+    Response response = await serverChannel.sendRequest(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }

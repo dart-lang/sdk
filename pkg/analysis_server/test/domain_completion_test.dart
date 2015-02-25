@@ -34,6 +34,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(CompletionManagerTest);
   runReflectiveTests(CompletionTest);
+  runReflectiveTests(_NoSearchEngine);
 }
 
 @reflectiveTest
@@ -53,6 +54,11 @@ class CompletionManagerTest extends AbstractAnalysisTest {
         new AnalysisServerOptions(),
         new MockSdk(),
         InstrumentationService.NULL_SERVICE);
+  }
+
+  @override
+  Index createIndex() {
+    return createLocalMemoryIndex();
   }
 
   void sendRequest(String path) {
@@ -565,7 +571,11 @@ class MockCompletionManager implements CompletionManager {
  * Mock [AnaysisContext] for tracking usage of onSourcesChanged.
  */
 class MockContext implements AnalysisContext {
+  static final SourceFactory DEFAULT_SOURCE_FACTORY = new SourceFactory([]);
+
   MockStream<SourcesChangedEvent> mockStream;
+
+  SourceFactory sourceFactory = DEFAULT_SOURCE_FACTORY;
 
   MockContext() {
     mockStream = new MockStream<SourcesChangedEvent>();
@@ -665,3 +675,29 @@ class Test_CompletionDomainHandler extends CompletionDomainHandler {
     return new MockCompletionManager(mockContext, source, searchEngine);
   }
 }
+<<<<<<< .working
+
+@reflectiveTest
+class _NoSearchEngine extends AbstractAnalysisTest {
+  @override
+  void setUp() {
+    super.setUp();
+    createProject();
+    handler = new CompletionDomainHandler(server);
+  }
+
+  test_noSearchEngine() async {
+    addTestFile('''
+main() {
+  ^
+}
+    ''');
+    await waitForTasksFinished();
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, 0).toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
+  }
+}
+>>>>>>> .merge-right.r43886

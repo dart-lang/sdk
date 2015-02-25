@@ -33,6 +33,7 @@ class Expectation {
   static Expectation OK = byName('Ok');
   static Expectation SLOW = byName('Slow');
   static Expectation SKIP = byName('Skip');
+  static Expectation SKIP_SLOW = byName('SkipSlow');
   static Expectation SKIP_BY_DESIGN = byName('SkipByDesign');
 
   static Expectation byName(String name) {
@@ -72,8 +73,9 @@ class Expectation {
 
       build("PubGetError", group: fail);
 
-      build("Skip", isMetaExpectation: true);
+      var skip = build("Skip", isMetaExpectation: true);
       build("SkipByDesign", isMetaExpectation: true);
+      build("SkipSlow", group: skip, isMetaExpectation: true);
       build("Ok", isMetaExpectation: true);
       build("Slow", isMetaExpectation: true);
     }

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
+
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
  * that handles requests in the search domain.
@@ -151,6 +152,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   @override
   protocol.Response handleRequest(protocol.Request request) {
+    if (searchEngine == null) {
+      return new protocol.Response.noIndexGenerated(request);
+    }
     try {
       String requestName = request.method;
       if (requestName == SEARCH_FIND_ELEMENT_REFERENCES) {

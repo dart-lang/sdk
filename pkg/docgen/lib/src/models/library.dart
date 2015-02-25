@@ -53,7 +53,7 @@ class Library extends Indexable {
   }
 
   Library._(LibraryMirror libraryMirror) : super(libraryMirror) {
-    var exported = calcExportedItems(libraryMirror);
+    var exported = calcExportedItems(libraryMirror, {});
     var exportedClasses = addAll(exported['classes'],
         dart2js_util.typesOf(libraryMirror.declarations));
     updateLibraryPackage(mirror);

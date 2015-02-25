@@ -47,7 +47,7 @@
     'regexp_jsc.h',
     'regexp_patch.dart',
     'stacktrace.cc',
-    'stacktrace_patch.dart',
+    'stacktrace.dart',
     'stopwatch.cc',
     'stopwatch_patch.dart',
     'string.cc',

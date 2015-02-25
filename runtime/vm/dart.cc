@@ -20,7 +20,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
-#include "vm/service.h"
+#include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
@@ -112,7 +112,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   {
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
-    vm_isolate_ = Isolate::Init("vm-isolate");
+    const bool is_vm_isolate = true;
+    vm_isolate_ = Isolate::Init("vm-isolate", is_vm_isolate);
     StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_,
@@ -124,6 +125,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
+    // Now that the needed stub has been generated, set the stack limit.
+    vm_isolate_->InitializeStackLimit();
     Symbols::InitOnce(vm_isolate_);
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
@@ -146,7 +149,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
 
-  Service::RunService();
+  ServiceIsolate::Run();
 
   return NULL;
 }
@@ -261,9 +264,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     isolate->class_table()->Print();
   }
 
-  Service::MaybeInjectVMServiceLibrary(isolate);
+  ServiceIsolate::MaybeInjectVMServiceLibrary(isolate);
 
-  Service::SendIsolateStartupMessage();
+  ServiceIsolate::SendIsolateStartupMessage();
   isolate->debugger()->NotifyIsolateCreated();
 
   // Create tag table.
@@ -281,7 +284,7 @@ void Dart::RunShutdownCallback() {
   Isolate* isolate = Isolate::Current();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
-  Service::SendIsolateShutdownMessage();
+  ServiceIsolate::SendIsolateShutdownMessage();
   if (callback != NULL) {
     (callback)(callback_data);
   }

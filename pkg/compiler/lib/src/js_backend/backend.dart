@@ -88,7 +88,6 @@ class JavaScriptBackend extends Backend {
   /// size/complexity heuristics.
   static const Map<String, List<String>> ALWAYS_INLINE =
       const <String, List<String>> {
-    'IterableMixinWorkaround': const <String>['forEach'],
   };
 
   String get patchVersion => USE_NEW_EMITTER ? 'new' : 'old';
@@ -2311,6 +2310,10 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
+    if (element.isFunction && annotations.noInline(element)) {
+      inlineCache.markAsNonInlinable(element);
+    }
+
     LibraryElement library = element.library;
     if (!library.isPlatformLibrary && !library.canUseNative) return;
     bool hasNoInline = false;
@@ -2437,20 +2440,20 @@ class Annotations {
   static final Uri PACKAGE_EXPECT =
       new Uri(scheme: 'package', path: 'expect/expect.dart');
 
-  ClassElement expectNoInliningClass;
+  ClassElement expectNoInlineClass;
   ClassElement expectTrustTypeAnnotationsClass;
   ClassElement expectAssumeDynamicClass;
 
   void onLibraryScanned(LibraryElement library) {
     if (library.canonicalUri == PACKAGE_EXPECT) {
-      expectNoInliningClass = library.find('NoInlining');
+      expectNoInlineClass = library.find('NoInline');
       expectTrustTypeAnnotationsClass = library.find('TrustTypeAnnotations');
       expectAssumeDynamicClass = library.find('AssumeDynamic');
-      if (expectNoInliningClass == null ||
+      if (expectNoInlineClass == null ||
           expectTrustTypeAnnotationsClass == null ||
           expectAssumeDynamicClass == null) {
         // This is not the package you're looking for.
-        expectNoInliningClass = null;
+        expectNoInlineClass = null;
         expectTrustTypeAnnotationsClass = null;
         expectAssumeDynamicClass = null;
       }
@@ -2458,8 +2461,9 @@ class Annotations {
   }
 
   /// Returns `true` if inlining is disabled for [element].
-  bool noInlining(Element element) {
-    return _hasAnnotation(element, expectNoInliningClass);
+  bool noInline(Element element) {
+    // TODO(floitsch): restrict to test directory.
+    return _hasAnnotation(element, expectNoInlineClass);
   }
 
   /// Returns `true` if parameter and returns types should be trusted for
@@ -2581,7 +2585,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     if (type.isMalformed) {
       registerBackendStaticInvocation(backend.getThrowTypeError(), registry);
     }
-    if (!type.treatAsRaw || type.containsTypeVariables) {
+    if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
       // TODO(johnniwinther): Investigate why this is needed.
       registerBackendStaticInvocation(
           backend.getSetRuntimeTypeInfo(), registry);
@@ -2665,17 +2669,23 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendInstantiation(backend.compiler.listClass, registry);
   }
 
-  void onConstantMap(Registry registry) {
+  void onMapLiteral(ResolutionRegistry registry,
+                    DartType type,
+                    bool isConstant) {
     assert(registry.isForResolution);
     void enqueue(String name) {
       Element e = backend.find(backend.jsHelperLibrary, name);
       registerBackendInstantiation(e, registry);
     }
 
-    enqueue(JavaScriptMapConstant.DART_CLASS);
-    enqueue(JavaScriptMapConstant.DART_PROTO_CLASS);
-    enqueue(JavaScriptMapConstant.DART_STRING_CLASS);
-    enqueue(JavaScriptMapConstant.DART_GENERAL_CLASS);
+    if (isConstant) {
+      enqueue(JavaScriptMapConstant.DART_CLASS);
+      enqueue(JavaScriptMapConstant.DART_PROTO_CLASS);
+      enqueue(JavaScriptMapConstant.DART_STRING_CLASS);
+      enqueue(JavaScriptMapConstant.DART_GENERAL_CLASS);
+    } else {
+      registry.registerInstantiatedType(type);
+    }
   }
 
   /// Called when resolving the `Symbol` constructor.

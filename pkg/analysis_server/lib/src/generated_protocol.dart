@@ -6601,6 +6601,8 @@ class Element implements HasToJson {
  *   CLASS_TYPE_ALIAS
  *   COMPILATION_UNIT
  *   CONSTRUCTOR
+ *   ENUM
+ *   ENUM_CONSTANT
  *   FIELD
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
@@ -6627,6 +6629,10 @@ class ElementKind implements Enum {
   static const COMPILATION_UNIT = const ElementKind._("COMPILATION_UNIT");
 
   static const CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
+
+  static const ENUM = const ElementKind._("ENUM");
+
+  static const ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
 
   static const FIELD = const ElementKind._("FIELD");
 
@@ -6663,7 +6669,7 @@ class ElementKind implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, FIELD, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
+  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, ENUM, ENUM_CONSTANT, FIELD, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
 
   final String name;
 
@@ -6679,6 +6685,10 @@ class ElementKind implements Enum {
         return COMPILATION_UNIT;
       case "CONSTRUCTOR":
         return CONSTRUCTOR;
+      case "ENUM":
+        return ENUM;
+      case "ENUM_CONSTANT":
+        return ENUM_CONSTANT;
       case "FIELD":
         return FIELD;
       case "FUNCTION":
@@ -9299,6 +9309,7 @@ class RequestError implements HasToJson {
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
+ *   NO_INDEX_GENERATED
  *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
@@ -9335,9 +9346,9 @@ class RequestErrorCode implements Enum {
   static const INVALID_EXECUTION_CONTEXT = const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
 
   /**
-   * An analysis.updateContent request contained a ChangeContentOverlay object
-   * which can't be applied, due to an edit having an offset or length that is
-   * out of range.
+   * An "analysis.updateContent" request contained a ChangeContentOverlay
+   * object which can't be applied, due to an edit having an offset or length
+   * that is out of range.
    */
   static const INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
@@ -9350,6 +9361,12 @@ class RequestErrorCode implements Enum {
    * A malformed request was received.
    */
   static const INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
+
+  /**
+   * The "--no-index" flag was passed when the analysis server created, but
+   * this API call requires an index to have been generated.
+   */
+  static const NO_INDEX_GENERATED = const RequestErrorCode._("NO_INDEX_GENERATED");
 
   /**
    * Another refactoring request was received during processing of this one.
@@ -9411,7 +9428,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -9433,6 +9450,8 @@ class RequestErrorCode implements Enum {
         return INVALID_PARAMETER;
       case "INVALID_REQUEST":
         return INVALID_REQUEST;
+      case "NO_INDEX_GENERATED":
+        return NO_INDEX_GENERATED;
       case "REFACTORING_REQUEST_CANCELLED":
         return REFACTORING_REQUEST_CANCELLED;
       case "SERVER_ALREADY_STARTED":

@@ -23,7 +23,7 @@ void nolog(_) {}
 Script newScriptFrom(LibraryElement library, String newSource) {
   Script script = library.entryCompilationUnit.script;
   return script.copyWithFile(
-      new StringSourceFile(script.file.filename, newSource));
+      new StringSourceFile.fromUri(script.file.uri, newSource));
 }
 
 class LibraryUpdaterTestCase extends CompilerTestCase {

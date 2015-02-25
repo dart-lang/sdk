@@ -35,7 +35,7 @@ Future testPoi() {
     Expect.stringEquals('$script', '$foundScript');
     Expect.stringEquals('main', element.name);
 
-    String source = handler.provider.sourceFiles['$script'].slowText();
+    String source = handler.provider.sourceFiles[script].slowText();
     final int position = source.indexOf('main()');
     Expect.isTrue(position > 0, '$position > 0');
 

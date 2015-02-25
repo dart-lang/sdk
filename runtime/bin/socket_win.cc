@@ -23,25 +23,26 @@ SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
 
   // Clear the port before calling WSAAddressToString as WSAAddressToString
   // includes the port in the formatted string.
-  int err = Socket::FormatNumericAddress(raw, as_string_, INET6_ADDRSTRLEN);
+  int err = Socket::FormatNumericAddress(*raw, as_string_, INET6_ADDRSTRLEN);
 
   if (err != 0) {
     as_string_[0] = 0;
   }
   memmove(reinterpret_cast<void *>(&addr_),
           sockaddr,
-          SocketAddress::GetAddrLength(raw));
+          SocketAddress::GetAddrLength(*raw));
 }
 
 
-bool Socket::FormatNumericAddress(RawAddr* addr, char* address, int len) {
+bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
   DWORD l = len;
-  return WSAAddressToStringA(&addr->addr,
-                                salen,
-                                NULL,
-                                address,
-                                &l) != 0;
+  RawAddr& raw = const_cast<RawAddr&>(addr);
+  return WSAAddressToStringA(&raw.addr,
+                             salen,
+                             NULL,
+                             address,
+                             &l) != 0;
 }
 
 
@@ -75,8 +76,8 @@ intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
-                     RawAddr* addr) {
+intptr_t Socket::RecvFrom(
+    intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   socklen_t addr_len = sizeof(addr->ss);
   return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
@@ -90,10 +91,11 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 
 
 intptr_t Socket::SendTo(
-    intptr_t fd, const void* buffer, intptr_t num_bytes, RawAddr addr) {
+    intptr_t fd, const void* buffer, intptr_t num_bytes, const RawAddr& addr) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
+  RawAddr& raw = const_cast<RawAddr&>(addr);
   return handle->SendTo(
-    buffer, num_bytes, &addr.addr, SocketAddress::GetAddrLength(&addr));
+    buffer, num_bytes, &raw.addr, SocketAddress::GetAddrLength(addr));
 }
 
 
@@ -107,7 +109,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
                   &size) == SOCKET_ERROR) {
     return 0;
   }
-  return SocketAddress::GetAddrPort(&raw);
+  return SocketAddress::GetAddrPort(raw);
 }
 
 
@@ -121,7 +123,7 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
                   &size)) {
     return NULL;
   }
-  *port = SocketAddress::GetAddrPort(&raw);
+  *port = SocketAddress::GetAddrPort(raw);
   // Clear the port before calling WSAAddressToString as WSAAddressToString
   // includes the port in the formatted string.
   SocketAddress::SetAddrPort(&raw, 0);
@@ -129,7 +131,7 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
 }
 
 
-static intptr_t Create(RawAddr addr) {
+static intptr_t Create(const RawAddr& addr) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {
     return -1;
@@ -153,13 +155,13 @@ static intptr_t Create(RawAddr addr) {
 
 
 static intptr_t Connect(
-    intptr_t fd, RawAddr addr, const intptr_t port, RawAddr bind_addr) {
+    intptr_t fd, const RawAddr& addr, const RawAddr& bind_addr) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_client_socket());
   ClientSocket* handle = reinterpret_cast<ClientSocket*>(fd);
   SOCKET s = handle->socket();
 
   int status = bind(
-      s, &bind_addr.addr, SocketAddress::GetAddrLength(&bind_addr));
+      s, &bind_addr.addr, SocketAddress::GetAddrLength(bind_addr));
   if (status != NO_ERROR) {
     int rc = WSAGetLastError();
     handle->mark_closed();  // Destructor asserts that socket is marked closed.
@@ -168,8 +170,6 @@ static intptr_t Connect(
     SetLastError(rc);
     return -1;
   }
-
-  SocketAddress::SetAddrPort(&addr, port);
 
   LPFN_CONNECTEX connectEx = NULL;
   GUID guid_connect_ex = WSAID_CONNECTEX;
@@ -191,7 +191,7 @@ static intptr_t Connect(
 
     status = connectEx(s,
                        &addr.addr,
-                       SocketAddress::GetAddrLength(&addr),
+                       SocketAddress::GetAddrLength(addr),
                        NULL,
                        0,
                        NULL,
@@ -217,7 +217,7 @@ static intptr_t Connect(
 }
 
 
-intptr_t Socket::CreateConnect(const RawAddr& addr, const intptr_t port) {
+intptr_t Socket::CreateConnect(const RawAddr& addr) {
   intptr_t fd = Create(addr);
   if (fd < 0) {
     return fd;
@@ -232,19 +232,18 @@ intptr_t Socket::CreateConnect(const RawAddr& addr, const intptr_t port) {
     bind_addr.in6.sin6_addr = in6addr_any;
   }
 
-  return Connect(fd, addr, port, bind_addr);
+  return Connect(fd, addr, bind_addr);
 }
 
 
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
-                                   const intptr_t port,
                                    const RawAddr& source_addr) {
   intptr_t fd = Create(addr);
   if (fd < 0) {
     return fd;
   }
 
-  return Connect(fd, addr, port, source_addr);
+  return Connect(fd, addr, source_addr);
 }
 
 
@@ -333,13 +332,13 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
 }
 
 
-bool Socket::ReverseLookup(RawAddr addr,
+bool Socket::ReverseLookup(const RawAddr& addr,
                            char* host,
                            intptr_t host_len,
                            OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
   int status = getnameinfo(&addr.addr,
-                           SocketAddress::GetAddrLength(&addr),
+                           SocketAddress::GetAddrLength(addr),
                            host,
                            host_len,
                            NULL,
@@ -370,9 +369,8 @@ bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
 }
 
 
-intptr_t Socket::CreateBindDatagram(
-    RawAddr* addr, intptr_t port, bool reuseAddress) {
-  SOCKET s = socket(addr->ss.ss_family, SOCK_DGRAM, IPPROTO_UDP);
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+  SOCKET s = socket(addr.ss.ss_family, SOCK_DGRAM, IPPROTO_UDP);
   if (s == INVALID_SOCKET) {
     return -1;
   }
@@ -393,10 +391,8 @@ intptr_t Socket::CreateBindDatagram(
     }
   }
 
-  SocketAddress::SetAddrPort(addr, port);
-
   status = bind(s,
-                &addr->addr,
+                &addr.addr,
                 SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
@@ -468,8 +464,7 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
 }
 
 
-intptr_t ServerSocket::CreateBindListen(RawAddr addr,
-                                        intptr_t port,
+intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
                                         intptr_t backlog,
                                         bool v6_only) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, IPPROTO_TCP);
@@ -499,10 +494,9 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
                sizeof(optval));
   }
 
-  SocketAddress::SetAddrPort(&addr, port);
   status = bind(s,
                 &addr.addr,
-                SocketAddress::GetAddrLength(&addr));
+                SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -513,11 +507,11 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
   ListenSocket* listen_socket = new ListenSocket(s);
 
   // Test for invalid socket port 65535 (some browsers disallow it).
-  if (port == 0 &&
+  if (SocketAddress::GetAddrPort(addr) == 0 &&
       Socket::GetPort(reinterpret_cast<intptr_t>(listen_socket)) == 65535) {
     // Don't close fd until we have created new. By doing that we ensure another
     // port.
-    intptr_t new_s = CreateBindListen(addr, 0, backlog, v6_only);
+    intptr_t new_s = CreateBindListen(addr, backlog, v6_only);
     DWORD rc = WSAGetLastError();
     closesocket(s);
     delete listen_socket;
@@ -687,12 +681,12 @@ bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
 
 
 bool Socket::JoinMulticast(
-    intptr_t fd, RawAddr* addr, RawAddr*, int interfaceIndex) {
+    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
-  int proto = addr->addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr->ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
   return setsockopt(handle->socket(),
                     proto,
                     MCAST_JOIN_GROUP,
@@ -702,12 +696,12 @@ bool Socket::JoinMulticast(
 
 
 bool Socket::LeaveMulticast(
-    intptr_t fd, RawAddr* addr, RawAddr*, int interfaceIndex) {
+    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
-  int proto = addr->addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr->ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
   return setsockopt(handle->socket(),
                     proto,
                     MCAST_LEAVE_GROUP,

@@ -35,4 +35,15 @@ void* ZoneAllocated::operator new(uword size, Zone* zone) {
   return Allocate(size, zone);
 }
 
+<<<<<<< .working
+
+void StackResource::UnwindAbove(Isolate* isolate, StackResource* new_top) {
+  StackResource* current_resource = isolate->top_resource();
+  while (current_resource != new_top) {
+    current_resource->~StackResource();
+    current_resource = isolate->top_resource();
+  }
+}
+
+>>>>>>> .merge-right.r43886
 }  // namespace dart

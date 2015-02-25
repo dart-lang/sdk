@@ -57,8 +57,8 @@ main() {
     // The broken versions should have been replaced.
     d.dir(cachePath, [
       d.dir('bin', [
-        // 255 is the VM's exit code upon seeing an out-of-date snapshot.
-        d.matcherFile(binStubName('foo-script'), contains('255'))
+        // 253 is the VM's exit code upon seeing an out-of-date snapshot.
+        d.matcherFile(binStubName('foo-script'), contains('253'))
       ])
     ]).validate();
   });

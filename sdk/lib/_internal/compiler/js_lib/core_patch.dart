@@ -71,8 +71,8 @@ class Function {
   static apply(Function function,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
-    //TODO(zarah): implement for new emitter.
-    throw new UnsupportedError('Function.apply is currently not supported.');
+    return Primitives.applyFunctionNewEmitter(function, positionalArguments,
+        namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
   }
 
   static Map<String, dynamic> _toMangledNames(

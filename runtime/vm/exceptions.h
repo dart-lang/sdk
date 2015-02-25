@@ -34,7 +34,7 @@ class Exceptions : AllStatic {
   static void Throw(Isolate* isolate, const Instance& exception);
   static void ReThrow(Isolate* isolate,
                       const Instance& exception,
-                      const Stacktrace& stacktrace);
+                      const Instance& stacktrace);
   static void PropagateError(const Error& error);
 
   // Helpers to create and throw errors.

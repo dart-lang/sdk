@@ -44,14 +44,6 @@ class ClassEmitter extends CodeEmitterHelper {
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 
-    if (classElement == backend.closureClass) {
-      // We add a special getter here to allow for tearing off a closure from
-      // itself.
-      String name = namer.getMappedInstanceName(Compiler.CALL_OPERATOR_NAME);
-      jsAst.Fun function = js('function() { return this; }');
-      builder.addProperty(namer.getterNameFromAccessorName(name), function);
-    }
-
     emitClassBuilderWithReflectionData(cls, builder, enclosingBuilder);
   }
   /**
@@ -248,9 +240,7 @@ class ClassEmitter extends CodeEmitterHelper {
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
       // full JS script.
-      if (!emitter.nativeEmitter.handleNoSuchMethod) {
-        emitter.nsmEmitter.emitNoSuchMethodHandlers(builder.addProperty);
-      }
+      emitter.nsmEmitter.emitNoSuchMethodHandlers(builder.addProperty);
     }
   }
 

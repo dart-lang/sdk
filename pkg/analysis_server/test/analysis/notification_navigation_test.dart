@@ -255,6 +255,129 @@ class BBB {}
     });
   }
 
+  test_factoryRedirectingConstructor_implicit() {
+    addTestFile('''
+class A {
+  factory A() = B;
+}
+class B {
+}
+''');
+    return prepareNavigation().then((_) {
+      assertHasRegion('B;');
+      assertHasTarget('B {');
+    });
+  }
+
+  test_factoryRedirectingConstructor_implicit_withTypeArgument() {
+    addTestFile('''
+class A {}
+class B {
+  factory B() = C<A>;
+}
+class C<T> {}
+''');
+    return prepareNavigation().then((_) {
+      {
+        assertHasRegion('C<A>');
+        assertHasTarget('C<T> {');
+      }
+      {
+        assertHasRegion('A>;');
+        assertHasTarget('A {');
+      }
+    });
+  }
+
+  test_factoryRedirectingConstructor_named() {
+    addTestFile('''
+class A {
+  factory A() = B.named;
+}
+class B {
+  B.named();
+}
+''');
+    return prepareNavigation().then((_) {
+      assertHasRegionString('B.named');
+      assertHasTarget('named();');
+    });
+  }
+
+  test_factoryRedirectingConstructor_named_withTypeArgument() {
+    addTestFile('''
+class A {}
+class B {
+  factory B.named() = C<A>.named;
+}
+class C<T> {
+  C.named() {}
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        assertHasRegion('C<A>');
+        assertHasTarget('named() {}');
+      }
+      {
+        assertHasRegion('A>.named');
+        assertHasTarget('A {');
+      }
+      {
+        assertHasRegion('.named;', '.named'.length);
+        assertHasTarget('named() {}');
+      }
+    });
+  }
+
+  test_factoryRedirectingConstructor_unnamed() {
+    addTestFile('''
+class A {
+  factory A() = B;
+}
+class B {
+  B() {}
+}
+''');
+    return prepareNavigation().then((_) {
+      assertHasRegion('B;');
+      assertHasTarget('B() {}', 0);
+    });
+  }
+
+  test_factoryRedirectingConstructor_unnamed_withTypeArgument() {
+    addTestFile('''
+class A {}
+class B {
+  factory B() = C<A>;
+}
+class C<T> {
+  C() {}
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        assertHasRegion('C<A>');
+        assertHasTarget('C() {}', 0);
+      }
+      {
+        assertHasRegion('A>;');
+        assertHasTarget('A {');
+      }
+    });
+  }
+
+  test_factoryRedirectingConstructor_unresolved() {
+    addTestFile('''
+class A {
+  factory A() = B;
+}
+''');
+    return prepareNavigation().then((_) {
+      // don't check regions, but there should be no exceptions
+    });
+  }
+
   test_fieldFormalParameter() {
     addTestFile('''
 class AAA {
@@ -370,7 +493,7 @@ main() {
     addTestFile('''
 class A {}
 class B<T> {
-  A.named() {}
+  B.named() {}
 }
 main() {
   new B<A>.named();

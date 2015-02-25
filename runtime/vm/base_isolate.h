@@ -5,6 +5,8 @@
 #ifndef VM_BASE_ISOLATE_H_
 #define VM_BASE_ISOLATE_H_
 
+#include "vm/globals.h"
+
 namespace dart {
 
 class HandleScope;
@@ -18,6 +20,9 @@ class BaseIsolate {
  public:
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }
+  static intptr_t top_resource_offset() {
+    return OFFSET_OF(BaseIsolate, top_resource_);
+  }
 
   // DEPRECATED: Use Thread::current_zone.
   Zone* current_zone() const { return current_zone_; }

@@ -21,6 +21,7 @@ import 'dart:_js_embedded_names' show
     NATIVE_SUPERCLASS_TAG_NAME;
 
 import 'dart:collection';
+
 import 'dart:_isolate_helper' show
     IsolateNatives,
     enterJsAsync,
@@ -67,7 +68,7 @@ import 'dart:_foreign_helper' show
 
 import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
-import 'dart:_internal' show MappedIterable;
+import 'dart:_internal' show MappedIterable, EfficientLength;
 
 import 'dart:_native_typed_data';
 
@@ -83,6 +84,7 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
+part 'linked_hash_map.dart';
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 /// them.
@@ -1045,6 +1047,68 @@ class Primitives {
             namedArgumentList));
   }
 
+  static applyFunctionNewEmitter(Function function,
+                                 List positionalArguments,
+                                 Map<String, dynamic> namedArguments) {
+    if (namedArguments == null) {
+      int requiredParameterCount = JS('int', r'#[#]', function,
+          JS_GET_NAME("REQUIRED_PARAMETER_PROPERTY"));
+      int argumentCount = positionalArguments.length;
+      if (argumentCount < requiredParameterCount) {
+        return functionNoSuchMethod(function, positionalArguments, null);
+      }
+      String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
+      var jsStub = JS('var', r'#[#]', function, selectorName);
+      if (jsStub == null) {
+        // Do a dynamic call.
+        var interceptor = getInterceptor(function);
+        var jsFunction = JS('', '#[#]', interceptor,
+            JS_GET_NAME('CALL_CATCH_ALL'));
+        var defaultValues = JS('var', r'#[#]', function,
+            JS_GET_NAME("DEFAULT_VALUES_PROPERTY"));
+        if (!JS('bool', '# instanceof Array', defaultValues)) {
+          // The function expects named arguments!
+          return functionNoSuchMethod(function, positionalArguments, null);
+        }
+        int defaultsLength = JS('int', "#.length", defaultValues);
+        int maxArguments = requiredParameterCount + defaultsLength;
+        if (argumentCount > maxArguments) {
+          // The function expects less arguments!
+          return functionNoSuchMethod(function, positionalArguments, null);
+        }
+        List arguments = new List.from(positionalArguments);
+        List missingDefaults = JS('JSArray', '#.slice(#)', defaultValues,
+            argumentCount - requiredParameterCount);
+        arguments.addAll(missingDefaults);
+        return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+      }
+      return JS('var', '#.apply(#, #)', jsStub, function, positionalArguments);
+    } else {
+      var interceptor = getInterceptor(function);
+      var jsFunction = JS('', '#[#]', interceptor,
+          JS_GET_NAME('CALL_CATCH_ALL'));
+      var defaultValues = JS('JSArray', r'#[#]', function,
+          JS_GET_NAME("DEFAULT_VALUES_PROPERTY"));
+      List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
+      List arguments = new List.from(positionalArguments);
+      int used = 0;
+      for (String key in keys) {
+        var value = namedArguments[key];
+        if (value != null) {
+          used++;
+          arguments.add(value);
+        } else {
+          arguments.add(JS('var', r'#[#]', defaultValues, key));
+        }
+      }
+      if (used != namedArguments.length) {
+        return functionNoSuchMethod(function, positionalArguments,
+            namedArguments);
+      }
+      return JS('var', r'#.apply(#, #)', jsFunction, function, arguments);
+    }
+  }
+
   static applyFunction(Function function,
                        List positionalArguments,
                        Map<String, dynamic> namedArguments) {
@@ -1079,11 +1143,22 @@ class Primitives {
     String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
+      var interceptor = getInterceptor(function);
+      jsFunction = JS('', '#["call*"]', interceptor);
 
-      // TODO(ahe): This might occur for optional arguments if there is no call
-      // selector with that many arguments.
-
-      return functionNoSuchMethod(function, positionalArguments, null);
+      if (jsFunction == null) {
+        return functionNoSuchMethod(function, positionalArguments, null);
+      }
+      ReflectionInfo info = new ReflectionInfo(jsFunction);
+      int maxArgumentCount = info.requiredParameterCount +
+          info.optionalParameterCount;
+      if (info.areOptionalParametersNamed || maxArgumentCount < argumentCount) {
+        return functionNoSuchMethod(function, positionalArguments, null);
+      }
+      arguments = new List.from(arguments);
+      for (int pos = argumentCount; pos < maxArgumentCount; pos++) {
+        arguments.add(info.defaultValue(pos));
+      }
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
@@ -1101,7 +1176,7 @@ class Primitives {
     // TODO(ahe): The following code can be shared with
     // JsInstanceMirror.invoke.
     var interceptor = getInterceptor(function);
-    var jsFunction = JS('', '#["call*"]', interceptor);
+    var jsFunction = JS('', '#[#]', interceptor, JS_GET_NAME('CALL_CATCH_ALL'));
 
     if (jsFunction == null) {
       return functionNoSuchMethod(
@@ -1707,6 +1782,9 @@ unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
   if (ex == null) return null;
+  if (ex is ExceptionAndStackTrace) {
+    return saveStackTrace(ex.dartException);
+  }
   if (JS('bool', 'typeof # !== "object"', ex)) return ex;
 
   if (JS('bool', r'"dartException" in #', ex)) {
@@ -1830,7 +1908,12 @@ unwrapException(ex) {
  * Called by generated code to fetch the stack trace from an
  * exception. Should never return null.
  */
-StackTrace getTraceFromException(exception) => new _StackTrace(exception);
+StackTrace getTraceFromException(exception) {
+  if (exception is ExceptionAndStackTrace) {
+    return exception.stackTrace;
+  }
+  return new _StackTrace(exception);
+}
 
 class _StackTrace implements StackTrace {
   var _exception;
@@ -1841,7 +1924,8 @@ class _StackTrace implements StackTrace {
     if (_trace != null) return JS('String', '#', _trace);
 
     String trace;
-    if (JS('bool', 'typeof # === "object"', _exception)) {
+    if (JS('bool', '# !== null', _exception) &&
+        JS('bool', 'typeof # === "object"', _exception)) {
       trace = JS("String|Null", r"#.stack", _exception);
     }
     return _trace = (trace == null) ? '' : trace;
@@ -1985,7 +2069,8 @@ abstract class Closure implements Function {
     // through the namer.
     var function = JS('', '#[#]', functions, 0);
     String name = JS('String|Null', '#.\$stubName', function);
-    String callName = JS('String|Null', '#.\$callName', function);
+    String callName = JS('String|Null', '#[#]', function,
+        JS_GET_NAME("CALL_NAME_PROPERTY"));
 
     var functionType;
     if (reflectionInfo is List) {
@@ -2087,14 +2172,19 @@ abstract class Closure implements Function {
     JS('', '#[#] = #', prototype, callName, trampoline);
     for (int i = 1; i < functions.length; i++) {
       var stub = functions[i];
-      var stubCallName = JS('String|Null', '#.\$callName', stub);
+      var stubCallName = JS('String|Null', '#[#]', stub,
+          JS_GET_NAME("CALL_NAME_PROPERTY"));
       if (stubCallName != null) {
         JS('', '#[#] = #', prototype, stubCallName,
            isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
       }
     }
 
-    JS('', '#["call*"] = #', prototype, trampoline);
+    JS('', '#[#] = #', prototype, JS_GET_NAME('CALL_CATCH_ALL'), trampoline);
+    String reqArgProperty = JS_GET_NAME("REQUIRED_PARAMETER_PROPERTY");
+    String defValProperty = JS_GET_NAME("DEFAULT_VALUES_PROPERTY");
+    JS('', '#.# = #.#', prototype, reqArgProperty, function, reqArgProperty);
+    JS('', '#.# = #.#', prototype, defValProperty, function, defValProperty);
 
     return constructor;
   }
@@ -3472,6 +3562,15 @@ void mainHasTooManyParameters() {
   throw new MainError("'main' expects too many parameters.");
 }
 
+/// A wrapper around an exception, much like the one created by [wrapException]
+/// but with a pre-given stack-trace.
+class ExceptionAndStackTrace {
+  dynamic dartException;
+  StackTrace stackTrace;
+
+  ExceptionAndStackTrace(this.dartException, this.stackTrace);
+}
+
 /// Runtime support for async-await transformation.
 ///
 /// This function is called by a transformed function on each await and return
@@ -3503,15 +3602,35 @@ dynamic asyncHelper(dynamic object,
   Future future = object is Future ? object : new Future.value(object);
   future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
                                       async_error_codes.SUCCESS),
-      onError: _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                       async_error_codes.ERROR));
+      onError: (dynamic error, StackTrace stackTrace) {
+        ExceptionAndStackTrace wrapped =
+            new ExceptionAndStackTrace(error, stackTrace);
+        return _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                       async_error_codes.ERROR)(wrapped);
+      });
   return completer.future;
 }
 
 Function _wrapJsFunctionForAsync(dynamic /* js function */ function,
                                  int errorCode) {
+  var protected = JS('', """
+    // Invokes [function] with [errorCode] and [result].
+    //
+    // If (and as long as) the invocation throws, calls [function] again,
+    // with an error-code.
+    function(errorCode, result) {
+      while (true) {
+        try {
+          #(errorCode, result);
+          break;
+        } catch (error) {
+          result = error;
+          errorCode = #;
+        }
+      }
+    }""", function, async_error_codes.ERROR);
   return (result) {
-    JS('', '#(#, #)', function, errorCode, result);
+    JS('', '#(#, #)', protected, errorCode, result);
   };
 }
 
@@ -3603,8 +3722,13 @@ void asyncStarHelper(dynamic object,
   Future future = object is Future ? object : new Future.value(object);
   future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
                                       async_error_codes.SUCCESS),
-              onError: _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                               async_error_codes.ERROR));
+              onError: (error, StackTrace stackTrace) {
+                ExceptionAndStackTrace wrapped =
+                    new ExceptionAndStackTrace(error, stackTrace);
+                return _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
+                                               async_error_codes.ERROR)
+                    (wrapped);
+              });
 }
 
 Stream streamOfController(AsyncStarStreamController controller) {
@@ -3629,16 +3753,18 @@ class AsyncStarStreamController {
   addError(error, stackTrace) => controller.addError(error, stackTrace);
   close() => controller.close();
 
-  AsyncStarStreamController(helperCallback) {
+  AsyncStarStreamController(body) {
     controller = new StreamController(
       onListen: () {
         scheduleMicrotask(() {
-          JS('', '#(#, null)', helperCallback, async_error_codes.SUCCESS);
+          Function wrapped = _wrapJsFunctionForAsync(body,
+                                                     async_error_codes.SUCCESS);
+          wrapped(null);
         });
       },
       onResume: () {
         if (!isAdding) {
-          asyncStarHelper(null, helperCallback, this);
+          asyncStarHelper(null, body, this);
         }
       }, onCancel: () {
         stopRunning = true;
@@ -3646,8 +3772,8 @@ class AsyncStarStreamController {
   }
 }
 
-makeAsyncStarController(helperCallback) {
-  return new AsyncStarStreamController(helperCallback);
+makeAsyncStarController(body) {
+  return new AsyncStarStreamController(body);
 }
 
 class IterationMarker {
@@ -3681,7 +3807,7 @@ class IterationMarker {
 }
 
 class SyncStarIterator implements Iterator {
-  final Function _body;
+  final dynamic _body;
 
   // If [runningNested] this is the nested iterator, otherwise it is the
   // current value.
@@ -3690,8 +3816,27 @@ class SyncStarIterator implements Iterator {
 
   get current => _runningNested ? _current.current : _current;
 
-  SyncStarIterator(body)
-      : _body = (() => JS('', '#()', body));
+  SyncStarIterator(this._body);
+
+  runBody() {
+    return JS('', '''
+      // Invokes [body] with [errorCode] and [result].
+      //
+      // If (and as long as) the invocation throws, calls [function] again,
+      // with an error-code.
+      (function(body) {
+        var errorValue, errorCode = #;
+        while (true) {
+          try {
+            return body(errorCode, errorValue);
+          } catch (error) {
+            errorValue = error;
+            errorCode = #
+          }
+        }
+      })(#)''', async_error_codes.SUCCESS, async_error_codes.ERROR, _body);
+  }
+
 
   bool moveNext() {
     if (_runningNested) {
@@ -3701,7 +3846,7 @@ class SyncStarIterator implements Iterator {
         _runningNested = false;
       }
     }
-    _current = _body();
+    _current = runBody();
     if (_current is IterationMarker) {
       if (_current.state == IterationMarker.ITERATION_ENDED) {
         _current = null;

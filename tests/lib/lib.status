@@ -18,6 +18,7 @@ math/random_big_test: RuntimeError  # Using bigint seeds for random.
 
 mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
+mirrors/class_mirror_location_test: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
@@ -49,13 +50,14 @@ mirrors/invoke_private_wrong_library_test: CompileTimeError # Issue 12164
 mirrors/library_declarations_test/none: RuntimeError # Issue 13439, Issue 13733
 mirrors/library_exports_shown_test: RuntimeError # Issue 6490
 mirrors/library_exports_hidden_test: RuntimeError # Issue 6490
+mirrors/library_imports_deferred_test: RuntimeError # Issue 6490
 mirrors/library_imports_metadata_test: RuntimeError # Issue 6490
 mirrors/library_imports_bad_metadata_test/none: RuntimeError # Issue 6490
 mirrors/library_imports_shown_test: RuntimeError # Issue 6490
 mirrors/library_imports_hidden_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 6490
-mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
+mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/local_function_is_static_test: RuntimeError # Issue 6335
 mirrors/lru_test: Skip # dart2js_native/lru_test is used instead
 mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
@@ -74,6 +76,7 @@ mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this. When
 mirrors/mirrors_nsm_test/dart2js: RuntimeError # Issue 19353
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test: RuntimeError # Issue 12464
+mirrors/other_declarations_location_test: CompileTimeError # Issue 10905
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 6490
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
@@ -210,11 +213,11 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $runtime == chrome || $runtime == ff || $runtime == ContentShellOnAndroid ]
-convert/streamed_conversion_utf8_encode_test: Skip # Times out. Issue 22050
-convert/streamed_conversion_json_utf8_encode_test: Skip # Times out. Issue 22050
-convert/streamed_conversion_json_utf8_decode_test: Skip # Times out. Issue 22050
-async/slow_consumer2_test: Skip # Times out. Issue 22050
-async/stream_timeout_test: Skip # Times out. Issue 22050
+convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
@@ -238,7 +241,7 @@ async/timer_not_available_test: SkipByDesign # only meant to test when there is 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
-mirrors/mirrors_used*: Skip # Invalid tests.
+mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
 [ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 async/schedule_microtask6_test: Fail # Issue 10910
@@ -247,10 +250,10 @@ async/multiple_timer_test: Fail, Pass # Issue 15487
 async/stream_periodic3_test: Fail, Pass # Issue 15487
 async/timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/timer_isActive_test: Fail, Pass # Issue 22352
-mirrors/immutable_collections_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
-mirrors/mirrors_reader_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
-mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
-mirrors/local_isolate_test: Skip # Issue 12188
+mirrors/immutable_collections_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
+mirrors/mirrors_reader_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
+mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
+mirrors/local_isolate_test: RuntimeError # Issue 12188
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
@@ -262,15 +265,15 @@ async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failur
 
 [$compiler == none && $runtime == ContentShellOnAndroid ]
 async/stream_timeout_test: RuntimeError, Pass # Issue 19127
-async/slow_consumer3_test: Skip # Times out flakily. Issue 20956
-async/slow_consumer2_test: Skip # Times out flakily. Issue 20956
-convert/streamed_conversion_utf8_encode_test: Skip # Times out or passes. Issue 19127
-convert/streamed_conversion_utf8_decode_test: Skip # Times out or passes. Issue 19127
-mirrors/lazy_static_test: Skip # Times out. Issue 19127
-mirrors/mirrors_reader_test: Skip # Times out. Issue 19127
+async/slow_consumer3_test: SkipSlow # Times out flakily. Issue 20956
+async/slow_consumer2_test: SkipSlow # Times out flakily. Issue 20956
+convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out or passes. Issue 19127
+convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out or passes. Issue 19127
+mirrors/lazy_static_test: SkipSlow # Times out. Issue 19127
+mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
-mirrors/mirrors_reader_test: Skip # Times out. Issue 20806.
+mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 
 [ $compiler == dart2dart ]
 # Deferred loading is not supported by dart2dart.
@@ -328,5 +331,5 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
-mirrors/immutable_collections_test: Skip  # Timeout.
+mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.

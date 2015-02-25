@@ -31,59 +31,30 @@ class StacktraceBuilder : public ValueObject {
   StacktraceBuilder() { }
   virtual ~StacktraceBuilder() { }
 
-  virtual void AddFrame(const Code& code,
-                        const Smi& offset,
-                        bool is_catch_frame) = 0;
-
-  virtual bool FullStacktrace() const = 0;
+  virtual void AddFrame(const Code& code, const Smi& offset) = 0;
 };
 
 
 class RegularStacktraceBuilder : public StacktraceBuilder {
  public:
-  explicit RegularStacktraceBuilder(bool full_stacktrace)
-      : code_list_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+  explicit RegularStacktraceBuilder(Isolate* isolate)
+      : code_list_(
+          GrowableObjectArray::Handle(isolate, GrowableObjectArray::New())),
         pc_offset_list_(
-            GrowableObjectArray::Handle(GrowableObjectArray::New())),
-        catch_code_list_(
-            full_stacktrace ?
-                GrowableObjectArray::Handle(GrowableObjectArray::New()) :
-                GrowableObjectArray::Handle()),
-        catch_pc_offset_list_(
-            full_stacktrace ?
-                GrowableObjectArray::Handle(GrowableObjectArray::New()) :
-                GrowableObjectArray::Handle()),
-        full_stacktrace_(full_stacktrace) { }
+          GrowableObjectArray::Handle(isolate, GrowableObjectArray::New())) { }
   ~RegularStacktraceBuilder() { }
 
   const GrowableObjectArray& code_list() const { return code_list_; }
   const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
-  const GrowableObjectArray& catch_code_list() const {
-    return catch_code_list_;
-  }
-  const GrowableObjectArray& catch_pc_offset_list() const {
-    return catch_pc_offset_list_;
-  }
-  virtual bool FullStacktrace() const { return full_stacktrace_; }
 
-  virtual void AddFrame(const Code& code,
-                        const Smi& offset,
-                        bool is_catch_frame) {
-    if (is_catch_frame) {
-      catch_code_list_.Add(code);
-      catch_pc_offset_list_.Add(offset);
-    } else {
-      code_list_.Add(code);
-      pc_offset_list_.Add(offset);
-    }
+  virtual void AddFrame(const Code& code, const Smi& offset) {
+    code_list_.Add(code);
+    pc_offset_list_.Add(offset);
   }
 
  private:
   const GrowableObjectArray& code_list_;
   const GrowableObjectArray& pc_offset_list_;
-  const GrowableObjectArray& catch_code_list_;
-  const GrowableObjectArray& catch_pc_offset_list_;
-  bool full_stacktrace_;
 
   DISALLOW_COPY_AND_ASSIGN(RegularStacktraceBuilder);
 };
@@ -91,22 +62,18 @@ class RegularStacktraceBuilder : public StacktraceBuilder {
 
 class PreallocatedStacktraceBuilder : public StacktraceBuilder {
  public:
-  explicit PreallocatedStacktraceBuilder(const Stacktrace& stacktrace)
-      : stacktrace_(stacktrace),
+  explicit PreallocatedStacktraceBuilder(const Instance& stacktrace)
+  : stacktrace_(Stacktrace::Cast(stacktrace)),
         cur_index_(0) {
     ASSERT(stacktrace_.raw() ==
            Isolate::Current()->object_store()->preallocated_stack_trace());
   }
   ~PreallocatedStacktraceBuilder() { }
 
-  virtual void AddFrame(const Code& code,
-                        const Smi& offset,
-                        bool is_catch_frame);
-
-  virtual bool FullStacktrace() const { return false; }
+  virtual void AddFrame(const Code& code, const Smi& offset);
 
  private:
-  static const int kNumTopframes = 3;
+  static const int kNumTopframes = Stacktrace::kPreallocatedStackdepth / 2;
 
   const Stacktrace& stacktrace_;
   intptr_t cur_index_;
@@ -116,8 +83,7 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
 
 
 void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
-                                             const Smi& offset,
-                                             bool is_catch_frame) {
+                                             const Smi& offset) {
   if (cur_index_ >= Stacktrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
     Code& frame_code = Code::Handle();
@@ -151,38 +117,11 @@ static void BuildStackTrace(Isolate* isolate, StacktraceBuilder* builder) {
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
-  bool dart_handler_found = false;
-  bool handler_pc_set = false;
   while (frame != NULL) {
-    while (!frame->IsEntryFrame()) {
-      if (frame->IsDartFrame()) {
-        code = frame->LookupDartCode();
-        offset = Smi::New(frame->pc() - code.EntryPoint());
-        builder->AddFrame(code, offset, dart_handler_found);
-        bool needs_stacktrace = false;
-        bool is_catch_all = false;
-        uword handler_pc = kUwordMax;
-        if (!handler_pc_set &&
-            frame->FindExceptionHandler(isolate,
-                                        &handler_pc,
-                                        &needs_stacktrace,
-                                        &is_catch_all)) {
-          handler_pc_set = true;
-          dart_handler_found = true;
-          if (!builder->FullStacktrace()) {
-            return;
-          }
-        }
-      }
-      frame = frames.NextFrame();
-      ASSERT(frame != NULL);
-    }
-    ASSERT(frame->IsEntryFrame());
-    if (!handler_pc_set) {
-      handler_pc_set = true;
-      if (!builder->FullStacktrace()) {
-        return;
-      }
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      offset = Smi::New(frame->pc() - code.EntryPoint());
+      builder->AddFrame(code, offset);
     }
     frame = frames.NextFrame();
   }
@@ -281,11 +220,8 @@ static void JumpToExceptionHandler(Isolate* isolate,
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
-
-  while (isolate->top_resource() != NULL &&
-         (reinterpret_cast<uword>(isolate->top_resource()) < stack_pointer)) {
-    isolate->top_resource()->~StackResource();
-  }
+  StackResource::Unwind(isolate);
+>>>>>>> .merge-right.r43886
 
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
@@ -339,7 +275,7 @@ static RawField* LookupStacktraceField(const Instance& instance) {
 
 RawStacktrace* Exceptions::CurrentStacktrace() {
   Isolate* isolate = Isolate::Current();
-  RegularStacktraceBuilder frame_builder(true);
+  RegularStacktraceBuilder frame_builder(isolate);
   BuildStackTrace(isolate, &frame_builder);
 
   // Create arrays for code and pc_offset tuples of each frame.
@@ -347,21 +283,15 @@ RawStacktrace* Exceptions::CurrentStacktrace() {
       Array::MakeArray(frame_builder.code_list()));
   const Array& full_pc_offset_array = Array::Handle(isolate,
       Array::MakeArray(frame_builder.pc_offset_list()));
-  const Array& full_catch_code_array = Array::Handle(isolate,
-      Array::MakeArray(frame_builder.catch_code_list()));
-  const Array& full_catch_pc_offset_array = Array::Handle(isolate,
-      Array::MakeArray(frame_builder.catch_pc_offset_list()));
   const Stacktrace& full_stacktrace = Stacktrace::Handle(
       Stacktrace::New(full_code_array, full_pc_offset_array));
-  full_stacktrace.SetCatchStacktrace(full_catch_code_array,
-                                     full_catch_pc_offset_array);
   return full_stacktrace.raw();
 }
 
 
 static void ThrowExceptionHelper(Isolate* isolate,
                                  const Instance& incoming_exception,
-                                 const Stacktrace& existing_stacktrace,
+                                 const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(isolate, incoming_exception.raw());
@@ -375,7 +305,7 @@ static void ThrowExceptionHelper(Isolate* isolate,
   uword handler_pc = 0;
   uword handler_sp = 0;
   uword handler_fp = 0;
-  Stacktrace& stacktrace = Stacktrace::Handle(isolate);
+  Instance& stacktrace = Instance::Handle(isolate);
   bool handler_exists = false;
   bool handler_needs_stacktrace = false;
   if (use_preallocated_stacktrace) {
@@ -390,54 +320,35 @@ static void ThrowExceptionHelper(Isolate* isolate,
       BuildStackTrace(isolate, &frame_builder);
     }
   } else {
-    // Get stacktrace field of class Error.
+    // Get stacktrace field of class Error. This is needed to determine whether
+    // we have a subclass of Error which carries around its stack trace.
     const Field& stacktrace_field =
         Field::Handle(isolate, LookupStacktraceField(exception));
+
+    // Find the exception handler and determine if the handler needs a
+    // stacktrace.
     handler_exists = FindExceptionHandler(isolate,
                                           &handler_pc,
                                           &handler_sp,
                                           &handler_fp,
                                           &handler_needs_stacktrace);
-    if (!stacktrace_field.IsNull() || handler_needs_stacktrace) {
-      Array& code_array = Array::Handle(isolate, Object::empty_array().raw());
-      Array& pc_offset_array =
-          Array::Handle(isolate, Object::empty_array().raw());
-      // If we have an error with a stacktrace field then collect the full stack
-      // trace and store it into the field.
-      if (!stacktrace_field.IsNull()) {
-        if (exception.GetField(stacktrace_field) == Object::null()) {
-          // This is an error object and we need to capture the full stack trace
-          // here implicitly, so we set up the stack trace. The stack trace
-          // field is set only once, it is not overriden.
-          const Stacktrace& full_stacktrace =
-              Stacktrace::Handle(isolate, Exceptions::CurrentStacktrace());
-          exception.SetField(stacktrace_field, full_stacktrace);
-        }
-      }
-      if (handler_needs_stacktrace) {
-        RegularStacktraceBuilder frame_builder(false);
-        BuildStackTrace(isolate, &frame_builder);
-
-        // Create arrays for code and pc_offset tuples of each frame.
-        code_array = Array::MakeArray(frame_builder.code_list());
-        pc_offset_array = Array::MakeArray(frame_builder.pc_offset_list());
-      }
-      if (existing_stacktrace.IsNull()) {
-        stacktrace = Stacktrace::New(code_array, pc_offset_array);
-      } else {
-        ASSERT(is_rethrow);
-        stacktrace = existing_stacktrace.raw();
-        if (pc_offset_array.Length() != 0) {
-          // Skip the first frame during a rethrow. This is the catch clause
-          // with the rethrow statement, which is not part of the original
-          // trace a rethrow is supposed to preserve.
-          stacktrace.Append(code_array, pc_offset_array, 1);
-        }
-        // Since we are re throwing and appending to the existing stack trace
-        // we clear out the catch trace collected in the existing stack trace
-        // as that trace will not be valid anymore.
-        stacktrace.SetCatchStacktrace(Object::empty_array(),
-                                      Object::empty_array());
+    if (!existing_stacktrace.IsNull()) {
+      // If we have an existing stack trace then this better be a rethrow. The
+      // reverse is not necessarily true (e.g. Dart_PropagateError can cause
+      // a rethrow being called without an existing stacktrace.)
+      ASSERT(is_rethrow);
+      ASSERT(stacktrace_field.IsNull() ||
+             (exception.GetField(stacktrace_field) != Object::null()));
+      stacktrace = existing_stacktrace.raw();
+    } else if (!stacktrace_field.IsNull() || handler_needs_stacktrace) {
+      // Collect the stacktrace if needed.
+      ASSERT(existing_stacktrace.IsNull());
+      stacktrace = Exceptions::CurrentStacktrace();
+      // If we have an Error object, then set its stackTrace field only if it
+      // not yet initialized.
+      if (!stacktrace_field.IsNull() &&
+          (exception.GetField(stacktrace_field) == Object::null())) {
+        exception.SetField(stacktrace_field, stacktrace);
       }
     }
   }
@@ -579,7 +490,7 @@ void Exceptions::Throw(Isolate* isolate, const Instance& exception) {
 
 void Exceptions::ReThrow(Isolate* isolate,
                          const Instance& exception,
-                         const Stacktrace& stacktrace) {
+                         const Instance& stacktrace) {
   // Null object is a valid exception object.
   ThrowExceptionHelper(isolate, exception, stacktrace, true);
 }
@@ -593,7 +504,7 @@ void Exceptions::PropagateError(const Error& error) {
     // rethrow the exception in the normal fashion.
     const UnhandledException& uhe = UnhandledException::Cast(error);
     const Instance& exc = Instance::Handle(isolate, uhe.exception());
-    const Stacktrace& stk = Stacktrace::Handle(isolate, uhe.stacktrace());
+    const Instance& stk = Instance::Handle(isolate, uhe.stacktrace());
     Exceptions::ReThrow(isolate, exc, stk);
   } else {
     // Return to the invocation stub and return this error object.  The

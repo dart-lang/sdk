@@ -25,6 +25,7 @@
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
+#include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -623,7 +624,7 @@ void Isolate::InitOnce() {
 }
 
 
-Isolate* Isolate::Init(const char* name_prefix) {
+Isolate* Isolate::Init(const char* name_prefix, bool is_vm_isolate) {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
 
@@ -653,11 +654,11 @@ Isolate* Isolate::Init(const char* name_prefix) {
   ASSERT(state != NULL);
   result->set_api_state(state);
 
-  // Initialize stack top and limit in case we are running the isolate in the
-  // main thread.
-  // TODO(5411455): Need to figure out how to set the stack limit for the
-  // main thread.
-  result->SetStackLimitFromStackBase(reinterpret_cast<uword>(&result));
+  // Initialize stack limit (wait until later for the VM isolate, since the
+  // needed GetStackPointer stub has not yet been generated in that case).
+  if (!is_vm_isolate) {
+    result->InitializeStackLimit();
+  }
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
 #if defined(DEBUG)
   // Verify that we are never reusing a live origin id.
@@ -686,12 +687,39 @@ Isolate* Isolate::Init(const char* name_prefix) {
 }
 
 
+void Isolate::InitializeStackLimit() {
+  SetStackLimitFromStackBase(Isolate::GetCurrentStackPointer());
+}
+
+
+/* static */
+uword Isolate::GetCurrentStackPointer() {
+  // Since AddressSanitizer's detect_stack_use_after_return instruments the
+  // C++ code to give out fake stack addresses, we call a stub in that case.
+  uword (*func)() =
+      reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());
+  // But for performance (and to support simulators), we normally use a local.
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+  uword current_sp = func();
+  return current_sp;
+#else
+  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
+  return stack_allocated_local_address;
+#endif
+#else
+  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
+  return stack_allocated_local_address;
+#endif
+}
+
+
 void Isolate::BuildName(const char* name_prefix) {
   ASSERT(name_ == NULL);
   if (name_prefix == NULL) {
     name_prefix = "isolate";
   }
-  if (Service::IsServiceIsolateName(name_prefix)) {
+  if (ServiceIsolate::NameEquals(name_prefix)) {
     name_ = strdup(name_prefix);
     return;
   }
@@ -810,7 +838,7 @@ bool Isolate::MakeRunnable() {
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
   is_runnable_ = true;
-  if (!Service::IsServiceIsolate(this)) {
+  if (!ServiceIsolate::IsServiceIsolate(this)) {
     message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
     message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
   }

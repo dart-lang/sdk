@@ -24,8 +24,11 @@ import 'js_emitter.dart' show
     RuntimeTypeGenerator,
     TypeTestProperties;
 
+import '../elements/elements.dart' show ParameterElement;
+
 import '../universe/universe.dart' show Universe;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../constants/expressions.dart' show ConstantExpression, ConstantValue;
 
 part 'registry.dart';
 
@@ -104,21 +107,24 @@ class ProgramBuilder {
     _unneededNativeClasses =
         _task.nativeEmitter.prepareNativeClasses(nativeClasses);
 
-    MainFragment mainOutput = _buildMainOutput(_registry.mainLibrariesMap);
-    Iterable<Fragment> deferredOutputs = _registry.deferredLibrariesMap
-        .map((librariesMap) => _buildDeferredOutput(mainOutput, librariesMap));
+    MainFragment mainFragment = _buildMainFragment(_registry.mainLibrariesMap);
+    Iterable<Fragment> deferredFragments =
+        _registry.deferredLibrariesMap.map(_buildDeferredFragment);
 
-    List<Fragment> outputs = new List<Fragment>(_registry.librariesMapCount);
-    outputs[0] = mainOutput;
-    outputs.setAll(1, deferredOutputs);
+    List<Fragment> fragments = new List<Fragment>(_registry.librariesMapCount);
+    fragments[0] = mainFragment;
+    fragments.setAll(1, deferredFragments);
 
     _markEagerClasses();
 
     bool containsNativeClasses =
         nativeClasses.length != _unneededNativeClasses.length;
 
+    List<Holder> holders = _registry.holders.toList(growable: false);
+
     return new Program(
-        outputs,
+        fragments,
+        holders,
         _buildLoadMap(),
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
@@ -149,7 +155,7 @@ class ProgramBuilder {
     return stubGenerator.generateTypeToInterceptorMap();
   }
 
-  MainFragment _buildMainOutput(LibrariesMap librariesMap) {
+  MainFragment _buildMainFragment(LibrariesMap librariesMap) {
     // Construct the main output from the libraries and the registered holders.
     MainFragment result = new MainFragment(
         librariesMap.outputUnit,
@@ -158,8 +164,7 @@ class ProgramBuilder {
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
-        _buildConstants(librariesMap),
-        _registry.holders.toList(growable: false));
+        _buildConstants(librariesMap));
     _outputs[librariesMap.outputUnit] = result;
     return result;
   }
@@ -170,13 +175,11 @@ class ProgramBuilder {
     return generator.generateInvokeMain();
   }
 
-  DeferredFragment _buildDeferredOutput(MainFragment mainOutput,
-                                      LibrariesMap librariesMap) {
+  DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
     DeferredFragment result = new DeferredFragment(
         librariesMap.outputUnit,
         backend.deferredPartFileName(librariesMap.name, addExtension: false),
                                      librariesMap.name,
-        mainOutput,
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
         _buildStaticLazilyInitializedFields(librariesMap),
@@ -209,10 +212,17 @@ class ProgramBuilder {
   StaticField _buildStaticField(Element element) {
     JavaScriptConstantCompiler handler = backend.constants;
     ConstantValue initialValue = handler.getInitialValueFor(element).value;
+    // TODO(zarah): The holder should not be registered during building of
+    // a static field.
+    _registry.registerHolder(namer.globalObjectForConstant(initialValue));
     js.Expression code = _task.emitter.constantReference(initialValue);
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = false;
     bool isLazy = false;
+
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a static field. (Note that the $ holder is already registered
+    // earlier).
     return new StaticField(element,
                            name, _registry.registerHolder(r'$'), code,
                            isFinal, isLazy);
@@ -245,6 +255,9 @@ class ProgramBuilder {
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = element.isFinal;
     bool isLazy = true;
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a static field. (Note that the $ holder is already registered
+    // earlier).
     return new StaticField(element,
                            name, _registry.registerHolder(r'$'), code,
                            isFinal, isLazy);
@@ -353,6 +366,15 @@ class ProgramBuilder {
       });
     }
 
+    if (element == backend.closureClass) {
+      // We add a special getter here to allow for tearing off a closure from
+      // itself.
+      String name = namer.getterNameFromAccessorName(
+          namer.getMappedInstanceName(Compiler.CALL_OPERATOR_NAME));
+      js.Fun function = js.js('function() { return this; }');
+      callStubs.add(_buildStubMethod(name, function));
+    }
+
     ClassElement implementation = element.implementation;
 
     // MixinApplications run through the members of their mixin. Here, we are
@@ -378,6 +400,8 @@ class ProgramBuilder {
 
     String name = namer.getNameOfClass(element);
     String holderName = namer.globalObjectFor(element);
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a class.
     Holder holder = _registry.registerHolder(holderName);
     bool isInstantiated =
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
@@ -440,6 +464,26 @@ class ProgramBuilder {
     }
   }
 
+  /* Map | List */ _computeParameterDefaultValues(FunctionSignature signature) {
+    var /* Map | List */ optionalParameterDefaultValues;
+    if (signature.optionalParametersAreNamed) {
+      optionalParameterDefaultValues = new Map<String, ConstantValue>();
+      signature.forEachOptionalParameter((ParameterElement parameter) {
+        ConstantExpression def =
+            backend.constants.getConstantForVariable(parameter);
+        optionalParameterDefaultValues[parameter.name] = def.value;
+      });
+    } else {
+      optionalParameterDefaultValues = <ConstantValue>[];
+      signature.forEachOptionalParameter((ParameterElement parameter) {
+        ConstantExpression def =
+            backend.constants.getConstantForVariable(parameter);
+        optionalParameterDefaultValues.add(def.value);
+      });
+    }
+    return optionalParameterDefaultValues;
+  }
+
   DartMethod _buildMethod(FunctionElement element) {
     String name = namer.getNameOfInstanceMember(element);
     js.Expression code = backend.generatedCode[element];
@@ -500,11 +544,37 @@ class ProgramBuilder {
       memberType = element.type;
     }
 
+    js.Expression functionType;
+    if (canTearOff || canBeReflected) {
+      functionType = _generateFunctionType(memberType);
+    }
+
+    int requiredParameterCount;
+    var /* List | Map */ optionalParameterDefaultValues;
+    if (canBeApplied || canBeReflected) {
+      FunctionSignature signature = element.functionSignature;
+      requiredParameterCount = signature.requiredParameterCount;
+      optionalParameterDefaultValues =
+          _computeParameterDefaultValues(signature);
+    }
+
     return new InstanceMethod(element, name, code,
-        _generateParameterStubs(element, canTearOff), callName, memberType,
+        _generateParameterStubs(element, canTearOff), callName,
         needsTearOff: canTearOff, tearOffName: tearOffName,
         isClosure: isClosure, aliasName: aliasName,
-        canBeApplied: canBeApplied, canBeReflected: canBeReflected);
+        canBeApplied: canBeApplied, canBeReflected: canBeReflected,
+        requiredParameterCount: requiredParameterCount,
+        optionalParameterDefaultValues: optionalParameterDefaultValues,
+        functionType: functionType);
+  }
+
+  js.Expression _generateFunctionType(DartType type) {
+    if (type.containsTypeVariables) {
+      js.Expression thisAccess = js.js(r'this.$receiver');
+      return backend.rti.getSignatureEncoding(type, thisAccess);
+    } else {
+      return js.number(backend.emitter.metadataCollector.reifyType(type));
+    }
   }
 
   List<ParameterStubMethod> _generateParameterStubs(FunctionElement element,
@@ -545,6 +615,8 @@ class ProgramBuilder {
         new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
     Map<String, Set<ClassElement>> specializedGetInterceptors =
@@ -608,6 +680,8 @@ class ProgramBuilder {
         new InterceptorStubGenerator(_compiler, namer, backend);
 
     String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
     List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
@@ -633,21 +707,42 @@ class ProgramBuilder {
     String tearOffName =
         needsTearOff ? namer.getStaticClosureName(element) : null;
 
+
     String callName = null;
     if (needsTearOff) {
       Selector callSelector =
           new Selector.fromElement(element).toCallSelector();
       callName = namer.invocationName(callSelector);
     }
+    js.Expression functionType;
+    DartType type = element.type;
+    if (needsTearOff || canBeReflected) {
+      functionType = _generateFunctionType(type);
+    }
 
+    int requiredParameterCount;
+    var /* List | Map */ optionalParameterDefaultValues;
+    if (canBeApplied || canBeReflected) {
+      FunctionSignature signature = element.functionSignature;
+      requiredParameterCount = signature.requiredParameterCount;
+      optionalParameterDefaultValues =
+          _computeParameterDefaultValues(signature);
+    }
+
+    // TODO(floitsch): we shouldn't update the registry in the middle of
+    // building a static method.
     return new StaticDartMethod(element,
                                 name, _registry.registerHolder(holder), code,
                                 _generateParameterStubs(element, needsTearOff),
-                                callName, element.type,
+                                callName,
                                 needsTearOff: needsTearOff,
                                 tearOffName: tearOffName,
                                 canBeApplied: canBeApplied,
-                                canBeReflected: canBeReflected);
+                                canBeReflected: canBeReflected,
+                                requiredParameterCount: requiredParameterCount,
+                                optionalParameterDefaultValues:
+                                  optionalParameterDefaultValues,
+                                functionType: functionType);
   }
 
   void _registerConstants(OutputUnit outputUnit,

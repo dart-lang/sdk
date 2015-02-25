@@ -1078,7 +1078,6 @@ class _Bigint extends _IntegerImplementation implements int {
                         Uint32List yt_qd,
                         Uint32List t_digits,
                         Uint32List r_digits) {
-    assert(y_used > 0 && x_used >= y_used);
     // Initialize r_digits to normalized positive dividend.
     var r_used = _lShiftDigits(x_digits, x_used, nsh, r_digits);
     // For 64-bit processing, make sure y_used, i, and j are even.
@@ -1345,16 +1344,17 @@ class _Bigint extends _IntegerImplementation implements int {
     if (e < 0) throw new RangeError(e);
     if (m <= 0) throw new RangeError(m);
     if (e == 0) return 1;
-    e = e._toBigint();
     m = m._toBigint();
     final m_used = m._used;
     final m_used2p2 = 2*m_used + 2;
     final e_bitlen = e.bitLength;
     if (e_bitlen <= 0) return 1;
-    if ((e is! _Bigint) || m.isEven) {
-      _Reduction z = (e_bitlen < 8 || m.isEven) ?
+    final bool cannotUseMontgomery = m.isEven || _abs() >= m;
+    if (cannotUseMontgomery || e_bitlen < 64) {
+      _Reduction z = (cannotUseMontgomery || e_bitlen < 8) ?
           new _Classic(m) : new _Montgomery(m);
-      // TODO(regis): Should we use Barrett reduction for an even modulus?
+      // TODO(regis): Should we use Barrett reduction for an even modulus and a
+      // large exponent?
       var r_digits = new Uint32List(m_used2p2);
       var r2_digits = new Uint32List(m_used2p2);
       var g_digits = new Uint32List(m_used + (m_used & 1));
@@ -1382,6 +1382,7 @@ class _Bigint extends _IntegerImplementation implements int {
       }
       return z._revert(r_digits, r_used)._toValidInt();
     }
+    e = e._toBigint();
     var k;
     if (e_bitlen < 18) k = 1;
     else if (e_bitlen < 48) k = 3;
@@ -1588,6 +1589,8 @@ class _Montgomery implements _Reduction {
   // r = x*R mod _m.
   // Return r_used.
   int _convert(_Bigint x, Uint32List r_digits) {
+    // Montgomery reduction only works if abs(x) < _m.
+    assert(x._abs() < _m);
     var r = x._abs()._dlShift(_m._used)._rem(_m);
     if (x._neg && !r._neg && r._used > 0) {
       r = _m._sub(r);
@@ -1695,7 +1698,7 @@ class _Classic implements _Reduction {
     // _neg_norm_m_digits is read-only and has nm_used digits (possibly
     // including several leading zeros) plus a leading zero for 64-bit
     // processing.
-    _t_digits = new Uint32List(2*nm_used);
+    _t_digits = new Uint32List(2*nm_used + 2);
   }
 
   int _convert(_Bigint x, Uint32List r_digits) {

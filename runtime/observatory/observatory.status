@@ -8,4 +8,4 @@
 observatory/test/*: Skip
 
 [ $browser ]
-observatory/test/*: Skip # Uses dart:io
+observatory/test/*: SkipByDesign # Uses dart:io

@@ -9,6 +9,8 @@ library engine.element;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/utilities_general.dart';
+
 import 'ast.dart';
 import 'constant.dart' show EvaluationResultImpl;
 import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
@@ -1498,9 +1500,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
 
   @override
   bool operator ==(Object object) =>
-      object != null &&
-          runtimeType == object.runtimeType &&
-          source == (object as CompilationUnitElementImpl).source;
+      object is CompilationUnitElementImpl && source == object.source;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
@@ -1677,6 +1677,12 @@ abstract class ConstructorElement implements ClassMemberElement,
   bool get isFactory;
 
   /**
+   * Return the offset of the character immediately following the last character
+   * of this constructor's name, or `null` if not named.
+   */
+  int get nameEnd;
+
+  /**
    * Return the resolved [ConstructorDeclaration] node that declares this
    * [ConstructorElement] .
    *
@@ -1687,6 +1693,12 @@ abstract class ConstructorElement implements ClassMemberElement,
    */
   @override
   ConstructorDeclaration get node;
+
+  /**
+   * Return the offset of the `.` before this constructor name, or `null` if
+   * not named.
+   */
+  int get periodOffset;
 
   /**
    * Return the constructor to which this constructor is redirecting, or `null` if this
@@ -1720,6 +1732,17 @@ class ConstructorElementImpl extends ExecutableElementImpl implements
    * expressions).
    */
   List<ConstructorInitializer> constantInitializers;
+
+  /**
+   * The offset of the `.` before this constructor name or `null` if not named.
+   */
+  int periodOffset;
+
+  /**
+   * Return the offset of the character immediately following the last character
+   * of this constructor's name, or `null` if not named.
+   */
+  int nameEnd;
 
   /**
    * Initialize a newly created constructor element to have the given name.
@@ -1852,7 +1875,13 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   bool get isFactory => baseElement.isFactory;
 
   @override
+  int get nameEnd => baseElement.nameEnd;
+
+  @override
   ConstructorDeclaration get node => baseElement.node;
+
+  @override
+  int get periodOffset => baseElement.periodOffset;
 
   @override
   ConstructorElement get redirectedConstructor =>
@@ -3281,14 +3310,19 @@ class ElementLocationImpl implements ElementLocation {
  */
 class ElementPair {
   /**
-   * The first [Element]
+   * The first [Element].
    */
   final Element _first;
 
   /**
-   * The second [Element]
+   * The second [Element].
    */
   final Element _second;
+
+  /**
+   * A cached copy of the calculated hashCode for this element.
+   */
+  int _cachedHashCode;
 
   /**
    * The sole constructor for this class, taking two [Element]s.
@@ -3296,7 +3330,9 @@ class ElementPair {
    * @param first the first element
    * @param second the second element
    */
-  ElementPair(this._first, this._second);
+  ElementPair(this._first, this._second) {
+    _cachedHashCode = JenkinsSmiHash.hash2(_first.hashCode, _second.hashCode);
+  }
 
   /**
    * Return the first element.
@@ -3306,8 +3342,9 @@ class ElementPair {
   Element get firstElt => _first;
 
   @override
-  int get hashCode =>
-      ObjectUtilities.combineHashCodes(_first.hashCode, _second.hashCode);
+  int get hashCode {
+    return _cachedHashCode;
+  }
 
   /**
    * Return the second element
@@ -3321,11 +3358,9 @@ class ElementPair {
     if (identical(object, this)) {
       return true;
     }
-    if (object is ElementPair) {
-      ElementPair elementPair = object;
-      return (_first == elementPair._first) && (_second == elementPair._second);
-    }
-    return false;
+    return object is ElementPair &&
+        _first == object._first &&
+        _second == object._second;
   }
 }
 
@@ -4800,32 +4835,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   int get hashCode => internalHashCode(<DartType>[]);
 
   @override
-  int internalHashCode(List<DartType> visitedTypes) {
-    if (element == null) {
-      return 0;
-    } else if (visitedTypes.contains(this)) {
-      return 3;
-    }
-    visitedTypes.add(this);
-    // Reference the arrays of parameters
-    List<DartType> normalParameterTypes = this.normalParameterTypes;
-    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-    Iterable<DartType> namedParameterTypes = this.namedParameterTypes.values;
-    // Generate the hashCode
-    int code = (returnType as TypeImpl).internalHashCode(visitedTypes);
-    for (int i = 0; i < normalParameterTypes.length; i++) {
-      code = (code << 1) + (normalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
-    }
-    for (int i = 0; i < optionalParameterTypes.length; i++) {
-      code = (code << 1) + (optionalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
-    }
-    for (DartType type in namedParameterTypes) {
-      code = (code << 1) + (type as TypeImpl).internalHashCode(visitedTypes);
-    }
-    return code;
-  }
-
-  @override
   Map<String, DartType> get namedParameterTypes {
     LinkedHashMap<String, DartType> namedParameterTypes =
         new LinkedHashMap<String, DartType>();
@@ -5046,6 +5055,34 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     visitedElementPairs.remove(elementPair);
     // Return the result
     return result;
+  }
+
+  @override
+  int internalHashCode(List<DartType> visitedTypes) {
+    if (element == null) {
+      return 0;
+    } else if (visitedTypes.contains(this)) {
+      return 3;
+    }
+    visitedTypes.add(this);
+    // Reference the arrays of parameters
+    List<DartType> normalParameterTypes = this.normalParameterTypes;
+    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
+    Iterable<DartType> namedParameterTypes = this.namedParameterTypes.values;
+    // Generate the hashCode
+    int code = (returnType as TypeImpl).internalHashCode(visitedTypes);
+    for (int i = 0; i < normalParameterTypes.length; i++) {
+      code = (code << 1) +
+          (normalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
+    }
+    for (int i = 0; i < optionalParameterTypes.length; i++) {
+      code = (code << 1) +
+          (optionalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
+    }
+    for (DartType type in namedParameterTypes) {
+      code = (code << 1) + (type as TypeImpl).internalHashCode(visitedTypes);
+    }
+    return code;
   }
 
   @override
@@ -5654,11 +5691,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     if (identical(object, this)) {
       return true;
     }
-    if (object == null) {
-      return false;
-    }
-    return runtimeType == object.runtimeType &&
-        source == (object as HtmlElementImpl).source;
+    return object is HtmlElementImpl && source == object.source;
   }
 
   @override
@@ -6272,9 +6305,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
   List<InterfaceType> get interfaces {
     ClassElement classElement = element;
     List<InterfaceType> interfaces = classElement.interfaces;
@@ -6458,6 +6488,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
             otherType.typeArguments,
             visitedElementPairs);
   }
+
+  @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
@@ -7594,10 +7627,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   bool operator ==(Object object) =>
-      object != null &&
-          runtimeType == object.runtimeType &&
-          _definingCompilationUnit ==
-              (object as LibraryElementImpl).definingCompilationUnit;
+      object is LibraryElementImpl &&
+          _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
@@ -9288,8 +9319,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements
   }
 
   @override
-  int get hashCode =>
-      ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
+  int get hashCode => JenkinsSmiHash.hash2(super.hashCode, isGetter ? 1 : 2);
 
   @override
   String get identifier {
@@ -10619,9 +10649,6 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
   int get hashCode => _types.hashCode;
 
   @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
   bool operator ==(Object other) {
     if (other == null || other is! UnionType) {
       return false;
@@ -10650,6 +10677,9 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
   @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
       this == object;
+
+  @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
@@ -11130,9 +11160,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   int get hashCode => 2;
 
   @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
   bool get isVoid => true;
 
   @override
@@ -11141,6 +11168,9 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
       identical(object, this);
+
+  @override
+  int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic,

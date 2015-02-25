@@ -13,7 +13,7 @@ dummy_compiler_test: Skip # Issue 7233
 *: Skip
 
 [ $compiler == none && $runtime != vm ]
-dart2js_test: Skip # Uses dart:io.
+dart2js_test: SkipByDesign # Uses dart:io.
 
 
 [ $compiler == dart2js && $mode == debug ]

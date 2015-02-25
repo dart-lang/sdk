@@ -260,7 +260,13 @@ class ConstructorElementHandle extends ExecutableElementHandle implements
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
+  int get nameEnd => actualElement.nameEnd;
+
+  @override
   ConstructorDeclaration get node => actualElement.node;
+
+  @override
+  int get periodOffset => actualElement.periodOffset;
 
   @override
   ConstructorElement get redirectedConstructor =>
@@ -581,13 +587,13 @@ class FieldElementHandle extends PropertyInducingElementHandle implements
   ClassElement get enclosingElement => actualElement.enclosingElement;
 
   @override
+  bool get isEnumConstant => actualElement.isEnumConstant;
+
+  @override
   bool get isStatic => actualElement.isStatic;
 
   @override
   ElementKind get kind => ElementKind.FIELD;
-
-  @override
-  bool get isEnumConstant => actualElement.isEnumConstant;
 }
 
 /**

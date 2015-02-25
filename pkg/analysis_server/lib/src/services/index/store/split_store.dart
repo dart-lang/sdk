@@ -6,7 +6,6 @@ library services.src.index.store.split_store;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:analysis_server/src/services/index/index.dart';
@@ -17,6 +16,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 
 /**
@@ -116,10 +117,12 @@ class FileNodeManager implements NodeManager {
     }
     // write the node
     return new Future.microtask(() {
-      _DataOutputStream stream = new _DataOutputStream();
-      _writeNode(node, stream);
-      var bytes = stream.getBytes();
-      return _fileManager.write(name, bytes);
+      return ServerPerformanceStatistics.splitStore.makeCurrentWhile(() {
+        _DataOutputStream stream = new _DataOutputStream();
+        _writeNode(node, stream);
+        var bytes = stream.getBytes();
+        return _fileManager.write(name, bytes);
+      });
     }).catchError((exception, stackTrace) {
       _logger.logError(
           'Exception during reading index file ${name}',
@@ -988,7 +991,7 @@ class _DataInputStream {
   }
 
   int readInt() {
-    int result = _byteData.getInt32(_byteOffset);
+    int result = _byteData.getInt32(_byteOffset, Endianness.HOST_ENDIAN);
     _byteOffset += 4;
     return result;
   }
@@ -996,16 +999,23 @@ class _DataInputStream {
 
 
 class _DataOutputStream {
-  BytesBuilder _buffer = new BytesBuilder();
+  static const LIST_SIZE = 1024;
+  int _size = LIST_SIZE;
+  Uint32List _buf = new Uint32List(LIST_SIZE);
+  int _pos = 0;
 
   Uint8List getBytes() {
-    return new Uint8List.fromList(_buffer.takeBytes());
+    return new Uint8List.view(_buf.buffer, 0, _size << 2);
   }
 
   void writeInt(int value) {
-    _buffer.addByte((value & 0xFF000000) >> 24);
-    _buffer.addByte((value & 0x00FF0000) >> 16);
-    _buffer.addByte((value & 0x0000FF00) >> 8);
-    _buffer.addByte(value & 0xFF);
+    if (_pos == _size) {
+      int newSize = _size << 1;
+      Uint32List newBuf = new Uint32List(newSize);
+      newBuf.setRange(0, _size, _buf);
+      _size = newSize;
+      _buf = newBuf;
+    }
+    _buf[_pos++] = value;
   }
 }

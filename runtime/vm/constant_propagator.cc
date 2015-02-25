@@ -957,20 +957,29 @@ void ConstantPropagator::VisitUnboxInt64(UnboxInt64Instr* instr) {
 }
 
 
+void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
+  const Object& value = unary_op->value()->definition()->constant_value();
+  if (IsConstant(value) && value.IsInteger()) {
+    const Integer& value_int = Integer::Cast(value);
+    const Integer& result =
+        Integer::Handle(I, unary_op->Evaluate(value_int));
+    if (!result.IsNull()) {
+      SetValue(unary_op, Integer::ZoneHandle(I, result.raw()));
+      return;
+    }
+  }
+
+  SetValue(unary_op, non_constant_);
+}
+
+
 void ConstantPropagator::VisitUnaryMintOp(UnaryMintOpInstr* instr) {
-  // TODO(kmillikin): Handle unary operations.
-  SetValue(instr, non_constant_);
+  VisitUnaryIntegerOp(instr);
 }
 
 
 void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle unary operations.
-    SetValue(instr, non_constant_);
-  }
+  VisitUnaryIntegerOp(instr);
 }
 
 

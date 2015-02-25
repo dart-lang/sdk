@@ -13,6 +13,7 @@ namespace dart {
 
 // List of bootstrap native entry points used in the core dart library.
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
+  V(DartCore_fatal, 1)                                                         \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
   V(Object_setHash, 2)                                                         \
@@ -140,9 +141,6 @@ namespace dart {
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(AbstractClassInstantiationError_throwNew, 2)                               \
-  V(Stacktrace_getFullStacktrace, 1)                                           \
-  V(Stacktrace_getStacktrace, 1)                                               \
-  V(Stacktrace_setupFullStacktrace, 1)                                         \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
   V(TypedData_Int8Array_new, 1)                                                \
@@ -331,6 +329,7 @@ namespace dart {
   V(LibraryMirror_invokeSetter, 4)                                             \
   V(TypeVariableMirror_owner, 1)                                               \
   V(TypeVariableMirror_upper_bound, 1)                                         \
+  V(DeclarationMirror_location, 1)                                             \
   V(DeclarationMirror_metadata, 1)                                             \
   V(FunctionTypeMirror_call_method, 2)                                         \
   V(FunctionTypeMirror_parameters, 2)                                          \
@@ -339,7 +338,6 @@ namespace dart {
   V(MethodMirror_parameters, 2)                                                \
   V(MethodMirror_return_type, 2)                                               \
   V(MethodMirror_source, 1)                                                    \
-  V(MethodMirror_location, 1)                                                  \
   V(ParameterMirror_type, 3)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
   V(TypedefMirror_declaration, 1)                                              \
@@ -362,6 +360,7 @@ namespace dart {
   V(LinkedHashMap_toArray, 1)                                                  \
   V(LinkedHashMap_getModMark, 2)                                               \
   V(LinkedHashMap_useInternal, 0)                                              \
+  V(LinkedHashMap_useCompact, 0)                                               \
   V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \

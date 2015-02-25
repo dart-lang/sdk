@@ -564,7 +564,8 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     JavaScriptBackend backend = compiler.backend;
-    if (left.isUInt31(compiler) || right.isUInt31(compiler)) {
+    if (left.isPrimitiveOrNull(compiler) &&
+        (left.isUInt31(compiler) || right.isUInt31(compiler))) {
       return backend.uint31Type;
     }
     return super.computeTypeFromInputTypes(instruction, compiler);

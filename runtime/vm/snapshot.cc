@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
+#include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/lockers.h"
@@ -223,11 +224,15 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   // Read the library/class information and lookup the class.
   str_ ^= ReadObjectImpl(class_header);
   library_ = Library::LookupLibrary(str_);
-  ASSERT(!library_.IsNull());
+  if (library_.IsNull() || !library_.Loaded()) {
+    SetReadException("Invalid object found in message.");
+  }
   str_ ^= ReadObjectImpl();
   cls = library_.LookupClass(str_);
+  if (cls.IsNull()) {
+    SetReadException("Invalid object found in message.");
+  }
   cls.EnsureIsFinalized(isolate());
-  ASSERT(!cls.IsNull());
   return cls.raw();
 }
 
@@ -244,6 +249,24 @@ RawObject* SnapshotReader::ReadObjectImpl() {
 
 intptr_t SnapshotReader::NextAvailableObjectId() const {
   return backward_references_.length() + kMaxPredefinedObjectIds;
+}
+
+
+void SnapshotReader::SetReadException(const char* msg) {
+  Isolate* isolate = Isolate::Current();
+  const String& error_str = String::Handle(isolate, String::New(msg));
+  const Array& args = Array::Handle(isolate, Array::New(1));
+  args.SetAt(0, error_str);
+  Object& result = Object::Handle(isolate);
+  const Library& library = Library::Handle(isolate, Library::CoreLibrary());
+  result = DartLibraryCalls::InstanceCreate(library,
+                                            Symbols::ArgumentError(),
+                                            Symbols::Dot(),
+                                            args);
+  const Stacktrace& stacktrace = Stacktrace::Handle(isolate);
+  const UnhandledException& error = UnhandledException::Handle(
+      isolate, UnhandledException::New(Instance::Cast(result), stacktrace));
+  isolate->long_jump_base()->Jump(1, error);
 }
 
 

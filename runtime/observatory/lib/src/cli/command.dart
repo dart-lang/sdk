@@ -40,7 +40,7 @@ abstract class _CommandBase {
   //
   // Given a list of arguments to this command, provide a list of
   // possible completions for those arguments.
-  List<String> complete(List<String> args) => [];
+  Future<List<String>> complete(List<String> args) => new Future.value([]);
 
   // Override in subclasses to provide command-specific execution.
   Future run(List<String> args);
@@ -82,16 +82,19 @@ abstract class _CommandBase {
   }
 
   // Builds a list of completions for this command.
-  List<String> _buildCompletions(List<String> args,
-                                 bool addEmptyString) {
-    var completions = complete(args.sublist(_depth, args.length));
-    if (addEmptyString && completions.isEmpty && args[args.length - 1] == '') {
-      // Special case allowance for an empty particle at the end of
-      // the command.
-      completions = [''];
-    }
-    var prefix = _concatArgs(args, _depth);
-    return completions.map((str) => '${prefix}${str}').toList();
+  Future<List<String>> _buildCompletions(List<String> args,
+                                         bool addEmptyString) {
+    return complete(args.sublist(_depth, args.length))
+      .then((completions) {
+        if (addEmptyString && completions.isEmpty &&
+            args[args.length - 1] == '') {
+          // Special case allowance for an empty particle at the end of
+          // the command.
+          completions = [''];
+        }
+        var prefix = _concatArgs(args, _depth);
+        return completions.map((str) => '${prefix}${str}').toList();
+      });
   }
 
 }
@@ -101,7 +104,7 @@ class RootCommand extends _CommandBase {
   RootCommand(List<Command> children) : super(children);
 
   // Provides a list of possible completions for a line of text.
-  List<String> completeCommand(String line) {
+  Future<List<String>> completeCommand(String line) {
     var args = _splitLine(line);
     bool showAll = line.endsWith(' ') || args.isEmpty;
     if (showAll) {
@@ -112,7 +115,7 @@ class RootCommand extends _CommandBase {
     var commands =  _match(args, false);
     if (commands.isEmpty) {
       // No matching commands.
-      return [];
+      return new Future.value([]);
     }
     int matchLen = commands[0]._depth;
     if (matchLen < args.length) {
@@ -125,7 +128,7 @@ class RootCommand extends _CommandBase {
       } else {
         // An ambiguous prefix match leaves us nowhere.  The user is
         // typing a bunch of stuff that we don't know how to complete.
-        return [];
+        return new Future.value([]);
       }
     }
 
@@ -137,13 +140,18 @@ class RootCommand extends _CommandBase {
     if (showAll && matchLen == args.length) {
       // If we are showing all possiblities, also include local
       // completions for the parent command.
-      completions.addAll(commands[0]._parent._buildCompletions(args, false));
+      return commands[0]._parent._buildCompletions(args, false)
+        .then((localCompletions) {
+          completions.addAll(localCompletions);
+          return completions;
+        });
     }
-    return completions;
+    return new Future.value(completions);
   }
 
   // Runs a command.
   Future runCommand(String line) {
+    _historyAdvance(line);
     var args = _splitLine(line);
     var commands =  _match(args, true);
     if (commands.isEmpty) {
@@ -157,6 +165,49 @@ class RootCommand extends _CommandBase {
     }
   }
 
+  // Find all matching commands.  Useful for implementing help systems.
+  List<Command> matchCommand(List<String> args, bool preferExact) {
+    if (args.isEmpty) {
+      // Adding an empty string to the end causes us to match all
+      // subcommands of the last command.
+      args.add('');
+    }
+    return _match(args, preferExact);
+  }
+
+  // Command line history always contains one slot to hold the current
+  // line, so we start off with one entry.
+  List<String> history = [''];
+  int historyPos = 0;
+
+  String historyPrev(String line) {
+    if (historyPos == 0) {
+      return line;
+    }
+    history[historyPos] = line;
+    historyPos--;
+    return history[historyPos];
+  }
+
+  String historyNext(String line) {
+    if (historyPos == history.length - 1) {
+      return line;
+    }
+    history[historyPos] = line;
+    historyPos++;
+    return history[historyPos];
+  }
+
+  void _historyAdvance(String line) {
+    // Replace the last history line.
+    historyPos = history.length - 1;
+    history[historyPos] = line;
+
+    // Create an empty spot for the next line.
+    history.add('');
+    historyPos++;
+  }
+
   Future run(List<String> args) {
     throw 'should-not-execute-the-root-command';
   }
@@ -168,7 +219,15 @@ class RootCommand extends _CommandBase {
 abstract class Command extends _CommandBase {
   Command(this.name, List<Command> children) : super(children);
 
-  final name;
+  final String name;
+  String get fullName {
+    if (_parent is RootCommand) {
+      return name;
+    } else {
+      Command parent = _parent;
+      return '${parent.fullName} $name';
+    }
+  }
 
   toString() => 'Command(${name})';
 }

@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/html.dart' as ht;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -95,6 +96,31 @@ class AnalysisCacheTest extends EngineTestCase {
     expect(iterator.key, same(source));
     expect(iterator.value, same(entry));
     expect(iterator.moveNext(), isFalse);
+  }
+
+  /**
+   * Verify that if multiple Source objects refer to the same file via
+   * different URIs, they are treated as separate entries in the cache.
+   */
+  void test_lookup_distinguishes_uris() {
+    CachePartition partition =
+        new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
+    AnalysisCache cache = new AnalysisCache(<CachePartition>[partition]);
+    JavaFile file = new JavaFile('baz.dart');
+    Source source1 = new FileBasedSource.con1(file);
+    Source source2 =
+        new FileBasedSource.con2(Uri.parse('package:foo/baz.dart'), file);
+    Source source3 =
+        new FileBasedSource.con2(Uri.parse('package:bar/baz.dart'), file);
+    DartEntry entry1 = new DartEntry();
+    DartEntry entry2 = new DartEntry();
+    DartEntry entry3 = new DartEntry();
+    cache.put(source1, entry1);
+    cache.put(source2, entry2);
+    cache.put(source3, entry3);
+    expect(cache.get(source1), same(entry1));
+    expect(cache.get(source2), same(entry2));
+    expect(cache.get(source3), same(entry3));
   }
 
   void test_put_noFlush() {
@@ -6030,6 +6056,19 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getTypeProvider");
     return null;
   }
+
+  @override
+  TypeResolverVisitorFactory get typeResolverVisitorFactory {
+    fail("Unexpected invocation of getTypeResolverVisitorFactory");
+    return null;
+  }
+
+  @override
+  ResolverVisitorFactory get resolverVisitorFactory {
+    fail("Unexpected invocation of getResolverVisitorFactory");
+    return null;
+  }
+
   @override
   void addListener(AnalysisListener listener) {
     fail("Unexpected invocation of addListener");

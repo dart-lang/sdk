@@ -74,6 +74,16 @@ class BoundMultipartStream {
    final List<int> _headerField = [];
    final List<int> _headerValue = [];
 
+   // The following states belong to `_controller`, state changes will not be
+   // immediately acted upon but rather only after the current
+   // `_multipartController` is done.
+   static const int _CONTROLLER_STATE_IDLE = 0;
+   static const int _CONTROLLER_STATE_ACTIVE = 1;
+   static const int _CONTROLLER_STATE_PAUSED = 2;
+   static const int _CONTROLLER_STATE_CANCELED = 3;
+
+   int _controllerState = _CONTROLLER_STATE_IDLE;
+
    StreamController _controller;
 
    Stream<MimeMultipart> get stream => _controller.stream;
@@ -95,15 +105,17 @@ class BoundMultipartStream {
      _controller = new StreamController(
          sync: true,
          onPause: _pauseStream,
-         onResume:_resumeStream,
+         onResume: _resumeStream,
          onCancel: () {
-           _subscription.cancel();
+           _controllerState = _CONTROLLER_STATE_CANCELED;
+           _tryPropagateControllerState();
          },
          onListen: () {
+           _controllerState = _CONTROLLER_STATE_ACTIVE;
            _subscription = stream.listen(
                (data) {
                  assert(_buffer == null);
-                 _pauseStream();
+                 _subscription.pause();
                  _buffer = data;
                  _index = 0;
                  _parse();
@@ -120,13 +132,33 @@ class BoundMultipartStream {
    }
 
    void _resumeStream() {
-     _subscription.resume();
+     assert (_controllerState == _CONTROLLER_STATE_PAUSED);
+     _controllerState = _CONTROLLER_STATE_ACTIVE;
+     _tryPropagateControllerState();
    }
 
    void _pauseStream() {
-     _subscription.pause();
+     _controllerState = _CONTROLLER_STATE_PAUSED;
+     _tryPropagateControllerState();
    }
 
+   void _tryPropagateControllerState() {
+     if (_multipartController == null) {
+       switch (_controllerState) {
+         case _CONTROLLER_STATE_ACTIVE:
+           if (_subscription.isPaused) _subscription.resume();
+           break;
+         case _CONTROLLER_STATE_PAUSED:
+           if (!_subscription.isPaused) _subscription.pause();
+           break;
+         case _CONTROLLER_STATE_CANCELED:
+           _subscription.cancel();
+            break;
+         default:
+           throw new StateError("This code should never be reached.");
+       }
+     }
+   }
 
    void _parse() {
      // Number of boundary bytes to artificially place before the supplied data.
@@ -171,9 +203,6 @@ class BoundMultipartStream {
      boundaryPrefix = _boundaryIndex;
 
      while ((_index < _buffer.length) && _state != _FAIL && _state != _DONE) {
-       if (_multipartController != null && _multipartController.isPaused) {
-         return;
-       }
        int byte;
        if (_index < 0) {
          byte = _boundary[boundaryPrefix + _index];
@@ -210,6 +239,7 @@ class BoundMultipartStream {
            if (_multipartController != null) {
              _multipartController.close();
              _multipartController = null;
+             _tryPropagateControllerState();
            }
            _state = _HEADER_START;
            break;
@@ -282,13 +312,11 @@ class BoundMultipartStream {
            _expectByteValue(byte, CharCode.LF);
            _multipartController = new StreamController(
                sync: true,
-               onPause: () {
-                 _pauseStream();
+               onListen: () {
+                 if (_subscription.isPaused) _subscription.resume();
                },
-               onResume: () {
-                 _resumeStream();
-                 _parse();
-               });
+               onPause: _subscription.pause,
+               onResume: _subscription.resume);
            _controller.add(
                new _MimeMultipart(_headers, _multipartController.stream));
            _headers = null;
@@ -306,6 +334,8 @@ class BoundMultipartStream {
                  _index--;
                }
                _multipartController.close();
+               _multipartController = null;
+               _tryPropagateControllerState();
                _boundaryIndex = 0;
                _state = _BOUNDARY_ENDING;
              }
@@ -335,6 +365,7 @@ class BoundMultipartStream {
            if (_multipartController != null) {
              _multipartController.close();
              _multipartController = null;
+             _tryPropagateControllerState();
            }
            _state = _DONE;
            break;
@@ -358,7 +389,7 @@ class BoundMultipartStream {
      if (_index == _buffer.length) {
        _buffer = null;
        _index = null;
-       _resumeStream();
+       _subscription.resume();
      }
    }
 }

@@ -28,6 +28,11 @@ class CompletionDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
+   * The [SearchEngine] for this server.
+   */
+  SearchEngine searchEngine;
+
+  /**
    * The next completion response id.
    */
   int _nextCompletionId = 0;
@@ -71,6 +76,7 @@ class CompletionDomainHandler implements RequestHandler {
   CompletionDomainHandler(this.server) {
     server.onContextsChanged.listen(contextsChanged);
     server.onPriorityChange.listen(priorityChanged);
+    searchEngine = server.searchEngine;
   }
 
   /**
@@ -91,7 +97,7 @@ class CompletionDomainHandler implements RequestHandler {
       }
       _discardManager();
     }
-    _manager = createCompletionManager(context, source, server.searchEngine);
+    _manager = createCompletionManager(context, source, searchEngine);
     if (context != null) {
       _sourcesChangedSubscription =
           context.onSourcesChanged.listen(sourcesChanged);
@@ -119,6 +125,9 @@ class CompletionDomainHandler implements RequestHandler {
 
   @override
   Response handleRequest(Request request) {
+    if (searchEngine == null) {
+      return new Response.noIndexGenerated(request);
+    }
     try {
       String requestName = request.method;
       if (requestName == COMPLETION_GET_SUGGESTIONS) {

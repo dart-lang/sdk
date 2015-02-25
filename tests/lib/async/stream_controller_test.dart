@@ -673,6 +673,52 @@ void testEventInListen() {
   c.close();
 }
 
+void testSyncControllerNotReentrant() {
+  Stream emptyStream = (new StreamController.broadcast()..close()).stream;
+  asyncStart();
+  for (int listenerCount = 1; listenerCount <= 2; listenerCount++) {
+    StreamController c = new StreamController.broadcast(sync: true);
+    for (int i = 0; i < listenerCount; i++) {
+      asyncStart();
+      asyncStart();
+      c.stream.listen((v) {
+        Expect.equals(42, v);
+        Expect.throws(() {
+          c.add(37);
+        });
+        Expect.throws(() {
+          c.addError(37);
+        });
+        Expect.throws(() {
+          c.addStream(emptyStream);
+        });
+        Expect.throws(() {
+          c.close();
+        });
+        asyncEnd();
+      }, onError: (e, s) {
+        Expect.equals(87, e);
+        Expect.throws(() {
+          c.add(37);
+        });
+        Expect.throws(() {
+          c.addError(37);
+        });
+        Expect.throws(() {
+          c.addStream(emptyStream);
+        });
+        Expect.throws(() {
+          c.close();
+        });
+        asyncEnd();
+      });
+    }
+    c.add(42);
+    c.addError(87);
+  }
+  asyncEnd();
+}
+
 main() {
   asyncStart();
   testMultiController();
@@ -691,5 +737,6 @@ main() {
   testAsBroadcastListenAfterClose();
   testAsBroadcastListenAfterClosePaused();
   testEventInListen();
+  testSyncControllerNotReentrant();
   asyncEnd();
 }

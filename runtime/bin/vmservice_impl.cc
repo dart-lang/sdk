@@ -266,6 +266,9 @@ Dart_Handle VmService::GetSource(const char* name) {
   snprintf(&buffer[0], kBufferSize-1, "%s/%s", kLibrarySourceNamePrefix, name);
   const char* vmservice_source = NULL;
   int r = Resources::ResourceLookup(buffer, &vmservice_source);
+  if (r == Resources::kNoSuchInstance) {
+    FATAL1("vm-service: Could not find embedded source file: %s ", buffer);
+  }
   ASSERT(r != Resources::kNoSuchInstance);
   return Dart_NewStringFromCString(vmservice_source);
 }

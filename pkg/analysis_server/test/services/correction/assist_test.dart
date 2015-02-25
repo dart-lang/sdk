@@ -6,9 +6,6 @@ library test.services.correction.assist;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -24,9 +21,6 @@ main() {
 
 @reflectiveTest
 class AssistProcessorTest extends AbstractSingleUnitTest {
-  Index index;
-  SearchEngineImpl searchEngine;
-
   int offset;
   int length;
 
@@ -63,8 +57,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
    * Asserts that there is no [Assist] of the given [kind] at [offset].
    */
   void assertNoAssist(AssistKind kind) {
-    List<Assist> assists =
-        computeAssists(searchEngine, testUnit, offset, length);
+    List<Assist> assists = computeAssists(testUnit, offset, length);
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         throw fail('Unexpected assist $kind in\n${assists.join('\n')}');
@@ -102,14 +95,12 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    index = createLocalMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
     offset = 0;
     length = 0;
   }
 
   void test_addTypeAnnotation_classField_OK_final() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   final f = 0;
 }
@@ -122,7 +113,7 @@ class A {
   }
 
   void test_addTypeAnnotation_classField_OK_int() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   var f = 0;
 }
@@ -135,7 +126,7 @@ class A {
   }
 
   void test_addTypeAnnotation_declaredIdentifier_BAD_hasTypeAnnotation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
   }
@@ -145,7 +136,7 @@ main(List<String> items) {
   }
 
   void test_addTypeAnnotation_declaredIdentifier_BAD_inForEachBody() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(List<String> items) {
   for (var item in items) {
     42;
@@ -157,7 +148,7 @@ main(List<String> items) {
 
   void test_addTypeAnnotation_declaredIdentifier_BAD_unknownType() {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   for (var item in unknownList) {
   }
@@ -167,7 +158,7 @@ main() {
   }
 
   void test_addTypeAnnotation_declaredIdentifier_generic_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A<T> {
   main(List<List<T>> items) {
     for (var item in items) {
@@ -186,7 +177,7 @@ class A<T> {
   }
 
   void test_addTypeAnnotation_declaredIdentifier_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(List<String> items) {
   for (var item in items) {
   }
@@ -213,7 +204,7 @@ main(List<String> items) {
 import 'dart:async';
 List<Future<int>> getFutures() => null;
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'my_lib.dart';
 main() {
   for (var future in getFutures()) {
@@ -231,7 +222,7 @@ main() {
   }
 
   void test_addTypeAnnotation_declaredIdentifier_OK_final() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(List<String> items) {
   for (final item in items) {
   }
@@ -246,7 +237,7 @@ main(List<String> items) {
   }
 
   void test_addTypeAnnotation_local_generic_OK_literal() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   main(List<int> items) {
     var v = items;
@@ -263,7 +254,7 @@ class A {
   }
 
   void test_addTypeAnnotation_local_generic_OK_local() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A<T> {
   main(List<T> items) {
     var v = items;
@@ -284,7 +275,7 @@ class A<T> {
 import 'dart:async';
 Future<int> getFutureInt() => null;
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'my_lib.dart';
 main() {
   var v = getFutureInt();
@@ -361,7 +352,7 @@ class MyClass {}
 import '../aa/bbb/lib_a.dart';
 MyClass newMyClass() => null;
 ''');
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'ccc/lib_b.dart';
 main() {
   var v = newMyClass();
@@ -377,7 +368,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_Function() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = () => 1;
 }
@@ -390,7 +381,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_int() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 0;
 }
@@ -403,7 +394,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_List() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = <String>[];
 }
@@ -416,7 +407,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_localType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class C {}
 C f() => null;
 main() {
@@ -433,7 +424,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_onInitializer() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 123;
 }
@@ -446,7 +437,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_onName() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var abc = 0;
 }
@@ -459,7 +450,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_onVar() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 0;
 }
@@ -472,7 +463,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_OK_onVariableDeclarationStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 123; // marker
 }
@@ -485,7 +476,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_wrong_hasTypeAnnotation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int v = 42;
 }
@@ -494,7 +485,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_wrong_multiple() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var a = 1, b = '';
 }
@@ -504,7 +495,7 @@ main() {
 
   void test_addTypeAnnotation_local_wrong_noValue() {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
 }
@@ -513,7 +504,7 @@ main() {
   }
 
   void test_addTypeAnnotation_local_wrong_null() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = null;
 }
@@ -523,7 +514,7 @@ main() {
 
   void test_addTypeAnnotation_local_wrong_unknown() {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = unknownVar;
 }
@@ -532,7 +523,7 @@ main() {
   }
 
   void test_addTypeAnnotation_parameter_BAD_hasExplicitType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 foo(f(int p)) {}
 main() {
   foo((num test) {});
@@ -542,7 +533,7 @@ main() {
   }
 
   void test_addTypeAnnotation_parameter_BAD_noPropagatedType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 foo(f(p)) {}
 main() {
   foo((test) {});
@@ -552,7 +543,7 @@ main() {
   }
 
   void test_addTypeAnnotation_parameter_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 foo(f(int p)) {}
 main() {
   foo((test) {});
@@ -567,7 +558,7 @@ main() {
   }
 
   void test_addTypeAnnotation_topLevelField_OK_int() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 var V = 0;
 ''');
     assertHasAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION, '''
@@ -576,21 +567,21 @@ int V = 0;
   }
 
   void test_addTypeAnnotation_topLevelField_wrong_multiple() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 var A = 1, V = '';
 ''');
     assertNoAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION);
   }
 
   void test_addTypeAnnotation_topLevelField_wrong_noValue() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 var V;
 ''');
     assertNoAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION);
   }
 
   void test_assignToLocalVariable() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   List<int> bytes;
   readBytes();
@@ -613,7 +604,7 @@ List<int> readBytes() => <int>[];
   }
 
   void test_assignToLocalVariable_alreadyAssignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var vvv;
   vvv = 42;
@@ -623,7 +614,7 @@ main() {
   }
 
   void test_assignToLocalVariable_throw() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   throw 42;
 }
@@ -632,7 +623,7 @@ main() {
   }
 
   void test_assignToLocalVariable_void() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   f();
 }
@@ -642,7 +633,7 @@ void f() {}
   }
 
   void test_convertToBlockBody_OK_closure() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 setup(x) {}
 main() {
   setup(() => print('done'));
@@ -659,7 +650,7 @@ main() {
   }
 
   void test_convertToBlockBody_OK_constructor() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   factory A() => null;
 }
@@ -674,7 +665,7 @@ class A {
   }
 
   void test_convertToBlockBody_OK_method() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   mmm() => 123;
 }
@@ -689,7 +680,7 @@ class A {
   }
 
   void test_convertToBlockBody_OK_onName() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() => 123;
 ''');
     assertHasAssistAt('fff()', AssistKind.CONVERT_INTO_BLOCK_BODY, '''
@@ -700,7 +691,7 @@ fff() {
   }
 
   void test_convertToBlockBody_OK_onValue() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() => 123;
 ''');
     assertHasAssistAt('23;', AssistKind.CONVERT_INTO_BLOCK_BODY, '''
@@ -711,14 +702,14 @@ fff() {
   }
 
   void test_convertToBlockBody_wrong_noEnclosingFunction() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 var v = 123;
 ''');
     assertNoAssistAt('v =', AssistKind.CONVERT_INTO_BLOCK_BODY);
   }
 
   void test_convertToBlockBody_wrong_notExpressionBlock() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() {
   return 123;
 }
@@ -727,7 +718,7 @@ fff() {
   }
 
   void test_convertToExpressionBody_OK_closure() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 setup(x) {}
 main() {
   setup(() {
@@ -744,7 +735,7 @@ main() {
   }
 
   void test_convertToExpressionBody_OK_constructor() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   factory A() {
     return null;
@@ -759,7 +750,7 @@ class A {
   }
 
   void test_convertToExpressionBody_OK_function_onBlock() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() {
   return 42;
 }
@@ -770,7 +761,7 @@ fff() => 42;
   }
 
   void test_convertToExpressionBody_OK_function_onName() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() {
   return 42;
 }
@@ -781,7 +772,7 @@ fff() => 42;
   }
 
   void test_convertToExpressionBody_OK_method_onBlock() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   m() { // marker
     return 42;
@@ -799,7 +790,7 @@ class A {
   }
 
   void test_convertToExpressionBody_OK_topFunction_onReturnStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() {
   return 42;
 }
@@ -810,14 +801,14 @@ fff() => 42;
   }
 
   void test_convertToExpressionBody_wrong_already() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() => 42;
 ''');
     assertNoAssistAt('fff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   void test_convertToExpressionBody_wrong_moreThanOneStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() {
   var v = 42;
   return v;
@@ -827,14 +818,14 @@ fff() {
   }
 
   void test_convertToExpressionBody_wrong_noEnclosingFunction() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 var V = 42;
 ''');
     assertNoAssistAt('V = ', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   void test_convertToExpressionBody_wrong_noReturn() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() {
   var v = 42;
 }
@@ -843,7 +834,7 @@ fff() {
   }
 
   void test_convertToExpressionBody_wrong_noReturnValue() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 fff() {
   return;
 }
@@ -852,7 +843,7 @@ fff() {
   }
 
   void test_convertToIsNot_OK_childOfIs_left() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -865,7 +856,7 @@ main(p) {
   }
 
   void test_convertToIsNot_OK_childOfIs_right() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -878,7 +869,7 @@ main(p) {
   }
 
   void test_convertToIsNot_OK_is() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -891,7 +882,7 @@ main(p) {
   }
 
   void test_convertToIsNot_OK_is_higherPrecedencePrefix() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !!(p is String);
 }
@@ -904,7 +895,7 @@ main(p) {
   }
 
   void test_convertToIsNot_OK_is_not_higherPrecedencePrefix() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !!(p is String);
 }
@@ -917,7 +908,7 @@ main(p) {
   }
 
   void test_convertToIsNot_OK_not() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -930,7 +921,7 @@ main(p) {
   }
 
   void test_convertToIsNot_OK_parentheses() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -943,7 +934,7 @@ main(p) {
   }
 
   void test_convertToIsNot_wrong_is_alreadyIsNot() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   p is! String;
 }
@@ -952,7 +943,7 @@ main(p) {
   }
 
   void test_convertToIsNot_wrong_is_noEnclosingParenthesis() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   p is String;
 }
@@ -961,7 +952,7 @@ main(p) {
   }
 
   void test_convertToIsNot_wrong_is_noPrefix() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   (p is String);
 }
@@ -970,7 +961,7 @@ main(p) {
   }
 
   void test_convertToIsNot_wrong_is_notIsExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   123 + 456;
 }
@@ -980,7 +971,7 @@ main(p) {
 
   void test_convertToIsNot_wrong_is_notTheNotOperator() {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   ++(p is String);
 }
@@ -989,7 +980,7 @@ main(p) {
   }
 
   void test_convertToIsNot_wrong_not_alreadyIsNot() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !(p is! String);
 }
@@ -998,7 +989,7 @@ main(p) {
   }
 
   void test_convertToIsNot_wrong_not_noEnclosingParenthesis() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !p;
 }
@@ -1007,7 +998,7 @@ main(p) {
   }
 
   void test_convertToIsNot_wrong_not_notIsExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   !(p == null);
 }
@@ -1017,7 +1008,7 @@ main(p) {
 
   void test_convertToIsNot_wrong_not_notTheNotOperator() {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   ++(p is String);
 }
@@ -1026,7 +1017,7 @@ main(p) {
   }
 
   void test_convertToIsNotEmpty_OK_on_isEmpty() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(String str) {
   !str.isEmpty;
 }
@@ -1039,7 +1030,7 @@ main(String str) {
   }
 
   void test_convertToIsNotEmpty_OK_on_str() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(String str) {
   !str.isEmpty;
 }
@@ -1052,7 +1043,7 @@ main(String str) {
   }
 
   void test_convertToIsNotEmpty_OK_propertyAccess() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(String str) {
   !'text'.isEmpty;
 }
@@ -1065,7 +1056,7 @@ main(String str) {
   }
 
   void test_convertToIsNotEmpty_wrong_notInPrefixExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(String str) {
   str.isEmpty;
 }
@@ -1074,7 +1065,7 @@ main(String str) {
   }
 
   void test_convertToIsNotEmpty_wrong_notIsEmpty() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(int p) {
   !p.isEven;
 }
@@ -1083,7 +1074,7 @@ main(int p) {
   }
 
   void test_convertToIsNotEmpty_wrote_noIsNotEmpty() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   bool get isEmpty => false;
 }
@@ -1102,7 +1093,7 @@ main(A a) {
       '>=': '<='
     };
     operatorMap.forEach((initialOperator, resultOperator) {
-      _indexTestUnit('''
+      resolveTestUnit('''
 bool main(int a, int b) {
   return a $initialOperator b;
 }
@@ -1116,7 +1107,7 @@ bool main(int a, int b) {
   }
 
   void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_1() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 * 2 * 3 + 4;
 }
@@ -1129,7 +1120,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_2() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2 - 3 + 4;
 }
@@ -1143,7 +1134,7 @@ main() {
 
   void
       test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterFirst() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2 + 3;
 }
@@ -1157,7 +1148,7 @@ main() {
 
   void
       test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterSecond() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2 + 3;
 }
@@ -1170,7 +1161,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_OK_simple_afterOperator() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -1183,7 +1174,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_OK_simple_beforeOperator() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -1196,7 +1187,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_OK_simple_fullSelection() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -1210,7 +1201,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_OK_simple_withLength() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -1224,7 +1215,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_wrong_extraLength() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   111 + 222;
 }
@@ -1234,7 +1225,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_wrong_onOperand() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   111 + 222;
 }
@@ -1244,7 +1235,7 @@ main() {
   }
 
   void test_exchangeBinaryExpressionArguments_wrong_selectionWithBinary() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   1 + 2 + 3;
 }
@@ -1254,7 +1245,7 @@ main() {
   }
 
   void test_importAddShow_BAD_hasShow() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math' show PI;
 main() {
   PI;
@@ -1264,21 +1255,21 @@ main() {
   }
 
   void test_importAddShow_BAD_unresolvedUri() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import '/no/such/lib.dart';
 ''');
     assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
   }
 
   void test_importAddShow_BAD_unused() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math';
 ''');
     assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
   }
 
   void test_importAddShow_OK_hasUnresolvedIdentifier() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math';
 main(x) {
   PI;
@@ -1295,7 +1286,7 @@ main(x) {
   }
 
   void test_importAddShow_OK_onDirective() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math';
 main() {
   PI;
@@ -1314,7 +1305,7 @@ main() {
   }
 
   void test_importAddShow_OK_onUri() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 import 'dart:math';
 main() {
   PI;
@@ -1333,7 +1324,7 @@ main() {
   }
 
   void test_introduceLocalTestedType_BAD_notBlock() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   if (p is String)
     print('not a block');
@@ -1343,7 +1334,7 @@ main(p) {
   }
 
   void test_introduceLocalTestedType_BAD_notIsExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   if (p == null) {
   }
@@ -1353,7 +1344,7 @@ main(p) {
   }
 
   void test_introduceLocalTestedType_OK_if() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class MyTypeName {}
 main(p) {
   if (p is MyTypeName) {
@@ -1385,7 +1376,7 @@ main(p) {
   }
 
   void test_introduceLocalTestedType_OK_while() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(p) {
   while (p is String) {
   }
@@ -1411,13 +1402,13 @@ main(p) {
   }
 
   void test_invalidSelection() {
-    _indexTestUnit('');
-    List<Assist> assists = computeAssists(searchEngine, testUnit, -1, 0);
+    resolveTestUnit('');
+    List<Assist> assists = computeAssists(testUnit, -1, 0);
     expect(assists, isEmpty);
   }
 
   void test_invertIfStatement_blocks() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true) {
     0;
@@ -1438,7 +1429,7 @@ main() {
   }
 
   void test_invertIfStatement_statements() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true)
     0;
@@ -1457,7 +1448,7 @@ main() {
   }
 
   void test_joinIfStatementInner_OK_conditionAndOr() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2 || 3 == 3) {
@@ -1476,7 +1467,7 @@ main() {
   }
 
   void test_joinIfStatementInner_OK_conditionInvocation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (isCheck()) {
     if (2 == 2) {
@@ -1497,7 +1488,7 @@ bool isCheck() => false;
   }
 
   void test_joinIfStatementInner_OK_conditionOrAnd() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1 || 2 == 2) {
     if (3 == 3) {
@@ -1516,7 +1507,7 @@ main() {
   }
 
   void test_joinIfStatementInner_OK_onCondition() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1535,7 +1526,7 @@ main() {
   }
 
   void test_joinIfStatementInner_OK_simpleConditions_block_block() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1554,7 +1545,7 @@ main() {
   }
 
   void test_joinIfStatementInner_OK_simpleConditions_block_single() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2)
@@ -1572,7 +1563,7 @@ main() {
   }
 
   void test_joinIfStatementInner_OK_simpleConditions_single_blockMulti() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1595,7 +1586,7 @@ main() {
   }
 
   void test_joinIfStatementInner_OK_simpleConditions_single_blockOne() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1)
     if (2 == 2) {
@@ -1613,7 +1604,7 @@ main() {
   }
 
   void test_joinIfStatementInner_wrong_innerNotIf() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     print(0);
@@ -1624,7 +1615,7 @@ main() {
   }
 
   void test_joinIfStatementInner_wrong_innerWithElse() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1639,7 +1630,7 @@ main() {
   }
 
   void test_joinIfStatementInner_wrong_targetNotIf() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   print(0);
 }
@@ -1648,7 +1639,7 @@ main() {
   }
 
   void test_joinIfStatementInner_wrong_targetWithElse() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1663,7 +1654,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_OK_conditionAndOr() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2 || 3 == 3) {
@@ -1682,7 +1673,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_OK_conditionInvocation() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (isCheck()) {
@@ -1703,7 +1694,7 @@ bool isCheck() => false;
   }
 
   void test_joinIfStatementOuter_OK_conditionOrAnd() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1 || 2 == 2) {
     if (3 == 3) {
@@ -1722,7 +1713,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_OK_onCondition() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1741,7 +1732,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_OK_simpleConditions_block_block() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1760,7 +1751,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_OK_simpleConditions_block_single() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2)
@@ -1778,7 +1769,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_OK_simpleConditions_single_blockMulti() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1801,7 +1792,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_OK_simpleConditions_single_blockOne() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1)
     if (2 == 2) {
@@ -1819,7 +1810,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_wrong_outerNotIf() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     print(0);
@@ -1830,7 +1821,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_wrong_outerWithElse() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1845,7 +1836,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_wrong_targetNotIf() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   print(0);
 }
@@ -1854,7 +1845,7 @@ main() {
   }
 
   void test_joinIfStatementOuter_wrong_targetWithElse() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -1869,7 +1860,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onAssignment_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   v = 1;
@@ -1883,7 +1874,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onAssignment_wrong_hasInitializer() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 1;
   v = 2;
@@ -1893,7 +1884,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onAssignment_wrong_notAdjacent() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   var bar;
@@ -1904,7 +1895,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onAssignment_wrong_notAssignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   v += 1;
@@ -1914,7 +1905,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onAssignment_wrong_notDeclaration() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main(var v) {
   v = 1;
 }
@@ -1923,7 +1914,7 @@ main(var v) {
   }
 
   void test_joinVariableDeclaration_onAssignment_wrong_notLeftArgument() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   1 + v; // marker
@@ -1933,7 +1924,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onAssignment_wrong_notOneVariable() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v, v2;
   v = 1;
@@ -1944,7 +1935,7 @@ main() {
 
   void test_joinVariableDeclaration_onAssignment_wrong_notResolved() {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   x = 1;
@@ -1954,7 +1945,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onAssignment_wrong_notSameBlock() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   {
@@ -1966,7 +1957,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onDeclaration_OK_onName() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   v = 1;
@@ -1980,7 +1971,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onDeclaration_OK_onType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int v;
   v = 1;
@@ -1994,7 +1985,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onDeclaration_OK_onVar() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   v = 1;
@@ -2008,7 +1999,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onDeclaration_wrong_hasInitializer() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 1;
   v = 2;
@@ -2018,7 +2009,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onDeclaration_wrong_lastStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true)
     var v;
@@ -2029,7 +2020,7 @@ main() {
 
   void
       test_joinVariableDeclaration_onDeclaration_wrong_nextNotAssignmentExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   42;
@@ -2040,7 +2031,7 @@ main() {
 
   void
       test_joinVariableDeclaration_onDeclaration_wrong_nextNotExpressionStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   if (true) return;
@@ -2051,7 +2042,7 @@ main() {
 
   void
       test_joinVariableDeclaration_onDeclaration_wrong_nextNotPureAssignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   v += 1;
@@ -2061,7 +2052,7 @@ main() {
   }
 
   void test_joinVariableDeclaration_onDeclaration_wrong_notOneVariable() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v, v2;
   v = 1;
@@ -2071,7 +2062,7 @@ main() {
   }
 
   void test_removeTypeAnnotation_classField_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 class A {
   int v = 1;
 }
@@ -2084,7 +2075,7 @@ class A {
   }
 
   void test_removeTypeAnnotation_localVariable_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int a = 1, b = 2;
 }
@@ -2097,7 +2088,7 @@ main() {
   }
 
   void test_removeTypeAnnotation_topLevelVariable_OK() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 int V = 1;
 ''');
     assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
@@ -2106,7 +2097,7 @@ var V = 1;
   }
 
   void test_replaceConditionalWithIfElse_OK_assignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v;
   v = true ? 111 : 222;
@@ -2137,7 +2128,7 @@ main() {
   }
 
   void test_replaceConditionalWithIfElse_OK_return() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   return true ? 111 : 222;
 }
@@ -2157,7 +2148,7 @@ main() {
   }
 
   void test_replaceConditionalWithIfElse_OK_variableDeclaration() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int a = 1, vvv = true ? 111 : 222, b = 2;
 }
@@ -2175,14 +2166,14 @@ main() {
   }
 
   void test_replaceConditionalWithIfElse_wrong_noEnclosingStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 var v = true ? 111 : 222;
 ''');
     assertNoAssistAt('? 111', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
   }
 
   void test_replaceConditionalWithIfElse_wrong_notConditional() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 42;
 }
@@ -2191,7 +2182,7 @@ main() {
   }
 
   void test_replaceIfElseWithConditional_OK_assignment() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int vvv;
   if (true) {
@@ -2213,7 +2204,7 @@ main() {
   }
 
   void test_replaceIfElseWithConditional_OK_return() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true) {
     return 111;
@@ -2233,7 +2224,7 @@ main() {
   }
 
   void test_replaceIfElseWithConditional_wrong_expressionVsReturn() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true) {
     print(42);
@@ -2246,7 +2237,7 @@ main() {
   }
 
   void test_replaceIfElseWithConditional_wrong_notIfStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   print(0);
 }
@@ -2255,7 +2246,7 @@ main() {
   }
 
   void test_replaceIfElseWithConditional_wrong_notSingleStatememt() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int vvv;
   if (true) {
@@ -2271,7 +2262,7 @@ main() {
   }
 
   void test_splitAndCondition_OK_innerAndExpression() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2 && 3 == 3) {
     print(0);
@@ -2290,7 +2281,7 @@ main() {
   }
 
   void test_splitAndCondition_OK_thenBlock() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true && false) {
     print(0);
@@ -2315,7 +2306,7 @@ main() {
   }
 
   void test_splitAndCondition_OK_thenStatement() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true && false)
     print(0);
@@ -2331,7 +2322,7 @@ main() {
   }
 
   void test_splitAndCondition_wrong() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2) {
     print(0);
@@ -2349,7 +2340,7 @@ main() {
   }
 
   void test_splitAndCondition_wrong_hasElse() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2) {
     print(1);
@@ -2362,7 +2353,7 @@ main() {
   }
 
   void test_splitAndCondition_wrong_notAnd() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (1 == 1 || 2 == 2) {
     print(0);
@@ -2373,7 +2364,7 @@ main() {
   }
 
   void test_splitAndCondition_wrong_notPartOfIf() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   print(1 == 1 && 2 == 2);
 }
@@ -2382,7 +2373,7 @@ main() {
   }
 
   void test_splitAndCondition_wrong_notTopLevelAnd() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   if (true || (1 == 1 && 2 == 2)) {
     print(0);
@@ -2397,7 +2388,7 @@ main() {
   }
 
   void test_splitVariableDeclaration_OK_onName() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 1;
 }
@@ -2411,7 +2402,7 @@ main() {
   }
 
   void test_splitVariableDeclaration_OK_onType() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   int v = 1;
 }
@@ -2425,7 +2416,7 @@ main() {
   }
 
   void test_splitVariableDeclaration_OK_onVar() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 1;
 }
@@ -2439,7 +2430,7 @@ main() {
   }
 
   void test_splitVariableDeclaration_wrong_notOneVariable() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
   var v = 1, v2;
 }
@@ -2448,7 +2439,7 @@ main() {
   }
 
   void test_surroundWith_block() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2470,7 +2461,7 @@ main() {
   }
 
   void test_surroundWith_doWhile() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2492,7 +2483,7 @@ main() {
   }
 
   void test_surroundWith_for() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2514,7 +2505,7 @@ main() {
   }
 
   void test_surroundWith_forIn() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2536,7 +2527,7 @@ main() {
   }
 
   void test_surroundWith_if() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2558,7 +2549,7 @@ main() {
   }
 
   void test_surroundWith_tryCatch() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2582,7 +2573,7 @@ main() {
   }
 
   void test_surroundWith_tryFinally() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2606,7 +2597,7 @@ main() {
   }
 
   void test_surroundWith_while() {
-    _indexTestUnit('''
+    resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -2631,8 +2622,7 @@ main() {
    * Computes assists and verifies that there is an assist of the given kind.
    */
   Assist _assertHasAssist(AssistKind kind) {
-    List<Assist> assists =
-        computeAssists(searchEngine, testUnit, offset, length);
+    List<Assist> assists = computeAssists(testUnit, offset, length);
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         return assist;
@@ -2657,11 +2647,6 @@ main() {
       positions.add(new Position(testFile, offset));
     }
     return positions;
-  }
-
-  void _indexTestUnit(String code) {
-    resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
   }
 
   void _setStartEndSelection() {

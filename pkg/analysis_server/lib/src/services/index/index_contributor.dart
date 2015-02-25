@@ -70,7 +70,7 @@ void indexHtmlUnit(IndexStore store, AnalysisContext context, ht.HtmlUnit unit)
 /**
  * Visits a resolved AST and adds relationships into [IndexStore].
  */
-class _IndexContributor extends GeneralizingAstVisitor<Object> {
+class _IndexContributor extends GeneralizingAstVisitor {
   final IndexStore _store;
 
   LibraryElement _libraryElement;
@@ -78,8 +78,8 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   Map<ImportElement, Set<Element>> _importElementsMap = {};
 
   /**
-   * A stack whose top element (the element with the largest index) is an element representing the
-   * inner-most enclosing scope.
+   * A stack whose top element (the element with the largest index) is an
+   * element representing the inner-most enclosing scope.
    */
   Queue<Element> _elementStack = new Queue();
 
@@ -115,19 +115,19 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitAssignmentExpression(AssignmentExpression node) {
+  visitAssignmentExpression(AssignmentExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
-    return super.visitAssignmentExpression(node);
+    super.visitAssignmentExpression(node);
   }
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  visitBinaryExpression(BinaryExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
-    return super.visitBinaryExpression(node);
+    super.visitBinaryExpression(node);
   }
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) {
+  visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = node.element;
     enterScope(element);
     try {
@@ -164,14 +164,14 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
           }
         }
       }
-      return super.visitClassDeclaration(node);
+      super.visitClassDeclaration(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitClassTypeAlias(ClassTypeAlias node) {
+  visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = node.element;
     enterScope(element);
     try {
@@ -198,52 +198,56 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
           }
         }
       }
-      return super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  visitCompilationUnit(CompilationUnit node) {
     CompilationUnitElement unitElement = node.element;
     if (unitElement != null) {
       _elementStack.add(unitElement);
       _libraryElement = unitElement.enclosingElement;
       if (_libraryElement != null) {
-        return super.visitCompilationUnit(node);
+        super.visitCompilationUnit(node);
       }
     }
-    return null;
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement element = node.element;
-    // define
-    {
-      Location location;
-      if (node.name != null) {
-        int start = node.period.offset;
-        int end = node.name.end;
-        location = _createLocationForOffset(start, end - start);
-      } else {
-        int start = node.returnType.end;
-        location = _createLocationForOffset(start, 0);
-      }
-      recordRelationship(element, IndexConstants.NAME_IS_DEFINED_BY, location);
-    }
-    // visit children
     enterScope(element);
     try {
-      return super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitConstructorName(ConstructorName node) {
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    SimpleIdentifier fieldName = node.fieldName;
+    Expression expression = node.expression;
+    // field reference is write here
+    if (fieldName != null) {
+      Element element = fieldName.staticElement;
+      Location location = _createLocationForNode(fieldName);
+      _store.recordRelationship(
+          element,
+          IndexConstants.IS_WRITTEN_BY,
+          location);
+    }
+    // index expression
+    if (expression != null) {
+      expression.accept(this);
+    }
+  }
+
+  @override
+  visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
     // in 'class B = A;' actually A constructors are invoked
     if (element != null &&
@@ -263,106 +267,106 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     }
     // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    return super.visitConstructorName(node);
+    super.visitConstructorName(node);
   }
 
   @override
-  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
     LocalVariableElement element = node.element;
     enterScope(element);
     try {
-      return super.visitDeclaredIdentifier(node);
+      super.visitDeclaredIdentifier(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitEnumDeclaration(EnumDeclaration node) {
+  visitEnumDeclaration(EnumDeclaration node) {
     ClassElement element = node.element;
     enterScope(element);
     try {
       _recordElementDefinition(element);
-      return super.visitEnumDeclaration(node);
+      super.visitEnumDeclaration(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) {
+  visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     if (element != null) {
       LibraryElement expLibrary = element.exportedLibrary;
       _recordLibraryReference(node, expLibrary);
     }
-    return super.visitExportDirective(node);
+    super.visitExportDirective(node);
   }
 
   @override
-  Object visitFormalParameter(FormalParameter node) {
+  visitFormalParameter(FormalParameter node) {
     ParameterElement element = node.element;
     enterScope(element);
     try {
-      return super.visitFormalParameter(node);
+      super.visitFormalParameter(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
+  visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.element;
     _recordElementDefinition(element);
     enterScope(element);
     try {
-      return super.visitFunctionDeclaration(node);
+      super.visitFunctionDeclaration(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
     Element element = node.element;
     _recordElementDefinition(element);
-    return super.visitFunctionTypeAlias(node);
+    super.visitFunctionTypeAlias(node);
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
     if (element != null) {
       LibraryElement impLibrary = element.importedLibrary;
       _recordLibraryReference(node, impLibrary);
     }
-    return super.visitImportDirective(node);
+    super.visitImportDirective(node);
   }
 
   @override
-  Object visitIndexExpression(IndexExpression node) {
+  visitIndexExpression(IndexExpression node) {
     MethodElement element = node.bestElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
       Location location = _createLocationForToken(operator, element != null);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
-    return super.visitIndexExpression(node);
+    super.visitIndexExpression(node);
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.element;
     enterScope(element);
     try {
-      return super.visitMethodDeclaration(node);
+      super.visitMethodDeclaration(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitMethodInvocation(MethodInvocation node) {
+  visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Location location = _createLocationForNode(name);
     // element invocation
@@ -382,39 +386,37 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
           location);
     }
     _recordImportElementReferenceWithoutPrefix(name);
-    return super.visitMethodInvocation(node);
+    super.visitMethodInvocation(node);
   }
 
   @override
-  Object visitPartDirective(PartDirective node) {
+  visitPartDirective(PartDirective node) {
     Element element = node.element;
     Location location = _createLocationForNode(node.uri);
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    return super.visitPartDirective(node);
+    super.visitPartDirective(node);
   }
 
   @override
-  Object visitPartOfDirective(PartOfDirective node) {
+  visitPartOfDirective(PartOfDirective node) {
     Location location = _createLocationForNode(node.libraryName);
     recordRelationship(node.element, IndexConstants.IS_REFERENCED_BY, location);
-    return null;
   }
 
   @override
-  Object visitPostfixExpression(PostfixExpression node) {
+  visitPostfixExpression(PostfixExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
-    return super.visitPostfixExpression(node);
+    super.visitPostfixExpression(node);
   }
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
+  visitPrefixExpression(PrefixExpression node) {
     _recordOperatorReference(node.operator, node.bestElement);
-    return super.visitPrefixExpression(node);
+    super.visitPrefixExpression(node);
   }
 
   @override
-  Object
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     Location location;
     if (node.constructorName != null) {
@@ -426,11 +428,11 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
       location = _createLocationForOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    return super.visitRedirectingConstructorInvocation(node);
+    super.visitRedirectingConstructorInvocation(node);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElement(node.name);
     Location location = _createLocationForNode(node);
     // name in declaration
@@ -439,13 +441,13 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
           nameElement,
           IndexConstants.NAME_IS_DEFINED_BY,
           location);
-      return null;
+      return;
     }
     // prepare information
     Element element = node.bestElement;
     // stop if already handled
     if (_isAlreadyHandledName(node)) {
-      return null;
+      return;
     }
     // record name read/write
     if (element != null && element.enclosingElement is ClassElement ||
@@ -471,7 +473,11 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+      Relationship relationship = peekElement() == element ?
+          IndexConstants.IS_WRITTEN_BY :
+          IndexConstants.IS_REFERENCED_BY;
+      _store.recordRelationship(element.field, relationship, location);
+      return;
     }
     // record specific relations
     if (element is ClassElement ||
@@ -503,11 +509,11 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
       }
     }
     _recordImportElementReferenceWithoutPrefix(node);
-    return super.visitSimpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
-  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     Location location;
     if (node.constructorName != null) {
@@ -519,32 +525,32 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
       location = _createLocationForOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    return super.visitSuperConstructorInvocation(node);
+    super.visitSuperConstructorInvocation(node);
   }
 
   @override
-  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     VariableDeclarationList variables = node.variables;
     for (VariableDeclaration variableDeclaration in variables.variables) {
       Element element = variableDeclaration.element;
       _recordElementDefinition(element);
     }
-    return super.visitTopLevelVariableDeclaration(node);
+    super.visitTopLevelVariableDeclaration(node);
   }
 
   @override
-  Object visitTypeParameter(TypeParameter node) {
+  visitTypeParameter(TypeParameter node) {
     TypeParameterElement element = node.element;
     enterScope(element);
     try {
-      return super.visitTypeParameter(node);
+      super.visitTypeParameter(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = node.element;
     // record declaration
     {
@@ -556,14 +562,14 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     // visit
     enterScope(element);
     try {
-      return super.visitVariableDeclaration(node);
+      super.visitVariableDeclaration(node);
     } finally {
       _exitScope();
     }
   }
 
   @override
-  Object visitVariableDeclarationList(VariableDeclarationList node) {
+  visitVariableDeclarationList(VariableDeclarationList node) {
     NodeList<VariableDeclaration> variables = node.variables;
     if (variables != null) {
       // use first VariableDeclaration as Element for Location(s) in type
@@ -585,7 +591,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
       // visit variables
       variables.accept(this);
     }
-    return null;
   }
 
   /**

@@ -25,7 +25,12 @@ class Namer implements ClosureNamer {
   ];
 
   static const reservedPropertySymbols =
-      const <String>["__proto__", "prototype", "constructor", "call"];
+      const <String>[
+        "__proto__", "prototype", "constructor", "call",
+        // "use strict" disallows the use of "arguments" and "eval" as
+        // variable names or property names. See ECMA-262, Edition 5.1,
+        // section 11.1.5 (for the property names).
+        "eval", "arguments"];
 
   // Symbols that we might be using in our JS snippets.
   static const reservedGlobalSymbols = const <String>[
@@ -223,7 +228,8 @@ class Namer implements ClosureNamer {
   final String superPrefix = r'super$';
   final String metadataField = '@';
   final String callPrefix = 'call';
-  final String callCatchAllName = r'call$catchAll';
+  final String callCatchAllName = r'call*';
+  final String callNameField = r'$callName';
   final String reflectableField = r'$reflectable';
   final String reflectionInfoField = r'$reflectionInfo';
   final String reflectionNameField = r'$reflectionName';
@@ -233,6 +239,7 @@ class Namer implements ClosureNamer {
       r'$methodsWithOptionalArguments';
 
   final String classDescriptorProperty = r'^';
+  final String requiredParameterField = r'$requiredArgCount';
 
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
@@ -307,6 +314,9 @@ class Namer implements ClosureNamer {
       case 'CALL_CATCH_ALL': return callCatchAllName;
       case 'REFLECTABLE': return reflectableField;
       case 'CLASS_DESCRIPTOR_PROPERTY': return classDescriptorProperty;
+      case 'REQUIRED_PARAMETER_PROPERTY': return requiredParameterField;
+      case 'DEFAULT_VALUES_PROPERTY': return defaultValuesField;
+      case 'CALL_NAME_PROPERTY': return callNameField;
       default:
         compiler.reportError(
             node, MessageKind.GENERIC,

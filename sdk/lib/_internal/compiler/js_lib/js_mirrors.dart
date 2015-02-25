@@ -2234,7 +2234,9 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
     String callPrefix = "${JS_GET_NAME("CALL_PREFIX")}\$";
     var extractCallName = JS('', r'''
 function(reflectee) {
-  for (var property in reflectee) {
+  var properties = Object.keys(reflectee.constructor.prototype);
+  for (var i = 0; i < properties.length; i++) {
+    var property = properties[i];
     if (# == property.substring(0, #) &&
         property[#] >= '0' &&
         property[#] <= '9') return property;

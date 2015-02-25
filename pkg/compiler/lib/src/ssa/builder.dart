@@ -1155,8 +1155,8 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   void checkValidSourceFileLocation(
-      SourceFileLocation location, SourceFile sourceFile, int offset) {
-    if (!location.isValid()) {
+      SourceLocation location, SourceFile sourceFile, int offset) {
+    if (!location.isValid) {
       throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
           {'offset': offset,
            'fileName': sourceFile.filename,
@@ -1340,7 +1340,7 @@ class SsaBuilder extends ResolvedVisitor {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(element)) {
-        return InlineWeeder.canBeInlined(function.node, -1, false);
+        return InlineWeeder.canBeInlined(function, -1, false);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
       // case we miss my doing nothing is inlining very simple constructors
@@ -1367,7 +1367,7 @@ class SsaBuilder extends ResolvedVisitor {
 
       if (backend.functionsToAlwaysInline.contains(function)) {
         // Inline this function regardless of it's size.
-        assert(InlineWeeder.canBeInlined(function.node, -1, false,
+        assert(InlineWeeder.canBeInlined(function, -1, false,
                                          allowLoops: true));
         return true;
       }
@@ -1390,9 +1390,8 @@ class SsaBuilder extends ResolvedVisitor {
         useMaxInliningNodes = false;
       }
       bool canInline;
-      ast.FunctionExpression functionNode = function.node;
       canInline = InlineWeeder.canBeInlined(
-          functionNode, maxInliningNodes, useMaxInliningNodes);
+          function, maxInliningNodes, useMaxInliningNodes);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -2518,16 +2517,16 @@ class SsaBuilder extends ResolvedVisitor {
         sourceFileLocationForEndToken(node));
   }
 
-  SourceFileLocation sourceFileLocationForBeginToken(ast.Node node) =>
+  SourceLocation sourceFileLocationForBeginToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getBeginToken());
 
-  SourceFileLocation sourceFileLocationForEndToken(ast.Node node) =>
+  SourceLocation sourceFileLocationForEndToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getEndToken());
 
-  SourceFileLocation sourceFileLocationForToken(ast.Node node, Token token) {
+  SourceLocation sourceFileLocationForToken(ast.Node node, Token token) {
     SourceFile sourceFile = currentSourceFile();
-    SourceFileLocation location =
-        new TokenSourceFileLocation(sourceFile, token, sourceElement.name);
+    SourceLocation location =
+        new TokenSourceLocation(sourceFile, token, sourceElement.name);
     checkValidSourceFileLocation(location, sourceFile, token.charOffset);
     return location;
   }
@@ -6454,12 +6453,13 @@ class InlineWeeder extends ast.Visitor {
                this.useMaxInliningNodes,
                this.allowLoops);
 
-  static bool canBeInlined(ast.FunctionExpression functionExpression,
+  static bool canBeInlined(FunctionElement function,
                            int maxInliningNodes,
                            bool useMaxInliningNodes,
                            {bool allowLoops: false}) {
     InlineWeeder weeder =
         new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
+    ast.FunctionExpression functionExpression = function.node;
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);

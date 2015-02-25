@@ -23,14 +23,19 @@ IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set VM_OPTIONS=
 
+rem We allow extra vm options to be passed in through an environment variable.
+if not "_%DART_VM_OPTIONS%_" == "__" (
+  set VM_OPTIONS=%VM_OPTIONS% %DART_VM_OPTIONS%
+)
+
 rem Use the Dart binary in the built SDK so pub can find the version file next
 rem to it.
 set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
 set PACKAGES_DIR=%BUILD_DIR%\packages
 set DART=%BUILD_DIR%\dart-sdk\bin\dart
 
-rem Run the async/await compiled pub.
-set PUB="%SDK_DIR%\lib\_internal\pub_generated\bin\pub.dart"
+rem Run pub.
+set PUB="%SDK_DIR%\lib\_internal\pub.dart"
 "%DART%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
 
 endlocal

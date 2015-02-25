@@ -2493,21 +2493,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given an invocation of the form 'C.x()' where 'C' is a class, find and return the element 'x'
-   * in 'C'.
-   *
-   * @param classElement the class element
-   * @param nameNode the member name node
+   * Given that we are accessing a property of the given [classElement] with
+   * the given [propertyName], return the element that represents the property.
    */
   Element _resolveElement(ClassElementImpl classElement,
-      SimpleIdentifier nameNode) {
-    String name = nameNode.name;
-    Element element = classElement.getMethod(name);
-    if (element == null && nameNode.inSetterContext()) {
+      SimpleIdentifier propertyName) {
+    String name = propertyName.name;
+    Element element = null;
+    if (propertyName.inSetterContext()) {
       element = classElement.getSetter(name);
     }
-    if (element == null && nameNode.inGetterContext()) {
+    if (element == null) {
       element = classElement.getGetter(name);
+    }
+    if (element == null) {
+      element = classElement.getMethod(name);
     }
     if (element != null && element.isAccessibleIn(_definingLibrary)) {
       return element;

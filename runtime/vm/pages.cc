@@ -499,7 +499,9 @@ class ExclusiveLargePageIterator : ValueObject {
 
 
 void PageSpace::MakeIterable() const {
-  // TODO(koda): Assert not called from concurrent sweeper task.
+  // Assert not called from concurrent sweeper task.
+  // TODO(koda): Use thread/task identity when implemented.
+  ASSERT(Isolate::Current()->heap() != NULL);
   if (bump_top_ < bump_end_) {
     FreeListElement::AsElement(bump_top_, bump_end_ - bump_top_);
   }

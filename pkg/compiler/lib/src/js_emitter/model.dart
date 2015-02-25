@@ -15,6 +15,7 @@ import '../common.dart';
 
 class Program {
   final List<Fragment> fragments;
+  final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool outputContainsNativeClasses;
   final bool hasIsolateSupport;
@@ -30,6 +31,7 @@ class Program {
   final MetadataCollector _metadataCollector;
 
   Program(this.fragments,
+          this.holders,
           this.loadMap,
           this.typeToInterceptorMap,
           this._metadataCollector,
@@ -95,8 +97,7 @@ abstract class Fragment {
            this.staticLazilyInitializedFields,
            this.constants);
 
-  bool get isMainFragment => mainFragment == this;
-  MainFragment get mainFragment;
+  bool get isMainFragment;
 }
 
 /**
@@ -107,7 +108,6 @@ abstract class Fragment {
  */
 class MainFragment extends Fragment {
   final js.Statement invokeMain;
-  final List<Holder> holders;
 
   MainFragment(OutputUnit outputUnit,
                String outputFileName,
@@ -115,8 +115,7 @@ class MainFragment extends Fragment {
                List<Library> libraries,
                List<StaticField> staticNonFinalFields,
                List<StaticField> staticLazilyInitializedFields,
-               List<Constant> constants,
-               this.holders)
+               List<Constant> constants)
       : super(outputUnit,
               outputFileName,
               libraries,
@@ -124,22 +123,18 @@ class MainFragment extends Fragment {
               staticLazilyInitializedFields,
               constants);
 
-  MainFragment get mainFragment => this;
+  bool get isMainFragment => true;
 }
 
 /**
  * An output (file) for deferred code.
  */
 class DeferredFragment extends Fragment {
-  final MainFragment mainFragment;
   final String name;
-
-  List<Holder> get holders => mainFragment.holders;
 
   DeferredFragment(OutputUnit outputUnit,
                    String outputFileName,
                    this.name,
-                   this.mainFragment,
                    List<Library> libraries,
                    List<StaticField> staticNonFinalFields,
                    List<StaticField> staticLazilyInitializedFields,
@@ -150,6 +145,8 @@ class DeferredFragment extends Fragment {
               staticNonFinalFields,
               staticLazilyInitializedFields,
               constants);
+
+  bool get isMainFragment => false;
 }
 
 class Constant {
@@ -350,7 +347,18 @@ class DartMethod extends Method {
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
   final bool canBeReflected;
-  final DartType type;
+
+  // Is non-null if [needsTearOff] or [canBeReflected].
+  //
+  // If the type is encoded in the metadata table this field contains an index
+  // into the table. Otherwise the type contains type variables in which case
+  // this field holds a function computing the function signature.
+  final js.Expression functionType;
+
+  // Signature information for this method. This is only required and stored
+  // here if the method [canBeApplied] or [canBeReflected]
+  final int requiredParameterCount;
+  final /* Map | List */ optionalParameterDefaultValues;
 
   // If this method can be torn off, contains the name of the corresponding
   // call method. For example, for the member `foo$1$name` it would be
@@ -358,14 +366,18 @@ class DartMethod extends Method {
   final String callName;
 
   DartMethod(Element element, String name, js.Expression code,
-             this.parameterStubs, this.callName, this.type,
+             this.parameterStubs, this.callName,
              {this.needsTearOff, this.tearOffName, this.canBeApplied,
-             this.canBeReflected})
+              this.canBeReflected, this.requiredParameterCount,
+              this.optionalParameterDefaultValues, this.functionType})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
     assert(canBeApplied != null);
     assert(canBeReflected != null);
+    assert((!canBeReflected && !canBeApplied) ||
+           (requiredParameterCount != null &&
+            optionalParameterDefaultValues != null));
   }
 }
 
@@ -380,18 +392,24 @@ class InstanceMethod extends DartMethod {
 
   InstanceMethod(Element element, String name, js.Expression code,
                  List<ParameterStubMethod> parameterStubs,
-                 String callName, DartType type,
+                 String callName,
                  {bool needsTearOff,
                   String tearOffName,
                   this.aliasName,
                   bool canBeApplied,
                   bool canBeReflected,
-       this.isClosure})
-      : super(element, name, code, parameterStubs, callName, type,
+                  int requiredParameterCount,
+                  /* List | Map */ optionalParameterDefaultValues,
+                  this.isClosure,
+                  js.Expression functionType})
+      : super(element, name, code, parameterStubs, callName,
               needsTearOff: needsTearOff,
               tearOffName: tearOffName,
               canBeApplied: canBeApplied,
-              canBeReflected: canBeReflected) {
+              canBeReflected: canBeReflected,
+              requiredParameterCount: requiredParameterCount,
+              optionalParameterDefaultValues: optionalParameterDefaultValues,
+              functionType: functionType) {
     assert(isClosure != null);
   }
 }
@@ -435,14 +453,19 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
   StaticDartMethod(Element element, String name, this.holder,
                    js.Expression code, List<ParameterStubMethod> parameterStubs,
-                   String callName, DartType type,
+                   String callName,
                    {bool needsTearOff, String tearOffName, bool canBeApplied,
-                    bool canBeReflected})
-      : super(element, name, code, parameterStubs, callName, type,
+                    bool canBeReflected, int requiredParameterCount,
+                    /* List | Map */ optionalParameterDefaultValues,
+                    js.Expression functionType})
+      : super(element, name, code, parameterStubs, callName,
               needsTearOff: needsTearOff,
               tearOffName : tearOffName,
               canBeApplied : canBeApplied,
-              canBeReflected : canBeReflected);
+              canBeReflected : canBeReflected,
+              requiredParameterCount: requiredParameterCount,
+              optionalParameterDefaultValues: optionalParameterDefaultValues,
+              functionType: functionType);
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {

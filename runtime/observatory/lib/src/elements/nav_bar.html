@@ -325,7 +325,7 @@
            _href="{{ gotoLink('/inspect', event.isolate) }}">{{ event.isolate.name }}</a>
         is paused
         <template if="{{ event.breakpoint != null }}">
-          at breakpoint {{ event.breakpoint['breakpointNumber'] }}
+          at breakpoint {{ event.breakpoint.number }}
         </template>
         <template if="{{ event.eventType == 'ExceptionThrown' }}">
           at exception

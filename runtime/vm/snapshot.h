@@ -368,6 +368,8 @@ class SnapshotReader : public BaseReader {
 
   intptr_t NextAvailableObjectId() const;
 
+  void SetReadException(const char* msg);
+
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
   Heap* heap_;  // Heap of the current isolate.

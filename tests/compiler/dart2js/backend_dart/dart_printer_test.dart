@@ -658,7 +658,7 @@ void checkDeepEqual(x, y) {
 }
 
 Expression parseExpression(String code) {
-  SourceFile file = new StringSourceFile('', code);
+  SourceFile file = new StringSourceFile.fromName('', code);
   Scanner scan = new Scanner(file);
   Token tok = scan.tokenize();
   AstBuilder builder = new AstBuilder();
@@ -670,7 +670,7 @@ Expression parseExpression(String code) {
   return builder.pop();
 }
 Statement parseStatement(String code) {
-  SourceFile file = new StringSourceFile('', code);
+  SourceFile file = new StringSourceFile.fromName('', code);
   Scanner scan = new Scanner(file);
   Token tok = scan.tokenize();
   AstBuilder builder = new AstBuilder();
@@ -730,7 +730,7 @@ void checkStatement(String code, [String expected="", String expected2=""]) {
 }
 
 void debugTokens(String code) {
-  SourceFile file = new StringSourceFile('', code);
+  SourceFile file = new StringSourceFile.fromName('', code);
   Scanner scan = new Scanner(file);
   Token tok = scan.tokenize();
   while (tok.next != tok) {

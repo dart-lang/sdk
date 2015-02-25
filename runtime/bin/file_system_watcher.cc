@@ -6,6 +6,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/utils.h"
 
 #include "include/dart_api.h"
 
@@ -18,7 +19,15 @@ void FUNCTION_NAME(FileSystemWatcher_IsSupported)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_NewInteger(FileSystemWatcher::Init()));
+  intptr_t id = FileSystemWatcher::Init();
+  if (id >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(id));
+  } else {
+    OSError os_error;
+    Dart_Handle error = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(error)) Dart_PropagateError(error);
+    Dart_ThrowException(error);
+  }
 }
 
 

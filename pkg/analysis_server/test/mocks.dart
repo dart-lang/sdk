@@ -58,7 +58,7 @@ Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
  * times. By default, this should pump the event queue enough times to allow
  * any code to run, as long as it's not waiting on some external event.
  */
-Future pumpEventQueue([int times = 50]) {
+Future pumpEventQueue([int times = 500]) {
   if (times == 0) return new Future.value();
   // We use a delayed future to allow microtask events to finish. The
   // Future.value or Future() constructors use scheduleMicrotask themselves and

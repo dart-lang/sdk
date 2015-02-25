@@ -211,10 +211,8 @@ main() {
 }
 ''');
     ConstructorElement element = findElement('named');
-    ClassElement elementA = findElement('A');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(elementA, MatchKind.DECLARATION, '.named() {}', length: 6),
         _expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)];
     return _verifyReferences(element, expected);
   }
@@ -245,7 +243,7 @@ class A {
     Element main = findElement('main');
     Element fieldParameter = findElement('field', ElementKind.PARAMETER);
     var expected = [
-        _expectId(fieldParameter, MatchKind.REFERENCE, 'field}'),
+        _expectId(fieldParameter, MatchKind.WRITE, 'field}'),
         _expectId(main, MatchKind.REFERENCE, 'field: 1'),
         _expectId(main, MatchKind.READ, 'field); // ref-nq'),
         _expectIdQ(main, MatchKind.READ, 'field); // ref-q'),

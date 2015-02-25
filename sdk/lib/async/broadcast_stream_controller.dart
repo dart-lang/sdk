@@ -337,11 +337,22 @@ abstract class _BroadcastStreamController<T>
   }
 }
 
-class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
+class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
+                                     implements SynchronousStreamController<T> {
   _SyncBroadcastStreamController(void onListen(), void onCancel())
       : super(onListen, onCancel);
 
   // EventDispatch interface.
+
+  bool get _mayAddEvent => super._mayAddEvent && !_isFiring;
+
+  _addEventError() {
+    if (_isFiring) {
+      return new StateError(
+          "Cannot fire new event. Controller is already firing an event");
+    }
+    return super._addEventError();
+  }
 
   void _sendData(T data) {
     if (_isEmpty) return;

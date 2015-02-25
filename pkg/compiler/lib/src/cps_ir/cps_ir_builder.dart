@@ -1822,7 +1822,12 @@ class JsIrBuilder extends IrBuilder {
   ir.Primitive buildFunctionExpression(ClosureClassElement classElement) {
     List<ir.Primitive> arguments = <ir.Primitive>[];
     for (ClosureFieldElement field in classElement.closureFields) {
-      arguments.add(environment.lookup(field.local));
+      // Captured 'this' is not available as a local in the current environment,
+      // so treat that specially.
+      ir.Primitive value = field.local is ThisLocal
+          ? buildThis()
+          : environment.lookup(field.local);
+      arguments.add(value);
     }
     ir.Primitive closure = new ir.CreateInstance(classElement, arguments);
     add(new ir.LetPrim(closure));

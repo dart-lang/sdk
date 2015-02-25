@@ -70,7 +70,7 @@ jsonify(MirrorSystem mirrors) {
     BackDoor.compilationUnitsOf(library).forEach((compilationUnit) {
       Uri uri = compilationUnit.uri;
       String filename = relativize(sdkRoot, uri, false);
-      SourceFile file = handler.provider.sourceFiles['$uri'];
+      SourceFile file = handler.provider.sourceFiles[uri];
       map['sdk:/$filename'] = file.slowText();
     });
   });
@@ -80,7 +80,7 @@ jsonify(MirrorSystem mirrors) {
     if (patch != null) {
       Uri uri = sdkRoot.resolve('sdk/lib/$patch');
       String filename = relativize(sdkRoot, uri, false);
-      SourceFile file = handler.provider.sourceFiles['$uri'];
+      SourceFile file = handler.provider.sourceFiles[uri];
       map['sdk:/$filename'] = file.slowText();
     }
   });

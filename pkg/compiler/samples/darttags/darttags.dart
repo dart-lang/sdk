@@ -122,7 +122,7 @@ emitTagsForCompilationUnit(compilationUnit) {
   // felt it would make sense to keep the names.
   Uri uri = compilationUnit.uri;
   var buffer = new StringBuffer();
-  SourceFile file = handler.provider.sourceFiles['$uri'];
+  SourceFile file = handler.provider.sourceFiles[uri];
   String src_file = relativize(outputUri, uri, false);
 
   compilationUnit.declarations.forEach((_, DeclarationMirror mirror) {

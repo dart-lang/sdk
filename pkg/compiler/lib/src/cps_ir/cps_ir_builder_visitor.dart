@@ -758,15 +758,39 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
   ir.Primitive visitSuperSend(ast.Send node) {
     assert(irBuilder.isOpen);
-    if (node.isPropertyAccess) {
-      return visitGetterSend(node);
-    } else {
-      Selector selector = elements.getSelector(node);
-      Element target = elements[node];
+    Selector selector = elements.getSelector(node);
+    Element target = elements[node];
+
+    if (selector.isCall && (target.isGetter || target.isField)) {
+      // We are invoking a field or getter as if it was a method, e.g:
+      //
+      //     class A { get foo => {..} }
+      //     class B extends A {
+      //         m() {
+      //           super.foo(1, 2, 3);  }
+      //         }
+      //     }
+      //
+      // We invoke the getter of 'foo' and then invoke the 'call' method on
+      // the result, using the given arguments.
+      Selector getter = new Selector.getterFrom(selector);
+      Selector call = new Selector.callClosureFrom(selector);
+      ir.Primitive receiver =
+          irBuilder.buildSuperInvocation(target, getter, []);
       List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-      if (selector.isCall) {
-        arguments = normalizeStaticArguments(selector, target, arguments);
-      }
+      arguments = normalizeDynamicArguments(selector, arguments);
+      return irBuilder.buildCallInvocation(receiver, call, arguments);
+    } else if (selector.isCall) {
+      // We are invoking a method.
+      assert(target is FunctionElement);
+      List<ir.Primitive> arguments = node.arguments.mapToList(visit);
+      arguments = normalizeStaticArguments(selector, target, arguments);
+      return irBuilder.buildSuperInvocation(target, selector, arguments);
+    } else {
+      // We are invoking a getter, operator, indexer, etc.
+      List<ir.Primitive> arguments = node.argumentsNode == null
+          ? <ir.Primitive>[]
+          : node.arguments.mapToList(visit);
       return irBuilder.buildSuperInvocation(target, selector, arguments);
     }
   }
@@ -1035,6 +1059,9 @@ class DartCapturedVariables extends ast.Visitor
   visitFunctionExpression(ast.FunctionExpression node) {
     FunctionElement oldFunction = currentFunction;
     currentFunction = elements[node];
+    if (currentFunction.asyncMarker != AsyncMarker.SYNC) {
+      giveup(node, "cannot handle async/sync*/async* functions");
+    }
     if (node.initializers != null) {
       insideInitializer = true;
       visit(node.initializers);
@@ -1128,6 +1155,9 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   ir.FunctionDefinition buildFunction(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
     ast.FunctionExpression node = element.node;
+    if (element.asyncMarker != AsyncMarker.SYNC) {
+      giveup(null, 'cannot handle async-await');
+    }
 
     if (!element.isSynthesized) {
       assert(node != null);

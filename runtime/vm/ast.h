@@ -129,6 +129,14 @@ class AstNode : public ZoneAllocated {
     return NULL;
   }
 
+  // Returns true if this node can be a compile-time constant, assuming
+  // that all nodes it depends on are also compile-time constants of
+  // the proper types and values.
+  // See the concept of "potentially constant expression" in the language spec.
+  // The purpose of IsPotentiallyConst is to detect cases where the node is
+  // known NOT to be a constant expression, in which case false is returned and
+  // a compile-time error is reported by the compiler. Otherwise, an error may
+  // still be reported at run-time depending on actual values.
   virtual bool IsPotentiallyConst() const { return false; }
 
   // Analyzes an expression to determine whether it is a compile time
@@ -1422,6 +1430,9 @@ class InstanceGetterNode : public AstNode {
   }
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
+
+  virtual bool IsPotentiallyConst() const;
+  virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(InstanceGetterNode);
 

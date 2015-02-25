@@ -154,6 +154,14 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
 
   bool get isExport => _node.asExport() != null;
 
+  bool get isDeferred {
+    if (_node is Import) {
+      Import import = _node;
+      return import.isDeferred;
+    }
+    return false;
+  }
+
   List<InstanceMirror> get metadata => const <InstanceMirror>[];
 }
 

@@ -39,14 +39,14 @@ io/socket_many_connections_test: Skip
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: Fail # Issue 13921
 typed_array_int64_uint64_test: Fail # Issue 13921
-typed_data_isolate_test: Skip # This test uses dart:io
-io/*: Skip # Don't run tests using dart:io in the browser
+typed_data_isolate_test: SkipByDesign # This test uses dart:io
+io/*: SkipByDesign # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
-debugger/*: Skip # Do not run standalone debugger tests in browser.
+debugger/*: SkipByDesign # Do not run standalone debugger tests in browser.
 coverage_test: Skip
 full_coverage_test: Skip
 http_launch_test: Skip
-vmservice/*: Skip # Do not run standalone vm service tests in browser.
+vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
 javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
@@ -126,9 +126,9 @@ io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
 io/file_read_special_device_test: Fail # Issue 17440
 
 [ $arch == mips && $mode == debug ]
-io/web_socket_test: Skip # Times out. Issue 20352
+io/web_socket_test: SkipSlow # Times out. Issue 20352
 io/test_runner_test: Skip # Flakily times out in a subtest. Issue 201351
-full_coverage_test: Skip # Times out. Issue 20352
+full_coverage_test: SkipSlow # Times out. Issue 20352
 io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too slow.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]

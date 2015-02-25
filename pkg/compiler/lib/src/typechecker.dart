@@ -47,6 +47,8 @@ class MemberKind {
 abstract class ElementAccess {
   Element get element;
 
+  String get name => element.name;
+
   DartType computeType(Compiler compiler);
 
   /// Returns [: true :] if the element can be access as an invocation.
@@ -82,6 +84,8 @@ class DynamicAccess implements ElementAccess {
 
   Element get element => null;
 
+  String get name => 'dynamic';
+
   DartType computeType(Compiler compiler) => const DynamicType();
 
   bool isCallable(Compiler compiler) => true;
@@ -94,6 +98,8 @@ class AssertAccess implements ElementAccess {
   const AssertAccess();
 
   Element get element => null;
+
+  String get name => 'assert';
 
   DartType computeType(Compiler compiler) {
     return new FunctionType.synthesized(
@@ -181,6 +187,8 @@ class TypeLiteralAccess extends ElementAccess {
 
   Element get element => type.element;
 
+  String get name => type.name;
+
   DartType computeType(Compiler compiler) => compiler.typeClass.rawType;
 
   String toString() => 'TypeLiteralAccess($type)';
@@ -193,6 +201,8 @@ class FunctionCallAccess implements ElementAccess {
   final DartType type;
 
   const FunctionCallAccess(this.element, this.type);
+
+  String get name => 'call';
 
   DartType computeType(Compiler compiler) => type;
 
@@ -931,7 +941,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       analyzeArguments(node, elementAccess.element, type, argumentTypes);
     } else {
       reportTypeWarning(node, MessageKind.NOT_CALLABLE,
-          {'elementName': elementAccess.element.name});
+          {'elementName': elementAccess.name});
       analyzeArguments(node, elementAccess.element, const DynamicType(),
                        argumentTypes);
     }

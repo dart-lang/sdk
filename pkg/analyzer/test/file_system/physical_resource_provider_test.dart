@@ -17,6 +17,7 @@ import 'package:watcher/watcher.dart';
 
 var _isFile = new isInstanceOf<File>();
 var _isFolder = new isInstanceOf<Folder>();
+var _isFileSystemException = new isInstanceOf<FileSystemException>();
 
 
 main() {
@@ -197,6 +198,21 @@ main() {
         File file = PhysicalResourceProvider.INSTANCE.getResource(path);
         expect(file.isOrContains(path), isTrue);
         expect(file.isOrContains('foo'), isFalse);
+      });
+
+      group('modificationStamp', () {
+        test('exists', () {
+          new io.File(path).writeAsStringSync('contents');
+          File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(file.modificationStamp, isNonNegative);
+        });
+
+        test('does not exist', () {
+          File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(() {
+            file.modificationStamp;
+          }, throwsA(_isFileSystemException));
+        });
       });
 
       test('shortName', () {

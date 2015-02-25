@@ -79,14 +79,7 @@ Map<String, String> computeReflectiveNames(Map<String, String> map) {
 
 @NoInline()
 List extractKeys(victim) {
-  var result = JS('', '''
-(function(victim, hasOwnProperty) {
-  var result = [];
-  for (var key in victim) {
-    if (hasOwnProperty.call(victim, key)) result.push(key);
-  }
-  return result;
-})(#, Object.prototype.hasOwnProperty)''', victim);
+  var result = JS('', '# ? Object.keys(#) : []', victim, victim);
   return new JSArray.markFixed(result);
 }
 

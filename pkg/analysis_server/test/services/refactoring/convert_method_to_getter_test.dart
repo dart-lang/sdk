@@ -148,6 +148,15 @@ main() {
         'Only methods without parameters can be converted to getters.');
   }
 
+  test_checkInitialConditions_returnTypeVoid() {
+    indexTestUnit('''
+void test() {}
+''');
+    _createRefactoring('test');
+    // check conditions
+    _assertInitialConditions_fatal('Cannot convert function returning void.');
+  }
+
   test_checkInitialConditions_localFunction() {
     indexTestUnit('''
 main() {

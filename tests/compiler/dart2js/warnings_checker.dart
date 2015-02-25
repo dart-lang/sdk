@@ -25,7 +25,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
     Uri uri = script.resolve('../../$test');
     String source = UTF8.decode(readAll(uriPathToNative(uri.path)));
     SourceFile file = new StringSourceFile(
-        relativize(currentDirectory, uri, isWindows), source);
+        uri, relativize(currentDirectory, uri, isWindows), source);
     Map<int,String> expectedWarnings = {};
     int lineNo = 0;
     for (String line in source.split('\n')) {

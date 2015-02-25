@@ -200,9 +200,54 @@ class ConstantLiteralEmitter
     return new jsAst.LiteralNull();
   }
 
+  static final _exponentialRE = new RegExp(
+      '^'
+      '\([-+]?\)'         // 1: sign
+      '\([0-9]+\)'        // 2: leading digit(s)
+      '\(\.\([0-9]*\)\)?' // 4: fraction digits
+      'e\([-+]?[0-9]+\)'  // 5: exponent with sign
+      r'$');
+
+  /// Reduces the size of exponential representations when minification is
+  /// enabled.
+  ///
+  /// Removes the "+" after the exponential sign, and removes the "." before the
+  /// "e". For example `1.23e+5` is changed to `123e3`.
+  String _shortenExponentialRepresentation(String numberString) {
+    Match match = _exponentialRE.firstMatch(numberString);
+    if (match == null) return numberString;
+    String sign = match[1];
+    String leadingDigits = match[2];
+    String fractionDigits = match[4];
+    int exponent = int.parse(match[5]);
+    if (fractionDigits == null) fractionDigits = '';
+    exponent -= fractionDigits.length;
+    String result = '${sign}${leadingDigits}${fractionDigits}e${exponent}';
+    assert(double.parse(result) == double.parse(numberString));
+    return result;
+  }
+
   @override
   jsAst.Expression visitInt(IntConstantValue constant, [_]) {
-    return new jsAst.LiteralNumber('${constant.primitiveValue}');
+    int primitiveValue = constant.primitiveValue;
+    // Since we are in JavaScript we can shorten long integers to their shorter
+    // exponential representation, for example: "1e4" is shorter than "10000".
+    //
+    // Note that this shortening apparently loses precision for big numbers
+    // (like 1234567890123456789012345 which becomes 12345678901234568e8).
+    // However, since JavaScript engines represent all numbers as doubles, these
+    // digits are lost anyway.
+    String representation = primitiveValue.toString();
+    String alternative = null;
+    int cutoff = compiler.enableMinification ? 10000 : 1e10.toInt();
+    if (primitiveValue.abs() >= cutoff) {
+      alternative = _shortenExponentialRepresentation(
+          primitiveValue.toStringAsExponential());
+    }
+    if (alternative != null && alternative.length < representation.length) {
+      representation = alternative;
+    }
+    return new jsAst.LiteralNumber(representation);
   }
 
   @override
@@ -215,7 +260,8 @@ class ConstantLiteralEmitter
     } else if (value == -double.INFINITY) {
       return js("-1/0");
     } else {
-      return new jsAst.LiteralNumber("$value");
+      String shortened = _shortenExponentialRepresentation("$value");
+      return new jsAst.LiteralNumber(shortened);
     }
   }
 

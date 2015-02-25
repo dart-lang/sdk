@@ -40,9 +40,29 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = _checkInitialConditions();
-    return new Future.value(result);
+  Future<RefactoringStatus> checkInitialConditions() async {
+    // check Element type
+    if (element is FunctionElement) {
+      if (element.enclosingElement is! CompilationUnitElement) {
+        return new RefactoringStatus.fatal(
+            'Only top-level functions can be converted to getters.');
+      }
+    } else if (element is! MethodElement) {
+      return new RefactoringStatus.fatal(
+          'Only class methods or top-level functions can be converted to getters.');
+    }
+    // returns a value
+    if (element.returnType != null && element.returnType.isVoid) {
+      return new RefactoringStatus.fatal(
+          'Cannot convert ${element.kind.displayName} returning void.');
+    }
+    // no parameters
+    if (element.parameters.isNotEmpty) {
+      return new RefactoringStatus.fatal(
+          'Only methods without parameters can be converted to getters.');
+    }
+    // OK
+    return new RefactoringStatus();
   }
 
   @override
@@ -69,26 +89,6 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
 
   @override
   bool requiresPreview() => false;
-
-  RefactoringStatus _checkInitialConditions() {
-    // check Element type
-    if (element is FunctionElement) {
-      if (element.enclosingElement is! CompilationUnitElement) {
-        return new RefactoringStatus.fatal(
-            'Only top-level functions can be converted to getters.');
-      }
-    } else if (element is! MethodElement) {
-      return new RefactoringStatus.fatal(
-          'Only class methods or top-level functions can be converted to getters.');
-    }
-    // no parameters
-    if (element.parameters.isNotEmpty) {
-      return new RefactoringStatus.fatal(
-          'Only methods without parameters can be converted to getters.');
-    }
-    // OK
-    return new RefactoringStatus();
-  }
 
   void _updateElementDeclaration(Element element) {
     // prepare parameters

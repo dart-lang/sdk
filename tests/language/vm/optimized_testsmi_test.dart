@@ -7,8 +7,7 @@
 
 import "package:expect/expect.dart";
 
-test(bool b) {
-  var a = 0;
+test1(a, bool b) {
   if (b) {
     a++;
   } else {
@@ -20,11 +19,38 @@ test(bool b) {
   return "odd";
 }
 
+test2(a, bool b) {
+  if (b) {
+    a++;
+  } else {
+    a += 2;
+  }
+  if (a & 1 == 1) {
+    return "odd";
+  }
+  return "even";
+}
+
+test3(a, bool b) {
+  return test1(0, b);
+}
+
+test4(a, bool b) {
+  return test2(0, b);
+}
+
+run(test) {
+  Expect.equals("odd", test(0, true));
+  Expect.equals("even", test(0, false));
+  for (var i=0; i<20; i++) test(0, false);
+  Expect.equals("odd", test(0, true));
+  Expect.equals("even", test(0, false));
+}
+
 main() {
-  Expect.equals("odd", test(true));
-  Expect.equals("even", test(false));
-  for (var i=0; i<20; i++) test(false);
-  Expect.equals("odd", test(true));
-  Expect.equals("even", test(false));
+  run(test1);
+  run(test2);
+  run(test3);
+  run(test4);
 }
 

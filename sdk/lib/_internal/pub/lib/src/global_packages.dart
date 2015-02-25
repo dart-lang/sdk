@@ -660,9 +660,9 @@ $invocation %*
       if (snapshot != null) {
         batch += """
 
-rem The VM exits with code 255 if the snapshot version is out-of-date.
+rem The VM exits with code 253 if the snapshot version is out-of-date.
 rem If it is, we need to delete it and run "pub global" manually.
-if not errorlevel 255 (
+if not errorlevel 253 (
   exit /b %errorlevel%
 )
 
@@ -685,10 +685,10 @@ $invocation "\$@"
       if (snapshot != null) {
         bash += """
 
-# The VM exits with code 255 if the snapshot version is out-of-date.
+# The VM exits with code 253 if the snapshot version is out-of-date.
 # If it is, we need to delete it and run "pub global" manually.
 exit_code=\$?
-if [ \$exit_code != 255 ]; then
+if [ \$exit_code != 253 ]; then
   exit \$exit_code
 fi
 

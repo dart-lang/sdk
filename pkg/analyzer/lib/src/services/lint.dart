@@ -42,17 +42,13 @@ class LintGenerator {
       : _linters = linters != null ? linters : LINTERS;
 
   void generate() {
-    TimeCounter_TimeCounterHandle timeCounter =
-        PerformanceStatistics.lint.start();
-    try {
+    PerformanceStatistics.lint.makeCurrentWhile(() {
       _compilationUnits.forEach((cu) {
         if (cu.element != null) {
           _generate(cu, cu.element.source);
         }
       });
-    } finally {
-      timeCounter.stop();
-    }
+    });
   }
 
   void _generate(CompilationUnit unit, Source source) {

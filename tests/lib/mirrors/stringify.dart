@@ -116,8 +116,15 @@ stringifyMethod(MethodMirror method) {
 
 stringifyDependencies(LibraryMirror l) {
   n(s) => s is Symbol ? MirrorSystem.getName(s) : s;
-  compareDep(a, b) =>
-      n(a.targetLibrary.simpleName).compareTo(n(b.targetLibrary.simpleName));
+  compareDep(a, b) {
+      if (a.targetLibrary == b.targetLibrary) {
+        if ((a.prefix != null) && (b.prefix != null)) {
+          return n(a.prefix).compareTo(n(b.prefix));
+        }
+        return a.prefix == null ? 1 : -1;
+      }
+      return n(a.targetLibrary.simpleName).compareTo(n(b.targetLibrary.simpleName));
+  }
   compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));
   compareFirst(a, b) => a[0].compareTo(b[0]);
   sortBy(c, p) => new List.from(c)..sort(p);
@@ -127,6 +134,7 @@ stringifyDependencies(LibraryMirror l) {
     if (dep.isImport) buffer.write('import ');
     if (dep.isExport) buffer.write('export ');
     buffer.write(n(dep.targetLibrary.simpleName));
+    if (dep.isDeferred) buffer.write(' deferred');
     if (dep.prefix != null) buffer.write(' as ${n(dep.prefix)}');
     buffer.write('\n');
 

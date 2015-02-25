@@ -69,7 +69,11 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
 #if defined(DEBUG)
 class TraceParser : public ValueObject {
  public:
-  TraceParser(intptr_t token_pos, const Script& script, const char* msg) {
+  TraceParser(intptr_t token_pos,
+              const Script& script,
+              intptr_t* trace_indent,
+              const char* msg) {
+    indent_ = trace_indent;
     if (FLAG_trace_parser) {
       // Skips tracing of bootstrap libraries.
       if (script.HasSource()) {
@@ -79,21 +83,26 @@ class TraceParser : public ValueObject {
         OS::Print("%s (line %" Pd ", col %" Pd ", token %" Pd ")\n",
                   msg, line, column, token_pos);
       }
-      indent_++;
+      (*indent_)++;
     }
   }
-  ~TraceParser() { indent_--; }
+  ~TraceParser() {
+    if (FLAG_trace_parser) {
+      (*indent_)--;
+      ASSERT(*indent_ >= 0);
+    }
+  }
+
  private:
   void PrintIndent() {
-    for (int i = 0; i < indent_; i++) { OS::Print(". "); }
+    for (intptr_t i = 0; i < *indent_; i++) { OS::Print(". "); }
   }
-  static int indent_;
+  intptr_t* indent_;
 };
 
-int TraceParser::indent_ = 0;
 
 #define TRACE_PARSER(s) \
-  TraceParser __p__(this->TokenPos(), this->script_, s)
+  TraceParser __p__(this->TokenPos(), this->script_, &this->trace_indent_, s)
 
 #else  // not DEBUG
 #define TRACE_PARSER(s)
@@ -326,7 +335,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       try_blocks_list_(NULL),
       last_used_try_index_(0),
       unregister_pending_function_(false),
-      async_temp_scope_(NULL) {
+      async_temp_scope_(NULL),
+      trace_indent_(0) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -358,7 +368,8 @@ Parser::Parser(const Script& script,
       try_blocks_list_(NULL),
       last_used_try_index_(0),
       unregister_pending_function_(false),
-      async_temp_scope_(NULL) {
+      async_temp_scope_(NULL),
+      trace_indent_(0) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   EnsureExpressionTemp();
@@ -4158,8 +4169,10 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
                                   const Class& toplevel_class,
                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseEnumDeclaration");
+  const intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos
+                                                      : TokenPos();
   ConsumeToken();
-  const intptr_t enum_pos = TokenPos();
+  const intptr_t name_pos = TokenPos();
   String* enum_name =
       ExpectUserDefinedTypeIdentifier("enum type name expected");
   if (FLAG_trace_parser) {
@@ -4186,10 +4199,10 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
 
   Object& obj = Object::Handle(Z, library_.LookupLocalObject(*enum_name));
   if (!obj.IsNull()) {
-    ReportError(enum_pos, "'%s' is already defined", enum_name->ToCString());
+    ReportError(name_pos, "'%s' is already defined", enum_name->ToCString());
   }
   Class& cls = Class::Handle(Z);
-  cls = Class::New(*enum_name, script_, enum_pos);
+  cls = Class::New(*enum_name, script_, declaration_pos);
   cls.set_library(library_);
   library_.AddClass(cls);
   cls.set_is_synthesized_class();
@@ -4208,6 +4221,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
   bool is_abstract = false;
+  intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos : TokenPos();
   if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
@@ -4231,7 +4245,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       ReportError(classname_pos, "missing class '%s' cannot be patched",
                   class_name.ToCString());
     }
-    cls = Class::New(class_name, script_, classname_pos);
+    cls = Class::New(class_name, script_, declaration_pos);
     library_.AddClass(cls);
   } else {
     if (!obj.IsClass()) {
@@ -4247,7 +4261,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       // otherwise the generic signature classes it defines will not match the
       // patched generic signature classes. Therefore, new signature classes
       // will be introduced and the original ones will not get finalized.
-      cls = Class::New(class_name, script_, classname_pos);
+      cls = Class::New(class_name, script_, declaration_pos);
       cls.set_library(library_);
     } else {
       // Not patching a class, but it has been found. This must be one of the
@@ -4259,7 +4273,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       }
       // Pre-registered classes need their scripts connected at this time.
       cls.set_script(script_);
-      cls.set_token_pos(classname_pos);
+      cls.set_token_pos(declaration_pos);
     }
   }
   ASSERT(!cls.IsNull());
@@ -4399,6 +4413,15 @@ void Parser::ParseClassDefinition(const Class& cls) {
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
+  SkipMetadata();
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kABSTRACT) {
+    ConsumeToken();
+  }
+  ExpectToken(Token::kCLASS);
   const intptr_t class_pos = TokenPos();
   ClassDesc members(cls, class_name, false, class_pos);
   while (CurrentToken() != Token::kLBRACE) {
@@ -4447,6 +4470,9 @@ void Parser::ParseClassDefinition(const Class& cls) {
 void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
   CompilerStats::num_classes_compiled++;
+
+  SkipMetadata();
+  ExpectToken(Token::kENUM);
 
   const String& enum_name = String::Handle(Z, cls.Name());
   ClassDesc enum_members(cls, enum_name, false, cls.token_pos());
@@ -4784,6 +4810,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                           const Class& toplevel_class,
                           intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
+  intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos : TokenPos();
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinAppAlias()) {
@@ -4826,7 +4853,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
       Class::NewSignatureClass(*alias_name,
                                Function::Handle(Z),
                                script_,
-                               alias_name_pos));
+                               declaration_pos));
   library_.AddClass(function_type_alias);
   set_current_class(function_type_alias);
   // Parse the type parameters of the function type.
@@ -4993,6 +5020,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
       ConsumeToken();
       const intptr_t metadata_pos = SkipMetadata();
       const intptr_t type_parameter_pos = TokenPos();
+      const intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos
+                                                          : type_parameter_pos;
       String& type_parameter_name =
           *ExpectUserDefinedTypeIdentifier("type parameter expected");
       // Check for duplicate type parameters.
@@ -5018,7 +5047,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           index,
                                           type_parameter_name,
                                           type_parameter_bound,
-                                          type_parameter_pos);
+                                          declaration_pos);
       type_parameters_array.Add(type_parameter);
       if (metadata_pos >= 0) {
         library_.AddTypeParameterMetadata(type_parameter, metadata_pos);
@@ -5944,35 +5973,36 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   LocalVariable* context_var = current_block_->scope->LookupVariable(
       Symbols::SavedTryContextVar(), false);
   ASSERT(context_var != NULL);
+
   LocalVariable* exception_var = current_block_->scope->LookupVariable(
       Symbols::ExceptionVar(), false);
+  ASSERT(exception_var != NULL);
   if (exception_param.var != NULL) {
     // Generate code to load the exception object (:exception_var) into
     // the exception variable specified in this block.
-    ASSERT(exception_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
         Scanner::kNoSourcePos,
         exception_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
   }
+
   LocalVariable* stack_trace_var =
       current_block_->scope->LookupVariable(Symbols::StackTraceVar(), false);
+  ASSERT(stack_trace_var != NULL);
   if (stack_trace_param.var != NULL) {
     // A stack trace variable is specified in this block, so generate code
     // to load the stack trace object (:stack_trace_var) into the stack
     // trace variable specified in this block.
-    ArgumentListNode* no_args = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
-    ASSERT(stack_trace_var != NULL);
+    current_block_->statements->Add(new(Z) StoreLocalNode(
+>>>>>>> .merge-right.r43886
     current_block_->statements->Add(new(Z) StoreLocalNode(
         Scanner::kNoSourcePos,
         stack_trace_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
-    current_block_->statements->Add(new(Z) InstanceCallNode(
-        Scanner::kNoSourcePos,
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_param.var),
-        Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
-        no_args));
   }
+
+  AddSavedExceptionAndStacktraceToScope(
+      exception_var, stack_trace_var, current_block_->scope);
 
   ASSERT(try_blocks_list_ != NULL);
   ASSERT(innermost_function().IsAsyncClosure() ||
@@ -6659,16 +6689,18 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   ASSERT(IsIdentifier());
   const intptr_t ident_pos = TokenPos();
   const String& ident = *CurrentLiteral();
-  LocalVariable* variable = new(Z) LocalVariable(
-      ident_pos, ident, type);
   ConsumeToken();  // Variable identifier.
+  const intptr_t assign_pos = TokenPos();
   AstNode* initialization = NULL;
+  LocalVariable* variable = NULL;
   if (CurrentToken() == Token::kASSIGN) {
     // Variable initialization.
-    const intptr_t assign_pos = TokenPos();
     ConsumeToken();
     AstNode* expr = ParseAwaitableExpr(
         is_const, kConsumeCascades, await_preamble);
+    const intptr_t expr_end_pos = TokenPos();
+    variable = new(Z) LocalVariable(
+        expr_end_pos, ident, type);
     initialization = new(Z) StoreLocalNode(
         assign_pos, variable, expr);
     if (is_const) {
@@ -6680,6 +6712,8 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
                 "missing initialization of 'final' or 'const' variable");
   } else {
     // Initialize variable with null.
+    variable = new(Z) LocalVariable(
+        assign_pos, ident, type);
     AstNode* null_expr = new(Z) LiteralNode(ident_pos, Instance::ZoneHandle(Z));
     initialization = new(Z) StoreLocalNode(
         ident_pos, variable, null_expr);
@@ -6687,7 +6721,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
 
   ASSERT(current_block_ != NULL);
   const intptr_t previous_pos =
-  current_block_->scope->PreviousReferencePos(ident);
+      current_block_->scope->PreviousReferencePos(ident);
   if (previous_pos >= 0) {
     ASSERT(!script_.IsNull());
     if (previous_pos > ident_pos) {
@@ -8176,12 +8210,62 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
     var->set_is_final();
     bool added_to_scope = scope->AddVariable(var);
     if (!added_to_scope) {
+      // The name of the exception param is reused for the stack trace param.
       ReportError(stack_trace_param->token_pos,
                   "name '%s' already exists in scope",
                   stack_trace_param->name->ToCString());
-       }
+    }
     stack_trace_param->var = var;
   }
+}
+
+
+// Populate local scope of the catch block with the saved exception and saved
+// stack trace.
+void Parser::AddSavedExceptionAndStacktraceToScope(
+    LocalVariable* exception_var,
+    LocalVariable* stack_trace_var,
+    LocalScope* scope) {
+  ASSERT(innermost_function().IsAsyncClosure() ||
+         innermost_function().IsAsyncFunction() ||
+         innermost_function().IsSyncGenClosure() ||
+         innermost_function().IsSyncGenerator());
+  // Add :saved_exception_var and :saved_stack_trace_var to scope.
+  // They will automatically get captured.
+  LocalVariable* saved_exception_var = new (Z) LocalVariable(
+      Scanner::kNoSourcePos,
+      Symbols::SavedExceptionVar(),
+      Type::ZoneHandle(Z, Type::DynamicType()));
+  saved_exception_var->set_is_final();
+  scope->AddVariable(saved_exception_var);
+  LocalVariable* saved_stack_trace_var = new (Z) LocalVariable(
+      Scanner::kNoSourcePos,
+      Symbols::SavedStackTraceVar(),
+      Type::ZoneHandle(Z, Type::DynamicType()));
+  saved_exception_var->set_is_final();
+  scope->AddVariable(saved_stack_trace_var);
+
+  // Generate code to load the exception object (:exception_var) into
+  // the saved exception variable (:saved_exception_var) used to rethrow.
+  saved_exception_var = current_block_->scope->LookupVariable(
+      Symbols::SavedExceptionVar(), false);
+  ASSERT(saved_exception_var != NULL);
+  ASSERT(exception_var != NULL);
+  current_block_->statements->Add(new(Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      saved_exception_var,
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
+
+  // Generate code to load the stack trace object (:stack_trace_var) into
+  // the saved stacktrace variable (:saved_stack_trace_var) used to rethrow.
+  saved_stack_trace_var = current_block_->scope->LookupVariable(
+      Symbols::SavedStackTraceVar(), false);
+  ASSERT(saved_stack_trace_var != NULL);
+  ASSERT(stack_trace_var != NULL);
+  current_block_->statements->Add(new(Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      saved_stack_trace_var,
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
 }
 
 
@@ -8318,7 +8402,9 @@ SequenceNode* Parser::ParseCatchClauses(
     // following code:
     // 1) Store exception object and stack trace object into user-defined
     //    variables (as needed).
-    // 2) Nested block with source code from catch clause block.
+    // 2) In async code, save exception object and stack trace object into
+    //    captured :saved_exception_var and :saved_stack_trace_var.
+    // 3) Nested block with source code from catch clause block.
     OpenBlock();
     AddCatchParamsToScope(&exception_param, &stack_trace_param,
                           current_block_->scope);
@@ -8336,16 +8422,10 @@ SequenceNode* Parser::ParseCatchClauses(
       // to load the stack trace object (:stack_trace_var) into the stack
       // trace variable specified in this block.
       *needs_stack_trace = true;
-      ArgumentListNode* no_args = new(Z) ArgumentListNode(catch_pos);
       ASSERT(stack_trace_var != NULL);
       current_block_->statements->Add(new(Z) StoreLocalNode(
           catch_pos, stack_trace_param.var, new(Z) LoadLocalNode(
               catch_pos, stack_trace_var)));
-      current_block_->statements->Add(new(Z) InstanceCallNode(
-          catch_pos,
-          new(Z) LoadLocalNode(catch_pos, stack_trace_param.var),
-          Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
-          no_args));
     }
 
     // Add nested block with user-defined code.  This blocks allows
@@ -8372,6 +8452,8 @@ SequenceNode* Parser::ParseCatchClauses(
       } else {
         parsed_function()->reset_saved_try_ctx_vars();
       }
+      AddSavedExceptionAndStacktraceToScope(
+          exception_var, stack_trace_var, current_block_->scope);
     }
 
     current_block_->statements->Add(ParseNestedStatement(false, NULL));
@@ -8516,7 +8598,7 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
 
 
 // Restore the currently relevant :saved_try_context_var on the stack
-// from the captured :async_saved_try_cts_var.
+// from the captured :async_saved_try_ctx_var_.
 // * Try blocks: Set the context variable for this try block.
 // * Catch/finally blocks: Set the context variable for any outer try block (if
 //   existent).
@@ -8910,16 +8992,31 @@ AstNode* Parser::ParseStatement() {
     if ((try_blocks_list_ == NULL) || !try_blocks_list_->inside_catch()) {
       ReportError(statement_pos, "rethrow of an exception is not valid here");
     }
-    // The exception and stack trace variables are bound in the block
-    // containing the try.
-    LocalScope* scope = try_blocks_list_->try_block()->scope->parent();
-    ASSERT(scope != NULL);
-    LocalVariable* excp_var =
-        scope->LocalLookupVariable(Symbols::ExceptionVar());
+
+    // If in async code, use :saved_exception_var and :saved_stack_trace_var
+    // instead of :exception_var and :stack_trace_var.
+    LocalVariable* excp_var;
+    LocalVariable* trace_var;
+    if (innermost_function().IsAsyncClosure() ||
+        innermost_function().IsAsyncFunction() ||
+        innermost_function().IsSyncGenClosure() ||
+        innermost_function().IsSyncGenerator()) {
+      // The saved exception and stack trace variables are bound in the block
+      // containing the catch. So start looking in the current scope.
+      LocalScope* scope = current_block_->scope;
+      excp_var = scope->LookupVariable(Symbols::SavedExceptionVar(), false);
+      trace_var = scope->LookupVariable(Symbols::SavedStackTraceVar(), false);
+    } else {
+      // The exception and stack trace variables are bound in the block
+      // containing the try. Look in the try scope directly.
+      LocalScope* scope = try_blocks_list_->try_block()->scope->parent();
+      ASSERT(scope != NULL);
+      excp_var = scope->LocalLookupVariable(Symbols::ExceptionVar());
+      trace_var = scope->LocalLookupVariable(Symbols::StackTraceVar());
+    }
     ASSERT(excp_var != NULL);
-    LocalVariable* trace_var =
-        scope->LocalLookupVariable(Symbols::StackTraceVar());
     ASSERT(trace_var != NULL);
+
     statement = new(Z) ThrowNode(
         statement_pos,
         new(Z) LoadLocalNode(statement_pos, excp_var),

@@ -26,7 +26,7 @@ bool LongJumpScope::IsSafeToJump() {
   // We do not want to jump past Dart frames.  Note that this code
   // assumes the stack grows from high to low.
   Isolate* isolate = Isolate::Current();
-  uword jumpbuf_addr = reinterpret_cast<uword>(this);
+  uword jumpbuf_addr = Isolate::GetCurrentStackPointer();
 #if defined(USING_SIMULATOR)
   uword top_exit_frame_info = isolate->simulator()->top_exit_frame_info();
 #else
@@ -55,11 +55,8 @@ REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
   isolate->object_store()->set_sticky_error(error);
 
   // Destruct all the active StackResource objects.
-  StackResource* current_resource = isolate->top_resource();
-  while (current_resource != top_) {
-    current_resource->~StackResource();
-    current_resource = isolate->top_resource();
-  }
+  StackResource::UnwindAbove(isolate, top_);
+>>>>>>> .merge-right.r43886
   longjmp(environment_, value);
   UNREACHABLE();
 }

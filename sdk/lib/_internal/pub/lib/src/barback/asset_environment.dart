@@ -266,7 +266,7 @@ class AssetEnvironment {
     }
 
     log.fine("Executables for $packageName: $executableIds");
-    if (executableIds.isEmpty) return [];
+    if (executableIds.isEmpty) return {};
 
     var package = graph.packages[packageName];
     var server = await servePackageBinDirectory(packageName);

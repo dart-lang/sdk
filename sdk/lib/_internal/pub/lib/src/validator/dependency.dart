@@ -15,14 +15,16 @@ import '../utils.dart';
 import '../validator.dart';
 
 /// The range of all pub versions that don't support `^` version constraints.
+///
+/// This is the actual range of pub versions, whereas [_postCaretPubVersions] is
+/// the nicer-looking range that doesn't include a prerelease tag.
 final _preCaretPubVersions = new VersionConstraint.parse("<1.8.0-dev.3.0");
 
-// TODO(nweiz): replace this with "^1.8.0" for the 1.8 release.
 /// The range of all pub versions that do support `^` version constraints.
 ///
 /// This is intersected with the user's SDK constraint to provide a suggested
 /// constraint.
-final _postCaretPubVersions = new VersionConstraint.parse("^1.8.0-dev.3.0");
+final _postCaretPubVersions = new VersionConstraint.parse("^1.8.0");
 
 /// A validator that validates a package's dependencies.
 class DependencyValidator extends Validator {

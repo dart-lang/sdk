@@ -33,6 +33,7 @@ DEFINE_FLAG(int, max_polymorphic_checks, 4,
 DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
     "Maximum number of polymorphic checks in equality operator,"
     " otherwise use megamorphic dispatch.");
+DEFINE_FLAG(bool, merge_sin_cos, false, "Merge sin/cos into sincos");
 DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
@@ -436,7 +437,8 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
 // Tries to merge MathUnary operations, in this case sinus and cosinus.
 void FlowGraphOptimizer::TryMergeMathUnary(
     GrowableArray<MathUnaryInstr*>* merge_candidates) {
-  if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble()) {
+  if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble() ||
+      !FLAG_merge_sin_cos) {
     return;
   }
   if (merge_candidates->length() < 2) {
@@ -453,8 +455,8 @@ void FlowGraphOptimizer::TryMergeMathUnary(
     ASSERT((kind == MathUnaryInstr::kSin) ||
            (kind == MathUnaryInstr::kCos));
     // Check if there is sin/cos binop with same inputs.
-    const intptr_t other_kind = (kind == MethodRecognizer::kMathSin) ?
-        MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
+    const intptr_t other_kind = (kind == MathUnaryInstr::kSin) ?
+        MathUnaryInstr::kCos : MathUnaryInstr::kSin;
     Definition* def = curr_instr->value()->definition();
     for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
       MathUnaryInstr* other_op = (*merge_candidates)[k];

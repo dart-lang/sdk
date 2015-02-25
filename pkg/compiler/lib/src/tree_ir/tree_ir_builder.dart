@@ -87,7 +87,9 @@ class Builder extends cps_ir.Visitor<Node> {
     if (reference.definition.host != currentElement) {
       return parent.getMutableVariableReference(reference);
     }
-    return local2mutable[reference.definition];
+    Variable variable = local2mutable[reference.definition];
+    ++variable.readCount;
+    return variable;
   }
 
   /// Obtains the variable representing the given primitive. Returns null for

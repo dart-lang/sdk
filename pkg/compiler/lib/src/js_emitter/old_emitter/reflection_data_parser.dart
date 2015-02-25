@@ -57,11 +57,12 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   function processClassData(cls, descriptor, processedClasses) {
     var newDesc = {};
     var previousProperty;
-    for (var property in descriptor) {
-      if (!hasOwnProperty.call(descriptor, property)) continue;
+    var properties = Object.keys(descriptor);
+    for (var i = 0; i < properties.length; i++) {
+      var property = properties[i];
       var firstChar = property.substring(0, 1);
       if (property === "static") {
-        processStatics(#embeddedStatics[cls] = descriptor[property], 
+        processStatics(#embeddedStatics[cls] = descriptor[property],
                        processedClasses);
       } else if (firstChar === "+") {
         mangledNames[previousProperty] = property.substring(1);
@@ -135,8 +136,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   // TODO(zarah): Remove empty else branches in output when if(#hole) is false.
   jsAst.Statement processStatics = js.statement('''
     function processStatics(descriptor, processedClasses) {
-      for (var property in descriptor) {
-        if (!hasOwnProperty.call(descriptor, property)) continue;
+      var properties = Object.keys(descriptor);
+      for (var i = 0; i < properties.length; i++) {
+        var property = properties[i];
         if (property === "${namer.classDescriptorProperty}") continue;
         var element = descriptor[property];
         var firstChar = property.substring(0, 1);
@@ -407,7 +409,8 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 
     #trivialNsmHandlers;
 
-    for (var cls in processedClasses.pending) finishClass(cls);
+    var properties = Object.keys(processedClasses.pending);
+    for (var i = 0; i < properties.length; i++) finishClass(properties[i]);
   }
 }''', {'allClasses': allClassesAccess,
        'debugFastObjects': DEBUG_FAST_OBJECTS,
