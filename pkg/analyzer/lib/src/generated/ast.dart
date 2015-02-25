@@ -4425,7 +4425,6 @@ abstract class ClassMember extends Declaration {
  * Deprecated: This class captures obsolete syntax that is no longer part of the
  * Dart language.
  */
-@deprecated
 class ClassTypeAlias extends TypeAlias {
   /**
    * The name of the class being declared.
