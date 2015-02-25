@@ -86,13 +86,23 @@ testVersion() {
       Expect.isTrue(int.parse(match.group(6)) >= 0);
     }
   }
+
+  String stripAdditionalInfo(String version) {
+    var index = version.indexOf(' ');
+    if (index == -1) return version;
+    return version.substring(0, index);
+  }
+
   // Ensure we can match valid versions.
   checkValidVersion('1.9.0');
   checkValidVersion('1.9.0-dev.0.0');
   checkValidVersion('1.9.0-edge');
   checkValidVersion('1.9.0-edge.r41234');
+  // Check stripping of additional information.
+  checkValidVersion(stripAdditionalInfo(
+      '1.9.0-dev.1.2 (Wed Feb 25 02:22:19 2015) on "linux_ia32"'));
   // Test current version.
-  checkValidVersion(Platform.version);
+  checkValidVersion(stripAdditionalInfo(Platform.version));
   // Test some invalid versions.
   Expect.throws(() => checkValidVersion('1.9'));
   Expect.throws(() => checkValidVersion('2.0.0'));
