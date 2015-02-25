@@ -10041,7 +10041,6 @@ class ResolvableLibrary {
   static List<ResolvableLibrary> _EMPTY_ARRAY = new List<ResolvableLibrary>(0);
 
   /**
-<<<<<<< .working
    * The next artificial hash code.
    */
   static int _NEXT_HASH_CODE = 0;
@@ -10049,25 +10048,9 @@ class ResolvableLibrary {
   /**
    * The artifitial hash code for this object.
    */
-<<<<<<< .working
   final int _hashCode = _nextHashCode();
 
   /**
-=======
-   * The next artificial hash code.
-   */
-  static int _NEXT_HASH_CODE = 0;
-
-  /**
-   * The artifitial hash code for this object.
-   */
-  final int _hashCode = _NEXT_HASH_CODE++;
-=======
-  final int _hashCode = _nextHashCode();
->>>>>>> .merge-right.r43886
-
-  /**
->>>>>>> .merge-right.r43835
    * The source specifying the defining compilation unit of this library.
    */
   final Source librarySource;

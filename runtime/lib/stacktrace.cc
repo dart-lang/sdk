@@ -46,7 +46,6 @@ void _printCurrentStacktrace() {
   const Stacktrace& stacktrace = Stacktrace::Handle(
       Stacktrace::New(code_array, pc_offset_array));
   OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
->>>>>>> .merge-right.r43886
 }
 
 }  // namespace dart

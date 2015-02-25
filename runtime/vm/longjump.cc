@@ -56,7 +56,6 @@ REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
 
   // Destruct all the active StackResource objects.
   StackResource::UnwindAbove(isolate, top_);
->>>>>>> .merge-right.r43886
   longjmp(environment_, value);
   UNREACHABLE();
 }

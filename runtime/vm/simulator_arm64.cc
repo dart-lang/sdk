@@ -56,8 +56,6 @@ class SimulatorSetjmpBuffer {
     sim->set_last_setjmp_buffer(this);
     sp_ = static_cast<uword>(sim->get_register(R31, R31IsSP));
   }
->>>>>>> .merge-right.r43886
-  }
 
   ~SimulatorSetjmpBuffer() {
     ASSERT(simulator_->last_setjmp_buffer() == this);
@@ -3482,7 +3480,6 @@ void Simulator::Longjmp(uword pc,
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
   StackResource::Unwind(isolate);
->>>>>>> .merge-right.r43886
 
   // Unwind the C++ stack and continue simulation in the target frame.
   set_pc(static_cast<int64_t>(pc));

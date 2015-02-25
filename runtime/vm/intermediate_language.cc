@@ -1566,7 +1566,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
 }
 
 
-<<<<<<< .working
 static bool IsRepresentable(const Integer& value, Representation rep) {
   switch (rep) {
     case kTagged:  // Smi case.

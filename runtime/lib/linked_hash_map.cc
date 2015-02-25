@@ -15,7 +15,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, use_internal_hash_map, false, "Use internal hash map.");
 DEFINE_FLAG(bool, use_compact_hash, true, "Use compact hash map and set.");
->>>>>>> .merge-right.r43886
 
 DEFINE_NATIVE_ENTRY(LinkedHashMap_allocate, 1) {
   const TypeArguments& type_arguments =

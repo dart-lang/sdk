@@ -5994,8 +5994,6 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
     // to load the stack trace object (:stack_trace_var) into the stack
     // trace variable specified in this block.
     current_block_->statements->Add(new(Z) StoreLocalNode(
->>>>>>> .merge-right.r43886
-    current_block_->statements->Add(new(Z) StoreLocalNode(
         Scanner::kNoSourcePos,
         stack_trace_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));

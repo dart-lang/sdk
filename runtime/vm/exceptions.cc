@@ -221,7 +221,6 @@ static void JumpToExceptionHandler(Isolate* isolate,
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
   StackResource::Unwind(isolate);
->>>>>>> .merge-right.r43886
 
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to

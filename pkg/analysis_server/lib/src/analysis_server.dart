@@ -1273,41 +1273,6 @@ class ServerContextManager extends ContextManager {
 
 
 /**
- * Container with global [AnalysisServer] performance statistics.
- */
-class ServerPerformanceStatistics {
-  /**
-   * The [PerformanceTag] for time spent in
-   * PerformAnalysisOperation._updateIndex.
-   */
-  static PerformanceTag index = new PerformanceTag('index');
-
-  /**
-   * The [PerformanceTag] for time spent in
-   * PerformAnalysisOperation._sendNotices.
-   */
-  static PerformanceTag notices = new PerformanceTag('notices');
-
-  /**
-   * The [PerformanceTag] for time spent performing a _DartIndexOperation.
-   */
-  static PerformanceTag indexOperation = new PerformanceTag('indexOperation');
-
-  /**
-   * The [PerformanceTag] for time spent between calls to
-   * AnalysisServer.performOperation when the server is not idle.
-   */
-  static PerformanceTag intertask = new PerformanceTag('intertask');
-
-  /**
-   * The [PerformanceTag] for time spent between calls to
-   * AnalysisServer.performOperation when the server is idle.
-   */
-  static PerformanceTag idle = new PerformanceTag('idle');
-}
-
-
-/**
  * A class used by [AnalysisServer] to record performance information
  * such as request latency.
  */

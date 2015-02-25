@@ -675,7 +675,6 @@ class Test_CompletionDomainHandler extends CompletionDomainHandler {
     return new MockCompletionManager(mockContext, source, searchEngine);
   }
 }
-<<<<<<< .working
 
 @reflectiveTest
 class _NoSearchEngine extends AbstractAnalysisTest {
@@ -700,4 +699,3 @@ main() {
     expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }
->>>>>>> .merge-right.r43886
