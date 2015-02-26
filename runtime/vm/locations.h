@@ -11,10 +11,12 @@
 
 namespace dart {
 
+
 class BufferFormatter;
-class Value;
-class PairLocation;
 class ConstantInstr;
+class Definition;
+class PairLocation;
+class Value;
 
 
 enum Representation {
@@ -369,6 +371,10 @@ class Location : public ValueObject {
   }
 
   Location Copy() const;
+
+  Location RemapForSlowPath(Definition* def,
+                            intptr_t* cpu_reg_slots,
+                            intptr_t* fpu_reg_slots) const;
 
  private:
   explicit Location(uword value) : value_(value) { }
