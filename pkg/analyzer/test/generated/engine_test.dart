@@ -6023,6 +6023,15 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  String get name {
+    fail("Unexpected invocation of name");
+    return null;
+  }
+  @override
+  set name(String value) {
+    fail("Unexpected invocation of name");
+  }
+  @override
   Stream<SourcesChangedEvent> get onSourcesChanged {
     fail("Unexpected invocation of onSourcesChanged");
     return null;
@@ -6038,37 +6047,37 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  ResolverVisitorFactory get resolverVisitorFactory {
+    fail("Unexpected invocation of getResolverVisitorFactory");
+    return null;
+  }
+  @override
   SourceFactory get sourceFactory {
     fail("Unexpected invocation of getSourceFactory");
     return null;
   }
+
   @override
   void set sourceFactory(SourceFactory factory) {
     fail("Unexpected invocation of setSourceFactory");
   }
+
   @override
   AnalysisContextStatistics get statistics {
     fail("Unexpected invocation of getStatistics");
     return null;
   }
+
   @override
   TypeProvider get typeProvider {
     fail("Unexpected invocation of getTypeProvider");
     return null;
   }
-
   @override
   TypeResolverVisitorFactory get typeResolverVisitorFactory {
     fail("Unexpected invocation of getTypeResolverVisitorFactory");
     return null;
   }
-
-  @override
-  ResolverVisitorFactory get resolverVisitorFactory {
-    fail("Unexpected invocation of getResolverVisitorFactory");
-    return null;
-  }
-
   @override
   void addListener(AnalysisListener listener) {
     fail("Unexpected invocation of addListener");
@@ -6308,7 +6317,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
-
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
