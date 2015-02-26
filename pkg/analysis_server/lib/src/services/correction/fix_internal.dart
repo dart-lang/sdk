@@ -8,6 +8,8 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/protocol.dart' hide AnalysisError, Element,
     ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' show
+    doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -54,11 +56,13 @@ class FixProcessor {
   String unitLibraryFile;
   String unitLibraryFolder;
 
-  final List<SourceEdit> edits = <SourceEdit>[];
+  final List<Fix> fixes = <Fix>[];
+
+  SourceChange change = new SourceChange('<message>');
   final LinkedHashMap<String, LinkedEditGroup> linkedPositionGroups =
       new LinkedHashMap<String, LinkedEditGroup>();
   Position exitPosition = null;
-  final List<Fix> fixes = <Fix>[];
+  Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
 
   CorrectionUtils utils;
   int errorOffset;
@@ -243,28 +247,39 @@ class FixProcessor {
     return fixes;
   }
 
-  void _addFix(FixKind kind, List args, {String file, int fileStamp}) {
-    if (file == null || fileStamp == null) {
-      file = this.file;
-      fileStamp = this.fileStamp;
+  /**
+   * Adds a new [SourceEdit] to [change].
+   */
+  void _addEdit(Element target, SourceEdit edit) {
+    if (target == null) {
+      target = unitElement;
     }
-    // prepare SourceFileEdit
-    SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp);
-    fileEdit.addAll(edits);
-    // prepare Change
-    String message = formatList(kind.message, args);
-    SourceChange change = new SourceChange(message);
-    change.addFileEdit(fileEdit);
+    Source source = target.source;
+    if (source.isInSystemLibrary) {
+      return;
+    }
+    doSourceChange_addElementEdit(change, target, edit);
+  }
+
+  void _addFix(FixKind kind, List args) {
+    if (change.edits.isEmpty) {
+      return;
+    }
+    // configure Change
+    change.message = formatList(kind.message, args);
     linkedPositionGroups.values.forEach(
         (group) => change.addLinkedEditGroup(group));
     change.selection = exitPosition;
+    // add imports
+    addLibraryImports(change, unitLibraryElement, librariesToImport);
     // add Fix
     Fix fix = new Fix(kind, change);
     fixes.add(fix);
     // clear
-    edits.clear();
+    change = new SourceChange('<message>');
     linkedPositionGroups.clear();
     exitPosition = null;
+    librariesToImport.clear();
   }
 
   /**
@@ -316,7 +331,7 @@ class FixProcessor {
         sb.append('}');
       }
       // insert source
-      _insertBuilder(sb);
+      _insertBuilder(sb, unitElement);
       _addLinkedPosition('NAME', sb, rf.rangeNode(node));
       // add proposal
       _addFix(FixKind.CREATE_CLASS, [name]);
@@ -381,12 +396,9 @@ class FixProcessor {
       sb.append(targetLocation.suffix);
     }
     // insert source
-    _insertBuilder(sb);
+    _insertBuilder(sb, targetElement);
     // add proposal
-    _addFixToElement(
-        FixKind.CREATE_CONSTRUCTOR,
-        [constructorName],
-        targetElement);
+    _addFix(FixKind.CREATE_CONSTRUCTOR, [constructorName]);
   }
 
   void _addFix_createConstructor_named() {
@@ -446,15 +458,12 @@ class FixProcessor {
       sb.append(targetLocation.suffix);
     }
     // insert source
-    _insertBuilder(sb);
+    _insertBuilder(sb, targetElement);
     if (targetFile == file) {
       _addLinkedPosition('NAME', sb, rf.rangeNode(name));
     }
     // add proposal
-    _addFixToElement(
-        FixKind.CREATE_CONSTRUCTOR,
-        [constructorName],
-        targetElement);
+    _addFix(FixKind.CREATE_CONSTRUCTOR, [constructorName]);
   }
 
   void _addFix_createConstructorSuperExplicit() {
@@ -517,7 +526,7 @@ class FixProcessor {
       }
       sb.append(')');
       // insert proposal
-      _insertBuilder(sb);
+      _insertBuilder(sb, unitElement);
       // add proposal
       String proposalName = _getConstructorProposalName(superConstructor);
       _addFix(FixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION, [proposalName]);
@@ -589,7 +598,7 @@ class FixProcessor {
         sb.append(');');
         sb.append(targetLocation.suffix);
       }
-      _insertBuilder(sb);
+      _insertBuilder(sb, unitElement);
       // add proposal
       String proposalName = _getConstructorProposalName(superConstructor);
       _addFix(FixKind.CREATE_CONSTRUCTOR_SUPER, [proposalName]);
@@ -660,13 +669,13 @@ class FixProcessor {
       sb.append(targetLocation.suffix);
     }
     // insert source
-    _insertBuilder(sb);
+    _insertBuilder(sb, targetClassElement);
     // add linked positions
     if (targetFile == file) {
       _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     }
     // add proposal
-    _addFixToElement(FixKind.CREATE_FIELD, [name], targetClassElement);
+    _addFix(FixKind.CREATE_FIELD, [name]);
   }
 
   void _addFix_createFunction_forFunctionType() {
@@ -786,13 +795,13 @@ class FixProcessor {
       sb.append(targetLocation.suffix);
     }
     // insert source
-    _insertBuilder(sb);
+    _insertBuilder(sb, targetClassElement);
     // add linked positions
     if (targetFile == file) {
       _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     }
     // add proposal
-    _addFixToElement(FixKind.CREATE_GETTER, [name], targetClassElement);
+    _addFix(FixKind.CREATE_GETTER, [name]);
   }
 
   void _addFix_createImportUri() {
@@ -804,9 +813,11 @@ class FixProcessor {
         if (isAbsolute(file)) {
           String libName = removeEnd(source.shortName, '.dart');
           libName = libName.replaceAll('_', '.');
-          edits.add(new SourceEdit(0, 0, 'library $libName;$eol$eol'));
+          SourceEdit edit = new SourceEdit(0, 0, 'library $libName;$eol$eol');
+          change.addEdit(file, -1, edit);
+          doSourceChange_addSourceEdit(change, context, source, edit);
         }
-        _addFix(FixKind.CREATE_FILE, [file], file: file, fileStamp: -1);
+        _addFix(FixKind.CREATE_FILE, [file]);
       }
     }
   }
@@ -853,7 +864,7 @@ class FixProcessor {
       sb.append(prefix);
     }
     // insert source
-    _insertBuilder(sb);
+    _insertBuilder(sb, unitElement);
     // add linked positions
     _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
@@ -913,7 +924,7 @@ class FixProcessor {
     }
     // add proposal
     exitPosition = new Position(file, insertOffset);
-    _insertBuilder(sb);
+    _insertBuilder(sb, unitElement);
     _addFix(FixKind.CREATE_MISSING_OVERRIDES, [numElements]);
   }
 
@@ -989,7 +1000,7 @@ class FixProcessor {
       sb.append(eol);
     }
     // done
-    _insertBuilder(sb);
+    _insertBuilder(sb, unitElement);
     exitPosition = new Position(file, insertOffset);
     // add proposal
     _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
@@ -1026,9 +1037,9 @@ class FixProcessor {
     }
     // insert new import
     String importSource = "${prefix}import '$importPath';$suffix";
-    _addInsertEdit(offset, importSource);
+    _addInsertEdit(offset, importSource, libraryUnitElement);
     // add proposal
-    _addFixToElement(kind, [importPath], libraryUnitElement);
+    _addFix(kind, [importPath]);
   }
 
   void _addFix_importLibrary_withElement(String name, ElementKind kind) {
@@ -1078,11 +1089,11 @@ class FixProcessor {
         }
         // update library
         String newShowCode = 'show ${StringUtils.join(showNames, ", ")}';
-        _addReplaceEdit(rf.rangeOffsetEnd(showCombinator), newShowCode);
-        _addFixToElement(
-            FixKind.IMPORT_LIBRARY_SHOW,
-            [libraryName],
+        _addReplaceEdit(
+            rf.rangeOffsetEnd(showCombinator),
+            newShowCode,
             unitLibraryElement);
+        _addFix(FixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
         // we support only one import without prefix
         return;
       }
@@ -1386,7 +1397,7 @@ class FixProcessor {
       sb.append(') {$eol}');
     }
     // insert source
-    _insertBuilder(sb);
+    _insertBuilder(sb, unitElement);
     _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
     _addFix(FixKind.CREATE_FUNCTION, [name]);
@@ -1491,13 +1502,13 @@ class FixProcessor {
         sb.append(sourceSuffix);
       }
       // insert source
-      _insertBuilder(sb);
+      _insertBuilder(sb, targetElement);
       // add linked positions
       if (targetFile == file) {
         _addLinkedPosition('NAME', sb, rf.rangeNode(node));
       }
       // add proposal
-      _addFixToElement(FixKind.CREATE_METHOD, [name], targetElement);
+      _addFix(FixKind.CREATE_METHOD, [name]);
     }
   }
 
@@ -1515,8 +1526,6 @@ class FixProcessor {
       }
       // append type name
       DartType type = argument.bestType;
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-      // TODO(scheglov) use librariesToImport
       String typeSource = utils.getTypeSource(type, librariesToImport);
       if (typeSource != 'dynamic') {
         sb.startPosition('TYPE$i');
@@ -1596,60 +1605,52 @@ class FixProcessor {
     }
   }
 
+  /**
+   * Adds a fix that replaces [target] with a reference to the class declaring
+   * the given [element].
+   */
+  void _addFix_useStaticAccess(AstNode target, Element element) {
+    Element declaringElement = element.enclosingElement;
+    if (declaringElement is ClassElement) {
+      DartType declaringType = declaringElement.type;
+      String declaringTypeCode =
+          utils.getTypeSource(declaringType, librariesToImport);
+      // replace "target" with class name
+      SourceRange range = rf.rangeNode(target);
+      _addReplaceEdit(range, declaringTypeCode);
+      // add proposal
+      _addFix(FixKind.CHANGE_TO_STATIC_ACCESS, [declaringType]);
+    }
+  }
+
   void _addFix_useStaticAccess_method() {
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
       MethodInvocation invocation = node.parent as MethodInvocation;
       if (invocation.methodName == node) {
         Expression target = invocation.target;
-        Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-        // TODO(scheglov) use librariesToImport
-        String targetType =
-            utils.getExpressionTypeSource(target, librariesToImport);
-        // replace "target" with class name
-        SourceRange range = rf.rangeNode(target);
-        _addReplaceEdit(range, targetType);
-        // add proposal
-        _addFix(FixKind.CHANGE_TO_STATIC_ACCESS, [targetType]);
+        Element invokedElement = invocation.methodName.bestElement;
+        _addFix_useStaticAccess(target, invokedElement);
       }
     }
   }
 
   void _addFix_useStaticAccess_property() {
-    if (node is SimpleIdentifier) {
-      if (node.parent is PrefixedIdentifier) {
-        PrefixedIdentifier prefixed = node.parent as PrefixedIdentifier;
-        if (prefixed.identifier == node) {
-          Expression target = prefixed.prefix;
-          Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-          // TODO(scheglov) use librariesToImport
-          String targetType =
-              utils.getExpressionTypeSource(target, librariesToImport);
-          // replace "target" with class name
-          SourceRange range = rf.rangeNode(target);
-          _addReplaceEdit(range, targetType);
-          // add proposal
-          _addFix(FixKind.CHANGE_TO_STATIC_ACCESS, [targetType]);
-        }
+    if (node is SimpleIdentifier && node.parent is PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = node.parent as PrefixedIdentifier;
+      if (prefixed.identifier == node) {
+        Expression target = prefixed.prefix;
+        Element invokedElement = prefixed.identifier.bestElement;
+        _addFix_useStaticAccess(target, invokedElement);
       }
     }
   }
 
-  void _addFixToElement(FixKind kind, List args, Element element) {
-    Source source = element.source;
-    if (source.isInSystemLibrary) {
-      return;
-    }
-    String file = source.fullName;
-    int fileStamp = element.context.getModificationStamp(source);
-    _addFix(kind, args, file: file, fileStamp: fileStamp);
-  }
-
   /**
-   * Adds a new [Edit] to [edits].
+   * Adds a new [SourceEdit] to [change].
    */
-  void _addInsertEdit(int offset, String text) {
+  void _addInsertEdit(int offset, String text, [Element target]) {
     SourceEdit edit = new SourceEdit(offset, 0, text);
-    edits.add(edit);
+    _addEdit(target, edit);
   }
 
   /**
@@ -1670,11 +1671,12 @@ class FixProcessor {
   }
 
   /**
-   * Prepares proposal for creating function corresponding to the given [FunctionType].
+   * Prepares proposal for creating function corresponding to the given
+   * [FunctionType].
    */
   void _addProposal_createFunction(FunctionType functionType, String name,
       Source targetSource, int insertOffset, bool isStatic, String prefix,
-      String sourcePrefix, String sourceSuffix) {
+      String sourcePrefix, String sourceSuffix, Element target) {
     // build method source
     String targetFile = targetSource.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, insertOffset);
@@ -1705,8 +1707,6 @@ class FixProcessor {
         // append type name
         DartType type = parameter.type;
         if (!type.isDynamic) {
-          Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-          // TODO(scheglov) use librariesToImport
           String typeSource = utils.getTypeSource(type, librariesToImport);
           {
             sb.startPosition('TYPE$i');
@@ -1729,7 +1729,7 @@ class FixProcessor {
       sb.append(sourceSuffix);
     }
     // insert source
-    _insertBuilder(sb);
+    _insertBuilder(sb, target);
     // add linked positions
     if (targetSource == unitSource) {
       _addLinkedPosition('NAME', sb, rf.rangeNode(node));
@@ -1756,7 +1756,8 @@ class FixProcessor {
         false,
         prefix,
         sourcePrefix,
-        sourceSuffix);
+        sourceSuffix,
+        unitElement);
     // add proposal
     _addFix(FixKind.CREATE_FUNCTION, [name]);
   }
@@ -1790,9 +1791,10 @@ class FixProcessor {
         _inStaticContext(),
         prefix,
         sourcePrefix,
-        sourceSuffix);
+        sourceSuffix,
+        targetClassElement);
     // add proposal
-    _addFixToElement(FixKind.CREATE_METHOD, [name], targetClassElement);
+    _addFix(FixKind.CREATE_METHOD, [name]);
   }
 
   /**
@@ -1803,11 +1805,11 @@ class FixProcessor {
   }
 
   /**
-   * Adds a new [Edit] to [edits].
+   * Adds a new [SourceEdit] to [change].
    */
-  void _addReplaceEdit(SourceRange range, String text) {
+  void _addReplaceEdit(SourceRange range, String text, [Element target]) {
     SourceEdit edit = new SourceEdit(range.offset, range.length, text);
-    edits.add(edit);
+    _addEdit(target, edit);
   }
 
   void _appendParameters(SourceBuilder sb, List<ParameterElement> parameters) {
@@ -1859,8 +1861,6 @@ class FixProcessor {
   }
 
   void _appendParameterSource(SourceBuilder sb, DartType type, String name) {
-    Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-    // TODO(scheglov) use librariesToImport
     String parameterSource =
         utils.getParameterSource(type, name, librariesToImport);
     sb.append(parameterSource);
@@ -1869,8 +1869,6 @@ class FixProcessor {
   void _appendType(SourceBuilder sb, DartType type, {String groupId, bool orVar:
       false}) {
     if (type != null && !type.isDynamic) {
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-      // TODO(scheglov) use librariesToImport
       String typeSource = utils.getTypeSource(type, librariesToImport);
       if (groupId != null) {
         sb.startPosition(groupId);
@@ -2061,9 +2059,9 @@ class FixProcessor {
   /**
    * Inserts the given [SourceBuilder] at its offset.
    */
-  void _insertBuilder(SourceBuilder builder) {
+  void _insertBuilder(SourceBuilder builder, Element target) {
     String text = builder.toString();
-    _addInsertEdit(builder.offset, text);
+    _addInsertEdit(builder.offset, text, target);
     // add linked positions
     builder.linkedPositionGroups.forEach((String id, LinkedEditGroup group) {
       LinkedEditGroup fixGroup = _getLinkedPosition(id);

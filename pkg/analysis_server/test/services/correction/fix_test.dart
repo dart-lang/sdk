@@ -185,6 +185,33 @@ main(A a) {
 ''');
   }
 
+  void test_changeToStaticAccess_method_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {
+  static foo() {}
+}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+class B extends A {}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+main(B b) {
+  b.foo();
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO_STATIC_ACCESS, '''
+import 'libB.dart';
+import 'libA.dart';
+main(B b) {
+  A.foo();
+}
+''');
+  }
+
   void test_changeToStaticAccess_method_prefixLibrary() {
     resolveTestUnit('''
 import 'dart:async' as pref;
@@ -214,6 +241,33 @@ class A {
   static get foo => 42;
 }
 main(A a) {
+  A.foo;
+}
+''');
+  }
+
+  void test_changeToStaticAccess_property_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {
+  static get foo => null;
+}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+class B extends A {}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+main(B b) {
+  b.foo;
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO_STATIC_ACCESS, '''
+import 'libB.dart';
+import 'libA.dart';
+main(B b) {
   A.foo;
 }
 ''');
@@ -408,6 +462,32 @@ class B extends A {
 ''');
   }
 
+  void test_createConstructorSuperImplicit_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+class B {
+  B(A a);
+}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+class C extends B {
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR_SUPER, '''
+import 'libB.dart';
+import 'libA.dart';
+class C extends B {
+  C(A a) : super(a);
+}
+''');
+  }
+
   void test_createConstructorSuperImplicit_named() {
     resolveTestUnit('''
 class A {
@@ -580,6 +660,36 @@ class A {
   main() {
     test;
   }
+}
+''');
+  }
+
+  void test_createField_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+A getA() => null;
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+class C {
+}
+main(C c) {
+  c.test = getA();
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+import 'libB.dart';
+import 'libA.dart';
+class C {
+  A test;
+}
+main(C c) {
+  c.test = getA();
 }
 ''');
   }
@@ -1477,6 +1587,34 @@ int test(double a, String b) {
 ''');
   }
 
+  void test_creationFunction_forFunctionType_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+useFunction(int g(A a)) {}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+main() {
+  useFunction(test);
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+import 'libB.dart';
+import 'libA.dart';
+main() {
+  useFunction(test);
+}
+
+int test(A a) {
+}
+''');
+  }
+
   void test_creationFunction_forFunctionType_method_enclosingClass_static() {
     resolveTestUnit('''
 class A {
@@ -2284,6 +2422,30 @@ class A {
 }
 
 void process(List<int> items) {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_importType() {
+    addSource('/lib.dart', r'''
+library lib;
+import 'dart:async';
+Future getFuture() => null;
+''');
+    resolveTestUnit('''
+import 'lib.dart';
+main() {
+  test(getFuture());
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+import 'lib.dart';
+import 'dart:async';
+main() {
+  test(getFuture());
+}
+
+void test(Future future) {
 }
 ''');
   }

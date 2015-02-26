@@ -8,6 +8,8 @@ import 'dart:math';
 
 import 'package:analysis_server/src/protocol.dart' show SourceChange,
     SourceEdit;
+import 'package:analysis_server/src/protocol_server.dart' show
+    doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -17,6 +19,51 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
+
+
+/**
+ * Adds edits to the given [change] that ensure that all the [libraries] are
+ * imported into the given [targetLibrary].
+ */
+void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
+    Set<LibraryElement> libraries) {
+  CompilationUnit libUnit = targetLibrary.definingCompilationUnit.node;
+  // prepare new import location
+  int offset = 0;
+  String prefix;
+  String suffix;
+  {
+    // if no directives
+    prefix = '';
+    CorrectionUtils libraryUtils = new CorrectionUtils(libUnit);
+    String eol = libraryUtils.endOfLine;
+    suffix = eol;
+    // after last directive in library
+    for (Directive directive in libUnit.directives) {
+      if (directive is LibraryDirective || directive is ImportDirective) {
+        offset = directive.end;
+        prefix = eol;
+        suffix = '';
+      }
+    }
+    // if still at the beginning of the file, skip shebang and line comments
+    if (offset == 0) {
+      CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
+      offset = desc.offset;
+      prefix = desc.prefix;
+      suffix = desc.suffix + eol;
+    }
+  }
+  // insert imports
+  for (LibraryElement library in libraries) {
+    String importPath = getLibrarySourceUri(targetLibrary, library.source);
+    String importCode = "${prefix}import '$importPath';$suffix";
+    doSourceChange_addElementEdit(
+        change,
+        targetLibrary,
+        new SourceEdit(offset, 0, importCode));
+  }
+}
 
 
 /**
@@ -91,6 +138,7 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
 }
 
 
+
 String getDefaultValueCode(DartType type) {
   if (type != null) {
     String typeName = type.displayName;
@@ -111,14 +159,13 @@ String getDefaultValueCode(DartType type) {
   return "null";
 }
 
-
-
 /**
  * Return the name of the [Element] kind.
  */
 String getElementKindName(Element element) {
   return element.kind.displayName;
 }
+
 
 /**
  * Returns the name to display in the UI for the given [Element].
@@ -184,6 +231,7 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
   }
   return null;
 }
+
 
 
 /**
@@ -957,7 +1005,8 @@ class CorrectionUtils {
       return source;
     }
     // check if imported
-    if (element.library != _library) {
+    LibraryElement library = element.library;
+    if (library != null && library != _library) {
       ImportElement importElement = _getImportElement(element);
       if (importElement != null) {
         if (importElement.prefix != null) {
@@ -965,7 +1014,7 @@ class CorrectionUtils {
           sb.write(".");
         }
       } else {
-        librariesToImport.add(element.library);
+        librariesToImport.add(library);
       }
     }
     // append simple name
@@ -997,18 +1046,6 @@ class CorrectionUtils {
     }
     // done
     return sb.toString();
-  }
-
-  /**
-   * Checks if [type] is visible at [targetOffset].
-   */
-  bool _isTypeVisible(DartType type) {
-    if (type is TypeParameterType) {
-      TypeParameterElement parameterElement = type.element;
-      Element parameterClassElement = parameterElement.enclosingElement;
-      return identical(parameterClassElement, targetClassElement);
-    }
-    return true;
   }
 
   /**
@@ -1256,6 +1293,18 @@ class CorrectionUtils {
       return _InvertedCondition._simple("!${getNodeText(expression)}");
     }
     return _InvertedCondition._simple(getNodeText(expression));
+  }
+
+  /**
+   * Checks if [type] is visible at [targetOffset].
+   */
+  bool _isTypeVisible(DartType type) {
+    if (type is TypeParameterType) {
+      TypeParameterElement parameterElement = type.element;
+      Element parameterClassElement = parameterElement.enclosingElement;
+      return identical(parameterClassElement, targetClassElement);
+    }
+    return true;
   }
 
   bool _selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection,

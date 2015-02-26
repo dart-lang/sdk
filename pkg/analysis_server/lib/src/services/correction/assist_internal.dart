@@ -54,8 +54,8 @@ class AssistProcessor {
 
   SourceChange change = new SourceChange('<message>');
 
-  AssistProcessor(this.source, this.file, this.unit,
-      this.selectionOffset, this.selectionLength) {
+  AssistProcessor(this.source, this.file, this.unit, this.selectionOffset,
+      this.selectionLength) {
     unitElement = unit.element;
     context = unitElement.context;
     unitLibraryElement = unitElement.library;
@@ -173,46 +173,6 @@ class AssistProcessor {
     doSourceChange_addElementEdit(change, unitElement, edit);
   }
 
-  void _addLibraryImports(Set<LibraryElement> libraries) {
-    LibraryElement libElement = unitLibraryElement;
-    CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
-    CompilationUnit libUnit = libUnitElement.node;
-    // prepare new import location
-    int offset = 0;
-    String prefix;
-    String suffix;
-    {
-      // if no directives
-      prefix = '';
-      suffix = eol;
-      CorrectionUtils libraryUtils = new CorrectionUtils(libUnit);
-      // after last directive in library
-      for (Directive directive in libUnit.directives) {
-        if (directive is LibraryDirective || directive is ImportDirective) {
-          offset = directive.end;
-          prefix = eol;
-          suffix = '';
-        }
-      }
-      // if still at the beginning of the file, skip shebang and line comments
-      if (offset == 0) {
-        CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
-        offset = desc.offset;
-        prefix = desc.prefix;
-        suffix = desc.suffix + eol;
-      }
-    }
-    // insert imports
-    for (LibraryElement library in libraries) {
-      String importPath = getLibrarySourceUri(libElement, library.source);
-      String importCode = "${prefix}import '$importPath';$suffix";
-      doSourceChange_addElementEdit(
-          change,
-          unitLibraryElement,
-          new SourceEdit(offset, 0, importCode));
-    }
-  }
-
   void _addProposal_addTypeAnnotation_DeclaredIdentifier() {
     DeclaredIdentifier declaredIdentifier =
         node.getAncestor((n) => n is DeclaredIdentifier);
@@ -241,7 +201,7 @@ class AssistProcessor {
       _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
-      _addLibraryImports(librariesToImport);
+      addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
       _coverageMarker();
       return;
@@ -296,7 +256,7 @@ class AssistProcessor {
       _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
-      _addLibraryImports(librariesToImport);
+      addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
       _coverageMarker();
       return;
@@ -343,7 +303,7 @@ class AssistProcessor {
       _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
-      _addLibraryImports(librariesToImport);
+      addLibraryImports(change, unitLibraryElement, librariesToImport);
     }
     // add edit
     _addInsertEdit(name.offset, '$typeSource ');
