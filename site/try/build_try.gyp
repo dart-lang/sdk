@@ -47,8 +47,8 @@
           # These packages are uploaded to Try Dart and can be used in code
           # there.
           '../../pkg/analyzer/lib',
-          '../../pkg/collection/lib',
-          '../../pkg/crypto/lib',
+          '../../third-party/pkg/collection/lib',
+          '../../third_party/pkg/crypto/lib',
           '../../third_party/pkg/args/lib',
           '../../third_party/pkg/http/lib',
           '../../third_party/pkg/http_parser/lib',
