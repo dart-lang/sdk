@@ -43,6 +43,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 postmessage_structured_test/typed_arrays: Fail
 # Dartium seems to lose the data from the dispatchEvent.
 postmessage_structured_test/more_primitives: Fail
+async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
