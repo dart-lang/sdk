@@ -5,7 +5,12 @@
 /// Set of flags and options passed to the compiler
 library ddc.src.options;
 
+import 'dart:io';
+
+import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:dev_compiler/config.dart';
+import 'package:logging/logging.dart' show Level;
 
 /// Options used by ddc's TypeResolver.
 class ResolverOptions {
@@ -102,6 +107,22 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   /// Whether to use colors when interacting on the console.
   final bool useColors;
 
+  /// Whether the user asked for help.
+  final bool help;
+
+  /// Whether to use a mock-sdk during compilation.
+  final bool useMockSdk;
+
+  /// Path to the dart-sdk. Null if `useMockSdk` is true or if the path couldn't
+  /// be determined
+  final String dartSdkPath;
+
+  /// Minimum log-level reported on the command-line.
+  final Level logLevel;
+
+  /// File where to start compilation from.
+  final String entryPointFile;
+
   /// Whether to use covariant generics
   @override
   final bool covariantGenerics;
@@ -158,5 +179,105 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
       this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false,
-      this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES});
+      this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
+      this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
+      this.entryPointFile: null});
 }
+
+/// Parses options from the command-line
+CompilerOptions parseOptions(List<String> argv) {
+  ArgResults args = argParser.parse(argv);
+  var levelName = args['log'].toUpperCase();
+  var useColors = stdioType(stdout) == StdioType.TERMINAL;
+  var sdkPath = args['dart-sdk'];
+  if (sdkPath == null && !args['mock-sdk']) {
+    sdkPath = getSdkDir(argv).path;
+  }
+  return new CompilerOptions(
+      checkSdk: args['sdk-check'],
+      dumpInfo: args['dump-info'],
+      dumpInfoFile: args['dump-info-file'],
+      dumpSrcDir: args['dump-src-to'],
+      forceCompile: args['force-compile'],
+      formatOutput: args['dart-gen-fmt'],
+      ignoreTypes: args['ignore-types'],
+      outputDart: args['dart-gen'],
+      outputDir: args['out'],
+      covariantGenerics: args['covariant-generics'],
+      relaxedCasts: args['relaxed-casts'],
+      useColors: useColors,
+      useMultiPackage: args['use-multi-package'],
+      packageRoot: args['package-root'],
+      packagePaths: args['package-paths'].split(','),
+      inferFromOverrides: args['infer-from-overrides'],
+      inferStaticsFromIdentifiers: args['infer-transitively'],
+      inferInNonStableOrder: args['infer-eagerly'],
+      onlyInferConstsAndFinalFields: args['infer-only-finals'],
+      nonnullableTypes: optionsToList(args['nonnullable'],
+          defaultValue: TypeOptions.NONNULLABLE_TYPES),
+      help: args['help'],
+      useMockSdk: args['mock-sdk'],
+      dartSdkPath: sdkPath,
+      logLevel: Level.LEVELS.firstWhere((Level l) => l.name == levelName,
+          orElse: () => Level.SEVERE),
+      entryPointFile: args.rest.length == 0 ? null : args.rest.first);
+}
+
+final ArgParser argParser = new ArgParser()
+  // resolver/checker options
+  ..addFlag(
+      'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
+  ..addFlag('mock-sdk',
+      abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
+  ..addFlag('covariant-generics',
+      help: 'Use covariant generics', defaultsTo: true)
+  ..addFlag('ignore-types',
+      help: 'Ignore types during codegen', defaultsTo: false)
+  ..addFlag('relaxed-casts',
+      help: 'Cast between Dart assignable types', defaultsTo: true)
+  ..addOption('nonnullable',
+      abbr: 'n',
+      help: 'Comma separated string of non-nullable types',
+      defaultsTo: null)
+  ..addFlag('infer-from-overrides',
+      help: 'Infer unspecified types of fields and return types from '
+      'definitions in supertypes', defaultsTo: true)
+  ..addFlag('infer-transitively',
+      help: 'Infer consts/fields from definitions in other libraries',
+      defaultsTo: false)
+  ..addFlag('infer-only-finals',
+      help: 'Do not infer non-const or non-final fields', defaultsTo: false)
+  ..addFlag('infer-eagerly',
+      help: 'experimental: allows a non-stable order of transitive inference on'
+      ' consts and fields. This is used to test for possible inference with a '
+      'proper implementation in the future.', defaultsTo: false)
+
+  // input/output options
+  ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
+  ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
+  ..addFlag('dart-gen',
+      abbr: 'd', help: 'Generate dart output', defaultsTo: false)
+  ..addFlag('dart-gen-fmt',
+      help: 'Generate readable dart output', defaultsTo: true)
+  ..addOption('dump-src-to', help: 'Dump dart src code', defaultsTo: null)
+  ..addOption('package-root',
+      abbr: 'p',
+      help: 'Package root to resolve "package:" imports',
+      defaultsTo: 'packages/')
+  ..addFlag('use-multi-package',
+      help: 'Whether to use the multi-package resolver for "package:" imports',
+      defaultsTo: false)
+  ..addOption('package-paths', help: 'if using the multi-package resolver, '
+      'the list of directories where to look for packages.', defaultsTo: '')
+
+  // general options
+  ..addFlag('help', abbr: 'h', help: 'Display this message')
+  ..addFlag('force-compile',
+      help: 'Compile code with static errors', defaultsTo: false)
+  ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
+  ..addFlag('dump-info',
+      abbr: 'i', help: 'Dump summary information', defaultsTo: false)
+  ..addOption('dump-info-file',
+      abbr: 'f',
+      help: 'Dump info json file (requires dump-info)',
+      defaultsTo: null);
