@@ -872,6 +872,11 @@ class ProfilerNativeStackWalker : public ValueObject {
 static void CopyPCMarkerIfSafe(Sample* sample) {
   ASSERT(sample != NULL);
 
+  if (sample->vm_tag() != VMTag::kDartTagId) {
+    // We can only trust the stack pointer if we are executing Dart code.
+    // See http://dartbug.com/20421 for details.
+    return;
+  }
   uword* fp = reinterpret_cast<uword*>(sample->fp());
   uword* sp = reinterpret_cast<uword*>(sample->sp());
 
@@ -899,6 +904,11 @@ static void CopyPCMarkerIfSafe(Sample* sample) {
 
 static void CopyStackBuffer(Sample* sample) {
   ASSERT(sample != NULL);
+  if (sample->vm_tag() != VMTag::kDartTagId) {
+    // We can only trust the stack pointer if we are executing Dart code.
+    // See http://dartbug.com/20421 for details.
+    return;
+  }
   uword* sp = reinterpret_cast<uword*>(sample->sp());
   uword* buffer = sample->GetStackBuffer();
   if (sp != NULL) {
@@ -1018,13 +1028,7 @@ void Profiler::RecordSampleInterruptCallback(
   sample->set_fp(state.fp);
   sample->set_lr(state.lr);
   CopyStackBuffer(sample);
-#if !(defined(TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64))
-  // It is never safe to read other thread's stack unless on Win64
-  // other thread is inside Dart code.
-  if (vm_tag != VMTag::kDartTagId) {
-    CopyPCMarkerIfSafe(sample);
-  }
-#endif
+  CopyPCMarkerIfSafe(sample);
 
   // Walk the call stack.
   if (FLAG_profile_vm) {
