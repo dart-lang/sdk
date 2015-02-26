@@ -96,7 +96,8 @@ class PubPackageMapProvider implements PackageMapProvider {
     // we'll know when to try running "pub list-package-dirs" again.
     // Unfortunately, "pub list-package-dirs" doesn't tell us dependencies when
     // an error occurs, so just assume there is one dependency, "pubspec.lock".
-    List<String> dependencies = <String>[join(folder.path, PUBSPEC_LOCK_NAME)];
+    List<String> dependencies = <String>[
+        resourceProvider.pathContext.join(folder.path, PUBSPEC_LOCK_NAME)];
     return new PackageMapInfo(null, dependencies.toSet());
   }
 
