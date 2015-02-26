@@ -9,10 +9,10 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 
 const desc =
-    'DO name libraries and source files using lowercase_with_underscores.';
+    'DO name libraries and source files using `lowercase_with_underscores`.';
 
 const details = r'''
-**DO** name libraries and source files using lowercase_with_underscores.
+**DO** name libraries and source files using `lowercase_with_underscores`.
 
 Some file systems are not case-sensitive, so many projects require filenames 
 to be all lowercase. Using a separate character allows names to still be 
