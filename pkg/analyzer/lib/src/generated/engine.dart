@@ -15,6 +15,7 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/task_dart.dart';
+import 'package:analyzer/src/util/lru_map.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -968,6 +969,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * A cache of content used to override the default content of a source.
    */
   ContentCache _contentCache = new ContentCache();
+
+  /**
+   * A cache of content used to override the default content of a source
+   * before the corresponding override was removed from [_contentCache].
+   */
+  LRUMap<Source, String> _prevOverlayCache = new LRUMap<Source, String>(5);
 
   /**
    * The source factory used to create the sources that can be analyzed in this context.
@@ -2227,8 +2234,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         TimestampedData<String> fileContents = getContents(source);
         String fileContentsData = fileContents.data;
         if (fileContentsData == originalContents) {
+          _prevOverlayCache.put(source, fileContentsData);
           sourceEntry.modificationTime = fileContents.modificationTime;
-          sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
           changed = false;
         }
       } catch (e) {
@@ -4995,13 +5002,22 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void _sourceChanged(Source source) {
     SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null ||
-        sourceEntry.modificationTime == getModificationStamp(source)) {
-      // Either we have removed this source, in which case we don't care that
-      // it is changed, or we have already invalidated the cache and don't need
-      // to invalidate it again.
+    // If the source is removed, we don't care about it.
+    if (sourceEntry == null) {
       return;
     }
+    // Check if the content of the source is the same as it was the last time.
+    String sourceContent = _prevOverlayCache.get(source);
+    if (sourceContent != null) {
+      try {
+        TimestampedData<String> fileContents = getContents(source);
+        if (fileContents.data == sourceContent) {
+          return;
+        }
+      } catch (e) {
+      }
+    }
+    // We have to invalidate the cache.
     _propagateInvalidation(source, sourceEntry);
   }
 
