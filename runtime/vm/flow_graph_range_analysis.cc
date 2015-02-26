@@ -2541,12 +2541,22 @@ void Range::Mul(const Range* left_range,
       ((left_max == 0) || (right_max <= kMaxInt64 / left_max))) {
     // Product of left and right max values stays in 64 bit range.
     const int64_t mul_max = left_max * right_max;
-    const int64_t r_min =
-        OnlyPositiveOrZero(*left_range, *right_range) ? 0 : -mul_max;
-    *result_min = RangeBoundary::FromConstant(r_min);
-    const int64_t r_max =
-        OnlyNegativeOrZero(*left_range, *right_range) ? 0 : mul_max;
-    *result_max = RangeBoundary::FromConstant(r_max);
+    if (OnlyPositiveOrZero(*left_range, *right_range) ||
+        OnlyNegativeOrZero(*left_range, *right_range)) {
+      // If both ranges are of the same sign then the range of the result
+      // is positive and is between multiplications of absolute minimums
+      // and absolute maximums.
+      const int64_t mul_min =
+          ConstantAbsMin(left_range) * ConstantAbsMin(right_range);
+      *result_min = RangeBoundary::FromConstant(mul_min);
+      *result_max = RangeBoundary::FromConstant(mul_max);
+    } else {
+      // If ranges have mixed signs then use conservative approximation:
+      // absolute value of the result is less or equal to multiplication
+      // of absolute maximums.
+      *result_min = RangeBoundary::FromConstant(-mul_max);
+      *result_max = RangeBoundary::FromConstant(mul_max);
+    }
     return;
   }
 
@@ -2583,6 +2593,17 @@ int64_t Range::ConstantAbsMax(const Range* range) {
   const int64_t abs_min = Utils::Abs(Range::ConstantMin(range).ConstantValue());
   const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).ConstantValue());
   return Utils::Maximum(abs_min, abs_max);
+}
+
+
+// Return the minimum absolute value included in range.
+int64_t Range::ConstantAbsMin(const Range* range) {
+  if (range == NULL) {
+    return 0;
+  }
+  const int64_t abs_min = Utils::Abs(Range::ConstantMin(range).ConstantValue());
+  const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).ConstantValue());
+  return Utils::Minimum(abs_min, abs_max);
 }
 
 

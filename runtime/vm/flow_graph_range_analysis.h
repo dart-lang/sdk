@@ -473,6 +473,9 @@ class Range : public ZoneAllocated {
   // Return the maximum absolute value included in range.
   static int64_t ConstantAbsMax(const Range* range);
 
+  // Return the minimum absolute value included in range.
+  static int64_t ConstantAbsMin(const Range* range);
+
   static void BinaryOp(const Token::Kind op,
                        const Range* left_range,
                        const Range* right_range,
