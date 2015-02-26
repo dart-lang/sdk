@@ -30429,9 +30429,6 @@ class Blink_Utils {
 
   static spawnDomUri(uri) native "Utils_spawnDomUri";
 
-  static void spawnDomHelper(Function f, int replyTo)
-      native "Utils_spawnDomHelper";
-
   static register(document, tag, customType, extendsTagName) native "Utils_register";
 
   static createElement(document, tagName) native "Utils_createElement";
