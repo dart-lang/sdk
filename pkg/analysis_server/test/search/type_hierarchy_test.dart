@@ -412,6 +412,138 @@ class T extends Object with MA, MB {
       }]);
   }
 
+  test_fromField_toMixinGetter() async {
+    addTestFile('''
+abstract class A {
+  var test = 1;
+}
+class Mixin {
+  get test => 2;
+}
+class B extends A with Mixin {}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test = 1;');
+    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+    Element memberA = itemA.memberElement;
+    Element memberB = itemB.memberElement;
+    expect(memberA, isNotNull);
+    expect(memberB, isNotNull);
+    expect(memberA.location.offset, findOffset('test = 1;'));
+    expect(memberB.location.offset, findOffset('test => 2;'));
+  }
+
+  test_fromField_toMixinSetter() async {
+    addTestFile('''
+abstract class A {
+  var test = 1;
+}
+class Mixin {
+  set test(m) {}
+}
+class B extends A with Mixin {}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test = 1;');
+    var itemA = items.firstWhere((e) => e.classElement.name == 'A');
+    var itemB = items.firstWhere((e) => e.classElement.name == 'B');
+    Element memberA = itemA.memberElement;
+    Element memberB = itemB.memberElement;
+    expect(memberA, isNotNull);
+    expect(memberB, isNotNull);
+    expect(memberA.location.offset, findOffset('test = 1;'));
+    expect(memberB.location.offset, findOffset('test(m) {}'));
+  }
+
+  test_member_fromField_toField() async {
+    addTestFile('''
+class A {
+  var test = 1;
+}
+class B extends A {
+  var test = 2;
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test = 2;');
+    TypeHierarchyItem itemB = items[0];
+    TypeHierarchyItem itemA = items[itemB.superclass];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemA.memberElement.location.offset, findOffset('test = 1;'));
+    expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
+  }
+
+  test_member_fromField_toGetter() async {
+    addTestFile('''
+class A {
+  get test => 1;
+}
+class B extends A {
+  var test = 2;
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test = 2;');
+    TypeHierarchyItem itemB = items[0];
+    TypeHierarchyItem itemA = items[itemB.superclass];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemA.memberElement.location.offset, findOffset('test => 1'));
+    expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
+  }
+
+  test_member_fromField_toSetter() async {
+    addTestFile('''
+class A {
+  set test(a) {}
+}
+class B extends A {
+  var test = 2;
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test = 2;');
+    TypeHierarchyItem itemB = items[0];
+    TypeHierarchyItem itemA = items[itemB.superclass];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemA.memberElement.location.offset, findOffset('test(a) {}'));
+    expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
+  }
+
+  test_member_fromFinalField_toGetter() async {
+    addTestFile('''
+class A {
+  get test => 1;
+}
+class B extends A {
+  final test = 2;
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test = 2;');
+    TypeHierarchyItem itemB = items[0];
+    TypeHierarchyItem itemA = items[itemB.superclass];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemA.memberElement.location.offset, findOffset('test => 1;'));
+    expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
+  }
+
+  test_member_fromFinalField_toSetter() async {
+    addTestFile('''
+class A {
+  set test(x) {}
+}
+class B extends A {
+  final test = 2;
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('test = 2;');
+    TypeHierarchyItem itemB = items[0];
+    TypeHierarchyItem itemA = items[itemB.superclass];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemA.memberElement, isNull);
+    expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
+  }
+
   test_member_getter() async {
     addTestFile('''
 class A {

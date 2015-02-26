@@ -21,6 +21,7 @@ class TypeHierarchyComputer {
 
   LibraryElement _pivotLibrary;
   ElementKind _pivotKind;
+  bool _pivotFieldFinal;
   String _pivotName;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
@@ -37,6 +38,10 @@ class TypeHierarchyComputer {
     _pivotLibrary = element.library;
     _pivotKind = element.kind;
     _pivotName = element.name;
+    if (element is FieldElement) {
+      _pivotFieldFinal = (element as FieldElement).isFinal;
+      element = element.enclosingElement;
+    }
     if (element is ExecutableElement &&
         element.enclosingElement is ClassElement) {
       element = element.enclosingElement;
@@ -147,6 +152,11 @@ class TypeHierarchyComputer {
       result = clazz.getGetter(_pivotName);
     } else if (_pivotKind == ElementKind.SETTER) {
       result = clazz.getSetter(_pivotName);
+    } else if (_pivotKind == ElementKind.FIELD) {
+      result = clazz.getGetter(_pivotName);
+      if (result == null && !_pivotFieldFinal) {
+        result = clazz.getSetter(_pivotName);
+      }
     }
     if (result != null) {
       return result;
@@ -156,12 +166,15 @@ class TypeHierarchyComputer {
       ClassElement mixinElement = mixin.element;
       if (_pivotKind == ElementKind.METHOD) {
         result = mixinElement.lookUpMethod(_pivotName, _pivotLibrary);
-      }
-      if (_pivotKind == ElementKind.GETTER) {
+      } else if (_pivotKind == ElementKind.GETTER) {
         result = mixinElement.lookUpGetter(_pivotName, _pivotLibrary);
-      }
-      if (_pivotKind == ElementKind.SETTER) {
+      } else if (_pivotKind == ElementKind.SETTER) {
         result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
+      } else if (_pivotKind == ElementKind.FIELD) {
+        result = mixinElement.lookUpGetter(_pivotName, _pivotLibrary);
+        if (result == null && !_pivotFieldFinal) {
+          result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
+        }
       }
       if (result != null) {
         return result;
