@@ -9,6 +9,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -86,7 +87,13 @@ abstract class ContextManager {
    */
   final PackageMapProvider _packageMapProvider;
 
-  ContextManager(this.resourceProvider, this._packageMapProvider) {
+  /**
+   * The instrumentation service used to report instrumentation data.
+   */
+  final InstrumentationService _instrumentationService;
+
+  ContextManager(this.resourceProvider, this._packageMapProvider,
+      this._instrumentationService) {
     pathContext = resourceProvider.pathContext;
   }
 
@@ -360,6 +367,7 @@ abstract class ContextManager {
     });
     UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
     info.context = addContext(folder, packageUriResolver);
+    info.context.name = folder.path;
     return info;
   }
 
@@ -460,6 +468,10 @@ abstract class ContextManager {
   }
 
   void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
+    _instrumentationService.logWatchEvent(
+        folder.path,
+        event.path,
+        event.type.toString());
     String path = event.path;
     // maybe excluded globally
     if (_isExcluded(path)) {

@@ -53,6 +53,7 @@ class InstrumentationService {
   static final InstrumentationService NULL_SERVICE =
       new InstrumentationService(null);
 
+  static const String TAG_ANALYSIS_TASK = 'Task';
   static const String TAG_ERROR = 'Err';
   static const String TAG_EXCEPTION = 'Ex';
   static const String TAG_FILE_READ = 'Read';
@@ -62,6 +63,7 @@ class InstrumentationService {
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
   static const String TAG_VERSION = 'Ver';
+  static const String TAG_WATCH_EVENT = 'Watch';
 
   /**
    * The instrumentation server used to communicate with the server, or `null`
@@ -85,6 +87,17 @@ class InstrumentationService {
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
+
+  /**
+   * Log that an analysis task is being performed in the given [context]. The
+   * task has the given [description].
+   */
+  void logAnalysisTask(String context, String description) {
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log(
+          _join([TAG_ANALYSIS_TASK, context, description]));
+    }
+  }
 
   /**
    * Log the fact that an error, described by the given [message], has occurred.
@@ -197,6 +210,19 @@ class InstrumentationService {
                   normalize(clientVersion),
                   serverVersion,
                   sdkVersion]));
+    }
+  }
+
+  /**
+   * Log that the file system watcher sent an event. The [folderPath] is the
+   * path to the folder containing the changed file, the [filePath] is the path
+   * of the file that changed, and the [changeType] indicates what kind of
+   * change occurred.
+   */
+  void logWatchEvent(String folderPath, String filePath, String changeType) {
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log(
+          _join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
     }
   }
 

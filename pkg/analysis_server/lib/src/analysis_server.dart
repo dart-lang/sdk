@@ -249,8 +249,11 @@ class AnalysisServer {
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    contextDirectoryManager =
-        new ServerContextManager(this, resourceProvider, packageMapProvider);
+    contextDirectoryManager = new ServerContextManager(
+        this,
+        resourceProvider,
+        packageMapProvider,
+        instrumentationService);
     contextDirectoryManager.defaultOptions.incremental = true;
     contextDirectoryManager.defaultOptions.incrementalApi =
         analysisServerOptions.enableIncrementalResolutionApi;
@@ -497,6 +500,32 @@ class AnalysisServer {
 //  }
 
   /**
+   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
+   *
+   * May be empty, but not `null`.
+   */
+  List<CompilationUnit> getResolvedCompilationUnits(String path) {
+    List<CompilationUnit> units = <CompilationUnit>[];
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(path);
+    if (context == null) {
+      return units;
+    }
+    // add a unit for each unit/library combination
+    Source unitSource = getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    for (Source librarySource in librarySources) {
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      if (unit != null) {
+        units.add(unit);
+      }
+    }
+    // done
+    return units;
+  }
+
+  /**
    * Returns the [CompilationUnit] of the Dart file with the given [path] that
    * should be used to resend notifications for already resolved unit.
    * Returns `null` if the file is not a part of any context, library has not
@@ -521,32 +550,6 @@ class AnalysisServer {
     }
     // if library has been already resolved, resolve unit
     return context.resolveCompilationUnit2(unitSource, librarySource);
-  }
-
-  /**
-   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
-   *
-   * May be empty, but not `null`.
-   */
-  List<CompilationUnit> getResolvedCompilationUnits(String path) {
-    List<CompilationUnit> units = <CompilationUnit>[];
-    // prepare AnalysisContext
-    AnalysisContext context = getAnalysisContext(path);
-    if (context == null) {
-      return units;
-    }
-    // add a unit for each unit/library combination
-    Source unitSource = getSource(path);
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    for (Source librarySource in librarySources) {
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, librarySource);
-      if (unit != null) {
-        units.add(unit);
-      }
-    }
-    // done
-    return units;
   }
 
   /**
@@ -1180,8 +1183,8 @@ class ServerContextManager extends ContextManager {
   StreamController<ContextsChangedEvent> _onContextsChangedController;
 
   ServerContextManager(this.analysisServer, ResourceProvider resourceProvider,
-      PackageMapProvider packageMapProvider)
-      : super(resourceProvider, packageMapProvider) {
+      PackageMapProvider packageMapProvider, InstrumentationService service)
+      : super(resourceProvider, packageMapProvider, service) {
     _onContextsChangedController =
         new StreamController<ContextsChangedEvent>.broadcast();
   }

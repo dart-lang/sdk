@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -895,7 +896,10 @@ class TestContextManager extends ContextManager {
 
   TestContextManager(MemoryResourceProvider resourceProvider,
       PackageMapProvider packageMapProvider)
-      : super(resourceProvider, packageMapProvider);
+      : super(
+          resourceProvider,
+          packageMapProvider,
+          InstrumentationService.NULL_SERVICE);
 
   /**
    * Iterable of the paths to contexts that currently exist.

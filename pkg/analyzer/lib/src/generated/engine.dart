@@ -402,6 +402,18 @@ abstract class AnalysisContext {
   List<Source> get librarySources;
 
   /**
+   * Return a client-provided name used to identify this context, or `null` if
+   * the client has not provided a name.
+   */
+  String get name;
+
+  /**
+   * Set the client-provided name used to identify this context to the given
+   * [name].
+   */
+  set name(String name);
+
+  /**
    * The stream that is notified when sources have been added or removed,
    * or the source's content has changed.
    */
@@ -929,6 +941,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * The unique identifier of this context.
    */
   final int _id = _NEXT_ID++;
+
+  /**
+   * A client-provided name used to identify this context, or `null` if the
+   * client has not provided a name.
+   */
+  String name;
 
   /**
    * The set of analysis options controlling the behavior of this context.
@@ -6838,6 +6856,13 @@ abstract class AnalysisTask {
    */
   void _safelyPerform() {
     try {
+      String contextName = context.name;
+      if (contextName == null) {
+        contextName = 'unnamed';
+      }
+      AnalysisEngine.instance.instrumentationService.logAnalysisTask(
+          contextName,
+          taskDescription);
       internalPerform();
     } on AnalysisException catch (exception) {
       rethrow;
@@ -9703,6 +9728,9 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   List<Source> get prioritySources;
 
+  /** A factory to override how [ResolverVisitor] is created. */
+  ResolverVisitorFactory get resolverVisitorFactory;
+
   /**
    * Returns a statistics about this context.
    */
@@ -9716,9 +9744,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @throws AnalysisException if dart:core cannot be resolved
    */
   TypeProvider get typeProvider;
-
-  /** A factory to override how [ResolverVisitor] is created. */
-  ResolverVisitorFactory get resolverVisitorFactory;
 
   /** A factory to override how [TypeResolverVisitor] is created. */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;
