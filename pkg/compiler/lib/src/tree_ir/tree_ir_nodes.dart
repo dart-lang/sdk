@@ -560,6 +560,25 @@ class ExpressionStatement extends Statement {
   }
 }
 
+// TODO(kmillikin): Do we want this 'TryStatement'?  Other than
+// LabeledStatement and EmptyStatement, the statement class names are not
+// suffixed with 'Statement'.
+class Try extends Statement {
+  Statement tryBody;
+  List<Variable> catchParameters;
+  Statement catchBody;
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Try(this.tryBody, this.catchParameters, this.catchBody);
+
+  accept(StatementVisitor visitor) => visitor.visitTry(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitTry(this, arg);
+  }
+}
+
 abstract class ExecutableDefinition {
   ExecutableElement get element;
   Statement body;
@@ -760,6 +779,7 @@ abstract class StatementVisitor<S> {
   S visitWhileCondition(WhileCondition node);
   S visitFunctionDeclaration(FunctionDeclaration node);
   S visitExpressionStatement(ExpressionStatement node);
+  S visitTry(Try node);
   S visitSetField(SetField node);
 }
 
@@ -775,6 +795,7 @@ abstract class StatementVisitor1<S, A> {
   S visitWhileCondition(WhileCondition node, A arg);
   S visitFunctionDeclaration(FunctionDeclaration node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
+  S visitTry(Try node, A arg);
   S visitSetField(SetField node, A arg);
 }
 
@@ -902,6 +923,11 @@ class RecursiveVisitor extends Visitor {
   visitExpressionStatement(ExpressionStatement node) {
     visitExpression(node.expression);
     visitStatement(node.next);
+  }
+
+  visitTry(Try node) {
+    visitStatement(node.tryBody);
+    visitStatement(node.catchBody);
   }
 
   visitFieldInitializer(FieldInitializer node) {

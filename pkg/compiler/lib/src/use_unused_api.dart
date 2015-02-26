@@ -63,7 +63,7 @@ void main(List<String> arguments) {
   useCodeBuffer(null);
   usedByTests();
   useElements(null, null, null, null, null);
-  useIr(null, null, null);
+  useIr(null, null);
   useCompiler(null);
   useTypes();
   useCodeEmitterTask(null);
@@ -238,23 +238,8 @@ useElements(
   pfe.copyWithEnclosing(null);
 }
 
-useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
-      ir_builder.IrBuilderTask task,
+useIr(ir_builder.IrBuilderTask task,
       ir_builder.IrBuilder builder) {
-  new cps_ir_nodes_sexpr.SExpressionStringifier();
-  stringifier
-    ..newContinuationName(null)
-    ..newValueName(null)
-    ..visitConstant(null)
-    ..visitContinuation(null)
-    ..visitDefinition(null)
-    ..visitExpression(null)
-    ..visitFunctionDefinition(null)
-    ..visitFieldDefinition(null)
-    ..visitInvokeStatic(null)
-    ..visitLetCont(null)
-    ..visitNode(null)
-    ..visitParameter(null);
   task
     ..hasIr(null)
     ..getIr(null);

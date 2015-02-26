@@ -38,6 +38,9 @@ class BuilderContext<T> {
   /// Variables that have had their declaration created.
   final Set<tree.Variable> declaredVariables = new Set<tree.Variable>();
 
+  /// Variables that are used as catch handler parameters.
+  final Set<tree.Variable> handlerVariables = new Set<tree.Variable>();
+
   /// Variable names that have already been used. Used to avoid name clashes.
   final Set<String> usedVariableNames;
 
@@ -83,7 +86,7 @@ class BuilderContext<T> {
             new Map<tree.Variable, String>.from(parent.variableNames);
 
   // TODO(johnniwinther): Fully encapsulate handling of parameter, variable
-  // and local funciton declarations.
+  // and local function declarations.
   void addDeclaration(tree.Variable variable, [Expression initializer]) {
     assert(!declaredVariables.contains(variable));
     String name = getVariableName(variable);
@@ -360,7 +363,8 @@ class ASTEmitter
       // if their first assignment could be pulled into the initializer.
       // Add the remaining variable declarations now.
       for (tree.Variable variable in context.variableNames.keys) {
-        if (!context.declaredVariables.contains(variable)) {
+        if (!context.declaredVariables.contains(variable) &&
+            !context.handlerVariables.contains(variable)) {
           context.addDeclaration(variable);
         }
       }
@@ -626,6 +630,34 @@ class ASTEmitter
     addLabeledStatement(stmt.label, statement, context);
 
     visitStatement(stmt.next, context);
+  }
+
+  @override
+  void visitTry(tree.Try stmt,
+                BuilderContext<Statement> context) {
+    Block tryBody = visitInSubContext(stmt.tryBody, context);
+    Block catchBody = visitInSubContext(stmt.catchBody, context);
+    CatchBlock catchBlock;
+    tree.Variable exceptionVariable = stmt.catchParameters[0];
+    context.handlerVariables.add(exceptionVariable);
+    VariableDeclaration exceptionParameter =
+        new VariableDeclaration(context.getVariableName(exceptionVariable));
+    exceptionParameter.element = exceptionVariable.element;
+    if (stmt.catchParameters.length == 2) {
+      tree.Variable stackTraceVariable = stmt.catchParameters[1];
+      context.handlerVariables.add(stackTraceVariable);
+      VariableDeclaration stackTraceParameter =
+          new VariableDeclaration(context.getVariableName(stackTraceVariable));
+      stackTraceParameter.element = stackTraceVariable.element;
+      catchBlock = new CatchBlock(catchBody,
+          exceptionVar: exceptionParameter,
+          stackVar: stackTraceParameter);
+    } else {
+      assert(stmt.catchParameters.length == 1);
+      catchBlock = new CatchBlock(catchBody,
+          exceptionVar: exceptionParameter);
+    }
+    context.addStatement(new Try(tryBody, <CatchBlock>[catchBlock], null));
   }
 
   @override

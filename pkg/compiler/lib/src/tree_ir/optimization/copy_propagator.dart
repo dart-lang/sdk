@@ -210,6 +210,12 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     throw "WhileCondition before LoopRewriter";
   }
 
+  Statement visitTry(Try node) {
+    node.tryBody = visitBasicBlock(node.tryBody);
+    node.catchBody = visitBasicBlock(node.catchBody);
+    return node;
+  }
+
   Statement visitFunctionDeclaration(FunctionDeclaration node) {
     // Unlike var declarations, function declarations are not hoisted, so we
     // can't do copy propagation of the variable.

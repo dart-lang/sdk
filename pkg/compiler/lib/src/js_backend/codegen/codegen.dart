@@ -475,6 +475,12 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   }
 
   @override
+  void visitTry(tree_ir.Try node) {
+    // TODO(kmillikin): implement TryStatement.
+    return giveup(node);
+  }
+
+  @override
   js.Expression visitCreateBox(tree_ir.CreateBox node) {
     return new js.ObjectInitializer([]);
   }

@@ -141,6 +141,11 @@ class BlockCollector extends StatementVisitor {
     ifTargets[node.next] = nextBlock;
   }
 
+  visitTry(Try node) {
+    // It's not obvious how we want to represent try statements here.
+    // TODO(kmillikin).
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     _addStatement(node);
     visitStatement(node.next);
@@ -273,6 +278,11 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
     printStatement(null, "while ${expr(node.condition)}");
     printStatement(null, "do $bodyTarget");
     printStatement(null, "then $nextTarget" );
+  }
+
+  visitTry(Try node) {
+    // It's not obvious how we want to represent try statements here.
+    // TODO(kmillikin).
   }
 
   visitExpressionStatement(ExpressionStatement node) {

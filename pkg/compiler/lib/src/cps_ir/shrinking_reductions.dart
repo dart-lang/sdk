@@ -263,12 +263,20 @@ bool _isBetaContLin(Continuation cont) {
     return false;
   }
 
-  if (cont.firstRef.parent is InvokeContinuation) {
-    InvokeContinuation invoke = cont.firstRef.parent;
-    return (cont == invoke.continuation.definition);
-  }
+  if (cont.firstRef.parent is! InvokeContinuation) return false;
 
-  return false;
+  InvokeContinuation invoke = cont.firstRef.parent;
+  if (cont != invoke.continuation.definition) return false;
+
+  // Beta-reduction will move the continuation's body to its unique invocation
+  // site.  This is not safe if the body is moved into an exception handler
+  // binding.
+  Node current = invoke.parent;
+  while (current != cont.parent) {
+    if (current is LetHandler) return false;
+    current = current.parent;
+  }
+  return true;
 }
 
 /// Returns true iff the continuation consists of a continuation
@@ -357,6 +365,12 @@ bool _isDeadParameter(Parameter parameter) {
     return false;
   }
 
+  // We cannot remove exception handler parameters, they have a fixed arity
+  // of two.
+  if (parameter.parent.parent is LetHandler) {
+    return false;
+  }
+
   // We cannot remove the parameter to a call continuation, because the
   // resulting expression will not be well-formed (call continuations have
   // exactly one argument).  The return continuation is a call continuation, so
@@ -386,6 +400,11 @@ class _RedexVisitor extends RecursiveVisitor {
   }
 
   void processContinuation(Continuation node) {
+    // While it would be nice to remove exception handlers that are provably
+    // unnecessary (e.g., the body cannot throw), that takes more sophisticated
+    // analysis than we do in this pass.
+    if (node.parent is LetHandler) return;
+
     // Continuation beta- and eta-redexes can overlap, namely when an eta-redex
     // is invoked exactly once.  We prioritize continuation beta-redexes over
     // eta-redexes because some reductions (e.g., dead parameter elimination)
@@ -509,6 +528,11 @@ class ParentVisitor extends RecursiveVisitor {
       continuation.parent = node;
       continuation.parent_index = index++;
     });
+    node.body.parent = node;
+  }
+
+  processLetHandler(LetHandler node) {
+    node.handler.parent = node;
     node.body.parent = node;
   }
 

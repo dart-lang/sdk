@@ -118,6 +118,12 @@ class LoopRewriter extends RecursiveVisitor with PassMixin {
     return node;
   }
 
+  Statement visitTry(Try node) {
+    node.tryBody = visitStatement(node.tryBody);
+    node.catchBody = visitStatement(node.catchBody);
+    return node;
+  }
+
   Statement visitFunctionDeclaration(FunctionDeclaration node) {
     new LoopRewriter().rewrite(node.definition);
     node.next = visitStatement(node.next);

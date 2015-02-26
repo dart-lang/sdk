@@ -207,8 +207,8 @@ class Try extends Statement {
 
 class CatchBlock extends Node {
   final TypeAnnotation onType;
-  final String exceptionVar;
-  final String stackVar;
+  final VariableDeclaration exceptionVar;
+  final VariableDeclaration stackVar;
   final Statement body;
 
   /// At least onType or exceptionVar must be given.
@@ -1210,10 +1210,10 @@ class Unparser {
         }
         if (block.exceptionVar != null) {
           write('catch(');
-          write(block.exceptionVar);
+          write(block.exceptionVar.name);
           if (block.stackVar != null) {
             write(',');
-            write(block.stackVar);
+            write(block.stackVar.name);
           }
           write(')');
         }

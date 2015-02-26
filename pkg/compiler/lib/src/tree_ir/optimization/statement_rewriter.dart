@@ -111,7 +111,15 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   StatementRewriter.nested(StatementRewriter parent)
       : constantEnvironment = parent.constantEnvironment;
 
-  /// Returns the redirect target of [label] or [label] itself if it should not
+  /// A set of labels that can be safely inlined at their use.
+  ///
+  /// The successor statements for labeled statements that have only one break
+  /// from them are normally rewritten inline at the site of the break.  This
+  /// is not safe if the code would be moved inside the scope of an exception
+  /// handler (i.e., if the code would be moved into a try from outside it).
+  Set<Label> safeForInlining = new Set<Label>();
+
+  /// Returns the redirect target of [jump] or [jump] itself if it should not
   /// be redirected.
   Jump redirect(Jump jump) {
     Jump newJump = labelRedirects[jump.target];
@@ -310,7 +318,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     // Note that useCount was accounted for at visitLabeledStatement.
     // Note redirect may return either a Break or Continue statement.
     Jump jump = redirect(node);
-    if (jump is Break && jump.target.useCount == 1) {
+    if (jump is Break &&
+        jump.target.useCount == 1 &&
+        safeForInlining.contains(jump.target)) {
       --jump.target.useCount;
       return visitStatement(jump.target.binding.next);
     }
@@ -337,7 +347,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
       return result;
     }
 
+    safeForInlining.add(node.label);
     node.body = visitStatement(node.body);
+    safeForInlining.remove(node.label);
 
     if (node.label.useCount == 0) {
       // Eliminate the label if next was inlined at a break
@@ -395,6 +407,15 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   Statement visitWhileCondition(WhileCondition node) {
     // Not introduced yet
     throw "Unexpected WhileCondition in StatementRewriter";
+  }
+
+  Statement visitTry(Try node) {
+    Set<Label> saved = safeForInlining;
+    safeForInlining = new Set<Label>();
+    node.tryBody = visitStatement(node.tryBody);
+    safeForInlining = saved;
+    node.catchBody = visitStatement(node.catchBody);
+    return node;
   }
 
   Expression visitConstant(Constant node) {
