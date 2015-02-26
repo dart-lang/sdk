@@ -142,8 +142,11 @@ String get enumerateKinds => Kind.supported
     .map((Kind k) => '<li>${markdownToHtml(k.description)}</li>')
     .join('\n');
 
-String get enumerateRules =>
-    rules.map((LintRule r) => '${toDescription(r)}').join('\n\n');
+String get enumeratePubRules =>
+rules.where((r) => r.group == Group.PUB).map((r) => '${toDescription(r)}').join('\n\n');
+
+String get enumerateStyleGuideRules =>
+  rules.where((r) => r.group == Group.STYLE_GUIDE).map((r) => '${toDescription(r)}').join('\n\n');
 
 String toDescription(LintRule r) =>
     '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/>${markdownToHtml(r.description)}';
@@ -213,7 +216,11 @@ class Indexer {
 
             <h2 id="styleguide-rules">Style Guide Rules</h2>
 
-               $enumerateRules
+               $enumerateStyleGuideRules
+
+            <h2 id="styleguide-rules">Pub Rules</h2>
+
+               $enumeratePubRules
             
          </section>
       </div>
