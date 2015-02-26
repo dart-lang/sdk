@@ -19,11 +19,19 @@ import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/util.dart';
-import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 import '../bin/linter.dart' as dartlint;
+
+main() {
+  groupSep = ' | ';
+
+  defineSanityTests();
+  defineLinterEngineTests();
+  defineRuleTests();
+  defineRuleUnitTests();
+}
 
 const String ruleDir = 'test/rules';
 
@@ -232,28 +240,24 @@ void defineRuleTests() {
   //TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
     group('dart', () {
-    for (var entry in new Directory(ruleDir).listSync()) {
-    if (entry is! File || !isDartFile(entry)) continue;
-    var ruleName = p.basenameWithoutExtension(entry.path);
-    testRule(ruleName, entry);
-    }
+      for (var entry in new Directory(ruleDir).listSync()) {
+        if (entry is! File || !isDartFile(entry)) continue;
+        var ruleName = p.basenameWithoutExtension(entry.path);
+        testRule(ruleName, entry);
+      }
     });
     group('pub', () {
-    for (var entry in new Directory(ruleDir +'/pub').listSync()) {
-      if (entry is! Directory) continue;
-      Directory pubTestDir = entry;
-      for (var file in pubTestDir.listSync()) {
-        if (file is! File || !isPubspecFile(file)) continue;
-        var ruleName = p.basename(pubTestDir.path);
-        testRule(ruleName, file);
+      for (var entry in new Directory(ruleDir + '/pub').listSync()) {
+        if (entry is! Directory) continue;
+        Directory pubTestDir = entry;
+        for (var file in pubTestDir.listSync()) {
+          if (file is! File || !isPubspecFile(file)) continue;
+          var ruleName = p.basename(pubTestDir.path);
+          testRule(ruleName, file);
+        }
       }
-    }
     });
   });
-}
-
-testEach(Iterable<String> values, dynamic f(String s), Matcher m) {
-  values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 
 defineRuleUnitTests() {
@@ -377,18 +381,13 @@ Annotation extractAnnotation(String line) {
   return null;
 }
 
-main() {
-  groupSep = ' | ';
-
-  defineSanityTests();
-  defineLinterEngineTests();
-  defineRuleTests();
-  defineRuleUnitTests();
-}
-
 AnnotationMatcher matchesAnnotation(
         String message, ErrorType type, int lineNumber) =>
     new AnnotationMatcher(new Annotation(message, type, lineNumber));
+
+testEach(Iterable<String> values, dynamic f(String s), Matcher m) {
+  values.forEach((s) => test('"$s"', () => expect(f(s), m)));
+}
 
 void testRule(String ruleName, File file) {
   test('$ruleName', () {
@@ -512,8 +511,4 @@ class MockVisitor extends GeneralizingAstVisitor with PubSpecVisitor {
       nodeVisitor(node);
     }
   }
-}
-
-class MockReporter extends Mock implements ErrorReporter {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

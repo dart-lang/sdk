@@ -5,9 +5,15 @@
 library linter.test.pub;
 
 import 'package:linter/src/pub.dart';
-import 'package:mock/mock.dart';
+import 'package:mockito/mockito.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
+
+main() {
+  groupSep = ' | ';
+
+  defineTests();
+}
 
 defineTests() {
   const src = """
@@ -101,27 +107,19 @@ dev_dependencies:
     });
     group('visiting', () {
       test('smoke', () {
-        var spy = new MockVisitor();
-        ps.accept(spy);
-        spy
-          ..getLogs(callsTo('visitPackageAuthor')).verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageAuthors')).verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageDependencies'))
-              .verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageDependency'))
-              .verify(happenedExactly(7))
-          ..getLogs(callsTo('visitPackageDescription'))
-              .verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageDevDependencies'))
-              .verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageDevDependency'))
-              .verify(happenedExactly(2))
-          ..getLogs(callsTo('visitPackageDocumentation'))
-              .verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageHomepage')).verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageName')).verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageAuthors')).verify(happenedExactly(1))
-          ..getLogs(callsTo('visitPackageVersion')).verify(happenedExactly(1));
+        var mock = new MockVisitor();
+        ps.accept(mock);
+        verify(mock.visitPackageAuthor(any)).called(1);
+        verify(mock.visitPackageAuthors(any)).called(1);
+        verify(mock.visitPackageDependencies(any)).called(1);
+        verify(mock.visitPackageDependency(any)).called(7);
+        verify(mock.visitPackageDescription(any)).called(1);
+        verify(mock.visitPackageDevDependencies(any)).called(1);
+        verify(mock.visitPackageDevDependency(any)).called(2);
+        verify(mock.visitPackageDocumentation(any)).called(1);
+        verify(mock.visitPackageHomepage(any)).called(1);
+        verify(mock.visitPackageName(any)).called(1);
+        verify(mock.visitPackageVersion(any)).called(1);
       });
     });
   });
@@ -129,12 +127,6 @@ dev_dependencies:
 
 PSDependency findDependency(PSDependencyList deps, {String name}) =>
     deps.firstWhere((dep) => dep.name.text == name, orElse: () => null);
-
-main() {
-  groupSep = ' | ';
-
-  defineTests();
-}
 
 testDepListContains(
     String label, PSDependencyList list, List<Map<String, String>> exp) {

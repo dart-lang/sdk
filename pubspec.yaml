@@ -10,6 +10,5 @@ dependencies:
   yaml: '>=2.1.2 <3.0.0'
 dev_dependencies:
   markdown: '>=0.7.1+2 <0.8.0'
-  mock: '>=0.11.0+2 <0.12.0'
   mockito: '>=0.8.2 <0.9.0'
   unittest: '>=0.11.0 <0.12.0'
