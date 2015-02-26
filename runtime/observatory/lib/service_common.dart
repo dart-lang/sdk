@@ -161,27 +161,26 @@ abstract class CommonWebSocketVM extends VM {
     _notifyConnect();
   }
 
-  // WebSocket message event handler.
-  void _onMessage(dynamic data) {
-    if (data is! String) {
-      _webSocket.nonStringToByteData(data).then((ByteData bytes) {
-        // See format spec. in VMs Service::SendEvent.
-        int offset = 0;
-        // Dart2JS workaround (no getUint64). Limit to 4 GB metadata.
-        assert(bytes.getUint32(offset, Endianness.BIG_ENDIAN) == 0);
-        int metaSize = bytes.getUint32(offset + 4, Endianness.BIG_ENDIAN);
-        offset += 8;
-        var meta = _utf8Decoder.convert(new Uint8List.view(
-            bytes.buffer, bytes.offsetInBytes + offset, metaSize));
-        offset += metaSize;
-        var data = new ByteData.view(
-            bytes.buffer,
-            bytes.offsetInBytes + offset,
-            bytes.lengthInBytes - offset);
-        postEventMessage(meta, data);
-      });
-      return;
-    }
+  void _onBinaryMessage(dynamic data) {
+    _webSocket.nonStringToByteData(data).then((ByteData bytes) {
+      // See format spec. in VMs Service::SendEvent.
+      int offset = 0;
+      // Dart2JS workaround (no getUint64). Limit to 4 GB metadata.
+      assert(bytes.getUint32(offset, Endianness.BIG_ENDIAN) == 0);
+      int metaSize = bytes.getUint32(offset + 4, Endianness.BIG_ENDIAN);
+      offset += 8;
+      var meta = _utf8Decoder.convert(new Uint8List.view(
+          bytes.buffer, bytes.offsetInBytes + offset, metaSize));
+      offset += metaSize;
+      var data = new ByteData.view(
+          bytes.buffer,
+          bytes.offsetInBytes + offset,
+          bytes.lengthInBytes - offset);
+      postServiceEvent(meta, data);
+    });
+  }
+
+  void _onStringMessage(String data) {
     var map = JSON.decode(data);
     if (map == null) {
       Logger.root.severe('WebSocketVM got empty message');
@@ -190,21 +189,12 @@ abstract class CommonWebSocketVM extends VM {
     // Extract serial and response.
     var serial;
     var response;
-    if (target.chrome) {
-      if (map['method'] != 'Dart.observatoryData') {
-        // ignore devtools protocol spam.
-        return;
-      }
-      serial = map['params']['id'].toString();
-      response = map['params']['data'];
-    } else {
-      serial = map['id'];
-      response = map['response'];
-    }
+    serial = map['id'];
+    response = map['response'];
     if (serial == null) {
-      // Messages without sequence numbers are asynchronous events
+      // Messages without serial numbers are asynchronous events
       // from the vm.
-      postEventMessage(response);
+      postServiceEvent(response, null);
       return;
     }
     // Complete request.
@@ -214,6 +204,15 @@ abstract class CommonWebSocketVM extends VM {
       return;
     }
     request.completer.complete(response);
+  }
+
+  // WebSocket message event handler.
+  void _onMessage(dynamic data) {
+    if (data is! String) {
+      _onBinaryMessage(data);
+    } else {
+      _onStringMessage(data);
+    }
   }
 
   String _generateNetworkError(String userMessage) {

@@ -64,12 +64,16 @@ var tests = [
         }
       });
 
-      // Add the breakpoint.
-      var script = isolate.rootLib.scripts[0];
-      var line = 14;
-      return isolate.addBreakpoint(script, line).then((ServiceObject bpt) {
-          return completer.future;  // Wait for breakpoint reached.
+      // Create a timer to set a breakpoint with a short delay.
+      new Timer(new Duration(milliseconds: 2000), () {
+        // Add the breakpoint.
+        print('Setting breakpoint.');
+        var script = isolate.rootLib.scripts[0];
+        var line = 14;
+        isolate.addBreakpoint(script, line);
       });
+
+      return completer.future;
     });
 },
 
@@ -118,7 +122,6 @@ var tests = [
                                    23, 1, 24, 1, 26, 0]));
                     expect(normalize(coverage['coverage'][1]['hits']).take(12),
                            equals([32, 0, 35, 0, 36, 0, 32, 1, 35, 1, 36, 0]));
-                                   
                 }));
       // Script
       tests.add(cls.load().then((_) {

@@ -327,6 +327,11 @@ abstract class VM extends ServiceObjectOwner {
   @reflectable VM get vm => this;
   @reflectable Isolate get isolate => null;
 
+  // TODO(johnmccutchan): Ensure that isolates do not end up in _cache.
+  Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
+  final ObservableMap<String,Isolate> _isolateCache =
+      new ObservableMap<String,Isolate>();
+
   @reflectable Iterable<Isolate> get isolates => _isolateCache.values;
 
   @observable String version = 'unknown';
@@ -352,87 +357,155 @@ abstract class VM extends ServiceObjectOwner {
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
 
-  void postEventMessage(String eventMessage, [dynamic data]) {
-      var map;
-      try {
-        map = _parseJSON(eventMessage);
-        assert(!map.containsKey('_data'));
-        if (data != null) {
-          map['_data'] = data;
+  bool _isIsolateLifecycleEvent(String eventType) {
+    return _isIsolateShutdownEvent(eventType) ||
+           _isIsolateCreatedEvent(eventType);
+  }
+
+  bool _isIsolateShutdownEvent(String eventType) {
+    return (eventType == 'IsolateShutdown');
+  }
+
+  bool _isIsolateCreatedEvent(String eventType) {
+    return (eventType == 'IsolateCreated');
+  }
+
+  void postServiceEvent(String response, ByteData data) {
+    var map;
+    try {
+      map = _parseJSON(response);
+      assert(!map.containsKey('_data'));
+      if (data != null) {
+        map['_data'] = data;
+      }
+    } catch (e, st) {
+      Logger.root.severe('Ignoring malformed event response: ${response}');
+      return;
+    }
+    if (map['type'] != 'ServiceEvent') {
+      Logger.root.severe(
+          "Expected 'ServiceEvent' but found '${map['type']}'");
+      return;
+    }
+
+    var eventType = map['eventType'];
+
+    if (_isIsolateLifecycleEvent(eventType)) {
+      String isolateId = map['isolate']['id'];
+      var event;
+      if (_isIsolateCreatedEvent(eventType)) {
+        _onIsolateCreated(map['isolate']);
+        // By constructing the event *after* adding the isolate to the
+        // isolate cache, the call to getFromMap will use the cached Isolate.
+        event = new ServiceObject._fromMap(this, map);
+      } else {
+        assert(_isIsolateShutdownEvent(eventType));
+        // By constructing the event *before* removing the isolate from the
+        // isolate cache, the call to getFromMap will use the cached Isolate.
+        event = new ServiceObject._fromMap(this, map);
+        _onIsolateShutdown(isolateId);
+      }
+      assert(event != null);
+      events.add(event);
+      return;
+    }
+
+    // Extract the owning isolate from the event itself.
+    String owningIsolateId = map['isolate']['id'];
+    getIsolate(owningIsolateId).then((owningIsolate) {
+        if (owningIsolate == null) {
+          // TODO(koda): Do we care about GC events in VM isolate?
+          Logger.root.severe('Ignoring event with unknown isolate id: '
+                             '$owningIsolateId');
+          return;
         }
-      } catch (e, st) {
-        Logger.root.severe('Ignoring malformed event message: ${eventMessage}');
-        return;
-      }
-      if (map['type'] != 'ServiceEvent') {
-        Logger.root.severe(
-            "Expected 'ServiceEvent' but found '${map['type']}'");
-        return;
-      }
-
-      // Extract the owning isolate from the event itself.
-      String owningIsolateId = map['isolate']['id'];
-      getIsolate(owningIsolateId).then((owningIsolate) {
-          if (owningIsolate == null) {
-            // TODO(koda): Do we care about GC events in VM isolate?
-            Logger.root.severe(
-                'Ignoring event with unknown isolate id: $owningIsolateId');
-          } else {
-            var event = new ServiceObject._fromMap(owningIsolate, map);
-            events.add(event);
-          }
-      });
+        var event = new ServiceObject._fromMap(owningIsolate, map);
+        events.add(event);
+    });
   }
 
-  static final RegExp _currentIsolateMatcher = new RegExp(r'isolates/\d+');
-  static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+/');
-  static final String _isolatesPrefix = 'isolates/';
+  Isolate _onIsolateCreated(Map isolateMap) {
+    var isolateId = isolateMap['id'];
+    assert(!_isolateCache.containsKey(isolateId));
+    Isolate isolate = new ServiceObject._fromMap(this, isolateMap);
+    _isolateCache[isolateId] = isolate;
+    notifyPropertyChange(#isolates, true, false);
+    // Eagerly load the isolate.
+    isolate.load().catchError((e) {
+      Logger.root.info('Eagerly loading an isolate failed: $e');
+    });
+    return isolate;
+  }
 
-  String _parseObjectId(String id) {
-    Match m = _currentObjectMatcher.matchAsPrefix(id);
-    if (m == null) {
-      return null;
+  void _onIsolateShutdown(String isolateId) {
+    assert(_isolateCache.containsKey(isolateId));
+    _isolateCache.remove(isolateId);
+    notifyPropertyChange(#isolates, true, false);
+  }
+
+  void _updateIsolatesFromList(List isolateList) {
+    var shutdownIsolates = <String>[];
+    var createdIsolates = <Map>[];
+    var isolateStillExists = <String, bool>{};
+
+    // Start with the assumption that all isolates are gone.
+    for (var isolateId in _isolateCache.keys) {
+      isolateStillExists[isolateId] = false;
     }
-    return m.input.substring(m.end);
-  }
 
-  String _parseIsolateId(String id) {
-    Match m = _currentIsolateMatcher.matchAsPrefix(id);
-    if (m == null) {
-      return '';
+    // Find created isolates and mark existing isolates as living.
+    for (var isolateMap in isolateList) {
+      var isolateId = isolateMap['id'];
+      if (!_isolateCache.containsKey(isolateId)) {
+        createdIsolates.add(isolateMap);
+      } else {
+        isolateStillExists[isolateId] = true;
+      }
     }
-    return id.substring(0, m.end);
+
+    // Find shutdown isolates.
+    isolateStillExists.forEach((isolateId, exists) {
+      if (!exists) {
+        shutdownIsolates.add(isolateId);
+      }
+    });
+
+    // Process shutdown.
+    for (var isolateId in shutdownIsolates) {
+      _onIsolateShutdown(isolateId);
+    }
+
+    // Process creation.
+    for (var isolateMap in createdIsolates) {
+      _onIsolateCreated(isolateMap);
+    }
   }
 
-  Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
-  Map<String,Isolate> _isolateCache = new Map<String,Isolate>();
+  static final String _isolateIdPrefix = 'isolates/';
 
   ServiceObject getFromMap(ObservableMap map) {
-    throw new UnimplementedError();
+    if (map == null) {
+      return null;
+    }
+    String id = map['id'];
+    if (!id.startsWith(_isolateIdPrefix)) {
+      // Currently the VM only supports upgrading Isolate ServiceObjects.
+      throw new UnimplementedError();
+    }
+
+    // Check cache.
+    var isolate = _isolateCache[id];
+    if (isolate == null) {
+      // We should never see an unknown isolate here.
+      throw new UnimplementedError();
+    }
+    return isolate;
   }
 
   // Note that this function does not reload the isolate if it found
   // in the cache.
   Future<ServiceObject> getIsolate(String isolateId) {
-    if (isolateId == '') {
-      return new Future.value(null);
-    }
-    Isolate isolate = _isolateCache[isolateId];
-    if (isolate != null) {
-      return new Future.value(isolate);
-    }
-    // The isolate is not in the cache.  Reload the vm and see if the
-    // requested isolate is found.
-    //
-    // TODO(turnidge): We don't want to reload all isolates so much.
-    // Doesn't scale well.  Change this to be more fine-grained.
-    return reload().then((result) {
-        if (result is! VM) {
-          return null;
-        }
-        assert(result == this);
-        return _isolateCache[isolateId];
-      });
+    return new Future.value(_isolateCache[isolateId]);
   }
 
   dynamic _reviver(dynamic key, dynamic value) {
@@ -541,29 +614,19 @@ abstract class VM extends ServiceObjectOwner {
     assertsEnabled = map['assertsEnabled'];
     pid = map['pid'];
     typeChecksEnabled = map['typeChecksEnabled'];
-    _updateIsolates(map['isolates']);
+    _updateIsolatesFromList(map['isolates']);
   }
 
-  void _updateIsolates(List newIsolates) {
-    var oldIsolateCache = _isolateCache;
-    var newIsolateCache = new Map<String,Isolate>();
-    for (var isolateMap in newIsolates) {
-      var isolateId = isolateMap['id'];
-      var isolate = oldIsolateCache[isolateId];
-      if (isolate != null) {
-        newIsolateCache[isolateId] = isolate;
-      } else {
-        isolate = new ServiceObject._fromMap(this, isolateMap);
-        newIsolateCache[isolateId] = isolate;
-        Logger.root.info('New isolate \'${isolate.id}\'');
-      }
+  // Reload all isolates.
+  Future reloadIsolates() {
+    var reloads = [];
+    for (var isolate in isolates) {
+      var reload = isolate.reload().catchError((e) {
+        Logger.root.info('Bulk reloading of isolates failed: $e');
+      });
+      reloads.add(reload);
     }
-    // Update the individual isolates asynchronously.
-    newIsolateCache.forEach((isolateId, isolate) {
-      isolate.reload();
-    });
-
-    _isolateCache = newIsolateCache;
+    return Future.wait(reloads);
   }
 }
 
