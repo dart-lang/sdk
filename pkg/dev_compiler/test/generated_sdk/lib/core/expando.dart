@@ -71,4 +71,19 @@ class Expando<T> {
     Primitives.setProperty(values, _getKey(), value);
   }
 
+  String _getKey() {
+    String key = Primitives.getProperty(this, _KEY_PROPERTY_NAME);
+    if (key == null) {
+      key = "expando\$key\$${_keyCount++}";
+      Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);
+    }
+    return key;
+  }
+
+  static const String _KEY_PROPERTY_NAME = 'expando\$key';
+
+  static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
+
+  static int _keyCount = 0;
+
 }

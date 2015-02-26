@@ -68,4 +68,13 @@ abstract class Function {
    * own `operator==` and `hashCode` depending on the object.
    */
   bool operator==(Object other);
+
+  static Map<String, dynamic> _toMangledNames(
+      Map<Symbol, dynamic> namedArguments) {
+    Map<String, dynamic> result = {};
+    namedArguments.forEach((symbol, value) {
+      result[_symbolToString(symbol)] = value;
+    });
+    return result;
+  }
 }

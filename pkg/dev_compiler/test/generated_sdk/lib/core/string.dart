@@ -596,6 +596,32 @@ abstract class String implements Comparable<String>, Pattern {
    */
   // TODO(floitsch): document better. (See EcmaScript for description).
   String toUpperCase();
+
+  static String _stringFromIterable(Iterable<int> charCodes,
+                                    int start, int end) {
+    if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
+    if (end != null && end < start) {
+      throw new RangeError.range(end, start, charCodes.length);
+    }
+    var it = charCodes.iterator;
+    for (int i = 0; i < start; i++) {
+      if (!it.moveNext()) {
+        throw new RangeError.range(start, 0, i);
+      }
+    }
+    var list = [];
+    if (end == null) {
+      while (it.moveNext()) list.add(it.current);
+    } else {
+      for (int i = start; i < end; i++) {
+        if (!it.moveNext()) {
+          throw new RangeError.range(end, start, i);
+        }
+        list.add(it.current);
+      }
+    }
+    return Primitives.stringFromCharCodes(list);
+  }
 }
 
 /**

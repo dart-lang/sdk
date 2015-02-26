@@ -8,7 +8,6 @@
 library ddc.tool.patch_sdk;
 
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
@@ -100,79 +99,90 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents) {
 
   // Parse the patch first. We'll need to extract bits of this as we go through
   // the other files.
-  var patchUnit = parseCompilationUnit(patchContents);
-  var patchInfo = (new PatchFinder()..visitCompilationUnit(patchUnit)).patches;
+  var patchFinder = new PatchFinder.parseAndVisit(patchContents);
 
   // Merge `external` declarations with the corresponding `@patch` code.
-  var libraryUnit = null;
+  bool first = true;
   for (var partContent in partsContents) {
     var partEdits = new StringEditBuffer(partContent);
     var partUnit = parseCompilationUnit(partContent);
-    if (libraryUnit == null) libraryUnit = partUnit;
-    partUnit.accept(new PatchApplier(partEdits, patchInfo, patchContents));
+    partUnit.accept(new PatchApplier(partEdits, patchFinder));
     results.add(partEdits);
   }
-
-  // Add code from the patch that isn't `@patch`
-  _mergeUnpatched(results[0], libraryUnit, patchUnit, patchContents);
   return new List<String>.from(results.map((e) => e.toString()));
 }
 
-/// Merges directives and declarations that are not `@patch` into the library.
-void _mergeUnpatched(StringEditBuffer edits, CompilationUnit lib,
-    CompilationUnit patchUnit, String patchContents) {
-
-  // Merge directives from the patch
-  // TODO(jmesserly): remove duplicate imports
-  var directivePos = lib.directives.last.end;
-  for (var directive in patchUnit.directives) {
-    var uri = directive.uri.stringValue;
-    // TODO(jmesserly): figure out what to do about these
-    if (uri.startsWith('dart:_') && uri != 'dart:_internal') continue;
-    var code = patchContents.substring(directive.offset, directive.end);
-    edits.insert(directivePos, '\n' + code);
-  }
-
-  // Merge declarations from the patch
-  var declarationPos = edits.original.length;
-  for (var declaration in patchUnit.declarations) {
-    if (_isPatch(declaration)) continue;
-    var code = patchContents.substring(declaration.offset, declaration.end);
-    edits.insert(declarationPos, '\n' + code);
-  }
-}
-
 /// Merge `@patch` declarations into `external` declarations.
-class PatchApplier extends RecursiveAstVisitor {
+class PatchApplier extends GeneralizingAstVisitor {
   final StringEditBuffer edits;
-  final Map<String, Declaration> patches;
-  final String patchCode;
+  final PatchFinder patch;
 
-  PatchApplier(this.edits, this.patches, this.patchCode);
+  bool _isLibrary = true; // until proven otherwise.
+
+  PatchApplier(this.edits, this.patch);
+
+  @override visitCompilationUnit(CompilationUnit node) {
+    super.visitCompilationUnit(node);
+    if (_isLibrary) _mergeUnpatched(node);
+  }
+
+  /// Merges directives and declarations that are not `@patch` into the library.
+  void _mergeUnpatched(CompilationUnit unit) {
+    // Merge directives from the patch
+    // TODO(jmesserly): remove duplicate imports
+    var directivePos = unit.directives.last.end;
+    for (var directive in patch.unit.directives) {
+      var uri = directive.uri.stringValue;
+      // TODO(jmesserly): figure out what to do about these
+      if (uri.startsWith('dart:_') && uri != 'dart:_internal') continue;
+      var code = patch.contents.substring(directive.offset, directive.end);
+      edits.insert(directivePos, '\n' + code);
+    }
+
+    // Merge declarations from the patch
+    var declarationPos = edits.original.length;
+    for (var declaration in patch.mergeDeclarations) {
+      var code = patch.contents.substring(declaration.offset, declaration.end);
+      edits.insert(declarationPos, '\n' + code);
+    }
+  }
+
+  @override visitPartOfDirective(PartOfDirective node) {
+    _isLibrary = false;
+  }
 
   @override visitFunctionDeclaration(FunctionDeclaration node) {
     _maybePatch(node);
-    return super.visitFunctionDeclaration(node);
   }
-  @override visitMethodDeclaration(MethodDeclaration node) {
-    _maybePatch(node);
-    return super.visitMethodDeclaration(node);
-  }
-  @override visitConstructorDeclaration(ConstructorDeclaration node) {
-    _maybePatch(node);
-    return super.visitConstructorDeclaration(node);
+
+  /// Merge patches and extensions into the class
+  @override visitClassDeclaration(ClassDeclaration node) {
+    node.members.forEach(_maybePatch);
+
+    var mergeMembers = patch.mergeMembers[_qualifiedName(node)];
+    if (mergeMembers == null) return;
+
+    // Merge members from the patch
+    var pos = node.members.last.end;
+    for (var member in mergeMembers) {
+      var code = patch.contents.substring(member.offset, member.end);
+      edits.insert(pos, '\n\n  ' + code);
+    }
   }
 
   void _maybePatch(AstNode node) {
+    if (node is FieldDeclaration) return;
+
     var externalKeyword = (node as dynamic).externalKeyword;
     if (externalKeyword == null) return;
 
     var name = _qualifiedName(node);
-    var patchNode = patches[name];
+    var patchNode = patch.patches[name];
     if (patchNode == null) throw 'patch not found for $name: $node';
 
-    Annotation patch = patchNode.metadata.lastWhere(_isPatchAnnotation);
-    var code = patchCode.substring(patch.endToken.next.offset, patchNode.end);
+    Annotation patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
+    int start = patchMeta.endToken.next.offset;
+    var code = patch.contents.substring(start, patchNode.end);
 
     // For some node like static fields, the node's offset doesn't include
     // the external keyword. Also starting from the keyword lets us preserve
@@ -181,32 +191,51 @@ class PatchApplier extends RecursiveAstVisitor {
   }
 }
 
-class PatchFinder extends RecursiveAstVisitor {
+class PatchFinder extends GeneralizingAstVisitor {
+  final String contents;
+  final CompilationUnit unit;
+
   final Map patches = <String, Declaration>{};
+  final Map mergeMembers = <String, List<ClassMember>>{};
+  final List mergeDeclarations = <CompilationUnitMember>[];
+
+  PatchFinder.parseAndVisit(String contents)
+      : contents = contents,
+        unit = parseCompilationUnit(contents) {
+    visitCompilationUnit(unit);
+  }
+
+  @override visitCompilationUnitMember(CompilationUnitMember node) {
+    mergeDeclarations.add(node);
+  }
+
+  @override visitClassDeclaration(ClassDeclaration node) {
+    if (_isPatch(node)) {
+      var members = <ClassMember>[];
+      for (var member in node.members) {
+        if (_isPatch(member)) {
+          patches[_qualifiedName(member)] = member;
+        } else {
+          members.add(member);
+        }
+      }
+      if (members.isNotEmpty) {
+        mergeMembers[_qualifiedName(node)] = members;
+      }
+    } else {
+      mergeDeclarations.add(node);
+    }
+  }
 
   @override visitFunctionDeclaration(FunctionDeclaration node) {
-    _maybeStorePatch(node);
-    return super.visitFunctionDeclaration(node);
-  }
-  @override visitMethodDeclaration(MethodDeclaration node) {
-    _maybeStorePatch(node);
-    return super.visitMethodDeclaration(node);
-  }
-  @override visitConstructorDeclaration(ConstructorDeclaration node) {
-    _maybeStorePatch(node);
-    return super.visitConstructorDeclaration(node);
-  }
-
-  void _maybeStorePatch(Declaration node) {
-    if (!_isPatch(node)) return;
-
-    var parent = node.parent;
-    if (parent is ClassDeclaration) {
-      if (!_isPatch(parent)) throw 'class $parent is not a patch but $node is';
+    if (_isPatch(node)) {
+      patches[_qualifiedName(node)] = node;
+    } else {
+      mergeDeclarations.add(node);
     }
-
-    patches[_qualifiedName(node)] = node;
   }
+
+  @override visitFunctionBody(node) {} // skip method bodies
 }
 
 String _qualifiedName(Declaration node) {

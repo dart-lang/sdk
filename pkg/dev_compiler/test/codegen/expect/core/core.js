@@ -930,18 +930,29 @@ var core;
         return `Expando:${this.name}`;
       }
       get(object) {
-        let values = dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', object, /* Unimplemented unknown name */_EXPANDO_PROPERTY_NAME);
-        return dart.as(values === null ? null : dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', values, dart.dinvokef(/* Unimplemented unknown name */_getKey)), T);
+        let values = dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', object, _EXPANDO_PROPERTY_NAME);
+        return dart.as(values === null ? null : dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', values, this._getKey()), T);
       }
       set(object, value) {
-        let values = dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', object, /* Unimplemented unknown name */_EXPANDO_PROPERTY_NAME);
+        let values = dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', object, _EXPANDO_PROPERTY_NAME);
         if (values === null) {
           values = new Object();
-          dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', object, /* Unimplemented unknown name */_EXPANDO_PROPERTY_NAME, values);
+          dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', object, _EXPANDO_PROPERTY_NAME, values);
         }
-        dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', values, dart.dinvokef(/* Unimplemented unknown name */_getKey), value);
+        dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', values, this._getKey(), value);
+      }
+      _getKey() {
+        let key = dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', this, _KEY_PROPERTY_NAME), String);
+        if (key === null) {
+          key = `expando$key$${_keyCount++}`;
+          dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', this, _KEY_PROPERTY_NAME, key);
+        }
+        return key;
       }
     }
+    Expando._KEY_PROPERTY_NAME = 'expando$key';
+    Expando._EXPANDO_PROPERTY_NAME = 'expando$values';
+    Expando._keyCount = 0;
     return Expando;
   });
   let Expando = Expando$(dynamic);
@@ -949,7 +960,14 @@ var core;
     static apply(function, positionalArguments, namedArguments) {
       if (namedArguments === void 0)
         namedArguments = null;
-      return dart.dinvoke(/* Unimplemented unknown name */Primitives, 'applyFunction', function, positionalArguments, namedArguments === null ? null : dart.dinvokef(/* Unimplemented unknown name */_toMangledNames, namedArguments));
+      return dart.dinvoke(/* Unimplemented unknown name */Primitives, 'applyFunction', function, positionalArguments, namedArguments === null ? null : _toMangledNames(namedArguments));
+    }
+    static _toMangledNames(namedArguments) {
+      let result = dart.as(dart.map(), Map$(String, dynamic));
+      namedArguments.forEach((symbol, value) => {
+        result.set(_symbolToString(dart.as(symbol, Symbol)), value);
+      });
+      return result;
     }
   }
   // Function identical: (Object, Object) → bool
@@ -1335,7 +1353,7 @@ var core;
       if (end === void 0)
         end = null;
       if (!dart.is(charCodes, dynamic)) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */_stringFromIterable, charCodes, start, end), String);
+        return _stringFromIterable(charCodes, start, end);
       }
       let list = dart.as(charCodes, List);
       let len = list.length;
@@ -1358,6 +1376,32 @@ var core;
     String$fromEnvironment(name, opt$) {
       let defaultValue = opt$.defaultValue === void 0 ? null : opt$.defaultValue;
       throw new UnsupportedError('String.fromEnvironment can only be used as a const constructor');
+    }
+    static _stringFromIterable(charCodes, start, end) {
+      if (start < 0)
+        throw new RangeError.range(start, 0, charCodes.length);
+      if (dart.notNull(end !== null) && dart.notNull(end < start)) {
+        throw new RangeError.range(end, start, charCodes.length);
+      }
+      let it = charCodes.iterator;
+      for (let i = 0; i < start; i++) {
+        if (!dart.notNull(it.moveNext())) {
+          throw new RangeError.range(start, 0, i);
+        }
+      }
+      let list = new List.from([]);
+      if (end === null) {
+        while (it.moveNext())
+          list.add(it.current);
+      } else {
+        for (let i = start; i < end; i++) {
+          if (!dart.notNull(it.moveNext())) {
+            throw new RangeError.range(end, start, i);
+          }
+          list.add(it.current);
+        }
+      }
+      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'stringFromCharCodes', list), String);
     }
   }
   dart.defineNamedConstructor(String, 'fromCharCodes');
@@ -1493,10 +1537,10 @@ var core;
     StringBuffer(content) {
       if (content === void 0)
         content = "";
-      /* Unimplemented unknown name */_contents = `${content}`;
+      this._contents = `${content}`;
     }
     get length() {
-      return dart.as(dart.dload(/* Unimplemented unknown name */_contents, 'length'), int);
+      return this._contents.length;
     }
     get isEmpty() {
       return this.length === 0;
@@ -1505,10 +1549,10 @@ var core;
       return !dart.notNull(this.isEmpty);
     }
     write(obj) {
-      dart.dinvokef(/* Unimplemented unknown name */_writeString, `${obj}`);
+      this._writeString(`${obj}`);
     }
     writeCharCode(charCode) {
-      dart.dinvokef(/* Unimplemented unknown name */_writeString, new String.fromCharCode(charCode));
+      this._writeString(new String.fromCharCode(charCode));
     }
     writeAll(objects, separator) {
       if (separator === void 0)
@@ -1535,10 +1579,13 @@ var core;
       this.write("\n");
     }
     clear() {
-      /* Unimplemented unknown name */_contents = "";
+      this._contents = "";
     }
     toString() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'flattenString', /* Unimplemented unknown name */_contents), String);
+      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'flattenString', this._contents), String);
+    }
+    _writeString(str) {
+      this._contents = dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'stringConcatUnchecked', this._contents, str), String);
     }
   }
   class StringSink extends dart.Object {

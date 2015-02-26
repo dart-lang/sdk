@@ -139,4 +139,72 @@ class _AsyncRun {
   static void _scheduleImmediate(void callback()) {
     scheduleImmediateClosure(callback);
   }
+
+  static final Function scheduleImmediateClosure =
+      _initializeScheduleImmediate();
+
+  static Function _initializeScheduleImmediate() {
+    requiresPreamble();
+    if (JS('', 'self.scheduleImmediate') != null) {
+      return _scheduleImmediateJsOverride;
+    }
+    if (JS('', 'self.MutationObserver') != null &&
+        JS('', 'self.document') != null) {
+      // Use mutationObservers.
+      var div = JS('', 'self.document.createElement("div")');
+      var span = JS('', 'self.document.createElement("span")');
+      var storedCallback;
+
+      internalCallback(_) {
+        leaveJsAsync();
+        var f = storedCallback;
+        storedCallback = null;
+        f();
+      };
+
+      var observer = JS('', 'new self.MutationObserver(#)',
+          convertDartClosureToJS(internalCallback, 1));
+      JS('', '#.observe(#, { childList: true })',
+          observer, div);
+
+      return (void callback()) {
+        assert(storedCallback == null);
+        enterJsAsync();
+        storedCallback = callback;
+        // Because of a broken shadow-dom polyfill we have to change the
+        // children instead a cheap property.
+        // See https://github.com/Polymer/ShadowDOM/issues/468
+        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)',
+            div, div, span, div, span);
+      };
+    } else if (JS('', 'self.setImmediate') != null) {
+      return _scheduleImmediateWithSetImmediate;
+    }
+    // TODO(20055): We should use DOM promises when available.
+    return _scheduleImmediateWithTimer;
+  }
+
+  static void _scheduleImmediateJsOverride(void callback()) {
+    internalCallback() {
+      leaveJsAsync();
+      callback();
+    };
+    enterJsAsync();
+    JS('void', 'self.scheduleImmediate(#)',
+       convertDartClosureToJS(internalCallback, 0));
+  }
+
+  static void _scheduleImmediateWithSetImmediate(void callback()) {
+    internalCallback() {
+      leaveJsAsync();
+      callback();
+    };
+    enterJsAsync();
+    JS('void', 'self.setImmediate(#)',
+       convertDartClosureToJS(internalCallback, 0));
+  }
+
+  static void _scheduleImmediateWithTimer(void callback()) {
+    Timer._createTimer(Duration.ZERO, callback);
+  }
 }

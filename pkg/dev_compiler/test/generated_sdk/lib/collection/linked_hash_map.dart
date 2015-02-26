@@ -136,4 +136,14 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
     Maps._fillMapWithIterables(map, keys, values);
     return map;
   }
+
+  @NoInline()
+  factory LinkedHashMap._literal(List keyValuePairs) {
+    return fillLiteralMap(keyValuePairs, new _LinkedHashMap<K, V>());
+  }
+
+  @NoThrows() @NoInline()
+  factory LinkedHashMap._empty() {
+    return new _LinkedHashMap<K, V>();
+  }
 }

@@ -71,4 +71,10 @@ class StringBuffer implements StringSink {
 
   /// Returns the contents of buffer as a concatenated string.
   String toString() => Primitives.flattenString(_contents);
+
+  String _contents;
+
+  void _writeString(str) {
+    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  }
 }

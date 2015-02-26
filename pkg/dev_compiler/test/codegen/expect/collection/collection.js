@@ -2272,11 +2272,19 @@ var collection;
         Maps._fillMapWithIterables(map, keys, values);
         return map;
       }
+      LinkedHashMap$_literal(keyValuePairs) {
+        return dart.as(dart.dinvokef(/* Unimplemented unknown name */fillLiteralMap, keyValuePairs, new _LinkedHashMap()), LinkedHashMap$(K, V));
+      }
+      LinkedHashMap$_empty() {
+        return new _LinkedHashMap();
+      }
     }
     dart.defineNamedConstructor(LinkedHashMap, 'identity');
     dart.defineNamedConstructor(LinkedHashMap, 'from');
     dart.defineNamedConstructor(LinkedHashMap, 'fromIterable');
     dart.defineNamedConstructor(LinkedHashMap, 'fromIterables');
+    dart.defineNamedConstructor(LinkedHashMap, '_literal');
+    dart.defineNamedConstructor(LinkedHashMap, '_empty');
     return LinkedHashMap;
   });
   let LinkedHashMap = LinkedHashMap$(dynamic, dynamic);
