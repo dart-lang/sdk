@@ -76,7 +76,8 @@ abstract class LocationManager extends Observable {
   }
 
   /// Handle clicking on an application url link.
-  void onGoto(MouseEvent event, var detail, Element target) {
+  void onGoto(MouseEvent event) {
+    var target = event.target;
     var href = target.attributes['href'];
     if (event.button > 0 || event.metaKey || event.ctrlKey ||
         event.shiftKey || event.altKey) {

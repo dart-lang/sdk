@@ -10,12 +10,25 @@ import 'package:observatory/service.dart';
 
 @CustomTag('code-ref')
 class CodeRefElement extends ServiceRefElement {
-  @observable Code get code => ref;
+  CodeRefElement.created() : super.created();
+
+  Code get code => ref;
 
   refChanged(oldValue) {
     super.refChanged(oldValue);
-    notifyPropertyChange(#code, 0, 1);
+    _updateShadowDom();
   }
 
-  CodeRefElement.created() : super.created();
+  void _updateShadowDom() {
+    clearShadowRoot();
+    if (code == null) {
+      return;
+    }
+    var name = (code.isOptimized ? '*' : '') + code.name;
+    if (code.isDartCode) {
+      insertLinkIntoShadowRoot(name, url, hoverText);
+    } else {
+      insertTextSpanIntoShadowRoot(name);
+    }
+  }
 }

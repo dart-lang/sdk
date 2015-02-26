@@ -77,6 +77,33 @@ uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
 }
 
 
+uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
+  uintptr_t lr = 0;
+
+#if defined(TARGET_ARCH_IA32)
+  lr = 0;
+#elif defined(TARGET_ARCH_X64)
+  lr = 0;
+#elif defined(TARGET_ARCH_MIPS) && defined(USING_SIMULATOR)
+  lr = 0;
+#elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
+  lr = 0;
+#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
+  lr = 0;
+#elif defined(TARGET_ARCH_ARM)
+  lr = 0;
+#elif defined(TARGET_ARCH_ARM64)
+  lr = 0;
+#elif defined(TARGET_ARCH_MIPS)
+  lr = 0;
+#else
+  UNIMPLEMENTED();
+#endif  // TARGET_ARCH_...
+
+  return lr;
+}
+
+
 void SignalHandler::Install(SignalAction action) {
   struct sigaction act;
   act.sa_handler = NULL;

@@ -9,6 +9,7 @@
 #include "vm/allocation.h"
 #include "vm/atomic.h"
 #include "vm/code_patcher.h"
+#include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -30,7 +31,6 @@ namespace dart {
   DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 #endif
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
-DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
 DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int, profile_depth, 8,
@@ -253,30 +253,324 @@ Sample* SampleBuffer::ReserveSample() {
 }
 
 
-static void SetPCMarkerIfSafe(Sample* sample) {
-  ASSERT(sample != NULL);
+// Attempts to find the true return address when a Dart frame is being setup
+// or torn down.
+// NOTE: Architecture specific implementations below.
+class ReturnAddressLocator : public ValueObject {
+ public:
+  ReturnAddressLocator(Sample* sample, const Code& code)
+      : sample_(sample),
+        code_(Code::ZoneHandle(code.raw())),
+        is_optimized_(code.is_optimized()) {
+    ASSERT(!code_.IsNull());
+    ASSERT(code_.ContainsInstructionAt(pc()));
+  }
 
-  uword* fp = reinterpret_cast<uword*>(sample->fp());
-  uword* sp = reinterpret_cast<uword*>(sample->sp());
+  bool is_code_optimized() {
+    return is_optimized_;
+  }
 
-  // If FP == SP, the pc marker hasn't been pushed.
-  if (fp > sp) {
-#if defined(TARGET_OS_WINDOWS)
-    // If the fp is at the beginning of a page, it may be unsafe to access
-    // the pc marker, because we are reading it from a different thread on
-    // Windows. The marker is below fp and the previous page may be a guard
-    // page.
-    const intptr_t kPageMask = VirtualMemory::PageSize() - 1;
-    if ((sample->fp() & kPageMask) == 0) {
+  uword pc() {
+    return sample_->pc();
+  }
+
+  // Returns false on failure.
+  bool LocateReturnAddress(uword* return_address);
+
+  // Returns offset into code object.
+  uword RelativePC() {
+    return pc() - code_.EntryPoint();
+  }
+
+  uint8_t* CodePointer(uword offset) {
+    const uword size = code_.Size();
+    ASSERT(offset < size);
+    uint8_t* code_pointer = reinterpret_cast<uint8_t*>(code_.EntryPoint());
+    code_pointer += offset;
+    return code_pointer;
+  }
+
+  uword StackAt(intptr_t i) {
+    ASSERT(i >= 0);
+    ASSERT(i < Sample::kStackBufferSizeInWords);
+    return sample_->GetStackBuffer()[i];
+  }
+
+ private:
+  Sample* sample_;
+  const Code& code_;
+  const bool is_optimized_;
+};
+
+
+#if defined(TARGET_ARCH_IA32)
+bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
+  ASSERT(return_address != NULL);
+  const uword offset = RelativePC();
+  const uword size = code_.Size();
+  if (is_optimized_) {
+    // 0: push ebp
+    // 1: mov ebp, esp
+    // 3: ...
+    if (offset == 0x0) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    if (offset == 0x1) {
+      // Stack layout:
+      // 0 CALLER FRAME POINTER
+      // 1 RETURN ADDRESS
+      *return_address = StackAt(1);
+      return true;
+    }
+    ReturnPattern rp(pc());
+    if (rp.IsValid()) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    return false;
+  } else {
+    // 0x00: mov edi, function
+    // 0x05: incl (inc usage count)   <-- this is optional.
+    // 0x08: cmpl (compare usage count)
+    // 0x0f: jump to optimize function
+    // 0x15: push ebp
+    // 0x16: mov ebp, esp
+    // 0x18: ...
+    ASSERT(size >= 0x08);
+    const uword incl_offset = 0x05;
+    const uword incl_length = 0x03;
+    const uint8_t incl_op_code = 0xFF;
+    const bool has_incl = (*CodePointer(incl_offset) == incl_op_code);
+    const uword push_fp_offset = has_incl ? 0x15 : 0x15 - incl_length;
+    if (offset <= push_fp_offset) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    if (offset == (push_fp_offset + 1)) {
+      // Stack layout:
+      // 0 CALLER FRAME POINTER
+      // 1 RETURN ADDRESS
+      *return_address = StackAt(1);
+      return true;
+    }
+    ReturnPattern rp(pc());
+    if (rp.IsValid()) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    return false;
+  }
+  UNREACHABLE();
+  return false;
+}
+#elif defined(TARGET_ARCH_X64)
+bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
+  ASSERT(return_address != NULL);
+  const uword offset = RelativePC();
+  const uword size = code_.Size();
+  if (is_optimized_) {
+    // 0x00: leaq (load pc marker)
+    // 0x07: movq (load pool pointer)
+    // 0x0c: push rpb
+    // 0x0d: movq rbp, rsp
+    // 0x10: ...
+    const uword push_fp_offset = 0x0c;
+    if (offset <= push_fp_offset) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    if (offset == (push_fp_offset + 1)) {
+      // Stack layout:
+      // 0 CALLER FRAME POINTER
+      // 1 RETURN ADDRESS
+      *return_address = StackAt(1);
+      return true;
+    }
+    ReturnPattern rp(pc());
+    if (rp.IsValid()) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    return false;
+  } else {
+    // 0x00: leaq (load pc marker)
+    // 0x07: movq (load pool pointer)
+    // 0x0c: movq (load function)
+    // 0x13: incl (inc usage count)   <-- this is optional.
+    // 0x16: cmpl (compare usage count)
+    // 0x1d: jl + 0x
+    // 0x23: jmp [pool pointer]
+    // 0x27: push rbp
+    // 0x28: movq rbp, rsp
+    // 0x2b: ...
+    ASSERT(size >= 0x16);
+    const uword incl_offset = 0x13;
+    const uword incl_length = 0x03;
+    const uint8_t incl_op_code = 0xFF;
+    const bool has_incl = (*CodePointer(incl_offset) == incl_op_code);
+    const uword push_fp_offset = has_incl ? 0x27 : 0x27 - incl_length;
+    if (offset <= push_fp_offset) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    if (offset == (push_fp_offset + 1)) {
+      // Stack layout:
+      // 0 CALLER FRAME POINTER
+      // 1 RETURN ADDRESS
+      *return_address = StackAt(1);
+      return true;
+    }
+    ReturnPattern rp(pc());
+    if (rp.IsValid()) {
+      // Stack layout:
+      // 0 RETURN ADDRESS.
+      *return_address = StackAt(0);
+      return true;
+    }
+    return false;
+  }
+  UNREACHABLE();
+  return false;
+}
+#elif defined(TARGET_ARCH_ARM)
+bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
+  ASSERT(return_address != NULL);
+  return false;
+}
+#elif defined(TARGET_ARCH_ARM64)
+bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
+  ASSERT(return_address != NULL);
+  return false;
+}
+#elif defined(TARGET_ARCH_MIPS)
+bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
+  ASSERT(return_address != NULL);
+  return false;
+}
+#else
+#error ReturnAddressLocator implementation missing for this architecture.
+#endif
+
+
+PreprocessVisitor::PreprocessVisitor(Isolate* isolate)
+    : SampleVisitor(isolate),
+      vm_isolate_(Dart::vm_isolate()) {
+}
+
+
+void PreprocessVisitor::VisitSample(Sample* sample) {
+  if (sample->processed()) {
+    // Already processed.
+    return;
+  }
+  // Mark that we've processed this sample.
+  sample->set_processed(true);
+
+  if (sample->exit_frame_sample()) {
+    // Exit frame sample, no preprocessing required.
+    return;
+  }
+  REUSABLE_CODE_HANDLESCOPE(isolate());
+  // Lookup code object for leaf frame.
+  Code& code = reused_code_handle.Handle();
+  code = FindCodeForPC(sample->At(0));
+  sample->set_leaf_frame_is_dart(!code.IsNull());
+  if (!code.IsNull() && (code.compile_timestamp() > sample->timestamp())) {
+    // Code compiled after sample. Ignore.
+    return;
+  }
+  if (sample->leaf_frame_is_dart()) {
+    CheckForMissingDartFrame(code, sample);
+  }
+}
+
+
+void PreprocessVisitor::CheckForMissingDartFrame(const Code& code,
+                                                 Sample* sample) const {
+  // Some stubs (and intrinsics) do not push a frame onto the stack leaving
+  // the frame pointer in the caller.
+  //
+  // PC -> STUB
+  // FP -> DART3  <-+
+  //       DART2  <-|  <- TOP FRAME RETURN ADDRESS.
+  //       DART1  <-|
+  //       .....
+  //
+  // In this case, traversing the linked stack frames will not collect a PC
+  // inside DART3. The stack will incorrectly be: STUB, DART2, DART1.
+  // In Dart code, after pushing the FP onto the stack, an IP in the current
+  // function is pushed onto the stack as well. This stack slot is called
+  // the PC marker. We can use the PC marker to insert DART3 into the stack
+  // so that it will correctly be: STUB, DART3, DART2, DART1. Note the
+  // inserted PC may not accurately reflect the true return address into DART3.
+  ASSERT(!code.IsNull());
+
+  // The pc marker is our current best guess of a return address.
+  uword return_address = sample->pc_marker();
+
+  // Attempt to find a better return address.
+  ReturnAddressLocator ral(sample, code);
+
+  if (!ral.LocateReturnAddress(&return_address)) {
+    ASSERT(return_address == sample->pc_marker());
+    // Could not find a better return address than the pc_marker.
+    if (code.ContainsInstructionAt(return_address)) {
+      // PC marker is in the same code as pc, no missing frame.
       return;
     }
-#endif
-    uword* pc_marker_ptr = fp + kPcMarkerSlotFromFp;
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(pc_marker_ptr, kWordSize);
-    ASAN_UNPOISON(pc_marker_ptr, kWordSize);
-    sample->set_pc_marker(*pc_marker_ptr);
+    if (!ContainedInDartCodeHeaps(return_address)) {
+      // PC marker is not from the Dart heap. Do not insert.
+      return;
+    }
   }
+
+  if (return_address != 0) {
+    sample->InsertCallerForTopFrame(return_address);
+  }
+}
+
+
+bool PreprocessVisitor::ContainedInDartCodeHeaps(uword pc) const {
+  return isolate()->heap()->CodeContains(pc) ||
+         vm_isolate()->heap()->CodeContains(pc);
+}
+
+
+RawCode* PreprocessVisitor::FindCodeForPC(uword pc) const {
+  // Check current isolate for pc.
+  if (isolate()->heap()->CodeContains(pc)) {
+    return Code::LookupCode(pc);
+  }
+  // Check VM isolate for pc.
+  if (vm_isolate()->heap()->CodeContains(pc)) {
+    return Code::LookupCodeInVmIsolate(pc);
+  }
+  return Code::null();
+}
+
+
+ClearProfileVisitor::ClearProfileVisitor(Isolate* isolate)
+    : SampleVisitor(isolate) {
+}
+
+
+void ClearProfileVisitor::VisitSample(Sample* sample) {
+  sample->Clear();
 }
 
 
@@ -575,6 +869,49 @@ class ProfilerNativeStackWalker : public ValueObject {
 };
 
 
+static void CopyPCMarkerIfSafe(Sample* sample) {
+  ASSERT(sample != NULL);
+
+  uword* fp = reinterpret_cast<uword*>(sample->fp());
+  uword* sp = reinterpret_cast<uword*>(sample->sp());
+
+  // If FP == SP, the pc marker hasn't been pushed.
+  if (fp > sp) {
+#if defined(TARGET_OS_WINDOWS)
+    COMPILE_ASSERT(kPcMarkerSlotFromFp < 0);
+    // If the fp is at the beginning of a page, it may be unsafe to access
+    // the pc marker, because we are reading it from a different thread on
+    // Windows. The marker is below fp and the previous page may be a guard
+    // page.
+    const intptr_t kPageMask = VirtualMemory::PageSize() - 1;
+    if ((sample->fp() & kPageMask) == 0) {
+      return;
+    }
+#endif
+    uword* pc_marker_ptr = fp + kPcMarkerSlotFromFp;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(pc_marker_ptr, kWordSize);
+    ASAN_UNPOISON(pc_marker_ptr, kWordSize);
+    sample->set_pc_marker(*pc_marker_ptr);
+  }
+}
+
+
+static void CopyStackBuffer(Sample* sample) {
+  ASSERT(sample != NULL);
+  uword* sp = reinterpret_cast<uword*>(sample->sp());
+  uword* buffer = sample->GetStackBuffer();
+  if (sp != NULL) {
+    for (intptr_t i = 0; i < Sample::kStackBufferSizeInWords; i++) {
+      MSAN_UNPOISON(sp, kWordSize);
+      ASAN_UNPOISON(sp, kWordSize);
+      buffer[i] = *sp;
+      sp++;
+    }
+  }
+}
+
+
 void Profiler::RecordSampleInterruptCallback(
     const InterruptedThreadState& state,
     void* data) {
@@ -679,10 +1016,14 @@ void Profiler::RecordSampleInterruptCallback(
   sample->set_user_tag(isolate->user_tag());
   sample->set_sp(sp);
   sample->set_fp(state.fp);
+  sample->set_lr(state.lr);
+  CopyStackBuffer(sample);
 #if !(defined(TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64))
   // It is never safe to read other thread's stack unless on Win64
   // other thread is inside Dart code.
-  SetPCMarkerIfSafe(sample);
+  if (vm_tag != VMTag::kDartTagId) {
+    CopyPCMarkerIfSafe(sample);
+  }
 #endif
 
   // Walk the call stack.

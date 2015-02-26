@@ -227,6 +227,19 @@ void JumpPattern::SetTargetAddress(uword target_address) const {
   ori->SetInstructionBits((ori_bits & 0xffff0000) | target_lo);
 }
 
+
+ReturnPattern::ReturnPattern(uword pc)
+    : pc_(pc) {
+}
+
+
+bool ReturnPattern::IsValid() const {
+  Instr* jr = Instr::At(pc_);
+  return (jr->OpcodeField() == SPECIAL) &&
+         (jr->FunctionField() == JR) &&
+         (jr->RsField() == RA);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

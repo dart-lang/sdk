@@ -13,6 +13,7 @@
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/profiler', isolate) }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
     <style>
@@ -20,6 +21,7 @@
         border-collapse: collapse!important;
         width: 100%;
         margin-bottom: 20px
+        table-layout: fixed;
       }
       .table thead > tr > th,
       .table tbody > tr > th,
@@ -120,8 +122,8 @@
          <div class="memberValue">{{ sampleRate }} Hz</div>
         </div>
         <div class="memberItem">
-         <div class="memberName">Sample depth</div>
-         <div class="memberValue">{{ sampleDepth }} stack frames</div>
+         <div class="memberName">Stack depth</div>
+         <div class="memberValue">{{ stackDepth }} stack frames</div>
         </div>
         <div class="memberItem">
          <div class="memberName">Display cutoff</div>
@@ -139,18 +141,28 @@
           </select>
          </div>
         </div>
+        <div class="memberItem">
+          <div class="memberName">Mode</div>
+          <div class="memberValue">
+            <select value="{{modeSelector}}">
+              <option value="Code">Code</option>
+              <option value="Function">Function</option>
+            </select>
+          </div>
+        </div>
       </div>
       <hr>
-      <table id="tableTree" class="table">
-        <thead id="tableTreeheader">
-          <tr>
-            <th>Method</th>
-            <th>Self</th>
-          </tr>
+      <table class="table">
+        <thead id="treeHeader">
+        <tr>
+          <th>Method</th>
+          <th>Self</th>
+        </tr>
         </thead>
-        <tbody id="tableTreeBody">
+        <tbody id="treeBody">
         </tbody>
       </table>
+      <hr>
     </div>
   </template>
 </polymer-element>

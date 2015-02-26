@@ -616,6 +616,12 @@ class Isolate : public BaseIsolate {
     metrics_list_head_ = metric;
   }
 
+  RawGrowableObjectArray* deoptimized_code_array() const {
+    return deoptimized_code_array_;
+  }
+  void set_deoptimized_code_array(const GrowableObjectArray& value);
+  void TrackDeoptimizedCode(const Code& code);
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -729,6 +735,7 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
+  RawGrowableObjectArray* deoptimized_code_array_;
 
   Metric* metrics_list_head_;
 

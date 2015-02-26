@@ -65,12 +65,16 @@ abstract class TableTreeRow extends Observable {
       tableColumns.add(cell);
     }
     var firstColumn = tableColumns[0];
+    var columnContainer = new DivElement();
+    columnContainer.classes.add('flex-row');
     _expander = new SpanElement();
+    _expander.style.display = 'inline-block';
     _expander.style.display = 'inline-block';
     _expander.style.minWidth = '1.5em';
     _expander.onClick.listen(onClick);
-    firstColumn.children.add(_expander);
+    columnContainer.children.add(_expander);
     firstColumn.style.paddingLeft = '${depth * subtreeIndent}px';
+    firstColumn.children.add(columnContainer);
     updateExpanderView();
   }
 
@@ -135,10 +139,14 @@ class TableTree extends Observable {
   /// Create a table tree with column [headers].
   TableTree(this.tableBody, this.columnCount);
 
-  /// Initialize the table tree with the list of root children.
-  void initialize(TableTreeRow root) {
+  void clear() {
     tableBody.children.clear();
     rows.clear();
+  }
+
+  /// Initialize the table tree with the list of root children.
+  void initialize(TableTreeRow root) {
+    clear();
     root.onShow();
     rows.addAll(root.children);
     for (var i = 0; i < rows.length; i++) {
@@ -247,7 +255,6 @@ class SortedTable extends Observable {
   }
 
   void sort() {
-    Stopwatch sw = new Stopwatch()..start();
     assert(_sortColumnIndex >= 0);
     assert(_sortColumnIndex < columns.length);
     if (_sortDescending) {

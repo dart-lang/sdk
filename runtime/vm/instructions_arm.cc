@@ -344,6 +344,30 @@ void JumpPattern::SetTargetAddress(uword target_address) const {
   }
 }
 
+
+ReturnPattern::ReturnPattern(uword pc)
+    : pc_(pc) {
+}
+
+
+bool ReturnPattern::IsValid() const {
+  Instr* bx_lr = Instr::At(pc_);
+  const int32_t B4 = 1 << 4;
+  const int32_t B21 = 1 << 21;
+  const int32_t B24 = 1 << 24;
+  int32_t instruction = (static_cast<int32_t>(AL) << kConditionShift) |
+                         B24 | B21 | (0xfff << 8) | B4 |
+                        (static_cast<int32_t>(LR) << kRmShift);
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
+    return bx_lr->InstructionBits() == instruction;
+  } else {
+    ASSERT(version == ARMv7);
+    return bx_lr->InstructionBits() == instruction;
+  }
+  return false;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

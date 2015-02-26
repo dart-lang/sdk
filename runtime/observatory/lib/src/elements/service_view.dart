@@ -116,10 +116,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         IOProcessViewElement element = new Element.tag('io-process-view');
         element.process = object;
         return element;
-      case 'Profile':
-        CpuProfileElement element = new Element.tag('cpu-profile');
-        element.profile = object;
-        return element;
       case 'RandomAccessFileList':
         IORandomAccessFileListViewElement element =
             new Element.tag('io-random-access-file-list-view');

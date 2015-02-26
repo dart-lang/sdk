@@ -977,6 +977,8 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+// NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
+// needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
   ASSERT(Assembler::EntryPointToPcMarkerOffset() == 0);
 

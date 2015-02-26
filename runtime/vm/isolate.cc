@@ -20,6 +20,8 @@
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
+#include "vm/object.h"
+#include "vm/os_thread.h"
 #include "vm/parser.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
@@ -31,7 +33,6 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/os_thread.h"
 #include "vm/thread_interrupter.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
@@ -493,6 +494,7 @@ Isolate::Isolate()
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
+      deoptimized_code_array_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
@@ -1251,6 +1253,10 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the tag table which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
 
+  // Visit the deoptimized code array which is stored in the isolate.
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&deoptimized_code_array_));
+
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);
 
@@ -1445,6 +1451,25 @@ void Isolate::set_current_tag(const UserTag& tag) {
 
 void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.raw();
+}
+
+
+void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
+  deoptimized_code_array_ = value.raw();
+}
+
+
+void Isolate::TrackDeoptimizedCode(const Code& code) {
+  ASSERT(!code.IsNull());
+  const GrowableObjectArray& deoptimized_code =
+      GrowableObjectArray::Handle(deoptimized_code_array());
+  if (deoptimized_code.IsNull()) {
+    // Not tracking deoptimized code.
+    return;
+  }
+  // TODO(johnmccutchan): Scan this array and the isolate's profile before
+  // old space GC and remove the keep_code flag.
+  deoptimized_code.Add(code);
 }
 
 

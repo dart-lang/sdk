@@ -5098,7 +5098,8 @@ void Function::ClearCode() const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
-  const Code& current_code = Code::Handle(CurrentCode());
+  Isolate* isolate = Isolate::Current();
+  const Code& current_code = Code::Handle(isolate, CurrentCode());
 
   if (FLAG_trace_disabling_optimized_code) {
     OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
@@ -5108,8 +5109,9 @@ void Function::SwitchToUnoptimizedCode() const {
   // Patch entry of the optimized code.
   CodePatcher::PatchEntry(current_code);
   // Use previously compiled unoptimized code.
-  AttachCode(Code::Handle(unoptimized_code()));
-  CodePatcher::RestoreEntry(Code::Handle(unoptimized_code()));
+  AttachCode(Code::Handle(isolate, unoptimized_code()));
+  CodePatcher::RestoreEntry(Code::Handle(isolate, unoptimized_code()));
+  isolate->TrackDeoptimizedCode(current_code);
 }
 
 
@@ -12554,6 +12556,47 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!descriptors.IsNull()) {
     JSONObject desc(&jsobj, "descriptors");
     descriptors.PrintToJSONObject(&desc, false);
+  }
+  const Array& inlined_function_table = Array::Handle(inlined_id_to_function());
+  if (!inlined_function_table.IsNull()) {
+    JSONArray inlined_functions(&jsobj, "inlinedFunctions");
+    Function& function = Function::Handle();
+    for (intptr_t i = 0; i < inlined_function_table.Length(); i++) {
+      function ^= inlined_function_table.At(i);
+      ASSERT(!function.IsNull());
+      inlined_functions.AddValue(function);
+    }
+  }
+  const Array& intervals = Array::Handle(inlined_intervals());
+  if (!intervals.IsNull()) {
+    Smi& start = Smi::Handle();
+    Smi& end = Smi::Handle();
+    Smi& temp_smi = Smi::Handle();
+    JSONArray inline_intervals(&jsobj, "inlinedIntervals");
+    for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
+         i += Code::kInlIntNumEntries) {
+      start ^= intervals.At(i + Code::kInlIntStart);
+      if (start.IsNull()) {
+        continue;
+      }
+      end ^= intervals.At(i + Code::kInlIntNumEntries + Code::kInlIntStart);
+
+      // Format: [start, end, inline functions...]
+      JSONArray inline_interval(&inline_intervals);
+      inline_interval.AddValue(start.Value());
+      inline_interval.AddValue(end.Value());
+
+      temp_smi ^= intervals.At(i + Code::kInlIntInliningId);
+      intptr_t inlining_id = temp_smi.Value();
+      ASSERT(inlining_id >= 0);
+      temp_smi ^= intervals.At(i + Code::kInlIntCallerId);
+      intptr_t caller_id = temp_smi.Value();
+      while (inlining_id >= 0) {
+        inline_interval.AddValue(inlining_id);
+        inlining_id = caller_id;
+        caller_id = GetCallerId(inlining_id);
+      }
+    }
   }
 }
 

@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of app;
+library utils;
+
+import 'dart:math';
 
 class Utils {
   static String formatPercent(num a, num total) {
-      var percent = 100.0 * (a / total);
-      return '${percent.toStringAsFixed(2)}%';
+    var percent = 100.0 * (a / total);
+    return '${percent.toStringAsFixed(2)}%';
   }
 
   static String zeroPad(int value, int pad) {
@@ -110,7 +112,6 @@ class Utils {
 
     var seconds = millis ~/ millisPerSecond;
 
-    StringBuffer out = new StringBuffer();
     if (hours != 0) {
       return '${hours}h ${minutes}m ${seconds}s';
     }

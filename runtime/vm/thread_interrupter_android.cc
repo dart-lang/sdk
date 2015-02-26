@@ -39,6 +39,7 @@ class ThreadInterrupterAndroid : public AllStatic {
     its.fp = SignalHandler::GetFramePointer(mcontext);
     its.csp = SignalHandler::GetCStackPointer(mcontext);
     its.dsp = SignalHandler::GetDartStackPointer(mcontext);
+    its.lr = SignalHandler::GetLinkRegister(mcontext);
     state->callback(its, state->data);
   }
 };

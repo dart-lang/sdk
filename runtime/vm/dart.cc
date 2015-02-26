@@ -41,6 +41,8 @@ DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
             "Max total size of external allocations in MB, or 0 for unlimited,"
             "e.g: --external_max_size=1024 allows up to 1024MB of externals");
 
+DEFINE_FLAG(bool, keep_code, false,
+            "Keep deoptimized code for profiling.");
 
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
@@ -276,6 +278,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   isolate->set_current_tag(default_tag);
 
+  if (FLAG_keep_code) {
+    isolate->set_deoptimized_code_array(
+      GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  }
   return Error::null();
 }
 

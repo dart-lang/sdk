@@ -88,7 +88,12 @@ class ObservatoryElement extends PolymerElement {
   /// Utility method for handling on-click of <a> tags. Navigates
   /// within the application using the [LocationManager].
   void goto(MouseEvent event, var detail, Element target) {
-    app.locationManager.onGoto(event, detail, target);
+    app.locationManager.onGoto(event);
+    event.stopPropagation();
+  }
+
+  void onClickGoto(MouseEvent event) {
+    app.locationManager.onGoto(event);
     event.stopPropagation();
   }
 
@@ -97,8 +102,12 @@ class ObservatoryElement extends PolymerElement {
       if (obj is Isolate) {
         url = '${url}?isolateId=${Uri.encodeComponent(obj.id)}';
       } else {
+        if (obj.id == null) {
+          // No id
+          return url;
+        }
         url = ('${url}?isolateId=${Uri.encodeComponent(obj.isolate.id)}'
-               '&objectId=${Uri.encodeComponent(obj.id)}');
+                       '&objectId=${Uri.encodeComponent(obj.id)}');
       }
     }
     return url;
@@ -150,5 +159,27 @@ class ObservatoryElement extends PolymerElement {
       result.add("'".codeUnitAt(0));
     }
     return new String.fromCharCodes(result);
+  }
+
+  void clearShadowRoot() {
+    // Remove all non-style elements.
+    shadowRoot.children.removeWhere((e) => e is! StyleElement);
+  }
+
+  void insertTextSpanIntoShadowRoot(String text) {
+    var spanElement = new SpanElement();
+    spanElement.text = text;
+    shadowRoot.children.add(spanElement);
+  }
+
+  void insertLinkIntoShadowRoot(String label, String href, [String title]) {
+    var anchorElement = new AnchorElement();
+    anchorElement.href = href;
+    anchorElement.text = label;
+    if (title != null) {
+      anchorElement.title = title;
+    }
+    anchorElement.onClick.listen(onClickGoto);
+    shadowRoot.children.add(anchorElement);
   }
 }
