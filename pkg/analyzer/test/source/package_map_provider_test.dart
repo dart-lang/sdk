@@ -4,8 +4,6 @@
 
 library test.package.map.provider;
 
-import 'dart:convert';
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
@@ -31,9 +29,7 @@ main() {
       });
 
       PackageMapInfo parsePackageMap(Object obj) {
-        return packageMapProvider.parsePackageMap(
-            JSON.encode(obj),
-            projectFolder);
+        return packageMapProvider.parsePackageMap(obj, projectFolder);
       }
 
       test('normal folder', () {

@@ -31,8 +31,33 @@ class MemoryResourceProvider implements ResourceProvider {
   @override
   Context get pathContext => posix;
 
+  /**
+   * Delete the file with the given path.
+   */
   void deleteFile(String path) {
     _checkFileAtPath(path);
+    _pathToResource.remove(path);
+    _pathToContent.remove(path);
+    _pathToTimestamp.remove(path);
+    _notifyWatchers(path, ChangeType.REMOVE);
+  }
+
+  /**
+   * Delete the folder with the given path
+   * and recurively delete nested files and folders.
+   */
+  void deleteFolder(String path) {
+    _checkFolderAtPath(path);
+    _MemoryFolder folder = _pathToResource[path];
+    for (Resource child in folder.getChildren()) {
+      if (child is File) {
+        deleteFile(child.path);
+      } else if (child is Folder) {
+        deleteFolder(child.path);
+      } else {
+        throw 'failed to delete resource: $child';
+      }
+    }
     _pathToResource.remove(path);
     _pathToContent.remove(path);
     _pathToTimestamp.remove(path);
@@ -75,13 +100,13 @@ class MemoryResourceProvider implements ResourceProvider {
     return link;
   }
 
-  File newFile(String path, String content) {
+  File newFile(String path, String content, [int stamp]) {
     path = posix.normalize(path);
     newFolder(posix.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
     _pathToContent[path] = content;
-    _pathToTimestamp[path] = nextStamp++;
+    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
   }
@@ -115,6 +140,14 @@ class MemoryResourceProvider implements ResourceProvider {
     if (resource is! _MemoryFile) {
       throw new ArgumentError(
           'File expected at "$path" but ${resource.runtimeType} found');
+    }
+  }
+
+  void _checkFolderAtPath(String path) {
+    _MemoryResource resource = _pathToResource[path];
+    if (resource is! _MemoryFolder) {
+      throw new ArgumentError(
+          'Folder expected at "$path" but ${resource.runtimeType} found');
     }
   }
 
