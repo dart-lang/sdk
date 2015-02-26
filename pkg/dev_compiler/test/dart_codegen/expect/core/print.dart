@@ -1,10 +1,10 @@
 part of dart.core;
-
-void print(Object object) {
+ void print(Object object) {
   String line = "$object";
-  if (printToZone == null) {
+   if (printToZone == null) {
     printToConsole(line);
-  } else {
+    }
+   else {
     printToZone(line);
+    }
   }
-}

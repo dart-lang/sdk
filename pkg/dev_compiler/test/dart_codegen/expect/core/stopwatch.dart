@@ -1,51 +1,45 @@
 part of dart.core;
-
-class Stopwatch {
-  int get frequency => _frequency;
-  num _start;
-  num _stop;
-  Stopwatch() {
-    _initTicker();
+ class Stopwatch {int get frequency => _frequency;
+ num _start;
+ num _stop;
+ Stopwatch() {
+  _initTicker();
   }
-  void start() {
-    if (isRunning) return;
-    if (_start == null) {
-      _start = _now();
-    } else {
-      _start = _now() - (_stop - _start);
-      _stop = null;
-    }
-  }
-  void stop() {
-    if (!isRunning) return;
-    _stop = _now();
-  }
-  void reset() {
-    if (_start == null) return;
+ void start() {
+  if (isRunning) return; if (_start == null) {
     _start = _now();
-    if (_stop != null) {
-      _stop = _start;
+    }
+   else {
+    _start = _now() - (_stop - _start);
+     _stop = null;
     }
   }
-  int get elapsedTicks {
-    if (_start == null) {
-      return 0;
+ void stop() {
+  if (!isRunning) return; _stop = _now();
+  }
+ void reset() {
+  if (_start == null) return; _start = _now();
+   if (_stop != null) {
+    _stop = _start;
     }
-    return ((__x8) => DDC$RT.cast(__x8, num, int, "CastGeneral",
-        """line 102, column 12 of dart:core/stopwatch.dart: """, __x8 is int,
-        true))((_stop == null) ? (_now() - _start) : (_stop - _start));
   }
-  Duration get elapsed {
-    return new Duration(microseconds: elapsedMicroseconds);
+ int get elapsedTicks {
+  if (_start == null) {
+    return 0;
+    }
+   return ((__x8) => DDC$RT.cast(__x8, num, int, "CastGeneral", """line 102, column 12 of dart:core/stopwatch.dart: """, __x8 is int, true))((_stop == null) ? (_now() - _start) : (_stop - _start));
   }
-  int get elapsedMicroseconds {
-    return (elapsedTicks * 1000000) ~/ frequency;
+ Duration get elapsed {
+  return new Duration(microseconds: elapsedMicroseconds);
   }
-  int get elapsedMilliseconds {
-    return (elapsedTicks * 1000) ~/ frequency;
+ int get elapsedMicroseconds {
+  return (elapsedTicks * 1000000) ~/ frequency;
   }
-  bool get isRunning => _start != null && _stop == null;
-  static int _frequency;
-  external static void _initTicker();
-  external static int _now();
+ int get elapsedMilliseconds {
+  return (elapsedTicks * 1000) ~/ frequency;
+  }
+ bool get isRunning => _start != null && _stop == null;
+ static int _frequency;
+ external static void _initTicker();
+ external static int _now();
 }

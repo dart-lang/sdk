@@ -1,60 +1,58 @@
 library dart.math;
-
 import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DDC$RT;
 part "jenkins_smi_hash.dart";
-part "point.dart";
-part "random.dart";
-part "rectangle.dart";
-
-const double E = 2.718281828459045;
-const double LN10 = 2.302585092994046;
-const double LN2 = 0.6931471805599453;
-const double LOG2E = 1.4426950408889634;
-const double LOG10E = 0.4342944819032518;
-const double PI = 3.1415926535897932;
-const double SQRT1_2 = 0.7071067811865476;
-const double SQRT2 = 1.4142135623730951;
-num min(num a, num b) {
+ part "point.dart";
+ part "random.dart";
+ part "rectangle.dart";
+ const double E = 2.718281828459045;
+ const double LN10 = 2.302585092994046;
+ const double LN2 = 0.6931471805599453;
+ const double LOG2E = 1.4426950408889634;
+ const double LOG10E = 0.4342944819032518;
+ const double PI = 3.1415926535897932;
+ const double SQRT1_2 = 0.7071067811865476;
+ const double SQRT2 = 1.4142135623730951;
+ num min(num a, num b) {
   if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-  if (a > b) return b;
-  if (a < b) return a;
-  if (b is double) {
+   if (b is! num) throw new ArgumentError(b);
+   if (a > b) return b;
+   if (a < b) return a;
+   if (b is double) {
     if (a is double) {
       if (a == 0.0) {
         return (a + b) * a * b;
+        }
       }
+     if (a == 0 && b.isNegative || b.isNaN) return b;
+     return a;
     }
-    if (a == 0 && b.isNegative || b.isNaN) return b;
-    return a;
+   return a;
   }
-  return a;
-}
-num max(num a, num b) {
+ num max(num a, num b) {
   if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-  if (a > b) return a;
-  if (a < b) return b;
-  if (b is double) {
+   if (b is! num) throw new ArgumentError(b);
+   if (a > b) return a;
+   if (a < b) return b;
+   if (b is double) {
     if (a is double) {
       if (a == 0.0) {
         return a + b;
+        }
       }
+     if (b.isNaN) return b;
+     return a;
     }
-    if (b.isNaN) return b;
-    return a;
+   if (b == 0 && a.isNegative) return b;
+   return a;
   }
-  if (b == 0 && a.isNegative) return b;
-  return a;
-}
-external double atan2(num a, num b);
-external num pow(num x, num exponent);
-external double sin(num x);
-external double cos(num x);
-external double tan(num x);
-external double acos(num x);
-external double asin(num x);
-external double atan(num x);
-external double sqrt(num x);
-external double exp(num x);
-external double log(num x);
+ external double atan2(num a, num b) ;
+ external num pow(num x, num exponent) ;
+ external double sin(num x) ;
+ external double cos(num x) ;
+ external double tan(num x) ;
+ external double acos(num x) ;
+ external double asin(num x) ;
+ external double atan(num x) ;
+ external double sqrt(num x) ;
+ external double exp(num x) ;
+ external double log(num x) ;

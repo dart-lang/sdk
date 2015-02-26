@@ -67,6 +67,25 @@ class FileWriter extends java_core.PrintStringWriter {
   bool _format;
   String _path;
   FileWriter(this._format, this._path);
+  int indent = 0;
+
+  void print(x) {
+    if (_format) {
+      super.print(x);
+      return;
+    }
+
+    if (x == '{') {
+      indent++;
+      x = '{\n${"  " * indent}';
+    } else if (x == ';') {
+      x = ';\n${"  " * indent}';
+    } else if (x == '}') {
+      indent--;
+      x = '}\n${"  " * indent}';
+    }
+    super.print(x);
+  }
 
   void finalize() {
     String s = toString();

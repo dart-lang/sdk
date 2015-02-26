@@ -1,3 +1,2 @@
 part of dart.core;
-
-abstract class Type {}
+ abstract class Type {}

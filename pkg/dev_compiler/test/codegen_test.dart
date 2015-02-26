@@ -118,7 +118,7 @@ main(arguments) {
           checkSdk: true,
           forceCompile: true,
           outputDart: dartGen,
-          formatOutput: dartGen);
+          formatOutput: false);
       var sdkPath = dartGen
           ? path.join(testDir, '..', 'tool', 'input_sdk_src')
           : path.join(testDir, 'generated_sdk');
