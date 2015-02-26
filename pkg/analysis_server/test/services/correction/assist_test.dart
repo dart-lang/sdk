@@ -613,6 +613,16 @@ main() {
     assertNoAssistAt('vvv =', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  void test_assignToLocalVariable_invocationArgument() {
+    resolveTestUnit(r'''
+main() {
+  f(12345);
+}
+int f(p) {}
+''');
+    assertNoAssistAt('345', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
+  }
+
   void test_assignToLocalVariable_throw() {
     resolveTestUnit('''
 main() {

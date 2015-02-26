@@ -362,6 +362,11 @@ class AssistProcessor {
     // prepare expression
     Expression expression = expressionStatement.expression;
     int offset = expression.offset;
+    // ignore if in arguments
+    if (node.getAncestor((node) => node is ArgumentList) != null) {
+      _coverageMarker();
+      return;
+    }
     // ignore if already assignment
     if (expression is AssignmentExpression) {
       _coverageMarker();
