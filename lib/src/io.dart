@@ -10,11 +10,16 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 
+/// Visible for testing
+IOSink std_err = stderr;
+
+/// Visible for testing
+IOSink std_out = stdout;
+
 bool isDartFile(FileSystemEntity entry) => isDartFileName(entry.path);
 
 bool isLintable(FileSystemEntity file) =>
     isDartFile(file) || isPubspecFile(file);
-
 bool isPubspecFile(FileSystemEntity entry) =>
     isPubspecFileName(p.basename(entry.path));
 
@@ -22,20 +27,24 @@ bool isPubspecFile(FileSystemEntity entry) =>
 /// '.dart' extension.
 ///
 /// Returns `true` if successful or `false` if an error occurred.
-bool lintFile(FileSystemEntity file, {String dartSdkPath, String packageRoot}) {
+bool lintFile(FileSystemEntity file,
+    {String dartSdkPath, String packageRoot, DartLinter linter}) {
   var path = file.path;
 
   if (file is Link) {
-    stdout.writeln('Skipping link $path');
+    std_out.writeln('Skipping link $path');
     return false;
   }
 
   if (!isLintable(file)) {
-    stdout.writeln('Skipping $path (unsupported extenstion)');
+    std_out.writeln('Skipping $path (unsupported extenstion)');
     return false;
   }
 
-  DartLinter linter = new DartLinter();
+  if (linter == null) {
+    linter = new DartLinter();
+  }
+
   if (dartSdkPath != null) {
     linter.options.dartSdkPath = dartSdkPath;
   }
@@ -47,7 +56,7 @@ bool lintFile(FileSystemEntity file, {String dartSdkPath, String packageRoot}) {
     linter.lintFile(file);
     return true;
   } catch (err, stack) {
-    stderr.writeln('''An error occurred while linting $path
+    std_err.writeln('''An error occurred while linting $path
   Please report it at: github.com/dart-lang/dart_lint/issues
 $err
 $stack''');
