@@ -23,9 +23,9 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
@@ -67,8 +67,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   final int selectionOffset;
   final int selectionLength;
   CompilationUnitElement unitElement;
+  LibraryElement libraryElement;
   SourceRange selectionRange;
   CorrectionUtils utils;
+  Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
 
   String returnType;
   String name;
@@ -97,6 +99,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   ExtractMethodRefactoringImpl(this.searchEngine, this.unit,
       this.selectionOffset, this.selectionLength) {
     unitElement = unit.element;
+    libraryElement = unitElement.library;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
   }
@@ -214,7 +217,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<SourceChange> createChange() {
+  Future<SourceChange> createChange() async {
     SourceChange change = new SourceChange(refactoringName);
     // replace occurrences with method invocation
     for (_Occurrence occurence in _occurrences) {
@@ -309,12 +312,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         // expression
         if (_selectionExpression != null) {
           // add return type
-          Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-          // TODO(scheglov) use librariesToImport
-          String returnTypeName =
-              utils.getExpressionTypeSource(_selectionExpression, librariesToImport);
-          if (returnTypeName != null && returnTypeName != 'dynamic') {
-            annotations += '${returnTypeName} ';
+          if (returnType.isNotEmpty) {
+            annotations += '$returnType ';
           }
           // just return expression
           declarationSource =
@@ -343,7 +342,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       }
     }
     // done
-    return new Future.value(change);
+    addLibraryImports(change, libraryElement, librariesToImport);
+    return change;
   }
 
   @override
@@ -384,7 +384,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   /**
    * Checks if created method will shadow or will be shadowed by other elements.
    */
-  Future<RefactoringStatus> _checkPossibleConflicts() {
+  Future<RefactoringStatus> _checkPossibleConflicts() async {
     RefactoringStatus result = new RefactoringStatus();
     AstNode parent = _parentMember.parent;
     // top-level function
@@ -512,6 +512,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     return pattern;
   }
 
+  String _getTypeCode(DartType type) {
+    return utils.getTypeSource(type, librariesToImport);
+  }
+
   /**
    * Initializes [createGetter] flag.
    */
@@ -626,9 +630,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     if (_returnType == null) {
       returnType = 'void';
     } else {
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-      // TODO(scheglov) use librariesToImport
-      returnType = utils.getTypeSource(_returnType, librariesToImport);
+      returnType = _getTypeCode(_returnType);
     }
     if (returnType == 'dynamic') {
       returnType = '';
@@ -1032,13 +1034,10 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<Object> {
               ref._parametersMap[variableName];
           if (parameter == null) {
             DartType parameterType = node.bestType;
-            Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-            // TODO(scheglov) use librariesToImport
-            String parameterTypeName =
-                ref.utils.getTypeSource(parameterType, librariesToImport);
+            String parameterTypeCode = ref._getTypeCode(parameterType);
             parameter = new RefactoringMethodParameter(
                 RefactoringMethodParameterKind.REQUIRED,
-                parameterTypeName,
+                parameterTypeCode,
                 variableName,
                 id: variableName);
             ref._parameters.add(parameter);

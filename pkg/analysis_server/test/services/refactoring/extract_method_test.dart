@@ -1373,6 +1373,27 @@ int res(Foo<String, int> foo, String s) => foo(s);
 ''');
   }
 
+  test_singleExpression_returnType_importLibrary() async {
+    _addLibraryReturningAsync();
+    indexTestUnit('''
+import 'asyncLib.dart';
+main() {
+  var a = newFuture();
+}
+''');
+    _createRefactoringForString('newFuture()');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'asyncLib.dart';
+import 'dart:async';
+main() {
+  var a = res();
+}
+
+Future<int> res() => newFuture();
+''');
+  }
+
   test_singleExpression_returnTypeGeneric() {
     indexTestUnit('''
 main() {
@@ -2203,6 +2224,35 @@ void res(int a) {
 ''');
   }
 
+  test_statements_parameters_importType() {
+    _addLibraryReturningAsync();
+    indexTestUnit('''
+import 'asyncLib.dart';
+main() {
+  var v = newFuture();
+// start
+  print(v);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'asyncLib.dart';
+import 'dart:async';
+main() {
+  var v = newFuture();
+// start
+  res(v);
+// end
+}
+
+void res(Future<int> v) {
+  print(v);
+}
+''');
+  }
+
   test_statements_return_last() {
     indexTestUnit('''
 main() {
@@ -2403,6 +2453,14 @@ void res() {
   print(0);
   print(0);
 }
+''');
+  }
+
+  void _addLibraryReturningAsync() {
+    addSource('/asyncLib.dart', r'''
+library asyncLib;
+import 'dart:async';
+Future<int> newFuture() => null;
 ''');
   }
 
