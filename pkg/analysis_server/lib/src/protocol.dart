@@ -73,9 +73,7 @@ String _applyEdit(String code, SourceEdit edit) {
   if (edit.length < 0) {
     throw new RangeError('length is negative');
   }
-  return code.substring(0, edit.offset) +
-      edit.replacement +
-      code.substring(edit.end);
+  return code.replaceRange(edit.offset, edit.end, edit.replacement);
 }
 
 /**
