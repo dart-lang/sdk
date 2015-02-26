@@ -12,6 +12,9 @@ import 'package:path/path.dart' as p;
 
 bool isDartFile(FileSystemEntity entry) => isDartFileName(entry.path);
 
+bool isLintable(FileSystemEntity file) =>
+    isDartFile(file) || isPubspecFile(file);
+
 bool isPubspecFile(FileSystemEntity entry) =>
     isPubspecFileName(p.basename(entry.path));
 
@@ -27,7 +30,7 @@ bool lintFile(FileSystemEntity file, {String dartSdkPath, String packageRoot}) {
     return false;
   }
 
-  if (!isDartFile(file)) {
+  if (!isLintable(file)) {
     stdout.writeln('Skipping $path (unsupported extenstion)');
     return false;
   }
