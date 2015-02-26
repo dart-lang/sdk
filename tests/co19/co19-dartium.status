@@ -16,6 +16,7 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Issue 20540
+LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: RuntimeError # Issue 22532
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: Fail # Issue 22007
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: Fail # Issue 22007
 Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
@@ -828,14 +829,12 @@ LayoutTests/fast/forms/multiple-selected-options-innerHTML_t01: RuntimeError # c
 LayoutTests/fast/forms/option-change-single-selected_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/option-strip-unicode-spaces_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/parser-associated-form-removal_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/search-popup-crasher_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/select-clientheight-with-multiple-attr_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/select-list-box-mouse-focus_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/submit-nil-value-field-assert_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/textarea-scrollbar-height_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/textfield-focus-out_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/html/select-dropdown-consistent-background-color_t01: RuntimeError # co19-roll r801: Please triage this failure.
