@@ -189,6 +189,9 @@ class _Utils {
 
   static window() => _blink.Blink_Utils.window();
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
+  static void spawnDomHelper(Function f, int replyTo)
+      _blink.Blink_Utils.spawnDomHelper(f, replyTo);
+
   // TODO(vsm): Make this API compatible with spawnUri.  It should also
   // return a Future<Isolate>.
   static spawnDomUri(String uri) => _blink.Blink_Utils.spawnDomUri(uri);
@@ -507,7 +510,7 @@ class _Utils {
     return libraryMirror.uri.scheme == 'dart' &&
         SIDE_EFFECT_FREE_LIBRARIES.contains(libraryMirror.uri.toString());
   }
-  
+
   /**
    * Whether we should treat a property as a field for the purposes of the
    * debugger.
@@ -725,7 +728,7 @@ class _Utils {
     }
     return ret;
   }
-  
+
   /**
    * Get a property, returning null if the property does not exist.
    * For private property names, we attempt to resolve the property in the
@@ -735,7 +738,7 @@ class _Utils {
     var objectMirror = reflect(o);
     var classMirror = objectMirror.type;
     if (propertyName.startsWith("_")) {
-      var attemptedLibraries = new Set<LibraryMirror>(); 
+      var attemptedLibraries = new Set<LibraryMirror>();
       while (classMirror != null) {
         LibraryMirror library = classMirror.owner;
         if (!attemptedLibraries.contains(library)) {
@@ -747,7 +750,7 @@ class _Utils {
         }
         classMirror = classMirror.superclass;
       }
-      return null;     
+      return null;
     }
     try {
       return objectMirror.getField(
@@ -759,7 +762,7 @@ class _Utils {
 
   /**
    * Helper to wrap the inspect method on InjectedScriptHost to provide the
-   * inspect method required for the 
+   * inspect method required for the
    */
   static List consoleApi(host) {
     return [
@@ -894,10 +897,83 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   }
 }
 
+// TODO(vsm): Remove DOM isolate code once we have Dartium isolates
+// as workers.  This is only used to support
+// printing and timers in background isolates. As workers they should
+// be able to just do those things natively.
+
+_makeSendPortFuture(spawnRequest) {
+  final completer = new Completer<SendPort>.sync();
+  final port = new ReceivePort();
+  port.listen((result) {
+    completer.complete(result);
+    port.close();
+  });
+  // TODO: SendPort.hashCode is ugly way to access port id.
+  spawnRequest(port.sendPort.hashCode);
+  return completer.future;
+}
+
+Future<SendPort> _spawnDomHelper(Function f) =>
+    _makeSendPortFuture((portId) { _Utils.spawnDomHelper(f, portId); });
+
+final Future<SendPort> __HELPER_ISOLATE_PORT =
+    _spawnDomHelper(_helperIsolateMain);
+
+// Tricky part.
+// Once __HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
+// and to delay Timer.run is used. However, Timer.run will try to register
+// another Timer and here we got stuck: event cannot be posted as then
+// callback is not executed because it's delayed with timer.
+// Therefore once future is resolved, it's unsafe to call .then on it
+// in Timer code.
+SendPort __SEND_PORT;
+
+_sendToHelperIsolate(msg, SendPort replyTo) {
+  if (__SEND_PORT != null) {
+    __SEND_PORT.send([msg, replyTo]);
+  } else {
+    __HELPER_ISOLATE_PORT.then((port) {
+      __SEND_PORT = port;
+      __SEND_PORT.send([msg, replyTo]);
+    });
+  }
+}
+
+final _TIMER_REGISTRY = new Map<SendPort, Timer>();
+
+const _NEW_TIMER = 'NEW_TIMER';
+const _CANCEL_TIMER = 'CANCEL_TIMER';
+const _TIMER_PING = 'TIMER_PING';
+const _PRINT = 'PRINT';
+
+_helperIsolateMain(originalSendPort) {
+  var port = new ReceivePort();
+  originalSendPort.send(port.sendPort);
+  port.listen((args) {
+    var msg = args.first;
+    var replyTo = args.last;
+    final cmd = msg[0];
+    if (cmd == _NEW_TIMER) {
+      final duration = new Duration(milliseconds: msg[1]);
+      bool periodic = msg[2];
+      ping() { replyTo.send(_TIMER_PING); };
+      _TIMER_REGISTRY[replyTo] = periodic ?
+          new Timer.periodic(duration, (_) { ping(); }) :
+          new Timer(duration, ping);
+    } else if (cmd == _CANCEL_TIMER) {
+      _TIMER_REGISTRY.remove(replyTo).cancel();
+    } else if (cmd == _PRINT) {
+      final message = msg[1];
+      // TODO(antonm): we need somehow identify those isolates.
+      print('[From isolate] $message');
+    }
+  });
+}
+
 final _printClosure = (s) => window.console.log(s);
 final _pureIsolatePrintClosure = (s) {
-  throw new UnimplementedError("Printing from a background isolate "
-                               "is not supported in the browser");
+    _sendToHelperIsolate([_PRINT, s], null);
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
@@ -946,10 +1022,45 @@ get _timerFactoryClosure =>
   return new _Timer(milliSeconds, callback, repeating);
 };
 
+class _PureIsolateTimer implements Timer {
+  bool _isActive = true;
+  final ReceivePort _port = new ReceivePort();
+  SendPort _sendPort; // Effectively final.
+
+  //  static SendPort _SEND_PORT;
+
+  _PureIsolateTimer(int milliSeconds, callback, repeating) {
+    _sendPort = _port.sendPort;
+    _port.listen((msg) {
+      assert(msg == _TIMER_PING);
+      _isActive = repeating;
+      callback(this);
+      if (!repeating) _cancel();
+    });
+
+    _send([_NEW_TIMER, milliSeconds, repeating]);
+  }
+
+  void cancel() {
+    _cancel();
+    _send([_CANCEL_TIMER]);
+  }
+
+  void _cancel() {
+    _isActive = false;
+    _port.close();
+  }
+
+  _send(msg) {
+    _sendToHelperIsolate(msg, _sendPort);
+  }
+
+  bool get isActive => _isActive;
+}
+
 get _pureIsolateTimerFactoryClosure =>
     ((int milliSeconds, void callback(Timer time), bool repeating) =>
-  throw new UnimplementedError("Timers on background isolates "
-                               "are not supported in the browser"));
+  new _PureIsolateTimer(milliSeconds, callback, repeating));
 
 class _ScheduleImmediateHelper {
   MutationObserver _observer;
