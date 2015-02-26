@@ -5,9 +5,7 @@ class DeferredLibrary {
   final String libraryName;
   final String uri;
   const DeferredLibrary(this.libraryName, {this.uri});
-  Future<Null> load() {
-    throw 'DeferredLibrary not supported. ' 'please use the `import "lib.dart" deferred as lib` syntax.';
-  }
+  external Future<Null> load();
 }
 class DeferredLoadException implements Exception {
   DeferredLoadException(String this._s);

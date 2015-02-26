@@ -78,8 +78,8 @@ class _GeneratorIterator<E> implements Iterator<E> {
       _index++;
       return true;
     } else {
-      _current = ((__x25) => DDC$RT.cast(__x25, Null, E, "CastLiteral",
-          """line 360, column 18 of dart:core/iterable.dart: """, __x25 is E,
+      _current = ((__x7) => DDC$RT.cast(__x7, Null, E, "CastLiteral",
+          """line 360, column 18 of dart:core/iterable.dart: """, __x7 is E,
           false))(null);
       return false;
     }

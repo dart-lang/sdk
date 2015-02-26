@@ -25,9 +25,5 @@ abstract class double extends num {
   double ceilToDouble();
   double truncateToDouble();
   String toString();
-  static double parse(String source, [double onError(String source)]) {
-    return ((__x10) => DDC$RT.cast(__x10, dynamic, double, "CastGeneral",
-        """line 206, column 12 of dart:core/double.dart: """, __x10 is double,
-        true))(Primitives.parseDouble(source, onError));
-  }
+  external static double parse(String source, [double onError(String source)]);
 }

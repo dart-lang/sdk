@@ -1,10 +1,8 @@
 part of dart.core;
 
 class bool {
-  factory bool.fromEnvironment(String name, {bool defaultValue: false}) {
-    throw new UnsupportedError(
-        'bool.fromEnvironment can only be used as a const constructor');
-  }
+  external const factory bool.fromEnvironment(String name,
+      {bool defaultValue: false});
   String toString() {
     return this ? "true" : "false";
   }

@@ -188,53 +188,20 @@ class DateTime implements Comparable {
     int otherMs = other.millisecondsSinceEpoch;
     return new Duration(milliseconds: ms - otherMs);
   }
-  DateTime._internal(int year, int month, int day, int hour, int minute,
-      int second, int millisecond, bool isUtc)
-      : this.isUtc = isUtc is bool ? isUtc : throw new ArgumentError(isUtc),
-        millisecondsSinceEpoch = checkInt(Primitives.valueFromDecomposedDate(
-            year, month, day, hour, minute, second, millisecond, isUtc));
-  DateTime._now()
-      : isUtc = false,
-        millisecondsSinceEpoch = Primitives.dateNow();
-  static int _brokenDownDateToMillisecondsSinceEpoch(int year, int month,
-      int day, int hour, int minute, int second, int millisecond, bool isUtc) {
-    return ((__x0) => DDC$RT.cast(__x0, dynamic, int, "CastGeneral",
-            """line 599, column 12 of dart:core/date_time.dart: """,
-            __x0 is int, true))(Primitives.valueFromDecomposedDate(
-        year, month, day, hour, minute, second, millisecond, isUtc));
-  }
-  String get timeZoneName {
-    if (isUtc) return "UTC";
-    return ((__x1) => DDC$RT.cast(__x1, dynamic, String, "CastGeneral",
-        """line 609, column 12 of dart:core/date_time.dart: """, __x1 is String,
-        true))(Primitives.getTimeZoneName(this));
-  }
-  Duration get timeZoneOffset {
-    if (isUtc) return new Duration();
-    return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
-  }
-  int get year => ((__x2) => DDC$RT.cast(__x2, dynamic, int, "CastGeneral",
-      """line 633, column 19 of dart:core/date_time.dart: """, __x2 is int,
-      true))(Primitives.getYear(this));
-  int get month => ((__x3) => DDC$RT.cast(__x3, dynamic, int, "CastGeneral",
-      """line 642, column 20 of dart:core/date_time.dart: """, __x3 is int,
-      true))(Primitives.getMonth(this));
-  int get day => ((__x4) => DDC$RT.cast(__x4, dynamic, int, "CastGeneral",
-      """line 650, column 18 of dart:core/date_time.dart: """, __x4 is int,
-      true))(Primitives.getDay(this));
-  int get hour => ((__x5) => DDC$RT.cast(__x5, dynamic, int, "CastGeneral",
-      """line 658, column 19 of dart:core/date_time.dart: """, __x5 is int,
-      true))(Primitives.getHours(this));
-  int get minute => ((__x6) => DDC$RT.cast(__x6, dynamic, int, "CastGeneral",
-      """line 666, column 21 of dart:core/date_time.dart: """, __x6 is int,
-      true))(Primitives.getMinutes(this));
-  int get second => ((__x7) => DDC$RT.cast(__x7, dynamic, int, "CastGeneral",
-      """line 674, column 21 of dart:core/date_time.dart: """, __x7 is int,
-      true))(Primitives.getSeconds(this));
-  int get millisecond => ((__x8) => DDC$RT.cast(__x8, dynamic, int,
-      "CastGeneral", """line 682, column 26 of dart:core/date_time.dart: """,
-      __x8 is int, true))(Primitives.getMilliseconds(this));
-  int get weekday => ((__x9) => DDC$RT.cast(__x9, dynamic, int, "CastGeneral",
-      """line 695, column 22 of dart:core/date_time.dart: """, __x9 is int,
-      true))(Primitives.getWeekday(this));
+  external DateTime._internal(int year, int month, int day, int hour,
+      int minute, int second, int millisecond, bool isUtc);
+  external DateTime._now();
+  external static int _brokenDownDateToMillisecondsSinceEpoch(int year,
+      int month, int day, int hour, int minute, int second, int millisecond,
+      bool isUtc);
+  external String get timeZoneName;
+  external Duration get timeZoneOffset;
+  external int get year;
+  external int get month;
+  external int get day;
+  external int get hour;
+  external int get minute;
+  external int get second;
+  external int get millisecond;
+  external int get weekday;
 }

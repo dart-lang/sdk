@@ -178,7 +178,4 @@ abstract class NonGrowableListError {
   static UnsupportedError remove() =>
       new UnsupportedError("Cannot remove from non-growable List");
 }
-List makeListFixedLength(List growableList) {
-  JSArray.markFixedList(growableList);
-  return growableList;
-}
+external List makeListFixedLength(List growableList);

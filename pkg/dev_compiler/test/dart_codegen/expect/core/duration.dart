@@ -77,16 +77,15 @@ class Duration implements Comparable<Duration> {
     if (inMicroseconds < 0) {
       return "-${-this}";
     }
-    String twoDigitMinutes = twoDigits(((__x11) => DDC$RT.cast(__x11, num, int,
+    String twoDigitMinutes = twoDigits(((__x0) => DDC$RT.cast(__x0, num, int,
         "CastGeneral", """line 258, column 40 of dart:core/duration.dart: """,
-        __x11 is int, true))(inMinutes.remainder(MINUTES_PER_HOUR)));
-    String twoDigitSeconds = twoDigits(((__x12) => DDC$RT.cast(__x12, num, int,
+        __x0 is int, true))(inMinutes.remainder(MINUTES_PER_HOUR)));
+    String twoDigitSeconds = twoDigits(((__x1) => DDC$RT.cast(__x1, num, int,
         "CastGeneral", """line 259, column 40 of dart:core/duration.dart: """,
-        __x12 is int, true))(inSeconds.remainder(SECONDS_PER_MINUTE)));
-    String sixDigitUs = sixDigits(((__x13) => DDC$RT.cast(__x13, num, int,
+        __x1 is int, true))(inSeconds.remainder(SECONDS_PER_MINUTE)));
+    String sixDigitUs = sixDigits(((__x2) => DDC$RT.cast(__x2, num, int,
         "CastGeneral", """line 261, column 19 of dart:core/duration.dart: """,
-        __x13 is int,
-        true))(inMicroseconds.remainder(MICROSECONDS_PER_SECOND)));
+        __x2 is int, true))(inMicroseconds.remainder(MICROSECONDS_PER_SECOND)));
     return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
   }
   bool get isNegative => _duration < 0;

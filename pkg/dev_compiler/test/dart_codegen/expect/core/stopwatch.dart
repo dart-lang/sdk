@@ -31,8 +31,8 @@ class Stopwatch {
     if (_start == null) {
       return 0;
     }
-    return ((__x34) => DDC$RT.cast(__x34, num, int, "CastGeneral",
-        """line 102, column 12 of dart:core/stopwatch.dart: """, __x34 is int,
+    return ((__x8) => DDC$RT.cast(__x8, num, int, "CastGeneral",
+        """line 102, column 12 of dart:core/stopwatch.dart: """, __x8 is int,
         true))((_stop == null) ? (_now() - _start) : (_stop - _start));
   }
   Duration get elapsed {
@@ -46,13 +46,6 @@ class Stopwatch {
   }
   bool get isRunning => _start != null && _stop == null;
   static int _frequency;
-  static void _initTicker() {
-    Primitives.initTicker();
-    _frequency = DDC$RT.cast(Primitives.timerFrequency, dynamic, int,
-        "CastGeneral", """line 143, column 18 of dart:core/stopwatch.dart: """,
-        Primitives.timerFrequency is int, true);
-  }
-  static int _now() => ((__x35) => DDC$RT.cast(__x35, dynamic, int,
-      "CastGeneral", """line 145, column 24 of dart:core/stopwatch.dart: """,
-      __x35 is int, true))(Primitives.timerTicks());
+  external static void _initTicker();
+  external static int _now();
 }

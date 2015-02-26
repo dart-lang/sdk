@@ -119,7 +119,9 @@ main(arguments) {
           forceCompile: true,
           outputDart: dartGen,
           formatOutput: dartGen);
-      var sdkPath = path.join(testDir, 'generated_sdk');
+      var sdkPath = dartGen
+          ? path.join(testDir, '..', 'tool', 'input_sdk_src')
+          : path.join(testDir, 'generated_sdk');
       var testSdk = new TypeResolver.fromDir(sdkPath, options);
       var result = compile('dart:core', testSdk, options);
       var outputDir = new Directory(path.join(actualDir, 'core'));

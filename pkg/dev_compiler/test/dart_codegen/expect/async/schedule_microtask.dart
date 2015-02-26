@@ -70,7 +70,5 @@ void scheduleMicrotask(void callback()) {
       .scheduleMicrotask(Zone.current.bindCallback(callback, runGuarded: true));
 }
 class _AsyncRun {
-  static void _scheduleImmediate(void callback()) {
-    scheduleImmediateClosure(callback);
-  }
+  external static void _scheduleImmediate(void callback());
 }

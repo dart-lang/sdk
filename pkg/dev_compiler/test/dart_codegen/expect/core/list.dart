@@ -1,43 +1,9 @@
 part of dart.core;
 
 abstract class List<E> implements Iterable<E>, EfficientLength {
-  factory List([int length = const _ListConstructorSentinel()]) {
-    if (length == const _ListConstructorSentinel()) {
-      return ((__x26) => DDC$RT.cast(__x26, dynamic,
-          DDC$RT.type((List<E> _) {}), "CastExact",
-          """line 79, column 14 of dart:core/list.dart: """, __x26 is List<E>,
-          false))(new JSArray<E>.emptyGrowable());
-    }
-    return ((__x27) => DDC$RT.cast(__x27, dynamic, DDC$RT.type((List<E> _) {}),
-        "CastExact", """line 81, column 12 of dart:core/list.dart: """,
-        __x27 is List<E>, false))(new JSArray<E>.fixed(length));
-  }
-  factory List.filled(int length, E fill) {
-    List result = ((__x28) => DDC$RT.cast(__x28, dynamic,
-        DDC$RT.type((List<dynamic> _) {}), "CastExact",
-        """line 93, column 19 of dart:core/list.dart: """,
-        __x28 is List<dynamic>, true))(new JSArray<E>.fixed(length));
-    if (length != 0 && fill != null) {
-      for (int i = 0; i < result.length; i++) {
-        result[i] = fill;
-      }
-    }
-    return DDC$RT.cast(result, DDC$RT.type((List<dynamic> _) {}),
-        DDC$RT.type((List<E> _) {}), "CastDynamic",
-        """line 99, column 12 of dart:core/list.dart: """, result is List<E>,
-        false);
-  }
-  factory List.from(Iterable elements, {bool growable: true}) {
-    List<E> list = new List<E>();
-    for (E e in elements) {
-      list.add(e);
-    }
-    if (growable) return list;
-    return ((__x29) => DDC$RT.cast(__x29, DDC$RT.type((List<dynamic> _) {}),
-        DDC$RT.type((List<E> _) {}), "CastDynamic",
-        """line 116, column 12 of dart:core/list.dart: """, __x29 is List<E>,
-        false))(makeListFixedLength(list));
-  }
+  external factory List([int length]);
+  external factory List.filled(int length, E fill);
+  external factory List.from(Iterable elements, {bool growable: true});
   factory List.generate(int length, E generator(int index),
       {bool growable: true}) {
     List<E> result;
