@@ -2358,6 +2358,11 @@ intptr_t Class::NumOwnTypeArguments() const {
 }
 
 
+bool Class::IsGeneric() const {
+  return NumTypeParameters() != 0;
+}
+
+
 intptr_t Class::NumTypeArguments() const {
   // Return cached value if already calculated.
   if (num_type_arguments() != kUnknownNumTypeArguments) {

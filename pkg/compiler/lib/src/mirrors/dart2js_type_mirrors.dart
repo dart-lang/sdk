@@ -236,6 +236,8 @@ class Dart2JsInterfaceTypeMirror
 
   bool get isAbstract => _element.isAbstract;
 
+  bool get isEnum => throw new UnimplementedError();
+
   bool operator ==(other) {
     if (identical(this, other)) {
       return true;
@@ -303,6 +305,8 @@ class Dart2JsTypedefMirror
   bool get isClass => false;
 
   bool get isAbstract => false;
+
+  bool get isEnum => throw new UnimplementedError();
 
   String toString() => 'Mirror on typedef $_type';
 }
@@ -409,6 +413,8 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   bool get isPrivate => false;
 
   bool get isAbstract => false;
+
+  bool get isEnum => throw new UnimplementedError();
 
   List<TypeVariableMirror> get typeVariables =>
       originalDeclaration.typeVariables;

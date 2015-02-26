@@ -876,6 +876,8 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
+  bool get isEnum => throw new UnimplementedError();
+
   bool isSubclassOf(ClassMirror other) {
     superclass.isSubclassOf(other) || mixin.isSubclassOf(other);
   }
@@ -1532,6 +1534,8 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   bool get isAbstract => _class.isAbstract;
 
+  bool get isEnum => _class.isEnum;
+
   bool isSubclassOf(ClassMirror other) => _class.isSubclassOf(other);
 
   SourceLocation get location => _class.location;
@@ -2085,6 +2089,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   ClassMirror get mixin => throw new UnimplementedError();
 
   bool get isAbstract => throw new UnimplementedError();
+
+  bool get isEnum => throw new UnimplementedError();
 
   bool isSubclassOf(ClassMirror other) {
     if (other is! ClassMirror) {
@@ -2666,6 +2672,8 @@ class JsFunctionTypeMirror extends BrokenClassMirror
   bool get isOriginalDeclaration => true;
 
   bool get isAbstract => false;
+
+  bool get isEnum => false;
 
   TypeMirror get returnType {
     if (_cachedReturnType != null) return _cachedReturnType;

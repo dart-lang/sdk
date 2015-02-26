@@ -330,10 +330,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
     UNREACHABLE();
   }
 
-  const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
-  const Bool& is_mixin_app_alias = Bool::Get(cls.is_mixin_app_alias());
-
-  const Array& args = Array::Handle(Array::New(8));
+  const Array& args = Array::Handle(Array::New(9));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
   // Note that the VM does not consider mixin application aliases to be mixin
@@ -346,9 +343,10 @@ static RawInstance* CreateClassMirror(const Class& cls,
   }
   args.SetAt(3, owner_mirror);
   args.SetAt(4, Bool::Get(cls.is_abstract()));
-  args.SetAt(5, is_generic);
-  args.SetAt(6, is_mixin_app_alias);
+  args.SetAt(5, Bool::Get(cls.IsGeneric()));
+  args.SetAt(6, Bool::Get(cls.is_mixin_app_alias()));
   args.SetAt(7, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
+  args.SetAt(8, Bool::Get(cls.is_enum_class()));
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 

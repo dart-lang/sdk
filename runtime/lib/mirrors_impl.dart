@@ -587,6 +587,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   final bool _isGeneric;
   final bool _isMixinAlias;
   final bool _isGenericDeclaration;
+  final bool isEnum;
   Type _instantiator;
 
   _LocalClassMirror(reflectee,
@@ -596,7 +597,8 @@ class _LocalClassMirror extends _LocalObjectMirror
                     this.isAbstract,
                     this._isGeneric,
                     this._isMixinAlias,
-                    this._isGenericDeclaration)
+                    this._isGenericDeclaration,
+                    this.isEnum)
       : this._simpleName = _s(simpleName),
         this._reflectedType = reflectedType,
         this._instantiator = reflectedType,
@@ -969,7 +971,7 @@ class _LocalClassMirror extends _LocalObjectMirror
 class _LocalFunctionTypeMirror extends _LocalClassMirror
     implements FunctionTypeMirror {
   _LocalFunctionTypeMirror(reflectee, reflectedType)
-      : super(reflectee, reflectedType, null, null, false, false, false, false);
+      : super(reflectee, reflectedType, null, null, false, false, false, false, false);
 
   bool get _isAnonymousMixinApplication => false;
 

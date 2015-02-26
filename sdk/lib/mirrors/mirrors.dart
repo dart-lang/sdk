@@ -744,6 +744,11 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   bool get isAbstract;
 
   /**
+   * Is the reflectee an enum?
+   */
+  bool get isEnum;
+
+  /**
    * Returns an immutable map of the declarations actually given in the class
    * declaration.
    *

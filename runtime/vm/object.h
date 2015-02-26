@@ -1001,6 +1001,8 @@ class Class : public Object {
   // not overlapping with the type arguments of the super class of this class.
   intptr_t NumOwnTypeArguments() const;
 
+  bool IsGeneric() const;
+
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t type_arguments_field_offset() const {
