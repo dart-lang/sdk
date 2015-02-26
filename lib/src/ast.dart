@@ -7,6 +7,12 @@ library dart_lint.src.ast;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+
+final _identifier = new RegExp(r'^([_a-zA-Z]+([_a-zA-Z0-9])*)$');
+
+/// Returns `true` if the given [id] is a Dart keyword.
+bool isKeyWord(String id) => Keyword.keywords.keys.contains(id);
 
 /// Returns `true` if the given [ClassMember] is a method.
 bool isMethod(ClassMember m) => m is MethodDeclaration;
@@ -74,6 +80,10 @@ bool isSimpleSetter(MethodDeclaration setter) {
 
   return false;
 }
+
+/// Returns `true` if the given [id] is a valid Dart identifier.
+bool isValidDartIdentifier(String id) =>
+    !isKeyWord(id) && _identifier.hasMatch(id);
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
   if (expression is SimpleIdentifier) {

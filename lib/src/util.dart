@@ -9,7 +9,13 @@ final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z]+))+$');
 final _lowerCaseUnderScoreWithDots =
     new RegExp(r'^([a-z]+([_]?[a-z]+))+(.([a-z]+([_]?[a-z]+)))*$');
 
+final _pubspec = new RegExp(r'^[_]?pubspec.yaml$');
+
+bool isDartFileName(String fileName) => fileName.endsWith('.dart');
+
 bool isLowerCaseUnderScore(String id) => _lowerCaseUnderScore.hasMatch(id);
 
 bool isLowerCaseUnderScoreWithDots(String id) =>
     _lowerCaseUnderScoreWithDots.hasMatch(id);
+
+bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);

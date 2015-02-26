@@ -12,12 +12,14 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:cli_util/cli_util.dart';
+import 'package:linter/src/ast.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/util.dart';
+import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
@@ -77,6 +79,7 @@ void defineLinterEngineTests() {
       test('factory', () {
         expect(new Group('Style Guide').custom, isFalse);
         expect(new Group('Styleguide').custom, isFalse);
+        expect(new Group('Pub').custom, isFalse);
         expect(new Group('Kustom').custom, isTrue);
       });
     });
@@ -104,7 +107,7 @@ void defineLinterEngineTests() {
         bool visited;
         var options =
             new LinterOptions(() => [new MockLinter((n) => visited = true)]);
-        new SourceLinter(options).lintPubSpecSource(contents: 'name: foo_bar');
+        new SourceLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });
 
@@ -228,16 +231,50 @@ void defineRuleTests() {
 
   //TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
+    group('dart', () {
     for (var entry in new Directory(ruleDir).listSync()) {
-      if (entry is! File || !isDartFile(entry)) continue;
-      var ruleName = p.basenameWithoutExtension(entry.path);
-      testRule(ruleName, entry);
+    if (entry is! File || !isDartFile(entry)) continue;
+    var ruleName = p.basenameWithoutExtension(entry.path);
+    testRule(ruleName, entry);
     }
+    });
+    group('pub', () {
+    for (var entry in new Directory(ruleDir +'/pub').listSync()) {
+      if (entry is! Directory) continue;
+      Directory pubTestDir = entry;
+      for (var file in pubTestDir.listSync()) {
+        if (file is! File || !isPubspecFile(file)) continue;
+        var ruleName = p.basename(pubTestDir.path);
+        testRule(ruleName, file);
+      }
+    }
+    });
   });
+}
+
+testEach(Iterable<String> values, dynamic f(String s), Matcher m) {
+  values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 
 defineRuleUnitTests() {
   group('names', () {
+    group('keywords', () {
+      var good = ['class', 'if', 'assert', 'catch', 'import'];
+      testEach(good, isKeyWord, isTrue);
+      var bad = ['_class', 'iff', 'assert_', 'Catch'];
+      testEach(bad, isKeyWord, isFalse);
+    });
+    group('identifiers', () {
+      var good = ['foo', '_if', '_', 'f2', 'fooBar', 'foo_bar'];
+      testEach(good, isValidDartIdentifier, isTrue);
+      var bad = ['if', '42', '3', '2f'];
+      testEach(bad, isValidDartIdentifier, isFalse);
+    });
+    group('pubspec', () {
+      testEach(['pubspec.yaml', '_pubspec.yaml'], isPubspecFileName, isTrue);
+      testEach(['__pubspec.yaml', 'foo.yaml'], isPubspecFileName, isFalse);
+    });
+
     group('camel case', () {
       group('upper', () {
         var good = [
@@ -250,22 +287,17 @@ defineRuleUnitTests() {
           'F1',
           'FooBar1'
         ];
-        good.forEach(
-            (s) => test('"$s"', () => expect(isUpperCamelCase(s), isTrue)));
-
+        testEach(good, isUpperCamelCase, isTrue);
         var bad = ['fooBar', 'foo', 'f', '_f', 'F_B'];
-        bad.forEach(
-            (s) => test('"$s"', () => expect(isUpperCamelCase(s), isFalse)));
+        testEach(bad, isUpperCamelCase, isFalse);
       });
     });
     group('lower_case_underscores', () {
       var good = ['foo_bar', 'foo', 'foo_bar_baz'];
-      good.forEach(
-          (s) => test('"$s"', () => expect(isLowerCaseUnderScore(s), isTrue)));
+      testEach(good, isLowerCaseUnderScore, isTrue);
 
       var bad = ['Foo', 'fooBar', 'foo_Bar', 'foo_', '_f', 'F_B', 'JS', 'JSON'];
-      bad.forEach(
-          (s) => test('"$s"', () => expect(isLowerCaseUnderScore(s), isFalse)));
+      testEach(bad, isLowerCaseUnderScore, isFalse);
     });
     group('qualified lower_case_underscores', () {
       var good = [
@@ -276,8 +308,7 @@ defineRuleUnitTests() {
         'foo',
         'foo.bar_baz.bang'
       ];
-      good.forEach((s) =>
-          test('"$s"', () => expect(isLowerCaseUnderScoreWithDots(s), isTrue)));
+      testEach(good, isLowerCaseUnderScoreWithDots, isTrue);
 
       var bad = [
         'Foo',
@@ -289,8 +320,7 @@ defineRuleUnitTests() {
         'JS',
         'JSON'
       ];
-      bad.forEach((s) => test(
-          '"$s"', () => expect(isLowerCaseUnderScoreWithDots(s), isFalse)));
+      testEach(bad, isLowerCaseUnderScoreWithDots, isFalse);
     });
   });
 }
@@ -332,7 +362,7 @@ void defineSanityTests() {
 }
 
 Annotation extractAnnotation(String line) {
-  int index = line.indexOf(new RegExp(r'//[ ]?LINT'));
+  int index = line.indexOf(new RegExp(r'(//|#)[ ]?LINT'));
   if (index > -1) {
     int msgIndex = line.substring(index).indexOf('T') + 1;
     String msg = null;
@@ -453,7 +483,7 @@ class MockLinter extends LintRule {
   }
 
   @override
-  PubSpecVisitor getPubSpecVisitor() => visitorCallback();
+  PubSpecVisitor getPubspecVisitor() => visitorCallback();
 
   @override
   AstVisitor getVisitor() => visitorCallback();
@@ -482,4 +512,8 @@ class MockVisitor extends GeneralizingAstVisitor with PubSpecVisitor {
       nodeVisitor(node);
     }
   }
+}
+
+class MockReporter extends Mock implements ErrorReporter {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

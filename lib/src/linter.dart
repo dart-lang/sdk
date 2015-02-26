@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:linter/src/analysis.dart';
+import 'package:linter/src/io.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 
@@ -69,12 +70,15 @@ abstract class DartLinter {
   Iterable<AnalysisErrorInfo> lintLibrarySource(
       {String libraryName, String libraryContents});
 
-  Iterable<AnalysisErrorInfo> lintPubSpecSource({String contents});
+  Iterable<AnalysisErrorInfo> lintPubspecSource({String contents});
 }
 
 class Group {
 
   /// Defined rule groups.
+  static const Group PUB = const Group._('Pub',
+      link: const Hyperlink('See the <strong>Pubspec Format</strong>',
+          'https://www.dartlang.org/tools/pub/pubspec.html'));
   static const Group STYLE_GUIDE = const Group._('Style Guide',
       link: const Hyperlink('See the <strong>Style Guide</strong>',
           'https://www.dartlang.org/articles/style-guide/'));
@@ -89,6 +93,8 @@ class Group {
       case 'Styleguide':
       case 'Style Guide':
         return STYLE_GUIDE;
+      case 'Pub':
+        return PUB;
       default:
         return new Group._(name,
             custom: true, description: description, link: link);
@@ -211,6 +217,11 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// Lint name.
   final CamelCaseString name;
 
+  /// Until pubspec analysis is pushed into the analyzer proper, we need to
+  /// do some extra book-keeping to keep track of details that will help us
+  /// constitute AnalysisErrorInfos.
+  final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
+
   LintRule({String name, this.group, this.kind, this.description, this.details,
       this.maturity: Maturity.STABLE})
       : name = new CamelCaseString(name);
@@ -227,7 +238,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
-  PubSpecVisitor getPubSpecVisitor() => null;
+  PubSpecVisitor getPubspecVisitor() => null;
+
+  @override
+  AstVisitor getVisitor() => null;
 
   void reportLint(AstNode node) {
     reporter.reportErrorForNode(
@@ -235,8 +249,14 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   }
 
   void reportPubLint(PSNode node) {
-    reporter.reportErrorForOffset(new LintCode(name.value, description),
-        node.span.start.offset, node.span.length);
+    // Cache error and location info for creating AnalysisErrorInfos
+    var error = new AnalysisError.con2(reporter.source, node.span.start.offset,
+        node.span.length, new LintCode(name.value, description));
+
+    _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
+
+    // Then do the reporting
+    reporter.reportError(error);
   }
 }
 
@@ -317,7 +337,9 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
   @override
   Iterable<AnalysisErrorInfo> lintFile(File sourceFile) =>
-      _registerAndRun(() => new AnalysisDriver.forFile(sourceFile, options));
+      isPubspecFile(sourceFile)
+          ? _lintPubspecFile(sourceFile)
+          : _lintDartFile(sourceFile);
 
   @override
   Iterable<AnalysisErrorInfo> lintLibrarySource(
@@ -326,7 +348,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
               new _StringSource(libraryContents, libraryName), options));
 
   @override
-  Iterable<AnalysisErrorInfo> lintPubSpecSource({String contents}) {
+  Iterable<AnalysisErrorInfo> lintPubspecSource({String contents}) {
+    var results = <AnalysisErrorInfo>[];
 
     //TODO: error handling
     var spec = new PubSpec.parse(contents);
@@ -334,22 +357,29 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
     for (Linter lint in options.enabledLints) {
       if (lint is LintRule) {
         LintRule rule = lint;
-        var visitor = rule.getPubSpecVisitor();
+        var visitor = rule.getPubspecVisitor();
         if (visitor != null) {
           try {
             spec.accept(visitor);
           } on Exception catch (e) {
             reporter.exception(new LinterException(e.toString()));
           }
+          results.addAll(rule._locationInfo);
         }
       }
     }
-    //TODO: collect and return errors
-    return null;
+
+    return results;
   }
 
   @override
   onError(AnalysisError error) => errors.add(error);
+
+  Iterable<AnalysisErrorInfo> _lintDartFile(File sourceFile) =>
+      _registerAndRun(() => new AnalysisDriver.forFile(sourceFile, options));
+
+  Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
+      lintPubspecSource(contents: sourceFile.readAsStringSync());
 
   Iterable<AnalysisErrorInfo> _registerAndRun(_DriverFactory createDriver) {
     _registerLinters(options.enabledLints);
@@ -358,6 +388,15 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
   static LinterOptions _defaultOptions() =>
       new LinterOptions(() => ruleMap.values);
+}
+
+class _LineInfo implements LineInfo {
+  PSNode node;
+  _LineInfo(this.node);
+
+  @override
+  LineInfo_Location getLocation(int offset) =>
+      new LineInfo_Location(node.span.start.line + 1, node.span.start.column);
 }
 
 class _StringSource extends StringSource {

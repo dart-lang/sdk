@@ -7,7 +7,13 @@ library io;
 import 'dart:io';
 
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/util.dart';
+import 'package:path/path.dart' as p;
 
+bool isDartFile(FileSystemEntity entry) => isDartFileName(entry.path);
+
+bool isPubspecFile(FileSystemEntity entry) =>
+    isPubspecFileName(p.basename(entry.path));
 
 /// Runs the linter on [file], skipping links and files not ending in the
 /// '.dart' extension.
@@ -35,8 +41,8 @@ bool lintFile(FileSystemEntity file, {String dartSdkPath, String packageRoot}) {
   }
 
   try {
-   linter.lintFile(file);
-   return true;
+    linter.lintFile(file);
+    return true;
   } catch (err, stack) {
     stderr.writeln('''An error occurred while linting $path
   Please report it at: github.com/dart-lang/dart_lint/issues
@@ -45,5 +51,3 @@ $stack''');
   }
   return false;
 }
-
-bool isDartFile(FileSystemEntity entry) => entry.path.endsWith('.dart');
