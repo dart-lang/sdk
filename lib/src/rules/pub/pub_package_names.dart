@@ -9,7 +9,7 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/util.dart';
 
-const desc = 'DO use lowercase_with_underscores for package names';
+const desc = 'DO use `lowercase_with_underscores` for package names';
 
 const details = '''
 **DO** use `lowercase_with_underscores` for package names.
