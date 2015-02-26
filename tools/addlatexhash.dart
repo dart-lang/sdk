@@ -24,7 +24,7 @@
 
 import 'dart:io';
 import 'dart:convert';
-import '../pkg/utf/lib/utf.dart';
+import '../third_party/pkg/utf/lib/utf.dart';
 import '../third_party/pkg/crypto/lib/crypto.dart';
 
 // ----------------------------------------------------------------------
