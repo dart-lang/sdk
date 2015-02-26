@@ -18,6 +18,8 @@
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
+                '"../third_party/pkg_tested"])',
+            '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../runtime"])',
             '../sdk/lib/_internal',
             '../site/try',
