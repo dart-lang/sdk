@@ -5,9 +5,7 @@ part of dart.collection;
  E elementAt(int index) => this[index];
  void forEach(void action(E element)) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   action(this[i]);
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -31,9 +29,7 @@ if (length == 0) throw IterableElementError.noElement();
 }
  bool contains(Object element) {
 int length = this.length;
- for (int i = 0;
- i < this.length;
- i++) {
+ for (int i = 0; i < this.length; i++) {
   if (this[i] == element) return true;
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -43,9 +39,7 @@ int length = this.length;
 }
  bool every(bool test(E element)) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   if (!test(this[i])) return false;
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -55,9 +49,7 @@ int length = this.length;
 }
  bool any(bool test(E element)) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   if (test(this[i])) return true;
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -69,9 +61,7 @@ int length = this.length;
 E orElse()}
 ) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   E element = this[i];
    if (test(element)) return element;
    if (length != this.length) {
@@ -85,9 +75,7 @@ int length = this.length;
 E orElse()}
 ) {
 int length = this.length;
- for (int i = length - 1;
- i >= 0;
- i--) {
+ for (int i = length - 1; i >= 0; i--) {
   E element = this[i];
    if (test(element)) return element;
    if (length != this.length) {
@@ -101,9 +89,7 @@ int length = this.length;
 int length = this.length;
  E match = ((__x9) => DDC$RT.cast(__x9, Null, E, "CastLiteral", """line 151, column 15 of dart:collection/list.dart: """, __x9 is E, false))(null);
  bool matchFound = false;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   E element = this[i];
    if (test(element)) {
     if (matchFound) {
@@ -131,9 +117,7 @@ if (length == 0) return "";
 int length = this.length;
  if (length == 0) throw IterableElementError.noElement();
  E value = this[0];
- for (int i = 1;
- i < length;
- i++) {
+ for (int i = 1; i < length; i++) {
   value = combine(value, this[i]);
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -144,9 +128,7 @@ int length = this.length;
  fold(var initialValue, combine(var previousValue, E element)) {
 var value = initialValue;
  int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   value = combine(value, this[i]);
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -172,18 +154,14 @@ List<E> result;
  else {
   result = new List<E>(length);
   }
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   result[i] = this[i];
   }
  return result;
 }
  Set<E> toSet() {
 Set<E> result = new Set<E>();
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   result.add(this[i]);
   }
  return result;
@@ -197,9 +175,7 @@ for (E element in iterable) {
   }
 }
  bool remove(Object element) {
-for (int i = 0;
- i < this.length;
- i++) {
+for (int i = 0; i < this.length; i++) {
   if (this[i] == element) {
     this.setRange(i, this.length - 1, this, i + 1);
      this.length -= 1;
@@ -229,9 +205,7 @@ _filter(this, DDC$RT.wrap((bool f(E __u15)) {
  static void _filter(List source, bool test(var element), bool retainMatching) {
 List retained = [];
  int length = source.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   var element = source[i];
    if (test(element) == retainMatching) {
     retained.add(element);
@@ -289,9 +263,7 @@ int listLength = this.length;
  RangeError.checkValidRange(start, end, listLength);
  int length = end - start;
  List<E> result = new List<E>()..length = length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   result[i] = this[start + i];
   }
  return result;
@@ -308,9 +280,7 @@ RangeError.checkValidRange(start, end, this.length);
 }
  void fillRange(int start, int end, [E fill]) {
 RangeError.checkValidRange(start, end, this.length);
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
   this[i] = fill;
   }
 }
@@ -336,16 +306,12 @@ RangeError.checkValidRange(start, end, this.length);
   throw IterableElementError.tooFew();
   }
  if (otherStart < start) {
-  for (int i = length - 1;
-   i >= 0;
-   i--) {
+  for (int i = length - 1; i >= 0; i--) {
     this[start + i] = ((__x24) => DDC$RT.cast(__x24, dynamic, E, "CastGeneral", """line 381, column 27 of dart:collection/list.dart: """, __x24 is E, false))(otherList[otherStart + i]);
     }
   }
  else {
-  for (int i = 0;
-   i < length;
-   i++) {
+  for (int i = 0; i < length; i++) {
     this[start + i] = ((__x25) => DDC$RT.cast(__x25, dynamic, E, "CastGeneral", """line 385, column 27 of dart:collection/list.dart: """, __x25 is E, false))(otherList[otherStart + i]);
     }
   }
@@ -383,9 +349,7 @@ if (startIndex >= this.length) {
  if (startIndex < 0) {
   startIndex = 0;
   }
- for (int i = startIndex;
- i < this.length;
- i++) {
+ for (int i = startIndex; i < this.length; i++) {
   if (this[i] == element) {
     return i;
     }
@@ -404,9 +368,7 @@ if (startIndex == null) {
     startIndex = this.length - 1;
     }
   }
- for (int i = startIndex;
- i >= 0;
- i--) {
+ for (int i = startIndex; i >= 0; i--) {
   if (this[i] == element) {
     return i;
     }

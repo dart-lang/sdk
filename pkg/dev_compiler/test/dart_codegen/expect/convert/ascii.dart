@@ -28,9 +28,7 @@ int stringLength = string.length;
  if (end == null) end = stringLength;
  int length = end - start;
  List result = new Uint8List(length);
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   var codeUnit = string.codeUnitAt(start + i);
    if ((codeUnit & ~_subsetMask) != 0) {
     throw new ArgumentError("String contains invalid characters.");
@@ -65,9 +63,7 @@ _sink.close();
 }
  void addSlice(String source, int start, int end, bool isLast) {
 RangeError.checkValidRange(start, end, source.length);
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
 int codeUnit = source.codeUnitAt(i);
  if ((codeUnit & ~_subsetMask) != 0) {
 throw new ArgumentError("Source contains invalid character with code point: $codeUnit.");
@@ -87,9 +83,7 @@ int byteCount = bytes.length;
  RangeError.checkValidRange(start, end, byteCount);
  if (end == null) end = byteCount;
  int length = end - start;
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
 int byte = bytes[i];
  if ((byte & ~_subsetMask) != 0) {
 if (!_allowInvalid) {
@@ -102,9 +96,7 @@ throw new FormatException("Invalid value in input: $byte");
 }
  String _convertInvalid(List<int> bytes, int start, int end) {
 StringBuffer buffer = new StringBuffer();
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
 int value = bytes[i];
  if ((value & ~_subsetMask) != 0) value = 0xFFFD;
  buffer.writeCharCode(value);
@@ -147,9 +139,7 @@ addSlice(source, 0, source.length, false);
 }
  void addSlice(List<int> source, int start, int end, bool isLast) {
 RangeError.checkValidRange(start, end, source.length);
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
 if ((source[i] & ~_ASCII_MASK) != 0) {
 if (i > start) _utf8Sink.addSlice(source, start, i, false);
  _utf8Sink.add(const <int> [0xEF, 0xBF, 0xBD]);
@@ -170,9 +160,7 @@ close();
 _sink.close();
 }
  void add(List<int> source) {
-for (int i = 0;
- i < source.length;
- i++) {
+for (int i = 0; i < source.length; i++) {
 if ((source[i] & ~_ASCII_MASK) != 0) {
 throw new FormatException("Source contains non-ASCII bytes.");
 }

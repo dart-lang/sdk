@@ -265,9 +265,7 @@ assert (_doneFuture != null); assert (_doneFuture._mayComplete); _doneFuture._as
 }
  class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {_AsyncBroadcastStreamController(void onListen(), void onCancel()) : super(onListen, onCancel);
  void _sendData(T data) {
-for (_BroadcastSubscriptionLink link = _next;
- !identical(link, this);
- link = link._next) {
+for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
 _BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 393, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
@@ -275,9 +273,7 @@ _BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptio
 }
 }
  void _sendError(Object error, StackTrace stackTrace) {
-for (_BroadcastSubscriptionLink link = _next;
- !identical(link, this);
- link = link._next) {
+for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
 _BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 402, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
@@ -286,9 +282,7 @@ _BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptio
 }
  void _sendDone() {
 if (!_isEmpty) {
-for (_BroadcastSubscriptionLink link = _next;
- !identical(link, this);
- link = link._next) {
+for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
 _BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 412, column 50 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);

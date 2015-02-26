@@ -80,9 +80,7 @@ return new _StringConversionSinkAsStringSinkAdapter(this);
 }
  void addSlice(String str, int start, int end, bool isLast) {
 if (start != 0 || end != str.length) {
-for (int i = start;
- i < end;
- i++) {
+for (int i = start; i < end; i++) {
 _stringSink.writeCharCode(str.codeUnitAt(i));
 }
 }

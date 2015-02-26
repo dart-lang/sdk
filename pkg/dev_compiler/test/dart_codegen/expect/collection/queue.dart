@@ -245,9 +245,7 @@ result.addLast(element);
  Iterator<E> get iterator => new _ListQueueIterator<E>(this);
  void forEach(void action(E element)) {
 int modificationCount = _modificationCount;
- for (int i = _head;
- i != _tail;
- i = (i + 1) & (_table.length - 1)) {
+ for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
 action(_table[i]);
  _checkModification(modificationCount);
 }
@@ -337,9 +335,7 @@ for (E element in elements) _add(element);
 }
 }
  bool remove(Object object) {
-for (int i = _head;
- i != _tail;
- i = (i + 1) & (_table.length - 1)) {
+for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
 E element = _table[i];
  if (element == object) {
 _remove(i);
@@ -374,9 +370,7 @@ _filterWhere(test, false);
 }
  void clear() {
 if (_head != _tail) {
-for (int i = _head;
- i != _tail;
- i = (i + 1) & (_table.length - 1)) {
+for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
 _table[i] = ((__x36) => DDC$RT.cast(__x36, Null, E, "CastLiteral", """line 553, column 21 of dart:collection/queue.dart: """, __x36 is E, false))(null);
 }
  _head = _tail = 0;
@@ -412,9 +406,7 @@ if (_head == _tail) throw IterableElementError.noElement();
  static bool _isPowerOf2(int number) => (number & (number - 1)) == 0;
  static int _nextPowerOf2(int number) {
 assert (number > 0); number = (number << 1) - 1;
- for (;
-;
-) {
+ for (;;) {
 int nextNumber = number & (number - 1);
  if (nextNumber == 0) return number;
  number = nextNumber;

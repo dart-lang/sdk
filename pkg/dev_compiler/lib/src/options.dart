@@ -98,6 +98,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   /// Whether to run the dart_style formatter on the generated Dart code.
   final bool formatOutput;
 
+  /// Whether to use a cheap formatter instead of dart_style. This might not be
+  /// a semantically correct formatter and it is used for testing only.
+  final bool cheapTestFormat;
+
   /// Output directory for generated code.
   final String outputDir;
 
@@ -171,12 +175,12 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
 
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.dumpSrcDir, this.forceCompile: false,
-      this.formatOutput: false, this.ignoreTypes: false, this.outputDir,
-      this.outputDart: false, this.useColors: true,
-      this.covariantGenerics: true, this.relaxedCasts: true,
-      this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const [], this.inferFromOverrides: true,
-      this.inferStaticsFromIdentifiers: false,
+      this.formatOutput: false, this.cheapTestFormat: false,
+      this.ignoreTypes: false, this.outputDir, this.outputDart: false,
+      this.useColors: true, this.covariantGenerics: true,
+      this.relaxedCasts: true, this.useMultiPackage: false,
+      this.packageRoot: 'packages/', this.packagePaths: const [],
+      this.inferFromOverrides: true, this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,

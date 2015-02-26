@@ -111,13 +111,13 @@ CheckerResults _compileDart(
   var codeChecker = new CodeChecker(rules, reporter, options);
   var generators = <CodeGenerator>[];
   if (options.dumpSrcDir != null) {
-    generators.add(new EmptyDartGenerator(
-        options.dumpSrcDir, uri, rules, options.formatOutput));
+    generators
+        .add(new EmptyDartGenerator(options.dumpSrcDir, uri, rules, options));
   }
   var outputDir = options.outputDir;
   if (outputDir != null) {
     var cg = options.outputDart
-        ? new DartGenerator(outputDir, uri, rules, options.formatOutput)
+        ? new DartGenerator(outputDir, uri, rules, options)
         : new JSGenerator(outputDir, uri, rules);
     generators.add(cg);
   }

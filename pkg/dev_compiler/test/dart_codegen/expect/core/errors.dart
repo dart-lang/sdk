@@ -37,8 +37,7 @@ result = "$result: $message";
  if (name != null) {
 nameString = " ($name)";
 }
- return "$message$nameString: ${Error.safeToString(invalidValue)}
-";
+ return "$message$nameString: ${Error.safeToString(invalidValue)}";
 }
 }
  class RangeError extends ArgumentError {final num start;
@@ -142,8 +141,7 @@ explanation = "index must not be negative";
 if (modifiedObject == null) {
 return "Concurrent modification during iteration.";
 }
- return "Concurrent modification during iteration: " "${Error.safeToString(modifiedObject)}
-.";
+ return "Concurrent modification during iteration: " "${Error.safeToString(modifiedObject)}.";
 }
 }
  class OutOfMemoryError implements Error {const OutOfMemoryError();

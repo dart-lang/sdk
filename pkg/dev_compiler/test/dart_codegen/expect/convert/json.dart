@@ -83,9 +83,7 @@ return new JsonUtf8Encoder(indent, _toEncodable);
 if (string == null) return null;
  if (string.isEmpty) return new Uint8List(0);
  checkAscii: {
-for (int i = 0;
- i < string.length;
- i++) {
+for (int i = 0; i < string.length; i++) {
 if (string.codeUnitAt(i) >= 0x80) break checkAscii;
 }
  return string.codeUnits;
@@ -108,15 +106,11 @@ int length = end - start;
  _JsonUtf8Stringifier.stringify(object, _indent, DDC$RT.cast(_toEncodable, Function, __t11, "CastGeneral", """line 352, column 36 of dart:convert/json.dart: """, _toEncodable is __t11, false), _bufferSize, addChunk);
  if (bytes.length == 1) return bytes[0];
  int length = 0;
- for (int i = 0;
- i < bytes.length;
- i++) {
+ for (int i = 0; i < bytes.length; i++) {
 length += bytes[i].length;
 }
  Uint8List result = new Uint8List(length);
- for (int i = 0, offset = 0;
- i < bytes.length;
- i++) {
+ for (int i = 0, offset = 0; i < bytes.length; i++) {
 var byteList = bytes[i];
  int end = offset + byteList.length;
  result.setRange(offset, end, byteList);
@@ -223,9 +217,7 @@ _isDone = true;
  void writeStringContent(String s) {
 int offset = 0;
  final int length = s.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
 int charCode = s.codeUnitAt(i);
  if (charCode > BACKSLASH) continue;
  if (charCode < 32) {
@@ -265,9 +257,7 @@ writeStringSlice(s, offset, length);
 }
 }
  void _checkCycle(object) {
-for (int i = 0;
- i < _seen.length;
- i++) {
+for (int i = 0; i < _seen.length; i++) {
 if (identical(object, _seen[i])) {
 throw new JsonCyclicError(object);
 }
@@ -338,9 +328,7 @@ return false;
 writeString('[');
  if (list.length > 0) {
 writeObject(list[0]);
- for (int i = 1;
- i < list.length;
- i++) {
+ for (int i = 1; i < list.length; i++) {
 writeString(',');
  writeObject(list[i]);
 }
@@ -372,9 +360,7 @@ writeString('[\n');
  _indentLevel++;
  writeIndentation(_indentLevel);
  writeObject(list[0]);
- for (int i = 1;
- i < list.length;
- i++) {
+ for (int i = 1; i < list.length; i++) {
 writeString(',\n');
  writeIndentation(_indentLevel);
  writeObject(list[i]);
@@ -449,9 +435,7 @@ _sink.writeCharCode(charCode);
  class _JsonStringStringifierPretty extends _JsonStringStringifier with _JsonPrettyPrintMixin {final String _indent;
  _JsonStringStringifierPretty(StringSink sink, Function toEncodable, this._indent) : super(sink, toEncodable);
  void writeIndentation(int count) {
-for (int i = 0;
- i < count;
- i++) writeString(_indent);
+for (int i = 0; i < count; i++) writeString(_indent);
 }
 }
  class _JsonUtf8Stringifier extends _JsonStringifier {final int bufferSize;
@@ -481,9 +465,7 @@ addChunk(buffer, 0, index);
 writeAsciiString(number.toString());
 }
  void writeAsciiString(String string) {
-for (int i = 0;
- i < string.length;
- i++) {
+for (int i = 0; i < string.length; i++) {
 int char = string.codeUnitAt(i);
  assert (char <= 0x7f); writeByte(char);
 }
@@ -492,9 +474,7 @@ int char = string.codeUnitAt(i);
 writeStringSlice(string, 0, string.length);
 }
  void writeStringSlice(String string, int start, int end) {
-for (int i = start;
- i < end;
- i++) {
+for (int i = start; i < end; i++) {
 int char = string.codeUnitAt(i);
  if (char <= 0x7f) {
 writeByte(char);
@@ -566,9 +546,7 @@ buffer.setRange(index, end, indent);
  index = end;
 }
  else {
-for (int i = 0;
- i < indentLength;
- i++) {
+for (int i = 0; i < indentLength; i++) {
 writeByte(indent[i]);
 }
 }

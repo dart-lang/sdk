@@ -119,106 +119,103 @@ part of dart.collection;
    StringBuffer buffer = new StringBuffer();
    if (separator == null || separator == "") {
     do {
-      buffer.write("${iterator.current}
-    ");
+      buffer.write("${iterator.current}");
+      }
+     while (iterator.moveNext());}
+   else {
+    buffer.write("${iterator.current}");
+     while (iterator.moveNext()) {
+      buffer.write(separator);
+       buffer.write("${iterator.current}");
+      }
     }
-   while (iterator.moveNext());}
- else {
-  buffer.write("${iterator.current}
-");
- while (iterator.moveNext()) {
-  buffer.write(separator);
-   buffer.write("${iterator.current}
-");
-}
-}
- return buffer.toString();
-}
- bool any(bool test(E element)) {
-for (E element in this) {
-if (test(element)) return true;
-}
- return false;
-}
- Iterable<E> take(int n) {
-return new TakeIterable<E>(this, n);
-}
- Iterable<E> takeWhile(bool test(E value)) {
-return new TakeWhileIterable<E>(this, test);
-}
- Iterable<E> skip(int n) {
-return new SkipIterable<E>(this, n);
-}
- Iterable<E> skipWhile(bool test(E value)) {
-return new SkipWhileIterable<E>(this, test);
-}
- E get first {
-Iterator it = iterator;
- if (!it.moveNext()) {
-throw IterableElementError.noElement();
-}
- return DDC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 220, column 12 of dart:collection/set.dart: """, it.current is E, false);
-}
- E get last {
-Iterator it = iterator;
- if (!it.moveNext()) {
-throw IterableElementError.noElement();
-}
- E result;
- do {
-result = DDC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 230, column 16 of dart:collection/set.dart: """, it.current is E, false);
-}
- while (it.moveNext()); return result;
-}
- E firstWhere(bool test(E value), {
-E orElse()}
-) {
-for (E element in this) {
-if (test(element)) return element;
-}
- if (orElse != null) return orElse();
- throw IterableElementError.noElement();
-}
- E lastWhere(bool test(E value), {
-E orElse()}
-) {
-E result = ((__x43) => DDC$RT.cast(__x43, Null, E, "CastLiteral", """line 244, column 16 of dart:collection/set.dart: """, __x43 is E, false))(null);
- bool foundMatching = false;
- for (E element in this) {
-if (test(element)) {
-result = element;
- foundMatching = true;
-}
-}
- if (foundMatching) return result;
- if (orElse != null) return orElse();
- throw IterableElementError.noElement();
-}
- E singleWhere(bool test(E value)) {
-E result = ((__x44) => DDC$RT.cast(__x44, Null, E, "CastLiteral", """line 258, column 16 of dart:collection/set.dart: """, __x44 is E, false))(null);
- bool foundMatching = false;
- for (E element in this) {
-if (test(element)) {
-if (foundMatching) {
-  throw IterableElementError.tooMany();
+   return buffer.toString();
   }
- result = element;
- foundMatching = true;
-}
-}
- if (foundMatching) return result;
- throw IterableElementError.noElement();
-}
+ bool any(bool test(E element)) {
+  for (E element in this) {
+    if (test(element)) return true;
+    }
+   return false;
+  }
+ Iterable<E> take(int n) {
+  return new TakeIterable<E>(this, n);
+  }
+ Iterable<E> takeWhile(bool test(E value)) {
+  return new TakeWhileIterable<E>(this, test);
+  }
+ Iterable<E> skip(int n) {
+  return new SkipIterable<E>(this, n);
+  }
+ Iterable<E> skipWhile(bool test(E value)) {
+  return new SkipWhileIterable<E>(this, test);
+  }
+ E get first {
+  Iterator it = iterator;
+   if (!it.moveNext()) {
+    throw IterableElementError.noElement();
+    }
+   return DDC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 220, column 12 of dart:collection/set.dart: """, it.current is E, false);
+  }
+ E get last {
+  Iterator it = iterator;
+   if (!it.moveNext()) {
+    throw IterableElementError.noElement();
+    }
+   E result;
+   do {
+    result = DDC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 230, column 16 of dart:collection/set.dart: """, it.current is E, false);
+    }
+   while (it.moveNext()); return result;
+  }
+ E firstWhere(bool test(E value), {
+  E orElse()}
+) {
+  for (E element in this) {
+    if (test(element)) return element;
+    }
+   if (orElse != null) return orElse();
+   throw IterableElementError.noElement();
+  }
+ E lastWhere(bool test(E value), {
+  E orElse()}
+) {
+  E result = ((__x43) => DDC$RT.cast(__x43, Null, E, "CastLiteral", """line 244, column 16 of dart:collection/set.dart: """, __x43 is E, false))(null);
+   bool foundMatching = false;
+   for (E element in this) {
+    if (test(element)) {
+      result = element;
+       foundMatching = true;
+      }
+    }
+   if (foundMatching) return result;
+   if (orElse != null) return orElse();
+   throw IterableElementError.noElement();
+  }
+ E singleWhere(bool test(E value)) {
+  E result = ((__x44) => DDC$RT.cast(__x44, Null, E, "CastLiteral", """line 258, column 16 of dart:collection/set.dart: """, __x44 is E, false))(null);
+   bool foundMatching = false;
+   for (E element in this) {
+    if (test(element)) {
+      if (foundMatching) {
+        throw IterableElementError.tooMany();
+        }
+       result = element;
+       foundMatching = true;
+      }
+    }
+   if (foundMatching) return result;
+   throw IterableElementError.noElement();
+  }
  E elementAt(int index) {
-if (index is! int) throw new ArgumentError.notNull("index");
- RangeError.checkNotNegative(index, "index");
- int elementIndex = 0;
- for (E element in this) {
-if (index == elementIndex) return element;
- elementIndex++;
-}
- throw new RangeError.index(index, this, "index", null, elementIndex);
-}
+  if (index is! int) throw new ArgumentError.notNull("index");
+   RangeError.checkNotNegative(index, "index");
+   int elementIndex = 0;
+   for (E element in this) {
+    if (index == elementIndex) return element;
+     elementIndex++;
+    }
+   throw new RangeError.index(index, this, "index", null, elementIndex);
+  }
 }
  abstract class SetBase<E> extends SetMixin<E> {static String setToString(Set set) => IterableBase.iterableToFullString(set, '{', '}');
 }

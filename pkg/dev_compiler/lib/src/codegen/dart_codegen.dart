@@ -17,6 +17,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/checker/rules.dart';
+import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
 import 'ast_builder.dart';
@@ -64,32 +65,53 @@ class DdcRuntime {
 
 // TODO(leafp) This is kind of a hack, but it works for now.
 class FileWriter extends java_core.PrintStringWriter {
-  bool _format;
+  final CompilerOptions options;
   String _path;
-  FileWriter(this._format, this._path);
+  FileWriter(this.options, this._path);
   int indent = 0;
+  int withinInterpolationExpression = 0;
+  bool insideForLoop = false;
 
   void print(x) {
-    if (_format) {
+    if (!options.cheapTestFormat) {
       super.print(x);
       return;
     }
 
-    if (x == '{') {
-      indent++;
-      x = '{\n${"  " * indent}';
-    } else if (x == ';') {
-      x = ';\n${"  " * indent}';
-    } else if (x == '}') {
-      indent--;
-      x = '}\n${"  " * indent}';
+    switch (x) {
+      case '{':
+        indent++;
+        x = '{\n${"  " * indent}';
+        break;
+      case ';':
+        if (!insideForLoop) {
+          x = ';\n${"  " * indent}';
+        }
+        break;
+      case 'for (':
+        insideForLoop = true;
+        break;
+      case ') ':
+        insideForLoop = false;
+        break;
+      case r'${':
+        withinInterpolationExpression++;
+        break;
+      case '}':
+        if (withinInterpolationExpression > 0) {
+          withinInterpolationExpression--;
+        } else {
+          indent--;
+          x = '}\n${"  " * indent}';
+        }
+        break;
     }
     super.print(x);
   }
 
   void finalize() {
     String s = toString();
-    if (_format) {
+    if (options.formatOutput && !options.cheapTestFormat) {
       DartFormatter d = new DartFormatter();
       try {
         _log.fine("Formatting file $_path ");
@@ -390,12 +412,12 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
 }
 
 class DartGenerator extends codegenerator.CodeGenerator {
-  bool _format;
+  final CompilerOptions options;
   reifier.VariableManager _vm;
   Set<LibraryElement> _extraImports;
   TypeRules _rules;
 
-  DartGenerator(String outDir, Uri root, TypeRules rules, this._format)
+  DartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : _rules = rules,
         super(outDir, root, rules);
 
@@ -403,7 +425,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
     var uri = unit.element.source.uri;
     _log.fine("Generating unit " + uri.toString());
     FileWriter out = new FileWriter(
-        _format, path.join(libraryDir, '${uri.pathSegments.last}'));
+        options, path.join(libraryDir, '${uri.pathSegments.last}'));
     var tm = new reifier.TypeManager(_vm);
     var r = new reifier.UnitCoercionReifier(tm, _vm, _rules);
     r.reify(unit);
@@ -458,16 +480,16 @@ class EmptyUnitGenerator extends UnitGeneratorCommon {
 
 // This class emits the code unchanged, for comparison purposes.
 class EmptyDartGenerator extends codegenerator.CodeGenerator {
-  bool _format;
+  final CompilerOptions options;
 
-  EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this._format)
+  EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
     _log.fine("Emitting original unit " + uri.toString());
     FileWriter out = new FileWriter(
-        _format, path.join(libraryDir, '${uri.pathSegments.last}'));
+        options, path.join(libraryDir, '${uri.pathSegments.last}'));
     var unitGen = new EmptyUnitGenerator(unit, out);
     unitGen.generate();
     out.finalize();

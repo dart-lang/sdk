@@ -24,12 +24,11 @@ part of dart.async;
    return null;
   }
  String toString() {
-  String result = "Uncaught Error: ${error}
-";
- if (stackTrace != null) {
-  result += "\nStack Trace:\n$stackTrace";
+  String result = "Uncaught Error: ${error}";
+   if (stackTrace != null) {
+    result += "\nStack Trace:\n$stackTrace";
+    }
+   return result;
   }
- return result;
-}
 }
  typedef dynamic __t0(dynamic __u1);

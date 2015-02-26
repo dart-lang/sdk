@@ -7,9 +7,7 @@ part of dart._internal;
  Iterator<E> get iterator => new ListIterator<E>(this);
  void forEach(void action(E element)) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   action(elementAt(i));
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -32,9 +30,7 @@ if (length == 0) throw IterableElementError.noElement();
 }
  bool contains(Object element) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   if (elementAt(i) == element) return true;
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -44,9 +40,7 @@ int length = this.length;
 }
  bool every(bool test(E element)) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   if (!test(elementAt(i))) return false;
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -56,9 +50,7 @@ int length = this.length;
 }
  bool any(bool test(E element)) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   if (test(elementAt(i))) return true;
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
@@ -70,9 +62,7 @@ int length = this.length;
 E orElse()}
 ) {
 int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   E element = elementAt(i);
    if (test(element)) return element;
    if (length != this.length) {
@@ -86,9 +76,7 @@ int length = this.length;
 E orElse()}
 ) {
 int length = this.length;
- for (int i = length - 1;
- i >= 0;
- i--) {
+ for (int i = length - 1; i >= 0; i--) {
   E element = elementAt(i);
    if (test(element)) return element;
    if (length != this.length) {
@@ -102,9 +90,7 @@ int length = this.length;
 int length = this.length;
  E match = ((__x0) => DDC$RT.cast(__x0, Null, E, "CastLiteral", """line 125, column 15 of dart:_internal/iterable.dart: """, __x0 is E, false))(null);
  bool matchFound = false;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
   E element = elementAt(i);
    if (test(element)) {
     if (matchFound) {
@@ -124,35 +110,30 @@ int length = this.length;
 int length = this.length;
  if (!separator.isEmpty) {
   if (length == 0) return "";
-   String first = "${elementAt(0)}
-";
- if (length != this.length) {
-  throw new ConcurrentModificationError(this);
-  }
- StringBuffer buffer = new StringBuffer(first);
- for (int i = 1;
- i < length;
- i++) {
-  buffer.write(separator);
-   buffer.write(elementAt(i));
+   String first = "${elementAt(0)}";
    if (length != this.length) {
     throw new ConcurrentModificationError(this);
     }
+   StringBuffer buffer = new StringBuffer(first);
+   for (int i = 1; i < length; i++) {
+    buffer.write(separator);
+     buffer.write(elementAt(i));
+     if (length != this.length) {
+      throw new ConcurrentModificationError(this);
+      }
+    }
+   return buffer.toString();
   }
- return buffer.toString();
-}
  else {
-StringBuffer buffer = new StringBuffer();
- for (int i = 0;
- i < length;
- i++) {
-  buffer.write(elementAt(i));
-   if (length != this.length) {
-    throw new ConcurrentModificationError(this);
+  StringBuffer buffer = new StringBuffer();
+   for (int i = 0; i < length; i++) {
+    buffer.write(elementAt(i));
+     if (length != this.length) {
+      throw new ConcurrentModificationError(this);
+      }
     }
+   return buffer.toString();
   }
- return buffer.toString();
-}
 }
  Iterable<E> where(bool test(E element)) => super.where(test);
  Iterable map(f(E element)) => new MappedListIterable(this, f);
@@ -160,27 +141,23 @@ StringBuffer buffer = new StringBuffer();
 int length = this.length;
  if (length == 0) throw IterableElementError.noElement();
  E value = elementAt(0);
- for (int i = 1;
- i < length;
- i++) {
-value = combine(value, elementAt(i));
- if (length != this.length) {
-  throw new ConcurrentModificationError(this);
+ for (int i = 1; i < length; i++) {
+  value = combine(value, elementAt(i));
+   if (length != this.length) {
+    throw new ConcurrentModificationError(this);
+    }
   }
-}
  return value;
 }
  fold(var initialValue, combine(var previousValue, E element)) {
 var value = initialValue;
  int length = this.length;
- for (int i = 0;
- i < length;
- i++) {
-value = combine(value, elementAt(i));
- if (length != this.length) {
-  throw new ConcurrentModificationError(this);
+ for (int i = 0; i < length; i++) {
+  value = combine(value, elementAt(i));
+   if (length != this.length) {
+    throw new ConcurrentModificationError(this);
+    }
   }
-}
  return value;
 }
  Iterable<E> skip(int count) => new SubListIterable<E>(this, count, null);
@@ -192,25 +169,21 @@ bool growable : true}
 ) {
 List<E> result;
  if (growable) {
-result = new List<E>()..length = length;
-}
+  result = new List<E>()..length = length;
+  }
  else {
-result = new List<E>(length);
-}
- for (int i = 0;
- i < length;
- i++) {
-result[i] = elementAt(i);
-}
+  result = new List<E>(length);
+  }
+ for (int i = 0; i < length; i++) {
+  result[i] = elementAt(i);
+  }
  return result;
 }
  Set<E> toSet() {
 Set<E> result = new Set<E>();
- for (int i = 0;
- i < length;
- i++) {
-result.add(elementAt(i));
-}
+ for (int i = 0; i < length; i++) {
+  result.add(elementAt(i));
+  }
  return result;
 }
 }
@@ -222,8 +195,8 @@ RangeError.checkNotNegative(_start, "start");
  if (_endOrLength != null) {
 RangeError.checkNotNegative(_endOrLength, "end");
  if (_start > _endOrLength) {
-throw new RangeError.range(_start, 0, _endOrLength, "start");
-}
+  throw new RangeError.range(_start, 0, _endOrLength, "start");
+  }
 }
 }
  int get _endIndex {
@@ -279,9 +252,7 @@ int start = _start;
  int length = end - start;
  if (length < 0) length = 0;
  List result = growable ? (new List<E>()..length = length) : new List<E>(length);
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
 result[i] = _iterable.elementAt(start + i);
  if (_iterable.length < end) throw new ConcurrentModificationError(this);
 }
@@ -512,9 +483,7 @@ int length = _iterable.length - _skipCount;
  SkipIterator(this._iterator, this._skipCount) {
 assert (_skipCount is int && _skipCount >= 0);}
  bool moveNext() {
-for (int i = 0;
- i < _skipCount;
- i++) _iterator.moveNext();
+for (int i = 0; i < _skipCount; i++) _iterator.moveNext();
  _skipCount = 0;
  return _iterator.moveNext();
 }
@@ -654,9 +623,7 @@ initialValue = combine(initialValue, element);
  static void removeWhereList(List list, bool test(var element)) {
 List retained = [];
  int length = list.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
 var element = list[i];
  if (!test(element)) {
 retained.add(element);
@@ -666,9 +633,7 @@ throw new ConcurrentModificationError(list);
 }
 }
  if (retained.length == length) return; list.length = retained.length;
- for (int i = 0;
- i < retained.length;
- i++) {
+ for (int i = 0; i < retained.length; i++) {
 list[i] = retained[i];
 }
 }
@@ -721,9 +686,7 @@ result = element;
  throw IterableElementError.noElement();
 }
  static dynamic lastWhereList(List list, bool test(dynamic value), dynamic orElse()) {
-for (int i = list.length - 1;
- i >= 0;
- i--) {
+for (int i = list.length - 1; i >= 0; i--) {
 dynamic element = list[i];
  if (test(element)) return element;
 }
@@ -762,21 +725,16 @@ StringBuffer buffer = new StringBuffer();
 }
  static String joinList(List list, [String separator]) {
 if (list.isEmpty) return "";
- if (list.length == 1) return "${list[0]}
-";
+ if (list.length == 1) return "${list[0]}";
  StringBuffer buffer = new StringBuffer();
  if (separator.isEmpty) {
-for (int i = 0;
- i < list.length;
- i++) {
+for (int i = 0; i < list.length; i++) {
 buffer.write(list[i]);
 }
 }
  else {
 buffer.write(list[0]);
- for (int i = 1;
- i < list.length;
- i++) {
+ for (int i = 1; i < list.length; i++) {
 buffer.write(separator);
  buffer.write(list[i]);
 }
@@ -894,9 +852,7 @@ int delta = insertLength - removeLength;
 }
  static void fillRangeList(List list, int start, int end, fillValue) {
 _rangeCheck(list, start, end);
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
 list[i] = fillValue;
 }
 }

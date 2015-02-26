@@ -73,9 +73,7 @@ if (start != end && _isLeadSurrogate(str.codeUnitAt(end - 1))) {
 end--;
 }
  int stringIndex;
- for (stringIndex = start;
- stringIndex < end;
- stringIndex++) {
+ for (stringIndex = start; stringIndex < end; stringIndex++) {
 int codeUnit = str.codeUnitAt(stringIndex);
  if (codeUnit <= _ONE_BYTE_LIMIT) {
   if (_bufferIndex >= _buffer.length) break;
@@ -223,9 +221,7 @@ int value = _value;
  int scanOneByteCharacters(units, int from) {
 final to = endIndex;
  final mask = _ONE_BYTE_LIMIT;
- for (var i = from;
- i < to;
- i++) {
+ for (var i = from; i < to; i++) {
 final unit = units[i];
  if ((unit & mask) != unit) return i - from;
 }
@@ -245,9 +241,8 @@ break loop;
  if ((unit & 0xC0) != 0x80) {
 expectedUnits = 0;
  if (!_allowMalformed) {
-  throw new FormatException("Bad UTF-8 encoding 0x${unit.toRadixString(16)}
-");
-}
+  throw new FormatException("Bad UTF-8 encoding 0x${unit.toRadixString(16)}");
+  }
  _isFirstCharacter = false;
  _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
  break multibyte;
@@ -260,16 +255,14 @@ value = (value << 6) | (unit & 0x3f);
 }
  while (expectedUnits > 0); if (value <= _LIMITS[extraUnits - 1]) {
 if (!_allowMalformed) {
-throw new FormatException("Overlong encoding of 0x${value.toRadixString(16)}
-");
+throw new FormatException("Overlong encoding of 0x${value.toRadixString(16)}");
 }
  expectedUnits = extraUnits = 0;
  value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
 }
  if (value > _FOUR_BYTE_LIMIT) {
 if (!_allowMalformed) {
-throw new FormatException("Character outside valid Unicode range: " "0x${value.toRadixString(16)}
-");
+throw new FormatException("Character outside valid Unicode range: " "0x${value.toRadixString(16)}");
 }
  value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
 }
@@ -289,8 +282,7 @@ _isFirstCharacter = false;
  int unit = codeUnits[i++];
  if (unit < 0) {
 if (!_allowMalformed) {
-throw new FormatException("Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}
-");
+throw new FormatException("Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}");
 }
  _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
 }
@@ -311,8 +303,7 @@ value = unit & 0x07;
  continue loop;
 }
  if (!_allowMalformed) {
-throw new FormatException("Bad UTF-8 encoding 0x${unit.toRadixString(16)}
-");
+throw new FormatException("Bad UTF-8 encoding 0x${unit.toRadixString(16)}");
 }
  value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
  expectedUnits = extraUnits = 0;

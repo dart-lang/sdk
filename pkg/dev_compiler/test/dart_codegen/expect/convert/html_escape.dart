@@ -19,9 +19,7 @@ var val = _convert(text, 0, text.length);
 }
  String _convert(String text, int start, int end) {
 StringBuffer result = null;
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
   var ch = text[i];
    String replace = null;
    switch (ch) {case '&': replace = '&amp;';

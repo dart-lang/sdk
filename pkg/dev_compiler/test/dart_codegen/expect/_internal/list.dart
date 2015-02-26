@@ -119,9 +119,7 @@ RangeError.checkValidIndex(index, this);
  bool containsKey(int key) => key is int && key >= 0 && key < length;
  void forEach(void f(int key, E value)) {
 int length = _values.length;
- for (int i = 0;
- i < length;
- i++) {
+ for (int i = 0; i < length; i++) {
 f(i, _values[i]);
  if (length != _values.length) {
 throw new ConcurrentModificationError(_values);

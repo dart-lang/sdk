@@ -1,16 +1,12 @@
 part of dart._internal;
  class Lists {static void copy(List src, int srcStart, List dst, int dstStart, int count) {
   if (srcStart < dstStart) {
-    for (int i = srcStart + count - 1, j = dstStart + count - 1;
-     i >= srcStart;
-     i--, j--) {
+    for (int i = srcStart + count - 1, j = dstStart + count - 1; i >= srcStart; i--, j--) {
       dst[j] = src[i];
       }
     }
    else {
-    for (int i = srcStart, j = dstStart;
-     i < srcStart + count;
-     i++, j++) {
+    for (int i = srcStart, j = dstStart; i < srcStart + count; i++, j++) {
       dst[j] = src[i];
       }
     }
@@ -20,9 +16,7 @@ part of dart._internal;
    if (!(b is List)) return false;
    int length = a.length;
    if (length != b.length) return false;
-   for (int i = 0;
-   i < length;
-   i++) {
+   for (int i = 0; i < length; i++) {
     if (!identical(a[i], b[i])) return false;
     }
    return true;
@@ -34,9 +28,7 @@ part of dart._internal;
    if (startIndex < 0) {
     startIndex = 0;
     }
-   for (int i = startIndex;
-   i < endIndex;
-   i++) {
+   for (int i = startIndex; i < endIndex; i++) {
     if (a[i] == element) {
       return i;
       }
@@ -50,9 +42,7 @@ part of dart._internal;
    if (startIndex >= a.length) {
     startIndex = a.length - 1;
     }
-   for (int i = startIndex;
-   i >= 0;
-   i--) {
+   for (int i = startIndex; i >= 0; i--) {
     if (a[i] == element) {
       return i;
       }
@@ -66,9 +56,8 @@ part of dart._internal;
   RangeError.checkNotNegative(length);
    RangeError.checkNotNegative(start);
    if (start + length > a.length) {
-    String message = "$start + $length must be in the range [0..${a.length}
-  ]";
-   throw new RangeError.range(length, 0, a.length - start, "length", message);
+    String message = "$start + $length must be in the range [0..${a.length}]";
+     throw new RangeError.range(length, 0, a.length - start, "length", message);
+    }
   }
-}
 }

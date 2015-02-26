@@ -18,9 +18,7 @@ part of dart._internal;
     }
   }
  static void _insertionSort(List a, int left, int right, int compare(a, b)) {
-  for (int i = left + 1;
-   i <= right;
-   i++) {
+  for (int i = left + 1; i <= right; i++) {
     var el = a[i];
      int j = i;
      while ((j > left) && (compare(a[j - 1], el) > 0)) {
@@ -99,9 +97,7 @@ part of dart._internal;
    bool pivots_are_equal = (compare(pivot1, pivot2) == 0);
    if (pivots_are_equal) {
     var pivot = pivot1;
-     for (int k = less;
-     k <= great;
-     k++) {
+     for (int k = less; k <= great; k++) {
       var ak = a[k];
        int comp = compare(ak, pivot);
        if (comp == 0) continue;
@@ -135,9 +131,7 @@ part of dart._internal;
       }
     }
    else {
-    for (int k = less;
-     k <= great;
-     k++) {
+    for (int k = less; k <= great; k++) {
       var ak = a[k];
        int comp_pivot1 = compare(ak, pivot1);
        if (comp_pivot1 < 0) {
@@ -190,9 +184,7 @@ part of dart._internal;
      while (compare(a[great], pivot2) == 0) {
       great--;
       }
-     for (int k = less;
-     k <= great;
-     k++) {
+     for (int k = less; k <= great; k++) {
       var ak = a[k];
        int comp_pivot1 = compare(ak, pivot1);
        if (comp_pivot1 == 0) {

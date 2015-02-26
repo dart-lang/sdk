@@ -37,9 +37,7 @@ String source = ((__x3) => DDC$RT.cast(__x3, dynamic, String, "CastGeneral", """
  int lineNum = 1;
  int lineStart = 0;
  bool lastWasCR;
- for (int i = 0;
- i < offset;
- i++) {
+ for (int i = 0; i < offset; i++) {
 int char = ((__x4) => DDC$RT.cast(__x4, dynamic, int, "CastGeneral", """line 123, column 18 of dart:core/exceptions.dart: """, __x4 is int, true))(source.codeUnitAt(i));
  if (char == 0x0a) {
   if (lineStart != i || !lastWasCR) {
@@ -55,22 +53,18 @@ int char = ((__x4) => DDC$RT.cast(__x4, dynamic, int, "CastGeneral", """line 123
   }
 }
  if (lineNum > 1) {
-report += " (at line $lineNum, character ${offset - lineStart + 1}
-)\n";
+report += " (at line $lineNum, character ${offset - lineStart + 1})\n";
 }
  else {
-report += " (at character ${offset + 1}
-)\n";
+report += " (at character ${offset + 1})\n";
 }
  int lineEnd = DDC$RT.cast(source.length, dynamic, int, "CastGeneral", """line 141, column 19 of dart:core/exceptions.dart: """, source.length is int, true);
- for (int i = offset;
- i < source.length;
- i++) {
+ for (int i = offset; i < source.length; i++) {
 int char = ((__x5) => DDC$RT.cast(__x5, dynamic, int, "CastGeneral", """line 143, column 18 of dart:core/exceptions.dart: """, __x5 is int, true))(source.codeUnitAt(i));
  if (char == 0x0a || char == 0x0d) {
-lineEnd = i;
- break;
-}
+  lineEnd = i;
+   break;
+  }
 }
  int length = lineEnd - lineStart;
  int start = lineStart;
@@ -80,23 +74,22 @@ lineEnd = i;
  if (length > 78) {
 int index = offset - lineStart;
  if (index < 75) {
-end = start + 75;
- postfix = "...";
-}
+  end = start + 75;
+   postfix = "...";
+  }
  else if (end - offset < 75) {
-start = end - 75;
- prefix = "...";
-}
+  start = end - 75;
+   prefix = "...";
+  }
  else {
-start = offset - 36;
- end = offset + 36;
- prefix = postfix = "...";
-}
+  start = offset - 36;
+   end = offset + 36;
+   prefix = postfix = "...";
+  }
 }
  String slice = ((__x6) => DDC$RT.cast(__x6, dynamic, String, "CastGeneral", """line 171, column 20 of dart:core/exceptions.dart: """, __x6 is String, true))(source.substring(start, end));
  int markOffset = offset - start + prefix.length;
- return "$report$prefix$slice$postfix\n${" " * markOffset}
-^\n";
+ return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
 }
 }
  class IntegerDivisionByZeroException implements Exception {const IntegerDivisionByZeroException();

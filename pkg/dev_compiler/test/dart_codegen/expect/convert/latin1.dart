@@ -51,9 +51,7 @@ _sink.add(new String.fromCharCodes(source, start, end));
 }
  void addSlice(List<int> source, int start, int end, bool isLast) {
 RangeError.checkValidRange(start, end, source.length);
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
 int char = source[i];
  if (char > _LATIN1_MASK || char < 0) {
 throw new FormatException("Source contains non-Latin-1 characters.");
@@ -70,9 +68,7 @@ close();
  class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {_Latin1AllowInvalidDecoderSink(StringConversionSink sink) : super(sink);
  void addSlice(List<int> source, int start, int end, bool isLast) {
 RangeError.checkValidRange(start, end, source.length);
- for (int i = start;
- i < end;
- i++) {
+ for (int i = start; i < end; i++) {
 int char = source[i];
  if (char > _LATIN1_MASK || char < 0) {
 if (i > start) _addSliceToSink(source, start, i, false);

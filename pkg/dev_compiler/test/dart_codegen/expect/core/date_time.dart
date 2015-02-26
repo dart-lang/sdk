@@ -109,81 +109,68 @@ part of dart.core;
   int absN = n.abs();
    String sign = n < 0 ? "-" : "";
    if (absN >= 1000) return "$n";
-   if (absN >= 100) return "${sign}
-0$absN";
- if (absN >= 10) return "${sign}
-00$absN";
- return "${sign}
-000$absN";
-}
+   if (absN >= 100) return "${sign}0$absN";
+   if (absN >= 10) return "${sign}00$absN";
+   return "${sign}000$absN";
+  }
  static String _sixDigits(int n) {
-assert (n < -9999 || n > 9999); int absN = n.abs();
- String sign = n < 0 ? "-" : "+";
- if (absN >= 100000) return "$sign$absN";
- return "${sign}
-0$absN";
-}
+  assert (n < -9999 || n > 9999); int absN = n.abs();
+   String sign = n < 0 ? "-" : "+";
+   if (absN >= 100000) return "$sign$absN";
+   return "${sign}0$absN";
+  }
  static String _threeDigits(int n) {
-if (n >= 100) return "${n}
-";
- if (n >= 10) return "0${n}
-";
- return "00${n}
-";
-}
+  if (n >= 100) return "${n}";
+   if (n >= 10) return "0${n}";
+   return "00${n}";
+  }
  static String _twoDigits(int n) {
-if (n >= 10) return "${n}
-";
- return "0${n}
-";
-}
+  if (n >= 10) return "${n}";
+   return "0${n}";
+  }
  String toString() {
-String y = _fourDigits(year);
- String m = _twoDigits(month);
- String d = _twoDigits(day);
- String h = _twoDigits(hour);
- String min = _twoDigits(minute);
- String sec = _twoDigits(second);
- String ms = _threeDigits(millisecond);
- if (isUtc) {
-return "$y-$m-$d $h:$min:$sec.${ms}
-Z";
-}
- else {
-return "$y-$m-$d $h:$min:$sec.$ms";
-}
-}
+  String y = _fourDigits(year);
+   String m = _twoDigits(month);
+   String d = _twoDigits(day);
+   String h = _twoDigits(hour);
+   String min = _twoDigits(minute);
+   String sec = _twoDigits(second);
+   String ms = _threeDigits(millisecond);
+   if (isUtc) {
+    return "$y-$m-$d $h:$min:$sec.${ms}Z";
+    }
+   else {
+    return "$y-$m-$d $h:$min:$sec.$ms";
+    }
+  }
  String toIso8601String() {
-String y = (year >= -9999 && year <= 9999) ? _fourDigits(year) : _sixDigits(year);
- String m = _twoDigits(month);
- String d = _twoDigits(day);
- String h = _twoDigits(hour);
- String min = _twoDigits(minute);
- String sec = _twoDigits(second);
- String ms = _threeDigits(millisecond);
- if (isUtc) {
-return "$y-$m-${d}
-T$h:$min:$sec.${ms}
-Z";
-}
- else {
-return "$y-$m-${d}
-T$h:$min:$sec.$ms";
-}
-}
+  String y = (year >= -9999 && year <= 9999) ? _fourDigits(year) : _sixDigits(year);
+   String m = _twoDigits(month);
+   String d = _twoDigits(day);
+   String h = _twoDigits(hour);
+   String min = _twoDigits(minute);
+   String sec = _twoDigits(second);
+   String ms = _threeDigits(millisecond);
+   if (isUtc) {
+    return "$y-$m-${d}T$h:$min:$sec.${ms}Z";
+    }
+   else {
+    return "$y-$m-${d}T$h:$min:$sec.$ms";
+    }
+  }
  DateTime add(Duration duration) {
-int ms = millisecondsSinceEpoch;
- return new DateTime.fromMillisecondsSinceEpoch(ms + duration.inMilliseconds, isUtc: isUtc);
-}
+  int ms = millisecondsSinceEpoch;
+   return new DateTime.fromMillisecondsSinceEpoch(ms + duration.inMilliseconds, isUtc: isUtc);
+  }
  DateTime subtract(Duration duration) {
-int ms = millisecondsSinceEpoch;
- return new DateTime.fromMillisecondsSinceEpoch(ms - duration.inMilliseconds, isUtc: isUtc);
-}
+  int ms = millisecondsSinceEpoch;
+   return new DateTime.fromMillisecondsSinceEpoch(ms - duration.inMilliseconds, isUtc: isUtc);
+  }
  Duration difference(DateTime other) {
-int ms = millisecondsSinceEpoch;
- int otherMs = other.millisecondsSinceEpoch;
- return new Duration(milliseconds: ms - otherMs);
-}
+  int ms = millisecondsSinceEpoch;
+   int otherMs = other.millisecondsSinceEpoch;
+   return new Duration(milliseconds: ms - otherMs);
+  }
  external DateTime._internal(int year, int month, int day, int hour, int minute, int second, int millisecond, bool isUtc);
  external DateTime._now();
  external static int _brokenDownDateToMillisecondsSinceEpoch(int year, int month, int day, int hour, int minute, int second, int millisecond, bool isUtc);

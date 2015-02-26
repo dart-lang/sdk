@@ -14,9 +14,7 @@ part of dart.core;
    else {
     result = new List<E>(length);
     }
-   for (int i = 0;
-   i < length;
-   i++) {
+   for (int i = 0; i < length; i++) {
     result[i] = generator(i);
     }
    return result;
