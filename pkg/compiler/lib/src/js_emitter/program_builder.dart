@@ -356,7 +356,7 @@ class ProgramBuilder {
         runtimeTypeGenerator.generateTypeVariableReaderStubs(element);
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
-    if (element == _compiler.objectClass) {
+    if (_compiler.enabledNoSuchMethod && element == _compiler.objectClass) {
       Map<String, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((String name, Selector selector) {
