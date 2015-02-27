@@ -363,7 +363,26 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
   visitMethodInvocation(MethodInvocation node) {
     // TODO(sigmund): follow up with analyzer team - why is this needed?
     visitSimpleIdentifier(node.methodName);
-    return super.visitMethodInvocation(node);
+    super.visitMethodInvocation(node);
+
+    var e = node.methodName.staticElement;
+    if (e is FunctionElement &&
+        e.library.name == '_foreign_helper' &&
+        e.name == 'JS') {
+      // Fix types for JS builtin calls.
+      //
+      // This code was taken from analyzer. It's not super sophisticated:
+      // only looks for the type name in dart:core, so we just copy it here.
+      //
+      // TODO(jmesserly): we'll likely need something that can handle a wider
+      // variety of types, especially when we get to JS interop.
+      var args = node.argumentList.arguments;
+      if (args.isNotEmpty && args.first is SimpleStringLiteral) {
+        var coreLib = _typeProvider.objectType.element.library;
+        var classElem = coreLib.getType(args.first.stringValue);
+        if (classElem != null) node.staticType = classElem.type;
+      }
+    }
   }
 
   // Review note: no longer need to override visitFunctionExpression, this is

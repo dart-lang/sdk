@@ -3,7 +3,7 @@ var async;
   'use strict';
   dart.copyProperties(async, {
     get _hasDocument() {
-      return dart.equals(_foreign_helper.JS('String', 'typeof document'), 'object');
+      return dart.equals(typeof document, 'object');
     }
   });
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
@@ -1330,12 +1330,12 @@ var async;
     }
     static _initializeScheduleImmediate() {
       _js_helper.requiresPreamble();
-      if (_foreign_helper.JS('', 'self.scheduleImmediate') !== null) {
+      if (self.scheduleImmediate !== null) {
         return _scheduleImmediateJsOverride;
       }
-      if (dart.notNull(_foreign_helper.JS('', 'self.MutationObserver') !== null) && dart.notNull(_foreign_helper.JS('', 'self.document') !== null)) {
-        let div = _foreign_helper.JS('', 'self.document.createElement("div")');
-        let span = _foreign_helper.JS('', 'self.document.createElement("span")');
+      if (dart.notNull(self.MutationObserver !== null) && dart.notNull(self.document !== null)) {
+        let div = self.document.createElement("div");
+        let span = self.document.createElement("span");
         let storedCallback = null;
         // Function internalCallback: (dynamic) → dynamic
         function internalCallback(_) {
@@ -1345,15 +1345,15 @@ var async;
           dart.dinvokef(f);
         }
         ;
-        let observer = _foreign_helper.JS('', 'new self.MutationObserver(#)', _js_helper.convertDartClosureToJS(internalCallback, 1));
-        _foreign_helper.JS('', '#.observe(#, { childList: true })', observer, div);
+        let observer = new self.MutationObserver(_js_helper.convertDartClosureToJS(internalCallback, 1));
+        observer.observe(div, {childList: true});
         return (callback) => {
           dart.assert(storedCallback === null);
           _isolate_helper.enterJsAsync();
           storedCallback = callback;
-          _foreign_helper.JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div, span, div, span);
+          div.firstChild ? div.removeChild(span) : div.appendChild(span);
         };
-      } else if (_foreign_helper.JS('', 'self.setImmediate') !== null) {
+      } else if (self.setImmediate !== null) {
         return _scheduleImmediateWithSetImmediate;
       }
       return _scheduleImmediateWithTimer;
@@ -1366,7 +1366,7 @@ var async;
       }
       ;
       _isolate_helper.enterJsAsync();
-      _foreign_helper.JS('void', 'self.scheduleImmediate(#)', _js_helper.convertDartClosureToJS(internalCallback, 0));
+      self.scheduleImmediate(_js_helper.convertDartClosureToJS(internalCallback, 0));
     }
     static _scheduleImmediateWithSetImmediate(callback) {
       // Function internalCallback: () → dynamic
@@ -1376,7 +1376,7 @@ var async;
       }
       ;
       _isolate_helper.enterJsAsync();
-      _foreign_helper.JS('void', 'self.setImmediate(#)', _js_helper.convertDartClosureToJS(internalCallback, 0));
+      self.setImmediate(_js_helper.convertDartClosureToJS(internalCallback, 0));
     }
     static _scheduleImmediateWithTimer(callback) {
       Timer._createTimer(core.Duration.ZERO, callback);

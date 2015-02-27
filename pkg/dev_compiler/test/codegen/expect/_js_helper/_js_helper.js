@@ -26,7 +26,7 @@ var _js_helper;
       return dart.as(value, core.String);
     if (dart.is(value, core.num)) {
       if (!dart.equals(value, 0)) {
-        return dart.as(_foreign_helper.JS('String', '"" + (#)', value), core.String);
+        return "" + value;
       }
     } else if (true === value) {
       return 'true';
@@ -54,12 +54,12 @@ var _js_helper;
   }
   // Function traceHelper: (String) → void
   function traceHelper(method) {
-    if (_foreign_helper.JS('bool', '!this.cache')) {
-      _foreign_helper.JS('', 'this.cache = Object.create(null)');
+    if (!this.cache) {
+      this.cache = Object.create(null);
     }
-    if (_foreign_helper.JS('bool', '!this.cache[#]', method)) {
-      _foreign_helper.JS('', 'console.log(#)', method);
-      _foreign_helper.JS('', 'this.cache[#] = true', method);
+    if (!this.cache[method]) {
+      console.log(method);
+      this.cache[method] = true;
     }
   }
   class JSInvocationMirror extends dart.Object {
@@ -129,23 +129,23 @@ var _js_helper;
       let name = this._internalName;
       let arguments = this._arguments;
       let interceptedNames = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INTERCEPTED_NAMES, core.String));
-      let isIntercepted = dart.as(_foreign_helper.JS("bool", 'Object.prototype.hasOwnProperty.call(#, #)', interceptedNames, name), core.bool);
+      let isIntercepted = Object.prototype.hasOwnProperty.call(interceptedNames, name);
       if (isIntercepted) {
         receiver = interceptor;
-        if (_foreign_helper.JS('bool', '# === #', object, interceptor)) {
+        if (object === interceptor) {
           interceptor = null;
         }
       } else {
         interceptor = null;
       }
       let isCatchAll = false;
-      let method = _foreign_helper.JS('var', '#[#]', receiver, name);
-      if (_foreign_helper.JS('bool', 'typeof # != "function"', method)) {
+      let method = receiver[name];
+      if (typeof method != "function") {
         let baseName = _internal.Symbol.getName(dart.as(this.memberName, _internal.Symbol));
-        method = _foreign_helper.JS('', '#[# + "*"]', receiver, baseName);
+        method = receiver[baseName + "*"];
         if (method === null) {
           interceptor = _interceptors.getInterceptor(object);
-          method = _foreign_helper.JS('', '#[# + "*"]', interceptor, baseName);
+          method = interceptor[baseName + "*"];
           if (method !== null) {
             isIntercepted = true;
             receiver = interceptor;
@@ -155,7 +155,7 @@ var _js_helper;
         }
         isCatchAll = true;
       }
-      if (_foreign_helper.JS('bool', 'typeof # == "function"', method)) {
+      if (typeof method == "function") {
         if (isCatchAll) {
           return new CachedCatchAllInvocation(name, method, isIntercepted, dart.as(interceptor, _interceptors.Interceptor));
         } else {
@@ -191,7 +191,7 @@ var _js_helper;
       return false;
     }
     get isGetterStub() {
-      return dart.as(_foreign_helper.JS("bool", "!!#.$getterStub", this.jsFunction), core.bool);
+      return !!this.jsFunction.$getterStub;
     }
     invokeOn(victim, arguments) {
       let receiver = victim;
@@ -204,7 +204,7 @@ var _js_helper;
         if (this.cachedInterceptor !== null)
           receiver = this.cachedInterceptor;
       }
-      return _foreign_helper.JS("var", "#.apply(#, #)", this.jsFunction, receiver, arguments);
+      return this.jsFunction.apply(receiver, arguments);
     }
   }
   class CachedCatchAllInvocation extends CachedInvocation {
@@ -246,7 +246,7 @@ var _js_helper;
       for (let i = providedArgumentCount; i < fullParameterCount; i++) {
         arguments.add(getMetadata(this.info.defaultValue(i)));
       }
-      return _foreign_helper.JS("var", "#.apply(#, #)", this.jsFunction, receiver, arguments);
+      return this.jsFunction.apply(receiver, arguments);
     }
   }
   class CachedNoSuchMethodInvocation extends dart.Object {
@@ -276,40 +276,40 @@ var _js_helper;
       this.cachedSortedIndices = null;
     }
     ReflectionInfo(jsFunction) {
-      let data = dart.as(_foreign_helper.JS('JSExtendableArray|Null', '#.$reflectionInfo', jsFunction), core.List);
+      let data = dart.as(jsFunction.$reflectionInfo, core.List);
       if (data === null)
         return null;
       data = _interceptors.JSArray.markFixedList(data);
-      let requiredParametersInfo = dart.as(_foreign_helper.JS('int', '#[#]', data, REQUIRED_PARAMETERS_INFO), core.int);
-      let requiredParameterCount = dart.as(_foreign_helper.JS('int', '# >> 1', requiredParametersInfo), core.int);
+      let requiredParametersInfo = data[REQUIRED_PARAMETERS_INFO];
+      let requiredParameterCount = requiredParametersInfo >> 1;
       let isAccessor = (requiredParametersInfo & 1) === 1;
-      let optionalParametersInfo = dart.as(_foreign_helper.JS('int', '#[#]', data, OPTIONAL_PARAMETERS_INFO), core.int);
-      let optionalParameterCount = dart.as(_foreign_helper.JS('int', '# >> 1', optionalParametersInfo), core.int);
+      let optionalParametersInfo = data[OPTIONAL_PARAMETERS_INFO];
+      let optionalParameterCount = optionalParametersInfo >> 1;
       let areOptionalParametersNamed = (optionalParametersInfo & 1) === 1;
-      let functionType = _foreign_helper.JS('', '#[#]', data, FUNCTION_TYPE_INDEX);
+      let functionType = data[FUNCTION_TYPE_INDEX];
       return new ReflectionInfo.internal(jsFunction, data, isAccessor, requiredParameterCount, optionalParameterCount, areOptionalParametersNamed, functionType);
     }
     parameterName(parameter) {
       let metadataIndex = null;
       if (_foreign_helper.JS_GET_FLAG('MUST_RETAIN_METADATA')) {
-        metadataIndex = dart.as(_foreign_helper.JS('int', '#[2 * # + # + #]', this.data, parameter, this.optionalParameterCount, FIRST_DEFAULT_ARGUMENT), core.int);
+        metadataIndex = this.data[2 * parameter + this.optionalParameterCount + FIRST_DEFAULT_ARGUMENT];
       } else {
-        metadataIndex = dart.as(_foreign_helper.JS('int', '#[# + # + #]', this.data, parameter, this.optionalParameterCount, FIRST_DEFAULT_ARGUMENT), core.int);
+        metadataIndex = this.data[parameter + this.optionalParameterCount + FIRST_DEFAULT_ARGUMENT];
       }
       let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.METADATA, core.String));
-      return dart.as(_foreign_helper.JS('String', '#[#]', metadata, metadataIndex), core.String);
+      return metadata[metadataIndex];
     }
     parameterMetadataAnnotations(parameter) {
       if (!dart.notNull(_foreign_helper.JS_GET_FLAG('MUST_RETAIN_METADATA'))) {
         throw new core.StateError('metadata has not been preserved');
       } else {
-        return dart.as(_foreign_helper.JS('', '#[2 * # + # + # + 1]', this.data, parameter, this.optionalParameterCount, FIRST_DEFAULT_ARGUMENT), core.List$(core.int));
+        return dart.as(this.data[2 * parameter + this.optionalParameterCount + FIRST_DEFAULT_ARGUMENT + 1], core.List$(core.int));
       }
     }
     defaultValue(parameter) {
       if (parameter < this.requiredParameterCount)
         return dart.as(null, core.int);
-      return dart.as(_foreign_helper.JS('int', '#[# + # - #]', this.data, FIRST_DEFAULT_ARGUMENT, parameter, this.requiredParameterCount), core.int);
+      return this.data[FIRST_DEFAULT_ARGUMENT + parameter - this.requiredParameterCount];
     }
     defaultValueInOrder(parameter) {
       if (parameter < this.requiredParameterCount)
@@ -348,18 +348,18 @@ var _js_helper;
       return dart.as(this.cachedSortedIndices.get(unsortedIndex), core.int);
     }
     computeFunctionRti(jsConstructor) {
-      if (_foreign_helper.JS('bool', 'typeof # == "number"', this.functionType)) {
+      if (typeof this.functionType == "number") {
         return getMetadata(dart.as(this.functionType, core.int));
-      } else if (_foreign_helper.JS('bool', 'typeof # == "function"', this.functionType)) {
-        let fakeInstance = _foreign_helper.JS('', 'new #()', jsConstructor);
-        setRuntimeTypeInfo(fakeInstance, _foreign_helper.JS('JSExtendableArray', '#["<>"]', fakeInstance));
-        return _foreign_helper.JS('=Object|Null', '#.apply({$receiver:#})', this.functionType, fakeInstance);
+      } else if (typeof this.functionType == "function") {
+        let fakeInstance = new jsConstructor();
+        setRuntimeTypeInfo(fakeInstance, fakeInstance["<>"]);
+        return this.functionType.apply({$receiver: fakeInstance});
       } else {
         throw new RuntimeError('Unexpected function type');
       }
     }
     get reflectionName() {
-      return dart.as(_foreign_helper.JS('String', '#.$reflectionName', this.jsFunction), core.String);
+      return this.jsFunction.$reflectionName;
     }
   }
   dart.defineNamedConstructor(ReflectionInfo, 'internal');
@@ -370,7 +370,7 @@ var _js_helper;
   // Function getMetadata: (int) → dynamic
   function getMetadata(index) {
     let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.METADATA, core.String));
-    return _foreign_helper.JS('', '#[#]', metadata, index);
+    return metadata[index];
   }
   class Primitives extends dart.Object {
     static initializeStatics(id) {
@@ -378,12 +378,12 @@ var _js_helper;
       mirrorInvokeCacheName = `_${id}`;
     }
     static objectHashCode(object) {
-      let hash = dart.as(_foreign_helper.JS('int|Null', '#.$identityHash', object), core.int);
+      let hash = dart.as(object.$identityHash, core.int);
       if (hash === null) {
-        hash = dart.as(_foreign_helper.JS('int', '(Math.random() * 0x3fffffff) | 0'), core.int);
-        _foreign_helper.JS('void', '#.$identityHash = #', object, hash);
+        hash = Math.random() * 0x3fffffff | 0;
+        object.$identityHash = hash;
       }
-      return dart.as(_foreign_helper.JS('int', '#', hash), core.int);
+      return hash;
     }
     static _throwFormatException(string) {
       throw new core.FormatException(string);
@@ -392,7 +392,7 @@ var _js_helper;
       if (handleError === null)
         handleError = dart.as(_throwFormatException, dart.throw_("Unimplemented type (String) → int"));
       checkString(source);
-      let match = _foreign_helper.JS('JSExtendableArray|Null', '/^\\s*[+-]?((0x[a-f0-9]+)|(\\d+)|([a-z0-9]+))\\s*$/i.exec(#)', source);
+      let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
       let hexIndex = 2;
       let decimalIndex = 3;
@@ -401,10 +401,10 @@ var _js_helper;
         radix = 10;
         if (match !== null) {
           if (dart.dindex(match, hexIndex) !== null) {
-            return dart.as(_foreign_helper.JS('num', 'parseInt(#, 16)', source), core.int);
+            return dart.notNull(parseInt(source, 16));
           }
           if (dart.dindex(match, decimalIndex) !== null) {
-            return dart.as(_foreign_helper.JS('num', 'parseInt(#, 10)', source), core.int);
+            return dart.notNull(parseInt(source, 10));
           }
           return handleError(source);
         }
@@ -416,7 +416,7 @@ var _js_helper;
         }
         if (match !== null) {
           if (dart.notNull(radix === 10) && dart.notNull(dart.dindex(match, decimalIndex) !== null)) {
-            return dart.as(_foreign_helper.JS('num', 'parseInt(#, 10)', source), core.int);
+            return dart.notNull(parseInt(source, 10));
           }
           if (dart.notNull(radix < 10) || dart.notNull(dart.dindex(match, decimalIndex) === null)) {
             let maxCharCode = null;
@@ -437,24 +437,24 @@ var _js_helper;
       }
       if (match === null)
         return handleError(source);
-      return dart.as(_foreign_helper.JS('num', 'parseInt(#, #)', source, radix), core.int);
+      return dart.notNull(parseInt(source, radix));
     }
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError === null)
         handleError = dart.as(_throwFormatException, dart.throw_("Unimplemented type (String) → double"));
-      if (dart.throw_("Unimplemented PrefixExpression: !JS('bool', r'/^\\s*[+-]?(?:Infinity|NaN|' r'(?:\\.\\d+|\\d+(?:\\.\\d*)?)(?:[eE][+-]?\\d+)?)\\s*$/.test(#)', source)")) {
+      if (!dart.notNull(/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source))) {
         return handleError(source);
       }
-      let result = _foreign_helper.JS('num', 'parseFloat(#)', source);
-      if (dart.dload(result, 'isNaN')) {
+      let result = parseFloat(source);
+      if (result.isNaN) {
         let trimmed = source.trim();
         if (dart.notNull(dart.notNull(dart.equals(trimmed, 'NaN')) || dart.notNull(dart.equals(trimmed, '+NaN'))) || dart.notNull(dart.equals(trimmed, '-NaN'))) {
-          return dart.as(result, core.double);
+          return dart.notNull(result);
         }
         return handleError(source);
       }
-      return dart.as(result, core.double);
+      return dart.notNull(result);
     }
     static formatType(className, typeArguments) {
       return _js_names.unmangleAllIdentifiersIfPreservedAnyways(`${className}${joinArguments(typeArguments, 0)}`);
@@ -462,9 +462,9 @@ var _js_helper;
     static objectTypeName(object) {
       let name = constructorNameFallback(_interceptors.getInterceptor(object));
       if (dart.equals(name, 'Object')) {
-        let decompiled = _foreign_helper.JS('var', '#.match(/^\\s*function\\s*(\\S*)\\s*\\(/)[1]', _foreign_helper.JS('var', 'String(#.constructor)', object));
+        let decompiled = String(object.constructor).match(/^\s*function\s*(\S*)\s*\(/)[1];
         if (typeof decompiled == string)
-          if (_foreign_helper.JS('bool', '/^\\w+$/.test(#)', decompiled))
+          if (/^\w+$/.test(decompiled))
             name = dart.as(decompiled, core.String);
       }
       if (dart.notNull(name.length > 1) && dart.notNull(core.identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE))) {
@@ -477,36 +477,36 @@ var _js_helper;
       return `Instance of '${name}'`;
     }
     static dateNow() {
-      return dart.as(_foreign_helper.JS('int', 'Date.now()'), core.num);
+      return Date.now();
     }
     static initTicker() {
       if (timerFrequency !== null)
         return;
       timerFrequency = 1000;
       timerTicks = dateNow;
-      if (_foreign_helper.JS('bool', 'typeof window == "undefined"'))
+      if (typeof window == "undefined")
         return;
-      let window = _foreign_helper.JS('var', 'window');
+      let window = window;
       if (window === null)
         return;
-      let performance = _foreign_helper.JS('var', '#.performance', window);
+      let performance = window.performance;
       if (performance === null)
         return;
-      if (_foreign_helper.JS('bool', 'typeof #.now != "function"', performance))
+      if (typeof performance.now != "function")
         return;
       timerFrequency = 1000000;
-      timerTicks = (() => 1000['*'](_foreign_helper.JS('num', '#.now()', performance)).floor()).bind(this);
+      timerTicks = (() => (1000 * dart.notNull(performance.now())).floor()).bind(this);
     }
     static get isD8() {
-      return dart.as(_foreign_helper.JS('bool', 'typeof version == "function"' + ' && typeof os == "object" && "system" in os'), core.bool);
+      return typeof version == "function" && typeof os == "object" && "system" in os;
     }
     static get isJsshell() {
-      return dart.as(_foreign_helper.JS('bool', 'typeof version == "function" && typeof system == "function"'), core.bool);
+      return typeof version == "function" && typeof system == "function";
     }
     static currentUri() {
       requiresPreamble();
-      if (_foreign_helper.JS('bool', '!!self.location')) {
-        return dart.as(_foreign_helper.JS('String', 'self.location.href'), core.String);
+      if (!!self.location) {
+        return self.location.href;
       }
       return null;
     }
@@ -519,9 +519,9 @@ var _js_helper;
         if (end <= kMaxApply) {
           subarray = array;
         } else {
-          subarray = _foreign_helper.JS('JSExtendableArray', '#.slice(#, #)', array, i, i + kMaxApply < end ? i + kMaxApply : end);
+          subarray = array.slice(i, i + kMaxApply < end ? i + kMaxApply : end);
         }
-        result = dart.as(_foreign_helper.JS('String', '# + String.fromCharCode.apply(#, #)', result, null, subarray), core.String);
+        result = result + String.fromCharCode.apply(null, subarray);
       }
       return result;
     }
@@ -555,13 +555,13 @@ var _js_helper;
     static stringFromCharCode(charCode) {
       if (0['<='](charCode)) {
         if (dart.dbinary(charCode, '<=', 65535)) {
-          return dart.as(_foreign_helper.JS('String', 'String.fromCharCode(#)', charCode), core.String);
+          return String.fromCharCode(charCode);
         }
         if (dart.dbinary(charCode, '<=', 1114111)) {
           let bits = dart.dbinary(charCode, '-', 65536);
           let low = 56320['|'](dart.dbinary(bits, '&', 1023));
           let high = 55296['|'](dart.dbinary(bits, '>>', 10));
-          return dart.as(_foreign_helper.JS('String', 'String.fromCharCode(#, #)', high, low), core.String);
+          return String.fromCharCode(high, low);
         }
       }
       throw new core.RangeError.range(dart.as(charCode, core.num), 0, 1114111);
@@ -570,23 +570,23 @@ var _js_helper;
       return _foreign_helper.JS_STRING_CONCAT(string1, string2);
     }
     static flattenString(str) {
-      return dart.as(_foreign_helper.JS('String', "#.charCodeAt(0) == 0 ? # : #", str, str, str), core.String);
+      return str.charCodeAt(0) == 0 ? str : str;
     }
     static getTimeZoneName(receiver) {
       let d = lazyAsJsDate(receiver);
-      let match = dart.as(_foreign_helper.JS('JSArray|Null', '/\\((.*)\\)/.exec(#.toString())', d), core.List);
+      let match = dart.as(/\((.*)\)/.exec(d.toString()), core.List);
       if (match !== null)
         return dart.as(match.get(1), core.String);
-      match = dart.as(_foreign_helper.JS('JSArray|Null', '/^[A-Z,a-z]{3}\\s' + '[A-Z,a-z]{3}\\s\\d+\\s' + '\\d{2}:\\d{2}:\\d{2}\\s' + '([A-Z]{3,5})\\s' + '\\d{4}$/' + '.exec(#.toString())', d), core.List);
+      match = dart.as(/^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString()), core.List);
       if (match !== null)
         return dart.as(match.get(1), core.String);
-      match = dart.as(_foreign_helper.JS('JSArray|Null', '/(?:GMT|UTC)[+-]\\d{4}/.exec(#.toString())', d), core.List);
+      match = dart.as(/(?:GMT|UTC)[+-]\d{4}/.exec(d.toString()), core.List);
       if (match !== null)
         return dart.as(match.get(0), core.String);
       return "";
     }
     static getTimeZoneOffsetInMinutes(receiver) {
-      return dart.as(dart.throw_("Unimplemented PrefixExpression: -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver))"), core.int);
+      return -lazyAsJsDate(receiver).getTimezoneOffset();
     }
     static valueFromDecomposedDate(years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
       let MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
@@ -601,9 +601,9 @@ var _js_helper;
       let jsMonth = dart.dbinary(month, '-', 1);
       let value = null;
       if (isUtc) {
-        value = _foreign_helper.JS('num', 'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day, hours, minutes, seconds, milliseconds);
+        value = Date.UTC(years, jsMonth, day, hours, minutes, seconds, milliseconds);
       } else {
-        value = _foreign_helper.JS('num', 'new Date(#, #, #, #, #, #, #).valueOf()', years, jsMonth, day, hours, minutes, seconds, milliseconds);
+        value = new Date(years, jsMonth, day, hours, minutes, seconds, milliseconds).valueOf();
       }
       if (core.bool['||'](dart.dbinary(dart.dload(value, 'isNaN'), '||', dart.dbinary(value, '<', -MAX_MILLISECONDS_SINCE_EPOCH)), dart.dbinary(value, '>', MAX_MILLISECONDS_SINCE_EPOCH))) {
         return null;
@@ -613,50 +613,50 @@ var _js_helper;
       return value;
     }
     static patchUpY2K(value, years, isUtc) {
-      let date = _foreign_helper.JS('', 'new Date(#)', value);
+      let date = new Date(value);
       if (isUtc) {
-        _foreign_helper.JS('num', '#.setUTCFullYear(#)', date, years);
+        date.setUTCFullYear(years);
       } else {
-        _foreign_helper.JS('num', '#.setFullYear(#)', date, years);
+        date.setFullYear(years);
       }
-      return _foreign_helper.JS('num', '#.valueOf()', date);
+      return date.valueOf();
     }
     static lazyAsJsDate(receiver) {
-      if (_foreign_helper.JS('bool', '#.date === (void 0)', receiver)) {
-        _foreign_helper.JS('void', '#.date = new Date(#)', receiver, dart.dload(receiver, 'millisecondsSinceEpoch'));
+      if (receiver.date === void 0) {
+        receiver.date = new Date(dart.dload(receiver, 'millisecondsSinceEpoch'));
       }
-      return _foreign_helper.JS('var', '#.date', receiver);
+      return receiver.date;
     }
     static getYear(receiver) {
-      return dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '(#.getFullYear() + 0)', lazyAsJsDate(receiver));
+      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCFullYear() + 0 : lazyAsJsDate(receiver).getFullYear() + 0;
     }
     static getMonth(receiver) {
-      return dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '#.getUTCMonth() + 1', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '#.getMonth() + 1', lazyAsJsDate(receiver));
+      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCMonth() + 1 : lazyAsJsDate(receiver).getMonth() + 1;
     }
     static getDay(receiver) {
-      return dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '(#.getUTCDate() + 0)', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '(#.getDate() + 0)', lazyAsJsDate(receiver));
+      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCDate() + 0 : lazyAsJsDate(receiver).getDate() + 0;
     }
     static getHours(receiver) {
-      return dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '(#.getUTCHours() + 0)', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '(#.getHours() + 0)', lazyAsJsDate(receiver));
+      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCHours() + 0 : lazyAsJsDate(receiver).getHours() + 0;
     }
     static getMinutes(receiver) {
-      return dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '(#.getMinutes() + 0)', lazyAsJsDate(receiver));
+      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCMinutes() + 0 : lazyAsJsDate(receiver).getMinutes() + 0;
     }
     static getSeconds(receiver) {
-      return dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '(#.getSeconds() + 0)', lazyAsJsDate(receiver));
+      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCSeconds() + 0 : lazyAsJsDate(receiver).getSeconds() + 0;
     }
     static getMilliseconds(receiver) {
-      return dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
+      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCMilliseconds() + 0 : lazyAsJsDate(receiver).getMilliseconds() + 0;
     }
     static getWeekday(receiver) {
-      let weekday = dart.as(dart.dload(receiver, 'isUtc') ? _foreign_helper.JS('int', '#.getUTCDay() + 0', lazyAsJsDate(receiver)) : _foreign_helper.JS('int', '#.getDay() + 0', lazyAsJsDate(receiver)), core.int);
+      let weekday = dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCDay() + 0 : lazyAsJsDate(receiver).getDay() + 0;
       return (weekday + 6) % 7 + 1;
     }
     static valueFromDateString(str) {
       if (!(typeof str == string))
         throw new core.ArgumentError(str);
-      let value = _foreign_helper.JS('num', 'Date.parse(#)', str);
-      if (dart.dload(value, 'isNaN'))
+      let value = Date.parse(str);
+      if (value.isNaN)
         throw new core.ArgumentError(str);
       return value;
     }
@@ -664,13 +664,13 @@ var _js_helper;
       if (dart.notNull(dart.notNull(dart.notNull(object === null) || dart.notNull(typeof object == boolean)) || dart.notNull(dart.is(object, core.num))) || dart.notNull(typeof object == string)) {
         throw new core.ArgumentError(object);
       }
-      return _foreign_helper.JS('var', '#[#]', object, key);
+      return object[key];
     }
     static setProperty(object, key, value) {
       if (dart.notNull(dart.notNull(dart.notNull(object === null) || dart.notNull(typeof object == boolean)) || dart.notNull(dart.is(object, core.num))) || dart.notNull(typeof object == string)) {
         throw new core.ArgumentError(object);
       }
-      _foreign_helper.JS('void', '#[#] = #', object, key, value);
+      object[key] = value;
     }
     static functionNoSuchMethod(function, positionalArguments, namedArguments) {
       let argumentCount = 0;
@@ -699,28 +699,28 @@ var _js_helper;
       let argumentCount = 0;
       let arguments = null;
       if (positionalArguments !== null) {
-        if (_foreign_helper.JS('bool', '# instanceof Array', positionalArguments)) {
+        if (positionalArguments instanceof Array) {
           arguments = positionalArguments;
         } else {
           arguments = new core.List.from(positionalArguments);
         }
-        argumentCount = dart.as(_foreign_helper.JS('int', '#.length', arguments), core.int);
+        argumentCount = arguments.length;
       } else {
         arguments = new List.from([]);
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}`;
-      let jsFunction = _foreign_helper.JS('var', '#[#]', function, selectorName);
+      let jsFunction = function[selectorName];
       if (jsFunction === null) {
         return functionNoSuchMethod(function, positionalArguments, null);
       }
-      return _foreign_helper.JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+      return jsFunction.apply(function, arguments);
     }
     static applyFunctionWithNamedArguments(function, positionalArguments, namedArguments) {
       if (namedArguments.isEmpty) {
         return applyFunctionWithPositionalArguments(function, positionalArguments);
       }
       let interceptor = _interceptors.getInterceptor(function);
-      let jsFunction = _foreign_helper.JS('', '#["call*"]', interceptor);
+      let jsFunction = interceptor["call*"];
       if (jsFunction === null) {
         return functionNoSuchMethod(function, positionalArguments, namedArguments);
       }
@@ -756,16 +756,16 @@ var _js_helper;
         return functionNoSuchMethod(function, positionalArguments, namedArguments);
       }
       positionalArguments.addAll(defaultArguments.values);
-      return _foreign_helper.JS('', '#.apply(#, #)', jsFunction, function, positionalArguments);
+      return jsFunction.apply(function, positionalArguments);
     }
     static _mangledNameMatchesType(mangledName, type) {
-      return _foreign_helper.JS('bool', '# == #', mangledName, type._typeName);
+      return mangledName == type._typeName;
     }
     static identicalImplementation(a, b) {
-      return dart.as(_foreign_helper.JS('bool', '# == null', a) ? _foreign_helper.JS('bool', '# == null', b) : _foreign_helper.JS('bool', '# === #', a, b), core.bool);
+      return a == null ? b == null : a === b;
     }
     static extractStackTrace(error) {
-      return getTraceFromException(_foreign_helper.JS('', '#.$thrownJsError', error));
+      return getTraceFromException(error.$thrownJsError);
     }
   }
   Primitives.mirrorFunctionCacheName = '$cachedFunction';
@@ -775,16 +775,16 @@ var _js_helper;
   Primitives.timerTicks = null;
   class JsCache extends dart.Object {
     static allocate() {
-      let result = _foreign_helper.JS('=Object', 'Object.create(null)');
-      _foreign_helper.JS('void', '#.x=0', result);
-      _foreign_helper.JS('void', 'delete #.x', result);
+      let result = Object.create(null);
+      result.x = 0;
+      delete result.x;
       return result;
     }
     static fetch(cache, key) {
-      return _foreign_helper.JS('', '#[#]', cache, key);
+      return cache[key];
     }
     static update(cache, key, value) {
-      _foreign_helper.JS('void', '#[#] = #', cache, key, value);
+      cache[key] = value;
     }
   }
   // Function iae: (dynamic) → dynamic
@@ -801,7 +801,7 @@ var _js_helper;
   }
   // Function stringLastIndexOfUnchecked: (dynamic, dynamic, dynamic) → dynamic
   function stringLastIndexOfUnchecked(receiver, element, start) {
-    return _foreign_helper.JS('int', '#.lastIndexOf(#, #)', receiver, element, start);
+    return receiver.lastIndexOf(element, start);
   }
   // Function checkNull: (dynamic) → dynamic
   function checkNull(object) {
@@ -841,28 +841,28 @@ var _js_helper;
   function wrapException(ex) {
     if (ex === null)
       ex = new core.NullThrownError();
-    let wrapper = _foreign_helper.JS('', 'new Error()');
-    _foreign_helper.JS('void', '#.dartException = #', wrapper, ex);
-    if (_foreign_helper.JS('bool', '"defineProperty" in Object')) {
-      _foreign_helper.JS('void', 'Object.defineProperty(#, "message", { get: # })', wrapper, _foreign_helper.DART_CLOSURE_TO_JS(toStringWrapper));
-      _foreign_helper.JS('void', '#.name = ""', wrapper);
+    let wrapper = new Error();
+    wrapper.dartException = ex;
+    if ("defineProperty" in Object) {
+      Object.defineProperty(wrapper, "message", {get: _foreign_helper.DART_CLOSURE_TO_JS(toStringWrapper)});
+      wrapper.name = "";
     } else {
-      _foreign_helper.JS('void', '#.toString = #', wrapper, _foreign_helper.DART_CLOSURE_TO_JS(toStringWrapper));
+      wrapper.toString = _foreign_helper.DART_CLOSURE_TO_JS(toStringWrapper);
     }
     return wrapper;
   }
   // Function toStringWrapper: () → dynamic
   function toStringWrapper() {
-    return dart.dinvoke(_foreign_helper.JS('', 'this.dartException'), 'toString');
+    return dart.dinvoke(this.dartException, 'toString');
   }
   // Function throwExpression: (dynamic) → dynamic
   function throwExpression(ex) {
-    _foreign_helper.JS('void', 'throw #', wrapException(ex));
+    throw wrapException(ex);
   }
   // Function makeLiteralListConst: (dynamic) → dynamic
   function makeLiteralListConst(list) {
-    _foreign_helper.JS('bool', '#.immutable$list = #', list, true);
-    _foreign_helper.JS('bool', '#.fixed$length = #', list, true);
+    list.immutable$list = true;
+    list.fixed$length = true;
     return list;
   }
   // Function throwRuntimeError: (dynamic) → dynamic
@@ -883,70 +883,124 @@ var _js_helper;
       this._pattern = _pattern;
     }
     matchTypeError(message) {
-      let match = _foreign_helper.JS('JSExtendableArray|Null', 'new RegExp(#).exec(#)', this._pattern, message);
+      let match = new RegExp(this._pattern).exec(message);
       if (match === null)
         return null;
-      let result = _foreign_helper.JS('', 'Object.create(null)');
+      let result = Object.create(null);
       if (this._arguments !== -1) {
-        _foreign_helper.JS('', '#.arguments = #[# + 1]', result, match, this._arguments);
+        result.arguments = match[this._arguments + 1];
       }
       if (this._argumentsExpr !== -1) {
-        _foreign_helper.JS('', '#.argumentsExpr = #[# + 1]', result, match, this._argumentsExpr);
+        result.argumentsExpr = match[this._argumentsExpr + 1];
       }
       if (this._expr !== -1) {
-        _foreign_helper.JS('', '#.expr = #[# + 1]', result, match, this._expr);
+        result.expr = match[this._expr + 1];
       }
       if (this._method !== -1) {
-        _foreign_helper.JS('', '#.method = #[# + 1]', result, match, this._method);
+        result.method = match[this._method + 1];
       }
       if (this._receiver !== -1) {
-        _foreign_helper.JS('', '#.receiver = #[# + 1]', result, match, this._receiver);
+        result.receiver = match[this._receiver + 1];
       }
       return result;
     }
     static buildJavaScriptObject() {
-      return _foreign_helper.JS('', '{ toString: function() { return "$receiver$"; } }');
+      return {
+        toString: function() {
+          return "$receiver$";
+        }
+      };
     }
     static buildJavaScriptObjectWithNonClosure() {
-      return _foreign_helper.JS('', '{ $method$: null, ' + 'toString: function() { return "$receiver$"; } }');
+      return {
+        $method$: null,
+        toString: function() {
+          return "$receiver$";
+        }
+      };
     }
     static extractPattern(message) {
-      message = dart.as(_foreign_helper.JS('String', "#.replace(String({}), '$receiver$')", message), core.String);
-      message = dart.as(_foreign_helper.JS('String', "#.replace(new RegExp(#, 'g'), '\\\\$&')", message, ESCAPE_REGEXP), core.String);
-      let match = dart.as(_foreign_helper.JS('JSExtendableArray|Null', "#.match(/\\\\\\$[a-zA-Z]+\\\\\\$/g)", message), core.List$(core.String));
+      message = message.replace(String({}), '$receiver$');
+      message = message.replace(new RegExp(ESCAPE_REGEXP, 'g'), '\\$&');
+      let match = dart.as(message.match(/\\\$[a-zA-Z]+\\\$/g), core.List$(core.String));
       if (match === null)
         match = dart.as(new List.from([]), core.List$(core.String));
-      let arguments = dart.as(_foreign_helper.JS('int', '#.indexOf(#)', match, '\\$arguments\\$'), core.int);
-      let argumentsExpr = dart.as(_foreign_helper.JS('int', '#.indexOf(#)', match, '\\$argumentsExpr\\$'), core.int);
-      let expr = dart.as(_foreign_helper.JS('int', '#.indexOf(#)', match, '\\$expr\\$'), core.int);
-      let method = dart.as(_foreign_helper.JS('int', '#.indexOf(#)', match, '\\$method\\$'), core.int);
-      let receiver = dart.as(_foreign_helper.JS('int', '#.indexOf(#)', match, '\\$receiver\\$'), core.int);
-      let pattern = dart.as(_foreign_helper.JS('String', "#.replace('\\\\$arguments\\\\$', '((?:x|[^x])*)')" + ".replace('\\\\$argumentsExpr\\\\$',  '((?:x|[^x])*)')" + ".replace('\\\\$expr\\\\$',  '((?:x|[^x])*)')" + ".replace('\\\\$method\\\\$',  '((?:x|[^x])*)')" + ".replace('\\\\$receiver\\\\$',  '((?:x|[^x])*)')", message), core.String);
+      let arguments = match.indexOf('\\$arguments\\$');
+      let argumentsExpr = match.indexOf('\\$argumentsExpr\\$');
+      let expr = match.indexOf('\\$expr\\$');
+      let method = match.indexOf('\\$method\\$');
+      let receiver = match.indexOf('\\$receiver\\$');
+      let pattern = message.replace('\\$arguments\\$', '((?:x|[^x])*)').replace('\\$argumentsExpr\\$', '((?:x|[^x])*)').replace('\\$expr\\$', '((?:x|[^x])*)').replace('\\$method\\$', '((?:x|[^x])*)').replace('\\$receiver\\$', '((?:x|[^x])*)');
       return new TypeErrorDecoder(arguments, argumentsExpr, expr, method, receiver, pattern);
     }
     static provokeCallErrorOn(expression) {
-      let function = _foreign_helper.JS('', "function($expr$) {\n  var $argumentsExpr$ = '$arguments$';\n  try {\n    $expr$.$method$($argumentsExpr$);\n  } catch (e) {\n    return e.message;\n  }\n}");
-      return dart.as(_foreign_helper.JS('String', '(#)(#)', function, expression), core.String);
+      let function = function($expr$) {
+        var $argumentsExpr$ = '$arguments$';
+        try {
+          $expr$.$method$($argumentsExpr$);
+        } catch (e) {
+          return e.message;
+        }
+
+      };
+      return function(expression);
     }
     static provokeCallErrorOnNull() {
-      let function = _foreign_helper.JS('', "function() {\n  var $argumentsExpr$ = '$arguments$';\n  try {\n    null.$method$($argumentsExpr$);\n  } catch (e) {\n    return e.message;\n  }\n}");
-      return dart.as(_foreign_helper.JS('String', '(#)()', function), core.String);
+      let function = function() {
+        var $argumentsExpr$ = '$arguments$';
+        try {
+          null.$method$($argumentsExpr$);
+        } catch (e) {
+          return e.message;
+        }
+
+      };
+      return function();
     }
     static provokeCallErrorOnUndefined() {
-      let function = _foreign_helper.JS('', "function() {\n  var $argumentsExpr$ = '$arguments$';\n  try {\n    (void 0).$method$($argumentsExpr$);\n  } catch (e) {\n    return e.message;\n  }\n}");
-      return dart.as(_foreign_helper.JS('String', '(#)()', function), core.String);
+      let function = function() {
+        var $argumentsExpr$ = '$arguments$';
+        try {
+          (void 0).$method$($argumentsExpr$);
+        } catch (e) {
+          return e.message;
+        }
+
+      };
+      return function();
     }
     static provokePropertyErrorOn(expression) {
-      let function = _foreign_helper.JS('', "function($expr$) {\n  try {\n    $expr$.$method$;\n  } catch (e) {\n    return e.message;\n  }\n}");
-      return dart.as(_foreign_helper.JS('String', '(#)(#)', function, expression), core.String);
+      let function = function($expr$) {
+        try {
+          $expr$.$method$;
+        } catch (e) {
+          return e.message;
+        }
+
+      };
+      return function(expression);
     }
     static provokePropertyErrorOnNull() {
-      let function = _foreign_helper.JS('', "function() {\n  try {\n    null.$method$;\n  } catch (e) {\n    return e.message;\n  }\n}");
-      return dart.as(_foreign_helper.JS('String', '(#)()', function), core.String);
+      let function = function() {
+        try {
+          null.$method$;
+        } catch (e) {
+          return e.message;
+        }
+
+      };
+      return function();
     }
     static provokePropertyErrorOnUndefined() {
-      let function = _foreign_helper.JS('', "function() {\n  try {\n    (void 0).$method$;\n  } catch (e) {\n    return e.message;\n  }\n}");
-      return dart.as(_foreign_helper.JS('String', '(#)()', function), core.String);
+      let function = function() {
+        try {
+          (void 0).$method$;
+        } catch (e) {
+          return e.message;
+        }
+
+      };
+      return function();
     }
   }
   dart.defineLazyProperties(TypeErrorDecoder, {
@@ -957,25 +1011,25 @@ var _js_helper;
       return dart.as(extractPattern(provokeCallErrorOn(buildJavaScriptObjectWithNonClosure())), TypeErrorDecoder);
     },
     get nullCallPattern() {
-      return dart.as(extractPattern(provokeCallErrorOn(_foreign_helper.JS('', 'null'))), TypeErrorDecoder);
+      return dart.as(extractPattern(provokeCallErrorOn(null)), TypeErrorDecoder);
     },
     get nullLiteralCallPattern() {
       return dart.as(extractPattern(provokeCallErrorOnNull()), TypeErrorDecoder);
     },
     get undefinedCallPattern() {
-      return dart.as(extractPattern(provokeCallErrorOn(_foreign_helper.JS('', 'void 0'))), TypeErrorDecoder);
+      return dart.as(extractPattern(provokeCallErrorOn(void 0)), TypeErrorDecoder);
     },
     get undefinedLiteralCallPattern() {
       return dart.as(extractPattern(provokeCallErrorOnUndefined()), TypeErrorDecoder);
     },
     get nullPropertyPattern() {
-      return dart.as(extractPattern(provokePropertyErrorOn(_foreign_helper.JS('', 'null'))), TypeErrorDecoder);
+      return dart.as(extractPattern(provokePropertyErrorOn(null)), TypeErrorDecoder);
     },
     get nullLiteralPropertyPattern() {
       return dart.as(extractPattern(provokePropertyErrorOnNull()), TypeErrorDecoder);
     },
     get undefinedPropertyPattern() {
-      return dart.as(extractPattern(provokePropertyErrorOn(_foreign_helper.JS('', 'void 0'))), TypeErrorDecoder);
+      return dart.as(extractPattern(provokePropertyErrorOn(void 0)), TypeErrorDecoder);
     },
     get undefinedLiteralPropertyPattern() {
       return dart.as(extractPattern(provokePropertyErrorOnUndefined()), TypeErrorDecoder);
@@ -984,7 +1038,7 @@ var _js_helper;
   class NullError extends core.Error {
     NullError(_message, match) {
       this._message = _message;
-      this._method = dart.as(match === null ? null : _foreign_helper.JS('', '#.method', match), core.String);
+      this._method = dart.as(match === null ? null : match.method, core.String);
       super.Error();
     }
     toString() {
@@ -996,8 +1050,8 @@ var _js_helper;
   class JsNoSuchMethodError extends core.Error {
     JsNoSuchMethodError(_message, match) {
       this._message = _message;
-      this._method = dart.as(match === null ? null : _foreign_helper.JS('String|Null', '#.method', match), core.String);
-      this._receiver = dart.as(match === null ? null : _foreign_helper.JS('String|Null', '#.receiver', match), core.String);
+      this._method = dart.as(match === null ? null : match.method, core.String);
+      this._receiver = dart.as(match === null ? null : match.receiver, core.String);
       super.Error();
     }
     toString() {
@@ -1023,25 +1077,25 @@ var _js_helper;
     // Function saveStackTrace: (dynamic) → dynamic
     function saveStackTrace(error) {
       if (dart.is(error, core.Error)) {
-        let thrownStackTrace = _foreign_helper.JS('', '#.$thrownJsError', error);
+        let thrownStackTrace = error.$thrownJsError;
         if (thrownStackTrace === null) {
-          _foreign_helper.JS('void', '#.$thrownJsError = #', error, ex);
+          error.$thrownJsError = ex;
         }
       }
       return error;
     }
     if (ex === null)
       return null;
-    if (_foreign_helper.JS('bool', 'typeof # !== "object"', ex))
+    if (typeof ex !== "object")
       return ex;
-    if (_foreign_helper.JS('bool', '"dartException" in #', ex)) {
-      return saveStackTrace(_foreign_helper.JS('', '#.dartException', ex));
-    } else if (dart.throw_("Unimplemented PrefixExpression: !JS('bool', r'\"message\" in #', ex)")) {
+    if ("dartException" in ex) {
+      return saveStackTrace(ex.dartException);
+    } else if (!dart.notNull("message" in ex)) {
       return ex;
     }
-    let message = _foreign_helper.JS('var', '#.message', ex);
-    if (dart.dbinary(_foreign_helper.JS('bool', '"number" in #', ex), '&&', _foreign_helper.JS('bool', 'typeof #.number == "number"', ex))) {
-      let number = dart.as(_foreign_helper.JS('int', '#.number', ex), core.int);
+    let message = ex.message;
+    if (dart.notNull("number" in ex) && dart.notNull(typeof ex.number == "number")) {
+      let number = ex.number;
       let ieErrorCode = number & 65535;
       let ieFacilityNumber = number >> 16 & 8191;
       if (ieFacilityNumber === 10) {
@@ -1054,35 +1108,35 @@ var _js_helper;
         }
       }
     }
-    if (_foreign_helper.JS('bool', '# instanceof TypeError', ex)) {
+    if (ex instanceof TypeError) {
       let match = null;
-      let nsme = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.noSuchMethodPattern);
-      let notClosure = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.notClosurePattern);
-      let nullCall = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullCallPattern);
-      let nullLiteralCall = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullLiteralCallPattern);
-      let undefCall = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedCallPattern);
-      let undefLiteralCall = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedLiteralCallPattern);
-      let nullProperty = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullPropertyPattern);
-      let nullLiteralProperty = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullLiteralPropertyPattern);
-      let undefProperty = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedPropertyPattern);
-      let undefLiteralProperty = _foreign_helper.JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedLiteralPropertyPattern);
+      let nsme = TypeErrorDecoder.noSuchMethodPattern;
+      let notClosure = TypeErrorDecoder.notClosurePattern;
+      let nullCall = TypeErrorDecoder.nullCallPattern;
+      let nullLiteralCall = TypeErrorDecoder.nullLiteralCallPattern;
+      let undefCall = TypeErrorDecoder.undefinedCallPattern;
+      let undefLiteralCall = TypeErrorDecoder.undefinedLiteralCallPattern;
+      let nullProperty = TypeErrorDecoder.nullPropertyPattern;
+      let nullLiteralProperty = TypeErrorDecoder.nullLiteralPropertyPattern;
+      let undefProperty = TypeErrorDecoder.undefinedPropertyPattern;
+      let undefLiteralProperty = TypeErrorDecoder.undefinedLiteralPropertyPattern;
       if ((match = dart.dinvoke(nsme, 'matchTypeError', message)) !== null) {
         return saveStackTrace(new JsNoSuchMethodError(dart.as(message, core.String), match));
       } else if ((match = dart.dinvoke(notClosure, 'matchTypeError', message)) !== null) {
-        _foreign_helper.JS('', '#.method = "call"', match);
+        match.method = "call";
         return saveStackTrace(new JsNoSuchMethodError(dart.as(message, core.String), match));
       } else if (dart.notNull(dart.notNull(dart.notNull(dart.notNull(dart.notNull(dart.notNull(dart.notNull((match = dart.dinvoke(nullCall, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) !== null)) || dart.notNull((match = dart.dinvoke(undefCall, 'matchTypeError', message)) !== null)) || dart.notNull((match = dart.dinvoke(undefLiteralCall, 'matchTypeError', message)) !== null)) || dart.notNull((match = dart.dinvoke(nullProperty, 'matchTypeError', message)) !== null)) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) !== null)) || dart.notNull((match = dart.dinvoke(undefProperty, 'matchTypeError', message)) !== null)) || dart.notNull((match = dart.dinvoke(undefLiteralProperty, 'matchTypeError', message)) !== null)) {
         return saveStackTrace(new NullError(dart.as(message, core.String), match));
       }
       return saveStackTrace(new UnknownJsTypeError(dart.as(typeof message == string ? message : '', core.String)));
     }
-    if (_foreign_helper.JS('bool', '# instanceof RangeError', ex)) {
+    if (ex instanceof RangeError) {
       if (dart.notNull(typeof message == string) && dart.notNull(contains(dart.as(message, core.String), 'call stack'))) {
         return new core.StackOverflowError();
       }
       return saveStackTrace(new core.ArgumentError());
     }
-    if (_foreign_helper.JS('bool', 'typeof InternalError == "function" && # instanceof InternalError', ex)) {
+    if (typeof InternalError == "function" && ex instanceof InternalError) {
       if (dart.notNull(typeof message == string) && dart.notNull(dart.equals(message, 'too much recursion'))) {
         return new core.StackOverflowError();
       }
@@ -1102,15 +1156,15 @@ var _js_helper;
       if (this._trace !== null)
         return this._trace;
       let trace = null;
-      if (_foreign_helper.JS('bool', 'typeof # === "object"', this._exception)) {
-        trace = dart.as(_foreign_helper.JS("String|Null", "#.stack", this._exception), core.String);
+      if (typeof this._exception === "object") {
+        trace = dart.as(this._exception.stack, core.String);
       }
       return this._trace = trace === null ? '' : trace;
     }
   }
   // Function objectHashCode: (dynamic) → int
   function objectHashCode(object) {
-    if (core.bool['||'](object === null, _foreign_helper.JS('bool', "typeof # != 'object'", object))) {
+    if (dart.notNull(object === null) || dart.notNull(typeof object != 'object')) {
       return dart.as(dart.dload(object, 'hashCode'), core.int);
     } else {
       return Primitives.objectHashCode(object);
@@ -1147,11 +1201,15 @@ var _js_helper;
   function convertDartClosureToJS(closure, arity) {
     if (closure === null)
       return null;
-    let function = _foreign_helper.JS('var', '#.$identity', closure);
-    if (_foreign_helper.JS('bool', '!!#', function))
+    let function = closure.$identity;
+    if (!!function)
       return function;
-    function = _foreign_helper.JS('var', '(function(closure, arity, context, invoke) {' + '  return function(a1, a2, a3, a4) {' + '     return invoke(closure, context, arity, a1, a2, a3, a4);' + '  };' + '})(#,#,#,#)', closure, arity, _foreign_helper.JS_CURRENT_ISOLATE_CONTEXT(), _foreign_helper.DART_CLOSURE_TO_JS(invokeClosure));
-    _foreign_helper.JS('void', '#.$identity = #', closure, function);
+    function = function(closure, arity, context, invoke) {
+      return function(a1, a2, a3, a4) {
+        return invoke(closure, context, arity, a1, a2, a3, a4);
+      };
+    }(closure, arity, _foreign_helper.JS_CURRENT_ISOLATE_CONTEXT(), _foreign_helper.DART_CLOSURE_TO_JS(invokeClosure));
+    closure.$identity = function;
     return function;
   }
   class Closure extends dart.Object {
@@ -1159,51 +1217,63 @@ var _js_helper;
     }
     static fromTearOff(receiver, functions, reflectionInfo, isStatic, jsArguments, propertyName) {
       _foreign_helper.JS_EFFECT(() => {
-        BoundClosure.receiverOf(dart.as(_foreign_helper.JS('BoundClosure', 'void 0'), BoundClosure));
-        BoundClosure.selfOf(dart.as(_foreign_helper.JS('BoundClosure', 'void 0'), BoundClosure));
+        BoundClosure.receiverOf(dart.as(void 0, BoundClosure));
+        BoundClosure.selfOf(dart.as(void 0, BoundClosure));
       });
-      let function = _foreign_helper.JS('', '#[#]', functions, 0);
-      let name = dart.as(_foreign_helper.JS('String|Null', '#.$stubName', function), core.String);
-      let callName = dart.as(_foreign_helper.JS('String|Null', '#.$callName', function), core.String);
-      _foreign_helper.JS('', '#.$reflectionInfo = #', function, reflectionInfo);
+      let function = functions[0];
+      let name = dart.as(function.$stubName, core.String);
+      let callName = dart.as(function.$callName, core.String);
+      function.$reflectionInfo = reflectionInfo;
       let info = new ReflectionInfo(function);
       let functionType = info.functionType;
-      let prototype = isStatic ? _foreign_helper.JS('TearOffClosure', 'Object.create(#.constructor.prototype)', new TearOffClosure()) : _foreign_helper.JS('BoundClosure', 'Object.create(#.constructor.prototype)', new BoundClosure(null, null, null, null));
-      _foreign_helper.JS('', '#.$initialize = #', prototype, _foreign_helper.JS('', '#.constructor', prototype));
-      let constructor = isStatic ? _foreign_helper.JS('', 'function(){this.$initialize()}') : isCsp ? _foreign_helper.JS('', 'function(a,b,c,d) {this.$initialize(a,b,c,d)}') : _foreign_helper.JS('', 'new Function("a","b","c","d",' + '"this.$initialize(a,b,c,d);"+#)', functionCounter++);
-      _foreign_helper.JS('', '#.constructor = #', prototype, constructor);
-      _foreign_helper.JS('', '#.prototype = #', constructor, prototype);
+      let prototype = isStatic ? Object.create(new TearOffClosure().constructor.prototype) : Object.create(new BoundClosure(null, null, null, null).constructor.prototype);
+      prototype.$initialize = prototype.constructor;
+      let constructor = isStatic ? function() {
+        this.$initialize();
+      } : isCsp ? function(a, b, c, d) {
+        this.$initialize(a, b, c, d);
+      } : new Function("a", "b", "c", "d", "this.$initialize(a,b,c,d);" + functionCounter++);
+      prototype.constructor = constructor;
+      constructor.prototype = prototype;
       let trampoline = function;
       let isIntercepted = false;
       if (!dart.notNull(isStatic)) {
-        if (_foreign_helper.JS('bool', '#.length == 1', jsArguments)) {
+        if (jsArguments.length == 1) {
           isIntercepted = true;
         }
         trampoline = forwardCallTo(receiver, function, isIntercepted);
-        _foreign_helper.JS('', '#.$reflectionInfo = #', trampoline, reflectionInfo);
+        trampoline.$reflectionInfo = reflectionInfo;
       } else {
-        _foreign_helper.JS('', '#.$name = #', prototype, propertyName);
+        prototype.$name = propertyName;
       }
       let signatureFunction = null;
-      if (_foreign_helper.JS('bool', 'typeof # == "number"', functionType)) {
+      if (typeof functionType == "number") {
         let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.METADATA, core.String));
-        signatureFunction = _foreign_helper.JS('', '(function(s){return function(){return #[s]}})(#)', metadata, functionType);
-      } else if (core.bool['&&'](!dart.notNull(isStatic), _foreign_helper.JS('bool', 'typeof # == "function"', functionType))) {
+        signatureFunction = function(s) {
+          return function() {
+            return metadata[s];
+          };
+        }(functionType);
+      } else if (dart.notNull(!dart.notNull(isStatic)) && dart.notNull(typeof functionType == "function")) {
         let getReceiver = isIntercepted ? _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.receiverOf) : _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-        signatureFunction = _foreign_helper.JS('', 'function(f,r){' + 'return function(){' + 'return f.apply({$receiver:r(this)},arguments)' + '}' + '}(#,#)', functionType, getReceiver);
+        signatureFunction = function(f, r) {
+          return function() {
+            return f.apply({$receiver: r(this)}, arguments);
+          };
+        }(functionType, getReceiver);
       } else {
         throw 'Error in reflectionInfo.';
       }
-      _foreign_helper.JS('', '#[#] = #', prototype, _foreign_helper.JS_SIGNATURE_NAME(), signatureFunction);
-      _foreign_helper.JS('', '#[#] = #', prototype, callName, trampoline);
+      prototype[_foreign_helper.JS_SIGNATURE_NAME()] = signatureFunction;
+      prototype[callName] = trampoline;
       for (let i = 1; i < functions.length; i++) {
         let stub = functions.get(i);
-        let stubCallName = _foreign_helper.JS('String|Null', '#.$callName', stub);
+        let stubCallName = stub.$callName;
         if (stubCallName !== null) {
-          _foreign_helper.JS('', '#[#] = #', prototype, stubCallName, isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
+          prototype[stubCallName] = isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted);
         }
       }
-      _foreign_helper.JS('', '#["call*"] = #', prototype, trampoline);
+      prototype["call*"] = trampoline;
       return constructor;
     }
     static cspForwardCall(arity, isSuperCall, stubName, function) {
@@ -1212,40 +1282,68 @@ var _js_helper;
         arity = -1;
       switch (arity) {
         case 0:
-          return _foreign_helper.JS('', 'function(n,S){' + 'return function(){' + 'return S(this)[n]()' + '}' + '}(#,#)', stubName, getSelf);
+          return function(n, S) {
+            return function() {
+              return S(this)[n]();
+            };
+          }(stubName, getSelf);
         case 1:
-          return _foreign_helper.JS('', 'function(n,S){' + 'return function(a){' + 'return S(this)[n](a)' + '}' + '}(#,#)', stubName, getSelf);
+          return function(n, S) {
+            return function(a) {
+              return S(this)[n](a);
+            };
+          }(stubName, getSelf);
         case 2:
-          return _foreign_helper.JS('', 'function(n,S){' + 'return function(a,b){' + 'return S(this)[n](a,b)' + '}' + '}(#,#)', stubName, getSelf);
+          return function(n, S) {
+            return function(a, b) {
+              return S(this)[n](a, b);
+            };
+          }(stubName, getSelf);
         case 3:
-          return _foreign_helper.JS('', 'function(n,S){' + 'return function(a,b,c){' + 'return S(this)[n](a,b,c)' + '}' + '}(#,#)', stubName, getSelf);
+          return function(n, S) {
+            return function(a, b, c) {
+              return S(this)[n](a, b, c);
+            };
+          }(stubName, getSelf);
         case 4:
-          return _foreign_helper.JS('', 'function(n,S){' + 'return function(a,b,c,d){' + 'return S(this)[n](a,b,c,d)' + '}' + '}(#,#)', stubName, getSelf);
+          return function(n, S) {
+            return function(a, b, c, d) {
+              return S(this)[n](a, b, c, d);
+            };
+          }(stubName, getSelf);
         case 5:
-          return _foreign_helper.JS('', 'function(n,S){' + 'return function(a,b,c,d,e){' + 'return S(this)[n](a,b,c,d,e)' + '}' + '}(#,#)', stubName, getSelf);
+          return function(n, S) {
+            return function(a, b, c, d, e) {
+              return S(this)[n](a, b, c, d, e);
+            };
+          }(stubName, getSelf);
         default:
-          return _foreign_helper.JS('', 'function(f,s){' + 'return function(){' + 'return f.apply(s(this),arguments)' + '}' + '}(#,#)', function, getSelf);
+          return function(f, s) {
+            return function() {
+              return f.apply(s(this), arguments);
+            };
+          }(function, getSelf);
       }
     }
     static get isCsp() {
-      return dart.as(_foreign_helper.JS('bool', 'typeof dart_precompiled == "function"'), core.bool);
+      return typeof dart_precompiled == "function";
     }
     static forwardCallTo(receiver, function, isIntercepted) {
       if (isIntercepted)
         return forwardInterceptedCallTo(receiver, function);
-      let stubName = dart.as(_foreign_helper.JS('String|Null', '#.$stubName', function), core.String);
-      let arity = dart.as(_foreign_helper.JS('int', '#.length', function), core.int);
-      let lookedUpFunction = _foreign_helper.JS("", "#[#]", receiver, stubName);
+      let stubName = dart.as(function.$stubName, core.String);
+      let arity = function.length;
+      let lookedUpFunction = receiver[stubName];
       let isSuperCall = !dart.notNull(core.identical(function, lookedUpFunction));
       if (dart.notNull(dart.notNull(isCsp) || dart.notNull(isSuperCall)) || dart.notNull(arity >= 27)) {
         return cspForwardCall(arity, isSuperCall, stubName, function);
       }
       if (arity === 0) {
-        return _foreign_helper.JS('', '(new Function(#))()', 'return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${functionCounter++}` + '}');
+        return new Function('return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${functionCounter++}` + '}')();
       }
       dart.assert(dart.notNull(1 <= arity) && dart.notNull(arity < 27));
-      let arguments = dart.as(_foreign_helper.JS('String', '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")', arity), core.String);
-      return _foreign_helper.JS('', '(new Function(#))()', `return function(${arguments}){` + `return this.${BoundClosure.selfFieldName()}.${stubName}(${arguments});` + `${functionCounter++}` + '}');
+      let arguments = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, arity).join(",");
+      return new Function(`return function(${arguments}){` + `return this.${BoundClosure.selfFieldName()}.${stubName}(${arguments});` + `${functionCounter++}` + '}')();
     }
     static cspForwardInterceptedCall(arity, isSuperCall, name, function) {
       let getSelf = _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
@@ -1256,38 +1354,68 @@ var _js_helper;
         case 0:
           throw new RuntimeError('Intercepted function with no arguments.');
         case 1:
-          return _foreign_helper.JS('', 'function(n,s,r){' + 'return function(){' + 'return s(this)[n](r(this))' + '}' + '}(#,#,#)', name, getSelf, getReceiver);
+          return function(n, s, r) {
+            return function() {
+              return s(this)[n](r(this));
+            };
+          }(name, getSelf, getReceiver);
         case 2:
-          return _foreign_helper.JS('', 'function(n,s,r){' + 'return function(a){' + 'return s(this)[n](r(this),a)' + '}' + '}(#,#,#)', name, getSelf, getReceiver);
+          return function(n, s, r) {
+            return function(a) {
+              return s(this)[n](r(this), a);
+            };
+          }(name, getSelf, getReceiver);
         case 3:
-          return _foreign_helper.JS('', 'function(n,s,r){' + 'return function(a,b){' + 'return s(this)[n](r(this),a,b)' + '}' + '}(#,#,#)', name, getSelf, getReceiver);
+          return function(n, s, r) {
+            return function(a, b) {
+              return s(this)[n](r(this), a, b);
+            };
+          }(name, getSelf, getReceiver);
         case 4:
-          return _foreign_helper.JS('', 'function(n,s,r){' + 'return function(a,b,c){' + 'return s(this)[n](r(this),a,b,c)' + '}' + '}(#,#,#)', name, getSelf, getReceiver);
+          return function(n, s, r) {
+            return function(a, b, c) {
+              return s(this)[n](r(this), a, b, c);
+            };
+          }(name, getSelf, getReceiver);
         case 5:
-          return _foreign_helper.JS('', 'function(n,s,r){' + 'return function(a,b,c,d){' + 'return s(this)[n](r(this),a,b,c,d)' + '}' + '}(#,#,#)', name, getSelf, getReceiver);
+          return function(n, s, r) {
+            return function(a, b, c, d) {
+              return s(this)[n](r(this), a, b, c, d);
+            };
+          }(name, getSelf, getReceiver);
         case 6:
-          return _foreign_helper.JS('', 'function(n,s,r){' + 'return function(a,b,c,d,e){' + 'return s(this)[n](r(this),a,b,c,d,e)' + '}' + '}(#,#,#)', name, getSelf, getReceiver);
+          return function(n, s, r) {
+            return function(a, b, c, d, e) {
+              return s(this)[n](r(this), a, b, c, d, e);
+            };
+          }(name, getSelf, getReceiver);
         default:
-          return _foreign_helper.JS('', 'function(f,s,r,a){' + 'return function(){' + 'a=[r(this)];' + 'Array.prototype.push.apply(a,arguments);' + 'return f.apply(s(this),a)' + '}' + '}(#,#,#)', function, getSelf, getReceiver);
+          return function(f, s, r, a) {
+            return function() {
+              a = [r(this)];
+              Array.prototype.push.apply(a, arguments);
+              return f.apply(s(this), a);
+            };
+          }(function, getSelf, getReceiver);
       }
     }
     static forwardInterceptedCallTo(receiver, function) {
       let selfField = BoundClosure.selfFieldName();
       let receiverField = BoundClosure.receiverFieldName();
-      let stubName = dart.as(_foreign_helper.JS('String|Null', '#.$stubName', function), core.String);
-      let arity = dart.as(_foreign_helper.JS('int', '#.length', function), core.int);
-      let isCsp = dart.as(_foreign_helper.JS('bool', 'typeof dart_precompiled == "function"'), core.bool);
-      let lookedUpFunction = _foreign_helper.JS("", "#[#]", receiver, stubName);
+      let stubName = dart.as(function.$stubName, core.String);
+      let arity = function.length;
+      let isCsp = typeof dart_precompiled == "function";
+      let lookedUpFunction = receiver[stubName];
       let isSuperCall = !dart.notNull(core.identical(function, lookedUpFunction));
       if (dart.notNull(dart.notNull(isCsp) || dart.notNull(isSuperCall)) || dart.notNull(arity >= 28)) {
         return cspForwardInterceptedCall(arity, isSuperCall, stubName, function);
       }
       if (arity === 1) {
-        return _foreign_helper.JS('', '(new Function(#))()', 'return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${functionCounter++}` + '}');
+        return new Function('return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${functionCounter++}` + '}')();
       }
       dart.assert(dart.notNull(1 < arity) && dart.notNull(arity < 28));
-      let arguments = dart.as(_foreign_helper.JS('String', '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")', arity - 1), core.String);
-      return _foreign_helper.JS('', '(new Function(#))()', `return function(${arguments}){` + `return this.${selfField}.${stubName}(this.${receiverField}, ${arguments});` + `${functionCounter++}` + '}');
+      let arguments = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, arity - 1).join(",");
+      return new Function(`return function(${arguments}){` + `return this.${selfField}.${stubName}(this.${receiverField}, ${arguments});` + `${functionCounter++}` + '}')();
     }
     toString() {
       return "Closure";
@@ -1302,7 +1430,7 @@ var _js_helper;
   Closure.functionCounter = 0;
   // Function closureFromTearOff: (dynamic, dynamic, dynamic, dynamic, dynamic, dynamic) → dynamic
   function closureFromTearOff(receiver, functions, reflectionInfo, isStatic, jsArguments, name) {
-    return Closure.fromTearOff(receiver, _interceptors.JSArray.markFixedList(dart.as(functions, core.List)), _interceptors.JSArray.markFixedList(dart.as(reflectionInfo, core.List)), dart.as(_foreign_helper.JS('bool', '!!#', isStatic), core.bool), jsArguments, dart.as(_foreign_helper.JS('String', '#', name), core.String));
+    return Closure.fromTearOff(receiver, _interceptors.JSArray.markFixedList(dart.as(functions, core.List)), _interceptors.JSArray.markFixedList(dart.as(reflectionInfo, core.List)), !!isStatic, jsArguments, name);
   }
   class TearOffClosure extends Closure {
   }
@@ -1319,13 +1447,13 @@ var _js_helper;
         return true;
       if (!dart.is(other, BoundClosure))
         return false;
-      return dart.as(_foreign_helper.JS('bool', '# === # && # === # && # === #', this._self, dart.dload(other, '_self'), this._target, dart.dload(other, '_target'), this._receiver, dart.dload(other, '_receiver')), core.bool);
+      return this._self === dart.dload(other, '_self') && this._target === dart.dload(other, '_target') && this._receiver === dart.dload(other, '_receiver');
     }
     get hashCode() {
       let receiverHashCode = null;
       if (this._receiver === null) {
         receiverHashCode = Primitives.objectHashCode(this._self);
-      } else if (!dart.equals(_foreign_helper.JS('String', 'typeof #', this._receiver), 'object')) {
+      } else if (!dart.equals(typeof this._receiver, 'object')) {
         receiverHashCode = dart.as(dart.dload(this._receiver, 'hashCode'), core.int);
       } else {
         receiverHashCode = Primitives.objectHashCode(this._receiver);
@@ -1358,11 +1486,11 @@ var _js_helper;
     }
     static computeFieldNamed(fieldName) {
       let template = new BoundClosure('self', 'target', 'receiver', 'name');
-      let names = _interceptors.JSArray.markFixedList(dart.as(_foreign_helper.JS('', 'Object.getOwnPropertyNames(#)', template), core.List));
+      let names = _interceptors.JSArray.markFixedList(dart.as(Object.getOwnPropertyNames(template), core.List));
       for (let i = 0; i < names.length; i++) {
         let name = names.get(i);
-        if (_foreign_helper.JS('bool', '#[#] === #', template, name, fieldName)) {
-          return dart.as(_foreign_helper.JS('String', '#', name), core.String);
+        if (template[name] === fieldName) {
+          return name;
         }
       }
     }
@@ -1371,11 +1499,11 @@ var _js_helper;
   BoundClosure.receiverFieldNameCache = null;
   // Function jsHasOwnProperty: (dynamic, String) → bool
   function jsHasOwnProperty(jsObject, property) {
-    return dart.as(_foreign_helper.JS('bool', '#.hasOwnProperty(#)', jsObject, property), core.bool);
+    return jsObject.hasOwnProperty(property);
   }
   // Function jsPropertyAccess: (dynamic, String) → dynamic
   function jsPropertyAccess(jsObject, property) {
-    return _foreign_helper.JS('var', '#[#]', jsObject, property);
+    return jsObject[property];
   }
   // Function getFallThroughError: () → dynamic
   function getFallThroughError() {
@@ -1489,13 +1617,13 @@ var _js_helper;
   function propertyTypeCheck(value, property) {
     if (value === null)
       return value;
-    if (_foreign_helper.JS('bool', '!!#[#]', value, property))
+    if (!!value[property])
       return value;
     propertyTypeError(value, property);
   }
   // Function propertyTypeCast: (dynamic, dynamic) → dynamic
   function propertyTypeCast(value, property) {
-    if (core.bool['||'](value === null, _foreign_helper.JS('bool', '!!#[#]', value, property)))
+    if (dart.notNull(value === null) || dart.notNull(!!value[property]))
       return value;
     propertyTypeCastError(value, property);
   }
@@ -1503,14 +1631,14 @@ var _js_helper;
   function interceptedTypeCheck(value, property) {
     if (value === null)
       return value;
-    if (core.bool['&&'](core.identical(_foreign_helper.JS('String', 'typeof #', value), 'object'), _foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property))) {
+    if (dart.notNull(core.identical(typeof value, 'object')) && dart.notNull(_interceptors.getInterceptor(value)[property])) {
       return value;
     }
     propertyTypeError(value, property);
   }
   // Function interceptedTypeCast: (dynamic, dynamic) → dynamic
   function interceptedTypeCast(value, property) {
-    if (dart.notNull(value === null) || dart.notNull(dart.dbinary(_foreign_helper.JS('bool', 'typeof # === "object"', value), '&&', _foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property)))) {
+    if (dart.notNull(value === null) || dart.notNull(dart.notNull(typeof value === "object") && dart.notNull(_interceptors.getInterceptor(value)[property]))) {
       return value;
     }
     propertyTypeCastError(value, property);
@@ -1523,7 +1651,7 @@ var _js_helper;
       return value;
     if (dart.is(value, core.num))
       return value;
-    if (_foreign_helper.JS('bool', '!!#[#]', value, property))
+    if (!!value[property])
       return value;
     propertyTypeError(value, property);
   }
@@ -1543,7 +1671,7 @@ var _js_helper;
       return value;
     if (dart.is(value, core.num))
       return value;
-    if (_foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property))
+    if (_interceptors.getInterceptor(value)[property])
       return value;
     propertyTypeError(value, property);
   }
@@ -1555,7 +1683,7 @@ var _js_helper;
       return value;
     if (dart.is(value, core.num))
       return value;
-    if (_foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property))
+    if (_interceptors.getInterceptor(value)[property])
       return value;
     propertyTypeCastError(value, property);
   }
@@ -1565,7 +1693,7 @@ var _js_helper;
       return value;
     if (typeof value == string)
       return value;
-    if (_foreign_helper.JS('bool', '!!#[#]', value, property))
+    if (!!value[property])
       return value;
     propertyTypeError(value, property);
   }
@@ -1581,7 +1709,7 @@ var _js_helper;
       return value;
     if (typeof value == string)
       return value;
-    if (_foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property))
+    if (_interceptors.getInterceptor(value)[property])
       return value;
     propertyTypeError(value, property);
   }
@@ -1589,7 +1717,7 @@ var _js_helper;
   function stringSuperNativeTypeCast(value, property) {
     if (dart.notNull(typeof value == string) || dart.notNull(value === null))
       return value;
-    if (_foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property))
+    if (_interceptors.getInterceptor(value)[property])
       return value;
     propertyTypeCastError(value, property);
   }
@@ -1613,7 +1741,7 @@ var _js_helper;
       return value;
     if (dart.is(value, core.List))
       return value;
-    if (_foreign_helper.JS('bool', '!!#[#]', value, property))
+    if (!!value[property])
       return value;
     propertyTypeError(value, property);
   }
@@ -1629,7 +1757,7 @@ var _js_helper;
       return value;
     if (dart.is(value, core.List))
       return value;
-    if (_foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property))
+    if (_interceptors.getInterceptor(value)[property])
       return value;
     propertyTypeError(value, property);
   }
@@ -1637,7 +1765,7 @@ var _js_helper;
   function listSuperNativeTypeCast(value, property) {
     if (dart.notNull(dart.is(value, core.List)) || dart.notNull(value === null))
       return value;
-    if (_foreign_helper.JS('bool', '#[#]', _interceptors.getInterceptor(value), property))
+    if (_interceptors.getInterceptor(value)[property])
       return value;
     propertyTypeCastError(value, property);
   }
@@ -1751,14 +1879,14 @@ var _js_helper;
       return functionTypeObject === null ? false : isFunctionSubtype(functionTypeObject, this.toRti());
     }
     _asCheck(expression) {
-      return this._check(_foreign_helper.JS('', '#', expression), true);
+      return this._check(expression, true);
     }
     _assertCheck(expression) {
       if (inAssert)
         return null;
       inAssert = true;
       try {
-        return this._check(_foreign_helper.JS('', '#', expression), false);
+        return this._check(expression, false);
       } finally {
         inAssert = false;
       }
@@ -1784,40 +1912,40 @@ var _js_helper;
     }
     _extractFunctionTypeObjectFrom(o) {
       let interceptor = _interceptors.getInterceptor(o);
-      return _foreign_helper.JS('bool', '# in #', _foreign_helper.JS_SIGNATURE_NAME(), interceptor) ? _foreign_helper.JS('', '#[#]()', interceptor, _foreign_helper.JS_SIGNATURE_NAME()) : null;
+      return _foreign_helper.JS_SIGNATURE_NAME() in interceptor ? interceptor[_foreign_helper.JS_SIGNATURE_NAME()]() : null;
     }
     toRti() {
-      let result = _foreign_helper.JS('=Object', '{ #: "dynafunc" }', _foreign_helper.JS_FUNCTION_TYPE_TAG());
+      let result = {[_foreign_helper.JS_FUNCTION_TYPE_TAG()]: "dynafunc"};
       if (this.isVoid) {
-        _foreign_helper.JS('', '#[#] = true', result, _foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG());
+        result[_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()] = true;
       } else {
         if (!dart.is(this.returnType, DynamicRuntimeType)) {
-          _foreign_helper.JS('', '#[#] = #', result, _foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG(), this.returnType.toRti());
+          result[_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()] = this.returnType.toRti();
         }
       }
       if (dart.notNull(this.parameterTypes !== null) && dart.notNull(!dart.notNull(this.parameterTypes.isEmpty))) {
-        _foreign_helper.JS('', '#[#] = #', result, _foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG(), listToRti(this.parameterTypes));
+        result[_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()] = listToRti(this.parameterTypes);
       }
       if (dart.notNull(this.optionalParameterTypes !== null) && dart.notNull(!dart.notNull(this.optionalParameterTypes.isEmpty))) {
-        _foreign_helper.JS('', '#[#] = #', result, _foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG(), listToRti(this.optionalParameterTypes));
+        result[_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()] = listToRti(this.optionalParameterTypes);
       }
       if (this.namedParameters !== null) {
-        let namedRti = _foreign_helper.JS('=Object', 'Object.create(null)');
+        let namedRti = Object.create(null);
         let keys = _js_names.extractKeys(this.namedParameters);
         for (let i = 0; i < keys.length; i++) {
           let name = keys.get(i);
-          let rti = dart.dinvoke(_foreign_helper.JS('', '#[#]', this.namedParameters, name), 'toRti');
-          _foreign_helper.JS('', '#[#] = #', namedRti, name, rti);
+          let rti = dart.dinvoke(this.namedParameters[name], 'toRti');
+          namedRti[name] = rti;
         }
-        _foreign_helper.JS('', '#[#] = #', result, _foreign_helper.JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG(), namedRti);
+        result[_foreign_helper.JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG()] = namedRti;
       }
       return result;
     }
     static listToRti(list) {
-      list = _foreign_helper.JS('JSFixedArray', '#', list);
-      let result = _foreign_helper.JS('JSExtendableArray', '[]');
+      list = list;
+      let result = [];
       for (let i = 0; i['<'](dart.dload(list, 'length')); i++) {
-        _foreign_helper.JS('', '#.push(#)', result, dart.dinvoke(dart.dindex(list, i), 'toRti'));
+        result.push(dart.dinvoke(dart.dindex(list, i), 'toRti'));
       }
       return result;
     }
@@ -1856,8 +1984,8 @@ var _js_helper;
           let name = keys.get(i);
           if (needsComma)
             result = ', ';
-          let rti = dart.dinvoke(_foreign_helper.JS('', '#[#]', this.namedParameters, name), 'toRti');
-          result = `${rti} ${_foreign_helper.JS("String", "#", name)}`;
+          let rti = dart.dinvoke(this.namedParameters[name], 'toRti');
+          result = `${rti} ${name}`;
           needsComma = true;
         }
         result = '}';
@@ -1877,7 +2005,7 @@ var _js_helper;
   }
   // Function buildInterfaceType: (dynamic, dynamic) → RuntimeType
   function buildInterfaceType(rti, typeArguments) {
-    let name = dart.as(_foreign_helper.JS('String|Null', '#.name', rti), core.String);
+    let name = dart.as(rti.name, core.String);
     if (core.bool['||'](typeArguments === null, dart.dload(typeArguments, 'isEmpty'))) {
       return new RuntimeTypePlain(name);
     }
@@ -1915,12 +2043,12 @@ var _js_helper;
   }
   // Function functionTypeTestMetaHelper: () → dynamic
   function functionTypeTestMetaHelper() {
-    let dyn = _foreign_helper.JS('', 'x');
-    let dyn2 = _foreign_helper.JS('', 'x');
-    let fixedListOrNull = dart.as(_foreign_helper.JS('JSFixedArray|Null', 'x'), core.List);
-    let fixedListOrNull2 = dart.as(_foreign_helper.JS('JSFixedArray|Null', 'x'), core.List);
-    let fixedList = dart.as(_foreign_helper.JS('JSFixedArray', 'x'), core.List);
-    let jsObject = _foreign_helper.JS('=Object', 'x');
+    let dyn = x;
+    let dyn2 = x;
+    let fixedListOrNull = dart.as(x, core.List);
+    let fixedListOrNull2 = dart.as(x, core.List);
+    let fixedList = dart.as(x, core.List);
+    let jsObject = x;
     buildFunctionType(dyn, fixedListOrNull, fixedListOrNull2);
     buildNamedFunctionType(dyn, fixedList, jsObject);
     buildInterfaceType(dyn, fixedListOrNull);
@@ -1935,20 +2063,20 @@ var _js_helper;
   function convertRtiToRuntimeType(rti) {
     if (rti === null) {
       return getDynamicRuntimeType();
-    } else if (_foreign_helper.JS('bool', 'typeof # == "function"', rti)) {
-      return new RuntimeTypePlain(dart.as(_foreign_helper.JS('String', 'rti.name'), core.String));
-    } else if (_foreign_helper.JS('bool', '#.constructor == Array', rti)) {
-      let list = dart.as(_foreign_helper.JS('JSFixedArray', '#', rti), core.List);
-      let name = dart.as(_foreign_helper.JS('String', '#.name', list.get(0)), core.String);
+    } else if (typeof rti == "function") {
+      return new RuntimeTypePlain(rti.name);
+    } else if (rti.constructor == Array) {
+      let list = dart.as(rti, core.List);
+      let name = list.get(0).name;
       let arguments = new List.from([]);
       for (let i = 1; i < list.length; i++) {
         arguments.add(convertRtiToRuntimeType(list.get(i)));
       }
       return new RuntimeTypeGeneric(name, dart.as(arguments, core.List$(RuntimeType)), rti);
-    } else if (_foreign_helper.JS('bool', '"func" in #', rti)) {
+    } else if ("func" in rti) {
       return new FunctionTypeInfoDecoderRing(rti).toRuntimeType();
     } else {
-      throw new RuntimeError("Cannot convert " + `'${_foreign_helper.JS('String', 'JSON.stringify(#)', rti)}' to RuntimeType.`);
+      throw new RuntimeError("Cannot convert " + `'${JSON.stringify(rti)}' to RuntimeType.`);
     }
   }
   class RuntimeTypePlain extends RuntimeType {
@@ -1958,7 +2086,7 @@ var _js_helper;
     }
     toRti() {
       let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.ALL_CLASSES, core.String));
-      let rti = _foreign_helper.JS('', '#[#]', allClasses, this.name);
+      let rti = allClasses[this.name];
       if (rti === null)
         throw `no type for '${this.name}'`;
       return rti;
@@ -1978,12 +2106,12 @@ var _js_helper;
       if (this.rti !== null)
         return this.rti;
       let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.ALL_CLASSES, core.String));
-      let result = _foreign_helper.JS('JSExtendableArray', '[#[#]]', allClasses, this.name);
+      let result = [allClasses[this.name]];
       if (dart.dindex(result, 0) === null) {
         throw `no type for '${this.name}<...>'`;
       }
       for (let argument of this.arguments) {
-        _foreign_helper.JS('', '#.push(#)', result, argument.toRti());
+        result.push(argument.toRti());
       }
       return this.rti = result;
     }
@@ -1997,31 +2125,31 @@ var _js_helper;
       this._cachedToString = null;
     }
     get _hasReturnType() {
-      return dart.as(_foreign_helper.JS('bool', '"ret" in #', this._typeData), core.bool);
+      return "ret" in this._typeData;
     }
     get _returnType() {
-      return _foreign_helper.JS('', '#.ret', this._typeData);
+      return this._typeData.ret;
     }
     get _isVoid() {
-      return dart.as(_foreign_helper.JS('bool', '!!#.void', this._typeData), core.bool);
+      return !!this._typeData["void"];
     }
     get _hasArguments() {
-      return dart.as(_foreign_helper.JS('bool', '"args" in #', this._typeData), core.bool);
+      return "args" in this._typeData;
     }
     get _arguments() {
-      return dart.as(_foreign_helper.JS('JSExtendableArray', '#.args', this._typeData), core.List);
+      return dart.as(this._typeData.args, core.List);
     }
     get _hasOptionalArguments() {
-      return dart.as(_foreign_helper.JS('bool', '"opt" in #', this._typeData), core.bool);
+      return "opt" in this._typeData;
     }
     get _optionalArguments() {
-      return dart.as(_foreign_helper.JS('JSExtendableArray', '#.opt', this._typeData), core.List);
+      return dart.as(this._typeData.opt, core.List);
     }
     get _hasNamedArguments() {
-      return dart.as(_foreign_helper.JS('bool', '"named" in #', this._typeData), core.bool);
+      return "named" in this._typeData;
     }
     get _namedArguments() {
-      return _foreign_helper.JS('=Object', '#.named', this._typeData);
+      return this._typeData.named;
     }
     toRuntimeType() {
       return new DynamicRuntimeType();
@@ -2030,7 +2158,7 @@ var _js_helper;
       let result = runtimeTypeToString(type);
       if (result !== null)
         return result;
-      if (_foreign_helper.JS('bool', '"func" in #', type)) {
+      if ("func" in type) {
         return new FunctionTypeInfoDecoderRing(type).toString();
       } else {
         throw 'bad type';
@@ -2064,7 +2192,7 @@ var _js_helper;
         for (let name of _js_names.extractKeys(this._namedArguments)) {
           s = sep;
           s = `${name}: `;
-          s = this._convert(_foreign_helper.JS('', '#[#]', this._namedArguments, name));
+          s = this._convert(this._namedArguments[name]);
           sep = ', ';
         }
         s = '}';
@@ -2091,18 +2219,18 @@ var _js_helper;
   }
   // Function random64: () → int
   function random64() {
-    let int32a = dart.as(_foreign_helper.JS("int", "(Math.random() * 0x100000000) >>> 0"), core.int);
-    let int32b = dart.as(_foreign_helper.JS("int", "(Math.random() * 0x100000000) >>> 0"), core.int);
+    let int32a = Math.random() * 0x100000000 >>> 0;
+    let int32b = Math.random() * 0x100000000 >>> 0;
     return int32a + int32b * 4294967296;
   }
   // Function jsonEncodeNative: (String) → String
   function jsonEncodeNative(string) {
-    return dart.as(_foreign_helper.JS("String", "JSON.stringify(#)", string), core.String);
+    return JSON.stringify(string);
   }
   // Function getIsolateAffinityTag: (String) → String
   function getIsolateAffinityTag(name) {
     let isolateTagGetter = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.GET_ISOLATE_TAG, core.String));
-    return dart.as(_foreign_helper.JS('String', '#(#)', isolateTagGetter, name), core.String);
+    return isolateTagGetter(name);
   }
   // Function _loadLibraryWrapper: (String) → () → Future<Null>
   function _loadLibraryWrapper(loadId) {
@@ -2120,20 +2248,20 @@ var _js_helper;
   // Function loadDeferredLibrary: (String) → Future<Null>
   function loadDeferredLibrary(loadId) {
     let urisMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.DEFERRED_LIBRARY_URIS, core.String));
-    let uris = dart.as(_foreign_helper.JS('JSExtendableArray|Null', '#[#]', urisMap, loadId), core.List$(core.String));
+    let uris = dart.as(urisMap[loadId], core.List$(core.String));
     let hashesMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.DEFERRED_LIBRARY_HASHES, core.String));
-    let hashes = dart.as(_foreign_helper.JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId), core.List$(core.String));
+    let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris === null)
       return dart.as(new async.Future.value(null), async.Future$(core.Null));
     let indices = dart.as(new core.List.generate(uris.length, (i) => i), core.List$(core.int));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.IS_HUNK_LOADED, core.String));
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.IS_HUNK_INITIALIZED, core.String));
-    let indicesToLoad = indices.where((i) => dart.throw_("Unimplemented PrefixExpression: !JS('bool', '#(#)', isHunkLoaded, hashes[i])")).toList();
+    let indicesToLoad = indices.where((i) => !dart.notNull(isHunkLoaded(hashes.get(i)))).toList();
     return dart.as(async.Future.wait(dart.as(indicesToLoad.map((i) => _loadHunk(uris.get(i))), core.Iterable$(async.Future))).then((_) => {
-      let indicesToInitialize = indices.where((i) => dart.throw_("Unimplemented PrefixExpression: !JS('bool', '#(#)', isHunkInitialized, hashes[i])")).toList();
+      let indicesToInitialize = indices.where((i) => !dart.notNull(isHunkInitialized(hashes.get(i)))).toList();
       for (let i of indicesToInitialize) {
         let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INITIALIZE_LOADED_HUNK, core.String));
-        _foreign_helper.JS('void', '#(#)', initializer, hashes.get(i));
+        initializer(hashes.get(i));
       }
       let updated = _js_helper._loadedLibraries.add(loadId);
       if (dart.notNull(updated) && dart.notNull(_js_helper.deferredLoadHook !== null)) {
@@ -2153,7 +2281,7 @@ var _js_helper;
     if (dart.notNull(Primitives.isJsshell) || dart.notNull(Primitives.isD8)) {
       return _js_helper._loadingLibraries.set(hunkName, new async.Future(() => {
         try {
-          _foreign_helper.JS('void', '(new Function(#))()', `load("${uri}")`);
+          new Function(`load("${uri}")`)();
         } catch (error) {
           let stackTrace = dart.stackTrace(error);
           throw new async.DeferredLoadException(`Loading ${uri} failed.`);
@@ -2170,16 +2298,16 @@ var _js_helper;
         }), async.Future$(core.Null));
         let index = uri.lastIndexOf('/');
         uri = `${uri.substring(0, index + 1)}${hunkName}`;
-        let xhr = _foreign_helper.JS('dynamic', 'new XMLHttpRequest()');
-        _foreign_helper.JS('void', '#.open("GET", #)', xhr, uri);
-        _foreign_helper.JS('void', '#.addEventListener("load", #, false)', xhr, convertDartClosureToJS((event) => {
-          if (!dart.equals(_foreign_helper.JS('int', '#.status', xhr), 200)) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", uri);
+        xhr.addEventListener("load", convertDartClosureToJS((event) => {
+          if (xhr.status !== 200) {
             completer.completeError(new async.DeferredLoadException(`Loading ${uri} failed.`));
             return;
           }
-          let code = dart.as(_foreign_helper.JS('String', '#.responseText', xhr), core.String);
+          let code = xhr.responseText;
           try {
-            _foreign_helper.JS('void', '(new Function(#))()', code);
+            new Function(code)();
           } catch (error) {
             let stackTrace = dart.stackTrace(error);
             completer.completeError(new async.DeferredLoadException(`Evaluating ${uri} failed.`));
@@ -2187,28 +2315,28 @@ var _js_helper;
           }
 
           completer.complete(null);
-        }, 1));
+        }, 1), false);
         let fail = convertDartClosureToJS((event) => {
           new async.DeferredLoadException(`Loading ${uri} failed.`);
         }, 1);
-        _foreign_helper.JS('void', '#.addEventListener("error", #, false)', xhr, fail);
-        _foreign_helper.JS('void', '#.addEventListener("abort", #, false)', xhr, fail);
-        _foreign_helper.JS('void', '#.send()', xhr);
+        xhr.addEventListener("error", fail, false);
+        xhr.addEventListener("abort", fail, false);
+        xhr.send();
         return leavingFuture;
       }));
     }
     return _js_helper._loadingLibraries.set(hunkName, new async.Future(() => {
       let completer = new async.Completer();
-      let script = _foreign_helper.JS('', 'document.createElement("script")');
-      _foreign_helper.JS('', '#.type = "text/javascript"', script);
-      _foreign_helper.JS('', '#.src = #', script, uri);
-      _foreign_helper.JS('', '#.addEventListener("load", #, false)', script, convertDartClosureToJS((event) => {
+      let script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src = uri;
+      script.addEventListener("load", convertDartClosureToJS((event) => {
         completer.complete(null);
-      }, 1));
-      _foreign_helper.JS('', '#.addEventListener("error", #, false)', script, convertDartClosureToJS((event) => {
+      }, 1), false);
+      script.addEventListener("error", convertDartClosureToJS((event) => {
         completer.completeError(new async.DeferredLoadException(`Loading ${uri} failed.`));
-      }, 1));
-      _foreign_helper.JS('', 'document.body.appendChild(#)', script);
+      }, 1), false);
+      document.body.appendChild(script);
       return completer.future;
     }));
   }
@@ -2318,7 +2446,7 @@ var _js_helper;
         return jsPropertyAccess(this._jsObject, dart.as(key, core.String));
       }
       forEach(f) {
-        let keys = _foreign_helper.JS('JSArray', '#', this._keys);
+        let keys = this._keys;
         for (let i = 0; i['<'](dart.dload(keys, 'length')); i++) {
           let key = dart.dindex(keys, i);
           f(dart.as(key, K), dart.as(this._fetch(key), V));
@@ -2379,11 +2507,11 @@ var _js_helper;
         super.ConstantMap$_();
       }
       _getMap() {
-        if (_foreign_helper.JS('bool', '!this.$map')) {
+        if (!this.$map) {
           let backingMap = new collection.LinkedHashMap();
-          _foreign_helper.JS('', 'this.$map = #', fillLiteralMap(this._jsData, backingMap));
+          this.$map = fillLiteralMap(this._jsData, backingMap);
         }
-        return dart.as(_foreign_helper.JS('Map', 'this.$map'), core.Map$(K, V));
+        return this.$map;
       }
       containsValue(needle) {
         return this._getMap().containsValue(needle);
@@ -2412,42 +2540,42 @@ var _js_helper;
   let GeneralConstantMap = GeneralConstantMap$(dynamic, dynamic);
   // Function contains: (String, String) → bool
   function contains(userAgent, name) {
-    return !dart.equals(_foreign_helper.JS('int', '#.indexOf(#)', userAgent, name), -1);
+    return userAgent.indexOf(name) !== -1;
   }
   // Function arrayLength: (List<dynamic>) → int
   function arrayLength(array) {
-    return dart.as(_foreign_helper.JS('int', '#.length', array), core.int);
+    return array.length;
   }
   // Function arrayGet: (List<dynamic>, int) → dynamic
   function arrayGet(array, index) {
-    return _foreign_helper.JS('var', '#[#]', array, index);
+    return array[index];
   }
   // Function arraySet: (List<dynamic>, int, dynamic) → void
   function arraySet(array, index, value) {
-    _foreign_helper.JS('var', '#[#] = #', array, index, value);
+    array[index] = value;
   }
   // Function propertyGet: (dynamic, String) → dynamic
   function propertyGet(object, property) {
-    return _foreign_helper.JS('var', '#[#]', object, property);
+    return object[property];
   }
   // Function callHasOwnProperty: (dynamic, dynamic, String) → bool
   function callHasOwnProperty(function, object, property) {
-    return dart.as(_foreign_helper.JS('bool', '#.call(#, #)', function, object, property), core.bool);
+    return function.call(object, property);
   }
   // Function propertySet: (dynamic, String, dynamic) → void
   function propertySet(object, property, value) {
-    _foreign_helper.JS('var', '#[#] = #', object, property, value);
+    object[property] = value;
   }
   // Function getPropertyFromPrototype: (dynamic, String) → dynamic
   function getPropertyFromPrototype(object, name) {
-    return _foreign_helper.JS('var', 'Object.getPrototypeOf(#)[#]', object, name);
+    return Object.getPrototypeOf(object)[name];
   }
   _js_helper.getTagFunction = null;
   _js_helper.alternateTagFunction = null;
   _js_helper.prototypeForTagFunction = null;
   // Function toStringForNativeObject: (dynamic) → String
   function toStringForNativeObject(obj) {
-    let name = dart.as(_js_helper.getTagFunction === null ? '<Unknown>' : _foreign_helper.JS('String', '#', dart.dinvokef(_js_helper.getTagFunction, obj)), core.String);
+    let name = _js_helper.getTagFunction === null ? '<Unknown>' : dart.dinvokef(_js_helper.getTagFunction, obj);
     return `Instance of ${name}`;
   }
   // Function hashCodeForNativeObject: (dynamic) → int
@@ -2456,11 +2584,11 @@ var _js_helper;
   }
   // Function defineProperty: (dynamic, String, dynamic) → void
   function defineProperty(obj, property, value) {
-    _foreign_helper.JS('void', 'Object.defineProperty(#, #, ' + '{value: #, enumerable: false, writable: true, configurable: true})', obj, property, value);
+    Object.defineProperty(obj, property, {value: value, enumerable: false, writable: true, configurable: true});
   }
   // Function isDartObject: (dynamic) → bool
   function isDartObject(obj) {
-    return dart.as(_foreign_helper.JS('bool', '((#) instanceof (#))', obj, _foreign_helper.JS_DART_OBJECT_CONSTRUCTOR()), core.bool);
+    return obj instanceof _foreign_helper.JS_DART_OBJECT_CONSTRUCTOR();
   }
   dart.copyProperties(_js_helper, {
     get interceptorsByTag() {
@@ -2472,7 +2600,7 @@ var _js_helper;
   });
   // Function findDispatchTagForInterceptorClass: (dynamic) → String
   function findDispatchTagForInterceptorClass(interceptorClassConstructor) {
-    return dart.as(_foreign_helper.JS('', '#.#', interceptorClassConstructor, _js_embedded_names.NATIVE_SUPERCLASS_TAG_NAME), core.String);
+    return dart.as(interceptorClassConstructor[_js_embedded_names.NATIVE_SUPERCLASS_TAG_NAME], core.String);
   }
   _js_helper.dispatchRecordsForInstanceTags = null;
   _js_helper.interceptorsForUncacheableTags = null;
@@ -2511,8 +2639,8 @@ var _js_helper;
     if (interceptorClass === null) {
       return null;
     }
-    interceptor = _foreign_helper.JS('', '#.prototype', interceptorClass);
-    let mark = _foreign_helper.JS('String|Null', '#[0]', tag);
+    interceptor = interceptorClass.prototype;
+    let mark = tag[0];
     if (dart.equals(mark, INSTANCE_CACHED_MARK)) {
       record = makeLeafDispatchRecord(interceptor);
       propertySet(_js_helper.dispatchRecordsForInstanceTags, tag, record);
@@ -2531,7 +2659,7 @@ var _js_helper;
     if (dart.equals(mark, DISCRIMINATED_MARK)) {
       throw new core.UnimplementedError(tag);
     }
-    let isLeaf = _foreign_helper.JS('bool', '(#[#]) === true', _js_helper.leafTags, tag);
+    let isLeaf = _js_helper.leafTags[tag] === true;
     if (isLeaf) {
       return patchProto(obj, makeLeafDispatchRecord(interceptor));
     } else {
@@ -2545,12 +2673,12 @@ var _js_helper;
   }
   // Function patchProto: (dynamic, dynamic) → dynamic
   function patchProto(obj, record) {
-    _interceptors.setDispatchProperty(_foreign_helper.JS('', 'Object.getPrototypeOf(#)', obj), record);
+    _interceptors.setDispatchProperty(Object.getPrototypeOf(obj), record);
     return _interceptors.dispatchRecordInterceptor(record);
   }
   // Function patchInteriorProto: (dynamic, dynamic) → dynamic
   function patchInteriorProto(obj, interceptor) {
-    let proto = _foreign_helper.JS('', 'Object.getPrototypeOf(#)', obj);
+    let proto = Object.getPrototypeOf(obj);
     let record = _interceptors.makeDispatchRecord(interceptor, proto, null, null);
     _interceptors.setDispatchProperty(proto, record);
     return interceptor;
@@ -2558,13 +2686,13 @@ var _js_helper;
   // Function makeLeafDispatchRecord: (dynamic) → dynamic
   function makeLeafDispatchRecord(interceptor) {
     let fieldName = _foreign_helper.JS_IS_INDEXABLE_FIELD_NAME();
-    let indexability = dart.as(_foreign_helper.JS('bool', '!!#[#]', interceptor, fieldName), core.bool);
+    let indexability = !!interceptor[fieldName];
     return _interceptors.makeDispatchRecord(interceptor, false, null, indexability);
   }
   // Function makeDefaultDispatchRecord: (dynamic, dynamic, dynamic) → dynamic
   function makeDefaultDispatchRecord(tag, interceptorClass, proto) {
-    let interceptor = _foreign_helper.JS('', '#.prototype', interceptorClass);
-    let isLeaf = _foreign_helper.JS('bool', '(#[#]) === true', _js_helper.leafTags, tag);
+    let interceptor = interceptorClass.prototype;
+    let isLeaf = _js_helper.leafTags[tag] === true;
     if (isLeaf) {
       return makeLeafDispatchRecord(interceptor);
     } else {
@@ -2577,7 +2705,7 @@ var _js_helper;
   }
   // Function constructorNameFallback: (dynamic) → String
   function constructorNameFallback(object) {
-    return dart.as(_foreign_helper.JS('String', '#(#)', _constructorNameFallback, object), core.String);
+    return _constructorNameFallback(object);
   }
   _js_helper.initNativeDispatchFlag = null;
   // Function initNativeDispatch: () → void
@@ -2589,31 +2717,32 @@ var _js_helper;
   }
   // Function initNativeDispatchContinue: () → void
   function initNativeDispatchContinue() {
-    _js_helper.dispatchRecordsForInstanceTags = _foreign_helper.JS('', 'Object.create(null)');
-    _js_helper.interceptorsForUncacheableTags = _foreign_helper.JS('', 'Object.create(null)');
+    _js_helper.dispatchRecordsForInstanceTags = Object.create(null);
+    _js_helper.interceptorsForUncacheableTags = Object.create(null);
     initHooks();
     let map = _js_helper.interceptorsByTag;
-    let tags = _foreign_helper.JS('JSMutableArray', 'Object.getOwnPropertyNames(#)', map);
-    if (_foreign_helper.JS('bool', 'typeof window != "undefined"')) {
-      let context = _foreign_helper.JS('=Object', 'window');
-      let fun = _foreign_helper.JS('=Object', 'function () {}');
+    let tags = Object.getOwnPropertyNames(map);
+    if (typeof window != "undefined") {
+      let context = window;
+      let fun = function() {
+      };
       for (let i = 0; i['<'](dart.dload(tags, 'length')); i++) {
         let tag = dart.dindex(tags, i);
         let proto = dart.dinvokef(_js_helper.prototypeForTagFunction, tag);
         if (proto !== null) {
-          let interceptorClass = _foreign_helper.JS('', '#[#]', map, tag);
+          let interceptorClass = map[tag];
           let record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
           if (record !== null) {
             _interceptors.setDispatchProperty(proto, record);
-            _foreign_helper.JS('', '#.prototype = #', fun, proto);
+            fun.prototype = proto;
           }
         }
       }
     }
     for (let i = 0; i['<'](dart.dload(tags, 'length')); i++) {
-      let tag = _foreign_helper.JS('String', '#[#]', tags, i);
-      if (_foreign_helper.JS('bool', '/^[A-Za-z_]/.test(#)', tag)) {
-        let interceptorClass = propertyGet(map, dart.as(tag, core.String));
+      let tag = tags[i];
+      if (/^[A-Za-z_]/.test(tag)) {
+        let interceptorClass = propertyGet(map, tag);
         propertySet(map, dart.as(dart.dbinary(INSTANCE_CACHED_MARK, '+', tag), core.String), interceptorClass);
         propertySet(map, dart.as(dart.dbinary(UNCACHED_MARK, '+', tag), core.String), interceptorClass);
         propertySet(map, dart.as(dart.dbinary(LEAF_MARK, '+', tag), core.String), interceptorClass);
@@ -2624,8 +2753,8 @@ var _js_helper;
   }
   // Function initHooks: () → void
   function initHooks() {
-    let hooks = _foreign_helper.JS('', '#()', _baseHooks);
-    let _fallbackConstructorHooksTransformer = _foreign_helper.JS('', '#(#)', _fallbackConstructorHooksTransformerGenerator, _constructorNameFallback);
+    let hooks = _baseHooks();
+    let _fallbackConstructorHooksTransformer = _fallbackConstructorHooksTransformerGenerator(_constructorNameFallback);
     hooks = applyHooksTransformer(_fallbackConstructorHooksTransformer, hooks);
     hooks = applyHooksTransformer(_firefoxHooksTransformer, hooks);
     hooks = applyHooksTransformer(_ieHooksTransformer, hooks);
@@ -2633,31 +2762,31 @@ var _js_helper;
     hooks = applyHooksTransformer(_safariHooksTransformer, hooks);
     hooks = applyHooksTransformer(_fixDocumentHooksTransformer, hooks);
     hooks = applyHooksTransformer(_dartExperimentalFixupGetTagHooksTransformer, hooks);
-    if (_foreign_helper.JS('bool', 'typeof dartNativeDispatchHooksTransformer != "undefined"')) {
-      let transformers = _foreign_helper.JS('', 'dartNativeDispatchHooksTransformer');
-      if (_foreign_helper.JS('bool', 'typeof # == "function"', transformers)) {
+    if (typeof dartNativeDispatchHooksTransformer != "undefined") {
+      let transformers = dartNativeDispatchHooksTransformer;
+      if (typeof transformers == "function") {
         transformers = new List.from([transformers]);
       }
-      if (_foreign_helper.JS('bool', '#.constructor == Array', transformers)) {
-        for (let i = 0; i['<'](_foreign_helper.JS('int', '#.length', transformers)); i++) {
-          let transformer = _foreign_helper.JS('', '#[#]', transformers, i);
-          if (_foreign_helper.JS('bool', 'typeof # == "function"', transformer)) {
+      if (transformers.constructor == Array) {
+        for (let i = 0; i < transformers.length; i++) {
+          let transformer = transformers[i];
+          if (typeof transformer == "function") {
             hooks = applyHooksTransformer(transformer, hooks);
           }
         }
       }
     }
-    let getTag = _foreign_helper.JS('', '#.getTag', hooks);
-    let getUnknownTag = _foreign_helper.JS('', '#.getUnknownTag', hooks);
-    let prototypeForTag = _foreign_helper.JS('', '#.prototypeForTag', hooks);
-    _js_helper.getTagFunction = (o) => _foreign_helper.JS('String|Null', '#(#)', getTag, o);
-    _js_helper.alternateTagFunction = (o, tag) => _foreign_helper.JS('String|Null', '#(#, #)', getUnknownTag, o, tag);
-    _js_helper.prototypeForTagFunction = (tag) => _foreign_helper.JS('', '#(#)', prototypeForTag, tag);
+    let getTag = hooks.getTag;
+    let getUnknownTag = hooks.getUnknownTag;
+    let prototypeForTag = hooks.prototypeForTag;
+    _js_helper.getTagFunction = (o) => getTag(o);
+    _js_helper.alternateTagFunction = (o, tag) => getUnknownTag(o, tag);
+    _js_helper.prototypeForTagFunction = (tag) => prototypeForTag(tag);
   }
   // Function applyHooksTransformer: (dynamic, dynamic) → dynamic
   function applyHooksTransformer(transformer, hooks) {
-    let newHooks = _foreign_helper.JS('=Object|Null', '#(#)', transformer, hooks);
-    return _foreign_helper.JS('', '# || #', newHooks, hooks);
+    let newHooks = transformer(hooks);
+    return newHooks || hooks;
   }
   let _baseHooks = new _foreign_helper.JS_CONST('\nfunction() {\n  function typeNameInChrome(o) {\n    var constructor = o.constructor;\n    if (constructor) {\n      var name = constructor.name;\n      if (name) return name;\n    }\n    var s = Object.prototype.toString.call(o);\n    return s.substring(8, s.length - 1);\n  }\n  function getUnknownTag(object, tag) {\n    // This code really belongs in [getUnknownTagGenericBrowser] but having it\n    // here allows [getUnknownTag] to be tested on d8.\n    if (/^HTML[A-Z].*Element$/.test(tag)) {\n      // Check that it is not a simple JavaScript object.\n      var name = Object.prototype.toString.call(object);\n      if (name == "[object Object]") return null;\n      return "HTMLElement";\n    }\n  }\n  function getUnknownTagGenericBrowser(object, tag) {\n    if (self.HTMLElement && object instanceof HTMLElement) return "HTMLElement";\n    return getUnknownTag(object, tag);\n  }\n  function prototypeForTag(tag) {\n    if (typeof window == "undefined") return null;\n    if (typeof window[tag] == "undefined") return null;\n    var constructor = window[tag];\n    if (typeof constructor != "function") return null;\n    return constructor.prototype;\n  }\n  function discriminator(tag) { return null; }\n\n  var isBrowser = typeof navigator == "object";\n\n  return {\n    getTag: typeNameInChrome,\n    getUnknownTag: isBrowser ? getUnknownTagGenericBrowser : getUnknownTag,\n    prototypeForTag: prototypeForTag,\n    discriminator: discriminator };\n}');
   let _constructorNameFallback = new _foreign_helper.JS_CONST('\nfunction getTagFallback(o) {\n  var constructor = o.constructor;\n  if (typeof constructor == "function") {\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type name of this\n    // object.  There are various cases where that does not work, so we have to\n    // detect them and fall through to the toString() based implementation.\n\n    if (typeof name == "string" &&\n\n        // Sometimes the string is empty.  This test also catches minified\n        // shadow dom polyfil wrapper for Window on Firefox where the faked\n        // constructor name does not \'stick\'.  The shortest real DOM object\n        // names have three characters (e.g. URL, CSS).\n        name.length > 2 &&\n\n        // On Firefox we often get "Object" as the constructor name, even for\n        // more specialized DOM objects.\n        name !== "Object" &&\n\n        // This can happen in Opera.\n        name !== "Function.prototype") {\n      return name;\n    }\n  }\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n}');
@@ -2675,13 +2804,13 @@ var _js_helper;
   // Function regExpGetGlobalNative: (JSSyntaxRegExp) → dynamic
   function regExpGetGlobalNative(regexp) {
     let nativeRegexp = regexp._nativeGlobalVersion;
-    _foreign_helper.JS("void", "#.lastIndex = 0", nativeRegexp);
+    nativeRegexp.lastIndex = 0;
     return nativeRegexp;
   }
   // Function regExpCaptureCount: (JSSyntaxRegExp) → int
   function regExpCaptureCount(regexp) {
     let nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
-    let match = _foreign_helper.JS('JSExtendableArray', "#.exec('')", nativeAnchoredRegExp);
+    let match = nativeAnchoredRegExp.exec('');
     return dart.as(dart.dbinary(dart.dload(match, 'length'), '-', 2), core.int);
   }
   class JSSyntaxRegExp extends dart.Object {
@@ -2707,30 +2836,37 @@ var _js_helper;
       return this._nativeAnchoredRegExp = makeNative(`${this.pattern}|()`, this._isMultiLine, this._isCaseSensitive, true);
     }
     get _isMultiLine() {
-      return dart.as(_foreign_helper.JS("bool", "#.multiline", this._nativeRegExp), core.bool);
+      return this._nativeRegExp.multiline;
     }
     get _isCaseSensitive() {
-      return dart.as(_foreign_helper.JS("bool", "!#.ignoreCase", this._nativeRegExp), core.bool);
+      return !this._nativeRegExp.ignoreCase;
     }
     static makeNative(source, multiLine, caseSensitive, global) {
       checkString(source);
       let m = multiLine ? 'm' : '';
       let i = caseSensitive ? '' : 'i';
       let g = global ? 'g' : '';
-      let regexp = _foreign_helper.JS('', '(function() {' + 'try {' + 'return new RegExp(#, # + # + #);' + '} catch (e) {' + 'return e;' + '}' + '})()', source, m, i, g);
-      if (_foreign_helper.JS('bool', '# instanceof RegExp', regexp))
+      let regexp = function() {
+        try {
+          return new RegExp(source, m + i + g);
+        } catch (e) {
+          return e;
+        }
+
+      }();
+      if (regexp instanceof RegExp)
         return regexp;
-      let errorMessage = dart.as(_foreign_helper.JS('String', 'String(#)', regexp), core.String);
+      let errorMessage = String(regexp);
       throw new core.FormatException(`Illegal RegExp pattern: ${source}, ${errorMessage}`);
     }
     firstMatch(string) {
-      let m = dart.as(_foreign_helper.JS('JSExtendableArray|Null', '#.exec(#)', this._nativeRegExp, checkString(string)), core.List$(core.String));
+      let m = dart.as(this._nativeRegExp.exec(checkString(string)), core.List$(core.String));
       if (m === null)
         return null;
       return new _MatchImplementation(this, m);
     }
     hasMatch(string) {
-      return dart.as(_foreign_helper.JS('bool', '#.test(#)', this._nativeRegExp, checkString(string)), core.bool);
+      return this._nativeRegExp.test(checkString(string));
     }
     stringMatch(string) {
       let match = this.firstMatch(string);
@@ -2750,16 +2886,16 @@ var _js_helper;
     }
     _execGlobal(string, start) {
       let regexp = this._nativeGlobalVersion;
-      _foreign_helper.JS("void", "#.lastIndex = #", regexp, start);
-      let match = dart.as(_foreign_helper.JS("JSExtendableArray|Null", "#.exec(#)", regexp, string), core.List);
+      regexp.lastIndex = start;
+      let match = dart.as(regexp.exec(string), core.List);
       if (match === null)
         return null;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
     _execAnchored(string, start) {
       let regexp = this._nativeAnchoredVersion;
-      _foreign_helper.JS("void", "#.lastIndex = #", regexp, start);
-      let match = dart.as(_foreign_helper.JS("JSExtendableArray|Null", "#.exec(#)", regexp, string), core.List);
+      regexp.lastIndex = start;
+      let match = dart.as(regexp.exec(string), core.List);
       if (match === null)
         return null;
       if (match.get(match.length - 1) !== null)
@@ -2786,14 +2922,14 @@ var _js_helper;
     _MatchImplementation(pattern, _match) {
       this.pattern = pattern;
       this._match = _match;
-      dart.assert(typeof _foreign_helper.JS("var", "#.input", this._match) == string);
-      dart.assert(typeof _foreign_helper.JS("var", "#.index", this._match) == number);
+      dart.assert(typeof this._match.input == string);
+      dart.assert(typeof this._match.index == number);
     }
     get input() {
-      return dart.as(_foreign_helper.JS("String", "#.input", this._match), core.String);
+      return this._match.input;
     }
     get start() {
-      return dart.as(_foreign_helper.JS("int", "#.index", this._match), core.int);
+      return this._match.index;
     }
     get end() {
       return this.start + this._match.get(0).length;
@@ -2924,8 +3060,8 @@ var _js_helper;
   }
   // Function stringReplaceJS: (dynamic, dynamic, dynamic) → dynamic
   function stringReplaceJS(receiver, replacer, to) {
-    to = _foreign_helper.JS('String', '#.replace(/\\$/g, "$$$$")', to);
-    return _foreign_helper.JS('String', '#.replace(#, #)', receiver, replacer, to);
+    to = to.replace(/\$/g, "$$$$");
+    return receiver.replace(replacer, to);
   }
   // Function stringReplaceFirstRE: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function stringReplaceFirstRE(receiver, regexp, to, startIndex) {
@@ -2955,9 +3091,9 @@ var _js_helper;
           return result.toString();
         }
       } else {
-        let quoter = _foreign_helper.JS('', "new RegExp(#, 'g')", ESCAPE_REGEXP);
-        let quoted = _foreign_helper.JS('String', '#.replace(#, "\\\\$&")', from, quoter);
-        let replacer = _foreign_helper.JS('', "new RegExp(#, 'g')", quoted);
+        let quoter = new RegExp(ESCAPE_REGEXP, 'g');
+        let quoted = from.replace(quoter, "\\$&");
+        let replacer = new RegExp(quoted, 'g');
         return stringReplaceJS(receiver, replacer, to);
       }
     } else if (dart.is(from, JSSyntaxRegExp)) {
@@ -3061,7 +3197,7 @@ var _js_helper;
   }
   // Function stringJoinUnchecked: (dynamic, dynamic) → dynamic
   function stringJoinUnchecked(array, separator) {
-    return _foreign_helper.JS('String', '#.join(#)', array, separator);
+    return array.join(separator);
   }
   // Function createRuntimeType: (String) → Type
   function createRuntimeType(name) {
@@ -3100,14 +3236,14 @@ var _js_helper;
   function setRuntimeTypeInfo(target, typeInfo) {
     dart.assert(dart.notNull(typeInfo === null) || dart.notNull(isJsArray(typeInfo)));
     if (target !== null)
-      _foreign_helper.JS('var', '#.$builtinTypeInfo = #', target, typeInfo);
+      target.$builtinTypeInfo = typeInfo;
     return target;
   }
   // Function getRuntimeTypeInfo: (Object) → dynamic
   function getRuntimeTypeInfo(target) {
     if (target === null)
       return null;
-    return _foreign_helper.JS('var', '#.$builtinTypeInfo', target);
+    return target.$builtinTypeInfo;
   }
   // Function getRuntimeTypeArguments: (dynamic, dynamic) → dynamic
   function getRuntimeTypeArguments(target, substitutionName) {
@@ -3126,11 +3262,11 @@ var _js_helper;
   }
   // Function copyTypeArguments: (Object, Object) → void
   function copyTypeArguments(source, target) {
-    _foreign_helper.JS('var', '#.$builtinTypeInfo = #.$builtinTypeInfo', target, source);
+    target.$builtinTypeInfo = source.$builtinTypeInfo;
   }
   // Function getClassName: (dynamic) → String
   function getClassName(object) {
-    return dart.as(_foreign_helper.JS('String', '#.constructor.builtin$cls', _interceptors.getInterceptor(object)), core.String);
+    return _interceptors.getInterceptor(object).constructor.builtin$cls;
   }
   // Function getRuntimeTypeAsString: (dynamic, {onTypeVariable: (int) → String}) → String
   function getRuntimeTypeAsString(runtimeType, opt$) {
@@ -3141,7 +3277,7 @@ var _js_helper;
   }
   // Function getConstructorName: (dynamic) → String
   function getConstructorName(type) {
-    return dart.as(_foreign_helper.JS('String', '#.builtin$cls', type), core.String);
+    return type.builtin$cls;
   }
   // Function runtimeTypeToString: (dynamic, {onTypeVariable: (int) → String}) → String
   function runtimeTypeToString(type, opt$) {
@@ -3190,7 +3326,7 @@ var _js_helper;
     let className = getClassName(object);
     if (object === null)
       return className;
-    let typeInfo = _foreign_helper.JS('var', '#.$builtinTypeInfo', object);
+    let typeInfo = object.$builtinTypeInfo;
     return `${className}${joinArguments(typeInfo, 0)}`;
   }
   // Function getRuntimeType: (dynamic) → Type
@@ -3292,10 +3428,10 @@ var _js_helper;
       return true;
     let rti = getRuntimeTypeInfo(o);
     o = _interceptors.getInterceptor(o);
-    let type = _foreign_helper.JS('', '#.constructor', o);
+    let type = o.constructor;
     if (rti !== null) {
-      rti = _foreign_helper.JS('JSExtendableArray', '#.slice()', rti);
-      _foreign_helper.JS('', '#.splice(0, 0, #)', rti, type);
+      rti = rti.slice();
+      rti.splice(0, 0, type);
       type = rti;
     } else if (hasField(t, `${_foreign_helper.JS_FUNCTION_TYPE_TAG()}`)) {
       let signatureName = `${_foreign_helper.JS_OPERATOR_IS_PREFIX()}_${getField(t, _foreign_helper.JS_FUNCTION_TYPE_TAG())}`;
@@ -3326,7 +3462,7 @@ var _js_helper;
   }
   // Function getArguments: (dynamic) → dynamic
   function getArguments(type) {
-    return isJsArray(type) ? _foreign_helper.JS('var', '#.slice(1)', type) : null;
+    return isJsArray(type) ? type.slice(1) : null;
   }
   // Function isSubtype: (dynamic, dynamic) → bool
   function isSubtype(s, t) {
@@ -3346,7 +3482,7 @@ var _js_helper;
     let substitution = null;
     if (isNotIdentical(typeOfT, typeOfS)) {
       let test = `${_foreign_helper.JS_OPERATOR_IS_PREFIX()}${name}`;
-      let typeOfSPrototype = _foreign_helper.JS('', '#.prototype', typeOfS);
+      let typeOfSPrototype = typeOfS.prototype;
       if (hasNoField(typeOfSPrototype, test))
         return false;
       let field = `${_foreign_helper.JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}`;
@@ -3395,14 +3531,14 @@ var _js_helper;
       return false;
     dart.assert(isJsObject(s));
     dart.assert(isJsObject(t));
-    let names = _interceptors.JSArray.markFixedList(dart.as(_foreign_helper.JS('', 'Object.getOwnPropertyNames(#)', t), core.List));
+    let names = _interceptors.JSArray.markFixedList(dart.as(Object.getOwnPropertyNames(t), core.List));
     for (let i = 0; i < names.length; i++) {
       let name = names.get(i);
-      if (_foreign_helper.JS('bool', '!Object.hasOwnProperty.call(#, #)', s, name)) {
+      if (!Object.hasOwnProperty.call(s, name)) {
         return false;
       }
-      let tType = _foreign_helper.JS('', '#[#]', t, name);
-      let sType = _foreign_helper.JS('', '#[#]', s, name);
+      let tType = t[name];
+      let sType = s[name];
       if (!dart.notNull(isAssignable(tType, sType)))
         return false;
     }
@@ -3476,25 +3612,25 @@ var _js_helper;
   function invokeOn(function, receiver, arguments) {
     dart.assert(isJsFunction(function));
     dart.assert(dart.notNull(arguments === null) || dart.notNull(isJsArray(arguments)));
-    return _foreign_helper.JS('var', '#.apply(#, #)', function, receiver, arguments);
+    return function.apply(receiver, arguments);
   }
   // Function call: (dynamic, String) → dynamic
   function call(object, name) {
-    return _foreign_helper.JS('var', '#[#]()', object, name);
+    return object[name]();
   }
   // Function getField: (dynamic, String) → dynamic
   function getField(object, name) {
-    return _foreign_helper.JS('var', '#[#]', object, name);
+    return object[name];
   }
   // Function getIndex: (dynamic, int) → dynamic
   function getIndex(array, index) {
     dart.assert(isJsArray(array));
-    return _foreign_helper.JS('var', '#[#]', array, index);
+    return array[index];
   }
   // Function getLength: (dynamic) → int
   function getLength(array) {
     dart.assert(isJsArray(array));
-    return dart.as(_foreign_helper.JS('int', '#.length', array), core.int);
+    return array.length;
   }
   // Function isJsArray: (dynamic) → bool
   function isJsArray(value) {
@@ -3502,7 +3638,7 @@ var _js_helper;
   }
   // Function hasField: (dynamic, dynamic) → dynamic
   function hasField(object, name) {
-    return _foreign_helper.JS('bool', '# in #', name, object);
+    return name in object;
   }
   // Function hasNoField: (dynamic, dynamic) → dynamic
   function hasNoField(object, name) {
@@ -3510,19 +3646,19 @@ var _js_helper;
   }
   // Function isJsFunction: (dynamic) → bool
   function isJsFunction(o) {
-    return dart.as(_foreign_helper.JS('bool', 'typeof # == "function"', o), core.bool);
+    return typeof o == "function";
   }
   // Function isJsObject: (dynamic) → bool
   function isJsObject(o) {
-    return dart.as(_foreign_helper.JS('bool', "typeof # == 'object'", o), core.bool);
+    return typeof o == 'object';
   }
   // Function isIdentical: (dynamic, dynamic) → bool
   function isIdentical(s, t) {
-    return dart.as(_foreign_helper.JS('bool', '# === #', s, t), core.bool);
+    return s === t;
   }
   // Function isNotIdentical: (dynamic, dynamic) → bool
   function isNotIdentical(s, t) {
-    return dart.as(_foreign_helper.JS('bool', '# !== #', s, t), core.bool);
+    return s !== t;
   }
   // Exports:
   _js_helper.patch = patch;

@@ -17,11 +17,11 @@ var _interceptors;
   }
   // Function getInterceptor: (dynamic) → dynamic
   function getInterceptor(object) {
-    return _foreign_helper.JS('', 'void 0');
+    return void 0;
   }
   // Function getDispatchProperty: (dynamic) → dynamic
   function getDispatchProperty(object) {
-    return _foreign_helper.JS('', '#[#]', object, _foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String)));
+    return object[_foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String))];
   }
   // Function setDispatchProperty: (dynamic, dynamic) → dynamic
   function setDispatchProperty(object, value) {
@@ -29,23 +29,23 @@ var _interceptors;
   }
   // Function makeDispatchRecord: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function makeDispatchRecord(interceptor, proto, extension, indexability) {
-    return _foreign_helper.JS('', '{i: #, p: #, e: #, x: #}', interceptor, proto, extension, indexability);
+    return {i: interceptor, p: proto, e: extension, x: indexability};
   }
   // Function dispatchRecordInterceptor: (dynamic) → dynamic
   function dispatchRecordInterceptor(record) {
-    return _foreign_helper.JS('', '#.i', record);
+    return record.i;
   }
   // Function dispatchRecordProto: (dynamic) → dynamic
   function dispatchRecordProto(record) {
-    return _foreign_helper.JS('', '#.p', record);
+    return record.p;
   }
   // Function dispatchRecordExtension: (dynamic) → dynamic
   function dispatchRecordExtension(record) {
-    return _foreign_helper.JS('', '#.e', record);
+    return record.e;
   }
   // Function dispatchRecordIndexability: (dynamic) → dynamic
   function dispatchRecordIndexability(record) {
-    return _foreign_helper.JS('bool|Null', '#.x', record);
+    return record.x;
   }
   // Function getNativeInterceptor: (dynamic) → dynamic
   function getNativeInterceptor(object) {
@@ -62,20 +62,20 @@ var _interceptors;
         return dispatchRecordInterceptor(record);
       if (true === proto)
         return object;
-      let objectProto = _foreign_helper.JS('', 'Object.getPrototypeOf(#)', object);
-      if (_foreign_helper.JS('bool', '# === #', proto, objectProto)) {
+      let objectProto = Object.getPrototypeOf(object);
+      if (proto === objectProto) {
         return dispatchRecordInterceptor(record);
       }
       let extension = dispatchRecordExtension(record);
-      if (_foreign_helper.JS('bool', '# === #', extension, objectProto)) {
-        let discriminatedTag = _foreign_helper.JS('', '(#)(#, #)', proto, object, record);
+      if (extension === objectProto) {
+        let discriminatedTag = proto(object, record);
         throw new core.UnimplementedError(`Return interceptor for ${discriminatedTag}`);
       }
     }
     let interceptor = _js_helper.lookupAndCacheInterceptor(object);
     if (interceptor === null) {
-      let proto = _foreign_helper.JS('', 'Object.getPrototypeOf(#)', object);
-      if (_foreign_helper.JS('bool', '# == null || # === Object.prototype', proto, proto)) {
+      let proto = Object.getPrototypeOf(object);
+      if (proto == null || proto === Object.prototype) {
         return _foreign_helper.JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
       } else {
         return _foreign_helper.JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
@@ -90,9 +90,9 @@ var _interceptors;
   });
   // Function findIndexForNativeSubclassType: (Type) → int
   function findIndexForNativeSubclassType(type) {
-    if (_foreign_helper.JS('bool', '# == null', _interceptors.mapTypeToInterceptor))
+    if (_interceptors.mapTypeToInterceptor == null)
       return dart.as(null, core.int);
-    let map = dart.as(_foreign_helper.JS('JSFixedArray', '#', _interceptors.mapTypeToInterceptor), core.List);
+    let map = dart.as(_interceptors.mapTypeToInterceptor, core.List);
     for (let i = 0; i + 1 < map.length; i = 3) {
       if (dart.equals(type, map.get(i))) {
         return i;
@@ -105,7 +105,7 @@ var _interceptors;
     let index = findIndexForNativeSubclassType(type);
     if (index === null)
       return null;
-    let map = dart.as(_foreign_helper.JS('JSFixedArray', '#', _interceptors.mapTypeToInterceptor), core.List);
+    let map = dart.as(_interceptors.mapTypeToInterceptor, core.List);
     return map.get(index + 1);
   }
   // Function findConstructorForNativeSubclassType: (Type, String) → dynamic
@@ -113,9 +113,9 @@ var _interceptors;
     let index = findIndexForNativeSubclassType(type);
     if (index === null)
       return null;
-    let map = dart.as(_foreign_helper.JS('JSFixedArray', '#', _interceptors.mapTypeToInterceptor), core.List);
+    let map = dart.as(_interceptors.mapTypeToInterceptor, core.List);
     let constructorMap = map.get(index + 2);
-    let constructorFn = _foreign_helper.JS('', '#[#]', constructorMap, name);
+    let constructorFn = constructorMap[name];
     return constructorFn;
   }
   // Function findInterceptorForType: (Type) → dynamic
@@ -123,7 +123,7 @@ var _interceptors;
     let constructor = findInterceptorConstructorForType(type);
     if (constructor === null)
       return null;
-    return _foreign_helper.JS('', '#.prototype', constructor);
+    return constructor.prototype;
   }
   class Interceptor extends dart.Object {
     Interceptor() {
@@ -149,7 +149,7 @@ var _interceptors;
       super.Interceptor();
     }
     toString() {
-      return dart.as(_foreign_helper.JS('String', 'String(#)', this), core.String);
+      return String(this);
     }
     get hashCode() {
       return this ? 2 * 3 * 23 * 3761 : 269 * 811;
@@ -205,7 +205,7 @@ var _interceptors;
       super.JavaScriptObject();
     }
     toString() {
-      return dart.as(_foreign_helper.JS('String', 'String(#)', this), core.String);
+      return String(this);
     }
   }
   let JSArray$ = dart.generic(function(E) {
@@ -217,29 +217,29 @@ var _interceptors;
         if (dart.notNull(!(typeof length == number)) || dart.notNull(length < 0)) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
-        return new JSArray.markFixed(_foreign_helper.JS('', 'new Array(#)', length));
+        return new JSArray.markFixed(new Array(length));
       }
       JSArray$emptyGrowable() {
-        return new JSArray.markGrowable(_foreign_helper.JS('', '[]'));
+        return new JSArray.markGrowable([]);
       }
       JSArray$growable(length) {
         if (dart.notNull(!(typeof length == number)) || dart.notNull(length < 0)) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
-        return new JSArray.markGrowable(_foreign_helper.JS('', 'new Array(#)', length));
+        return new JSArray.markGrowable(new Array(length));
       }
       JSArray$typed(allocation) {
-        return dart.as(_foreign_helper.JS('JSArray', '#', allocation), JSArray$(E));
+        return dart.as(allocation, JSArray$(E));
       }
       JSArray$markFixed(allocation) {
-        return dart.as(_foreign_helper.JS('JSFixedArray', '#', markFixedList(new JSArray.typed(allocation))), JSArray$(E));
+        return dart.as(markFixedList(new JSArray.typed(allocation)), JSArray$(E));
       }
       JSArray$markGrowable(allocation) {
-        return dart.as(_foreign_helper.JS('JSExtendableArray', '#', new JSArray.typed(allocation)), JSArray$(E));
+        return dart.as(new JSArray.typed(allocation), JSArray$(E));
       }
       static markFixedList(list) {
-        _foreign_helper.JS('void', '#.fixed$length = Array', list);
-        return dart.as(_foreign_helper.JS('JSFixedArray', '#', list), core.List);
+        list.fixed$length = Array;
+        return dart.as(list, core.List);
       }
       checkMutable(reason) {
         if (!dart.is(this, JSMutableArray)) {
@@ -253,7 +253,7 @@ var _interceptors;
       }
       add(value) {
         this.checkGrowable('add');
-        _foreign_helper.JS('void', '#.push(#)', this, value);
+        this.push(value);
       }
       removeAt(index) {
         if (!(typeof index == number))
@@ -262,7 +262,7 @@ var _interceptors;
           throw new core.RangeError.value(index);
         }
         this.checkGrowable('removeAt');
-        return dart.as(_foreign_helper.JS('var', '#.splice(#, 1)[0]', this, index), E);
+        return dart.as(this.splice(index, 1)[0], E);
       }
       insert(index, value) {
         if (!(typeof index == number))
@@ -271,7 +271,7 @@ var _interceptors;
           throw new core.RangeError.value(index);
         }
         this.checkGrowable('insert');
-        _foreign_helper.JS('void', '#.splice(#, 0, #)', this, index, value);
+        this.splice(index, 0, value);
       }
       insertAll(index, iterable) {
         this.checkGrowable('insertAll');
@@ -285,13 +285,13 @@ var _interceptors;
         this.checkGrowable('removeLast');
         if (this.length === 0)
           throw new core.RangeError.value(-1);
-        return dart.as(_foreign_helper.JS('var', '#.pop()', this), E);
+        return dart.as(this.pop(), E);
       }
       remove(element) {
         this.checkGrowable('remove');
         for (let i = 0; i < this.length; i++) {
           if (dart.equals(this.get(i), element)) {
-            _foreign_helper.JS('var', '#.splice(#, 1)', this, i);
+            this.splice(i, 1);
             return true;
           }
         }
@@ -320,7 +320,7 @@ var _interceptors;
       forEach(f) {
         let length = this.length;
         for (let i = 0; i < length; i++) {
-          f(dart.as(_foreign_helper.JS('', '#[#]', this, i), E));
+          f(dart.as(this[i], E));
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
           }
@@ -336,7 +336,7 @@ var _interceptors;
         for (let i = 0; i < this.length; i++) {
           list.set(i, `${this.get(i)}`);
         }
-        return dart.as(_foreign_helper.JS('String', "#.join(#)", list, separator), core.String);
+        return list.join(separator);
       }
       take(n) {
         return new _internal.IterableMixinWorkaround().takeList(this, n);
@@ -390,7 +390,7 @@ var _interceptors;
         }
         if (start === end)
           return new List.from([]);
-        return new JSArray.markGrowable(_foreign_helper.JS('', '#.slice(#, #)', this, start, end));
+        return new JSArray.markGrowable(this.slice(start, end));
       }
       getRange(start, end) {
         return new _internal.IterableMixinWorkaround().getRangeList(this, start, end);
@@ -489,9 +489,9 @@ var _interceptors;
       toList(opt$) {
         let growable = opt$.growable === void 0 ? true : opt$.growable;
         if (growable) {
-          return new JSArray.markGrowable(_foreign_helper.JS('', '#.slice()', this));
+          return new JSArray.markGrowable(this.slice());
         } else {
-          return new JSArray.markFixed(_foreign_helper.JS('', '#.slice()', this));
+          return new JSArray.markFixed(this.slice());
         }
       }
       toSet() {
@@ -504,7 +504,7 @@ var _interceptors;
         return _js_helper.Primitives.objectHashCode(this);
       }
       get length() {
-        return dart.as(_foreign_helper.JS('JSUInt32', '#.length', this), core.int);
+        return dart.as(this.length, core.int);
       }
       set length(newLength) {
         if (!(typeof newLength == number))
@@ -512,14 +512,14 @@ var _interceptors;
         if (newLength < 0)
           throw new core.RangeError.value(newLength);
         this.checkGrowable('set length');
-        _foreign_helper.JS('void', '#.length = #', this, newLength);
+        this.length = newLength;
       }
       get(index) {
         if (!(typeof index == number))
           throw new core.ArgumentError(index);
         if (dart.notNull(index >= this.length) || dart.notNull(index < 0))
           throw new core.RangeError.value(index);
-        return dart.as(_foreign_helper.JS('var', '#[#]', this, index), E);
+        return dart.as(this[index], E);
       }
       set(index, value) {
         this.checkMutable('indexed set');
@@ -527,7 +527,7 @@ var _interceptors;
           throw new core.ArgumentError(index);
         if (dart.notNull(index >= this.length) || dart.notNull(index < 0))
           throw new core.RangeError.value(index);
-        _foreign_helper.JS('void', '#[#] = #', this, index, value);
+        this[index] = value;
       }
       asMap() {
         return new _internal.IterableMixinWorkaround().asMapList(this);
@@ -594,34 +594,34 @@ var _interceptors;
       return dart.equals(this, 0) ? 1['/'](this) < 0 : this['<'](0);
     }
     get isNaN() {
-      return dart.as(_foreign_helper.JS('bool', 'isNaN(#)', this), core.bool);
+      return isNaN(this);
     }
     get isInfinite() {
-      return dart.dbinary(_foreign_helper.JS('bool', '# == Infinity', this), '||', _foreign_helper.JS('bool', '# == -Infinity', this));
+      return dart.notNull(this == Infinity) || dart.notNull(this == -Infinity);
     }
     get isFinite() {
-      return dart.as(_foreign_helper.JS('bool', 'isFinite(#)', this), core.bool);
+      return isFinite(this);
     }
     remainder(b) {
       _js_helper.checkNull(b);
       if (!dart.is(b, core.num))
         throw new core.ArgumentError(b);
-      return dart.as(_foreign_helper.JS('num', '# % #', this, b), core.num);
+      return this % b;
     }
     abs() {
-      return dart.as(_foreign_helper.JS('num', 'Math.abs(#)', this), core.num);
+      return Math.abs(this);
     }
     get sign() {
       return this['>'](0) ? 1 : this['<'](0) ? -1 : this;
     }
     toInt() {
       if (dart.notNull(this['>='](_MIN_INT32)) && dart.notNull(this['<='](_MAX_INT32))) {
-        return dart.as(_foreign_helper.JS('int', '# | 0', this), core.int);
+        return this | 0;
       }
-      if (_foreign_helper.JS('bool', 'isFinite(#)', this)) {
-        return dart.as(_foreign_helper.JS('int', '# + 0', this.truncateToDouble()), core.int);
+      if (isFinite(this)) {
+        return this.truncateToDouble() + 0;
       }
-      throw new core.UnsupportedError(dart.as(_foreign_helper.JS("String", "''+#", this), core.String));
+      throw new core.UnsupportedError('' + this);
     }
     truncate() {
       return this.toInt();
@@ -636,16 +636,16 @@ var _interceptors;
       return this.roundToDouble().toInt();
     }
     ceilToDouble() {
-      return dart.as(_foreign_helper.JS('num', 'Math.ceil(#)', this), core.double);
+      return dart.notNull(Math.ceil(this));
     }
     floorToDouble() {
-      return dart.as(_foreign_helper.JS('num', 'Math.floor(#)', this), core.double);
+      return dart.notNull(Math.floor(this));
     }
     roundToDouble() {
       if (this['<'](0)) {
-        return dart.as(_foreign_helper.JS('num', '-Math.round(-#)', this), core.double);
+        return dart.notNull(-Math.round(-this));
       } else {
-        return dart.as(_foreign_helper.JS('num', 'Math.round(#)', this), core.double);
+        return dart.notNull(Math.round(this));
       }
     }
     truncateToDouble() {
@@ -673,7 +673,7 @@ var _interceptors;
       if (dart.notNull(fractionDigits < 0) || dart.notNull(fractionDigits > 20)) {
         throw new core.RangeError(fractionDigits);
       }
-      let result = dart.as(_foreign_helper.JS('String', '#.toFixed(#)', this, fractionDigits), core.String);
+      let result = this.toFixed(fractionDigits);
       if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this.isNegative))
         return `-${result}`;
       return result;
@@ -687,9 +687,9 @@ var _interceptors;
         if (dart.notNull(fractionDigits < 0) || dart.notNull(fractionDigits > 20)) {
           throw new core.RangeError(fractionDigits);
         }
-        result = dart.as(_foreign_helper.JS('String', '#.toExponential(#)', this, fractionDigits), core.String);
+        result = this.toExponential(fractionDigits);
       } else {
-        result = dart.as(_foreign_helper.JS('String', '#.toExponential()', this), core.String);
+        result = this.toExponential();
       }
       if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this.isNegative))
         return `-${result}`;
@@ -700,7 +700,7 @@ var _interceptors;
       if (dart.notNull(precision < 1) || dart.notNull(precision > 21)) {
         throw new core.RangeError(precision);
       }
-      let result = dart.as(_foreign_helper.JS('String', '#.toPrecision(#)', this, precision), core.String);
+      let result = this.toPrecision(precision);
       if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this.isNegative))
         return `-${result}`;
       return result;
@@ -709,7 +709,7 @@ var _interceptors;
       _js_helper.checkInt(radix);
       if (dart.notNull(radix < 2) || dart.notNull(radix > 36))
         throw new core.RangeError(radix);
-      let result = dart.as(_foreign_helper.JS('String', '#.toString(#)', this, radix), core.String);
+      let result = this.toString(radix);
       let rightParenCode = 41;
       if (result.codeUnitAt(result.length - 1) !== rightParenCode) {
         return result;
@@ -717,149 +717,149 @@ var _interceptors;
       return _handleIEtoString(result);
     }
     static _handleIEtoString(result) {
-      let match = _foreign_helper.JS('List|Null', '/^([\\da-z]+)(?:\\.([\\da-z]+))?\\(e\\+(\\d+)\\)$/.exec(#)', result);
+      let match = /^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(result);
       if (match === null) {
         throw new core.UnsupportedError(`Unexpected toString result: ${result}`);
       }
-      let result = dart.as(_foreign_helper.JS('String', '#', dart.dindex(match, 1)), core.String);
-      let exponent = dart.as(_foreign_helper.JS("int", "+#", dart.dindex(match, 3)), core.int);
+      let result = dart.dindex(match, 1);
+      let exponent = +dart.dindex(match, 3);
       if (dart.dindex(match, 2) !== null) {
-        result = dart.as(_foreign_helper.JS('String', '# + #', result, dart.dindex(match, 2)), core.String);
-        exponent = dart.as(_foreign_helper.JS('int', '#.length', dart.dindex(match, 2)), core.int);
+        result = result + dart.dindex(match, 2);
+        exponent = dart.dindex(match, 2).length;
       }
       return core.String['+'](result, core.String['*']("0", exponent));
     }
     toString() {
-      if (core.bool['&&'](dart.equals(this, 0), _foreign_helper.JS('bool', '(1 / #) < 0', this))) {
+      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(1 / this < 0)) {
         return '-0.0';
       } else {
-        return dart.as(_foreign_helper.JS('String', '"" + (#)', this), core.String);
+        return "" + this;
       }
     }
     get hashCode() {
-      return dart.as(_foreign_helper.JS('int', '# & 0x1FFFFFFF', this), core.int);
+      return this & 0x1FFFFFFF;
     }
     ['-']() {
-      return dart.as(_foreign_helper.JS('num', '-#', this), core.num);
+      return -this;
     }
     ['+'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('num', '# + #', this, other), core.num);
+      return this + other;
     }
     ['-'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('num', '# - #', this, other), core.num);
+      return this - other;
     }
     ['/'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('num', '# / #', this, other), core.num);
+      return this / other;
     }
     ['*'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('num', '# * #', this, other), core.num);
+      return this * other;
     }
     ['%'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      let result = dart.as(_foreign_helper.JS('num', '# % #', this, other), core.num);
+      let result = this % other;
       if (result === 0)
         return 0;
       if (dart.notNull(result) > 0)
         return result;
-      if (dart.dbinary(_foreign_helper.JS('num', '#', other), '<', 0)) {
-        return core.num['-'](result, _foreign_helper.JS('num', '#', other));
+      if (dart.notNull(other) < 0) {
+        return dart.notNull(result) - dart.notNull(other);
       } else {
-        return core.num['+'](result, _foreign_helper.JS('num', '#', other));
+        return dart.notNull(result) + dart.notNull(other);
       }
     }
     _isInt32(value) {
-      return dart.as(_foreign_helper.JS('bool', '(# | 0) === #', value, value), core.bool);
+      return (value | 0) === value;
     }
     ['~/'](other) {
       if (false)
         this._tdivFast(other);
       if (dart.notNull(dart.notNull(dart.notNull(this._isInt32(this)) && dart.notNull(this._isInt32(other))) && dart.notNull(0 !== other)) && dart.notNull(-1 !== other)) {
-        return dart.as(_foreign_helper.JS('int', '(# / #) | 0', this, other), core.int);
+        return this / other | 0;
       } else {
         return this._tdivSlow(other);
       }
     }
     _tdivFast(other) {
-      return dart.as(this._isInt32(this) ? _foreign_helper.JS('int', '(# / #) | 0', this, other) : dart.dinvoke(_foreign_helper.JS('num', '# / #', this, other), 'toInt'), core.int);
+      return this._isInt32(this) ? this / other | 0 : (this / other).toInt();
     }
     _tdivSlow(other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(dart.dinvoke(_foreign_helper.JS('num', '# / #', this, other), 'toInt'), core.int);
+      return (this / other).toInt();
     }
     ['<<'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      if (dart.dbinary(_foreign_helper.JS('num', '#', other), '<', 0))
+      if (dart.notNull(other) < 0)
         throw new core.ArgumentError(other);
       return this._shlPositive(other);
     }
     _shlPositive(other) {
-      return dart.as(_foreign_helper.JS('bool', '# > 31', other) ? 0 : _foreign_helper.JS('JSUInt32', '(# << #) >>> 0', this, other), core.num);
+      return dart.as(other > 31 ? 0 : this << other >>> 0, core.num);
     }
     ['>>'](other) {
       if (false)
         this._shrReceiverPositive(other);
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      if (dart.dbinary(_foreign_helper.JS('num', '#', other), '<', 0))
+      if (dart.notNull(other) < 0)
         throw new core.ArgumentError(other);
       return this._shrOtherPositive(other);
     }
     _shrOtherPositive(other) {
-      return dart.as(dart.dbinary(_foreign_helper.JS('num', '#', this), '>', 0) ? this._shrBothPositive(other) : _foreign_helper.JS('JSUInt32', '(# >> #) >>> 0', this, dart.notNull(other) > 31 ? 31 : other), core.num);
+      return dart.as(dart.notNull(this) > 0 ? this._shrBothPositive(other) : this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
     }
     _shrReceiverPositive(other) {
-      if (dart.dbinary(_foreign_helper.JS('num', '#', other), '<', 0))
+      if (dart.notNull(other) < 0)
         throw new core.ArgumentError(other);
       return this._shrBothPositive(other);
     }
     _shrBothPositive(other) {
-      return dart.as(_foreign_helper.JS('bool', '# > 31', other) ? 0 : _foreign_helper.JS('JSUInt32', '# >>> #', this, other), core.num);
+      return dart.as(other > 31 ? 0 : this >>> other, core.num);
     }
     ['&'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('JSUInt32', '(# & #) >>> 0', this, other), core.num);
+      return dart.as((this & other) >>> 0, core.num);
     }
     ['|'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('JSUInt32', '(# | #) >>> 0', this, other), core.num);
+      return dart.as((this | other) >>> 0, core.num);
     }
     ['^'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('JSUInt32', '(# ^ #) >>> 0', this, other), core.num);
+      return dart.as((this ^ other) >>> 0, core.num);
     }
     ['<'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('bool', '# < #', this, other), core.bool);
+      return this < other;
     }
     ['>'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('bool', '# > #', this, other), core.bool);
+      return this > other;
     }
     ['<='](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('bool', '# <= #', this, other), core.bool);
+      return this <= other;
     }
     ['>='](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('bool', '# >= #', this, other), core.bool);
+      return this >= other;
     }
     get runtimeType() {
       return core.num;
@@ -901,13 +901,13 @@ var _interceptors;
       return i & 63;
     }
     static _shru(value, shift) {
-      return _foreign_helper.JS('int', '# >>> #', value, shift);
+      return value >>> shift;
     }
     static _shrs(value, shift) {
-      return _foreign_helper.JS('int', '# >> #', value, shift);
+      return value >> shift;
     }
     static _ors(a, b) {
-      return _foreign_helper.JS('int', '# | #', a, b);
+      return a | b;
     }
     static _spread(i) {
       i = dart.as(_ors(i, dart.as(_shrs(i, 1), core.int)), core.int);
@@ -921,7 +921,7 @@ var _interceptors;
       return core.int;
     }
     ['~']() {
-      return dart.as(_foreign_helper.JS('JSUInt32', '(~#) >>> 0', this), core.int);
+      return dart.as(~this >>> 0, core.int);
     }
   }
   class JSDouble extends JSNumber {
@@ -949,7 +949,7 @@ var _interceptors;
         throw new core.RangeError.value(index);
       if (index >= this.length)
         throw new core.RangeError.value(index);
-      return dart.as(_foreign_helper.JS('JSUInt31', '#.charCodeAt(#)', this, index), core.int);
+      return dart.as(this.charCodeAt(index), core.int);
     }
     allMatches(string, start) {
       if (start === void 0)
@@ -979,7 +979,7 @@ var _interceptors;
     ['+'](other) {
       if (!(typeof other == string))
         throw new core.ArgumentError(other);
-      return dart.as(_foreign_helper.JS('String', '# + #', this, other), core.String);
+      return this + other;
     }
     endsWith(other) {
       _js_helper.checkString(other);
@@ -1013,10 +1013,10 @@ var _interceptors;
     split(pattern) {
       _js_helper.checkNull(pattern);
       if (typeof pattern == string) {
-        return dart.as(_foreign_helper.JS('JSExtendableArray', '#.split(#)', this, pattern), core.List$(core.String));
+        return dart.as(this.split(pattern), core.List$(core.String));
       } else if (dart.notNull(dart.is(pattern, _js_helper.JSSyntaxRegExp)) && dart.notNull(_js_helper.regExpCaptureCount(pattern) === 0)) {
         let re = _js_helper.regExpGetNative(pattern);
-        return dart.as(_foreign_helper.JS('JSExtendableArray', '#.split(#)', this, re), core.List$(core.String));
+        return dart.as(this.split(re), core.List$(core.String));
       } else {
         return this._defaultSplit(pattern);
       }
@@ -1054,7 +1054,7 @@ var _interceptors;
         let endIndex = index + otherLength;
         if (endIndex > this.length)
           return false;
-        return dart.equals(other, _foreign_helper.JS('String', '#.substring(#, #)', this, index, endIndex));
+        return dart.equals(other, this.substring(index, endIndex));
       }
       return pattern.matchAsPrefix(this, index) !== null;
     }
@@ -1071,13 +1071,13 @@ var _interceptors;
         throw new core.RangeError.value(startIndex);
       if (endIndex > this.length)
         throw new core.RangeError.value(endIndex);
-      return dart.as(_foreign_helper.JS('String', '#.substring(#, #)', this, startIndex, endIndex), core.String);
+      return this.substring(startIndex, endIndex);
     }
     toLowerCase() {
-      return dart.as(_foreign_helper.JS('String', '#.toLowerCase()', this), core.String);
+      return this.toLowerCase();
     }
     toUpperCase() {
-      return dart.as(_foreign_helper.JS('String', '#.toUpperCase()', this), core.String);
+      return this.toUpperCase();
     }
     static _isWhitespace(codeUnit) {
       if (codeUnit < 256) {
@@ -1146,7 +1146,7 @@ var _interceptors;
     }
     trim() {
       let NEL = 133;
-      let result = dart.as(_foreign_helper.JS('String', '#.trim()', this), core.String);
+      let result = this.trim();
       if (result.length === 0)
         return result;
       let firstCode = result.codeUnitAt(0);
@@ -1163,14 +1163,14 @@ var _interceptors;
       }
       if (dart.notNull(startIndex === 0) && dart.notNull(endIndex === result.length))
         return result;
-      return dart.as(_foreign_helper.JS('String', '#.substring(#, #)', result, startIndex, endIndex), core.String);
+      return result.substring(startIndex, endIndex);
     }
     trimLeft() {
       let NEL = 133;
       let result = null;
       let startIndex = 0;
-      if (_foreign_helper.JS('bool', 'typeof #.trimLeft != "undefined"', this)) {
-        result = dart.as(_foreign_helper.JS('String', '#.trimLeft()', this), core.String);
+      if (typeof this.trimLeft != "undefined") {
+        result = this.trimLeft();
         if (result.length === 0)
           return result;
         let firstCode = result.codeUnitAt(0);
@@ -1185,14 +1185,14 @@ var _interceptors;
         return result;
       if (startIndex === result.length)
         return "";
-      return dart.as(_foreign_helper.JS('String', '#.substring(#)', result, startIndex), core.String);
+      return result.substring(startIndex);
     }
     trimRight() {
       let NEL = 133;
       let result = null;
       let endIndex = null;
-      if (_foreign_helper.JS('bool', 'typeof #.trimRight != "undefined"', this)) {
-        result = dart.as(_foreign_helper.JS('String', '#.trimRight()', this), core.String);
+      if (typeof this.trimRight != "undefined") {
+        result = this.trimRight();
         endIndex = result.length;
         if (endIndex === 0)
           return result;
@@ -1208,14 +1208,14 @@ var _interceptors;
         return result;
       if (endIndex === 0)
         return "";
-      return dart.as(_foreign_helper.JS('String', '#.substring(#, #)', result, 0, endIndex), core.String);
+      return result.substring(0, endIndex);
     }
     ['*'](times) {
       if (0 >= times)
         return '';
       if (dart.notNull(times === 1) || dart.notNull(this.length === 0))
         return this;
-      if (times !== _foreign_helper.JS('JSUInt32', '# >>> 0', times)) {
+      if (times !== times >>> 0) {
         throw new core.OutOfMemoryError();
       }
       let result = '';
@@ -1223,7 +1223,7 @@ var _interceptors;
       while (true) {
         if ((times & 1) === 1)
           result = s['+'](result);
-        times = dart.as(_foreign_helper.JS('JSUInt31', '# >>> 1', times), core.int);
+        times = dart.as(times >>> 1, core.int);
         if (times === 0)
           break;
         s = s;
@@ -1262,7 +1262,7 @@ var _interceptors;
         throw new core.RangeError.range(start, 0, this.length);
       }
       if (typeof pattern == string) {
-        return dart.as(_foreign_helper.JS('int', '#.indexOf(#, #)', this, pattern, start), core.int);
+        return this.indexOf(pattern, start);
       }
       if (dart.is(pattern, _js_helper.JSSyntaxRegExp)) {
         let re = pattern;
@@ -1317,7 +1317,7 @@ var _interceptors;
     compareTo(other) {
       if (!(typeof other == string))
         throw new core.ArgumentError(other);
-      return dart.equals(this, other) ? 0 : _foreign_helper.JS('bool', '# < #', this, other) ? -1 : 1;
+      return dart.equals(this, other) ? 0 : this < other ? -1 : 1;
     }
     toString() {
       return this;
@@ -1325,26 +1325,26 @@ var _interceptors;
     get hashCode() {
       let hash = 0;
       for (let i = 0; i < this.length; i++) {
-        hash = 536870911 & dart.notNull(hash['+'](_foreign_helper.JS('int', '#.charCodeAt(#)', this, i)));
+        hash = 536870911 & hash + this.charCodeAt(i);
         hash = 536870911 & hash + ((524287 & hash) << 10);
-        hash = dart.as(_foreign_helper.JS('int', '# ^ (# >> 6)', hash, hash), core.int);
+        hash = hash ^ hash >> 6;
       }
       hash = 536870911 & hash + ((67108863 & hash) << 3);
-      hash = dart.as(_foreign_helper.JS('int', '# ^ (# >> 11)', hash, hash), core.int);
+      hash = hash ^ hash >> 11;
       return 536870911 & hash + ((16383 & hash) << 15);
     }
     get runtimeType() {
       return core.String;
     }
     get length() {
-      return dart.as(_foreign_helper.JS('int', '#.length', this), core.int);
+      return this.length;
     }
     get(index) {
       if (!(typeof index == number))
         throw new core.ArgumentError(index);
       if (dart.notNull(index >= this.length) || dart.notNull(index < 0))
         throw new core.RangeError.value(index);
-      return dart.as(_foreign_helper.JS('String', '#[#]', this, index), core.String);
+      return this[index];
     }
   }
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {

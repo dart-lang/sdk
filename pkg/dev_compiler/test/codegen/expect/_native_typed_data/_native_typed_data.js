@@ -167,7 +167,7 @@ var _native_typed_data;
       }
     }
     _checkIndex(index, length) {
-      if (dart.dbinary(_foreign_helper.JS('bool', '(# >>> 0 != #)', index, index), '||', index >= length)) {
+      if (dart.notNull(index >>> 0 != index) || dart.notNull(index >= length)) {
         this._invalidIndex(index, length);
       }
     }
@@ -258,7 +258,7 @@ var _native_typed_data;
       }
     }
     _checkIndex(index, length) {
-      if (dart.dbinary(_foreign_helper.JS('bool', '(# >>> 0 != #)', index, index), '||', _foreign_helper.JS('bool', '# >= #', index, length))) {
+      if (dart.notNull(index >>> 0 != index) || dart.notNull(index >= length)) {
         this._invalidIndex(index, length);
       }
     }
@@ -347,7 +347,7 @@ var _native_typed_data;
       }
     }
     _checkIndex(index, length) {
-      if (dart.dbinary(_foreign_helper.JS('bool', '(# >>> 0 != #)', index, index), '||', index >= length)) {
+      if (dart.notNull(index >>> 0 != index) || dart.notNull(index >= length)) {
         this._invalidIndex(index, length);
       }
     }
@@ -405,7 +405,7 @@ var _native_typed_data;
       }
     }
     _checkIndex(index, length) {
-      if (dart.dbinary(_foreign_helper.JS('bool', '(# >>> 0) !== #', index, index), '||', dart.dbinary(_foreign_helper.JS('int', '#', index), '>=', length))) {
+      if (dart.notNull(index >>> 0 !== index) || dart.notNull(index >= length)) {
         this._invalidIndex(index, length);
       }
     }
@@ -542,19 +542,19 @@ var _native_typed_data;
       throw new core.UnsupportedError('Uint64 accessor not supported by dart2js.');
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeByteData', 'new DataView(new ArrayBuffer(#))', arg), NativeByteData);
+      return dart.as(new DataView(new ArrayBuffer(arg)), NativeByteData);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeByteData', 'new DataView(#, #)', arg1, arg2), NativeByteData);
+      return dart.as(new DataView(arg1, arg2), NativeByteData);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeByteData', 'new DataView(#, #, #)', arg1, arg2, arg3), NativeByteData);
+      return dart.as(new DataView(arg1, arg2, arg3), NativeByteData);
     }
   }
   dart.defineNamedConstructor(NativeByteData, 'view');
   class NativeTypedArray extends NativeTypedData {
     get length() {
-      return dart.as(_foreign_helper.JS('JSUInt32', '#.length', this), core.int);
+      return dart.as(this.length, core.int);
     }
     _setRangeFast(start, end, source, skipCount) {
       let targetLength = this.length;
@@ -570,19 +570,19 @@ var _native_typed_data;
         throw new core.StateError('Not enough elements');
       }
       if (dart.notNull(skipCount !== 0) || dart.notNull(sourceLength !== count)) {
-        source = dart.as(_foreign_helper.JS('', '#.subarray(#, #)', source, skipCount, skipCount + count), NativeTypedArray);
+        source = dart.as(source.subarray(skipCount, skipCount + count), NativeTypedArray);
       }
-      _foreign_helper.JS('void', '#.set(#, #)', this, source, start);
+      this.set(source, start);
     }
   }
   class NativeTypedArrayOfDouble extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('num', '#[#]', this, index), core.num);
+      return this[index];
     }
     set(index, value) {
       this._checkIndex(index, this.length);
-      _foreign_helper.JS('void', '#[#] = #', this, index, value);
+      this[index] = value;
     }
     setRange(start, end, iterable, skipCount) {
       if (skipCount === void 0)
@@ -597,7 +597,7 @@ var _native_typed_data;
   class NativeTypedArrayOfInt extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
     set(index, value) {
       this._checkIndex(index, this.length);
-      _foreign_helper.JS('void', '#[#] = #', this, index, value);
+      this[index] = value;
     }
     setRange(start, end, iterable, skipCount) {
       if (skipCount === void 0)
@@ -627,17 +627,17 @@ var _native_typed_data;
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeFloat32List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeFloat32List', 'new Float32Array(#)', arg), NativeFloat32List);
+      return dart.as(new Float32Array(arg), NativeFloat32List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeFloat32List', 'new Float32Array(#, #)', arg1, arg2), NativeFloat32List);
+      return dart.as(new Float32Array(arg1, arg2), NativeFloat32List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeFloat32List', 'new Float32Array(#, #, #)', arg1, arg2, arg3), NativeFloat32List);
+      return dart.as(new Float32Array(arg1, arg2, arg3), NativeFloat32List);
     }
   }
   dart.defineNamedConstructor(NativeFloat32List, 'fromList');
@@ -660,17 +660,17 @@ var _native_typed_data;
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeFloat64List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeFloat64List', 'new Float64Array(#)', arg), NativeFloat64List);
+      return dart.as(new Float64Array(arg), NativeFloat64List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeFloat64List', 'new Float64Array(#, #)', arg1, arg2), NativeFloat64List);
+      return dart.as(new Float64Array(arg1, arg2), NativeFloat64List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeFloat64List', 'new Float64Array(#, #, #)', arg1, arg2, arg3), NativeFloat64List);
+      return dart.as(new Float64Array(arg1, arg2, arg3), NativeFloat64List);
     }
   }
   dart.defineNamedConstructor(NativeFloat64List, 'fromList');
@@ -691,23 +691,23 @@ var _native_typed_data;
     }
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('int', '#[#]', this, index), core.int);
+      return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeInt16List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeInt16List', 'new Int16Array(#)', arg), NativeInt16List);
+      return dart.as(new Int16Array(arg), NativeInt16List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeInt16List', 'new Int16Array(#, #)', arg1, arg2), NativeInt16List);
+      return dart.as(new Int16Array(arg1, arg2), NativeInt16List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeInt16List', 'new Int16Array(#, #, #)', arg1, arg2, arg3), NativeInt16List);
+      return dart.as(new Int16Array(arg1, arg2, arg3), NativeInt16List);
     }
   }
   dart.defineNamedConstructor(NativeInt16List, 'fromList');
@@ -728,23 +728,23 @@ var _native_typed_data;
     }
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('int', '#[#]', this, index), core.int);
+      return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeInt32List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeInt32List', 'new Int32Array(#)', arg), NativeInt32List);
+      return dart.as(new Int32Array(arg), NativeInt32List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeInt32List', 'new Int32Array(#, #)', arg1, arg2), NativeInt32List);
+      return dart.as(new Int32Array(arg1, arg2), NativeInt32List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeInt32List', 'new Int32Array(#, #, #)', arg1, arg2, arg3), NativeInt32List);
+      return dart.as(new Int32Array(arg1, arg2, arg3), NativeInt32List);
     }
   }
   dart.defineNamedConstructor(NativeInt32List, 'fromList');
@@ -765,23 +765,23 @@ var _native_typed_data;
     }
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('int', '#[#]', this, index), core.int);
+      return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeInt8List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeInt8List', 'new Int8Array(#)', arg), NativeInt8List);
+      return dart.as(new Int8Array(arg), NativeInt8List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeInt8List', 'new Int8Array(#, #)', arg1, arg2), NativeInt8List);
+      return dart.as(new Int8Array(arg1, arg2), NativeInt8List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeInt8List', 'new Int8Array(#, #, #)', arg1, arg2, arg3), typed_data.Int8List);
+      return dart.as(new Int8Array(arg1, arg2, arg3), typed_data.Int8List);
     }
   }
   dart.defineNamedConstructor(NativeInt8List, 'fromList');
@@ -802,23 +802,23 @@ var _native_typed_data;
     }
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('JSUInt31', '#[#]', this, index), core.int);
+      return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeUint16List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeUint16List', 'new Uint16Array(#)', arg), NativeUint16List);
+      return dart.as(new Uint16Array(arg), NativeUint16List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeUint16List', 'new Uint16Array(#, #)', arg1, arg2), NativeUint16List);
+      return dart.as(new Uint16Array(arg1, arg2), NativeUint16List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeUint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3), NativeUint16List);
+      return dart.as(new Uint16Array(arg1, arg2, arg3), NativeUint16List);
     }
   }
   dart.defineNamedConstructor(NativeUint16List, 'fromList');
@@ -839,23 +839,23 @@ var _native_typed_data;
     }
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('JSUInt32', '#[#]', this, index), core.int);
+      return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeUint32List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeUint32List', 'new Uint32Array(#)', arg), NativeUint32List);
+      return dart.as(new Uint32Array(arg), NativeUint32List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeUint32List', 'new Uint32Array(#, #)', arg1, arg2), NativeUint32List);
+      return dart.as(new Uint32Array(arg1, arg2), NativeUint32List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeUint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3), NativeUint32List);
+      return dart.as(new Uint32Array(arg1, arg2, arg3), NativeUint32List);
     }
   }
   dart.defineNamedConstructor(NativeUint32List, 'fromList');
@@ -875,27 +875,27 @@ var _native_typed_data;
       return typed_data.Uint8ClampedList;
     }
     get length() {
-      return dart.as(_foreign_helper.JS('JSUInt32', '#.length', this), core.int);
+      return dart.as(this.length, core.int);
     }
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('JSUInt31', '#[#]', this, index), core.int);
+      return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeUint8ClampedList', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeUint8ClampedList', 'new Uint8ClampedArray(#)', arg), NativeUint8ClampedList);
+      return dart.as(new Uint8ClampedArray(arg), NativeUint8ClampedList);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeUint8ClampedList', 'new Uint8ClampedArray(#, #)', arg1, arg2), NativeUint8ClampedList);
+      return dart.as(new Uint8ClampedArray(arg1, arg2), NativeUint8ClampedList);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeUint8ClampedList', 'new Uint8ClampedArray(#, #, #)', arg1, arg2, arg3), NativeUint8ClampedList);
+      return dart.as(new Uint8ClampedArray(arg1, arg2, arg3), NativeUint8ClampedList);
     }
   }
   dart.defineNamedConstructor(NativeUint8ClampedList, 'fromList');
@@ -915,27 +915,27 @@ var _native_typed_data;
       return typed_data.Uint8List;
     }
     get length() {
-      return dart.as(_foreign_helper.JS('JSUInt32', '#.length', this), core.int);
+      return dart.as(this.length, core.int);
     }
     get(index) {
       this._checkIndex(index, this.length);
-      return dart.as(_foreign_helper.JS('JSUInt31', '#[#]', this, index), core.int);
+      return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
       end = this._checkSublistArguments(start, end, this.length);
-      let source = _foreign_helper.JS('NativeUint8List', '#.subarray(#, #)', this, start, end);
+      let source = this.subarray(start, end);
       return _create1(source);
     }
     static _create1(arg) {
-      return dart.as(_foreign_helper.JS('NativeUint8List', 'new Uint8Array(#)', arg), NativeUint8List);
+      return dart.as(new Uint8Array(arg), NativeUint8List);
     }
     static _create2(arg1, arg2) {
-      return dart.as(_foreign_helper.JS('NativeUint8List', 'new Uint8Array(#, #)', arg1, arg2), NativeUint8List);
+      return dart.as(new Uint8Array(arg1, arg2), NativeUint8List);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(_foreign_helper.JS('NativeUint8List', 'new Uint8Array(#, #, #)', arg1, arg2, arg3), NativeUint8List);
+      return dart.as(new Uint8Array(arg1, arg2, arg3), NativeUint8List);
     }
   }
   dart.defineNamedConstructor(NativeUint8List, 'fromList');
@@ -1251,22 +1251,22 @@ var _native_typed_data;
       return `[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
     }
     ['|'](other) {
-      return new NativeInt32x4._truncated(dart.as(_foreign_helper.JS("int", "# | #", this.x, other.x), core.int), dart.as(_foreign_helper.JS("int", "# | #", this.y, other.y), core.int), dart.as(_foreign_helper.JS("int", "# | #", this.z, other.z), core.int), dart.as(_foreign_helper.JS("int", "# | #", this.w, other.w), core.int));
+      return new NativeInt32x4._truncated(this.x | other.x, this.y | other.y, this.z | other.z, this.w | other.w);
     }
     ['&'](other) {
-      return new NativeInt32x4._truncated(dart.as(_foreign_helper.JS("int", "# & #", this.x, other.x), core.int), dart.as(_foreign_helper.JS("int", "# & #", this.y, other.y), core.int), dart.as(_foreign_helper.JS("int", "# & #", this.z, other.z), core.int), dart.as(_foreign_helper.JS("int", "# & #", this.w, other.w), core.int));
+      return new NativeInt32x4._truncated(this.x & other.x, this.y & other.y, this.z & other.z, this.w & other.w);
     }
     ['^'](other) {
-      return new NativeInt32x4._truncated(dart.as(_foreign_helper.JS("int", "# ^ #", this.x, other.x), core.int), dart.as(_foreign_helper.JS("int", "# ^ #", this.y, other.y), core.int), dart.as(_foreign_helper.JS("int", "# ^ #", this.z, other.z), core.int), dart.as(_foreign_helper.JS("int", "# ^ #", this.w, other.w), core.int));
+      return new NativeInt32x4._truncated(this.x ^ other.x, this.y ^ other.y, this.z ^ other.z, this.w ^ other.w);
     }
     ['+'](other) {
-      return new NativeInt32x4._truncated(dart.as(_foreign_helper.JS("int", "(# + #) | 0", this.x, other.x), core.int), dart.as(_foreign_helper.JS("int", "(# + #) | 0", this.y, other.y), core.int), dart.as(_foreign_helper.JS("int", "(# + #) | 0", this.z, other.z), core.int), dart.as(_foreign_helper.JS("int", "(# + #) | 0", this.w, other.w), core.int));
+      return new NativeInt32x4._truncated(this.x + other.x | 0, this.y + other.y | 0, this.z + other.z | 0, this.w + other.w | 0);
     }
     ['-'](other) {
-      return new NativeInt32x4._truncated(dart.as(_foreign_helper.JS("int", "(# - #) | 0", this.x, other.x), core.int), dart.as(_foreign_helper.JS("int", "(# - #) | 0", this.y, other.y), core.int), dart.as(_foreign_helper.JS("int", "(# - #) | 0", this.z, other.z), core.int), dart.as(_foreign_helper.JS("int", "(# - #) | 0", this.w, other.w), core.int));
+      return new NativeInt32x4._truncated(this.x - other.x | 0, this.y - other.y | 0, this.z - other.z | 0, this.w - other.w | 0);
     }
     ['-']() {
-      return new NativeInt32x4._truncated(dart.as(_foreign_helper.JS("int", "(-#) | 0", this.x), core.int), dart.as(_foreign_helper.JS("int", "(-#) | 0", this.y), core.int), dart.as(_foreign_helper.JS("int", "(-#) | 0", this.z), core.int), dart.as(_foreign_helper.JS("int", "(-#) | 0", this.w), core.int));
+      return new NativeInt32x4._truncated(-this.x | 0, -this.y | 0, -this.z | 0, -this.w | 0);
     }
     get signMask() {
       let mx = (this.x & 2147483648) >> 31;

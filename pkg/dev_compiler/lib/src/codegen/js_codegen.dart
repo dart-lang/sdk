@@ -757,8 +757,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Block visitBlock(Block node) => new JS.Block(_visitList(node.statements));
 
   @override
-  JS.Expression visitMethodInvocation(MethodInvocation node) {
+  visitMethodInvocation(MethodInvocation node) {
     var target = node.isCascaded ? _cascadeTarget : node.target;
+
+    var result = _emitForeignJS(node);
+    if (result != null) return result;
 
     if (rules.isDynamicCall(node.methodName)) {
       var args = node.argumentList.accept(this);
@@ -785,6 +788,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     return js.call('#(#)', [targetJs, node.argumentList.accept(this)]);
+  }
+
+  /// Emits code for the `JS(...)` builtin.
+  _emitForeignJS(MethodInvocation node) {
+    var e = node.methodName.staticElement;
+    if (e is FunctionElement &&
+        e.library.name == '_foreign_helper' &&
+        e.name == 'JS') {
+      var args = node.argumentList.arguments;
+      // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
+      var code = args[1] as StringLiteral;
+
+      var template = js.parseForeignJS(code.stringValue);
+      var result = template.instantiate(_visitList(args.skip(2)));
+      // `throw` is emitted as a statement by `parseForeignJS`.
+      assert(result is JS.Expression || node.parent is ExpressionStatement);
+      return result;
+    }
+    return null;
   }
 
   @override

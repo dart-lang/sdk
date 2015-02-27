@@ -6,13 +6,13 @@ var convert;
     dart.assert(reviver !== null);
     // Function walk: (dynamic) → dynamic
     function walk(e) {
-      if (dart.dbinary(_foreign_helper.JS('bool', '# == null', e), '||', _foreign_helper.JS('bool', 'typeof # != "object"', e))) {
+      if (dart.notNull(e == null) || dart.notNull(typeof e != "object")) {
         return e;
       }
-      if (_foreign_helper.JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
-        for (let i = 0; i['<'](_foreign_helper.JS('int', '#.length', e)); i++) {
-          let item = _foreign_helper.JS('', '#[#]', e, i);
-          _foreign_helper.JS('', '#[#]=#', e, i, reviver(i, walk(item)));
+      if (Object.getPrototypeOf(e) === Array.prototype) {
+        for (let i = 0; i < e.length; i++) {
+          let item = e[i];
+          e[i] = reviver(i, walk(item));
         }
         return e;
       }
@@ -21,8 +21,8 @@ var convert;
       let keys = map._computeKeys();
       for (let i = 0; i < keys.length; i++) {
         let key = keys.get(i);
-        let revived = reviver(key, walk(_foreign_helper.JS('', '#[#]', e, key)));
-        _foreign_helper.JS('', '#[#]=#', processed, key, revived);
+        let revived = reviver(key, walk(e[key]));
+        processed[key] = revived;
       }
       map._original = processed;
       return map;
@@ -33,15 +33,15 @@ var convert;
   function _convertJsonToDartLazy(object) {
     if (object === null)
       return null;
-    if (_foreign_helper.JS('bool', 'typeof # != "object"', object)) {
+    if (typeof object != "object") {
       return object;
     }
-    if (_foreign_helper.JS('bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
+    if (Object.getPrototypeOf(object) !== Array.prototype) {
       return new _JsonMap(object);
     }
-    for (let i = 0; i['<'](_foreign_helper.JS('int', '#.length', object)); i++) {
-      let item = _foreign_helper.JS('', '#[#]', object, i);
-      _foreign_helper.JS('', '#[#]=#', object, i, _convertJsonToDartLazy(item));
+    for (let i = 0; i < object.length; i++) {
+      let item = object[i];
+      object[i] = _convertJsonToDartLazy(item);
     }
     return object;
   }
@@ -167,7 +167,7 @@ var convert;
     }
     get _upgradedMap() {
       dart.assert(this._isUpgraded);
-      return dart.as(_foreign_helper.JS('LinkedHashMap', '#', this._data), core.Map);
+      return dart.as(this._data, core.Map);
     }
     _computeKeys() {
       dart.assert(!dart.notNull(this._isUpgraded));
@@ -175,7 +175,7 @@ var convert;
       if (keys === null) {
         keys = this._data = _getPropertyNames(this._original);
       }
-      return dart.as(_foreign_helper.JS('JSExtendableArray', '#', keys), core.List$(core.String));
+      return dart.as(keys, core.List$(core.String));
     }
     _upgrade() {
       if (this._isUpgraded)
@@ -203,22 +203,22 @@ var convert;
       return _setProperty(this._processed, key, result);
     }
     static _hasProperty(object, key) {
-      return dart.as(_foreign_helper.JS('bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key), core.bool);
+      return Object.prototype.hasOwnProperty.call(object, key);
     }
     static _getProperty(object, key) {
-      return _foreign_helper.JS('', '#[#]', object, key);
+      return object[key];
     }
     static _setProperty(object, key, value) {
-      return _foreign_helper.JS('', '#[#]=#', object, key, value);
+      return object[key] = value;
     }
     static _getPropertyNames(object) {
-      return dart.as(_foreign_helper.JS('JSExtendableArray', 'Object.keys(#)', object), core.List);
+      return dart.as(Object.keys(object), core.List);
     }
     static _isUnprocessed(object) {
-      return dart.as(_foreign_helper.JS('bool', 'typeof(#)=="undefined"', object), core.bool);
+      return typeof object == "undefined";
     }
     static _newJavaScriptObject() {
-      return _foreign_helper.JS('=Object', 'Object.create(null)');
+      return Object.create(null);
     }
   }
   class _JsonMapKeyIterable extends _internal.ListIterable {
@@ -1042,9 +1042,9 @@ var convert;
       throw new core.ArgumentError(source);
     let parsed = null;
     try {
-      parsed = _foreign_helper.JS('=Object|JSExtendableArray|Null|bool|num|String', 'JSON.parse(#)', source);
+      parsed = JSON.parse(source);
     } catch (e) {
-      throw new core.FormatException(dart.as(_foreign_helper.JS('String', 'String(#)', e), core.String));
+      throw new core.FormatException(String(e));
     }
 
     if (reviver === null) {

@@ -26,7 +26,7 @@ var _isolate_helper;
   }
   // Function startRootIsolate: (dynamic, dynamic) → void
   function startRootIsolate(entry, args) {
-    args = _foreign_helper.JS("", "#", args);
+    args = args;
     if (args === null)
       args = new List.from([]);
     if (!dart.is(args, core.List)) {
@@ -53,10 +53,10 @@ var _isolate_helper;
   }
   dart.copyProperties(_isolate_helper, {
     get _globalState() {
-      return dart.as(_foreign_helper.JS("_Manager", "init.globalState"), _Manager);
+      return dart.as(init.globalState, _Manager);
     },
     set _globalState(val) {
-      _foreign_helper.JS("void", "init.globalState = #", val);
+      init.globalState = val;
     }
   });
   class _Manager extends dart.Object {
@@ -94,9 +94,21 @@ var _isolate_helper;
       this.fromCommandLine = dart.notNull(!dart.notNull(isWindowDefined)) && dart.notNull(!dart.notNull(this.isWorker));
     }
     _nativeInitWorkerMessageHandler() {
-      let function = _foreign_helper.JS('', "(function (f, a) { return function (e) { f(a, e); }})(#, #)", _foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage), this.mainManager);
-      _foreign_helper.JS("void", "self.onmessage = #", function);
-      _foreign_helper.JS('', 'self.dartPrint = self.dartPrint || (function(serialize) {\n  return function (object) {\n    if (self.console && self.console.log) {\n      self.console.log(object)\n    } else {\n      self.postMessage(serialize(object));\n    }\n  }\n})(#)', _foreign_helper.DART_CLOSURE_TO_JS(_serializePrintMessage));
+      let function = function(f, a) {
+        return function(e) {
+          f(a, e);
+        };
+      }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage), this.mainManager);
+      self.onmessage = function;
+      self.dartPrint = self.dartPrint || function(serialize) {
+        return function(object) {
+          if (self.console && self.console.log) {
+            self.console.log(object);
+          } else {
+            self.postMessage(serialize(object));
+          }
+        };
+      }(_foreign_helper.DART_CLOSURE_TO_JS(_serializePrintMessage));
     }
     static _serializePrintMessage(object) {
       return _serializeMessage(dart.map({command: "print", msg: object}));
@@ -213,8 +225,8 @@ var _isolate_helper;
         if (dart.notNull(this.errorsAreFatal) && dart.notNull(core.identical(this, _isolate_helper._globalState.rootContext))) {
           return;
         }
-        if (_foreign_helper.JS('bool', 'self.console && self.console.error')) {
-          _foreign_helper.JS('void', 'self.console.error(#, #)', error, stackTrace);
+        if (self.console && self.console.error) {
+          self.console.error(error, stackTrace);
         } else {
           core.print(error);
           if (stackTrace !== null)
@@ -418,7 +430,7 @@ var _isolate_helper;
   class _MainManagerStub extends dart.Object {
     postMessage(msg) {
       _js_helper.requiresPreamble();
-      _foreign_helper.JS("void", "self.postMessage(#)", msg);
+      self.postMessage(msg);
     }
   }
   let _SPAWNED_SIGNAL = "spawned";
@@ -426,22 +438,22 @@ var _isolate_helper;
   dart.copyProperties(_isolate_helper, {
     get globalWindow() {
       _js_helper.requiresPreamble();
-      return _foreign_helper.JS('', "self.window");
+      return self.window;
     },
     get globalWorker() {
       _js_helper.requiresPreamble();
-      return _foreign_helper.JS('', "self.Worker");
+      return self.Worker;
     },
     get globalPostMessageDefined() {
       _js_helper.requiresPreamble();
-      return dart.as(_foreign_helper.JS('bool', "!!self.postMessage"), core.bool);
+      return !!self.postMessage;
     }
   });
   class IsolateNatives extends dart.Object {
     static computeThisScript() {
       let currentScript = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.CURRENT_SCRIPT, core.String));
       if (currentScript !== null) {
-        return dart.as(_foreign_helper.JS('String', 'String(#.src)', currentScript), core.String);
+        return String(currentScript.src);
       }
       if (_js_helper.Primitives.isD8)
         return computeThisScriptD8();
@@ -452,31 +464,38 @@ var _isolate_helper;
       return null;
     }
     static computeThisScriptJsshell() {
-      return dart.as(_foreign_helper.JS('String|Null', 'thisFilename()'), core.String);
+      return dart.as(thisFilename(), core.String);
     }
     static computeThisScriptD8() {
       return computeThisScriptFromTrace();
     }
     static computeThisScriptFromTrace() {
-      let stack = _foreign_helper.JS('String|Null', 'new Error().stack');
+      let stack = new Error().stack;
       if (stack === null) {
-        stack = _foreign_helper.JS('String|Null', '(function() {' + 'try { throw new Error() } catch(e) { return e.stack }' + '})()');
+        stack = function() {
+          try {
+            throw new Error();
+          } catch (e) {
+            return e.stack;
+          }
+
+        }();
         if (stack === null)
           throw new core.UnsupportedError('No stack trace');
       }
       let pattern = null, matches = null;
-      pattern = _foreign_helper.JS('', 'new RegExp("^ *at [^(]*\\\\((.*):[0-9]*:[0-9]*\\\\)$", "m")');
-      matches = _foreign_helper.JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
+      pattern = new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "m");
+      matches = stack.match(pattern);
       if (matches !== null)
-        return dart.as(_foreign_helper.JS('String', '#[1]', matches), core.String);
-      pattern = _foreign_helper.JS('', 'new RegExp("^[^@]*@(.*):[0-9]*$", "m")');
-      matches = _foreign_helper.JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
+        return matches[1];
+      pattern = new RegExp("^[^@]*@(.*):[0-9]*$", "m");
+      matches = stack.match(pattern);
       if (matches !== null)
-        return dart.as(_foreign_helper.JS('String', '#[1]', matches), core.String);
+        return matches[1];
       throw new core.UnsupportedError(`Cannot extract URI from "${stack}"`);
     }
     static _getEventData(e) {
-      return _foreign_helper.JS("", "#.data", e);
+      return e.data;
     }
     static _processWorkerMessage(sender, e) {
       let msg = _deserializeMessage(_getEventData(e));
@@ -510,7 +529,7 @@ var _isolate_helper;
           break;
         case 'close':
           _isolate_helper._globalState.managers.remove(workerIds.get(sender));
-          _foreign_helper.JS('void', '#.terminate()', sender);
+          sender.terminate();
           _isolate_helper._globalState.topEventLoop.run();
           break;
         case 'log':
@@ -552,17 +571,17 @@ var _isolate_helper;
     }
     static _consoleLog(msg) {
       _js_helper.requiresPreamble();
-      _foreign_helper.JS("void", "self.console.log(#)", msg);
+      self.console.log(msg);
     }
     static _getJSFunctionFromName(functionName) {
       let globalFunctionsContainer = _foreign_helper.JS_EMBEDDED_GLOBAL("", dart.as(_js_embedded_names.GLOBAL_FUNCTIONS, core.String));
-      return _foreign_helper.JS("", "#[#]()", globalFunctionsContainer, functionName);
+      return globalFunctionsContainer[functionName]();
     }
     static _getJSFunctionName(f) {
-      return dart.as(dart.is(f, _js_helper.Closure) ? _foreign_helper.JS("String|Null", '#.$name', f) : null, core.String);
+      return dart.as(dart.is(f, _js_helper.Closure) ? f.$name : null, core.String);
     }
     static _allocate(ctor) {
-      return _foreign_helper.JS("", "new #()", ctor);
+      return new ctor();
     }
     static spawnFunction(topLevelFunction, message, startPaused) {
       IsolateNatives.enableSpawnWorker = true;
@@ -653,19 +672,28 @@ var _isolate_helper;
     static _spawnWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
       if (uri === null)
         uri = thisScript;
-      let worker = _foreign_helper.JS('var', 'new Worker(#)', uri);
-      let onerrorTrampoline = _foreign_helper.JS('', '\n(function (f, u, c) {\n  return function(e) {\n    return f(e, u, c)\n  }\n})(#, #, #)', _foreign_helper.DART_CLOSURE_TO_JS(workerOnError), uri, onError);
-      _foreign_helper.JS('void', '#.onerror = #', worker, onerrorTrampoline);
-      let processWorkerMessageTrampoline = _foreign_helper.JS('', "\n(function (f, a) {\n  return function (e) {\n    // We can stop listening for errors when the first message is received as\n    // we only listen for messages to determine if the uri was bad.\n    e.onerror = null;\n    return f(a, e);\n  }\n})(#, #)", _foreign_helper.DART_CLOSURE_TO_JS(_processWorkerMessage), worker);
-      _foreign_helper.JS('void', '#.onmessage = #', worker, processWorkerMessageTrampoline);
+      let worker = new Worker(uri);
+      let onerrorTrampoline = function(f, u, c) {
+        return function(e) {
+          return f(e, u, c);
+        };
+      }(_foreign_helper.DART_CLOSURE_TO_JS(workerOnError), uri, onError);
+      worker.onerror = onerrorTrampoline;
+      let processWorkerMessageTrampoline = function(f, a) {
+        return function(e) {
+          e.onerror = null;
+          return f(a, e);
+        };
+      }(_foreign_helper.DART_CLOSURE_TO_JS(_processWorkerMessage), worker);
+      worker.onmessage = processWorkerMessageTrampoline;
       let workerId = _isolate_helper._globalState.nextManagerId++;
       workerIds.set(worker, workerId);
       _isolate_helper._globalState.managers.set(workerId, worker);
-      _foreign_helper.JS('void', '#.postMessage(#)', worker, _serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
+      worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
     }
     static workerOnError(event, uri, onError) {
-      _foreign_helper.JS('void', '#.preventDefault()', event);
-      let message = dart.as(_foreign_helper.JS('String|Null', '#.message', event), core.String);
+      event.preventDefault();
+      let message = dart.as(event.message, core.String);
       if (message === null) {
         message = `Error spawning worker for ${uri}`;
       } else {
@@ -737,7 +765,7 @@ var _isolate_helper;
       } else {
         let manager = _isolate_helper._globalState.managers.get(this._workerId);
         if (manager !== null) {
-          _foreign_helper.JS('void', '#.postMessage(#)', manager, workerMessage);
+          manager.postMessage(workerMessage);
         }
       }
     }
@@ -844,7 +872,7 @@ var _isolate_helper;
           callback();
         }
         enterJsAsync();
-        this._handle = dart.as(_foreign_helper.JS('int', 'self.setTimeout(#, #)', _js_helper.convertDartClosureToJS(internalCallback, 0), milliseconds), core.int);
+        this._handle = self.setTimeout(_js_helper.convertDartClosureToJS(internalCallback, 0), milliseconds);
       } else {
         dart.assert(milliseconds > 0);
         throw new core.UnsupportedError("Timer greater than 0.");
@@ -856,9 +884,9 @@ var _isolate_helper;
       this._handle = dart.as(null, core.int);
       if (hasTimer()) {
         enterJsAsync();
-        this._handle = dart.as(_foreign_helper.JS('int', 'self.setInterval(#, #)', _js_helper.convertDartClosureToJS((() => {
+        this._handle = self.setInterval(_js_helper.convertDartClosureToJS((() => {
           callback(this);
-        }).bind(this), 0), milliseconds), core.int);
+        }).bind(this), 0), milliseconds);
       } else {
         throw new core.UnsupportedError("Periodic timer.");
       }
@@ -872,9 +900,9 @@ var _isolate_helper;
           return;
         leaveJsAsync();
         if (this._once) {
-          _foreign_helper.JS('void', 'self.clearTimeout(#)', this._handle);
+          self.clearTimeout(this._handle);
         } else {
-          _foreign_helper.JS('void', 'self.clearInterval(#)', this._handle);
+          self.clearInterval(this._handle);
         }
         this._handle = dart.as(null, core.int);
       } else {
@@ -889,7 +917,7 @@ var _isolate_helper;
   // Function hasTimer: () → bool
   function hasTimer() {
     _js_helper.requiresPreamble();
-    return _foreign_helper.JS('', 'self.setTimeout') !== null;
+    return self.setTimeout !== null;
   }
   class CapabilityImpl extends dart.Object {
     CapabilityImpl() {
@@ -1025,14 +1053,14 @@ var _isolate_helper;
       return new List.from(['map', x.keys.map(dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic"))).toList(), x.values.map(dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic"))).toList()]);
     }
     serializeJSObject(x) {
-      if (dart.dbinary(_foreign_helper.JS('bool', '!!(#.constructor)', x), '&&', _foreign_helper.JS('bool', 'x.constructor !== Object'))) {
+      if (dart.notNull(!!x.constructor) && dart.notNull(x.constructor !== Object)) {
         this.unsupported(x, "Only plain JS Objects are supported:");
       }
-      let keys = dart.as(_foreign_helper.JS('JSArray', 'Object.keys(#)', x), core.List);
+      let keys = dart.as(Object.keys(x), core.List);
       let values = new List.from([]);
       values.length = keys.length;
       for (let i = 0; i < keys.length; i++) {
-        values.set(i, this.serialize(_foreign_helper.JS('', '#[#]', x, keys.get(i))));
+        values.set(i, this.serialize(x[keys.get(i)]));
       }
       return new List.from(['js-object', keys, values]);
     }
@@ -1062,8 +1090,8 @@ var _isolate_helper;
     serializeDartObject(x) {
       let classExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.CLASS_ID_EXTRACTOR, core.String));
       let fieldsExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.CLASS_FIELDS_EXTRACTOR, core.String));
-      let classId = dart.as(_foreign_helper.JS('String', '#(#)', classExtractor, x), core.String);
-      let fields = dart.as(_foreign_helper.JS('JSArray', '#(#)', fieldsExtractor, x), core.List);
+      let classId = classExtractor(x);
+      let fields = dart.as(fieldsExtractor(x), core.List);
       return new List.from(['dart', classId, this.serializeArrayInPlace(dart.as(fields, _interceptors.JSArray))]);
     }
   }
@@ -1204,10 +1232,10 @@ var _isolate_helper;
       dart.assert(dart.equals(dart.dindex(x, 0), 'js-object'));
       let keys = dart.as(dart.dindex(x, 1), core.List);
       let values = dart.as(dart.dindex(x, 2), core.List);
-      let o = _foreign_helper.JS('', '{}');
+      let o = {};
       this.deserializedObjects.add(o);
       for (let i = 0; i < keys.length; i++) {
-        _foreign_helper.JS('', '#[#]=#', o, keys.get(i), this.deserialize(values.get(i)));
+        o[keys.get(i)] = this.deserialize(values.get(i));
       }
       return o;
     }
@@ -1224,10 +1252,10 @@ var _isolate_helper;
       let fields = dart.as(dart.dindex(x, 2), core.List);
       let instanceFromClassId = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INSTANCE_FROM_CLASS_ID, core.String));
       let initializeObject = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INITIALIZE_EMPTY_INSTANCE, core.String));
-      let emptyInstance = _foreign_helper.JS('', '#(#)', instanceFromClassId, classId);
+      let emptyInstance = instanceFromClassId(classId);
       this.deserializedObjects.add(emptyInstance);
       this.deserializeArrayInPlace(dart.as(fields, _interceptors.JSArray));
-      return _foreign_helper.JS('', '#(#, #, #)', initializeObject, classId, emptyInstance, fields);
+      return initializeObject(classId, emptyInstance, fields);
     }
   }
   // Exports:

@@ -894,26 +894,10 @@ class MiniJsParser {
       // PropertyDefinition :
       //     PropertyName : AssignmentExpression
       //     MethodDefinition
+      properties.add(parseMethodOrProperty());
 
-      if (acceptCategory(HASH)) {
-        properties.add(parseInterpolatedMember());
-      } else {
-        bool isGetter = acceptString('get');
-        bool isSetter = isGetter ? false : acceptString('set');
-        Expression name = parsePropertyName();
-
-        if (lastCategory == LPAREN) {
-          Fun fun = parseFun();
-          properties.add(
-              new Method(name, fun, isGetter: isGetter, isSetter: isSetter));
-        } else {
-          expectCategory(COLON);
-          Expression value = parseAssignment();
-          properties.add(new Property(name, value));
-        }
-        if (acceptCategory(RBRACE)) break;
-        expectCategory(COMMA);
-      }
+      if (acceptCategory(RBRACE)) break;
+      expectCategory(COMMA);
     }
     return new ObjectInitializer(properties);
   }
@@ -1467,28 +1451,59 @@ class MiniJsParser {
     expectCategory(LBRACE);
     var methods = new List<Method>();
     while (lastCategory != RBRACE) {
-      methods.add(parseMethod());
+      methods.add(parseMethodOrProperty(onlyMethods: true));
     }
     expectCategory(RBRACE);
     return new ClassExpression(name, heritage, methods);
   }
 
-  Method parseMethod() {
-    if (acceptCategory(HASH)) return parseInterpolatedMember();
-
+  /**
+   * Parses a [Method] or a [Property].
+   *
+   * Most of the complexity is from supporting interpolation. Several forms
+   * are supported:
+   *
+   * - getter/setter names: `get #() { ... }`
+   * - method names: `#() { ... }`
+   * - property names: `#: ...`
+   * - entire methods: `#`
+   */
+  Property parseMethodOrProperty({bool onlyMethods: false}) {
     bool isStatic = acceptString('static');
-    bool isGetter = acceptString('get');
-    bool isSetter = isGetter ? false : acceptString('set');
-    var name = parsePropertyName();
-    var fun = parseFun();
-    return new Method(name, fun,
-        isGetter: isGetter, isSetter: isSetter, isStatic: isStatic);
-  }
 
-  InterpolatedMethod parseInterpolatedMember() {
-    var member = new InterpolatedMethod(parseHash());
-    interpolatedValues.add(member);
-    return member;
+    bool isGetter = false;
+    bool isSetter = false;
+    Expression name = null;
+    if (acceptCategory(HASH)) {
+      if (lastCategory != LPAREN && (onlyMethods || lastCategory != COLON)) {
+        // Interpolated method
+        var member = new InterpolatedMethod(parseHash());
+        interpolatedValues.add(member);
+        return member;
+      }
+      name = parseInterpolatedExpression();
+    } else {
+      name = parsePropertyName();
+    }
+
+    // Allow get or set to be followed by another property name.
+    if (lastCategory == ALPHA && name is PropertyName) {
+      PropertyName p = name;
+      isGetter = p.name == 'get';
+      isSetter = p.name == 'set';
+      if (isGetter || isSetter) {
+        name = parsePropertyName();
+      }
+    }
+
+    if (!onlyMethods && acceptCategory(COLON)) {
+      Expression value = parseAssignment();
+      return new Property(name, value);
+    } else {
+      var fun = parseFun();
+      return new Method(name, fun,
+          isGetter: isGetter, isSetter: isSetter, isStatic: isStatic);
+    }
   }
 
   Expression parsePropertyName() {
@@ -1505,13 +1520,16 @@ class MiniJsParser {
       expectCategory(RSQUARE);
       return expr;
     } else if (acceptCategory(HASH)) {
-      var nameOrPosition = parseHash();
-      var interpolatedLiteral = new InterpolatedLiteral(nameOrPosition);
-      interpolatedValues.add(interpolatedLiteral);
-      return interpolatedLiteral;
+      return parseInterpolatedExpression();
     } else {
       error('Expected property name');
       return null;
     }
+  }
+
+  InterpolatedExpression parseInterpolatedExpression() {
+    var interpolated = new InterpolatedExpression(parseHash());
+    interpolatedValues.add(interpolated);
+    return interpolated;
   }
 }

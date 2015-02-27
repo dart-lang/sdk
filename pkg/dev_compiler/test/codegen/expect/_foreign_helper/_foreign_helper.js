@@ -119,7 +119,7 @@ var _foreign_helper;
   }
   // Function JS_STRING_CONCAT: (String, String) → String
   function JS_STRING_CONCAT(a, b) {
-    return dart.as(JS('String', '# + #', a, b), core.String);
+    return a + b;
   }
   // Exports:
   _foreign_helper.JS = JS;
