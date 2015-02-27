@@ -433,7 +433,6 @@ js_support_checks = dict({
         "element, element)"),
     'TouchList': "JS('bool', '!!document.createTouchList')",
     'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
-    'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
     'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
     'Worker': "JS('bool', '(typeof window.Worker != \"undefined\")')",
     'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",

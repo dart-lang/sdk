@@ -29,7 +29,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'Database': 'SqlDatabase', # Avoid conflict with Index DB's Database.
     'DatabaseSync': 'SqlDatabaseSync',
     'DOMFileSystem': 'FileSystem',
-    'WebKitPoint': '_DomPoint',
     'DOMRect': '_DomRect',
     'Entity': '_Entity', # Not sure if we want to expose this yet, may conflict with other libs.
     'EntryCallback': '_EntryCallback',
@@ -42,6 +41,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'HTMLElement' : 'HtmlElement',
     'HTMLHtmlElement' : 'HtmlHtmlElement',
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
+    'Iterator': 'DomIterator',
     'Key': 'CryptoKey',
     'NamedNodeMap': '_NamedNodeMap',
     'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',

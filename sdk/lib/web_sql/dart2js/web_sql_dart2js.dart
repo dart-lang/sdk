@@ -292,20 +292,3 @@ class SqlTransaction extends Interceptor {
   @DocsEditable()
   void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SQLTransactionSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/webdatabase/#sqltransactionsync
-@Experimental() // deprecated
-@Native("SQLTransactionSync")
-abstract class _SQLTransactionSync extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory _SQLTransactionSync._() { throw new UnsupportedError("Not supported"); }
-}

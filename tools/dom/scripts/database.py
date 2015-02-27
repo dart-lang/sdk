@@ -43,6 +43,7 @@ class Database(object):
     self._all_interfaces = {}
     self._interfaces_to_delete = []
     self._enums = {}
+    self._all_dictionaries = {}
 
   def Clone(self):
     new_database = Database(self._root_dir)
@@ -50,6 +51,8 @@ class Database(object):
     new_database._interfaces_to_delete = copy.deepcopy(
         self._interfaces_to_delete)
     new_database._enums = copy.deepcopy(self._enums)
+    new_database._all_dictionaries = copy.deepcopy(self._all_dictionaries)
+
     return new_database
 
   def Delete(self):
@@ -244,6 +247,33 @@ class Database(object):
 
   def AddEnum(self, enum):
     self._enums[enum.id] = enum
+
+  def HasDictionary(self, dictionary_name):
+    """Returns True if the dictionary is in memory"""
+    return dictionary_name in self._all_dictionaries
+
+  def GetDictionary(self, dictionary_name):
+    """Returns an IDLDictionary corresponding to the dictionary_name
+    from memory.
+
+    Args:
+      dictionary_name -- the name of the dictionary.
+    """
+    if dictionary_name not in self._all_dictionaries:
+      raise RuntimeError('Dictionary %s is not loaded' % dictionary_name)
+    return self._all_dictionaries[dictionary_name]
+
+  def AddDictionary(self, dictionary):
+    """Returns an IDLDictionary corresponding to the dictionary_name
+    from memory.
+
+    Args:
+      dictionary -- the name of the dictionary.
+    """
+    dictionary_name = dictionary.id
+    if dictionary_name in self._all_dictionaries:
+      raise RuntimeError('Dictionary %s already exists' % dictionary_name)
+    self._all_dictionaries[dictionary_name] = dictionary
 
   def TransitiveSecondaryParents(self, interface, propagate_event_target):
     """Returns a list of all non-primary parents.

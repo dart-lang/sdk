@@ -561,7 +561,7 @@ class DatabaseBuilder(object):
 
       # 2-stage computation: individual, then overall
       for file_path in file_paths:
-        compute_info_individual(file_path, 'dart')
+        compute_info_individual(file_path)
       info_individuals = [info_individual()]
       compute_interfaces_info_overall(info_individuals)
 
@@ -589,6 +589,10 @@ class DatabaseBuilder(object):
                                                   round((end_time - start_time), 2))
 
   def _process_ast(self, filename, ast):
+    if len(ast) == 1:
+      ast = ast.values()[0]
+    else:
+      print 'ERROR: Processing AST: ' + os.path.basename(file_name)
     new_asts[filename] = ast
 
   def import_idl_files(self, file_paths, import_options, is_dart_idl):
@@ -630,11 +634,16 @@ class DatabaseBuilder(object):
       interface.operations = filter(enabled, interface.operations)
       self._imported_interfaces.append((interface, import_options))
 
-    for implStmt in idl_file.implementsStatements:
-      self._impl_stmts.append((implStmt, import_options))
+    # If an IDL dictionary then there is no implementsStatements.
+    if hasattr(idl_file, 'implementsStatements'):
+      for implStmt in idl_file.implementsStatements:
+        self._impl_stmts.append((implStmt, import_options))
 
     for enum in idl_file.enums:
       self._database.AddEnum(enum)
+
+    for dictionary in idl_file.dictionaries:
+      self._database.AddDictionary(dictionary)
 
 
   def _is_node_enabled(self, node, idl_defines):
@@ -729,6 +738,22 @@ class DatabaseBuilder(object):
         map(normalize, interface.constants)
         map(normalize, interface.attributes)
         map(normalize, interface.operations)
+
+  def map_dictionaries(self):
+    """Changes the type of operations/constructors arguments from an IDL
+       dictionary to a Dictionary.  The IDL dictionary is just an enums of
+       strings which are checked at run-time."""
+    def dictionary_to_map(type_node):
+      if self._database.HasDictionary(type_node.id):
+        type_node.dictionary = type_node.id
+        type_node.id = 'Dictionary'
+
+    def all_types(node):
+      map(dictionary_to_map, node.all(IDLType))
+
+    for interface in self._database.GetInterfaces():
+      map(all_types, interface.all(IDLExtAttrFunctionValue))
+      map(all_types, interface.operations)
 
   def fetch_constructor_data(self, options):
     window_interface = self._database.GetInterface('Window')

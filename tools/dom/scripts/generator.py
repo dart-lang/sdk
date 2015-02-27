@@ -1306,7 +1306,10 @@ class TypeRegistry(object):
             type_name,
             TypeData(clazz='Primitive', dart_type='String', native_type='String'))
 
-      interface = self._database.GetInterface(type_name)
+      if self._database.HasInterface(type_name):
+        interface = self._database.GetInterface(type_name)
+      else:
+        interface = self._database.GetDictionary(type_name)
       if 'Callback' in interface.ext_attrs:
         return CallbackIDLTypeInfo(type_name, TypeData('Callback',
             self._renamer.DartifyTypeName(type_name)))
