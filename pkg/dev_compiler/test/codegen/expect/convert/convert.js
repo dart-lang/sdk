@@ -312,7 +312,7 @@ var convert;
       if (!dart.is(sink, ByteConversionSink)) {
         sink = new ByteConversionSink.from(sink);
       }
-      return new _UnicodeSubsetEncoderSink(this._subsetMask, sink);
+      return new _UnicodeSubsetEncoderSink(this._subsetMask, dart.as(sink, ByteConversionSink));
     }
     bind(stream) {
       return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));
@@ -497,7 +497,7 @@ var convert;
   }
   class _ByteCallbackSink extends ByteConversionSinkBase {
     _ByteCallbackSink(callback) {
-      this._buffer = new typed_data.Uint8List(_INITIAL_BUFFER_SIZE);
+      this._buffer = new typed_data.Uint8List(dart.as(_INITIAL_BUFFER_SIZE, core.int));
       this._callback = callback;
       this._bufferIndex = 0;
       super.ByteConversionSinkBase();
@@ -780,7 +780,7 @@ var convert;
       if (!dart.is(sink, StringConversionSink)) {
         sink = new StringConversionSink.from(sink);
       }
-      return new _HtmlEscapeSink(this, sink);
+      return new _HtmlEscapeSink(this, dart.as(sink, StringConversionSink));
     }
   }
   class _HtmlEscapeSink extends StringConversionSinkBase {
@@ -852,12 +852,12 @@ var convert;
         toEncodable = this._toEncodable;
       if (toEncodable === null)
         return this.encoder.convert(value);
-      return new JsonEncoder(toEncodable).convert(value);
+      return new JsonEncoder(dart.as(toEncodable, dart.throw_("Unimplemented type (Object) → Object"))).convert(value);
     }
     get encoder() {
       if (this._toEncodable === null)
         return new JsonEncoder();
-      return new JsonEncoder(this._toEncodable);
+      return new JsonEncoder(dart.as(this._toEncodable, dart.throw_("Unimplemented type (Object) → Object")));
     }
     get decoder() {
       if (this._reviver === null)
@@ -890,14 +890,14 @@ var convert;
       } else if (dart.is(sink, _Utf8EncoderSink)) {
         return new _JsonUtf8EncoderSink(sink._sink, this._toEncodable, JsonUtf8Encoder._utf8Encode(this.indent), JsonUtf8Encoder.DEFAULT_BUFFER_SIZE);
       }
-      return new _JsonEncoderSink(sink, this._toEncodable, this.indent);
+      return new _JsonEncoderSink(dart.as(sink, StringConversionSink), this._toEncodable, this.indent);
     }
     bind(stream) {
       return dart.as(super.bind(stream), async.Stream$(core.String));
     }
     fuse(other) {
       if (dart.is(other, Utf8Encoder)) {
-        return new JsonUtf8Encoder(this.indent, this._toEncodable);
+        return new JsonUtf8Encoder(this.indent, dart.as(this._toEncodable, dart.throw_("Unimplemented type (Object) → dynamic")));
       }
       return super.fuse(other);
     }
@@ -1044,7 +1044,7 @@ var convert;
     try {
       parsed = dart.dinvokef(/* Unimplemented unknown name */JS, '=Object|JSExtendableArray|Null|bool|num|String', 'JSON.parse(#)', source);
     } catch (e) {
-      throw new core.FormatException(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', 'String(#)', e));
+      throw new core.FormatException(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', 'String(#)', e), core.String));
     }
 
     if (reviver === null) {
@@ -1060,7 +1060,7 @@ var convert;
   class _JsonStringifier extends dart.Object {
     _JsonStringifier(_toEncodable) {
       this._seen = new core.List();
-      this._toEncodable = _toEncodable !== null ? _toEncodable : _defaultToEncodable;
+      this._toEncodable = dart.as(_toEncodable !== null ? _toEncodable : _defaultToEncodable, core.Function);
     }
     static hexDigit(x) {
       return x < 10 ? 48 + x : 87 + x;
@@ -1548,7 +1548,7 @@ var convert;
       if (!dart.is(sink, StringConversionSink)) {
         sink = new StringConversionSink.from(sink);
       }
-      return new _LineSplitterSink(sink);
+      return new _LineSplitterSink(dart.as(sink, StringConversionSink));
     }
   }
   class _LineSplitterSink extends StringConversionSinkBase {
@@ -1899,7 +1899,7 @@ var convert;
       if (!dart.is(sink, ByteConversionSink)) {
         sink = new ByteConversionSink.from(sink);
       }
-      return new _Utf8EncoderSink(sink);
+      return new _Utf8EncoderSink(dart.as(sink, ByteConversionSink));
     }
     bind(stream) {
       return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));

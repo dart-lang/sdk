@@ -112,7 +112,13 @@ dynamic c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam", """line 208, colum
 onError = _registerErrorHandler(onError, result._zone);
 }
 }
- _addListener(new _FutureListener.then(result, f, onError));
+ _addListener(new _FutureListener.then(result, DDC$RT.wrap((dynamic f(T __u30)) {
+dynamic c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam", """line 213, column 51 of dart:async/future_impl.dart: """, x0 is T, false));
+ return f == null ? null : c;
+}
+, f, DDC$RT.type((__t28<T> _) {
+}
+), __t22, "Wrap", """line 213, column 51 of dart:async/future_impl.dart: """, f is __t22), onError));
  return result;
 }
  Future catchError(Function onError, {
@@ -121,11 +127,11 @@ bool test(error)}
 _Future result = new _Future();
  if (!identical(result._zone, _ROOT_ZONE)) {
 onError = _registerErrorHandler(onError, result._zone);
- if (test != null) test = ((__x32) => DDC$RT.wrap((dynamic f(dynamic __u31)) {
-dynamic c(dynamic x0) => ((__x30) => DDC$RT.cast(__x30, dynamic, bool, "CastResult", """line 221, column 32 of dart:async/future_impl.dart: """, __x30 is bool, true))(f(x0));
+ if (test != null) test = ((__x33) => DDC$RT.wrap((dynamic f(dynamic __u32)) {
+dynamic c(dynamic x0) => ((__x31) => DDC$RT.cast(__x31, dynamic, bool, "CastResult", """line 221, column 32 of dart:async/future_impl.dart: """, __x31 is bool, true))(f(x0));
  return f == null ? null : c;
 }
-, __x32, __t22, __t24, "Wrap", """line 221, column 32 of dart:async/future_impl.dart: """, __x32 is __t24))(result._zone.registerUnaryCallback(test));
+, __x33, __t22, __t24, "Wrap", """line 221, column 32 of dart:async/future_impl.dart: """, __x33 is __t24))(result._zone.registerUnaryCallback(test));
 }
  _addListener(new _FutureListener.catchError(result, onError, test));
  return result;
@@ -142,11 +148,11 @@ action = result._zone.registerCallback(action);
 }
 ), "CastDynamic", """line 233, column 12 of dart:async/future_impl.dart: """, result is Future<T>, false);
 }
- Stream<T> asStream() => ((__x33) => DDC$RT.cast(__x33, DDC$RT.type((Stream<dynamic> _) {
+ Stream<T> asStream() => ((__x34) => DDC$RT.cast(__x34, DDC$RT.type((Stream<dynamic> _) {
 }
 ), DDC$RT.type((Stream<T> _) {
 }
-), "CastExact", """line 236, column 27 of dart:async/future_impl.dart: """, __x33 is Stream<T>, false))(new Stream.fromFuture(this));
+), "CastExact", """line 236, column 27 of dart:async/future_impl.dart: """, __x34 is Stream<T>, false))(new Stream.fromFuture(this));
  void _markPendingCompletion() {
 if (!_mayComplete) throw new StateError("Future already completed");
  _state = _PENDING_COMPLETE;
@@ -331,7 +337,7 @@ AsyncError asyncError = source._error;
  if (listener.hasErrorTest) {
   _FutureErrorTest test = listener._errorTest;
    try {
-    matchesTest = ((__x34) => DDC$RT.cast(__x34, dynamic, bool, "CastGeneral", """line 499, column 29 of dart:async/future_impl.dart: """, __x34 is bool, true))(zone.runUnary(test, asyncError.error));
+    matchesTest = ((__x35) => DDC$RT.cast(__x35, dynamic, bool, "CastGeneral", """line 499, column 29 of dart:async/future_impl.dart: """, __x35 is bool, true))(zone.runUnary(test, asyncError.error));
     }
    catch (e, s) {
     listenerValueOrError = identical(asyncError.error, e) ? asyncError : new AsyncError(e, s);

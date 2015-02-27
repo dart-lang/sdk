@@ -46,14 +46,14 @@ if (_buffer.isNotEmpty) _flush();
  Iterator iterator = objects.iterator;
  if (!iterator.moveNext()) return; if (separator.isEmpty) {
 do {
-_chunkedSink.add(((__x27) => DDC$RT.cast(__x27, dynamic, String, "CastGeneral", """line 147, column 26 of dart:convert/string_conversion.dart: """, __x27 is String, true))(iterator.current.toString()));
+_chunkedSink.add(((__x30) => DDC$RT.cast(__x30, dynamic, String, "CastGeneral", """line 147, column 26 of dart:convert/string_conversion.dart: """, __x30 is String, true))(iterator.current.toString()));
 }
  while (iterator.moveNext());}
  else {
-_chunkedSink.add(((__x28) => DDC$RT.cast(__x28, dynamic, String, "CastGeneral", """line 150, column 24 of dart:convert/string_conversion.dart: """, __x28 is String, true))(iterator.current.toString()));
+_chunkedSink.add(((__x31) => DDC$RT.cast(__x31, dynamic, String, "CastGeneral", """line 150, column 24 of dart:convert/string_conversion.dart: """, __x31 is String, true))(iterator.current.toString()));
  while (iterator.moveNext()) {
 write(separator);
- _chunkedSink.add(((__x29) => DDC$RT.cast(__x29, dynamic, String, "CastGeneral", """line 153, column 26 of dart:convert/string_conversion.dart: """, __x29 is String, true))(iterator.current.toString()));
+ _chunkedSink.add(((__x32) => DDC$RT.cast(__x32, dynamic, String, "CastGeneral", """line 153, column 26 of dart:convert/string_conversion.dart: """, __x32 is String, true))(iterator.current.toString()));
 }
 }
 }

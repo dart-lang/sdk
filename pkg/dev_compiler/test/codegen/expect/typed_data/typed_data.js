@@ -15,7 +15,7 @@ var typed_data;
   Endianness.LITTLE_ENDIAN = new Endianness._(true);
   dart.defineLazyProperties(Endianness, {
     get HOST_ENDIAN() {
-      return new ByteData.view(new Uint16List.fromList(new List.from([1])).buffer).getInt8(0) === 1 ? LITTLE_ENDIAN : BIG_ENDIAN;
+      return new ByteData.view(new Uint16List.fromList(dart.as(new List.from([1]), core.List$(core.int))).buffer).getInt8(0) === 1 ? LITTLE_ENDIAN : BIG_ENDIAN;
     }
   });
   class ByteData extends dart.Object {

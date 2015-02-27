@@ -255,13 +255,13 @@ var math;
         return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode);
       }
       ['+'](other) {
-        return new Point(this.x['+'](other.x), this.y['+'](other.y));
+        return new Point(dart.as(this.x['+'](other.x), T), dart.as(this.y['+'](other.y), T));
       }
       ['-'](other) {
-        return new Point(this.x['-'](other.x), this.y['-'](other.y));
+        return new Point(dart.as(this.x['-'](other.x), T), dart.as(this.y['-'](other.y), T));
       }
       ['*'](factor) {
-        return new Point(this.x['*'](factor), this.y['*'](factor));
+        return new Point(dart.as(this.x['*'](factor), T), dart.as(this.y['*'](factor), T));
       }
       get magnitude() {
         return sqrt(dart.notNull(this.x['*'](this.x)) + dart.notNull(this.y['*'](this.y)));
@@ -315,7 +315,7 @@ var math;
           let y0 = max(this.top, other.top);
           let y1 = min(this.top['+'](this.height), other.top['+'](other.height));
           if (dart.notNull(y0) <= dart.notNull(y1)) {
-            return new Rectangle(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
+            return new Rectangle(dart.as(x0, T), dart.as(y0, T), dart.as(dart.notNull(x1) - dart.notNull(x0), T), dart.as(dart.notNull(y1) - dart.notNull(y0), T));
           }
         }
         return null;
@@ -328,7 +328,7 @@ var math;
         let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
         let left = min(this.left, other.left);
         let top = min(this.top, other.top);
-        return new Rectangle(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
+        return new Rectangle(dart.as(left, T), dart.as(top, T), dart.as(dart.notNull(right) - dart.notNull(left), T), dart.as(dart.notNull(bottom) - dart.notNull(top), T));
       }
       containsRectangle(another) {
         return dart.notNull(dart.notNull(dart.notNull(this.left['<='](another.left)) && dart.notNull(dart.notNull(this.left['+'](this.width)) >= dart.notNull(dart.notNull(another.left) + dart.notNull(another.width)))) && dart.notNull(this.top['<='](another.top))) && dart.notNull(dart.notNull(this.top['+'](this.height)) >= dart.notNull(dart.notNull(another.top) + dart.notNull(another.height)));
@@ -340,13 +340,13 @@ var math;
         return new Point(this.left, this.top);
       }
       get topRight() {
-        return new Point(this.left['+'](this.width), this.top);
+        return new Point(dart.as(this.left['+'](this.width), T), this.top);
       }
       get bottomRight() {
-        return new Point(this.left['+'](this.width), this.top['+'](this.height));
+        return new Point(dart.as(this.left['+'](this.width), T), dart.as(this.top['+'](this.height), T));
       }
       get bottomLeft() {
-        return new Point(this.left, this.top['+'](this.height));
+        return new Point(this.left, dart.as(this.top['+'](this.height), T));
       }
     }
     return _RectangleBase;
@@ -357,8 +357,8 @@ var math;
       Rectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this.width = width['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -width")) * 0 : width;
-        this.height = height['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -height")) * 0 : height;
+        this.width = dart.as(width['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -width")) * 0 : width, T);
+        this.height = dart.as(height['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -height")) * 0 : height, T);
         super._RectangleBase();
       }
       Rectangle$fromPoints(a, b) {
@@ -378,8 +378,8 @@ var math;
       MutableRectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this._width = width['<'](0) ? _clampToZero(width) : width;
-        this._height = height['<'](0) ? _clampToZero(height) : height;
+        this._width = dart.as(width['<'](0) ? _clampToZero(width) : width, T);
+        this._height = dart.as(height['<'](0) ? _clampToZero(height) : height, T);
         super._RectangleBase();
       }
       MutableRectangle$fromPoints(a, b) {

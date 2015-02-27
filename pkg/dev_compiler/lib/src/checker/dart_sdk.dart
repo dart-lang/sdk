@@ -140,7 +140,10 @@ final Map<String, String> mockSdkSources = {
         const Object proxy = const _Proxy();
 
         class Iterable<E> {}
-        class List<E> implements Iterable<E> {}
+        class List<E> implements Iterable<E> {
+          List([int length]);
+          List.filled(int length, E fill);
+        }
         class Map<K, V> {}
         ''',
   'dart:async': '''

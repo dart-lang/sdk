@@ -27,7 +27,7 @@ part of dart.core;
   if (_start == null) {
     return 0;
     }
-   return ((__x8) => DDC$RT.cast(__x8, num, int, "CastGeneral", """line 102, column 12 of dart:core/stopwatch.dart: """, __x8 is int, true))((_stop == null) ? (_now() - _start) : (_stop - _start));
+   return ((__x13) => DDC$RT.cast(__x13, num, int, "CastGeneral", """line 102, column 12 of dart:core/stopwatch.dart: """, __x13 is int, true))((_stop == null) ? (_now() - _start) : (_stop - _start));
   }
  Duration get elapsed {
   return new Duration(microseconds: elapsedMicroseconds);

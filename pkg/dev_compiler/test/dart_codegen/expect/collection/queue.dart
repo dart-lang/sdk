@@ -51,7 +51,7 @@ return _element;
 _element = e;
 }
 }
- class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {_DoubleLinkedQueueEntrySentinel() : super(((__x32) => DDC$RT.cast(__x32, Null, E, "CastLiteral", """line 164, column 45 of dart:collection/queue.dart: """, __x32 is E, false))(null)) {
+ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {_DoubleLinkedQueueEntrySentinel() : super(((__x38) => DDC$RT.cast(__x38, Null, E, "CastLiteral", """line 164, column 45 of dart:collection/queue.dart: """, __x38 is E, false))(null)) {
 _link(this, this);
 }
  E remove() {
@@ -72,11 +72,11 @@ throw IterableElementError.noElement();
 _sentinel = new _DoubleLinkedQueueEntrySentinel<E>();
 }
  factory DoubleLinkedQueue.from(Iterable elements) {
-Queue<E> list = ((__x33) => DDC$RT.cast(__x33, DDC$RT.type((DoubleLinkedQueue<dynamic> _) {
+Queue<E> list = ((__x39) => DDC$RT.cast(__x39, DDC$RT.type((DoubleLinkedQueue<dynamic> _) {
 }
 ), DDC$RT.type((Queue<E> _) {
 }
-), "CastExact", """line 207, column 21 of dart:collection/queue.dart: """, __x33 is Queue<E>, false))(new DoubleLinkedQueue());
+), "CastExact", """line 207, column 21 of dart:collection/queue.dart: """, __x39 is Queue<E>, false))(new DoubleLinkedQueue());
  for (final E e in elements) {
 list.addLast(e);
 }
@@ -193,7 +193,7 @@ _current = _nextEntry._element;
  _nextEntry = _nextEntry._next;
  return true;
 }
- _current = ((__x34) => DDC$RT.cast(__x34, Null, E, "CastLiteral", """line 348, column 16 of dart:collection/queue.dart: """, __x34 is E, false))(null);
+ _current = ((__x40) => DDC$RT.cast(__x40, Null, E, "CastLiteral", """line 348, column 16 of dart:collection/queue.dart: """, __x40 is E, false))(null);
  _nextEntry = _sentinel = null;
  return false;
 }
@@ -216,11 +216,11 @@ initialCapacity = _nextPowerOf2(initialCapacity);
  factory ListQueue.from(Iterable elements) {
 if (elements is List) {
 int length = elements.length;
- ListQueue<E> queue = ((__x35) => DDC$RT.cast(__x35, DDC$RT.type((ListQueue<dynamic> _) {
+ ListQueue<E> queue = ((__x41) => DDC$RT.cast(__x41, DDC$RT.type((ListQueue<dynamic> _) {
 }
 ), DDC$RT.type((ListQueue<E> _) {
 }
-), "CastExact", """line 399, column 28 of dart:collection/queue.dart: """, __x35 is ListQueue<E>, false))(new ListQueue(length + 1));
+), "CastExact", """line 399, column 28 of dart:collection/queue.dart: """, __x41 is ListQueue<E>, false))(new ListQueue(length + 1));
  assert (queue._table.length > length); List sourceList = elements;
  queue._table.setRange(0, length, DDC$RT.cast(sourceList, DDC$RT.type((List<dynamic> _) {
 }
@@ -371,7 +371,7 @@ _filterWhere(test, false);
  void clear() {
 if (_head != _tail) {
 for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
-_table[i] = ((__x36) => DDC$RT.cast(__x36, Null, E, "CastLiteral", """line 553, column 21 of dart:collection/queue.dart: """, __x36 is E, false))(null);
+_table[i] = ((__x42) => DDC$RT.cast(__x42, Null, E, "CastLiteral", """line 553, column 21 of dart:collection/queue.dart: """, __x42 is E, false))(null);
 }
  _head = _tail = 0;
  _modificationCount++;
@@ -391,7 +391,7 @@ _head = (_head - 1) & (_table.length - 1);
 if (_head == _tail) throw IterableElementError.noElement();
  _modificationCount++;
  E result = _table[_head];
- _table[_head] = ((__x37) => DDC$RT.cast(__x37, Null, E, "CastLiteral", """line 577, column 21 of dart:collection/queue.dart: """, __x37 is E, false))(null);
+ _table[_head] = ((__x43) => DDC$RT.cast(__x43, Null, E, "CastLiteral", """line 577, column 21 of dart:collection/queue.dart: """, __x43 is E, false))(null);
  _head = (_head + 1) & (_table.length - 1);
  return result;
 }
@@ -400,7 +400,7 @@ if (_head == _tail) throw IterableElementError.noElement();
  _modificationCount++;
  _tail = (_tail - 1) & (_table.length - 1);
  E result = _table[_tail];
- _table[_tail] = ((__x38) => DDC$RT.cast(__x38, Null, E, "CastLiteral", """line 587, column 21 of dart:collection/queue.dart: """, __x38 is E, false))(null);
+ _table[_tail] = ((__x44) => DDC$RT.cast(__x44, Null, E, "CastLiteral", """line 587, column 21 of dart:collection/queue.dart: """, __x44 is E, false))(null);
  return result;
 }
  static bool _isPowerOf2(int number) => (number & (number - 1)) == 0;
@@ -434,7 +434,7 @@ int prevOffset = (i - 1) & mask;
  _table[i] = _table[prevOffset];
  i = prevOffset;
 }
- _table[_head] = ((__x39) => DDC$RT.cast(__x39, Null, E, "CastLiteral", """line 654, column 23 of dart:collection/queue.dart: """, __x39 is E, false))(null);
+ _table[_head] = ((__x45) => DDC$RT.cast(__x45, Null, E, "CastLiteral", """line 654, column 23 of dart:collection/queue.dart: """, __x45 is E, false))(null);
  _head = (_head + 1) & mask;
  return (offset + 1) & mask;
 }
@@ -446,7 +446,7 @@ int nextOffset = (i + 1) & mask;
  _table[i] = _table[nextOffset];
  i = nextOffset;
 }
- _table[_tail] = ((__x40) => DDC$RT.cast(__x40, Null, E, "CastLiteral", """line 665, column 23 of dart:collection/queue.dart: """, __x40 is E, false))(null);
+ _table[_tail] = ((__x46) => DDC$RT.cast(__x46, Null, E, "CastLiteral", """line 665, column 23 of dart:collection/queue.dart: """, __x46 is E, false))(null);
  return offset;
 }
 }
@@ -491,10 +491,10 @@ assert (newElementCount >= length); newElementCount += newElementCount >> 1;
  bool moveNext() {
 _queue._checkModification(_modificationCount);
  if (_position == _end) {
-_current = ((__x41) => DDC$RT.cast(__x41, Null, E, "CastLiteral", """line 735, column 18 of dart:collection/queue.dart: """, __x41 is E, false))(null);
+_current = ((__x47) => DDC$RT.cast(__x47, Null, E, "CastLiteral", """line 735, column 18 of dart:collection/queue.dart: """, __x47 is E, false))(null);
  return false;
 }
- _current = ((__x42) => DDC$RT.cast(__x42, dynamic, E, "CastGeneral", """line 738, column 16 of dart:collection/queue.dart: """, __x42 is E, false))(_queue._table[_position]);
+ _current = ((__x48) => DDC$RT.cast(__x48, dynamic, E, "CastGeneral", """line 738, column 16 of dart:collection/queue.dart: """, __x48 is E, false))(_queue._table[_position]);
  _position = (_position + 1) & (_queue._table.length - 1);
  return true;
 }

@@ -45,7 +45,9 @@ int stringLength = string.length;
 if (sink is! ByteConversionSink) {
   sink = new ByteConversionSink.from(sink);
   }
- return new _UnicodeSubsetEncoderSink(_subsetMask, sink);
+ return new _UnicodeSubsetEncoderSink(_subsetMask, DDC$RT.cast(sink, DDC$RT.type((Sink<List<int>> _) {
+  }
+), ByteConversionSink, "CastGeneral", """line 109, column 55 of dart:convert/ascii.dart: """, sink is ByteConversionSink, true));
 }
  Stream<List<int>> bind(Stream<String> stream) => ((__x0) => DDC$RT.cast(__x0, DDC$RT.type((DDC$async$.Stream<dynamic> _) {
 }

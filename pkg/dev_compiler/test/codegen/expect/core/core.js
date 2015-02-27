@@ -255,12 +255,12 @@ var core;
       return new Duration({milliseconds: ms - otherMs});
     }
     DateTime$_internal(year, month, day, hour, minute, second, millisecond, isUtc) {
-      this.isUtc = typeof isUtc == boolean ? isUtc : dart.throw_(new ArgumentError(isUtc));
-      this.millisecondsSinceEpoch = dart.dinvokef(/* Unimplemented unknown name */checkInt, dart.dinvoke(/* Unimplemented unknown name */Primitives, 'valueFromDecomposedDate', year, month, day, hour, minute, second, millisecond, isUtc));
+      this.isUtc = dart.as(typeof isUtc == boolean ? isUtc : dart.throw_(new ArgumentError(isUtc)), bool);
+      this.millisecondsSinceEpoch = dart.as(dart.dinvokef(/* Unimplemented unknown name */checkInt, dart.dinvoke(/* Unimplemented unknown name */Primitives, 'valueFromDecomposedDate', year, month, day, hour, minute, second, millisecond, isUtc)), int);
     }
     DateTime$_now() {
       this.isUtc = false;
-      this.millisecondsSinceEpoch = dart.dinvoke(/* Unimplemented unknown name */Primitives, 'dateNow');
+      this.millisecondsSinceEpoch = dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'dateNow'), int);
     }
     static _brokenDownDateToMillisecondsSinceEpoch(year, month, day, hour, minute, second, millisecond, isUtc) {
       return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'valueFromDecomposedDate', year, month, day, hour, minute, second, millisecond, isUtc), int);
@@ -273,7 +273,7 @@ var core;
     get timeZoneOffset() {
       if (this.isUtc)
         return new Duration();
-      return new Duration({minutes: dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getTimeZoneOffsetInMinutes', this)});
+      return new Duration({minutes: dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getTimeZoneOffsetInMinutes', this), int)});
     }
     get year() {
       return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getYear', this), int);
@@ -614,7 +614,7 @@ var core;
       if (message === void 0)
         message = null;
       if (value < 0)
-        throw new RangeError.range(value, 0, null, name, message);
+        throw new RangeError.range(value, 0, dart.as(null, int), name, message);
     }
     toString() {
       if (!dart.notNull(this._hasValue))
@@ -649,7 +649,7 @@ var core;
       if (length === void 0)
         length = null;
       this.indexable = indexable;
-      this.length = length !== null ? length : dart.dload(indexable, 'length');
+      this.length = dart.as(length !== null ? length : dart.dload(indexable, 'length'), int);
       super.ArgumentError$value(invalidValue, name, message !== null ? message : "Index out of range");
     }
     get start() {
@@ -1032,7 +1032,7 @@ var core;
       _GeneratorIterable(_end, generator) {
         this._end = _end;
         this._start = 0;
-        this._generator = generator !== null ? generator : _id;
+        this._generator = dart.as(generator !== null ? generator : _id, _Generator);
         super.IterableBase();
       }
       _GeneratorIterable$slice(_start, _end, _generator) {
@@ -1892,7 +1892,7 @@ var core;
         }
         host = authority.substring(hostStart, hostEnd);
       }
-      return new Uri({scheme: scheme, userInfo: userInfo, host: host, port: port, pathSegments: unencodedPath.split("/"), queryParameters: queryParameters});
+      return new Uri({scheme: scheme, userInfo: userInfo, host: dart.as(host, String), port: dart.as(port, int), pathSegments: unencodedPath.split("/"), queryParameters: queryParameters});
     }
     Uri$file(path, opt$) {
       let windows = opt$.windows === void 0 ? null : opt$.windows;
@@ -2314,7 +2314,7 @@ var core;
           flag = 128;
         }
       }
-      return new String.fromCharCodes(codeUnits);
+      return new String.fromCharCodes(dart.as(codeUnits, Iterable$(int)));
     }
     static _normalize(component, start, end, charTable) {
       let buffer = null;
@@ -2675,7 +2675,7 @@ var core;
       function error(msg, position) {
         if (position === void 0)
           position = null;
-        throw new FormatException(`Illegal IPv6 address, ${msg}`, host, position);
+        throw new FormatException(`Illegal IPv6 address, ${msg}`, host, dart.as(position, int));
       }
       // Function parseHex: (int, int) → int
       function parseHex(start, end) {

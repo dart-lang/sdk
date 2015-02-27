@@ -51,7 +51,9 @@ StringBuffer result = null;
 if (sink is! StringConversionSink) {
 sink = new StringConversionSink.from(sink);
 }
- return new _HtmlEscapeSink(this, sink);
+ return new _HtmlEscapeSink(this, DDC$RT.cast(sink, DDC$RT.type((Sink<String> _) {
+}
+), StringConversionSink, "CastGeneral", """line 79, column 38 of dart:convert/html_escape.dart: """, sink is StringConversionSink, true));
 }
 }
  class _HtmlEscapeSink extends StringConversionSinkBase {final HtmlEscape _escape;

@@ -287,7 +287,7 @@ var collection;
       _CustomHashMap(_equals, _hashCode, validKey) {
         this._equals = _equals;
         this._hashCode = _hashCode;
-        this._validKey = validKey !== null ? validKey : (v) => dart.is(v, K);
+        this._validKey = dart.as(validKey !== null ? validKey : (v) => dart.is(v, K), _Predicate);
         super._HashMap();
       }
       get(key) {
@@ -341,7 +341,7 @@ var collection;
         return dart.equals(dart.dload(this._map, '_length'), 0);
       }
       get iterator() {
-        return new HashMapKeyIterator(this._map, dart.dinvoke(this._map, '_computeKeys'));
+        return new HashMapKeyIterator(this._map, dart.as(dart.dinvoke(this._map, '_computeKeys'), core.List));
       }
       contains(element) {
         return dart.as(dart.dinvoke(this._map, 'containsKey', element), core.bool);
@@ -680,7 +680,7 @@ var collection;
       _LinkedCustomHashMap(_equals, _hashCode, validKey) {
         this._equals = _equals;
         this._hashCode = _hashCode;
-        this._validKey = validKey !== null ? validKey : (v) => dart.is(v, K);
+        this._validKey = dart.as(validKey !== null ? validKey : (v) => dart.is(v, K), _Predicate);
         super._LinkedHashMap();
       }
       get(key) {
@@ -740,7 +740,7 @@ var collection;
         return dart.equals(dart.dload(this._map, '_length'), 0);
       }
       get iterator() {
-        return new LinkedHashMapKeyIterator(this._map, dart.dload(this._map, '_modifications'));
+        return new LinkedHashMapKeyIterator(this._map, dart.as(dart.dload(this._map, '_modifications'), core.int));
       }
       contains(element) {
         return dart.as(dart.dinvoke(this._map, 'containsKey', element), core.bool);
@@ -1045,7 +1045,7 @@ var collection;
       _CustomHashSet(_equality, _hasher, validKey) {
         this._equality = _equality;
         this._hasher = _hasher;
-        this._validKey = validKey !== null ? validKey : (x) => dart.is(x, E);
+        this._validKey = dart.as(validKey !== null ? validKey : (x) => dart.is(x, E), _Predicate);
         super._HashSet();
       }
       _newSet() {
@@ -1413,7 +1413,7 @@ var collection;
       _LinkedCustomHashSet(_equality, _hasher, validKey) {
         this._equality = _equality;
         this._hasher = _hasher;
-        this._validKey = validKey !== null ? validKey : (x) => dart.is(x, E);
+        this._validKey = dart.as(validKey !== null ? validKey : (x) => dart.is(x, E), _Predicate);
         super._LinkedHashSet();
       }
       _newSet() {
@@ -2649,7 +2649,7 @@ var collection;
         return new _internal.WhereIterable(this, test);
       }
       map(f) {
-        return new _internal.MappedListIterable(this, f);
+        return new _internal.MappedListIterable(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → dynamic")));
       }
       expand(f) {
         return new _internal.ExpandIterable(this, f);
@@ -2679,7 +2679,7 @@ var collection;
         return value;
       }
       skip(count) {
-        return new _internal.SubListIterable(this, count, null);
+        return new _internal.SubListIterable(this, count, dart.as(null, core.int));
       }
       skipWhile(test) {
         return new _internal.SkipWhileIterable(this, test);
@@ -4064,7 +4064,7 @@ var collection;
   let _SplayTree$ = dart.generic(function(K) {
     class _SplayTree extends dart.Object {
       _SplayTree() {
-        this._dummy = new _SplayTreeNode(null);
+        this._dummy = new _SplayTreeNode(dart.as(null, K));
         this._root = null;
         this._count = 0;
         this._modificationCount = 0;
@@ -4216,8 +4216,8 @@ var collection;
           compare = null;
         if (isValidKey === void 0)
           isValidKey = null;
-        this._comparator = compare === null ? core.Comparable.compare : compare;
-        this._validKey = isValidKey !== null ? isValidKey : (v) => dart.is(v, K);
+        this._comparator = dart.as(compare === null ? core.Comparable.compare : compare, core.Comparator);
+        this._validKey = dart.as(isValidKey !== null ? isValidKey : (v) => dart.is(v, K), _Predicate);
         super._SplayTree();
       }
       SplayTreeMap$from(other, compare, isValidKey) {
@@ -4501,7 +4501,7 @@ var collection;
       }
       toSet() {
         let setOrMap = this._tree;
-        let set = new SplayTreeSet(setOrMap._comparator, setOrMap._validKey);
+        let set = new SplayTreeSet(dart.as(setOrMap._comparator, dart.throw_("Unimplemented type (K, K) → int")), dart.as(setOrMap._validKey, dart.throw_("Unimplemented type (dynamic) → bool")));
         set._count = this._tree._count;
         set._root = set._copyNode(this._tree._root);
         return set;
@@ -4576,8 +4576,8 @@ var collection;
           compare = null;
         if (isValidKey === void 0)
           isValidKey = null;
-        this._comparator = compare === null ? core.Comparable.compare : compare;
-        this._validKey = isValidKey !== null ? isValidKey : (v) => dart.is(v, E);
+        this._comparator = dart.as(compare === null ? core.Comparable.compare : compare, core.Comparator);
+        this._validKey = dart.as(isValidKey !== null ? isValidKey : (v) => dart.is(v, E), _Predicate);
         super._SplayTree();
       }
       SplayTreeSet$from(elements, compare, isValidKey) {

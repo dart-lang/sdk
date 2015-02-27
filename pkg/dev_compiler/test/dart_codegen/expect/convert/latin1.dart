@@ -72,11 +72,11 @@ RangeError.checkValidRange(start, end, source.length);
 int char = source[i];
  if (char > _LATIN1_MASK || char < 0) {
 if (i > start) _addSliceToSink(source, start, i, false);
- _addSliceToSink(((__x26) => DDC$RT.cast(__x26, DDC$RT.type((List<dynamic> _) {
+ _addSliceToSink(((__x29) => DDC$RT.cast(__x29, DDC$RT.type((List<dynamic> _) {
 }
 ), DDC$RT.type((List<int> _) {
 }
-), "CastLiteral", """line 161, column 25 of dart:convert/latin1.dart: """, __x26 is List<int>, false))(const [0xFFFD]), 0, 1, false);
+), "CastLiteral", """line 161, column 25 of dart:convert/latin1.dart: """, __x29 is List<int>, false))(const [0xFFFD]), 0, 1, false);
  start = i + 1;
 }
 }

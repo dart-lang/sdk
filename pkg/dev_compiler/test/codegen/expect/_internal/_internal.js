@@ -160,7 +160,7 @@ var _internal;
         return super.where(test);
       }
       map(f) {
-        return new MappedListIterable(this, f);
+        return new MappedListIterable(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → dynamic")));
       }
       reduce(combine) {
         let length = this.length;
@@ -187,7 +187,7 @@ var _internal;
         return value;
       }
       skip(count) {
-        return new SubListIterable(this, count, null);
+        return new SubListIterable(this, count, dart.as(null, core.int));
       }
       skipWhile(test) {
         return super.skipWhile(test);
@@ -345,7 +345,7 @@ var _internal;
         if (dart.is(iterable, EfficientLength)) {
           return new EfficientLengthMappedIterable(iterable, function);
         }
-        return new MappedIterable._(iterable, function);
+        return new MappedIterable._(dart.as(iterable, core.Iterable$(S)), function);
       }
       MappedIterable$_(_iterable, _f) {
         this._iterable = _iterable;
@@ -471,7 +471,7 @@ var _internal;
         super.IterableBase();
       }
       get iterator() {
-        return new ExpandIterator(this._iterable.iterator, this._f);
+        return new ExpandIterator(this._iterable.iterator, dart.as(this._f, dart.throw_("Unimplemented type (S) → Iterable<T>")));
       }
     }
     return ExpandIterable;
@@ -1019,7 +1019,7 @@ var _internal;
         return buffer.toString();
       }
       where(iterable, f) {
-        return new WhereIterable(iterable, f);
+        return new WhereIterable(dart.as(iterable, core.Iterable$(T)), f);
       }
       static map(iterable, f) {
         return new MappedIterable(iterable, f);
@@ -1031,19 +1031,19 @@ var _internal;
         return new ExpandIterable(iterable, f);
       }
       takeList(list, n) {
-        return new SubListIterable(list, 0, n);
+        return new SubListIterable(dart.as(list, core.Iterable$(T)), 0, n);
       }
       takeWhile(iterable, test) {
-        return new TakeWhileIterable(iterable, test);
+        return new TakeWhileIterable(dart.as(iterable, core.Iterable$(T)), test);
       }
       skipList(list, n) {
-        return new SubListIterable(list, n, null);
+        return new SubListIterable(dart.as(list, core.Iterable$(T)), n, dart.as(null, core.int));
       }
       skipWhile(iterable, test) {
-        return new SkipWhileIterable(iterable, test);
+        return new SkipWhileIterable(dart.as(iterable, core.Iterable$(T)), test);
       }
       reversedList(list) {
-        return new ReversedListIterable(list);
+        return new ReversedListIterable(dart.as(list, core.Iterable$(T)));
       }
       static sortList(list, compare) {
         if (compare === null)
@@ -1075,7 +1075,7 @@ var _internal;
       }
       getRangeList(list, start, end) {
         _rangeCheck(list, start, end);
-        return new SubListIterable(list, start, end);
+        return new SubListIterable(dart.as(list, core.Iterable$(T)), start, end);
       }
       static setRangeList(list, start, end, from, skipCount) {
         _rangeCheck(list, start, end);
@@ -1148,7 +1148,7 @@ var _internal;
         }
       }
       asMapList(l) {
-        return new ListMapView(l);
+        return new ListMapView(dart.as(l, core.List$(T)));
       }
       static setContainsAll(set, other) {
         for (let element of other) {
@@ -1355,7 +1355,7 @@ var _internal;
         return this._values.length;
       }
       get values() {
-        return new SubListIterable(this._values, 0, null);
+        return new SubListIterable(this._values, 0, dart.as(null, core.int));
       }
       get keys() {
         return new _ListIndicesIterable(this._values);

@@ -381,6 +381,14 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
+  @override
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    var field = node.fieldName;
+    DartType staticType = _rules.elementType(field.staticElement);
+    node.expression = checkAssignment(node.expression, staticType);
+    node.visitChildren(this);
+  }
+
   // Check invocations
   bool checkArgumentList(ArgumentList node, FunctionType type) {
     NodeList<Expression> list = node.arguments;
@@ -534,6 +542,37 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
+  visitFieldFormalParameter(FieldFormalParameter node) {
+    var element = node.element;
+    var typeName = node.type;
+    if (typeName != null) {
+      var type = _rules.elementType(element);
+      var fieldElement =
+          node.identifier.staticElement as FieldFormalParameterElement;
+      var fieldType = _rules.elementType(fieldElement.field);
+      if (!_rules.isSubTypeOf(type, fieldType)) {
+        var staticInfo =
+            new InvalidParameterDeclaration(_rules, node, fieldType);
+        _recordMessage(staticInfo);
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var arguments = node.argumentList;
+    var element = node.staticElement;
+    if (element != null) {
+      var type = _rules.elementType(node.staticElement);
+      checkArgumentList(arguments, type);
+    } else {
+      _recordMessage(new MissingTypeError(node));
+    }
+    node.visitChildren(this);
+  }
+
+  @override
   visitVariableDeclarationList(VariableDeclarationList node) {
     TypeName type = node.type;
     if (type == null) {

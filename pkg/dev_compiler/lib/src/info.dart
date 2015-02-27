@@ -374,6 +374,16 @@ class InvalidVariableDeclaration extends StaticError {
   String get message => 'Type check failed: null is not of type $expectedType';
 }
 
+class InvalidParameterDeclaration extends StaticError {
+  final DartType expectedType;
+
+  InvalidParameterDeclaration(
+      TypeRules rules, FormalParameter declaration, this.expectedType)
+      : super(declaration);
+
+  String get message => 'Type check failed: $node is not of type $expectedType';
+}
+
 class InvalidRuntimeCheckError extends StaticError {
   final DartType type;
 

@@ -882,7 +882,7 @@ var async;
             onError = _registerErrorHandler(onError, result._zone);
           }
         }
-        this._addListener(new _FutureListener.then(result, f, onError));
+        this._addListener(new _FutureListener.then(result, dart.as(f, _FutureOnValue), onError));
         return result;
       }
       catchError(onError, opt$) {
@@ -1288,19 +1288,19 @@ var async;
   // Function _scheduleAsyncCallback: (dynamic) → void
   function _scheduleAsyncCallback(callback) {
     if (async._nextCallback === null) {
-      async._nextCallback = async._lastCallback = new _AsyncCallbackEntry(callback);
+      async._nextCallback = async._lastCallback = new _AsyncCallbackEntry(dart.as(callback, _AsyncCallback));
       if (!dart.notNull(async._isInCallbackLoop)) {
         _AsyncRun._scheduleImmediate(_asyncRunCallback);
       }
     } else {
-      let newEntry = new _AsyncCallbackEntry(callback);
+      let newEntry = new _AsyncCallbackEntry(dart.as(callback, _AsyncCallback));
       async._lastCallback.next = newEntry;
       async._lastCallback = newEntry;
     }
   }
   // Function _schedulePriorityAsyncCallback: (dynamic) → void
   function _schedulePriorityAsyncCallback(callback) {
-    let entry = new _AsyncCallbackEntry(callback);
+    let entry = new _AsyncCallbackEntry(dart.as(callback, _AsyncCallback));
     if (async._nextCallback === null) {
       _scheduleAsyncCallback(callback);
       async._lastPriorityCallback = async._lastCallback;
@@ -1451,7 +1451,7 @@ var async;
         return controller.stream;
       }
       Stream$eventTransformed(source, mapSink) {
-        return dart.as(new _BoundSinkStream(source, mapSink), Stream$(T));
+        return dart.as(new _BoundSinkStream(source, dart.as(mapSink, _SinkMapper)), Stream$(T));
       }
       get isBroadcast() {
         return false;
@@ -1459,7 +1459,7 @@ var async;
       asBroadcastStream(opt$) {
         let onListen = opt$.onListen === void 0 ? null : opt$.onListen;
         let onCancel = opt$.onCancel === void 0 ? null : opt$.onCancel;
-        return new _AsBroadcastStream(this, onListen, onCancel);
+        return new _AsBroadcastStream(this, dart.as(onListen, dart.throw_("Unimplemented type (StreamSubscription<dynamic>) → void")), dart.as(onCancel, dart.throw_("Unimplemented type (StreamSubscription<dynamic>) → void")));
       }
       where(test) {
         return new _WhereStream(this, test);
@@ -1732,18 +1732,18 @@ var async;
         return dart.as(new _TakeStream(this, count), Stream$(T));
       }
       takeWhile(test) {
-        return dart.as(new _TakeWhileStream(this, test), Stream$(T));
+        return dart.as(new _TakeWhileStream(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool"))), Stream$(T));
       }
       skip(count) {
         return dart.as(new _SkipStream(this, count), Stream$(T));
       }
       skipWhile(test) {
-        return dart.as(new _SkipWhileStream(this, test), Stream$(T));
+        return dart.as(new _SkipWhileStream(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool"))), Stream$(T));
       }
       distinct(equals) {
         if (equals === void 0)
           equals = null;
-        return dart.as(new _DistinctStream(this, equals), Stream$(T));
+        return dart.as(new _DistinctStream(this, dart.as(equals, dart.throw_("Unimplemented type (dynamic, dynamic) → bool"))), Stream$(T));
       }
       get first() {
         let future = new _Future();
@@ -2275,7 +2275,7 @@ var async;
         if (!dart.notNull(this._isInitialState)) {
           throw new core.StateError("Stream has already been listened to.");
         }
-        let subscription = new _ControllerSubscription(this, onData, onError, onDone, cancelOnError);
+        let subscription = new _ControllerSubscription(this, dart.as(onData, dart.throw_("Unimplemented type (dynamic) → void")), onError, onDone, cancelOnError);
         let pendingEvents = this._pendingEvents;
         this._state = _STATE_SUBSCRIBED;
         if (this._isAddingStream) {
@@ -2912,7 +2912,7 @@ var async;
         return ((_) => {
           _._setPendingEvents(this._pending());
           return _;
-        }).bind(this)(new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError));
+        }).bind(this)(new _BufferingStreamSubscription(dart.as(onData, dart.throw_("Unimplemented type (dynamic) → void")), onError, onDone, cancelOnError));
       }
     }
     return _GeneratedStreamImpl;
@@ -3550,7 +3550,7 @@ var async;
   let _MapStream$ = dart.generic(function(S, T) {
     class _MapStream extends _ForwardingStream$(S, T) {
       _MapStream(source, transform) {
-        this._transform = transform;
+        this._transform = dart.as(transform, _Transformation);
         super._ForwardingStream(source);
       }
       _handleData(inputEvent, sink) {
@@ -3901,7 +3901,7 @@ var async;
         let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
         let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
         cancelOnError = core.identical(true, cancelOnError);
-        let subscription = dart.as(new _SinkTransformerStreamSubscription(this._stream, this._sinkMapper, onData, onError, onDone, cancelOnError), StreamSubscription$(T));
+        let subscription = dart.as(new _SinkTransformerStreamSubscription(this._stream, dart.as(this._sinkMapper, _SinkMapper), dart.as(onData, dart.throw_("Unimplemented type (dynamic) → void")), onError, onDone, cancelOnError), StreamSubscription$(T));
         return subscription;
       }
     }
@@ -4060,7 +4060,7 @@ var async;
       let createPeriodicTimer = opt$.createPeriodicTimer === void 0 ? null : opt$.createPeriodicTimer;
       let print = opt$.print === void 0 ? null : opt$.print;
       let fork = opt$.fork === void 0 ? null : opt$.fork;
-      return new ZoneSpecification({handleUncaughtError: handleUncaughtError !== null ? handleUncaughtError : other.handleUncaughtError, run: run !== null ? run : other.run, runUnary: runUnary !== null ? runUnary : other.runUnary, runBinary: runBinary !== null ? runBinary : other.runBinary, registerCallback: registerCallback !== null ? registerCallback : other.registerCallback, registerUnaryCallback: registerUnaryCallback !== null ? registerUnaryCallback : other.registerUnaryCallback, registerBinaryCallback: registerBinaryCallback !== null ? registerBinaryCallback : other.registerBinaryCallback, errorCallback: errorCallback !== null ? errorCallback : other.errorCallback, scheduleMicrotask: scheduleMicrotask !== null ? scheduleMicrotask : other.scheduleMicrotask, createTimer: createTimer !== null ? createTimer : other.createTimer, createPeriodicTimer: createPeriodicTimer !== null ? createPeriodicTimer : other.createPeriodicTimer, print: print !== null ? print : other.print, fork: fork !== null ? fork : other.fork});
+      return new ZoneSpecification({handleUncaughtError: dart.as(handleUncaughtError !== null ? handleUncaughtError : other.handleUncaughtError, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, dynamic, StackTrace) → dynamic")), run: dart.as(run !== null ? run : other.run, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, () → dynamic) → dynamic")), runUnary: dart.as(runUnary !== null ? runUnary : other.runUnary, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic) → dynamic, dynamic) → dynamic")), runBinary: dart.as(runBinary !== null ? runBinary : other.runBinary, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic, dynamic, dynamic) → dynamic")), registerCallback: dart.as(registerCallback !== null ? registerCallback : other.registerCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, () → dynamic) → ZoneCallback")), registerUnaryCallback: dart.as(registerUnaryCallback !== null ? registerUnaryCallback : other.registerUnaryCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic) → dynamic) → ZoneUnaryCallback")), registerBinaryCallback: dart.as(registerBinaryCallback !== null ? registerBinaryCallback : other.registerBinaryCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic) → ZoneBinaryCallback")), errorCallback: dart.as(errorCallback !== null ? errorCallback : other.errorCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, Object, StackTrace) → AsyncError")), scheduleMicrotask: dart.as(scheduleMicrotask !== null ? scheduleMicrotask : other.scheduleMicrotask, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, () → dynamic) → void")), createTimer: dart.as(createTimer !== null ? createTimer : other.createTimer, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, Duration, () → void) → Timer")), createPeriodicTimer: dart.as(createPeriodicTimer !== null ? createPeriodicTimer : other.createPeriodicTimer, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, Duration, (Timer) → void) → Timer")), print: dart.as(print !== null ? print : other.print, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, String) → void")), fork: dart.as(fork !== null ? fork : other.fork, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, ZoneSpecification, Map<dynamic, dynamic>) → Zone"))});
     }
   }
   dart.defineNamedConstructor(ZoneSpecification, 'from');
@@ -4499,7 +4499,7 @@ var async;
     } else {
       valueMap = new collection.HashMap.from(zoneValues);
     }
-    return new _CustomZone(zone, specification, valueMap);
+    return new _CustomZone(dart.as(zone, _Zone), specification, valueMap);
   }
   class _RootZoneSpecification extends dart.Object {
     get handleUncaughtError() {
@@ -4547,43 +4547,43 @@ var async;
       super._Zone();
     }
     get _run() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRun);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRun);
     }
     get _runUnary() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRunUnary);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRunUnary);
     }
     get _runBinary() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRunBinary);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRunBinary);
     }
     get _registerCallback() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterCallback);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRegisterCallback);
     }
     get _registerUnaryCallback() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterUnaryCallback);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRegisterUnaryCallback);
     }
     get _registerBinaryCallback() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterBinaryCallback);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRegisterBinaryCallback);
     }
     get _errorCallback() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootErrorCallback);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootErrorCallback);
     }
     get _scheduleMicrotask() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootScheduleMicrotask);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootScheduleMicrotask);
     }
     get _createTimer() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootCreateTimer);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootCreateTimer);
     }
     get _createPeriodicTimer() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootCreatePeriodicTimer);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootCreatePeriodicTimer);
     }
     get _print() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootPrint);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootPrint);
     }
     get _fork() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootFork);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootFork);
     }
     get _handleUncaughtError() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootHandleUncaughtError);
+      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootHandleUncaughtError);
     }
     get parent() {
       return null;

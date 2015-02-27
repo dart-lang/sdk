@@ -9,11 +9,11 @@ part of dart.async;
   if (Zone.current == Zone.ROOT) {
     return Zone.current.createPeriodicTimer(duration, callback);
     }
-   return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(DDC$RT.wrap((void f(Timer __u126)) {
+   return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(DDC$RT.wrap((void f(Timer __u176)) {
     void c(Timer x0) => f(DDC$RT.cast(x0, dynamic, Timer, "CastParam", """line 80, column 50 of dart:async/timer.dart: """, x0 is Timer, true));
      return f == null ? null : c;
     }
-  , callback, __t129, __t127, "Wrap", """line 80, column 50 of dart:async/timer.dart: """, callback is __t127), runGuarded: true));
+  , callback, __t179, __t177, "Wrap", """line 80, column 50 of dart:async/timer.dart: """, callback is __t177), runGuarded: true));
   }
  static void run(void callback()) {
   new Timer(Duration.ZERO, callback);
@@ -23,5 +23,5 @@ part of dart.async;
  external static Timer _createTimer(Duration duration, void callback());
  external static Timer _createPeriodicTimer(Duration duration, void callback(Timer timer));
 }
- typedef dynamic __t127(dynamic __u128);
- typedef void __t129(Timer __u130);
+ typedef dynamic __t177(dynamic __u178);
+ typedef void __t179(Timer __u180);

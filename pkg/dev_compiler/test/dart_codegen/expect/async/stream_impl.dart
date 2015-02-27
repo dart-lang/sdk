@@ -42,13 +42,13 @@ assert (_isCanceled); _PendingEvents events = _pending;
 }
  void onData(void handleData(T event)) {
 if (handleData == null) handleData = _nullDataHandler;
- _onData = _zone.registerUnaryCallback(DDC$RT.wrap((void f(T __u99)) {
+ _onData = _zone.registerUnaryCallback(DDC$RT.wrap((void f(T __u129)) {
 void c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam", """line 154, column 43 of dart:async/stream_impl.dart: """, x0 is T, false));
  return f == null ? null : c;
 }
-, handleData, DDC$RT.type((__t102<T> _) {
+, handleData, DDC$RT.type((__t132<T> _) {
 }
-), __t100, "Wrap", """line 154, column 43 of dart:async/stream_impl.dart: """, handleData is __t100));
+), __t130, "Wrap", """line 154, column 43 of dart:async/stream_impl.dart: """, handleData is __t130));
 }
  void onError(Function handleError) {
 if (handleError == null) handleError = _nullErrorHandler;
@@ -170,13 +170,13 @@ _state |= _STATE_HAS_PENDING;
  void _sendData(T data) {
 assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInputPaused = _isInputPaused;
  _state |= _STATE_IN_CALLBACK;
- _zone.runUnaryGuarded(DDC$RT.wrap((void f(T __u104)) {
+ _zone.runUnaryGuarded(DDC$RT.wrap((void f(T __u134)) {
 void c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam", """line 341, column 27 of dart:async/stream_impl.dart: """, x0 is T, false));
  return f == null ? null : c;
 }
-, _onData, DDC$RT.type((__t102<T> _) {
+, _onData, DDC$RT.type((__t132<T> _) {
 }
-), __t100, "Wrap", """line 341, column 27 of dart:async/stream_impl.dart: """, _onData is __t100), data);
+), __t130, "Wrap", """line 341, column 27 of dart:async/stream_impl.dart: """, _onData is __t130), data);
  _state &= ~_STATE_IN_CALLBACK;
  _checkState(wasInputPaused);
 }
@@ -185,10 +185,10 @@ assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInput
  void sendError() {
 if (_isCanceled && !_waitsForCancel) return; _state |= _STATE_IN_CALLBACK;
  if (_onError is ZoneBinaryCallback) {
-  _zone.runBinaryGuarded(DDC$RT.cast(_onError, Function, __t105, "CastGeneral", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t105, false), error, stackTrace);
+  _zone.runBinaryGuarded(DDC$RT.cast(_onError, Function, __t135, "CastGeneral", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t135, false), error, stackTrace);
   }
  else {
-  _zone.runUnaryGuarded(DDC$RT.cast(_onError, Function, __t100, "CastGeneral", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t100, false), error);
+  _zone.runUnaryGuarded(DDC$RT.cast(_onError, Function, __t130, "CastGeneral", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t130, false), error);
   }
  _state &= ~_STATE_IN_CALLBACK;
 }
@@ -282,7 +282,13 @@ return new _BufferingStreamSubscription<T>(onData, onError, onDone, cancelOnErro
  StreamSubscription _createSubscription(void onData(T data), Function onError, void onDone(), bool cancelOnError) {
 if (_isUsed) throw new StateError("Stream has already been listened to.");
  _isUsed = true;
- return new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError).._setPendingEvents(_pending());
+ return new _BufferingStreamSubscription(DDC$RT.wrap((void f(T __u138)) {
+void c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam", """line 516, column 9 of dart:async/stream_impl.dart: """, x0 is T, false));
+ return f == null ? null : c;
+}
+, onData, DDC$RT.type((__t141<T> _) {
+}
+), __t139, "Wrap", """line 516, column 9 of dart:async/stream_impl.dart: """, onData is __t139), onError, onDone, cancelOnError).._setPendingEvents(_pending());
 }
 }
  class _IterablePendingEvents<T> extends _PendingEvents {Iterator<T> _iterator;
@@ -468,19 +474,19 @@ _state &= ~_SCHEDULED;
  final Zone _zone;
  _AsBroadcastStreamController<T> _controller;
  StreamSubscription<T> _subscription;
- _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = Zone.current.registerUnaryCallback(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u108)) {
+ _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = Zone.current.registerUnaryCallback(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u143)) {
 void c(StreamSubscription<dynamic> x0) => f(DDC$RT.cast(x0, dynamic, DDC$RT.type((StreamSubscription<dynamic> _) {
 }
 ), "CastParam", """line 813, column 63 of dart:async/stream_impl.dart: """, x0 is StreamSubscription<dynamic>, true));
  return f == null ? null : c;
 }
-, onListenHandler, __t109, __t100, "Wrap", """line 813, column 63 of dart:async/stream_impl.dart: """, onListenHandler is __t100)), _onCancelHandler = Zone.current.registerUnaryCallback(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u111)) {
+, onListenHandler, __t144, __t130, "Wrap", """line 813, column 63 of dart:async/stream_impl.dart: """, onListenHandler is __t130)), _onCancelHandler = Zone.current.registerUnaryCallback(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u146)) {
 void c(StreamSubscription<dynamic> x0) => f(DDC$RT.cast(x0, dynamic, DDC$RT.type((StreamSubscription<dynamic> _) {
 }
 ), "CastParam", """line 814, column 63 of dart:async/stream_impl.dart: """, x0 is StreamSubscription<dynamic>, true));
  return f == null ? null : c;
 }
-, onCancelHandler, __t109, __t100, "Wrap", """line 814, column 63 of dart:async/stream_impl.dart: """, onCancelHandler is __t100)), _zone = Zone.current {
+, onCancelHandler, __t144, __t130, "Wrap", """line 814, column 63 of dart:async/stream_impl.dart: """, onCancelHandler is __t130)), _zone = Zone.current {
 _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
 }
  bool get isBroadcast => true;
@@ -499,13 +505,13 @@ _subscription = _source.listen(_controller.add, onError: _controller.addError, o
  void _onCancel() {
 bool shutdown = (_controller == null) || _controller.isClosed;
  if (_onCancelHandler != null) {
-_zone.runUnary(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u112)) {
+_zone.runUnary(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u147)) {
 void c(StreamSubscription<dynamic> x0) => f(DDC$RT.cast(x0, dynamic, DDC$RT.type((StreamSubscription<dynamic> _) {
 }
 ), "CastParam", """line 842, column 22 of dart:async/stream_impl.dart: """, x0 is StreamSubscription<dynamic>, true));
  return f == null ? null : c;
 }
-, _onCancelHandler, __t109, __t100, "Wrap", """line 842, column 22 of dart:async/stream_impl.dart: """, _onCancelHandler is __t100), new _BroadcastSubscriptionWrapper(this));
+, _onCancelHandler, __t144, __t130, "Wrap", """line 842, column 22 of dart:async/stream_impl.dart: """, _onCancelHandler is __t130), new _BroadcastSubscriptionWrapper(this));
 }
  if (shutdown) {
 if (_subscription != null) {
@@ -516,13 +522,13 @@ _subscription.cancel();
 }
  void _onListen() {
 if (_onListenHandler != null) {
-_zone.runUnary(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u113)) {
+_zone.runUnary(DDC$RT.wrap((void f(StreamSubscription<dynamic> __u148)) {
 void c(StreamSubscription<dynamic> x0) => f(DDC$RT.cast(x0, dynamic, DDC$RT.type((StreamSubscription<dynamic> _) {
 }
 ), "CastParam", """line 854, column 22 of dart:async/stream_impl.dart: """, x0 is StreamSubscription<dynamic>, true));
  return f == null ? null : c;
 }
-, _onListenHandler, __t109, __t100, "Wrap", """line 854, column 22 of dart:async/stream_impl.dart: """, _onListenHandler is __t100), new _BroadcastSubscriptionWrapper(this));
+, _onListenHandler, __t144, __t130, "Wrap", """line 854, column 22 of dart:async/stream_impl.dart: """, _onListenHandler is __t130), new _BroadcastSubscriptionWrapper(this));
 }
 }
  void _cancelSubscription() {
@@ -577,7 +583,7 @@ throw new UnsupportedError("Cannot change handlers of asBroadcastStream source s
  static const int _STATE_EXTRA_ERROR = 4;
  static const int _STATE_EXTRA_DONE = 5;
  StreamSubscription _subscription;
- T _current = ((__x114) => DDC$RT.cast(__x114, Null, T, "CastLiteral", """line 968, column 16 of dart:async/stream_impl.dart: """, __x114 is T, false))(null);
+ T _current = ((__x149) => DDC$RT.cast(__x149, Null, T, "CastLiteral", """line 968, column 16 of dart:async/stream_impl.dart: """, __x149 is T, false))(null);
  var _futureOrPrefetch = null;
  int _state = _STATE_FOUND;
  _StreamIteratorImpl(final Stream<T> stream) {
@@ -593,7 +599,7 @@ throw new StateError("Already waiting for next.");
 }
  if (_state == _STATE_FOUND) {
 _state = _STATE_MOVING;
- _current = ((__x115) => DDC$RT.cast(__x115, Null, T, "CastLiteral", """line 998, column 18 of dart:async/stream_impl.dart: """, __x115 is T, false))(null);
+ _current = ((__x150) => DDC$RT.cast(__x150, Null, T, "CastLiteral", """line 998, column 18 of dart:async/stream_impl.dart: """, __x150 is T, false))(null);
  _futureOrPrefetch = new _Future<bool>();
  return DDC$RT.cast(_futureOrPrefetch, dynamic, DDC$RT.type((Future<bool> _) {
 }
@@ -616,7 +622,7 @@ assert (_state >= _STATE_EXTRA_DATA); switch (_state) {case _STATE_EXTRA_DATA: _
  void _clear() {
 _subscription = null;
  _futureOrPrefetch = null;
- _current = ((__x116) => DDC$RT.cast(__x116, Null, T, "CastLiteral", """line 1026, column 16 of dart:async/stream_impl.dart: """, __x116 is T, false))(null);
+ _current = ((__x151) => DDC$RT.cast(__x151, Null, T, "CastLiteral", """line 1026, column 16 of dart:async/stream_impl.dart: """, __x151 is T, false))(null);
  _state = _STATE_DONE;
 }
  Future cancel() {
@@ -672,7 +678,9 @@ _Future<bool> hasNext = DDC$RT.cast(_futureOrPrefetch, dynamic, DDC$RT.type((_Fu
  _state = _STATE_EXTRA_DONE;
 }
 }
- typedef dynamic __t100(dynamic __u101);
- typedef void __t102<T>(T __u103);
- typedef dynamic __t105(dynamic __u106, dynamic __u107);
- typedef void __t109(StreamSubscription<dynamic> __u110);
+ typedef dynamic __t130(dynamic __u131);
+ typedef void __t132<T>(T __u133);
+ typedef dynamic __t135(dynamic __u136, dynamic __u137);
+ typedef void __t139(dynamic __u140);
+ typedef void __t141<T>(T __u142);
+ typedef void __t144(StreamSubscription<dynamic> __u145);

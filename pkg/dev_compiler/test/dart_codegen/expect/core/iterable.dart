@@ -46,7 +46,9 @@ part of dart.core;
  class _GeneratorIterable<E> extends IterableBase<E> implements EfficientLength {final int _start;
  final int _end;
  final _Generator<E> _generator;
- _GeneratorIterable(this._end, E generator(int n)) : _start = 0, _generator = (generator != null) ? generator : _id;
+ _GeneratorIterable(this._end, E generator(int n)) : _start = 0, _generator = ((__x11) => DDC$RT.cast(__x11, dynamic, DDC$RT.type((__t9<E> _) {
+}
+), "CastGeneral", """line 319, column 22 of dart:core/iterable.dart: """, __x11 is __t9<E>, false))((generator != null) ? generator : _id);
  _GeneratorIterable.slice(this._start, this._end, this._generator);
  Iterator<E> get iterator => new _GeneratorIterator<E>(_start, _end, _generator);
  int get length => _end - _start;
@@ -78,7 +80,7 @@ _current = _generator(_index);
  return true;
 }
  else {
-_current = ((__x7) => DDC$RT.cast(__x7, Null, E, "CastLiteral", """line 360, column 18 of dart:core/iterable.dart: """, __x7 is E, false))(null);
+_current = ((__x12) => DDC$RT.cast(__x12, Null, E, "CastLiteral", """line 360, column 18 of dart:core/iterable.dart: """, __x12 is E, false))(null);
  return false;
 }
 }
@@ -86,3 +88,4 @@ _current = ((__x7) => DDC$RT.cast(__x7, Null, E, "CastLiteral", """line 360, col
 }
  abstract class BidirectionalIterator<E> implements Iterator<E> {bool movePrevious();
 }
+ typedef E __t9<E>(int __u10);

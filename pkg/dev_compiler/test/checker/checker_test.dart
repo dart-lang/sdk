@@ -130,6 +130,42 @@ main() {
     });
   });
 
+  test('Constructors', () {
+    testChecker({
+      '/main.dart': '''
+      const num z = 25;
+      Object obj = "world";
+
+      class A {
+        int x;
+        String y;
+
+        A(this.x) : this.y = /*severe:StaticTypeError*/42;
+
+        A.c1(p): this.x = /*info:DownCast*/z, this.y = /*info:DownCast*/p;
+
+        A.c2(this.x, this.y);
+
+        A.c3(/*severe:InvalidParameterDeclaration*/num this.x, String this.y);
+      }
+
+      class B extends A {
+        B() : super(/*severe:StaticTypeError*/"hello");
+
+        B.c2(int x, String y) : super.c2(/*severe:StaticTypeError*/y, 
+                                         /*severe:StaticTypeError*/x);
+
+        B.c3(num x, Object y) : super.c3(x, /*info:DownCast*/y);
+      }
+
+      void main() {
+         A a = new A.c2(/*info:DownCast*/z, /*severe:StaticTypeError*/z);
+         var b = new B.c2(/*severe:StaticTypeError*/"hello", /*info:DownCast*/obj);
+      }
+   '''
+    });
+  });
+
   test('Unbound variable', () {
     testChecker({
       '/main.dart': '''

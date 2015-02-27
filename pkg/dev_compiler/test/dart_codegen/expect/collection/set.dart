@@ -179,7 +179,7 @@ part of dart.collection;
  E lastWhere(bool test(E value), {
   E orElse()}
 ) {
-  E result = ((__x43) => DDC$RT.cast(__x43, Null, E, "CastLiteral", """line 244, column 16 of dart:collection/set.dart: """, __x43 is E, false))(null);
+  E result = ((__x49) => DDC$RT.cast(__x49, Null, E, "CastLiteral", """line 244, column 16 of dart:collection/set.dart: """, __x49 is E, false))(null);
    bool foundMatching = false;
    for (E element in this) {
     if (test(element)) {
@@ -192,7 +192,7 @@ part of dart.collection;
    throw IterableElementError.noElement();
   }
  E singleWhere(bool test(E value)) {
-  E result = ((__x44) => DDC$RT.cast(__x44, Null, E, "CastLiteral", """line 258, column 16 of dart:collection/set.dart: """, __x44 is E, false))(null);
+  E result = ((__x50) => DDC$RT.cast(__x50, Null, E, "CastLiteral", """line 258, column 16 of dart:collection/set.dart: """, __x50 is E, false))(null);
    bool foundMatching = false;
    for (E element in this) {
     if (test(element)) {
