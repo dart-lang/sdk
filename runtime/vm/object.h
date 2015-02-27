@@ -6951,7 +6951,7 @@ class TypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return element_size[ElementType(class_id)];
+    return element_size(ElementType(class_id));
   }
 
   static TypedDataElementType ElementType(intptr_t class_id) {
@@ -7032,7 +7032,15 @@ class TypedData : public Instance {
   }
 
  private:
-  static const intptr_t element_size[];
+  static intptr_t element_size(intptr_t index) {
+    ASSERT(0 <= index && index < kNumElementSizes);
+    intptr_t size = element_size_table[index];
+    ASSERT(size != 0);
+    return size;
+  }
+  static const intptr_t kNumElementSizes =
+      kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid + 1;
+  static const intptr_t element_size_table[kNumElementSizes];
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, Instance);
   friend class Class;
@@ -7109,7 +7117,7 @@ class ExternalTypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return TypedData::element_size[ElementType(class_id)];
+    return TypedData::element_size(ElementType(class_id));
   }
 
   static TypedDataElementType ElementType(intptr_t class_id) {
@@ -7202,8 +7210,7 @@ class TypedDataView : public AllStatic {
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
     return (class_id == kByteDataViewCid) ?
-        TypedData::element_size[kTypedDataInt8ArrayCid] :
-        TypedData::element_size[class_id - kTypedDataInt8ArrayViewCid];
+        1 : TypedData::element_size(class_id - kTypedDataInt8ArrayViewCid);
   }
 
  private:

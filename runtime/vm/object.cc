@@ -19872,7 +19872,7 @@ void Float64x2::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-const intptr_t TypedData::element_size[] = {
+const intptr_t TypedData::element_size_table[TypedData::kNumElementSizes] = {
   1,   // kTypedDataInt8ArrayCid.
   1,   // kTypedDataUint8ArrayCid.
   1,   // kTypedDataUint8ClampedArrayCid.
