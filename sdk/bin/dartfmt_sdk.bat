@@ -1,5 +1,5 @@
 @echo off
-REM Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+REM Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 REM for details. All rights reserved. Use of this source code is governed by a
 REM BSD-style license that can be found in the LICENSE file.
 
@@ -12,29 +12,9 @@ rem Get rid of surrounding quotes.
 for %%i in ("%RETURNED_BIN_DIR%") do set BIN_DIR=%%~fi
 
 set DART=%BIN_DIR%\dart
+set SNAPSHOT=%BIN_DIR%\snapshots\dartfmt.dart.snapshot
 
-rem Get absolute full name for SDK_DIR.
-for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
-
-rem Remove trailing backslash if there is one
-if %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
-
-rem Get absolute full name for DART_ROOT.
-for %%i in ("%SDK_DIR%\..\") do set DART_ROOT=%%~fi
-
-rem Remove trailing backslash if there is one
-if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
-
-set DARTFMT=%DART_ROOT%\third_party\pkg\dart_style\bin\format.dart
-
-rem DART_CONFIGURATION defaults to ReleaseIA32
-if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseIA32
-
-set BUILD_DIR=%DART_ROOT%\build\%DART_CONFIGURATION%
-
-set PACKAGE_ROOT=%BUILD_DIR%\packages
-
-"%DART%" "--package-root=%PACKAGE_ROOT%" "%DARTFMT%" %*
+"%DART%" "%SNAPSHOT%" %*
 
 endlocal
 

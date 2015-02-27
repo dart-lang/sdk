@@ -1,10 +1,10 @@
 #!/bin/bash
-# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
 # Run dart_style/bin/format.dart on the Dart VM. This script assumes the Dart
-# repo's directory structure.
+# SDK's directory structure.
 
 function follow_links() {
   file="$1"
@@ -22,23 +22,8 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
+SNAPSHOT="$BIN_DIR/snapshots/dartfmt.dart.snapshot"
+
+# We are running the snapshot in the built SDK.
 DART="$BIN_DIR/dart"
-
-DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
-
-DARTFMT="$DART_ROOT/third_party/pkg/dart_style/bin/format.dart"
-
-if [ -z "$DART_CONFIGURATION" ];
-then
-  DART_CONFIGURATION="ReleaseIA32"
-fi
-
-if [[ `uname` == 'Darwin' ]]; then
-  BUILD_DIR="$DART_ROOT/xcodebuild/$DART_CONFIGURATION"
-else
-  BUILD_DIR="$DART_ROOT/out/$DART_CONFIGURATION"
-fi
-
-PACKAGE_ROOT="$BUILD_DIR/packages/"
-
-exec "$DART" "--package-root=$PACKAGE_ROOT" "$DARTFMT" "$@"
+exec "$DART" "$SNAPSHOT" "$@"

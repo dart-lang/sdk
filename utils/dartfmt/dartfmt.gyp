@@ -18,7 +18,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../third_party/pkg/dart_style"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
@@ -27,7 +27,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
             '--package-root=<(PRODUCT_DIR)/packages/',
-            '../../pkg/analyzer/bin/formatter.dart',
+            '../../third_party/pkg/dart_style/bin/format.dart',
           ],
         },
       ],
