@@ -281,6 +281,11 @@ abstract class ServiceObject extends Observable {
 
   // Updates internal state from [map]. [map] can be a reference.
   void _update(ObservableMap map, bool mapIsRef);
+
+  // Helper that can be passed to .catchError that ignores the error.
+  _ignoreError(error, stackTrace) {
+    // do nothing.
+  }
 }
 
 abstract class Coverage {
@@ -505,6 +510,10 @@ abstract class VM extends ServiceObjectOwner {
   // Note that this function does not reload the isolate if it found
   // in the cache.
   Future<ServiceObject> getIsolate(String isolateId) {
+    if (!loaded) {
+      // Trigger a VM load, then get the isolate.
+      return load().then((_) => getIsolate(isolateId)).catchError(_ignoreError);
+    }
     return new Future.value(_isolateCache[isolateId]);
   }
 
