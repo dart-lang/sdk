@@ -68,7 +68,7 @@ var collection;
           return dart.as(null, V);
         let bucket = this._getBucket(rest, key);
         let index = this._findBucketIndex(bucket, key);
-        return dart.as(index < 0 ? null : dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, index + 1), V);
+        return dart.as(index < 0 ? null : _foreign_helper.JS('var', '#[#]', bucket, index + 1), V);
       }
       set(key, value) {
         if (_isStringKey(key)) {
@@ -90,17 +90,17 @@ var collection;
         if (rest === null)
           this._rest = rest = _newHashTable();
         let hash = this._computeHashCode(key);
-        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        let bucket = _foreign_helper.JS('var', '#[#]', rest, hash);
         if (bucket === null) {
-          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#, #]', key, value));
+          _setTableEntry(rest, hash, _foreign_helper.JS('var', '[#, #]', key, value));
           this._length++;
           this._keys = null;
         } else {
           let index = this._findBucketIndex(bucket, key);
           if (index >= 0) {
-            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', bucket, index + 1, value);
+            _foreign_helper.JS('void', '#[#] = #', bucket, index + 1, value);
           } else {
-            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#, #)', bucket, key, value);
+            _foreign_helper.JS('void', '#.push(#, #)', bucket, key, value);
             this._length++;
             this._keys = null;
           }
@@ -132,7 +132,7 @@ var collection;
           return dart.as(null, V);
         this._length--;
         this._keys = null;
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#.splice(#, 2)[1]', bucket, index), V);
+        return dart.as(_foreign_helper.JS('var', '#.splice(#, 2)[1]', bucket, index), V);
       }
       clear() {
         if (this._length > 0) {
@@ -143,9 +143,9 @@ var collection;
       forEach(action) {
         let keys = this._computeKeys();
         for (let i = 0, length = keys.length; i < length; i++) {
-          let key = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', keys, i);
+          let key = _foreign_helper.JS('var', '#[#]', keys, i);
           action(dart.as(key, K), this.get(key));
-          if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', keys, this._keys)) {
+          if (_foreign_helper.JS('bool', '# !== #', keys, this._keys)) {
             throw new core.ConcurrentModificationError(this);
           }
         }
@@ -157,35 +157,35 @@ var collection;
         let index = 0;
         let strings = this._strings;
         if (strings !== null) {
-          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', strings);
-          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          let names = _foreign_helper.JS('var', 'Object.getOwnPropertyNames(#)', strings);
+          let entries = dart.as(_foreign_helper.JS('int', '#.length', names), core.int);
           for (let i = 0; i < entries; i++) {
-            let key = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i), core.String);
-            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, key);
+            let key = dart.as(_foreign_helper.JS('String', '#[#]', names, i), core.String);
+            _foreign_helper.JS('void', '#[#] = #', result, index, key);
             index++;
           }
         }
         let nums = this._nums;
         if (nums !== null) {
-          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', nums);
-          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          let names = _foreign_helper.JS('var', 'Object.getOwnPropertyNames(#)', nums);
+          let entries = dart.as(_foreign_helper.JS('int', '#.length', names), core.int);
           for (let i = 0; i < entries; i++) {
-            let key = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'num', '+#[#]', names, i), core.num);
-            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, key);
+            let key = dart.as(_foreign_helper.JS('num', '+#[#]', names, i), core.num);
+            _foreign_helper.JS('void', '#[#] = #', result, index, key);
             index++;
           }
         }
         let rest = this._rest;
         if (rest !== null) {
-          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', rest);
-          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          let names = _foreign_helper.JS('var', 'Object.getOwnPropertyNames(#)', rest);
+          let entries = dart.as(_foreign_helper.JS('int', '#.length', names), core.int);
           for (let i = 0; i < entries; i++) {
-            let key = dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i);
-            let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, key);
-            let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+            let key = _foreign_helper.JS('String', '#[#]', names, i);
+            let bucket = _foreign_helper.JS('var', '#[#]', rest, key);
+            let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
             for (let i = 0; i < length; i = 2) {
-              let key = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i);
-              dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, key);
+              let key = _foreign_helper.JS('var', '#[#]', bucket, i);
+              _foreign_helper.JS('void', '#[#] = #', result, index, key);
               index++;
             }
           }
@@ -215,45 +215,45 @@ var collection;
         return dart.notNull(typeof key == string) && dart.notNull(!dart.equals(key, '__proto__'));
       }
       static _isNumericKey(key) {
-        return core.bool['&&'](dart.is(key, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', key, key));
+        return core.bool['&&'](dart.is(key, core.num), _foreign_helper.JS('bool', '(# & 0x3ffffff) === #', key, key));
       }
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(key, 'hashCode')), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', dart.dload(key, 'hashCode')), core.int);
       }
       static _hasTableEntry(table, key) {
-        let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+        let entry = _foreign_helper.JS('var', '#[#]', table, key);
         return entry !== null;
       }
       static _getTableEntry(table, key) {
-        let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
-        return dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# === #', entry, table) ? null : entry;
+        let entry = _foreign_helper.JS('var', '#[#]', table, key);
+        return _foreign_helper.JS('bool', '# === #', entry, table) ? null : entry;
       }
       static _setTableEntry(table, key, value) {
         if (value === null) {
-          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, table);
+          _foreign_helper.JS('void', '#[#] = #', table, key, table);
         } else {
-          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+          _foreign_helper.JS('void', '#[#] = #', table, key, value);
         }
       }
       static _deleteTableEntry(table, key) {
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+        _foreign_helper.JS('void', 'delete #[#]', table, key);
       }
       _getBucket(table, key) {
         let hash = this._computeHashCode(key);
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+        return dart.as(_foreign_helper.JS('var', '#[#]', table, hash), core.List);
       }
       _findBucketIndex(bucket, key) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i = 2) {
-          if (dart.equals(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), key))
+          if (dart.equals(_foreign_helper.JS('var', '#[#]', bucket, i), key))
             return i;
         }
         return -1;
       }
       static _newHashTable() {
-        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let table = _foreign_helper.JS('var', 'Object.create(null)');
         let temporaryKey = '<non-identifier-key>';
         _setTableEntry(table, temporaryKey, table);
         _deleteTableEntry(table, temporaryKey);
@@ -266,14 +266,14 @@ var collection;
   let _IdentityHashMap$ = dart.generic(function(K, V) {
     class _IdentityHashMap extends _HashMap$(K, V) {
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
       }
       _findBucketIndex(bucket, key) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i = 2) {
-          if (core.identical(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), key))
+          if (core.identical(_foreign_helper.JS('var', '#[#]', bucket, i), key))
             return i;
         }
         return -1;
@@ -309,14 +309,14 @@ var collection;
         return super._remove(key);
       }
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hashCode(dart.as(key, K))), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', this._hashCode(dart.as(key, K))), core.int);
       }
       _findBucketIndex(bucket, key) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i = 2) {
-          if (this._equals(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), K), dart.as(key, K)))
+          if (this._equals(dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), K), dart.as(key, K)))
             return i;
         }
         return -1;
@@ -348,9 +348,9 @@ var collection;
       }
       forEach(f) {
         let keys = dart.as(dart.dinvoke(this._map, '_computeKeys'), core.List);
-        for (let i = 0, length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', keys), core.int); i < length; i++) {
-          f(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', keys, i), E));
-          if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', keys, dart.dload(this._map, '_keys'))) {
+        for (let i = 0, length = dart.as(_foreign_helper.JS('int', '#.length', keys), core.int); i < length; i++) {
+          f(dart.as(_foreign_helper.JS('var', '#[#]', keys, i), E));
+          if (_foreign_helper.JS('bool', '# !== #', keys, dart.dload(this._map, '_keys'))) {
             throw new core.ConcurrentModificationError(this._map);
           }
         }
@@ -373,14 +373,14 @@ var collection;
       moveNext() {
         let keys = this._keys;
         let offset = this._offset;
-        if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', keys, dart.dload(this._map, '_keys'))) {
+        if (_foreign_helper.JS('bool', '# !== #', keys, dart.dload(this._map, '_keys'))) {
           throw new core.ConcurrentModificationError(this._map);
-        } else if (offset['>='](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', keys))) {
+        } else if (offset['>='](_foreign_helper.JS('int', '#.length', keys))) {
           this._current = dart.as(null, E);
           return false;
         } else {
-          this._current = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', keys, offset), E);
-          this._offset = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#', offset + 1), core.int);
+          this._current = dart.as(_foreign_helper.JS('var', '#[#]', keys, offset), E);
+          this._offset = dart.as(_foreign_helper.JS('int', '#', offset + 1), core.int);
           return true;
         }
       }
@@ -471,7 +471,7 @@ var collection;
         let index = this._findBucketIndex(bucket, key);
         if (index < 0)
           return dart.as(null, V);
-        let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, index), LinkedHashMapCell);
+        let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, index), LinkedHashMapCell);
         return dart.as(cell._value, V);
       }
       set(key, value) {
@@ -494,18 +494,18 @@ var collection;
         if (rest === null)
           this._rest = rest = _newHashTable();
         let hash = this._computeHashCode(key);
-        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        let bucket = _foreign_helper.JS('var', '#[#]', rest, hash);
         if (bucket === null) {
           let cell = this._newLinkedCell(key, value);
-          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#]', cell));
+          _setTableEntry(rest, hash, _foreign_helper.JS('var', '[#]', cell));
         } else {
           let index = this._findBucketIndex(bucket, key);
           if (index >= 0) {
-            let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, index), LinkedHashMapCell);
+            let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, index), LinkedHashMapCell);
             cell._value = value;
           } else {
             let cell = this._newLinkedCell(key, value);
-            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#)', bucket, cell);
+            _foreign_helper.JS('void', '#.push(#)', bucket, cell);
           }
         }
       }
@@ -533,7 +533,7 @@ var collection;
         let index = this._findBucketIndex(bucket, key);
         if (index < 0)
           return dart.as(null, V);
-        let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#.splice(#, 1)[0]', bucket, index), LinkedHashMapCell);
+        let cell = dart.as(_foreign_helper.JS('var', '#.splice(#, 1)[0]', bucket, index), LinkedHashMapCell);
         this._unlinkCell(cell);
         return dart.as(cell._value, V);
       }
@@ -611,38 +611,38 @@ var collection;
         return dart.notNull(typeof key == string) && dart.notNull(!dart.equals(key, '__proto__'));
       }
       static _isNumericKey(key) {
-        return core.bool['&&'](dart.is(key, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', key, key));
+        return core.bool['&&'](dart.is(key, core.num), _foreign_helper.JS('bool', '(# & 0x3ffffff) === #', key, key));
       }
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(key, 'hashCode')), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', dart.dload(key, 'hashCode')), core.int);
       }
       static _getTableEntry(table, key) {
-        return dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+        return _foreign_helper.JS('var', '#[#]', table, key);
       }
       static _setTableEntry(table, key, value) {
         dart.assert(value !== null);
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+        _foreign_helper.JS('void', '#[#] = #', table, key, value);
       }
       static _deleteTableEntry(table, key) {
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+        _foreign_helper.JS('void', 'delete #[#]', table, key);
       }
       _getBucket(table, key) {
         let hash = this._computeHashCode(key);
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+        return dart.as(_foreign_helper.JS('var', '#[#]', table, hash), core.List);
       }
       _findBucketIndex(bucket, key) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashMapCell);
+          let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), LinkedHashMapCell);
           if (dart.equals(cell._key, key))
             return i;
         }
         return -1;
       }
       static _newHashTable() {
-        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let table = _foreign_helper.JS('var', 'Object.create(null)');
         let temporaryKey = '<non-identifier-key>';
         _setTableEntry(table, temporaryKey, table);
         _deleteTableEntry(table, temporaryKey);
@@ -658,14 +658,14 @@ var collection;
   let _LinkedIdentityHashMap$ = dart.generic(function(K, V) {
     class _LinkedIdentityHashMap extends _LinkedHashMap$(K, V) {
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
       }
       _findBucketIndex(bucket, key) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashMapCell);
+          let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), LinkedHashMapCell);
           if (core.identical(cell._key, key))
             return i;
         }
@@ -702,14 +702,14 @@ var collection;
         return super._remove(key);
       }
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hashCode(dart.as(key, K))), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', this._hashCode(dart.as(key, K))), core.int);
       }
       _findBucketIndex(bucket, key) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashMapCell);
+          let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), LinkedHashMapCell);
           if (this._equals(dart.as(cell._key, K), dart.as(key, K)))
             return i;
         }
@@ -867,14 +867,14 @@ var collection;
         if (rest === null)
           this._rest = rest = _newHashTable();
         let hash = this._computeHashCode(element);
-        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        let bucket = _foreign_helper.JS('var', '#[#]', rest, hash);
         if (bucket === null) {
-          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#]', element));
+          _setTableEntry(rest, hash, _foreign_helper.JS('var', '[#]', element));
         } else {
           let index = this._findBucketIndex(bucket, element);
           if (index >= 0)
             return false;
-          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#)', bucket, element);
+          _foreign_helper.JS('void', '#.push(#)', bucket, element);
         }
         this._length++;
         this._elements = null;
@@ -904,7 +904,7 @@ var collection;
           return false;
         this._length--;
         this._elements = null;
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.splice(#, 1)', bucket, index);
+        _foreign_helper.JS('void', '#.splice(#, 1)', bucket, index);
         return true;
       }
       clear() {
@@ -920,34 +920,34 @@ var collection;
         let index = 0;
         let strings = this._strings;
         if (strings !== null) {
-          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', strings);
-          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          let names = _foreign_helper.JS('var', 'Object.getOwnPropertyNames(#)', strings);
+          let entries = dart.as(_foreign_helper.JS('int', '#.length', names), core.int);
           for (let i = 0; i < entries; i++) {
-            let element = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i), core.String);
-            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, element);
+            let element = dart.as(_foreign_helper.JS('String', '#[#]', names, i), core.String);
+            _foreign_helper.JS('void', '#[#] = #', result, index, element);
             index++;
           }
         }
         let nums = this._nums;
         if (nums !== null) {
-          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', nums);
-          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          let names = _foreign_helper.JS('var', 'Object.getOwnPropertyNames(#)', nums);
+          let entries = dart.as(_foreign_helper.JS('int', '#.length', names), core.int);
           for (let i = 0; i < entries; i++) {
-            let element = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'num', '+#[#]', names, i), core.num);
-            dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', result, index, element);
+            let element = dart.as(_foreign_helper.JS('num', '+#[#]', names, i), core.num);
+            _foreign_helper.JS('void', '#[#] = #', result, index, element);
             index++;
           }
         }
         let rest = this._rest;
         if (rest !== null) {
-          let names = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.getOwnPropertyNames(#)', rest);
-          let entries = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', names), core.int);
+          let names = _foreign_helper.JS('var', 'Object.getOwnPropertyNames(#)', rest);
+          let entries = dart.as(_foreign_helper.JS('int', '#.length', names), core.int);
           for (let i = 0; i < entries; i++) {
-            let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'String', '#[#]', names, i);
-            let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, entry);
-            let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+            let entry = _foreign_helper.JS('String', '#[#]', names, i);
+            let bucket = _foreign_helper.JS('var', '#[#]', rest, entry);
+            let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
             for (let i = 0; i < length; i++) {
-              dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #[#]', result, index, bucket, i);
+              _foreign_helper.JS('void', '#[#] = #[#]', result, index, bucket, i);
               index++;
             }
           }
@@ -977,38 +977,38 @@ var collection;
         return dart.notNull(typeof element == string) && dart.notNull(!dart.equals(element, '__proto__'));
       }
       static _isNumericElement(element) {
-        return core.bool['&&'](dart.is(element, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', element, element));
+        return core.bool['&&'](dart.is(element, core.num), _foreign_helper.JS('bool', '(# & 0x3ffffff) === #', element, element));
       }
       _computeHashCode(element) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(element, 'hashCode')), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', dart.dload(element, 'hashCode')), core.int);
       }
       static _hasTableEntry(table, key) {
-        let entry = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+        let entry = _foreign_helper.JS('var', '#[#]', table, key);
         return entry !== null;
       }
       static _setTableEntry(table, key, value) {
         dart.assert(value !== null);
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+        _foreign_helper.JS('void', '#[#] = #', table, key, value);
       }
       static _deleteTableEntry(table, key) {
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+        _foreign_helper.JS('void', 'delete #[#]', table, key);
       }
       _getBucket(table, element) {
         let hash = this._computeHashCode(element);
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+        return dart.as(_foreign_helper.JS('var', '#[#]', table, hash), core.List);
       }
       _findBucketIndex(bucket, element) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          if (dart.equals(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), element))
+          if (dart.equals(_foreign_helper.JS('var', '#[#]', bucket, i), element))
             return i;
         }
         return -1;
       }
       static _newHashTable() {
-        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let table = _foreign_helper.JS('var', 'Object.create(null)');
         let temporaryKey = '<non-identifier-key>';
         _setTableEntry(table, temporaryKey, table);
         _deleteTableEntry(table, temporaryKey);
@@ -1024,14 +1024,14 @@ var collection;
         return new _IdentityHashSet();
       }
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
       }
       _findBucketIndex(bucket, element) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          if (core.identical(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), element))
+          if (core.identical(_foreign_helper.JS('var', '#[#]', bucket, i), element))
             return i;
         }
         return -1;
@@ -1054,15 +1054,15 @@ var collection;
       _findBucketIndex(bucket, element) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          if (this._equality(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), E), dart.as(element, E)))
+          if (this._equality(dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), E), dart.as(element, E)))
             return i;
         }
         return -1;
       }
       _computeHashCode(element) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hasher(dart.as(element, E))), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', this._hasher(dart.as(element, E))), core.int);
       }
       add(object) {
         return super._add(object);
@@ -1100,14 +1100,14 @@ var collection;
       moveNext() {
         let elements = this._elements;
         let offset = this._offset;
-        if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# !== #', elements, dart.dload(this._set, '_elements'))) {
+        if (_foreign_helper.JS('bool', '# !== #', elements, dart.dload(this._set, '_elements'))) {
           throw new core.ConcurrentModificationError(this._set);
-        } else if (offset['>='](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', elements))) {
+        } else if (offset['>='](_foreign_helper.JS('int', '#.length', elements))) {
           this._current = dart.as(null, E);
           return false;
         } else {
-          this._current = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', elements, offset), E);
-          this._offset = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#', offset + 1), core.int);
+          this._current = dart.as(_foreign_helper.JS('var', '#[#]', elements, offset), E);
+          this._offset = dart.as(_foreign_helper.JS('int', '#', offset + 1), core.int);
           return true;
         }
       }
@@ -1227,16 +1227,16 @@ var collection;
         if (rest === null)
           this._rest = rest = _newHashTable();
         let hash = this._computeHashCode(element);
-        let bucket = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', rest, hash);
+        let bucket = _foreign_helper.JS('var', '#[#]', rest, hash);
         if (bucket === null) {
           let cell = this._newLinkedCell(element);
-          _setTableEntry(rest, hash, dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '[#]', cell));
+          _setTableEntry(rest, hash, _foreign_helper.JS('var', '[#]', cell));
         } else {
           let index = this._findBucketIndex(bucket, element);
           if (index >= 0)
             return false;
           let cell = this._newLinkedCell(element);
-          dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#.push(#)', bucket, cell);
+          _foreign_helper.JS('void', '#.push(#)', bucket, cell);
         }
         return true;
       }
@@ -1257,7 +1257,7 @@ var collection;
         let index = this._findBucketIndex(bucket, object);
         if (index < 0)
           return false;
-        let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#.splice(#, 1)[0]', bucket, index), LinkedHashSetCell);
+        let cell = dart.as(_foreign_helper.JS('var', '#.splice(#, 1)[0]', bucket, index), LinkedHashSetCell);
         this._unlinkCell(cell);
         return true;
       }
@@ -1344,38 +1344,38 @@ var collection;
         return dart.notNull(typeof element == string) && dart.notNull(!dart.equals(element, '__proto__'));
       }
       static _isNumericElement(element) {
-        return core.bool['&&'](dart.is(element, core.num), dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '(# & 0x3ffffff) === #', element, element));
+        return core.bool['&&'](dart.is(element, core.num), _foreign_helper.JS('bool', '(# & 0x3ffffff) === #', element, element));
       }
       _computeHashCode(element) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', dart.dload(element, 'hashCode')), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', dart.dload(element, 'hashCode')), core.int);
       }
       static _getTableEntry(table, key) {
-        return dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, key);
+        return _foreign_helper.JS('var', '#[#]', table, key);
       }
       static _setTableEntry(table, key, value) {
         dart.assert(value !== null);
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', '#[#] = #', table, key, value);
+        _foreign_helper.JS('void', '#[#] = #', table, key, value);
       }
       static _deleteTableEntry(table, key) {
-        dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'delete #[#]', table, key);
+        _foreign_helper.JS('void', 'delete #[#]', table, key);
       }
       _getBucket(table, element) {
         let hash = this._computeHashCode(element);
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', table, hash), core.List);
+        return dart.as(_foreign_helper.JS('var', '#[#]', table, hash), core.List);
       }
       _findBucketIndex(bucket, element) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashSetCell);
+          let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), LinkedHashSetCell);
           if (dart.equals(cell._element, element))
             return i;
         }
         return -1;
       }
       static _newHashTable() {
-        let table = dart.dinvokef(/* Unimplemented unknown name */JS, 'var', 'Object.create(null)');
+        let table = _foreign_helper.JS('var', 'Object.create(null)');
         let temporaryKey = '<non-identifier-key>';
         _setTableEntry(table, temporaryKey, table);
         _deleteTableEntry(table, temporaryKey);
@@ -1391,14 +1391,14 @@ var collection;
         return new _LinkedIdentityHashSet();
       }
       _computeHashCode(key) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', core.identityHashCode(key)), core.int);
       }
       _findBucketIndex(bucket, element) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashSetCell);
+          let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), LinkedHashSetCell);
           if (core.identical(cell._element, element))
             return i;
         }
@@ -1422,16 +1422,16 @@ var collection;
       _findBucketIndex(bucket, element) {
         if (bucket === null)
           return -1;
-        let length = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', bucket), core.int);
+        let length = dart.as(_foreign_helper.JS('int', '#.length', bucket), core.int);
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'var', '#[#]', bucket, i), LinkedHashSetCell);
+          let cell = dart.as(_foreign_helper.JS('var', '#[#]', bucket, i), LinkedHashSetCell);
           if (this._equality(dart.as(cell._element, E), dart.as(element, E)))
             return i;
         }
         return -1;
       }
       _computeHashCode(element) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '# & 0x3ffffff', this._hasher(dart.as(element, E))), core.int);
+        return dart.as(_foreign_helper.JS('int', '# & 0x3ffffff', this._hasher(dart.as(element, E))), core.int);
       }
       add(element) {
         return super._add(element);
@@ -2273,7 +2273,7 @@ var collection;
         return map;
       }
       LinkedHashMap$_literal(keyValuePairs) {
-        return dart.as(dart.dinvokef(/* Unimplemented unknown name */fillLiteralMap, keyValuePairs, new _LinkedHashMap()), LinkedHashMap$(K, V));
+        return dart.as(_js_helper.fillLiteralMap(keyValuePairs, new _LinkedHashMap()), LinkedHashMap$(K, V));
       }
       LinkedHashMap$_empty() {
         return new _LinkedHashMap();

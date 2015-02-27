@@ -15,8 +15,9 @@ var core;
     });
     return result;
   }
-  class _ListConstructorSentinel extends dynamic {
+  class _ListConstructorSentinel extends _interceptors.JSInt {
     _ListConstructorSentinel() {
+      super.JSInt();
     }
   }
   class Deprecated extends dart.Object {
@@ -256,48 +257,48 @@ var core;
     }
     DateTime$_internal(year, month, day, hour, minute, second, millisecond, isUtc) {
       this.isUtc = dart.as(typeof isUtc == boolean ? isUtc : dart.throw_(new ArgumentError(isUtc)), bool);
-      this.millisecondsSinceEpoch = dart.as(dart.dinvokef(/* Unimplemented unknown name */checkInt, dart.dinvoke(/* Unimplemented unknown name */Primitives, 'valueFromDecomposedDate', year, month, day, hour, minute, second, millisecond, isUtc)), int);
+      this.millisecondsSinceEpoch = dart.as(_js_helper.checkInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc)), int);
     }
     DateTime$_now() {
       this.isUtc = false;
-      this.millisecondsSinceEpoch = dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'dateNow'), int);
+      this.millisecondsSinceEpoch = dart.notNull(_js_helper.Primitives.dateNow());
     }
     static _brokenDownDateToMillisecondsSinceEpoch(year, month, day, hour, minute, second, millisecond, isUtc) {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'valueFromDecomposedDate', year, month, day, hour, minute, second, millisecond, isUtc), int);
+      return dart.as(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc), int);
     }
     get timeZoneName() {
       if (this.isUtc)
         return "UTC";
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getTimeZoneName', this), String);
+      return _js_helper.Primitives.getTimeZoneName(this);
     }
     get timeZoneOffset() {
       if (this.isUtc)
         return new Duration();
-      return new Duration({minutes: dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getTimeZoneOffsetInMinutes', this), int)});
+      return new Duration({minutes: _js_helper.Primitives.getTimeZoneOffsetInMinutes(this)});
     }
     get year() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getYear', this), int);
+      return dart.as(_js_helper.Primitives.getYear(this), int);
     }
     get month() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getMonth', this), int);
+      return dart.as(_js_helper.Primitives.getMonth(this), int);
     }
     get day() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getDay', this), int);
+      return dart.as(_js_helper.Primitives.getDay(this), int);
     }
     get hour() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getHours', this), int);
+      return dart.as(_js_helper.Primitives.getHours(this), int);
     }
     get minute() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getMinutes', this), int);
+      return dart.as(_js_helper.Primitives.getMinutes(this), int);
     }
     get second() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getSeconds', this), int);
+      return dart.as(_js_helper.Primitives.getSeconds(this), int);
     }
     get millisecond() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getMilliseconds', this), int);
+      return dart.as(_js_helper.Primitives.getMilliseconds(this), int);
     }
     get weekday() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getWeekday', this), int);
+      return dart.as(_js_helper.Primitives.getWeekday(this), int);
     }
   }
   dart.defineNamedConstructor(DateTime, 'utc');
@@ -331,7 +332,7 @@ var core;
     static parse(source, onError) {
       if (onError === void 0)
         onError = null;
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'parseDouble', source, onError), double);
+      return _js_helper.Primitives.parseDouble(source, onError);
     }
   }
   double.NAN = 0.0 / 0.0;
@@ -476,13 +477,13 @@ var core;
       return _objectToString(object);
     }
     static _stringToSafeString(string) {
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */jsonEncodeNative, string), String);
+      return _js_helper.jsonEncodeNative(string);
     }
     static _objectToString(object) {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'objectToString', object), String);
+      return _js_helper.Primitives.objectToString(object);
     }
     get stackTrace() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'extractStackTrace', this), StackTrace);
+      return _js_helper.Primitives.extractStackTrace(this);
     }
   }
   class AssertionError extends Error {
@@ -930,22 +931,22 @@ var core;
         return `Expando:${this.name}`;
       }
       get(object) {
-        let values = dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', object, _EXPANDO_PROPERTY_NAME);
-        return dart.as(values === null ? null : dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', values, this._getKey()), T);
+        let values = _js_helper.Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
+        return dart.as(values === null ? null : _js_helper.Primitives.getProperty(values, this._getKey()), T);
       }
       set(object, value) {
-        let values = dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', object, _EXPANDO_PROPERTY_NAME);
+        let values = _js_helper.Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
         if (values === null) {
           values = new Object();
-          dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', object, _EXPANDO_PROPERTY_NAME, values);
+          _js_helper.Primitives.setProperty(object, _EXPANDO_PROPERTY_NAME, values);
         }
-        dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', values, this._getKey(), value);
+        _js_helper.Primitives.setProperty(values, this._getKey(), value);
       }
       _getKey() {
-        let key = dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'getProperty', this, _KEY_PROPERTY_NAME), String);
+        let key = dart.as(_js_helper.Primitives.getProperty(this, _KEY_PROPERTY_NAME), String);
         if (key === null) {
           key = `expando$key$${_keyCount++}`;
-          dart.dinvoke(/* Unimplemented unknown name */Primitives, 'setProperty', this, _KEY_PROPERTY_NAME, key);
+          _js_helper.Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);
         }
         return key;
       }
@@ -960,7 +961,7 @@ var core;
     static apply(function, positionalArguments, namedArguments) {
       if (namedArguments === void 0)
         namedArguments = null;
-      return dart.dinvoke(/* Unimplemented unknown name */Primitives, 'applyFunction', function, positionalArguments, namedArguments === null ? null : _toMangledNames(namedArguments));
+      return _js_helper.Primitives.applyFunction(function, positionalArguments, dart.as(namedArguments === null ? null : _toMangledNames(namedArguments), Map$(String, dynamic)));
     }
     static _toMangledNames(namedArguments) {
       let result = dart.as(dart.map(), Map$(String, dynamic));
@@ -972,11 +973,11 @@ var core;
   }
   // Function identical: (Object, Object) → bool
   function identical(a, b) {
-    return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'identicalImplementation', a, b), bool);
+    return _js_helper.Primitives.identicalImplementation(a, b);
   }
   // Function identityHashCode: (Object) → int
   function identityHashCode(object) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */objectHashCode, object), int);
+    return _js_helper.objectHashCode(object);
   }
   class int extends num {
     int$fromEnvironment(name, opt$) {
@@ -986,7 +987,7 @@ var core;
     static parse(source, opt$) {
       let radix = opt$.radix === void 0 ? null : opt$.radix;
       let onError = opt$.onError === void 0 ? null : opt$.onError;
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'parseInt', source, radix, onError), int);
+      return _js_helper.Primitives.parseInt(source, radix, onError);
     }
   }
   dart.defineNamedConstructor(int, 'fromEnvironment');
@@ -1116,12 +1117,12 @@ var core;
         if (length === void 0)
           length = new _ListConstructorSentinel();
         if (length === new _ListConstructorSentinel()) {
-          return dart.as(new JSArray.emptyGrowable(), List$(E));
+          return new _interceptors.JSArray.emptyGrowable();
         }
-        return dart.as(new JSArray.fixed(length), List$(E));
+        return new _interceptors.JSArray.fixed(length);
       }
       List$filled(length, fill) {
-        let result = dart.as(new JSArray.fixed(length), List);
+        let result = new _interceptors.JSArray.fixed(length);
         if (dart.notNull(length !== 0) && dart.notNull(fill !== null)) {
           for (let i = 0; i < result.length; i++) {
             result.set(i, fill);
@@ -1230,16 +1231,16 @@ var core;
       return identical(this, other);
     }
     get hashCode() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'objectHashCode', this), int);
+      return _js_helper.Primitives.objectHashCode(this);
     }
     toString() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'objectToString', this), String);
+      return _js_helper.Primitives.objectToString(this);
     }
     noSuchMethod(invocation) {
       throw new NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
     }
     get runtimeType() {
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */getRuntimeType, this), Type);
+      return _js_helper.getRuntimeType(this);
     }
   }
   class Pattern extends dart.Object {
@@ -1259,7 +1260,7 @@ var core;
     RegExp(source, opt$) {
       let multiLine = opt$.multiLine === void 0 ? false : opt$.multiLine;
       let caseSensitive = opt$.caseSensitive === void 0 ? true : opt$.caseSensitive;
-      return dart.as(new JSSyntaxRegExp(source, {multiLine: multiLine, caseSensitive: caseSensitive}), RegExp);
+      return new _js_helper.JSSyntaxRegExp(source, {multiLine: multiLine, caseSensitive: caseSensitive});
     }
   }
   let Set$ = dart.generic(function(E) {
@@ -1338,11 +1339,11 @@ var core;
       return dart.notNull(this._start !== null) && dart.notNull(this._stop === null);
     }
     static _initTicker() {
-      dart.dinvoke(/* Unimplemented unknown name */Primitives, 'initTicker');
-      _frequency = dart.as(dart.dload(/* Unimplemented unknown name */Primitives, 'timerFrequency'), int);
+      _js_helper.Primitives.initTicker();
+      _frequency = _js_helper.Primitives.timerFrequency;
     }
     static _now() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'timerTicks'), int);
+      return dart.as(dart.dinvoke(_js_helper.Primitives, 'timerTicks'), int);
     }
   }
   Stopwatch._frequency = null;
@@ -1352,7 +1353,7 @@ var core;
         start = 0;
       if (end === void 0)
         end = null;
-      if (!dart.is(charCodes, dynamic)) {
+      if (!dart.is(charCodes, _interceptors.JSArray)) {
         return _stringFromIterable(charCodes, start, end);
       }
       let list = dart.as(charCodes, List);
@@ -1368,10 +1369,10 @@ var core;
       if (dart.notNull(start > 0) || dart.notNull(end < len)) {
         list = list.sublist(start, end);
       }
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'stringFromCharCodes', list), String);
+      return _js_helper.Primitives.stringFromCharCodes(list);
     }
     String$fromCharCode(charCode) {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'stringFromCharCode', charCode), String);
+      return _js_helper.Primitives.stringFromCharCode(charCode);
     }
     String$fromEnvironment(name, opt$) {
       let defaultValue = opt$.defaultValue === void 0 ? null : opt$.defaultValue;
@@ -1401,7 +1402,7 @@ var core;
           list.add(it.current);
         }
       }
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'stringFromCharCodes', list), String);
+      return _js_helper.Primitives.stringFromCharCodes(list);
     }
   }
   dart.defineNamedConstructor(String, 'fromCharCodes');
@@ -1582,10 +1583,10 @@ var core;
       this._contents = "";
     }
     toString() {
-      return dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'flattenString', this._contents), String);
+      return _js_helper.Primitives.flattenString(this._contents);
     }
     _writeString(str) {
-      this._contents = dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'stringConcatUnchecked', this._contents, str), String);
+      this._contents = _js_helper.Primitives.stringConcatUnchecked(this._contents, dart.as(str, String));
     }
   }
   class StringSink extends dart.Object {
@@ -1900,7 +1901,7 @@ var core;
       return dart.as(windows ? _makeWindowsFileUrl(path) : _makeFileUri(path), Uri);
     }
     static get base() {
-      let uri = dart.as(dart.dinvoke(/* Unimplemented unknown name */Primitives, 'currentUri'), String);
+      let uri = _js_helper.Primitives.currentUri();
       if (uri !== null)
         return Uri.parse(uri);
       throw new UnsupportedError("'Uri.base' is not supported");

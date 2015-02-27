@@ -192,6 +192,15 @@ part "symbol.dart";
 part "type.dart";
 part "uri.dart";
 import "dart:_internal" as _symbol_dev;
+import 'dart:_interceptors';
+import 'dart:_js_helper' show patch,
+                              checkInt,
+                              getRuntimeType,
+                              jsonEncodeNative,
+                              JSSyntaxRegExp,
+                              Primitives,
+                              stringJoinUnchecked,
+                              objectHashCode;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 _symbolMapToStringMap(Map<Symbol, dynamic> map) {

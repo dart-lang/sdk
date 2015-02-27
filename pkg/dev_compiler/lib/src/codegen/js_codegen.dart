@@ -324,7 +324,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Method _emitConstructor(ConstructorDeclaration node, String className,
       List<FieldDeclaration> fields) {
-    if (node.externalKeyword != null) return null;
+    if (_externalOrNative(node)) return null;
 
     var name = _constructorName(className, node.name);
 
@@ -540,7 +540,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Method visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isAbstract || node.externalKeyword != null) return null;
+    if (node.isAbstract || _externalOrNative(node)) {
+      return null;
+    }
 
     var params = _visit(node.parameters);
     if (params == null) params = [];
@@ -556,7 +558,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     assert(node.parent is CompilationUnit);
 
-    if (node.externalKeyword != null) return null;
+    if (_externalOrNative(node)) return null;
 
     if (node.isGetter || node.isSetter) {
       // Add these later so we can use getter/setter syntax.
@@ -1599,6 +1601,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (name == '[]=') return 'set';
     return name;
   }
+
+  bool _externalOrNative(node) =>
+      node.externalKeyword != null || _functionBody(node) is NativeFunctionBody;
+
+  FunctionBody _functionBody(node) =>
+      node is FunctionDeclaration ? node.functionExpression.body : node.body;
 
   String _maybeBindThis(node) {
     if (currentClass == null) return '';

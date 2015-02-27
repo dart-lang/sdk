@@ -23,6 +23,9 @@ part 'maps.dart';
 part 'queue.dart';
 part 'set.dart';
 part 'splay_tree.dart';
+import 'dart:_foreign_helper' show JS;
+import 'dart:_js_helper' show
+    fillLiteralMap, InternalMap, NoInline, NoThrows, patch;
 
 class _HashMap<K, V> implements HashMap<K, V> {
   int _length = 0;

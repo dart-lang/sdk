@@ -1446,7 +1446,7 @@ var _internal;
   }
   // Function makeListFixedLength: (List<dynamic>) → List
   function makeListFixedLength(growableList) {
-    dart.dinvoke(/* Unimplemented unknown name */JSArray, 'markFixedList', growableList);
+    _interceptors.JSArray.markFixedList(growableList);
     return growableList;
   }
   class Lists extends dart.Object {
@@ -1518,7 +1518,7 @@ var _internal;
   _internal.printToZone = null;
   // Function printToConsole: (String) → void
   function printToConsole(line) {
-    dart.dinvokef(/* Unimplemented unknown name */printString, `${line}`);
+    _js_primitives.printString(`${line}`);
   }
   class Sort extends dart.Object {
     static sort(a, compare) {

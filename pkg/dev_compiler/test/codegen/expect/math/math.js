@@ -57,49 +57,49 @@ var math;
   }
   // Function atan2: (num, num) → double
   function atan2(a, b) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.atan2(#, #)', dart.dinvokef(/* Unimplemented unknown name */checkNum, a), dart.dinvokef(/* Unimplemented unknown name */checkNum, b)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.atan2(#, #)', _js_helper.checkNum(a), _js_helper.checkNum(b)), core.double);
   }
   // Function pow: (num, num) → num
   function pow(x, exponent) {
-    dart.dinvokef(/* Unimplemented unknown name */checkNum, x);
-    dart.dinvokef(/* Unimplemented unknown name */checkNum, exponent);
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'num', 'Math.pow(#, #)', x, exponent), core.num);
+    _js_helper.checkNum(x);
+    _js_helper.checkNum(exponent);
+    return dart.as(_foreign_helper.JS('num', 'Math.pow(#, #)', x, exponent), core.num);
   }
   // Function sin: (num) → double
   function sin(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.sin(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.sin(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function cos: (num) → double
   function cos(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.cos(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.cos(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function tan: (num) → double
   function tan(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.tan(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.tan(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function acos: (num) → double
   function acos(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.acos(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.acos(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function asin: (num) → double
   function asin(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.asin(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.asin(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function atan: (num) → double
   function atan(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.atan(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.atan(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function sqrt: (num) → double
   function sqrt(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.sqrt(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.sqrt(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function exp: (num) → double
   function exp(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.exp(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.exp(#)', _js_helper.checkNum(x)), core.double);
   }
   // Function log: (num) → double
   function log(x) {
-    return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'double', 'Math.log(#)', dart.dinvokef(/* Unimplemented unknown name */checkNum, x)), core.double);
+    return dart.as(_foreign_helper.JS('double', 'Math.log(#)', _js_helper.checkNum(x)), core.double);
   }
   let _POW2_32 = 4294967296;
   class _JSRandom extends dart.Object {
@@ -109,13 +109,13 @@ var math;
       if (dart.notNull(max <= 0) || dart.notNull(max > _POW2_32)) {
         throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
       }
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "int", "(Math.random() * #) >>> 0", max), core.int);
+      return dart.as(_foreign_helper.JS("int", "(Math.random() * #) >>> 0", max), core.int);
     }
     nextDouble() {
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "double", "Math.random()"), core.double);
+      return dart.as(_foreign_helper.JS("double", "Math.random()"), core.double);
     }
     nextBool() {
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, "bool", "Math.random() < 0.5"), core.bool);
+      return dart.as(_foreign_helper.JS("bool", "Math.random() < 0.5"), core.bool);
     }
   }
   class _Random extends dart.Object {

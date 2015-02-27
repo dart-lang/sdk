@@ -3,7 +3,7 @@ var async;
   'use strict';
   dart.copyProperties(async, {
     get _hasDocument() {
-      return dart.equals(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', 'typeof document'), 'object');
+      return dart.equals(_foreign_helper.JS('String', 'typeof document'), 'object');
     }
   });
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
@@ -1329,31 +1329,31 @@ var async;
       dart.dinvokef(scheduleImmediateClosure, callback);
     }
     static _initializeScheduleImmediate() {
-      dart.dinvokef(/* Unimplemented unknown name */requiresPreamble);
-      if (dart.dinvokef(/* Unimplemented unknown name */JS, '', 'self.scheduleImmediate') !== null) {
+      _js_helper.requiresPreamble();
+      if (_foreign_helper.JS('', 'self.scheduleImmediate') !== null) {
         return _scheduleImmediateJsOverride;
       }
-      if (dart.notNull(dart.dinvokef(/* Unimplemented unknown name */JS, '', 'self.MutationObserver') !== null) && dart.notNull(dart.dinvokef(/* Unimplemented unknown name */JS, '', 'self.document') !== null)) {
-        let div = dart.dinvokef(/* Unimplemented unknown name */JS, '', 'self.document.createElement("div")');
-        let span = dart.dinvokef(/* Unimplemented unknown name */JS, '', 'self.document.createElement("span")');
+      if (dart.notNull(_foreign_helper.JS('', 'self.MutationObserver') !== null) && dart.notNull(_foreign_helper.JS('', 'self.document') !== null)) {
+        let div = _foreign_helper.JS('', 'self.document.createElement("div")');
+        let span = _foreign_helper.JS('', 'self.document.createElement("span")');
         let storedCallback = null;
         // Function internalCallback: (dynamic) → dynamic
         function internalCallback(_) {
-          dart.dinvokef(/* Unimplemented unknown name */leaveJsAsync);
+          _isolate_helper.leaveJsAsync();
           let f = storedCallback;
           storedCallback = null;
           dart.dinvokef(f);
         }
         ;
-        let observer = dart.dinvokef(/* Unimplemented unknown name */JS, '', 'new self.MutationObserver(#)', dart.dinvokef(/* Unimplemented unknown name */convertDartClosureToJS, internalCallback, 1));
-        dart.dinvokef(/* Unimplemented unknown name */JS, '', '#.observe(#, { childList: true })', observer, div);
+        let observer = _foreign_helper.JS('', 'new self.MutationObserver(#)', _js_helper.convertDartClosureToJS(internalCallback, 1));
+        _foreign_helper.JS('', '#.observe(#, { childList: true })', observer, div);
         return (callback) => {
           dart.assert(storedCallback === null);
-          dart.dinvokef(/* Unimplemented unknown name */enterJsAsync);
+          _isolate_helper.enterJsAsync();
           storedCallback = callback;
-          dart.dinvokef(/* Unimplemented unknown name */JS, '', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div, span, div, span);
+          _foreign_helper.JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div, span, div, span);
         };
-      } else if (dart.dinvokef(/* Unimplemented unknown name */JS, '', 'self.setImmediate') !== null) {
+      } else if (_foreign_helper.JS('', 'self.setImmediate') !== null) {
         return _scheduleImmediateWithSetImmediate;
       }
       return _scheduleImmediateWithTimer;
@@ -1361,22 +1361,22 @@ var async;
     static _scheduleImmediateJsOverride(callback) {
       // Function internalCallback: () → dynamic
       function internalCallback() {
-        dart.dinvokef(/* Unimplemented unknown name */leaveJsAsync);
+        _isolate_helper.leaveJsAsync();
         callback();
       }
       ;
-      dart.dinvokef(/* Unimplemented unknown name */enterJsAsync);
-      dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'self.scheduleImmediate(#)', dart.dinvokef(/* Unimplemented unknown name */convertDartClosureToJS, internalCallback, 0));
+      _isolate_helper.enterJsAsync();
+      _foreign_helper.JS('void', 'self.scheduleImmediate(#)', _js_helper.convertDartClosureToJS(internalCallback, 0));
     }
     static _scheduleImmediateWithSetImmediate(callback) {
       // Function internalCallback: () → dynamic
       function internalCallback() {
-        dart.dinvokef(/* Unimplemented unknown name */leaveJsAsync);
+        _isolate_helper.leaveJsAsync();
         callback();
       }
       ;
-      dart.dinvokef(/* Unimplemented unknown name */enterJsAsync);
-      dart.dinvokef(/* Unimplemented unknown name */JS, 'void', 'self.setImmediate(#)', dart.dinvokef(/* Unimplemented unknown name */convertDartClosureToJS, internalCallback, 0));
+      _isolate_helper.enterJsAsync();
+      _foreign_helper.JS('void', 'self.setImmediate(#)', _js_helper.convertDartClosureToJS(internalCallback, 0));
     }
     static _scheduleImmediateWithTimer(callback) {
       Timer._createTimer(core.Duration.ZERO, callback);
@@ -4017,13 +4017,13 @@ var async;
       let milliseconds = duration.inMilliseconds;
       if (milliseconds < 0)
         milliseconds = 0;
-      return dart.as(new TimerImpl(milliseconds, callback), Timer);
+      return new _isolate_helper.TimerImpl(milliseconds, callback);
     }
     static _createPeriodicTimer(duration, callback) {
       let milliseconds = duration.inMilliseconds;
       if (milliseconds < 0)
         milliseconds = 0;
-      return dart.as(new dart.dload(/* Unimplemented unknown name */TimerImpl, 'periodic')(milliseconds, callback), Timer);
+      return new _isolate_helper.TimerImpl.periodic(milliseconds, callback);
     }
   }
   dart.defineNamedConstructor(Timer, 'periodic');

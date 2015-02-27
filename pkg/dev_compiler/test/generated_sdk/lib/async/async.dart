@@ -107,5 +107,17 @@ part 'stream_pipe.dart';
 part 'stream_transformers.dart';
 part 'timer.dart';
 part 'zone.dart';
+import 'dart:_js_helper' show
+    patch,
+    Primitives,
+    convertDartClosureToJS,
+    requiresPreamble;
+import 'dart:_isolate_helper' show
+    IsolateNatives,
+    TimerImpl,
+    leaveJsAsync,
+    enterJsAsync,
+    isWorker;
+import 'dart:_foreign_helper' show JS;
 
 bool get _hasDocument => JS('String', 'typeof document') == 'object';

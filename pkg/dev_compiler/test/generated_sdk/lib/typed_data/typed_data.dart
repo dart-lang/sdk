@@ -6,8 +6,13 @@ library dart.typed_data;
 
 import 'dart:collection';
 import 'dart:_internal' show FixedLengthListMixin;
+import 'dart:_native_typed_data';
+import 'dart:_js_helper'
+    show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns, patch;
+import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_internal';
 import 'dart:math' as Math;
+import 'dart:_foreign_helper' show JS;
 
 /**
  * A sequence of bytes underlying a typed data object.

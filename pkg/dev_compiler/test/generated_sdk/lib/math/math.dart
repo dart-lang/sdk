@@ -11,6 +11,8 @@ part "jenkins_smi_hash.dart";
 part "point.dart";
 part "random.dart";
 part "rectangle.dart";
+import 'dart:_foreign_helper' show JS;
+import 'dart:_js_helper' show patch, checkNum;
 
 /**
  * Base of the natural logarithms.

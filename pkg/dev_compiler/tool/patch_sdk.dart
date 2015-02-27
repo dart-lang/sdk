@@ -18,7 +18,8 @@ void main(List<String> argv) {
   var toolDir = path.relative(path.dirname(Platform.script.path));
   var sdkIn = path.join(toolDir, 'input_sdk_src', 'lib');
   var patchIn = path.join(toolDir, 'input_sdk_patch');
-  var sdkOut = path.join(path.dirname(toolDir), 'test', 'generated_sdk', 'lib');
+  var sdkOut =
+      path.normalize(path.join(toolDir, '..', 'test', 'generated_sdk', 'lib'));
 
   if (argv.isNotEmpty) {
     print('Usage: ${path.relative(Platform.script.path)}\n');
@@ -37,7 +38,10 @@ void main(List<String> argv) {
 
   // Enumerate core libraries and apply patches
   for (var library in sdk.LIBRARIES.values) {
+    if (library.platforms & sdk.DART2JS_PLATFORM == 0) continue;
+
     var libraryPath = path.join(sdkIn, library.path);
+
     var libraryFile = new File(libraryPath);
     if (libraryFile.existsSync()) {
       var contents = <String>[];
@@ -52,11 +56,13 @@ void main(List<String> argv) {
         }
       }
 
-      var patchPath = path.join(patchIn, library.dart2jsPatchPath.replaceAll(
-          '_internal/compiler/js_lib/', ''));
-      var patchContents = new File(patchPath).readAsStringSync();
+      if (library.dart2jsPatchPath != null) {
+        var patchPath = path.join(patchIn, library.dart2jsPatchPath.replaceAll(
+            '_internal/compiler/js_lib/', ''));
+        var patchContents = new File(patchPath).readAsStringSync();
 
-      contents = _patchLibrary(contents, patchContents);
+        contents = _patchLibrary(contents, patchContents);
+      }
       for (var i = 0; i < paths.length; i++) {
         var outPath = path.join(sdkOut, path.relative(paths[i], from: sdkIn));
         _writeSync(outPath, contents[i]);
@@ -133,8 +139,6 @@ class PatchApplier extends GeneralizingAstVisitor {
     var directivePos = unit.directives.last.end;
     for (var directive in patch.unit.directives) {
       var uri = directive.uri.stringValue;
-      // TODO(jmesserly): figure out what to do about these
-      if (uri.startsWith('dart:_') && uri != 'dart:_internal') continue;
       var code = patch.contents.substring(directive.offset, directive.end);
       edits.insert(directivePos, '\n' + code);
     }

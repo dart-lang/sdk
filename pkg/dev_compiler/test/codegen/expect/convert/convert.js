@@ -6,13 +6,13 @@ var convert;
     dart.assert(reviver !== null);
     // Function walk: (dynamic) → dynamic
     function walk(e) {
-      if (dart.dbinary(dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', '# == null', e), '||', dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'typeof # != "object"', e))) {
+      if (dart.dbinary(_foreign_helper.JS('bool', '# == null', e), '||', _foreign_helper.JS('bool', 'typeof # != "object"', e))) {
         return e;
       }
-      if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
-        for (let i = 0; i['<'](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', e)); i++) {
-          let item = dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', e, i);
-          dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', e, i, reviver(i, walk(item)));
+      if (_foreign_helper.JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
+        for (let i = 0; i['<'](_foreign_helper.JS('int', '#.length', e)); i++) {
+          let item = _foreign_helper.JS('', '#[#]', e, i);
+          _foreign_helper.JS('', '#[#]=#', e, i, reviver(i, walk(item)));
         }
         return e;
       }
@@ -21,8 +21,8 @@ var convert;
       let keys = map._computeKeys();
       for (let i = 0; i < keys.length; i++) {
         let key = keys.get(i);
-        let revived = reviver(key, walk(dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', e, key)));
-        dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', processed, key, revived);
+        let revived = reviver(key, walk(_foreign_helper.JS('', '#[#]', e, key)));
+        _foreign_helper.JS('', '#[#]=#', processed, key, revived);
       }
       map._original = processed;
       return map;
@@ -33,15 +33,15 @@ var convert;
   function _convertJsonToDartLazy(object) {
     if (object === null)
       return null;
-    if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'typeof # != "object"', object)) {
+    if (_foreign_helper.JS('bool', 'typeof # != "object"', object)) {
       return object;
     }
-    if (dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
+    if (_foreign_helper.JS('bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
       return new _JsonMap(object);
     }
-    for (let i = 0; i['<'](dart.dinvokef(/* Unimplemented unknown name */JS, 'int', '#.length', object)); i++) {
-      let item = dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', object, i);
-      dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', object, i, _convertJsonToDartLazy(item));
+    for (let i = 0; i['<'](_foreign_helper.JS('int', '#.length', object)); i++) {
+      let item = _foreign_helper.JS('', '#[#]', object, i);
+      _foreign_helper.JS('', '#[#]=#', object, i, _convertJsonToDartLazy(item));
     }
     return object;
   }
@@ -167,7 +167,7 @@ var convert;
     }
     get _upgradedMap() {
       dart.assert(this._isUpgraded);
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'LinkedHashMap', '#', this._data), core.Map);
+      return dart.as(_foreign_helper.JS('LinkedHashMap', '#', this._data), core.Map);
     }
     _computeKeys() {
       dart.assert(!dart.notNull(this._isUpgraded));
@@ -175,7 +175,7 @@ var convert;
       if (keys === null) {
         keys = this._data = _getPropertyNames(this._original);
       }
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'JSExtendableArray', '#', keys), core.List$(core.String));
+      return dart.as(_foreign_helper.JS('JSExtendableArray', '#', keys), core.List$(core.String));
     }
     _upgrade() {
       if (this._isUpgraded)
@@ -203,22 +203,22 @@ var convert;
       return _setProperty(this._processed, key, result);
     }
     static _hasProperty(object, key) {
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key), core.bool);
+      return dart.as(_foreign_helper.JS('bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key), core.bool);
     }
     static _getProperty(object, key) {
-      return dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]', object, key);
+      return _foreign_helper.JS('', '#[#]', object, key);
     }
     static _setProperty(object, key, value) {
-      return dart.dinvokef(/* Unimplemented unknown name */JS, '', '#[#]=#', object, key, value);
+      return _foreign_helper.JS('', '#[#]=#', object, key, value);
     }
     static _getPropertyNames(object) {
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'JSExtendableArray', 'Object.keys(#)', object), core.List);
+      return dart.as(_foreign_helper.JS('JSExtendableArray', 'Object.keys(#)', object), core.List);
     }
     static _isUnprocessed(object) {
-      return dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'bool', 'typeof(#)=="undefined"', object), core.bool);
+      return dart.as(_foreign_helper.JS('bool', 'typeof(#)=="undefined"', object), core.bool);
     }
     static _newJavaScriptObject() {
-      return dart.dinvokef(/* Unimplemented unknown name */JS, '=Object', 'Object.create(null)');
+      return _foreign_helper.JS('=Object', 'Object.create(null)');
     }
   }
   class _JsonMapKeyIterable extends _internal.ListIterable {
@@ -1042,9 +1042,9 @@ var convert;
       throw new core.ArgumentError(source);
     let parsed = null;
     try {
-      parsed = dart.dinvokef(/* Unimplemented unknown name */JS, '=Object|JSExtendableArray|Null|bool|num|String', 'JSON.parse(#)', source);
+      parsed = _foreign_helper.JS('=Object|JSExtendableArray|Null|bool|num|String', 'JSON.parse(#)', source);
     } catch (e) {
-      throw new core.FormatException(dart.as(dart.dinvokef(/* Unimplemented unknown name */JS, 'String', 'String(#)', e), core.String));
+      throw new core.FormatException(dart.as(_foreign_helper.JS('String', 'String(#)', e), core.String));
     }
 
     if (reviver === null) {
