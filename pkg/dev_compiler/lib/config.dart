@@ -8,7 +8,7 @@ library ddc.config;
 // Options shared by the compiler and runtime.
 class TypeOptions {
   static const NONNULLABLE_TYPES = const <String>['int', 'double'];
-  final nonnullableTypes;
+  final List<String> nonnullableTypes;
 
   TypeOptions({this.nonnullableTypes: NONNULLABLE_TYPES});
 }

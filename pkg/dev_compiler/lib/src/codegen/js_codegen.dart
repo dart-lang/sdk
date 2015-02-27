@@ -315,7 +315,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // If we don't have a method body, skip this.
     if (fields.isEmpty) return null;
 
-    var body = _initializeFields(fields);
+    dynamic body = _initializeFields(fields);
     var superCall = _superConstructorCall(node);
     if (superCall != null) body = [[body, superCall]];
     return new JS.Method(

@@ -125,7 +125,7 @@ class Template {
  * trees. [arguments] is a List for positional templates, or Map for
  * named templates.
  */
-typedef Node Instantiator(var arguments);
+typedef Instantiator(var arguments);
 
 
 /**

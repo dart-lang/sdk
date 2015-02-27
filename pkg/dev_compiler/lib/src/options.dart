@@ -54,7 +54,7 @@ class ResolverOptions {
   final bool onlyInferConstsAndFinalFields;
 
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const [], this.inferFromOverrides: true,
+      this.packagePaths: const <String>[], this.inferFromOverrides: true,
       this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false});
@@ -187,7 +187,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
       this.outputDart: false, this.useColors: true,
       this.covariantGenerics: true, this.relaxedCasts: true,
       this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const [], this.inferFromOverrides: true,
+      this.packagePaths: const <String>[], this.inferFromOverrides: true,
       this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false,
