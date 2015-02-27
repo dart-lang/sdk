@@ -45,11 +45,9 @@ FOR_EACH_UNREACHABLE_NODE(DEFINE_UNREACHABLE)
 #undef DEFINE_UNREACHABLE
 
 AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
-                                   const ParsedFunction& parsed_function,
                                    LocalScope* function_top)
     : preamble_(preamble),
       temp_cnt_(0),
-      parsed_function_(parsed_function),
       function_top_(function_top),
       thread_(Thread::Current()) {
   ASSERT(function_top_ != NULL);
@@ -106,6 +104,30 @@ void AwaitTransformer::VisitLiteralNode(LiteralNode* node) {
 
 void AwaitTransformer::VisitTypeNode(TypeNode* node) {
   result_ = new(Z) TypeNode(node->token_pos(), node->type());
+}
+
+
+// Restore the currently relevant :saved_try_context_var on the stack
+// from the captured :async_saved_try_ctx_var_<try_index>.
+AstNode* AwaitTransformer::RestoreSavedTryContext(Zone* zone,
+                                                  LocalScope* scope,
+                                                  int16_t try_index) {
+  LocalVariable* saved_try_ctx =
+      scope->LookupVariable(Symbols::SavedTryContextVar(), false);
+  ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
+  const String& async_saved_try_ctx_name = String::ZoneHandle(zone,
+      Symbols::New(String::Handle(zone,
+          String::NewFormatted("%s%d",
+                               Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
+                               try_index))));
+  LocalVariable* async_saved_try_ctx =
+      scope->LookupVariable(async_saved_try_ctx_name, false);
+  ASSERT(async_saved_try_ctx != NULL);
+  ASSERT(async_saved_try_ctx->is_captured());
+  return new (zone) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      saved_try_ctx,
+      new (zone) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx));
 }
 
 
@@ -212,16 +234,19 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   preamble_->Add(continuation_return);
 
   // If this expression is part of a try block, also append the code for
-  // restoring the saved try context that lives on the stack.
-  const String& async_saved_try_ctx_name =
-      String::Handle(Z, parsed_function_.async_saved_try_ctx_name());
-  if (!async_saved_try_ctx_name.IsNull()) {
-    LocalVariable* async_saved_try_ctx =
-        GetVariableInScope(preamble_->scope(), async_saved_try_ctx_name);
-    preamble_->Add(new (Z) StoreLocalNode(
-        Scanner::kNoSourcePos,
-        parsed_function_.saved_try_ctx(),
-        new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
+  // restoring the saved try context that lives on the stack and possibly the
+  // saved try context of the outer try block.
+  if (node->try_scope() != NULL) {
+    preamble_->Add(RestoreSavedTryContext(Z,
+                                          node->try_scope(),
+                                          node->try_index()));
+    if (node->outer_try_scope() != NULL) {
+      preamble_->Add(RestoreSavedTryContext(Z,
+                                            node->outer_try_scope(),
+                                            node->outer_try_index()));
+    }
+  } else {
+    ASSERT(node->outer_try_scope() == NULL);
   }
 
   LoadLocalNode* load_error_param = new (Z) LoadLocalNode(

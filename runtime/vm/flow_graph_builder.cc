@@ -4092,6 +4092,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     finally_block->Visit(&for_finally);
     if (for_finally.is_open()) {
       // Rethrow the exception.  Manually build the graph for rethrow.
+      // TODO(regis): This is not correct. Issue 22595.
       Value* exception = for_finally.Bind(
           for_finally.BuildLoadLocal(catch_block->exception_var()));
       for_finally.PushArgument(exception);

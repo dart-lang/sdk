@@ -94,6 +94,7 @@ class ObjectPointerVisitor;
   V(AsyncOperationParam, ":async_result")                                      \
   V(AsyncOperationErrorParam, ":async_error_param")                            \
   V(AsyncOperationStackTraceParam, ":async_stack_trace_param")                 \
+  V(AsyncSavedTryCtxVarPrefix, ":async_saved_try_ctx_var_")                    \
   V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
   V(Await, "await")                                                            \
   V(AwaitContextVar, ":await_ctx_var")                                         \

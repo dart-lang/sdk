@@ -57,9 +57,7 @@ class ParsedFunction : public ZoneAllocated {
         first_stack_local_index_(0),
         num_copied_params_(0),
         num_stack_locals_(0),
-        have_seen_await_expr_(false),
-        saved_try_ctx_(NULL),
-        async_saved_try_ctx_name_(String::ZoneHandle(zone(), String::null())) {
+        have_seen_await_expr_(false) {
     ASSERT(function.IsZoneHandle());
     // Every function has a local variable for the current context.
     LocalVariable* temp = new(zone()) LocalVariable(
@@ -152,24 +150,6 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
-  void set_saved_try_ctx(LocalVariable* saved_try_ctx) {
-    ASSERT((saved_try_ctx == NULL) || !saved_try_ctx->is_captured());
-    saved_try_ctx_ = saved_try_ctx;
-  }
-  LocalVariable* saved_try_ctx() const { return saved_try_ctx_; }
-
-  void set_async_saved_try_ctx_name(const String& async_saved_try_ctx_name) {
-    async_saved_try_ctx_name_ = async_saved_try_ctx_name.raw();
-  }
-  RawString* async_saved_try_ctx_name() const {
-    return async_saved_try_ctx_name_.raw();
-  }
-
-  void reset_saved_try_ctx_vars() {
-    saved_try_ctx_ = NULL;
-    async_saved_try_ctx_name_ = String::null();
-  }
-
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread()->isolate(); }
   Zone* zone() const { return thread()->zone(); }
@@ -193,8 +173,6 @@ class ParsedFunction : public ZoneAllocated {
   int num_copied_params_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
-  LocalVariable* saved_try_ctx_;
-  String& async_saved_try_ctx_name_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
@@ -602,9 +580,9 @@ class Parser : public ValueObject {
   void AddCatchParamsToScope(CatchParamDesc* exception_param,
                              CatchParamDesc* stack_trace_param,
                              LocalScope* scope);
-  void AddSavedExceptionAndStacktraceToScope(LocalVariable* exception_var,
-                                             LocalVariable* stack_trace_var,
-                                             LocalScope* scope);
+  void SetupSavedExceptionAndStacktrace();
+  void SaveExceptionAndStacktrace(LocalVariable* exception_var,
+                                  LocalVariable* stack_trace_var);
   // Parse all the catch clause of a try.
   SequenceNode* ParseCatchClauses(intptr_t handler_pos,
                                   LocalVariable* exception_var,
@@ -617,6 +595,11 @@ class Parser : public ValueObject {
   void PushTryBlock(Block* try_block);
   // Pops the inner most try block from the list.
   TryBlocks* PopTryBlock();
+  // Collect try block scopes and indices if await or yield is in try block.
+  void CheckAsyncOpInTryBlock(LocalScope** try_scope,
+                              int16_t* try_index,
+                              LocalScope** outer_try_scope,
+                              int16_t* outer_try_index) const;
   // Add specified node to try block list so that it can be patched with
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
@@ -752,9 +735,6 @@ class Parser : public ValueObject {
                                   const Function* func);
 
   void SetupSavedTryContext(LocalVariable* saved_try_context);
-  void RestoreSavedTryContext(LocalScope* saved_try_context_scope,
-                              int16_t try_index,
-                              SequenceNode* target);
 
   void CheckOperatorArity(const MemberDesc& member);
 
