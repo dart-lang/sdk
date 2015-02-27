@@ -2082,7 +2082,6 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
       assertSuggestInvocationMethod('toString', 'Object', 'String');
-      //TODO (danrubel) type for '_c' should be 'X' not null
       assertNotSuggested('Object');
       assertNotSuggested('A');
       assertNotSuggested('==');
@@ -2803,6 +2802,105 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementLength, 0);
       assertSuggestInvocationGetter('isEmpty', 'bool');
       assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_const() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('const String g = "hello"; f() {g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_field() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('class A {String g; f() {g.^ int y = 0;}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_function() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('String g() => "one"; f() {g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_functionTypeAlias() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('typedef String g(); f() {g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_getter() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('String get g => "one"; f() {g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_local_typed() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('f() {String g; g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_local_untyped() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('f() {var g = "hello"; g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_method() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('class A {String g() {}; f() {g.^ int y = 0;}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_param() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('class A {f(String g) {g.^ int y = 0;}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_param2() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('f(String g) {g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
+  test_PrefixedIdentifier_trailingStmt_topLevelVar() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('String g; f() {g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
     });
   }
 

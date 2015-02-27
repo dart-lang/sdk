@@ -47,16 +47,16 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitBlock(Block node) {
-    node.statements.forEach((Statement stmt) {
+    for (Statement stmt in node.statements) {
       if (stmt.offset < offset) {
         if (stmt is VariableDeclarationStatement) {
           VariableDeclarationList varList = stmt.variables;
           if (varList != null) {
-            varList.variables.forEach((VariableDeclaration varDecl) {
+            for (VariableDeclaration varDecl in varList.variables) {
               if (varDecl.end < offset) {
                 declaredLocalVar(varDecl.name, varList.type);
               }
-            });
+            };
           }
         } else if (stmt is FunctionDeclarationStatement) {
           FunctionDeclaration declaration = stmt.functionDeclaration;
@@ -71,7 +71,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
           }
         }
       }
-    });
+    };
     return visitNode(node);
   }
 

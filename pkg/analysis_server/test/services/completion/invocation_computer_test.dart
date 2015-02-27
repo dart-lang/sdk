@@ -64,6 +64,15 @@ void f(Derived d) {
     });
   }
 
+  fail_test_PrefixedIdentifier_trailingStmt_const_untyped() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('length', 'int');
+    });
+  }
+
   @override
   void setUpComputer() {
     computer = new InvocationComputer();
