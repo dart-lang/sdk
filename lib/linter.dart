@@ -4,5 +4,5 @@
 
 library linter;
 
-export 'package:linter/src/linter.dart' show DartLinter, LinterOptions,
-    LinterException;
+export 'package:linter/src/linter.dart'
+    show DartLinter, LinterOptions, LinterException;

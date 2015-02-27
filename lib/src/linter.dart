@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter_impl;
+library linter.src.linter;
 
 import 'dart:io';
 
@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:linter/src/analysis.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/pub.dart';
@@ -35,8 +34,6 @@ typedef Printer(String msg);
 
 /// Describes a set of enabled rules.
 typedef Iterable<LintRule> RuleSet();
-
-typedef AnalysisDriver _DriverFactory();
 
 /// Describes a String in valid camel case format.
 class CamelCaseString {
@@ -65,10 +62,7 @@ abstract class DartLinter {
 
   LinterOptions get options;
 
-  Iterable<AnalysisErrorInfo> lintFile(File sourceFile);
-
-  Iterable<AnalysisErrorInfo> lintLibrarySource(
-      {String libraryName, String libraryContents});
+  Iterable<AnalysisErrorInfo> lintFiles(List<File> files);
 
   Iterable<AnalysisErrorInfo> lintPubspecSource({String contents});
 }
@@ -194,8 +188,6 @@ class LinterException implements Exception {
 class LinterOptions extends DriverOptions {
   final RuleSet _enabledLints;
   final bool enableLints = true;
-  final ErrorFilter errorFilter =
-      (AnalysisError error) => error.errorCode.type == ErrorType.LINT;
   LinterOptions(this._enabledLints);
   Iterable<Linter> get enabledLints => _enabledLints();
 }
@@ -321,7 +313,6 @@ class PrintingReporter implements Reporter, Logger {
     _print('WARN: $message');
   }
 }
-
 abstract class Reporter {
   void exception(LinterException exception);
   void warn(String message);
@@ -336,16 +327,16 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       : this.options = options != null ? options : _defaultOptions();
 
   @override
-  Iterable<AnalysisErrorInfo> lintFile(File sourceFile) =>
-      isPubspecFile(sourceFile)
-          ? _lintPubspecFile(sourceFile)
-          : _lintDartFile(sourceFile);
-
-  @override
-  Iterable<AnalysisErrorInfo> lintLibrarySource(
-      {String libraryName, String libraryContents}) => _registerAndRun(
-          () => new AnalysisDriver.forSource(
-              new _StringSource(libraryContents, libraryName), options));
+  Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
+    List<AnalysisErrorInfo> errors = [];
+    _registerLinters(options.enabledLints);
+    errors.addAll(
+        new AnalysisDriver(options).analyze(files.where((f) => isDartFile(f))));
+    files
+        .where((f) => isPubspecFile(f))
+        .forEach((p) => errors.addAll(_lintPubspecFile(p)));
+    return errors;
+  }
 
   @override
   Iterable<AnalysisErrorInfo> lintPubspecSource({String contents}) {
@@ -375,16 +366,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   onError(AnalysisError error) => errors.add(error);
 
-  Iterable<AnalysisErrorInfo> _lintDartFile(File sourceFile) =>
-      _registerAndRun(() => new AnalysisDriver.forFile(sourceFile, options));
-
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(contents: sourceFile.readAsStringSync());
-
-  Iterable<AnalysisErrorInfo> _registerAndRun(_DriverFactory createDriver) {
-    _registerLinters(options.enabledLints);
-    return createDriver().getErrors();
-  }
 
   static LinterOptions _defaultOptions() =>
       new LinterOptions(() => ruleMap.values);
@@ -397,10 +380,4 @@ class _LineInfo implements LineInfo {
   @override
   LineInfo_Location getLocation(int offset) =>
       new LineInfo_Location(node.span.start.line + 1, node.span.start.column);
-}
-
-class _StringSource extends StringSource {
-  _StringSource(String contents, String fullName) : super(contents, fullName);
-
-  UriKind get uriKind => UriKind.FILE_URI;
 }

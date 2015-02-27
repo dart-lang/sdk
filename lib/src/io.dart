@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library io;
+library linter.src.io;
 
 import 'dart:io';
 
-import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 
@@ -16,50 +15,36 @@ IOSink std_err = stderr;
 /// Visible for testing
 IOSink std_out = stdout;
 
-bool isDartFile(FileSystemEntity entry) => isDartFileName(entry.path);
+Iterable<File> collectFiles(String path) {
+  List<File> files = [];
 
+  var file = new File(path);
+  if (file.existsSync()) {
+    files.add(file);
+  } else {
+    var directory = new Directory(path);
+    if (directory.existsSync()) {
+      for (var entry
+          in directory.listSync(recursive: true, followLinks: false)) {
+        var relative = p.relative(entry.path, from: directory.path);
+
+        if (entry is! File || !isLintable(entry)) continue;
+
+        // If the path is in a subdirectory starting with ".", ignore it.
+        if (p.split(relative).any((part) => part.startsWith("."))) {
+          continue;
+        }
+
+        files.add(entry);
+      }
+    }
+  }
+
+  return files;
+}
+
+bool isDartFile(FileSystemEntity entry) => isDartFileName(entry.path);
 bool isLintable(FileSystemEntity file) =>
     isDartFile(file) || isPubspecFile(file);
 bool isPubspecFile(FileSystemEntity entry) =>
     isPubspecFileName(p.basename(entry.path));
-
-/// Runs the linter on [file], skipping links and files not ending in the
-/// '.dart' extension.
-///
-/// Returns `true` if successful or `false` if an error occurred.
-bool lintFile(FileSystemEntity file,
-    {String dartSdkPath, String packageRoot, DartLinter linter}) {
-  var path = file.path;
-
-  if (file is Link) {
-    std_out.writeln('Skipping link $path');
-    return false;
-  }
-
-  if (!isLintable(file)) {
-    std_out.writeln('Skipping $path (unsupported extenstion)');
-    return false;
-  }
-
-  if (linter == null) {
-    linter = new DartLinter();
-  }
-
-  if (dartSdkPath != null) {
-    linter.options.dartSdkPath = dartSdkPath;
-  }
-  if (packageRoot != null) {
-    linter.options.packageRootPath = packageRoot;
-  }
-
-  try {
-    linter.lintFile(file);
-    return true;
-  } catch (err, stack) {
-    std_err.writeln('''An error occurred while linting $path
-  Please report it at: github.com/dart-lang/dart_lint/issues
-$err
-$stack''');
-  }
-  return false;
-}

@@ -4,8 +4,10 @@
 
 import 'dart:io';
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/io.dart';
+import 'package:linter/src/linter.dart';
 
 void main(List<String> args) {
   var parser = new ArgParser(allowTrailingOptions: true);
@@ -34,24 +36,30 @@ void main(List<String> args) {
 
   if (options.rest.isEmpty) {
     printUsage(
-        parser, "Please provide at least one pubspec or library file to lint.");
+        parser, "Please provide at least one file or directory to lint.");
     exitCode = unableToProcessExitCode;
     return;
   }
 
+  List<File> filesToLint = [];
   for (var path in options.rest) {
-    var file = new File(path);
-    if (file.existsSync()) {
-      stdout.writeln("Linting $path...");
-      if (!lintFile(file)) {
-        exitCode = processFileFailedExitCode;
-      }
-    } else {
-      stderr.writeln('No file found at "$path".');
-      exitCode = unableToProcessExitCode;
-    }
+    filesToLint.addAll(collectFiles(path));
+  }
+
+  //TODO: set options
+  var linter = new DartLinter();
+  try {
+    List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
+    //TODO: format errors
+    errors.forEach((info) => (info.errors.forEach((e) => print(e))));
+  } catch (err, stack) {
+    std_err.writeln('''An error occurred while linting 
+  Please report it at: github.com/dart-lang/linter/issues
+$err
+$stack''');
   }
 }
+
 const processFileFailedExitCode = 65;
 
 const unableToProcessExitCode = 64;
@@ -66,7 +74,7 @@ void printUsage(ArgParser parser, [String error]) {
   }
 
   stdout.writeln('''$message
-Usage: linter <pubspec|library_files>
+Usage: linter <file>
 ${parser.usage}
   
 For more information, see https://github.com/dart-lang/linter
