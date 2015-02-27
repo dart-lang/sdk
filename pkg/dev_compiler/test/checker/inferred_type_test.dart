@@ -379,7 +379,6 @@ main() {
             final e2 = 1;
           }
       ''',
-      '/e2.dart': '',
       '/f.dart': '''
           part "f2.dart";
       ''',

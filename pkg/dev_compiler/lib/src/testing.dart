@@ -287,6 +287,8 @@ class _TestSource implements Source {
 
   bool exists() => true;
 
+  Source get source => this;
+
   String _encoding;
   String get encoding => _encoding != null ? _encoding : (_encoding = '$uri');
 

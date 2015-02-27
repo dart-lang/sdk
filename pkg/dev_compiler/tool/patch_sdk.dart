@@ -108,7 +108,6 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents) {
   var patchFinder = new PatchFinder.parseAndVisit(patchContents);
 
   // Merge `external` declarations with the corresponding `@patch` code.
-  bool first = true;
   for (var partContent in partsContents) {
     var partEdits = new StringEditBuffer(partContent);
     var partUnit = parseCompilationUnit(partContent);
@@ -138,7 +137,6 @@ class PatchApplier extends GeneralizingAstVisitor {
     // TODO(jmesserly): remove duplicate imports
     var directivePos = unit.directives.last.end;
     for (var directive in patch.unit.directives) {
-      var uri = directive.uri.stringValue;
       var code = patch.contents.substring(directive.offset, directive.end);
       edits.insert(directivePos, '\n' + code);
     }

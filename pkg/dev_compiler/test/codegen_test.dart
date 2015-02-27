@@ -124,7 +124,7 @@ main(arguments) {
           ? path.join(testDir, '..', 'tool', 'input_sdk_src')
           : path.join(testDir, 'generated_sdk');
       var testSdk = new TypeResolver.fromDir(sdkPath, options);
-      var result = compile('dart:core', testSdk, options);
+      compile('dart:core', testSdk, options);
       var outputDir = new Directory(path.join(actualDir, 'core'));
       expect(outputDir.existsSync(), true,
           reason: '${outputDir.path} was created for dart:core');

@@ -128,21 +128,7 @@ Arity getArity(Function f) {
   return new Arity._internal(normal, optionalPositional);
 }
 
-bool _isFunctionSubType(TypeMirror t1, TypeMirror t2) {
-  // Function types follow the standard non-Dart rule:
-  // - contravariant on param types
-  // - covariant on return type
-  final f1 = t1 as FunctionTypeMirror;
-  final f2 = t2 as FunctionTypeMirror;
-
-  final params1 = f1.parameters;
-  final params2 = f2.parameters;
-  final ret1 = f1.returnType;
-  final ret2 = f2.returnType;
-  return _isFunctionSubTypeHelper(ret1, params1, ret2, params2);
-}
-
-bool _isFunctionSubTypeHelper(TypeMirror ret1, List<ParameterMirror> params1,
+bool _isFunctionSubType(TypeMirror ret1, List<ParameterMirror> params1,
     TypeMirror ret2, List<ParameterMirror> params2) {
   if (!_isSubType(ret1, ret2)) {
     // Covariant return types
@@ -334,5 +320,5 @@ bool _isSubType(TypeMirror t1, TypeMirror t2) {
   if (_reflects(c2, Function)) return true;
 
   // Check structural function subtyping
-  return _isFunctionSubTypeHelper(ret1, params1, c2.returnType, c2.parameters);
+  return _isFunctionSubType(ret1, params1, c2.returnType, c2.parameters);
 }

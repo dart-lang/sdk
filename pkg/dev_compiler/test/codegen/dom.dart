@@ -20,10 +20,8 @@ class Overload {
 }
 const overload = const Overload();
 
-// TODO(jmesserly): uncomment once fix lands for:
-// https://github.com/dart-lang/dart_style/issues/85
-// @JsGlobal()
-final Document document;
+@JsGlobal()
+final Document document = null;
 
 @JsType(name: 'Document')
 abstract class Document {
