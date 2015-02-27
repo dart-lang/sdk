@@ -843,7 +843,7 @@ class LibraryUpdater extends JsFeatures {
 
     for (ClassElementX cls in newClasses) {
       jsAst.Node classAccess = emitter.constructorAccess(cls);
-      String name = namer.getNameOfClass(cls);
+      String name = namer.className(cls);
 
       updates.add(
           js.statement(
@@ -921,7 +921,7 @@ if (this.pendingStubs) {
   }
 
   jsAst.Expression invokeDefineClass(ClassElementX cls) {
-    String name = namer.getNameOfClass(cls);
+    String name = namer.className(cls);
     var descriptor = js('Object.create(null)');
     return js(
         r'''
@@ -1141,7 +1141,7 @@ class RemovedFunctionUpdate extends RemovalUpdate
 
     if (element.isInstanceMember) {
       elementAccess = emitter.constructorAccess(element.enclosingClass);
-      name = namer.getNameOfMember(element);
+      name = namer.instanceMethodName(element);
     } else {
       elementAccess = emitter.staticFunctionAccess(element);
     }
@@ -1250,8 +1250,8 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
     wasStateCaptured = true;
 
     prototypeAccess = emitter.prototypeAccess(element.enclosingClass);
-    getterName = namer.getterName(element);
-    setterName = namer.setterName(element);
+    getterName = namer.getterForElement(element);
+    setterName = namer.setterForElement(element);
   }
 
   FieldElementX apply() {
