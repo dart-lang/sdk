@@ -15,8 +15,6 @@ void testTransform(String source, String expected) {
       null,
       asyncHelper: new VariableUse("thenHelper"),
       newCompleter: new VariableUse("Completer"),
-      endOfIteration: new VariableUse("endOfIteration"),
-      newIterable: new VariableUse("Iterator"),
       safeVariableName: (String name) => "__$name").rewrite(fun);
 
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
@@ -84,7 +82,7 @@ function(a) {
     return 4;
   }""", """
 function(b) {
-  var __goto = 0, __completer = new Completer(), __handler = 2, __currentError, __next, __returnValue, __helper;
+  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __next, __helper;
   function __body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -542,7 +540,7 @@ function(g) async {
 }
 """, """
 function(g) {
-  var __goto = 0, __completer = new Completer(), __handler = 2, __currentError, __returnValue, i, __temp1;
+  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, i, __temp1;
   function __body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -708,7 +706,7 @@ function(c, i) async {
 }
 """, """
 function(c, i) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next, x, y, __error1, __error2;
+  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next, x, y, __error, __error1;
   function __body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -744,14 +742,14 @@ function(c, i) {
         case 3:
           // catch
           __handler = 2;
-          __error1 = __currentError;
+          __error = __currentError;
           __handler = 11;
           __goto = c ? 14 : 16;
           break;
         case 14:
           // then
           __goto = 17;
-          return thenHelper(fooError(__error1), __body, __completer);
+          return thenHelper(fooError(__error), __body, __completer);
         case 17:
           // returning from await.
           // goto join
@@ -759,7 +757,7 @@ function(c, i) {
           break;
         case 16:
           // else
-          __result = fooError(__error1);
+          __result = fooError(__error);
         case 15:
           // join
           x = __result;
@@ -770,8 +768,8 @@ function(c, i) {
         case 11:
           // catch
           __handler = 10;
-          __error2 = __currentError;
-          y.x = foo(__error2);
+          __error1 = __currentError;
+          y.x = foo(__error1);
           __next = [13];
           // goto finally
           __goto = 12;
@@ -901,7 +899,7 @@ function(x, y, k) async {
   }
 }""", """
 function(x, y, k) {
-  var __goto = 0, __completer = new Completer(), __handler = 2, __currentError, __returnValue, __temp1;
+  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __temp1;
   function __body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;

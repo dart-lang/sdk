@@ -24,7 +24,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     if (element is FunctionElement) {
       JavaScriptBackend backend = builder.backend;
 
-      AsyncRewriter rewriter = null;
+      AsyncRewriterBase rewriter = null;
 
       if (element.asyncMarker == AsyncMarker.ASYNC) {
         rewriter = new AsyncRewriter(
@@ -36,7 +36,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.getCompleterConstructor()),
             safeVariableName: backend.namer.safeVariableName);
       } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
-        rewriter = new AsyncRewriter(
+        rewriter = new SyncStarRewriter(
             backend.compiler,
             backend.compiler.currentElement,
             endOfIteration: backend.emitter.staticFunctionAccess(
@@ -50,10 +50,10 @@ class SsaFunctionCompiler implements FunctionCompiler {
             safeVariableName: backend.namer.safeVariableName);
       }
       else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
-        rewriter = new AsyncRewriter(
+        rewriter = new AsyncStarRewriter(
             backend.compiler,
             backend.compiler.currentElement,
-            streamHelper: backend.emitter.staticFunctionAccess(
+            asyncStarHelper: backend.emitter.staticFunctionAccess(
                 backend.getAsyncStarHelper()),
             streamOfController: backend.emitter.staticFunctionAccess(
                 backend.getStreamOfController()),
