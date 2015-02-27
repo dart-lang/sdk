@@ -95,8 +95,8 @@ class OldEmitter implements Emitter {
         cachedEmittedConstants = compiler.cacheStrategy.newSet(),
         cachedClassBuilders = compiler.cacheStrategy.newMap(),
         cachedElements = compiler.cacheStrategy.newSet() {
-    constantEmitter =
-        new ConstantEmitter(compiler, namer, makeConstantListTemplate);
+    constantEmitter = new ConstantEmitter(
+        compiler, namer, this.constantReference, makeConstantListTemplate);
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
@@ -128,12 +128,58 @@ class OldEmitter implements Emitter {
   }
 
   @override
+  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
+    if (constant.isFunction) return true;    // Already emitted.
+    if (constant.isPrimitive) return true;   // Inlined.
+    if (constant.isDummy) return true;       // Inlined.
+    // The name is null when the constant is already a JS constant.
+    // TODO(floitsch): every constant should be registered, so that we can
+    // share the ones that take up too much space (like some strings).
+    if (namer.constantName(constant) == null) return true;
+    return false;
+  }
+
+  @override
+  int compareConstants(ConstantValue a, ConstantValue b) {
+    // Inlined constants don't affect the order and sometimes don't even have
+    // names.
+    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
+    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
+    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
+
+    // Emit constant interceptors first. Constant interceptors for primitives
+    // might be used by code that builds other constants.  See Issue 18173.
+    if (a.isInterceptor != b.isInterceptor) {
+      return a.isInterceptor ? -1 : 1;
+    }
+
+    // Sorting by the long name clusters constants with the same constructor
+    // which compresses a tiny bit better.
+    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
+    if (r != 0) return r;
+    // Resolve collisions in the long name by using the constant name (i.e. JS
+    // name) which is unique.
+    return namer.constantName(a).compareTo(namer.constantName(b));
+  }
+
+  @override
   jsAst.Expression constantReference(ConstantValue value) {
-    return constantEmitter.reference(value);
+    if (value.isFunction) {
+      FunctionConstantValue functionConstant = value;
+      return isolateStaticClosureAccess(functionConstant.element);
+    }
+
+    // We are only interested in the "isInlined" part, but it does not hurt to
+    // test for the other predicates.
+    if (isConstantInlinedOrAlreadyEmitted(value)) {
+      return constantEmitter.generate(value);
+    }
+    return js('#.#', [namer.globalObjectForConstant(value),
+                      namer.constantName(value)]);
   }
 
   jsAst.Expression constantInitializerExpression(ConstantValue value) {
-    return constantEmitter.initializationExpression(value);
+    return constantEmitter.generate(value);
   }
 
   String get name => 'CodeEmitter';
@@ -742,9 +788,7 @@ class OldEmitter implements Emitter {
       for (Element element in fields) {
         compiler.withCurrentElement(element, () {
           ConstantValue constant = handler.getInitialValueFor(element).value;
-          emitInitialization(
-              element,
-              constantEmitter.referenceInInitializationContext(constant));
+          emitInitialization(element, constantReference(constant));
         });
       }
     }
@@ -817,39 +861,6 @@ class OldEmitter implements Emitter {
       output.add(',$n');
     }
     output.add('];$n');
-  }
-
-  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
-    if (constant.isFunction) return true;    // Already emitted.
-    if (constant.isPrimitive) return true;   // Inlined.
-    if (constant.isDummy) return true;       // Inlined.
-    // The name is null when the constant is already a JS constant.
-    // TODO(floitsch): every constant should be registered, so that we can
-    // share the ones that take up too much space (like some strings).
-    if (namer.constantName(constant) == null) return true;
-    return false;
-  }
-
-  int compareConstants(ConstantValue a, ConstantValue b) {
-    // Inlined constants don't affect the order and sometimes don't even have
-    // names.
-    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
-    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
-    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
-
-    // Emit constant interceptors first. Constant interceptors for primitives
-    // might be used by code that builds other constants.  See Issue 18173.
-    if (a.isInterceptor != b.isInterceptor) {
-      return a.isInterceptor ? -1 : 1;
-    }
-
-    // Sorting by the long name clusters constants with the same constructor
-    // which compresses a tiny bit better.
-    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
-    if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
   }
 
   void emitCompileTimeConstants(CodeOutput output,

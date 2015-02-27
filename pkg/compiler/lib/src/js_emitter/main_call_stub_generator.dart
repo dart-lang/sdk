@@ -14,7 +14,7 @@ class MainCallStubGenerator {
   /// Returns the code equivalent to:
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
   jsAst.Expression _buildIsolateSetupClosure(Element appMain,
-                                            Element isolateMain) {
+                                             Element isolateMain) {
     jsAst.Expression mainAccess =
         emitterTask.isolateStaticClosureAccess(appMain);
     // Since we pass the closurized version of the main method to

@@ -417,9 +417,6 @@ abstract class Emitter {
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
 
-  /// Returns the JS code for accessing the given [constant].
-  jsAst.Expression constantReference(ConstantValue constant);
-
   /// Returns the JS function representing the given function.
   ///
   /// The function must be invoked and can not be used as closure.
@@ -446,6 +443,9 @@ abstract class Emitter {
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
+
+  /// Returns the JS code for accessing the given [constant].
+  jsAst.Expression constantReference(ConstantValue constant);
 
   void invalidateCaches();
 }

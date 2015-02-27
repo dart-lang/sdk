@@ -40,38 +40,18 @@ class Emitter implements emitterTask.Emitter {
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
   @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
-    if (constant.isFunction) return true;    // Already emitted.
-    if (constant.isPrimitive) return true;   // Inlined.
-    if (constant.isDummy) return true;       // Inlined.
-    // The name is null when the constant is already a JS constant.
-    // TODO(floitsch): every constant should be registered, so that we can
-    // share the ones that take up too much space (like some strings).
-    if (namer.constantName(constant) == null) return true;
-    return false;
+    return _emitter.isConstantInlinedOrAlreadyEmitted(constant);
   }
 
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
   @override
   int compareConstants(ConstantValue a, ConstantValue b) {
-    // Inlined constants don't affect the order and sometimes don't even have
-    // names.
-    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
-    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
-    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
+    return _emitter.compareConstants(a, b);
+  }
 
-    // Emit constant interceptors first. Constant interceptors for primitives
-    // might be used by code that builds other constants.  See Issue 18173.
-    if (a.isInterceptor != b.isInterceptor) {
-      return a.isInterceptor ? -1 : 1;
-    }
-
-    // Sorting by the long name clusters constants with the same constructor
-    // which compresses a tiny bit better.
-    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
-    if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
+  @override
+  js.Expression constantReference(ConstantValue value) {
+    return _emitter.generateConstantReference(value);
   }
 
   @override
@@ -83,11 +63,6 @@ class Emitter implements emitterTask.Emitter {
   // TODO(herhut): Use a single shared function.
   js.Expression generateFunctionThatReturnsNull() {
     return js.js('function() {}');
-  }
-
-  @override
-  js.Expression constantReference(ConstantValue value) {
-    return _emitter.constantEmitter.reference(value);
   }
 
   js.PropertyAccess _globalPropertyAccess(Element element) {
@@ -106,8 +81,7 @@ class Emitter implements emitterTask.Emitter {
 
   @override
   js.Expression isolateStaticClosureAccess(FunctionElement element) {
-    return js.js('#.#()',
-        [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+    return _emitter.generateStaticClosureAccess(element);
   }
 
   @override

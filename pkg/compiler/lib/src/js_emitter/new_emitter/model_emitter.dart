@@ -4,10 +4,10 @@
 
 library dart2js.new_js_emitter.model_emitter;
 
-import '../../constants/values.dart' show ConstantValue;
+import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../dart2jslib.dart' show Compiler;
 import '../../dart_types.dart' show DartType;
-import '../../elements/elements.dart' show ClassElement;
+import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
@@ -38,7 +38,7 @@ import '../model.dart';
 class ModelEmitter {
   final Compiler compiler;
   final Namer namer;
-  final ConstantEmitter constantEmitter;
+  ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
 
   JavaScriptBackend get backend => compiler.backend;
@@ -51,13 +51,74 @@ class ModelEmitter {
 
   ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
       : this.compiler = compiler,
-        this.namer = namer,
-        constantEmitter =
-            new ConstantEmitter(compiler, namer, makeConstantListTemplate);
+        this.namer = namer {
+    // TODO(floitsch): remove hard-coded name.
+    // TODO(floitsch): there is no harm in caching the template.
+    js.Template makeConstantListTemplate =
+        js.js.uncachedExpressionTemplate('makeConstList(#)');
+
+    this.constantEmitter = new ConstantEmitter(
+        compiler, namer, this.generateConstantReference,
+        makeConstantListTemplate);
+  }
 
   js.Expression generateEmbeddedGlobalAccess(String global) {
     // TODO(floitsch): We should not use "init" for globals.
     return js.js("init.$global");
+  }
+
+  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
+    if (constant.isFunction) return true;    // Already emitted.
+    if (constant.isPrimitive) return true;   // Inlined.
+    if (constant.isDummy) return true;       // Inlined.
+    // The name is null when the constant is already a JS constant.
+    // TODO(floitsch): every constant should be registered, so that we can
+    // share the ones that take up too much space (like some strings).
+    if (namer.constantName(constant) == null) return true;
+    return false;
+  }
+
+  // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  int compareConstants(ConstantValue a, ConstantValue b) {
+    // Inlined constants don't affect the order and sometimes don't even have
+    // names.
+    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
+    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
+    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
+
+    // Emit constant interceptors first. Constant interceptors for primitives
+    // might be used by code that builds other constants.  See Issue 18173.
+    if (a.isInterceptor != b.isInterceptor) {
+      return a.isInterceptor ? -1 : 1;
+    }
+
+    // Sorting by the long name clusters constants with the same constructor
+    // which compresses a tiny bit better.
+    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
+    if (r != 0) return r;
+    // Resolve collisions in the long name by using the constant name (i.e. JS
+    // name) which is unique.
+    return namer.constantName(a).compareTo(namer.constantName(b));
+  }
+
+  js.Expression generateStaticClosureAccess(FunctionElement element) {
+    return js.js('#.#()',
+        [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+  }
+
+  js.Expression generateConstantReference(ConstantValue value) {
+    if (value.isFunction) {
+      FunctionConstantValue functionConstant = value;
+      return generateStaticClosureAccess(functionConstant.element);
+    }
+
+    // We are only interested in the "isInlined" part, but it does not hurt to
+    // test for the other predicates.
+    if (isConstantInlinedOrAlreadyEmitted(value)) {
+      return constantEmitter.generate(value);
+    }
+    return js.js('#.#', [namer.globalObjectForConstant(value),
+                         namer.constantName(value)]);
   }
 
   int emitProgram(Program program) {
@@ -203,12 +264,6 @@ class ModelEmitter {
         js.js.statement('var holdersMap = Object.create(null)')
     ];
     return new js.Block(statements);
-  }
-
-  static js.Template get makeConstantListTemplate {
-    // TODO(floitsch): remove hard-coded name.
-    // TODO(floitsch): there is no harm in caching the template.
-    return js.js.uncachedExpressionTemplate('makeConstList(#)');
   }
 
   js.Block emitEmbeddedGlobals(Program program) {
@@ -386,8 +441,7 @@ class ModelEmitter {
 
   js.Block emitConstants(List<Constant> constants) {
     Iterable<js.Statement> statements = constants.map((Constant constant) {
-      js.Expression code =
-          constantEmitter.initializationExpression(constant.value);
+      js.Expression code = constantEmitter.generate(constant.value);
       return js.js.statement("#.# = #;",
                              [constant.holder.name, constant.name, code]);
     });
@@ -632,18 +686,19 @@ function parseFunctionDescriptor(proto, name, descriptor) {
 """;
 
   js.Expression _encodeOptionalParameterDefaultValues(DartMethod method) {
-    js.Expression result;
     // TODO(herhut): Replace [js.LiteralNull] with [js.ArrayHole].
     if (method.optionalParameterDefaultValues is List) {
-      List<ConstantValue> defs = method.optionalParameterDefaultValues;
-      Iterable<js.Expression> elements = defs.map(constantEmitter.reference);
+      List<ConstantValue> defaultValues = method.optionalParameterDefaultValues;
+      Iterable<js.Expression> elements =
+          defaultValues.map(generateConstantReference);
       return new js.ArrayInitializer(elements.toList());
     } else {
-      Map<String, ConstantValue> defs = method.optionalParameterDefaultValues;
+      Map<String, ConstantValue> defaultValues =
+          method.optionalParameterDefaultValues;
       List<js.Property> properties = <js.Property>[];
-      defs.forEach((String name, ConstantValue value) {
+      defaultValues.forEach((String name, ConstantValue value) {
         properties.add(new js.Property(js.string(name),
-            constantEmitter.reference(value)));
+            generateConstantReference(value)));
       });
       return new js.ObjectInitializer(properties);
     }
