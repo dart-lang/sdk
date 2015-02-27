@@ -20,6 +20,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, verify_acquired_data);
 
 TEST_CASE(ErrorHandleBasics) {
   const char* kScriptChars =
@@ -1741,7 +1742,7 @@ TEST_CASE(ExternalByteDataAccess) {
 }
 
 
-TEST_CASE(TypedDataDirectAccess) {
+static void TestTypedDataDirectAccess() {
   Dart_Handle str = Dart_NewStringFromCString("junk");
   Dart_Handle byte_array = Dart_NewTypedData(Dart_TypedData_kUint8, 10);
   EXPECT_VALID(byte_array);
@@ -1771,6 +1772,18 @@ TEST_CASE(TypedDataDirectAccess) {
   result = Dart_TypedDataReleaseData(str);
   EXPECT_ERROR(result, "Dart_TypedDataReleaseData expects argument 'object'"
                        " to be of type 'TypedData'.");
+}
+
+
+TEST_CASE(TypedDataDirectAccessUnverified) {
+  FLAG_verify_acquired_data = false;
+  TestTypedDataDirectAccess();
+}
+
+
+TEST_CASE(TypedDataDirectAccessVerified) {
+  FLAG_verify_acquired_data = true;
+  TestTypedDataDirectAccess();
 }
 
 
@@ -1815,7 +1828,7 @@ static void TestDirectAccess(Dart_Handle lib,
 }
 
 
-TEST_CASE(TypedDataDirectAccess1) {
+static void TestTypedDataDirectAccess1() {
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "class Expect {\n"
@@ -1860,7 +1873,19 @@ TEST_CASE(TypedDataDirectAccess1) {
 }
 
 
-TEST_CASE(TypedDataViewDirectAccess) {
+TEST_CASE(TypedDataDirectAccess1Unverified) {
+  FLAG_verify_acquired_data = false;
+  TestTypedDataDirectAccess1();
+}
+
+
+TEST_CASE(TypedDataDirectAccess1Verified) {
+  FLAG_verify_acquired_data = true;
+  TestTypedDataDirectAccess1();
+}
+
+
+static void TestTypedDataViewDirectAccess() {
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "class Expect {\n"
@@ -1899,7 +1924,19 @@ TEST_CASE(TypedDataViewDirectAccess) {
 }
 
 
-TEST_CASE(ByteDataDirectAccess) {
+TEST_CASE(TypedDataViewDirectAccessUnverified) {
+  FLAG_verify_acquired_data = false;
+  TestTypedDataViewDirectAccess();
+}
+
+
+TEST_CASE(TypedDataViewDirectAccessVerified) {
+  FLAG_verify_acquired_data = true;
+  TestTypedDataViewDirectAccess();
+}
+
+
+static void TestByteDataDirectAccess() {
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "class Expect {\n"
@@ -1935,6 +1972,18 @@ TEST_CASE(ByteDataDirectAccess) {
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
   TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kByteData);
+}
+
+
+TEST_CASE(ByteDataDirectAccessUnverified) {
+  FLAG_verify_acquired_data = false;
+  TestByteDataDirectAccess();
+}
+
+
+TEST_CASE(ByteDataDirectAccessVerified) {
+  FLAG_verify_acquired_data = true;
+  TestByteDataDirectAccess();
 }
 
 

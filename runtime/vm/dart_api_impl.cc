@@ -3398,6 +3398,39 @@ DART_EXPORT Dart_Handle Dart_NewByteBuffer(Dart_Handle typed_data) {
 }
 
 
+// Structure to record acquired typed data for verification purposes.
+class AcquiredData {
+ public:
+  AcquiredData(void* data, intptr_t size_in_bytes, bool copy)
+      : size_in_bytes_(size_in_bytes), data_(data), data_copy_(NULL) {
+    if (copy) {
+      data_copy_ = malloc(size_in_bytes_);
+      memmove(data_copy_, data_, size_in_bytes_);
+    }
+  }
+
+  // The pointer to hand out via the API.
+  void* GetData() const { return data_copy_ != NULL ? data_copy_ : data_; }
+
+  // Writes back and deletes/zaps, if a copy was made.
+  ~AcquiredData() {
+    if (data_copy_ != NULL) {
+      memmove(data_, data_copy_, size_in_bytes_);
+      memset(data_copy_, kZapReleasedByte, size_in_bytes_);
+      free(data_copy_);
+    }
+  }
+
+ private:
+  static const uint8_t kZapReleasedByte = 0xda;
+  intptr_t size_in_bytes_;
+  void* data_;
+  void* data_copy_;
+
+  DISALLOW_COPY_AND_ASSIGN(AcquiredData);
+};
+
+
 DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
                                                   Dart_TypedData_Type* type,
                                                   void** data,
@@ -3421,28 +3454,36 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   }
   // Get the type of typed data object.
   *type = GetType(class_id);
+  intptr_t length = 0;
+  intptr_t size_in_bytes = 0;
+  void* data_tmp = NULL;
+  bool external = false;
   // If it is an external typed data object just return the data field.
   if (RawObject::IsExternalTypedDataClassId(class_id)) {
     const ExternalTypedData& obj =
         Api::UnwrapExternalTypedDataHandle(isolate, object);
     ASSERT(!obj.IsNull());
-    *len = obj.Length();
-    *data = obj.DataAddr(0);
+    length = obj.Length();
+    size_in_bytes = length * ExternalTypedData::ElementSizeInBytes(class_id);
+    data_tmp = obj.DataAddr(0);
+    external = true;
   } else if (RawObject::IsTypedDataClassId(class_id)) {
     // Regular typed data object, set up some GC and API callback guards.
     const TypedData& obj = Api::UnwrapTypedDataHandle(isolate, object);
     ASSERT(!obj.IsNull());
-    *len = obj.Length();
+    length = obj.Length();
+    size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
     isolate->IncrementNoGCScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
-    *data = obj.DataAddr(0);
+    data_tmp = obj.DataAddr(0);
   } else {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
     const Instance& view_obj = Api::UnwrapInstanceHandle(isolate, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
     val ^= TypedDataView::Length(view_obj);
-    *len = val.Value();
+    length = val.Value();
+    size_in_bytes = length * TypedDataView::ElementSizeInBytes(class_id);
     val ^= TypedDataView::OffsetInBytes(view_obj);
     intptr_t offset_in_bytes = val.Value();
     const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
@@ -3450,27 +3491,30 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     START_NO_CALLBACK_SCOPE(isolate);
     if (TypedData::IsTypedData(obj)) {
       const TypedData& data_obj = TypedData::Cast(obj);
-      *data = data_obj.DataAddr(offset_in_bytes);
+      data_tmp = data_obj.DataAddr(offset_in_bytes);
     } else {
       ASSERT(ExternalTypedData::IsExternalTypedData(obj));
       const ExternalTypedData& data_obj = ExternalTypedData::Cast(obj);
-      *data = data_obj.DataAddr(offset_in_bytes);
+      data_tmp = data_obj.DataAddr(offset_in_bytes);
+      external = true;
     }
   }
   if (FLAG_verify_acquired_data) {
-    // For now, we just verify that acquire/release are properly matched
-    // per object.
-    // TODO(koda): Copy internal data to/from a side buffer which is unmapped
-    // on release to catch use-after-release bugs.
     const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
     WeakTable* table = isolate->api_state()->acquired_table();
     intptr_t current = table->GetValue(obj.raw());
     if (current != 0) {
-      ASSERT(current == 1);
       return Api::NewError("Data was already acquired for this object.");
     }
-    table->SetValue(obj.raw(), 1);
+    // Do not make a copy if the data is external. Some callers expect external
+    // data to remain in place, even though the API spec doesn't guarantee it.
+    // TODO(koda/asiva): Make final decision and document it.
+    AcquiredData* ad = new AcquiredData(data_tmp, size_in_bytes, !external);
+    table->SetValue(obj.raw(), reinterpret_cast<intptr_t>(ad));
+    data_tmp = ad->GetData();
   }
+  *data = data_tmp;
+  *len = length;
   return Api::Success();
 }
 
@@ -3492,12 +3536,12 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
     WeakTable* table = isolate->api_state()->acquired_table();
     intptr_t current = table->GetValue(obj.raw());
-    if (current != 1) {
-      ASSERT(current == 0);
+    if (current == 0) {
       return Api::NewError("Data was not acquired for this object.");
     }
-    // Delete entry from table.
-    table->SetValue(obj.raw(), 0);
+    AcquiredData* ad = reinterpret_cast<AcquiredData*>(current);
+    table->SetValue(obj.raw(), 0);  // Delete entry from table.
+    delete ad;
   }
   return Api::Success();
 }
