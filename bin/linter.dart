@@ -69,6 +69,6 @@ void printUsage(ArgParser parser, [String error]) {
 Usage: linter <pubspec|library_files>
 ${parser.usage}
   
-For more information, see https://github.com/dart-lang/dart_lint
+For more information, see https://github.com/dart-lang/linter
 ''');
 }
