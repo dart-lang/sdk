@@ -61,8 +61,10 @@ class _ArgListAstVisitor extends
                * indicating that suggestions were added
                * and no further action is necessary
                */
-              if (node.accept(
-                  new _LocalDeclarationFinder(request, request.offset, name))) {
+              if (new _LocalDeclarationFinder(
+                  request,
+                  request.offset,
+                  name).visit(node)) {
                 return null;
               }
             } else {
@@ -126,8 +128,8 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   void declaredFunction(FunctionDeclaration declaration) {
     SimpleIdentifier selector = declaration.name;
     if (selector != null && name == selector.name) {
-      finished = true;
       _addArgListSuggestion(declaration.functionExpression.parameters);
+      finished();
     }
   }
 
@@ -147,8 +149,8 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   void declaredMethod(MethodDeclaration declaration) {
     SimpleIdentifier selector = declaration.name;
     if (selector != null && name == selector.name) {
-      finished = true;
       _addArgListSuggestion(declaration.parameters);
+      finished();
     }
   }
 

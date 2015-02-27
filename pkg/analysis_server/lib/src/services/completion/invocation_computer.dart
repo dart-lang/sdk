@@ -146,81 +146,81 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClass(ClassDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      finished = true;
       // no type
+      finished();
     }
   }
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      finished = true;
       // no type
+      finished();
     }
   }
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     if (varDecl.name.name == targetName) {
-      finished = true;
       // Type provided by the element in computeFull above
+      finished();
     }
   }
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      finished = true;
       TypeName typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
+      finished();
     }
   }
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      finished = true;
       TypeName typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
+      finished();
     }
   }
 
   @override
   void declaredLabel(Label label, bool isCaseLabel) {
     if (label.label.name == targetName) {
-      finished = true;
       // no type
+      finished();
     }
   }
 
   @override
   void declaredLocalVar(SimpleIdentifier name, TypeName type) {
     if (name.name == targetName) {
-      finished = true;
       typeFound = name.bestType;
+      finished();
     }
   }
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      finished = true;
       TypeName typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
+      finished();
     }
   }
 
   @override
   void declaredParam(SimpleIdentifier name, TypeName type) {
     if (name.name == targetName) {
-      finished = true;
       // Type provided by the element in computeFull above
+      finished();
     }
   }
 
@@ -228,8 +228,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   void declaredTopLevelVar(VariableDeclarationList varList,
       VariableDeclaration varDecl) {
     if (varDecl.name.name == targetName) {
-      finished = true;
       // Type provided by the element in computeFull above
+      finished();
     }
   }
 }
@@ -275,8 +275,9 @@ class _PrefixedIdentifierSuggestionBuilder extends
             //
             _LocalBestTypeVisitor visitor =
                 new _LocalBestTypeVisitor(prefix.name, request.offset);
-            prefix.accept(visitor);
-            type = visitor.typeFound;
+            if (visitor.visit(prefix)) {
+              type = visitor.typeFound;
+            }
           }
           if (type != null && !type.isDynamic) {
             InterfaceTypeSuggestionBuilder.suggestionsFor(request, type);

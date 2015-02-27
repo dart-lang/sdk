@@ -34,7 +34,7 @@ class LocalComputer extends DartCompletionComputer {
 
       // Collect suggestions from the specific child [AstNode] that contains
       // the completion offset and all of its parents recursively.
-      request.node.accept(localVisitor);
+      localVisitor.visit(request.node);
     }
     if (optype.includeStatementLabelSuggestions ||
         optype.includeCaseLabelSuggestions) {
@@ -42,7 +42,7 @@ class LocalComputer extends DartCompletionComputer {
           request,
           optype.includeStatementLabelSuggestions,
           optype.includeCaseLabelSuggestions);
-      request.node.accept(labelVisitor);
+      labelVisitor.visit(request.node);
     }
 
     // If the unit is not a part and does not reference any parts
@@ -139,19 +139,17 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  bool visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     // Labels are only accessible within the local function, so stop visiting
     // once we reach a function boundary.
-    finished = true;
-    return true;
+    finished();
   }
 
   @override
-  bool visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     // Labels are only accessible within the local function, so stop visiting
     // once we reach a function boundary.
-    finished = true;
-    return true;
+    finished();
   }
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id) {
