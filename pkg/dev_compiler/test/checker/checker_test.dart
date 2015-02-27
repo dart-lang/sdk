@@ -1483,6 +1483,71 @@ main() {
     });
   });
 
+  test('Type checking literals', () {
+    testChecker({
+      '/main.dart': '''
+          test() {
+            num n = 3;
+            int i = 3;
+            String s = "hello";
+            {
+               List<int> l = <int>[i];
+               l = <int>[/*severe:StaticTypeError*/s];
+               l = <int>[/*info:DownCast*/n];
+               l = <int>[i, /*info:DownCast*/n, /*severe:StaticTypeError*/s];
+            }
+            {
+               List l = [i];
+               l = [s];
+               l = [n];
+               l = [i, n, s];
+            }
+            {
+               Map<String, int> m = <String, int>{s: i};
+               m = <String, int>{s: /*severe:StaticTypeError*/s};
+               m = <String, int>{s: /*info:DownCast*/n};
+               m = <String, int>{s: i,
+                                 s: /*info:DownCast*/n,
+                                 s: /*severe:StaticTypeError*/s};
+            }
+           // TODO(leafp): We can't currently test for key errors since the
+           // error marker binds to the entire entry.
+            {
+               Map m = {s: i};
+               m = {s: s};
+               m = {s: n};
+               m = {s: i,
+                    s: n,
+                    s: s};
+               m = {i: s,
+                    n: s,
+                    s: s};
+            }
+          }
+   '''
+    });
+  });
+
+  test('casts in constant contexts', () {
+    String mk(String error) => '''
+          class A {
+            static const num n = 3.0;
+            static const int i = /*$error*/n;
+            final int fi;
+            const A(num a) : this.fi = /*$error*/a;
+          }
+          class B extends A {
+            const B(Object a) : super(/*$error*/a);
+          }
+          void foo(Object o) {
+            var a = const A(/*$error*/o);
+          }
+     ''';
+    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+        allowConstCasts: false);
+    testChecker({'/main.dart': mk("info:DownCast")}, allowConstCasts: true);
+  });
+
   test('redirecting constructor', () {
     testChecker({
       '/main.dart': '''

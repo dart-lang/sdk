@@ -63,6 +63,9 @@ class ResolverOptions {
 // TODO(vsm): Merge RulesOptions and TypeOptions
 /// Options used by ddc's RestrictedRules.
 class RulesOptions extends TypeOptions {
+  /// Whether to allow casts in constant contexts.
+  final bool allowConstCasts;
+
   /// Whether to use covariant generics
   final bool covariantGenerics;
 
@@ -72,8 +75,8 @@ class RulesOptions extends TypeOptions {
   /// Whether to use static types for code generation.
   final bool ignoreTypes;
 
-  RulesOptions({this.covariantGenerics: true, this.relaxedCasts: true,
-      this.ignoreTypes: false});
+  RulesOptions({this.allowConstCasts: true, this.covariantGenerics: true,
+      this.relaxedCasts: true, this.ignoreTypes: false});
 }
 
 /// General options used by the dev compiler.
@@ -127,6 +130,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   /// File where to start compilation from.
   final String entryPointFile;
 
+  /// Whether to allow casts in constant contexts.
+  @override
+  final bool allowConstCasts;
+
   /// Whether to use covariant generics
   @override
   final bool covariantGenerics;
@@ -173,14 +180,15 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   @override
   final bool ignoreTypes;
 
-  CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
-      this.dumpInfoFile, this.dumpSrcDir, this.forceCompile: false,
-      this.formatOutput: false, this.cheapTestFormat: false,
-      this.ignoreTypes: false, this.outputDir, this.outputDart: false,
-      this.useColors: true, this.covariantGenerics: true,
-      this.relaxedCasts: true, this.useMultiPackage: false,
-      this.packageRoot: 'packages/', this.packagePaths: const [],
-      this.inferFromOverrides: true, this.inferStaticsFromIdentifiers: false,
+  CompilerOptions({this.allowConstCasts: true, this.checkSdk: false,
+      this.dumpInfo: false, this.dumpInfoFile, this.dumpSrcDir,
+      this.forceCompile: false, this.formatOutput: false,
+      this.cheapTestFormat: false, this.ignoreTypes: false, this.outputDir,
+      this.outputDart: false, this.useColors: true,
+      this.covariantGenerics: true, this.relaxedCasts: true,
+      this.useMultiPackage: false, this.packageRoot: 'packages/',
+      this.packagePaths: const [], this.inferFromOverrides: true,
+      this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
@@ -198,6 +206,7 @@ CompilerOptions parseOptions(List<String> argv) {
     sdkPath = getSdkDir(argv).path;
   }
   return new CompilerOptions(
+      allowConstCasts: args['allow-const-casts'],
       checkSdk: args['sdk-check'],
       dumpInfo: args['dump-info'],
       dumpInfoFile: args['dump-info-file'],
@@ -229,8 +238,10 @@ CompilerOptions parseOptions(List<String> argv) {
 
 final ArgParser argParser = new ArgParser()
   // resolver/checker options
-  ..addFlag(
-      'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
+  ..addFlag('allow-const-casts',
+      help: 'Allow casts in const contexts', defaultsTo: true)
+  ..addFlag('sdk-check',
+      abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
   ..addFlag('mock-sdk',
       abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
   ..addFlag('covariant-generics',

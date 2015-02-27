@@ -337,6 +337,7 @@ class CodeChecker extends RecursiveAstVisitor {
   final TypeRules _rules;
   final CheckerReporter _reporter;
   final _OverrideChecker _overrideChecker;
+  bool _constantContext = false;
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
 
@@ -345,6 +346,25 @@ class CodeChecker extends RecursiveAstVisitor {
       : _rules = rules,
         _reporter = reporter,
         _overrideChecker = new _OverrideChecker(rules, reporter, options);
+
+  _visitMaybeConst(AstNode n, visitNode(AstNode n)) {
+    var o = _constantContext;
+    if (!o) {
+      if (n is VariableDeclarationList) {
+        _constantContext = o || n.isConst;
+      } else if (n is VariableDeclaration) {
+        _constantContext = o || n.isConst;
+      } else if (n is FormalParameter) {
+        _constantContext = o || n.isConst;
+      } else if (n is InstanceCreationExpression) {
+        _constantContext = o || n.isConst;
+      } else if (n is ConstructorDeclaration) {
+        _constantContext = o || n.element.isConst;
+      }
+    }
+    visitNode(n);
+    _constantContext = o;
+  }
 
   visitComment(Comment node) {
     // skip, no need to do typechecking inside comments (they may contain
@@ -370,15 +390,17 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Check constructor declaration to ensure correct super call placement.
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.visitChildren(this);
+    _visitMaybeConst(node, (node) {
+      node.visitChildren(this);
 
-    final init = node.initializers;
-    for (int i = 0, last = init.length - 1; i < last; i++) {
-      final node = init[i];
-      if (node is SuperConstructorInvocation) {
-        _recordMessage(new InvalidSuperInvocation(node));
+      final init = node.initializers;
+      for (int i = 0, last = init.length - 1; i < last; i++) {
+        final node = init[i];
+        if (node is SuperConstructorInvocation) {
+          _recordMessage(new InvalidSuperInvocation(node));
+        }
       }
-    }
+    });
   }
 
   @override
@@ -387,6 +409,36 @@ class CodeChecker extends RecursiveAstVisitor {
     DartType staticType = _rules.elementType(field.staticElement);
     node.expression = checkAssignment(node.expression, staticType);
     node.visitChildren(this);
+  }
+
+  @override visitListLiteral(ListLiteral node) {
+    var type = _rules.provider.dynamicType;
+    if (node.typeArguments != null) {
+      var targs = node.typeArguments.arguments;
+      if (targs.length > 0) type = targs[0].type;
+    }
+    var elements = node.elements;
+    for (int i = 0; i < elements.length; i++) {
+      elements[i] = checkArgument(elements[i], type);
+    }
+    super.visitListLiteral(node);
+  }
+
+  @override visitMapLiteral(MapLiteral node) {
+    var ktype = _rules.provider.dynamicType;
+    var vtype = _rules.provider.dynamicType;
+    if (node.typeArguments != null) {
+      var targs = node.typeArguments.arguments;
+      if (targs.length > 0) ktype = targs[0].type;
+      if (targs.length > 1) vtype = targs[1].type;
+    }
+    var entries = node.entries;
+    for (int i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+      entry.key = checkArgument(entry.key, ktype);
+      entry.value = checkArgument(entry.value, vtype);
+    }
+    super.visitMapLiteral(node);
   }
 
   // Check invocations
@@ -516,30 +568,32 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  visitDefaultFormalParameter(DefaultFormalParameter node) {
-    // Check that defaults have the proper subtype.
-    var parameter = node.parameter;
-    var parameterType = _rules.elementType(parameter.element);
-    assert(parameterType != null);
-    var defaultValue = node.defaultValue;
-    var defaultType;
-    if (defaultValue == null) {
-      // TODO(vsm): Should this be null?
-      defaultType = _rules.provider.bottomType;
-    } else {
-      defaultType = _rules.getStaticType(defaultValue);
-    }
+  @override visitDefaultFormalParameter(DefaultFormalParameter node) {
+    _visitMaybeConst(node, (node) {
+      // Check that defaults have the proper subtype.
+      var parameter = node.parameter;
+      var parameterType = _rules.elementType(parameter.element);
+      assert(parameterType != null);
+      var defaultValue = node.defaultValue;
+      var defaultType;
+      if (defaultValue == null) {
+        // TODO(vsm): Should this be null?
+        defaultType = _rules.provider.bottomType;
+      } else {
+        defaultType = _rules.getStaticType(defaultValue);
+      }
 
-    // If defaultType is bottom, this enforces that parameterType is not
-    // non-nullable.
-    if (!_rules.isSubTypeOf(defaultType, parameterType)) {
-      var staticInfo = (defaultValue == null)
-          ? new InvalidVariableDeclaration(
-              _rules, node.identifier, parameterType)
-          : new StaticTypeError(_rules, defaultValue, parameterType);
-      _recordMessage(staticInfo);
-    }
-    node.visitChildren(this);
+      // If defaultType is bottom, this enforces that parameterType is not
+      // non-nullable.
+      if (!_rules.isSubTypeOf(defaultType, parameterType)) {
+        var staticInfo = (defaultValue == null)
+            ? new InvalidVariableDeclaration(
+                _rules, node.identifier, parameterType)
+            : new StaticTypeError(_rules, defaultValue, parameterType);
+        _recordMessage(staticInfo);
+      }
+      node.visitChildren(this);
+    });
   }
 
   visitFieldFormalParameter(FieldFormalParameter node) {
@@ -561,47 +615,56 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var arguments = node.argumentList;
-    var element = node.staticElement;
-    if (element != null) {
-      var type = _rules.elementType(node.staticElement);
-      checkArgumentList(arguments, type);
-    } else {
-      _recordMessage(new MissingTypeError(node));
-    }
-    node.visitChildren(this);
+    _visitMaybeConst(node, (node) {
+      var arguments = node.argumentList;
+      var element = node.staticElement;
+      if (element != null) {
+        var type = _rules.elementType(node.staticElement);
+        checkArgumentList(arguments, type);
+      } else {
+        _recordMessage(new MissingTypeError(node));
+      }
+      node.visitChildren(this);
+    });
   }
 
   @override
   visitVariableDeclarationList(VariableDeclarationList node) {
-    TypeName type = node.type;
-    if (type == null) {
-      // No checks are needed when the type is var. Although internally the
-      // typing rules may have inferred a more precise type for the variable
-      // based on the initializer.
-    } else {
-      var dartType = getType(type);
-      for (VariableDeclaration variable in node.variables) {
-        var initializer = variable.initializer;
-        if (initializer != null) {
-          variable.initializer = checkAssignment(initializer, dartType);
-        } else if (_rules.maybeNonNullableType(dartType)) {
-          var element = variable.element;
-          if (element is FieldElement && !element.isStatic) {
-            // Initialized - possibly implicitly - during construction.
-            // Handle this via a runtime check during code generation.
+    _visitMaybeConst(node, (node) {
+      TypeName type = node.type;
+      if (type == null) {
+        // No checks are needed when the type is var. Although internally the
+        // typing rules may have inferred a more precise type for the variable
+        // based on the initializer.
+      } else {
+        var dartType = getType(type);
+        for (VariableDeclaration variable in node.variables) {
+          var initializer = variable.initializer;
+          if (initializer != null) {
+            variable.initializer = checkAssignment(initializer, dartType);
+          } else if (_rules.maybeNonNullableType(dartType)) {
+            var element = variable.element;
+            if (element is FieldElement && !element.isStatic) {
+              // Initialized - possibly implicitly - during construction.
+              // Handle this via a runtime check during code generation.
 
-            // TODO(vsm): Detect statically whether this can fail and
-            // report a static error (must fail) or warning (can fail).
-          } else {
-            var staticInfo =
-                new InvalidVariableDeclaration(_rules, variable, dartType);
-            _recordMessage(staticInfo);
+              // TODO(vsm): Detect statically whether this can fail and
+              // report a static error (must fail) or warning (can fail).
+            } else {
+              var staticInfo =
+                  new InvalidVariableDeclaration(_rules, variable, dartType);
+              _recordMessage(staticInfo);
+            }
           }
         }
       }
-    }
-    node.visitChildren(this);
+      node.visitChildren(this);
+    });
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    _visitMaybeConst(node, super.visitVariableDeclaration);
   }
 
   void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
@@ -625,7 +688,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   Expression checkAssignment(Expression expr, DartType type) {
-    final staticInfo = _rules.checkAssignment(expr, type);
+    final staticInfo = _rules.checkAssignment(expr, type, _constantContext);
     _recordMessage(staticInfo);
     if (staticInfo is Conversion) expr = staticInfo;
     return expr;
@@ -699,7 +762,8 @@ class CodeChecker extends RecursiveAstVisitor {
       // Check the rhs type
       if (staticInfo is! Conversion) {
         var paramType = paramTypes.first;
-        staticInfo = _rules.checkAssignment(expr.rightHandSide, paramType);
+        staticInfo = _rules.checkAssignment(
+            expr.rightHandSide, paramType, _constantContext);
         _recordMessage(staticInfo);
         if (staticInfo is Conversion) expr.rightHandSide = staticInfo;
       }

@@ -35,7 +35,7 @@ abstract class TypeRules {
   bool isNonNullableType(DartType t) => false;
   bool maybeNonNullableType(DartType t) => false;
 
-  StaticInfo checkAssignment(Expression expr, DartType t);
+  StaticInfo checkAssignment(Expression expr, DartType t, bool constContext);
 
   DartType getStaticType(Expression expr) => expr.staticType;
 
@@ -58,7 +58,8 @@ class DartRules extends TypeRules {
     return t1.isAssignableTo(t2);
   }
 
-  StaticInfo checkAssignment(Expression expr, DartType toType) {
+  StaticInfo checkAssignment(
+      Expression expr, DartType toType, bool constContext) {
     final fromType = getStaticType(expr);
     if (!isAssignable(fromType, toType)) {
       return new StaticTypeError(this, expr, toType);
@@ -455,13 +456,17 @@ class RestrictedRules extends TypeRules {
     return Coercion.error();
   }
 
-  StaticInfo checkAssignment(Expression expr, DartType toT) {
+  StaticInfo checkAssignment(Expression expr, DartType toT, bool constContext) {
     final fromT = getStaticType(expr);
     final Coercion c = _coerceTo(fromT, toT, true);
+    if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
+    if (constContext && !options.allowConstCasts) {
+      return new StaticTypeError(this, expr, toT);
+    }
     if (c is Cast) return DownCast.create(this, expr, c);
     if (c is Wrapper) return ClosureWrap.create(this, expr, c, toT);
-    assert(c is Identity);
+    assert(false);
     return null;
   }
 

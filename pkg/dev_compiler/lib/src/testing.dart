@@ -46,16 +46,17 @@ import 'package:dev_compiler/devc.dart' show compile;
 ///       '''
 ///     });
 ///
-CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
-    CheckerReporter reporter, covariantGenerics: true, relaxedCasts: true,
-    inferFromOverrides: true, inferStaticsFromIdentifiers: false,
-    inferInNonStableOrder: false}) {
+CheckerResults testChecker(Map<String, String> testFiles,
+    {bool allowConstCasts: true, String sdkDir, CheckerReporter reporter,
+    covariantGenerics: true, relaxedCasts: true, inferFromOverrides: true,
+    inferStaticsFromIdentifiers: false, inferInNonStableOrder: false}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
   var testUriResolver = new _TestUriResolver(testFiles);
   var options = new CompilerOptions(
+      allowConstCasts: allowConstCasts,
       covariantGenerics: covariantGenerics,
       relaxedCasts: relaxedCasts,
       inferFromOverrides: inferFromOverrides,
