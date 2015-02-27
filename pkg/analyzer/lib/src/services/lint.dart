@@ -5,7 +5,6 @@
 library lint;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';

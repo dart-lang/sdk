@@ -24,7 +24,6 @@ import 'sdk.dart' show DartSdk, SdkLibrary;
 import 'source.dart';
 import 'static_type_analyzer.dart';
 import 'utilities_dart.dart';
-import 'utilities_general.dart';
 
 /**
  * Callback signature used by ImplicitConstructorBuilder to register

@@ -14,7 +14,6 @@ import 'java_core.dart';
 import 'java_engine.dart';
 import 'java_io.dart';
 import 'source.dart';
-import 'utilities_general.dart';
 
 export 'source.dart';
 

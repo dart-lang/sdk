@@ -12,7 +12,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:path/path.dart';
 
 /**
  * The function used to run pub list.
