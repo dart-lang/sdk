@@ -78,26 +78,27 @@ class SummaryReporter implements CheckerReporter {
   SourceFile _file;
 
   void enterLibrary(LibraryInfo lib) {
-    var libSummary = _currentLibrary = new LibrarySummary(lib.name);
+    var libKey = '${lib.library.source.uri}';
+    var libSummary = _currentLibrary = new LibrarySummary(libKey);
 
     var uri = lib.library.source.uri;
     if (uri.scheme == 'package') {
       var pname = path.split(uri.path)[0];
       result.packages.putIfAbsent(pname, () => new PackageSummary(pname));
-      if (result.packages[pname].libraries[lib.name] != null) {
-        print('ERROR: duplicate ${lib.name}');
+      if (result.packages[pname].libraries[libKey] != null) {
+        print('ERROR: duplicate ${libKey}');
       }
-      result.packages[pname].libraries[lib.name] = libSummary;
+      result.packages[pname].libraries[libKey] = libSummary;
     } else if (uri.scheme == 'dart') {
-      if (result.system[lib.name] != null) {
-        print('ERROR: duplicate ${lib.name}');
+      if (result.system[libKey] != null) {
+        print('ERROR: duplicate ${libKey}');
       }
-      result.system[lib.name] = libSummary;
+      result.system[libKey] = libSummary;
     } else {
-      if (result.loose[lib.name] != null) {
-        print('ERROR: duplicate ${lib.name}');
+      if (result.loose[libKey] != null) {
+        print('ERROR: duplicate ${libKey}');
       }
-      result.loose[lib.name] = libSummary;
+      result.loose[libKey] = libSummary;
     }
   }
 
