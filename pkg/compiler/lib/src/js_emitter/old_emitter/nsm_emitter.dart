@@ -260,7 +260,7 @@ class NsmEmitter extends CodeEmitterHelper {
             }
             shortNames.splice.apply(shortNames, calculatedShortNames);
           }
-        }''', {'objectClass': js.string(namer.getNameOfClass(objectClass)),
+        }''', {'objectClass': js.string(namer.className(objectClass)),
                'diffEncoding': js.string('$diffEncoding')}));
     } else {
       // No useDiffEncoding version.
@@ -269,7 +269,7 @@ class NsmEmitter extends CodeEmitterHelper {
       statements.add(js.statement(
           'var objectClassObject = processedClasses.collected[#objectClass],'
           '    shortNames = #diffEncoding.split(",")',
-          {'objectClass': js.string(namer.getNameOfClass(objectClass)),
+          {'objectClass': js.string(namer.className(objectClass)),
            'diffEncoding': js.string('$diffEncoding')}));
       if (!minify) {
         statements.add(js.statement('var longNames = #longs.split(",")',

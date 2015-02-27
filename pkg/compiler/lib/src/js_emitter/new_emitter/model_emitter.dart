@@ -103,7 +103,7 @@ class ModelEmitter {
 
   js.Expression generateStaticClosureAccess(FunctionElement element) {
     return js.js('#.#()',
-        [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+        [namer.globalObjectFor(element), namer.staticClosureName(element)]);
   }
 
   js.Expression generateConstantReference(ConstantValue value) {
@@ -320,7 +320,7 @@ class ModelEmitter {
          compiler.stringClass, compiler.boolClass, compiler.nullClass,
          compiler.listClass];
     nativeClassesNeedingUnmangledName.forEach((element) {
-        names.add(new js.Property(js.string(namer.getNameOfClass(element)),
+        names.add(new js.Property(js.string(namer.className(element)),
                                   js.string(element.name)));
     });
 

@@ -250,7 +250,7 @@ class ConstantEmitter
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
-    String name = namer.getRuntimeTypeName(type.element);
+    String name = namer.runtimeTypeName(type.element);
     jsAst.Expression typeName = new jsAst.LiteralString("'$name'");
     return new jsAst.Call(getHelperProperty(backend.getCreateRuntimeType()),
                           [typeName]);

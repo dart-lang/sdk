@@ -66,7 +66,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   js.PropertyAccess _globalPropertyAccess(Element element) {
-     String name = namer.getNameX(element);
+     String name = namer.globalPropertyName(element);
      js.PropertyAccess pa = new js.PropertyAccess.field(
          new js.VariableUse(namer.globalObjectFor(element)),
          name);
@@ -76,7 +76,7 @@ class Emitter implements emitterTask.Emitter {
   @override
   js.Expression isolateLazyInitializerAccess(FieldElement element) {
     return js.js('#.#', [namer.globalObjectFor(element),
-                         namer.getLazyInitializerName(element)]);
+                         namer.lazyInitializerName(element)]);
   }
 
   @override

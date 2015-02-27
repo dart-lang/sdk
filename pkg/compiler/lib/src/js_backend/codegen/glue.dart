@@ -108,9 +108,7 @@ class Glue {
 
 
   String getInterceptorName(Set<ClassElement> interceptedClasses) {
-    return _backend.namer.getInterceptorName(
-        getInterceptorMethod,
-        interceptedClasses);
+    return _backend.namer.nameForGetInterceptor(interceptedClasses);
   }
 
   js.Expression getInterceptorLibrary() {
