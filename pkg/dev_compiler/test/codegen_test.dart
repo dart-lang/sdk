@@ -60,7 +60,8 @@ main(arguments) {
       outputDir: actualDir,
       useColors: false,
       outputDart: dartGen,
-      formatOutput: dartGen);
+      formatOutput: dartGen,
+      emitSourceMaps: false);
   var realSdk = new TypeResolver.fromDir(getSdkDir(arguments).path, options);
 
   // Validate that old output is gone before running.
@@ -119,7 +120,8 @@ main(arguments) {
           forceCompile: true,
           outputDart: dartGen,
           formatOutput: dartGen,
-          cheapTestFormat: true);
+          cheapTestFormat: true,
+          emitSourceMaps: false);
       var sdkPath = dartGen
           ? path.join(testDir, '..', 'tool', 'input_sdk_src')
           : path.join(testDir, 'generated_sdk');

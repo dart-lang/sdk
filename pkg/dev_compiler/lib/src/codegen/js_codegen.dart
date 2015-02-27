@@ -12,6 +12,9 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
+import 'package:source_maps/source_maps.dart' as srcmaps show Printer;
+import 'package:source_maps/source_maps.dart' show SourceMapSpan;
+import 'package:source_span/source_span.dart' show SourceLocation;
 import 'package:path/path.dart' as path;
 
 // TODO(jmesserly): import from its own package
@@ -20,6 +23,7 @@ import 'package:dev_compiler/src/js/js_ast.dart' show js;
 
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart';
 import 'code_generator.dart';
@@ -59,7 +63,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var source = unit.element.source;
       _constEvaluator = new ConstantEvaluator(source, rules.provider);
       reporter.enterSource(source);
-      body.add(unit.accept(this));
+      body.add(_visit(unit));
       reporter.leaveSource();
     }
 
@@ -91,7 +95,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (child is! TopLevelVariableDeclaration) _flushLazyFields(body);
       if (child is! FunctionDeclaration) _flushLibraryProperties(body);
 
-      var code = child.accept(this);
+      var code = _visit(child);
       if (code != null) body.add(code);
     }
     // Flush any unwritten fields/properties.
@@ -118,10 +122,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (!rules.isNonNullableType(from) && rules.isNonNullableType(to)) {
         // Converting from a nullable number to a non-nullable number
         // only requires a null check.
-        return js.call('dart.notNull(#)', node.expression.accept(this));
+        return js.call('dart.notNull(#)', _visit(node.expression));
       } else {
         // A no-op in JavaScript.
-        return node.expression.accept(this);
+        return _visit(node.expression);
       }
     }
 
@@ -133,14 +137,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       _emitCast(node.expression, node.type.type);
 
   _emitCast(Expression node, DartType type) =>
-      js.call('dart.as(#)', [[node.accept(this), _emitTypeName(type)]]);
+      js.call('dart.as(#)', [[_visit(node), _emitTypeName(type)]]);
 
   @override
   visitIsExpression(IsExpression node) {
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
     JS.Expression result;
     var type = node.type.type;
-    var lhs = node.expression.accept(this);
+    var lhs = _visit(node.expression);
     var typeofName = _jsTypeofName(type);
     if (typeofName != null) {
       result = js.call('typeof # == #', [lhs, typeofName]);
@@ -240,7 +244,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (member is ConstructorDeclaration) {
         jsMethods.add(_emitConstructor(member, name, fields));
       } else if (member is MethodDeclaration) {
-        jsMethods.add(member.accept(this));
+        jsMethods.add(_visit(member));
       }
     }
 
@@ -331,8 +335,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // We generate constructors as initializer methods in the class;
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
-    return new JS.Method(new JS.PropertyName(name), new JS.Fun(
-        node.parameters.accept(this), _emitConstructorBody(node, fields)));
+    return new JS.Method(new JS.PropertyName(name),
+        new JS.Fun(_visit(node.parameters), _emitConstructorBody(node, fields)))
+      ..sourceInformation = node;
   }
 
   String _constructorName(String className, SimpleIdentifier name) {
@@ -345,8 +350,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
     if (node.redirectedConstructor != null) {
       return js.statement('{ return new #(#); }', [
-        node.redirectedConstructor.accept(this),
-        node.parameters.accept(this)
+        _visit(node.redirectedConstructor),
+        _visit(node.parameters)
       ]);
     }
 
@@ -364,7 +369,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         (i) => i is RedirectingConstructorInvocation, orElse: () => null);
 
     if (redirectCall != null) {
-      body.add(redirectCall.accept(this));
+      body.add(_visit(redirectCall));
       return new JS.Block(body);
     }
 
@@ -386,8 +391,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (jsSuper != null) body.add(jsSuper);
     }
 
-    body.add(node.body.accept(this));
-    return new JS.Block(body);
+    body.add(_visit(node.body));
+    return new JS.Block(body)..sourceInformation = node;
   }
 
   @override
@@ -397,7 +402,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var className = classDecl.name.name;
 
     var name = _constructorName(className, node.constructorName);
-    return js.statement('this.#(#);', [name, node.argumentList.accept(this)]);
+    return js.statement('this.#(#);', [name, _visit(node.argumentList)]);
   }
 
   JS.Statement _superConstructorCall(ClassDeclaration clazz,
@@ -413,8 +418,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var supertypeName = element.supertype.name;
     var name = _constructorName(supertypeName, superCtorName);
 
-    var args = node != null ? node.argumentList.accept(this) : [];
-    return js.statement('super.#(#);', [name, args]);
+    var args = node != null ? _visit(node.argumentList) : [];
+    return js.statement('super.#(#);', [name, args])..sourceInformation = node;
   }
 
   /// Initialize fields. They follow the sequence:
@@ -436,7 +441,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           unsetFields[field.name.name] = field;
         } else {
           body.add(js.statement(
-              '# = #;', [field.name.accept(this), _visitInitializer(field)]));
+              '# = #;', [_visit(field.name), _visitInitializer(field)]));
         }
       }
     }
@@ -457,10 +462,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (initializers != null) {
       for (var init in initializers) {
         if (init is ConstructorFieldInitializer) {
-          body.add(js.statement('# = #;', [
-            init.fieldName.accept(this),
-            init.expression.accept(this)
-          ]));
+          body.add(js.statement(
+              '# = #;', [_visit(init.fieldName), _visit(init.expression)]));
           unsetFields.remove(init.fieldName.name);
         }
       }
@@ -470,7 +473,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     unsetFields.forEach((name, field) {
       JS.Expression value;
       if (field.initializer != null) {
-        value = field.initializer.accept(this);
+        value = _visit(field.initializer);
       } else {
         var type = rules.elementType(field.element);
         if (rules.maybeNonNullableType(type)) {
@@ -532,7 +535,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Expression _defaultParamValue(FormalParameter param) {
     if (param is DefaultFormalParameter && param.defaultValue != null) {
-      return param.defaultValue.accept(this);
+      return _visit(param.defaultValue);
     } else {
       return new JS.LiteralNull();
     }
@@ -548,7 +551,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (params == null) params = [];
 
     return new JS.Method(new JS.PropertyName(_jsMethodName(node.name.name)),
-        new JS.Fun(params, node.body.accept(this)),
+        new JS.Fun(params, _visit(node.body)),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -572,8 +575,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = node.name.name;
     body.add(js.comment('Function $name: ${node.element.type}'));
 
-    body.add(new JS.FunctionDeclaration(new JS.VariableDeclaration(name),
-        node.functionExpression.accept(this)));
+    body.add(new JS.FunctionDeclaration(
+        new JS.VariableDeclaration(name), _visit(node.functionExpression)));
 
     if (isPublic(name)) _exports.add(name);
     return _statement(body);
@@ -583,7 +586,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = node.name.name;
     if (isPublic(name)) _exports.add(name);
     return new JS.Method(
-        new JS.PropertyName(name), node.functionExpression.accept(this),
+        new JS.PropertyName(name), _visit(node.functionExpression),
         isGetter: node.isGetter, isSetter: node.isSetter);
   }
 
@@ -593,7 +596,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (params == null) params = [];
 
     if (node.parent is FunctionDeclaration) {
-      return new JS.Fun(params, node.body.accept(this));
+      return new JS.Fun(params, _visit(node.body));
     } else {
       var bindThis = _maybeBindThis(node.body);
 
@@ -607,7 +610,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         code = '(#) => { #; }';
         body = nodeBody;
       }
-      return js.call('($code)$bindThis', [params, body.accept(this)]);
+      return js.call('($code)$bindThis', [params, _visit(body)]);
     }
   }
 
@@ -622,7 +625,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = new JS.VariableDeclaration(func.name.name);
     return new JS.Block([
       js.comment("// Function ${func.name.name}: ${func.element.type}\n"),
-      new JS.FunctionDeclaration(name, func.functionExpression.accept(this))
+      new JS.FunctionDeclaration(name, _visit(func.functionExpression))
     ]);
   }
 
@@ -691,20 +694,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       } else {
         code = '#.set(#, #)';
       }
-      return js.call(code, [
-        target.accept(this),
-        lhs.index.accept(this),
-        rhs.accept(this)
-      ]);
+      return js.call(code, [_visit(target), _visit(lhs.index), _visit(rhs)]);
     }
 
     if (lhs is PropertyAccess) {
       var target = _getTarget(lhs);
       if (rules.isDynamicTarget(target)) {
         return js.call('dart.dput(#, #, #)', [
-          target.accept(this),
+          _visit(target),
           js.string(lhs.propertyName.name, "'"),
-          rhs.accept(this)
+          _visit(rhs)
         ]);
       }
     }
@@ -722,23 +721,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       _cascadeTarget = lhs;
 
       var body = [];
-      body.add(
-          js.statement('# = #;', [lhs.accept(this), rhs.target.accept(this)]));
+      body.add(js.statement('# = #;', [_visit(lhs), _visit(rhs.target)]));
       for (var section in rhs.cascadeSections) {
-        body.add(new JS.ExpressionStatement(section.accept(this)));
+        body.add(new JS.ExpressionStatement(_visit(section)));
       }
 
       _cascadeTarget = savedCascadeTemp;
       return _statement(body);
     }
 
-    return js.call('# = #', [lhs.accept(this), rhs.accept(this)]);
+    return js.call('# = #', [_visit(lhs), _visit(rhs)]);
   }
 
   @override
   JS.Block visitExpressionFunctionBody(ExpressionFunctionBody node) {
     var initArgs = _emitArgumentInitializers(_parametersOf(node.parent));
-    var ret = new JS.Return(node.expression.accept(this));
+    var ret = new JS.Return(_visit(node.expression));
     return new JS.Block(initArgs != null ? [initArgs, ret] : [ret]);
   }
 
@@ -764,16 +762,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (result != null) return result;
 
     if (rules.isDynamicCall(node.methodName)) {
-      var args = node.argumentList.accept(this);
+      var args = _visit(node.argumentList);
       if (target != null) {
         return js.call('dart.dinvoke(#, #, #)', [
-          target.accept(this),
+          _visit(target),
           js.string(node.methodName.name, "'"),
           args
         ]);
       } else {
-        return js.call(
-            'dart.dinvokef(#, #)', [node.methodName.accept(this), args]);
+        return js.call('dart.dinvokef(#, #)', [_visit(node.methodName), args]);
       }
     }
 
@@ -782,12 +779,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var targetJs;
     if (target != null) {
-      targetJs = js.call('#.#', [target.accept(this), node.methodName.name]);
+      targetJs = js.call('#.#', [_visit(target), node.methodName.name]);
     } else {
-      targetJs = node.methodName.accept(this);
+      targetJs = _visit(node.methodName);
     }
 
-    return js.call('#(#)', [targetJs, node.argumentList.accept(this)]);
+    return js.call('#(#)', [targetJs, _visit(node.argumentList)]);
   }
 
   /// Emits code for the `JS(...)` builtin.
@@ -818,8 +815,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     } else {
       code = '#(#)';
     }
-    return js.call(
-        code, [node.function.accept(this), node.argumentList.accept(this)]);
+    return js.call(code, [_visit(node.function), _visit(node.argumentList)]);
   }
 
   @override
@@ -830,7 +826,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (arg is NamedExpression) {
         named.add(visitNamedExpression(arg));
       } else {
-        args.add(arg.accept(this));
+        args.add(_visit(arg));
       }
     }
     if (named.isNotEmpty) {
@@ -842,8 +838,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Property visitNamedExpression(NamedExpression node) {
     assert(node.parent is ArgumentList);
-    return new JS.Property(new JS.PropertyName(node.name.label.name),
-        node.expression.accept(this));
+    return new JS.Property(
+        new JS.PropertyName(node.name.label.name), _visit(node.expression));
   }
 
   @override
@@ -861,7 +857,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Statement visitExpressionStatement(ExpressionStatement node) =>
-      _expressionStatement(node.expression.accept(this));
+      _expressionStatement(_visit(node.expression));
 
   // Some expressions may choose to generate themselves as JS statements
   // if their parent is in a statement context.
@@ -877,7 +873,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Statement visitAssertStatement(AssertStatement node) =>
       // TODO(jmesserly): only emit in checked mode.
-      js.statement('dart.assert(#);', node.condition.accept(this));
+      js.statement('dart.assert(#);', _visit(node.condition));
 
   @override
   JS.Return visitReturnStatement(ReturnStatement node) =>
@@ -899,7 +895,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         if (isPublic(name)) _exports.add(name);
       } else if (_isFieldInitConstant(field)) {
         body.add(js.statement(
-            '# = #;', [field.name.accept(this), _visitInitializer(field)]));
+            '# = #;', [_visit(field.name), _visitInitializer(field)]));
       } else {
         _lazyFields.add(field);
       }
@@ -929,7 +925,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       variables = _visitList(node.variables.take(node.variables.length - 1));
       variables.add(new JS.VariableInitialization(
           new JS.VariableDeclaration(last.name.name),
-          lastInitializer.target.accept(this)));
+          _visit(lastInitializer.target)));
 
       var result = <JS.Expression>[
         new JS.VariableDeclarationList('let', variables)
@@ -971,7 +967,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     for (var node in fields) {
       var name = node.name.name;
       methods.add(new JS.Method(new JS.PropertyName(name),
-          js.call('function() { return #; }', node.initializer.accept(this)),
+          js.call('function() { return #; }', _visit(node.initializer)),
           isGetter: true));
 
       // TODO(jmesserly): use a dummy setter to indicate writable.
@@ -998,11 +994,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Statement visitVariableDeclarationStatement(
           VariableDeclarationStatement node) =>
-      _expressionStatement(node.variables.accept(this));
+      _expressionStatement(_visit(node.variables));
 
   @override
   visitConstructorName(ConstructorName node) {
-    var typeName = node.type.name.accept(this);
+    var typeName = _visit(node.type.name);
     if (node.name != null) {
       return js.call('#.#', [typeName, node.name.name]);
     }
@@ -1011,10 +1007,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    return js.call('new #(#)', [
-      node.constructorName.accept(this),
-      node.argumentList.accept(this)
-    ]);
+    return js.call(
+        'new #(#)', [_visit(node.constructorName), _visit(node.argumentList)]);
   }
 
   /// True if this type is built-in to JS, and we use the values unwrapped.
@@ -1041,9 +1035,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Expression notNull(Expression expr) {
     var type = rules.getStaticType(expr);
     if (rules.isNonNullableType(type)) {
-      return expr.accept(this);
+      return _visit(expr);
     } else {
-      return js.call('dart.notNull(#)', expr.accept(this));
+      return js.call('dart.notNull(#)', _visit(expr));
     }
   }
 
@@ -1067,7 +1061,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         var bang = op.type == TokenType.BANG_EQ ? '!' : '';
         code = '${bang}dart.equals(#, #)';
       }
-      return js.call(code, [left.accept(this), right.accept(this)]);
+      return js.call(code, [_visit(left), _visit(right)]);
     } else if (binaryOperationIsPrimitive(leftType, rightType)) {
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
@@ -1085,11 +1079,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var opString = js.string(op.lexeme, "'");
       if (rules.isDynamicTarget(left)) {
         // dynamic dispatch
-        return js.call('dart.dbinary(#, #, #)', [
-          left.accept(this),
-          opString,
-          right.accept(this)
-        ]);
+        return js.call(
+            'dart.dbinary(#, #, #)', [_visit(left), opString, _visit(right)]);
       } else if (_isJSBuiltinType(leftType)) {
         // TODO(jmesserly): we'd get better readability from the static-dispatch
         // pattern below. Consider:
@@ -1104,13 +1095,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         return js.call('#.#(#, #)', [
           _emitTypeName(leftType),
           opString,
-          left.accept(this),
-          right.accept(this)
+          _visit(left),
+          _visit(right)
         ]);
       } else {
         // Generic static-dispatch, user-defined operator code path.
-        return js.call(
-            '#.#(#)', [left.accept(this), opString, right.accept(this)]);
+        return js.call('#.#(#)', [_visit(left), opString, _visit(right)]);
       }
     }
   }
@@ -1167,7 +1157,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         // Use comma expression. For example:
         //    (sb.write(1), sb.write(2), sb)
         var sections = _visitListToBinary(node.cascadeSections, ',');
-        result = new JS.Binary(',', sections, _cascadeTarget.accept(this));
+        result = new JS.Binary(',', sections, _visit(_cascadeTarget));
       }
     } else {
       // In the general case we need to capture the target expression into
@@ -1190,7 +1180,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       result = js.call('((#) => { # })$bindThis(#)', [
         _cascadeTarget.name,
         body,
-        node.target.accept(this)
+        _visit(node.target)
       ]);
     }
 
@@ -1221,15 +1211,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitParenthesizedExpression(ParenthesizedExpression node) =>
       // The printer handles precedence so we don't need to.
-      node.expression.accept(this);
+      _visit(node.expression);
 
   @override
   visitSimpleFormalParameter(SimpleFormalParameter node) =>
-      node.identifier.accept(this);
+      _visit(node.identifier);
 
   @override
   visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      node.identifier.accept(this);
+      _visit(node.identifier);
 
   @override
   JS.This visitThisExpression(ThisExpression node) => new JS.This();
@@ -1240,7 +1230,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.prefix.staticElement is PrefixElement) {
-      return node.identifier.accept(this);
+      return _visit(node.identifier);
     } else {
       return _visitGet(node.prefix, node.identifier);
     }
@@ -1254,9 +1244,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   _visitGet(Expression target, SimpleIdentifier name) {
     if (rules.isDynamicTarget(target)) {
       return js.call(
-          'dart.dload(#, #)', [target.accept(this), js.string(name.name, "'")]);
+          'dart.dload(#, #)', [_visit(target), js.string(name.name, "'")]);
     } else {
-      return js.call('#.#', [target.accept(this), name.name]);
+      return js.call('#.#', [_visit(target), name.name]);
     }
   }
 
@@ -1269,7 +1259,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     } else {
       code = '#.get(#)';
     }
-    return js.call(code, [target.accept(this), node.index.accept(this)]);
+    return js.call(code, [_visit(target), _visit(node.index)]);
   }
 
   /// Gets the target of a [PropertyAccess] or [IndexExpression].
@@ -1283,15 +1273,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitConditionalExpression(ConditionalExpression node) {
     return js.call('# ? # : #', [
-      node.condition.accept(this),
-      node.thenExpression.accept(this),
-      node.elseExpression.accept(this)
+      _visit(node.condition),
+      _visit(node.thenExpression),
+      _visit(node.elseExpression)
     ]);
   }
 
   @override
   visitThrowExpression(ThrowExpression node) {
-    var expr = node.expression.accept(this);
+    var expr = _visit(node.expression);
     if (node.parent is ExpressionStatement) {
       return js.statement('throw #;', expr);
     } else {
@@ -1301,7 +1291,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.If visitIfStatement(IfStatement node) {
-    return new JS.If(node.condition.accept(this), _visit(node.thenStatement),
+    return new JS.If(_visit(node.condition), _visit(node.thenStatement),
         _visitOrEmpty(node.elseStatement));
   }
 
@@ -1315,12 +1305,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.While visitWhileStatement(WhileStatement node) {
-    return new JS.While(node.condition.accept(this), node.body.accept(this));
+    return new JS.While(_visit(node.condition), _visit(node.body));
   }
 
   @override
   JS.Do visitDoStatement(DoStatement node) {
-    return new JS.Do(node.body.accept(this), node.condition.accept(this));
+    return new JS.Do(_visit(node.body), _visit(node.condition));
   }
 
   @override
@@ -1329,8 +1319,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (init == null) {
       init = js.call('let #', node.loopVariable.identifier.name);
     }
-    return new JS.ForOf(
-        init, node.iterable.accept(this), node.body.accept(this));
+    return new JS.ForOf(init, _visit(node.iterable), _visit(node.body));
   }
 
   @override
@@ -1384,16 +1373,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (node.catchKeyword != null) {
       var name = node.exceptionParameter;
       if (name != null && name.name != varName) {
-        body.add(js.statement('let # = #;', [name.accept(this), varName]));
+        body.add(js.statement('let # = #;', [_visit(name), varName]));
       }
       if (node.stackTraceParameter != null) {
         var stackVar = node.stackTraceParameter.name;
         body.add(js.statement(
-            'let # = dart.stackTrace(#);', [stackVar, name.accept(this)]));
+            'let # = dart.stackTrace(#);', [stackVar, _visit(name)]));
       }
     }
 
-    body.add(node.body.accept(this));
+    body.add(_visit(node.body));
 
     if (node.exceptionType != null) {
       return js.statement('if (dart.is(#, #)) #;', [
@@ -1407,7 +1396,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Case visitSwitchCase(SwitchCase node) {
-    var expr = node.expression.accept(this);
+    var expr = _visit(node.expression);
     var body = _visitList(node.statements);
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
@@ -1428,7 +1417,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Switch visitSwitchStatement(SwitchStatement node) =>
-      new JS.Switch(node.expression.accept(this), _visitList(node.members));
+      new JS.Switch(_visit(node.expression), _visitList(node.members));
 
   @override
   JS.Statement visitLabeledStatement(LabeledStatement node) {
@@ -1471,15 +1460,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var props = [];
       for (var e in entries) {
         var key = (e.key as SimpleStringLiteral).value;
-        var value = e.value.accept(this);
+        var value = _visit(e.value);
         props.add(new JS.Property(js.escapedString(key), value));
       }
       mapArguments = new JS.ObjectInitializer(props);
     } else {
       var values = [];
       for (var e in entries) {
-        values.add(e.key.accept(this));
-        values.add(e.value.accept(this));
+        values.add(_visit(e.key));
+        values.add(_visit(e.value));
       }
       mapArguments = new JS.ArrayInitializer(values);
     }
@@ -1511,7 +1500,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitInterpolationExpression(InterpolationExpression node) =>
-      node.expression.accept(this);
+      _visit(node.expression);
 
   @override
   visitBooleanLiteral(BooleanLiteral node) => js.boolean(node.value);
@@ -1570,17 +1559,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return element is TopLevelVariableElement && !element.isConst;
   }
 
-  _visit(AstNode node) => node != null ? node.accept(this) : null;
+  _visit(AstNode node) {
+    if (node == null) return null;
+    var result = node.accept(this);
+    if (result is JS.Node) result.sourceInformation = node;
+    return result;
+  }
 
-  JS.Statement _visitOrEmpty(AstNode node) {
+  JS.Statement _visitOrEmpty(Statement node) {
     if (node == null) return new JS.EmptyStatement();
-    return node.accept(this);
+    return _visit(node);
   }
 
   List _visitList(Iterable<AstNode> nodes) {
     if (nodes == null) return null;
     var result = [];
-    for (var node in nodes) result.add(node.accept(this));
+    for (var node in nodes) result.add(_visit(node));
     return result;
   }
 
@@ -1590,7 +1584,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     JS.Expression result = null;
     for (var node in nodes) {
-      var jsExpr = node.accept(this);
+      var jsExpr = _visit(node);
       if (result == null) {
         result = jsExpr;
       } else {
@@ -1712,7 +1706,9 @@ class _BindThisVisitor extends RecursiveAstVisitor {
 }
 
 class JSGenerator extends CodeGenerator {
-  JSGenerator(String outDir, Uri root, TypeRules rules)
+  final JSCodeOptions options;
+
+  JSGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
@@ -1723,13 +1719,38 @@ class JSGenerator extends CodeGenerator {
     var outputPath = path.join(outDir, jsOutputPath(info));
     new Directory(path.dirname(outputPath)).createSync(recursive: true);
 
-    var context = new JS.SimpleJavaScriptPrintingContext();
+    if (options.emitSourceMaps) {
+      var outFilename = path.basename(outputPath);
+      var printer = new srcmaps.Printer(outFilename);
+      var context =
+          new SourceMapPrintingContext(printer, path.dirname(outputPath));
+      _writeLibrary(context, jsTree);
+      printer.add('//# sourceMappingURL=$outFilename.map');
+      // Write output file and source map
+      new File(outputPath).writeAsStringSync(printer.text);
+      new File('$outputPath.map').writeAsStringSync(printer.map);
+    } else {
+      var context = new JS.SimpleJavaScriptPrintingContext();
+      _writeLibrary(context, jsTree);
+      // Write output file and source map
+      new File(outputPath).writeAsStringSync(context.getText());
+    }
+  }
+
+  void _writeLibrary(JS.JavaScriptPrintingContext context, JS.Block jsTree) {
     var opts =
         new JS.JavaScriptPrintingOptions(avoidKeywordsInIdentifiers: true);
-    var printer = new JS.Printer(opts, context);
-    printer.blockOutWithoutBraces(jsTree);
-    new File(outputPath).writeAsStringSync(context.getText());
+    new JS.Printer(opts, context).blockOutWithoutBraces(jsTree);
   }
+}
+
+/// This is a debugging helper to print a JS node.
+String debugJsNodeToString(JS.Node node) {
+  var context = new JS.SimpleJavaScriptPrintingContext();
+  var opts = new JS.JavaScriptPrintingOptions(avoidKeywordsInIdentifiers: true);
+  new JS.Printer(opts, context).visit(node);
+  // Write output file and source map
+  return context.getText();
 }
 
 /// Choose a canonical name from the library element.
@@ -1742,3 +1763,68 @@ String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
 // root. For example, "package:dev_compiler/src/codegen/js_codegen.dart" would be:
 // "ddc/src/codegen/js_codegen.js" under the output directory.
 String jsOutputPath(LibraryInfo info) => '${info.name}/${info.name}.js';
+
+class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
+  final srcmaps.Printer printer;
+  final String outputDir;
+
+  CompilationUnit unit;
+  Uri uri;
+
+  SourceMapPrintingContext(this.printer, this.outputDir);
+
+  void emit(String string) {
+    printer.add(string);
+  }
+
+  void enterNode(JS.Node jsNode) {
+    AstNode node = jsNode.sourceInformation;
+    if (node is CompilationUnit) {
+      unit = node;
+      uri = _makeRelativeUri(unit.element.source.uri);
+      return;
+    }
+    if (unit == null || node == null || node.offset == -1) return;
+
+    var loc = _location(node.offset);
+    var name = _getIdentifier(node);
+    if (name != null) {
+      // TODO(jmesserly): mark only uses the beginning of the span, but
+      // we're required to pass this as a valid span.
+      var end = _location(node.end);
+      printer.mark(new SourceMapSpan(loc, end, name, isIdentifier: true));
+    } else {
+      printer.mark(loc);
+    }
+  }
+
+  SourceLocation _location(int offset) {
+    var lineInfo = unit.lineInfo.getLocation(offset);
+    return new SourceLocation(offset,
+        sourceUrl: uri,
+        line: lineInfo.lineNumber - 1,
+        column: lineInfo.columnNumber - 1);
+  }
+
+  Uri _makeRelativeUri(Uri src) {
+    return new Uri(path: path.relative(src.path, from: outputDir));
+  }
+
+  void exitNode(JS.Node jsNode) {
+    AstNode node = jsNode.sourceInformation;
+    if (node is CompilationUnit) {
+      unit = null;
+      uri = null;
+      return;
+    }
+    if (unit == null || node == null || node.offset == -1) return;
+
+    // TODO(jmesserly): in many cases marking the end will be unncessary.
+    printer.mark(_location(node.end));
+  }
+
+  String _getIdentifier(AstNode node) {
+    if (node is SimpleIdentifier) return node.name;
+    return null;
+  }
+}

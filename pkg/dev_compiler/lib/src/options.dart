@@ -79,8 +79,15 @@ class RulesOptions extends TypeOptions {
       this.relaxedCasts: true, this.ignoreTypes: false});
 }
 
+class JSCodeOptions {
+  /// Whether to emit the source map files.
+  final bool emitSourceMaps;
+
+  JSCodeOptions({this.emitSourceMaps: true});
+}
+
 /// General options used by the dev compiler.
-class CompilerOptions implements RulesOptions, ResolverOptions {
+class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Whether to check the sdk libraries.
   final bool checkSdk;
 
@@ -180,6 +187,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
   @override
   final bool ignoreTypes;
 
+  /// Whether to emit the source map files.
+  @override
+  final bool emitSourceMaps;
+
   CompilerOptions({this.allowConstCasts: true, this.checkSdk: false,
       this.dumpInfo: false, this.dumpInfoFile, this.dumpSrcDir,
       this.forceCompile: false, this.formatOutput: false,
@@ -193,7 +204,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions {
       this.onlyInferConstsAndFinalFields: false,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
-      this.entryPointFile: null});
+      this.emitSourceMaps: true, this.entryPointFile: null});
 }
 
 /// Parses options from the command-line
@@ -233,6 +244,7 @@ CompilerOptions parseOptions(List<String> argv) {
       dartSdkPath: sdkPath,
       logLevel: Level.LEVELS.firstWhere((Level l) => l.name == levelName,
           orElse: () => Level.SEVERE),
+      emitSourceMaps: args['source-maps'],
       entryPointFile: args.rest.length == 0 ? null : args.rest.first);
 }
 
@@ -284,6 +296,8 @@ final ArgParser argParser = new ArgParser()
       defaultsTo: false)
   ..addOption('package-paths', help: 'if using the multi-package resolver, '
       'the list of directories where to look for packages.', defaultsTo: '')
+  ..addFlag('source-maps',
+      help: 'Whether to emit source map files', defaultsTo: true)
 
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')

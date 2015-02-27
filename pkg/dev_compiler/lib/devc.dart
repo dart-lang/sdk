@@ -118,7 +118,7 @@ CheckerResults _compileDart(
   if (outputDir != null) {
     var cg = options.outputDart
         ? new DartGenerator(outputDir, uri, rules, options)
-        : new JSGenerator(outputDir, uri, rules);
+        : new JSGenerator(outputDir, uri, rules, options);
     generators.add(cg);
   }
 

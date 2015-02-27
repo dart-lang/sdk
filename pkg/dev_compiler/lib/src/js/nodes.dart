@@ -203,14 +203,10 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDartYield(DartYield node) => visitStatement(node);
 }
 
-/// This tag interface has no behaviour but must be implemented by any class
-/// that is to be stored on a [Node] as source information.
-abstract class JavaScriptNodeSourceInformation {}
-
 abstract class Node {
-  JavaScriptNodeSourceInformation get sourceInformation => _sourceInformation;
-
-  JavaScriptNodeSourceInformation _sourceInformation;
+  /// Sets the source location of this node. For performance reasons, we allow
+  /// setting this after construction.
+  Object sourceInformation;
 
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
@@ -221,15 +217,14 @@ abstract class Node {
 
   // Returns a node equivalent to [this], but with new source position and end
   // source position.
-  Node withSourceInformation(
-      JavaScriptNodeSourceInformation sourceInformation) {
-    if (sourceInformation == _sourceInformation) {
+  Node withSourceInformation(sourceInformation) {
+    if (sourceInformation == this.sourceInformation) {
       return this;
     }
     Node clone = _clone();
     // TODO(sra): Should existing data be 'sticky' if we try to overwrite with
     // `null`?
-    clone._sourceInformation = sourceInformation;
+    clone.sourceInformation = sourceInformation;
     return clone;
   }
 
