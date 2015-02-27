@@ -26,7 +26,7 @@ DART="$BIN_DIR/dart"
 
 DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
-DARTFMT="$DART_ROOT/third_party/pkg/dart_style/bin/format.dart"
+DARTFMT="$DART_ROOT/third_party/pkg_tested/dart_style/bin/format.dart"
 
 if [ -z "$DART_CONFIGURATION" ];
 then
