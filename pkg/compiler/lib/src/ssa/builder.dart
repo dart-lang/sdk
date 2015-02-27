@@ -3711,12 +3711,17 @@ class SsaBuilder extends ResolvedVisitor {
      }
      String name = string.dartString.slowToString();
      bool value = false;
-     if (name == 'MUST_RETAIN_METADATA') {
-       value = backend.mustRetainMetadata;
-     } else {
-       compiler.reportError(
-           node, MessageKind.GENERIC,
-           {'text': 'Error: Unknown internal flag "$name".'});
+     switch (name) {
+       case 'MUST_RETAIN_METADATA':
+         value = backend.mustRetainMetadata;
+         break;
+       case 'USE_CONTENT_SECURITY_POLICY':
+         value = compiler.useContentSecurityPolicy;
+         break;
+       default:
+         compiler.reportError(
+             node, MessageKind.GENERIC,
+             {'text': 'Error: Unknown internal flag "$name".'});
      }
      stack.add(graph.addConstantBool(value, compiler));
   }

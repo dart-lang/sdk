@@ -22,6 +22,7 @@ import 'dart:mirrors';
 
 import 'dart:_foreign_helper' show
     JS,
+    JS_GET_FLAG,
     JS_CURRENT_ISOLATE,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EMBEDDED_GLOBAL,
@@ -1090,7 +1091,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   static bool isMissingProbe(Symbol symbol)
       => JS('bool', 'typeof #.\$p == "undefined"', symbol);
   static bool isEvalAllowed()
-      => JS('bool', 'typeof dart_precompiled != "function"');
+      => !JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
 
 
   /// The getter cache is lazily allocated after a couple

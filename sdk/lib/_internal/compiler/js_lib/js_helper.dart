@@ -2259,7 +2259,7 @@ abstract class Closure implements Function {
     }
   }
 
-  static bool get isCsp => JS('bool', 'typeof dart_precompiled == "function"');
+  static bool get isCsp => JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
 
   static forwardCallTo(receiver, function, bool isIntercepted) {
     if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
@@ -2376,7 +2376,7 @@ abstract class Closure implements Function {
     String receiverField = BoundClosure.receiverFieldName();
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    bool isCsp = JS('bool', 'typeof dart_precompiled == "function"');
+    bool isCsp = JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
     var lookedUpFunction = JS("", "#[#]", receiver, stubName);
     // The receiver[stubName] may not be equal to the function if we try to
     // forward to a super-method. Especially when we create a bound closure
