@@ -16,7 +16,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Issue 20540
-LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: RuntimeError # Issue 22532
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: Fail # Issue 22007
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: Fail # Issue 22007
 Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
@@ -1040,7 +1039,9 @@ LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: Pass, RuntimeError #
 LayoutTests/fast/dom/shadow/shadowdom-for-input-type-change_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/filesystem/file-writer-abort-continue_t01: Skip # Times out.  Please triage this failure.
 LayoutTests/fast/forms/activate-and-disabled-elements_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/text-set-value-crash_t01: Skip # Times out. Please triage this failure.
+LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # co19-roll r801 : Please triage this failure.
 LayoutTests/fast/inline/continuation-inlines-inserted-in-reverse-after-block_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/inline/fixed-pos-moves-with-abspos-inline-parent_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/inline/fixed-pos-moves-with-abspos-parent-relative-ancestor_t01: Skip # Times out. Please triage this failure.
@@ -1153,6 +1154,7 @@ LayoutTests/fast/canvas/webgl/webgl-specific_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-texture-binding-preserved_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-viewport-parameters-preserved_t01: RuntimeError # Issue 22026
+LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: RuntimeError # Issue 22532
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $system != windows ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
