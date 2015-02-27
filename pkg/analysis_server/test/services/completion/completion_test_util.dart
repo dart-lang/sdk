@@ -2215,6 +2215,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_InterpolationExpression_prefix_selector2() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \$name.^");}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions();
+    });
+  }
+
   test_InterpolationExpression_prefix_target() {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${nam^e.length}");}');
