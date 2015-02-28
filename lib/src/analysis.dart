@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
+import 'package:linter/src/io.dart';
 
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
@@ -111,8 +112,8 @@ class DriverOptions {
 }
 
 class _Logger extends Logger {
-  void logError(String message, [exception]) => stderr.writeln(message);
-  void logError2(String message, dynamic exception) => stderr.writeln(message);
+  void logError(String message, [exception]) => std_err.writeln(message);
+  void logError2(String message, dynamic exception) => std_err.writeln(message);
   void logInformation(String message, [exception]) {}
   void logInformation2(String message, dynamic exception) {}
 }

@@ -73,7 +73,7 @@ void printUsage(ArgParser parser, [String error]) {
     message = error;
   }
 
-  stdout.writeln('''$message
+  std_out.writeln('''$message
 Usage: linter <file>
 ${parser.usage}
   
