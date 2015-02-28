@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:linter/src/linter.dart';
 import 'package:mockito/mockito.dart';
+import 'package:linter/src/pub.dart';
 
 class MockFile extends Mock implements File {
   @override
@@ -25,6 +26,21 @@ class MockLinter extends Mock implements DartLinter {
 }
 
 class MockLinterOptions extends Mock implements LinterOptions {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockRule extends Mock implements LintRule {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockPubVisitor extends Mock implements PubSpecVisitor {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockReporter extends Mock implements Reporter {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

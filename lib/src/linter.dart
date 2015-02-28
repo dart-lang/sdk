@@ -355,7 +355,9 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           } on Exception catch (e) {
             reporter.exception(new LinterException(e.toString()));
           }
-          results.addAll(rule._locationInfo);
+          if (rule._locationInfo != null) {
+            results.addAll(rule._locationInfo);
+          }
         }
       }
     }

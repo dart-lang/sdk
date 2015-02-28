@@ -19,10 +19,12 @@ import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/util.dart';
+import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 import '../bin/linter.dart' as dartlint;
+import 'mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -114,6 +116,19 @@ void defineLinterEngineTests() {
         var linter = new SourceLinter(new LinterOptions(() => []));
         linter.onError(error);
         expect(linter.errors.contains(error), isTrue);
+      });
+      test('pubspec visitor error handling', () {
+        var rule = new MockRule();
+        var visitor = new MockPubVisitor();
+        when(visitor.visitPackageAuthor(any))
+            .thenAnswer((_) => throw new Exception());
+        when(rule.getPubspecVisitor()).thenReturn(visitor);
+
+        var reporter = new MockReporter();
+        var linter = new SourceLinter(new LinterOptions(() => [rule]),
+            reporter: reporter);
+        linter.lintPubspecSource(contents: 'author: foo');
+        verify(reporter.exception(any)).called(1);
       });
     });
 
