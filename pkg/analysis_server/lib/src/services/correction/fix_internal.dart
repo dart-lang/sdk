@@ -1194,6 +1194,7 @@ class FixProcessor {
     if (_mayBeTypeIdentifier(node)) {
       String typeName = (node as SimpleIdentifier).name;
       _addFix_importLibrary_withElement(typeName, ElementKind.CLASS);
+      _addFix_importLibrary_withElement(typeName, ElementKind.FUNCTION_TYPE_ALIAS);
     }
   }
 
