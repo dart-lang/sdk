@@ -21,6 +21,15 @@ import 'package:analyzer/src/generated/source.dart';
 
 
 /**
+ * Schedules indexing of the given [file] using the resolved [dartUnit].
+ */
+void scheduleIndexOperation(AnalysisServer server, String file,
+    AnalysisContext context, CompilationUnit dartUnit) {
+  server.addOperation(new _DartIndexOperation(context, file, dartUnit));
+}
+
+
+/**
  * Schedules sending notifications for the given [file] using the resolved
  * [resolvedDartUnit].
  */

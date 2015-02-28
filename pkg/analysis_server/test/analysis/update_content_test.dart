@@ -6,6 +6,9 @@ library test.analysis.updateContent;
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
@@ -18,11 +21,20 @@ main() {
 }
 
 
+compilationUnitMatcher(String file) {
+  return new _ArgumentMatcher_CompilationUnit(file);
+}
+
+
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
   int serverErrorCount = 0;
   int navigationCount = 0;
+
+  Index createIndex() {
+    return new _MockIndex();
+  }
 
   @override
   void processNotification(Notification notification) {
@@ -78,6 +90,29 @@ class UpdateContentTest extends AbstractAnalysisTest {
       expect(e.response.id, id);
       expect(e.response.error.code, RequestErrorCode.INVALID_OVERLAY_CHANGE);
     }
+  }
+
+  test_indexUnitAfterNopChange() async {
+    var testUnitMatcher = compilationUnitMatcher(testFile) as dynamic;
+    createProject();
+    addTestFile('main() { print(1); }');
+    await server.onAnalysisComplete;
+    verify(server.index.indexUnit(anyObject, testUnitMatcher)).times(1);
+    // add an overlay
+    server.updateContent('1', {
+      testFile: new AddContentOverlay('main() { print(2); }')
+    });
+    // Perform the next single operation: analysis.
+    // It will schedule an indexing operation.
+    await server.test_onOperationPerformed;
+    // Update the file and remove an overlay.
+    resourceProvider.updateFile(testFile, 'main() { print(2); }');
+    server.updateContent('2', {
+      testFile: new RemoveContentOverlay()
+    });
+    // Validate that at the end the unit was indexed.
+    await server.onAnalysisComplete;
+    verify(server.index.indexUnit(anyObject, testUnitMatcher)).times(2);
   }
 
   test_multiple_contexts() {
@@ -159,4 +194,21 @@ f() {}
     // errors should have been resent
     expect(filesErrors, isNotEmpty);
   }
+}
+
+
+class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
+  final String file;
+
+  _ArgumentMatcher_CompilationUnit(this.file);
+
+  @override
+  bool matches(arg) {
+    return arg is CompilationUnit && arg.element.source.fullName == file;
+  }
+}
+
+
+class _MockIndex extends TypedMock implements Index {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

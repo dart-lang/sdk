@@ -197,6 +197,11 @@ class AnalysisServer {
   Completer _onAnalysisCompleteCompleter;
 
   /**
+   * The [Completer] that completes when the next operation is performed.
+   */
+  Completer _test_onOperationPerformedCompleter;
+
+  /**
    * The controller that is notified when analysis is started.
    */
   StreamController<AnalysisContext> _onAnalysisStartedController;
@@ -314,6 +319,16 @@ class AnalysisServer {
    */
   Stream<PriorityChangeEvent> get onPriorityChange =>
       _onPriorityChangeController.stream;
+
+  /**
+   * The [Future] that completes when the next operation is performed.
+   */
+  Future get test_onOperationPerformed {
+    if (_test_onOperationPerformedCompleter == null) {
+      _test_onOperationPerformedCompleter = new Completer();
+    }
+    return _test_onOperationPerformedCompleter.future;
+  }
 
   /**
    * Adds the given [ServerOperation] to the queue, but does not schedule
@@ -694,6 +709,10 @@ class AnalysisServer {
       sendServerErrorNotification(exception, stackTrace, fatal: true);
       shutdown();
     } finally {
+      if (_test_onOperationPerformedCompleter != null) {
+        _test_onOperationPerformedCompleter.complete(operation);
+        _test_onOperationPerformedCompleter = null;
+      }
       if (!operationQueue.isEmpty) {
         ServerPerformanceStatistics.intertask.makeCurrent();
         _schedulePerformOperation();
@@ -1030,18 +1049,21 @@ class AnalysisServer {
           // source contents.
           // TODO(scheglov) consider checking if there are subscriptions.
           if (AnalysisEngine.isDartFileName(file)) {
-            CompilationUnit dartUnit =
-                context.ensureAnyResolvedDartUnit(source);
-            if (dartUnit != null) {
+            List<CompilationUnit> dartUnits =
+                context.ensureResolvedDartUnits(source);
+            if (dartUnits != null) {
               AnalysisErrorInfo errorInfo = context.getErrors(source);
-              scheduleNotificationOperations(
-                  this,
-                  file,
-                  errorInfo.lineInfo,
-                  context,
-                  null,
-                  dartUnit,
-                  errorInfo.errors);
+              for (var dartUnit in dartUnits) {
+                scheduleNotificationOperations(
+                    this,
+                    file,
+                    errorInfo.lineInfo,
+                    context,
+                    null,
+                    dartUnit,
+                    errorInfo.errors);
+                scheduleIndexOperation(this, file, context, dartUnit);
+              }
             } else {
               schedulePerformAnalysisOperation(context);
             }

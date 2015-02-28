@@ -6150,8 +6150,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of dispose");
   }
   @override
-  CompilationUnit ensureAnyResolvedDartUnit(Source source) {
-    fail("Unexpected invocation of ensureAnyResolvedDartUnit");
+  List<CompilationUnit> ensureResolvedDartUnits(Source source) {
+    fail("Unexpected invocation of ensureResolvedDartUnits");
     return null;
   }
   @override

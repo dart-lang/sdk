@@ -1853,36 +1853,48 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  CompilationUnit ensureAnyResolvedDartUnit(Source source) {
-    SourceEntry sourceEntry = _cache.get(source);
+  List<CompilationUnit> ensureResolvedDartUnits(Source unitSource) {
+    SourceEntry sourceEntry = _cache.get(unitSource);
     if (sourceEntry is! DartEntry) {
       return null;
     }
     DartEntry dartEntry = sourceEntry;
-    // Check if there is a resolved unit.
-    CompilationUnit unit = dartEntry.anyResolvedCompilationUnit;
-    if (unit != null) {
-      return unit;
+    // Check every library.
+    List<CompilationUnit> units = <CompilationUnit>[];
+    List<Source> containingLibraries = dartEntry.containingLibraries;
+    for (Source librarySource in containingLibraries) {
+      CompilationUnit unit =
+          dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
+      if (unit == null) {
+        units = null;
+        break;
+      }
+      units.add(unit);
     }
     // Invalidate the flushed RESOLVED_UNIT to force it eventually.
-    bool shouldBeScheduled = false;
-    List<Source> librariesContaining = dartEntry.containingLibraries;
-    for (Source librarySource in librariesContaining) {
-      if (dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) ==
-          CacheState.FLUSHED) {
-        dartEntry.setStateInLibrary(
+    if (units == null) {
+      bool shouldBeScheduled = false;
+      for (Source librarySource in containingLibraries) {
+        if (dartEntry.getStateInLibrary(
             DartEntry.RESOLVED_UNIT,
-            librarySource,
-            CacheState.INVALID);
-        shouldBeScheduled = true;
+            librarySource) ==
+            CacheState.FLUSHED) {
+          dartEntry.setStateInLibrary(
+              DartEntry.RESOLVED_UNIT,
+              librarySource,
+              CacheState.INVALID);
+          shouldBeScheduled = true;
+        }
       }
+      if (shouldBeScheduled) {
+        _workManager.add(unitSource, SourcePriority.UNKNOWN);
+      }
+      // We cannot provide resolved units right now,
+      // but the future analysis will.
+      return null;
     }
-    if (shouldBeScheduled) {
-      _workManager.add(source, SourcePriority.UNKNOWN);
-    }
-    // We cannot provide a resolved unit right now,
-    // but the future analysis will.
-    return null;
+    // done
+    return units;
   }
 
   @override
@@ -9808,11 +9820,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   CompilationUnit computeResolvableCompilationUnit(Source source);
 
   /**
-   * Return any resolved [CompilationUnit] for the given [source] if not
-   * flushed, otherwise return `null` and ensures that the [CompilationUnit]
+   * Return all the resolved [CompilationUnit]s for the given [source] if not
+   * flushed, otherwise return `null` and ensures that the [CompilationUnit]s
    * will be eventually returned to the client from [performAnalysisTask].
    */
-  CompilationUnit ensureAnyResolvedDartUnit(Source source);
+  List<CompilationUnit> ensureResolvedDartUnits(Source source);
 
   /**
    * Return context that owns the given source.
