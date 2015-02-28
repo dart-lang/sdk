@@ -34,11 +34,12 @@ main() {
     testChecker(files, reporter: reporter);
 
     var summary1 = reporter.result;
-    expect(summary1.loose['main'].messages.length, 1);
-    expect(summary1.packages['foo'].libraries['bar'].messages.length, 1);
+    expect(summary1.loose['file:///main.dart'].messages.length, 1);
+    var barUrl = 'package:foo/bar.dart';
+    expect(summary1.packages['foo'].libraries[barUrl].messages.length, 1);
 
     var summary2 = GlobalSummary.parse(summary1.toJsonMap());
-    expect(summary2.loose['main'].messages.length, 1);
-    expect(summary2.packages['foo'].libraries['bar'].messages.length, 1);
+    expect(summary2.loose['file:///main.dart'].messages.length, 1);
+    expect(summary2.packages['foo'].libraries[barUrl].messages.length, 1);
   });
 }
