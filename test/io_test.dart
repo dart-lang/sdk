@@ -81,4 +81,17 @@ defineTests() {
       });
     });
   });
+
+  group('collecting', () {
+    group('files', () {
+      test('basic', () {
+        expect(collectFiles('test/_data/p1').map((f) => f.path),
+            unorderedEquals([
+          'test/_data/p1/p1.dart',
+          'test/_data/p1/_pubspec.yaml',
+          'test/_data/p1/src/p2.dart'
+        ]));
+      });
+    });
+  });
 }
