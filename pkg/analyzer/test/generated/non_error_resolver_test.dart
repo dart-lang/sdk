@@ -4087,6 +4087,22 @@ class A {
     verify([source]);
   }
 
+  void test_referencedBeforeDeclaration_cascade() {
+    Source source = addSource(r'''
+testRequestHandler() {}
+
+main() {
+  var s1 = null;
+  testRequestHandler()
+    ..stream(s1);
+  var stream = 123;
+  print(stream);
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_referenceToDeclaredVariableInInitializer_constructorName() {
     Source source = addSource(r'''
 class A {

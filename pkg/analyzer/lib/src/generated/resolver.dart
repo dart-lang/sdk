@@ -15133,7 +15133,7 @@ class VariableResolverVisitor extends ScopedVisitor {
     }
     if (parent is MethodInvocation &&
         identical(parent.methodName, node) &&
-        parent.target != null) {
+        parent.realTarget != null) {
       return null;
     }
     if (parent is ConstructorName) {
