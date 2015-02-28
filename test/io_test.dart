@@ -4,10 +4,11 @@
 
 library linter.test.io;
 
-//import 'package:linter/src/io.dart';
-//import 'package:linter/src/linter.dart';
-//import 'package:mockito/mockito.dart';
+import 'package:linter/src/io.dart';
+import 'package:mockito/mockito.dart';
 import 'package:unittest/unittest.dart';
+
+import 'mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -50,4 +51,34 @@ defineTests() {
 //      verify(std_err.writeln(any)).called(1);
 //    });
 //  });
+
+  group('processing', () {
+    group('files', () {
+      test('dart', () {
+        var file = new MockFile();
+        when(file.path).thenReturn('foo.dart');
+        expect(isLintable(file), isTrue);
+      });
+      test('pubspec', () {
+        var file = new MockFile();
+        when(file.path).thenReturn('pubspec.yaml');
+        expect(isLintable(file), isTrue);
+      });
+      test('_pubspec', () {
+        var file = new MockFile();
+        // Analyzable for testing purposes
+        when(file.path).thenReturn('_pubspec.yaml');
+        expect(isLintable(file), isTrue);
+      });
+      test('text', () {
+        var file = new MockFile();
+        when(file.path).thenReturn('foo.txt');
+        expect(isLintable(file), isFalse);
+      });
+      test('hidden dirs', () {
+        expect(isInHiddenDir('.foo/'), isTrue);
+        expect(isInHiddenDir('.foo/bar'), isTrue);
+      });
+    });
+  });
 }

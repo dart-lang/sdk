@@ -28,14 +28,9 @@ Iterable<File> collectFiles(String path) {
           in directory.listSync(recursive: true, followLinks: false)) {
         var relative = p.relative(entry.path, from: directory.path);
 
-        if (entry is! File || !isLintable(entry)) continue;
-
-        // If the path is in a subdirectory starting with ".", ignore it.
-        if (p.split(relative).any((part) => part.startsWith("."))) {
-          continue;
+        if (isLintable(entry) && !isInHiddenDir(relative)) {
+          files.add(entry);
         }
-
-        files.add(entry);
       }
     }
   }
@@ -44,7 +39,12 @@ Iterable<File> collectFiles(String path) {
 }
 
 bool isDartFile(FileSystemEntity entry) => isDartFileName(entry.path);
+
+bool isInHiddenDir(String relative) =>
+    p.split(relative).any((part) => part.startsWith("."));
+
 bool isLintable(FileSystemEntity file) =>
-    isDartFile(file) || isPubspecFile(file);
+    file is File && (isDartFile(file) || isPubspecFile(file));
+
 bool isPubspecFile(FileSystemEntity entry) =>
     isPubspecFileName(p.basename(entry.path));
