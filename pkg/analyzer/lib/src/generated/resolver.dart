@@ -2624,15 +2624,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
-    sc.Token keyword = node.keyword;
     LocalVariableElementImpl element =
         new LocalVariableElementImpl.forNode(variableName);
     ForEachStatement statement = node.parent as ForEachStatement;
     int declarationEnd = node.offset + node.length;
     int statementEnd = statement.offset + statement.length;
     element.setVisibleRange(declarationEnd, statementEnd - declarationEnd - 1);
-    element.const3 = _matches(keyword, sc.Keyword.CONST);
-    element.final2 = _matches(keyword, sc.Keyword.FINAL);
+    element.const3 = node.isConst;
+    element.final2 = node.isFinal;
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
     return super.visitDeclaredIdentifier(node);
@@ -2786,7 +2785,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           variable.synthetic = true;
           _currentHolder.addTopLevelVariable(variable);
         }
-        if (_matches(property, sc.Keyword.GET)) {
+        if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           getter.functions = holder.functions;
@@ -2979,7 +2978,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           field.synthetic = true;
           _currentHolder.addField(field);
         }
-        if (_matches(property, sc.Keyword.GET)) {
+        if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           getter.functions = holder.functions;
@@ -2992,8 +2991,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
             getter.generator = true;
           }
           getter.variable = field;
-          getter.abstract =
-              body is EmptyFunctionBody && node.externalKeyword == null;
+          getter.abstract = node.isAbstract;
           getter.getter = true;
           getter.static = isStatic;
           field.getter = getter;
@@ -3013,8 +3011,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
             setter.generator = true;
           }
           setter.variable = field;
-          setter.abstract = body is EmptyFunctionBody &&
-              !_matches(node.externalKeyword, sc.Keyword.EXTERNAL);
+          setter.abstract = node.isAbstract;
           setter.setter = true;
           setter.static = isStatic;
           field.setter = setter;
@@ -3121,9 +3118,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    sc.Token keyword = (node.parent as VariableDeclarationList).keyword;
-    bool isConst = _matches(keyword, sc.Keyword.CONST);
-    bool isFinal = _matches(keyword, sc.Keyword.FINAL);
+    bool isConst = node.isConst;
+    bool isFinal = node.isFinal;
     bool hasInitializer = node.initializer != null;
     VariableElementImpl element;
     if (_inFieldContext) {
@@ -3190,9 +3186,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       PropertyInducingElementImpl variable =
           element as PropertyInducingElementImpl;
       if (_inFieldContext) {
-        (variable as FieldElementImpl).static = _matches(
-            (node.parent.parent as FieldDeclaration).staticKeyword,
-            sc.Keyword.STATIC);
+        (variable as FieldElementImpl).static =
+            (node.parent.parent as FieldDeclaration).isStatic;
       }
       PropertyAccessorElementImpl getter =
           new PropertyAccessorElementImpl.forVariable(variable);
@@ -3291,18 +3286,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     return null;
   }
-
-  /**
-   * Return `true` if the given token is a token for the given keyword.
-   *
-   * @param token the token being tested
-   * @param keyword the keyword being tested for
-   * @return `true` if the given token is a token for the given keyword
-   */
-  bool _matches(sc.Token token, sc.Keyword keyword) =>
-      token != null &&
-          token.type == sc.TokenType.KEYWORD &&
-          (token as sc.KeywordToken).keyword == keyword;
 
   /**
    * Sets the visible source range for formal parameter.
