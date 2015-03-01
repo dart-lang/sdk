@@ -15,7 +15,6 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/task_dart.dart';
-import 'package:analyzer/src/util/lru_map.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -969,12 +968,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * A cache of content used to override the default content of a source.
    */
   ContentCache _contentCache = new ContentCache();
-
-  /**
-   * A cache of content used to override the default content of a source
-   * before the corresponding override was removed from [_contentCache].
-   */
-  LRUMap<Source, String> _prevOverlayCache = new LRUMap<Source, String>(5);
 
   /**
    * The source factory used to create the sources that can be analyzed in this context.
@@ -2246,7 +2239,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         TimestampedData<String> fileContents = getContents(source);
         String fileContentsData = fileContents.data;
         if (fileContentsData == originalContents) {
-          _prevOverlayCache.put(source, fileContentsData);
+          sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
           sourceEntry.modificationTime = fileContents.modificationTime;
           changed = false;
         }
@@ -5019,8 +5012,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
     // Check if the content of the source is the same as it was the last time.
-    String sourceContent = _prevOverlayCache.get(source);
+    String sourceContent = sourceEntry.getValue(SourceEntry.CONTENT);
     if (sourceContent != null) {
+      sourceEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
       try {
         TimestampedData<String> fileContents = getContents(source);
         if (fileContents.data == sourceContent) {
