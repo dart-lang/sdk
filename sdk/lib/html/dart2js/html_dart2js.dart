@@ -9115,6 +9115,9 @@ class DomPoint extends DomPointReadOnly {
   static DomPoint _create_4(point_OR_x, y, z) => JS('DomPoint', 'new DOMPoint(#,#,#)', point_OR_x, y, z);
   static DomPoint _create_5(point_OR_x, y, z, w) => JS('DomPoint', 'new DOMPoint(#,#,#,#)', point_OR_x, y, z, w);
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)');
+
   // Shadowing definition.
   num get w => JS("num", "#.w", this);
 
@@ -30471,7 +30474,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * convertPointFromNodeToPage and convertPointFromPageToNode are removed.
    * see http://dev.w3.org/csswg/cssom-view/#geometry
    */
-  static bool get supportsPointConversions => true;
+  static bool get supportsPointConversions => DomPoint.supported;
   // To suppress missing implicit constructor warnings.
   factory Window._() { throw new UnsupportedError("Not supported"); }
 

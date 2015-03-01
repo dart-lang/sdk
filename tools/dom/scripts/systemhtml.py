@@ -412,6 +412,7 @@ js_support_checks = dict({
     'Crypto':
         "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
     'Database': "JS('bool', '!!(window.openDatabase)')",
+    'DOMPoint': "JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)')",
     'ApplicationCache': "JS('bool', '!!(window.applicationCache)')",
     'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
     'FormData': "JS('bool', '!!(window.FormData)')",

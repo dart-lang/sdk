@@ -27,6 +27,7 @@ main() {
           top: 0px;
           background-color: red;
           -webkit-transform: translate3d(250px, 100px, 0px);
+          -moz-transform: translate3d(250px, 100px, 0px);
           ''';
         document.body.append(element);
 

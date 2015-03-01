@@ -10150,6 +10150,9 @@ class DomPoint extends DomPointReadOnly {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
   @DomName('DOMPoint.w')
   @DocsEditable()
   @Experimental() // untriaged
@@ -33107,7 +33110,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * convertPointFromNodeToPage and convertPointFromPageToNode are removed.
    * see http://dev.w3.org/csswg/cssom-view/#geometry
    */
-  static bool get supportsPointConversions => true;
+  static bool get supportsPointConversions => DomPoint.supported;
   // To suppress missing implicit constructor warnings.
   factory Window._() { throw new UnsupportedError("Not supported"); }
 
