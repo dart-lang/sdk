@@ -284,7 +284,13 @@ class RawObject {
   class ClassIdTag :
       public BitField<intptr_t, kClassIdTagPos, kClassIdTagSize> {};  // NOLINT
 
+  bool IsWellFormed() const {
+    uword value = reinterpret_cast<uword>(this);
+    return (value & kSmiTagMask) == 0 ||
+        Utils::IsAligned(value - kHeapObjectTag, kWordSize);
+  }
   bool IsHeapObject() const {
+    ASSERT(IsWellFormed());
     uword value = reinterpret_cast<uword>(this);
     return (value & kSmiTagMask) == kHeapObjectTag;
   }
@@ -305,6 +311,7 @@ class RawObject {
 
   // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
   bool IsSmiOrOldObject() const {
+    ASSERT(IsWellFormed());
     COMPILE_ASSERT(kHeapObjectTag == 1);
     COMPILE_ASSERT(kNewObjectAlignmentOffset == kWordSize);
     static const uword kNewObjectBits =

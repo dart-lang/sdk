@@ -809,6 +809,7 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
   AppendToBuffer("%#" Px "", addr);
   // Try to print as heap object or stub name
   if (((addr & kSmiTagMask) == kHeapObjectTag) &&
+      reinterpret_cast<RawObject*>(addr)->IsWellFormed() &&
       reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
       Disassembler::CanFindOldObject(addr)) {

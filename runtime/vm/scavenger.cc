@@ -155,16 +155,13 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       return;
     }
 
-    // Objects should be contained in the heap.
-    // TODO(iposva): Add an appropriate assert here or in the return block
-    // below.
-
     // The scavenger is only interested in objects located in the from space.
     //
     // We are using address math here and relying on the unsigned underflow
     // in the code below to avoid having two checks.
     uword obj_offset = reinterpret_cast<uword>(raw_obj) - from_start_;
     if (obj_offset > from_size_) {
+      ASSERT(scavenger_->to_->Contains(RawObject::ToAddr(raw_obj)));
       return;
     }
 
