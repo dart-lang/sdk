@@ -1066,6 +1066,9 @@ class Return extends Statement {
 
   bool get hasExpression => expression != null;
 
+  /// `true` if this return is of the form `=> e;`.
+  bool get isArrowBody => beginToken.info == FUNCTION_INFO;
+
   accept(Visitor visitor) => visitor.visitReturn(this);
 
   visitChildren(Visitor visitor) {

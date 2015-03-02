@@ -55,10 +55,13 @@ main() {
   x = test01();
   Expect.equals("()", x.toString());
   x = test02();
+  test03(); /// 30: continued
   Expect.equals("(12321)", x.toString());
   x = test04;  /// 40: continued
   test04 = x;  /// 41: continued
   x = new K();
+  print(x.garnix); /// 51: continued
+  x.etwas = null; /// 52: continued
   print(x.sync().toList());
   Expect.equals(1, x.sync().length);
 //  Expect.isTrue(x.sync().single is Function);

@@ -2132,7 +2132,7 @@ main() => new A();""",
 """
 class A {
   A();
-  factory A.a() async* => new A();
+  factory A.a() async* {}
 }
 main() => new A.a();"""]);
 
@@ -2175,6 +2175,23 @@ main() async* {
 main() sync* {
  var yield;
 }"""]);
+
+  static const MessageKind RETURN_IN_GENERATOR =
+      const MessageKind(
+          "'return' with a value is not allowed in a method body using the "
+          "'#{modifier}' modifier.",
+          howToFix: "Try removing the value, replacing 'return' with 'yield' "
+                    "or changing the method body modifier.",
+          examples: const [
+"""
+foo() async* { return 0; }
+main() => foo();
+""",
+
+"""
+foo() sync* { return 0; }
+main() => foo();
+"""]);
 
   static const MessageKind NATIVE_NOT_SUPPORTED = const MessageKind(
       "'native' modifier is not supported.",

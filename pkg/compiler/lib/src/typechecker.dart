@@ -10,6 +10,8 @@ class TypeCheckerTask extends CompilerTask {
 
   void check(TreeElements elements) {
     AstElement element = elements.analyzedElement;
+    if (element.isTypedef) return;
+
     compiler.withCurrentElement(element, () {
       measure(() {
         Node tree = element.node;
@@ -61,7 +63,7 @@ abstract class ElementAccess {
       }
     }
     return compiler.types.isAssignable(
-        computeType(compiler), compiler.functionClass.computeType(compiler));
+        computeType(compiler), compiler.coreTypes.functionType);
   }
 }
 
@@ -264,19 +266,22 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   final ClassElement currentClass;
 
+  /// The immediately enclosing field, method or constructor being analyzed.
+  ExecutableElement executableContext;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
+
+  InterfaceType get intType => coreTypes.intType;
+  InterfaceType get doubleType => coreTypes.doubleType;
+  InterfaceType get boolType => coreTypes.boolType;
+  InterfaceType get stringType => coreTypes.stringType;
+
   DartType thisType;
   DartType superType;
 
   Link<DartType> cascadeTypes = const Link<DartType>();
 
   bool analyzingInitializer = false;
-
-  DartType intType;
-  DartType doubleType;
-  DartType boolType;
-  DartType stringType;
-  DartType objectType;
-  DartType listType;
 
   Map<Node, List<TypePromotion>> shownTypePromotionsMap =
       new Map<Node, List<TypePromotion>>();
@@ -337,14 +342,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   TypeCheckerVisitor(this.compiler, TreeElements elements, this.types)
       : this.elements = elements,
-        currentClass = elements.analyzedElement != null
+        this.executableContext = elements.analyzedElement,
+        this.currentClass = elements.analyzedElement != null
             ? elements.analyzedElement.enclosingClass : null {
-    intType = compiler.intClass.computeType(compiler);
-    doubleType = compiler.doubleClass.computeType(compiler);
-    boolType = compiler.boolClass.computeType(compiler);
-    stringType = compiler.stringClass.computeType(compiler);
-    objectType = compiler.objectClass.computeType(compiler);
-    listType = compiler.listClass.computeType(compiler);
 
     if (currentClass != null) {
       thisType = currentClass.thisType;
@@ -411,7 +411,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (lastSeenNode != null) {
         compiler.internalError(lastSeenNode, error);
       } else {
-        compiler.internalError(elements.analyzedElement, error);
+        compiler.internalError(executableContext, error);
       }
     } else {
       lastSeenNode = node;
@@ -599,8 +599,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     assert(invariant(node, element != null,
                      message: 'FunctionExpression with no element'));
     if (Elements.isUnresolved(element)) return const DynamicType();
-    if (identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
-        identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY)) {
+    if (element.isGenerativeConstructor) {
       type = const DynamicType();
       returnType = const VoidType();
 
@@ -619,11 +618,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       returnType = functionType.returnType;
       type = functionType;
     }
+    ExecutableElement previousExecutableContext = executableContext;
     DartType previousReturnType = expectedReturnType;
     expectedReturnType = returnType;
     AsyncMarker previousAsyncMarker = currentAsyncMarker;
+
+    executableContext = element;
     currentAsyncMarker = element.asyncMarker;
     analyze(node.body);
+
+    executableContext = previousExecutableContext;
     expectedReturnType = previousReturnType;
     currentAsyncMarker = previousAsyncMarker;
     return type;
@@ -1575,30 +1579,33 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return const StatementType();
     }
 
-    final expression = node.expression;
-    final isVoidFunction = expectedReturnType.isVoid;
+    final Node expression = node.expression;
 
     // Executing a return statement return e; [...] It is a static type warning
     // if the type of e may not be assigned to the declared return type of the
     // immediately enclosing function.
     if (expression != null) {
-      final expressionType = analyze(expression);
-      Element element = elements.analyzedElement;
-      if (element != null && element.isGenerativeConstructor) {
+      DartType expressionType = analyze(expression);
+      if (executableContext.isGenerativeConstructor) {
         // The resolver already emitted an error for this expression.
-      } else if (isVoidFunction
-          && !types.isAssignable(expressionType, const VoidType())) {
-        reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
       } else {
-        checkAssignable(expression, expressionType, expectedReturnType);
+        if (currentAsyncMarker == AsyncMarker.ASYNC) {
+          expressionType = coreTypes.futureType(flatten(expressionType));
+        }
+        if (expectedReturnType.isVoid &&
+            !types.isAssignable(expressionType, const VoidType())) {
+          reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
+        } else {
+          checkAssignable(expression, expressionType, expectedReturnType);
+        }
       }
 
-    // Let f be the function immediately enclosing a return statement of the
-    // form 'return;' It is a static warning if both of the following conditions
-    // hold:
-    // - f is not a generative constructor.
-    // - The return type of f may not be assigned to void.
     } else if (!types.isAssignable(expectedReturnType, const VoidType())) {
+      // Let f be the function immediately enclosing a return statement of the
+      // form 'return;' It is a static warning if both of the following
+      // conditions hold:
+      // - f is not a generative constructor.
+      // - The return type of f may not be assigned to void.
       reportTypeWarning(node, MessageKind.RETURN_NOTHING,
                         {'returnType': expectedReturnType});
     }
@@ -1639,17 +1646,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType resultType = analyze(node.expression);
     if (!node.hasStar) {
       if (currentAsyncMarker.isAsync) {
-        resultType = compiler.coreTypes.streamType(resultType);
+        resultType = coreTypes.streamType(resultType);
       } else {
-        resultType = compiler.coreTypes.iterableType(resultType);
+        resultType = coreTypes.iterableType(resultType);
       }
     } else {
       if (currentAsyncMarker.isAsync) {
         // The static type of expression must be assignable to Stream.
-        checkAssignable(node, resultType, compiler.coreTypes.streamType());
+        checkAssignable(node, resultType, coreTypes.streamType());
       } else {
         // The static type of expression must be assignable to Iterable.
-        checkAssignable(node, resultType, compiler.coreTypes.iterableType());
+        checkAssignable(node, resultType, coreTypes.iterableType());
       }
     }
     // The static type of the result must be assignable to the declared type.
@@ -1706,7 +1713,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType thenType = analyzeInPromotedContext(condition, thenExpression);
 
     DartType elseType = analyze(node.elseExpression);
-    return compiler.types.computeLeastUpperBound(thenType, elseType);
+    return types.computeLeastUpperBound(thenType, elseType);
   }
 
   visitStringInterpolation(StringInterpolation node) {
@@ -1792,8 +1799,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
 
     if (!hasDefaultCase && expressionType.isEnumType) {
-      compiler.enqueuer.resolution.addDeferredAction(
-          elements.analyzedElement, () {
+      compiler.enqueuer.resolution.addDeferredAction(executableContext, () {
         Map<ConstantValue, FieldElement> enumValues =
             <ConstantValue, FieldElement>{};
         List<FieldElement> unreferencedFields = <FieldElement>[];
