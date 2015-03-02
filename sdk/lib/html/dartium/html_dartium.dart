@@ -14717,7 +14717,7 @@ class EventSource extends EventTarget {
     var parsedOptions = {
       'withCredentials': withCredentials,
     };
-    return EventSource._factoryEventSource(title, parsedOptions);
+    return EventSource._factoryEventSource(url, parsedOptions);
   }
   // To suppress missing implicit constructor warnings.
   factory EventSource._() { throw new UnsupportedError("Not supported"); }
