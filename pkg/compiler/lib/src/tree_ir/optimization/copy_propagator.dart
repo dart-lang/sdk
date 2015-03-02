@@ -14,7 +14,7 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
 
   /// After visitStatement returns, [move] maps a variable v to an
   /// assignment A of form w := v, under the following conditions:
-  /// - there are no uses of w before A
+  /// - there are no reads or writes of w before A
   /// - A is the only use of v
   Map<Variable, Assign> move = <Variable, Assign>{};
 
@@ -51,7 +51,7 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     //   BODY
     // }
     // Cannot declare function as foo(x,x)!
-    node.parameters.forEach(visitVariable);
+    node.parameters.forEach(invalidateMovingAssignment);
 
     // Now do the propagation.
     for (int i = 0; i < node.parameters.length; i++) {
@@ -87,7 +87,7 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     //   BODY
     // }
     // Cannot declare function as foo(x,x)!
-    node.parameters.forEach(visitVariable);
+    node.parameters.forEach(invalidateMovingAssignment);
 
     // Now do the propagation.
     for (int i = 0; i < node.parameters.length; i++) {
@@ -107,13 +107,18 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     return node;
   }
 
-  void visitVariable(Variable variable) {
-    // We have found a use of w.
-    // Remove assignments of form w := v from the move maps.
-    Assign movingAssignment = inverseMove.remove(variable);
+  /// Remove an assignment of form [w] := v from the move maps.
+  void invalidateMovingAssignment(Variable w) {
+    Assign movingAssignment = inverseMove.remove(w);
     if (movingAssignment != null) {
-      move.remove(movingAssignment.definition);
+      VariableUse def = movingAssignment.definition;
+      move.remove(def.variable);
     }
+  }
+
+  visitVariableUse(VariableUse node) {
+    // We found a use of w; we can't propagate assignments across this use.
+    invalidateMovingAssignment(node.variable);
   }
 
   /**
@@ -139,16 +144,13 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
       // Make w := w.
       // We can't remove the statement from here because we don't have
       // parent pointers. So just make it a no-op so it can be removed later.
-      movingAssign.definition = w;
+      movingAssign.definition = new VariableUse(w);
 
       // The intermediate variable 'v' should now be orphaned, so don't bother
       // updating its read/write counters.
-      // Due to the nop trick, the variable 'w' now has one additional read
-      // and write.
-      ++w.writeCount;
-      ++w.readCount;
 
       // Make w := EXPR
+      ++w.writeCount;
       return w;
     }
     return v;
@@ -157,17 +159,21 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
   Statement visitAssign(Assign node) {
     node.next = visitStatement(node.next);
     node.variable = copyPropagateVariable(node.variable);
+
+    // If a moving assignment w := v exists later, and we assign to w here,
+    // the moving assignment is no longer a candidate for copy propagation.
+    invalidateMovingAssignment(node.variable);
+
     visitExpression(node.definition);
-    visitVariable(node.variable);
 
     // If this is a moving assignment w := v, with this being the only use of v,
     // try to propagate it backwards.  Do not propagate assignments where w
     // is from an outer function scope.
-    if (node.definition is Variable) {
-      Variable def = node.definition;
-      if (def.readCount == 1 &&
+    if (node.definition is VariableUse) {
+      VariableUse definition = node.definition;
+      if (definition.variable.readCount == 1 &&
           node.variable.host == currentElement) {
-        move[node.definition] = node;
+        move[definition.variable] = node;
         inverseMove[node.variable] = node;
       }
     }

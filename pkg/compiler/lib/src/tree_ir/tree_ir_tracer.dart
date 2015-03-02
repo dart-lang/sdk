@@ -313,8 +313,8 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   SubexpressionVisitor(this.names);
 
-  String visitVariable(Variable node) {
-    return names.varName(node);
+  String visitVariableUse(VariableUse node) {
+    return names.varName(node.variable);
   }
 
   String formatArguments(Invoke node) {

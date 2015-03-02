@@ -96,6 +96,12 @@ class BuilderContext<T> {
     variables.add(decl);
   }
 
+  /// Creates an [Identifier] referring to the given variable.
+  Expression makeVariableAccess(tree.Variable variable) {
+    return new Identifier(getVariableName(variable))
+               ..element = variable.element;
+  }
+
   /// Generates a name for the given variable and synthesizes an element for it,
   /// if necessary.
   String getVariableName(tree.Variable variable) {
@@ -540,7 +546,7 @@ class ASTEmitter
     }
 
     // Emit a variable declaration if we are required to do so.
-    // This is to ensure that a fresh closure variable is created.
+    // For captured variables, this ensures that a fresh variable is created.
     if (stmt.isDeclaration) {
       assert(isFirstOccurrence);
       assert(isDeclaredHere);
@@ -554,7 +560,7 @@ class ASTEmitter
     }
 
     context.addStatement(new ExpressionStatement(makeAssignment(
-        visitVariable(stmt.variable, context),
+        context.makeVariableAccess(stmt.variable),
         definition)));
     visitStatement(stmt.next, context);
   }
@@ -863,10 +869,9 @@ class ASTEmitter
   }
 
   @override
-  Expression visitVariable(tree.Variable exp,
-                           BuilderContext<Statement> context) {
-    return new Identifier(context.getVariableName(exp))
-               ..element = exp.element;
+  Expression visitVariableUse(tree.VariableUse exp,
+                              BuilderContext<Statement> context) {
+    return context.makeVariableAccess(exp.variable);
   }
 
   FunctionExpression makeSubFunction(tree.FunctionDefinition function,
@@ -1265,12 +1270,15 @@ class UnshadowParameters extends tree.RecursiveVisitor {
         tree.Variable newParam = new tree.Variable(definition.element,
             param.element);
         definition.parameters[i] = newParam;
-        definition.body = new tree.Assign(param, newParam, definition.body);
+        definition.body = new tree.Assign(param, new tree.VariableUse(newParam),
+            definition.body);
         newParam.writeCount = 1; // Being a parameter counts as a write.
+        param.writeCount--; // Not a parameter anymore.
       }
     }
   }
 
+  @override
   visitVariable(tree.Variable variable) {
     if (shadowedParameters.contains(variable)) {
       hasShadowedUse.add(variable);

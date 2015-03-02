@@ -344,8 +344,12 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   }
 
   @override
-  js.Expression visitVariable(tree_ir.Variable node) {
-    return new js.VariableUse(getVariableName(node));
+  js.Expression visitVariableUse(tree_ir.VariableUse node) {
+    return buildVariableAccess(node.variable);
+  }
+
+  js.Expression buildVariableAccess(tree_ir.Variable variable) {
+    return new js.VariableUse(getVariableName(variable));
   }
 
   @override
@@ -403,7 +407,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     js.Expression definition = visitExpression(value);
 
     accumulator.add(new js.ExpressionStatement(new js.Assignment(
-        visitVariable(node.variable),
+        buildVariableAccess(node.variable),
         definition)));
     visitStatement(node.next);
   }

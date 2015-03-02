@@ -36,8 +36,8 @@ class JsTreeBuilder extends Builder {
     return new InvokeStatic(
         identicalFunction,
         identicalSelector,
-        <Expression>[getVariableReference(node.left),
-                     getVariableReference(node.right)]);
+        <Expression>[getVariableUse(node.left),
+                     getVariableUse(node.right)]);
   }
 
   Expression visitInterceptor(cps_ir.Interceptor node) {
@@ -48,17 +48,17 @@ class JsTreeBuilder extends Builder {
     return new InvokeStatic(
         getInterceptor,
         selector,
-        <Expression>[getVariableReference(node.input)]);
+        <Expression>[getVariableUse(node.input)]);
   }
 
   Expression visitGetField(cps_ir.GetField node) {
-    return new GetField(getVariableReference(node.object), node.field);
+    return new GetField(getVariableUse(node.object), node.field);
   }
 
   Statement visitSetField(cps_ir.SetField node) {
-    return new SetField(getVariableReference(node.object),
+    return new SetField(getVariableUse(node.object),
                         node.field,
-                        getVariableReference(node.value),
+                        getVariableUse(node.value),
                         visit(node.body));
   }
 
@@ -69,6 +69,6 @@ class JsTreeBuilder extends Builder {
   Expression visitCreateInstance(cps_ir.CreateInstance node) {
     return new CreateInstance(
         node.classElement,
-        node.arguments.map(getVariableReference).toList());
+        node.arguments.map(getVariableUse).toList());
   }
 }
