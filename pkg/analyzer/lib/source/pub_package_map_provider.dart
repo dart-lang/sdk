@@ -122,7 +122,7 @@ class PubPackageMapProvider implements PackageMapProvider {
       List<Folder> folders = <Folder>[];
       for (var path in paths) {
         if (path is String) {
-          Resource resource = folder.getChild(path);
+          Resource resource = folder.getChildAssumingFolder(path);
           if (resource is Folder) {
             folders.add(resource);
           }

@@ -48,7 +48,7 @@ main() {
         expect(result[packageName][0].path, equals(folderPath));
       });
 
-      test('ignore nonexistent folder', () {
+      test("don't ignore nonexistent folder", () {
         String packageName = 'foo';
         String folderPath = '/path/to/folder';
         Map<String, List<Folder>> result = parsePackageMap({
@@ -56,7 +56,11 @@ main() {
             packageName: folderPath
           }
         }).packageMap;
-        expect(result, hasLength(0));
+        expect(result, hasLength(1));
+        expect(result.keys, contains(packageName));
+        expect(result[packageName], hasLength(1));
+        expect(result[packageName][0], new isInstanceOf<Folder>());
+        expect(result[packageName][0].path, equals(folderPath));
       });
 
       test('package maps to list', () {

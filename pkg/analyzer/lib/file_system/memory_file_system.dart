@@ -218,6 +218,9 @@ class _MemoryFile extends _MemoryResource implements File {
   _MemoryFile(MemoryResourceProvider provider, String path)
       : super(provider, path);
 
+  @override
+  bool get exists => _provider._pathToResource[path] is _MemoryFile;
+
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
@@ -330,6 +333,7 @@ class _MemoryFileSource extends Source {
 class _MemoryFolder extends _MemoryResource implements Folder {
   _MemoryFolder(MemoryResourceProvider provider, String path)
       : super(provider, path);
+
   @override
   Stream<WatchEvent> get changes {
     StreamController<WatchEvent> streamController =
@@ -346,6 +350,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     });
     return streamController.stream;
   }
+
+  @override
+  bool get exists => _provider._pathToResource[path] is _MemoryFolder;
 
   @override
   String canonicalizePath(String relPath) {
@@ -368,6 +375,16 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       resource = new _MemoryFile(_provider, childPath);
     }
     return resource;
+  }
+
+  @override
+  _MemoryFolder getChildAssumingFolder(String relPath) {
+    String childPath = canonicalizePath(relPath);
+    _MemoryResource resource = _provider._pathToResource[childPath];
+    if (resource is _MemoryFolder) {
+      return resource;
+    }
+    return new _MemoryFolder(_provider, childPath);
   }
 
   @override
@@ -399,9 +416,6 @@ abstract class _MemoryResource implements Resource {
   final String path;
 
   _MemoryResource(this._provider, this.path);
-
-  @override
-  bool get exists => _provider._pathToResource.containsKey(path);
 
   @override
   get hashCode => path.hashCode;

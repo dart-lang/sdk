@@ -293,6 +293,28 @@ main() {
         });
       });
 
+      group('getChildAssumingFolder', () {
+        test('does not exist', () {
+          Folder child = folder.getChildAssumingFolder('no-such-resource');
+          expect(child, isNotNull);
+          expect(child.exists, isFalse);
+        });
+
+        test('file', () {
+          new io.File(join(path, 'myFile')).createSync();
+          Folder child = folder.getChildAssumingFolder('myFile');
+          expect(child, isNotNull);
+          expect(child.exists, isFalse);
+        });
+
+        test('folder', () {
+          new io.Directory(join(path, 'myFolder')).createSync();
+          Folder child = folder.getChildAssumingFolder('myFolder');
+          expect(child, isNotNull);
+          expect(child.exists, isTrue);
+        });
+      });
+
       test('getChildren', () {
         // create 2 files and 1 folder
         new io.File(join(path, 'a.txt')).createSync();
