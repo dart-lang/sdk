@@ -13850,7 +13850,7 @@ class Event extends Interceptor {
 @Experimental() // stable
 @Native("EventSource")
 class EventSource extends EventTarget {
-  factory EventSource(String title, {withCredentials: false}) {
+  factory EventSource(String url, {withCredentials: false}) {
     var parsedOptions = {
       'withCredentials': withCredentials,
     };
