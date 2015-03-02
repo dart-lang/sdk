@@ -3823,7 +3823,7 @@ class SyncStarIterator implements Iterator {
 
   SyncStarIterator(this._body);
 
-  runBody() {
+  _runBody() {
     return JS('', '''
       // Invokes [body] with [errorCode] and [result].
       //
@@ -3851,7 +3851,7 @@ class SyncStarIterator implements Iterator {
         _runningNested = false;
       }
     }
-    _current = runBody();
+    _current = _runBody();
     if (_current is IterationMarker) {
       if (_current.state == IterationMarker.ITERATION_ENDED) {
         _current = null;
