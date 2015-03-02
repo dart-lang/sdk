@@ -368,7 +368,7 @@ wheelevent_test: Fail # Issue 12958
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 node_validator_test: Fail # Issue 22564
 
-[ $compiler == dart2js &&  $runtime == chrome && $system == windows]
+[ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
 
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
@@ -380,6 +380,9 @@ xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $compiler == none && $runtime == dartium ]
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
+
+[ $runtime == chrome && $system == macos && $compiler == dart2js]
+element_offset_test/offset: RuntimeError # Issue 22619
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning
