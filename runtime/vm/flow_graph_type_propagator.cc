@@ -182,6 +182,12 @@ void FlowGraphTypePropagator::HandleBranchOnNull(BlockEntryInstr* block) {
   }
 
   if (!CheckClassInstr::IsImmutableClassId(cid)) {
+    if ((cid == kOneByteStringCid) || (cid == kTwoByteStringCid)) {
+      SetTypeOf(defn, ZoneCompileType::Wrap(CompileType::String()));
+      PropagateRecursive((compare->kind() == Token::kEQ_STRICT) ?
+          branch->true_successor() : branch->false_successor());
+      RollbackTo(rollback_point);
+    }
     return;
   }
 
