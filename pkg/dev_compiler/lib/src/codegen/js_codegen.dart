@@ -37,6 +37,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
+  /// The variable for the current catch clause
+  String _catchParameter;
 
   ClassDeclaration currentClass;
   ConstantEvaluator _constEvaluator;
@@ -1287,6 +1289,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   @override
+  visitRethrowExpression(RethrowExpression node){
+    if (node.parent is ExpressionStatement) {
+      return js.statement('throw #;', _catchParameter);
+    } else {
+      return js.call('dart.throw_(#)', _catchParameter);
+    }
+  }
+
+  @override
   JS.If visitIfStatement(IfStatement node) {
     return new JS.If(_visit(node.condition), _visit(node.thenStatement),
         _visitOrEmpty(node.elseStatement));
@@ -1342,19 +1353,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     // TODO(jmesserly): need a better way to get a temporary variable.
     // This could incorrectly shadow a user's name.
-    var name = '\$e';
+    var savedCatch = _catchParameter;
+    _catchParameter = '\$e';
 
     if (clauses.length == 1) {
       // Special case for a single catch.
       var clause = clauses.single;
       if (clause.exceptionParameter != null) {
-        name = clause.exceptionParameter.name;
+        _catchParameter = clause.exceptionParameter.name;
       }
     }
 
-    var catchBody = _statement(clauses.map((c) => _visitCatchClause(c, name)));
+    var catchVarDecl = new JS.VariableDeclaration(_catchParameter);
+    var catchBody = _statement(_visitList(clauses));
+    _catchParameter = savedCatch;
 
-    return new JS.Catch(new JS.VariableDeclaration(name), catchBody);
+    return new JS.Catch(catchVarDecl, catchBody);
   }
 
   JS.Statement _statement(Iterable stmts) {
@@ -1365,12 +1379,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return new JS.Block(s);
   }
 
-  JS.Statement _visitCatchClause(CatchClause node, String varName) {
+  @override
+  JS.Statement visitCatchClause(CatchClause node) {
     var body = [];
+
+    var savedCatch = _catchParameter;
     if (node.catchKeyword != null) {
       var name = node.exceptionParameter;
-      if (name != null && name.name != varName) {
-        body.add(js.statement('let # = #;', [_visit(name), varName]));
+      if (name != null && name.name != _catchParameter) {
+        body.add(js.statement('let # = #;', [_visit(name), _catchParameter]));
+        _catchParameter = name.name;
       }
       if (node.stackTraceParameter != null) {
         var stackVar = node.stackTraceParameter.name;
@@ -1380,14 +1398,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     body.add(_visit(node.body));
+    _catchParameter = savedCatch;
 
     if (node.exceptionType != null) {
       return js.statement('if (dart.is(#, #)) #;', [
-        varName,
+        _catchParameter,
         _emitTypeName(node.exceptionType.type),
         _statement(body)
       ]);
     }
+
     return _statement(body);
   }
 

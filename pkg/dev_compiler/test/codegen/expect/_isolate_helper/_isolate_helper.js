@@ -254,7 +254,7 @@ var _isolate_helper;
         if (this.errorsAreFatal) {
           this.kill();
           if (core.identical(this, exports._globalState.rootContext)) {
-            dart.throw_("Unimplemented RethrowExpression: rethrow");
+            throw e;
           }
         }
       }
