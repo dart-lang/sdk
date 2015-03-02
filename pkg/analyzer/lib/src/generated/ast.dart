@@ -12139,8 +12139,11 @@ class MethodDeclaration extends ClassMember {
   /**
    * Return `true` if this method is declared to be an abstract method.
    */
-  bool get isAbstract =>
-      externalKeyword == null && (_body is EmptyFunctionBody);
+  bool get isAbstract {
+    FunctionBody body = _body;
+    return externalKeyword == null &&
+        (body is EmptyFunctionBody && !body.semicolon.isSynthetic);
+  }
 
   /**
    * Return `true` if this method declares a getter.

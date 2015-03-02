@@ -37,6 +37,12 @@ import 'utilities_collection.dart';
 import 'utilities_general.dart';
 
 /**
+ * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
+ * sources but not others.
+ */
+typedef bool AnalyzeFunctionBodiesPredicate(Source source);
+
+/**
  * Type of callback functions used by PendingFuture.  Functions of this type
  * should perform a computation based on the data in [sourceEntry] and return
  * it.  If the computation can't be performed yet because more analysis is
@@ -1110,7 +1116,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute =
-        this._options.analyzeFunctionBodies != options.analyzeFunctionBodies ||
+        this._options.analyzeFunctionBodiesPredicate !=
+            options.analyzeFunctionBodiesPredicate ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
@@ -1138,7 +1145,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _priorityOrder = newPriorityOrder;
       }
     }
-    this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
+    this._options.analyzeFunctionBodiesPredicate =
+        options.analyzeFunctionBodiesPredicate;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
@@ -6507,11 +6515,22 @@ class AnalysisNotScheduledError implements Exception {
  */
 abstract class AnalysisOptions {
   /**
-   * Return `true` if analysis is to parse and analyze function bodies.
+   * If analysis is to parse and analyze all function bodies, return `true`.
+   * If analysis is to skip all function bodies, return `false`.  If analysis
+   * is to parse and analyze function bodies in some sources and not in others,
+   * throw an exception.
    *
-   * @return `true` if analysis is to parse and analyzer function bodies
+   * This getter is deprecated; consider using [analyzeFunctionBodiesPredicate]
+   * instead.
    */
+  @deprecated
   bool get analyzeFunctionBodies;
+
+  /**
+   * Function that returns `true` if analysis is to parse and analyze function
+   * bodies for a given source.
+   */
+  AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /**
    * Return the maximum number of sources for which AST structures should be kept in the cache.
@@ -6622,9 +6641,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static bool DEFAULT_ENABLE_ENUM = false;
 
   /**
-   * A flag indicating whether analysis is to parse and analyze function bodies.
+   * A predicate indicating whether analysis is to parse and analyze function
+   * bodies.
    */
-  bool analyzeFunctionBodies = true;
+  AnalyzeFunctionBodiesPredicate _analyzeFunctionBodiesPredicate =
+      _analyzeAllFunctionBodies;
 
   /**
    * The maximum number of sources for which AST structures should be kept in the cache.
@@ -6687,7 +6708,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * @param options the analysis options whose values are being copied
    */
   AnalysisOptionsImpl.con1(AnalysisOptions options) {
-    analyzeFunctionBodies = options.analyzeFunctionBodies;
+    analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     _generateSdkErrors = options.generateSdkErrors;
@@ -6697,6 +6718,37 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     incrementalValidation = options.incrementalValidation;
     lint = options.lint;
     preserveComments = options.preserveComments;
+  }
+
+  bool get analyzeFunctionBodies {
+    if (identical(analyzeFunctionBodiesPredicate, _analyzeAllFunctionBodies)) {
+      return true;
+    } else if (identical(
+        analyzeFunctionBodiesPredicate,
+        _analyzeNoFunctionBodies)) {
+      return false;
+    } else {
+      throw new StateError('analyzeFunctionBodiesPredicate in use');
+    }
+  }
+
+  set analyzeFunctionBodies(bool value) {
+    if (value) {
+      analyzeFunctionBodiesPredicate = _analyzeAllFunctionBodies;
+    } else {
+      analyzeFunctionBodiesPredicate = _analyzeNoFunctionBodies;
+    }
+  }
+
+  @override
+  AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate =>
+      _analyzeFunctionBodiesPredicate;
+
+  set analyzeFunctionBodiesPredicate(AnalyzeFunctionBodiesPredicate value) {
+    if (value == null) {
+      throw new ArgumentError.notNull('analyzeFunctionBodiesPredicate');
+    }
+    _analyzeFunctionBodiesPredicate = value;
   }
 
   @deprecated
@@ -6739,6 +6791,18 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void set generateSdkErrors(bool generate) {
     _generateSdkErrors = generate;
   }
+
+  /**
+   * Predicate used for [analyzeFunctionBodiesPredicate] when
+   * [analyzeFunctionBodies] is set to `true`.
+   */
+  static bool _analyzeAllFunctionBodies(Source _) => true;
+
+  /**
+   * Predicate used for [analyzeFunctionBodiesPredicate] when
+   * [analyzeFunctionBodies] is set to `false`.
+   */
+  static bool _analyzeNoFunctionBodies(Source _) => false;
 }
 
 /**
@@ -10111,7 +10175,8 @@ class ParseDartTask extends AnalysisTask {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(source, errorListener);
       AnalysisOptions options = context.analysisOptions;
-      parser.parseFunctionBodies = options.analyzeFunctionBodies;
+      parser.parseFunctionBodies =
+          options.analyzeFunctionBodiesPredicate(source);
       _unit = parser.parseCompilationUnit(_tokenStream);
       _unit.lineInfo = lineInfo;
       AnalysisContext analysisContext = context;

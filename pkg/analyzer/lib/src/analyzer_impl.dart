@@ -16,6 +16,7 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/error_formatter.dart';
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 import '../options.dart';
 import 'generated/constant.dart';
@@ -25,7 +26,6 @@ import 'generated/error.dart';
 import 'generated/java_io.dart';
 import 'generated/sdk_io.dart';
 import 'generated/source_io.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 DirectoryBasedDartSdk sdk;
 
@@ -157,9 +157,7 @@ class AnalyzerImpl {
         Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
         if (packageMap != null) {
           resolvers.add(
-              new PackageMapUriResolver(
-                  PhysicalResourceProvider.INSTANCE,
-                  packageMap));
+              new PackageMapUriResolver(PhysicalResourceProvider.INSTANCE, packageMap));
         }
       }
     }
@@ -180,6 +178,8 @@ class AnalyzerImpl {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.cacheSize = _MAX_CACHE_SIZE;
     contextOptions.hint = !options.disableHints;
+    contextOptions.analyzeFunctionBodiesPredicate =
+        _analyzeFunctionBodiesPredicate;
     context.analysisOptions = contextOptions;
 
     // Create and add a ChangeSet
@@ -255,6 +255,19 @@ class AnalyzerImpl {
     }).catchError((ex, st) {
       AnalysisEngine.instance.logger.logError("$ex\n$st");
     });
+  }
+
+  bool _analyzeFunctionBodiesPredicate(Source source) {
+    // TODO(paulberry): This function will need to be updated when we add the
+    // ability to suppress errors, warnings, and hints for files reached via
+    // custom URI's using the "--url-mapping" flag.
+    if (source.uri.scheme == 'dart') {
+      return options.showSdkWarnings;
+    }
+    if (source.uri.scheme == 'package') {
+      return options.showPackageWarnings;
+    }
+    return true;
   }
 
   /// The sync version of analysis.

@@ -136,7 +136,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Parser parser = new Parser(source, errorListener);
     AnalysisOptions options = context.analysisOptions;
-    parser.parseFunctionBodies = options.analyzeFunctionBodies;
+    parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 
