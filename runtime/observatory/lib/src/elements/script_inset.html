@@ -6,105 +6,45 @@
     <style>
       .sourceInset {
       }
-      .sourceBox {
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-        padding: 10px;
-        overflow-y: auto;
-      }
       .sourceTable {
-        display: table;
+      display: table;
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      width: 100%;
       }
       .sourceRow {
-        display: table-row;
+      display: table-row;
       }
       .sourceItem, .sourceItemCurrent {
-        display: table-cell;
-        vertical-align: top;
-        font: 400 14px consolas, courier, monospace;
-        line-height: 125%;
-        white-space: pre;
+      display: table-cell;
+      vertical-align: top;
+      font: 400 14px consolas, courier, monospace;
+      line-height: 125%;
+      white-space: pre;
       }
       .currentLine {
-        background-color: #fff;
+      background-color: #fff;
       }
       .currentCol {
-        background-color: #6cf;
+      background-color: #6cf;
       }
       .hitsNone, .hitsNotExecuted, .hitsExecuted {
-        display: table-cell;
-        vertical-align: top;
-        font: 400 14px consolas, courier, monospace;
-        min-width: 32px;
-        text-align: right;
-        color: #a8a8a8;
+      display: table-cell;
+      vertical-align: top;
+      font: 400 14px consolas, courier, monospace;
+      min-width: 32px;
+      text-align: right;
+      color: #a8a8a8;
       }
       .hitsNotExecuted {
-        background-color: #e66;
+      background-color: #e66;
       }
       .hitsExecuted {
-        background-color: #6d6;
+      background-color: #6d6;
       }
     </style>
-    <div class="sourceInset">
-      <content></content>
-      <div class="sourceBox" style="max-height:{{height}}">
-        <div class="sourceTable">
-          <template if="{{ linesReady }}">
-            <template repeat="{{ line in lines }}">
-              <template if="{{ line != null }}">
-                <div class="sourceRow" id="{{ makeLineId(line.line) }}">
-                  <breakpoint-toggle line="{{ line }}"></breakpoint-toggle>
-
-                  <div class="sourceItem">&nbsp;</div>
-
-                  <template if="{{ line.hits == null ||
-                                line.hits < 0 }}">
-                    <div class="hitsNone">{{ line.line }}</div>
-                  </template>
-                  <template if="{{ line.hits == 0 }}">
-                    <div class="hitsNotExecuted">{{ line.line }}</div>
-                  </template>
-                  <template if="{{ line.hits > 0 }}">
-                    <div class="hitsExecuted">{{ line.line }}</div>
-                  </template>
-
-                  <div class="sourceItem">&nbsp;</div>
-
-                  <template if="{{ line.line == currentLine }}">
-                    <div class="sourceItem"><span class="currentLine">{{
-                          clip(line.text,0,currentCol
-                        )}}</span><span class="currentCol">{{
-                          clip(line.text,currentCol,currentCol+1)
-                        }}</span><span class="currentLine">{{
-                          clip(line.text,currentCol+1)
-                        }}</span></div>
-                  </template>
-                  <template if="{{ line.line != currentLine }}">
-                    <div class="sourceItem">{{line.text}}</div>
-                  </template>
-              </div>
-              </template>
-
-              <template if="{{ line == null }}">
-                <breakpoint-toggle line="{{ null }}"></breakpoint-toggle>
-                <div class="sourceItem">&nbsp;</div>
-                <div class="hitsNone">...</div>
-                <div class="sourceItem">&nbsp;</div>
-                <div class="sourceItem"></div>
-              </template>
-
-            </template>
-          </template>
-
-          <template if="{{ !linesReady }}">
-            <div class="sourceRow">
-              <div class="sourceItem">loading...</div>
-            </div>
-          </template>
-        </div>
-      </div>
-    </div>
   </template>
 </polymer-element>
 

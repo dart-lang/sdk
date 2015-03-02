@@ -16,15 +16,6 @@ class ScriptViewElement extends ObservatoryElement {
 
   ScriptViewElement.created() : super.created();
 
-  @override
-  void attached() {
-    super.attached();
-    if (script == null) {
-      return;
-    }
-    script.load();
-  }
-
   void refresh(var done) {
     script.reload().whenComplete(done);
   }

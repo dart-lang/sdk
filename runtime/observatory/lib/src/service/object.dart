@@ -313,6 +313,7 @@ abstract class Coverage {
           var coverageList = coverage['coverage'];
           assert(coverageList != null);
           processCoverageData(coverageList);
+          return this;
         });
   }
 }
@@ -2116,6 +2117,8 @@ class Script extends ServiceObject with Coverage {
       _hits[line] = hit;
     }
     _applyHitsToLines();
+    // Notify any Observers that this Script's state has changed.
+    notifyChange(null);
   }
 
   void _processSource(String source) {
@@ -2136,6 +2139,8 @@ class Script extends ServiceObject with Coverage {
       lines.add(new ScriptLine(this, i + 1, sourceLines[i]));
     }
     _applyHitsToLines();
+    // Notify any Observers that this Script's state has changed.
+    notifyChange(null);
   }
 
   void _applyHitsToLines() {
