@@ -622,12 +622,10 @@ void AwaitTransformer::VisitLetNode(LetNode* node) {
 
 
 void AwaitTransformer::VisitThrowNode(ThrowNode* node) {
-  // TODO(mlippautz): Check if relevant.
   AstNode* new_exception = Transform(node->exception());
-  AstNode* new_stacktrace = Transform(node->stacktrace());
   result_ = new(Z) ThrowNode(node->token_pos(),
                              new_exception,
-                             new_stacktrace);
+                             node->stacktrace());
 }
 
 }  // namespace dart
