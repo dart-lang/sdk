@@ -237,7 +237,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     if (name != null) {
       computer._addRegion_nodeStart_nodeEnd(node, name, element);
     } else {
-      computer._addRegionForToken(node.keyword, element);
+      computer._addRegionForToken(node.superKeyword, element);
     }
     // process arguments
     _safelyVisit(node.argumentList);

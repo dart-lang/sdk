@@ -359,8 +359,7 @@ class AstClonerTest extends EngineTestCase {
   void test_visitClassDeclaration_withMetadata() {
     ClassDeclaration declaration =
         AstFactory.classDeclaration(null, "C", null, null, null, null);
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -461,8 +460,7 @@ class AstClonerTest extends EngineTestCase {
         AstFactory.typeName4("S"),
         AstFactory.withClause([AstFactory.typeName4("M1")]),
         null);
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -646,8 +644,7 @@ class AstClonerTest extends EngineTestCase {
         AstFactory.formalParameterList(),
         null,
         AstFactory.blockFunctionBody2());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -753,8 +750,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitExportDirective_withMetadata() {
     ExportDirective directive = AstFactory.exportDirective2("a.dart");
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(directive);
   }
 
@@ -792,8 +788,7 @@ class AstClonerTest extends EngineTestCase {
         false,
         Keyword.VAR,
         [AstFactory.variableDeclaration("a")]);
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -1149,8 +1144,7 @@ class AstClonerTest extends EngineTestCase {
         null,
         "f",
         AstFactory.functionExpression());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -1196,8 +1190,7 @@ class AstClonerTest extends EngineTestCase {
         "F",
         null,
         AstFactory.formalParameterList());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -1279,8 +1272,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitImportDirective_withMetadata() {
     ImportDirective directive = AstFactory.importDirective3("a.dart", null);
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(directive);
   }
 
@@ -1388,8 +1380,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitLibraryDirective_withMetadata() {
     LibraryDirective directive = AstFactory.libraryDirective2("l");
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(directive);
   }
 
@@ -1612,8 +1603,7 @@ class AstClonerTest extends EngineTestCase {
         AstFactory.identifier3("m"),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -1659,8 +1649,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitPartDirective_withMetadata() {
     PartDirective directive = AstFactory.partDirective2("a.dart");
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(directive);
   }
 
@@ -1672,8 +1661,7 @@ class AstClonerTest extends EngineTestCase {
   void test_visitPartOfDirective_withMetadata() {
     PartOfDirective directive =
         AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["l"]));
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(directive);
   }
 
@@ -1928,8 +1916,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitTypeParameter_withMetadata() {
     TypeParameter parameter = AstFactory.typeParameter("E");
-    parameter.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(parameter);
   }
 
@@ -1956,8 +1943,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitVariableDeclaration_withMetadata() {
     VariableDeclaration declaration = AstFactory.variableDeclaration("a");
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declaration);
   }
 
@@ -1981,8 +1967,7 @@ class AstClonerTest extends EngineTestCase {
         AstFactory.variableDeclarationList2(
             Keyword.FINAL,
             [AstFactory.variableDeclaration("a"), AstFactory.variableDeclaration("b")]);
-    declarationList.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declarationList.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertClone(declarationList);
   }
 
@@ -3834,7 +3819,7 @@ class NodeReplacerTest extends EngineTestCase {
                 [AstFactory.variableDeclaration("f")])]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     node.nativeClause = AstFactory.nativeClause("");
     _assertReplace(node, new Getter_NodeReplacerTest_test_classDeclaration_6());
     _assertReplace(node, new Getter_NodeReplacerTest_test_classDeclaration_5());
@@ -3858,7 +3843,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.implementsClause([AstFactory.typeName4("D")]));
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_classTypeAlias_4());
     _assertReplace(node, new Getter_NodeReplacerTest_test_classTypeAlias_5());
     _assertReplace(node, new Getter_NodeReplacerTest_test_classTypeAlias());
@@ -3924,7 +3909,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     node.redirectedConstructor =
         AstFactory.constructorName(AstFactory.typeName4("B"), "a");
     _assertReplace(
@@ -3976,7 +3961,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.declaredIdentifier4(AstFactory.typeName4("C"), "i");
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_declaredIdentifier());
     _assertReplace(
         node,
@@ -4018,7 +4003,7 @@ class NodeReplacerTest extends EngineTestCase {
     EnumDeclaration node = AstFactory.enumDeclaration2("E", ["ONE", "TWO"]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_enumDeclaration());
     _testAnnotatedNode(node);
   }
@@ -4028,7 +4013,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.exportDirective2("", [AstFactory.hideCombinator2(["C"])]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _testNamespaceDirective(node);
   }
 
@@ -4061,7 +4046,7 @@ class NodeReplacerTest extends EngineTestCase {
         [AstFactory.variableDeclaration("c")]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_fieldDeclaration());
     _testAnnotatedNode(node);
   }
@@ -4176,7 +4161,7 @@ class NodeReplacerTest extends EngineTestCase {
             AstFactory.blockFunctionBody(AstFactory.block())));
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(
         node,
         new Getter_NodeReplacerTest_test_functionDeclaration());
@@ -4232,7 +4217,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.formalParameterList());
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(
         node,
         new Getter_NodeReplacerTest_test_functionTypeAlias_3());
@@ -4295,7 +4280,7 @@ class NodeReplacerTest extends EngineTestCase {
         [AstFactory.showCombinator2(["A"]), AstFactory.hideCombinator2(["B"])]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_importDirective());
     _testNamespaceDirective(node);
   }
@@ -4356,7 +4341,7 @@ class NodeReplacerTest extends EngineTestCase {
     LibraryDirective node = AstFactory.libraryDirective2("lib");
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_libraryDirective());
     _testAnnotatedNode(node);
   }
@@ -4404,7 +4389,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.blockFunctionBody(AstFactory.block()));
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_methodDeclaration());
     _assertReplace(
         node,
@@ -4457,7 +4442,7 @@ class NodeReplacerTest extends EngineTestCase {
     PartDirective node = AstFactory.partDirective2("");
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _testUriBasedDirective(node);
   }
 
@@ -4466,7 +4451,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_partOfDirective());
     _testAnnotatedNode(node);
   }
@@ -4596,7 +4581,7 @@ class NodeReplacerTest extends EngineTestCase {
         [AstFactory.variableDeclaration("t")]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(
         node,
         new Getter_NodeReplacerTest_test_topLevelVariableDeclaration());
@@ -4648,7 +4633,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.variableDeclaration2("a", AstFactory.nullLiteral());
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(
         node,
         new Getter_NodeReplacerTest_test_variableDeclaration());

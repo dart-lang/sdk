@@ -444,7 +444,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitAssertStatement(AssertStatement node) {
-    token(node.keyword);
+    token(node.assertKeyword);
     token(node.leftParenthesis);
     visit(node.condition);
     token(node.rightParenthesis);
@@ -522,7 +522,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    token(node.keyword);
+    token(node.breakKeyword);
     visitNode(node.label, precededBy: space);
     token(node.semicolon);
   }
@@ -591,7 +591,7 @@ class SourceVisitor implements AstVisitor {
     preserveLeadingNewlines();
     visitMemberMetadata(node.metadata);
     modifier(node.abstractKeyword);
-    token(node.keyword);
+    token(node.typedefKeyword);
     space();
     visit(node.name);
     visit(node.typeParameters);
@@ -708,7 +708,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    token(node.keyword);
+    token(node.thisKeyword);
     token(node.period);
     visit(node.fieldName);
     space();
@@ -724,7 +724,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitContinueStatement(ContinueStatement node) {
-    token(node.keyword);
+    token(node.continueKeyword);
     visitNode(node.label, precededBy: space);
     token(node.semicolon);
   }
@@ -782,7 +782,7 @@ class SourceVisitor implements AstVisitor {
 
   visitEnumDeclaration(EnumDeclaration node){
     visitMemberMetadata(node.metadata);
-    token(node.keyword);
+    token(node.enumKeyword);
     space();
     visit(node.name);
     space();
@@ -820,7 +820,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitExtendsClause(ExtendsClause node) {
-    token(node.keyword);
+    token(node.extendsKeyword);
     space();
     visit(node.superclass);
   }
@@ -835,7 +835,7 @@ class SourceVisitor implements AstVisitor {
   visitFieldFormalParameter(FieldFormalParameter node) {
     token(node.keyword, followedBy: space);
     visitNode(node.type, followedBy: space);
-    token(node.thisToken);
+    token(node.thisKeyword);
     token(node.period);
     visit(node.identifier);
     visit(node.parameters);
@@ -945,7 +945,7 @@ class SourceVisitor implements AstVisitor {
 
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     visitMemberMetadata(node.metadata);
-    token(node.keyword);
+    token(node.typedefKeyword);
     space();
     visitNode(node.returnType, followedBy: space);
     visit(node.name);
@@ -992,7 +992,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitImplementsClause(ImplementsClause node) {
-    token(node.keyword);
+    token(node.implementsKeyword);
     space();
     visitCommaSeparatedNodes(node.interfaces);
   }
@@ -1002,8 +1002,8 @@ class SourceVisitor implements AstVisitor {
     token(node.keyword);
     nonBreakingSpace();
     visit(node.uri);
-    token(node.deferredToken, precededBy: space);
-    token(node.asToken, precededBy: space, followedBy: space);
+    token(node.deferredKeyword, precededBy: space);
+    token(node.asKeyword, precededBy: space, followedBy: space);
     allowContinuedLines((){
       visit(node.prefix);
       visitNodes(node.combinators, precededBy: space, separatedBy: space);
@@ -1142,13 +1142,13 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitNativeClause(NativeClause node) {
-    token(node.keyword);
+    token(node.nativeKeyword);
     space();
     visit(node.name);
   }
 
   visitNativeFunctionBody(NativeFunctionBody node) {
-    token(node.nativeToken);
+    token(node.nativeKeyword);
     space();
     visit(node.stringLiteral);
     token(node.semicolon);
@@ -1174,7 +1174,7 @@ class SourceVisitor implements AstVisitor {
   visitPartOfDirective(PartOfDirective node) {
     token(node.keyword);
     space();
-    token(node.ofToken);
+    token(node.ofKeyword);
     space();
     visit(node.libraryName);
     token(node.semicolon);
@@ -1207,23 +1207,23 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    token(node.keyword);
+    token(node.thisKeyword);
     token(node.period);
     visit(node.constructorName);
     visit(node.argumentList);
   }
 
   visitRethrowExpression(RethrowExpression node) {
-    token(node.keyword);
+    token(node.rethrowKeyword);
   }
 
   visitReturnStatement(ReturnStatement node) {
     var expression = node.expression;
     if (expression == null) {
-      token(node.keyword);
+      token(node.returnKeyword);
       token(node.semicolon);
     } else {
-      token(node.keyword);
+      token(node.returnKeyword);
       allowContinuedLines((){
         space();
         expression.accept(this);
@@ -1270,14 +1270,14 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    token(node.keyword);
+    token(node.superKeyword);
     token(node.period);
     visit(node.constructorName);
     visit(node.argumentList);
   }
 
   visitSuperExpression(SuperExpression node) {
-    token(node.keyword);
+    token(node.superKeyword);
   }
 
   visitSwitchCase(SwitchCase node) {
@@ -1303,7 +1303,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    token(node.keyword);
+    token(node.switchKeyword);
     space();
     token(node.leftParenthesis);
     visit(node.expression);
@@ -1330,11 +1330,11 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitThisExpression(ThisExpression node) {
-    token(node.keyword);
+    token(node.thisKeyword);
   }
 
   visitThrowExpression(ThrowExpression node) {
-    token(node.keyword);
+    token(node.throwKeyword);
     space();
     visit(node.expression);
   }
@@ -1367,7 +1367,7 @@ class SourceVisitor implements AstVisitor {
   visitTypeParameter(TypeParameter node) {
     visitMemberMetadata(node.metadata);
     visit(node.name);
-    token(node.keyword /* extends */, precededBy: space, followedBy: space);
+    token(node.extendsKeyword, precededBy: space, followedBy: space);
     visit(node.bound);
   }
 
@@ -1438,7 +1438,7 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitWhileStatement(WhileStatement node) {
-    token(node.keyword);
+    token(node.whileKeyword);
     space();
     token(node.leftParenthesis);
     allowContinuedLines((){

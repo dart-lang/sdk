@@ -1590,7 +1590,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (_checkForAllInvalidOverrideErrorCodesForExecutable(
             getter,
             ParameterElementImpl.EMPTY_ARRAY,
-            AstNode.EMPTY_ARRAY,
+            AstNode.EMPTY_LIST,
             fieldName)) {
           hasProblems = true;
         }
@@ -4354,12 +4354,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       for (int i = 0; i < withCount; i++) {
         _errorReporter.reportErrorForToken(
             StaticWarningCode.MIXED_RETURN_TYPES,
-            _returnsWith[i].keyword);
+            _returnsWith[i].returnKeyword);
       }
       for (int i = 0; i < withoutCount; i++) {
         _errorReporter.reportErrorForToken(
             StaticWarningCode.MIXED_RETURN_TYPES,
-            _returnsWithout[i].keyword);
+            _returnsWithout[i].returnKeyword);
       }
       return true;
     }
@@ -5976,7 +5976,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int count = directives.length;
     if (count > 1) {
       for (int i = 0; i < count; i++) {
-        sc.Token deferredToken = directives[i].deferredToken;
+        sc.Token deferredToken = directives[i].deferredKeyword;
         if (deferredToken != null) {
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,

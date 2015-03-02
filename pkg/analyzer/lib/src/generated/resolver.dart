@@ -1122,7 +1122,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     // report error
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-        node.keyword,
+        node.switchKeyword,
         [type.displayName]);
     return true;
   }
@@ -5463,7 +5463,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
             //
             // Initialize prefixElementMap
             //
-            if (importDirective.asToken != null) {
+            if (importDirective.asKeyword != null) {
               SimpleIdentifier prefixIdentifier = importDirective.prefix;
               if (prefixIdentifier != null) {
                 Element element = prefixIdentifier.staticElement;
@@ -8093,7 +8093,7 @@ class LibraryResolver {
               importElement.uriOffset = uriLiteral.offset;
               importElement.uriEnd = uriLiteral.end;
               importElement.uri = uriContent;
-              importElement.deferred = importDirective.deferredToken != null;
+              importElement.deferred = importDirective.deferredKeyword != null;
               importElement.combinators = _buildCombinators(importDirective);
               LibraryElement importedLibraryElement =
                   importedLibrary.libraryElement;
@@ -8808,7 +8808,7 @@ class LibraryResolver2 {
                 importElement.uriEnd = uriLiteral.end;
               }
               importElement.uri = uriContent;
-              importElement.deferred = importDirective.deferredToken != null;
+              importElement.deferred = importDirective.deferredKeyword != null;
               importElement.combinators = _buildCombinators(importDirective);
               LibraryElement importedLibraryElement =
                   importedLibrary.libraryElement;

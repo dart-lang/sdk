@@ -2111,8 +2111,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitClassDeclaration_withMetadata() {
     ClassDeclaration declaration =
         AstFactory.classDeclaration(null, "C", null, null, null, null);
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated class C {}", declaration);
   }
 
@@ -2221,8 +2220,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstFactory.typeName4("S"),
         AstFactory.withClause([AstFactory.typeName4("M1")]),
         null);
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated class C = S with M1;", declaration);
   }
 
@@ -2423,8 +2421,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstFactory.formalParameterList(),
         null,
         AstFactory.blockFunctionBody2());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated C() {}", declaration);
   }
 
@@ -2553,8 +2550,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitExportDirective_withMetadata() {
     ExportDirective directive = AstFactory.exportDirective2("a.dart");
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated export 'a.dart';", directive);
   }
 
@@ -2605,8 +2601,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         false,
         Keyword.VAR,
         [AstFactory.variableDeclaration("a")]);
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated var a;", declaration);
   }
 
@@ -3040,8 +3035,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         null,
         "f",
         AstFactory.functionExpression());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated f() {}", declaration);
   }
 
@@ -3091,8 +3085,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         "F",
         null,
         AstFactory.formalParameterList());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated typedef A F();", declaration);
   }
 
@@ -3194,8 +3187,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitImportDirective_withMetadata() {
     ImportDirective directive = AstFactory.importDirective3("a.dart", null);
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated import 'a.dart';", directive);
   }
 
@@ -3318,8 +3310,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitLibraryDirective_withMetadata() {
     LibraryDirective directive = AstFactory.libraryDirective2("l");
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated library l;", directive);
   }
 
@@ -3562,8 +3553,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstFactory.identifier3("m"),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2());
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated m() {}", declaration);
   }
 
@@ -3615,8 +3605,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitPartDirective_withMetadata() {
     PartDirective directive = AstFactory.partDirective2("a.dart");
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated part 'a.dart';", directive);
   }
 
@@ -3629,8 +3618,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitPartOfDirective_withMetadata() {
     PartOfDirective directive =
         AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["l"]));
-    directive.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    directive.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated part of l;", directive);
   }
 
@@ -3924,8 +3912,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitTypeParameter_withMetadata() {
     TypeParameter parameter = AstFactory.typeParameter("E");
-    parameter.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated E", parameter);
   }
 
@@ -3953,8 +3940,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitVariableDeclaration_withMetadata() {
     VariableDeclaration declaration = AstFactory.variableDeclaration("a");
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declaration.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated a", declaration);
   }
 
@@ -3980,8 +3966,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstFactory.variableDeclarationList2(
             Keyword.FINAL,
             [AstFactory.variableDeclaration("a"), AstFactory.variableDeclaration("b")]);
-    declarationList.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    declarationList.metadata.add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated final a, b", declarationList);
   }
 

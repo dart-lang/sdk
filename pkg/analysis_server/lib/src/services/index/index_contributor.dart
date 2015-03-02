@@ -424,7 +424,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int end = node.constructorName.end;
       location = _createLocationForOffset(start, end - start);
     } else {
-      int start = node.keyword.end;
+      int start = node.thisKeyword.end;
       location = _createLocationForOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
@@ -521,7 +521,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int end = node.constructorName.end;
       location = _createLocationForOffset(start, end - start);
     } else {
-      int start = node.keyword.end;
+      int start = node.superKeyword.end;
       location = _createLocationForOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
