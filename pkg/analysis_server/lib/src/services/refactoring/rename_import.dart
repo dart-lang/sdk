@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * A [Refactoring] for renaming [ImportElement]s.
  */

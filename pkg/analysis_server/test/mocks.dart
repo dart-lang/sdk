@@ -79,9 +79,8 @@ class MockClassElement extends TypedMock implements ClassElement {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
-class MockCompilationUnitElement extends TypedMock implements
-    CompilationUnitElement {
+class MockCompilationUnitElement extends TypedMock
+    implements CompilationUnitElement {
   final ElementKind kind = ElementKind.COMPILATION_UNIT;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -90,7 +89,6 @@ class MockConstructorElement extends TypedMock implements ConstructorElement {
   final kind = ElementKind.CONSTRUCTOR;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class MockElement extends StringTypedMock implements Element {
   MockElement([String name = '<element>']) : super(name);
@@ -109,56 +107,47 @@ class MockFieldElement extends TypedMock implements FieldElement {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
 class MockFunctionElement extends TypedMock implements FunctionElement {
   final ElementKind kind = ElementKind.FUNCTION;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
-class MockFunctionTypeAliasElement extends TypedMock implements
-    FunctionTypeAliasElement {
+class MockFunctionTypeAliasElement extends TypedMock
+    implements FunctionTypeAliasElement {
   final ElementKind kind = ElementKind.FUNCTION_TYPE_ALIAS;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class MockHtmlElement extends TypedMock implements HtmlElement {
   final ElementKind kind = ElementKind.HTML;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
 class MockImportElement extends TypedMock implements ImportElement {
   final ElementKind kind = ElementKind.IMPORT;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class MockLibraryElement extends TypedMock implements LibraryElement {
   final ElementKind kind = ElementKind.LIBRARY;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
-class MockLocalVariableElement extends TypedMock implements LocalVariableElement
-    {
+class MockLocalVariableElement extends TypedMock
+    implements LocalVariableElement {
   final ElementKind kind = ElementKind.LOCAL_VARIABLE;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
 class MockLogger extends TypedMock implements Logger {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class MockMethodElement extends StringTypedMock implements MethodElement {
   final kind = ElementKind.METHOD;
   MockMethodElement([String name = 'method']) : super(name);
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 /**
  * A mock [PackageMapProvider].
@@ -167,8 +156,8 @@ class MockPackageMapProvider implements PackageMapProvider {
   /**
    * Package map that will be returned by the next call to [computePackageMap].
    */
-  Map<String, List<resource.Folder>> packageMap = <String,
-      List<resource.Folder>>{};
+  Map<String, List<resource.Folder>> packageMap =
+      <String, List<resource.Folder>>{};
 
   /**
    * Package maps that will be returned by the next call to [computePackageMap].
@@ -189,20 +178,17 @@ class MockPackageMapProvider implements PackageMapProvider {
   }
 }
 
-
 class MockParameterElement extends TypedMock implements ParameterElement {
   final ElementKind kind = ElementKind.PARAMETER;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
-class MockPropertyAccessorElement extends TypedMock implements
-    PropertyAccessorElement {
+class MockPropertyAccessorElement extends TypedMock
+    implements PropertyAccessorElement {
   final ElementKind kind;
   MockPropertyAccessorElement(this.kind);
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 /**
  * A mock [ServerCommunicationChannel] for testing [AnalysisServer].
@@ -230,12 +216,10 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request), {Function onError, void
-      onDone()}) {
-    requestController.stream.listen(
-        onRequest,
-        onError: onError,
-        onDone: onDone);
+  void listen(void onRequest(Request request),
+      {Function onError, void onDone()}) {
+    requestController.stream.listen(onRequest,
+        onError: onError, onDone: onDone);
   }
 
   @override
@@ -286,7 +270,6 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 }
 
-
 /**
  * A mock [ServerOperation] for testing [AnalysisServer].
  */
@@ -305,7 +288,6 @@ class MockServerOperation implements PerformAnalysisOperation {
   @override
   void perform(AnalysisServer server) => this._perform(server);
 }
-
 
 /**
  * A mock [WebSocket] for testing.
@@ -336,39 +318,32 @@ class MockSocket<T> implements WebSocket {
   Future close([int code, String reason]) =>
       controller.close().then((_) => twin.controller.close());
 
-  StreamSubscription<T> listen(void onData(T event), {Function onError, void
-      onDone(), bool cancelOnError}) =>
-      stream.listen(
+  StreamSubscription<T> listen(void onData(T event),
+      {Function onError, void onDone(), bool cancelOnError}) => stream.listen(
           onData,
-          onError: onError,
-          onDone: onDone,
-          cancelOnError: cancelOnError);
+          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   Stream<T> where(bool test(T)) => stream.where(test);
 }
 
-
 class MockSource extends StringTypedMock implements Source {
   MockSource([String name = 'mocked.dart']) : super(name);
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
-class MockTopLevelVariableElement extends TypedMock implements
-    TopLevelVariableElement {
+class MockTopLevelVariableElement extends TypedMock
+    implements TopLevelVariableElement {
   final ElementKind kind = ElementKind.TOP_LEVEL_VARIABLE;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
-class MockTypeParameterElement extends TypedMock implements TypeParameterElement
-    {
+class MockTypeParameterElement extends TypedMock
+    implements TypeParameterElement {
   final ElementKind kind = ElementKind.TYPE_PARAMETER;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class NoResponseException implements Exception {
   /**
@@ -383,7 +358,6 @@ class NoResponseException implements Exception {
   }
 }
 
-
 class StringTypedMock extends TypedMock {
   String _toString;
 
@@ -397,7 +371,6 @@ class StringTypedMock extends TypedMock {
     return super.toString();
   }
 }
-
 
 /**
  * A [Matcher] that check that there are no `error` in a given [Response].
@@ -419,8 +392,8 @@ class _IsResponseFailure extends Matcher {
   }
 
   @override
-  Description describeMismatch(item, Description mismatchDescription,
-      Map matchState, bool verbose) {
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
     Response response = item;
     var id = response.id;
     RequestError error = response.error;
@@ -428,8 +401,8 @@ class _IsResponseFailure extends Matcher {
     if (error == null) {
       mismatchDescription.add(' and has no error');
     } else {
-      mismatchDescription.add(
-          ' and has error code ${response.error.code.name}');
+      mismatchDescription
+          .add(' and has error code ${response.error.code.name}');
     }
     return mismatchDescription;
   }
@@ -447,7 +420,6 @@ class _IsResponseFailure extends Matcher {
   }
 }
 
-
 /**
  * A [Matcher] that check that there are no `error` in a given [Response].
  */
@@ -458,13 +430,13 @@ class _IsResponseSuccess extends Matcher {
 
   @override
   Description describe(Description description) {
-    return description.addDescriptionOf(
-        'response with identifier "$_id" and without error');
+    return description
+        .addDescriptionOf('response with identifier "$_id" and without error');
   }
 
   @override
-  Description describeMismatch(item, Description mismatchDescription,
-      Map matchState, bool verbose) {
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
     Response response = item;
     if (response == null) {
       mismatchDescription.add('is null response');

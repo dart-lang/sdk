@@ -16,12 +16,10 @@ import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(InlineMethodTest);
 }
-
 
 @reflectiveTest
 class InlineMethodTest extends RefactoringTest {
@@ -83,9 +81,7 @@ main() {
     // error
     RefactoringStatus status = await refactoring.checkAllConditions();
     var location = new SourceRange(findOffset('..test()'), '..test()'.length);
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Cannot inline cascade invocation.',
         expectedContextRange: location);
   }
@@ -119,9 +115,7 @@ main() {
     refactoring.inlineAll = false;
     // final conditions
     status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'All references must be inlined to remove the source.');
   }
 
@@ -1113,9 +1107,7 @@ main() {
     // error
     RefactoringStatus status = await refactoring.checkAllConditions();
     var location = new SourceRange(findOffset('test();'), 'test()'.length);
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'No argument for the parameter "a".',
         expectedContextRange: location);
   }
@@ -1389,17 +1381,13 @@ main(bool p, bool p2, bool p3) {
 
   Future _assertConditionsError(String message) async {
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
   Future _assertConditionsFatal(String message) async {
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.FATAL,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
 

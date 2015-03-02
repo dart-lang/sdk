@@ -29,9 +29,9 @@ class ExtensionManager {
    */
   void processPlugins(List<Plugin> plugins) {
     for (Plugin plugin in plugins) {
-      plugin.registerExtensionPoints(
-          (String identifier, [ValidateExtension validateExtension]) =>
-              registerExtensionPoint(plugin, identifier, validateExtension));
+      plugin.registerExtensionPoints((String identifier,
+              [ValidateExtension validateExtension]) =>
+          registerExtensionPoint(plugin, identifier, validateExtension));
     }
     for (Plugin plugin in plugins) {
       plugin.registerExtensions(registerExtension);
@@ -55,8 +55,8 @@ class ExtensionManager {
    * Register an extension point being defined by the given [plugin] with the
    * given simple [identifier] and [validateExtension].
    */
-  ExtensionPoint registerExtensionPoint(Plugin plugin, String identifier,
-      ValidateExtension validateExtension) {
+  ExtensionPoint registerExtensionPoint(
+      Plugin plugin, String identifier, ValidateExtension validateExtension) {
     String uniqueIdentifier = Plugin.buildUniqueIdentifier(plugin, identifier);
     if (extensionPoints.containsKey(uniqueIdentifier)) {
       throw new ExtensionError(
@@ -95,8 +95,8 @@ class ExtensionPointImpl implements ExtensionPoint {
    * it will be used to validate extensions associated with this extension
    * point.
    */
-  ExtensionPointImpl(this.plugin, this.simpleIdentifier,
-      this.validateExtension);
+  ExtensionPointImpl(
+      this.plugin, this.simpleIdentifier, this.validateExtension);
 
   /**
    * Return a list containing all of the extensions that have been registered

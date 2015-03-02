@@ -21,7 +21,6 @@ main() {
 
 @reflectiveTest
 class OpTypeTest {
-
   OpType visitor;
 
   void addTestSource(String content, {bool resolved: false}) {
@@ -35,9 +34,9 @@ class OpTypeTest {
     context.sourceFactory =
         new SourceFactory([AbstractContextTest.SDK_RESOLVER]);
     context.setContents(source, content);
-    CompilationUnit unit = resolved ?
-        context.resolveCompilationUnit2(source, source) :
-        context.parseCompilationUnit(source);
+    CompilationUnit unit = resolved
+        ? context.resolveCompilationUnit2(source, source)
+        : context.parseCompilationUnit(source);
     CompletionTarget completionTarget =
         new CompletionTarget.forOffset(unit, offset);
     visitor = new OpType.forCompletion(completionTarget, offset);
@@ -46,29 +45,17 @@ class OpTypeTest {
   void assertOpType({bool invocation: false, bool returnValue: false,
       bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
       bool caseLabel: false}) {
-    expect(
-        visitor.includeInvocationSuggestions,
-        equals(invocation),
+    expect(visitor.includeInvocationSuggestions, equals(invocation),
         reason: 'invocation');
-    expect(
-        visitor.includeReturnValueSuggestions,
-        equals(returnValue),
+    expect(visitor.includeReturnValueSuggestions, equals(returnValue),
         reason: 'returnValue');
-    expect(
-        visitor.includeTypeNameSuggestions,
-        equals(typeNames),
+    expect(visitor.includeTypeNameSuggestions, equals(typeNames),
         reason: 'typeNames');
-    expect(
-        visitor.includeVoidReturnSuggestions,
-        equals(voidReturn),
+    expect(visitor.includeVoidReturnSuggestions, equals(voidReturn),
         reason: 'voidReturn');
-    expect(
-        visitor.includeStatementLabelSuggestions,
-        equals(statementLabel),
+    expect(visitor.includeStatementLabelSuggestions, equals(statementLabel),
         reason: 'statementLabel');
-    expect(
-        visitor.includeCaseLabelSuggestions,
-        equals(caseLabel),
+    expect(visitor.includeCaseLabelSuggestions, equals(caseLabel),
         reason: 'caseLabel');
   }
 

@@ -112,14 +112,9 @@ import "../foo/foo.dart";
   void setUp() {
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(
-        channel,
-        resourceProvider,
-        new MockPackageMapProvider(),
-        null,
-        new AnalysisServerOptions(),
-        new MockSdk(),
-        InstrumentationService.NULL_SERVICE,
+    server = new AnalysisServer(channel, resourceProvider,
+        new MockPackageMapProvider(), null, new AnalysisServerOptions(),
+        new MockSdk(), InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
   }
 
@@ -194,9 +189,7 @@ import "../foo/foo.dart";
       wasAdded = false;
       wasChanged = false;
       wasRemoved = false;
-      server.setAnalysisRoots('0', ['/foo'], [], {
-        '/foo': '/bar'
-      });
+      server.setAnalysisRoots('0', ['/foo'], [], {'/foo': '/bar'});
       return pumpEventQueue();
     }).then((_) {
       expect(wasAdded, isFalse);
@@ -265,8 +258,8 @@ import "../foo/foo.dart";
     resourceProvider.newFile('/foo/foo.dart', 'import "../bar/bar.dart";');
     File bar = resourceProvider.newFile('/bar/bar.dart', 'library bar;');
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    Map<AnalysisService, Set<String>> subscriptions = <AnalysisService,
-        Set<String>>{};
+    Map<AnalysisService, Set<String>> subscriptions =
+        <AnalysisService, Set<String>>{};
     for (AnalysisService service in AnalysisService.VALUES) {
       subscriptions[service] = <String>[bar.path].toSet();
     }
@@ -274,9 +267,8 @@ import "../foo/foo.dart";
     await pumpEventQueue(100);
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
-    server.updateContent('0', {
-      bar.path: new AddContentOverlay('library bar; void f() {}')
-    });
+    server.updateContent(
+        '0', {bar.path: new AddContentOverlay('library bar; void f() {}')});
     await pumpEventQueue(100);
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
@@ -337,8 +329,8 @@ import "../foo/foo.dart";
 
   void test_rethrowExceptions() {
     Exception exceptionToThrow = new Exception('test exception');
-    MockServerOperation operation =
-        new MockServerOperation(ServerOperationPriority.ANALYSIS, (_) {
+    MockServerOperation operation = new MockServerOperation(
+        ServerOperationPriority.ANALYSIS, (_) {
       throw exceptionToThrow;
     });
     server.operationQueue.add(operation);
@@ -361,9 +353,8 @@ import "../foo/foo.dart";
     AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
     AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
     when(context.analysisOptions).thenReturn(new AnalysisOptionsImpl());
-    when(
-        context.performAnalysisTask).thenReturnList(
-            [firstResult, firstResult, firstResult, lastResult]);
+    when(context.performAnalysisTask)
+        .thenReturnList([firstResult, firstResult, firstResult, lastResult]);
     server.serverServices.add(ServerService.STATUS);
     server.schedulePerformAnalysisOperation(context);
     // Pump the event queue to make sure the server has finished any
@@ -409,9 +400,7 @@ class EchoHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     if (request.method == 'echo') {
-      return new Response(request.id, result: {
-        'echo': true
-      });
+      return new Response(request.id, result: {'echo': true});
     }
     return null;
   }

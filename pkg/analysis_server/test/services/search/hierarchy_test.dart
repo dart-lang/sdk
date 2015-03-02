@@ -16,12 +16,10 @@ import 'package:unittest/unittest.dart';
 import '../../abstract_single_unit.dart';
 import '../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(HierarchyTest);
 }
-
 
 @reflectiveTest
 class HierarchyTest extends AbstractSingleUnitTest {
@@ -218,16 +216,14 @@ class B extends A {
     {
       ClassElement classA = findElement('A');
       List<Element> members = getMembers(classA);
-      expect(
-          members.map((e) => e.name),
+      expect(members.map((e) => e.name),
           unorderedEquals(['ma1', 'ma2', '==', 'toString', 'hashCode']));
     }
     {
       ClassElement classB = findElement('B');
       List<Element> members = getMembers(classB);
-      expect(
-          members.map((e) => e.name),
-          unorderedEquals(['mb1', 'mb2', 'ma1', 'ma2', '==', 'toString', 'hashCode']));
+      expect(members.map((e) => e.name), unorderedEquals(
+          ['mb1', 'mb2', 'ma1', 'ma2', '==', 'toString', 'hashCode']));
     }
   }
 

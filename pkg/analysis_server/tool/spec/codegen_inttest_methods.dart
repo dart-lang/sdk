@@ -15,8 +15,8 @@ import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'to_html.dart';
 
-final GeneratedFile target =
-    new GeneratedFile('../../test/integration/integration_test_methods.dart', () {
+final GeneratedFile target = new GeneratedFile(
+    '../../test/integration/integration_test_methods.dart', () {
   CodegenInttestMethodsVisitor visitor =
       new CodegenInttestMethodsVisitor(readApi());
   return visitor.collectCode(visitor.visitApi);
@@ -32,8 +32,8 @@ main() {
 /**
  * Visitor that generates the code for integration_test_methods.dart
  */
-class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
-    {
+class CodegenInttestMethodsVisitor extends DartCodegenVisitor
+    with CodeGenerator {
   /**
    * Visitor used to produce doc comments.
    */
@@ -160,9 +160,11 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
   visitNotification(Notification notification) {
     String streamName =
         camelJoin(['on', notification.domainName, notification.event]);
-    String className = camelJoin(
-        [notification.domainName, notification.event, 'params'],
-        doCapitalize: true);
+    String className = camelJoin([
+      notification.domainName,
+      notification.event,
+      'params'
+    ], doCapitalize: true);
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(notification.html);
@@ -181,8 +183,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
     notificationSwitchContents.add(collectCode(() {
       writeln('case ${JSON.encode(notification.longEvent)}:');
       indent(() {
-        String paramsValidator =
-            camelJoin(['is', notification.domainName, notification.event, 'params']);
+        String paramsValidator = camelJoin(
+            ['is', notification.domainName, notification.event, 'params']);
         writeln('expect(params, $paramsValidator);');
         String constructorCall;
         if (notification.params == null) {
@@ -225,14 +227,14 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
     if (request.result == null) {
       futureClass = 'Future';
     } else {
-      resultClass =
-          camelJoin([request.domainName, request.method, 'result'], doCapitalize: true);
+      resultClass = camelJoin([request.domainName, request.method, 'result'],
+          doCapitalize: true);
       futureClass = 'Future<$resultClass>';
     }
     writeln('$futureClass $methodName(${args.join(', ')}) {');
     indent(() {
-      String requestClass =
-          camelJoin([request.domainName, request.method, 'params'], doCapitalize: true);
+      String requestClass = camelJoin(
+          [request.domainName, request.method, 'params'], doCapitalize: true);
       String paramsVar = 'null';
       if (request.params != null) {
         paramsVar = 'params';

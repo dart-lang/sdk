@@ -30,9 +30,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-
 typedef void OptionUpdater(AnalysisOptionsImpl options);
-
 
 /**
  * Enum representing reasons why analysis might be done for a given file.
@@ -57,7 +55,6 @@ class AnalysisDoneReason {
 
   const AnalysisDoneReason._(this.text);
 }
-
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -228,8 +225,7 @@ class AnalysisServer {
    */
   // Add 1 sec to prevent delay from impacting short running tests
   int _nextPerformOperationDelayTime =
-      new DateTime.now().millisecondsSinceEpoch +
-      1000;
+      new DateTime.now().millisecondsSinceEpoch + 1000;
 
   /**
    * The current state of overlays from the client.  This is used as the
@@ -255,10 +251,7 @@ class AnalysisServer {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
     contextDirectoryManager = new ServerContextManager(
-        this,
-        resourceProvider,
-        packageMapProvider,
-        instrumentationService);
+        this, resourceProvider, packageMapProvider, instrumentationService);
     contextDirectoryManager.defaultOptions.incremental = true;
     contextDirectoryManager.defaultOptions.incrementalApi =
         analysisServerOptions.enableIncrementalResolutionApi;
@@ -606,8 +599,8 @@ class AnalysisServer {
             channel.sendResponse(exception.response);
             return;
           } catch (exception, stackTrace) {
-            RequestError error =
-                new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+            RequestError error = new RequestError(
+                RequestErrorCode.SERVER_ERROR, exception.toString());
             if (stackTrace != null) {
               error.stackTrace = stackTrace.toString();
             }
@@ -702,8 +695,7 @@ class AnalysisServer {
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError("${exception}\n${stackTrace}");
       if (rethrowExceptions) {
-        throw new AnalysisException(
-            'Unexpected exception during analysis',
+        throw new AnalysisException('Unexpected exception during analysis',
             new CaughtException(exception, stackTrace));
       }
       sendServerErrorNotification(exception, stackTrace, fatal: true);
@@ -758,8 +750,8 @@ class AnalysisServer {
    * This method is called when analysis of the given [AnalysisContext] is
    * done.
    */
-  void sendContextAnalysisDoneNotifications(AnalysisContext context,
-      AnalysisDoneReason reason) {
+  void sendContextAnalysisDoneNotifications(
+      AnalysisContext context, AnalysisDoneReason reason) {
     Completer<AnalysisDoneReason> completer =
         contextAnalysisDoneCompleters.remove(context);
     if (completer != null) {
@@ -801,10 +793,8 @@ class AnalysisServer {
     }
     // send the notification
     channel.sendNotification(
-        new ServerErrorParams(
-            fatal,
-            exceptionString,
-            stackTraceString).toNotification());
+        new ServerErrorParams(fatal, exceptionString, stackTraceString)
+            .toNotification());
   }
 
   /**
@@ -843,9 +833,7 @@ class AnalysisServer {
       List<String> excludedPaths, Map<String, String> packageRoots) {
     try {
       contextDirectoryManager.setRoots(
-          includedPaths,
-          excludedPaths,
-          packageRoots);
+          includedPaths, excludedPaths, packageRoots);
     } on UnimplementedError catch (e) {
       throw new RequestFailure(
           new Response.unsupportedFeature(requestId, e.message));
@@ -855,8 +843,8 @@ class AnalysisServer {
   /**
    * Implementation for `analysis.setSubscriptions`.
    */
-  void setAnalysisSubscriptions(Map<AnalysisService,
-      Set<String>> subscriptions) {
+  void setAnalysisSubscriptions(
+      Map<AnalysisService, Set<String>> subscriptions) {
     // send notifications for already analyzed sources
     subscriptions.forEach((service, Set<String> newFiles) {
       Set<String> oldFiles = analysisServices[service];
@@ -1011,22 +999,16 @@ class AnalysisServer {
         if (oldContents == null) {
           // The client may only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
-          throw new RequestFailure(
-              new Response(
-                  id,
-                  error: new RequestError(
-                      RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                      'Invalid overlay change')));
+          throw new RequestFailure(new Response(id,
+              error: new RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                  'Invalid overlay change')));
         }
         try {
           newContents = SourceEdit.applySequence(oldContents, change.edits);
         } on RangeError {
-          throw new RequestFailure(
-              new Response(
-                  id,
-                  error: new RequestError(
-                      RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                      'Invalid overlay change')));
+          throw new RequestFailure(new Response(id,
+              error: new RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                  'Invalid overlay change')));
         }
       } else if (change is RemoveContentOverlay) {
         newContents = null;
@@ -1038,10 +1020,7 @@ class AnalysisServer {
       // Update all contexts.
       for (InternalAnalysisContext context in folderMap.values) {
         if (context.handleContentsChanged(
-            source,
-            oldContents,
-            newContents,
-            true)) {
+            source, oldContents, newContents, true)) {
           schedulePerformAnalysisOperation(context);
         } else {
           // When the client sends any change for a source, we should resend
@@ -1054,14 +1033,8 @@ class AnalysisServer {
             if (dartUnits != null) {
               AnalysisErrorInfo errorInfo = context.getErrors(source);
               for (var dartUnit in dartUnits) {
-                scheduleNotificationOperations(
-                    this,
-                    file,
-                    errorInfo.lineInfo,
-                    context,
-                    null,
-                    dartUnit,
-                    errorInfo.errors);
+                scheduleNotificationOperations(this, file, errorInfo.lineInfo,
+                    context, null, dartUnit, errorInfo.errors);
                 scheduleIndexOperation(this, file, context, dartUnit);
               }
             } else {
@@ -1145,7 +1118,6 @@ class AnalysisServer {
   }
 }
 
-
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
@@ -1177,8 +1149,9 @@ class ContextsChangedEvent {
    */
   final List<AnalysisContext> removed;
 
-  ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST, this.changed:
-      AnalysisContext.EMPTY_LIST, this.removed: AnalysisContext.EMPTY_LIST});
+  ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST,
+      this.changed: AnalysisContext.EMPTY_LIST,
+      this.removed: AnalysisContext.EMPTY_LIST});
 }
 
 /**
@@ -1189,7 +1162,6 @@ class PriorityChangeEvent {
 
   PriorityChangeEvent(this.firstSource);
 }
-
 
 class ServerContextManager extends ContextManager {
   final AnalysisServer analysisServer;
@@ -1225,8 +1197,8 @@ class ServerContextManager extends ContextManager {
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
-    _onContextsChangedController.add(
-        new ContextsChangedEvent(added: [context]));
+    _onContextsChangedController
+        .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
     return context;
   }
@@ -1256,21 +1228,20 @@ class ServerContextManager extends ContextManager {
     if (analysisServer.index != null) {
       analysisServer.index.removeContext(context);
     }
-    _onContextsChangedController.add(
-        new ContextsChangedEvent(removed: [context]));
+    _onContextsChangedController
+        .add(new ContextsChangedEvent(removed: [context]));
     analysisServer.sendContextAnalysisDoneNotifications(
-        context,
-        AnalysisDoneReason.CONTEXT_REMOVED);
+        context, AnalysisDoneReason.CONTEXT_REMOVED);
     context.dispose();
   }
 
   @override
-  void updateContextPackageUriResolver(Folder contextFolder,
-      UriResolver packageUriResolver) {
+  void updateContextPackageUriResolver(
+      Folder contextFolder, UriResolver packageUriResolver) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
     context.sourceFactory = _createSourceFactory(packageUriResolver);
-    _onContextsChangedController.add(
-        new ContextsChangedEvent(changed: [context]));
+    _onContextsChangedController
+        .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
@@ -1289,13 +1260,12 @@ class ServerContextManager extends ContextManager {
   SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
     UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
     UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
-    List<UriResolver> resolvers = packageUriResolver != null ?
-        <UriResolver>[dartResolver, packageUriResolver, resourceResolver] :
-        <UriResolver>[dartResolver, resourceResolver];
+    List<UriResolver> resolvers = packageUriResolver != null
+        ? <UriResolver>[dartResolver, packageUriResolver, resourceResolver]
+        : <UriResolver>[dartResolver, resourceResolver];
     return new SourceFactory(resolvers);
   }
 }
-
 
 /**
  * A class used by [AnalysisServer] to record performance information
@@ -1336,8 +1306,7 @@ class ServerPerformance {
     ++requestCount;
     if (request.clientRequestTime != null) {
       int latency =
-          new DateTime.now().millisecondsSinceEpoch -
-          request.clientRequestTime;
+          new DateTime.now().millisecondsSinceEpoch - request.clientRequestTime;
       requestLatency += latency;
       maxLatency = max(maxLatency, latency);
       if (latency > 150) {
@@ -1346,7 +1315,6 @@ class ServerPerformance {
     }
   }
 }
-
 
 /**
  * Container with global [AnalysisServer] performance statistics.

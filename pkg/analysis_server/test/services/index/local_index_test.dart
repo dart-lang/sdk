@@ -16,22 +16,18 @@ import '../../abstract_context.dart';
 import '../../reflective_tests.dart';
 import 'store/single_source_container.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(LocalIndexTest);
 }
 
-
 void _assertElementNames(List<Element> elements, List expected) {
   expect(_toElementNames(elements), unorderedEquals(expected));
 }
 
-
 Iterable<String> _toElementNames(List<Element> elements) {
   return elements.map((element) => element.name);
 }
-
 
 @reflectiveTest
 class LocalIndexTest extends AbstractContextTest {
@@ -50,7 +46,7 @@ class LocalIndexTest extends AbstractContextTest {
   void test_clear() {
     _indexTest('main() {}');
     _assertElementNames(_getTopElements(), ['main']);
-      // clear
+    // clear
     index.clear();
     expect(_getTopElements(), isEmpty);
   }
@@ -90,7 +86,7 @@ class LocalIndexTest extends AbstractContextTest {
   void test_removeSource() {
     Source sourceA = _indexLibraryUnit('/testA.dart', 'fa() {}');
     _indexLibraryUnit('/testB.dart', 'fb() {}');
-      // OK, there are 2 functions
+    // OK, there are 2 functions
     _assertElementNames(_getTopElements(), ['fa', 'fb']);
     // remove source
     index.removeSource(context, sourceA);
@@ -102,7 +98,7 @@ class LocalIndexTest extends AbstractContextTest {
     _indexLibraryUnit('/testB.dart', 'fb() {}');
     // OK, there are 2 functions
     _assertElementNames(_getTopElements(), ['fa', 'fb']);
-      // remove source(s)
+    // remove source(s)
     index.removeSources(context, new SingleSourceContainer(sourceA));
     _assertElementNames(_getTopElements(), ['fb']);
   }

@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
-
 class MemoryNodeManager implements NodeManager {
   StringCodec _stringCodec = new StringCodec();
   ContextCodec _contextCodec = new ContextCodec();

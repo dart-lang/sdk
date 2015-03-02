@@ -14,10 +14,8 @@ import 'package:analyzer/src/generated/scanner.dart';
  * which catches the exception thrown by [finished()].
  */
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
-
-  static final TypeName STACKTRACE_TYPE = new TypeName(
-      new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
-      null);
+  static final TypeName STACKTRACE_TYPE = new TypeName(new SimpleIdentifier(
+      new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)), null);
 
   final int offset;
 
@@ -41,8 +39,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredParam(SimpleIdentifier name, TypeName type);
 
-  void declaredTopLevelVar(VariableDeclarationList varList,
-      VariableDeclaration varDecl);
+  void declaredTopLevelVar(
+      VariableDeclarationList varList, VariableDeclaration varDecl);
 
   /**
    * Throw an exception indicating that [LocalDeclarationVisitor] should
@@ -263,5 +261,4 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
  * Internal exception used to indicate that [LocalDeclarationVisitor]
  * should stop visiting.
  */
-class _LocalDeclarationVisitorFinished {
-}
+class _LocalDeclarationVisitorFinished {}

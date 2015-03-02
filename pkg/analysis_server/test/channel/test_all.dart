@@ -9,7 +9,6 @@ import 'package:unittest/unittest.dart';
 import 'byte_stream_channel_test.dart' as byte_stream_channel_test;
 import 'web_socket_channel_test.dart' as web_socket_channel_test;
 
-
 /**
  * Utility for manually running all tests.
  */

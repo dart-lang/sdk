@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-
 List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
 /**
@@ -92,8 +91,8 @@ List<String> getVariableNameSuggestionsForExpression(DartType expectedType,
 /**
  * Returns possible names for a [String] variable with [text] value.
  */
-List<String> getVariableNameSuggestionsForText(String text,
-    Set<String> excluded) {
+List<String> getVariableNameSuggestionsForText(
+    String text, Set<String> excluded) {
   // filter out everything except of letters and white spaces
   {
     StringBuffer sb = new StringBuffer();
@@ -130,7 +129,7 @@ List<String> getVariableNameSuggestionsForText(String text,
 void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
   for (String item in toAdd) {
     // add name based on "item", but not "excluded"
-    for (int suffix = 1; ; suffix++) {
+    for (int suffix = 1;; suffix++) {
       // prepare name, just "item" or "item2", "item3", etc
       String name = item;
       if (suffix > 1) {
@@ -218,7 +217,6 @@ String _getBaseNameFromExpression(Expression expression) {
   // done
   return name;
 }
-
 
 String _getBaseNameFromLocationInParent(Expression expression) {
   // value in named expression

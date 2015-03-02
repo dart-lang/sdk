@@ -7,8 +7,8 @@ library services.completion.computer.dart.toplevel;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol_server.dart' hide Element,
-    ElementKind;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
@@ -30,8 +30,7 @@ class ImportedComputer extends DartCompletionComputer {
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
     if (optype.includeTopLevelSuggestions) {
-      builder = new _ImportedSuggestionBuilder(
-          request,
+      builder = new _ImportedSuggestionBuilder(request,
           typesOnly: optype.includeOnlyTypeNameSuggestions,
           excludeVoidReturn: !optype.includeVoidReturnSuggestions);
       builder.shouldWaitForLowPrioritySuggestions =
@@ -54,16 +53,16 @@ class ImportedComputer extends DartCompletionComputer {
  * [_ImportedSuggestionBuilder] traverses the imports and builds suggestions
  * based upon imported elements.
  */
-class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
-    SuggestionBuilder {
+class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
+    implements SuggestionBuilder {
   bool shouldWaitForLowPrioritySuggestions;
   final DartCompletionRequest request;
   final bool typesOnly;
   final bool excludeVoidReturn;
   DartCompletionCache cache;
 
-  _ImportedSuggestionBuilder(this.request, {this.typesOnly: false,
-      this.excludeVoidReturn: false}) {
+  _ImportedSuggestionBuilder(this.request,
+      {this.typesOnly: false, this.excludeVoidReturn: false}) {
     cache = request.cache;
   }
 
@@ -88,7 +87,6 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
    * Compute suggested based upon imported elements.
    */
   Future<bool> computeFull(AstNode node) {
-
     Future<bool> addSuggestions(_) {
       _addInheritedSuggestions(node);
       _addTopLevelSuggestions();
@@ -97,9 +95,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
 
     Future future = null;
     if (!cache.isImportInfoCached(request.unit)) {
-      future = cache.computeImportInfo(
-          request.unit,
-          request.searchEngine,
+      future = cache.computeImportInfo(request.unit, request.searchEngine,
           shouldWaitForLowPrioritySuggestions);
     }
     if (future != null) {
@@ -111,8 +107,8 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
   /**
    * Add imported element suggestions.
    */
-  void _addElementSuggestions(List<Element> elements, {int relevance:
-      DART_RELEVANCE_DEFAULT}) {
+  void _addElementSuggestions(List<Element> elements,
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
     elements.forEach((Element elem) {
       if (elem is! ClassElement) {
         if (typesOnly) {
@@ -150,25 +146,19 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder implements
         String name = inheritedTypes.removeLast();
         ClassElement elem = cache.importedClassMap[name];
         if (visited.add(name) && elem != null) {
-          _addElementSuggestions(
-              elem.fields,
+          _addElementSuggestions(elem.fields,
               relevance: DART_RELEVANCE_INHERITED_FIELD);
-          _addElementSuggestions(
-              elem.accessors,
+          _addElementSuggestions(elem.accessors,
               relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
-          _addElementSuggestions(
-              elem.methods,
+          _addElementSuggestions(elem.methods,
               relevance: DART_RELEVANCE_INHERITED_METHOD);
           elem.allSupertypes.forEach((InterfaceType type) {
             if (visited.add(type.name) && type.element != null) {
-              _addElementSuggestions(
-                  type.element.fields,
+              _addElementSuggestions(type.element.fields,
                   relevance: DART_RELEVANCE_INHERITED_FIELD);
-              _addElementSuggestions(
-                  type.element.accessors,
+              _addElementSuggestions(type.element.accessors,
                   relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
-              _addElementSuggestions(
-                  type.element.methods,
+              _addElementSuggestions(type.element.methods,
                   relevance: DART_RELEVANCE_INHERITED_METHOD);
             }
           });

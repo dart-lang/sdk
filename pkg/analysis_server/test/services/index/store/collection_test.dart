@@ -9,13 +9,11 @@ import 'package:unittest/unittest.dart';
 
 import '../../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(_IntArrayToIntMapTest);
   runReflectiveTests(_IntToIntSetMapTest);
 }
-
 
 @reflectiveTest
 class _IntArrayToIntMapTest {
@@ -29,7 +27,6 @@ class _IntArrayToIntMapTest {
     expect(map[<int>[2, 3, 4, 5]], 2);
   }
 }
-
 
 @reflectiveTest
 class _IntToIntSetMapTest {

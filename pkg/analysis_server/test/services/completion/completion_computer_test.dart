@@ -54,8 +54,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
 
   void resolveLibrary() {
     context.resolveCompilationUnit(
-        source,
-        context.computeLibraryElement(source));
+        source, context.computeLibraryElement(source));
   }
 
   @override
@@ -66,22 +65,10 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     source = addSource('/does/not/exist.dart', '');
     perf = new CompletionPerformance();
     manager = new DartCompletionManager.create(context, searchEngine, source);
-    suggestion1 = new CompletionSuggestion(
-        CompletionSuggestionKind.INVOCATION,
-        DART_RELEVANCE_DEFAULT,
-        "suggestion1",
-        1,
-        1,
-        false,
-        false);
-    suggestion2 = new CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER,
-        DART_RELEVANCE_DEFAULT,
-        "suggestion2",
-        2,
-        2,
-        false,
-        false);
+    suggestion1 = new CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
+        DART_RELEVANCE_DEFAULT, "suggestion1", 1, 1, false, false);
+    suggestion2 = new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
+        DART_RELEVANCE_DEFAULT, "suggestion2", 2, 2, false, false);
     new Future(_performAnalysis);
   }
 

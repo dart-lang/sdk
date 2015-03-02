@@ -13,12 +13,10 @@ import 'package:unittest/unittest.dart';
 import '../analysis_abstract.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisNotificationNavigationTest);
 }
-
 
 @reflectiveTest
 class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
@@ -47,7 +45,7 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
     }
     fail(
         'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-            '${testRegion} in\n' '${testTargets.join('\n')}');
+        '${testRegion} in\n' '${testTargets.join('\n')}');
   }
 
   void assertHasOperatorRegion(String regionSearch, int regionLength,
@@ -155,9 +153,8 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
       if (region.offset == offset &&
           (length == -1 || region.length == length)) {
         if (exists == false) {
-          fail(
-              'Not expected to find (offset=$offset; length=$length) in\n'
-                  '${regions.join('\n')}');
+          fail('Not expected to find (offset=$offset; length=$length) in\n'
+              '${regions.join('\n')}');
         }
         testRegion = region;
         testTargetIndexes = region.targets;
@@ -165,9 +162,8 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
       }
     }
     if (exists == true) {
-      fail(
-          'Expected to find (offset=$offset; length=$length) in\n'
-              '${regions.join('\n')}');
+      fail('Expected to find (offset=$offset; length=$length) in\n'
+          '${regions.join('\n')}');
     }
   }
 

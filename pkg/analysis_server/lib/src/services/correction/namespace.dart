@@ -8,7 +8,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-
 /**
  * Returns the [Element] exported from the given [LibraryElement].
  */
@@ -19,7 +18,6 @@ Element getExportedElement(LibraryElement library, String name) {
   return getExportNamespaceForLibrary(library)[name];
 }
 
-
 /**
  * Returns the namespace of the given [ExportElement].
  */
@@ -29,7 +27,6 @@ Map<String, Element> getExportNamespaceForDirective(ExportElement exp) {
   return namespace.definedNames;
 }
 
-
 /**
  * Returns the export namespace of the given [LibraryElement].
  */
@@ -38,7 +35,6 @@ Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
       new NamespaceBuilder().createExportNamespaceForLibrary(library);
   return namespace.definedNames;
 }
-
 
 /**
  * Returns the [ImportElement] that is referenced by [prefixNode] with
@@ -62,8 +58,8 @@ ImportElement getImportElement(SimpleIdentifier prefixNode) {
  * [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
  */
 ImportElement internal_getImportElement(LibraryElement libraryElement,
-    String prefix, Element element, Map<ImportElement,
-    Set<Element>> importElementsMap) {
+    String prefix, Element element,
+    Map<ImportElement, Set<Element>> importElementsMap) {
   // validate Element
   if (element == null) {
     return null;
@@ -132,7 +128,6 @@ ImportElement internal_getImportElement(LibraryElement libraryElement,
   return null;
 }
 
-
 /**
  * Returns the [ImportElementInfo] with the [ImportElement] that is referenced
  * by [prefixNode] with a [PrefixElement], maybe `null`.
@@ -168,16 +163,12 @@ ImportElementInfo internal_getImportElementInfo(SimpleIdentifier prefixNode) {
   String prefix = prefixNode.name;
   Map<ImportElement, Set<Element>> importElementsMap = {};
   info.element = internal_getImportElement(
-      libraryElement,
-      prefix,
-      usedElement,
-      importElementsMap);
+      libraryElement, prefix, usedElement, importElementsMap);
   if (info.element == null) {
     return null;
   }
   return info;
 }
-
 
 /**
  * Information about [ImportElement] and place where it is referenced using

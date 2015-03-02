@@ -14,17 +14,14 @@ import 'package:unittest/unittest.dart';
 import '../analysis_abstract.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(UpdateContentTest);
 }
 
-
 compilationUnitMatcher(String file) {
   return new _ArgumentMatcher_CompilationUnit(file);
 }
-
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisTest {
@@ -54,22 +51,17 @@ class UpdateContentTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('');
     await server.onAnalysisComplete;
-    server.setAnalysisSubscriptions({
-      AnalysisService.NAVIGATION: [testFile].toSet()
-    });
+    server.setAnalysisSubscriptions(
+        {AnalysisService.NAVIGATION: [testFile].toSet()});
     // update file, analyze, but don't sent notifications
     navigationCount = 0;
-    server.updateContent('1', {
-      testFile: new AddContentOverlay('foo() {}')
-    });
+    server.updateContent('1', {testFile: new AddContentOverlay('foo() {}')});
     server.test_performAllAnalysisOperations();
     expect(serverErrorCount, 0);
     expect(navigationCount, 0);
     // replace the file contents,
     // should discard any pending notification operations
-    server.updateContent('2', {
-      testFile: new AddContentOverlay('bar() {}')
-    });
+    server.updateContent('2', {testFile: new AddContentOverlay('bar() {}')});
     await server.onAnalysisComplete;
     expect(serverErrorCount, 0);
     expect(navigationCount, 1);
@@ -99,17 +91,14 @@ class UpdateContentTest extends AbstractAnalysisTest {
     await server.onAnalysisComplete;
     verify(server.index.indexUnit(anyObject, testUnitMatcher)).times(1);
     // add an overlay
-    server.updateContent('1', {
-      testFile: new AddContentOverlay('main() { print(2); }')
-    });
+    server.updateContent(
+        '1', {testFile: new AddContentOverlay('main() { print(2); }')});
     // Perform the next single operation: analysis.
     // It will schedule an indexing operation.
     await server.test_onOperationPerformed;
     // Update the file and remove an overlay.
     resourceProvider.updateFile(testFile, 'main() { print(2); }');
-    server.updateContent('2', {
-      testFile: new RemoveContentOverlay()
-    });
+    server.updateContent('2', {testFile: new RemoveContentOverlay()});
     // Validate that at the end the unit was indexed.
     await server.onAnalysisComplete;
     verify(server.index.indexUnit(anyObject, testUnitMatcher)).times(2);
@@ -132,8 +121,7 @@ library baz;
 f(int i) {}
 ''');
     Request request = new AnalysisSetAnalysisRootsParams(
-        ['/project1', '/project2'],
-        []).toRequest('0');
+        ['/project1', '/project2'], []).toRequest('0');
     handleSuccessfulRequest(request);
     return waitForTasksFinished().then((_) {
       // Files foo.dart and bar.dart should both have errors, since they both
@@ -161,9 +149,8 @@ f() {}
     addTestFile('');
     await server.onAnalysisComplete;
     // add an overlay
-    server.updateContent('1', {
-      testFile: new AddContentOverlay('main() {} main() {}')
-    });
+    server.updateContent(
+        '1', {testFile: new AddContentOverlay('main() {} main() {}')});
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
@@ -180,9 +167,8 @@ f() {}
     addTestFile('');
     await server.onAnalysisComplete;
     // add an overlay
-    server.updateContent('1', {
-      testFile: new AddContentOverlay('main() {} main() {}')
-    });
+    server.updateContent(
+        '1', {testFile: new AddContentOverlay('main() {} main() {}')});
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
@@ -196,7 +182,6 @@ f() {}
   }
 }
 
-
 class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
   final String file;
 
@@ -207,7 +192,6 @@ class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
     return arg is CompilationUnit && arg.element.source.fullName == file;
   }
 }
-
 
 class _MockIndex extends TypedMock implements Index {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

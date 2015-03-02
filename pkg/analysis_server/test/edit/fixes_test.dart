@@ -13,12 +13,10 @@ import 'package:unittest/unittest.dart' hide ERROR;
 import '../analysis_abstract.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(FixesTest);
 }
-
 
 @reflectiveTest
 class FixesTest extends AbstractAnalysisTest {
@@ -85,7 +83,6 @@ bar() {
     int offset = findOffset(search);
     return _getFixes(offset);
   }
-
 
   void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
     AnalysisError error = fixes.error;

@@ -19,9 +19,9 @@ import 'domain_completion_test.dart';
 class CompletionTestCase extends CompletionTest {
   static const String CURSOR_MARKER = '!';
 
-  List get suggestedCompletions =>
-      suggestions.map(
-          (CompletionSuggestion suggestion) => suggestion.completion).toList();
+  List get suggestedCompletions => suggestions
+      .map((CompletionSuggestion suggestion) => suggestion.completion)
+      .toList();
 
   void assertHasCompletion(String completion) {
     int expectedOffset = completion.indexOf(CURSOR_MARKER);
@@ -53,8 +53,8 @@ class CompletionTestCase extends CompletionTest {
   }
 
   void assertHasNoCompletion(String completion) {
-    if (suggestions.any(
-        (CompletionSuggestion suggestion) => suggestion.completion == completion)) {
+    if (suggestions.any((CompletionSuggestion suggestion) =>
+        suggestion.completion == completion)) {
       fail(
           "Did not expect completion '$completion' but found:\n  $suggestedCompletions");
     }
@@ -67,9 +67,10 @@ class CompletionTestCase extends CompletionTest {
   void filterResults(String content) {
     String charsAlreadyTyped =
         content.substring(replacementOffset, completionOffset).toLowerCase();
-    suggestions = suggestions.where(
-        (CompletionSuggestion suggestion) =>
-            suggestion.completion.toLowerCase().startsWith(charsAlreadyTyped)).toList();
+    suggestions = suggestions
+        .where((CompletionSuggestion suggestion) =>
+            suggestion.completion.toLowerCase().startsWith(charsAlreadyTyped))
+        .toList();
   }
 
   runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
@@ -126,8 +127,8 @@ class LocationSpec {
    * The [originalSource] is the source for a test that contains test locations.
    * The [validationStrings] are the positive and negative predictions.
    */
-  static List<LocationSpec> from(String originalSource,
-      List<String> validationStrings) {
+  static List<LocationSpec> from(
+      String originalSource, List<String> validationStrings) {
     Map<String, LocationSpec> tests = new HashMap<String, LocationSpec>();
     String modifiedSource = originalSource;
     int modifiedPosition = 0;
@@ -146,8 +147,8 @@ class LocationSpec {
       } else {
         modifiedPosition = index + 1;
       }
-      modifiedSource =
-          modifiedSource.substring(0, index) + modifiedSource.substring(index + n);
+      modifiedSource = modifiedSource.substring(0, index) +
+          modifiedSource.substring(index + n);
     }
     if (modifiedSource == originalSource) {
       throw new IllegalStateException("No tests in source: " + originalSource);
@@ -190,8 +191,8 @@ class LocationSpec {
         err.write("No test location for tests:");
         for (String ch in badPoints) {
           err
-              ..write(' ')
-              ..write(ch);
+            ..write(' ')
+            ..write(ch);
         }
         err.write(' ');
       }
@@ -199,8 +200,8 @@ class LocationSpec {
         err.write("No results for tests:");
         for (String ch in badResults) {
           err
-              ..write(' ')
-              ..write(ch);
+            ..write(' ')
+            ..write(ch);
         }
       }
       throw new IllegalStateException(err.toString());

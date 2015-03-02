@@ -13,13 +13,11 @@ import 'package:unittest/unittest.dart';
 import '../reflective_tests.dart';
 import 'abstract_search_domain.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(ElementReferencesTest);
   runReflectiveTests(_NoSearchEngine);
 }
-
 
 @reflectiveTest
 class ElementReferencesTest extends AbstractSearchDomainTest {
@@ -34,9 +32,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     int offset = findOffset(search);
     await waitForTasksFinished();
     Request request = new SearchFindElementReferencesParams(
-        testFile,
-        offset,
-        includePotential).toRequest('0');
+        testFile, offset, includePotential).toRequest('0');
     Response response = await waitResponse(request);
     var result = new SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
@@ -409,17 +405,9 @@ fff(p) {}
     expect(searchElement.kind, ElementKind.FUNCTION);
     expect(results, hasLength(2));
     findResult(
-        SearchResultKind.INVOCATION,
-        pathA,
-        codeA.indexOf('fff(1)'),
-        3,
-        true);
+        SearchResultKind.INVOCATION, pathA, codeA.indexOf('fff(1)'), 3, true);
     findResult(
-        SearchResultKind.INVOCATION,
-        pathB,
-        codeB.indexOf('fff(2)'),
-        3,
-        true);
+        SearchResultKind.INVOCATION, pathB, codeB.indexOf('fff(2)'), 3, true);
   }
 
   test_oneUnit_zeroLibraries() async {
@@ -709,7 +697,6 @@ class A<T> {
   }
 }
 
-
 @reflectiveTest
 class _NoSearchEngine extends AbstractSearchDomainTest {
   @override
@@ -724,8 +711,8 @@ main() {
   print(vvv);
 }
 ''');
-    Request request =
-        new SearchFindElementReferencesParams(testFile, 0, false).toRequest('0');
+    Request request = new SearchFindElementReferencesParams(testFile, 0, false)
+        .toRequest('0');
     Response response = await waitResponse(request);
     expect(response.error, isNotNull);
     expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);

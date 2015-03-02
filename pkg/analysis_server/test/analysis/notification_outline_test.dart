@@ -13,11 +13,9 @@ import 'package:unittest/unittest.dart';
 import '../analysis_abstract.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   runReflectiveTests(_AnalysisNotificationOutlineTest);
 }
-
 
 @reflectiveTest
 class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {

@@ -5,8 +5,8 @@
 library protocol.server;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart' as
-    engine;
+import 'package:analysis_server/src/services/search/search_engine.dart'
+    as engine;
 import 'package:analyzer/src/generated/ast.dart' as engine;
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
@@ -16,29 +16,26 @@ import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
 export 'package:analysis_server/src/protocol.dart';
 
-
 /**
  * Returns a list of AnalysisErrors correponding to the given list of Engine
  * errors.
  */
-List<AnalysisError> doAnalysisError_listFromEngine(engine.LineInfo lineInfo,
-    List<engine.AnalysisError> errors) {
+List<AnalysisError> doAnalysisError_listFromEngine(
+    engine.LineInfo lineInfo, List<engine.AnalysisError> errors) {
   return errors.map((engine.AnalysisError error) {
     return newAnalysisError_fromEngine(lineInfo, error);
   }).toList();
 }
 
-
 /**
  * Adds [edit] to the [FileEdit] for the given [element].
  */
-void doSourceChange_addElementEdit(SourceChange change, engine.Element element,
-    SourceEdit edit) {
+void doSourceChange_addElementEdit(
+    SourceChange change, engine.Element element, SourceEdit edit) {
   engine.AnalysisContext context = element.context;
   engine.Source source = element.source;
   doSourceChange_addSourceEdit(change, context, source, edit);
 }
-
 
 /**
  * Adds [edit] to the [FileEdit] for the given [source].
@@ -50,12 +47,11 @@ void doSourceChange_addSourceEdit(SourceChange change,
   change.addEdit(file, fileStamp, edit);
 }
 
-
 /**
  * Construct based on error information from the analyzer engine.
  */
-AnalysisError newAnalysisError_fromEngine(engine.LineInfo lineInfo,
-    engine.AnalysisError error) {
+AnalysisError newAnalysisError_fromEngine(
+    engine.LineInfo lineInfo, engine.AnalysisError error) {
   engine.ErrorCode errorCode = error.errorCode;
   // prepare location
   Location location;
@@ -79,14 +75,9 @@ AnalysisError newAnalysisError_fromEngine(engine.LineInfo lineInfo,
   var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
   String correction = error.correction;
-  return new AnalysisError(
-      severity,
-      type,
-      location,
-      message,
+  return new AnalysisError(severity, type, location, message,
       correction: correction);
 }
-
 
 /**
  * Construct based on a value from the analyzer engine.
@@ -95,21 +86,18 @@ Element newElement_fromEngine(engine.Element element) {
   String name = element.displayName;
   String elementParameters = _getParametersString(element);
   String elementReturnType = _getReturnTypeString(element);
-  return new Element(
-      newElementKind_fromEngine(element.kind),
-      name,
-      Element.makeFlags(
-          isPrivate: element.isPrivate,
-          isDeprecated: element.isDeprecated,
-          isAbstract: _isAbstract(element),
-          isConst: _isConst(element),
-          isFinal: _isFinal(element),
-          isStatic: _isStatic(element)),
+  return new Element(newElementKind_fromEngine(element.kind), name, Element
+          .makeFlags(
+              isPrivate: element.isPrivate,
+              isDeprecated: element.isDeprecated,
+              isAbstract: _isAbstract(element),
+              isConst: _isConst(element),
+              isFinal: _isFinal(element),
+              isStatic: _isStatic(element)),
       location: newLocation_fromElement(element),
       parameters: elementParameters,
       returnType: elementReturnType);
 }
-
 
 /**
  * Construct based on a value from the analyzer engine.
@@ -166,7 +154,6 @@ ElementKind newElementKind_fromEngine(engine.ElementKind kind) {
   return ElementKind.UNKNOWN;
 }
 
-
 /**
  * Create a Location based on an [engine.Element].
  */
@@ -187,18 +174,14 @@ Location newLocation_fromElement(engine.Element element) {
   return _locationForArgs(context, source, range);
 }
 
-
 /**
  * Create a Location based on an [engine.SearchMatch].
  */
 Location newLocation_fromMatch(engine.SearchMatch match) {
   engine.Element enclosingElement = match.element;
   return _locationForArgs(
-      enclosingElement.context,
-      enclosingElement.source,
-      match.sourceRange);
+      enclosingElement.context, enclosingElement.source, match.sourceRange);
 }
-
 
 /**
  * Create a Location based on an [engine.AstNode].
@@ -213,21 +196,19 @@ Location newLocation_fromNode(engine.AstNode node) {
   return _locationForArgs(context, source, range);
 }
 
-
 /**
  * Create a Location based on an [engine.CompilationUnit].
  */
-Location newLocation_fromUnit(engine.CompilationUnit unit,
-    engine.SourceRange range) {
+Location newLocation_fromUnit(
+    engine.CompilationUnit unit, engine.SourceRange range) {
   engine.CompilationUnitElement unitElement = unit.element;
   engine.AnalysisContext context = unitElement.context;
   engine.Source source = unitElement.source;
   return _locationForArgs(context, source, range);
 }
 
-
-NavigationTarget newNavigationTarget_fromElement(engine.Element element, int
-    fileToIndex(String file)) {
+NavigationTarget newNavigationTarget_fromElement(
+    engine.Element element, int fileToIndex(String file)) {
   ElementKind kind = newElementKind_fromEngine(element.kind);
   Location location = newLocation_fromElement(element);
   // TODO(scheglov) debug null Location
@@ -239,21 +220,14 @@ NavigationTarget newNavigationTarget_fromElement(engine.Element element, int
       desc += ' element.location: ${element.location}';
       desc += ' element.context: ${element.context}';
       desc += ' element.source: ${element.source}';
-    } catch (e) {
-    }
+    } catch (e) {}
     throw new ArgumentError(desc);
   }
   String file = location.file;
   int fileIndex = fileToIndex(file);
-  return new NavigationTarget(
-      kind,
-      fileIndex,
-      location.offset,
-      location.length,
-      location.startLine,
-      location.startColumn);
+  return new NavigationTarget(kind, fileIndex, location.offset, location.length,
+      location.startLine, location.startColumn);
 }
-
 
 /**
  * Construct based on an element from the analyzer engine.
@@ -264,8 +238,6 @@ OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   return new OverriddenMember(element, className);
 }
 
-
-
 /**
  * Construct based on a value from the search engine.
  */
@@ -275,7 +247,6 @@ SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
   List<Element> path = _computePath(match.element);
   return new SearchResult(location, kind, !match.isResolved, path);
 }
-
 
 /**
  * Construct based on a value from the search engine.
@@ -302,7 +273,6 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
   return SearchResultKind.UNKNOWN;
 }
 
-
 /**
  * Construct based on a SourceRange.
  */
@@ -326,7 +296,6 @@ List<Element> _computePath(engine.Element element) {
   }
   return path;
 }
-
 
 String _getParametersString(engine.Element element) {
   // TODO(scheglov) expose the corresponding feature from ExecutableElement
@@ -443,9 +412,5 @@ Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
     }
   }
   return new Location(
-      source.fullName,
-      range.offset,
-      range.length,
-      startLine,
-      startColumn);
+      source.fullName, range.offset, range.length, startLine, startColumn);
 }

@@ -65,8 +65,8 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
       node = (node as PropertyAccess).realTarget;
     }
     if (node is Identifier && node.bestElement is ClassElement) {
-      node.bestElement.accept(
-          new _PrefixedIdentifierSuggestionBuilder(request));
+      node.bestElement
+          .accept(new _PrefixedIdentifierSuggestionBuilder(request));
       return new Future.value(true);
     }
     if (node is Expression) {
@@ -225,8 +225,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredTopLevelVar(VariableDeclarationList varList,
-      VariableDeclaration varDecl) {
+  void declaredTopLevelVar(
+      VariableDeclarationList varList, VariableDeclaration varDecl) {
     if (varDecl.name.name == targetName) {
       // Type provided by the element in computeFull above
       finished();
@@ -238,9 +238,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
  * An [Element] visitor for determining the appropriate invocation/access
  * suggestions based upon the element for which the completion is requested.
  */
-class _PrefixedIdentifierSuggestionBuilder extends
-    GeneralizingElementVisitor<Future<bool>> implements SuggestionBuilder {
-
+class _PrefixedIdentifierSuggestionBuilder
+    extends GeneralizingElementVisitor<Future<bool>>
+    implements SuggestionBuilder {
   final DartCompletionRequest request;
 
   _PrefixedIdentifierSuggestionBuilder(this.request);
@@ -298,8 +298,7 @@ class _PrefixedIdentifierSuggestionBuilder extends
       InterfaceType type = element.type;
       if (type != null) {
         StaticClassElementSuggestionBuilder.suggestionsFor(
-            request,
-            type.element);
+            request, type.element);
       }
     }
     return new Future.value(false);
@@ -323,14 +322,13 @@ class _PrefixedIdentifierSuggestionBuilder extends
             // Suggest elements from the imported library
             LibraryElement library = directive.uriElement;
             LibraryElementSuggestionBuilder.suggestionsFor(
-                request,
-                CompletionSuggestionKind.INVOCATION,
-                library);
+                request, CompletionSuggestionKind.INVOCATION, library);
             modified = true;
           }
         }
       }
-    };
+    }
+    ;
     return new Future.value(modified);
   }
 

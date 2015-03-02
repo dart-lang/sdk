@@ -18,9 +18,9 @@ class Test extends AbstractAnalysisServerIntegrationTest {
   test_setSubscriptions_invalidService() {
     // TODO(paulberry): verify that if an invalid service is specified, the
     // current subscriptions are unchanged.
-    return server.send("server.setSubscriptions", {
-      'subscriptions': ['bogus']
-    }).then((_) {
+    return server
+        .send("server.setSubscriptions", {'subscriptions': ['bogus']})
+        .then((_) {
       fail('setSubscriptions should have produced an error');
     }, onError: (error) {
       // The expected error occurred.

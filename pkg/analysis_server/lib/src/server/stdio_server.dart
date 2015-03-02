@@ -35,9 +35,7 @@ class StdioAnalysisServer {
    */
   Future serveStdio() {
     ByteStreamServerChannel serverChannel = new ByteStreamServerChannel(
-        stdin,
-        stdout,
-        socketServer.instrumentationService);
+        stdin, stdout, socketServer.instrumentationService);
     socketServer.createAnalysisServer(serverChannel);
     return serverChannel.closed;
   }

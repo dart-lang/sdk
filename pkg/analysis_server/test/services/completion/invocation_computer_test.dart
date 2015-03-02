@@ -4,7 +4,6 @@
 
 library test.services.completion.invocation;
 
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
@@ -22,15 +21,11 @@ main() {
 
 @reflectiveTest
 class InvocationComputerTest extends AbstractSelectorSuggestionTest {
-
   @override
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
       {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
-    return assertSuggestField(
-        name,
-        type,
-        relevance: relevance,
-        isDeprecated: isDeprecated);
+    return assertSuggestField(name, type,
+        relevance: relevance, isDeprecated: isDeprecated);
   }
 
   /**
@@ -39,8 +34,8 @@ class InvocationComputerTest extends AbstractSelectorSuggestionTest {
    * purposes of what is shown during completion.  [shouldBeShadowed] indicates
    * whether shadowing is expected.
    */
-  Future check_shadowing(String shadower, String shadowee,
-      bool shouldBeShadowed) {
+  Future check_shadowing(
+      String shadower, String shadowee, bool shouldBeShadowed) {
     addTestSource('''
 class Base {
   $shadowee
@@ -53,8 +48,9 @@ void f(Derived d) {
 }
 ''');
     return computeFull((bool result) {
-      List<CompletionSuggestion> suggestionsForX = request.suggestions.where(
-          (CompletionSuggestion s) => s.completion == 'x').toList();
+      List<CompletionSuggestion> suggestionsForX = request.suggestions
+          .where((CompletionSuggestion s) => s.completion == 'x')
+          .toList();
       if (shouldBeShadowed) {
         expect(suggestionsForX, hasLength(1));
         expect(suggestionsForX[0].declaringType, 'Derived');

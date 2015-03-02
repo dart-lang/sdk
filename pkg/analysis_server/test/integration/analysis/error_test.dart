@@ -15,8 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
-    {
+class AnalysisErrorIntegrationTest
+    extends AbstractAnalysisServerIntegrationTest {
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, '''

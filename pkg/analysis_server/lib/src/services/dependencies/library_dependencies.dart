@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
 class LibraryDependencyCollector {
-
   final Set<LibraryElement> _visitedLibraries = new Set<LibraryElement>();
   final Set<String> _dependencies = new Set<String>();
 
@@ -19,9 +18,8 @@ class LibraryDependencyCollector {
 
   LibraryDependencyCollector(this._contexts);
 
-  Map<String, Map<String, List<String>>> calculatePackageMap(Map<Folder,
-      AnalysisContext> folderMap) {
-
+  Map<String, Map<String, List<String>>> calculatePackageMap(
+      Map<Folder, AnalysisContext> folderMap) {
     Map<AnalysisContext, Folder> contextMap = _reverse(folderMap);
     Map<String, Map<String, List<String>>> result =
         new Map<String, Map<String, List<String>>>();
@@ -29,8 +27,8 @@ class LibraryDependencyCollector {
       Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
       if (packageMap != null) {
         Map<String, List<String>> map = new Map<String, List<String>>();
-        packageMap.forEach((String name, List<Folder> folders) => map[name] =
-            new List.from(folders.map((Folder f) => f.path)));
+        packageMap.forEach((String name, List<Folder> folders) =>
+            map[name] = new List.from(folders.map((Folder f) => f.path)));
         result[contextMap[context].path] = map;
       }
     }
@@ -38,10 +36,9 @@ class LibraryDependencyCollector {
   }
 
   Set<String> collectLibraryDependencies() {
-    _contexts.forEach(
-        (AnalysisContext context) =>
-            context.librarySources.forEach(
-                (Source source) => _addDependencies(context.getLibraryElement(source))));
+    _contexts.forEach((AnalysisContext context) => context.librarySources
+        .forEach((Source source) =>
+            _addDependencies(context.getLibraryElement(source))));
     return _dependencies;
   }
 

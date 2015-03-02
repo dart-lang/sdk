@@ -72,17 +72,19 @@ class DartCompletionManager extends CompletionManager {
   List<DartCompletionComputer> computers;
   CommonUsageComputer commonUsageComputer;
 
-  DartCompletionManager(AnalysisContext context, this.searchEngine,
-      Source source, this.cache, [this.computers, this.commonUsageComputer])
+  DartCompletionManager(
+      AnalysisContext context, this.searchEngine, Source source, this.cache,
+      [this.computers, this.commonUsageComputer])
       : super(context, source) {
     if (computers == null) {
       computers = [
-          new KeywordComputer(),
-          new LocalComputer(),
-          new ArgListComputer(),
-          new CombinatorComputer(),
-          new ImportedComputer(),
-          new InvocationComputer()];
+        new KeywordComputer(),
+        new LocalComputer(),
+        new ArgListComputer(),
+        new CombinatorComputer(),
+        new ImportedComputer(),
+        new InvocationComputer()
+      ];
     }
     if (commonUsageComputer == null) {
       commonUsageComputer = new CommonUsageComputer();
@@ -92,12 +94,9 @@ class DartCompletionManager extends CompletionManager {
   /**
    * Create a new initialized Dart source completion manager
    */
-  factory DartCompletionManager.create(AnalysisContext context,
-      SearchEngine searchEngine, Source source) {
-    return new DartCompletionManager(
-        context,
-        searchEngine,
-        source,
+  factory DartCompletionManager.create(
+      AnalysisContext context, SearchEngine searchEngine, Source source) {
+    return new DartCompletionManager(context, searchEngine, source,
         new DartCompletionCache(context, source));
   }
 
@@ -133,15 +132,15 @@ class DartCompletionManager extends CompletionManager {
       Token token = entity is AstNode ? entity.beginToken : entity;
       if (token != null &&
           token.offset <= request.offset &&
-          (token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER)) {
+          (token.type == TokenType.KEYWORD ||
+              token.type == TokenType.IDENTIFIER)) {
         request.replacementOffset = token.offset;
         request.replacementLength = token.length;
       }
 
       List<DartCompletionComputer> todo = new List.from(computers);
       todo.removeWhere((DartCompletionComputer c) {
-        return request.performance.logElapseTime(
-            'computeFast ${c.runtimeType}',
+        return request.performance.logElapseTime('computeFast ${c.runtimeType}',
             () {
           return c.computeFast(request);
         });
@@ -157,8 +156,8 @@ class DartCompletionManager extends CompletionManager {
    * resolved and request that each remaining computer finish their work.
    * Return a [Future] that completes when the last notification has been sent.
    */
-  Future computeFull(DartCompletionRequest request,
-      List<DartCompletionComputer> todo) {
+  Future computeFull(
+      DartCompletionRequest request, List<DartCompletionComputer> todo) {
     request.performance.logStartTime('waitForAnalysis');
     return waitForAnalysis().then((CompilationUnit unit) {
       if (controller.isClosed) {
@@ -197,12 +196,8 @@ class DartCompletionManager extends CompletionManager {
 
   @override
   void computeSuggestions(CompletionRequest completionRequest) {
-    DartCompletionRequest request = new DartCompletionRequest(
-        context,
-        searchEngine,
-        source,
-        completionRequest.offset,
-        cache,
+    DartCompletionRequest request = new DartCompletionRequest(context,
+        searchEngine, source, completionRequest.offset, cache,
         completionRequest.performance);
     request.performance.logElapseTime('compute', () {
       List<DartCompletionComputer> todo = computeFast(request);
@@ -219,12 +214,8 @@ class DartCompletionManager extends CompletionManager {
     if (controller == null || controller.isClosed) {
       return;
     }
-    controller.add(
-        new CompletionResult(
-            request.replacementOffset,
-            request.replacementLength,
-            request.suggestions,
-            last));
+    controller.add(new CompletionResult(request.replacementOffset,
+        request.replacementLength, request.suggestions, last));
     if (last) {
       controller.close();
     }
@@ -243,9 +234,9 @@ class DartCompletionManager extends CompletionManager {
     }
     Source libSource = libraries[0];
     assert(libSource != null);
-    return context.computeResolvedCompilationUnitAsync(
-        source,
-        libSource).catchError((_) {
+    return context
+        .computeResolvedCompilationUnitAsync(source, libSource)
+        .catchError((_) {
       // This source file is not scheduled for analysis, so a resolved
       // compilation unit is never going to get computed.
       return null;
@@ -335,8 +326,8 @@ class DartCompletionRequest extends CompletionRequest {
    * that can be used to filter the suggestions on the server side.
    */
   String get filterText {
-    return context.getContents(
-        source).data.substring(replacementOffset, offset);
+    return context.getContents(source).data.substring(
+        replacementOffset, offset);
   }
 
   /**

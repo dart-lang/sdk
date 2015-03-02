@@ -55,12 +55,8 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
             generateSetters = true;
           }
           // create the visitor
-          CodegenJavaType visitor = new CodegenJavaType(
-              api,
-              typeNameInJava,
-              superclassName,
-              generateGetters,
-              generateSetters);
+          CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava,
+              superclassName, generateGetters, generateSetters);
           return visitor.collectCode(() {
             dom.Element doc = type.html;
             if (impliedType.apiNode is TypeDefinition) {
@@ -108,9 +104,7 @@ const Map<String, String> _extraMethodsOnElement = const {
 /**
  * Type references in the spec that are named something else in Java.
  */
-const Map<String, String> _typeRenames = const {
-  'Override': 'OverrideMember',
-};
+const Map<String, String> _typeRenames = const {'Override': 'OverrideMember',};
 
 /**
  * Translate spec_input.html into AnalysisServer.java.
@@ -189,11 +183,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
-  bool _isTypeFieldInUpdateContentUnionType(String className,
-      String fieldName) {
+  bool _isTypeFieldInUpdateContentUnionType(
+      String className, String fieldName) {
     if ((className == 'AddContentOverlay' ||
-        className == 'ChangeContentOverlay' ||
-        className == 'RemoveContentOverlay') &&
+            className == 'ChangeContentOverlay' ||
+            className == 'RemoveContentOverlay') &&
         fieldName == 'type') {
       return true;
     } else {
@@ -358,7 +352,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       }
       if (className == 'NavigationRegion') {
         privateField(javaName('targetObjects'), () {
-          writeln('private final List<NavigationTarget> targetObjects = Lists.newArrayList();');
+          writeln(
+              'private final List<NavigationTarget> targetObjects = Lists.newArrayList();');
         });
       }
       if (className == 'NavigationTarget') {
@@ -455,7 +450,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
       if (className == 'NavigationRegion') {
         publicMethod('lookupTargets', () {
-          writeln('public void lookupTargets(List<NavigationTarget> allTargets) {');
+          writeln(
+              'public void lookupTargets(List<NavigationTarget> allTargets) {');
           writeln('  for (int i = 0; i < targets.length; i++) {');
           writeln('    int targetIndex = targets[i];');
           writeln('    NavigationTarget target = allTargets.get(targetIndex);');
@@ -528,8 +524,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
             List<String> parameters = new List();
             for (TypeObjectField field in fields) {
               if (!_isTypeFieldInUpdateContentUnionType(
-                  className,
-                  field.name)) {
+                  className, field.name)) {
                 parameters.add('${javaName(field.name)}');
               }
             }
@@ -751,7 +746,6 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('}');
         });
       }
-
     });
   }
 }

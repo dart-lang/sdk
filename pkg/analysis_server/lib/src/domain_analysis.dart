@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/dependencies/library_dependencies.d
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 
-
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
  * that handles requests in the `analysis` domain.
@@ -48,8 +47,8 @@ class AnalysisDomainHandler implements RequestHandler {
           if (errorInfo == null) {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
-            errors =
-                doAnalysisError_listFromEngine(errorInfo.lineInfo, errorInfo.errors);
+            errors = doAnalysisError_listFromEngine(
+                errorInfo.lineInfo, errorInfo.errors);
             server.sendResponse(
                 new AnalysisGetErrorsResult(errors).toResponse(request.id));
           }
@@ -97,8 +96,8 @@ class AnalysisDomainHandler implements RequestHandler {
       Map<String, Map<String, List<String>>> packageMap =
           collector.calculatePackageMap(server.folderMap);
       server.sendResponse(new AnalysisGetLibraryDependenciesResult(
-          libraries.toList(growable: false),
-          packageMap).toResponse(request.id));
+              libraries.toList(growable: false), packageMap)
+          .toResponse(request.id));
     });
     // delay response
     return Response.DELAYED_RESPONSE;
@@ -147,10 +146,7 @@ class AnalysisDomainHandler implements RequestHandler {
   Response setAnalysisRoots(Request request) {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     // continue in server
-    server.setAnalysisRoots(
-        request.id,
-        params.included,
-        params.excluded,
+    server.setAnalysisRoots(request.id, params.included, params.excluded,
         params.packageRoots == null ? {} : params.packageRoots);
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
@@ -170,8 +166,7 @@ class AnalysisDomainHandler implements RequestHandler {
   Response setSubscriptions(Request request) {
     var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
     // parse subscriptions
-    Map<AnalysisService, Set<String>> subMap = mapMap(
-        params.subscriptions,
+    Map<AnalysisService, Set<String>> subMap = mapMap(params.subscriptions,
         valueCallback: (List<String> subscriptions) => subscriptions.toSet());
     server.setAnalysisSubscriptions(subMap);
     return new AnalysisSetSubscriptionsResult().toResponse(request.id);

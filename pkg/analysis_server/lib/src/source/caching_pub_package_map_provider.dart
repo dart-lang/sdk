@@ -75,8 +75,9 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
    * Construct a new instance.
    * [RunPubList] and [WriteFile] implementations may be injected for testing
    */
-  CachingPubPackageMapProvider(ResourceProvider resourceProvider,
-      DirectoryBasedDartSdk sdk, [RunPubList runPubList, this._writeFile])
+  CachingPubPackageMapProvider(
+      ResourceProvider resourceProvider, DirectoryBasedDartSdk sdk,
+      [RunPubList runPubList, this._writeFile])
       : super(resourceProvider, sdk, runPubList) {
     if (_writeFile == null) {
       _writeFile = _writeFileDefault;
@@ -137,8 +138,8 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
       }
       if (runCount == 4) {
         // Don't run forever
-        AnalysisEngine.instance.logger.logInformation(
-            'pub list called $runCount times: $folder');
+        AnalysisEngine.instance.logger
+            .logInformation('pub list called $runCount times: $folder');
         break;
       }
     }
@@ -206,7 +207,8 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
     // two separate processes are not accessing the cache file at the same time
     Source source = cacheFile.createSource();
     if (source.exists() &&
-        (_cache == null || _cacheModificationTime != source.modificationStamp)) {
+        (_cache == null ||
+            _cacheModificationTime != source.modificationStamp)) {
       try {
         TimestampedData<String> data = source.contents;
         Map map = JSON.decode(data.data);
@@ -229,10 +231,8 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
    */
   void _writeCache() {
     try {
-      _cacheModificationTime = _writeFile(cacheFile, JSON.encode({
-        cacheVersionKey: cacheVersion,
-        cacheKey: _cache
-      }));
+      _cacheModificationTime = _writeFile(cacheFile,
+          JSON.encode({cacheVersionKey: cacheVersion, cacheKey: _cache}));
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           'Exception writing $cacheFile\n$exception\n$stackTrace');

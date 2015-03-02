@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 class _TopElementData {
   final String name;
   final int elementId;
@@ -34,7 +33,6 @@ class _TopElementData {
     return elementCodec.decode(context, elementId);
   }
 }
-
 
 /**
  * A manager for files content.
@@ -65,7 +63,6 @@ abstract class FileManager {
    */
   Future write(String name, List<int> bytes);
 }
-
 
 /**
  * A [FileManager] based [NodeManager].
@@ -105,8 +102,7 @@ class FileNodeManager implements NodeManager {
       _DataInputStream stream = new _DataInputStream(bytes);
       return _readNode(stream);
     }).catchError((exception, stackTrace) {
-      _logger.logError(
-          'Exception during reading index file ${name}',
+      _logger.logError('Exception during reading index file ${name}',
           new CaughtException(exception, stackTrace));
     });
   }
@@ -140,8 +136,7 @@ class FileNodeManager implements NodeManager {
         return _fileManager.write(name, bytes);
       });
     }).catchError((exception, stackTrace) {
-      _logger.logError(
-          'Exception during reading index file ${name}',
+      _logger.logError('Exception during reading index file ${name}',
           new CaughtException(exception, stackTrace));
     });
   }
@@ -238,7 +233,6 @@ class FileNodeManager implements NodeManager {
   }
 }
 
-
 /**
  * A single index file in-memory presentation.
  */
@@ -250,7 +244,6 @@ class IndexNode {
 
   Map<RelationKeyData, List<LocationData>> _relations =
       new HashMap<RelationKeyData, List<LocationData>>();
-
 
   IndexNode(this.context, this._elementCodec, this._relationshipCodec);
 
@@ -290,10 +283,7 @@ class IndexNode {
   List<Location> getRelationships(Element element, Relationship relationship) {
     // prepare key
     RelationKeyData key = new RelationKeyData.forObject(
-        _elementCodec,
-        _relationshipCodec,
-        element,
-        relationship);
+        _elementCodec, _relationshipCodec, element, relationship);
     // find LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -322,14 +312,8 @@ class IndexNode {
               _relationshipCodec.decode(key.relationshipId);
           List<String> path =
               _elementCodec.inspect_decodePath(location.elementId);
-          result.add(
-              new InspectLocation(
-                  name,
-                  relationship,
-                  path,
-                  location.offset,
-                  location.length,
-                  location.flags));
+          result.add(new InspectLocation(name, relationship, path,
+              location.offset, location.length, location.flags));
         }
       }
     });
@@ -343,13 +327,10 @@ class IndexNode {
    * [relationship] - the [Relationship] between [element] and [location].
    * [location] - the [Location] where relationship happens.
    */
-  void recordRelationship(Element element, Relationship relationship,
-      Location location) {
+  void recordRelationship(
+      Element element, Relationship relationship, Location location) {
     RelationKeyData key = new RelationKeyData.forObject(
-        _elementCodec,
-        _relationshipCodec,
-        element,
-        relationship);
+        _elementCodec, _relationshipCodec, element, relationship);
     // prepare LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -360,7 +341,6 @@ class IndexNode {
     locationDatas.add(new LocationData.forObject(_elementCodec, location));
   }
 }
-
 
 class InspectLocation {
   final String nodeName;
@@ -373,7 +353,6 @@ class InspectLocation {
   InspectLocation(this.nodeName, this.relationship, this.path, this.offset,
       this.length, this.flags);
 }
-
 
 /**
  * A container with information about a [Location].
@@ -394,7 +373,7 @@ class LocationData {
         offset = location.offset,
         length = location.length,
         flags = (location.isQualified ? _FLAG_QUALIFIED : 0) |
-          (location.isResolved ? _FLAG_RESOLVED : 0);
+            (location.isResolved ? _FLAG_RESOLVED : 0);
 
   @override
   int get hashCode {
@@ -423,15 +402,10 @@ class LocationData {
     }
     bool isQualified = (flags & _FLAG_QUALIFIED) != 0;
     bool isResovled = (flags & _FLAG_RESOLVED) != 0;
-    return new Location(
-        element,
-        offset,
-        length,
-        isQualified: isQualified,
-        isResolved: isResovled);
+    return new Location(element, offset, length,
+        isQualified: isQualified, isResolved: isResovled);
   }
 }
-
 
 /**
  * A manager for [IndexNode]s.
@@ -483,7 +457,6 @@ abstract class NodeManager {
   void removeNode(String name);
 }
 
-
 /**
  * An [Element] to [Location] relation key.
  */
@@ -494,7 +467,8 @@ class RelationKeyData {
   RelationKeyData.forData(this.elementId, this.relationshipId);
 
   RelationKeyData.forObject(ElementCodec elementCodec,
-      RelationshipCodec relationshipCodec, Element element, Relationship relationship)
+      RelationshipCodec relationshipCodec, Element element,
+      Relationship relationship)
       : elementId = elementCodec.encode(element, true),
         relationshipId = relationshipCodec.encode(relationship);
 
@@ -513,7 +487,6 @@ class RelationKeyData {
         other.relationshipId == relationshipId;
   }
 }
-
 
 /**
  * An [IndexStore] which keeps index information in separate nodes for each unit.
@@ -602,8 +575,8 @@ class SplitIndexStore implements IndexStore {
   }
 
   @override
-  bool aboutToIndexDart(AnalysisContext context,
-      CompilationUnitElement unitElement) {
+  bool aboutToIndexDart(
+      AnalysisContext context, CompilationUnitElement unitElement) {
     // may be already disposed in other thread
     if (context.isDisposed) {
       return false;
@@ -709,8 +682,8 @@ class SplitIndexStore implements IndexStore {
     }
   }
 
-  Future<List<Location>> getRelationships(Element element,
-      Relationship relationship) {
+  Future<List<Location>> getRelationships(
+      Element element, Relationship relationship) {
     // prepare node names
     List<int> nodeNameIds;
     {
@@ -769,10 +742,10 @@ class SplitIndexStore implements IndexStore {
   /**
    * Returns all relations with [Element]s with the given [name].
    */
-  Future<Map<List<String>, List<InspectLocation>>>
-      inspect_getElementRelations(String name) {
-    Map<List<String>, List<InspectLocation>> result = <List<String>,
-        List<InspectLocation>>{};
+  Future<Map<List<String>, List<InspectLocation>>> inspect_getElementRelations(
+      String name) {
+    Map<List<String>, List<InspectLocation>> result =
+        <List<String>, List<InspectLocation>>{};
     // prepare elements
     Map<int, List<String>> elementMap = _elementCodec.inspect_getElements(name);
     // prepare relations with each element
@@ -806,8 +779,8 @@ class SplitIndexStore implements IndexStore {
   }
 
   @override
-  void recordRelationship(Element element, Relationship relationship,
-      Location location) {
+  void recordRelationship(
+      Element element, Relationship relationship, Location location) {
     if (element == null || element.location == null) {
       return;
     }
@@ -908,8 +881,8 @@ class SplitIndexStore implements IndexStore {
     }
   }
 
-  void _recordLibraryWithUnit(AnalysisContext context, Source library,
-      Source unit) {
+  void _recordLibraryWithUnit(
+      AnalysisContext context, Source library, Source unit) {
     Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
     if (libraryToUnits == null) {
       libraryToUnits = new HashMap<Source, Set<Source>>();
@@ -933,8 +906,8 @@ class SplitIndexStore implements IndexStore {
     nameToNodeNames.add(nameId, _currentNodeNameId);
   }
 
-  void _recordUnitInLibrary(AnalysisContext context, Source library,
-      Source unit) {
+  void _recordUnitInLibrary(
+      AnalysisContext context, Source library, Source unit) {
     Map<Source, Set<Source>> unitToLibraries =
         _contextToUnitToLibraries[context];
     if (unitToLibraries == null) {
@@ -975,7 +948,6 @@ class SplitIndexStore implements IndexStore {
   }
 }
 
-
 class _DataInputStream {
   ByteData _byteData;
   int _byteOffset = 0;
@@ -991,7 +963,6 @@ class _DataInputStream {
     return result;
   }
 }
-
 
 class _DataOutputStream {
   static const LIST_SIZE = 1024;

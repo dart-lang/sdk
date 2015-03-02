@@ -10,64 +10,48 @@ import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(SearchResultKindTest);
 }
 
-
 @reflectiveTest
 class SearchResultKindTest {
   void test_fromEngine() {
-    expect(
-        newSearchResultKind_fromEngine(MatchKind.DECLARATION),
+    expect(newSearchResultKind_fromEngine(MatchKind.DECLARATION),
         SearchResultKind.DECLARATION);
     expect(
-        newSearchResultKind_fromEngine(MatchKind.READ),
-        SearchResultKind.READ);
-    expect(
-        newSearchResultKind_fromEngine(MatchKind.READ_WRITE),
+        newSearchResultKind_fromEngine(MatchKind.READ), SearchResultKind.READ);
+    expect(newSearchResultKind_fromEngine(MatchKind.READ_WRITE),
         SearchResultKind.READ_WRITE);
-    expect(
-        newSearchResultKind_fromEngine(MatchKind.WRITE),
+    expect(newSearchResultKind_fromEngine(MatchKind.WRITE),
         SearchResultKind.WRITE);
-    expect(
-        newSearchResultKind_fromEngine(MatchKind.REFERENCE),
+    expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE),
         SearchResultKind.REFERENCE);
-    expect(
-        newSearchResultKind_fromEngine(MatchKind.INVOCATION),
+    expect(newSearchResultKind_fromEngine(MatchKind.INVOCATION),
         SearchResultKind.INVOCATION);
     expect(newSearchResultKind_fromEngine(null), SearchResultKind.UNKNOWN);
   }
 
   void test_fromName() {
-    expect(
-        new SearchResultKind(SearchResultKind.DECLARATION.name),
+    expect(new SearchResultKind(SearchResultKind.DECLARATION.name),
         SearchResultKind.DECLARATION);
-    expect(
-        new SearchResultKind(SearchResultKind.READ.name),
+    expect(new SearchResultKind(SearchResultKind.READ.name),
         SearchResultKind.READ);
-    expect(
-        new SearchResultKind(SearchResultKind.READ_WRITE.name),
+    expect(new SearchResultKind(SearchResultKind.READ_WRITE.name),
         SearchResultKind.READ_WRITE);
-    expect(
-        new SearchResultKind(SearchResultKind.WRITE.name),
+    expect(new SearchResultKind(SearchResultKind.WRITE.name),
         SearchResultKind.WRITE);
-    expect(
-        new SearchResultKind(SearchResultKind.REFERENCE.name),
+    expect(new SearchResultKind(SearchResultKind.REFERENCE.name),
         SearchResultKind.REFERENCE);
-    expect(
-        new SearchResultKind(SearchResultKind.INVOCATION.name),
+    expect(new SearchResultKind(SearchResultKind.INVOCATION.name),
         SearchResultKind.INVOCATION);
-    expect(
-        new SearchResultKind(SearchResultKind.UNKNOWN.name),
+    expect(new SearchResultKind(SearchResultKind.UNKNOWN.name),
         SearchResultKind.UNKNOWN);
   }
 
   void test_toString() {
-    expect(
-        SearchResultKind.DECLARATION.toString(),
+    expect(SearchResultKind.DECLARATION.toString(),
         'SearchResultKind.DECLARATION');
   }
 }

@@ -19,12 +19,11 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * [InlineLocalRefactoring] implementation.
  */
-class InlineLocalRefactoringImpl extends RefactoringImpl implements
-    InlineLocalRefactoring {
+class InlineLocalRefactoringImpl extends RefactoringImpl
+    implements InlineLocalRefactoring {
   final SearchEngine searchEngine;
   final CompilationUnit unit;
   final int offset;
@@ -83,7 +82,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     if (!_isVariableDeclaredInStatement()) {
       result = new RefactoringStatus.fatal(
           'Local variable declaration or reference must be selected '
-              'to activate this refactoring.');
+          'to activate this refactoring.');
       return new Future.value(result);
     }
     // should have initializer at declaration
@@ -91,8 +90,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       String message = format(
           "Local variable '{0}' is not initialized at declaration.",
           _variableElement.displayName);
-      result =
-          new RefactoringStatus.fatal(message, newLocation_fromNode(_variableNode));
+      result = new RefactoringStatus.fatal(
+          message, newLocation_fromNode(_variableNode));
       return new Future.value(result);
     }
     // prepare references
@@ -101,11 +100,11 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     for (SearchMatch reference in _references) {
       if (reference.kind != MatchKind.READ) {
         String message = format(
-            "Local variable '{0}' is assigned more than once.",
-            [_variableElement.displayName]);
+            "Local variable '{0}' is assigned more than once.", [
+          _variableElement.displayName
+        ]);
         return new RefactoringStatus.fatal(
-            message,
-            newLocation_fromMatch(reference));
+            message, newLocation_fromMatch(reference));
       }
     }
     // done
@@ -117,13 +116,11 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     SourceChange change = new SourceChange(refactoringName);
     // remove declaration
     {
-      Statement declarationStatement =
-          _variableNode.getAncestor((node) => node is VariableDeclarationStatement);
+      Statement declarationStatement = _variableNode
+          .getAncestor((node) => node is VariableDeclarationStatement);
       SourceRange range = utils.getLinesRangeStatements([declarationStatement]);
       doSourceChange_addElementEdit(
-          change,
-          unitElement,
-          newSourceEdit_range(range, ''));
+          change, unitElement, newSourceEdit_range(range, ''));
     }
     // prepare initializer
     Expression initializer = _variableNode.initializer;
@@ -168,9 +165,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       }
       // do replace
       doSourceChange_addElementEdit(
-          change,
-          unitElement,
-          newSourceEdit_range(range, codeForReference));
+          change, unitElement, newSourceEdit_range(range, codeForReference));
     }
     // done
     return new Future.value(change);
@@ -194,8 +189,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     return false;
   }
 
-  static bool _shouldBeExpressionInterpolation(InterpolationExpression target,
-      Expression expression) {
+  static bool _shouldBeExpressionInterpolation(
+      InterpolationExpression target, Expression expression) {
     TokenType targetType = target.beginToken.type;
     return targetType == TokenType.STRING_INTERPOLATION_IDENTIFIER &&
         expression is! SimpleIdentifier;

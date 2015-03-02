@@ -25,11 +25,9 @@ import 'package:analyzer/src/generated/scanner.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:dart_style/dart_style.dart';
 
-
 bool test_simulateRefactoringException_change = false;
 bool test_simulateRefactoringException_final = false;
 bool test_simulateRefactoringException_init = false;
-
 
 /**
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]
@@ -57,7 +55,6 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response format(Request request) {
-
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
@@ -85,8 +82,7 @@ class EditDomainHandler implements RequestHandler {
       length = null;
     }
 
-    SourceCode code = new SourceCode(
-        unformattedSource,
+    SourceCode code = new SourceCode(unformattedSource,
         uri: null,
         isCompilationUnit: true,
         selectionStart: start,
@@ -104,9 +100,7 @@ class EditDomainHandler implements RequestHandler {
       edits.add(edit);
     }
 
-    return new EditFormatResult(
-        edits,
-        formattedResult.selectionStart,
+    return new EditFormatResult(edits, formattedResult.selectionStart,
         formattedResult.selectionLength).toResponse(request.id);
   }
 
@@ -290,7 +284,6 @@ class EditDomainHandler implements RequestHandler {
   }
 }
 
-
 /**
  * An object managing a single [Refactoring] instance.
  *
@@ -302,9 +295,8 @@ class EditDomainHandler implements RequestHandler {
  * is invalidated and a new one is created and initialized.
  */
 class _RefactoringManager {
-  static const List<RefactoringProblem> EMPTY_PROBLEM_LIST = const
-      <RefactoringProblem>[
-      ];
+  static const List<RefactoringProblem> EMPTY_PROBLEM_LIST =
+      const <RefactoringProblem>[];
 
   final AnalysisServer server;
   final SearchEngine searchEngine;
@@ -363,9 +355,7 @@ class _RefactoringManager {
     // prepare for processing the request
     request = _request;
     result = new EditGetRefactoringResult(
-        EMPTY_PROBLEM_LIST,
-        EMPTY_PROBLEM_LIST,
-        EMPTY_PROBLEM_LIST);
+        EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(_request);
     runZoned(() async {
@@ -424,8 +414,8 @@ class _RefactoringManager {
    * Initializes this context to perform a refactoring with the specified
    * parameters. The existing [Refactoring] is reused or created as needed.
    */
-  Future _init(RefactoringKind kind, String file, int offset,
-      int length) async {
+  Future _init(
+      RefactoringKind kind, String file, int offset, int length) async {
     await server.onAnalysisComplete;
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
@@ -474,10 +464,10 @@ class _RefactoringManager {
     if (kind == RefactoringKind.EXTRACT_METHOD) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
-        refactoring =
-            new ExtractMethodRefactoring(searchEngine, units[0], offset, length);
-        feedback =
-            new ExtractMethodFeedback(offset, length, null, [], false, [], [], []);
+        refactoring = new ExtractMethodRefactoring(
+            searchEngine, units[0], offset, length);
+        feedback = new ExtractMethodFeedback(
+            offset, length, null, [], false, [], [], []);
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
@@ -498,10 +488,7 @@ class _RefactoringManager {
       engine.AnalysisContext context = server.getAnalysisContext(file);
       Source source = server.getSource(file);
       refactoring = new MoveFileRefactoring(
-          server.resourceProvider.pathContext,
-          searchEngine,
-          context,
-          source);
+          server.resourceProvider.pathContext, searchEngine, context, source);
     }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
@@ -552,16 +539,14 @@ class _RefactoringManager {
       InlineLocalRefactoring refactoring = this.refactoring;
       if (!initStatus.hasFatalError) {
         feedback = new InlineLocalVariableFeedback(
-            refactoring.variableName,
-            refactoring.referenceCount);
+            refactoring.variableName, refactoring.referenceCount);
       }
     }
     if (refactoring is InlineMethodRefactoring) {
       InlineMethodRefactoring refactoring = this.refactoring;
       if (!initStatus.hasFatalError) {
         feedback = new InlineMethodFeedback(
-            refactoring.methodName,
-            refactoring.isDeclaration,
+            refactoring.methodName, refactoring.isDeclaration,
             className: refactoring.className);
       }
     }

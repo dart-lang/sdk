@@ -14,7 +14,6 @@ import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
  * that handles requests in the search domain.
@@ -88,8 +87,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // respond
     String searchId = (_nextSearchId++).toString();
     _sendSearchResult(
-        request,
-        new protocol.SearchFindMemberDeclarationsResult(searchId));
+        request, new protocol.SearchFindMemberDeclarationsResult(searchId));
     // search
     List<SearchMatch> matches =
         await searchEngine.searchMemberDeclarations(params.name);
@@ -103,8 +101,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // respond
     String searchId = (_nextSearchId++).toString();
     _sendSearchResult(
-        request,
-        new protocol.SearchFindMemberReferencesResult(searchId));
+        request, new protocol.SearchFindMemberReferencesResult(searchId));
     // search
     List<SearchMatch> matches =
         await searchEngine.searchMemberReferences(params.name);
@@ -118,8 +115,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // respond
     String searchId = (_nextSearchId++).toString();
     _sendSearchResult(
-        request,
-        new protocol.SearchFindTopLevelDeclarationsResult(searchId));
+        request, new protocol.SearchFindTopLevelDeclarationsResult(searchId));
     // search
     List<SearchMatch> matches =
         await searchEngine.searchTopLevelDeclarations(params.pattern);
@@ -179,13 +175,11 @@ class SearchDomainHandler implements protocol.RequestHandler {
     return null;
   }
 
-  void _sendSearchNotification(String searchId, bool isLast,
-      Iterable<protocol.SearchResult> results) {
+  void _sendSearchNotification(
+      String searchId, bool isLast, Iterable<protocol.SearchResult> results) {
     server.sendNotification(
-        new protocol.SearchResultsParams(
-            searchId,
-            results.toList(),
-            isLast).toNotification());
+        new protocol.SearchResultsParams(searchId, results.toList(), isLast)
+            .toNotification());
   }
 
   /**

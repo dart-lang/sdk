@@ -17,12 +17,11 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * [ConvertMethodToGetterRefactoring] implementation.
  */
-class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
-    ConvertMethodToGetterRefactoring {
+class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
+    implements ConvertMethodToGetterRefactoring {
   final SearchEngine searchEngine;
   final ExecutableElement element;
 

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
 import 'package:unittest/unittest.dart';
 
-
 main() {
   groupSep = ' | ';
   test('createLocalFileIndex', () {

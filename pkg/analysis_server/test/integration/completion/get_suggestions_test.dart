@@ -31,8 +31,7 @@ main() {
 
     return analysisFinished.then((_) {
       return sendCompletionGetSuggestions(
-          pathname,
-          text.indexOf('test.') + 'test.'.length).then((result) {
+          pathname, text.indexOf('test.') + 'test.'.length).then((result) {
         // Since the feature doesn't work yet, just pause for a second to
         // collect the output of the analysis server, and then stop the test.
         // TODO(paulberry): finish writing the integration test once the feature

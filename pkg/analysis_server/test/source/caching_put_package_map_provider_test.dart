@@ -24,20 +24,14 @@ main() {
     bool writeFileException;
 
     Map result1 = {
-      'packages': {
-        'foo': '/tmp/proj1/packages/foo'
-      },
+      'packages': {'foo': '/tmp/proj1/packages/foo'},
       'input_files': ['/tmp/proj1/pubspec.yaml']
     };
 
-    Map result1error = {
-      'input_files': ['/tmp/proj1/pubspec.lock']
-    };
+    Map result1error = {'input_files': ['/tmp/proj1/pubspec.lock']};
 
     Map result2 = {
-      'packages': {
-        'bar': '/tmp/proj2/packages/bar'
-      },
+      'packages': {'bar': '/tmp/proj2/packages/bar'},
       'input_files': ['/tmp/proj2/pubspec.yaml']
     };
 
@@ -71,10 +65,8 @@ main() {
     }
 
     CachingPubPackageMapProvider newPkgProvider() {
-      return new CachingPubPackageMapProvider(
-          resProvider,
-          DirectoryBasedDartSdk.defaultSdk,
-          mockRunner.runPubList,
+      return new CachingPubPackageMapProvider(resProvider,
+          DirectoryBasedDartSdk.defaultSdk, mockRunner.runPubList,
           mockWriteFile);
     }
 
@@ -303,7 +295,6 @@ _assertInfo(PackageMapInfo info, Map expected) {
     expect(info.dependencies, contains(path));
   }
 }
-
 
 typedef String MockResultFunction();
 

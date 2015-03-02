@@ -97,8 +97,7 @@ class Derived extends Pivot {}
         expect(element.kind, equals(ElementKind.CLASS));
         expect(element.name, equals(name));
         if (name != 'Object') {
-          expect(
-              element.location.offset,
+          expect(element.location.offset,
               equals(text.indexOf('class $name') + 'class '.length));
         }
       }
@@ -141,11 +140,9 @@ class Pivot /* target */ implements Interface1, Interface2 {}
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(4));
       expect(results.pivot.interfaces, hasLength(2));
-      expect(
-          results.pivot.interfaces,
+      expect(results.pivot.interfaces,
           contains(results.nameToIndex['Interface1']));
-      expect(
-          results.pivot.interfaces,
+      expect(results.pivot.interfaces,
           contains(results.nameToIndex['Interface2']));
       expect(results.getItem('Object').interfaces, isEmpty);
       expect(results.getItem('Interface1').interfaces, isEmpty);
@@ -169,16 +166,13 @@ class Derived2 extends Derived1 {
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(6));
       expect(results.getItem('Object').memberElement, isNull);
-      expect(
-          results.getItem('Base1').memberElement.location.offset,
+      expect(results.getItem('Base1').memberElement.location.offset,
           equals(text.indexOf('foo /* base1 */')));
       expect(results.getItem('Base2').memberElement, isNull);
-      expect(
-          results.getItem('Pivot').memberElement.location.offset,
+      expect(results.getItem('Pivot').memberElement.location.offset,
           equals(text.indexOf('foo /* target */')));
       expect(results.getItem('Derived1').memberElement, isNull);
-      expect(
-          results.getItem('Derived2').memberElement.location.offset,
+      expect(results.getItem('Derived2').memberElement.location.offset,
           equals(text.indexOf('foo /* derived2 */')));
     });
   }
@@ -218,8 +212,7 @@ class Sub2a extends Sub2 {}
       expect(results.getItem('Object').subclasses, isEmpty);
       expect(results.getItem('Base').subclasses, isEmpty);
       expect(results.getItem('Sub1').subclasses, isEmpty);
-      expect(
-          results.getItem('Sub2').subclasses,
+      expect(results.getItem('Sub2').subclasses,
           equals([results.nameToIndex['Sub2a']]));
       expect(results.getItem('Sub2a').subclasses, isEmpty);
     });
@@ -234,14 +227,11 @@ class Pivot /* target */ extends Base2 {}
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(4));
       expect(results.getItem('Object').superclass, isNull);
-      expect(
-          results.getItem('Base1').superclass,
+      expect(results.getItem('Base1').superclass,
           equals(results.nameToIndex['Object']));
-      expect(
-          results.getItem('Base2').superclass,
+      expect(results.getItem('Base2').superclass,
           equals(results.nameToIndex['Base1']));
-      expect(
-          results.getItem('Pivot').superclass,
+      expect(results.getItem('Pivot').superclass,
           equals(results.nameToIndex['Base2']));
     });
   }
@@ -256,25 +246,25 @@ class Pivot /* target */ extends Base2 {}
     // Run all the getTypeHierarchy tests at once so that the server can take
     // advantage of incremental analysis and the test doesn't time out.
     List tests = [
-        getTypeHierarchy_classElement,
-        getTypeHierarchy_displayName,
-        getTypeHierarchy_memberElement,
-        getTypeHierarchy_superclass,
-        getTypeHierarchy_interfaces,
-        getTypeHierarchy_mixins,
-        getTypeHierarchy_subclasses,
-        getTypeHierarchy_badTarget,
-        getTypeHierarchy_functionTarget];
+      getTypeHierarchy_classElement,
+      getTypeHierarchy_displayName,
+      getTypeHierarchy_memberElement,
+      getTypeHierarchy_superclass,
+      getTypeHierarchy_interfaces,
+      getTypeHierarchy_mixins,
+      getTypeHierarchy_subclasses,
+      getTypeHierarchy_badTarget,
+      getTypeHierarchy_functionTarget
+    ];
     return Future.forEach(tests, (test) => test());
   }
 
   Future<HierarchyResults> typeHierarchyTest(String text) {
     int offset = text.indexOf(' /* target */') - 1;
-    sendAnalysisUpdateContent({
-      pathname: new AddContentOverlay(text)
-    });
-    return analysisFinished.then(
-        (_) => sendSearchGetTypeHierarchy(pathname, offset)).then((result) {
+    sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    return analysisFinished
+        .then((_) => sendSearchGetTypeHierarchy(pathname, offset))
+        .then((result) {
       if (result.hierarchyItems == null) {
         return null;
       } else {

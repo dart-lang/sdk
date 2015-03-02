@@ -7,7 +7,6 @@ library operation;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * The class [ServerOperation] defines the behavior of objects used to perform
  * operations on a [AnalysisServer].
@@ -23,7 +22,6 @@ abstract class ServerOperation {
    */
   void perform(AnalysisServer server);
 }
-
 
 /**
  * The enumeration [ServerOperationPriority] defines the priority levels used
@@ -59,7 +57,6 @@ class ServerOperationPriority {
   @override
   String toString() => name;
 }
-
 
 /**
  * [SourceSensitiveOperation] can decide if the operation should be discarded

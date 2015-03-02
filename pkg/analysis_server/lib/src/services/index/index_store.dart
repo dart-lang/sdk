@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * A container with information computed by an index - relations between
  * elements.
@@ -38,8 +37,8 @@ abstract class IndexStore {
    * Returns `true` if the given [unitElement] may be indexed, or `false` if
    * belongs to a disposed [AnalysisContext], is not resolved completely, etc.
    */
-  bool aboutToIndexDart(AnalysisContext context,
-      CompilationUnitElement unitElement);
+  bool aboutToIndexDart(
+      AnalysisContext context, CompilationUnitElement unitElement);
 
   /**
    * Notifies the index store that we are going to index an unit with the given
@@ -80,8 +79,8 @@ abstract class IndexStore {
    * [relationship] - the [Relationship] between the given element and the
    *    locations to be returned
    */
-  Future<List<Location>> getRelationships(Element element,
-      Relationship relationship);
+  Future<List<Location>> getRelationships(
+      Element element, Relationship relationship);
 
   /**
    * Returns top-level [Element]s whose names satisfy to [nameFilter].
@@ -111,8 +110,8 @@ abstract class IndexStore {
    * [relationship] - the [Relationship] between the element and the location.
    * [location] the [Location] where relationship happens.
    */
-  void recordRelationship(Element element, Relationship relationship,
-      Location location);
+  void recordRelationship(
+      Element element, Relationship relationship, Location location);
 
   /**
    * Records the declaration of the given top-level [element].

@@ -11,7 +11,6 @@ import 'local_file_index_test.dart' as local_file_index_test;
 import 'local_index_test.dart' as local_index_test;
 import 'store/test_all.dart' as store_test_all;
 
-
 /**
  * Utility for manually running all tests.
  */

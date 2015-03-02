@@ -9,7 +9,6 @@ import 'dart:convert';
 
 part 'generated_protocol.dart';
 
-
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     new HashMap<String, RefactoringKind>();
 
@@ -34,8 +33,8 @@ mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
 /**
  * Adds the given [sourceEdits] to the list in [sourceFileEdit].
  */
-void _addAllEditsForSource(SourceFileEdit sourceFileEdit,
-    Iterable<SourceEdit> edits) {
+void _addAllEditsForSource(
+    SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits) {
   edits.forEach(sourceFileEdit.add);
 }
 
@@ -54,8 +53,8 @@ void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 /**
  * Adds [edit] to the [FileEdit] for the given [file].
  */
-void _addEditToSourceChange(SourceChange change, String file, int fileStamp,
-    SourceEdit edit) {
+void _addEditToSourceChange(
+    SourceChange change, String file, int fileStamp, SourceEdit edit) {
   SourceFileEdit fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
     fileEdit = new SourceFileEdit(file, fileStamp);
@@ -63,7 +62,6 @@ void _addEditToSourceChange(SourceChange change, String file, int fileStamp,
   }
   fileEdit.add(edit);
 }
-
 
 /**
  * Get the result of applying the edit to the given [code].  Access via
@@ -147,9 +145,8 @@ bool _mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
   return true;
 }
 
-RefactoringProblemSeverity
-    _maxRefactoringProblemSeverity(RefactoringProblemSeverity a,
-    RefactoringProblemSeverity b) {
+RefactoringProblemSeverity _maxRefactoringProblemSeverity(
+    RefactoringProblemSeverity a, RefactoringProblemSeverity b) {
   if (b == null) {
     return a;
   }
@@ -170,27 +167,22 @@ RefactoringProblemSeverity
   return a;
 }
 
-
 /**
  * Create a [RefactoringFeedback] corresponding the given [kind].
  */
-RefactoringFeedback _refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object json, Map feedbackJson) {
+RefactoringFeedback _refactoringFeedbackFromJson(
+    JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
   RefactoringKind kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return new ExtractLocalVariableFeedback.fromJson(
-        jsonDecoder,
-        jsonPath,
-        json);
+        jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
     return new InlineLocalVariableFeedback.fromJson(
-        jsonDecoder,
-        jsonPath,
-        json);
+        jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
     return new InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
@@ -201,7 +193,6 @@ RefactoringFeedback _refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
   return null;
 }
 
-
 /**
  * Create a [RefactoringOptions] corresponding the given [kind].
  */
@@ -209,9 +200,7 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
     String jsonPath, Object json, RefactoringKind kind) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return new ExtractLocalVariableOptions.fromJson(
-        jsonDecoder,
-        jsonPath,
-        json);
+        jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
@@ -228,14 +217,12 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   return null;
 }
 
-
 /**
  * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
  * string describing the part of the JSON object being decoded, and [value] is
  * the part to decode.
  */
 typedef Object JsonDecoderCallback(String jsonPath, Object value);
-
 
 /**
  * Instances of the class [DomainHandler] implement a [RequestHandler] and
@@ -256,7 +243,6 @@ abstract class DomainHandler extends RequestHandler {
   void startup() {}
 }
 
-
 /**
  * Classes implementing [Enum] represent enumerated types in the protocol.
  */
@@ -268,7 +254,6 @@ abstract class Enum {
   String get name;
 }
 
-
 /**
  * Instances of the class [HasToJson] implement [toJson] method that returns
  * a JSON presentation.
@@ -279,7 +264,6 @@ abstract class HasToJson {
    */
   Map<String, Object> toJson();
 }
-
 
 /**
  * Base class for decoding JSON objects.  The derived class must implement
@@ -358,8 +342,8 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
    * to decode the keys, and [valueDecoder] is used to decode the values.
    */
-  Map _decodeMap(String jsonPath, Object json, {JsonDecoderCallback keyDecoder,
-      JsonDecoderCallback valueDecoder}) {
+  Map _decodeMap(String jsonPath, Object json,
+      {JsonDecoderCallback keyDecoder, JsonDecoderCallback valueDecoder}) {
     if (json == null) {
       return {};
     } else if (json is Map) {
@@ -399,8 +383,8 @@ abstract class JsonDecoder {
    * [decoders] is a map from each possible string in the field to the decoder
    * that should be used to decode the JSON object.
    */
-  Object _decodeUnion(String jsonPath, Map json, String field, Map<String,
-      JsonDecoderCallback> decoders) {
+  Object _decodeUnion(String jsonPath, Map json, String field,
+      Map<String, JsonDecoderCallback> decoders) {
     if (json is Map) {
       if (!json.containsKey(field)) {
         throw missingKey(jsonPath, field);
@@ -416,7 +400,6 @@ abstract class JsonDecoder {
     }
   }
 }
-
 
 /**
  * Instances of the class [Notification] represent a notification from the
@@ -457,8 +440,7 @@ class Notification {
    */
   factory Notification.fromJson(Map<String, Object> json) {
     return new Notification(
-        json[Notification.EVENT],
-        json[Notification.PARAMS]);
+        json[Notification.EVENT], json[Notification.PARAMS]);
   }
 
   /**
@@ -526,8 +508,8 @@ class Request {
    * name.  If [params] is supplied, it is used as the "params" map for the
    * request.  Otherwise an empty "params" map is allocated.
    */
-  Request(this.id, this.method, [Map<String, Object> params,
-      this.clientRequestTime])
+  Request(this.id, this.method,
+      [Map<String, Object> params, this.clientRequestTime])
       : _params = params != null ? params : new HashMap<String, Object>();
 
   /**
@@ -593,7 +575,6 @@ class Request {
   }
 }
 
-
 /**
  * JsonDecoder for decoding requests.  Errors are reporting by throwing a
  * [RequestFailure].
@@ -619,11 +600,8 @@ class RequestDecoder extends JsonDecoder {
 
   @override
   dynamic missingKey(String jsonPath, String key) {
-    return new RequestFailure(
-        new Response.invalidParameter(
-            _request,
-            jsonPath,
-            'contain key ${JSON.encode(key)}'));
+    return new RequestFailure(new Response.invalidParameter(
+        _request, jsonPath, 'contain key ${JSON.encode(key)}'));
   }
 }
 
@@ -715,11 +693,8 @@ class Response {
    * Initialize a newly created instance to represent the
    * FORMAT_INVALID_FILE error condition.
    */
-  Response.formatInvalidFile(Request request)
-      : this(
-          request.id,
-          error: new RequestError(
-              RequestErrorCode.FORMAT_INVALID_FILE,
+  Response.formatInvalidFile(Request request) : this(request.id,
+          error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
               'Error during `edit.format`: invalid file.'));
 
   /**
@@ -734,8 +709,8 @@ class Response {
       Object error = json[Response.ERROR];
       RequestError decodedError;
       if (error is Map) {
-        decodedError =
-            new RequestError.fromJson(new ResponseDecoder(null), '.error', error);
+        decodedError = new RequestError.fromJson(
+            new ResponseDecoder(null), '.error', error);
       }
       Object result = json[Response.RESULT];
       Map<String, Object> decodedResult;
@@ -752,11 +727,8 @@ class Response {
    * Initialize a newly created instance to represent the
    * GET_ERRORS_INVALID_FILE error condition.
    */
-  Response.getErrorsInvalidFile(Request request)
-      : this(
-          request.id,
-          error: new RequestError(
-              RequestErrorCode.GET_ERRORS_INVALID_FILE,
+  Response.getErrorsInvalidFile(Request request) : this(request.id,
+          error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
               'Error during `analysis.getErrors`: invalid file.'));
 
   /**
@@ -764,11 +736,9 @@ class Response {
    * by a [request] that specifies an execution context whose context root does
    * not exist.
    */
-  Response.invalidExecutionContext(Request request, String contextId)
-      : this(
+  Response.invalidExecutionContext(Request request, String contextId) : this(
           request.id,
-          error: new RequestError(
-              RequestErrorCode.INVALID_EXECUTION_CONTEXT,
+          error: new RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
               "Invalid execution context: $contextId"));
 
   /**
@@ -779,39 +749,31 @@ class Response {
    * [expectation] is a description of the type of data that was expected.
    */
   Response.invalidParameter(Request request, String path, String expectation)
-      : this(
-          request.id,
-          error: new RequestError(
-              RequestErrorCode.INVALID_PARAMETER,
+      : this(request.id,
+          error: new RequestError(RequestErrorCode.INVALID_PARAMETER,
               "Invalid parameter '$path'. $expectation."));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a malformed request.
    */
-  Response.invalidRequestFormat()
-      : this(
-          '',
-          error: new RequestError(RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
+  Response.invalidRequestFormat() : this('',
+          error: new RequestError(
+              RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a request that requires an index, but indexing is disabled.
    */
-  Response.noIndexGenerated(Request request)
-      : this(
-          request.id,
+  Response.noIndexGenerated(Request request) : this(request.id,
           error: new RequestError(
-              RequestErrorCode.NO_INDEX_GENERATED,
-              'Indexing is disabled'));
+              RequestErrorCode.NO_INDEX_GENERATED, 'Indexing is disabled'));
 
   /**
    * Initialize a newly created instance to represent the
    * REFACTORING_REQUEST_CANCELLED error condition.
    */
-  Response.refactoringRequestCancelled(Request request)
-      : this(
-          request.id,
+  Response.refactoringRequestCancelled(Request request) : this(request.id,
           error: new RequestError(
               RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
               'The `edit.getRefactoring` request was cancelled.'));
@@ -833,22 +795,17 @@ class Response {
    * Initialize a newly created instance to represent the
    * SORT_MEMBERS_INVALID_FILE error condition.
    */
-  Response.sortMembersInvalidFile(Request request)
-      : this(
-          request.id,
-          error: new RequestError(
-              RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
+  Response.sortMembersInvalidFile(Request request) : this(request.id,
+          error: new RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
               'Error during `edit.sortMembers`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent the
    * SORT_MEMBERS_PARSE_ERRORS error condition.
    */
-  Response.sortMembersParseErrors(Request request, int numErrors)
-      : this(
+  Response.sortMembersParseErrors(Request request, int numErrors) : this(
           request.id,
-          error: new RequestError(
-              RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
+          error: new RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
               'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
 
   /**
@@ -856,26 +813,23 @@ class Response {
    * by a `analysis.setPriorityFiles` [request] that includes one or more files
    * that are not being analyzed.
    */
-  Response.unanalyzedPriorityFiles(String requestId, String fileNames)
-      : this(
+  Response.unanalyzedPriorityFiles(String requestId, String fileNames) : this(
           requestId,
-          error: new RequestError(
-              RequestErrorCode.UNANALYZED_PRIORITY_FILES,
+          error: new RequestError(RequestErrorCode.UNANALYZED_PRIORITY_FILES,
               "Unanalyzed files cannot be a priority: '$fileNames'"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
-  Response.unknownRequest(Request request)
-      : this(
-          request.id,
-          error: new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
+  Response.unknownRequest(Request request) : this(request.id,
+          error: new RequestError(
+              RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
 
-  Response.unsupportedFeature(String requestId, String message)
-      : this(
+  Response.unsupportedFeature(String requestId, String message) : this(
           requestId,
-          error: new RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message));
+          error: new RequestError(
+              RequestErrorCode.UNSUPPORTED_FEATURE, message));
 
   /**
    * Return a table representing the structure of the Json object that will be

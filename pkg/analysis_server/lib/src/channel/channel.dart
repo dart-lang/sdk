@@ -137,8 +137,8 @@ abstract class ServerCommunicationChannel {
    * client, invoke the [onDone] function.
    * Only one listener is allowed per channel.
    */
-  void listen(void onRequest(Request request), {Function onError, void
-      onDone()});
+  void listen(void onRequest(Request request),
+      {Function onError, void onDone()});
 
   /**
    * Send the given [notification] to the client.

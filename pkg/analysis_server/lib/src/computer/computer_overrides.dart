@@ -9,7 +9,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 
-
 /**
  * A computer for class member overrides in a Dart [CompilationUnit].
  */
@@ -66,22 +65,21 @@ class DartUnitOverridesComputer {
     }
     // is there any override?
     if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
-      OverriddenMember superMember = superEngineElement != null ?
-          newOverriddenMember_fromEngine(superEngineElement) :
-          null;
-      List<OverriddenMember> interfaceMembers = interfaceEngineElements.map(
-          (engine.Element member) => newOverriddenMember_fromEngine(member)).toList();
-      _overrides.add(
-          new Override(
-              offset,
-              length,
-              superclassMember: superMember,
-              interfaceMembers: nullIfEmpty(interfaceMembers)));
+      OverriddenMember superMember = superEngineElement != null
+          ? newOverriddenMember_fromEngine(superEngineElement)
+          : null;
+      List<OverriddenMember> interfaceMembers = interfaceEngineElements
+          .map(
+              (engine.Element member) => newOverriddenMember_fromEngine(member))
+          .toList();
+      _overrides.add(new Override(offset, length,
+          superclassMember: superMember,
+          interfaceMembers: nullIfEmpty(interfaceMembers)));
     }
   }
 
-  static engine.Element _lookupMember(engine.ClassElement classElement,
-      String name) {
+  static engine.Element _lookupMember(
+      engine.ClassElement classElement, String name) {
     if (classElement == null) {
       return null;
     }

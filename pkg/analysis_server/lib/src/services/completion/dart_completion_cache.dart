@@ -7,8 +7,8 @@ library services.completion.dart.cache;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol_server.dart' hide Element,
-    ElementKind;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
@@ -147,16 +147,17 @@ class DartCompletionCache extends CompletionCache {
     // Add non-imported elements as low relevance
     // after the imported element suggestions have been added
     Future<bool> futureAllCached = futureImportsCached.then((_) {
-      return searchEngine.searchTopLevelDeclarations(
-          '').then((List<SearchMatch> matches) {
+      return searchEngine
+          .searchTopLevelDeclarations('')
+          .then((List<SearchMatch> matches) {
         _addNonImportedElementSuggestions(matches, excludedLibs);
         return true;
       });
     });
 
-    return shouldWaitForLowPrioritySuggestions ?
-        futureAllCached :
-        futureImportsCached;
+    return shouldWaitForLowPrioritySuggestions
+        ? futureAllCached
+        : futureImportsCached;
   }
 
   /**
@@ -195,8 +196,8 @@ class DartCompletionCache extends CompletionCache {
           ImportElement importElem = directive.element;
           if (importElem != null && importElem.importedLibrary != null) {
             if (directive.prefix == null) {
-              Namespace importNamespace =
-                  new NamespaceBuilder().createImportNamespaceForDirective(importElem);
+              Namespace importNamespace = new NamespaceBuilder()
+                  .createImportNamespaceForDirective(importElem);
               // Include top level elements
               importNamespace.definedNames.forEach((String name, Element elem) {
                 if (elem is ClassElement) {
@@ -228,14 +229,9 @@ class DartCompletionCache extends CompletionCache {
     CompletionSuggestion suggestion = null;
     String completion = importElem.prefix.displayName;
     if (completion != null && completion.length > 0) {
-      suggestion = new CompletionSuggestion(
-          CompletionSuggestionKind.INVOCATION,
-          DART_RELEVANCE_DEFAULT,
-          completion,
-          completion.length,
-          0,
-          importElem.isDeprecated,
-          false);
+      suggestion = new CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
+          DART_RELEVANCE_DEFAULT, completion, completion.length, 0,
+          importElem.isDeprecated, false);
       LibraryElement lib = importElem.importedLibrary;
       if (lib != null) {
         suggestion.element = newElement_fromEngine(lib);
@@ -249,8 +245,8 @@ class DartCompletionCache extends CompletionCache {
    * Add suggestions for all top level elements in the context
    * excluding those elemnents for which suggestions have already been added.
    */
-  void _addNonImportedElementSuggestions(List<SearchMatch> matches,
-      Set<LibraryElement> excludedLibs) {
+  void _addNonImportedElementSuggestions(
+      List<SearchMatch> matches, Set<LibraryElement> excludedLibs) {
     matches.forEach((SearchMatch match) {
       if (match.kind == MatchKind.DECLARATION) {
         Element element = match.element;
@@ -268,7 +264,6 @@ class DartCompletionCache extends CompletionCache {
    * Add a suggestion for the given element.
    */
   void _addSuggestion(Element element, int relevance) {
-
     if (element is ExecutableElement) {
       if (element.isOperator) {
         return;
@@ -308,8 +303,8 @@ class DartCompletionCache extends CompletionCache {
    * Compute the library unit for the given library source,
    * where the [unit] is the resolved compilation unit associated with [source].
    */
-  Future<CompilationUnit> _computeLibUnit(Source libSource,
-      CompilationUnit unit) {
+  Future<CompilationUnit> _computeLibUnit(
+      Source libSource, CompilationUnit unit) {
     // If the sources are the same then we already have the library unit
     if (libSource == source) {
       return new Future.value(unit);

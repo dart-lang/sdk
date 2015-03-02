@@ -53,8 +53,8 @@ class OpType {
    */
   factory OpType.forCompletion(CompletionTarget target, int offset) {
     OpType optype = new OpType._();
-    target.containingNode.accept(
-        new _OpTypeAstVisitor(optype, target.entity, offset));
+    target.containingNode
+        .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
     return optype;
   }
 
@@ -63,20 +63,17 @@ class OpType {
   /**
    * Indicate whether only type names should be suggested
    */
-  bool get includeOnlyTypeNameSuggestions =>
-      includeTypeNameSuggestions &&
-          !includeReturnValueSuggestions &&
-          !includeVoidReturnSuggestions &&
-          !includeInvocationSuggestions;
+  bool get includeOnlyTypeNameSuggestions => includeTypeNameSuggestions &&
+      !includeReturnValueSuggestions &&
+      !includeVoidReturnSuggestions &&
+      !includeInvocationSuggestions;
 
   /**
    * Indicate whether top level elements should be suggested
    */
-  bool get includeTopLevelSuggestions =>
-      includeReturnValueSuggestions ||
-          includeTypeNameSuggestions ||
-          includeVoidReturnSuggestions;
-
+  bool get includeTopLevelSuggestions => includeReturnValueSuggestions ||
+      includeTypeNameSuggestions ||
+      includeVoidReturnSuggestions;
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
@@ -179,8 +176,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitClassMember(ClassMember node) {
-  }
+  void visitClassMember(ClassMember node) {}
 
   @override
   void visitCommentReference(CommentReference node) {
@@ -384,8 +380,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-  }
+  void visitMethodDeclaration(MethodDeclaration node) {}
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -513,8 +508,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-  }
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {}
 
   @override
   void visitWhileStatement(WhileStatement node) {

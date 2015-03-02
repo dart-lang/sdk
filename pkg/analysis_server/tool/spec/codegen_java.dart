@@ -18,8 +18,8 @@ import 'to_html.dart';
  * Create a [GeneratedFile] that creates Java code and outputs it to [path].
  * [path] uses Posix-style path separators regardless of the OS.
  */
-GeneratedFile javaGeneratedFile(String path, CodegenJavaVisitor
-    createVisitor(Api api)) {
+GeneratedFile javaGeneratedFile(
+    String path, CodegenJavaVisitor createVisitor(Api api)) {
   return new GeneratedFile(path, () {
     CodegenJavaVisitor visitor = createVisitor(readApi());
     return visitor.collectCode(visitor.visitApi);

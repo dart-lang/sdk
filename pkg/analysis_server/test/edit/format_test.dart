@@ -13,12 +13,10 @@ import 'package:unittest/unittest.dart' hide ERROR;
 import '../analysis_abstract.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(FormatTest);
 }
-
 
 @reflectiveTest
 class FormatTest extends AbstractAnalysisTest {
@@ -34,7 +32,6 @@ class FormatTest extends AbstractAnalysisTest {
 main() { int x = 3; }
 ''');
     return waitForTasksFinished().then((_) {
-
       EditFormatResult formatResult = _formatAt(0, 3);
 
       expect(formatResult.edits, isNotNull);
@@ -67,11 +64,8 @@ main() {
 
   EditFormatResult _formatAt(int selectionOffset, int selectionLength) {
     Request request = new EditFormatParams(
-        testFile,
-        selectionOffset,
-        selectionLength).toRequest('0');
+        testFile, selectionOffset, selectionLength).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     return new EditFormatResult.fromResponse(response);
   }
-
 }

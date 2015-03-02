@@ -7,7 +7,6 @@ library services.src.refactoring.naming_conventions;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 
-
 /**
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
@@ -102,10 +101,8 @@ RefactoringStatus validateLibraryName(String name) {
   // check identifiers
   List<String> identifiers = name.split('.');
   for (String identifier in identifiers) {
-    RefactoringStatus status = _validateIdentifier(
-        identifier,
-        "Library name identifier",
-        "a lowercase letter or underscore");
+    RefactoringStatus status = _validateIdentifier(identifier,
+        "Library name identifier", "a lowercase letter or underscore");
     if (!status.isOK) {
       return status;
     }
@@ -153,8 +150,8 @@ RefactoringStatus validateVariableName(String name) {
   return _validateLowerCamelCase(name, "Variable");
 }
 
-RefactoringStatus _validateIdentifier(String identifier, String desc,
-    String beginDesc) {
+RefactoringStatus _validateIdentifier(
+    String identifier, String desc, String beginDesc) {
   // has leading/trailing spaces
   String trimmed = identifier.trim();
   if (identifier != trimmed) {
@@ -231,8 +228,8 @@ RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
     return new RefactoringStatus.fatal(message);
   }
   // is not identifier
-  RefactoringStatus status =
-      _validateIdentifier(identifier, desc, "an uppercase letter or underscore");
+  RefactoringStatus status = _validateIdentifier(
+      identifier, desc, "an uppercase letter or underscore");
   if (!status.isOK) {
     return status;
   }

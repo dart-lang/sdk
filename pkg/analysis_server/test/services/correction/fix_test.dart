@@ -17,15 +17,12 @@ import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
 import '../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(FixProcessorTest);
 }
 
-
 typedef bool AnalysisErrorFilter(AnalysisError error);
-
 
 @reflectiveTest
 class FixProcessorTest extends AbstractSingleUnitTest {
@@ -88,8 +85,8 @@ bool test() {
     return positions;
   }
 
-  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
-      List<String> values) {
+  List<LinkedEditSuggestion> expectedSuggestions(
+      LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
       return new LinkedEditSuggestion(value, kind);
     }).toList();
@@ -1678,8 +1675,7 @@ useFunction(int g(double a, String b)) {}
 ''');
   }
 
-  void
-      test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() {
+  void test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() {
     resolveTestUnit('''
 main(A a) {
   useFunction(a.test);
@@ -2837,31 +2833,27 @@ class A {
     // linked positions
     int index = 0;
     _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['void myUndefinedMethod(']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
+        change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
+    _assertLinkedGroup(change.linkedEditGroups[index++],
         ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['int i'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE,
-            ['int', 'num', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], [
+      'int i'
+    ], expectedSuggestions(
+        LinkedEditSuggestionKind.TYPE, ['int', 'num', 'Object', 'Comparable']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['double d'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE,
-            ['double', 'num', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], [
+      'double d'
+    ], expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+      'double',
+      'num',
+      'Object',
+      'Comparable'
+    ]));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['d,']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['String s'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], [
+      'String s'
+    ], expectedSuggestions(
+        LinkedEditSuggestionKind.TYPE, ['String', 'Object', 'Comparable']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
@@ -2885,8 +2877,7 @@ class A {
 ''');
     // linked positions
     _assertLinkedGroup(change.linkedEditGroups[0], ['int myUndefinedMethod(']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[1],
+    _assertLinkedGroup(change.linkedEditGroups[1],
         ['myUndefinedMethod();', 'myUndefinedMethod() {']);
   }
 
@@ -3066,9 +3057,8 @@ main() {
     provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
     // configure SourceFactory
     Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my_pkg': [myPkgFolder]
-    });
+    UriResolver pkgResolver =
+        new PackageMapUriResolver(provider, {'my_pkg': [myPkgFolder]});
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
     // force 'my_pkg' resolution

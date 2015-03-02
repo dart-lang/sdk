@@ -40,9 +40,9 @@ class AnalysisManager {
     if (process == null) {
       return channel.close().then((_) => false);
     }
-    return channel.sendRequest(
-        new ServerShutdownParams().toRequest(
-            '0')).timeout(new Duration(seconds: 2), onTimeout: () {
+    return channel
+        .sendRequest(new ServerShutdownParams().toRequest('0'))
+        .timeout(new Duration(seconds: 2), onTimeout: () {
       print('Expected shutdown response');
     }).then((Response response) {
       return channel.close().then((_) => process.exitCode);
@@ -82,10 +82,10 @@ class AnalysisManager {
 
     // Listen for port from server
     const String pattern = 'Listening on port ';
-    return out.firstWhere(
-        (String line) =>
-            line.startsWith(
-                pattern)).timeout(new Duration(seconds: 10)).catchError((error) {
+    return out
+        .firstWhere((String line) => line.startsWith(pattern))
+        .timeout(new Duration(seconds: 10))
+        .catchError((error) {
       exitCode = 1;
       process.kill();
       throw 'Expected port from analysis server';
@@ -108,8 +108,10 @@ class AnalysisManager {
       throw 'Failed to connect to analysis server at $serverUrl\n  $error';
     };
     try {
-      return WebSocket.connect(
-          serverUrl).catchError(onError).then((WebSocket socket) {
+      return WebSocket
+          .connect(serverUrl)
+          .catchError(onError)
+          .then((WebSocket socket) {
         this.channel = new WebSocketClientChannel(socket);
         return this;
       });

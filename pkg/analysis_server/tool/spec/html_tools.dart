@@ -62,8 +62,8 @@ bool isWhitespaceNode(dom.Node node) {
 /**
  * Create an HTML element with the given name, attributes, and child nodes.
  */
-dom.Element makeElement(String name, Map<dynamic, String> attributes,
-    List<dom.Node> children) {
+dom.Element makeElement(
+    String name, Map<dynamic, String> attributes, List<dom.Node> children) {
   dom.Element result = new dom.Element.tag(name);
   result.attributes.addAll(attributes);
   for (dom.Node child in children) {
@@ -116,8 +116,8 @@ class HtmlGenerator {
    * Execute [callback], wrapping its output in an element with the given
    * [name] and [attributes].
    */
-  void element(String name, Map<dynamic, String> attributes, [void
-      callback()]) {
+  void element(String name, Map<dynamic, String> attributes,
+      [void callback()]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
 

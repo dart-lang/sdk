@@ -53,9 +53,7 @@ class Target extends Base implements Interface1, Interface2 {
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({
-      AnalysisService.OVERRIDES: [pathname]
-    });
+    sendAnalysisSetSubscriptions({AnalysisService.OVERRIDES: [pathname]});
     List<Override> overrides;
     onAnalysisOverrides.listen((AnalysisOverridesParams params) {
       expect(params.file, equals(pathname));
@@ -101,8 +99,7 @@ class Target extends Base implements Interface1, Interface2 {
             bool wasAdded = actualOverridesInterfaces.add(className);
             expect(wasAdded, isTrue);
           }
-          expect(
-              actualOverridesInterfaces,
+          expect(actualOverridesInterfaces,
               equals(expectedOverridesInterfaces.toSet()));
         } else {
           expect(interfaceMembers, isNull);

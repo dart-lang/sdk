@@ -26,7 +26,6 @@ main() {
 
 @reflectiveTest
 class ImportedComputerTest extends AbstractSelectorSuggestionTest {
-
   void assertCached(String completion) {
     DartCompletionCache cache = request.cache;
     if (!isCached(cache.importedTypeSuggestions, completion) &&
@@ -60,21 +59,16 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
     setUpComputer();
     int replacementOffset = request.replacementOffset;
     int replacementLength = request.replacementLength;
-    request = new DartCompletionRequest(
-        context,
-        searchEngine,
-        testSource,
-        completionOffset,
-        cache,
-        new CompletionPerformance());
+    request = new DartCompletionRequest(context, searchEngine, testSource,
+        completionOffset, cache, new CompletionPerformance());
     request.replacementOffset = replacementOffset;
     request.replacementLength = replacementLength;
     expect(computeFast(), isTrue);
     expect(request.unit.element, isNull);
     List<CompletionSuggestion> newSuggestions = request.suggestions;
     if (newSuggestions.length == oldSuggestions.length) {
-      if (!oldSuggestions.any(
-          (CompletionSuggestion s) => !newSuggestions.contains(s))) {
+      if (!oldSuggestions
+          .any((CompletionSuggestion s) => !newSuggestions.contains(s))) {
         return;
       }
     }
@@ -82,16 +76,16 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
         'suggestions based upon cached results do not match expectations');
     sb.write('\n  Expected:');
     oldSuggestions.toList()
-        ..sort(suggestionComparator)
-        ..forEach((CompletionSuggestion suggestion) {
-          sb.write('\n    ${suggestion.completion} -> $suggestion');
-        });
+      ..sort(suggestionComparator)
+      ..forEach((CompletionSuggestion suggestion) {
+        sb.write('\n    ${suggestion.completion} -> $suggestion');
+      });
     sb.write('\n  Actual:');
     newSuggestions.toList()
-        ..sort(suggestionComparator)
-        ..forEach((CompletionSuggestion suggestion) {
-          sb.write('\n    ${suggestion.completion} -> $suggestion');
-        });
+      ..sort(suggestionComparator)
+      ..forEach((CompletionSuggestion suggestion) {
+        sb.write('\n    ${suggestion.completion} -> $suggestion');
+      });
     fail(sb.toString());
   }
 
@@ -111,23 +105,21 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
     return assertSuggestField(name, type, relevance: relevance);
   }
 
-  CompletionSuggestion assertSuggestImportedGetter(String name,
-      String returnType, {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
+  CompletionSuggestion assertSuggestImportedGetter(
+      String name, String returnType,
+      {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
     return assertSuggestGetter(name, returnType, relevance: relevance);
   }
 
-  CompletionSuggestion assertSuggestImportedMethod(String name,
-      String declaringType, String returnType, {int relevance:
-      DART_RELEVANCE_INHERITED_METHOD}) {
-    return assertSuggestMethod(
-        name,
-        declaringType,
-        returnType,
+  CompletionSuggestion assertSuggestImportedMethod(
+      String name, String declaringType, String returnType,
+      {int relevance: DART_RELEVANCE_INHERITED_METHOD}) {
+    return assertSuggestMethod(name, declaringType, returnType,
         relevance: relevance);
   }
 
-  CompletionSuggestion assertSuggestImportedSetter(String name, {int relevance:
-      DART_RELEVANCE_INHERITED_ACCESSOR}) {
+  CompletionSuggestion assertSuggestImportedSetter(String name,
+      {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
     return assertSuggestSetter(name, relevance);
   }
 
@@ -167,8 +159,7 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   @override
   test_Block() {
     return super.test_Block().then((_) {
-      expect(
-          request.cache.importKey,
+      expect(request.cache.importKey,
           'import "/testAB.dart";import "/testCD.dart" hide D;import "/testEEF.dart" show EE;import "/testG.dart" as g;');
       assertCached('A');
       assertCached('T3');
@@ -641,8 +632,7 @@ class B extends A {
   @override
   test_partFile_TypeName2() {
     return super.test_partFile_TypeName2().then((_) {
-      expect(
-          request.cache.importKey,
+      expect(request.cache.importKey,
           'library libA;import "/testB.dart";part "/testA.dart";');
     });
   }

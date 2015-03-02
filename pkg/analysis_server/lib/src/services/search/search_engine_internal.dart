@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * A [SearchEngine] implementation.
  */
@@ -25,9 +24,7 @@ class SearchEngineImpl implements SearchEngine {
     NameElement element = new NameElement(name);
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
-        element,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        MatchKind.DECLARATION);
+        element, IndexConstants.NAME_IS_DEFINED_BY, MatchKind.DECLARATION);
     return requestor.merge();
   }
 
@@ -47,9 +44,7 @@ class SearchEngineImpl implements SearchEngine {
     requestor.add(element, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     requestor.add(element, IndexConstants.IS_READ_BY, MatchKind.READ);
     requestor.add(
-        element,
-        IndexConstants.IS_READ_WRITTEN_BY,
-        MatchKind.READ_WRITE);
+        element, IndexConstants.IS_READ_WRITTEN_BY, MatchKind.READ_WRITE);
     requestor.add(element, IndexConstants.IS_WRITTEN_BY, MatchKind.WRITE);
     return requestor.merge();
   }
@@ -104,11 +99,14 @@ class SearchEngineImpl implements SearchEngine {
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) {
     RegExp regExp = new RegExp(pattern);
-    List<Element> elements = _index.getTopLevelDeclarations((String name) => regExp.hasMatch(name));
+    List<Element> elements =
+        _index.getTopLevelDeclarations((String name) => regExp.hasMatch(name));
     List<SearchMatch> matches = <SearchMatch>[];
     for (var element in elements) {
-      SourceRange range = new SourceRange(element.nameOffset, element.name.length);
-      matches.add(new SearchMatch(MatchKind.DECLARATION, element, range, true, false));
+      SourceRange range =
+          new SourceRange(element.nameOffset, element.name.length);
+      matches.add(
+          new SearchMatch(MatchKind.DECLARATION, element, range, true, false));
     }
     // TODO(scheglov) it does not have to be a Future
     return new Future.value(matches);
@@ -117,24 +115,20 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> _searchReferences(Element element) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
-        element,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
+        element, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
-  Future<List<SearchMatch>>
-      _searchReferences_Constructor(ConstructorElement constructor) {
+  Future<List<SearchMatch>> _searchReferences_Constructor(
+      ConstructorElement constructor) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
-        constructor,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
+        constructor, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
-  Future<List<SearchMatch>>
-      _searchReferences_Field(PropertyInducingElement field) {
+  Future<List<SearchMatch>> _searchReferences_Field(
+      PropertyInducingElement field) {
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     _Requestor requestor = new _Requestor(_index);
@@ -154,25 +148,21 @@ class SearchEngineImpl implements SearchEngine {
     return requestor.merge();
   }
 
-  Future<List<SearchMatch>>
-      _searchReferences_Function(FunctionElement function) {
+  Future<List<SearchMatch>> _searchReferences_Function(
+      FunctionElement function) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
-        function,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
+        function, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     requestor.add(function, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     return requestor.merge();
   }
 
-  Future<List<SearchMatch>>
-      _searchReferences_LocalVariable(LocalVariableElement variable) {
+  Future<List<SearchMatch>> _searchReferences_LocalVariable(
+      LocalVariableElement variable) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(variable, IndexConstants.IS_READ_BY, MatchKind.READ);
     requestor.add(
-        variable,
-        IndexConstants.IS_READ_WRITTEN_BY,
-        MatchKind.READ_WRITE);
+        variable, IndexConstants.IS_READ_WRITTEN_BY, MatchKind.READ_WRITE);
     requestor.add(variable, IndexConstants.IS_WRITTEN_BY, MatchKind.WRITE);
     requestor.add(variable, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     return requestor.merge();
@@ -188,27 +178,20 @@ class SearchEngineImpl implements SearchEngine {
     return requestor.merge();
   }
 
-  Future<List<SearchMatch>>
-      _searchReferences_Parameter(ParameterElement parameter) {
+  Future<List<SearchMatch>> _searchReferences_Parameter(
+      ParameterElement parameter) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(parameter, IndexConstants.IS_READ_BY, MatchKind.READ);
     requestor.add(
-        parameter,
-        IndexConstants.IS_READ_WRITTEN_BY,
-        MatchKind.READ_WRITE);
+        parameter, IndexConstants.IS_READ_WRITTEN_BY, MatchKind.READ_WRITE);
     requestor.add(parameter, IndexConstants.IS_WRITTEN_BY, MatchKind.WRITE);
     requestor.add(
-        parameter,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
+        parameter, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     requestor.add(
-        parameter,
-        IndexConstants.IS_INVOKED_BY,
-        MatchKind.INVOCATION);
+        parameter, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     return requestor.merge();
   }
 }
-
 
 class _Requestor {
   final List<Future<List<SearchMatch>>> futures = <Future<List<SearchMatch>>>[];
@@ -221,13 +204,9 @@ class _Requestor {
     Future matchesFuture = relationsFuture.then((List<Location> locations) {
       List<SearchMatch> matches = <SearchMatch>[];
       for (Location location in locations) {
-        matches.add(
-            new SearchMatch(
-                kind,
-                location.element,
-                new SourceRange(location.offset, location.length),
-                location.isResolved,
-                location.isQualified));
+        matches.add(new SearchMatch(kind, location.element,
+            new SourceRange(location.offset, location.length),
+            location.isResolved, location.isQualified));
       }
       return matches;
     });

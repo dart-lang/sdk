@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * A visitor for visiting [AstNode]s covered by a selection [SourceRange].
  */
@@ -101,14 +100,12 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
   /**
    * Notifies that selection ends in given [AstNode].
    */
-  void handleSelectionEndsIn(AstNode node) {
-  }
+  void handleSelectionEndsIn(AstNode node) {}
 
   /**
    * Notifies that selection starts in given [AstNode].
    */
-  void handleSelectionStartsIn(AstNode node) {
-  }
+  void handleSelectionStartsIn(AstNode node) {}
 
   /**
    * Resets selected nodes.

@@ -15,8 +15,8 @@ import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
 
-final GeneratedFile target =
-    new GeneratedFile('../../test/integration/protocol_matchers.dart', () {
+final GeneratedFile target = new GeneratedFile(
+    '../../test/integration/protocol_matchers.dart', () {
   CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
   return visitor.collectCode(visitor.visitApi);
 });
@@ -162,8 +162,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
       Iterable<TypeObjectField> requiredFields =
           typeObject.fields.where((TypeObjectField field) => !field.optional);
       outputObjectFields(requiredFields);
-      List<TypeObjectField> optionalFields =
-          typeObject.fields.where((TypeObjectField field) => field.optional).toList();
+      List<TypeObjectField> optionalFields = typeObject.fields
+          .where((TypeObjectField field) => field.optional)
+          .toList();
       if (optionalFields.isNotEmpty) {
         write(', optionalFields: ');
         outputObjectFields(optionalFields);

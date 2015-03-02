@@ -11,7 +11,6 @@ import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(ChangeTest);
@@ -21,7 +20,6 @@ main() {
   runReflectiveTests(LinkedEditSuggestionTest);
   runReflectiveTests(PositionTest);
 }
-
 
 @reflectiveTest
 class ChangeTest {
@@ -56,83 +54,67 @@ class ChangeTest {
   void test_toJson() {
     SourceChange change = new SourceChange('msg');
     change.addFileEdit(new SourceFileEdit('/a.dart', 1)
-        ..add(new SourceEdit(1, 2, 'aaa'))
-        ..add(new SourceEdit(10, 20, 'bbb')));
+      ..add(new SourceEdit(1, 2, 'aaa'))
+      ..add(new SourceEdit(10, 20, 'bbb')));
     change.addFileEdit(new SourceFileEdit('/b.dart', 2)
-        ..add(new SourceEdit(21, 22, 'xxx'))
-        ..add(new SourceEdit(210, 220, 'yyy')));
+      ..add(new SourceEdit(21, 22, 'xxx'))
+      ..add(new SourceEdit(210, 220, 'yyy')));
     {
       var group = new LinkedEditGroup.empty();
       change.addLinkedEditGroup(group
-          ..addPosition(new Position('/ga.dart', 1), 2)
-          ..addPosition(new Position('/ga.dart', 10), 2));
+        ..addPosition(new Position('/ga.dart', 1), 2)
+        ..addPosition(new Position('/ga.dart', 10), 2));
       group.addSuggestion(
           new LinkedEditSuggestion('AA', LinkedEditSuggestionKind.TYPE));
       group.addSuggestion(
           new LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE));
     }
     change.addLinkedEditGroup(new LinkedEditGroup.empty()
-        ..addPosition(new Position('/gb.dart', 10), 5)
-        ..addPosition(new Position('/gb.dart', 100), 5));
+      ..addPosition(new Position('/gb.dart', 10), 5)
+      ..addPosition(new Position('/gb.dart', 100), 5));
     change.selection = new Position('/selection.dart', 42);
     var expectedJson = {
       'message': 'msg',
-      'edits': [{
+      'edits': [
+        {
           'file': '/a.dart',
           'fileStamp': 1,
-          'edits': [{
-              'offset': 10,
-              'length': 20,
-              'replacement': 'bbb'
-            }, {
-              'offset': 1,
-              'length': 2,
-              'replacement': 'aaa'
-            }]
-        }, {
+          'edits': [
+            {'offset': 10, 'length': 20, 'replacement': 'bbb'},
+            {'offset': 1, 'length': 2, 'replacement': 'aaa'}
+          ]
+        },
+        {
           'file': '/b.dart',
           'fileStamp': 2,
-          'edits': [{
-              'offset': 210,
-              'length': 220,
-              'replacement': 'yyy'
-            }, {
-              'offset': 21,
-              'length': 22,
-              'replacement': 'xxx'
-            }]
-        }],
-      'linkedEditGroups': [{
+          'edits': [
+            {'offset': 210, 'length': 220, 'replacement': 'yyy'},
+            {'offset': 21, 'length': 22, 'replacement': 'xxx'}
+          ]
+        }
+      ],
+      'linkedEditGroups': [
+        {
           'length': 2,
-          'positions': [{
-              'file': '/ga.dart',
-              'offset': 1
-            }, {
-              'file': '/ga.dart',
-              'offset': 10
-            }],
-          'suggestions': [{
-              'kind': 'TYPE',
-              'value': 'AA'
-            }, {
-              'kind': 'TYPE',
-              'value': 'BB'
-            }]
-        }, {
+          'positions': [
+            {'file': '/ga.dart', 'offset': 1},
+            {'file': '/ga.dart', 'offset': 10}
+          ],
+          'suggestions': [
+            {'kind': 'TYPE', 'value': 'AA'},
+            {'kind': 'TYPE', 'value': 'BB'}
+          ]
+        },
+        {
           'length': 5,
-          'positions': [{
-              'file': '/gb.dart',
-              'offset': 10
-            }, {
-              'file': '/gb.dart',
-              'offset': 100
-            }],
+          'positions': [
+            {'file': '/gb.dart', 'offset': 10},
+            {'file': '/gb.dart', 'offset': 100}
+          ],
           'suggestions': []
-        }],
-      'selection': {
-        'file': '/selection.dart',
-        'offset': 42
-      }
+        }
+      ],
+      'selection': {'file': '/selection.dart', 'offset': 42}
     };
     expect(change.toJson(), expectedJson);
     // some toString()
@@ -140,15 +122,13 @@ class ChangeTest {
   }
 }
 
-
 @reflectiveTest
 class EditTest {
   void test_applySequence() {
     SourceEdit edit1 = new SourceEdit(5, 2, 'abc');
     SourceEdit edit2 = new SourceEdit(1, 0, '!');
     expect(
-        SourceEdit.applySequence('0123456789', [edit1, edit2]),
-        '0!1234abc789');
+        SourceEdit.applySequence('0123456789', [edit1, edit2]), '0!1234abc789');
   }
 
   void test_editFromRange() {
@@ -182,16 +162,10 @@ class EditTest {
   }
   void test_toJson() {
     SourceEdit edit = new SourceEdit(1, 2, 'foo');
-    var expectedJson = {
-      OFFSET: 1,
-      LENGTH: 2,
-      REPLACEMENT: 'foo'
-    };
+    var expectedJson = {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'foo'};
     expect(edit.toJson(), expectedJson);
   }
-
 }
-
 
 @reflectiveTest
 class FileEditTest {
@@ -222,11 +196,9 @@ class FileEditTest {
     SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 100);
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
-    expect(
-        fileEdit.toString(),
-        '{"file":"/test.dart","fileStamp":100,"edits":['
-            '{"offset":10,"length":20,"replacement":"bbb"},'
-            '{"offset":1,"length":2,"replacement":"aaa"}]}');
+    expect(fileEdit.toString(), '{"file":"/test.dart","fileStamp":100,"edits":['
+        '{"offset":10,"length":20,"replacement":"bbb"},'
+        '{"offset":1,"length":2,"replacement":"aaa"}]}');
   }
 
   void test_toJson() {
@@ -236,20 +208,14 @@ class FileEditTest {
     var expectedJson = {
       FILE: '/test.dart',
       FILE_STAMP: 100,
-      EDITS: [{
-          OFFSET: 10,
-          LENGTH: 20,
-          REPLACEMENT: 'bbb'
-        }, {
-          OFFSET: 1,
-          LENGTH: 2,
-          REPLACEMENT: 'aaa'
-        },]
+      EDITS: [
+        {OFFSET: 10, LENGTH: 20, REPLACEMENT: 'bbb'},
+        {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'aaa'},
+      ]
     };
     expect(fileEdit.toJson(), expectedJson);
   }
 }
-
 
 @reflectiveTest
 class LinkedEditGroupTest {
@@ -257,10 +223,8 @@ class LinkedEditGroupTest {
     LinkedEditGroup group = new LinkedEditGroup.empty();
     group.addPosition(new Position('/a.dart', 1), 2);
     group.addPosition(new Position('/b.dart', 10), 2);
-    expect(
-        group.toString(),
-        '{"positions":[' '{"file":"/a.dart","offset":1},'
-            '{"file":"/b.dart","offset":10}],"length":2,"suggestions":[]}');
+    expect(group.toString(), '{"positions":[' '{"file":"/a.dart","offset":1},'
+        '{"file":"/b.dart","offset":10}],"length":2,"suggestions":[]}');
   }
 
   void test_toJson() {
@@ -273,24 +237,17 @@ class LinkedEditGroupTest {
         new LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE));
     expect(group.toJson(), {
       'length': 2,
-      'positions': [{
-          'file': '/a.dart',
-          'offset': 1
-        }, {
-          'file': '/b.dart',
-          'offset': 10
-        }],
-      'suggestions': [{
-          'kind': 'TYPE',
-          'value': 'AA'
-        }, {
-          'kind': 'TYPE',
-          'value': 'BB'
-        }]
+      'positions': [
+        {'file': '/a.dart', 'offset': 1},
+        {'file': '/b.dart', 'offset': 10}
+      ],
+      'suggestions': [
+        {'kind': 'TYPE', 'value': 'AA'},
+        {'kind': 'TYPE', 'value': 'BB'}
+      ]
     });
   }
 }
-
 
 @reflectiveTest
 class LinkedEditSuggestionTest {
@@ -306,7 +263,6 @@ class LinkedEditSuggestionTest {
     expect(a == c, isFalse);
   }
 }
-
 
 @reflectiveTest
 class PositionTest {
@@ -334,10 +290,7 @@ class PositionTest {
 
   void test_toJson() {
     Position position = new Position('/test.dart', 1);
-    var expectedJson = {
-      FILE: '/test.dart',
-      OFFSET: 1
-    };
+    var expectedJson = {FILE: '/test.dart', OFFSET: 1};
     expect(position.toJson(), expectedJson);
   }
 }

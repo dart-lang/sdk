@@ -12,14 +12,12 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * Returns a new [SearchEngine] instance based on the given [Index].
  */
 SearchEngine createSearchEngine(Index index) {
   return new SearchEngineImpl(index);
 }
-
 
 /**
  * Instances of the enum [MatchKind] represent the kind of reference that was
@@ -63,7 +61,6 @@ class MatchKind {
   @override
   String toString() => name;
 }
-
 
 /**
  * The interface [SearchEngine] defines the behavior of objects that can be used

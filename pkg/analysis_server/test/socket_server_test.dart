@@ -20,15 +20,12 @@ import 'package:analysis_server/src/plugin/plugin_impl.dart';
 
 main() {
   group('SocketServer', () {
-    test(
-        'createAnalysisServer_successful',
+    test('createAnalysisServer_successful',
         SocketServerTest.createAnalysisServer_successful);
-    test(
-        'createAnalysisServer_alreadyStarted',
+    test('createAnalysisServer_alreadyStarted',
         SocketServerTest.createAnalysisServer_alreadyStarted);
     test('requestHandler_exception', SocketServerTest.requestHandler_exception);
-    test(
-        'requestHandler_futureException',
+    test('requestHandler_futureException',
         SocketServerTest.requestHandler_futureException);
   });
 }
@@ -45,16 +42,14 @@ class SocketServerTest {
     channel2.expectMsgCount(responseCount: 1);
     expect(channel2.responsesReceived[0].id, equals(''));
     expect(channel2.responsesReceived[0].error, isNotNull);
-    expect(
-        channel2.responsesReceived[0].error.code,
+    expect(channel2.responsesReceived[0].error.code,
         equals(RequestErrorCode.SERVER_ALREADY_STARTED));
-    channel2.sendRequest(
-        new ServerShutdownParams().toRequest('0')).then((Response response) {
+    channel2.sendRequest(new ServerShutdownParams().toRequest('0')).then(
+        (Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
       expect(
-          response.error.code,
-          equals(RequestErrorCode.SERVER_ALREADY_STARTED));
+          response.error.code, equals(RequestErrorCode.SERVER_ALREADY_STARTED));
       channel2.expectMsgCount(responseCount: 2);
     });
   }
@@ -65,8 +60,8 @@ class SocketServerTest {
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(channel.notificationsReceived[0].event, SERVER_CONNECTED);
-    return channel.sendRequest(
-        new ServerShutdownParams().toRequest('0')).then((Response response) {
+    return channel.sendRequest(new ServerShutdownParams().toRequest('0')).then(
+        (Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNull);
       channel.expectMsgCount(responseCount: 1, notificationCount: 1);
@@ -112,11 +107,9 @@ class SocketServerTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([serverPlugin]);
-    return new SocketServer(
-          new AnalysisServerOptions(),
-          DirectoryBasedDartSdk.defaultSdk,
-          InstrumentationService.NULL_SERVICE,
-          serverPlugin);
+    return new SocketServer(new AnalysisServerOptions(),
+        DirectoryBasedDartSdk.defaultSdk, InstrumentationService.NULL_SERVICE,
+        serverPlugin);
   }
 }
 

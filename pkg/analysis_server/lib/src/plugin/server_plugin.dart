@@ -60,36 +60,31 @@ class ServerPlugin implements Plugin {
     if (domainExtensionPoint == null) {
       return <RequestHandler>[];
     }
-    return domainExtensionPoint.extensions.map(
-        (RequestHandlerFactory factory) => factory(server)).toList();
+    return domainExtensionPoint.extensions
+        .map((RequestHandlerFactory factory) => factory(server))
+        .toList();
   }
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    domainExtensionPoint =
-        registerExtensionPoint(DOMAIN_EXTENSION_POINT, _validateDomainExtension);
+    domainExtensionPoint = registerExtensionPoint(
+        DOMAIN_EXTENSION_POINT, _validateDomainExtension);
   }
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
     String domainId = Plugin.join(UNIQUE_IDENTIFIER, DOMAIN_EXTENSION_POINT);
     registerExtension(
-        domainId,
-        (AnalysisServer server) => new ServerDomainHandler(server));
+        domainId, (AnalysisServer server) => new ServerDomainHandler(server));
     registerExtension(
-        domainId,
-        (AnalysisServer server) => new AnalysisDomainHandler(server));
+        domainId, (AnalysisServer server) => new AnalysisDomainHandler(server));
     registerExtension(
-        domainId,
-        (AnalysisServer server) => new EditDomainHandler(server));
+        domainId, (AnalysisServer server) => new EditDomainHandler(server));
     registerExtension(
-        domainId,
-        (AnalysisServer server) => new SearchDomainHandler(server));
-    registerExtension(
-        domainId,
+        domainId, (AnalysisServer server) => new SearchDomainHandler(server));
+    registerExtension(domainId,
         (AnalysisServer server) => new CompletionDomainHandler(server));
-    registerExtension(
-        domainId,
+    registerExtension(domainId,
         (AnalysisServer server) => new ExecutionDomainHandler(server));
   }
 

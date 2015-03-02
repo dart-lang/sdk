@@ -6,7 +6,6 @@ library services.status;
 
 import 'package:analysis_server/src/protocol.dart';
 
-
 /**
  * An outcome of a condition checking operation.
  */
@@ -112,22 +111,16 @@ class RefactoringStatus {
    * Adds an ERROR problem with the given message and location.
    */
   void addError(String msg, [Location location]) {
-    _addProblem(
-        new RefactoringProblem(
-            RefactoringProblemSeverity.ERROR,
-            msg,
-            location: location));
+    _addProblem(new RefactoringProblem(RefactoringProblemSeverity.ERROR, msg,
+        location: location));
   }
 
   /**
    * Adds a FATAL problem with the given message and location.
    */
   void addFatalError(String msg, [Location location]) {
-    _addProblem(
-        new RefactoringProblem(
-            RefactoringProblemSeverity.FATAL,
-            msg,
-            location: location));
+    _addProblem(new RefactoringProblem(RefactoringProblemSeverity.FATAL, msg,
+        location: location));
   }
 
   /**
@@ -151,11 +144,8 @@ class RefactoringStatus {
    * Adds a WARNING problem with the given message and location.
    */
   void addWarning(String msg, [Location location]) {
-    _addProblem(
-        new RefactoringProblem(
-            RefactoringProblemSeverity.WARNING,
-            msg,
-            location: location));
+    _addProblem(new RefactoringProblem(RefactoringProblemSeverity.WARNING, msg,
+        location: location));
   }
 
   @override

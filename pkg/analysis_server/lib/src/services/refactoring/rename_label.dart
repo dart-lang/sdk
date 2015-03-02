@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-
 /**
  * A [Refactoring] for renaming [LabelElement]s.
  */

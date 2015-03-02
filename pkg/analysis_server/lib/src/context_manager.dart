@@ -19,18 +19,15 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
-
 /**
  * The name of `packages` folders.
  */
 const String PACKAGES_NAME = 'packages';
 
-
 /**
  * File name of pubspec files.
  */
 const String PUBSPEC_NAME = 'pubspec.yaml';
-
 
 /**
  * Class that maintains a mapping from included/excluded paths to a set of
@@ -188,9 +185,8 @@ abstract class ContextManager {
         includedFolders.add(resource);
       } else {
         // TODO(scheglov) implemented separate files analysis
-        throw new UnimplementedError(
-            '$path is not a folder. '
-                'Only support for folder analysis is implemented currently.');
+        throw new UnimplementedError('$path is not a folder. '
+            'Only support for folder analysis is implemented currently.');
       }
     }
     this.includedPaths = includedPaths;
@@ -252,8 +248,8 @@ abstract class ContextManager {
   /**
    * Called when the package map for a context has changed.
    */
-  void updateContextPackageUriResolver(Folder contextFolder,
-      UriResolver packageUriResolver);
+  void updateContextPackageUriResolver(
+      Folder contextFolder, UriResolver packageUriResolver);
 
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
@@ -273,8 +269,7 @@ abstract class ContextManager {
           continue;
         }
         // ignore if was not excluded
-        bool wasExcluded =
-            _isExcludedBy(oldExcludedPaths, path) &&
+        bool wasExcluded = _isExcludedBy(oldExcludedPaths, path) &&
             !_isExcludedBy(excludedPaths, path);
         if (!wasExcluded) {
           continue;
@@ -344,8 +339,7 @@ abstract class ContextManager {
         return null;
       }
       return new PackageMapUriResolver(
-          resourceProvider,
-          packageMapInfo.packageMap);
+          resourceProvider, packageMapInfo.packageMap);
       // TODO(paulberry): if any of the dependencies is outside of [folder],
       // we'll need to watch their parent folders as well.
     }
@@ -354,13 +348,10 @@ abstract class ContextManager {
   /**
    * Create a new empty context associated with [folder].
    */
-  _ContextInfo _createContext(Folder folder, File pubspecFile,
-      List<_ContextInfo> children) {
+  _ContextInfo _createContext(
+      Folder folder, File pubspecFile, List<_ContextInfo> children) {
     _ContextInfo info = new _ContextInfo(
-        folder,
-        pubspecFile,
-        children,
-        normalizedPackageRoots[folder.path]);
+        folder, pubspecFile, children, normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
@@ -415,8 +406,8 @@ abstract class ContextManager {
    * is the `pubspec.yaml` file contained in the folder. Add any sources that
    * are not included in one of the [children] to the context.
    */
-  _ContextInfo _createContextWithSources(Folder folder, File pubspecFile,
-      List<_ContextInfo> children) {
+  _ContextInfo _createContextWithSources(
+      Folder folder, File pubspecFile, List<_ContextInfo> children) {
     _ContextInfo info = _createContext(folder, pubspecFile, children);
     ChangeSet changeSet = new ChangeSet();
     _addSourceFiles(changeSet, folder, info);
@@ -469,9 +460,7 @@ abstract class ContextManager {
 
   void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
     _instrumentationService.logWatchEvent(
-        folder.path,
-        event.path,
-        event.type.toString());
+        folder.path, event.path, event.type.toString());
     String path = event.path;
     // maybe excluded globally
     if (_isExcluded(path)) {
