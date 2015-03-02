@@ -34,7 +34,6 @@ const String _jsNamedParameterName = r'opt$';
 class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
-  final String _libraryName;
 
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
@@ -48,8 +47,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules)
       : libraryInfo = libraryInfo,
-        rules = rules,
-        _libraryName = jsLibraryName(libraryInfo.library);
+        rules = rules;
 
   Element get currentLibrary => libraryInfo.library;
 
@@ -71,18 +69,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     // TODO(jmesserly): make these immutable in JS?
     for (var name in _exports) {
-      body.add(js.statement('#.# = #;', [_libraryName, name, name]));
+      body.add(js.statement('$_EXPORTS.# = #;', [name, name]));
     }
 
-    var name = _libraryName;
+    var name = jsLibraryName(libraryInfo.library);
     return new JS.Block([
       js.statement('var #;', name),
       js.statement('''
-        (function (#) {
+        (function ($_EXPORTS) {
           'use strict';
           #;
         })(# || (# = {}));
-      ''', [name, body, name, name])
+      ''', [body, name, name])
     ]);
   }
 
@@ -641,7 +639,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = node.name;
     if (e.enclosingElement is CompilationUnitElement &&
         (e.library != libraryInfo.library || _needsModuleGetter(e))) {
-      return js.call('#.#', [jsLibraryName(e.library), name]);
+      return js.call('#.#', [_libraryName(e.library), name]);
     } else if (currentClass != null && _needsImplicitThis(e)) {
       return js.call('this.#', name);
     }
@@ -671,7 +669,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     JS.Expression result;
     if (lib != currentLibrary && lib != null) {
-      result = js.call('#.#', [jsLibraryName(lib), name]);
+      result = js.call('#.#', [_libraryName(lib), name]);
     } else {
       result = new JS.VariableUse(name);
     }
@@ -954,7 +952,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   void _flushLazyFields(List<JS.Statement> body) {
-    var code = _emitLazyFields(_libraryName, _lazyFields);
+    var code = _emitLazyFields(_EXPORTS, _lazyFields);
     if (code != null) body.add(code);
     _lazyFields.clear();
   }
@@ -984,8 +982,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   void _flushLibraryProperties(List<JS.Statement> body) {
     if (_properties.isEmpty) return;
-    body.add(js.statement('dart.copyProperties(#, { # });', [
-      _libraryName,
+    body.add(js.statement('dart.copyProperties($_EXPORTS, { # });', [
       _properties.map(_emitTopLevelProperty)
     ]));
     _properties.clear();
@@ -1624,6 +1621,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   FunctionBody _functionBody(node) =>
       node is FunctionDeclaration ? node.functionExpression.body : node.body;
 
+  /// Choose a canonical name from the library element.
+  /// This never uses the library's name (the identifier in the `library`
+  /// declaration) as it doesn't have any meaningful rules enforced.
+  String _libraryName(LibraryElement library) {
+    if (library == libraryInfo.library) return _EXPORTS;
+    return jsLibraryName(library);
+  }
+
   String _maybeBindThis(node) {
     if (currentClass == null) return '';
     var visitor = _BindThisVisitor._instance;
@@ -1631,6 +1636,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     node.accept(visitor);
     return visitor._bindThis ? '.bind(this)' : '';
   }
+
+  /// The name for the library's exports inside itself.
+  /// This much be a constant because we interpolate it into template strings,
+  /// and otherwise it would break caching for them.
+  /// `exports` was chosen as the most similar to ES module patterns.
+  static const String _EXPORTS = 'exports';
 
   static bool _needsImplicitThis(Element e) =>
       e is PropertyAccessorElement && !e.variable.isStatic ||

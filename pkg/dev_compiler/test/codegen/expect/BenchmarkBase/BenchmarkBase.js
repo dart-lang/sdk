@@ -1,5 +1,5 @@
 var BenchmarkBase;
-(function(BenchmarkBase) {
+(function(exports) {
   'use strict';
   class Expect extends dart.Object {
     static equals(expected, actual) {
@@ -64,6 +64,6 @@ var BenchmarkBase;
     }
   }
   // Exports:
-  BenchmarkBase.Expect = Expect;
-  BenchmarkBase.BenchmarkBase = BenchmarkBase;
+  exports.Expect = Expect;
+  exports.BenchmarkBase = BenchmarkBase;
 })(BenchmarkBase || (BenchmarkBase = {}));

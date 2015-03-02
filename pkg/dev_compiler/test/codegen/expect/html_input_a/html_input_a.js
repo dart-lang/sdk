@@ -1,5 +1,5 @@
 var html_input_a;
-(function(html_input_a) {
+(function(exports) {
   'use strict';
   // Function main: () → dynamic
   function main() {
@@ -7,5 +7,5 @@ var html_input_a;
     core.print(`  ... ${html_input_d.fib(html_input_b.x + html_input_c.y)}`);
   }
   // Exports:
-  html_input_a.main = main;
+  exports.main = main;
 })(html_input_a || (html_input_a = {}));

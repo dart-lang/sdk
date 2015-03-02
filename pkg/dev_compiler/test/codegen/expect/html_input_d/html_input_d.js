@@ -1,5 +1,5 @@
 var html_input_d;
-(function(html_input_d) {
+(function(exports) {
   'use strict';
   // Function fib: (int) → int
   function fib(n) {
@@ -15,5 +15,5 @@ var html_input_d;
     return seen.get(n);
   }
   // Exports:
-  html_input_d.fib = fib;
+  exports.fib = fib;
 })(html_input_d || (html_input_d = {}));

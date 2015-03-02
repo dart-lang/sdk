@@ -1,5 +1,5 @@
 var _js_helper;
-(function(_js_helper) {
+(function(exports) {
   'use strict';
   class _Patch extends dart.Object {
     _Patch() {
@@ -1783,7 +1783,7 @@ var _js_helper;
   }
   // Function checkDeferredIsLoaded: (String, String) → void
   function checkDeferredIsLoaded(loadId, uri) {
-    if (!dart.notNull(_js_helper._loadedLibraries.contains(loadId))) {
+    if (!dart.notNull(exports._loadedLibraries.contains(loadId))) {
       throw new DeferredNotLoadedError(uri);
     }
   }
@@ -2236,7 +2236,7 @@ var _js_helper;
   function _loadLibraryWrapper(loadId) {
     return () => loadDeferredLibrary(loadId);
   }
-  dart.defineLazyProperties(_js_helper, {
+  dart.defineLazyProperties(exports, {
     get _loadingLibraries() {
       return dart.map();
     },
@@ -2244,7 +2244,7 @@ var _js_helper;
       return new core.Set();
     }
   });
-  _js_helper.deferredLoadHook = null;
+  exports.deferredLoadHook = null;
   // Function loadDeferredLibrary: (String) → Future<Null>
   function loadDeferredLibrary(loadId) {
     let urisMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.DEFERRED_LIBRARY_URIS, core.String));
@@ -2263,15 +2263,15 @@ var _js_helper;
         let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INITIALIZE_LOADED_HUNK, core.String));
         initializer(hashes.get(i));
       }
-      let updated = _js_helper._loadedLibraries.add(loadId);
-      if (dart.notNull(updated) && dart.notNull(_js_helper.deferredLoadHook !== null)) {
-        _js_helper.deferredLoadHook();
+      let updated = exports._loadedLibraries.add(loadId);
+      if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook !== null)) {
+        exports.deferredLoadHook();
       }
     }), async.Future$(core.Null));
   }
   // Function _loadHunk: (String) → Future<Null>
   function _loadHunk(hunkName) {
-    let future = _js_helper._loadingLibraries.get(hunkName);
+    let future = exports._loadingLibraries.get(hunkName);
     if (future !== null) {
       return dart.as(future.then((_) => null), async.Future$(core.Null));
     }
@@ -2279,7 +2279,7 @@ var _js_helper;
     let index = uri.lastIndexOf('/');
     uri = `${uri.substring(0, index + 1)}${hunkName}`;
     if (dart.notNull(Primitives.isJsshell) || dart.notNull(Primitives.isD8)) {
-      return _js_helper._loadingLibraries.set(hunkName, new async.Future(() => {
+      return exports._loadingLibraries.set(hunkName, new async.Future(() => {
         try {
           new Function(`load("${uri}")`)();
         } catch (error) {
@@ -2290,7 +2290,7 @@ var _js_helper;
         return null;
       }));
     } else if (_isolate_helper.isWorker()) {
-      return _js_helper._loadingLibraries.set(hunkName, new async.Future(() => {
+      return exports._loadingLibraries.set(hunkName, new async.Future(() => {
         let completer = new async.Completer();
         _isolate_helper.enterJsAsync();
         let leavingFuture = dart.as(completer.future.whenComplete(() => {
@@ -2325,7 +2325,7 @@ var _js_helper;
         return leavingFuture;
       }));
     }
-    return _js_helper._loadingLibraries.set(hunkName, new async.Future(() => {
+    return exports._loadingLibraries.set(hunkName, new async.Future(() => {
       let completer = new async.Completer();
       let script = document.createElement("script");
       script.type = "text/javascript";
@@ -2570,12 +2570,12 @@ var _js_helper;
   function getPropertyFromPrototype(object, name) {
     return Object.getPrototypeOf(object)[name];
   }
-  _js_helper.getTagFunction = null;
-  _js_helper.alternateTagFunction = null;
-  _js_helper.prototypeForTagFunction = null;
+  exports.getTagFunction = null;
+  exports.alternateTagFunction = null;
+  exports.prototypeForTagFunction = null;
   // Function toStringForNativeObject: (dynamic) → String
   function toStringForNativeObject(obj) {
-    let name = _js_helper.getTagFunction === null ? '<Unknown>' : dart.dinvokef(_js_helper.getTagFunction, obj);
+    let name = exports.getTagFunction === null ? '<Unknown>' : dart.dinvokef(exports.getTagFunction, obj);
     return `Instance of ${name}`;
   }
   // Function hashCodeForNativeObject: (dynamic) → int
@@ -2590,7 +2590,7 @@ var _js_helper;
   function isDartObject(obj) {
     return obj instanceof _foreign_helper.JS_DART_OBJECT_CONSTRUCTOR();
   }
-  dart.copyProperties(_js_helper, {
+  dart.copyProperties(exports, {
     get interceptorsByTag() {
       return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', dart.as(_js_embedded_names.INTERCEPTORS_BY_TAG, core.String));
     },
@@ -2602,11 +2602,11 @@ var _js_helper;
   function findDispatchTagForInterceptorClass(interceptorClassConstructor) {
     return dart.as(interceptorClassConstructor[_js_embedded_names.NATIVE_SUPERCLASS_TAG_NAME], core.String);
   }
-  _js_helper.dispatchRecordsForInstanceTags = null;
-  _js_helper.interceptorsForUncacheableTags = null;
+  exports.dispatchRecordsForInstanceTags = null;
+  exports.interceptorsForUncacheableTags = null;
   // Function lookupInterceptor: (String) → dynamic
   function lookupInterceptor(tag) {
-    return propertyGet(_js_helper.interceptorsByTag, tag);
+    return propertyGet(exports.interceptorsByTag, tag);
   }
   let UNCACHED_MARK = '~';
   let INSTANCE_CACHED_MARK = '!';
@@ -2616,21 +2616,21 @@ var _js_helper;
   // Function lookupAndCacheInterceptor: (dynamic) → dynamic
   function lookupAndCacheInterceptor(obj) {
     dart.assert(!dart.notNull(isDartObject(obj)));
-    let tag = dart.as(dart.dinvokef(_js_helper.getTagFunction, obj), core.String);
-    let record = propertyGet(_js_helper.dispatchRecordsForInstanceTags, tag);
+    let tag = dart.as(dart.dinvokef(exports.getTagFunction, obj), core.String);
+    let record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
     if (record !== null)
       return patchInstance(obj, record);
-    let interceptor = propertyGet(_js_helper.interceptorsForUncacheableTags, tag);
+    let interceptor = propertyGet(exports.interceptorsForUncacheableTags, tag);
     if (interceptor !== null)
       return interceptor;
     let interceptorClass = lookupInterceptor(tag);
     if (interceptorClass === null) {
-      tag = dart.as(dart.dinvokef(_js_helper.alternateTagFunction, obj, tag), core.String);
+      tag = dart.as(dart.dinvokef(exports.alternateTagFunction, obj, tag), core.String);
       if (tag !== null) {
-        record = propertyGet(_js_helper.dispatchRecordsForInstanceTags, tag);
+        record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
         if (record !== null)
           return patchInstance(obj, record);
-        interceptor = propertyGet(_js_helper.interceptorsForUncacheableTags, tag);
+        interceptor = propertyGet(exports.interceptorsForUncacheableTags, tag);
         if (interceptor !== null)
           return interceptor;
         interceptorClass = lookupInterceptor(tag);
@@ -2643,11 +2643,11 @@ var _js_helper;
     let mark = tag[0];
     if (dart.equals(mark, INSTANCE_CACHED_MARK)) {
       record = makeLeafDispatchRecord(interceptor);
-      propertySet(_js_helper.dispatchRecordsForInstanceTags, tag, record);
+      propertySet(exports.dispatchRecordsForInstanceTags, tag, record);
       return patchInstance(obj, record);
     }
     if (dart.equals(mark, UNCACHED_MARK)) {
-      propertySet(_js_helper.interceptorsForUncacheableTags, tag, interceptor);
+      propertySet(exports.interceptorsForUncacheableTags, tag, interceptor);
       return interceptor;
     }
     if (dart.equals(mark, LEAF_MARK)) {
@@ -2659,7 +2659,7 @@ var _js_helper;
     if (dart.equals(mark, DISCRIMINATED_MARK)) {
       throw new core.UnimplementedError(tag);
     }
-    let isLeaf = _js_helper.leafTags[tag] === true;
+    let isLeaf = exports.leafTags[tag] === true;
     if (isLeaf) {
       return patchProto(obj, makeLeafDispatchRecord(interceptor));
     } else {
@@ -2692,7 +2692,7 @@ var _js_helper;
   // Function makeDefaultDispatchRecord: (dynamic, dynamic, dynamic) → dynamic
   function makeDefaultDispatchRecord(tag, interceptorClass, proto) {
     let interceptor = interceptorClass.prototype;
-    let isLeaf = _js_helper.leafTags[tag] === true;
+    let isLeaf = exports.leafTags[tag] === true;
     if (isLeaf) {
       return makeLeafDispatchRecord(interceptor);
     } else {
@@ -2707,20 +2707,20 @@ var _js_helper;
   function constructorNameFallback(object) {
     return _constructorNameFallback(object);
   }
-  _js_helper.initNativeDispatchFlag = null;
+  exports.initNativeDispatchFlag = null;
   // Function initNativeDispatch: () → void
   function initNativeDispatch() {
-    if (true === _js_helper.initNativeDispatchFlag)
+    if (true === exports.initNativeDispatchFlag)
       return;
-    _js_helper.initNativeDispatchFlag = true;
+    exports.initNativeDispatchFlag = true;
     initNativeDispatchContinue();
   }
   // Function initNativeDispatchContinue: () → void
   function initNativeDispatchContinue() {
-    _js_helper.dispatchRecordsForInstanceTags = Object.create(null);
-    _js_helper.interceptorsForUncacheableTags = Object.create(null);
+    exports.dispatchRecordsForInstanceTags = Object.create(null);
+    exports.interceptorsForUncacheableTags = Object.create(null);
     initHooks();
-    let map = _js_helper.interceptorsByTag;
+    let map = exports.interceptorsByTag;
     let tags = Object.getOwnPropertyNames(map);
     if (typeof window != "undefined") {
       let context = window;
@@ -2728,7 +2728,7 @@ var _js_helper;
       };
       for (let i = 0; i['<'](dart.dload(tags, 'length')); i++) {
         let tag = dart.dindex(tags, i);
-        let proto = dart.dinvokef(_js_helper.prototypeForTagFunction, tag);
+        let proto = dart.dinvokef(exports.prototypeForTagFunction, tag);
         if (proto !== null) {
           let interceptorClass = map[tag];
           let record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
@@ -2779,9 +2779,9 @@ var _js_helper;
     let getTag = hooks.getTag;
     let getUnknownTag = hooks.getUnknownTag;
     let prototypeForTag = hooks.prototypeForTag;
-    _js_helper.getTagFunction = (o) => getTag(o);
-    _js_helper.alternateTagFunction = (o, tag) => getUnknownTag(o, tag);
-    _js_helper.prototypeForTagFunction = (tag) => prototypeForTag(tag);
+    exports.getTagFunction = (o) => getTag(o);
+    exports.alternateTagFunction = (o, tag) => getUnknownTag(o, tag);
+    exports.prototypeForTagFunction = (tag) => prototypeForTag(tag);
   }
   // Function applyHooksTransformer: (dynamic, dynamic) → dynamic
   function applyHooksTransformer(transformer, hooks) {
@@ -3661,234 +3661,234 @@ var _js_helper;
     return s !== t;
   }
   // Exports:
-  _js_helper.patch = patch;
-  _js_helper.InternalMap = InternalMap;
-  _js_helper.requiresPreamble = requiresPreamble;
-  _js_helper.isJsIndexable = isJsIndexable;
-  _js_helper.S = S;
-  _js_helper.createInvocationMirror = createInvocationMirror;
-  _js_helper.createUnmangledInvocationMirror = createUnmangledInvocationMirror;
-  _js_helper.throwInvalidReflectionError = throwInvalidReflectionError;
-  _js_helper.traceHelper = traceHelper;
-  _js_helper.JSInvocationMirror = JSInvocationMirror;
-  _js_helper.CachedInvocation = CachedInvocation;
-  _js_helper.CachedCatchAllInvocation = CachedCatchAllInvocation;
-  _js_helper.CachedNoSuchMethodInvocation = CachedNoSuchMethodInvocation;
-  _js_helper.ReflectionInfo = ReflectionInfo;
-  _js_helper.getMetadata = getMetadata;
-  _js_helper.Primitives = Primitives;
-  _js_helper.JsCache = JsCache;
-  _js_helper.iae = iae;
-  _js_helper.ioore = ioore;
-  _js_helper.stringLastIndexOfUnchecked = stringLastIndexOfUnchecked;
-  _js_helper.checkNull = checkNull;
-  _js_helper.checkNum = checkNum;
-  _js_helper.checkInt = checkInt;
-  _js_helper.checkBool = checkBool;
-  _js_helper.checkString = checkString;
-  _js_helper.wrapException = wrapException;
-  _js_helper.toStringWrapper = toStringWrapper;
-  _js_helper.throwExpression = throwExpression;
-  _js_helper.makeLiteralListConst = makeLiteralListConst;
-  _js_helper.throwRuntimeError = throwRuntimeError;
-  _js_helper.throwAbstractClassInstantiationError = throwAbstractClassInstantiationError;
-  _js_helper.TypeErrorDecoder = TypeErrorDecoder;
-  _js_helper.NullError = NullError;
-  _js_helper.JsNoSuchMethodError = JsNoSuchMethodError;
-  _js_helper.UnknownJsTypeError = UnknownJsTypeError;
-  _js_helper.unwrapException = unwrapException;
-  _js_helper.getTraceFromException = getTraceFromException;
-  _js_helper.objectHashCode = objectHashCode;
-  _js_helper.fillLiteralMap = fillLiteralMap;
-  _js_helper.invokeClosure = invokeClosure;
-  _js_helper.convertDartClosureToJS = convertDartClosureToJS;
-  _js_helper.Closure = Closure;
-  _js_helper.closureFromTearOff = closureFromTearOff;
-  _js_helper.TearOffClosure = TearOffClosure;
-  _js_helper.BoundClosure = BoundClosure;
-  _js_helper.jsHasOwnProperty = jsHasOwnProperty;
-  _js_helper.jsPropertyAccess = jsPropertyAccess;
-  _js_helper.getFallThroughError = getFallThroughError;
-  _js_helper.Creates = Creates;
-  _js_helper.Returns = Returns;
-  _js_helper.JSName = JSName;
-  _js_helper.boolConversionCheck = boolConversionCheck;
-  _js_helper.stringTypeCheck = stringTypeCheck;
-  _js_helper.stringTypeCast = stringTypeCast;
-  _js_helper.doubleTypeCheck = doubleTypeCheck;
-  _js_helper.doubleTypeCast = doubleTypeCast;
-  _js_helper.numTypeCheck = numTypeCheck;
-  _js_helper.numTypeCast = numTypeCast;
-  _js_helper.boolTypeCheck = boolTypeCheck;
-  _js_helper.boolTypeCast = boolTypeCast;
-  _js_helper.intTypeCheck = intTypeCheck;
-  _js_helper.intTypeCast = intTypeCast;
-  _js_helper.propertyTypeError = propertyTypeError;
-  _js_helper.propertyTypeCastError = propertyTypeCastError;
-  _js_helper.propertyTypeCheck = propertyTypeCheck;
-  _js_helper.propertyTypeCast = propertyTypeCast;
-  _js_helper.interceptedTypeCheck = interceptedTypeCheck;
-  _js_helper.interceptedTypeCast = interceptedTypeCast;
-  _js_helper.numberOrStringSuperTypeCheck = numberOrStringSuperTypeCheck;
-  _js_helper.numberOrStringSuperTypeCast = numberOrStringSuperTypeCast;
-  _js_helper.numberOrStringSuperNativeTypeCheck = numberOrStringSuperNativeTypeCheck;
-  _js_helper.numberOrStringSuperNativeTypeCast = numberOrStringSuperNativeTypeCast;
-  _js_helper.stringSuperTypeCheck = stringSuperTypeCheck;
-  _js_helper.stringSuperTypeCast = stringSuperTypeCast;
-  _js_helper.stringSuperNativeTypeCheck = stringSuperNativeTypeCheck;
-  _js_helper.stringSuperNativeTypeCast = stringSuperNativeTypeCast;
-  _js_helper.listTypeCheck = listTypeCheck;
-  _js_helper.listTypeCast = listTypeCast;
-  _js_helper.listSuperTypeCheck = listSuperTypeCheck;
-  _js_helper.listSuperTypeCast = listSuperTypeCast;
-  _js_helper.listSuperNativeTypeCheck = listSuperNativeTypeCheck;
-  _js_helper.listSuperNativeTypeCast = listSuperNativeTypeCast;
-  _js_helper.voidTypeCheck = voidTypeCheck;
-  _js_helper.checkMalformedType = checkMalformedType;
-  _js_helper.checkDeferredIsLoaded = checkDeferredIsLoaded;
-  _js_helper.JavaScriptIndexingBehavior = JavaScriptIndexingBehavior;
-  _js_helper.TypeErrorImplementation = TypeErrorImplementation;
-  _js_helper.CastErrorImplementation = CastErrorImplementation;
-  _js_helper.FallThroughErrorImplementation = FallThroughErrorImplementation;
-  _js_helper.assertHelper = assertHelper;
-  _js_helper.throwNoSuchMethod = throwNoSuchMethod;
-  _js_helper.throwCyclicInit = throwCyclicInit;
-  _js_helper.RuntimeError = RuntimeError;
-  _js_helper.DeferredNotLoadedError = DeferredNotLoadedError;
-  _js_helper.RuntimeType = RuntimeType;
-  _js_helper.RuntimeFunctionType = RuntimeFunctionType;
-  _js_helper.buildFunctionType = buildFunctionType;
-  _js_helper.buildNamedFunctionType = buildNamedFunctionType;
-  _js_helper.buildInterfaceType = buildInterfaceType;
-  _js_helper.DynamicRuntimeType = DynamicRuntimeType;
-  _js_helper.getDynamicRuntimeType = getDynamicRuntimeType;
-  _js_helper.VoidRuntimeType = VoidRuntimeType;
-  _js_helper.getVoidRuntimeType = getVoidRuntimeType;
-  _js_helper.functionTypeTestMetaHelper = functionTypeTestMetaHelper;
-  _js_helper.convertRtiToRuntimeType = convertRtiToRuntimeType;
-  _js_helper.RuntimeTypePlain = RuntimeTypePlain;
-  _js_helper.RuntimeTypeGeneric = RuntimeTypeGeneric;
-  _js_helper.FunctionTypeInfoDecoderRing = FunctionTypeInfoDecoderRing;
-  _js_helper.UnimplementedNoSuchMethodError = UnimplementedNoSuchMethodError;
-  _js_helper.random64 = random64;
-  _js_helper.jsonEncodeNative = jsonEncodeNative;
-  _js_helper.getIsolateAffinityTag = getIsolateAffinityTag;
-  _js_helper.loadDeferredLibrary = loadDeferredLibrary;
-  _js_helper.MainError = MainError;
-  _js_helper.missingMain = missingMain;
-  _js_helper.badMain = badMain;
-  _js_helper.mainHasTooManyParameters = mainHasTooManyParameters;
-  _js_helper.NoSideEffects = NoSideEffects;
-  _js_helper.NoThrows = NoThrows;
-  _js_helper.NoInline = NoInline;
-  _js_helper.IrRepresentation = IrRepresentation;
-  _js_helper.Native = Native;
-  _js_helper.ConstantMap = ConstantMap;
-  _js_helper.ConstantMap$ = ConstantMap$;
-  _js_helper.ConstantStringMap = ConstantStringMap;
-  _js_helper.ConstantStringMap$ = ConstantStringMap$;
-  _js_helper.ConstantProtoMap = ConstantProtoMap;
-  _js_helper.ConstantProtoMap$ = ConstantProtoMap$;
-  _js_helper.GeneralConstantMap = GeneralConstantMap;
-  _js_helper.GeneralConstantMap$ = GeneralConstantMap$;
-  _js_helper.contains = contains;
-  _js_helper.arrayLength = arrayLength;
-  _js_helper.arrayGet = arrayGet;
-  _js_helper.arraySet = arraySet;
-  _js_helper.propertyGet = propertyGet;
-  _js_helper.callHasOwnProperty = callHasOwnProperty;
-  _js_helper.propertySet = propertySet;
-  _js_helper.getPropertyFromPrototype = getPropertyFromPrototype;
-  _js_helper.toStringForNativeObject = toStringForNativeObject;
-  _js_helper.hashCodeForNativeObject = hashCodeForNativeObject;
-  _js_helper.defineProperty = defineProperty;
-  _js_helper.isDartObject = isDartObject;
-  _js_helper.interceptorsByTag = interceptorsByTag;
-  _js_helper.leafTags = leafTags;
-  _js_helper.findDispatchTagForInterceptorClass = findDispatchTagForInterceptorClass;
-  _js_helper.lookupInterceptor = lookupInterceptor;
-  _js_helper.UNCACHED_MARK = UNCACHED_MARK;
-  _js_helper.INSTANCE_CACHED_MARK = INSTANCE_CACHED_MARK;
-  _js_helper.LEAF_MARK = LEAF_MARK;
-  _js_helper.INTERIOR_MARK = INTERIOR_MARK;
-  _js_helper.DISCRIMINATED_MARK = DISCRIMINATED_MARK;
-  _js_helper.lookupAndCacheInterceptor = lookupAndCacheInterceptor;
-  _js_helper.patchInstance = patchInstance;
-  _js_helper.patchProto = patchProto;
-  _js_helper.patchInteriorProto = patchInteriorProto;
-  _js_helper.makeLeafDispatchRecord = makeLeafDispatchRecord;
-  _js_helper.makeDefaultDispatchRecord = makeDefaultDispatchRecord;
-  _js_helper.setNativeSubclassDispatchRecord = setNativeSubclassDispatchRecord;
-  _js_helper.constructorNameFallback = constructorNameFallback;
-  _js_helper.initNativeDispatch = initNativeDispatch;
-  _js_helper.initNativeDispatchContinue = initNativeDispatchContinue;
-  _js_helper.initHooks = initHooks;
-  _js_helper.applyHooksTransformer = applyHooksTransformer;
-  _js_helper.regExpGetNative = regExpGetNative;
-  _js_helper.regExpGetGlobalNative = regExpGetGlobalNative;
-  _js_helper.regExpCaptureCount = regExpCaptureCount;
-  _js_helper.JSSyntaxRegExp = JSSyntaxRegExp;
-  _js_helper.firstMatchAfter = firstMatchAfter;
-  _js_helper.StringMatch = StringMatch;
-  _js_helper.allMatchesInStringUnchecked = allMatchesInStringUnchecked;
-  _js_helper.stringContainsUnchecked = stringContainsUnchecked;
-  _js_helper.stringReplaceJS = stringReplaceJS;
-  _js_helper.stringReplaceFirstRE = stringReplaceFirstRE;
-  _js_helper.ESCAPE_REGEXP = ESCAPE_REGEXP;
-  _js_helper.stringReplaceAllUnchecked = stringReplaceAllUnchecked;
-  _js_helper.stringReplaceAllFuncUnchecked = stringReplaceAllFuncUnchecked;
-  _js_helper.stringReplaceAllEmptyFuncUnchecked = stringReplaceAllEmptyFuncUnchecked;
-  _js_helper.stringReplaceAllStringFuncUnchecked = stringReplaceAllStringFuncUnchecked;
-  _js_helper.stringReplaceFirstUnchecked = stringReplaceFirstUnchecked;
-  _js_helper.stringJoinUnchecked = stringJoinUnchecked;
-  _js_helper.createRuntimeType = createRuntimeType;
-  _js_helper.TypeImpl = TypeImpl;
-  _js_helper.TypeVariable = TypeVariable;
-  _js_helper.getMangledTypeName = getMangledTypeName;
-  _js_helper.setRuntimeTypeInfo = setRuntimeTypeInfo;
-  _js_helper.getRuntimeTypeInfo = getRuntimeTypeInfo;
-  _js_helper.getRuntimeTypeArguments = getRuntimeTypeArguments;
-  _js_helper.getRuntimeTypeArgument = getRuntimeTypeArgument;
-  _js_helper.getTypeArgumentByIndex = getTypeArgumentByIndex;
-  _js_helper.copyTypeArguments = copyTypeArguments;
-  _js_helper.getClassName = getClassName;
-  _js_helper.getRuntimeTypeAsString = getRuntimeTypeAsString;
-  _js_helper.getConstructorName = getConstructorName;
-  _js_helper.runtimeTypeToString = runtimeTypeToString;
-  _js_helper.joinArguments = joinArguments;
-  _js_helper.getRuntimeTypeString = getRuntimeTypeString;
-  _js_helper.getRuntimeType = getRuntimeType;
-  _js_helper.substitute = substitute;
-  _js_helper.checkSubtype = checkSubtype;
-  _js_helper.computeTypeName = computeTypeName;
-  _js_helper.subtypeCast = subtypeCast;
-  _js_helper.assertSubtype = assertSubtype;
-  _js_helper.assertIsSubtype = assertIsSubtype;
-  _js_helper.throwTypeError = throwTypeError;
-  _js_helper.checkArguments = checkArguments;
-  _js_helper.areSubtypes = areSubtypes;
-  _js_helper.computeSignature = computeSignature;
-  _js_helper.isSupertypeOfNull = isSupertypeOfNull;
-  _js_helper.checkSubtypeOfRuntimeType = checkSubtypeOfRuntimeType;
-  _js_helper.subtypeOfRuntimeTypeCast = subtypeOfRuntimeTypeCast;
-  _js_helper.assertSubtypeOfRuntimeType = assertSubtypeOfRuntimeType;
-  _js_helper.getArguments = getArguments;
-  _js_helper.isSubtype = isSubtype;
-  _js_helper.isAssignable = isAssignable;
-  _js_helper.areAssignable = areAssignable;
-  _js_helper.areAssignableMaps = areAssignableMaps;
-  _js_helper.isFunctionSubtype = isFunctionSubtype;
-  _js_helper.invoke = invoke;
-  _js_helper.invokeOn = invokeOn;
-  _js_helper.call = call;
-  _js_helper.getField = getField;
-  _js_helper.getIndex = getIndex;
-  _js_helper.getLength = getLength;
-  _js_helper.isJsArray = isJsArray;
-  _js_helper.hasField = hasField;
-  _js_helper.hasNoField = hasNoField;
-  _js_helper.isJsFunction = isJsFunction;
-  _js_helper.isJsObject = isJsObject;
-  _js_helper.isIdentical = isIdentical;
-  _js_helper.isNotIdentical = isNotIdentical;
+  exports.patch = patch;
+  exports.InternalMap = InternalMap;
+  exports.requiresPreamble = requiresPreamble;
+  exports.isJsIndexable = isJsIndexable;
+  exports.S = S;
+  exports.createInvocationMirror = createInvocationMirror;
+  exports.createUnmangledInvocationMirror = createUnmangledInvocationMirror;
+  exports.throwInvalidReflectionError = throwInvalidReflectionError;
+  exports.traceHelper = traceHelper;
+  exports.JSInvocationMirror = JSInvocationMirror;
+  exports.CachedInvocation = CachedInvocation;
+  exports.CachedCatchAllInvocation = CachedCatchAllInvocation;
+  exports.CachedNoSuchMethodInvocation = CachedNoSuchMethodInvocation;
+  exports.ReflectionInfo = ReflectionInfo;
+  exports.getMetadata = getMetadata;
+  exports.Primitives = Primitives;
+  exports.JsCache = JsCache;
+  exports.iae = iae;
+  exports.ioore = ioore;
+  exports.stringLastIndexOfUnchecked = stringLastIndexOfUnchecked;
+  exports.checkNull = checkNull;
+  exports.checkNum = checkNum;
+  exports.checkInt = checkInt;
+  exports.checkBool = checkBool;
+  exports.checkString = checkString;
+  exports.wrapException = wrapException;
+  exports.toStringWrapper = toStringWrapper;
+  exports.throwExpression = throwExpression;
+  exports.makeLiteralListConst = makeLiteralListConst;
+  exports.throwRuntimeError = throwRuntimeError;
+  exports.throwAbstractClassInstantiationError = throwAbstractClassInstantiationError;
+  exports.TypeErrorDecoder = TypeErrorDecoder;
+  exports.NullError = NullError;
+  exports.JsNoSuchMethodError = JsNoSuchMethodError;
+  exports.UnknownJsTypeError = UnknownJsTypeError;
+  exports.unwrapException = unwrapException;
+  exports.getTraceFromException = getTraceFromException;
+  exports.objectHashCode = objectHashCode;
+  exports.fillLiteralMap = fillLiteralMap;
+  exports.invokeClosure = invokeClosure;
+  exports.convertDartClosureToJS = convertDartClosureToJS;
+  exports.Closure = Closure;
+  exports.closureFromTearOff = closureFromTearOff;
+  exports.TearOffClosure = TearOffClosure;
+  exports.BoundClosure = BoundClosure;
+  exports.jsHasOwnProperty = jsHasOwnProperty;
+  exports.jsPropertyAccess = jsPropertyAccess;
+  exports.getFallThroughError = getFallThroughError;
+  exports.Creates = Creates;
+  exports.Returns = Returns;
+  exports.JSName = JSName;
+  exports.boolConversionCheck = boolConversionCheck;
+  exports.stringTypeCheck = stringTypeCheck;
+  exports.stringTypeCast = stringTypeCast;
+  exports.doubleTypeCheck = doubleTypeCheck;
+  exports.doubleTypeCast = doubleTypeCast;
+  exports.numTypeCheck = numTypeCheck;
+  exports.numTypeCast = numTypeCast;
+  exports.boolTypeCheck = boolTypeCheck;
+  exports.boolTypeCast = boolTypeCast;
+  exports.intTypeCheck = intTypeCheck;
+  exports.intTypeCast = intTypeCast;
+  exports.propertyTypeError = propertyTypeError;
+  exports.propertyTypeCastError = propertyTypeCastError;
+  exports.propertyTypeCheck = propertyTypeCheck;
+  exports.propertyTypeCast = propertyTypeCast;
+  exports.interceptedTypeCheck = interceptedTypeCheck;
+  exports.interceptedTypeCast = interceptedTypeCast;
+  exports.numberOrStringSuperTypeCheck = numberOrStringSuperTypeCheck;
+  exports.numberOrStringSuperTypeCast = numberOrStringSuperTypeCast;
+  exports.numberOrStringSuperNativeTypeCheck = numberOrStringSuperNativeTypeCheck;
+  exports.numberOrStringSuperNativeTypeCast = numberOrStringSuperNativeTypeCast;
+  exports.stringSuperTypeCheck = stringSuperTypeCheck;
+  exports.stringSuperTypeCast = stringSuperTypeCast;
+  exports.stringSuperNativeTypeCheck = stringSuperNativeTypeCheck;
+  exports.stringSuperNativeTypeCast = stringSuperNativeTypeCast;
+  exports.listTypeCheck = listTypeCheck;
+  exports.listTypeCast = listTypeCast;
+  exports.listSuperTypeCheck = listSuperTypeCheck;
+  exports.listSuperTypeCast = listSuperTypeCast;
+  exports.listSuperNativeTypeCheck = listSuperNativeTypeCheck;
+  exports.listSuperNativeTypeCast = listSuperNativeTypeCast;
+  exports.voidTypeCheck = voidTypeCheck;
+  exports.checkMalformedType = checkMalformedType;
+  exports.checkDeferredIsLoaded = checkDeferredIsLoaded;
+  exports.JavaScriptIndexingBehavior = JavaScriptIndexingBehavior;
+  exports.TypeErrorImplementation = TypeErrorImplementation;
+  exports.CastErrorImplementation = CastErrorImplementation;
+  exports.FallThroughErrorImplementation = FallThroughErrorImplementation;
+  exports.assertHelper = assertHelper;
+  exports.throwNoSuchMethod = throwNoSuchMethod;
+  exports.throwCyclicInit = throwCyclicInit;
+  exports.RuntimeError = RuntimeError;
+  exports.DeferredNotLoadedError = DeferredNotLoadedError;
+  exports.RuntimeType = RuntimeType;
+  exports.RuntimeFunctionType = RuntimeFunctionType;
+  exports.buildFunctionType = buildFunctionType;
+  exports.buildNamedFunctionType = buildNamedFunctionType;
+  exports.buildInterfaceType = buildInterfaceType;
+  exports.DynamicRuntimeType = DynamicRuntimeType;
+  exports.getDynamicRuntimeType = getDynamicRuntimeType;
+  exports.VoidRuntimeType = VoidRuntimeType;
+  exports.getVoidRuntimeType = getVoidRuntimeType;
+  exports.functionTypeTestMetaHelper = functionTypeTestMetaHelper;
+  exports.convertRtiToRuntimeType = convertRtiToRuntimeType;
+  exports.RuntimeTypePlain = RuntimeTypePlain;
+  exports.RuntimeTypeGeneric = RuntimeTypeGeneric;
+  exports.FunctionTypeInfoDecoderRing = FunctionTypeInfoDecoderRing;
+  exports.UnimplementedNoSuchMethodError = UnimplementedNoSuchMethodError;
+  exports.random64 = random64;
+  exports.jsonEncodeNative = jsonEncodeNative;
+  exports.getIsolateAffinityTag = getIsolateAffinityTag;
+  exports.loadDeferredLibrary = loadDeferredLibrary;
+  exports.MainError = MainError;
+  exports.missingMain = missingMain;
+  exports.badMain = badMain;
+  exports.mainHasTooManyParameters = mainHasTooManyParameters;
+  exports.NoSideEffects = NoSideEffects;
+  exports.NoThrows = NoThrows;
+  exports.NoInline = NoInline;
+  exports.IrRepresentation = IrRepresentation;
+  exports.Native = Native;
+  exports.ConstantMap = ConstantMap;
+  exports.ConstantMap$ = ConstantMap$;
+  exports.ConstantStringMap = ConstantStringMap;
+  exports.ConstantStringMap$ = ConstantStringMap$;
+  exports.ConstantProtoMap = ConstantProtoMap;
+  exports.ConstantProtoMap$ = ConstantProtoMap$;
+  exports.GeneralConstantMap = GeneralConstantMap;
+  exports.GeneralConstantMap$ = GeneralConstantMap$;
+  exports.contains = contains;
+  exports.arrayLength = arrayLength;
+  exports.arrayGet = arrayGet;
+  exports.arraySet = arraySet;
+  exports.propertyGet = propertyGet;
+  exports.callHasOwnProperty = callHasOwnProperty;
+  exports.propertySet = propertySet;
+  exports.getPropertyFromPrototype = getPropertyFromPrototype;
+  exports.toStringForNativeObject = toStringForNativeObject;
+  exports.hashCodeForNativeObject = hashCodeForNativeObject;
+  exports.defineProperty = defineProperty;
+  exports.isDartObject = isDartObject;
+  exports.interceptorsByTag = interceptorsByTag;
+  exports.leafTags = leafTags;
+  exports.findDispatchTagForInterceptorClass = findDispatchTagForInterceptorClass;
+  exports.lookupInterceptor = lookupInterceptor;
+  exports.UNCACHED_MARK = UNCACHED_MARK;
+  exports.INSTANCE_CACHED_MARK = INSTANCE_CACHED_MARK;
+  exports.LEAF_MARK = LEAF_MARK;
+  exports.INTERIOR_MARK = INTERIOR_MARK;
+  exports.DISCRIMINATED_MARK = DISCRIMINATED_MARK;
+  exports.lookupAndCacheInterceptor = lookupAndCacheInterceptor;
+  exports.patchInstance = patchInstance;
+  exports.patchProto = patchProto;
+  exports.patchInteriorProto = patchInteriorProto;
+  exports.makeLeafDispatchRecord = makeLeafDispatchRecord;
+  exports.makeDefaultDispatchRecord = makeDefaultDispatchRecord;
+  exports.setNativeSubclassDispatchRecord = setNativeSubclassDispatchRecord;
+  exports.constructorNameFallback = constructorNameFallback;
+  exports.initNativeDispatch = initNativeDispatch;
+  exports.initNativeDispatchContinue = initNativeDispatchContinue;
+  exports.initHooks = initHooks;
+  exports.applyHooksTransformer = applyHooksTransformer;
+  exports.regExpGetNative = regExpGetNative;
+  exports.regExpGetGlobalNative = regExpGetGlobalNative;
+  exports.regExpCaptureCount = regExpCaptureCount;
+  exports.JSSyntaxRegExp = JSSyntaxRegExp;
+  exports.firstMatchAfter = firstMatchAfter;
+  exports.StringMatch = StringMatch;
+  exports.allMatchesInStringUnchecked = allMatchesInStringUnchecked;
+  exports.stringContainsUnchecked = stringContainsUnchecked;
+  exports.stringReplaceJS = stringReplaceJS;
+  exports.stringReplaceFirstRE = stringReplaceFirstRE;
+  exports.ESCAPE_REGEXP = ESCAPE_REGEXP;
+  exports.stringReplaceAllUnchecked = stringReplaceAllUnchecked;
+  exports.stringReplaceAllFuncUnchecked = stringReplaceAllFuncUnchecked;
+  exports.stringReplaceAllEmptyFuncUnchecked = stringReplaceAllEmptyFuncUnchecked;
+  exports.stringReplaceAllStringFuncUnchecked = stringReplaceAllStringFuncUnchecked;
+  exports.stringReplaceFirstUnchecked = stringReplaceFirstUnchecked;
+  exports.stringJoinUnchecked = stringJoinUnchecked;
+  exports.createRuntimeType = createRuntimeType;
+  exports.TypeImpl = TypeImpl;
+  exports.TypeVariable = TypeVariable;
+  exports.getMangledTypeName = getMangledTypeName;
+  exports.setRuntimeTypeInfo = setRuntimeTypeInfo;
+  exports.getRuntimeTypeInfo = getRuntimeTypeInfo;
+  exports.getRuntimeTypeArguments = getRuntimeTypeArguments;
+  exports.getRuntimeTypeArgument = getRuntimeTypeArgument;
+  exports.getTypeArgumentByIndex = getTypeArgumentByIndex;
+  exports.copyTypeArguments = copyTypeArguments;
+  exports.getClassName = getClassName;
+  exports.getRuntimeTypeAsString = getRuntimeTypeAsString;
+  exports.getConstructorName = getConstructorName;
+  exports.runtimeTypeToString = runtimeTypeToString;
+  exports.joinArguments = joinArguments;
+  exports.getRuntimeTypeString = getRuntimeTypeString;
+  exports.getRuntimeType = getRuntimeType;
+  exports.substitute = substitute;
+  exports.checkSubtype = checkSubtype;
+  exports.computeTypeName = computeTypeName;
+  exports.subtypeCast = subtypeCast;
+  exports.assertSubtype = assertSubtype;
+  exports.assertIsSubtype = assertIsSubtype;
+  exports.throwTypeError = throwTypeError;
+  exports.checkArguments = checkArguments;
+  exports.areSubtypes = areSubtypes;
+  exports.computeSignature = computeSignature;
+  exports.isSupertypeOfNull = isSupertypeOfNull;
+  exports.checkSubtypeOfRuntimeType = checkSubtypeOfRuntimeType;
+  exports.subtypeOfRuntimeTypeCast = subtypeOfRuntimeTypeCast;
+  exports.assertSubtypeOfRuntimeType = assertSubtypeOfRuntimeType;
+  exports.getArguments = getArguments;
+  exports.isSubtype = isSubtype;
+  exports.isAssignable = isAssignable;
+  exports.areAssignable = areAssignable;
+  exports.areAssignableMaps = areAssignableMaps;
+  exports.isFunctionSubtype = isFunctionSubtype;
+  exports.invoke = invoke;
+  exports.invokeOn = invokeOn;
+  exports.call = call;
+  exports.getField = getField;
+  exports.getIndex = getIndex;
+  exports.getLength = getLength;
+  exports.isJsArray = isJsArray;
+  exports.hasField = hasField;
+  exports.hasNoField = hasNoField;
+  exports.isJsFunction = isJsFunction;
+  exports.isJsObject = isJsObject;
+  exports.isIdentical = isIdentical;
+  exports.isNotIdentical = isNotIdentical;
 })(_js_helper || (_js_helper = {}));

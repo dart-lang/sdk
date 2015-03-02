@@ -1,5 +1,5 @@
 var typed_data;
-(function(typed_data) {
+(function(exports) {
   'use strict';
   class ByteBuffer extends dart.Object {
   }
@@ -847,25 +847,25 @@ var typed_data;
   dart.defineNamedConstructor(Float64x2, 'zero');
   dart.defineNamedConstructor(Float64x2, 'fromFloat32x4');
   // Exports:
-  typed_data.ByteBuffer = ByteBuffer;
-  typed_data.TypedData = TypedData;
-  typed_data.Endianness = Endianness;
-  typed_data.ByteData = ByteData;
-  typed_data.Int8List = Int8List;
-  typed_data.Uint8List = Uint8List;
-  typed_data.Uint8ClampedList = Uint8ClampedList;
-  typed_data.Int16List = Int16List;
-  typed_data.Uint16List = Uint16List;
-  typed_data.Int32List = Int32List;
-  typed_data.Uint32List = Uint32List;
-  typed_data.Int64List = Int64List;
-  typed_data.Uint64List = Uint64List;
-  typed_data.Float32List = Float32List;
-  typed_data.Float64List = Float64List;
-  typed_data.Float32x4List = Float32x4List;
-  typed_data.Int32x4List = Int32x4List;
-  typed_data.Float64x2List = Float64x2List;
-  typed_data.Float32x4 = Float32x4;
-  typed_data.Int32x4 = Int32x4;
-  typed_data.Float64x2 = Float64x2;
+  exports.ByteBuffer = ByteBuffer;
+  exports.TypedData = TypedData;
+  exports.Endianness = Endianness;
+  exports.ByteData = ByteData;
+  exports.Int8List = Int8List;
+  exports.Uint8List = Uint8List;
+  exports.Uint8ClampedList = Uint8ClampedList;
+  exports.Int16List = Int16List;
+  exports.Uint16List = Uint16List;
+  exports.Int32List = Int32List;
+  exports.Uint32List = Uint32List;
+  exports.Int64List = Int64List;
+  exports.Uint64List = Uint64List;
+  exports.Float32List = Float32List;
+  exports.Float64List = Float64List;
+  exports.Float32x4List = Float32x4List;
+  exports.Int32x4List = Int32x4List;
+  exports.Float64x2List = Float64x2List;
+  exports.Float32x4 = Float32x4;
+  exports.Int32x4 = Int32x4;
+  exports.Float64x2 = Float64x2;
 })(typed_data || (typed_data = {}));

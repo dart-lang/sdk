@@ -1,21 +1,21 @@
 var _js_names;
-(function(_js_names) {
+(function(exports) {
   'use strict';
   // Function preserveNames: () → dynamic
   function preserveNames() {
   }
-  dart.defineLazyProperties(_js_names, {
+  dart.defineLazyProperties(exports, {
     get mangledNames() {
       return computeMangledNames(_foreign_helper.JS_EMBEDDED_GLOBAL('=Object', dart.as(_js_embedded_names.MANGLED_NAMES, core.String)), false);
     },
     get reflectiveNames() {
-      return computeReflectiveNames(_js_names.mangledNames);
+      return computeReflectiveNames(exports.mangledNames);
     },
     get mangledGlobalNames() {
       return computeMangledNames(_foreign_helper.JS_EMBEDDED_GLOBAL('=Object', dart.as(_js_embedded_names.MANGLED_GLOBAL_NAMES, core.String)), true);
     },
     get reflectiveGlobalNames() {
-      return computeReflectiveNames(_js_names.mangledGlobalNames);
+      return computeReflectiveNames(exports.mangledGlobalNames);
     }
   });
   // Function computeMangledNames: (dynamic, bool) → Map<String, String>
@@ -70,10 +70,10 @@ var _js_names;
     });
   }
   // Exports:
-  _js_names.preserveNames = preserveNames;
-  _js_names.computeMangledNames = computeMangledNames;
-  _js_names.computeReflectiveNames = computeReflectiveNames;
-  _js_names.extractKeys = extractKeys;
-  _js_names.unmangleGlobalNameIfPreservedAnyways = unmangleGlobalNameIfPreservedAnyways;
-  _js_names.unmangleAllIdentifiersIfPreservedAnyways = unmangleAllIdentifiersIfPreservedAnyways;
+  exports.preserveNames = preserveNames;
+  exports.computeMangledNames = computeMangledNames;
+  exports.computeReflectiveNames = computeReflectiveNames;
+  exports.extractKeys = extractKeys;
+  exports.unmangleGlobalNameIfPreservedAnyways = unmangleGlobalNameIfPreservedAnyways;
+  exports.unmangleAllIdentifiersIfPreservedAnyways = unmangleAllIdentifiersIfPreservedAnyways;
 })(_js_names || (_js_names = {}));

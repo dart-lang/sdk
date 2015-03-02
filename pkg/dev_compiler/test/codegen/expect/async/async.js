@@ -1,7 +1,7 @@
 var async;
-(function(async) {
+(function(exports) {
   'use strict';
-  dart.copyProperties(async, {
+  dart.copyProperties(exports, {
     get _hasDocument() {
       return dart.equals(typeof document, 'object');
     }
@@ -1258,61 +1258,61 @@ var async;
       this.next = null;
     }
   }
-  async._nextCallback = null;
-  async._lastCallback = null;
-  async._lastPriorityCallback = null;
-  async._isInCallbackLoop = false;
+  exports._nextCallback = null;
+  exports._lastCallback = null;
+  exports._lastPriorityCallback = null;
+  exports._isInCallbackLoop = false;
   // Function _asyncRunCallbackLoop: () → void
   function _asyncRunCallbackLoop() {
-    while (async._nextCallback !== null) {
-      async._lastPriorityCallback = null;
-      let entry = async._nextCallback;
-      async._nextCallback = entry.next;
-      if (async._nextCallback === null)
-        async._lastCallback = null;
+    while (exports._nextCallback !== null) {
+      exports._lastPriorityCallback = null;
+      let entry = exports._nextCallback;
+      exports._nextCallback = entry.next;
+      if (exports._nextCallback === null)
+        exports._lastCallback = null;
       entry.callback();
     }
   }
   // Function _asyncRunCallback: () → void
   function _asyncRunCallback() {
-    async._isInCallbackLoop = true;
+    exports._isInCallbackLoop = true;
     try {
       _asyncRunCallbackLoop();
     } finally {
-      async._lastPriorityCallback = null;
-      async._isInCallbackLoop = false;
-      if (async._nextCallback !== null)
+      exports._lastPriorityCallback = null;
+      exports._isInCallbackLoop = false;
+      if (exports._nextCallback !== null)
         _AsyncRun._scheduleImmediate(_asyncRunCallback);
     }
   }
   // Function _scheduleAsyncCallback: (dynamic) → void
   function _scheduleAsyncCallback(callback) {
-    if (async._nextCallback === null) {
-      async._nextCallback = async._lastCallback = new _AsyncCallbackEntry(dart.as(callback, _AsyncCallback));
-      if (!dart.notNull(async._isInCallbackLoop)) {
+    if (exports._nextCallback === null) {
+      exports._nextCallback = exports._lastCallback = new _AsyncCallbackEntry(dart.as(callback, _AsyncCallback));
+      if (!dart.notNull(exports._isInCallbackLoop)) {
         _AsyncRun._scheduleImmediate(_asyncRunCallback);
       }
     } else {
       let newEntry = new _AsyncCallbackEntry(dart.as(callback, _AsyncCallback));
-      async._lastCallback.next = newEntry;
-      async._lastCallback = newEntry;
+      exports._lastCallback.next = newEntry;
+      exports._lastCallback = newEntry;
     }
   }
   // Function _schedulePriorityAsyncCallback: (dynamic) → void
   function _schedulePriorityAsyncCallback(callback) {
     let entry = new _AsyncCallbackEntry(dart.as(callback, _AsyncCallback));
-    if (async._nextCallback === null) {
+    if (exports._nextCallback === null) {
       _scheduleAsyncCallback(callback);
-      async._lastPriorityCallback = async._lastCallback;
-    } else if (async._lastPriorityCallback === null) {
-      entry.next = async._nextCallback;
-      async._nextCallback = async._lastPriorityCallback = entry;
+      exports._lastPriorityCallback = exports._lastCallback;
+    } else if (exports._lastPriorityCallback === null) {
+      entry.next = exports._nextCallback;
+      exports._nextCallback = exports._lastPriorityCallback = entry;
     } else {
-      entry.next = async._lastPriorityCallback.next;
-      async._lastPriorityCallback.next = entry;
-      async._lastPriorityCallback = entry;
+      entry.next = exports._lastPriorityCallback.next;
+      exports._lastPriorityCallback.next = entry;
+      exports._lastPriorityCallback = entry;
       if (entry.next === null) {
-        async._lastCallback = entry;
+        exports._lastCallback = entry;
       }
     }
   }
@@ -4755,36 +4755,36 @@ var async;
     }
   }
   // Exports:
-  async.DeferredLibrary = DeferredLibrary;
-  async.DeferredLoadException = DeferredLoadException;
-  async.Future = Future;
-  async.Future$ = Future$;
-  async.TimeoutException = TimeoutException;
-  async.Completer = Completer;
-  async.Completer$ = Completer$;
-  async.scheduleMicrotask = scheduleMicrotask;
-  async.Stream = Stream;
-  async.Stream$ = Stream$;
-  async.StreamSubscription = StreamSubscription;
-  async.StreamSubscription$ = StreamSubscription$;
-  async.EventSink = EventSink;
-  async.EventSink$ = EventSink$;
-  async.StreamView = StreamView;
-  async.StreamView$ = StreamView$;
-  async.StreamConsumer = StreamConsumer;
-  async.StreamConsumer$ = StreamConsumer$;
-  async.StreamSink = StreamSink;
-  async.StreamSink$ = StreamSink$;
-  async.StreamTransformer = StreamTransformer;
-  async.StreamTransformer$ = StreamTransformer$;
-  async.StreamIterator = StreamIterator;
-  async.StreamIterator$ = StreamIterator$;
-  async.StreamController = StreamController;
-  async.StreamController$ = StreamController$;
-  async.Timer = Timer;
-  async.AsyncError = AsyncError;
-  async.ZoneSpecification = ZoneSpecification;
-  async.ZoneDelegate = ZoneDelegate;
-  async.Zone = Zone;
-  async.runZoned = runZoned;
+  exports.DeferredLibrary = DeferredLibrary;
+  exports.DeferredLoadException = DeferredLoadException;
+  exports.Future = Future;
+  exports.Future$ = Future$;
+  exports.TimeoutException = TimeoutException;
+  exports.Completer = Completer;
+  exports.Completer$ = Completer$;
+  exports.scheduleMicrotask = scheduleMicrotask;
+  exports.Stream = Stream;
+  exports.Stream$ = Stream$;
+  exports.StreamSubscription = StreamSubscription;
+  exports.StreamSubscription$ = StreamSubscription$;
+  exports.EventSink = EventSink;
+  exports.EventSink$ = EventSink$;
+  exports.StreamView = StreamView;
+  exports.StreamView$ = StreamView$;
+  exports.StreamConsumer = StreamConsumer;
+  exports.StreamConsumer$ = StreamConsumer$;
+  exports.StreamSink = StreamSink;
+  exports.StreamSink$ = StreamSink$;
+  exports.StreamTransformer = StreamTransformer;
+  exports.StreamTransformer$ = StreamTransformer$;
+  exports.StreamIterator = StreamIterator;
+  exports.StreamIterator$ = StreamIterator$;
+  exports.StreamController = StreamController;
+  exports.StreamController$ = StreamController$;
+  exports.Timer = Timer;
+  exports.AsyncError = AsyncError;
+  exports.ZoneSpecification = ZoneSpecification;
+  exports.ZoneDelegate = ZoneDelegate;
+  exports.Zone = Zone;
+  exports.runZoned = runZoned;
 })(async || (async = {}));

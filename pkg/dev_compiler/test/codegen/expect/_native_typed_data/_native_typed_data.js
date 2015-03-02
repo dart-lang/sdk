@@ -1,5 +1,5 @@
 var _native_typed_data;
-(function(_native_typed_data) {
+(function(exports) {
   'use strict';
   class NativeByteBuffer extends dart.Object {
     NativeByteBuffer() {
@@ -1491,25 +1491,25 @@ var _native_typed_data;
     set _uint32View() {}
   });
   // Exports:
-  _native_typed_data.NativeByteBuffer = NativeByteBuffer;
-  _native_typed_data.NativeFloat32x4List = NativeFloat32x4List;
-  _native_typed_data.NativeInt32x4List = NativeInt32x4List;
-  _native_typed_data.NativeFloat64x2List = NativeFloat64x2List;
-  _native_typed_data.NativeTypedData = NativeTypedData;
-  _native_typed_data.NativeByteData = NativeByteData;
-  _native_typed_data.NativeTypedArray = NativeTypedArray;
-  _native_typed_data.NativeTypedArrayOfDouble = NativeTypedArrayOfDouble;
-  _native_typed_data.NativeTypedArrayOfInt = NativeTypedArrayOfInt;
-  _native_typed_data.NativeFloat32List = NativeFloat32List;
-  _native_typed_data.NativeFloat64List = NativeFloat64List;
-  _native_typed_data.NativeInt16List = NativeInt16List;
-  _native_typed_data.NativeInt32List = NativeInt32List;
-  _native_typed_data.NativeInt8List = NativeInt8List;
-  _native_typed_data.NativeUint16List = NativeUint16List;
-  _native_typed_data.NativeUint32List = NativeUint32List;
-  _native_typed_data.NativeUint8ClampedList = NativeUint8ClampedList;
-  _native_typed_data.NativeUint8List = NativeUint8List;
-  _native_typed_data.NativeFloat32x4 = NativeFloat32x4;
-  _native_typed_data.NativeInt32x4 = NativeInt32x4;
-  _native_typed_data.NativeFloat64x2 = NativeFloat64x2;
+  exports.NativeByteBuffer = NativeByteBuffer;
+  exports.NativeFloat32x4List = NativeFloat32x4List;
+  exports.NativeInt32x4List = NativeInt32x4List;
+  exports.NativeFloat64x2List = NativeFloat64x2List;
+  exports.NativeTypedData = NativeTypedData;
+  exports.NativeByteData = NativeByteData;
+  exports.NativeTypedArray = NativeTypedArray;
+  exports.NativeTypedArrayOfDouble = NativeTypedArrayOfDouble;
+  exports.NativeTypedArrayOfInt = NativeTypedArrayOfInt;
+  exports.NativeFloat32List = NativeFloat32List;
+  exports.NativeFloat64List = NativeFloat64List;
+  exports.NativeInt16List = NativeInt16List;
+  exports.NativeInt32List = NativeInt32List;
+  exports.NativeInt8List = NativeInt8List;
+  exports.NativeUint16List = NativeUint16List;
+  exports.NativeUint32List = NativeUint32List;
+  exports.NativeUint8ClampedList = NativeUint8ClampedList;
+  exports.NativeUint8List = NativeUint8List;
+  exports.NativeFloat32x4 = NativeFloat32x4;
+  exports.NativeInt32x4 = NativeInt32x4;
+  exports.NativeFloat64x2 = NativeFloat64x2;
 })(_native_typed_data || (_native_typed_data = {}));

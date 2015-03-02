@@ -1,28 +1,28 @@
 var _isolate_helper;
-(function(_isolate_helper) {
+(function(exports) {
   'use strict';
   // Function _callInIsolate: (_IsolateContext, Function) → dynamic
   function _callInIsolate(isolate, function) {
     let result = isolate.eval(function);
-    _isolate_helper._globalState.topEventLoop.run();
+    exports._globalState.topEventLoop.run();
     return result;
   }
   // Function enterJsAsync: () → dynamic
   function enterJsAsync() {
-    _isolate_helper._globalState.topEventLoop._activeJsAsyncCount++;
+    exports._globalState.topEventLoop._activeJsAsyncCount++;
   }
   // Function leaveJsAsync: () → dynamic
   function leaveJsAsync() {
-    _isolate_helper._globalState.topEventLoop._activeJsAsyncCount--;
-    dart.assert(_isolate_helper._globalState.topEventLoop._activeJsAsyncCount >= 0);
+    exports._globalState.topEventLoop._activeJsAsyncCount--;
+    dart.assert(exports._globalState.topEventLoop._activeJsAsyncCount >= 0);
   }
   // Function isWorker: () → bool
   function isWorker() {
-    return _isolate_helper._globalState.isWorker;
+    return exports._globalState.isWorker;
   }
   // Function _currentIsolate: () → _IsolateContext
   function _currentIsolate() {
-    return _isolate_helper._globalState.currentContext;
+    return exports._globalState.currentContext;
   }
   // Function startRootIsolate: (dynamic, dynamic) → void
   function startRootIsolate(entry, args) {
@@ -32,12 +32,12 @@ var _isolate_helper;
     if (!dart.is(args, core.List)) {
       throw new core.ArgumentError(`Arguments to main must be a List: ${args}`);
     }
-    _isolate_helper._globalState = new _Manager(dart.as(entry, core.Function));
-    if (_isolate_helper._globalState.isWorker)
+    exports._globalState = new _Manager(dart.as(entry, core.Function));
+    if (exports._globalState.isWorker)
       return;
     let rootContext = new _IsolateContext();
-    _isolate_helper._globalState.rootContext = rootContext;
-    _isolate_helper._globalState.currentContext = rootContext;
+    exports._globalState.rootContext = rootContext;
+    exports._globalState.currentContext = rootContext;
     if (dart.is(entry, _MainFunctionArgs)) {
       rootContext.eval(() => {
         dart.dinvokef(entry, args);
@@ -49,9 +49,9 @@ var _isolate_helper;
     } else {
       rootContext.eval(dart.as(entry, core.Function));
     }
-    _isolate_helper._globalState.topEventLoop.run();
+    exports._globalState.topEventLoop.run();
   }
-  dart.copyProperties(_isolate_helper, {
+  dart.copyProperties(exports, {
     get _globalState() {
       return dart.as(init.globalState, _Manager);
     },
@@ -87,9 +87,9 @@ var _isolate_helper;
       }
     }
     _nativeDetectEnvironment() {
-      let isWindowDefined = _isolate_helper.globalWindow !== null;
-      let isWorkerDefined = _isolate_helper.globalWorker !== null;
-      this.isWorker = dart.notNull(!dart.notNull(isWindowDefined)) && dart.notNull(_isolate_helper.globalPostMessageDefined);
+      let isWindowDefined = exports.globalWindow !== null;
+      let isWorkerDefined = exports.globalWorker !== null;
+      this.isWorker = dart.notNull(!dart.notNull(isWindowDefined)) && dart.notNull(exports.globalPostMessageDefined);
       this.supportsWorkers = dart.notNull(this.isWorker) || dart.notNull(dart.notNull(isWorkerDefined) && dart.notNull(IsolateNatives.thisScript !== null));
       this.fromCommandLine = dart.notNull(!dart.notNull(isWindowDefined)) && dart.notNull(!dart.notNull(this.isWorker));
     }
@@ -121,7 +121,7 @@ var _isolate_helper;
   }
   class _IsolateContext extends dart.Object {
     _IsolateContext() {
-      this.id = _isolate_helper._globalState.nextIsolateId++;
+      this.id = exports._globalState.nextIsolateId++;
       this.ports = new core.Map();
       this.weakPorts = new core.Set();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
@@ -154,7 +154,7 @@ var _isolate_helper;
       if (this.pauseTokens.isEmpty) {
         while (this.delayedEvents.isNotEmpty) {
           let event = this.delayedEvents.removeLast();
-          _isolate_helper._globalState.topEventLoop.prequeue(event);
+          exports._globalState.topEventLoop.prequeue(event);
         }
         this.isPaused = false;
       }
@@ -188,7 +188,7 @@ var _isolate_helper;
         responsePort.send(null);
       }
       if (pingType === isolate.Isolate.AS_EVENT) {
-        _isolate_helper._globalState.topEventLoop.enqueue(this, respond, "ping");
+        exports._globalState.topEventLoop.enqueue(this, respond, "ping");
         return;
       }
       dart.assert(pingType === isolate.Isolate.BEFORE_NEXT_EVENT);
@@ -205,7 +205,7 @@ var _isolate_helper;
         return;
       }
       if (priority === isolate.Isolate.AS_EVENT) {
-        _isolate_helper._globalState.topEventLoop.enqueue(this, this.kill, "kill");
+        exports._globalState.topEventLoop.enqueue(this, this.kill, "kill");
         return;
       }
       dart.assert(priority === isolate.Isolate.BEFORE_NEXT_EVENT);
@@ -222,7 +222,7 @@ var _isolate_helper;
     }
     handleUncaughtError(error, stackTrace) {
       if (this.errorPorts.isEmpty) {
-        if (dart.notNull(this.errorsAreFatal) && dart.notNull(core.identical(this, _isolate_helper._globalState.rootContext))) {
+        if (dart.notNull(this.errorsAreFatal) && dart.notNull(core.identical(this, exports._globalState.rootContext))) {
           return;
         }
         if (self.console && self.console.error) {
@@ -241,8 +241,8 @@ var _isolate_helper;
         port.send(message);
     }
     eval(code) {
-      let old = _isolate_helper._globalState.currentContext;
-      _isolate_helper._globalState.currentContext = this;
+      let old = exports._globalState.currentContext;
+      exports._globalState.currentContext = this;
       this._setGlobals();
       let result = null;
       this._isExecutingEvent = true;
@@ -253,14 +253,14 @@ var _isolate_helper;
         this.handleUncaughtError(e, s);
         if (this.errorsAreFatal) {
           this.kill();
-          if (core.identical(this, _isolate_helper._globalState.rootContext)) {
+          if (core.identical(this, exports._globalState.rootContext)) {
             dart.throw_("Unimplemented RethrowExpression: rethrow");
           }
         }
       }
  finally {
         this._isExecutingEvent = false;
-        _isolate_helper._globalState.currentContext = old;
+        exports._globalState.currentContext = old;
         if (old !== null)
           old._setGlobals();
         if (this._scheduledControlEvents !== null) {
@@ -325,7 +325,7 @@ var _isolate_helper;
     }
     _updateGlobalState() {
       if (dart.notNull(dart.notNull(this.ports.length - this.weakPorts.length > 0) || dart.notNull(this.isPaused)) || dart.notNull(!dart.notNull(this.initialized))) {
-        _isolate_helper._globalState.isolates.set(this.id, this);
+        exports._globalState.isolates.set(this.id, this);
       } else {
         this.kill();
       }
@@ -339,7 +339,7 @@ var _isolate_helper;
       }
       this.ports.clear();
       this.weakPorts.clear();
-      _isolate_helper._globalState.isolates.remove(this.id);
+      exports._globalState.isolates.remove(this.id);
       this.errorPorts.clear();
       if (this.doneHandlers !== null) {
         for (let port of this.doneHandlers) {
@@ -371,7 +371,7 @@ var _isolate_helper;
       return this.events.removeFirst();
     }
     checkOpenReceivePortsFromCommandLine() {
-      if (dart.notNull(dart.notNull(dart.notNull(_isolate_helper._globalState.rootContext !== null) && dart.notNull(_isolate_helper._globalState.isolates.containsKey(_isolate_helper._globalState.rootContext.id))) && dart.notNull(_isolate_helper._globalState.fromCommandLine)) && dart.notNull(_isolate_helper._globalState.rootContext.ports.isEmpty)) {
+      if (dart.notNull(dart.notNull(dart.notNull(exports._globalState.rootContext !== null) && dart.notNull(exports._globalState.isolates.containsKey(exports._globalState.rootContext.id))) && dart.notNull(exports._globalState.fromCommandLine)) && dart.notNull(exports._globalState.rootContext.ports.isEmpty)) {
         throw new core.Exception("Program exited with open ReceivePorts.");
       }
     }
@@ -379,14 +379,14 @@ var _isolate_helper;
       let event = this.dequeue();
       if (event === null) {
         this.checkOpenReceivePortsFromCommandLine();
-        _isolate_helper._globalState.maybeCloseWorker();
+        exports._globalState.maybeCloseWorker();
         return false;
       }
       event.process();
       return true;
     }
     _runHelper() {
-      if (_isolate_helper.globalWindow !== null) {
+      if (exports.globalWindow !== null) {
         // Function next: () → void
         function next() {
           if (!dart.notNull(this.runIteration()))
@@ -400,14 +400,14 @@ var _isolate_helper;
       }
     }
     run() {
-      if (!dart.notNull(_isolate_helper._globalState.isWorker)) {
+      if (!dart.notNull(exports._globalState.isWorker)) {
         this._runHelper();
       } else {
         try {
           this._runHelper();
         } catch (e) {
           let trace = dart.stackTrace(e);
-          _isolate_helper._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'error', msg: `${e}\n${trace}`})));
+          exports._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'error', msg: `${e}\n${trace}`})));
         }
 
       }
@@ -435,7 +435,7 @@ var _isolate_helper;
   }
   let _SPAWNED_SIGNAL = "spawned";
   let _SPAWN_FAILED_SIGNAL = "spawn failed";
-  dart.copyProperties(_isolate_helper, {
+  dart.copyProperties(exports, {
     get globalWindow() {
       _js_helper.requiresPreamble();
       return self.window;
@@ -459,7 +459,7 @@ var _isolate_helper;
         return computeThisScriptD8();
       if (_js_helper.Primitives.isJsshell)
         return computeThisScriptJsshell();
-      if (_isolate_helper._globalState.isWorker)
+      if (exports._globalState.isWorker)
         return computeThisScriptFromTrace();
       return null;
     }
@@ -501,20 +501,20 @@ var _isolate_helper;
       let msg = _deserializeMessage(_getEventData(e));
       switch (dart.dindex(msg, 'command')) {
         case 'start':
-          _isolate_helper._globalState.currentManagerId = dart.as(dart.dindex(msg, 'id'), core.int);
+          exports._globalState.currentManagerId = dart.as(dart.dindex(msg, 'id'), core.int);
           let functionName = dart.as(dart.dindex(msg, 'functionName'), core.String);
-          let entryPoint = dart.as(functionName === null ? _isolate_helper._globalState.entry : _getJSFunctionFromName(functionName), core.Function);
+          let entryPoint = dart.as(functionName === null ? exports._globalState.entry : _getJSFunctionFromName(functionName), core.Function);
           let args = dart.dindex(msg, 'args');
           let message = _deserializeMessage(dart.dindex(msg, 'msg'));
           let isSpawnUri = dart.dindex(msg, 'isSpawnUri');
           let startPaused = dart.dindex(msg, 'startPaused');
           let replyTo = _deserializeMessage(dart.dindex(msg, 'replyTo'));
           let context = new _IsolateContext();
-          _isolate_helper._globalState.topEventLoop.enqueue(context, () => {
+          exports._globalState.topEventLoop.enqueue(context, () => {
             _startIsolate(entryPoint, dart.as(args, core.List$(core.String)), message, dart.as(isSpawnUri, core.bool), dart.as(startPaused, core.bool), dart.as(replyTo, isolate.SendPort));
           }, 'worker-start');
-          _isolate_helper._globalState.currentContext = context;
-          _isolate_helper._globalState.topEventLoop.run();
+          exports._globalState.currentContext = context;
+          exports._globalState.topEventLoop.run();
           break;
         case 'spawn-worker':
           if (enableSpawnWorker !== null)
@@ -525,19 +525,19 @@ var _isolate_helper;
           if (port !== null) {
             dart.dinvoke(dart.dindex(msg, 'port'), 'send', dart.dindex(msg, 'msg'));
           }
-          _isolate_helper._globalState.topEventLoop.run();
+          exports._globalState.topEventLoop.run();
           break;
         case 'close':
-          _isolate_helper._globalState.managers.remove(workerIds.get(sender));
+          exports._globalState.managers.remove(workerIds.get(sender));
           sender.terminate();
-          _isolate_helper._globalState.topEventLoop.run();
+          exports._globalState.topEventLoop.run();
           break;
         case 'log':
           _log(dart.dindex(msg, 'msg'));
           break;
         case 'print':
-          if (_isolate_helper._globalState.isWorker) {
-            _isolate_helper._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'print', msg: msg})));
+          if (exports._globalState.isWorker) {
+            exports._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'print', msg: msg})));
           } else {
             core.print(dart.dindex(msg, 'msg'));
           }
@@ -557,8 +557,8 @@ var _isolate_helper;
       });
     }
     static _log(msg) {
-      if (_isolate_helper._globalState.isWorker) {
-        _isolate_helper._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'log', msg: msg})));
+      if (exports._globalState.isWorker) {
+        exports._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'log', msg: msg})));
       } else {
         try {
           _consoleLog(msg);
@@ -613,7 +613,7 @@ var _isolate_helper;
         }
       }).bind(this));
       let signalReply = port.sendPort;
-      if (dart.notNull(_isolate_helper._globalState.useWorkers) && dart.notNull(!dart.notNull(isLight))) {
+      if (dart.notNull(exports._globalState.useWorkers) && dart.notNull(!dart.notNull(isLight))) {
         _startWorker(functionName, uri, args, message, isSpawnUri, startPaused, signalReply, ((message) => completer.completeError(message)).bind(this));
       } else {
         _startNonWorker(functionName, uri, args, message, isSpawnUri, startPaused, signalReply);
@@ -623,8 +623,8 @@ var _isolate_helper;
     static _startWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
       if (args !== null)
         args = new core.List.from(args);
-      if (_isolate_helper._globalState.isWorker) {
-        _isolate_helper._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort})));
+      if (exports._globalState.isWorker) {
+        exports._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort})));
       } else {
         _spawnWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError);
       }
@@ -636,7 +636,7 @@ var _isolate_helper;
       message = _clone(message);
       if (args !== null)
         args = new core.List.from(args);
-      _isolate_helper._globalState.topEventLoop.enqueue(new _IsolateContext(), () => {
+      exports._globalState.topEventLoop.enqueue(new _IsolateContext(), () => {
         let func = _getJSFunctionFromName(functionName);
         _startIsolate(dart.as(func, core.Function), args, message, isSpawnUri, startPaused, replyPort);
       }, 'nonworker start');
@@ -664,7 +664,7 @@ var _isolate_helper;
       }
       if (startPaused) {
         context.addPause(context.pauseCapability, context.pauseCapability);
-        _isolate_helper._globalState.topEventLoop.enqueue(context, runStartFunction, 'start isolate');
+        exports._globalState.topEventLoop.enqueue(context, runStartFunction, 'start isolate');
       } else {
         runStartFunction();
       }
@@ -686,9 +686,9 @@ var _isolate_helper;
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(_processWorkerMessage), worker);
       worker.onmessage = processWorkerMessageTrampoline;
-      let workerId = _isolate_helper._globalState.nextManagerId++;
+      let workerId = exports._globalState.nextManagerId++;
       workerIds.set(worker, workerId);
-      _isolate_helper._globalState.managers.set(workerId, worker);
+      exports._globalState.managers.set(workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
     }
     static workerOnError(event, uri, onError) {
@@ -729,7 +729,7 @@ var _isolate_helper;
       super._BaseSendPort(isolateId);
     }
     send(message) {
-      let isolate = _isolate_helper._globalState.isolates.get(this._isolateId);
+      let isolate = exports._globalState.isolates.get(this._isolateId);
       if (isolate === null)
         return;
       if (this._receivePort._isClosed)
@@ -739,7 +739,7 @@ var _isolate_helper;
         isolate.handleControlMessage(msg);
         return;
       }
-      _isolate_helper._globalState.topEventLoop.enqueue(isolate, (() => {
+      exports._globalState.topEventLoop.enqueue(isolate, (() => {
         if (!dart.notNull(this._receivePort._isClosed)) {
           this._receivePort._add(msg);
         }
@@ -760,10 +760,10 @@ var _isolate_helper;
     }
     send(message) {
       let workerMessage = _serializeMessage(dart.map({command: 'message', port: this, msg: message}));
-      if (_isolate_helper._globalState.isWorker) {
-        _isolate_helper._globalState.mainManager.postMessage(workerMessage);
+      if (exports._globalState.isWorker) {
+        exports._globalState.mainManager.postMessage(workerMessage);
       } else {
-        let manager = _isolate_helper._globalState.managers.get(this._workerId);
+        let manager = exports._globalState.managers.get(this._workerId);
         if (manager !== null) {
           manager.postMessage(workerMessage);
         }
@@ -781,13 +781,13 @@ var _isolate_helper;
       this._handler = _handler;
       this._id = _nextFreeId++;
       this._isClosed = false;
-      _isolate_helper._globalState.currentContext.register(this._id, this);
+      exports._globalState.currentContext.register(this._id, this);
     }
     RawReceivePortImpl$weak(_handler) {
       this._handler = _handler;
       this._id = _nextFreeId++;
       this._isClosed = false;
-      _isolate_helper._globalState.currentContext.registerWeak(this._id, this);
+      exports._globalState.currentContext.registerWeak(this._id, this);
     }
     RawReceivePortImpl$_controlPort() {
       this._handler = null;
@@ -806,7 +806,7 @@ var _isolate_helper;
         return;
       this._isClosed = true;
       this._handler = null;
-      _isolate_helper._globalState.currentContext.unregister(this._id);
+      exports._globalState.currentContext.unregister(this._id);
     }
     _add(dataEvent) {
       if (this._isClosed)
@@ -814,7 +814,7 @@ var _isolate_helper;
       dart.dinvokef(this._handler, dataEvent);
     }
     get sendPort() {
-      return new _NativeJsSendPort(this, _isolate_helper._globalState.currentContext.id);
+      return new _NativeJsSendPort(this, exports._globalState.currentContext.id);
     }
   }
   dart.defineNamedConstructor(RawReceivePortImpl, 'weak');
@@ -855,14 +855,14 @@ var _isolate_helper;
       this._once = true;
       this._inEventLoop = false;
       this._handle = dart.as(null, core.int);
-      if (dart.notNull(milliseconds === 0) && dart.notNull(dart.notNull(!dart.notNull(hasTimer())) || dart.notNull(_isolate_helper._globalState.isWorker))) {
+      if (dart.notNull(milliseconds === 0) && dart.notNull(dart.notNull(!dart.notNull(hasTimer())) || dart.notNull(exports._globalState.isWorker))) {
         // Function internalCallback: () → void
         function internalCallback() {
           this._handle = dart.as(null, core.int);
           callback();
         }
         this._handle = 1;
-        _isolate_helper._globalState.topEventLoop.enqueue(_isolate_helper._globalState.currentContext, internalCallback, 'timer');
+        exports._globalState.topEventLoop.enqueue(exports._globalState.currentContext, internalCallback, 'timer');
         this._inEventLoop = true;
       } else if (hasTimer()) {
         // Function internalCallback: () → void
@@ -1072,7 +1072,7 @@ var _isolate_helper;
     }
     serializeJsSendPort(x) {
       if (this._serializeSendPorts) {
-        let workerId = _isolate_helper._globalState.currentManagerId;
+        let workerId = exports._globalState.currentManagerId;
         return new List.from(['sendport', workerId, x._isolateId, x._receivePort._id]);
       }
       return new List.from(['raw sendport', x]);
@@ -1208,8 +1208,8 @@ var _isolate_helper;
       let isolateId = dart.as(dart.dindex(x, 2), core.int);
       let receivePortId = dart.as(dart.dindex(x, 3), core.int);
       let result = null;
-      if (managerId === _isolate_helper._globalState.currentManagerId) {
-        let isolate = _isolate_helper._globalState.isolates.get(isolateId);
+      if (managerId === exports._globalState.currentManagerId) {
+        let isolate = exports._globalState.isolates.get(isolateId);
         if (isolate === null)
           return null;
         let receivePort = isolate.lookup(receivePortId);
@@ -1259,17 +1259,17 @@ var _isolate_helper;
     }
   }
   // Exports:
-  _isolate_helper.enterJsAsync = enterJsAsync;
-  _isolate_helper.leaveJsAsync = leaveJsAsync;
-  _isolate_helper.isWorker = isWorker;
-  _isolate_helper.startRootIsolate = startRootIsolate;
-  _isolate_helper.globalWindow = globalWindow;
-  _isolate_helper.globalWorker = globalWorker;
-  _isolate_helper.globalPostMessageDefined = globalPostMessageDefined;
-  _isolate_helper.IsolateNatives = IsolateNatives;
-  _isolate_helper.RawReceivePortImpl = RawReceivePortImpl;
-  _isolate_helper.ReceivePortImpl = ReceivePortImpl;
-  _isolate_helper.TimerImpl = TimerImpl;
-  _isolate_helper.hasTimer = hasTimer;
-  _isolate_helper.CapabilityImpl = CapabilityImpl;
+  exports.enterJsAsync = enterJsAsync;
+  exports.leaveJsAsync = leaveJsAsync;
+  exports.isWorker = isWorker;
+  exports.startRootIsolate = startRootIsolate;
+  exports.globalWindow = globalWindow;
+  exports.globalWorker = globalWorker;
+  exports.globalPostMessageDefined = globalPostMessageDefined;
+  exports.IsolateNatives = IsolateNatives;
+  exports.RawReceivePortImpl = RawReceivePortImpl;
+  exports.ReceivePortImpl = ReceivePortImpl;
+  exports.TimerImpl = TimerImpl;
+  exports.hasTimer = hasTimer;
+  exports.CapabilityImpl = CapabilityImpl;
 })(_isolate_helper || (_isolate_helper = {}));

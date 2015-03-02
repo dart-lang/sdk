@@ -1,5 +1,5 @@
 var fieldtest;
-(function(fieldtest) {
+(function(exports) {
   'use strict';
   class A extends dart.Object {
     A() {
@@ -35,13 +35,13 @@ var fieldtest;
   function compute() {
     return 123;
   }
-  dart.defineLazyProperties(fieldtest, {
+  dart.defineLazyProperties(exports, {
     get y() {
       return compute() + 444;
     },
     set y() {}
   });
-  dart.copyProperties(fieldtest, {
+  dart.copyProperties(exports, {
     get q() {
       return core.String['+'](core.String['+']('life, ', 'the universe '), 'and everything');
     },
@@ -49,7 +49,7 @@ var fieldtest;
       return 42;
     },
     set z(value) {
-      fieldtest.y = dart.as(value, core.int);
+      exports.y = dart.as(value, core.int);
     }
   });
   // Function main: () → void
@@ -60,15 +60,15 @@ var fieldtest;
     core.print(baz(a));
   }
   // Exports:
-  fieldtest.A = A;
-  fieldtest.B = B;
-  fieldtest.B$ = B$;
-  fieldtest.foo = foo;
-  fieldtest.bar = bar;
-  fieldtest.baz = baz;
-  fieldtest.compute = compute;
-  fieldtest.q = q;
-  fieldtest.z = z;
-  fieldtest.z = z;
-  fieldtest.main = main;
+  exports.A = A;
+  exports.B = B;
+  exports.B$ = B$;
+  exports.foo = foo;
+  exports.bar = bar;
+  exports.baz = baz;
+  exports.compute = compute;
+  exports.q = q;
+  exports.z = z;
+  exports.z = z;
+  exports.main = main;
 })(fieldtest || (fieldtest = {}));

@@ -1,5 +1,5 @@
 var _interceptors;
-(function(_interceptors) {
+(function(exports) {
   'use strict';
   // Function _symbolToString: (Symbol) → String
   function _symbolToString(symbol) {
@@ -83,16 +83,16 @@ var _interceptors;
     }
     return interceptor;
   }
-  dart.copyProperties(_interceptors, {
+  dart.copyProperties(exports, {
     get mapTypeToInterceptor() {
       return _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.MAP_TYPE_TO_INTERCEPTOR, core.String));
     }
   });
   // Function findIndexForNativeSubclassType: (Type) → int
   function findIndexForNativeSubclassType(type) {
-    if (_interceptors.mapTypeToInterceptor == null)
+    if (exports.mapTypeToInterceptor == null)
       return dart.as(null, core.int);
-    let map = dart.as(_interceptors.mapTypeToInterceptor, core.List);
+    let map = dart.as(exports.mapTypeToInterceptor, core.List);
     for (let i = 0; i + 1 < map.length; i = 3) {
       if (dart.equals(type, map.get(i))) {
         return i;
@@ -105,7 +105,7 @@ var _interceptors;
     let index = findIndexForNativeSubclassType(type);
     if (index === null)
       return null;
-    let map = dart.as(_interceptors.mapTypeToInterceptor, core.List);
+    let map = dart.as(exports.mapTypeToInterceptor, core.List);
     return map.get(index + 1);
   }
   // Function findConstructorForNativeSubclassType: (Type, String) → dynamic
@@ -113,7 +113,7 @@ var _interceptors;
     let index = findIndexForNativeSubclassType(type);
     if (index === null)
       return null;
-    let map = dart.as(_interceptors.mapTypeToInterceptor, core.List);
+    let map = dart.as(exports.mapTypeToInterceptor, core.List);
     let constructorMap = map.get(index + 2);
     let constructorFn = constructorMap[name];
     return constructorFn;
@@ -1360,42 +1360,42 @@ var _interceptors;
     }
   }
   // Exports:
-  _interceptors.getInterceptor = getInterceptor;
-  _interceptors.getDispatchProperty = getDispatchProperty;
-  _interceptors.setDispatchProperty = setDispatchProperty;
-  _interceptors.makeDispatchRecord = makeDispatchRecord;
-  _interceptors.dispatchRecordInterceptor = dispatchRecordInterceptor;
-  _interceptors.dispatchRecordProto = dispatchRecordProto;
-  _interceptors.dispatchRecordExtension = dispatchRecordExtension;
-  _interceptors.dispatchRecordIndexability = dispatchRecordIndexability;
-  _interceptors.getNativeInterceptor = getNativeInterceptor;
-  _interceptors.mapTypeToInterceptor = mapTypeToInterceptor;
-  _interceptors.findIndexForNativeSubclassType = findIndexForNativeSubclassType;
-  _interceptors.findInterceptorConstructorForType = findInterceptorConstructorForType;
-  _interceptors.findConstructorForNativeSubclassType = findConstructorForNativeSubclassType;
-  _interceptors.findInterceptorForType = findInterceptorForType;
-  _interceptors.Interceptor = Interceptor;
-  _interceptors.JSBool = JSBool;
-  _interceptors.JSNull = JSNull;
-  _interceptors.JSIndexable = JSIndexable;
-  _interceptors.JSMutableIndexable = JSMutableIndexable;
-  _interceptors.JSObject = JSObject;
-  _interceptors.JavaScriptObject = JavaScriptObject;
-  _interceptors.PlainJavaScriptObject = PlainJavaScriptObject;
-  _interceptors.UnknownJavaScriptObject = UnknownJavaScriptObject;
-  _interceptors.JSArray = JSArray;
-  _interceptors.JSArray$ = JSArray$;
-  _interceptors.JSMutableArray = JSMutableArray;
-  _interceptors.JSMutableArray$ = JSMutableArray$;
-  _interceptors.JSFixedArray = JSFixedArray;
-  _interceptors.JSFixedArray$ = JSFixedArray$;
-  _interceptors.JSExtendableArray = JSExtendableArray;
-  _interceptors.JSExtendableArray$ = JSExtendableArray$;
-  _interceptors.JSNumber = JSNumber;
-  _interceptors.JSInt = JSInt;
-  _interceptors.JSDouble = JSDouble;
-  _interceptors.JSPositiveInt = JSPositiveInt;
-  _interceptors.JSUInt32 = JSUInt32;
-  _interceptors.JSUInt31 = JSUInt31;
-  _interceptors.JSString = JSString;
+  exports.getInterceptor = getInterceptor;
+  exports.getDispatchProperty = getDispatchProperty;
+  exports.setDispatchProperty = setDispatchProperty;
+  exports.makeDispatchRecord = makeDispatchRecord;
+  exports.dispatchRecordInterceptor = dispatchRecordInterceptor;
+  exports.dispatchRecordProto = dispatchRecordProto;
+  exports.dispatchRecordExtension = dispatchRecordExtension;
+  exports.dispatchRecordIndexability = dispatchRecordIndexability;
+  exports.getNativeInterceptor = getNativeInterceptor;
+  exports.mapTypeToInterceptor = mapTypeToInterceptor;
+  exports.findIndexForNativeSubclassType = findIndexForNativeSubclassType;
+  exports.findInterceptorConstructorForType = findInterceptorConstructorForType;
+  exports.findConstructorForNativeSubclassType = findConstructorForNativeSubclassType;
+  exports.findInterceptorForType = findInterceptorForType;
+  exports.Interceptor = Interceptor;
+  exports.JSBool = JSBool;
+  exports.JSNull = JSNull;
+  exports.JSIndexable = JSIndexable;
+  exports.JSMutableIndexable = JSMutableIndexable;
+  exports.JSObject = JSObject;
+  exports.JavaScriptObject = JavaScriptObject;
+  exports.PlainJavaScriptObject = PlainJavaScriptObject;
+  exports.UnknownJavaScriptObject = UnknownJavaScriptObject;
+  exports.JSArray = JSArray;
+  exports.JSArray$ = JSArray$;
+  exports.JSMutableArray = JSMutableArray;
+  exports.JSMutableArray$ = JSMutableArray$;
+  exports.JSFixedArray = JSFixedArray;
+  exports.JSFixedArray$ = JSFixedArray$;
+  exports.JSExtendableArray = JSExtendableArray;
+  exports.JSExtendableArray$ = JSExtendableArray$;
+  exports.JSNumber = JSNumber;
+  exports.JSInt = JSInt;
+  exports.JSDouble = JSDouble;
+  exports.JSPositiveInt = JSPositiveInt;
+  exports.JSUInt32 = JSUInt32;
+  exports.JSUInt31 = JSUInt31;
+  exports.JSString = JSString;
 })(_interceptors || (_interceptors = {}));

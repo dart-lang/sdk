@@ -1,7 +1,7 @@
 var html_input_c;
-(function(html_input_c) {
+(function(exports) {
   'use strict';
-  dart.defineLazyProperties(html_input_c, {
+  dart.defineLazyProperties(exports, {
     get y() {
       return 3 + html_input_e.w;
     },

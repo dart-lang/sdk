@@ -1,5 +1,5 @@
 var cascade;
-(function(cascade) {
+(function(exports) {
   'use strict';
   class A extends dart.Object {
     A() {
@@ -72,12 +72,12 @@ var cascade;
     core.print(a);
   }
   // Exports:
-  cascade.A = A;
-  cascade.test_closure_with_mutate = test_closure_with_mutate;
-  cascade.test_closure_without_mutate = test_closure_without_mutate;
-  cascade.test_mutate_inside_cascade = test_mutate_inside_cascade;
-  cascade.test_mutate_outside_cascade = test_mutate_outside_cascade;
-  cascade.test_VariableDeclaration_single = test_VariableDeclaration_single;
-  cascade.test_VariableDeclaration_last = test_VariableDeclaration_last;
-  cascade.test_VariableDeclaration_first = test_VariableDeclaration_first;
+  exports.A = A;
+  exports.test_closure_with_mutate = test_closure_with_mutate;
+  exports.test_closure_without_mutate = test_closure_without_mutate;
+  exports.test_mutate_inside_cascade = test_mutate_inside_cascade;
+  exports.test_mutate_outside_cascade = test_mutate_outside_cascade;
+  exports.test_VariableDeclaration_single = test_VariableDeclaration_single;
+  exports.test_VariableDeclaration_last = test_VariableDeclaration_last;
+  exports.test_VariableDeclaration_first = test_VariableDeclaration_first;
 })(cascade || (cascade = {}));

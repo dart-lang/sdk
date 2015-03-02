@@ -1,5 +1,5 @@
 var methods;
-(function(methods) {
+(function(exports) {
   'use strict';
   class A extends dart.Object {
     A() {
@@ -56,8 +56,8 @@ var methods;
     dart.dinvoke(f, 'bar', "Bar's call method!");
   }
   // Exports:
-  methods.A = A;
-  methods.Bar = Bar;
-  methods.Foo = Foo;
-  methods.test = test;
+  exports.A = A;
+  exports.Bar = Bar;
+  exports.Foo = Foo;
+  exports.test = test;
 })(methods || (methods = {}));

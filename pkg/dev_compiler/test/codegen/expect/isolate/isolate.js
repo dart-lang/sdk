@@ -1,5 +1,5 @@
 var isolate;
-(function(isolate) {
+(function(exports) {
   'use strict';
   class IsolateSpawnException extends dart.Object {
     IsolateSpawnException(message) {
@@ -198,11 +198,11 @@ var isolate;
     }
   }
   // Exports:
-  isolate.IsolateSpawnException = IsolateSpawnException;
-  isolate.Isolate = Isolate;
-  isolate.SendPort = SendPort;
-  isolate.ReceivePort = ReceivePort;
-  isolate.RawReceivePort = RawReceivePort;
-  isolate.RemoteError = RemoteError;
-  isolate.Capability = Capability;
+  exports.IsolateSpawnException = IsolateSpawnException;
+  exports.Isolate = Isolate;
+  exports.SendPort = SendPort;
+  exports.ReceivePort = ReceivePort;
+  exports.RawReceivePort = RawReceivePort;
+  exports.RemoteError = RemoteError;
+  exports.Capability = Capability;
 })(isolate || (isolate = {}));

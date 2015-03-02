@@ -1,5 +1,5 @@
 var constructors;
-(function(constructors) {
+(function(exports) {
   'use strict';
   class A extends dart.Object {
   }
@@ -101,20 +101,20 @@ var constructors;
   dart.defineNamedConstructor(P, 'foo');
   dart.defineNamedConstructor(P, 'bar');
   // Exports:
-  constructors.A = A;
-  constructors.B = B;
-  constructors.C = C;
-  constructors.C2 = C2;
-  constructors.D = D;
-  constructors.E = E;
-  constructors.F = F;
-  constructors.G = G;
-  constructors.H = H;
-  constructors.I = I;
-  constructors.J = J;
-  constructors.K = K;
-  constructors.L = L;
-  constructors.M = M;
-  constructors.N = N;
-  constructors.P = P;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.C2 = C2;
+  exports.D = D;
+  exports.E = E;
+  exports.F = F;
+  exports.G = G;
+  exports.H = H;
+  exports.I = I;
+  exports.J = J;
+  exports.K = K;
+  exports.L = L;
+  exports.M = M;
+  exports.N = N;
+  exports.P = P;
 })(constructors || (constructors = {}));

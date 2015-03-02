@@ -1,5 +1,5 @@
 var DeltaBlue;
-(function(DeltaBlue) {
+(function(exports) {
   'use strict';
   // Function main: () → dynamic
   function main() {
@@ -48,7 +48,7 @@ var DeltaBlue;
     }
     addConstraint() {
       this.addToGraph();
-      DeltaBlue.planner.incrementalAdd(this);
+      exports.planner.incrementalAdd(this);
     }
     satisfy(mark) {
       this.chooseMethod(dart.as(mark, core.int));
@@ -64,14 +64,14 @@ var DeltaBlue;
       if (overridden !== null)
         overridden.markUnsatisfied();
       out.determinedBy = this;
-      if (!dart.notNull(DeltaBlue.planner.addPropagate(this, dart.as(mark, core.int))))
+      if (!dart.notNull(exports.planner.addPropagate(this, dart.as(mark, core.int))))
         core.print("Cycle encountered");
       out.mark = dart.as(mark, core.int);
       return overridden;
     }
     destroyConstraint() {
       if (this.isSatisfied())
-        DeltaBlue.planner.incrementalRemove(this);
+        exports.planner.incrementalRemove(this);
       this.removeFromGraph();
     }
     isInput() {
@@ -373,7 +373,7 @@ var DeltaBlue;
   }
   // Function chainTest: (int) → void
   function chainTest(n) {
-    DeltaBlue.planner = new Planner();
+    exports.planner = new Planner();
     let prev = null, first = null, last = null;
     for (let i = 0; i <= n; i++) {
       let v = new Variable("v", 0);
@@ -387,7 +387,7 @@ var DeltaBlue;
     }
     new StayConstraint(last, STRONG_DEFAULT);
     let edit = new EditConstraint(first, PREFERRED);
-    let plan = DeltaBlue.planner.extractPlanFromConstraints(new List.from([edit]));
+    let plan = exports.planner.extractPlanFromConstraints(new List.from([edit]));
     for (let i = 0; i < 100; i++) {
       first.value = i;
       plan.execute();
@@ -399,7 +399,7 @@ var DeltaBlue;
   }
   // Function projectionTest: (int) → void
   function projectionTest(n) {
-    DeltaBlue.planner = new Planner();
+    exports.planner = new Planner();
     let scale = new Variable("scale", 10);
     let offset = new Variable("offset", 1000);
     let src = null, dst = null;
@@ -431,39 +431,39 @@ var DeltaBlue;
   // Function change: (Variable, int) → void
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
-    let plan = DeltaBlue.planner.extractPlanFromConstraints(new List.from([edit]));
+    let plan = exports.planner.extractPlanFromConstraints(new List.from([edit]));
     for (let i = 0; i < 10; i++) {
       v.value = newValue;
       plan.execute();
     }
     edit.destroyConstraint();
   }
-  DeltaBlue.planner = null;
+  exports.planner = null;
   // Exports:
-  DeltaBlue.main = main;
-  DeltaBlue.DeltaBlue = DeltaBlue;
-  DeltaBlue.Strength = Strength;
-  DeltaBlue.REQUIRED = REQUIRED;
-  DeltaBlue.STRONG_PREFERRED = STRONG_PREFERRED;
-  DeltaBlue.PREFERRED = PREFERRED;
-  DeltaBlue.STRONG_DEFAULT = STRONG_DEFAULT;
-  DeltaBlue.NORMAL = NORMAL;
-  DeltaBlue.WEAK_DEFAULT = WEAK_DEFAULT;
-  DeltaBlue.WEAKEST = WEAKEST;
-  DeltaBlue.Constraint = Constraint;
-  DeltaBlue.UnaryConstraint = UnaryConstraint;
-  DeltaBlue.StayConstraint = StayConstraint;
-  DeltaBlue.EditConstraint = EditConstraint;
-  DeltaBlue.NONE = NONE;
-  DeltaBlue.FORWARD = FORWARD;
-  DeltaBlue.BACKWARD = BACKWARD;
-  DeltaBlue.BinaryConstraint = BinaryConstraint;
-  DeltaBlue.ScaleConstraint = ScaleConstraint;
-  DeltaBlue.EqualityConstraint = EqualityConstraint;
-  DeltaBlue.Variable = Variable;
-  DeltaBlue.Planner = Planner;
-  DeltaBlue.Plan = Plan;
-  DeltaBlue.chainTest = chainTest;
-  DeltaBlue.projectionTest = projectionTest;
-  DeltaBlue.change = change;
+  exports.main = main;
+  exports.DeltaBlue = DeltaBlue;
+  exports.Strength = Strength;
+  exports.REQUIRED = REQUIRED;
+  exports.STRONG_PREFERRED = STRONG_PREFERRED;
+  exports.PREFERRED = PREFERRED;
+  exports.STRONG_DEFAULT = STRONG_DEFAULT;
+  exports.NORMAL = NORMAL;
+  exports.WEAK_DEFAULT = WEAK_DEFAULT;
+  exports.WEAKEST = WEAKEST;
+  exports.Constraint = Constraint;
+  exports.UnaryConstraint = UnaryConstraint;
+  exports.StayConstraint = StayConstraint;
+  exports.EditConstraint = EditConstraint;
+  exports.NONE = NONE;
+  exports.FORWARD = FORWARD;
+  exports.BACKWARD = BACKWARD;
+  exports.BinaryConstraint = BinaryConstraint;
+  exports.ScaleConstraint = ScaleConstraint;
+  exports.EqualityConstraint = EqualityConstraint;
+  exports.Variable = Variable;
+  exports.Planner = Planner;
+  exports.Plan = Plan;
+  exports.chainTest = chainTest;
+  exports.projectionTest = projectionTest;
+  exports.change = change;
 })(DeltaBlue || (DeltaBlue = {}));

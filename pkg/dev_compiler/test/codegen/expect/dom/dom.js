@@ -1,5 +1,5 @@
 var dom;
-(function(dom) {
+(function(exports) {
   'use strict';
   class JsType extends dart.Object {
     JsType(opt$) {
@@ -16,7 +16,7 @@ var dom;
     }
   }
   let overload = new Overload();
-  dom.document = null;
+  exports.document = null;
   class Document extends dart.Object {
   }
   class Element extends dart.Object {
@@ -71,21 +71,21 @@ var dom;
   class ImageData extends dart.Object {
   }
   // Exports:
-  dom.JsType = JsType;
-  dom.JsGlobal = JsGlobal;
-  dom.Overload = Overload;
-  dom.overload = overload;
-  dom.Document = Document;
-  dom.Element = Element;
-  dom.Event = Event;
-  dom.InputElement = InputElement;
-  dom.CanvasElement = CanvasElement;
-  dom.RenderingContext = RenderingContext;
-  dom.CanvasRenderingContext2D = CanvasRenderingContext2D;
-  dom.CanvasDrawingStyles = CanvasDrawingStyles;
-  dom.CanvasPathMethods = CanvasPathMethods;
-  dom.CanvasGradient = CanvasGradient;
-  dom.CanvasPattern = CanvasPattern;
-  dom.TextMetrics = TextMetrics;
-  dom.ImageData = ImageData;
+  exports.JsType = JsType;
+  exports.JsGlobal = JsGlobal;
+  exports.Overload = Overload;
+  exports.overload = overload;
+  exports.Document = Document;
+  exports.Element = Element;
+  exports.Event = Event;
+  exports.InputElement = InputElement;
+  exports.CanvasElement = CanvasElement;
+  exports.RenderingContext = RenderingContext;
+  exports.CanvasRenderingContext2D = CanvasRenderingContext2D;
+  exports.CanvasDrawingStyles = CanvasDrawingStyles;
+  exports.CanvasPathMethods = CanvasPathMethods;
+  exports.CanvasGradient = CanvasGradient;
+  exports.CanvasPattern = CanvasPattern;
+  exports.TextMetrics = TextMetrics;
+  exports.ImageData = ImageData;
 })(dom || (dom = {}));
