@@ -58,6 +58,11 @@ class LocalIndex extends Index {
   }
 
   @override
+  List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter) {
+    return _store.getTopLevelDeclarations(nameFilter);
+  }
+
+  @override
   void indexHtmlUnit(AnalysisContext context, HtmlUnit unit) {
     contributors.indexHtmlUnit(_store, context, unit);
   }

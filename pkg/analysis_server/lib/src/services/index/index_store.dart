@@ -84,6 +84,11 @@ abstract class IndexStore {
       Relationship relationship);
 
   /**
+   * Returns top-level [Element]s whose names satisfy to [nameFilter].
+   */
+  List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter);
+
+  /**
    * Records that the given [element] and [location] have the given
    * [relationship].
    *
@@ -108,6 +113,11 @@ abstract class IndexStore {
    */
   void recordRelationship(Element element, Relationship relationship,
       Location location);
+
+  /**
+   * Records the declaration of the given top-level [element].
+   */
+  void recordTopDeclaration(Element element);
 
   /**
    * Removes from the index all of the information associated with [context].

@@ -515,6 +515,7 @@ class _SplitIndexStoreTest {
   CompilationUnitElement unitElementB = new MockCompilationUnitElement();
   CompilationUnitElement unitElementC = new MockCompilationUnitElement();
   CompilationUnitElement unitElementD = new MockCompilationUnitElement();
+
   void setUp() {
     store = new SplitIndexStore(nodeManager);
     when(contextA.isDisposed).thenReturn(false);
@@ -913,187 +914,144 @@ class _SplitIndexStoreTest {
     store.removeSources(null, null);
   }
 
-  test_removeSources_unit() {
-    Location locationA = mockLocation(elementA);
-    Location locationB = mockLocation(elementB);
-    Location locationC = mockLocation(elementC);
+  void test_removeSources_unit() {
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordTopDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordTopDeclaration(elementB);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementC);
-      store.recordRelationship(elementA, relationship, locationC);
+      store.recordTopDeclaration(elementC);
       store.doneIndex();
     }
-    // "A", "B" and "C" locations
-    return store.getRelationships(
-        elementA,
-        relationship).then((List<Location> locations) {
-      assertLocations(locations, [locationA, locationB, locationC]);
-    }).then((_) {
-      // remove "A" source
-      store.removeSources(contextA, new SingleSourceContainer(sourceA));
-      store.removeSource(contextA, sourceA);
-      return store.getRelationships(
-          elementA,
-          relationship).then((List<Location> locations) {
-        assertLocations(locations, [locationB, locationC]);
-      });
-    });
+    // A, B, C elements
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementA, elementB, elementC]));
+    }
+    // remove "A" source
+    store.removeSources(contextA, new SingleSourceContainer(sourceA));
+    store.removeSource(contextA, sourceA);
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementB, elementC]));
+    }
   }
 
-  test_universe_aboutToIndex() {
+  void test_universe_aboutToIndex() {
     when(contextA.getElement(elementLocationA)).thenReturn(elementA);
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
-    Location locationA = mockLocation(elementA);
-    Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationA);
+      store.recordTopDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationB);
+      store.recordTopDeclaration(elementB);
       store.doneIndex();
     }
-    // get relationships
-    return store.getRelationships(
-        UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
-      assertLocations(locations, [locationA, locationB]);
-    }).then((_) {
+    // elementA, elementB
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementA, elementB]));
+    }
       // re-index "unitElementA"
-      store.aboutToIndexDart(contextA, unitElementA);
-      store.doneIndex();
-      return store.getRelationships(
-          UniverseElement.INSTANCE,
-          relationship).then((List<Location> locations) {
-        assertLocations(locations, [locationB]);
-      });
-    });
-  }
-
-  test_universe_clear() {
-    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
-    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
-    Location locationA = mockLocation(elementA);
-    Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationA);
       store.doneIndex();
     }
     {
-      store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationB);
-      store.doneIndex();
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementB]));
     }
-    return store.getRelationships(
-        UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
-      assertLocations(locations, [locationA, locationB]);
-    }).then((_) {
-      // clear
-      store.clear();
-      return store.getRelationships(
-          UniverseElement.INSTANCE,
-          relationship).then((List<Location> locations) {
-        expect(locations, isEmpty);
-      });
-    });
   }
 
-  test_universe_removeContext() {
+  void test_universe_clear() {
     when(contextA.getElement(elementLocationA)).thenReturn(elementA);
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
-    Location locationA = mockLocation(elementA);
-    Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationA);
+      store.recordTopDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationB);
+      store.recordTopDeclaration(elementB);
       store.doneIndex();
     }
-    return store.getRelationships(
-        UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
-      assertLocations(locations, [locationA, locationB]);
-    }).then((_) {
-      // remove "contextA"
-      store.removeContext(contextA);
-      return store.getRelationships(
-          UniverseElement.INSTANCE,
-          relationship).then((List<Location> locations) {
-        assertLocations(locations, [locationB]);
-      });
-    });
+    // elementA, elementB
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementA, elementB]));
+    }
+    // clear
+    store.clear();
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, isEmpty);
+    }
   }
 
-  test_universe_removeSource() {
+  void test_universe_removeContext() {
     when(contextA.getElement(elementLocationA)).thenReturn(elementA);
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
-    Location locationA = mockLocation(elementA);
-    Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationA);
+      store.recordTopDeclaration(elementA);
       store.doneIndex();
     }
     {
-      store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(
-          UniverseElement.INSTANCE,
-          relationship,
-          locationB);
+      store.aboutToIndexDart(contextB, unitElementB);
+      store.recordTopDeclaration(elementB);
       store.doneIndex();
     }
-    return store.getRelationships(
-        UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
-      assertLocations(locations, [locationA, locationB]);
-    }).then((_) {
-      // remove "sourceA"
-      store.removeSource(contextA, sourceA);
-      return store.getRelationships(
-          UniverseElement.INSTANCE,
-          relationship).then((List<Location> locations) {
-        assertLocations(locations, [locationB]);
-      });
-    });
+    // elementA, elementB
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementA, elementB]));
+    }
+    // remove "contextA"
+    store.removeContext(contextA);
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementB]));
+    }
   }
+
+  void test_universe_removeSource() {
+    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
+    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
+    {
+      store.aboutToIndexDart(contextA, unitElementA);
+      store.recordTopDeclaration(elementA);
+      store.doneIndex();
+    }
+    {
+      store.aboutToIndexDart(contextB, unitElementB);
+      store.recordTopDeclaration(elementB);
+      store.doneIndex();
+    }
+    // elementA, elementB
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementA, elementB]));
+    }
+    // remove "sourceA"
+    store.removeSource(contextA, sourceA);
+    {
+      List<Element> elements = store.getTopLevelDeclarations(anyName);
+      expect(elements, unorderedEquals([elementB]));
+    }
+  }
+
+  static bool anyName(String name) => true;
 
   /**
    * Asserts that the [actual] locations have all the [expected] locations and

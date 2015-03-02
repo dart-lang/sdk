@@ -103,16 +103,15 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) {
-    UniverseElement universe = UniverseElement.INSTANCE;
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(universe, IndexConstants.DEFINES, MatchKind.DECLARATION);
     RegExp regExp = new RegExp(pattern);
-    return requestor.merge().then((List<SearchMatch> matches) {
-      return matches.where((SearchMatch match) {
-        String name = match.element.displayName;
-        return regExp.hasMatch(name);
-      }).toList();
-    });
+    List<Element> elements = _index.getTopLevelDeclarations((String name) => regExp.hasMatch(name));
+    List<SearchMatch> matches = <SearchMatch>[];
+    for (var element in elements) {
+      SourceRange range = new SourceRange(element.nameOffset, element.name.length);
+      matches.add(new SearchMatch(MatchKind.DECLARATION, element, range, true, false));
+    }
+    // TODO(scheglov) it does not have to be a Future
+    return new Future.value(matches);
   }
 
   Future<List<SearchMatch>> _searchReferences(Element element) {

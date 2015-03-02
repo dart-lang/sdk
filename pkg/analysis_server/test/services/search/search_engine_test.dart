@@ -218,7 +218,8 @@ main() {
   }
 
   Future test_searchReferences_Element_unknown() {
-    return _verifyReferences(UniverseElement.INSTANCE, []);
+    // TODO(scheglov) implement some test
+//    return _verifyReferences(UniverseElement.INSTANCE, []);
   }
 
   Future test_searchReferences_FieldElement() {

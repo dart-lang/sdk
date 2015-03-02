@@ -14,6 +14,12 @@ import 'package:analyzer/src/generated/source.dart';
 
 
 /**
+ * A filter for [Element] names.
+ */
+typedef bool ElementNameFilter(String name);
+
+
+/**
  * The interface [Index] defines the behavior of objects that maintain an index
  * storing relations between [Element]s.
  *
@@ -48,6 +54,11 @@ abstract class Index {
    */
   Future<List<Location>> getRelationships(Element element,
       Relationship relationship);
+
+  /**
+   * Returns top-level [Element]s whose names satisfy to [nameFilter].
+   */
+  List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter);
 
   /**
    * Processes the given [HtmlUnit] in order to record the relationships.
@@ -356,21 +367,4 @@ class Relationship {
     }
     return relationship;
   }
-}
-
-
-/**
- * An element to use when we want to request "defines" relations without
- * specifying an exact library.
- */
-class UniverseElement extends ElementImpl {
-  static final UniverseElement INSTANCE = new UniverseElement._();
-
-  UniverseElement._() : super("--universe--", -1);
-
-  @override
-  ElementKind get kind => ElementKind.UNIVERSE;
-
-  @override
-  accept(ElementVisitor visitor) => null;
 }

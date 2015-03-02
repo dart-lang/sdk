@@ -131,7 +131,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ClassElement element = node.element;
     enterScope(element);
     try {
-      _recordElementDefinition(element);
+      _recordTopLevelElementDefinition(element);
       {
         ExtendsClause extendsClause = node.extendsClause;
         if (extendsClause != null) {
@@ -175,7 +175,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ClassElement element = node.element;
     enterScope(element);
     try {
-      _recordElementDefinition(element);
+      _recordTopLevelElementDefinition(element);
       {
         TypeName superclassNode = node.superclass;
         if (superclassNode != null) {
@@ -286,7 +286,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ClassElement element = node.element;
     enterScope(element);
     try {
-      _recordElementDefinition(element);
+      _recordTopLevelElementDefinition(element);
       super.visitEnumDeclaration(node);
     } finally {
       _exitScope();
@@ -317,7 +317,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.element;
-    _recordElementDefinition(element);
+    _recordTopLevelElementDefinition(element);
     enterScope(element);
     try {
       super.visitFunctionDeclaration(node);
@@ -329,7 +329,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     Element element = node.element;
-    _recordElementDefinition(element);
+    _recordTopLevelElementDefinition(element);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -533,7 +533,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     VariableDeclarationList variables = node.variables;
     for (VariableDeclaration variableDeclaration in variables.variables) {
       Element element = variableDeclaration.element;
-      _recordElementDefinition(element);
+      _recordTopLevelElementDefinition(element);
     }
     super.visitTopLevelVariableDeclaration(node);
   }
@@ -677,16 +677,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /**
-   * Records the [Element] definition in the library and universe.
-   */
-  void _recordElementDefinition(Element element) {
-    Location location = createLocation(element);
-    Relationship relationship = IndexConstants.DEFINES;
-    recordRelationship(_libraryElement, relationship, location);
-    recordRelationship(UniverseElement.INSTANCE, relationship, location);
-  }
-
-  /**
    * Records [ImportElement] reference if given [SimpleIdentifier] references some
    * top-level element and not qualified with import prefix.
    */
@@ -781,6 +771,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
             _createLocationForNode(superNode));
       }
     }
+  }
+
+  /**
+   * Records the [Element] definition in the library and universe.
+   */
+  void _recordTopLevelElementDefinition(Element element) {
+    Location location = createLocation(element);
+    recordRelationship(_libraryElement, IndexConstants.DEFINES, location);
+    _store.recordTopDeclaration(element);
   }
 
   /**

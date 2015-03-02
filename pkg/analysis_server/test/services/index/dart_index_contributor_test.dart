@@ -65,6 +65,7 @@ bool _equalsRecordedRelation(RecordedRelation recordedRelation,
 class DartUnitContributorTest extends AbstractSingleUnitTest {
   IndexStore store = new MockIndexStore();
   List<RecordedRelation> recordedRelations = <RecordedRelation>[];
+  List<Element> recordedTopElements = <Element>[];
 
   CompilationUnitElement importedUnit({int index: 0}) {
     List<ImportElement> imports = testLibraryElement.imports;
@@ -83,6 +84,9 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
       recordedRelations.add(
           new RecordedRelation(element, relationship, location));
     });
+    when(store.recordTopDeclaration(anyObject)).thenInvoke((Element element) {
+      recordedTopElements.add(element);
+    });
   }
 
   void test_definesClass() {
@@ -90,9 +94,7 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
     // prepare elements
     ClassElement classElement = findElement("A");
     // verify
-    _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES,
-        _expectedLocation(classElement, 'A {}'));
+    _assertDefinesTopLevelElement(classElement);
   }
 
   void test_definesClassAlias() {
@@ -102,9 +104,7 @@ class MyClass = Object with Mix;''');
     // prepare elements
     Element classElement = findElement("MyClass");
     // verify
-    _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES,
-        _expectedLocation(classElement, 'MyClass ='));
+    _assertDefinesTopLevelElement(classElement);
   }
 
   void test_definesClassEnum() {
@@ -112,9 +112,7 @@ class MyClass = Object with Mix;''');
     // prepare elements
     ClassElement classElement = findElement("MyEnum");
     // verify
-    _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES,
-        _expectedLocation(classElement, 'MyEnum {'));
+    _assertDefinesTopLevelElement(classElement);
   }
 
   void test_definesFunction() {
@@ -122,9 +120,7 @@ class MyClass = Object with Mix;''');
     // prepare elements
     FunctionElement functionElement = findElement("myFunction");
     // verify
-    _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES,
-        _expectedLocation(functionElement, 'myFunction() {}'));
+    _assertDefinesTopLevelElement(functionElement);
   }
 
 
@@ -133,9 +129,7 @@ class MyClass = Object with Mix;''');
     // prepare elements
     FunctionTypeAliasElement typeAliasElement = findElement("MyFunction");
     // verify
-    _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES,
-        _expectedLocation(typeAliasElement, 'MyFunction(int p);'));
+    _assertDefinesTopLevelElement(typeAliasElement);
   }
 
   void test_definesVariable() {
@@ -143,9 +137,7 @@ class MyClass = Object with Mix;''');
     // prepare elements
     VariableElement varElement = findElement("myVar");
     // verify
-    _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES,
-        _expectedLocation(varElement, 'myVar = 42;'));
+    _assertDefinesTopLevelElement(varElement);
   }
 
   void test_forIn() {
@@ -1650,13 +1642,11 @@ main(A a, p) {
     indexDartUnit(store, context, unit);
   }
 
-  void _assertDefinesTopLevelElement(Relationship relationship,
-      ExpectedLocation expectedLocation) {
-    _assertRecordedRelation(testLibraryElement, relationship, expectedLocation);
-    _assertRecordedRelation(
-        UniverseElement.INSTANCE,
-        relationship,
-        expectedLocation);
+  void _assertDefinesTopLevelElement(Element element) {
+    ExpectedLocation location = new ExpectedLocation(element, element.nameOffset,
+        element.name.length, false, true);
+    _assertRecordedRelation(testLibraryElement, IndexConstants.DEFINES, location);
+    expect(recordedTopElements, contains(element));
   }
 
   /**
