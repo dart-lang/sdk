@@ -291,7 +291,7 @@ defineRuleUnitTests() {
       });
     });
     group('lower_case_underscores', () {
-      var good = ['foo_bar', 'foo', 'foo_bar_baz'];
+      var good = ['foo_bar', 'foo', 'foo_bar_baz', 'p'];
       testEach(good, isLowerCaseUnderScore, isTrue);
 
       var bad = ['Foo', 'fooBar', 'foo_Bar', 'foo_', '_f', 'F_B', 'JS', 'JSON'];
