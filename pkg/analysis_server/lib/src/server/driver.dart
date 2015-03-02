@@ -122,8 +122,9 @@ class Driver implements ServerStarter {
   static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-frequency';
 
   /**
-   * The name of the option used to specify the port to which the server will
-   * connect.
+   * The option for specifying the http diagnostic port.
+   * If specified, users can review server status and performance information
+   * by opening a web browser on http://localhost:<port>
    */
   static const String PORT_OPTION = "port";
 
@@ -364,7 +365,8 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addOption(
         PORT_OPTION,
-        help: "[port] the port on which the server will listen");
+        help: "the http diagnostic port on which the server provides"
+            " status and performance information");
     parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
     parser.addFlag(
