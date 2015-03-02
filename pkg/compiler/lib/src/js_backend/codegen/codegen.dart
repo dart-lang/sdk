@@ -9,6 +9,7 @@ import 'glue.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../js/js.dart' as js;
 import '../../elements/elements.dart';
+import '../../io/source_information.dart' show SourceInformation;
 import '../../util/maplet.dart';
 import '../../constants/values.dart';
 import '../../dart2jslib.dart';
@@ -182,7 +183,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   // TODO(karlklose): get rid of the selector argument.
   js.Expression buildStaticInvoke(Selector selector,
                                   Element target,
-                                  List<js.Expression> arguments) {
+                                  List<js.Expression> arguments,
+                                  {SourceInformation sourceInformation}) {
     registry.registerStaticInvocation(target.declaration);
     if (target == glue.getInterceptorMethod) {
       // This generates a call to the specialized interceptor function, which
@@ -196,7 +198,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
       return js.propertyCall(interceptorLibrary, selector.name, arguments);
     } else {
       js.Expression elementAccess = glue.staticFunctionAccess(target);
-      return new js.Call(elementAccess, arguments);
+      return new js.Call(elementAccess, arguments,
+          sourceInformation: sourceInformation);
     }
   }
 
@@ -261,7 +264,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     Selector selector = node.selector;
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitArguments(node.arguments);
-    return buildStaticInvoke(selector, target, arguments);
+    return buildStaticInvoke(selector, target, arguments,
+        sourceInformation: node.sourceInformation);
   }
 
   @override

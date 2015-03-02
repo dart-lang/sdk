@@ -24,8 +24,10 @@ part of dart2js.ir_builder;
 class IrBuilderTask extends CompilerTask {
   final Map<Element, ir.ExecutableDefinition> nodes =
       <Element, ir.ExecutableDefinition>{};
+  final bool generateSourceMap;
 
-  IrBuilderTask(Compiler compiler) : super(compiler);
+  IrBuilderTask(Compiler compiler, {this.generateSourceMap: true})
+      : super(compiler);
 
   String get name => 'IR builder';
 
@@ -37,27 +39,33 @@ class IrBuilderTask extends CompilerTask {
 
   ir.ExecutableDefinition buildNode(AstElement element) {
     if (!canBuild(element)) return null;
+
     TreeElements elementsMapping = element.resolvedAst.elements;
     element = element.implementation;
     return compiler.withCurrentElement(element, () {
-      SourceFile sourceFile = elementSourceFile(element);
+      SourceInformationBuilder sourceInformationBuilder = generateSourceMap
+          ? new PositionSourceInformationBuilder(element)
+          : const SourceInformationBuilder();
+
       IrBuilderVisitor builder =
           compiler.backend is JavaScriptBackend
-          ? new JsIrBuilderVisitor(elementsMapping, compiler, sourceFile)
-          : new DartIrBuilderVisitor(elementsMapping, compiler, sourceFile);
-      return builder.buildExecutable(element);
+          ? new JsIrBuilderVisitor(
+              elementsMapping, compiler, sourceInformationBuilder)
+          : new DartIrBuilderVisitor(
+              elementsMapping, compiler, sourceInformationBuilder);
+      ir.ExecutableDefinition definition =
+            builder.buildExecutable(element);
+      if (definition != null) {
+        nodes[element] = definition;
+      }
+      return definition;
     });
   }
 
   void buildNodes() {
     measure(() {
       Set<Element> resolved = compiler.enqueuer.resolution.resolvedElements;
-      resolved.forEach((AstElement element) {
-        ir.ExecutableDefinition definition = buildNode(element);
-        if (definition != null) {
-          nodes[element] = definition;
-        }
-      });
+      resolved.forEach(buildNode);
     });
   }
 
@@ -91,14 +99,6 @@ class IrBuilderTask extends CompilerTask {
 
 }
 
-SourceFile elementSourceFile(Element element) {
-  if (element is FunctionElement) {
-    FunctionElement functionElement = element;
-    if (functionElement.patch != null) element = functionElement.patch;
-  }
-  return element.compilationUnit.script.file;
-}
-
 class _GetterElements {
   ir.Primitive result;
   ir.Primitive index;
@@ -115,7 +115,7 @@ class _GetterElements {
 abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     with IrBuilderMixin<ast.Node> {
   final Compiler compiler;
-  final SourceFile sourceFile;
+  final SourceInformationBuilder sourceInformationBuilder;
 
   // In SSA terms, join-point continuation parameters are the phis and the
   // continuation invocation arguments are the corresponding phi inputs.  To
@@ -136,7 +136,9 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   // arguments, and what the arguments are.
 
   /// Construct a top-level visitor.
-  IrBuilderVisitor(TreeElements elements, this.compiler, this.sourceFile)
+  IrBuilderVisitor(TreeElements elements,
+                   this.compiler,
+                   this.sourceInformationBuilder)
       : super(elements);
 
   /**
@@ -799,7 +801,8 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       // so the vm can fail at runtime.
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.SETTER);
-      result = irBuilder.buildStaticGet(element, selector);
+      result = irBuilder.buildStaticGet(element, selector,
+          sourceInformation: sourceInformationBuilder.buildGet(node));
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       // Convert a top-level or static function to a function object.
       result = translateConstant(node);
@@ -898,7 +901,8 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       assert(element is FunctionElement);
       List<ir.Primitive> arguments = node.arguments.mapToList(visit);
       arguments = normalizeStaticArguments(selector, element, arguments);
-      return irBuilder.buildStaticInvocation(element, selector, arguments);
+      return irBuilder.buildStaticInvocation(element, selector, arguments,
+          sourceInformation: sourceInformationBuilder.buildCall(node));
     }
   }
 
@@ -1269,9 +1273,9 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   DartIrBuilder get irBuilder => super.irBuilder;
 
   DartIrBuilderVisitor(TreeElements elements,
-                   Compiler compiler,
-                   SourceFile sourceFile)
-      : super(elements, compiler, sourceFile);
+                       Compiler compiler,
+                       SourceInformationBuilder sourceInformationBuilder)
+      : super(elements, compiler, sourceInformationBuilder);
 
   DartIrBuilder makeIRBuilder(ast.Node node, ExecutableElement element) {
     DartCapturedVariables closures = new DartCapturedVariables(elements);
@@ -1396,8 +1400,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
   JsIrBuilderVisitor(TreeElements elements,
                      Compiler compiler,
-                     SourceFile sourceFile)
-      : super(elements, compiler, sourceFile);
+                     SourceInformationBuilder sourceInformationBuilder)
+      : super(elements, compiler, sourceInformationBuilder);
 
   /// Builds the IR for creating an instance of the closure class corresponding
   /// to the given nested function.
@@ -1508,7 +1512,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
         context.resolvedAst.elements,
         compiler,
-        elementSourceFile(context));
+        sourceInformationBuilder.forContext(context));
     return visitor.withBuilder(irBuilder, () => visitor.visit(expression));
   }
 
@@ -1520,7 +1524,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
         context.resolvedAst.elements,
         compiler,
-        elementSourceFile(context));
+        sourceInformationBuilder.forContext(context));
     return visitor.withBuilder(irBuilder, () => visitor.translateConstant(exp));
   }
 
@@ -1902,6 +1906,45 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     }
     return result;
   }
-
 }
 
+/// Interface for generating [SourceInformation] for the CPS.
+class SourceInformationBuilder {
+  const SourceInformationBuilder();
+
+  /// Create a [SourceInformationBuilder] for [element].
+  SourceInformationBuilder forContext(AstElement element) => this;
+
+  /// Generate [SourceInformation] for the read access in [node].
+  SourceInformation buildGet(ast.Node node) => null;
+
+  /// Generate [SourceInformation] for the invocation in [node].
+  SourceInformation buildCall(ast.Node node) => null;
+}
+
+/// [SourceInformationBuilder] that generates [PositionSourceInformation].
+class PositionSourceInformationBuilder implements SourceInformationBuilder {
+  final SourceFile sourceFile;
+  final String name;
+
+  PositionSourceInformationBuilder(AstElement element)
+      : sourceFile = element.compilationUnit.script.file,
+        name = element.name;
+
+  @override
+  SourceInformation buildGet(ast.Node node) {
+    return new PositionSourceInformation(
+        new TokenSourceLocation(sourceFile, node.getBeginToken(), name));
+  }
+
+  @override
+  SourceInformation buildCall(ast.Node node) {
+    return new PositionSourceInformation(
+        new TokenSourceLocation(sourceFile, node.getBeginToken(), name));
+  }
+
+  @override
+  SourceInformationBuilder forContext(AstElement element) {
+    return new PositionSourceInformationBuilder(element);
+  }
+}

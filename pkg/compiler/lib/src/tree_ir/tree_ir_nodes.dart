@@ -8,6 +8,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, GenericType;
 import '../elements/elements.dart';
+import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart';
 import '../universe/universe.dart' show Selector;
 import 'optimization/optimization.dart';
@@ -152,8 +153,10 @@ class InvokeStatic extends Expression implements Invoke {
   final Entity target;
   final List<Expression> arguments;
   final Selector selector;
+  final SourceInformation sourceInformation;
 
-  InvokeStatic(this.target, this.selector, this.arguments);
+  InvokeStatic(this.target, this.selector, this.arguments,
+               {this.sourceInformation});
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) {

@@ -465,7 +465,8 @@ class JavaScriptBackend extends Backend {
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = USE_CPS_IR
-         ? new CpsFunctionCompiler(compiler, this)
+         ? new CpsFunctionCompiler(
+             compiler, this, generateSourceMap: generateSourceMap)
          : new SsaFunctionCompiler(this, generateSourceMap);
   }
 

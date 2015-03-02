@@ -8,11 +8,12 @@ library dart2js.ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
+import '../cps_ir/optimizers.dart';
+import '../dart_types.dart' show DartType, GenericType;
 import '../dart2jslib.dart' as dart2js show invariant;
 import '../elements/elements.dart';
+import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart' show Selector, SelectorKind;
-import '../dart_types.dart' show DartType, GenericType;
-import '../cps_ir/optimizers.dart';
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -227,9 +228,13 @@ class InvokeStatic extends Expression implements Invoke {
 
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final SourceInformation sourceInformation;
 
-  InvokeStatic(this.target, this.selector, Continuation cont,
-               List<Primitive> args)
+  InvokeStatic(this.target,
+               this.selector,
+               Continuation cont,
+               List<Primitive> args,
+               this.sourceInformation)
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(target is ErroneousElement || selector.name == target.name);

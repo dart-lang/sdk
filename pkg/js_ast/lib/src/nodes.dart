@@ -663,7 +663,10 @@ class Call extends Expression {
   Expression target;
   List<Expression> arguments;
 
-  Call(this.target, this.arguments);
+  Call(this.target, this.arguments,
+       {JavaScriptNodeSourceInformation sourceInformation}) {
+    this._sourceInformation = sourceInformation;
+  }
 
   accept(NodeVisitor visitor) => visitor.visitCall(this);
 

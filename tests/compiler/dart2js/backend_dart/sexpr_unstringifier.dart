@@ -424,7 +424,7 @@ class SExpressionUnstringifier {
     Selector selector = dummySelector(methodName, args.length);
 
     tokens.consumeEnd();
-    return new InvokeStatic(entity, selector, cont, args);
+    return new InvokeStatic(entity, selector, cont, args, null);
   }
 
   /// (InvokeMethodDirectly receiver method (args) cont)

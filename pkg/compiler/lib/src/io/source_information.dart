@@ -95,10 +95,53 @@ class StartEndSourceInformation implements SourceInformation {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('${startPosition.sourceUri}:');
-    sb.write('[${startPosition.line},${startPosition.column}]');
+    // Use 1-based line/column info to match usual dart tool output.
+    sb.write('[${startPosition.line + 1},${startPosition.column + 1}]');
     if (endPosition != null) {
-      sb.write('-[${endPosition.line},${endPosition.column}]');
+      sb.write('-[${endPosition.line + 1},${endPosition.column + 1}]');
     }
+    return sb.toString();
+  }
+}
+
+/// [SourceInformation] that consists of an offset position into the source
+/// code.
+class PositionSourceInformation implements SourceInformation {
+  final SourceLocation sourcePosition;
+
+  PositionSourceInformation(this.sourcePosition);
+
+  @override
+  void beginMapping(CodeOutput output) {
+    output.setSourceLocation(sourcePosition);
+  }
+
+  @override
+  void endMapping(CodeOutput output) {
+    // Do nothing.
+  }
+
+  SourceSpan get sourceSpan {
+    Uri uri = sourcePosition.sourceUri;
+    int offset = sourcePosition.offset;
+    return new SourceSpan(uri, offset, offset);
+  }
+
+  int get hashCode {
+    return sourcePosition.hashCode * 17 & 0x7FFFFFFF;
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! PositionSourceInformation) return false;
+    return sourcePosition == other.sourcePosition;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('${sourcePosition.sourceUri}:');
+    // Use 1-based line/column info to match usual dart tool output.
+    sb.write('[${sourcePosition.line + 1},${sourcePosition.column + 1}]');
     return sb.toString();
   }
 }
@@ -147,7 +190,10 @@ abstract class SourceLocation {
            sourceName == other.sourceName;
   }
 
-  String toString() => '${sourceUri}:[${line},${column}]';
+  String toString() {
+    // Use 1-based line/column info to match usual dart tool output.
+    return '${sourceUri}:[${line + 1},${column + 1}]';
+  }
 }
 
 class TokenSourceLocation extends SourceLocation {

@@ -10,6 +10,7 @@ import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
 import '../io/source_file.dart';
+import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../universe/universe.dart' show SelectorKind;
@@ -445,10 +446,12 @@ abstract class IrBuilder {
 
   ir.Primitive _buildInvokeStatic(Element element,
                                   Selector selector,
-                                  List<ir.Primitive> arguments) {
+                                  List<ir.Primitive> arguments,
+                                  SourceInformation sourceInformation) {
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, k, arguments));
+        (k) => new ir.InvokeStatic(element, selector, k, arguments,
+                                   sourceInformation));
   }
 
   ir.Primitive _buildInvokeSuper(Element target,
@@ -744,26 +747,32 @@ abstract class IrBuilder {
   /// defined by [selector] and the argument values are defined by [arguments].
   ir.Primitive buildStaticInvocation(Element element,
                                      Selector selector,
-                                     List<ir.Primitive> arguments) {
-    return _buildInvokeStatic(element, selector, arguments);
+                                     List<ir.Primitive> arguments,
+                                     {SourceInformation sourceInformation}) {
+    return _buildInvokeStatic(element, selector, arguments, sourceInformation);
   }
 
   /// Create a static getter invocation of [element] where the getter name is
   /// defined by [selector].
-  ir.Primitive buildStaticGet(Element element, Selector selector) {
+  ir.Primitive buildStaticGet(Element element,
+                              Selector selector,
+                              {SourceInformation sourceInformation}) {
     assert(selector.isGetter);
     // TODO(karlklose,sigurdm): build different nodes for getters.
-    return _buildInvokeStatic(element, selector, const <ir.Primitive>[]);
+    return _buildInvokeStatic(
+        element, selector, const <ir.Primitive>[], sourceInformation);
   }
 
   /// Create a static setter invocation of [element] where the setter name and
   /// argument are defined by [selector] and [value], respectively.
   ir.Primitive buildStaticSet(Element element,
                               Selector selector,
-                              ir.Primitive value) {
+                              ir.Primitive value,
+                              {SourceInformation sourceInformation}) {
     assert(selector.isSetter);
     // TODO(karlklose,sigurdm): build different nodes for setters.
-    _buildInvokeStatic(element, selector, <ir.Primitive>[value]);
+    _buildInvokeStatic(
+        element, selector, <ir.Primitive>[value], sourceInformation);
     return value;
   }
 
