@@ -2228,6 +2228,15 @@ class SsaBuilder extends ResolvedVisitor {
         }
       });
 
+      // If there are locals that escape (ie mutated in closures), we
+      // pass the box to the constructor.
+      // The box must be passed before any type variable.
+      ClosureScope scopeData = parameterClosureData.capturingScopes[node];
+      if (scopeData != null) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      }
+
+      // Type variables arguments must come after the box (if there is one).
       ClassElement currentClass = constructor.enclosingClass;
       if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
@@ -2238,13 +2247,6 @@ class SsaBuilder extends ResolvedVisitor {
           bodyCallInputs.add(localsHandler.readLocal(
               localsHandler.getTypeVariableAsLocal(argument)));
         });
-      }
-
-      // If there are locals that escape (ie mutated in closures), we
-      // pass the box to the constructor.
-      ClosureScope scopeData = parameterClosureData.capturingScopes[node];
-      if (scopeData != null) {
-        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
       }
 
       if (!isNativeUpgradeFactory && // TODO(13836): Fix inlining.
