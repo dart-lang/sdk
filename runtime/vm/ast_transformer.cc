@@ -113,7 +113,7 @@ AstNode* AwaitTransformer::RestoreSavedTryContext(Zone* zone,
                                                   LocalScope* scope,
                                                   int16_t try_index) {
   LocalVariable* saved_try_ctx =
-      scope->LookupVariable(Symbols::SavedTryContextVar(), false);
+      scope->LocalLookupVariable(Symbols::SavedTryContextVar());
   ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
   const String& async_saved_try_ctx_name = String::ZoneHandle(zone,
       Symbols::New(String::Handle(zone,
@@ -121,7 +121,7 @@ AstNode* AwaitTransformer::RestoreSavedTryContext(Zone* zone,
                                Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
                                try_index))));
   LocalVariable* async_saved_try_ctx =
-      scope->LookupVariable(async_saved_try_ctx_name, false);
+      scope->LocalLookupVariable(async_saved_try_ctx_name);
   ASSERT(async_saved_try_ctx != NULL);
   ASSERT(async_saved_try_ctx->is_captured());
   return new (zone) StoreLocalNode(

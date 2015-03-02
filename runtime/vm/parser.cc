@@ -5996,17 +5996,14 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   ASSERT(try_blocks_list_ != NULL);
   ASSERT(innermost_function().IsAsyncClosure() ||
          innermost_function().IsAsyncFunction());
-  if ((try_blocks_list_->outer_try_block() != NULL) &&
-      (try_blocks_list_->outer_try_block()->try_block()
-          ->scope->function_level() ==
-       current_block_->scope->function_level())) {
-    // We need to unchain three scope levels: catch clause, catch
-    // parameters, and the general try block.
-    current_block_->statements->Add(
-        AwaitTransformer::RestoreSavedTryContext(
-            Z,
-            current_block_->scope->parent()->parent()->parent(),
-            try_blocks_list_->outer_try_block()->try_index()));
+  const TryBlocks* outer_try_block = try_blocks_list_->outer_try_block();
+  if (outer_try_block != NULL) {
+    LocalScope* scope = outer_try_block->try_block()->scope;
+    if (scope->function_level() == current_block_->scope->function_level()) {
+      current_block_->statements->Add(
+          AwaitTransformer::RestoreSavedTryContext(
+              Z, scope->parent(), outer_try_block->try_index()));
+    }
   }
 
   // Complete the async future with an error.
@@ -8336,12 +8333,12 @@ SequenceNode* Parser::ParseFinallyBlock() {
        innermost_function().IsSyncGenClosure() ||
        innermost_function().IsSyncGenerator()) &&
       (try_blocks_list_ != NULL)) {
-    // We need two unchain two scopes: finally clause, and the try block level.
-    current_block_->statements->Add(
-        AwaitTransformer::RestoreSavedTryContext(
-            Z,
-            current_block_->scope->parent()->parent(),
-            try_blocks_list_->try_index()));
+    LocalScope* scope = try_blocks_list_->try_block()->scope;
+    if (scope->function_level() == current_block_->scope->function_level()) {
+      current_block_->statements->Add(
+          AwaitTransformer::RestoreSavedTryContext(
+              Z, scope->parent(), try_blocks_list_->try_index()));
+    }
   }
 
   ParseStatementSequence();
@@ -8493,17 +8490,15 @@ SequenceNode* Parser::ParseCatchClauses(
         innermost_function().IsAsyncFunction() ||
         innermost_function().IsSyncGenClosure() ||
         innermost_function().IsSyncGenerator()) {
-      if ((try_blocks_list_->outer_try_block() != NULL) &&
-          (try_blocks_list_->outer_try_block()->try_block()
-              ->scope->function_level() ==
-           current_block_->scope->function_level())) {
-        // We need to unchain three scope levels: catch clause, catch
-        // parameters, and the general try block.
-        current_block_->statements->Add(
-            AwaitTransformer::RestoreSavedTryContext(
-                Z,
-                current_block_->scope->parent()->parent()->parent(),
-                try_blocks_list_->outer_try_block()->try_index()));
+      const TryBlocks* try_block = try_blocks_list_->outer_try_block();
+      if (try_block != NULL) {
+        LocalScope* scope = try_block->try_block()->scope;
+        if (scope->function_level() ==
+            current_block_->scope->function_level()) {
+          current_block_->statements->Add(
+              AwaitTransformer::RestoreSavedTryContext(
+                  Z, scope->parent(), try_block->try_index()));
+        }
       }
       SaveExceptionAndStacktrace(exception_var, stack_trace_var);
     }
@@ -8594,47 +8589,34 @@ SequenceNode* Parser::ParseCatchClauses(
   }
   // If the last body was entered conditionally and there is no need to add
   // a rethrow, use an empty else body (current = NULL above).
-
   while (!type_tests.is_empty()) {
     AstNode* type_test = type_tests.RemoveLast();
     SequenceNode* catch_block = catch_blocks.RemoveLast();
-
-    // TODO(regis): Understand the purpose of the following code restoring
-    // :saved_try_context_var. This code was added as part of r39926.
-    // In some cases, this code even crashed the compiler (debug mode assert),
-    // because the scope unchaining was starting from the wrong block.
-    // The catch clause(s) emitted below contain the same restoring code.
-    // So why is it necessary? Could it be an attempt to handle the case where
-    // the catch clause is replaced by a throw because of a bad type? It is not
-    // necessary in this case either, because no await could have been executed
-    // between the setup of :saved_try_context_var in the try clause and here
-    // (it is the execution of an await that clears all stack-based variables).
-
-    // In case of async closures we need to restore the saved try index of an
-    // outer try block (if it exists).
+    current_block_->statements->Add(new(Z) IfNode(
+        type_test->token_pos(), type_test, catch_block, current));
+    current = CloseBlock();
+  }
+  // Restore :saved_try_context_var before executing the catch clauses.
+  if (current != NULL) {
     ASSERT(try_blocks_list_ != NULL);
     if (innermost_function().IsAsyncClosure() ||
         innermost_function().IsAsyncFunction() ||
         innermost_function().IsSyncGenClosure() ||
         innermost_function().IsSyncGenerator()) {
-      if ((try_blocks_list_->outer_try_block() != NULL) &&
-          (try_blocks_list_->outer_try_block()->try_block()
-              ->scope->function_level() ==
-           current_block_->scope->function_level())) {
-        // We need to unchain three scope levels (from the catch block and not
-        // from the current block): catch clause, catch
-        // parameters, and the general try block.
-        current_block_->statements->Add(
-            AwaitTransformer::RestoreSavedTryContext(
-                Z,
-                catch_block->scope()->parent()->parent()->parent(),
-                try_blocks_list_->outer_try_block()->try_index()));
+      const TryBlocks* try_block = try_blocks_list_->outer_try_block();
+      if (try_block != NULL) {
+        LocalScope* scope = try_block->try_block()->scope;
+        if (scope->function_level() ==
+            current_block_->scope->function_level()) {
+          SequenceNode* restore_code = new(Z) SequenceNode(handler_pos, NULL);
+          restore_code->Add(
+              AwaitTransformer::RestoreSavedTryContext(
+                  Z, scope->parent(), try_block->try_index()));
+          restore_code->Add(current);
+          current = restore_code;
+        }
       }
     }
-
-    current_block_->statements->Add(new(Z) IfNode(
-        type_test->token_pos(), type_test, catch_block, current));
-    current = CloseBlock();
   }
   return current;
 }
