@@ -93,13 +93,13 @@ var dart;
   }
   dart.dbinary = dbinary;
 
-  function as(obj, type) {
+  function as_(obj, type) {
     // TODO(vsm): Implement.
     // if (obj == null || is(obj, type)) return obj;
     // throw new core.CastError();
     return obj;
   }
-  dart.as = as;
+  dart.as = as_;
 
   function is(obj, type) {
     // TODO(vsm): Implement.
