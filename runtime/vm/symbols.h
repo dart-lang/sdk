@@ -341,7 +341,7 @@ class ObjectPointerVisitor;
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
-  V(AllocationStubFor, "Allocation stub for ")                                 \
+  V(AllocationStubFor, "[Stub] Allocate ")                                     \
   V(TempParam, ":temp_param")                                                  \
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \

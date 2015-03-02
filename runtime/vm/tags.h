@@ -23,6 +23,7 @@ class RuntimeEntry;
   V(Dart)                                                                      \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
+  V(Embedder)                                                                  \
   V(Runtime)                                                                   \
   V(Native)                                                                    \
 

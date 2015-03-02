@@ -119,7 +119,8 @@ class ObservatoryElement extends PolymerElement {
   }
 
   String formatTimePrecise(double time) => Utils.formatTimePrecise(time);
-
+  String formatTimeMilliseconds(int millis) =>
+      Utils.formatTimeMilliseconds(millis);
   String formatTime(double time) => Utils.formatTime(time);
 
   String formatSeconds(double x) => Utils.formatSeconds(x);

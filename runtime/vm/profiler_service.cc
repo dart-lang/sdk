@@ -196,25 +196,9 @@ class ProfileFunction : public ZoneAllocated {
   }
 
   void PrintToJSONObject(JSONObject* func) {
-    if (kind() == kNativeFunction) {
-      func->AddProperty("type", "@Function");
-      func->AddProperty("name", name());
-      func->AddProperty("kind", "Native");
-    } else if (kind() == kTagFunction) {
-      func->AddProperty("type", "@Function");
-      func->AddProperty("kind", "Tag");
-      func->AddProperty("name", name());
-    } else if (kind() == kUnkownFunction) {
-      func->AddProperty("type", "@Function");
-      func->AddProperty("name", name());
-      func->AddProperty("kind", "Collected");
-    } else if (kind() == kStubFunction) {
-      func->AddProperty("type", "@Function");
-      func->AddProperty("name", name());
-      func->AddProperty("kind", "Stub");
-    } else {
-      UNREACHABLE();
-    }
+    func->AddProperty("type", "@Function");
+    func->AddProperty("name", name());
+    func->AddProperty("kind", KindToCString(kind()));
   }
 
   void PrintToJSONArray(JSONArray* functions) {
@@ -630,7 +614,7 @@ class CodeRegion : public ZoneAllocated {
     ASSERT(kind() == kReusedCode);
     JSONObject obj(profile_code_obj, "code");
     obj.AddProperty("type", "@Code");
-    obj.AddProperty("kind", "Reused");
+    obj.AddProperty("kind", "Collected");
     obj.AddProperty("name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
@@ -1394,18 +1378,19 @@ class ProfileFunctionTrieNode : public ZoneAllocated {
 };
 
 
-class ProfileFunctionExclusiveTrieBuilder : public SampleVisitor {
+class ProfileFunctionTrieBuilder : public SampleVisitor {
  public:
-  ProfileFunctionExclusiveTrieBuilder(Isolate* isolate,
-                                      CodeRegionTable* live_code_table,
-                                      CodeRegionTable* dead_code_table,
-                                      CodeRegionTable* tag_code_table,
-                                      ProfileFunctionTable* function_table)
+  ProfileFunctionTrieBuilder(Isolate* isolate,
+                             CodeRegionTable* live_code_table,
+                             CodeRegionTable* dead_code_table,
+                             CodeRegionTable* tag_code_table,
+                             ProfileFunctionTable* function_table)
       : SampleVisitor(isolate),
         live_code_table_(live_code_table),
         dead_code_table_(dead_code_table),
         tag_code_table_(tag_code_table),
         function_table_(function_table),
+        inclusive_(false),
         trace_(false),
         trace_code_filter_(NULL) {
     ASSERT(live_code_table_ != NULL);
@@ -1419,15 +1404,60 @@ class ProfileFunctionExclusiveTrieBuilder : public SampleVisitor {
     ASSERT(root_index >= 0);
     CodeRegion* region = tag_code_table_->At(root_index);
     ASSERT(region != NULL);
-
     ProfileFunction* function = region->function();
-    root_ = new ProfileFunctionTrieNode(function->index());
+    ASSERT(function != NULL);
+
+    exclusive_root_ = new ProfileFunctionTrieNode(function->index());
+    inclusive_root_ = new ProfileFunctionTrieNode(function->index());
   }
 
   void VisitSample(Sample* sample) {
+    inclusive_ = false;
+    ProcessSampleExclusive(sample);
+    inclusive_ = true;
+    ProcessSampleInclusive(sample);
+  }
+
+  ProfileFunctionTrieNode* exclusive_root() const {
+    return exclusive_root_;
+  }
+
+  ProfileFunctionTrieNode* inclusive_root() const {
+    return inclusive_root_;
+  }
+
+  ProfilerService::TagOrder tag_order() const {
+    return tag_order_;
+  }
+
+  void set_tag_order(ProfilerService::TagOrder tag_order) {
+    tag_order_ = tag_order;
+  }
+
+ private:
+  void ProcessSampleInclusive(Sample* sample) {
     // Give the root a tick.
-    root_->Tick();
-    ProfileFunctionTrieNode* current = root_;
+    inclusive_root_->Tick();
+    ProfileFunctionTrieNode* current = inclusive_root_;
+    current = ProcessTags(sample, current);
+    // Walk the sampled PCs.
+    for (intptr_t i = FLAG_profile_depth - 1; i >= 0; i--) {
+      if (sample->At(i) == 0) {
+        continue;
+      }
+      // If we aren't sampled out of an exit frame and this is the top
+      // frame.
+      bool exclusive_tick = (i == 0) && !sample->exit_frame_sample();
+      current = ProcessPC(sample->At(i), sample->timestamp(), current,
+                          visited(), exclusive_tick,
+                          sample->missing_frame_inserted());
+    }
+  }
+
+  void ProcessSampleExclusive(Sample* sample) {
+    // Give the root a tick.
+    exclusive_root_->Tick();
+    ProfileFunctionTrieNode* current = exclusive_root_;
     current = ProcessTags(sample, current);
     // Walk the sampled PCs.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
@@ -1443,19 +1473,6 @@ class ProfileFunctionExclusiveTrieBuilder : public SampleVisitor {
     }
   }
 
-  ProfileFunctionTrieNode* root() const {
-    return root_;
-  }
-
-  ProfilerService::TagOrder tag_order() const {
-    return tag_order_;
-  }
-
-  void set_tag_order(ProfilerService::TagOrder tag_order) {
-    tag_order_ = tag_order;
-  }
-
- private:
   ProfileFunctionTrieNode* ProcessUserTags(Sample* sample,
                                            ProfileFunctionTrieNode* current) {
     intptr_t user_tag_index = FindTagIndex(sample->user_tag());
@@ -1569,7 +1586,9 @@ class ProfileFunctionExclusiveTrieBuilder : public SampleVisitor {
         OS::Print("[%" Px "] X - %s (%s)\n",
                   pc, function->name(), region_name);
       }
-      function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
+      if (!inclusive_) {
+        function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
+      }
       current = current->GetChild(function->index());
       current->AddCodeObjectIndex(code_index);
       current->Tick();
@@ -1583,33 +1602,55 @@ class ProfileFunctionExclusiveTrieBuilder : public SampleVisitor {
       return current;
     }
 
-
-    for (intptr_t i = 0; i < inlined_functions.length(); i++) {
-      Function* inlined_function = inlined_functions[i];
-      ASSERT(inlined_function != NULL);
-      ASSERT(!inlined_function->IsNull());
-      const char* inline_name = inlined_function->ToQualifiedCString();
-      if (trace_) {
-        OS::Print("[%" Px "] %" Pd " - %s (%s)\n",
-                  pc, i, inline_name, region_name);
+    if (inclusive_) {
+      for (intptr_t i = inlined_functions.length() - 1; i >= 0; i--) {
+        Function* inlined_function = inlined_functions[i];
+        ASSERT(inlined_function != NULL);
+        ASSERT(!inlined_function->IsNull());
+        current = ProcessInlinedFunction(
+            inlined_function, current, inclusive_serial, exclusive, code_index);
+        exclusive = false;
       }
-      ProfileFunction* function =
-          function_table_->LookupOrAdd(*inlined_function);
-      ASSERT(function != NULL);
-      function->AddCodeObjectIndex(code_index);
-      function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
-      exclusive = false;
-      current = current->GetChild(function->index());
-      current->AddCodeObjectIndex(code_index);
-      current->Tick();
-      if ((trace_code_filter_ != NULL) &&
-          (strstr(region_name, trace_code_filter_) != NULL)) {
-        trace_ = true;
-        OS::Print("Tracing from: %" Px " [%s] ",
-                  pc, missing_frame_inserted ? "INSERTED" : "");
-        Dump(current);
+    } else {
+      for (intptr_t i = 0; i < inlined_functions.length(); i++) {
+        Function* inlined_function = inlined_functions[i];
+        ASSERT(inlined_function != NULL);
+        ASSERT(!inlined_function->IsNull());
+        const char* inline_name = inlined_function->ToQualifiedCString();
+        if (trace_) {
+          OS::Print("[%" Px "] %" Pd " - %s (%s)\n",
+                  pc, i, inline_name, region_name);
+        }
+        current = ProcessInlinedFunction(
+            inlined_function, current, inclusive_serial, exclusive, code_index);
+        exclusive = false;
+        if ((trace_code_filter_ != NULL) &&
+            (strstr(region_name, trace_code_filter_) != NULL)) {
+          trace_ = true;
+          OS::Print("Tracing from: %" Px " [%s] ",
+                    pc, missing_frame_inserted ? "INSERTED" : "");
+          Dump(current);
+        }
       }
     }
+
+    return current;
+  }
+
+  ProfileFunctionTrieNode* ProcessInlinedFunction(
+      Function* inlined_function,
+      ProfileFunctionTrieNode* current,
+      intptr_t inclusive_serial,
+      bool exclusive,
+      intptr_t code_index) {
+    ProfileFunction* function =
+        function_table_->LookupOrAdd(*inlined_function);
+    ASSERT(function != NULL);
+    function->AddCodeObjectIndex(code_index);
+    function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
+    current = current->GetChild(function->index());
+    current->AddCodeObjectIndex(code_index);
+    current->Tick();
     return current;
   }
 
@@ -1636,11 +1677,13 @@ class ProfileFunctionExclusiveTrieBuilder : public SampleVisitor {
   }
 
   ProfilerService::TagOrder tag_order_;
-  ProfileFunctionTrieNode* root_;
+  ProfileFunctionTrieNode* exclusive_root_;
+  ProfileFunctionTrieNode* inclusive_root_;
   CodeRegionTable* live_code_table_;
   CodeRegionTable* dead_code_table_;
   CodeRegionTable* tag_code_table_;
   ProfileFunctionTable* function_table_;
+  bool inclusive_;
   bool trace_;
   const char* trace_code_filter_;
 };
@@ -1738,12 +1781,12 @@ class CodeRegionTrieNode : public ZoneAllocated {
 };
 
 
-class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
+class CodeRegionTrieBuilder : public SampleVisitor {
  public:
-  CodeRegionExclusiveTrieBuilder(Isolate* isolate,
-                                 CodeRegionTable* live_code_table,
-                                 CodeRegionTable* dead_code_table,
-                                 CodeRegionTable* tag_code_table)
+  CodeRegionTrieBuilder(Isolate* isolate,
+                        CodeRegionTable* live_code_table,
+                        CodeRegionTable* dead_code_table,
+                        CodeRegionTable* tag_code_table)
       : SampleVisitor(isolate),
         live_code_table_(live_code_table),
         dead_code_table_(dead_code_table),
@@ -1758,13 +1801,56 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
     ASSERT(root_index >= 0);
     CodeRegion* region = tag_code_table_->At(root_index);
     ASSERT(region != NULL);
-    root_ = new CodeRegionTrieNode(region->code_table_index());
+
+    exclusive_root_ = new CodeRegionTrieNode(region->code_table_index());
+    inclusive_root_ = new CodeRegionTrieNode(region->code_table_index());
   }
 
   void VisitSample(Sample* sample) {
+    ProcessSampleExclusive(sample);
+    ProcessSampleInclusive(sample);
+  }
+
+  CodeRegionTrieNode* inclusive_root() const {
+    return inclusive_root_;
+  }
+
+  CodeRegionTrieNode* exclusive_root() const {
+    return exclusive_root_;
+  }
+
+  ProfilerService::TagOrder tag_order() const {
+    return tag_order_;
+  }
+
+  void set_tag_order(ProfilerService::TagOrder tag_order) {
+    tag_order_ = tag_order;
+  }
+
+ private:
+  void ProcessSampleInclusive(Sample* sample) {
     // Give the root a tick.
-    root_->Tick();
-    CodeRegionTrieNode* current = root_;
+    inclusive_root_->Tick();
+    CodeRegionTrieNode* current = inclusive_root_;
+    current = ProcessTags(sample, current);
+    // Walk the sampled PCs.
+    for (intptr_t i = FLAG_profile_depth - 1; i >= 0; i--) {
+      if (sample->At(i) == 0) {
+        continue;
+      }
+      intptr_t index = FindFinalIndex(sample->At(i), sample->timestamp());
+      if (index < 0) {
+        continue;
+      }
+      current = current->GetChild(index);
+      current->Tick();
+    }
+  }
+
+  void ProcessSampleExclusive(Sample* sample) {
+    // Give the root a tick.
+    exclusive_root_->Tick();
+    CodeRegionTrieNode* current = exclusive_root_;
     current = ProcessTags(sample, current);
     // Walk the sampled PCs.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
@@ -1780,19 +1866,6 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
     }
   }
 
-  CodeRegionTrieNode* root() const {
-    return root_;
-  }
-
-  ProfilerService::TagOrder tag_order() const {
-    return tag_order_;
-  }
-
-  void set_tag_order(ProfilerService::TagOrder tag_order) {
-    tag_order_ = tag_order;
-  }
-
- private:
   CodeRegionTrieNode* ProcessUserTags(Sample* sample,
                                       CodeRegionTrieNode* current) {
     intptr_t user_tag_index = FindTagIndex(sample->user_tag());
@@ -1897,7 +1970,8 @@ class CodeRegionExclusiveTrieBuilder : public SampleVisitor {
   }
 
   ProfilerService::TagOrder tag_order_;
-  CodeRegionTrieNode* root_;
+  CodeRegionTrieNode* exclusive_root_;
+  CodeRegionTrieNode* inclusive_root_;
   CodeRegionTable* live_code_table_;
   CodeRegionTable* dead_code_table_;
   CodeRegionTable* tag_code_table_;
@@ -1983,33 +2057,34 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
         intptr_t total_functions = function_table.Length();
         OS::Print("FunctionTable: size=%" Pd "\n", total_functions);
       }
-      CodeRegionExclusiveTrieBuilder code_trie_builder(isolate,
-                                                       &live_code_table,
-                                                       &dead_code_table,
-                                                       &tag_code_table);
+      CodeRegionTrieBuilder code_trie_builder(isolate,
+                                              &live_code_table,
+                                              &dead_code_table,
+                                              &tag_code_table);
       code_trie_builder.set_tag_order(tag_order);
       {
         // Build CodeRegion trie.
-        ScopeTimer sw("CodeRegionExclusiveTrieBuilder", FLAG_trace_profiler);
+        ScopeTimer sw("CodeRegionTrieBuilder", FLAG_trace_profiler);
         sample_buffer->VisitSamples(&code_trie_builder);
-        code_trie_builder.root()->SortByCount();
+        code_trie_builder.exclusive_root()->SortByCount();
+        code_trie_builder.inclusive_root()->SortByCount();
       }
-      ProfileFunctionExclusiveTrieBuilder
-          function_trie_builder(isolate,
-                                &live_code_table,
-                                &dead_code_table,
-                                &tag_code_table,
-                                &function_table);
+      ProfileFunctionTrieBuilder function_trie_builder(isolate,
+                                                       &live_code_table,
+                                                       &dead_code_table,
+                                                       &tag_code_table,
+                                                       &function_table);
       function_trie_builder.set_tag_order(tag_order);
       {
         // Build ProfileFunction trie.
-        ScopeTimer sw("ProfileFunctionExclusiveTrieBuilder",
+        ScopeTimer sw("ProfileFunctionTrieBuilder",
                       FLAG_trace_profiler);
         sample_buffer->VisitSamples(&function_trie_builder);
-        function_trie_builder.root()->SortByCount();
+        function_trie_builder.exclusive_root()->SortByCount();
+        function_trie_builder.inclusive_root()->SortByCount();
       }
       {
-        ScopeTimer sw("CodeTableStream", FLAG_trace_profiler);
+        ScopeTimer sw("CpuProfileJSONStream", FLAG_trace_profiler);
         // Serialize to JSON.
         JSONObject obj(stream);
         obj.AddProperty("type", "_CpuProfile");
@@ -2021,14 +2096,28 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
         obj.AddProperty("timeSpan",
                         MicrosecondsToSeconds(builder.TimeDeltaMicros()));
         {
-          JSONArray exclusive_trie(&obj, "exclusiveCodeTrie");
-          CodeRegionTrieNode* root = code_trie_builder.root();
+          JSONArray code_trie(&obj, "exclusiveCodeTrie");
+          CodeRegionTrieNode* root = code_trie_builder.exclusive_root();
           ASSERT(root != NULL);
-          root->PrintToJSONArray(&exclusive_trie);
+          root->PrintToJSONArray(&code_trie);
+        }
+        {
+          JSONArray code_trie(&obj, "inclusiveCodeTrie");
+          CodeRegionTrieNode* root = code_trie_builder.inclusive_root();
+          ASSERT(root != NULL);
+          root->PrintToJSONArray(&code_trie);
         }
         {
           JSONArray function_trie(&obj, "exclusiveFunctionTrie");
-          ProfileFunctionTrieNode* root = function_trie_builder.root();
+          ProfileFunctionTrieNode* root =
+              function_trie_builder.exclusive_root();
+          ASSERT(root != NULL);
+          root->PrintToJSONArray(&function_trie);
+        }
+        {
+          JSONArray function_trie(&obj, "inclusiveFunctionTrie");
+          ProfileFunctionTrieNode* root =
+              function_trie_builder.inclusive_root();
           ASSERT(root != NULL);
           root->PrintToJSONArray(&function_trie);
         }

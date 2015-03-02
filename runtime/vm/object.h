@@ -4184,6 +4184,10 @@ class Code : public Object {
     StoreNonPointer(&raw_ptr()->lazy_deopt_pc_offset_, pc);
   }
 
+  bool IsAllocationStubCode() const;
+  bool IsStubCode() const;
+  bool IsFunctionCode() const;
+
  private:
   void set_state_bits(intptr_t bits) const;
 

@@ -4,27 +4,155 @@
 
 part of cpu_profiler;
 
-class CodeTrieNode {
+class CodeCallTreeNode {
   final ProfileCode profileCode;
   final int count;
-  final children = new List<CodeTrieNode>();
-  CodeTrieNode(this.profileCode, this.count);
+  double get percentage => _percentage;
+  double _percentage = 0.0;
+  final children = new List<CodeCallTreeNode>();
+  final Set<String> attributes = new Set<String>();
+  CodeCallTreeNode(this.profileCode, this.count) {
+    attributes.addAll(profileCode.attributes);
+  }
 }
 
-class FunctionTrieNodeCode {
+class CodeCallTree {
+  final bool inclusive;
+  final CodeCallTreeNode root;
+  CodeCallTree(this.inclusive, this.root) {
+    _setCodePercentage(null, root);
+  }
+
+  _setCodePercentage(CodeCallTreeNode parent, CodeCallTreeNode node) {
+    assert(node != null);
+    var parentPercentage = 1.0;
+    var parentCount = node.count;
+    if (parent != null) {
+      parentPercentage = parent._percentage;
+      parentCount = parent.count;
+    }
+    if (inclusive) {
+      node._percentage = parentPercentage * (node.count / parentCount);
+    } else {
+      node._percentage = (node.count / parentCount);
+    }
+    for (var child in node.children) {
+      _setCodePercentage(node, child);
+    }
+  }
+}
+
+class FunctionCallTreeNodeCode {
   final ProfileCode code;
   final int ticks;
-  FunctionTrieNodeCode(this.code, this.ticks);
+  FunctionCallTreeNodeCode(this.code, this.ticks);
 }
 
-class FunctionTrieNode {
+class FunctionCallTreeNode {
   final ProfileFunction profileFunction;
   final int count;
-  final children = new List<FunctionTrieNode>();
-  final codes = new List<FunctionTrieNodeCode>();
+  double get percentage => _percentage;
+  double _percentage = 0.0;
+  final children = new List<FunctionCallTreeNode>();
+  final Set<String> attributes = new Set<String>();
+  final codes = new List<FunctionCallTreeNodeCode>();
   int _totalCodeTicks = 0;
   int get totalCodesTicks => _totalCodeTicks;
-  FunctionTrieNode(this.profileFunction, this.count);
+
+  // Does this function have an optimized version of itself?
+  bool hasOptimizedCode() {
+    for (var nodeCode in codes) {
+      var profileCode = nodeCode.code;
+      if (!profileCode.code.isDartCode) {
+        continue;
+      }
+      if (profileCode.code.function != profileFunction.function) {
+        continue;
+      }
+      if (profileCode.code.isOptimized) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Does this function have an unoptimized version of itself?
+  bool hasUnoptimizedCode() {
+    for (var nodeCode in codes) {
+      var profileCode = nodeCode.code;
+      if (!profileCode.code.isDartCode) {
+        continue;
+      }
+      if (profileCode.code.kind == CodeKind.Stub) {
+        continue;
+      }
+      if (!profileCode.code.isOptimized) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Has this function been inlined in another function?
+  bool isInlined() {
+    for (var nodeCode in codes) {
+      var profileCode = nodeCode.code;
+      if (!profileCode.code.isDartCode) {
+        continue;
+      }
+      if (profileCode.code.kind == CodeKind.Stub) {
+        continue;
+      }
+      // If the code's function isn't this function.
+      if (profileCode.code.function != profileFunction.function) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  setCodeAttributes() {
+    if (hasOptimizedCode()) {
+      attributes.add('optimized');
+    }
+    if (hasUnoptimizedCode()) {
+      attributes.add('unoptimized');
+    }
+    if (isInlined()) {
+      attributes.add('inlined');
+    }
+  }
+
+  FunctionCallTreeNode(this.profileFunction, this.count) {
+    profileFunction._addKindBasedAttributes(attributes);
+  }
+}
+
+class FunctionCallTree {
+  final bool inclusive;
+  final FunctionCallTreeNode root;
+  FunctionCallTree(this.inclusive, this.root) {
+    _setFunctionPercentage(null, root);
+  }
+
+  void _setFunctionPercentage(FunctionCallTreeNode parent,
+                              FunctionCallTreeNode node) {
+    assert(node != null);
+    var parentPercentage = 1.0;
+    var parentCount = node.count;
+    if (parent != null) {
+      parentPercentage = parent._percentage;
+      parentCount = parent.count;
+    }
+    if (inclusive) {
+      node._percentage = parentPercentage * (node.count / parentCount);
+    } else {
+      node._percentage = (node.count / parentCount);
+    }
+    for (var child in node.children) {
+      _setFunctionPercentage(node, child);
+    }
+  }
 }
 
 class CodeTick {
@@ -47,10 +175,16 @@ class ProfileCode {
   final Code code;
   int exclusiveTicks;
   int inclusiveTicks;
+  double normalizedExclusiveTicks = 0.0;
+  double normalizedInclusiveTicks = 0.0;
   final addressTicks = new Map<int, CodeTick>();
   final intervalTicks = new Map<int, InlineIntervalTick>();
   String formattedInclusiveTicks = '';
   String formattedExclusiveTicks = '';
+  String formattedExclusivePercent = '';
+  String formattedCpuTime = '';
+  String formattedOnStackTime = '';
+  final Set<String> attributes = new Set<String>();
 
   void _processTicks(List<String> profileTicks) {
     assert(profileTicks != null);
@@ -82,12 +216,42 @@ class ProfileCode {
 
     code.profile = this;
 
+    if (code.isDartCode) {
+      if (code.isOptimized) {
+        attributes.add('optimized');
+      } else {
+        attributes.add('unoptimized');
+      }
+    }
+    if (code.isDartCode) {
+      attributes.add('dart');
+    } else if (code.kind == CodeKind.Tag) {
+      attributes.add('tag');
+    } else if (code.kind == CodeKind.Native) {
+      attributes.add('native');
+    }
     inclusiveTicks = int.parse(data['inclusiveTicks']);
     exclusiveTicks = int.parse(data['exclusiveTicks']);
+
+    normalizedExclusiveTicks = exclusiveTicks / profile.sampleCount;
+
+    normalizedInclusiveTicks = inclusiveTicks / profile.sampleCount;
+
     var ticks = data['ticks'];
     if (ticks != null) {
       _processTicks(ticks);
     }
+
+    formattedExclusivePercent =
+        Utils.formatPercent(exclusiveTicks, profile.sampleCount);
+
+    formattedCpuTime =
+        Utils.formatTimeMilliseconds(
+            profile.approximateMillisecondsForCount(exclusiveTicks));
+
+    formattedOnStackTime =
+        Utils.formatTimeMilliseconds(
+            profile.approximateMillisecondsForCount(inclusiveTicks));
 
     formattedInclusiveTicks =
       '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
@@ -104,14 +268,20 @@ class ProfileFunction {
   final ServiceFunction function;
   // List of compiled code objects containing this function.
   final List<ProfileCode> profileCodes = new List<ProfileCode>();
-
   // Absolute ticks:
   int exclusiveTicks = 0;
   int inclusiveTicks = 0;
 
   // Global percentages:
-  double globalExclusiveTicks = 0.0;
-  double globalInclusiveTicks = 0.0;
+  double normalizedExclusiveTicks = 0.0;
+  double normalizedInclusiveTicks = 0.0;
+
+  String formattedInclusiveTicks = '';
+  String formattedExclusiveTicks = '';
+  String formattedExclusivePercent = '';
+  String formattedCpuTime = '';
+  String formattedOnStackTime = '';
+  final Set<String> attributes = new Set<String>();
 
   int _sortCodes(ProfileCode a, ProfileCode b) {
     if (a.code.isOptimized == b.code.isOptimized) {
@@ -123,6 +293,67 @@ class ProfileFunction {
     return 1;
   }
 
+  // Does this function have an optimized version of itself?
+  bool hasOptimizedCode() {
+    for (var profileCode in profileCodes) {
+      if (profileCode.code.function != function) {
+        continue;
+      }
+      if (profileCode.code.isOptimized) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Does this function have an unoptimized version of itself?
+  bool hasUnoptimizedCode() {
+    for (var profileCode in profileCodes) {
+      if (profileCode.code.kind == CodeKind.Stub) {
+        continue;
+      }
+      if (!profileCode.code.isDartCode) {
+        continue;
+      }
+      if (!profileCode.code.isOptimized) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Has this function been inlined in another function?
+  bool isInlined() {
+    for (var profileCode in profileCodes) {
+      if (profileCode.code.kind == CodeKind.Stub) {
+        continue;
+      }
+      if (!profileCode.code.isDartCode) {
+        continue;
+      }
+      // If the code's function isn't this function.
+      if (profileCode.code.function != function) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _addKindBasedAttributes(Set<String> attribs) {
+    if (function.kind == FunctionKind.kTag) {
+      attribs.add('tag');
+    } else if (function.kind == FunctionKind.kStub) {
+      attribs.add('dart');
+      attribs.add('stub');
+    } else if (function.kind == FunctionKind.kNative) {
+      attribs.add('native');
+    } else if (function.kind.isSynthetic()) {
+      attribs.add('synthetic');
+    } else {
+      attribs.add('dart');
+    }
+  }
+
   ProfileFunction.fromMap(this.profile, this.function, Map data) {
     for (var codeIndex in data['codes']) {
       var profileCode = profile.codes[codeIndex];
@@ -130,11 +361,40 @@ class ProfileFunction {
     }
     profileCodes.sort(_sortCodes);
 
+    if (hasOptimizedCode()) {
+      attributes.add('optimized');
+    }
+    if (hasUnoptimizedCode()) {
+      attributes.add('unoptimized');
+    }
+    if (isInlined()) {
+      attributes.add('inlined');
+    }
+    _addKindBasedAttributes(attributes);
     exclusiveTicks = int.parse(data['exclusiveTicks']);
     inclusiveTicks = int.parse(data['inclusiveTicks']);
 
-    globalExclusiveTicks = exclusiveTicks / profile.sampleCount;
-    globalInclusiveTicks = inclusiveTicks / profile.sampleCount;
+    normalizedExclusiveTicks = exclusiveTicks / profile.sampleCount;
+    normalizedInclusiveTicks = inclusiveTicks / profile.sampleCount;
+
+    formattedExclusivePercent =
+        Utils.formatPercent(exclusiveTicks, profile.sampleCount);
+
+    formattedCpuTime =
+        Utils.formatTimeMilliseconds(
+            profile.approximateMillisecondsForCount(exclusiveTicks));
+
+    formattedOnStackTime =
+        Utils.formatTimeMilliseconds(
+            profile.approximateMillisecondsForCount(inclusiveTicks));
+
+    formattedInclusiveTicks =
+        '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
+        '($inclusiveTicks)';
+
+    formattedExclusiveTicks =
+        '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
+        '($exclusiveTicks)';
   }
 }
 
@@ -153,8 +413,10 @@ class CpuProfile {
 
   double timeSpan = 0.0;
 
-  CodeTrieNode codeTrieRoot;
-  FunctionTrieNode functionTrieRoot;
+  final Map<String, CodeCallTree> codeTrees =
+      <String, CodeCallTree>{};
+  final Map<String, FunctionCallTree> functionTrees =
+      <String, FunctionCallTree>{};
 
   final List<ProfileCode> codes = new List<ProfileCode>();
   final List<ProfileFunction> functions = new List<ProfileFunction>();
@@ -165,8 +427,8 @@ class CpuProfile {
     sampleRate = 0.0;
     stackDepth = 0;
     timeSpan = 0.0;
-    codeTrieRoot = null;
-    functionTrieRoot = null;
+    codeTrees.clear();
+    functionTrees.clear();
     codes.clear();
     functions.clear();
   }
@@ -202,15 +464,27 @@ class CpuProfile {
           new ProfileFunction.fromMap(this, function, profileFunction));
     }
 
-    // Process code trie.
+    // Process code trees.
     var exclusiveCodeTrie = profile['exclusiveCodeTrie'];
-    assert(exclusiveCodeTrie != null);
-    codeTrieRoot = _processCodeTrie(exclusiveCodeTrie);
+    if (exclusiveCodeTrie != null) {
+      codeTrees['exclusive'] = _loadCodeTree(false, exclusiveCodeTrie);
+    }
+    var inclusiveCodeTrie = profile['inclusiveCodeTrie'];
+    if (inclusiveCodeTrie != null) {
+      codeTrees['inclusive'] = _loadCodeTree(true, inclusiveCodeTrie);
+    }
 
-    // Process function trie.
+    // Process function trees.
     var exclusiveFunctionTrie = profile['exclusiveFunctionTrie'];
-    assert(exclusiveFunctionTrie != null);
-    functionTrieRoot = _processFunctionTrie(exclusiveFunctionTrie);
+    if (exclusiveFunctionTrie != null) {
+      functionTrees['exclusive'] =
+          _loadFunctionTree(false, exclusiveFunctionTrie);
+    }
+    var inclusiveFunctionTrie = profile['inclusiveFunctionTrie'];
+    if (inclusiveFunctionTrie != null) {
+      functionTrees['inclusive'] =
+          _loadFunctionTree(true, inclusiveFunctionTrie);
+    }
   }
 
   // Data shared across calls to _read*TrieNode.
@@ -225,7 +499,7 @@ class CpuProfile {
   // [2] child node count
   // Reading the trie is done by recursively reading the tree depth-first
   // pre-order.
-  CodeTrieNode _processCodeTrie(List<int> data) {
+  CodeCallTree _loadCodeTree(bool inclusive, List<int> data) {
     // Setup state shared across calls to _readTrieNode.
     _trieDataCursor = 0;
     _trieData = data;
@@ -237,10 +511,11 @@ class CpuProfile {
       return null;
     }
     // Read the tree, returns the root node.
-    return _readCodeTrieNode();
+    var root = _readCodeTrieNode();
+    return new CodeCallTree(inclusive, root);
   }
 
-  CodeTrieNode _readCodeTrieNode() {
+  CodeCallTreeNode _readCodeTrieNode() {
     // Read index into code table.
     var index = _trieData[_trieDataCursor++];
     // Lookup code object.
@@ -248,7 +523,7 @@ class CpuProfile {
     // Frame counter.
     var count = _trieData[_trieDataCursor++];
     // Create node.
-    var node = new CodeTrieNode(code, count);
+    var node = new CodeCallTreeNode(code, count);
     // Number of children.
     var children = _trieData[_trieDataCursor++];
     // Recursively read child nodes.
@@ -259,7 +534,7 @@ class CpuProfile {
     return node;
   }
 
-  FunctionTrieNode _processFunctionTrie(List<int> data) {
+  FunctionCallTree _loadFunctionTree(bool inclusive, List<int> data) {
     // Setup state shared across calls to _readTrieNode.
     _trieDataCursor = 0;
     _trieData = data;
@@ -271,10 +546,11 @@ class CpuProfile {
       return null;
     }
     // Read the tree, returns the root node.
-    return _readFunctionTrieNode();
+    var root = _readFunctionTrieNode();
+    return new FunctionCallTree(inclusive, root);
   }
 
-  FunctionTrieNode _readFunctionTrieNode() {
+  FunctionCallTreeNode _readFunctionTrieNode() {
     // Read index into function table.
     var index = _trieData[_trieDataCursor++];
     // Lookup function object.
@@ -282,7 +558,7 @@ class CpuProfile {
     // Frame counter.
     var count = _trieData[_trieDataCursor++];
     // Create node.
-    var node = new FunctionTrieNode(function, count);
+    var node = new FunctionCallTreeNode(function, count);
     // Number of code index / count pairs.
     var codeCount = _trieData[_trieDataCursor++];
     var totalCodeTicks = 0;
@@ -291,8 +567,9 @@ class CpuProfile {
       var code = codes[codeIndex];
       var codeTicks = _trieData[_trieDataCursor++];
       totalCodeTicks += codeTicks;
-      var nodeCode = new FunctionTrieNodeCode(code, codeTicks);
+      var nodeCode = new FunctionCallTreeNodeCode(code, codeTicks);
       node.codes.add(nodeCode);
+      node.setCodeAttributes();
     }
     node._totalCodeTicks = totalCodeTicks;
     // Number of children.
@@ -303,6 +580,11 @@ class CpuProfile {
       node.children.add(child);
     }
     return node;
+  }
+
+  int approximateMillisecondsForCount(count) {
+    var MICROSECONDS_PER_MILLISECOND = 1000.0;
+    return (count * samplePeriod) ~/ MICROSECONDS_PER_MILLISECOND;
   }
 
   double approximateSecondsForCount(count) {

@@ -7,9 +7,14 @@ library utils;
 import 'dart:math';
 
 class Utils {
-  static String formatPercent(num a, num total) {
-    var percent = 100.0 * (a / total);
+
+  static String formatPercentNormalized(double x) {
+    var percent = 100.0 * x;
     return '${percent.toStringAsFixed(2)}%';
+  }
+
+  static String formatPercent(num a, num total) {
+    return formatPercentNormalized(a / total);
   }
 
   static String zeroPad(int value, int pad) {
@@ -47,11 +52,16 @@ class Utils {
     if (time == null) {
       return "-";
     }
-    const millisPerHour = 60 * 60 * 1000;
-    const millisPerMinute = 60 * 1000;
     const millisPerSecond = 1000;
 
     var millis = (time * millisPerSecond).round();
+    return formatTimeMilliseconds(millis);
+  }
+
+  static String formatTimeMilliseconds(int millis) {
+    const millisPerHour = 60 * 60 * 1000;
+    const millisPerMinute = 60 * 1000;
+    const millisPerSecond = 1000;
 
     var hours = millis ~/ millisPerHour;
     millis = millis % millisPerHour;
@@ -64,12 +74,15 @@ class Utils {
 
     if (hours > 0) {
       return ("${zeroPad(hours,2)}"
-              ":${zeroPad(minutes,2)}"
+               ":${zeroPad(minutes,2)}"
+               ":${zeroPad(seconds,2)}"
+               ".${zeroPad(millis,3)}");
+    } else if (minutes > 0) {
+      return ("${zeroPad(minutes,2)}"
               ":${zeroPad(seconds,2)}"
               ".${zeroPad(millis,3)}");
     } else {
-      return ("${zeroPad(minutes,2)}"
-              ":${zeroPad(seconds,2)}"
+      return ("${zeroPad(seconds,2)}"
               ".${zeroPad(millis,3)}");
     }
   }

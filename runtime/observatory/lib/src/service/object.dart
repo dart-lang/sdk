@@ -1804,8 +1804,10 @@ class FunctionKind {
   final String _strValue;
   FunctionKind._internal(this._strValue);
   toString() => _strValue;
-  bool isSynthetic() => [kCollected, kNative, kTag, kReused].contains(this);
-
+  bool isSynthetic() => [kCollected, kNative, kStub, kTag].contains(this);
+  bool isDart() => !isSynthetic();
+  bool isStub() => (this == kStub);
+  bool hasDartCode() => isDart() || isStub();
   static FunctionKind fromJSON(String value) {
     switch(value) {
       case 'kRegularFunction': return kRegularFunction;
@@ -1815,16 +1817,19 @@ class FunctionKind {
       case 'kConstructor': return kConstructor;
       case 'kImplicitGetter': return kImplicitGetterFunction;
       case 'kImplicitSetter': return kImplicitSetterFunction;
+      case 'kImplicitStaticFinalGetter': return kImplicitStaticFinalGetter;
+      case 'kIrregexpFunction': return kIrregexpFunction;
       case 'kStaticInitializer': return kStaticInitializer;
       case 'kMethodExtractor': return kMethodExtractor;
       case 'kNoSuchMethodDispatcher': return kNoSuchMethodDispatcher;
       case 'kInvokeFieldDispatcher': return kInvokeFieldDispatcher;
       case 'Collected': return kCollected;
       case 'Native': return kNative;
+      case 'Stub': return kStub;
       case 'Tag': return kTag;
-      case 'Reused': return kReused;
     }
-    return kUNKNOWN;
+    print('did not understand $value');
+    throw new FallThroughError();
   }
 
   static FunctionKind kRegularFunction = new FunctionKind._internal('function');
@@ -1834,6 +1839,8 @@ class FunctionKind {
   static FunctionKind kConstructor = new FunctionKind._internal('constructor');
   static FunctionKind kImplicitGetterFunction = new FunctionKind._internal('implicit getter function');
   static FunctionKind kImplicitSetterFunction = new FunctionKind._internal('implicit setter function');
+  static FunctionKind kImplicitStaticFinalGetter = new FunctionKind._internal('implicit static final getter');
+  static FunctionKind kIrregexpFunction = new FunctionKind._internal('ir regexp function');
   static FunctionKind kStaticInitializer = new FunctionKind._internal('static initializer');
   static FunctionKind kMethodExtractor = new FunctionKind._internal('method extractor');
   static FunctionKind kNoSuchMethodDispatcher = new FunctionKind._internal('noSuchMethod dispatcher');
@@ -1841,7 +1848,7 @@ class FunctionKind {
   static FunctionKind kCollected = new FunctionKind._internal('Collected');
   static FunctionKind kNative = new FunctionKind._internal('Native');
   static FunctionKind kTag = new FunctionKind._internal('Tag');
-  static FunctionKind kReused = new FunctionKind._internal('Reused');
+  static FunctionKind kStub = new FunctionKind._internal('Stub');
   static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
 }
 
@@ -2344,7 +2351,8 @@ class CodeKind {
   final _value;
   const CodeKind._internal(this._value);
   String toString() => '$_value';
-
+  bool isSynthetic() => [Collected, Native, Tag].contains(this);
+  bool isDart() => !isSynthetic();
   static CodeKind fromString(String s) {
     if (s == 'Native') {
       return Native;
@@ -2352,18 +2360,18 @@ class CodeKind {
       return Dart;
     } else if (s == 'Collected') {
       return Collected;
-    } else if (s == 'Reused') {
-      return Reused;
     } else if (s == 'Tag') {
       return Tag;
+    } else if (s == 'Stub') {
+      return Stub;
     }
-    Logger.root.warning('Unknown code kind $s');
+    print('do not understand code kind $s');
     throw new FallThroughError();
   }
-  static const Native = const CodeKind._internal('Native');
-  static const Dart = const CodeKind._internal('Dart');
   static const Collected = const CodeKind._internal('Collected');
-  static const Reused = const CodeKind._internal('Reused');
+  static const Dart = const CodeKind._internal('Dart');
+  static const Native = const CodeKind._internal('Native');
+  static const Stub = const CodeKind._internal('Stub');
   static const Tag = const CodeKind._internal('Tag');
 }
 
@@ -2572,7 +2580,8 @@ class Code extends ServiceObject {
     return (address >= startAddress) && (address < endAddress);
   }
 
-  @reflectable bool get isDartCode => kind == CodeKind.Dart;
+  @reflectable bool get isDartCode => (kind == CodeKind.Dart) ||
+                                      (kind == CodeKind.Stub);
 }
 
 

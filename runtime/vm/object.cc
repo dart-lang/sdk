@@ -12514,6 +12514,24 @@ RawString* Code::PrettyName() const {
 }
 
 
+bool Code::IsAllocationStubCode() const {
+  const Object& obj = Object::Handle(owner());
+  return obj.IsClass();
+}
+
+
+bool Code::IsStubCode() const {
+  const Object& obj = Object::Handle(owner());
+  return obj.IsNull();
+}
+
+
+bool Code::IsFunctionCode() const {
+  const Object& obj = Object::Handle(owner());
+  return obj.IsFunction();
+}
+
+
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddTypeProperties(&jsobj, "Code", JSONType(), ref);
@@ -12523,11 +12541,16 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
   jsobj.AddProperty("optimized", is_optimized());
   jsobj.AddProperty("alive", is_alive());
-  jsobj.AddProperty("kind", "Dart");
+  const Object& obj = Object::Handle(owner());
+  const bool is_stub = IsStubCode() || IsAllocationStubCode();
+  if (is_stub) {
+    jsobj.AddProperty("kind", "Stub");
+  } else {
+    jsobj.AddProperty("kind", "Dart");
+  }
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name, vm_name);
-  const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
   } else {
@@ -12535,7 +12558,6 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONObject func(&jsobj, "function");
     func.AddProperty("type", "@Function");
     func.AddProperty("kind", "Stub");
-    func.AddPropertyF("id", "functions/stub-%" Pd "", EntryPoint());
     func.AddProperty("name", user_name.ToCString());
     AddNameProperties(&func, user_name, vm_name);
   }

@@ -5,6 +5,8 @@
 #ifndef VM_SCOPE_TIMER_H_
 #define VM_SCOPE_TIMER_H_
 
+#include "platform/globals.h"
+
 namespace dart {
 
 // Simple utility class for timing a block of code.
@@ -31,7 +33,8 @@ class ScopeTimer : public ValueObject {
       return;
     }
     int64_t elapsed = GetElapsed();
-    OS::Print("%s took %" Pd64 " micros.\n", name_, elapsed);
+    double seconds = MicrosecondsToSeconds(elapsed);
+    OS::Print("%s: %f seconds (%" Pd64 " \u00B5s)\n", name_, seconds, elapsed);
   }
 
  private:

@@ -17,152 +17,186 @@
       <nav-control></nav-control>
     </nav-bar>
     <style>
+      .tableWell {
+        background-color: #ECECEC;
+        padding: 0.2em;
+      }
+
       .table {
-        border-collapse: collapse!important;
+        border-spacing: 0px;
         width: 100%;
         margin-bottom: 20px
-        table-layout: fixed;
+        vertical-align: middle;
       }
-      .table thead > tr > th,
-      .table tbody > tr > th,
-      .table tfoot > tr > th,
-      .table thead > tr > td,
-      .table tbody > tr > td,
-      .table tfoot > tr > td {
-        padding: 8px;
-        vertical-align: top;
+
+      tr {
+        background-color: #FFFFFF;
       }
+
+      tbody tr {
+        animation: fadeIn 0.5s;
+        -moz-animation: fadeIn 0.5s;
+        -webkit-animation: fadeIn 0.5s;
+      }
+
+      tbody tr:hover {
+        background-color: #FAFAFA;
+      }
+
+      tr td:first-child,
+      tr th:first-child {
+        width: 100%;
+      }
+
       .table thead > tr > th {
+        padding: 8px;
         vertical-align: bottom;
         text-align: left;
-        border-bottom:2px solid #ddd;
+        border-bottom: 1px solid #ddd;
       }
 
-      tr:hover > td {
-        background-color: #FFF3E3;
-      }
-      .rowColor0 {
-        background-color: #FFE9CC;
-      }
-      .rowColor1 {
-        background-color: #FFDEB2;
-      }
-      .rowColor2 {
-        background-color: #FFD399;
-      }
-      .rowColor3 {
-        background-color: #FFC87F;
-      }
-      .rowColor4 {
-        background-color: #FFBD66;
-      }
-      .rowColor5 {
-        background-color: #FFB24C;
-      }
-      .rowColor6 {
-        background-color: #FFA733;
-      }
-      .rowColor7 {
-        background-color: #FF9C19;
-      }
-      .rowColor8 {
-        background-color: #FF9100;
-      }
-
-      .tooltip {
-        display: block;
-        position: absolute;
-        visibility: hidden;
-        opacity: 0;
-        transition: visibility 0s linear 0.5s;
-        transition: opacity .4s ease-in-out;
-      }
-
-      tr:hover .tooltip {
-        display: block;
+      .infoBox {
         position: absolute;
         top: 100%;
-        right: 100%;
-        visibility: visible;
+        left: 0%;
         z-index: 999;
-        width: 400px;
-        color: #ffffff;
-        background-color: #0489c3;
-        border-top-right-radius: 8px;
-        border-top-left-radius: 8px;
-        border-bottom-right-radius: 8px;
-        border-bottom-left-radius: 8px;
-        transition: visibility 0s linear 0.5s;
-        transition: opacity .4s ease-in-out;
         opacity: 1;
+        padding: 1em;
+        background-color: #ffffff;
+        border-left: solid 2px #ECECEC;
+        border-bottom: solid 2px #ECECEC;
+        border-right: solid 2px #ECECEC;
       }
 
-      .white {
-        color: #ffffff;
+      .statusMessage {
+        font-size: 150%;
+        font-weight: bold;
+      }
+
+      .statusBox {
+        height: 100%;
+        padding: 1em;
+      }
+
+      .center {
+        align-items: center;
+        justify-content: center;
+      }
+
+      .notice {
+        background-color: #fcf8e3;
+      }
+
+      .red {
+        background-color: #f2dede;
       }
 
     </style>
-    <div class="content">
+    <div class="content-centered-big">
       <h1>Sampled CPU profile</h1>
-      <div class="memberList">
-        <div class="memberItem">
-         <div class="memberName">Timestamp</div>
-         <div class="memberValue">{{ refreshTime }}</div>
+      <hr>
+      <template if="{{ state == 'Requested' }}">
+        <div class="statusBox shadow center">
+          <div class="statusMessage">Fetching profile from VM...</div>
         </div>
-        <div class="memberItem">
-         <div class="memberName">Time span</div>
-         <div class="memberValue">{{ timeSpan }}</div>
+      </template>
+      <template if="{{ state == 'Loading' }}">
+        <div class="statusBox shadow center">
+          <div class="statusMessage">Loading profile...</div>
         </div>
-        <div class="memberItem">
-         <div class="memberName">Sample count</div>
-         <div class="memberValue">{{ sampleCount }}</div>
-        </div>
-        <div class="memberItem">
-         <div class="memberName">Sample rate</div>
-         <div class="memberValue">{{ sampleRate }} Hz</div>
-        </div>
-        <div class="memberItem">
-         <div class="memberName">Stack depth</div>
-         <div class="memberValue">{{ stackDepth }} stack frames</div>
-        </div>
-        <div class="memberItem">
-         <div class="memberName">Display cutoff</div>
-         <div class="memberValue">{{ displayCutoff }}</div>
-        </div>
-        <div class="memberItem">
-         <div class="memberName">Tags</div>
-         <div class="memberValue">
-          <select value="{{tagSelector}}">
-            <option value="UserVM">User &gt; VM</option>
-            <option value="UserOnly">User</option>
-            <option value="VMUser">VM &gt; User</option>
-            <option value="VMOnly">VM</option>
-            <option value="None">None</option>
-          </select>
-         </div>
-        </div>
-        <div class="memberItem">
-          <div class="memberName">Mode</div>
-          <div class="memberValue">
-            <select value="{{modeSelector}}">
-              <option value="Code">Code</option>
-              <option value="Function">Function</option>
-            </select>
+      </template>
+      <template if="{{ state == 'Exception' }}">
+        <div class="statusBox shadow center">
+          <div class="statusMessage">
+            <h1>Exception:</h1>
+            <br>
+            <pre>{{ exception.toString() }}</pre>
+            <br>
+            <h1>Stack trace:</h1>
+            <br>
+            <pre>{{ stackTrace.toString() }}</pre>
           </div>
         </div>
+      </template>
+      <template if="{{ state == 'Loaded' }}">
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">Refreshed at </div>
+            <div class="memberValue">{{ refreshTime }} (fetched in {{ fetchTime  }}) (loaded in {{ loadTime }})</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Profile contains</div>
+            <div class="memberValue">{{ sampleCount }} samples (spanning {{ timeSpan }})</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Sampling</div>
+            <div class="memberValue">{{ stackDepth }} stack frames @ {{ sampleRate }} Hz</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Mode</div>
+            <div class="memberValue">
+              <select value="{{modeSelector}}">
+                <option value="Code">Code</option>
+                <option value="Function">Function</option>
+              </select>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Tag Order</div>
+            <div class="memberValue">
+              <select value="{{tagSelector}}">
+                <option value="UserVM">User &gt; VM</option>
+                <option value="UserOnly">User</option>
+                <option value="VMUser">VM &gt; User</option>
+                <option value="VMOnly">VM</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Call Tree Direction</div>
+            <div class="memberValue">
+              <select value="{{directionSelector}}">
+                <!-- Experimental: <option value="Down">Top down</option> -->
+                <option value="Up">Bottom up</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template if="{{ state == 'Loaded' && directionSelector == 'Down' }}">
+        <br>
+        <div class="statusBox shadow">
+          <div>Tree is rooted at main.</div>
+          <br>
+          <div>Child nodes are callees.</div>
+          <br>
+          <div class="notice">To get the most out of this mode you may need to launch Dart with a higher --profile-depth flag value.</div>
+          <div class="notice">Try 16, 32, ... up to 256 until each sample captures the entire call stack.</div>
+          <div class="red">NOTE: Higher values will impact performance</div>
+        </div>
+      </template>
+      <template if="{{ state == 'Loaded' && directionSelector == 'Up' }}">
+        <br>
+        <div class="statusBox shadow">
+          <div>Tree is rooted at executing function / code.</div>
+          <br>
+          <div>Child nodes are callers.</div>
+        </div>
+      </template>
+      <br><br>
+      <div class="tableWell shadow">
+        <table class="table">
+          <thead id="treeHeader">
+          <tr>
+            <th>Method</th>
+            <th>Self</th>
+          </tr>
+          </thead>
+          <tbody id="treeBody">
+          </tbody>
+        </table>
       </div>
-      <hr>
-      <table class="table">
-        <thead id="treeHeader">
-        <tr>
-          <th>Method</th>
-          <th>Self</th>
-        </tr>
-        </thead>
-        <tbody id="treeBody">
-        </tbody>
-      </table>
-      <hr>
     </div>
   </template>
 </polymer-element>

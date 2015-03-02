@@ -533,10 +533,11 @@ void PreprocessVisitor::CheckForMissingDartFrame(const Code& code,
       // PC marker is in the same code as pc, no missing frame.
       return;
     }
-    if (!ContainedInDartCodeHeaps(return_address)) {
-      // PC marker is not from the Dart heap. Do not insert.
-      return;
-    }
+  }
+
+  if (!ContainedInDartCodeHeaps(return_address)) {
+    // return address is not from the Dart heap. Do not insert.
+    return;
   }
 
   if (return_address != 0) {
@@ -933,10 +934,16 @@ void Profiler::RecordSampleInterruptCallback(
 
   ASSERT(isolate != Dart::vm_isolate());
 
+  const bool exited_dart_code = (isolate->stub_code() != NULL) &&
+                                (isolate->top_exit_frame_info() != 0) &&
+                                (isolate->vm_tag() != VMTag::kDartTagId);
+  const bool in_dart_code = (isolate->stub_code() != NULL) &&
+                            (isolate->top_exit_frame_info() == 0) &&
+                            (isolate->vm_tag() == VMTag::kDartTagId);
+
   uintptr_t sp = 0;
-  if ((isolate->stub_code() != NULL) &&
-      (isolate->top_exit_frame_info() == 0) &&
-      (isolate->vm_tag() == VMTag::kDartTagId)) {
+
+  if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
     sp = state.dsp;
   } else {
@@ -1030,7 +1037,6 @@ void Profiler::RecordSampleInterruptCallback(
   CopyStackBuffer(sample);
   CopyPCMarkerIfSafe(sample);
 
-  // Walk the call stack.
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
     ProfilerNativeStackWalker stackWalker(sample,
@@ -1040,43 +1046,23 @@ void Profiler::RecordSampleInterruptCallback(
                                           state.fp,
                                           sp);
     stackWalker.walk();
+  } else if (exited_dart_code) {
+    // We have a valid exit frame info, use the Dart stack walker.
+    ProfilerDartExitStackWalker stackWalker(isolate, sample);
+    stackWalker.walk();
+  } else if (in_dart_code) {
+    // We are executing Dart code. We have frame pointers.
+    ProfilerDartStackWalker stackWalker(isolate,
+                                        sample,
+                                        stack_lower,
+                                        stack_upper,
+                                        state.pc,
+                                        state.fp,
+                                        sp);
+    stackWalker.walk();
   } else {
-    // Attempt to walk only the Dart call stack, falling back to walking
-    // the native stack.
-    if ((isolate->stub_code() != NULL) &&
-        (isolate->top_exit_frame_info() != 0) &&
-        (isolate->vm_tag() != VMTag::kDartTagId)) {
-      // We have a valid exit frame info, use the Dart stack walker.
-      ProfilerDartExitStackWalker stackWalker(isolate, sample);
-      stackWalker.walk();
-    } else if ((isolate->stub_code() != NULL) &&
-               (isolate->top_exit_frame_info() == 0) &&
-               (isolate->vm_tag() == VMTag::kDartTagId)) {
-      // We are executing Dart code. We have frame pointers.
-      ProfilerDartStackWalker stackWalker(isolate,
-                                          sample,
-                                          stack_lower,
-                                          stack_upper,
-                                          state.pc,
-                                          state.fp,
-                                          sp);
-      stackWalker.walk();
-    } else {
-#if defined(TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64)
-      // ProfilerNativeStackWalker is known to cause crashes on Win64.
-      // BUG=20423.
-      sample->set_ignore_sample(true);
-#else
-      // Fall back to an extremely conservative stack walker.
-      ProfilerNativeStackWalker stackWalker(sample,
-                                            stack_lower,
-                                            stack_upper,
-                                            state.pc,
-                                            state.fp,
-                                            sp);
-      stackWalker.walk();
-#endif
-    }
+    sample->set_vm_tag(VMTag::kEmbedderTagId);
+    sample->SetAt(0, state.pc);
   }
 }
 
