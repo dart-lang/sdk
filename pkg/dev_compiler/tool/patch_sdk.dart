@@ -12,18 +12,25 @@ import 'dart:io';
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
 
-import 'input_sdk_src/lib/_internal/libraries.dart' as sdk;
+import 'input_sdk/lib/_internal/libraries.dart' as sdk;
 
 void main(List<String> argv) {
   var toolDir = path.relative(path.dirname(Platform.script.path));
-  var sdkIn = path.join(toolDir, 'input_sdk_src', 'lib');
-  var patchIn = path.join(toolDir, 'input_sdk_patch');
+  var sdkLibIn = path.join(toolDir, 'input_sdk', 'lib');
+  var patchIn = path.join(toolDir, 'input_sdk', 'patch');
+  var privateIn = path.join(toolDir, 'input_sdk', 'private');
   var sdkOut =
       path.normalize(path.join(toolDir, '..', 'test', 'generated_sdk', 'lib'));
+  var privateLibOut =
+      path.normalize(path.join(sdkOut, '_internal', 'compiler', 'js_lib'));
+
+  var INTERNAL_PATH = '_internal/compiler/js_lib/';
 
   if (argv.isNotEmpty) {
     print('Usage: ${path.relative(Platform.script.path)}\n');
-    print('input SDK directory: $sdkIn');
+    print('input SDK directory: $sdkLibIn');
+    // We can freely make changes to these two.
+    print('input private libs directory: $privateIn');
     print('input patch directory: $patchIn');
     print('output SDK directory: $sdkOut');
     exit(1);
@@ -31,40 +38,50 @@ void main(List<String> argv) {
 
   // Copy libraries.dart and version
   _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'),
-      new File(path.join(sdkIn, '_internal', 'libraries.dart'))
+      new File(path.join(sdkLibIn, '_internal', 'libraries.dart'))
           .readAsStringSync());
   _writeSync(path.join(sdkOut, '..', 'version'),
-      new File(path.join(sdkIn, '..', 'version')).readAsStringSync());
+      new File(path.join(sdkLibIn, '..', 'version')).readAsStringSync());
 
   // Enumerate core libraries and apply patches
   for (var library in sdk.LIBRARIES.values) {
     if (library.platforms & sdk.DART2JS_PLATFORM == 0) continue;
 
-    var libraryPath = path.join(sdkIn, library.path);
+    var libraryOut = path.join(sdkLibIn, library.path);
+    var libraryIn;
+    if (library.path.contains(INTERNAL_PATH)) {
+      libraryIn =
+          path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
+    } else {
+      libraryIn = libraryOut;
+    }
 
-    var libraryFile = new File(libraryPath);
+    var libraryFile = new File(libraryIn);
     if (libraryFile.existsSync()) {
       var contents = <String>[];
       var paths = <String>[];
       var libraryContents = libraryFile.readAsStringSync();
-      paths.add(libraryPath);
+      paths.add(libraryOut);
       contents.add(libraryContents);
       for (var part in parseDirectives(libraryContents).directives) {
         if (part is PartDirective) {
-          paths.add(path.join(path.dirname(libraryPath), part.uri.stringValue));
-          contents.add(new File(paths.last).readAsStringSync());
+          var partPath = part.uri.stringValue;
+          paths.add(path.join(path.dirname(libraryOut), partPath));
+          contents.add(new File(path.join(path.dirname(libraryIn), partPath))
+              .readAsStringSync());
         }
       }
 
       if (library.dart2jsPatchPath != null) {
-        var patchPath = path.join(patchIn, library.dart2jsPatchPath.replaceAll(
-            '_internal/compiler/js_lib/', ''));
+        var patchPath = path.join(
+            patchIn, library.dart2jsPatchPath.replaceAll(INTERNAL_PATH, ''));
         var patchContents = new File(patchPath).readAsStringSync();
 
         contents = _patchLibrary(contents, patchContents);
       }
       for (var i = 0; i < paths.length; i++) {
-        var outPath = path.join(sdkOut, path.relative(paths[i], from: sdkIn));
+        var outPath =
+            path.join(sdkOut, path.relative(paths[i], from: sdkLibIn));
         _writeSync(outPath, contents[i]);
       }
     }
