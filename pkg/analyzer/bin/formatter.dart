@@ -11,7 +11,6 @@ import 'package:path/path.dart' as path;
 
 import 'package:analyzer/src/services/formatter_impl.dart';
 
-
 const BINARY_NAME = 'dartfmt';
 final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
@@ -25,7 +24,6 @@ bool overwriteFileContents;
 Selection selection;
 final List<String> paths = [];
 
-
 const HELP_FLAG = 'help';
 const KIND_FLAG = 'kind';
 const MACHINE_FLAG = 'machine';
@@ -35,9 +33,7 @@ const TRANSFORM_FLAG = 'transform';
 const MAX_LINE_FLAG = 'max_line_length';
 const INDENT_FLAG = 'indent';
 
-
 const FOLLOW_LINKS = false;
-
 
 main(args) {
   var options = argParser.parse(args);
@@ -107,7 +103,6 @@ int _parseLineLength(String lengthOption) {
   return length;
 }
 
-
 Selection _parseSelection(String selectionOption) {
   if (selectionOption == null) return null;
 
@@ -143,9 +138,9 @@ _formatResource(resource) {
   }
 }
 
-_formatDirectory(dir) =>
-    dir.listSync(
-        followLinks: FOLLOW_LINKS).forEach((resource) => _formatResource(resource));
+_formatDirectory(dir) => dir
+    .listSync(followLinks: FOLLOW_LINKS)
+    .forEach((resource) => _formatResource(resource));
 
 _formatFile(file) {
   if (_isDartFile(file)) {
@@ -176,90 +171,70 @@ _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(kind) {
   var input = new StringBuffer();
-  stdin.transform(
-      new Utf8Decoder()).listen(
-          (data) => input.write(data),
-          onError: (error) => _log('Error reading from stdin'),
-          onDone: () => print(_format(input.toString(), kind)));
+  stdin.transform(new Utf8Decoder()).listen((data) => input.write(data),
+      onError: (error) => _log('Error reading from stdin'),
+      onDone: () => print(_format(input.toString(), kind)));
 }
 
 /// Initialize the arg parser instance.
 ArgParser _initArgParser() {
   // NOTE: these flags are placeholders only!
   var parser = new ArgParser();
-  parser.addFlag(
-      WRITE_FLAG,
+  parser.addFlag(WRITE_FLAG,
       abbr: 'w',
       negatable: false,
       help: 'Write reformatted sources to files (overwriting contents).  '
-          'Do not print reformatted sources to standard output.');
-  parser.addFlag(
-      TRANSFORM_FLAG,
-      abbr: 't',
-      negatable: false,
-      help: 'Perform code transformations.');
-  parser.addOption(
-      MAX_LINE_FLAG,
-      abbr: 'l',
-      defaultsTo: '80',
-      help: 'Wrap lines longer than this length. '
-          'To never wrap, specify "Infinity" or "Inf" for short.');
-  parser.addOption(
-      INDENT_FLAG,
+      'Do not print reformatted sources to standard output.');
+  parser.addFlag(TRANSFORM_FLAG,
+      abbr: 't', negatable: false, help: 'Perform code transformations.');
+  parser.addOption(MAX_LINE_FLAG,
+      abbr: 'l', defaultsTo: '80', help: 'Wrap lines longer than this length. '
+      'To never wrap, specify "Infinity" or "Inf" for short.');
+  parser.addOption(INDENT_FLAG,
       abbr: 'i',
       defaultsTo: '2',
       help: 'Specify number of spaces per indentation. '
-          'To indent using tabs, specify "--$INDENT_FLAG tab".' '--- [PROVISIONAL API].',
+      'To indent using tabs, specify "--$INDENT_FLAG tab".' '--- [PROVISIONAL API].',
       hide: true);
-  parser.addOption(
-      KIND_FLAG,
+  parser.addOption(KIND_FLAG,
       abbr: 'k',
       defaultsTo: 'cu',
       help: 'Specify source snippet kind ("stmt" or "cu") ' '--- [PROVISIONAL API].',
       hide: true);
-  parser.addOption(
-      SELECTION_FLAG,
-      abbr: 's',
-      help: 'Specify selection information as an offset,length pair '
-          '(e.g., -s "0,4").',
-      hide: true);
-  parser.addFlag(
-      MACHINE_FLAG,
+  parser.addOption(SELECTION_FLAG,
+      abbr: 's', help: 'Specify selection information as an offset,length pair '
+      '(e.g., -s "0,4").', hide: true);
+  parser.addFlag(MACHINE_FLAG,
       abbr: 'm',
       negatable: false,
       help: 'Produce output in a format suitable for parsing.');
-  parser.addFlag(
-      HELP_FLAG,
-      abbr: 'h',
-      negatable: false,
-      help: 'Print this usage information.');
+  parser.addFlag(HELP_FLAG,
+      abbr: 'h', negatable: false, help: 'Print this usage information.');
   return parser;
 }
-
 
 /// Displays usage information.
 _printUsage() {
   var buffer = new StringBuffer();
   buffer
-      ..write('$BINARY_NAME formats Dart programs.')
-      ..write('\n\n')
-      ..write(
-          'Without an explicit path, $BINARY_NAME processes the standard '
-              'input.  Given a file, it operates on that file; given a '
-              'directory, it operates on all .dart files in that directory, '
-              'recursively. (Files starting with a period are ignored.) By '
-              'default, $BINARY_NAME prints the reformatted sources to ' 'standard output.')
-      ..write('\n\n')
-      ..write('Usage: $BINARY_NAME [flags] [path...]\n\n')
-      ..write('Supported flags are:\n')
-      ..write('${argParser.usage}\n\n');
+    ..write('$BINARY_NAME formats Dart programs.')
+    ..write('\n\n')
+    ..write('Without an explicit path, $BINARY_NAME processes the standard '
+        'input.  Given a file, it operates on that file; given a '
+        'directory, it operates on all .dart files in that directory, '
+        'recursively. (Files starting with a period are ignored.) By '
+        'default, $BINARY_NAME prints the reformatted sources to ' 'standard output.')
+    ..write('\n\n')
+    ..write('Usage: $BINARY_NAME [flags] [path...]\n\n')
+    ..write('Supported flags are:\n')
+    ..write('${argParser.usage}\n\n');
   _log(buffer.toString());
 }
 
 /// Format this [src], treating it as the given snippet [kind].
 String _format(src, kind) {
-  var formatResult =
-      new CodeFormatter(formatterSettings).format(kind, src, selection: selection);
+  var formatResult = new CodeFormatter(formatterSettings).format(kind, src,
+      selection: selection);
   if (machineFormat) {
     if (formatResult.selection == null) {
       formatResult.selection = defaultSelection;
@@ -270,7 +245,7 @@ String _format(src, kind) {
 }
 
 _toJson(formatResult) => // Actual JSON format TBD
-JSON.encode({
+    JSON.encode({
   'source': formatResult.source,
   'selection': {
     'offset': formatResult.selection.offset,

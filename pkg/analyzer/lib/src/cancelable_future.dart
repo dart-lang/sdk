@@ -228,8 +228,7 @@ abstract class CancelableFuture<T> implements Future<T> {
  * Error which is used to complete any [CancelableFuture] which has been
  * successfully canceled by calling its 'cancel' method.
  */
-class FutureCanceledError {
-}
+class FutureCanceledError {}
 
 class _CancelableCompleterFuture<T> implements CancelableFuture<T> {
   final CancelableCompleter<T> _completer;
@@ -260,8 +259,7 @@ class _CancelableCompleterFuture<T> implements CancelableFuture<T> {
   Future timeout(Duration timeLimit, {onTimeout()}) {
     // TODO(paulberry): Implement this in such a way that a timeout cancels
     // the future.
-    return _completer._outerCompleter.future.timeout(
-        timeLimit,
+    return _completer._outerCompleter.future.timeout(timeLimit,
         onTimeout: onTimeout);
   }
 

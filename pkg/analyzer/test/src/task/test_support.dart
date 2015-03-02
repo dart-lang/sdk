@@ -18,6 +18,5 @@ class TestAnalysisTask extends AnalysisTask {
   TaskDescriptor get descriptor => null;
 
   @override
-  internalPerform() {
-  }
+  internalPerform() {}
 }

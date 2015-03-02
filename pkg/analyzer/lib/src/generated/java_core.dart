@@ -11,8 +11,8 @@ final Stopwatch nanoTimeStopwatch = new Stopwatch();
  *     format('{0} are you {1}ing?', 'How', 'do') = 'How are you doing?'
  *     format('{0} are you {1}ing?', 'What', 'read') = 'What are you reading?'
  */
-String format(String pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7])
-    {
+String format(String pattern,
+    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]) {
   return formatList(pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]);
 }
 
@@ -53,8 +53,8 @@ bool javaStringEqualsIgnoreCase(String a, String b) {
   return a.toLowerCase() == b.toLowerCase();
 }
 
-bool javaStringRegionMatches(String t, int toffset, String o, int ooffset,
-    int len) {
+bool javaStringRegionMatches(
+    String t, int toffset, String o, int ooffset, int len) {
   if (toffset < 0) return false;
   if (ooffset < 0) return false;
   var tend = toffset + len;
@@ -279,8 +279,8 @@ class JavaString {
 }
 
 class JavaSystem {
-  static void arraycopy(List src, int srcPos, List dest, int destPos,
-      int length) {
+  static void arraycopy(
+      List src, int srcPos, List dest, int destPos, int length) {
     for (int i = 0; i < length; i++) {
       dest[destPos + i] = src[srcPos + i];
     }
@@ -376,8 +376,8 @@ class StringUtils {
     return str == null || str.isEmpty;
   }
 
-  static String join(Iterable iter, [String separator = ' ', int start = 0,
-      int end = -1]) {
+  static String join(Iterable iter,
+      [String separator = ' ', int start = 0, int end = -1]) {
     if (start != 0) {
       iter = iter.skip(start);
     }
@@ -420,8 +420,8 @@ class StringUtils {
     return s.split(pattern);
   }
 
-  static List<String> splitByWholeSeparatorPreserveAllTokens(String s,
-      String pattern) {
+  static List<String> splitByWholeSeparatorPreserveAllTokens(
+      String s, String pattern) {
     return s.split(pattern);
   }
 }

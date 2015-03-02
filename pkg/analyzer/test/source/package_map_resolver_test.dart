@@ -12,12 +12,10 @@ import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(_PackageMapUriResolverTest);
 }
-
 
 @reflectiveTest
 class _PackageMapUriResolverTest {
@@ -59,11 +57,12 @@ class _PackageMapUriResolverTest {
     const pkgFileB = '/part2/lib/libB.dart';
     provider.newFile(pkgFileA, 'library lib_a');
     provider.newFile(pkgFileB, 'library lib_b');
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
+        <String, List<Folder>>{
       'pkg': [
-          provider.getResource('/part1/lib/'),
-          provider.getResource('/part2/lib/')]
+        provider.getResource('/part1/lib/'),
+        provider.getResource('/part2/lib/')
+      ]
     });
     {
       Uri uri = Uri.parse('package:pkg/libA.dart');
@@ -95,8 +94,8 @@ class _PackageMapUriResolverTest {
     const pkgFileB = '/pkgB/lib/libB.dart';
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
+        <String, List<Folder>>{
       'pkgA': [provider.getResource('/pkgA/lib/')],
       'pkgB': [provider.getResource('/pkgB/lib/')]
     });
@@ -153,8 +152,8 @@ class _PackageMapUriResolverTest {
     const pkgFileB = '/pkgB/lib/src/libB.dart';
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
+        <String, List<Folder>>{
       'pkgA': [provider.getResource('/pkgA/lib/')],
       'pkgB': [provider.getResource('/pkgB/lib/')]
     });
@@ -182,11 +181,12 @@ class _PackageMapUriResolverTest {
     const file2 = '/foo2/lib/bar.dart';
     provider.newFile(file1, 'library bar');
     provider.newFile(file2, 'library bar');
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
+        <String, List<Folder>>{
       'foo': [
-          provider.getResource('/foo1/lib'),
-          provider.getResource('/foo2/lib')]
+        provider.getResource('/foo1/lib'),
+        provider.getResource('/foo2/lib')
+      ]
     });
     // Restoring file1 should yield a package URI, and that package URI should
     // resolve back to file1.
@@ -205,14 +205,16 @@ class _PackageMapUriResolverTest {
     const file2 = '/foo2/bar2/lib.dart';
     provider.newFile(file1, 'library lib');
     provider.newFile(file2, 'library lib');
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
+        <String, List<Folder>>{
       'pkg1': [
-          provider.getResource('/foo1'),
-          provider.getResource('/foo2/bar2')],
+        provider.getResource('/foo1'),
+        provider.getResource('/foo2/bar2')
+      ],
       'pkg2': [
-          provider.getResource('/foo1/bar1'),
-          provider.getResource('/foo2')]
+        provider.getResource('/foo1/bar1'),
+        provider.getResource('/foo2')
+      ]
     });
     // Restoring file1 should yield a package URI for pkg2, since pkg2's match
     // for the file path (/foo1/bar1) is longer than pkg1's match (/foo1).

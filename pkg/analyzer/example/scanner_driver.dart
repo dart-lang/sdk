@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:analyzer/src/generated/scanner.dart';
 
 main(List<String> args) {
-
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
 
   if (args.length == 0) {
@@ -19,7 +18,6 @@ main(List<String> args) {
   for (var arg in args) {
     _scan(new File(arg));
   }
-
 }
 
 _scan(File file) {

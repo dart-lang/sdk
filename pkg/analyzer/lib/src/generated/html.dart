@@ -83,8 +83,9 @@ abstract class AbstractScanner {
    * Set array of element tags for which the content between tags should be consider a single token.
    */
   void set passThroughElements(List<String> passThroughElements) {
-    this._passThroughElements =
-        passThroughElements != null ? passThroughElements : _NO_PASS_THROUGH_ELEMENTS;
+    this._passThroughElements = passThroughElements != null
+        ? passThroughElements
+        : _NO_PASS_THROUGH_ELEMENTS;
   }
 
   /**
@@ -361,21 +362,21 @@ class HtmlParser extends XmlParser {
   /**
    * A set containing the names of tags that do not have a closing tag.
    */
-  static Set<String> SELF_CLOSING = new HashSet<String>.from(
-      <String>[
-          "area",
-          "base",
-          "basefont",
-          "br",
-          "col",
-          "frame",
-          "hr",
-          "img",
-          "input",
-          "link",
-          "meta",
-          "param",
-          "!"]);
+  static Set<String> SELF_CLOSING = new HashSet<String>.from(<String>[
+    "area",
+    "base",
+    "basefont",
+    "br",
+    "col",
+    "frame",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "!"
+  ]);
 
   /**
    * The line information associated with the source being parsed.
@@ -402,24 +403,16 @@ class HtmlParser extends XmlParser {
   @override
   XmlTagNode createTagNode(Token nodeStart, Token tag,
       List<XmlAttributeNode> attributes, Token attributeEnd,
-      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
+      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag,
+      Token nodeEnd) {
     if (_isScriptNode(tag, attributes, tagNodes)) {
-      HtmlScriptTagNode tagNode = new HtmlScriptTagNode(
-          nodeStart,
-          tag,
-          attributes,
-          attributeEnd,
-          tagNodes,
-          contentEnd,
-          closingTag,
-          nodeEnd);
+      HtmlScriptTagNode tagNode = new HtmlScriptTagNode(nodeStart, tag,
+          attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
       String contents = tagNode.content;
       int contentOffset = attributeEnd.end;
       LineInfo_Location location = _lineInfo.getLocation(contentOffset);
-      sc.Scanner scanner = new sc.Scanner(
-          source,
-          new sc.SubSequenceReader(contents, contentOffset),
-          _errorListener);
+      sc.Scanner scanner = new sc.Scanner(source,
+          new sc.SubSequenceReader(contents, contentOffset), _errorListener);
       scanner.setSourceStart(location.lineNumber, location.columnNumber);
       sc.Token firstToken = scanner.tokenize();
       Parser parser = new Parser(source, _errorListener);
@@ -428,15 +421,8 @@ class HtmlParser extends XmlParser {
       tagNode.script = unit;
       return tagNode;
     }
-    return new XmlTagNode(
-        nodeStart,
-        tag,
-        attributes,
-        attributeEnd,
-        tagNodes,
-        contentEnd,
-        closingTag,
-        nodeEnd);
+    return new XmlTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes,
+        contentEnd, closingTag, nodeEnd);
   }
 
   @override
@@ -461,8 +447,8 @@ class HtmlParser extends XmlParser {
    * @param node the node to be tested (not `null`)
    * @return `true` if the node is a Dart script
    */
-  bool _isScriptNode(Token tag, List<XmlAttributeNode> attributes,
-      List<XmlTagNode> tagNodes) {
+  bool _isScriptNode(
+      Token tag, List<XmlAttributeNode> attributes, List<XmlTagNode> tagNodes) {
     if (tagNodes.length != 0 || tag.lexeme != _SCRIPT) {
       return false;
     }
@@ -489,8 +475,8 @@ class HtmlParser extends XmlParser {
    * @param token the token to start parsing from
    * @return the Dart expression that was parsed
    */
-  static Expression parseEmbeddedExpression(Source source, sc.Token token,
-      AnalysisErrorListener errorListener) {
+  static Expression parseEmbeddedExpression(
+      Source source, sc.Token token, AnalysisErrorListener errorListener) {
     Parser parser = new Parser(source, errorListener);
     return parser.parseExpression(token);
   }
@@ -507,10 +493,8 @@ class HtmlParser extends XmlParser {
   static sc.Token scanDartSource(Source source, LineInfo lineInfo,
       String contents, int contentOffset, AnalysisErrorListener errorListener) {
     LineInfo_Location location = lineInfo.getLocation(contentOffset);
-    sc.Scanner scanner = new sc.Scanner(
-        source,
-        new sc.SubSequenceReader(contents, contentOffset),
-        errorListener);
+    sc.Scanner scanner = new sc.Scanner(source,
+        new sc.SubSequenceReader(contents, contentOffset), errorListener);
     scanner.setSourceStart(location.lineNumber, location.columnNumber);
     return scanner.tokenize();
   }
@@ -546,16 +530,10 @@ class HtmlScriptTagNode extends XmlTagNode {
    */
   HtmlScriptTagNode(Token nodeStart, Token tag,
       List<XmlAttributeNode> attributes, Token attributeEnd,
-      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd)
-      : super(
-          nodeStart,
-          tag,
-          attributes,
-          attributeEnd,
-          tagNodes,
-          contentEnd,
-          closingTag,
-          nodeEnd);
+      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag,
+      Token nodeEnd)
+      : super(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd,
+          closingTag, nodeEnd);
 
   /**
    * Return the AST structure representing the Dart code within this tag, or `null` if this
@@ -900,18 +878,19 @@ class TokenType extends Enum<TokenType> {
   static const TokenType TEXT = const TokenType('TEXT', 11, null);
 
   static const List<TokenType> values = const [
-      EOF,
-      EQ,
-      GT,
-      LT_SLASH,
-      LT,
-      SLASH_GT,
-      COMMENT,
-      DECLARATION,
-      DIRECTIVE,
-      STRING,
-      TAG,
-      TEXT];
+    EOF,
+    EQ,
+    GT,
+    LT_SLASH,
+    LT,
+    SLASH_GT,
+    COMMENT,
+    DECLARATION,
+    DIRECTIVE,
+    STRING,
+    TAG,
+    TEXT
+  ];
 
   /**
    * The lexeme that defines this type of token, or `null` if there is more than one possible
@@ -1446,16 +1425,9 @@ class XmlParser {
    */
   XmlTagNode createTagNode(Token nodeStart, Token tag,
       List<XmlAttributeNode> attributes, Token attributeEnd,
-      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) =>
-      new XmlTagNode(
-          nodeStart,
-          tag,
-          attributes,
-          attributeEnd,
-          tagNodes,
-          contentEnd,
-          closingTag,
-          nodeEnd);
+      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag,
+      Token nodeEnd) => new XmlTagNode(nodeStart, tag, attributes, attributeEnd,
+      tagNodes, contentEnd, closingTag, nodeEnd);
 
   /**
    * Answer `true` if the specified tag is self closing and thus should never have content or
@@ -1625,15 +1597,8 @@ class XmlParser {
     }
     // If the node has no children, then return the node
     if (attributeEnd.type == TokenType.SLASH_GT || isSelfClosing(tag)) {
-      return createTagNode(
-          nodeStart,
-          tag,
-          attributes,
-          attributeEnd,
-          XmlTagNode.NO_TAG_NODES,
-          _currentToken,
-          null,
-          attributeEnd);
+      return createTagNode(nodeStart, tag, attributes, attributeEnd,
+          XmlTagNode.NO_TAG_NODES, _currentToken, null, attributeEnd);
     }
     // Parse the child tag nodes
     List<XmlTagNode> tagNodes = _parseChildTagNodes();
@@ -1666,15 +1631,8 @@ class XmlParser {
       _reportUnexpectedToken();
       nodeEnd = _insertSyntheticToken(TokenType.GT);
     }
-    return createTagNode(
-        nodeStart,
-        tag,
-        attributes,
-        attributeEnd,
-        tagNodes,
-        contentEnd,
-        closingTag,
-        nodeEnd);
+    return createTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes,
+        contentEnd, closingTag, nodeEnd);
   }
 
   /**
@@ -1781,8 +1739,8 @@ class XmlTagNode extends XmlNode {
    *          `null`)
    */
   XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes,
-      this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag,
-      this.nodeEnd) {
+      this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd,
+      this.closingTag, this.nodeEnd) {
     this._attributes = becomeParentOfAll(attributes, ifEmpty: NO_ATTRIBUTES);
     this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
   }

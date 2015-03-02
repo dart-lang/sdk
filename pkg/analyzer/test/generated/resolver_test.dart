@@ -32,7 +32,6 @@ import 'package:unittest/unittest.dart';
 import '../reflective_tests.dart';
 import 'test_support.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisDeltaTest);
@@ -91,8 +90,8 @@ class AnalysisContextFactory {
    * @param options the options to be applied to the context
    * @return the analysis context that was created
    */
-  static AnalysisContextImpl
-      contextWithCoreAndOptions(AnalysisOptions options) {
+  static AnalysisContextImpl contextWithCoreAndOptions(
+      AnalysisOptions options) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
     return initContextWithCore(context);
@@ -105,8 +104,8 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
-    DirectoryBasedDartSdk sdk =
-        new _AnalysisContextFactory_initContextWithCore(new JavaFile("/fake/sdk"));
+    DirectoryBasedDartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
+        new JavaFile("/fake/sdk"));
     SourceFactory sourceFactory =
         new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
     context.sourceFactory = sourceFactory;
@@ -122,55 +121,48 @@ class AnalysisContextFactory {
     coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     coreUnit.types = <ClassElement>[
-        provider.boolType.element,
-        provider.deprecatedType.element,
-        provider.doubleType.element,
-        provider.functionType.element,
-        provider.intType.element,
-        provider.iterableType.element,
-        provider.iteratorType.element,
-        provider.listType.element,
-        provider.mapType.element,
-        provider.nullType.element,
-        provider.numType.element,
-        provider.objectType.element,
-        proxyClassElement,
-        provider.stackTraceType.element,
-        provider.stringType.element,
-        provider.symbolType.element,
-        provider.typeType.element];
+      provider.boolType.element,
+      provider.deprecatedType.element,
+      provider.doubleType.element,
+      provider.functionType.element,
+      provider.intType.element,
+      provider.iterableType.element,
+      provider.iteratorType.element,
+      provider.listType.element,
+      provider.mapType.element,
+      provider.nullType.element,
+      provider.numType.element,
+      provider.objectType.element,
+      proxyClassElement,
+      provider.stackTraceType.element,
+      provider.stringType.element,
+      provider.symbolType.element,
+      provider.typeType.element
+    ];
     coreUnit.functions = <FunctionElement>[
-        ElementFactory.functionElement3(
-            "identical",
-            provider.boolType.element,
-            <ClassElement>[provider.objectType.element, provider.objectType.element],
-            null),
-        ElementFactory.functionElement3(
-            "print",
-            VoidTypeImpl.instance.element,
-            <ClassElement>[provider.objectType.element],
-            null)];
-    TopLevelVariableElement proxyTopLevelVariableElt =
-        ElementFactory.topLevelVariableElement3(
-            "proxy",
-            true,
-            false,
-            proxyClassElement.type);
-    TopLevelVariableElement deprecatedTopLevelVariableElt =
-        ElementFactory.topLevelVariableElement3(
-            "deprecated",
-            true,
-            false,
-            provider.deprecatedType);
+      ElementFactory.functionElement3("identical", provider.boolType.element,
+          <ClassElement>[
+        provider.objectType.element,
+        provider.objectType.element
+      ], null),
+      ElementFactory.functionElement3("print", VoidTypeImpl.instance.element,
+          <ClassElement>[provider.objectType.element], null)
+    ];
+    TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory
+        .topLevelVariableElement3("proxy", true, false, proxyClassElement.type);
+    TopLevelVariableElement deprecatedTopLevelVariableElt = ElementFactory
+        .topLevelVariableElement3(
+            "deprecated", true, false, provider.deprecatedType);
     coreUnit.accessors = <PropertyAccessorElement>[
-        proxyTopLevelVariableElt.getter,
-        deprecatedTopLevelVariableElt.getter];
+      proxyTopLevelVariableElt.getter,
+      deprecatedTopLevelVariableElt.getter
+    ];
     coreUnit.topLevelVariables = <TopLevelVariableElement>[
-        proxyTopLevelVariableElt,
-        deprecatedTopLevelVariableElt];
+      proxyTopLevelVariableElt,
+      deprecatedTopLevelVariableElt
+    ];
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        AstFactory.libraryIdentifier2(["dart", "core"]));
+        coreContext, AstFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
@@ -188,16 +180,17 @@ class AnalysisContextFactory {
     ConstructorElementImpl futureConstructor =
         ElementFactory.constructorElement2(futureElement, "value");
     futureConstructor.parameters = <ParameterElement>[
-        ElementFactory.positionalParameter2("value", provider.dynamicType)];
+      ElementFactory.positionalParameter2("value", provider.dynamicType)
+    ];
     futureConstructor.factory = true;
     (futureConstructor.type as FunctionTypeImpl).typeArguments =
         futureElement.type.typeArguments;
     futureElement.constructors = <ConstructorElement>[futureConstructor];
     //   Future then(onValue(T value), { Function onError });
     List<ParameterElement> parameters = <ParameterElement>[
-        ElementFactory.requiredParameter2(
-            "value",
-            futureElement.typeParameters[0].type)];
+      ElementFactory.requiredParameter2(
+          "value", futureElement.typeParameters[0].type)
+    ];
     FunctionTypeAliasElementImpl aliasElement =
         new FunctionTypeAliasElementImpl.forNode(null);
     aliasElement.synthetic = true;
@@ -208,12 +201,10 @@ class AnalysisContextFactory {
     aliasElement.shareTypeParameters(futureElement.typeParameters);
     aliasType.typeArguments = futureElement.type.typeArguments;
     MethodElement thenMethod = ElementFactory.methodElementWithParameters(
-        "then",
-        futureElement.type.typeArguments,
-        futureType,
-        [
-            ElementFactory.requiredParameter2("onValue", aliasType),
-            ElementFactory.namedParameter2("onError", provider.functionType)]);
+        "then", futureElement.type.typeArguments, futureType, [
+      ElementFactory.requiredParameter2("onValue", aliasType),
+      ElementFactory.namedParameter2("onError", provider.functionType)
+    ]);
     futureElement.methods = <MethodElement>[thenMethod];
     // Completer
     ClassElementImpl completerElement =
@@ -224,12 +215,12 @@ class AnalysisContextFactory {
         completerElement.type.typeArguments;
     completerElement.constructors = <ConstructorElement>[completerConstructor];
     asyncUnit.types = <ClassElement>[
-        completerElement,
-        futureElement,
-        ElementFactory.classElement2("Stream", ["T"])];
+      completerElement,
+      futureElement,
+      ElementFactory.classElement2("Stream", ["T"])
+    ];
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        AstFactory.libraryIdentifier2(["dart", "async"]));
+        coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // dart:html
@@ -246,56 +237,52 @@ class AnalysisContextFactory {
     ClassElementImpl contextElement =
         ElementFactory.classElement2("CanvasRenderingContext");
     InterfaceType contextElementType = contextElement.type;
-    ClassElementImpl context2dElement =
-        ElementFactory.classElement("CanvasRenderingContext2D", contextElementType);
+    ClassElementImpl context2dElement = ElementFactory.classElement(
+        "CanvasRenderingContext2D", contextElementType);
     canvasElement.methods = <MethodElement>[
-        ElementFactory.methodElement(
-            "getContext",
-            contextElementType,
-            [provider.stringType])];
+      ElementFactory.methodElement(
+          "getContext", contextElementType, [provider.stringType])
+    ];
     canvasElement.accessors = <PropertyAccessorElement>[
-        ElementFactory.getterElement("context2D", false, context2dElement.type)];
-    canvasElement.fields = canvasElement.accessors.map(
-        (PropertyAccessorElement accessor) => accessor.variable).toList();
+      ElementFactory.getterElement("context2D", false, context2dElement.type)
+    ];
+    canvasElement.fields = canvasElement.accessors
+        .map((PropertyAccessorElement accessor) => accessor.variable)
+        .toList();
     ClassElementImpl documentElement =
         ElementFactory.classElement("Document", elementType);
     ClassElementImpl htmlDocumentElement =
         ElementFactory.classElement("HtmlDocument", documentElement.type);
     htmlDocumentElement.methods = <MethodElement>[
-        ElementFactory.methodElement(
-            "query",
-            elementType,
-            <DartType>[provider.stringType])];
+      ElementFactory.methodElement(
+          "query", elementType, <DartType>[provider.stringType])
+    ];
     htmlUnit.types = <ClassElement>[
-        ElementFactory.classElement("AnchorElement", elementType),
-        ElementFactory.classElement("BodyElement", elementType),
-        ElementFactory.classElement("ButtonElement", elementType),
-        canvasElement,
-        contextElement,
-        context2dElement,
-        ElementFactory.classElement("DivElement", elementType),
-        documentElement,
-        elementElement,
-        htmlDocumentElement,
-        ElementFactory.classElement("InputElement", elementType),
-        ElementFactory.classElement("SelectElement", elementType)];
+      ElementFactory.classElement("AnchorElement", elementType),
+      ElementFactory.classElement("BodyElement", elementType),
+      ElementFactory.classElement("ButtonElement", elementType),
+      canvasElement,
+      contextElement,
+      context2dElement,
+      ElementFactory.classElement("DivElement", elementType),
+      documentElement,
+      elementElement,
+      htmlDocumentElement,
+      ElementFactory.classElement("InputElement", elementType),
+      ElementFactory.classElement("SelectElement", elementType)
+    ];
     htmlUnit.functions = <FunctionElement>[
-        ElementFactory.functionElement3(
-            "query",
-            elementElement,
-            <ClassElement>[provider.stringType.element],
-            ClassElementImpl.EMPTY_ARRAY)];
-    TopLevelVariableElementImpl document =
-        ElementFactory.topLevelVariableElement3(
-            "document",
-            false,
-            true,
-            htmlDocumentElement.type);
+      ElementFactory.functionElement3("query", elementElement, <ClassElement>[
+        provider.stringType.element
+      ], ClassElementImpl.EMPTY_ARRAY)
+    ];
+    TopLevelVariableElementImpl document = ElementFactory
+        .topLevelVariableElement3(
+            "document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
     LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
+        coreContext, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     //
     // dart:math
@@ -305,22 +292,14 @@ class AnalysisContextFactory {
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
     mathUnit.source = mathSource;
-    FunctionElement cosElement = ElementFactory.functionElement3(
-        "cos",
-        provider.doubleType.element,
-        <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
-    TopLevelVariableElement ln10Element =
-        ElementFactory.topLevelVariableElement3(
-            "LN10",
-            true,
-            false,
-            provider.doubleType);
+    FunctionElement cosElement = ElementFactory.functionElement3("cos",
+        provider.doubleType.element, <ClassElement>[
+      provider.numType.element
+    ], ClassElementImpl.EMPTY_ARRAY);
+    TopLevelVariableElement ln10Element = ElementFactory
+        .topLevelVariableElement3("LN10", true, false, provider.doubleType);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
-        "PI",
-        true,
-        false,
-        provider.doubleType);
+        "PI", true, false, provider.doubleType);
     ClassElementImpl randomElement = ElementFactory.classElement2("Random");
     randomElement.abstract = true;
     ConstructorElementImpl randomConstructor =
@@ -331,25 +310,26 @@ class AnalysisContextFactory {
     seedParam.type = provider.intType;
     randomConstructor.parameters = <ParameterElement>[seedParam];
     randomElement.constructors = <ConstructorElement>[randomConstructor];
-    FunctionElement sinElement = ElementFactory.functionElement3(
-        "sin",
-        provider.doubleType.element,
-        <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
-    FunctionElement sqrtElement = ElementFactory.functionElement3(
-        "sqrt",
-        provider.doubleType.element,
-        <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
-    mathUnit.accessors =
-        <PropertyAccessorElement>[ln10Element.getter, piElement.getter];
+    FunctionElement sinElement = ElementFactory.functionElement3("sin",
+        provider.doubleType.element, <ClassElement>[
+      provider.numType.element
+    ], ClassElementImpl.EMPTY_ARRAY);
+    FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt",
+        provider.doubleType.element, <ClassElement>[
+      provider.numType.element
+    ], ClassElementImpl.EMPTY_ARRAY);
+    mathUnit.accessors = <PropertyAccessorElement>[
+      ln10Element.getter,
+      piElement.getter
+    ];
     mathUnit.functions = <FunctionElement>[cosElement, sinElement, sqrtElement];
-    mathUnit.topLevelVariables =
-        <TopLevelVariableElement>[ln10Element, piElement];
+    mathUnit.topLevelVariables = <TopLevelVariableElement>[
+      ln10Element,
+      piElement
+    ];
     mathUnit.types = <ClassElement>[randomElement];
     LibraryElementImpl mathLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        AstFactory.libraryIdentifier2(["dart", "math"]));
+        coreContext, AstFactory.libraryIdentifier2(["dart", "math"]));
     mathLibrary.definingCompilationUnit = mathUnit;
     //
     // Set empty sources for the rest of the libraries.
@@ -380,8 +360,7 @@ class AnalysisContextForTests extends AnalysisContextImpl {
   @override
   void set analysisOptions(AnalysisOptions options) {
     AnalysisOptions currentOptions = analysisOptions;
-    bool needsRecompute =
-        currentOptions.analyzeFunctionBodiesPredicate !=
+    bool needsRecompute = currentOptions.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
@@ -556,8 +535,8 @@ class ChangeSetTest extends EngineTestCase {
     changeSet.changedRange(new TestSource(), "", 0, 0, 0);
     changeSet.deletedSource(new TestSource());
     changeSet.removedSource(new TestSource());
-    changeSet.removedContainer(
-        new SourceContainer_ChangeSetTest_test_toString());
+    changeSet
+        .removedContainer(new SourceContainer_ChangeSetTest_test_toString());
     expect(changeSet.toString(), isNotNull);
   }
 }
@@ -746,11 +725,10 @@ class A {
 }
 var v = const A('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -771,9 +749,9 @@ class C {
 }
 var v = const C(const A());''');
     resolve(source);
-    assertErrors(
-        source,
-        [CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+    ]);
     verify([source]);
   }
 
@@ -785,11 +763,10 @@ class A {
 }
 var v = const A('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -801,11 +778,10 @@ class A {
 }
 var v = const A('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticWarningCode.UNDEFINED_CLASS]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticWarningCode.UNDEFINED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -824,9 +800,9 @@ class C {
 }
 var v = const C(const A());''');
     resolve(source);
-    assertErrors(
-        source,
-        [CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+    ]);
     verify([source]);
   }
 
@@ -838,9 +814,9 @@ class A {
 }
 var x = const A(const <num>[1, 2, 3]);''');
     resolve(source);
-    assertErrors(
-        source,
-        [CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+    ]);
     verify([source]);
   }
 
@@ -853,9 +829,9 @@ class A {
 }
 var x = const A(const <num, int>{1: 2});''');
     resolve(source);
-    assertErrors(
-        source,
-        [CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+    ]);
     verify([source]);
   }
 
@@ -868,9 +844,9 @@ class A {
 }
 var x = const A(const <int, num>{1: 2});''');
     resolve(source);
-    assertErrors(
-        source,
-        [CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+    ]);
     verify([source]);
   }
 
@@ -882,11 +858,10 @@ class A {
 }
 var v = const A();''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticTypeWarningCode.INVALID_ASSIGNMENT
+    ]);
     verify([source]);
   }
 
@@ -902,11 +877,10 @@ class A {
 int foo(String x) => 1;
 var v = const A(foo);''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -917,11 +891,10 @@ class A {
   const A() : x = '';
 }''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-            StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+      StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -933,9 +906,9 @@ class A {
 }
 var v = const A('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
+    ]);
     verify([source]);
   }
 
@@ -947,11 +920,10 @@ class A {
 }
 var v = const A('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-            StaticWarningCode.UNDEFINED_CLASS]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+      StaticWarningCode.UNDEFINED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -984,33 +956,30 @@ var v = const A(null);''');
   void test_listElementTypeNotAssignable() {
     Source source = addSource("var v = const <String> [42];");
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
-            StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
   void test_mapKeyTypeNotAssignable() {
     Source source = addSource("var v = const <String, int > {1 : 2};");
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+      StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
   void test_mapValueTypeNotAssignable() {
     Source source = addSource("var v = const <String, String> {'a' : 2};");
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+      StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -1057,11 +1026,10 @@ class A {
 }
 var v = const A('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -1072,11 +1040,10 @@ class A<T> {
 }
 var v = const A<int>('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
   }
 
@@ -1087,11 +1054,10 @@ class A {
 }
 var v = const A('foo');''');
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            StaticWarningCode.UNDEFINED_CLASS]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      StaticWarningCode.UNDEFINED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -1103,9 +1069,9 @@ class A {
 }
 var v = const A.a1(0);''');
     resolve(source);
-    assertErrors(
-        source,
-        [CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+    ]);
     verify([source]);
   }
 
@@ -1128,22 +1094,20 @@ var v = const A.a1(0);''');
   void test_topLevelVarNotAssignable() {
     Source source = addSource("const int x = 'foo';");
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-            StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+      StaticTypeWarningCode.INVALID_ASSIGNMENT
+    ]);
     verify([source]);
   }
 
   void test_topLevelVarNotAssignable_undefined() {
     Source source = addSource("const Unresolved x = 'foo';");
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-            StaticWarningCode.UNDEFINED_CLASS]);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+      StaticWarningCode.UNDEFINED_CLASS
+    ]);
     verify([source]);
   }
 }
@@ -1194,8 +1158,8 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be
     // resolved.
-    ImportDirective directive =
-        AstFactory.importDirective3(null, null, [AstFactory.showCombinator2(["A"])]);
+    ImportDirective directive = AstFactory.importDirective3(
+        null, null, [AstFactory.showCombinator2(["A"])]);
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -1206,11 +1170,12 @@ class ElementResolverTest extends EngineTestCase {
     // resolved.
     String prefixName = "p";
     _definingLibrary.imports = <ImportElement>[
-        ElementFactory.importFor(null, ElementFactory.prefix(prefixName))];
-    ImportDirective directive = AstFactory.importDirective3(
-        null,
-        prefixName,
-        [AstFactory.showCombinator2(["A"]), AstFactory.hideCombinator2(["B"])]);
+      ElementFactory.importFor(null, ElementFactory.prefix(prefixName))
+    ];
+    ImportDirective directive = AstFactory.importDirective3(null, prefixName, [
+      AstFactory.showCombinator2(["A"]),
+      AstFactory.hideCombinator2(["B"])
+    ]);
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -1267,21 +1232,16 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier leftHandSide = AstFactory.identifier3("a");
     leftHandSide.staticType = intType;
     AssignmentExpression assignment = AstFactory.assignmentExpression(
-        leftHandSide,
-        TokenType.PLUS_EQ,
-        AstFactory.integer(1));
+        leftHandSide, TokenType.PLUS_EQ, AstFactory.integer(1));
     _resolveNode(assignment);
     expect(
-        assignment.staticElement,
-        same(getMethod(_typeProvider.numType, "+")));
+        assignment.staticElement, same(getMethod(_typeProvider.numType, "+")));
     _listener.assertNoErrors();
   }
 
   void test_visitAssignmentExpression_simple() {
     AssignmentExpression expression = AstFactory.assignmentExpression(
-        AstFactory.identifier3("x"),
-        TokenType.EQ,
-        AstFactory.integer(0));
+        AstFactory.identifier3("x"), TokenType.EQ, AstFactory.integer(0));
     _resolveNode(expression);
     expect(expression.staticElement, isNull);
     _listener.assertNoErrors();
@@ -1295,15 +1255,12 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.staticType = stringType;
     BinaryExpression expression = AstFactory.binaryExpression(
-        left,
-        TokenType.BANG_EQ,
-        AstFactory.identifier3("j"));
+        left, TokenType.BANG_EQ, AstFactory.identifier3("j"));
     _resolveNode(expression);
     var stringElement = stringType.element;
     expect(expression.staticElement, isNotNull);
-    expect(
-        expression.staticElement,
-        stringElement.lookUpMethod(TokenType.EQ_EQ.lexeme, stringElement.library));
+    expect(expression.staticElement, stringElement.lookUpMethod(
+        TokenType.EQ_EQ.lexeme, stringElement.library));
     expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
@@ -1316,14 +1273,11 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.staticType = stringType;
     BinaryExpression expression = AstFactory.binaryExpression(
-        left,
-        TokenType.EQ_EQ,
-        AstFactory.identifier3("j"));
+        left, TokenType.EQ_EQ, AstFactory.identifier3("j"));
     _resolveNode(expression);
     var stringElement = stringType.element;
-    expect(
-        expression.staticElement,
-        stringElement.lookUpMethod(TokenType.EQ_EQ.lexeme, stringElement.library));
+    expect(expression.staticElement, stringElement.lookUpMethod(
+        TokenType.EQ_EQ.lexeme, stringElement.library));
     expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
@@ -1335,8 +1289,8 @@ class ElementResolverTest extends EngineTestCase {
     InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.staticType = numType;
-    BinaryExpression expression =
-        AstFactory.binaryExpression(left, TokenType.PLUS, AstFactory.identifier3("j"));
+    BinaryExpression expression = AstFactory.binaryExpression(
+        left, TokenType.PLUS, AstFactory.identifier3("j"));
     _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
     expect(expression.propagatedElement, isNull);
@@ -1350,8 +1304,8 @@ class ElementResolverTest extends EngineTestCase {
     InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.propagatedType = numType;
-    BinaryExpression expression =
-        AstFactory.binaryExpression(left, TokenType.PLUS, AstFactory.identifier3("j"));
+    BinaryExpression expression = AstFactory.binaryExpression(
+        left, TokenType.PLUS, AstFactory.identifier3("j"));
     _resolveNode(expression);
     expect(expression.staticElement, isNull);
     expect(expression.propagatedElement, getMethod(numType, "+"));
@@ -1369,8 +1323,7 @@ class ElementResolverTest extends EngineTestCase {
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =
         AstFactory.whileStatement(condition, breakStatement);
-    expect(
-        _resolveBreak(breakStatement, labelElement, whileStatement),
+    expect(_resolveBreak(breakStatement, labelElement, whileStatement),
         same(labelElement));
     expect(breakStatement.target, same(whileStatement));
     _listener.assertNoErrors();
@@ -1388,8 +1341,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name =
-        AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstFactory.constructorName(
+        AstFactory.typeName(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -1401,8 +1354,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name =
-        AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstFactory.constructorName(
+        AstFactory.typeName(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -1419,8 +1372,7 @@ class ElementResolverTest extends EngineTestCase {
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =
         AstFactory.whileStatement(condition, continueStatement);
-    expect(
-        _resolveContinue(continueStatement, labelElement, whileStatement),
+    expect(_resolveContinue(continueStatement, labelElement, whileStatement),
         same(labelElement));
     expect(continueStatement.target, same(whileStatement));
     _listener.assertNoErrors();
@@ -1434,8 +1386,8 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitExportDirective_noCombinators() {
     ExportDirective directive = AstFactory.exportDirective2(null);
-    directive.element = ElementFactory.exportFor(
-        ElementFactory.library(_definingLibrary.context, "lib"));
+    directive.element = ElementFactory
+        .exportFor(ElementFactory.library(_definingLibrary.context, "lib"));
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -1461,8 +1413,7 @@ class ElementResolverTest extends EngineTestCase {
   void test_visitImportDirective_noCombinators_noPrefix() {
     ImportDirective directive = AstFactory.importDirective3(null, null);
     directive.element = ElementFactory.importFor(
-        ElementFactory.library(_definingLibrary.context, "lib"),
-        null);
+        ElementFactory.library(_definingLibrary.context, "lib"), null);
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -1493,8 +1444,12 @@ class ElementResolverTest extends EngineTestCase {
         ElementFactory.topLevelVariableElement2("C");
     CompilationUnitElementImpl unit =
         library.definingCompilationUnit as CompilationUnitElementImpl;
-    unit.accessors =
-        <PropertyAccessorElement>[varA.getter, varA.setter, varB.getter, varC.setter];
+    unit.accessors = <PropertyAccessorElement>[
+      varA.getter,
+      varA.setter,
+      varB.getter,
+      varC.setter
+    ];
     unit.topLevelVariables = <TopLevelVariableElement>[varA, varB, varC];
     directive.element = ElementFactory.importFor(library, null);
     _resolveNode(directive);
@@ -1529,9 +1484,7 @@ class ElementResolverTest extends EngineTestCase {
     IndexExpression expression =
         AstFactory.indexExpression(array, AstFactory.identifier3("i"));
     AstFactory.assignmentExpression(
-        expression,
-        TokenType.EQ,
-        AstFactory.integer(0));
+        expression, TokenType.EQ, AstFactory.integer(0));
     expect(_resolveIndexExpression(expression), same(setter));
     _listener.assertNoErrors();
   }
@@ -1542,8 +1495,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name =
-        AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstFactory.constructorName(
+        AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstFactory.instanceCreationExpression(Keyword.NEW, name);
@@ -1558,8 +1511,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name =
-        AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstFactory.constructorName(
+        AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstFactory.instanceCreationExpression(Keyword.NEW, name);
@@ -1577,19 +1530,17 @@ class ElementResolverTest extends EngineTestCase {
     ParameterElement parameter = ElementFactory.namedParameter(parameterName);
     constructor.parameters = <ParameterElement>[parameter];
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name =
-        AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstFactory.constructorName(
+        AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation = AstFactory.instanceCreationExpression(
-        Keyword.NEW,
-        name,
-        [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
+        Keyword.NEW, name, [
+      AstFactory.namedExpression2(parameterName, AstFactory.integer(0))
+    ]);
     _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
-    expect(
-        (creation.argumentList.arguments[0] as
-            NamedExpression).name.label.staticElement,
-        same(parameter));
+    expect((creation.argumentList.arguments[
+        0] as NamedExpression).name.label.staticElement, same(parameter));
     _listener.assertNoErrors();
   }
 
@@ -1600,8 +1551,7 @@ class ElementResolverTest extends EngineTestCase {
     String methodName = "abs";
     MethodInvocation invocation = AstFactory.methodInvocation(left, methodName);
     _resolveNode(invocation);
-    expect(
-        invocation.methodName.staticElement,
+    expect(invocation.methodName.staticElement,
         same(getMethod(numType, methodName)));
     _listener.assertNoErrors();
   }
@@ -1616,16 +1566,12 @@ class ElementResolverTest extends EngineTestCase {
     classA.methods = <MethodElement>[method];
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.staticType = classA.type;
-    MethodInvocation invocation = AstFactory.methodInvocation(
-        left,
-        methodName,
+    MethodInvocation invocation = AstFactory.methodInvocation(left, methodName,
         [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
     _resolveNode(invocation);
     expect(invocation.methodName.staticElement, same(method));
-    expect(
-        (invocation.argumentList.arguments[0] as
-            NamedExpression).name.label.staticElement,
-        same(parameter));
+    expect((invocation.argumentList.arguments[
+        0] as NamedExpression).name.label.staticElement, same(parameter));
     _listener.assertNoErrors();
   }
 
@@ -1710,9 +1656,7 @@ class ElementResolverTest extends EngineTestCase {
     PrefixedIdentifier identifier =
         AstFactory.identifier(target, AstFactory.identifier3(propName));
     AstFactory.assignmentExpression(
-        identifier,
-        TokenType.EQ,
-        AstFactory.nullLiteral());
+        identifier, TokenType.EQ, AstFactory.nullLiteral());
     // resolve
     _resolveNode(identifier);
     expect(identifier.staticElement, same(method));
@@ -1736,9 +1680,7 @@ class ElementResolverTest extends EngineTestCase {
     PrefixedIdentifier identifier =
         AstFactory.identifier(target, AstFactory.identifier3(propName));
     AstFactory.assignmentExpression(
-        identifier,
-        TokenType.EQ,
-        AstFactory.nullLiteral());
+        identifier, TokenType.EQ, AstFactory.nullLiteral());
     // resolve
     _resolveNode(identifier);
     expect(identifier.staticElement, same(setter));
@@ -1788,13 +1730,8 @@ class ElementResolverTest extends EngineTestCase {
     SuperExpression target = AstFactory.superExpression();
     target.staticType = ElementFactory.classElement("B", classA.type).type;
     PropertyAccess access = AstFactory.propertyAccess2(target, getterName);
-    AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
+    AstFactory.methodDeclaration2(null, null, null, null,
+        AstFactory.identifier3("m"), AstFactory.formalParameterList(),
         AstFactory.expressionFunctionBody(access));
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
@@ -1811,9 +1748,7 @@ class ElementResolverTest extends EngineTestCase {
     target.staticType = classA.type;
     PropertyAccess access = AstFactory.propertyAccess2(target, setterName);
     AstFactory.assignmentExpression(
-        access,
-        TokenType.EQ,
-        AstFactory.integer(0));
+        access, TokenType.EQ, AstFactory.integer(0));
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(setter));
     _listener.assertNoErrors();
@@ -1855,10 +1790,8 @@ class ElementResolverTest extends EngineTestCase {
     AstFactory.assignmentExpression(node, TokenType.EQ, AstFactory.integer(0));
     _resolveInClass(node, classA);
     Element element = node.staticElement;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is PropertyAccessorElement,
-        PropertyAccessorElement,
-        element);
+    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
+        PropertyAccessorElement, element);
     expect((element as PropertyAccessorElement).isSetter, isTrue);
     _listener.assertNoErrors();
   }
@@ -1893,15 +1826,14 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
-    SuperConstructorInvocation invocation =
-        AstFactory.superConstructorInvocation(
-            [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
+    SuperConstructorInvocation invocation = AstFactory
+        .superConstructorInvocation([
+      AstFactory.namedExpression2(parameterName, AstFactory.integer(0))
+    ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
-    expect(
-        (invocation.argumentList.arguments[0] as
-            NamedExpression).name.label.staticElement,
-        same(parameter));
+    expect((invocation.argumentList.arguments[
+        0] as NamedExpression).name.label.staticElement, same(parameter));
     _listener.assertNoErrors();
   }
 
@@ -1912,8 +1844,8 @@ class ElementResolverTest extends EngineTestCase {
    */
   ElementResolver _createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory =
-        new SourceFactory([new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     context.sourceFactory = sourceFactory;
     FileBasedSource source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
@@ -1929,8 +1861,7 @@ class ElementResolverTest extends EngineTestCase {
       return _visitor.elementResolver_J2DAccessor as ElementResolver;
     } catch (exception) {
       throw new IllegalArgumentException(
-          "Could not create resolver",
-          exception);
+          "Could not create resolver", exception);
     }
   }
 
@@ -1990,8 +1921,7 @@ class ElementResolverTest extends EngineTestCase {
       try {
         _visitor.enclosingClass = enclosingClass;
         EnclosedScope innerScope = new ClassScope(
-            new TypeParameterScope(outerScope, enclosingClass),
-            enclosingClass);
+            new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
         _visitor.nameScope_J2DAccessor = innerScope;
         node.accept(_resolver);
       } finally {
@@ -2055,8 +1985,8 @@ class ElementResolverTest extends EngineTestCase {
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
    */
-  void _resolveStatement(Statement statement, LabelElementImpl labelElement,
-      AstNode labelTarget) {
+  void _resolveStatement(
+      Statement statement, LabelElementImpl labelElement, AstNode labelTarget) {
     try {
       LabelScope outerScope = _visitor.labelScope_J2DAccessor as LabelScope;
       try {
@@ -2064,8 +1994,8 @@ class ElementResolverTest extends EngineTestCase {
         if (labelElement == null) {
           innerScope = outerScope;
         } else {
-          innerScope =
-              new LabelScope(outerScope, labelElement.name, labelTarget, labelElement);
+          innerScope = new LabelScope(
+              outerScope, labelElement.name, labelTarget, labelElement);
         }
         _visitor.labelScope_J2DAccessor = innerScope;
         statement.accept(_resolver);
@@ -2262,8 +2192,7 @@ class A {
   void test_argumentTypeNotAssignable_message() {
     // The implementation of HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE assumes that
     // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE has the same message.
-    expect(
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message,
+    expect(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message,
         HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message);
   }
 
@@ -2957,8 +2886,7 @@ library lib1;
 class A {}''');
     resolve(source);
     assertErrors(
-        source,
-        [HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
+        source, [HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
 
@@ -2978,14 +2906,16 @@ class B {}''');
   }
 
   void test_importDeferredLibraryWithLoadFunction() {
-    resolveWithErrors(<String>[r'''
+    resolveWithErrors(<String>[
+      r'''
 library lib1;
 loadLibrary() {}
-f() {}''', r'''
+f() {}''',
+      r'''
 library root;
 import 'lib1.dart' deferred as lib1;
-main() { lib1.f(); }'''],
-          <ErrorCode>[HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
+main() { lib1.f(); }'''
+    ], <ErrorCode>[HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
   }
 
   void test_invalidAssignment_instanceVariable() {
@@ -3019,8 +2949,7 @@ f(var y) {
   void test_invalidAssignment_message() {
     // The implementation of HintCode.INVALID_ASSIGNMENT assumes that
     // StaticTypeWarningCode.INVALID_ASSIGNMENT has the same message.
-    expect(
-        StaticTypeWarningCode.INVALID_ASSIGNMENT.message,
+    expect(StaticTypeWarningCode.INVALID_ASSIGNMENT.message,
         HintCode.INVALID_ASSIGNMENT.message);
   }
 
@@ -3181,8 +3110,7 @@ f(var a) {
     // The implementation of HintCode.UNDEFINED_SETTER assumes that
     // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
     // same, this verifies that assumption.
-    expect(
-        StaticWarningCode.UNDEFINED_GETTER.message,
+    expect(StaticWarningCode.UNDEFINED_GETTER.message,
         StaticTypeWarningCode.UNDEFINED_GETTER.message);
   }
 
@@ -3320,8 +3248,7 @@ f(var a) {
     // The implementation of HintCode.UNDEFINED_SETTER assumes that
     // UNDEFINED_SETTER in StaticTypeWarningCode and StaticWarningCode are the
     // same, this verifies that assumption.
-    expect(
-        StaticWarningCode.UNDEFINED_SETTER.message,
+    expect(StaticWarningCode.UNDEFINED_SETTER.message,
         StaticTypeWarningCode.UNDEFINED_SETTER.message);
   }
 
@@ -4446,8 +4373,7 @@ class A {
 }''');
     resolve(source);
     assertErrors(
-        source,
-        [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
+        source, [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
 }
@@ -4711,8 +4637,7 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I2, I1 {}
@@ -4731,13 +4656,12 @@ class InheritanceManagerTest extends EngineTestCase {
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
     expect(mapA.get(methodName), isNull);
-    _assertErrors(
-        classA,
-        [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
+    _assertErrors(classA, [
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD
+    ]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I1, I2 {}
@@ -4747,8 +4671,8 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    MethodElement methodM2 =
-        ElementFactory.methodElement(methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM2 = ElementFactory.methodElement(
+        methodName, null, [_typeProvider.stringType]);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
@@ -4757,12 +4681,10 @@ class InheritanceManagerTest extends EngineTestCase {
     expect(mapA.size, _numOfMembersInObject);
     expect(mapA.get(methodName), isNull);
     _assertErrors(
-        classA,
-        [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+        classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I1, I2 {}
@@ -4781,13 +4703,12 @@ class InheritanceManagerTest extends EngineTestCase {
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
     expect(mapA.get(methodName), isNull);
-    _assertErrors(
-        classA,
-        [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
+    _assertErrors(classA, [
+      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD
+    ]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
     // class I1 { dynamic m(int, [int]); }
     // class I2 { dynamic m(int, int, int); }
     // class A implements I1, I2 {}
@@ -4820,8 +4741,11 @@ class InheritanceManagerTest extends EngineTestCase {
         new ParameterElementImpl.forNode(AstFactory.identifier3("a5"));
     parameter5.type = _typeProvider.intType;
     parameter5.parameterKind = ParameterKind.REQUIRED;
-    methodM2.parameters =
-        <ParameterElement>[parameter3, parameter4, parameter5];
+    methodM2.parameters = <ParameterElement>[
+      parameter3,
+      parameter4,
+      parameter5
+    ];
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
@@ -4830,19 +4754,17 @@ class InheritanceManagerTest extends EngineTestCase {
     expect(mapA.size, _numOfMembersInObject);
     expect(mapA.get(methodName), isNull);
     _assertErrors(
-        classA,
-        [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+        classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I2, I1 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM1 =
-        ElementFactory.methodElement(methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM1 = ElementFactory.methodElement(
+        methodName, null, [_typeProvider.stringType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 =
@@ -4855,8 +4777,7 @@ class InheritanceManagerTest extends EngineTestCase {
     expect(mapA.size, _numOfMembersInObject);
     expect(mapA.get(methodName), isNull);
     _assertErrors(
-        classA,
-        [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+        classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_method_extends() {
@@ -4945,33 +4866,31 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
     // class I1 { int get g; }
     // class I2 { num get g; }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "g";
-    PropertyAccessorElement getter1 =
-        ElementFactory.getterElement(accessorName, false, _typeProvider.intType);
+    PropertyAccessorElement getter1 = ElementFactory.getterElement(
+        accessorName, false, _typeProvider.intType);
     classI1.accessors = <PropertyAccessorElement>[getter1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    PropertyAccessorElement getter2 =
-        ElementFactory.getterElement(accessorName, false, _typeProvider.numType);
+    PropertyAccessorElement getter2 = ElementFactory.getterElement(
+        accessorName, false, _typeProvider.numType);
     classI2.accessors = <PropertyAccessorElement>[getter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
     MemberMap mapA =
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
-    PropertyAccessorElement syntheticAccessor =
-        ElementFactory.getterElement(accessorName, false, _typeProvider.dynamicType);
+    PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
+        accessorName, false, _typeProvider.dynamicType);
     expect(mapA.get(accessorName).type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
     // class I1 { dynamic m(int); }
     // class I2 { dynamic m(num); }
     // class A implements I1, I2 {}
@@ -5000,41 +4919,37 @@ class InheritanceManagerTest extends EngineTestCase {
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
     MethodElement syntheticMethod = ElementFactory.methodElement(
-        methodName,
-        _typeProvider.dynamicType,
-        [_typeProvider.dynamicType]);
+        methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
     expect(mapA.get(methodName).type, syntheticMethod.type);
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
     // class I1 { set s(int); }
     // class I2 { set s(num); }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "s";
-    PropertyAccessorElement setter1 =
-        ElementFactory.setterElement(accessorName, false, _typeProvider.intType);
+    PropertyAccessorElement setter1 = ElementFactory.setterElement(
+        accessorName, false, _typeProvider.intType);
     classI1.accessors = <PropertyAccessorElement>[setter1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    PropertyAccessorElement setter2 =
-        ElementFactory.setterElement(accessorName, false, _typeProvider.numType);
+    PropertyAccessorElement setter2 = ElementFactory.setterElement(
+        accessorName, false, _typeProvider.numType);
     classI2.accessors = <PropertyAccessorElement>[setter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
     MemberMap mapA =
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
-    PropertyAccessorElementImpl syntheticAccessor =
-        ElementFactory.setterElement(accessorName, false, _typeProvider.dynamicType);
+    PropertyAccessorElementImpl syntheticAccessor = ElementFactory
+        .setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
     expect(mapA.get("$accessorName=").type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5059,19 +4974,21 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.getterElement(accessorName, false, classC.type);
     classI3.accessors = <PropertyAccessorElement>[getter3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
-    classD.interfaces =
-        <InterfaceType>[classI1.type, classI2.type, classI3.type];
+    classD.interfaces = <InterfaceType>[
+      classI1.type,
+      classI2.type,
+      classI3.type
+    ];
     MemberMap mapD =
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
     expect(mapD.size, _numOfMembersInObject + 1);
-    PropertyAccessorElement syntheticAccessor =
-        ElementFactory.getterElement(accessorName, false, _typeProvider.dynamicType);
+    PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
+        accessorName, false, _typeProvider.dynamicType);
     expect(mapD.get(accessorName).type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5111,21 +5028,21 @@ class InheritanceManagerTest extends EngineTestCase {
     methodM3.parameters = <ParameterElement>[parameter3];
     classI3.methods = <MethodElement>[methodM3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
-    classD.interfaces =
-        <InterfaceType>[classI1.type, classI2.type, classI3.type];
+    classD.interfaces = <InterfaceType>[
+      classI1.type,
+      classI2.type,
+      classI3.type
+    ];
     MemberMap mapD =
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
     expect(mapD.size, _numOfMembersInObject + 1);
     MethodElement syntheticMethod = ElementFactory.methodElement(
-        methodName,
-        _typeProvider.dynamicType,
-        [_typeProvider.dynamicType]);
+        methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
     expect(mapD.get(methodName).type, syntheticMethod.type);
     _assertNoErrors(classD);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5150,20 +5067,22 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.setterElement(accessorName, false, classC.type);
     classI3.accessors = <PropertyAccessorElement>[setter3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
-    classD.interfaces =
-        <InterfaceType>[classI1.type, classI2.type, classI3.type];
+    classD.interfaces = <InterfaceType>[
+      classI1.type,
+      classI2.type,
+      classI3.type
+    ];
     MemberMap mapD =
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
     expect(mapD.size, _numOfMembersInObject + 1);
-    PropertyAccessorElementImpl syntheticAccessor =
-        ElementFactory.setterElement(accessorName, false, _typeProvider.dynamicType);
+    PropertyAccessorElementImpl syntheticAccessor = ElementFactory
+        .setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
     expect(mapD.get("$accessorName=").type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class A implements I1, I2 {}
@@ -5190,8 +5109,7 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class I3 { int m([int, int]); }
@@ -5224,8 +5142,11 @@ class InheritanceManagerTest extends EngineTestCase {
     methodM3.parameters = <ParameterElement>[parameter2, parameter3];
     classI3.methods = <MethodElement>[methodM3];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces =
-        <InterfaceType>[classI1.type, classI2.type, classI3.type];
+    classA.interfaces = <InterfaceType>[
+      classI1.type,
+      classI2.type,
+      classI3.type
+    ];
     MemberMap mapA =
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -5233,8 +5154,7 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
     // class I1 { int m(); }
     // class I2 { int m(); }
     // class I3 { int m([int]); }
@@ -5272,8 +5192,12 @@ class InheritanceManagerTest extends EngineTestCase {
     methodM4.parameters = <ParameterElement>[parameter2, parameter3];
     classI4.methods = <MethodElement>[methodM4];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces =
-        <InterfaceType>[classI1.type, classI2.type, classI3.type, classI4.type];
+    classA.interfaces = <InterfaceType>[
+      classI1.type,
+      classI2.type,
+      classI3.type,
+      classI4.type
+    ];
     MemberMap mapA =
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -5289,8 +5213,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    expect(
-        _inheritanceManager.lookupInheritance(classB, getterName),
+    expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5304,8 +5227,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    expect(
-        _inheritanceManager.lookupInheritance(classB, methodName),
+    expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5319,8 +5241,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    expect(
-        _inheritanceManager.lookupInheritance(classB, "$setterName="),
+    expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5371,11 +5292,9 @@ class InheritanceManagerTest extends EngineTestCase {
     classI2.interfaces = <InterfaceType>[classI1.type];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI2.type];
-    expect(
-        _inheritanceManager.lookupInheritance(classA, methodName1),
+    expect(_inheritanceManager.lookupInheritance(classA, methodName1),
         same(methodM1));
-    expect(
-        _inheritanceManager.lookupInheritance(classA, methodName2),
+    expect(_inheritanceManager.lookupInheritance(classA, methodName2),
         same(methodM2));
     _assertNoErrors(classI1);
     _assertNoErrors(classI2);
@@ -5390,8 +5309,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    expect(
-        _inheritanceManager.lookupInheritance(classB, getterName),
+    expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5405,8 +5323,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    expect(
-        _inheritanceManager.lookupInheritance(classB, methodName),
+    expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5420,8 +5337,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    expect(
-        _inheritanceManager.lookupInheritance(classB, "$setterName="),
+    expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5454,8 +5370,7 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    expect(
-        _inheritanceManager.lookupInheritance(classB, getterName),
+    expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5485,8 +5400,7 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    expect(
-        _inheritanceManager.lookupInheritance(classB, methodName),
+    expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5499,8 +5413,7 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    expect(
-        _inheritanceManager.lookupInheritance(classB, "$setterName="),
+    expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -5572,8 +5485,7 @@ class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement setterS =
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
-    expect(
-        _inheritanceManager.lookupMember(classA, "$setterName="),
+    expect(_inheritanceManager.lookupMember(classA, "$setterName="),
         same(setterS));
     _assertNoErrors(classA);
   }
@@ -5595,8 +5507,7 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     expect(
-        _inheritanceManager.lookupOverrides(classA, methodName),
-        hasLength(0));
+        _inheritanceManager.lookupOverrides(classA, methodName), hasLength(0));
     _assertNoErrors(classA);
   }
 
@@ -5658,8 +5569,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classC);
   }
 
-  void _assertErrors(ClassElement classElt, [List<ErrorCode> expectedErrorCodes
-      = ErrorCode.EMPTY_LIST]) {
+  void _assertErrors(ClassElement classElt,
+      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     HashSet<AnalysisError> actualErrors =
         _inheritanceManager.getErrors(classElt);
@@ -5716,8 +5627,10 @@ class LibraryElementBuilderTest extends EngineTestCase {
 
   @override
   void setUp() {
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk), new FileUriResolver()]);
+    SourceFactory sourceFactory = new SourceFactory([
+      new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
+      new FileUriResolver()
+    ]);
     _context = new AnalysisContextImpl();
     _context.sourceFactory = sourceFactory;
   }
@@ -5776,8 +5689,7 @@ void set V(int v) {}''');
     addSource("/a.dart", "part of lib;");
     Source librarySource = addSource("/lib.dart", "part 'a.dart';");
     LibraryElement element = _buildLibrary(
-        librarySource,
-        [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
+        librarySource, [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
     expect(element, isNotNull);
   }
 
@@ -5866,8 +5778,8 @@ class A {}''');
   LibraryElement _buildLibrary(Source librarySource,
       [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     LibraryResolver resolver = new LibraryResolver(_context);
-    LibraryElementBuilder builder =
-        new LibraryElementBuilder(resolver.analysisContext, resolver.errorListener);
+    LibraryElementBuilder builder = new LibraryElementBuilder(
+        resolver.analysisContext, resolver.errorListener);
     Library library = resolver.createLibrary(librarySource);
     LibraryElement element = builder.buildLibrary(library);
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -5905,21 +5817,17 @@ class LibraryImportScopeTest extends ResolverTestCase {
     {
       GatheringErrorListener errorListener = new GatheringErrorListener();
       Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-      expect(
-          scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
+      expect(scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
           typeA);
       errorListener.assertNoErrors();
-      expect(
-          scope.lookup(AstFactory.identifier3(typeNameC), importingLibrary),
+      expect(scope.lookup(AstFactory.identifier3(typeNameC), importingLibrary),
           typeC);
       errorListener.assertNoErrors();
       Element element =
           scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary);
       errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf(
-          (obj) => obj is MultiplyDefinedElement,
-          MultiplyDefinedElement,
-          element);
+      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement,
+          MultiplyDefinedElement, element);
       List<Element> conflictingElements =
           (element as MultiplyDefinedElement).conflictingElements;
       expect(conflictingElements, hasLength(2));
@@ -5935,19 +5843,12 @@ class LibraryImportScopeTest extends ResolverTestCase {
       GatheringErrorListener errorListener = new GatheringErrorListener();
       Scope scope = new LibraryImportScope(importingLibrary, errorListener);
       Identifier identifier = AstFactory.identifier3(typeNameB);
-      AstFactory.methodDeclaration(
-          null,
-          AstFactory.typeName3(identifier),
-          null,
-          null,
-          AstFactory.identifier3("foo"),
-          null);
+      AstFactory.methodDeclaration(null, AstFactory.typeName3(identifier), null,
+          null, AstFactory.identifier3("foo"), null);
       Element element = scope.lookup(identifier, importingLibrary);
       errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf(
-          (obj) => obj is MultiplyDefinedElement,
-          MultiplyDefinedElement,
-          element);
+      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement,
+          MultiplyDefinedElement, element);
     }
   }
 
@@ -6004,10 +5905,9 @@ class LibraryImportScopeTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
     expect(
-        scope.lookup(AstFactory.identifier3(typeName), importingLibrary),
-        type);
-    errorListener.assertErrorsWithCodes(
-        [StaticWarningCode.CONFLICTING_DART_IMPORT]);
+        scope.lookup(AstFactory.identifier3(typeName), importingLibrary), type);
+    errorListener
+        .assertErrorsWithCodes([StaticWarningCode.CONFLICTING_DART_IMPORT]);
   }
 
   void test_nonConflictingImports_sameElement() {
@@ -6027,12 +5927,10 @@ class LibraryImportScopeTest extends ResolverTestCase {
     importingLibrary.imports = <ImportElement>[import1, import2];
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-    expect(
-        scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
+    expect(scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
         typeA);
     errorListener.assertNoErrors();
-    expect(
-        scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary),
+    expect(scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary),
         typeB);
     errorListener.assertNoErrors();
   }
@@ -6048,8 +5946,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
         createTestLibrary(context, "import.prefixed");
     (prefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[prefixedType];
-    ImportElementImpl prefixedImport =
-        ElementFactory.importFor(prefixedLibrary, ElementFactory.prefix(prefixName));
+    ImportElementImpl prefixedImport = ElementFactory.importFor(
+        prefixedLibrary, ElementFactory.prefix(prefixName));
     LibraryElement nonPrefixedLibrary =
         createTestLibrary(context, "import.nonPrefixed");
     (nonPrefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
@@ -6058,12 +5956,14 @@ class LibraryImportScopeTest extends ResolverTestCase {
         ElementFactory.importFor(nonPrefixedLibrary, null);
     LibraryElementImpl importingLibrary =
         createTestLibrary(context, "importing");
-    importingLibrary.imports =
-        <ImportElement>[prefixedImport, nonPrefixedImport];
+    importingLibrary.imports = <ImportElement>[
+      prefixedImport,
+      nonPrefixedImport
+    ];
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-    Element prefixedElement =
-        scope.lookup(AstFactory.identifier5(prefixName, typeName), importingLibrary);
+    Element prefixedElement = scope.lookup(
+        AstFactory.identifier5(prefixName, typeName), importingLibrary);
     errorListener.assertNoErrors();
     expect(prefixedElement, same(prefixedType));
     Element nonPrefixedElement =
@@ -6102,11 +6002,11 @@ import 'test.dart
 class B {}''');
     List<ResolvableLibrary> cycle = new List<ResolvableLibrary>();
     ResolvableLibrary coreLib = _createResolvableLibrary(_coreLibrarySource);
-    coreLib.libraryElement = analysisContext2.computeLibraryElement(
-        _coreLibrarySource) as LibraryElementImpl;
+    coreLib.libraryElement = analysisContext2
+        .computeLibraryElement(_coreLibrarySource) as LibraryElementImpl;
     ResolvableLibrary asyncLib = _createResolvableLibrary(_asyncLibrarySource);
-    asyncLib.libraryElement = analysisContext2.computeLibraryElement(
-        _asyncLibrarySource) as LibraryElementImpl;
+    asyncLib.libraryElement = analysisContext2
+        .computeLibraryElement(_asyncLibrarySource) as LibraryElementImpl;
     ResolvableLibrary libA = _createResolvableLibrary(sourceA);
     ResolvableLibrary libB = _createResolvableLibrary(sourceB);
     libA.importedLibraries = <ResolvableLibrary>[coreLib, asyncLib, libB];
@@ -6121,8 +6021,9 @@ class B {}''');
   ResolvableLibrary _createResolvableLibrary(Source source) {
     CompilationUnit unit = analysisContext2.parseCompilationUnit(source);
     ResolvableLibrary resolvableLibrary = new ResolvableLibrary(source);
-    resolvableLibrary.resolvableCompilationUnits =
-        <ResolvableCompilationUnit>[new ResolvableCompilationUnit(source, unit)];
+    resolvableLibrary.resolvableCompilationUnits = <ResolvableCompilationUnit>[
+      new ResolvableCompilationUnit(source, unit)
+    ];
     return resolvableLibrary;
   }
 }
@@ -6269,8 +6170,7 @@ class LibraryTest extends EngineTestCase {
 
   void test_getLibraryScope() {
     LibraryElementImpl element = new LibraryElementImpl.forNode(
-        _analysisContext,
-        AstFactory.libraryIdentifier2(["lib"]));
+        _analysisContext, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
     _library.libraryElement = element;
@@ -6308,18 +6208,14 @@ class LibraryTest extends EngineTestCase {
 
   void test_setLibraryElement() {
     LibraryElementImpl element = new LibraryElementImpl.forNode(
-        _analysisContext,
-        AstFactory.libraryIdentifier2(["lib"]));
+        _analysisContext, AstFactory.libraryIdentifier2(["lib"]));
     _library.libraryElement = element;
     expect(_library.libraryElement, same(element));
   }
 
-  Library _createLibrary(String definingCompilationUnitPath) =>
-      new Library(
-          _analysisContext,
-          _errorListener,
-          new FileBasedSource.con1(
-              FileUtilities2.createFile(definingCompilationUnitPath)));
+  Library _createLibrary(String definingCompilationUnitPath) => new Library(
+      _analysisContext, _errorListener, new FileBasedSource.con1(
+          FileUtilities2.createFile(definingCompilationUnitPath)));
 }
 
 @reflectiveTest
@@ -6605,12 +6501,15 @@ class B {}''');
   }
 
   void test_importDeferredLibraryWithLoadFunction() {
-    resolveWithErrors(<String>[r'''
+    resolveWithErrors(<String>[
+      r'''
 library lib1;
-f() {}''', r'''
+f() {}''',
+      r'''
 library root;
 import 'lib1.dart' deferred as lib1;
-main() { lib1.f(); }'''], ErrorCode.EMPTY_LIST);
+main() { lib1.f(); }'''
+    ], ErrorCode.EMPTY_LIST);
   }
 
   void test_issue20904BuggyTypePromotionAtIfJoin_1() {
@@ -7300,21 +7199,19 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   void test_import_packageWithDotDot() {
     Source source = addSource("import 'package:somepackage/../other.dart';");
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-            HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
+    assertErrors(source, [
+      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+      HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
+    ]);
   }
 
   void test_import_packageWithLeadingDotDot() {
     Source source = addSource("import 'package:../other.dart';");
     resolve(source);
-    assertErrors(
-        source,
-        [
-            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-            HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
+    assertErrors(source, [
+      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+      HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
+    ]);
   }
 
   void test_import_referenceIntoLibDirectory() {
@@ -7324,8 +7221,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
         addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
     resolve(source);
     assertErrors(
-        source,
-        [HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
+        source, [HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
   }
 
   void test_import_referenceIntoLibDirectory_no_pubspec() {
@@ -7343,8 +7239,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
         addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
     resolve(source);
     assertErrors(
-        source,
-        [HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
+        source, [HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
   }
 
   void test_import_referenceOutOfLibDirectory_no_pubspec() {
@@ -7367,8 +7262,8 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   void test_import_valid_inside_lib2() {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/lib/bar/other.dart", "");
-    Source source =
-        addNamedSource("/myproj/lib/foo/test.dart", "import '../bar/other.dart';");
+    Source source = addNamedSource(
+        "/myproj/lib/foo/test.dart", "import '../bar/other.dart';");
     resolve(source);
     assertNoErrors(source);
   }
@@ -7468,9 +7363,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return _checkResolved(
-        node,
-        node.staticElement,
-        (node) => node is MethodElement);
+        node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
@@ -7480,9 +7373,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   Object visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
     return _checkResolved(
-        node,
-        node.element,
-        (node) => node is CompilationUnitElement);
+        node, node.element, (node) => node is CompilationUnitElement);
   }
 
   @override
@@ -7517,9 +7408,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return _checkResolved(
-        prefix,
-        prefix.staticElement,
-        (node) => node is PrefixElement);
+        prefix, prefix.staticElement, (node) => node is PrefixElement);
   }
 
   @override
@@ -7530,9 +7419,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return _checkResolved(
-        node,
-        node.staticElement,
-        (node) => node is MethodElement);
+        node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
@@ -7544,8 +7431,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       node.expression.accept(this);
 
   @override
-  Object visitPartDirective(PartDirective node) =>
-      _checkResolved(node, node.element, (node) => node is CompilationUnitElement);
+  Object visitPartDirective(PartDirective node) => _checkResolved(
+      node, node.element, (node) => node is CompilationUnitElement);
 
   @override
   Object visitPartOfDirective(PartOfDirective node) =>
@@ -7562,9 +7449,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return _checkResolved(
-        node,
-        node.staticElement,
-        (node) => node is MethodElement);
+        node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
@@ -7589,9 +7474,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return _checkResolved(
-        node,
-        node.staticElement,
-        (node) => node is MethodElement);
+        node, node.staticElement, (node) => node is MethodElement);
   }
 
   @override
@@ -7624,8 +7507,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return _checkResolved(node, node.staticElement, null);
   }
 
-  Object _checkResolved(AstNode node, Element element,
-      Predicate<Element> predicate) {
+  Object _checkResolved(
+      AstNode node, Element element, Predicate<Element> predicate) {
     if (element == null) {
       if (_knownExceptions == null || !_knownExceptions.contains(node)) {
         _unresolvedNodes.add(node);
@@ -7651,8 +7534,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
       } else {
-        return
-            "<unknown file- CompilationUnit.getRoot() is not a CompilationUnit>";
+        return "<unknown file- CompilationUnit.getRoot() is not a CompilationUnit>";
       }
     }
     return "<unknown file- ASTNode is null>";
@@ -7732,13 +7614,14 @@ class ResolverTestCase extends EngineTestCase {
    * @throws AssertionFailedError if a different number of errors have been reported than were
    *           expected
    */
-  void assertErrors(Source source, [List<ErrorCode> expectedErrorCodes =
-      ErrorCode.EMPTY_LIST]) {
+  void assertErrors(Source source,
+      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       ErrorCode errorCode = error.errorCode;
       if (!enableUnusedElement &&
-          (errorCode == HintCode.UNUSED_ELEMENT || errorCode == HintCode.UNUSED_FIELD)) {
+          (errorCode == HintCode.UNUSED_ELEMENT ||
+              errorCode == HintCode.UNUSED_FIELD)) {
         continue;
       }
       if (!enableUnusedLocalVariable &&
@@ -7792,8 +7675,8 @@ class ResolverTestCase extends EngineTestCase {
    * @param libraryName the name of the library to be created
    * @return the library element that was created
    */
-  LibraryElementImpl createTestLibrary(AnalysisContext context,
-      String libraryName, [List<String> typeNames]) {
+  LibraryElementImpl createTestLibrary(
+      AnalysisContext context, String libraryName, [List<String> typeNames]) {
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
       sourcedCompilationUnits = CompilationUnitElementImpl.EMPTY_ARRAY;
@@ -7817,8 +7700,7 @@ class ResolverTestCase extends EngineTestCase {
         new CompilationUnitElementImpl(fileName);
     compilationUnit.source = _createNamedSource(fileName);
     LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context,
-        AstFactory.libraryIdentifier2([libraryName]));
+        context, AstFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;
@@ -7834,12 +7716,12 @@ class ResolverTestCase extends EngineTestCase {
     AnalysisEngine.instance.strictUnionTypes = strictUnionTypes;
   }
 
-  Expression findTopLevelConstantExpression(CompilationUnit compilationUnit,
-      String name) =>
+  Expression findTopLevelConstantExpression(
+          CompilationUnit compilationUnit, String name) =>
       findTopLevelDeclaration(compilationUnit, name).initializer;
 
-  VariableDeclaration findTopLevelDeclaration(CompilationUnit compilationUnit,
-      String name) {
+  VariableDeclaration findTopLevelDeclaration(
+      CompilationUnit compilationUnit, String name) {
     for (CompilationUnitMember member in compilationUnit.declarations) {
       if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
@@ -7895,8 +7777,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the resolved compilation unit
    * @throws Exception if the compilation unit could not be resolved
    */
-  CompilationUnit resolveCompilationUnit(Source source,
-      LibraryElement library) =>
+  CompilationUnit resolveCompilationUnit(
+          Source source, LibraryElement library) =>
       analysisContext2.resolveCompilationUnit(source, library);
 
   CompilationUnit resolveSource(String sourceText) =>
@@ -7998,8 +7880,7 @@ class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
 
   @override
   Element internalLookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary) =>
-      null;
+      LibraryElement referencingLibrary) => null;
 }
 
 class Scope_EnclosedScopeTest_test_define_normal extends Scope {
@@ -8012,8 +7893,7 @@ class Scope_EnclosedScopeTest_test_define_normal extends Scope {
 
   @override
   Element internalLookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary) =>
-      null;
+      LibraryElement referencingLibrary) => null;
 }
 
 @reflectiveTest
@@ -8070,7 +7950,7 @@ class ScopeTest_TestScope extends Scope {
 
   @override
   Element internalLookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary) =>
+          LibraryElement referencingLibrary) =>
       localLookup(name, referencingLibrary);
 }
 
@@ -8107,8 +7987,7 @@ void main() {
     AssignmentExpression assignment = stmt.expression;
     PropertyAccess propertyAccess = assignment.leftHandSide;
     expect(
-        propertyAccess.propertyName.staticElement.enclosingElement.name,
-        'M2');
+        propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
     expect(
         propertyAccess.propertyName.auxiliaryElements.staticElement.enclosingElement.name,
         'M2');
@@ -8379,16 +8258,13 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     WhileStatement whileStatement = EngineTestCase.findNode(
-        unit,
-        text,
-        'while (true)',
-        (n) => n is WhileStatement);
+        unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
         EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
-    BreakStatement break1 =
-        EngineTestCase.findNode(unit, text, 'break loop1', (n) => n is BreakStatement);
-    BreakStatement break2 =
-        EngineTestCase.findNode(unit, text, 'break loop2', (n) => n is BreakStatement);
+    BreakStatement break1 = EngineTestCase.findNode(
+        unit, text, 'break loop1', (n) => n is BreakStatement);
+    BreakStatement break2 = EngineTestCase.findNode(
+        unit, text, 'break loop2', (n) => n is BreakStatement);
     expect(break1.target, same(whileStatement));
     expect(break2.target, same(forStatement));
   }
@@ -8404,8 +8280,8 @@ void f() {
     CompilationUnit unit = resolveSource(text);
     DoStatement doStatement =
         EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
-    BreakStatement breakStatement =
-        EngineTestCase.findNode(unit, text, 'break', (n) => n is BreakStatement);
+    BreakStatement breakStatement = EngineTestCase.findNode(
+        unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(doStatement));
   }
 
@@ -8420,8 +8296,8 @@ void f() {
     CompilationUnit unit = resolveSource(text);
     ForStatement forStatement =
         EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
-    BreakStatement breakStatement =
-        EngineTestCase.findNode(unit, text, 'break', (n) => n is BreakStatement);
+    BreakStatement breakStatement = EngineTestCase.findNode(
+        unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(forStatement));
   }
 
@@ -8434,10 +8310,10 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    ForEachStatement forStatement =
-        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForEachStatement);
-    BreakStatement breakStatement =
-        EngineTestCase.findNode(unit, text, 'break', (n) => n is BreakStatement);
+    ForEachStatement forStatement = EngineTestCase.findNode(
+        unit, text, 'for', (n) => n is ForEachStatement);
+    BreakStatement breakStatement = EngineTestCase.findNode(
+        unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(forStatement));
   }
 
@@ -8453,10 +8329,10 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    SwitchStatement switchStatement =
-        EngineTestCase.findNode(unit, text, 'switch', (n) => n is SwitchStatement);
-    BreakStatement breakStatement =
-        EngineTestCase.findNode(unit, text, 'break', (n) => n is BreakStatement);
+    SwitchStatement switchStatement = EngineTestCase.findNode(
+        unit, text, 'switch', (n) => n is SwitchStatement);
+    BreakStatement breakStatement = EngineTestCase.findNode(
+        unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(switchStatement));
   }
 
@@ -8469,10 +8345,10 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    WhileStatement whileStatement =
-        EngineTestCase.findNode(unit, text, 'while', (n) => n is WhileStatement);
-    BreakStatement breakStatement =
-        EngineTestCase.findNode(unit, text, 'break', (n) => n is BreakStatement);
+    WhileStatement whileStatement = EngineTestCase.findNode(
+        unit, text, 'while', (n) => n is WhileStatement);
+    BreakStatement breakStatement = EngineTestCase.findNode(
+        unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(whileStatement));
   }
 
@@ -8489,8 +8365,8 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    BreakStatement breakStatement =
-        EngineTestCase.findNode(unit, text, 'break', (n) => n is BreakStatement);
+    BreakStatement breakStatement = EngineTestCase.findNode(
+        unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, isNull);
   }
 
@@ -8568,22 +8444,13 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     WhileStatement whileStatement = EngineTestCase.findNode(
-        unit,
-        text,
-        'while (true)',
-        (n) => n is WhileStatement);
+        unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
         EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     ContinueStatement continue1 = EngineTestCase.findNode(
-        unit,
-        text,
-        'continue loop1',
-        (n) => n is ContinueStatement);
+        unit, text, 'continue loop1', (n) => n is ContinueStatement);
     ContinueStatement continue2 = EngineTestCase.findNode(
-        unit,
-        text,
-        'continue loop2',
-        (n) => n is ContinueStatement);
+        unit, text, 'continue loop2', (n) => n is ContinueStatement);
     expect(continue1.target, same(whileStatement));
     expect(continue2.target, same(forStatement));
   }
@@ -8599,8 +8466,8 @@ void f() {
     CompilationUnit unit = resolveSource(text);
     DoStatement doStatement =
         EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
-    ContinueStatement continueStatement =
-        EngineTestCase.findNode(unit, text, 'continue', (n) => n is ContinueStatement);
+    ContinueStatement continueStatement = EngineTestCase.findNode(
+        unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(doStatement));
   }
 
@@ -8615,8 +8482,8 @@ void f() {
     CompilationUnit unit = resolveSource(text);
     ForStatement forStatement =
         EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
-    ContinueStatement continueStatement =
-        EngineTestCase.findNode(unit, text, 'continue', (n) => n is ContinueStatement);
+    ContinueStatement continueStatement = EngineTestCase.findNode(
+        unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(forStatement));
   }
 
@@ -8629,10 +8496,10 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    ForEachStatement forStatement =
-        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForEachStatement);
-    ContinueStatement continueStatement =
-        EngineTestCase.findNode(unit, text, 'continue', (n) => n is ContinueStatement);
+    ForEachStatement forStatement = EngineTestCase.findNode(
+        unit, text, 'for', (n) => n is ForEachStatement);
+    ContinueStatement continueStatement = EngineTestCase.findNode(
+        unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(forStatement));
   }
 
@@ -8645,10 +8512,10 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    WhileStatement whileStatement =
-        EngineTestCase.findNode(unit, text, 'while', (n) => n is WhileStatement);
-    ContinueStatement continueStatement =
-        EngineTestCase.findNode(unit, text, 'continue', (n) => n is ContinueStatement);
+    WhileStatement whileStatement = EngineTestCase.findNode(
+        unit, text, 'while', (n) => n is WhileStatement);
+    ContinueStatement continueStatement = EngineTestCase.findNode(
+        unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(whileStatement));
   }
 
@@ -8664,10 +8531,10 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    WhileStatement whileStatement =
-        EngineTestCase.findNode(unit, text, 'while', (n) => n is WhileStatement);
-    ContinueStatement continueStatement =
-        EngineTestCase.findNode(unit, text, 'continue', (n) => n is ContinueStatement);
+    WhileStatement whileStatement = EngineTestCase.findNode(
+        unit, text, 'while', (n) => n is WhileStatement);
+    ContinueStatement continueStatement = EngineTestCase.findNode(
+        unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(whileStatement));
   }
 
@@ -8684,8 +8551,8 @@ void f() {
 }
 ''';
     CompilationUnit unit = resolveSource(text);
-    ContinueStatement continueStatement =
-        EngineTestCase.findNode(unit, text, 'continue', (n) => n is ContinueStatement);
+    ContinueStatement continueStatement = EngineTestCase.findNode(
+        unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, isNull);
   }
 
@@ -8841,8 +8708,7 @@ class C extends B with M1, M2 {
     AssignmentExpression assignment = stmt.expression;
     SimpleIdentifier leftHandSide = assignment.leftHandSide;
     expect(leftHandSide.staticElement.enclosingElement.name, 'M2');
-    expect(
-        leftHandSide.auxiliaryElements.staticElement.enclosingElement.name,
+    expect(leftHandSide.auxiliaryElements.staticElement.enclosingElement.name,
         'M2');
   }
 
@@ -8899,8 +8765,7 @@ void main() {
     VariableDeclarationStatement stmt = body.block.statements[0];
     PropertyAccess propertyAccess = stmt.variables.variables[0].initializer;
     expect(
-        propertyAccess.propertyName.staticElement.enclosingElement.name,
-        'M2');
+        propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
   }
 
   void test_getterAndSetterWithDifferentTypes() {
@@ -8914,8 +8779,7 @@ g (A a) {
 }''');
     resolve(source);
     assertErrors(
-        source,
-        [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
+        source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
   }
 
@@ -9143,15 +9007,11 @@ main() {
     expect(unit, isNotNull);
     List<bool> found = [false];
     List<CaughtException> thrownException = new List<CaughtException>(1);
-    unit.accept(
-        new _SimpleResolverTest_localVariable_types_invoked(
-            this,
-            found,
-            thrownException));
+    unit.accept(new _SimpleResolverTest_localVariable_types_invoked(
+        this, found, thrownException));
     if (thrownException[0] != null) {
       throw new AnalysisException(
-          "Exception",
-          new CaughtException(thrownException[0], null));
+          "Exception", new CaughtException(thrownException[0], null));
     }
     expect(found[0], isTrue);
   }
@@ -9173,13 +9033,11 @@ const A = null;
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement =
-        (declarations[0] as
-            TopLevelVariableDeclaration).variables.variables[0].name.staticElement;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is PropertyInducingElement,
-        PropertyInducingElement,
-        expectedElement);
+    Element expectedElement = (declarations[
+            0] as TopLevelVariableDeclaration).variables.variables[
+        0].name.staticElement;
+    EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
+        PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
     Element actualElement =
         (declarations[1] as ClassDeclaration).metadata[0].name.staticElement;
@@ -9366,13 +9224,11 @@ const A = null;
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement =
-        (declarations[0] as
-            TopLevelVariableDeclaration).variables.variables[0].name.staticElement;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is PropertyInducingElement,
-        PropertyInducingElement,
-        expectedElement);
+    Element expectedElement = (declarations[
+            0] as TopLevelVariableDeclaration).variables.variables[
+        0].name.staticElement;
+    EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
+        PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
     Element actualElement =
         (declarations[1] as FunctionTypeAlias).metadata[0].name.staticElement;
@@ -9594,8 +9450,7 @@ void main() {
     AssignmentExpression assignment = stmt.expression;
     PropertyAccess propertyAccess = assignment.leftHandSide;
     expect(
-        propertyAccess.propertyName.staticElement.enclosingElement.name,
-        'M2');
+        propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
   }
 
   void test_setter_inherited() {
@@ -9741,10 +9596,7 @@ main(p) {
 
   SimpleIdentifier _findIdentifier(String search) {
     SimpleIdentifier identifier = EngineTestCase.findNode(
-        testUnit,
-        testCode,
-        search,
-        (node) => node is SimpleIdentifier);
+        testUnit, testCode, search, (node) => node is SimpleIdentifier);
     return identifier;
   }
 
@@ -9804,8 +9656,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitAdjacentStrings() {
     // "a" "b"
-    Expression node =
-        AstFactory.adjacentStrings([_resolvedString("a"), _resolvedString("b")]);
+    Expression node = AstFactory
+        .adjacentStrings([_resolvedString("a"), _resolvedString("b")]);
     expect(_analyze(node), same(_typeProvider.stringType));
     _listener.assertNoErrors();
   }
@@ -9817,8 +9669,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType superclassType = superclass.type;
     ClassElement subclass = ElementFactory.classElement("B", superclassType);
     Expression node = AstFactory.asExpression(
-        AstFactory.thisExpression(),
-        AstFactory.typeName(subclass));
+        AstFactory.thisExpression(), AstFactory.typeName(subclass));
     expect(_analyze3(node, superclassType), same(subclass.type));
     _listener.assertNoErrors();
   }
@@ -9828,9 +9679,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier identifier = _resolvedVariable(_typeProvider.intType, "i");
     AssignmentExpression node = AstFactory.assignmentExpression(
-        identifier,
-        TokenType.PLUS_EQ,
-        _resolvedInteger(1));
+        identifier, TokenType.PLUS_EQ, _resolvedInteger(1));
     MethodElement plusMethod = getMethod(numType, "+");
     node.staticElement = plusMethod;
     expect(_analyze(node), same(numType));
@@ -9841,9 +9690,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // i = 0
     InterfaceType intType = _typeProvider.intType;
     Expression node = AstFactory.assignmentExpression(
-        _resolvedVariable(intType, "i"),
-        TokenType.EQ,
-        _resolvedInteger(0));
+        _resolvedVariable(intType, "i"), TokenType.EQ, _resolvedInteger(0));
     expect(_analyze(node), same(intType));
     _listener.assertNoErrors();
   }
@@ -9875,9 +9722,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_equals() {
     // 2 == 3
     Expression node = AstFactory.binaryExpression(
-        _resolvedInteger(2),
-        TokenType.EQ_EQ,
-        _resolvedInteger(3));
+        _resolvedInteger(2), TokenType.EQ_EQ, _resolvedInteger(3));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
@@ -9885,8 +9730,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_logicalAnd() {
     // false && true
     Expression node = AstFactory.binaryExpression(
-        AstFactory.booleanLiteral(false),
-        TokenType.AMPERSAND_AMPERSAND,
+        AstFactory.booleanLiteral(false), TokenType.AMPERSAND_AMPERSAND,
         AstFactory.booleanLiteral(true));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
@@ -9895,8 +9739,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_logicalOr() {
     // false || true
     Expression node = AstFactory.binaryExpression(
-        AstFactory.booleanLiteral(false),
-        TokenType.BAR_BAR,
+        AstFactory.booleanLiteral(false), TokenType.BAR_BAR,
         AstFactory.booleanLiteral(true));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
@@ -9905,9 +9748,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_notEquals() {
     // 2 != 3
     Expression node = AstFactory.binaryExpression(
-        _resolvedInteger(2),
-        TokenType.BANG_EQ,
-        _resolvedInteger(3));
+        _resolvedInteger(2), TokenType.BANG_EQ, _resolvedInteger(3));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
@@ -9915,9 +9756,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_plusID() {
     // 1 + 2.0
     BinaryExpression node = AstFactory.binaryExpression(
-        _resolvedInteger(1),
-        TokenType.PLUS,
-        _resolvedDouble(2.0));
+        _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
     node.staticElement = getMethod(_typeProvider.numType, "+");
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
@@ -9926,9 +9765,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_plusII() {
     // 1 + 2
     BinaryExpression node = AstFactory.binaryExpression(
-        _resolvedInteger(1),
-        TokenType.PLUS,
-        _resolvedInteger(2));
+        _resolvedInteger(1), TokenType.PLUS, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "+");
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
@@ -9937,9 +9774,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_slash() {
     // 2 / 2
     BinaryExpression node = AstFactory.binaryExpression(
-        _resolvedInteger(2),
-        TokenType.SLASH,
-        _resolvedInteger(2));
+        _resolvedInteger(2), TokenType.SLASH, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "/");
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
@@ -9955,12 +9790,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement operator =
         ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
     classA.methods = <MethodElement>[operator];
-    BinaryExpression node = AstFactory.binaryExpression(
-        AstFactory.asExpression(
-            AstFactory.identifier3("a"),
-            AstFactory.typeName(classA)),
-        TokenType.PLUS,
-        _resolvedDouble(2.0));
+    BinaryExpression node = AstFactory.binaryExpression(AstFactory.asExpression(
+            AstFactory.identifier3("a"), AstFactory.typeName(classA)),
+        TokenType.PLUS, _resolvedDouble(2.0));
     node.staticElement = operator;
     expect(_analyze(node), same(typeA));
     _listener.assertNoErrors();
@@ -9969,9 +9801,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_starID() {
     // 1 * 2.0
     BinaryExpression node = AstFactory.binaryExpression(
-        _resolvedInteger(1),
-        TokenType.PLUS,
-        _resolvedDouble(2.0));
+        _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
     node.staticElement = getMethod(_typeProvider.numType, "*");
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
@@ -9994,8 +9824,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitCascadeExpression() {
     // a..length
     Expression node = AstFactory.cascadeExpression(
-        _resolvedString("a"),
-        [AstFactory.propertyAccess2(null, "length")]);
+        _resolvedString("a"), [AstFactory.propertyAccess2(null, "length")]);
     expect(_analyze(node), same(_typeProvider.stringType));
     _listener.assertNoErrors();
   }
@@ -10003,8 +9832,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitConditionalExpression_differentTypes() {
     // true ? 1.0 : 0
     Expression node = AstFactory.conditionalExpression(
-        AstFactory.booleanLiteral(true),
-        _resolvedDouble(1.0),
+        AstFactory.booleanLiteral(true), _resolvedDouble(1.0),
         _resolvedInteger(0));
     expect(_analyze(node), same(_typeProvider.numType));
     _listener.assertNoErrors();
@@ -10013,8 +9841,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitConditionalExpression_sameTypes() {
     // true ? 1 : 0
     Expression node = AstFactory.conditionalExpression(
-        AstFactory.booleanLiteral(true),
-        _resolvedInteger(1),
+        AstFactory.booleanLiteral(true), _resolvedInteger(1),
         _resolvedInteger(0));
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
@@ -10035,11 +9862,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
     DartType resultType = _analyze(node);
     _assertFunctionType(
-        _typeProvider.futureDynamicType,
-        null,
-        null,
-        null,
-        resultType);
+        _typeProvider.futureDynamicType, null, null, null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10099,11 +9922,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
     DartType resultType = _analyze(node);
     _assertFunctionType(
-        _typeProvider.streamDynamicType,
-        null,
-        null,
-        null,
-        resultType);
+        _typeProvider.streamDynamicType, null, null, null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10116,11 +9935,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _resolvedFunctionExpression(AstFactory.formalParameterList([]), body);
     DartType resultType = _analyze(node);
     _assertFunctionType(
-        _typeProvider.iterableDynamicType,
-        null,
-        null,
-        null,
-        resultType);
+        _typeProvider.iterableDynamicType, null, null, null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10128,12 +9943,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // ({p1 : 0, p2 : 0}) {}
     DartType dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3("p1"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p1"), _resolvedInteger(0));
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3("p2"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p1, p2]),
@@ -10145,11 +9958,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     expectedNamedTypes["p1"] = dynamicType;
     expectedNamedTypes["p2"] = dynamicType;
     _assertFunctionType(
-        dynamicType,
-        null,
-        null,
-        expectedNamedTypes,
-        resultType);
+        dynamicType, null, null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10157,8 +9966,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // ({p : 0}) -> 0;
     DartType dynamicType = _typeProvider.dynamicType;
     FormalParameter p = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3("p"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p"), _resolvedInteger(0));
     _setType(p, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p]),
@@ -10168,11 +9976,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p"] = dynamicType;
     _assertFunctionType(
-        _typeProvider.intType,
-        null,
-        null,
-        expectedNamedTypes,
-        resultType);
+        _typeProvider.intType, null, null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10189,12 +9993,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(
-        dynamicType,
-        <DartType>[dynamicType, dynamicType],
-        null,
-        null,
-        resultType);
+    _assertFunctionType(dynamicType,
+        <DartType>[dynamicType, dynamicType], null, null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10209,11 +10009,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p);
     DartType resultType = _analyze(node);
     _assertFunctionType(
-        _typeProvider.intType,
-        <DartType>[dynamicType],
-        null,
-        null,
-        resultType);
+        _typeProvider.intType, <DartType>[dynamicType], null, null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10223,8 +10019,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p1 = AstFactory.simpleFormalParameter3("p1");
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3("p2"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p1, p2]),
@@ -10233,12 +10028,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     DartType resultType = _analyze(node);
     Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
-    _assertFunctionType(
-        dynamicType,
-        <DartType>[dynamicType],
-        null,
-        expectedNamedTypes,
-        resultType);
+    _assertFunctionType(dynamicType,
+        <DartType>[dynamicType], null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10248,8 +10039,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p1 = AstFactory.simpleFormalParameter3("p1");
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3("p2"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p1, p2]),
@@ -10258,12 +10048,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     DartType resultType = _analyze(node);
     Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
-    _assertFunctionType(
-        _typeProvider.intType,
-        <DartType>[dynamicType],
-        null,
-        expectedNamedTypes,
-        resultType);
+    _assertFunctionType(_typeProvider.intType,
+        <DartType>[dynamicType], null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10273,8 +10059,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p1 = AstFactory.simpleFormalParameter3("p1");
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3("p2"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p1, p2]),
@@ -10282,12 +10067,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(
-        dynamicType,
-        <DartType>[dynamicType],
-        <DartType>[dynamicType],
-        null,
-        resultType);
+    _assertFunctionType(dynamicType,
+        <DartType>[dynamicType], <DartType>[dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10297,8 +10078,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FormalParameter p1 = AstFactory.simpleFormalParameter3("p1");
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3("p2"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p1, p2]),
@@ -10306,12 +10086,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(
-        _typeProvider.intType,
-        <DartType>[dynamicType],
-        <DartType>[dynamicType],
-        null,
-        resultType);
+    _assertFunctionType(_typeProvider.intType,
+        <DartType>[dynamicType], <DartType>[dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10319,12 +10095,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // ([p1 = 0, p2 = 0]) {}
     DartType dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3("p1"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p1"), _resolvedInteger(0));
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3("p2"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p1, p2]),
@@ -10332,12 +10106,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(
-        dynamicType,
-        null,
-        <DartType>[dynamicType, dynamicType],
-        null,
-        resultType);
+    _assertFunctionType(dynamicType,
+        null, <DartType>[dynamicType, dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10345,8 +10115,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // ([p1 = 0, p2 = 0]) -> 0
     DartType dynamicType = _typeProvider.dynamicType;
     FormalParameter p = AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3("p"),
-        _resolvedInteger(0));
+        AstFactory.simpleFormalParameter3("p"), _resolvedInteger(0));
     _setType(p, dynamicType);
     FunctionExpression node = _resolvedFunctionExpression(
         AstFactory.formalParameterList([p]),
@@ -10354,11 +10123,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p);
     DartType resultType = _analyze(node);
     _assertFunctionType(
-        _typeProvider.intType,
-        null,
-        <DartType>[dynamicType],
-        null,
-        resultType);
+        _typeProvider.intType, null, <DartType>[dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10428,9 +10193,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     indexExpression.staticElement = indexMethod;
     // list[0] should be in a setter context
     AstFactory.assignmentExpression(
-        indexExpression,
-        TokenType.EQ,
-        AstFactory.integer(0));
+        indexExpression, TokenType.EQ, AstFactory.integer(0));
     // analyze and assert result of the index expression
     expect(_analyze(indexExpression), same(intType));
     _listener.assertNoErrors();
@@ -10447,9 +10210,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
-        null,
-        AstFactory.typeName(classElement),
-        [AstFactory.identifier3(constructorName)]);
+        null, AstFactory.typeName(classElement), [
+      AstFactory.identifier3(constructorName)
+    ]);
     node.staticElement = constructor;
     expect(_analyze(node), same(classElement.type));
     _listener.assertNoErrors();
@@ -10488,8 +10251,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
-        null,
-        AstFactory.typeName(classElement));
+        null, AstFactory.typeName(classElement));
     node.staticElement = constructor;
     expect(_analyze(node), same(classElement.type));
     _listener.assertNoErrors();
@@ -10505,9 +10267,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitIsExpression_negated() {
     // a is! String
     Expression node = AstFactory.isExpression(
-        _resolvedString("a"),
-        true,
-        AstFactory.typeName4("String"));
+        _resolvedString("a"), true, AstFactory.typeName4("String"));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
@@ -10515,9 +10275,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitIsExpression_notNegated() {
     // a is String
     Expression node = AstFactory.isExpression(
-        _resolvedString("a"),
-        false,
-        AstFactory.typeName4("String"));
+        _resolvedString("a"), false, AstFactory.typeName4("String"));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
@@ -10526,9 +10284,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // []
     Expression node = AstFactory.listLiteral();
     DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType.substitute4(<DartType>[_typeProvider.dynamicType]),
-        resultType);
+    _assertType2(_typeProvider.listType
+        .substitute4(<DartType>[_typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
   }
 
@@ -10536,9 +10293,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // [0]
     Expression node = AstFactory.listLiteral([_resolvedInteger(0)]);
     DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType.substitute4(<DartType>[_typeProvider.dynamicType]),
-        resultType);
+    _assertType2(_typeProvider.listType
+        .substitute4(<DartType>[_typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
   }
 
@@ -10546,22 +10302,22 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // {}
     Expression node = AstFactory.mapLiteral2();
     DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.mapType.substitute4(
-            <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
-        resultType);
+    _assertType2(_typeProvider.mapType.substitute4(<DartType>[
+      _typeProvider.dynamicType,
+      _typeProvider.dynamicType
+    ]), resultType);
     _listener.assertNoErrors();
   }
 
   void test_visitMapLiteral_nonEmpty() {
     // {"k" : 0}
-    Expression node =
-        AstFactory.mapLiteral2([AstFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
+    Expression node = AstFactory
+        .mapLiteral2([AstFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.mapType.substitute4(
-            <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
-        resultType);
+    _assertType2(_typeProvider.mapType.substitute4(<DartType>[
+      _typeProvider.dynamicType,
+      _typeProvider.dynamicType
+    ]), resultType);
     _listener.assertNoErrors();
   }
 
@@ -10595,8 +10351,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitPostfixExpression_minusMinus() {
     // 0--
-    PostfixExpression node =
-        AstFactory.postfixExpression(_resolvedInteger(0), TokenType.MINUS_MINUS);
+    PostfixExpression node = AstFactory.postfixExpression(
+        _resolvedInteger(0), TokenType.MINUS_MINUS);
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
@@ -10669,8 +10425,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitPrefixExpression_not() {
     // !true
-    Expression node =
-        AstFactory.prefixExpression(TokenType.BANG, AstFactory.booleanLiteral(true));
+    Expression node = AstFactory.prefixExpression(
+        TokenType.BANG, AstFactory.booleanLiteral(true));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
@@ -10760,11 +10516,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitStringInterpolation() {
     // "a${'b'}c"
-    Expression node = AstFactory.string(
-        [
-            AstFactory.interpolationString("a", "a"),
-            AstFactory.interpolationExpression(_resolvedString("b")),
-            AstFactory.interpolationString("c", "c")]);
+    Expression node = AstFactory.string([
+      AstFactory.interpolationString("a", "a"),
+      AstFactory.interpolationExpression(_resolvedString("b")),
+      AstFactory.interpolationString("c", "c")
+    ]);
     expect(_analyze(node), same(_typeProvider.stringType));
     _listener.assertNoErrors();
   }
@@ -10779,15 +10535,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   void test_visitSymbolLiteral() {
-    expect(
-        _analyze(AstFactory.symbolLiteral(["a"])),
+    expect(_analyze(AstFactory.symbolLiteral(["a"])),
         same(_typeProvider.symbolType));
   }
 
   void test_visitThisExpression() {
     // this
-    InterfaceType thisType =
-        ElementFactory.classElement("B", ElementFactory.classElement2("A").type).type;
+    InterfaceType thisType = ElementFactory.classElement(
+        "B", ElementFactory.classElement2("A").type).type;
     Expression node = AstFactory.thisExpression();
     expect(_analyze3(node, thisType), same(thisType));
     _listener.assertNoErrors();
@@ -10849,14 +10604,13 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    *          the propagated type is being requested
    * @return the type associated with the expression
    */
-  DartType _analyze4(Expression node, InterfaceType thisType,
-      bool useStaticType) {
+  DartType _analyze4(
+      Expression node, InterfaceType thisType, bool useStaticType) {
     try {
       _analyzer.thisType = thisType;
     } catch (exception) {
       throw new IllegalArgumentException(
-          "Could not set type of 'this'",
-          exception);
+          "Could not set type of 'this'", exception);
     }
     node.accept(_analyzer);
     if (useStaticType) {
@@ -10891,9 +10645,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       List<DartType> expectedNormalTypes, List<DartType> expectedOptionalTypes,
       Map<String, DartType> expectedNamedTypes, DartType actualType) {
     EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionType,
-        FunctionType,
-        actualType);
+        (obj) => obj is FunctionType, FunctionType, actualType);
     FunctionType functionType = actualType as FunctionType;
     List<DartType> normalTypes = functionType.normalParameterTypes;
     if (expectedNormalTypes == null) {
@@ -10927,8 +10679,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     expect(functionType.returnType, equals(expectedReturnType));
   }
 
-  void _assertType(InterfaceTypeImpl expectedType,
-      InterfaceTypeImpl actualType) {
+  void _assertType(
+      InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
     expect(actualType.displayName, expectedType.displayName);
     expect(actualType.element, expectedType.element);
     List<DartType> expectedArguments = expectedType.typeArguments;
@@ -10943,9 +10695,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void _assertType2(DartType expectedType, DartType actualType) {
     if (expectedType is InterfaceTypeImpl) {
       EngineTestCase.assertInstanceOf(
-          (obj) => obj is InterfaceTypeImpl,
-          InterfaceTypeImpl,
-          actualType);
+          (obj) => obj is InterfaceTypeImpl, InterfaceTypeImpl, actualType);
       _assertType(expectedType, actualType as InterfaceTypeImpl);
     }
     // TODO(brianwilkerson) Compare other kinds of types then make this a shared
@@ -10959,8 +10709,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   StaticTypeAnalyzer _createAnalyzer() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory =
-        new SourceFactory([new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     context.sourceFactory = sourceFactory;
     FileBasedSource source =
         new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
@@ -10978,8 +10728,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       return _visitor.typeAnalyzer_J2DAccessor as StaticTypeAnalyzer;
     } catch (exception) {
       throw new IllegalArgumentException(
-          "Could not create analyzer",
-          exception);
+          "Could not create analyzer", exception);
     }
   }
 
@@ -11005,8 +10754,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param body the body of the function
    * @return a resolved function expression
    */
-  FunctionExpression _resolvedFunctionExpression(FormalParameterList parameters,
-      FunctionBody body) {
+  FunctionExpression _resolvedFunctionExpression(
+      FormalParameterList parameters, FunctionBody body) {
     List<ParameterElement> parameterElements = new List<ParameterElement>();
     for (FormalParameter parameter in parameters.parameters) {
       ParameterElementImpl element =
@@ -11081,7 +10830,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     (element as ParameterElementImpl).type = type;
   }
 }
-
 
 /**
  * Instances of the class `StaticTypeVerifier` verify that all of the nodes in an AST
@@ -11286,8 +11034,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
       } else {
-        return
-            "<unknown file- CompilationUnit.getRoot() is not a CompilationUnit>";
+        return "<unknown file- CompilationUnit.getRoot() is not a CompilationUnit>";
       }
     }
     return "<unknown file- ASTNode is null>";
@@ -11505,8 +11252,13 @@ class SubtypeManagerTest extends EngineTestCase {
     ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
     ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
     ClassElementImpl classE = ElementFactory.classElement("E", classB.type);
-    _definingCompilationUnit.types =
-        <ClassElement>[classA, classB, classC, classD, classE];
+    _definingCompilationUnit.types = <ClassElement>[
+      classA,
+      classB,
+      classC,
+      classD,
+      classE
+    ];
     HashSet<ClassElement> subtypesOfA =
         _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
@@ -11545,8 +11297,6 @@ class SubtypeManagerTest extends EngineTestCase {
     expect(arraySubtypesOfA, unorderedEquals([classB]));
   }
 }
-
-
 
 @reflectiveTest
 class TypeOverrideManagerTest extends EngineTestCase {
@@ -11632,9 +11382,7 @@ f(A a) {
   return a.v; // marker
 }''';
     _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void fail_finalPropertyInducingVariable_classMember_instance_inherited() {
@@ -11650,13 +11398,10 @@ class B extends A {
   }
 }''';
     _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void
-      fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+  void fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
     addNamedSource("/lib.dart", r'''
 class A {
   final v = 0;
@@ -11669,9 +11414,7 @@ f(p) {
   }
 }''';
     _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void fail_finalPropertyInducingVariable_classMember_static() {
@@ -11685,9 +11428,7 @@ f() {
   return A.V; // marker
 }''';
     _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void fail_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
@@ -11698,9 +11439,7 @@ f() {
   var v2 = p.V; // marker prefixed
 }''';
     _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void fail_finalPropertyInducingVariable_topLevelVaraible_simple() {
@@ -11711,9 +11450,7 @@ f() {
   return V; // marker simple
 }''';
     _assertTypeOfMarkedExpression(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void fail_mergePropagatedTypesAtJoinPoint_1() {
@@ -11847,9 +11584,7 @@ main() {
   var v = (() {return 42;})();
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_as() {
@@ -11956,28 +11691,19 @@ main() {
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit,
-          code,
-          "v; // declare",
-          (node) => node is SimpleIdentifier);
+          unit, code, "v; // declare", (node) => node is SimpleIdentifier);
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit,
-          code,
-          "v = null;",
-          (node) => node is SimpleIdentifier);
+          unit, code, "v = null;", (node) => node is SimpleIdentifier);
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit,
-          code,
-          "v; // return",
-          (node) => node is SimpleIdentifier);
+          unit, code, "v; // return", (node) => node is SimpleIdentifier);
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
@@ -11995,10 +11721,7 @@ main(CanvasElement canvas) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     SimpleIdentifier identifier = EngineTestCase.findNode(
-        unit,
-        code,
-        "context",
-        (node) => node is SimpleIdentifier);
+        unit, code, "context", (node) => node is SimpleIdentifier);
     expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
   }
 
@@ -12019,16 +11742,13 @@ main() {
     // in the declaration
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit,
-          code,
-          "e in",
-          (node) => node is SimpleIdentifier);
+          unit, code, "e in", (node) => node is SimpleIdentifier);
       expect(identifier.propagatedType, same(stringType));
     }
     // in the loop body
     {
-      SimpleIdentifier identifier =
-          EngineTestCase.findNode(unit, code, "e;", (node) => node is SimpleIdentifier);
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e;", (node) => node is SimpleIdentifier);
       expect(identifier.propagatedType, same(stringType));
     }
   }
@@ -12052,25 +11772,19 @@ f(MyMap<int, String> m) {
     // k
     DartType intType = typeProvider.intType;
     FormalParameter kParameter = EngineTestCase.findNode(
-        unit,
-        code,
-        "k, ",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "k, ", (node) => node is SimpleFormalParameter);
     expect(kParameter.identifier.propagatedType, same(intType));
-    SimpleIdentifier kIdentifier =
-        EngineTestCase.findNode(unit, code, "k;", (node) => node is SimpleIdentifier);
+    SimpleIdentifier kIdentifier = EngineTestCase.findNode(
+        unit, code, "k;", (node) => node is SimpleIdentifier);
     expect(kIdentifier.propagatedType, same(intType));
     expect(kIdentifier.staticType, same(typeProvider.dynamicType));
     // v
     DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
-        unit,
-        code,
-        "v)",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "v)", (node) => node is SimpleFormalParameter);
     expect(vParameter.identifier.propagatedType, same(stringType));
-    SimpleIdentifier vIdentifier =
-        EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
+        unit, code, "v;", (node) => node is SimpleIdentifier);
     expect(vIdentifier.propagatedType, same(stringType));
     expect(vIdentifier.staticType, same(typeProvider.dynamicType));
   }
@@ -12092,23 +11806,16 @@ f(MyMap<int, String> m) {
     // k
     DartType intType = typeProvider.intType;
     FormalParameter kParameter = EngineTestCase.findNode(
-        unit,
-        code,
-        "k, ",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "k, ", (node) => node is SimpleFormalParameter);
     expect(kParameter.identifier.propagatedType, same(intType));
     // v
     DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
-        unit,
-        code,
-        "v)",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "v)", (node) => node is SimpleFormalParameter);
     expect(vParameter.identifier.propagatedType, same(stringType));
   }
 
-  void
-      test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
+  void test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
     String code = r'''
 main() {
   (f(String value)) {} ((v) {
@@ -12123,12 +11830,12 @@ main() {
     // v
     DartType dynamicType = typeProvider.dynamicType;
     DartType stringType = typeProvider.stringType;
-    FormalParameter vParameter =
-        EngineTestCase.findNode(unit, code, "v)", (node) => node is FormalParameter);
+    FormalParameter vParameter = EngineTestCase.findNode(
+        unit, code, "v)", (node) => node is FormalParameter);
     expect(vParameter.identifier.propagatedType, same(stringType));
     expect(vParameter.identifier.staticType, same(dynamicType));
-    SimpleIdentifier vIdentifier =
-        EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
+        unit, code, "v;", (node) => node is SimpleIdentifier);
     expect(vIdentifier.propagatedType, same(stringType));
     expect(vIdentifier.staticType, same(dynamicType));
   }
@@ -12151,14 +11858,11 @@ f(MyList list) {
     // v
     DartType intType = typeProvider.intType;
     FormalParameter vParameter = EngineTestCase.findNode(
-        unit,
-        code,
-        "v)",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "v)", (node) => node is SimpleFormalParameter);
     expect(vParameter.identifier.propagatedType, same(null));
     expect(vParameter.identifier.staticType, same(intType));
-    SimpleIdentifier vIdentifier =
-        EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
+        unit, code, "v;", (node) => node is SimpleIdentifier);
     expect(vIdentifier.staticType, same(intType));
     expect(vIdentifier.propagatedType, same(null));
   }
@@ -12179,12 +11883,8 @@ x() {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // () => 0
     FunctionExpression functionExpression = EngineTestCase.findNode(
-        unit,
-        code,
-        "() => 0)",
-        (node) => node is FunctionExpression);
-    expect(
-        (functionExpression.staticType as FunctionType).parameters.length,
+        unit, code, "() => 0)", (node) => node is FunctionExpression);
+    expect((functionExpression.staticType as FunctionType).parameters.length,
         same(0));
     expect(functionExpression.propagatedType, same(null));
   }
@@ -12207,14 +11907,11 @@ f(MyList<String> list) {
     // v
     DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
-        unit,
-        code,
-        "v)",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "v)", (node) => node is SimpleFormalParameter);
     expect(vParameter.identifier.propagatedType, same(stringType));
     expect(vParameter.identifier.staticType, same(typeProvider.objectType));
-    SimpleIdentifier vIdentifier =
-        EngineTestCase.findNode(unit, code, "v;", (node) => node is SimpleIdentifier);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
+        unit, code, "v;", (node) => node is SimpleIdentifier);
     expect(vIdentifier.propagatedType, same(stringType));
   }
 
@@ -12236,24 +11933,15 @@ main(Future<int> firstFuture) {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // p1
     FormalParameter p1 = EngineTestCase.findNode(
-        unit,
-        code,
-        "p1) {",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "p1) {", (node) => node is SimpleFormalParameter);
     expect(p1.identifier.propagatedType, same(typeProvider.intType));
     // p2
     FormalParameter p2 = EngineTestCase.findNode(
-        unit,
-        code,
-        "p2) {",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "p2) {", (node) => node is SimpleFormalParameter);
     expect(p2.identifier.propagatedType, same(typeProvider.doubleType));
     // p3
     FormalParameter p3 = EngineTestCase.findNode(
-        unit,
-        code,
-        "p3) {",
-        (node) => node is SimpleFormalParameter);
+        unit, code, "p3) {", (node) => node is SimpleFormalParameter);
     expect(p3.identifier.propagatedType, same(typeProvider.stringType));
   }
 
@@ -12321,19 +12009,13 @@ main() {
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit,
-          code,
-          "v = null;",
-          (node) => node is SimpleIdentifier);
+          unit, code, "v = null;", (node) => node is SimpleIdentifier);
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit,
-          code,
-          "v; // marker",
-          (node) => node is SimpleIdentifier);
+          unit, code, "v; // marker", (node) => node is SimpleIdentifier);
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
@@ -12681,7 +12363,6 @@ f(var message) {
     // following, when the propagated type of [x] is [A] -- as happens for the
     // fix these tests aim to warn against -- there is no warning for
 
-
     // calling a method defined on [B] but not [A] (there aren't any, but
     // pretend), but there is for calling a method not defined on either.
     // By not overriding the propagated type via an is-check that loses
@@ -12903,9 +12584,7 @@ main() {
   var v = f();
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.stringType);
+        code, typeProvider.dynamicType, typeProvider.stringType);
   }
 
   void test_propagatedReturnType_function_lessSpecificStaticReturnType() {
@@ -12915,9 +12594,7 @@ main() {
   var v = f();
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_propagatedReturnType_function_moreSpecificStaticReturnType() {
@@ -12927,13 +12604,10 @@ main() {
   var v = f(3);
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void
-      test_propagatedReturnType_function_noReturnTypeName_blockBody_multipleReturns() {
+  void test_propagatedReturnType_function_noReturnTypeName_blockBody_multipleReturns() {
     String code = r'''
 f() {
   if (true) return 0;
@@ -12943,13 +12617,10 @@ main() {
   var v = f();
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.numType);
+        code, typeProvider.dynamicType, typeProvider.numType);
   }
 
-  void
-      test_propagatedReturnType_function_noReturnTypeName_blockBody_oneReturn() {
+  void test_propagatedReturnType_function_noReturnTypeName_blockBody_oneReturn() {
     String code = r'''
 f() {
   var z = 42;
@@ -12959,9 +12630,7 @@ main() {
   var v = f();
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_propagatedReturnType_function_noReturnTypeName_expressionBody() {
@@ -12971,9 +12640,7 @@ main() {
   var v = f();
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_propagatedReturnType_localFunction() {
@@ -12983,9 +12650,7 @@ main() {
   var v = f();
 }''';
     _assertPropagatedReturnType(
-        code,
-        typeProvider.dynamicType,
-        typeProvider.intType);
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_query() {
@@ -13079,10 +12744,7 @@ main() {
       // Could generalize this further by making [SimpleIdentifier.class] a
       // parameter.
       return EngineTestCase.findNode(
-          unit,
-          code,
-          marker,
-          (node) => node is SimpleIdentifier);
+          unit, code, marker, (node) => node is SimpleIdentifier);
     } catch (exception) {
       // Is there a better exception to throw here? The point is that an
       // assertion failure here should be a failure, in both "test_*" and
@@ -13093,7 +12755,6 @@ main() {
     }
   }
 }
-
 
 @reflectiveTest
 class TypeProviderImplTest extends EngineTestCase {
@@ -13123,29 +12784,28 @@ class TypeProviderImplTest extends EngineTestCase {
     CompilationUnitElementImpl coreUnit =
         new CompilationUnitElementImpl("core.dart");
     coreUnit.types = <ClassElement>[
-        boolType.element,
-        doubleType.element,
-        functionType.element,
-        intType.element,
-        iterableType.element,
-        listType.element,
-        mapType.element,
-        objectType.element,
-        stackTraceType.element,
-        stringType.element,
-        symbolType.element,
-        typeType.element];
+      boolType.element,
+      doubleType.element,
+      functionType.element,
+      intType.element,
+      iterableType.element,
+      listType.element,
+      mapType.element,
+      objectType.element,
+      stackTraceType.element,
+      stringType.element,
+      symbolType.element,
+      typeType.element
+    ];
     CompilationUnitElementImpl asyncUnit =
         new CompilationUnitElementImpl("async.dart");
     asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
     AnalysisContextImpl context = new AnalysisContextImpl();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        context,
-        AstFactory.libraryIdentifier2(["dart.core"]));
+        context, AstFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        context,
-        AstFactory.libraryIdentifier2(["dart.async"]));
+        context, AstFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -13183,7 +12843,8 @@ class TypeProviderImplTest extends EngineTestCase {
             new List<TypeParameterTypeImpl>(count);
         for (int i = 0; i < count; i++) {
           TypeParameterElementImpl typeParameter =
-              new TypeParameterElementImpl.forNode(AstFactory.identifier3(parameterNames[i]));
+              new TypeParameterElementImpl.forNode(
+                  AstFactory.identifier3(parameterNames[i]));
           typeParameters[i] = typeParameter;
           typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
           typeParameter.type = typeArguments[i];
@@ -13269,21 +12930,17 @@ class TypeResolverVisitorTest extends EngineTestCase {
         new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
     _library = new Library(context, _listener, librarySource);
     LibraryElementImpl element = new LibraryElementImpl.forNode(
-        context,
-        AstFactory.libraryIdentifier2(["lib"]));
+        context, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
     _library.libraryElement = element;
     _typeProvider = new TestTypeProvider();
     _visitor =
         new TypeResolverVisitor.con1(_library, librarySource, _typeProvider);
-    _implicitConstructorBuilder = new ImplicitConstructorBuilder(
-        librarySource,
-        _library.libraryElement,
-        _library.libraryScope,
-        _typeProvider,
-        (ClassElement classElement, ClassElement superclassElement, void computation())
-            {
+    _implicitConstructorBuilder = new ImplicitConstructorBuilder(librarySource,
+        _library.libraryElement, _library.libraryScope, _typeProvider,
+        (ClassElement classElement, ClassElement superclassElement,
+            void computation()) {
       // For these tests, we assume the classes for which implicit
       // constructors need to be built are visited in proper dependency order,
       // so we just invoke the computation immediately.
@@ -13311,9 +12968,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     stackTraceParameter.staticElement =
         new LocalVariableElementImpl.forNode(stackTraceParameter);
     _resolveCatchClause(
-        clause,
-        _typeProvider.dynamicType,
-        _typeProvider.stackTraceType);
+        clause, _typeProvider.dynamicType, _typeProvider.stackTraceType);
     _listener.assertNoErrors();
   }
 
@@ -13326,10 +12981,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     exceptionParameter.staticElement =
         new LocalVariableElementImpl.forNode(exceptionParameter);
     _resolveCatchClause(
-        clause,
-        exceptionElement.type,
-        null,
-        [exceptionElement]);
+        clause, exceptionElement.type, null, [exceptionElement]);
     _listener.assertNoErrors();
   }
 
@@ -13345,11 +12997,8 @@ class TypeResolverVisitorTest extends EngineTestCase {
     SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
     stackTraceParameter.staticElement =
         new LocalVariableElementImpl.forNode(stackTraceParameter);
-    _resolveCatchClause(
-        clause,
-        exceptionElement.type,
-        _typeProvider.stackTraceType,
-        [exceptionElement]);
+    _resolveCatchClause(clause, exceptionElement.type,
+        _typeProvider.stackTraceType, [exceptionElement]);
     _listener.assertNoErrors();
   }
 
@@ -13369,12 +13018,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ImplementsClause implementsClause =
         AstFactory.implementsClause([AstFactory.typeName(elementD)]);
     ClassDeclaration declaration = AstFactory.classDeclaration(
-        null,
-        "A",
-        null,
-        extendsClause,
-        withClause,
-        implementsClause);
+        null, "A", null, extendsClause, withClause, implementsClause);
     declaration.name.staticElement = elementA;
     _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
     expect(elementA.supertype, same(elementB.type));
@@ -13394,8 +13038,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
     // }
     ClassElementImpl elementA = ElementFactory.classElement2("A");
     ClassElementImpl elementB = ElementFactory.classElement2("B");
-    elementB.methods =
-        <MethodElement>[ElementFactory.methodElement("A", VoidTypeImpl.instance)];
+    elementB.methods = <MethodElement>[
+      ElementFactory.methodElement("A", VoidTypeImpl.instance)
+    ];
     ExtendsClause extendsClause =
         AstFactory.extendsClause(AstFactory.typeName(elementA));
     ClassDeclaration declaration =
@@ -13416,13 +13061,8 @@ class TypeResolverVisitorTest extends EngineTestCase {
         AstFactory.withClause([AstFactory.typeName(elementC)]);
     ImplementsClause implementsClause =
         AstFactory.implementsClause([AstFactory.typeName(elementD)]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias(
-        "A",
-        null,
-        null,
-        AstFactory.typeName(elementB),
-        withClause,
-        implementsClause);
+    ClassTypeAlias alias = AstFactory.classTypeAlias("A", null, null,
+        AstFactory.typeName(elementB), withClause, implementsClause);
     alias.name.staticElement = elementA;
     _resolveNode(alias, [elementA, elementB, elementC, elementD]);
     expect(elementA.supertype, same(elementB.type));
@@ -13462,12 +13102,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
     ClassElement classC = ElementFactory.classElement2('C', []);
     ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C',
-        null,
-        null,
-        AstFactory.typeName(classB, []),
-        withClause,
-        null);
+        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
     _resolveNode(alias, [classT, classB, classM, classC]);
     expect(classC.constructors, hasLength(1));
@@ -13498,12 +13133,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
     ClassElement classC = ElementFactory.classElement2('C', []);
     ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C',
-        null,
-        null,
-        AstFactory.typeName(classB, []),
-        withClause,
-        null);
+        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
     _resolveNode(alias, [classT, classB, classM, classC]);
     expect(classC.constructors, hasLength(1));
@@ -13516,8 +13146,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, hasLength(1));
     expect(constructor.parameters[0].type, equals(classT.type));
-    expect(
-        constructor.parameters[0].name,
+    expect(constructor.parameters[0].name,
         equals(constructorB.parameters[0].name));
   }
 
@@ -13535,12 +13164,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
     ClassElement classC = ElementFactory.classElement2('C', []);
     ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C',
-        null,
-        null,
-        AstFactory.typeName(classB, []),
-        withClause,
-        null);
+        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
     _resolveNode(alias, [classB, classM, classC]);
     expect(classC.constructors, hasLength(1));
@@ -13563,18 +13187,13 @@ class TypeResolverVisitorTest extends EngineTestCase {
     parameter.identifier.staticElement =
         ElementFactory.requiredParameter(innerParameterName);
     String outerParameterName = "p";
-    FormalParameter node = AstFactory.fieldFormalParameter(
-        null,
-        intTypeName,
-        outerParameterName,
-        AstFactory.formalParameterList([parameter]));
+    FormalParameter node = AstFactory.fieldFormalParameter(null, intTypeName,
+        outerParameterName, AstFactory.formalParameterList([parameter]));
     node.identifier.staticElement =
         ElementFactory.requiredParameter(outerParameterName);
     DartType parameterType = _resolveFormalParameter(node, [intType.element]);
     EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionType,
-        FunctionType,
-        parameterType);
+        (obj) => obj is FunctionType, FunctionType, parameterType);
     FunctionType functionType = parameterType as FunctionType;
     expect(functionType.returnType, same(intType));
     expect(functionType.parameters, hasLength(1));
@@ -13681,8 +13300,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
    * @param definedElements the elements that are to be defined in the scope in which the element is
    *          being resolved
    */
-  void _resolveCatchClause(CatchClause node, DartType exceptionType,
-      InterfaceType stackTraceType, [List<Element> definedElements]) {
+  void _resolveCatchClause(
+      CatchClause node, DartType exceptionType, InterfaceType stackTraceType,
+      [List<Element> definedElements]) {
     _resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
@@ -13729,11 +13349,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
   }
 }
 
-class _AnalysisContextFactory_initContextWithCore extends DirectoryBasedDartSdk
-    {
-
-  _AnalysisContextFactory_initContextWithCore(JavaFile arg0)
-      : super(arg0);
+class _AnalysisContextFactory_initContextWithCore
+    extends DirectoryBasedDartSdk {
+  _AnalysisContextFactory_initContextWithCore(JavaFile arg0) : super(arg0);
 
   @override
   LibraryMap initialLibraryMap(bool useDart2jsPaths) {
@@ -13742,16 +13360,10 @@ class _AnalysisContextFactory_initContextWithCore extends DirectoryBasedDartSdk
     _addLibrary(map, DartSdk.DART_CORE, false, "core.dart");
     _addLibrary(map, DartSdk.DART_HTML, false, "html_dartium.dart");
     _addLibrary(map, AnalysisContextFactory._DART_MATH, false, "math.dart");
-    _addLibrary(
-        map,
-        AnalysisContextFactory._DART_INTERCEPTORS,
-        true,
+    _addLibrary(map, AnalysisContextFactory._DART_INTERCEPTORS, true,
         "_interceptors.dart");
     _addLibrary(
-        map,
-        AnalysisContextFactory._DART_JS_HELPER,
-        true,
-        "_js_helper.dart");
+        map, AnalysisContextFactory._DART_JS_HELPER, true, "_js_helper.dart");
     return map;
   }
 
@@ -13765,16 +13377,16 @@ class _AnalysisContextFactory_initContextWithCore extends DirectoryBasedDartSdk
   }
 }
 
-class _SimpleResolverTest_localVariable_types_invoked extends
-    RecursiveAstVisitor<Object> {
+class _SimpleResolverTest_localVariable_types_invoked
+    extends RecursiveAstVisitor<Object> {
   final SimpleResolverTest test;
 
   List<bool> found;
 
   List<CaughtException> thrownException;
 
-  _SimpleResolverTest_localVariable_types_invoked(this.test, this.found,
-      this.thrownException)
+  _SimpleResolverTest_localVariable_types_invoked(
+      this.test, this.found, this.thrownException)
       : super();
 
   @override

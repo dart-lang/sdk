@@ -94,8 +94,8 @@ class InstrumentationService {
    */
   void logAnalysisTask(String context, String description) {
     if (_instrumentationServer != null) {
-      _instrumentationServer.log(
-          _join([TAG_ANALYSIS_TASK, context, description]));
+      _instrumentationServer
+          .log(_join([TAG_ANALYSIS_TASK, context, description]));
     }
   }
 
@@ -125,8 +125,8 @@ class InstrumentationService {
   void logFileRead(String path, int modificationTime, String content) {
     if (_instrumentationServer != null) {
       String timeStamp = _toString(modificationTime);
-      _instrumentationServer.log(
-          _join([TAG_FILE_READ, path, timeStamp, content]));
+      _instrumentationServer
+          .log(_join([TAG_FILE_READ, path, timeStamp, content]));
     }
   }
 
@@ -139,8 +139,8 @@ class InstrumentationService {
     if (_instrumentationServer != null) {
       String timeStamp =
           time == null ? 'null' : time.millisecondsSinceEpoch.toString();
-      _instrumentationServer.log(
-          _join([TAG_LOG_ENTRY, level, timeStamp, message]));
+      _instrumentationServer
+          .log(_join([TAG_LOG_ENTRY, level, timeStamp, message]));
     }
   }
 
@@ -158,8 +158,8 @@ class InstrumentationService {
     sw.stop();
     String elapsed = sw.elapsedMilliseconds.toString();
     if (_instrumentationServer != null) {
-      _instrumentationServer.log(
-          _join([TAG_PERFORMANCE, kind, elapsed, message]));
+      _instrumentationServer
+          .log(_join([TAG_PERFORMANCE, kind, elapsed, message]));
     }
   }
 
@@ -171,8 +171,8 @@ class InstrumentationService {
     if (_instrumentationServer != null) {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
-      _instrumentationServer.logWithPriority(
-          _join([TAG_EXCEPTION, message, trace]));
+      _instrumentationServer
+          .logWithPriority(_join([TAG_EXCEPTION, message, trace]));
     }
   }
 
@@ -196,20 +196,18 @@ class InstrumentationService {
    */
   void logVersion(String uuid, String clientId, String clientVersion,
       String serverVersion, String sdkVersion) {
-
     String normalize(String value) =>
         value != null && value.length > 0 ? value : 'unknown';
 
     if (_instrumentationServer != null) {
-      _instrumentationServer.logWithPriority(
-          _join(
-              [
-                  TAG_VERSION,
-                  uuid,
-                  normalize(clientId),
-                  normalize(clientVersion),
-                  serverVersion,
-                  sdkVersion]));
+      _instrumentationServer.logWithPriority(_join([
+        TAG_VERSION,
+        uuid,
+        normalize(clientId),
+        normalize(clientVersion),
+        serverVersion,
+        sdkVersion
+      ]));
     }
   }
 
@@ -221,8 +219,8 @@ class InstrumentationService {
    */
   void logWatchEvent(String folderPath, String filePath, String changeType) {
     if (_instrumentationServer != null) {
-      _instrumentationServer.log(
-          _join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
+      _instrumentationServer
+          .log(_join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
     }
   }
 

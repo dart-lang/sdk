@@ -18,12 +18,8 @@ class FormatterOptions {
   /// Create formatter options with defaults derived (where defined) from
   /// the style guide: <http://www.dartlang.org/articles/style-guide/>.
   const FormatterOptions({this.initialIndentationLevel: 0,
-                 this.spacesPerIndent: 2,
-                 this.lineSeparator: NEW_LINE,
-                 this.pageWidth: 80,
-                 this.tabsForIndent: false,
-                 this.tabSize: 2,
-                 this.codeTransforms: false});
+      this.spacesPerIndent: 2, this.lineSeparator: NEW_LINE, this.pageWidth: 80,
+      this.tabsForIndent: false, this.tabSize: 2, this.codeTransforms: false});
 
   final String lineSeparator;
   final int initialIndentationLevel;
@@ -34,7 +30,6 @@ class FormatterOptions {
   final bool codeTransforms;
 }
 
-
 /// Thrown when an error occurs in formatting.
 class FormatterException implements Exception {
 
@@ -44,8 +39,8 @@ class FormatterException implements Exception {
   /// Creates a new FormatterException with an optional error [message].
   const FormatterException([this.message = 'FormatterException']);
 
-  FormatterException.forError(List<AnalysisError> errors, [LineInfo line]) :
-    message = _createMessage(errors);
+  FormatterException.forError(List<AnalysisError> errors, [LineInfo line])
+      : message = _createMessage(errors);
 
   static String _createMessage(errors) {
     //TODO(pquitslund): consider a verbosity flag to add/suppress details
@@ -68,20 +63,18 @@ class CodeKind {
 
   /// A statement snippet.
   static const STATEMENT = const CodeKind._(1);
-
 }
 
 /// Dart source code formatter.
 abstract class CodeFormatter {
-
-  factory CodeFormatter([FormatterOptions options = const FormatterOptions()])
-                        => new CodeFormatterImpl(options);
+  factory CodeFormatter(
+          [FormatterOptions options = const FormatterOptions()]) =>
+      new CodeFormatterImpl(options);
 
   /// Format the specified portion (from [offset] with [length]) of the given
   /// [source] string, optionally providing an [indentationLevel].
   FormattedSource format(CodeKind kind, String source, {int offset, int end,
-    int indentationLevel: 0, Selection selection: null});
-
+      int indentationLevel: 0, Selection selection: null});
 }
 
 /// Source selection state information.
@@ -111,9 +104,7 @@ class FormattedSource {
   FormattedSource(this.source, [this.selection = null]);
 }
 
-
 class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
-
   final FormatterOptions options;
   final errors = <AnalysisError>[];
   final whitespace = new RegExp(r'[\s]+');
@@ -124,7 +115,6 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
   FormattedSource format(CodeKind kind, String source, {int offset, int end,
       int indentationLevel: 0, Selection selection: null}) {
-
     var startToken = tokenize(source);
     checkForErrors();
 
@@ -137,17 +127,16 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     var formattedSource = formatter.writer.toString();
 
     checkTokenStreams(startToken, tokenize(formattedSource),
-                      allowTransforms: options.codeTransforms);
+        allowTransforms: options.codeTransforms);
 
     return new FormattedSource(formattedSource, formatter.selection);
   }
 
   checkTokenStreams(Token t1, Token t2, {allowTransforms: false}) =>
-      new TokenStreamComparator(lineInfo, t1, t2, transforms: allowTransforms).
-          verifyEquals();
+      new TokenStreamComparator(lineInfo, t1, t2, transforms: allowTransforms)
+          .verifyEquals();
 
   AstNode parse(CodeKind kind, Token start) {
-
     var parser = new Parser(null, this);
 
     switch (kind) {
@@ -177,19 +166,17 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     lineInfo = new LineInfo(scanner.lineStarts);
     return token;
   }
-
 }
-
 
 // Compares two token streams.  Used for sanity checking formatted results.
 class TokenStreamComparator {
-
   final LineInfo lineInfo;
   Token token1, token2;
   bool allowTransforms;
 
   TokenStreamComparator(this.lineInfo, this.token1, this.token2,
-      {transforms: false}) : this.allowTransforms = transforms;
+      {transforms: false})
+      : this.allowTransforms = transforms;
 
   /// Verify that these two token streams are equal.
   verifyEquals() {
@@ -199,13 +186,11 @@ class TokenStreamComparator {
         throwNotEqualException(token1, token2);
       }
       advance();
-
     }
     // TODO(pquitslund): consider a better way to notice trailing synthetics
     if (!isEOF(token2) &&
         !(isCLOSE_CURLY_BRACKET(token2) && isEOF(token2.next))) {
-      throw new FormatterException(
-          'Expected "EOF" but got "$token2".');
+      throw new FormatterException('Expected "EOF" but got "$token2".');
     }
   }
 
@@ -238,8 +223,9 @@ class TokenStreamComparator {
         'Expected "$t1" but got "$t2", at ${describeLocation(t1)}.');
   }
 
-  String describeLocation(Token token) => lineInfo == null ? '<unknown>' :
-      'Line: ${lineInfo.getLocation(token.offset).lineNumber}, '
+  String describeLocation(Token token) => lineInfo == null
+      ? '<unknown>'
+      : 'Line: ${lineInfo.getLocation(token.offset).lineNumber}, '
       'Column: ${lineInfo.getLocation(token.offset).columnNumber}';
 
   advance() {
@@ -293,12 +279,10 @@ class TokenStreamComparator {
         token2 = token2.next;
         return checkTokens();
       }
-
     }
 
     return false;
   }
-
 }
 
 /// Test for token type.
@@ -334,13 +318,10 @@ bool isCLOSE_SQUARE_BRACKET(Token token) =>
     tokenIs(token, TokenType.CLOSE_SQUARE_BRACKET);
 
 /// Test if this token is a SEMICOLON token.
-bool isSEMICOLON(Token token) =>
-    tokenIs(token, TokenType.SEMICOLON);
-
+bool isSEMICOLON(Token token) => tokenIs(token, TokenType.SEMICOLON);
 
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements AstVisitor {
-
   static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
   static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
   static final SEMI_COLON = syntheticToken(TokenType.SEMICOLON, ';');
@@ -392,24 +373,23 @@ class SourceVisitor implements AstVisitor {
 
   final bool codeTransforms;
 
-
   /// The source being formatted (used in interpolation handling)
   final String source;
 
   /// Post format selection information.
   Selection selection;
 
-
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
-  SourceVisitor(FormatterOptions options, this.lineInfo, this.source,
-    this.preSelection)
-      : writer = new SourceWriter(indentCount: options.initialIndentationLevel,
-                                lineSeparator: options.lineSeparator,
-                                maxLineLength: options.pageWidth,
-                                useTabs: options.tabsForIndent,
-                                spacesPerIndent: options.spacesPerIndent),
-       codeTransforms = options.codeTransforms;
+  SourceVisitor(
+      FormatterOptions options, this.lineInfo, this.source, this.preSelection)
+      : writer = new SourceWriter(
+          indentCount: options.initialIndentationLevel,
+          lineSeparator: options.lineSeparator,
+          maxLineLength: options.pageWidth,
+          useTabs: options.tabsForIndent,
+          spacesPerIndent: options.spacesPerIndent),
+        codeTransforms = options.codeTransforms;
 
   visitAdjacentStrings(AdjacentStrings node) {
     visitNodes(node.strings, separatedBy: space);
@@ -428,8 +408,7 @@ class SourceVisitor implements AstVisitor {
     if (node.arguments.isNotEmpty) {
       int weight = lastSpaceWeight++;
       levelSpace(weight, 0);
-      visitCommaSeparatedNodes(
-          node.arguments,
+      visitCommaSeparatedNodes(node.arguments,
           followedBy: () => levelSpace(weight));
     }
     token(node.rightParenthesis);
@@ -455,7 +434,7 @@ class SourceVisitor implements AstVisitor {
     visit(node.leftHandSide);
     space();
     token(node.operator);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       levelSpace(SINGLE_SPACE_WEIGHT);
       visit(node.rightHandSide);
     });
@@ -539,7 +518,6 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitCatchClause(CatchClause node) {
-
     token(node.onKeyword, followedBy: space);
     visit(node.exceptionType);
 
@@ -568,7 +546,7 @@ class SourceVisitor implements AstVisitor {
     token(node.classKeyword);
     space();
     visit(node.name);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       visit(node.typeParameters);
       visitNode(node.extendsClause, precededBy: space);
       visitNode(node.withClause, precededBy: space);
@@ -638,7 +616,7 @@ class SourceVisitor implements AstVisitor {
     visit(node.condition);
     space();
     token(node.question);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       levelSpace(weight);
       visit(node.thenExpression);
       space();
@@ -755,7 +733,7 @@ class SourceVisitor implements AstVisitor {
     token(node.whileKeyword);
     space();
     token(node.leftParenthesis);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       visit(node.condition);
       token(node.rightParenthesis);
     });
@@ -776,11 +754,11 @@ class SourceVisitor implements AstVisitor {
     }
   }
 
-  visitEnumConstantDeclaration(EnumConstantDeclaration node){
+  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     visit(node.name);
   }
 
-  visitEnumDeclaration(EnumDeclaration node){
+  visitEnumDeclaration(EnumDeclaration node) {
     visitMemberMetadata(node.metadata);
     token(node.enumKeyword);
     space();
@@ -799,7 +777,7 @@ class SourceVisitor implements AstVisitor {
     token(node.keyword);
     space();
     visit(node.uri);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       visitNodes(node.combinators, precededBy: space, separatedBy: space);
     });
     token(node.semicolon);
@@ -969,7 +947,7 @@ class SourceVisitor implements AstVisitor {
   visitIfStatement(IfStatement node) {
     var hasElse = node.elseStatement != null;
     token(node.ifKeyword);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       space();
       token(node.leftParenthesis);
       visit(node.condition);
@@ -1004,7 +982,7 @@ class SourceVisitor implements AstVisitor {
     visit(node.uri);
     token(node.deferredKeyword, precededBy: space);
     token(node.asKeyword, precededBy: space, followedBy: space);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       visit(node.prefix);
       visitNodes(node.combinators, precededBy: space, separatedBy: space);
     });
@@ -1086,8 +1064,7 @@ class SourceVisitor implements AstVisitor {
     token(node.leftBracket);
     indent();
     levelSpace(weight, 0);
-    visitCommaSeparatedNodes(
-        node.elements,
+    visitCommaSeparatedNodes(node.elements,
         followedBy: () => levelSpace(weight));
     optionalTrailingComma(node.rightBracket);
     token(node.rightBracket, precededBy: unindent);
@@ -1224,7 +1201,7 @@ class SourceVisitor implements AstVisitor {
       token(node.semicolon);
     } else {
       token(node.returnKeyword);
-      allowContinuedLines((){
+      allowContinuedLines(() {
         space();
         expression.accept(this);
         token(node.semicolon);
@@ -1314,7 +1291,6 @@ class SourceVisitor implements AstVisitor {
     newlines();
     visitNodes(node.members, separatedBy: newlines, followedBy: newlines);
     token(node.rightBracket, precededBy: unindent);
-
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -1441,7 +1417,7 @@ class SourceVisitor implements AstVisitor {
     token(node.whileKeyword);
     space();
     token(node.leftParenthesis);
-    allowContinuedLines((){
+    allowContinuedLines(() {
       visit(node.condition);
       token(node.rightParenthesis);
     });
@@ -1475,12 +1451,10 @@ class SourceVisitor implements AstVisitor {
 
   /// Visit member metadata
   visitMemberMetadata(NodeList<Annotation> metadata) {
-    visitNodes(metadata,
-      separatedBy: () {
-        space();
-        preserveLeadingNewlines();
-      },
-      followedBy: space);
+    visitNodes(metadata, separatedBy: () {
+      space();
+      preserveLeadingNewlines();
+    }, followedBy: space);
     if (metadata != null && metadata.length > 0) {
       preserveLeadingNewlines();
     }
@@ -1502,8 +1476,8 @@ class SourceVisitor implements AstVisitor {
 
   /// Visit a list of [nodes] if not null, optionally separated and/or preceded
   /// and followed by the given functions.
-  visitNodes(NodeList<AstNode> nodes, {precededBy(): null,
-      separatedBy() : null, followedBy(): null}) {
+  visitNodes(NodeList<AstNode> nodes,
+      {precededBy(): null, separatedBy(): null, followedBy(): null}) {
     if (nodes != null) {
       var size = nodes.length;
       if (size > 0) {
@@ -1545,7 +1519,6 @@ class SourceVisitor implements AstVisitor {
       }
     }
   }
-
 
   /// Visit a [node], and if not null, optionally preceded or followed by the
   /// specified functions.
@@ -1593,8 +1566,8 @@ class SourceVisitor implements AstVisitor {
     preserveNewlines = true;
   }
 
-  token(Token token, {precededBy(), followedBy(), printToken(tok),
-      int minNewlines: 0}) {
+  token(Token token,
+      {precededBy(), followedBy(), printToken(tok), int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
         minNewlines = max(1, minNewlines);
@@ -1638,9 +1611,9 @@ class SourceVisitor implements AstVisitor {
       var overshot = token.offset - preSelection.offset;
       if (overshot >= 0) {
         //TODO(pquitslund): update length (may need truncating)
-        selection = new Selection(
-            writer.toString().length + leadingSpaces - overshot,
-            preSelection.length);
+        selection = new Selection(writer.toString().length +
+            leadingSpaces -
+            overshot, preSelection.length);
       }
     }
   }
@@ -1711,7 +1684,6 @@ class SourceVisitor implements AstVisitor {
   /// Emit any detected comments and newlines or a minimum as specified
   /// by [min].
   int emitPrecedingCommentsAndNewlines(Token token, {min: 0}) {
-
     var comment = token.precedingComments;
     var currentToken = comment != null ? comment : token;
 
@@ -1736,7 +1708,6 @@ class SourceVisitor implements AstVisitor {
         currentToken.previous != null ? currentToken.previous : token.previous;
 
     while (comment != null) {
-
       emitComment(comment, previousToken);
 
       var nextToken = comment.next != null ? comment.next : token;
@@ -1769,14 +1740,13 @@ class SourceVisitor implements AstVisitor {
     }
   }
 
-
   /// Test if this EOL [comment] is at the beginning of a line.
   bool isAtBOL(Token comment) =>
       lineInfo.getLocation(comment.offset).columnNumber == 1;
 
   /// Test if this [comment] is at the end of a line.
-  bool isAtEOL(Token comment) =>
-      comment != null && comment.toString().trim().startsWith(twoSlashes) &&
+  bool isAtEOL(Token comment) => comment != null &&
+      comment.toString().trim().startsWith(twoSlashes) &&
       sameLine(comment, previousToken);
 
   /// Emit this [comment], inserting leading whitespace if appropriate.
@@ -1810,8 +1780,9 @@ class SourceVisitor implements AstVisitor {
       countNewlinesBetween(node.beginToken.previous, node.beginToken);
 
   /// Count newlines succeeding this [node].
-  int countSucceedingNewlines(AstNode node) => node == null ? 0 :
-      countNewlinesBetween(node.endToken, node.endToken.next);
+  int countSucceedingNewlines(AstNode node) => node == null
+      ? 0
+      : countNewlinesBetween(node.endToken, node.endToken.next);
 
   /// Count the blanks between these two tokens.
   int countNewlinesBetween(Token last, Token current) {
@@ -1858,10 +1829,8 @@ class SourceVisitor implements AstVisitor {
 
   /// Count the lines between two offsets.
   int linesBetween(int lastOffset, int currentOffset) {
-    var lastLine =
-        lineInfo.getLocation(lastOffset).lineNumber;
-    var currentLine =
-        lineInfo.getLocation(currentOffset).lineNumber;
+    var lastLine = lineInfo.getLocation(lastOffset).lineNumber;
+    var currentLine = lineInfo.getLocation(currentOffset).lineNumber;
     return currentLine - lastLine;
   }
 

@@ -115,7 +115,6 @@ class FileNameUtilities {
   }
 }
 
-
 class StringUtilities {
   static const String EMPTY = '';
   static const List<String> EMPTY_ARRAY = const <String>[];
@@ -155,8 +154,8 @@ class StringUtilities {
     }
     return -1;
   }
-  static int indexOf4(String string, int start, int c1, int c2, int c3,
-      int c4) {
+  static int indexOf4(
+      String string, int start, int c1, int c2, int c3, int c4) {
     int index = start;
     int last = string.length - 3;
     while (index < last) {
@@ -170,8 +169,8 @@ class StringUtilities {
     }
     return -1;
   }
-  static int indexOf5(String str, int start, int c1, int c2, int c3, int c4,
-      int c5) {
+  static int indexOf5(
+      String str, int start, int c1, int c2, int c3, int c4, int c5) {
     int index = start;
     int last = str.length - 4;
     while (index < last) {
@@ -274,8 +273,8 @@ class StringUtilities {
         str.codeUnitAt(start + 2) == c3 &&
         str.codeUnitAt(start + 3) == c4;
   }
-  static startsWith5(String str, int start, int c1, int c2, int c3, int c4,
-      int c5) {
+  static startsWith5(
+      String str, int start, int c1, int c2, int c3, int c4, int c5) {
     return str.length - start >= 5 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2 &&
@@ -283,8 +282,8 @@ class StringUtilities {
         str.codeUnitAt(start + 3) == c4 &&
         str.codeUnitAt(start + 4) == c5;
   }
-  static startsWith6(String str, int start, int c1, int c2, int c3, int c4,
-      int c5, int c6) {
+  static startsWith6(
+      String str, int start, int c1, int c2, int c3, int c4, int c5, int c6) {
     return str.length - start >= 6 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2 &&
@@ -322,7 +321,6 @@ class StringUtilities {
     return str.substring(0, pos);
   }
 }
-
 
 class UUID {
   static int __nextId = 0;

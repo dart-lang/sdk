@@ -14,7 +14,6 @@ import 'package:watcher/watcher.dart';
 
 import 'file_system.dart';
 
-
 /**
  * An in-memory implementation of [ResourceProvider].
  * Use `/` as a path separator.
@@ -163,18 +162,17 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {
-    _pathToWatchers.forEach(
-        (String watcherPath, List<StreamController<WatchEvent>> streamControllers) {
+    _pathToWatchers.forEach((String watcherPath,
+        List<StreamController<WatchEvent>> streamControllers) {
       if (posix.isWithin(watcherPath, path)) {
-        for (StreamController<WatchEvent> streamController in streamControllers)
-            {
+        for (StreamController<WatchEvent> streamController
+            in streamControllers) {
           streamController.add(new WatchEvent(changeType, path));
         }
       }
     });
   }
 }
-
 
 /**
  * An in-memory implementation of [File] which acts like a symbolic link to a
@@ -209,7 +207,6 @@ class _MemoryDummyLink extends _MemoryResource implements File {
     return path == this.path;
   }
 }
-
 
 /**
  * An in-memory implementation of [File].
@@ -250,7 +247,6 @@ class _MemoryFile extends _MemoryResource implements File {
     return path == this.path;
   }
 }
-
 
 /**
  * An in-memory implementation of [Source].
@@ -325,7 +321,6 @@ class _MemoryFileSource extends Source {
   @override
   String toString() => _file.toString();
 }
-
 
 /**
  * An in-memory implementation of [Folder].
@@ -406,7 +401,6 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     return contains(path);
   }
 }
-
 
 /**
  * An in-memory implementation of [Resource].

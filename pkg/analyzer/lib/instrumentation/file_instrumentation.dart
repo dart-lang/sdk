@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
-
 /**
  * An [InstrumentationServer] that writes to a file.
  */

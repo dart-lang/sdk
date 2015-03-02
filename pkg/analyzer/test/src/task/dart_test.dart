@@ -4,8 +4,8 @@
 
 library test.src.task.dart_test;
 
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask,
-    ParseDartTask, ScanDartTask;
+import 'package:analyzer/src/generated/engine.dart'
+    hide AnalysisTask, ParseDartTask, ScanDartTask;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
@@ -32,8 +32,7 @@ class BuildCompilationUnitElementTaskTest extends EngineTestCase {
         BuildCompilationUnitElementTask.buildInputs(target);
     expect(inputs, isNotNull);
     expect(inputs, hasLength(1));
-    expect(
-        inputs[BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME],
+    expect(inputs[BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME],
         isNotNull);
   }
 
@@ -89,9 +88,7 @@ class A {''');
     AnalysisTarget target = new TestSource();
 
     ScanDartTask scanTask = new ScanDartTask(context, target);
-    scanTask.inputs = {
-      ScanDartTask.CONTENT_INPUT_NAME: content
-    };
+    scanTask.inputs = {ScanDartTask.CONTENT_INPUT_NAME: content};
     scanTask.perform();
     Map<ResultDescriptor, dynamic> scanOutputs = scanTask.outputs;
 
@@ -215,9 +212,7 @@ class A {''');
     AnalysisTarget target = new TestSource();
 
     ScanDartTask scanTask = new ScanDartTask(context, target);
-    scanTask.inputs = {
-      ScanDartTask.CONTENT_INPUT_NAME: content
-    };
+    scanTask.inputs = {ScanDartTask.CONTENT_INPUT_NAME: content};
     scanTask.perform();
     Map<ResultDescriptor, dynamic> scanOutputs = scanTask.outputs;
 
@@ -297,9 +292,7 @@ class ScanDartTaskTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
 
     ScanDartTask scanTask = new ScanDartTask(context, target);
-    scanTask.inputs = {
-      ScanDartTask.CONTENT_INPUT_NAME: content
-    };
+    scanTask.inputs = {ScanDartTask.CONTENT_INPUT_NAME: content};
     scanTask.perform();
     return scanTask;
   }

@@ -27,19 +27,15 @@ class AnalysisTaskTest extends EngineTestCase {
   test_getRequiredInput_missingKey() {
     AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
-    task.inputs = {
-      'a': 'b'
-    };
-    expect(
-        () => task.getRequiredInput('c'),
+    task.inputs = {'a': 'b'};
+    expect(() => task.getRequiredInput('c'),
         throwsA(new isInstanceOf<AnalysisException>()));
   }
 
   test_getRequiredInput_noInputs() {
     AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
-    expect(
-        () => task.getRequiredInput('x'),
+    expect(() => task.getRequiredInput('x'),
         throwsA(new isInstanceOf<AnalysisException>()));
   }
 
@@ -48,9 +44,7 @@ class AnalysisTaskTest extends EngineTestCase {
     AnalysisTask task = new TestAnalysisTask(null, target);
     String key = 'a';
     String value = 'b';
-    task.inputs = {
-      key: value
-    };
+    task.inputs = {key: value};
     expect(task.getRequiredInput(key), value);
   }
 

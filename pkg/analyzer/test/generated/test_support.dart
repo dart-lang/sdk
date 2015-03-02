@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
-
 /**
  * The class `EngineTestCase` defines utility methods for making assertions.
  */
@@ -107,8 +106,8 @@ class EngineTestCase {
    * @return the object that was being tested
    * @throws Exception if the object is not an instance of the expected class
    */
-  static Object assertInstanceOf(Predicate<Object> predicate,
-      Type expectedClass, Object object) {
+  static Object assertInstanceOf(
+      Predicate<Object> predicate, Type expectedClass, Object object) {
     if (!predicate(object)) {
       fail(
           "Expected instance of $expectedClass, found ${object == null ? "null" : object.runtimeType}");
@@ -119,8 +118,8 @@ class EngineTestCase {
   /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
-  static AstNode findNode(AstNode root, String code, String prefix,
-      Predicate<AstNode> predicate) {
+  static AstNode findNode(
+      AstNode root, String code, String prefix, Predicate<AstNode> predicate) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
       throw new IllegalArgumentException("Not found '$prefix'.");
@@ -222,16 +221,14 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  void assertErrorsWithCodes([List<ErrorCode> expectedErrorCodes =
-      ErrorCode.EMPTY_LIST]) {
+  void assertErrorsWithCodes(
+      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     StringBuffer buffer = new StringBuffer();
     //
     // Verify that the expected error codes have a non-empty message.
     //
     for (ErrorCode errorCode in expectedErrorCodes) {
-      expect(
-          errorCode.message.isEmpty,
-          isFalse,
+      expect(errorCode.message.isEmpty, isFalse,
           reason: "Empty error code message");
     }
     //
@@ -446,25 +443,21 @@ class GatheringErrorListener implements AnalysisErrorListener {
       buffer.writeln();
       if (lineInfo == null) {
         int offset = error.offset;
-        StringUtils.printf(
-            buffer,
-            "  %s %s (%d..%d)",
-            [
-                source == null ? "" : source.shortName,
-                error.errorCode,
-                offset,
-                offset + error.length]);
+        StringUtils.printf(buffer, "  %s %s (%d..%d)", [
+          source == null ? "" : source.shortName,
+          error.errorCode,
+          offset,
+          offset + error.length
+        ]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        StringUtils.printf(
-            buffer,
-            "  %s %s (%d, %d/%d)",
-            [
-                source == null ? "" : source.shortName,
-                error.errorCode,
-                location.lineNumber,
-                location.columnNumber,
-                error.length]);
+        StringUtils.printf(buffer, "  %s %s (%d, %d/%d)", [
+          source == null ? "" : source.shortName,
+          error.errorCode,
+          location.lineNumber,
+          location.columnNumber,
+          error.length
+        ]);
       }
     }
     buffer.writeln();
@@ -477,27 +470,23 @@ class GatheringErrorListener implements AnalysisErrorListener {
       buffer.writeln();
       if (lineInfo == null) {
         int offset = error.offset;
-        StringUtils.printf(
-            buffer,
-            "  %s %s (%d..%d): %s",
-            [
-                source == null ? "" : source.shortName,
-                error.errorCode,
-                offset,
-                offset + error.length,
-                error.message]);
+        StringUtils.printf(buffer, "  %s %s (%d..%d): %s", [
+          source == null ? "" : source.shortName,
+          error.errorCode,
+          offset,
+          offset + error.length,
+          error.message
+        ]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        StringUtils.printf(
-            buffer,
-            "  %s %s (%d, %d/%d): %s",
-            [
-                source == null ? "" : source.shortName,
-                error.errorCode,
-                location.lineNumber,
-                location.columnNumber,
-                error.length,
-                error.message]);
+        StringUtils.printf(buffer, "  %s %s (%d, %d/%d): %s", [
+          source == null ? "" : source.shortName,
+          error.errorCode,
+          location.lineNumber,
+          location.columnNumber,
+          error.length,
+          error.message
+        ]);
       }
     }
     fail(buffer.toString());
@@ -558,7 +547,6 @@ class TestLogger implements Logger {
     infoCount++;
   }
 }
-
 
 class TestSource extends Source {
   String _name;

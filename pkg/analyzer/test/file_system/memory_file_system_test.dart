@@ -14,11 +14,9 @@ import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
-
 var _isFile = new isInstanceOf<File>();
 var _isFileSystemException = new isInstanceOf<FileSystemException>();
 var _isFolder = new isInstanceOf<Folder>();
-
 
 main() {
   groupSep = ' | ';
@@ -34,13 +32,11 @@ main() {
       var exception = new FileSystemException('/my/path', 'my message');
       expect(exception.path, '/my/path');
       expect(exception.message, 'my message');
-      expect(
-          exception.toString(),
+      expect(exception.toString(),
           'FileSystemException(path=/my/path; message=my message)');
     });
 
     group('Watch', () {
-
       Future delayed(computation()) {
         return new Future.delayed(Duration.ZERO, computation);
       }

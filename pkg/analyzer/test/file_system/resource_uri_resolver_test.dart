@@ -9,7 +9,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
-
 main() {
   groupSep = ' | ';
   group('ResourceUriResolver', () {

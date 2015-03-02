@@ -14,12 +14,10 @@ import 'package:watcher/watcher.dart';
 
 import 'file_system.dart';
 
-
 /**
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-
   static final NORMALIZE_EOL_ALWAYS =
       (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
 
@@ -70,7 +68,6 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 }
 
-
 /**
  * A `dart:io` based implementation of [File].
  */
@@ -102,7 +99,6 @@ class _PhysicalFile extends _PhysicalResource implements File {
     return path == this.path;
   }
 }
-
 
 /**
  * A `dart:io` based implementation of [Folder].
@@ -161,7 +157,6 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     return contains(path);
   }
 }
-
 
 /**
  * A `dart:io` based implementation of [Resource].

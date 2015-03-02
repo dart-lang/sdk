@@ -121,9 +121,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "f() => 0; g() {}"
     _scan("f()", "", " => 0; g()", " {}");
     _assertTokens(
-        2,
-        9,
-        ["f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}"]);
+        2, 9, ["f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
@@ -386,9 +384,7 @@ a''', "", " ", " + b;");
     }
     Token comment = token.precedingComments;
     if (lexemes.isEmpty) {
-      expect(
-          comment,
-          isNull,
+      expect(comment, isNull,
           reason: "No comments expected but comments found");
     }
     int count = 0;
@@ -415,13 +411,9 @@ a''', "", " ", " + b;");
   void _assertEqualTokens(Token actual, Token expected) {
     expect(actual.type, same(expected.type), reason: "Wrong type for token");
     expect(actual.lexeme, expected.lexeme, reason: "Wrong lexeme for token");
-    expect(
-        actual.offset,
-        expected.offset,
+    expect(actual.offset, expected.offset,
         reason: "Wrong offset for token ('${actual.lexeme}' != '${expected.lexeme}')");
-    expect(
-        actual.length,
-        expected.length,
+    expect(actual.length, expected.length,
         reason: "Wrong length for token ('${actual.lexeme}' != '${expected.lexeme}')");
   }
 
@@ -432,13 +424,9 @@ a''', "", " ", " + b;");
    */
   void _assertTokens(int leftIndex, int rightIndex, List<String> lexemes) {
     int count = lexemes.length;
-    expect(
-        leftIndex >= -1 && leftIndex < count,
-        isTrue,
+    expect(leftIndex >= -1 && leftIndex < count, isTrue,
         reason: "Invalid left index");
-    expect(
-        rightIndex >= 0 && rightIndex <= count,
-        isTrue,
+    expect(rightIndex >= 0 && rightIndex <= count, isTrue,
         reason: "Invalid right index");
     Token leftToken = null;
     Token rightToken = null;
@@ -463,16 +451,12 @@ a''', "", " ", " + b;");
     if (leftIndex >= 0) {
       expect(leftToken, isNotNull);
     }
-    expect(
-        _incrementalScanner.leftToken,
-        same(leftToken),
+    expect(_incrementalScanner.leftToken, same(leftToken),
         reason: "Invalid left token");
     if (rightIndex >= 0) {
       expect(rightToken, isNotNull);
     }
-    expect(
-        _incrementalScanner.rightToken,
-        same(rightToken),
+    expect(_incrementalScanner.rightToken, same(rightToken),
         reason: "Invalid right token");
   }
 
@@ -499,9 +483,7 @@ a''', "", " ", " + b;");
     //
     GatheringErrorListener originalListener = new GatheringErrorListener();
     Scanner originalScanner = new Scanner(
-        source,
-        new CharSequenceReader(originalContents),
-        originalListener);
+        source, new CharSequenceReader(originalContents), originalListener);
     _originalTokens = originalScanner.tokenize();
     expect(_originalTokens, isNotNull);
     //
@@ -509,9 +491,7 @@ a''', "", " ", " + b;");
     //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
     Scanner modifiedScanner = new Scanner(
-        source,
-        new CharSequenceReader(modifiedContents),
-        modifiedListener);
+        source, new CharSequenceReader(modifiedContents), modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
     expect(modifiedTokens, isNotNull);
     //
@@ -519,14 +499,9 @@ a''', "", " ", " + b;");
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
     _incrementalScanner = new IncrementalScanner(
-        source,
-        new CharSequenceReader(modifiedContents),
-        incrementalListener);
+        source, new CharSequenceReader(modifiedContents), incrementalListener);
     _incrementalTokens = _incrementalScanner.rescan(
-        _originalTokens,
-        replaceStart,
-        removed.length,
-        added.length);
+        _originalTokens, replaceStart, removed.length, added.length);
     //
     // Validate that the results of the incremental scan are the same as the
     // full scan of the modified source.
@@ -543,24 +518,16 @@ a''', "", " ", " + b;");
         incrementalComment = incrementalComment.next;
         modifiedComment = modifiedComment.next;
       }
-      expect(
-          incrementalComment,
-          isNull,
+      expect(incrementalComment, isNull,
           reason: "Too many comment tokens preceeding '${incrementalToken.lexeme}'");
-      expect(
-          modifiedComment,
-          isNull,
+      expect(modifiedComment, isNull,
           reason: "Not enough comment tokens preceeding '${incrementalToken.lexeme}'");
       incrementalToken = incrementalToken.next;
       modifiedTokens = modifiedTokens.next;
     }
-    expect(
-        incrementalToken.type,
-        same(TokenType.EOF),
+    expect(incrementalToken.type, same(TokenType.EOF),
         reason: "Too many tokens");
-    expect(
-        modifiedTokens.type,
-        same(TokenType.EOF),
+    expect(modifiedTokens.type, same(TokenType.EOF),
         reason: "Not enough tokens");
     // TODO(brianwilkerson) Verify that the errors are correct?
   }

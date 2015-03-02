@@ -7,7 +7,6 @@ library source_writer;
 import 'dart:math' as math;
 
 class Line {
-
   final List<LineToken> tokens = <LineToken>[];
   final bool useTabs;
   final int spacesPerIndent;
@@ -39,35 +38,29 @@ class Line {
 
   bool isEmpty() => tokens.isEmpty;
 
-  bool isWhitespace() => tokens.every(
-      (tok) => tok is SpaceToken || tok is TabToken);
+  bool isWhitespace() =>
+      tokens.every((tok) => tok is SpaceToken || tok is TabToken);
 
   void indent(int n) {
-    tokens.insert(0,
-        useTabs ? new TabToken(n) : new SpaceToken(n * spacesPerIndent));
+    tokens.insert(
+        0, useTabs ? new TabToken(n) : new SpaceToken(n * spacesPerIndent));
   }
 
   String toString() => printer.printLine(this);
-
 }
-
 
 /// Base class for line printers
 abstract class LinePrinter {
-
   const LinePrinter();
 
   /// Convert this [line] to a [String] representation.
   String printLine(Line line);
 }
 
-
 typedef String Indenter(int n);
-
 
 /// A simple line breaking [LinePrinter]
 class SimpleLineBreaker extends LinePrinter {
-
   static final NO_OP_INDENTER = (n) => '';
 
   final chunks = <Chunk>[];
@@ -100,7 +93,9 @@ class SimpleLineBreaker extends LinePrinter {
 
   List<Chunk> breakLine(Line line) {
     List<LineToken> tokens = preprocess(line.tokens);
-    List<Chunk> chunks = <Chunk>[new Chunk(line.indentLevel, maxLength, tokens)];
+    List<Chunk> chunks = <Chunk>[
+      new Chunk(line.indentLevel, maxLength, tokens)
+    ];
     // try SINGLE_SPACE_WEIGHT
     {
       Chunk chunk = chunks[0];
@@ -140,7 +135,8 @@ class SimpleLineBreaker extends LinePrinter {
               int length = 0;
               for (int i = 0; i < tokens.length; i++) {
                 LineToken token = tokens[i];
-                if (token is SpaceToken && token.breakWeight == weight &&
+                if (token is SpaceToken &&
+                    token.breakWeight == weight &&
                     i < tokens.length - 1) {
                   LineToken nextToken = tokens[i + 1];
                   if (length + token.length + nextToken.length > maxLength) {
@@ -189,7 +185,6 @@ class SimpleLineBreaker extends LinePrinter {
   }
 
   static List<LineToken> preprocess(List<LineToken> tok) {
-
     var tokens = <LineToken>[];
     var curr;
 
@@ -228,8 +223,8 @@ class SimpleLineBreaker extends LinePrinter {
 }
 
 /// Test if this [string] contains only whitespace characters
-bool isWhitespace(String string) => string.codeUnits.every(
-      (c) => c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D);
+bool isWhitespace(String string) => string.codeUnits
+    .every((c) => c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D);
 
 /// Special token indicating a line start
 final LINE_START = new SpaceToken(0);
@@ -241,7 +236,6 @@ const UNBREAKABLE_SPACE_WEIGHT = 100000000;
 
 /// Simple non-breaking printer
 class SimpleLinePrinter extends LinePrinter {
-
   const SimpleLinePrinter();
 
   String printLine(Line line) {
@@ -249,15 +243,12 @@ class SimpleLinePrinter extends LinePrinter {
     line.tokens.forEach((tok) => buffer.write(tok.toString()));
     return buffer.toString();
   }
-
 }
-
 
 /// Describes a piece of text in a [Line].
 abstract class LineText {
   int get length;
 }
-
 
 /// A working piece of text used in calculating line breaks
 class Chunk {
@@ -320,9 +311,7 @@ class Chunk {
   String toString() => tokens.join();
 }
 
-
 class LineToken implements LineText {
-
   final String value;
 
   LineToken(this.value);
@@ -333,33 +322,24 @@ class LineToken implements LineText {
 
   int lengthLessNewlines(String str) =>
       str.endsWith('\n') ? str.length - 1 : str.length;
-
 }
-
 
 class SpaceToken extends LineToken {
-
   final int breakWeight;
 
-  SpaceToken(int n, {this.breakWeight: DEFAULT_SPACE_WEIGHT}) :
-      super(getSpaces(n));
+  SpaceToken(int n, {this.breakWeight: DEFAULT_SPACE_WEIGHT})
+      : super(getSpaces(n));
 }
 
-
 class TabToken extends LineToken {
-
   TabToken(int n) : super(getTabs(n));
 }
 
-
 class NewlineToken extends LineToken {
-
   NewlineToken(String value) : super(value);
 }
 
-
 class SourceWriter {
-
   final StringBuffer buffer = new StringBuffer();
   Line currentLine;
 
@@ -374,8 +354,8 @@ class SourceWriter {
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
       this.useTabs: false, this.spacesPerIndent: 2, int maxLineLength: 80}) {
     if (maxLineLength > 0) {
-      linePrinter = new SimpleLineBreaker(maxLineLength, (n) =>
-          getIndentString(n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
+      linePrinter = new SimpleLineBreaker(maxLineLength, (n) => getIndentString(
+          n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
     } else {
       linePrinter = new SimpleLinePrinter();
     }
@@ -447,8 +427,11 @@ class SourceWriter {
     }
   }
 
-  Line newLine() => new Line(indentLevel: indentCount, useTabs: useTabs,
-      spacesPerIndent: spacesPerIndent, printer: linePrinter);
+  Line newLine() => new Line(
+      indentLevel: indentCount,
+      useTabs: useTabs,
+      spacesPerIndent: spacesPerIndent,
+      printer: linePrinter);
 
   String toString() {
     var source = new StringBuffer(buffer.toString());
@@ -457,52 +440,50 @@ class SourceWriter {
     }
     return source.toString();
   }
-
 }
 
 const NEW_LINE = '\n';
 const SPACE = ' ';
 const SPACES = const [
-          '',
-          ' ',
-          '  ',
-          '   ',
-          '    ',
-          '     ',
-          '      ',
-          '       ',
-          '        ',
-          '         ',
-          '          ',
-          '           ',
-          '            ',
-          '             ',
-          '              ',
-          '               ',
-          '                ',
+  '',
+  ' ',
+  '  ',
+  '   ',
+  '    ',
+  '     ',
+  '      ',
+  '       ',
+  '        ',
+  '         ',
+  '          ',
+  '           ',
+  '            ',
+  '             ',
+  '              ',
+  '               ',
+  '                ',
 ];
 const TABS = const [
-          '',
-          '\t',
-          '\t\t',
-          '\t\t\t',
-          '\t\t\t\t',
-          '\t\t\t\t\t',
-          '\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t\t\t\t\t\t\t',
-          '\t\t\t\t\t\t\t\t\t\t\t\t\t\t',
+  '',
+  '\t',
+  '\t\t',
+  '\t\t\t',
+  '\t\t\t\t',
+  '\t\t\t\t\t',
+  '\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t\t\t\t\t\t\t',
+  '\t\t\t\t\t\t\t\t\t\t\t\t\t\t',
 ];
 
-
-String getIndentString(int indentWidth, {bool useTabs: false,
-  int spacesPerIndent: 2}) => useTabs ? getTabs(indentWidth) :
-    getSpaces(indentWidth * spacesPerIndent);
+String getIndentString(int indentWidth,
+        {bool useTabs: false, int spacesPerIndent: 2}) =>
+    useTabs ? getTabs(indentWidth) : getSpaces(indentWidth * spacesPerIndent);
 
 String getSpaces(int n) => n < SPACES.length ? SPACES[n] : repeat(' ', n);
 

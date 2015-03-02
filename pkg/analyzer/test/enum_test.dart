@@ -24,112 +24,110 @@ void main() {
   runReflectiveTests(EnumTest);
 }
 
-
 @reflectiveTest
 class EnumTest {
   void test_AnalysisLevel() {
     new EnumTester<AnalysisLevel>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_AssignmentKind() {
     new EnumTester<AssignmentKind>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_CacheState() {
     new EnumTester<CacheState>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_ElementKind() {
     new EnumTester<ElementKind>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_ErrorProperty() {
     new EnumTester<ErrorProperty>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_ErrorSeverity() {
     new EnumTester<ErrorSeverity>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_ErrorType() {
     new EnumTester<ErrorType>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_html_TokenType() {
     new EnumTester<html.TokenType>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_INIT_STATE() {
     new EnumTester<INIT_STATE>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_Modifier() {
     new EnumTester<Modifier>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_ParameterKind() {
     new EnumTester<ParameterKind>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_RedirectingConstructorKind() {
     new EnumTester<RedirectingConstructorKind>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_RetentionPriority() {
     new EnumTester<RetentionPriority>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_SourceKind() {
     new EnumTester<SourceKind>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_SourcePriority() {
     new EnumTester<SourcePriority>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_UriKind() {
     new EnumTester<UriKind>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 
   void test_WrapperKind() {
     new EnumTester<WrapperKind>()
-        ..check_getters()
-        ..check_explicit_values();
+      ..check_getters()
+      ..check_explicit_values();
   }
 }
-
 
 /**
  * Helper class for testing invariants of enumerated types.

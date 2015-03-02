@@ -27,7 +27,8 @@ final ResultDescriptor<CompilationUnit> BUILT_UNIT =
  * The result is only available for targets representing a Dart compilation unit.
  */
 final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
-    new ResultDescriptor<CompilationUnitElement>('COMPILATION_UNIT_ELEMENT', null);
+    new ResultDescriptor<CompilationUnitElement>(
+        'COMPILATION_UNIT_ELEMENT', null);
 
 /**
  * The sources of the libraries that are exported from a library.
@@ -38,7 +39,8 @@ final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<List<Source>> EXPORTED_LIBRARIES =
-    new ResultDescriptor<List<Source>>('EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+    new ResultDescriptor<List<Source>>(
+        'EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
  * The sources of the libraries that are imported into a library.
@@ -49,7 +51,8 @@ final ResultDescriptor<List<Source>> EXPORTED_LIBRARIES =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<List<Source>> IMPORTED_LIBRARIES =
-    new ResultDescriptor<List<Source>>('IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+    new ResultDescriptor<List<Source>>(
+        'IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
  * The sources of the parts that are included in a library.
@@ -71,8 +74,7 @@ final ResultDescriptor<List<Source>> INCLUDED_PARTS =
  */
 final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
-        'PARSE_ERRORS',
-        AnalysisError.NO_ERRORS,
+        'PARSE_ERRORS', AnalysisError.NO_ERRORS,
         contributesTo: ANALYSIS_ERRORS);
 
 /**
@@ -94,9 +96,7 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
  */
 final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
-        'SCAN_ERRORS',
-        AnalysisError.NO_ERRORS,
-        contributesTo: ANALYSIS_ERRORS);
+        'SCAN_ERRORS', AnalysisError.NO_ERRORS, contributesTo: ANALYSIS_ERRORS);
 
 /**
  * The token stream produced while scanning a compilation unit.

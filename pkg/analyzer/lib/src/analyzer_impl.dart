@@ -140,9 +140,10 @@ class AnalyzerImpl {
 
   void prepareAnalysisContext(JavaFile sourceFile, Source source) {
     List<UriResolver> resolvers = [
-        new CustomUriResolver(options.customUrlMappings),
-        new DartUriResolver(sdk),
-        new FileUriResolver()];
+      new CustomUriResolver(options.customUrlMappings),
+      new DartUriResolver(sdk),
+      new FileUriResolver()
+    ];
     // may be add package resolver
     {
       JavaFile packageDirectory;
@@ -156,8 +157,8 @@ class AnalyzerImpl {
             PhysicalResourceProvider.INSTANCE.getResource('.'));
         Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
         if (packageMap != null) {
-          resolvers.add(
-              new PackageMapUriResolver(PhysicalResourceProvider.INSTANCE, packageMap));
+          resolvers.add(new PackageMapUriResolver(
+              PhysicalResourceProvider.INSTANCE, packageMap));
         }
       }
     }
@@ -304,7 +305,7 @@ class AnalyzerImpl {
       return false;
     }
     if (computeSeverity(error, options.enableTypeChecks) ==
-        ErrorSeverity.INFO &&
+            ErrorSeverity.INFO &&
         options.disableHints) {
       return false;
     }
@@ -361,8 +362,8 @@ class AnalyzerImpl {
    * [enableTypeChecks] is false, then de-escalate checked-mode compile time
    * errors to a severity of [ErrorSeverity.INFO].
    */
-  static ErrorSeverity computeSeverity(AnalysisError error,
-      bool enableTypeChecks) {
+  static ErrorSeverity computeSeverity(
+      AnalysisError error, bool enableTypeChecks) {
     if (!enableTypeChecks &&
         error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
       return ErrorSeverity.INFO;

@@ -217,9 +217,7 @@ class IncrementalScanner {
    */
   Token _scanRange(int start, int end) {
     Scanner scanner = new Scanner(
-        source,
-        new CharacterRangeReader(reader, start, end),
-        errorListener);
+        source, new CharacterRangeReader(reader, start, end), errorListener);
     return scanner.tokenize();
   }
 

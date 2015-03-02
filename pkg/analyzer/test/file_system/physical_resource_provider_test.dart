@@ -14,11 +14,9 @@ import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
-
 var _isFile = new isInstanceOf<File>();
 var _isFolder = new isInstanceOf<Folder>();
 var _isFileSystemException = new isInstanceOf<FileSystemException>();
-
 
 main() {
   groupSep = ' | ';
@@ -37,7 +35,6 @@ main() {
     });
 
     group('Watch', () {
-
       Future delayed(computation()) {
         // Give the tests 1 second to detect the changes. While it may only
         // take up to a few hundred ms, a whole second gives a good margin
@@ -364,14 +361,11 @@ main() {
         expect(folder.canonicalizePath('baz'), equals(join(path, 'baz')));
         expect(folder.canonicalizePath(path2), equals(path2));
         expect(folder.canonicalizePath(join('..', 'folder2')), equals(path2));
-        expect(
-            folder.canonicalizePath(join(path2, '..', 'folder3')),
+        expect(folder.canonicalizePath(join(path2, '..', 'folder3')),
             equals(path3));
-        expect(
-            folder.canonicalizePath(join('.', 'baz')),
+        expect(folder.canonicalizePath(join('.', 'baz')),
             equals(join(path, 'baz')));
-        expect(
-            folder.canonicalizePath(join(path2, '.', 'baz')),
+        expect(folder.canonicalizePath(join(path2, '.', 'baz')),
             equals(join(path2, 'baz')));
       });
     });

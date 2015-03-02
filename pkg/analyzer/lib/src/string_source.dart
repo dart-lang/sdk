@@ -45,6 +45,6 @@ class StringSource extends Source {
 
   bool exists() => true;
 
-  Uri resolveRelativeUri(Uri relativeUri) =>
-      throw new UnsupportedError("StringSource doesn't support resolveRelative.");
+  Uri resolveRelativeUri(Uri relativeUri) => throw new UnsupportedError(
+      "StringSource doesn't support resolveRelative.");
 }

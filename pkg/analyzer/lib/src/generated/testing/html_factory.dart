@@ -32,17 +32,10 @@ class HtmlFactory {
     return new Token.con1(TokenType.LT, 0);
   }
 
-  static HtmlScriptTagNode scriptTag([List<XmlAttributeNode> attributes =
-      XmlAttributeNode.EMPTY_LIST]) {
-    return new HtmlScriptTagNode(
-        ltToken(),
-        stringToken("script"),
-        attributes,
-        sgtToken(),
-        null,
-        null,
-        null,
-        null);
+  static HtmlScriptTagNode scriptTag(
+      [List<XmlAttributeNode> attributes = XmlAttributeNode.EMPTY_LIST]) {
+    return new HtmlScriptTagNode(ltToken(), stringToken("script"), attributes,
+        sgtToken(), null, null, null, null);
   }
 
   static HtmlScriptTagNode scriptTagWithContent(String contents,
@@ -52,15 +45,8 @@ class HtmlFactory {
     attributeEnd.setNext(contentToken);
     Token contentEnd = ltsToken();
     contentToken.setNext(contentEnd);
-    return new HtmlScriptTagNode(
-        ltToken(),
-        stringToken("script"),
-        attributes,
-        attributeEnd,
-        null,
-        contentEnd,
-        stringToken("script"),
-        gtToken());
+    return new HtmlScriptTagNode(ltToken(), stringToken("script"), attributes,
+        attributeEnd, null, contentEnd, stringToken("script"), gtToken());
   }
 
   static Token sgtToken() {
@@ -71,16 +57,9 @@ class HtmlFactory {
     return new Token.con2(TokenType.STRING, 0, value);
   }
 
-  static XmlTagNode tagNode(String name, [List<XmlAttributeNode> attributes =
-      XmlAttributeNode.EMPTY_LIST]) {
-    return new XmlTagNode(
-        ltToken(),
-        stringToken(name),
-        attributes,
-        sgtToken(),
-        null,
-        null,
-        null,
-        null);
+  static XmlTagNode tagNode(String name,
+      [List<XmlAttributeNode> attributes = XmlAttributeNode.EMPTY_LIST]) {
+    return new XmlTagNode(ltToken(), stringToken(name), attributes, sgtToken(),
+        null, null, null, null);
   }
 }

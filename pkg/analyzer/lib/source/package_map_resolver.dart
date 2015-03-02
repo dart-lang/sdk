@@ -8,7 +8,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/asserts.dart' as asserts;
 
-
 /**
  * A [UriResolver] implementation for the `package:` scheme that uses a map of
  * package names to their directories.
@@ -85,7 +84,8 @@ class PackageMapUriResolver extends UriResolver {
         Folder pkgFolder = pkgFolders[i];
         String pkgFolderPath = pkgFolder.path;
         // TODO(paulberry): figure out the right thing to do for Windows.
-        if (pkgFolderPath.length > bestMatchLength && sourcePath.startsWith(pkgFolderPath + '/')) {
+        if (pkgFolderPath.length > bestMatchLength &&
+            sourcePath.startsWith(pkgFolderPath + '/')) {
           String relPath = sourcePath.substring(pkgFolderPath.length + 1);
           if (_isReversibleTranslation(pkgFolders, i, relPath)) {
             bestMatch = Uri.parse('$PACKAGE_SCHEME:$pkgName/$relPath');
@@ -104,8 +104,8 @@ class PackageMapUriResolver extends UriResolver {
    * that is, whether translating the package URI pack to a file path will
    * produce the file path we started with.
    */
-  bool _isReversibleTranslation(List<Folder> packageDirs, int packageDirIndex,
-      String relPath) {
+  bool _isReversibleTranslation(
+      List<Folder> packageDirs, int packageDirIndex, String relPath) {
     // The translation is reversible provided there is no prior element of
     // [packageDirs] containing a file matching [relPath].
     for (int i = 0; i < packageDirIndex; i++) {

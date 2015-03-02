@@ -18,8 +18,8 @@ main() {
 
 @reflectiveTest
 class InstrumentationServiceTest {
-  void assertNormal(TestInstrumentationServer server, String tag,
-      String message) {
+  void assertNormal(
+      TestInstrumentationServer server, String tag, String message) {
     String sent = server.normalChannel.toString();
     if (!sent.endsWith(':$tag:$message\n')) {
       fail('Expected "...:$tag:$message", found "$sent"');
@@ -64,9 +64,7 @@ class InstrumentationServiceTest {
     String content = 'class C {\n}\n';
     service.logFileRead(path, time, content);
     assertNormal(
-        server,
-        InstrumentationService.TAG_FILE_READ,
-        '$path:$time:$content');
+        server, InstrumentationService.TAG_FILE_READ, '$path:$time:$content');
   }
 
   void test_logLogEntry() {
@@ -76,9 +74,7 @@ class InstrumentationServiceTest {
     DateTime time = new DateTime(2001);
     String message = 'message';
     service.logLogEntry(level, time, message);
-    assertNormal(
-        server,
-        InstrumentationService.TAG_LOG_ENTRY,
+    assertNormal(server, InstrumentationService.TAG_LOG_ENTRY,
         '$level:${time.millisecondsSinceEpoch}:$message');
   }
 
@@ -109,17 +105,11 @@ class InstrumentationServiceTest {
   void test_logVersion() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
-    service.logVersion(
-        'myUuid',
-        'someClientId',
-        'someClientVersion',
-        'aServerVersion',
-        'anSdkVersion');
+    service.logVersion('myUuid', 'someClientId', 'someClientVersion',
+        'aServerVersion', 'anSdkVersion');
     expect(server.normalChannel.toString(), '');
-    expect(
-        server.priorityChannel.toString(),
-        endsWith(
-            ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
+    expect(server.priorityChannel.toString(), endsWith(
+        ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
   }
 }
 
