@@ -115,7 +115,7 @@ class _TimerHeap {
 
 class _Timer implements Timer {
   // Cancels the timer in the event handler.
-  static const int _NO_TIMER = -1;
+  static const _NO_TIMER = -1;
 
   // We distinguish what kind of message arrived based on the value being sent.
   static const _ZERO_EVENT = 1;
@@ -129,7 +129,7 @@ class _Timer implements Timer {
 
   // We use an id to be able to sort timers with the same expiration time.
   // ids are recycled after ID_MASK enqueues or when the timer queue is empty.
-  static int _ID_MASK = 0x1fffffff;
+  static const _ID_MASK = 0x1fffffff;
   static int _idCount = 0;
 
   static RawReceivePort _receivePort;
@@ -140,10 +140,11 @@ class _Timer implements Timer {
 
   Function _callback;  // Closure to call when timer fires. null if canceled.
   int _wakeupTime;  // Expiration time.
-  int _milliSeconds;  // Duration specified at creation.
-  bool _repeating;  // Indicates periodic timers.
+  final int _milliSeconds;  // Duration specified at creation.
+  final bool _repeating;  // Indicates periodic timers.
   var _indexOrNext;  // Index if part of the TimerHeap, link otherwise.
   int _id;  // Incrementing id to enable sorting of timers with same expiry.
+
 
   // Get the next available id. We accept collisions and reordering when the
   // _idCount overflows and the timers expire at the same millisecond.
@@ -153,10 +154,12 @@ class _Timer implements Timer {
     return result;
   }
 
+
   _Timer._internal(this._callback,
                    this._wakeupTime,
                    this._milliSeconds,
                    this._repeating) : _id = _nextId();
+
 
   static Timer _createTimer(void callback(Timer timer),
                             int milliSeconds,
@@ -182,15 +185,19 @@ class _Timer implements Timer {
     return timer;
   }
 
+
   factory _Timer(int milliSeconds, void callback(Timer timer)) {
     return _createTimer(callback, milliSeconds, false);
   }
+
 
   factory _Timer.periodic(int milliSeconds, void callback(Timer timer)) {
     return _createTimer(callback, milliSeconds, true);
   }
 
+
   bool get _isInHeap => _indexOrNext is int;
+
 
   int _compareTo(_Timer other) {
     int c = _wakeupTime - other._wakeupTime;
@@ -198,7 +205,9 @@ class _Timer implements Timer {
     return _id - other._id;
   }
 
+
   bool get isActive => _callback != null;
+
 
   // Cancels a set timer. The timer is removed from the timer heap if it is a
   // non-zero timer. Zero timers are kept in the list as they need to consume
@@ -215,6 +224,7 @@ class _Timer implements Timer {
     }
   }
 
+
   void _advanceWakeupTime() {
     // Recalculate the next wakeup time. For repeating timers with a 0 timeout
     // the next wakeup time is now.
@@ -225,6 +235,7 @@ class _Timer implements Timer {
       _wakeupTime = new DateTime.now().millisecondsSinceEpoch;
     }
   }
+
 
   // Adds a timer to the heap or timer list. Timers with the same wakeup time
   // are enqueued in order and notified in FIFO order.
@@ -292,13 +303,13 @@ class _Timer implements Timer {
       // No pending timers: Close the receive port and let the event handler
       // know.
       if (_sendPort != null) {
-        VMLibraryHooks.eventHandlerSendData(null, _sendPort, _NO_TIMER);
+        _cancelWakeup();
         _shutdownTimerHandler();
       }
       return;
     } else if (_heap.isEmpty) {
       // Only zero timers are left. Cancel any scheduled wakeups.
-      VMLibraryHooks.eventHandlerSendData(null, _sendPort, _NO_TIMER);
+      _cancelWakeup();
       return;
     }
 
@@ -307,15 +318,10 @@ class _Timer implements Timer {
     var wakeupTime = _heap.first._wakeupTime;
     if ((_scheduledWakeupTime == null) ||
         (wakeupTime != _scheduledWakeupTime)) {
-      if (_sendPort == null) {
-        // Create a receive port and register a message handler for the timer
-        // events.
-        _createTimerHandler();
-      }
-      VMLibraryHooks.eventHandlerSendData(null, _sendPort, wakeupTime);
-      _scheduledWakeupTime = wakeupTime;
+      _scheduleWakeup(wakeupTime);
     }
   }
+
 
   static List _queueFromTimeoutEvent() {
     var pendingTimers = new List();
@@ -343,6 +349,7 @@ class _Timer implements Timer {
     }
     return pendingTimers;
   }
+
 
   static void _runTimers(List pendingTimers) {
     // If there are no pending timers currently reset the id space before we
@@ -387,14 +394,10 @@ class _Timer implements Timer {
       }
     } finally {
       _handlingCallbacks = false;
-      // Notify the event handler or shutdown the port if no more pending
-      // timers are present.
-      _notifyEventHandler();
     }
   }
 
-  // Creates a receive port and registers an empty handler on that port. Just
-  // the triggering of the event loop will ensure that timers are executed.
+
   static void _handleMessage(msg) {
     var pendingTimers;
     if (msg == _ZERO_EVENT) {
@@ -402,11 +405,36 @@ class _Timer implements Timer {
       assert(pendingTimers.length > 0);
     } else {
       assert(msg == _TIMEOUT_EVENT);
+      _scheduledWakeupTime = null;  // Consumed the last scheduled wakeup now.
       pendingTimers = _queueFromTimeoutEvent();
     }
     _runTimers(pendingTimers);
+    // Notify the event handler or shutdown the port if no more pending
+    // timers are present.
+    _notifyEventHandler();
   }
 
+
+  // Tell the event handler to wake this isolate at a specific time.
+  static void _scheduleWakeup(int wakeupTime) {
+    if (_sendPort == null) {
+      _createTimerHandler();
+    }
+    VMLibraryHooks.eventHandlerSendData(null, _sendPort, wakeupTime);
+    _scheduledWakeupTime = wakeupTime;
+  }
+
+
+  // Cancel pending wakeups in the event handler.
+  static void _cancelWakeup() {
+    assert(_sendPort != null);
+    VMLibraryHooks.eventHandlerSendData(null, _sendPort, _NO_TIMER);
+    _scheduledWakeupTime = null;
+  }
+
+
+  // Create a receive port and register a message handler for the timer
+  // events.
   static void _createTimerHandler() {
     assert(_receivePort == null);
     assert(_sendPort == null);
@@ -415,12 +443,14 @@ class _Timer implements Timer {
     _scheduledWakeupTime = null;
   }
 
+
   static void _shutdownTimerHandler() {
     _receivePort.close();
     _receivePort = null;
     _sendPort = null;
     _scheduledWakeupTime = null;
   }
+
 
   // The Timer factory registered with the dart:async library by the embedder.
   static Timer _factory(int milliSeconds,
@@ -432,6 +462,7 @@ class _Timer implements Timer {
     return new _Timer(milliSeconds, callback);
   }
 }
+
 
 _setupHooks() {
   VMLibraryHooks.timerFactory = _Timer._factory;
