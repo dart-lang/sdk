@@ -291,10 +291,10 @@ defineRuleUnitTests() {
       });
     });
     group('lower_case_underscores', () {
-      var good = ['foo_bar', 'foo', 'foo_bar_baz', 'p'];
+      var good = ['foo_bar', 'foo', 'foo_bar_baz', 'p', 'p1', 'p21', 'p1ll0'];
       testEach(good, isLowerCaseUnderScore, isTrue);
 
-      var bad = ['Foo', 'fooBar', 'foo_Bar', 'foo_', '_f', 'F_B', 'JS', 'JSON'];
+      var bad = ['Foo', 'fooBar', 'foo_Bar', 'foo_', '_f', 'F_B', 'JS', 'JSON', '1', '1b'];
       testEach(bad, isLowerCaseUnderScore, isFalse);
     });
     group('qualified lower_case_underscores', () {
