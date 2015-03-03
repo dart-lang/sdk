@@ -1034,10 +1034,10 @@ class ClosureTranslator extends Visitor {
       // An `await for` loop is enclosed in an implicit try-finally.
       bool oldInTryStatement = inTryStatement;
       inTryStatement = true;
-      node.visitChildren(this);
+      visitLoop(node);
       inTryStatement = oldInTryStatement;
     } else {
-      node.visitChildren(this);
+      visitLoop(node);
     }
   }
 }
