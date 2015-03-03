@@ -2174,6 +2174,20 @@ class Function : public Object {
         Function::Handle(parent_function()).IsSyncGenerator();
   }
 
+  bool IsGeneratorClosure() const {
+    return is_generated_body() &&
+        Function::Handle(parent_function()).IsGenerator();
+  }
+
+  bool IsAsyncGenerator() const {
+    return modifier() == RawFunction::kAsyncGen;
+  }
+
+  bool IsAsyncGenClosure() const {
+    return is_generated_body() &&
+        Function::Handle(parent_function()).IsAsyncGenerator();
+  }
+
   bool IsAsyncOrGenerator() const {
     return modifier() != RawFunction::kNoModifier;
   }

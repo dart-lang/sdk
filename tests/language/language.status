@@ -8,9 +8,6 @@
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
 await_for_cancel_test: RuntimeError # Issue 21404
-asyncstar_yield_test: Fail # Issue 21404
-asyncstar_yieldstar_test: Fail # Issue 21404
-asyncstar_concat_test: Fail # Issue 21404
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -44,26 +41,10 @@ cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
-async_await_syntax_test/a09a: CompileTimeError # Issue 21404
-async_await_syntax_test/a10a: CompileTimeError # Issue 21404
-async_await_syntax_test/b09a: CompileTimeError # Issue 21404
-async_await_syntax_test/b10a: CompileTimeError # Issue 21404
-async_await_syntax_test/c09a: CompileTimeError # Issue 21404
-async_await_syntax_test/c10a: CompileTimeError # Issue 21404
-async_await_syntax_test/d09a: CompileTimeError # Issue 21404
-async_await_syntax_test/d10a: CompileTimeError # Issue 21404
-
 [ $compiler == none || ($compiler == dart2dart && $builder_tag != new_backend) ]
 async_finally_rethrow_test: RuntimeError # Issue 22595.
 async_throw_in_catch_test: Crash, RuntimeError # Issue 21404 or it could be a test error
-asyncstar_throw_in_catch_test: CompileTimeError # Issue 21404
-async_await_syntax_test/a03a: CompileTimeError # Issue 21404
-async_await_syntax_test/a03b: CompileTimeError # Issue 21404
-async_await_syntax_test/a11d: CompileTimeError # Issue 21404
-async_await_syntax_test/b03a: CompileTimeError # Issue 21404
-async_await_syntax_test/b11d: CompileTimeError # Issue 21404
-async_await_syntax_test/c03a: CompileTimeError # Issue 21404
-async_await_syntax_test/d03a: CompileTimeError # Issue 21404
+asyncstar_throw_in_catch_test: RuntimeError # Issue 21404
 sync_generator3_test/test2: Fail # Issue 22300
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]

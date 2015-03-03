@@ -44,6 +44,15 @@ class ObjectPointerVisitor;
   V(_SyncIterableConstructor, "_SyncIterable.")                                \
   V(_SyncIterator, "_SyncIterator")                                            \
   V(IteratorParameter, ":iterator")                                            \
+  V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
+  V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
+  V(Controller, ":controller")                                                 \
+  V(Stream, "stream")                                                          \
+  V(isPaused, "isPaused")                                                      \
+  V(AddError, "addError")                                                      \
+  V(AddStream, "addStream")                                                    \
+  V(Cancel, "cancel")                                                          \
+  V(Close, "close")                                                            \
   V(Values, "values")                                                          \
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \

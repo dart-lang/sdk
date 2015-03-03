@@ -541,16 +541,28 @@ class Parser : public ValueObject {
   SequenceNode* CloseSyncGenFunction(const Function& closure,
                                      SequenceNode* closure_node);
   void AddSyncGenClosureParameters(ParamList* params);
+  void AddAsyncGenClosureParameters(ParamList* params);
+
+  // Support for async* functions.
+  RawFunction* OpenAsyncGeneratorFunction(intptr_t func_pos);
+  SequenceNode* CloseAsyncGeneratorFunction(const Function& closure,
+                                            SequenceNode* closure_node);
+  void OpenAsyncGeneratorClosure();
+  SequenceNode* CloseAsyncGeneratorClosure(SequenceNode* body);
+
   void OpenAsyncTryBlock();
   SequenceNode* CloseBlock();
   SequenceNode* CloseAsyncFunction(const Function& closure,
                                    SequenceNode* closure_node);
+
   SequenceNode* CloseAsyncClosure(SequenceNode* body);
   SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block);
+  SequenceNode* CloseAsyncGeneratorTryBlock(SequenceNode *body);
+
   void AddAsyncClosureParameters(ParamList* params);
   void AddContinuationVariables();
   void AddAsyncClosureVariables();
-
+  void AddAsyncGeneratorVariables();
 
   LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
@@ -614,6 +626,7 @@ class Parser : public ValueObject {
                                     SequenceNode** await_preamble);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
+  AstNode* ParseYieldStatement();
   AstNode* ParseStatement();
   SequenceNode* ParseNestedStatement(bool parsing_loop_body,
                                      SourceLabel* label);
