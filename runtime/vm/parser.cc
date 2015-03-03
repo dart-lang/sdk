@@ -5985,6 +5985,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
 
   // The try-block (closure body code) has been parsed. We are now
   // generating the code for the catch block.
+  LocalScope* try_scope = current_block_->scope;
   try_blocks_list_->enter_catch();
   OpenBlock();  // Catch handler list.
   OpenBlock();  // Catch block.
@@ -6006,12 +6007,12 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
 
   // Generate code to save the exception object and stack trace
   // in local variables.
-  LocalVariable* context_var = current_block_->scope->LookupVariable(
-      Symbols::SavedTryContextVar(), false);
+  LocalVariable* context_var = try_scope->LocalLookupVariable(
+      Symbols::SavedTryContextVar());
   ASSERT(context_var != NULL);
 
-  LocalVariable* exception_var = current_block_->scope->LookupVariable(
-      Symbols::ExceptionVar(), false);
+  LocalVariable* exception_var = try_scope->LocalLookupVariable(
+      Symbols::ExceptionVar());
   ASSERT(exception_var != NULL);
   if (exception_param.var != NULL) {
     // Generate code to load the exception object (:exception_var) into
@@ -6023,7 +6024,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   }
 
   LocalVariable* stack_trace_var =
-      current_block_->scope->LookupVariable(Symbols::StackTraceVar(), false);
+      try_scope->LocalLookupVariable(Symbols::StackTraceVar());
   ASSERT(stack_trace_var != NULL);
   if (stack_trace_param.var != NULL) {
     // A stack trace variable is specified in this block, so generate code
@@ -6034,11 +6035,12 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
         stack_trace_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
   }
-  LocalVariable* saved_exception_var = current_block_->scope->LookupVariable(
-      Symbols::SavedExceptionVar(), false);
-  LocalVariable* saved_stack_trace_var = current_block_->scope->LookupVariable(
-      Symbols::SavedStackTraceVar(), false);
-  SaveExceptionAndStacktrace(exception_var,
+  LocalVariable* saved_exception_var = try_scope->LocalLookupVariable(
+      Symbols::SavedExceptionVar());
+  LocalVariable* saved_stack_trace_var = try_scope->LocalLookupVariable(
+      Symbols::SavedStackTraceVar());
+  SaveExceptionAndStacktrace(current_block_->statements,
+                             exception_var,
                              stack_trace_var,
                              saved_exception_var,
                              saved_stack_trace_var);
@@ -6139,6 +6141,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   ASSERT(try_blocks_list_ != NULL);
   ASSERT(try_blocks_list_->outer_try_block() == NULL);
   ASSERT(innermost_function().IsAsyncClosure());
+  LocalScope* try_scope = current_block_->scope;
 
   try_blocks_list_->enter_catch();
 
@@ -6158,12 +6161,12 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   AddCatchParamsToScope(
       &exception_param, &stack_trace_param, current_block_->scope);
 
-  LocalVariable* context_var = current_block_->scope->LookupVariable(
-      Symbols::SavedTryContextVar(), false);
+  LocalVariable* context_var = try_scope->LocalLookupVariable(
+      Symbols::SavedTryContextVar());
   ASSERT(context_var != NULL);
 
-  LocalVariable* exception_var = current_block_->scope->LookupVariable(
-      Symbols::ExceptionVar(), false);
+  LocalVariable* exception_var = try_scope->LocalLookupVariable(
+      Symbols::ExceptionVar());
   if (exception_param.var != NULL) {
     // Generate code to load the exception object (:exception_var) into
     // the exception variable specified in this block.
@@ -6175,7 +6178,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   }
 
   LocalVariable* stack_trace_var =
-      current_block_->scope->LookupVariable(Symbols::StackTraceVar(), false);
+      try_scope->LocalLookupVariable(Symbols::StackTraceVar());
   if (stack_trace_param.var != NULL) {
     // A stack trace variable is specified in this block, so generate code
     // to load the stack trace object (:stack_trace_var) into the stack
@@ -6186,11 +6189,12 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
         stack_trace_param.var,
         new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
   }
-  LocalVariable* saved_exception_var = current_block_->scope->LookupVariable(
-      Symbols::SavedExceptionVar(), false);
-  LocalVariable* saved_stack_trace_var = current_block_->scope->LookupVariable(
-      Symbols::SavedStackTraceVar(), false);
-  SaveExceptionAndStacktrace(exception_var,
+  LocalVariable* saved_exception_var = try_scope->LocalLookupVariable(
+      Symbols::SavedExceptionVar());
+  LocalVariable* saved_stack_trace_var = try_scope->LocalLookupVariable(
+      Symbols::SavedStackTraceVar());
+  SaveExceptionAndStacktrace(current_block_->statements,
+                             exception_var,
                              stack_trace_var,
                              saved_exception_var,
                              saved_stack_trace_var);
@@ -6250,57 +6254,22 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
 }
 
 
-// Wrap the body of the async or arync* closure in a try/catch block.
+// Wrap the body of the async or async* closure in a try/catch block.
 void Parser::OpenAsyncTryBlock() {
   ASSERT(innermost_function().IsAsyncClosure() ||
          innermost_function().IsAsyncGenClosure());
-
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
-  LocalVariable* context_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  if (context_var == NULL) {
-    context_var = new(Z) LocalVariable(
-        TokenPos(),
-        Symbols::SavedTryContextVar(),
-        dynamic_type);
-    current_block_->scope->AddVariable(context_var);
-  }
-  LocalVariable* exception_var =
-      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
-  if (exception_var == NULL) {
-    exception_var = new(Z) LocalVariable(
-        TokenPos(),
-        Symbols::ExceptionVar(),
-        dynamic_type);
-    current_block_->scope->AddVariable(exception_var);
-  }
-  LocalVariable* stack_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
-  if (stack_trace_var == NULL) {
-    stack_trace_var = new(Z) LocalVariable(
-        TokenPos(),
-        Symbols::StackTraceVar(),
-        dynamic_type);
-    current_block_->scope->AddVariable(stack_trace_var);
-  }
-  LocalVariable* saved_exception_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedExceptionVar());
-  if (saved_exception_var == NULL) {
-    saved_exception_var = new(Z) LocalVariable(
-        TokenPos(),
-        Symbols::SavedExceptionVar(),
-        dynamic_type);
-    current_block_->scope->AddVariable(saved_exception_var);
-  }
-  LocalVariable* saved_stack_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedStackTraceVar());
-  if (saved_stack_trace_var == NULL) {
-    saved_stack_trace_var = new(Z) LocalVariable(
-        TokenPos(),
-        Symbols::SavedStackTraceVar(),
-        dynamic_type);
-    current_block_->scope->AddVariable(saved_stack_trace_var);
-  }
+  LocalVariable* context_var = NULL;
+  LocalVariable* exception_var = NULL;
+  LocalVariable* stack_trace_var = NULL;
+  LocalVariable* saved_exception_var = NULL;
+  LocalVariable* saved_stack_trace_var = NULL;
+  SetupExceptionVariables(current_block_->scope,
+                          true,
+                          &context_var,
+                          &exception_var,
+                          &stack_trace_var,
+                          &saved_exception_var,
+                          &saved_stack_trace_var);
 
   // Open the try block.
   OpenBlock();
@@ -8689,7 +8658,8 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
 // the saved exception variable (:saved_exception_var) used to rethrow.
 // Generate code to load the stack trace object (:stack_trace_var) into
 // the saved stacktrace variable (:saved_stack_trace_var) used to rethrow.
-void Parser::SaveExceptionAndStacktrace(LocalVariable* exception_var,
+void Parser::SaveExceptionAndStacktrace(SequenceNode* statements,
+                                        LocalVariable* exception_var,
                                         LocalVariable* stack_trace_var,
                                         LocalVariable* saved_exception_var,
                                         LocalVariable* saved_stack_trace_var) {
@@ -8702,21 +8672,26 @@ void Parser::SaveExceptionAndStacktrace(LocalVariable* exception_var,
 
   ASSERT(saved_exception_var != NULL);
   ASSERT(exception_var != NULL);
-  current_block_->statements->Add(new(Z) StoreLocalNode(
+  statements->Add(new(Z) StoreLocalNode(
       Scanner::kNoSourcePos,
       saved_exception_var,
       new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
 
   ASSERT(saved_stack_trace_var != NULL);
   ASSERT(stack_trace_var != NULL);
-  current_block_->statements->Add(new(Z) StoreLocalNode(
+  statements->Add(new(Z) StoreLocalNode(
       Scanner::kNoSourcePos,
       saved_stack_trace_var,
       new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
 }
 
 
-SequenceNode* Parser::ParseFinallyBlock() {
+SequenceNode* Parser::ParseFinallyBlock(
+    bool is_async,
+    LocalVariable* exception_var,
+    LocalVariable* stack_trace_var,
+    LocalVariable* rethrow_exception_var,
+    LocalVariable* rethrow_stack_trace_var) {
   TRACE_PARSER("ParseFinallyBlock");
   OpenBlock();
   ExpectToken(Token::kLBRACE);
@@ -8724,19 +8699,24 @@ SequenceNode* Parser::ParseFinallyBlock() {
   // In case of async closures we need to restore the saved try index of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
-  if ((innermost_function().IsAsyncClosure() ||
-       innermost_function().IsAsyncFunction() ||
-       innermost_function().IsSyncGenClosure() ||
-       innermost_function().IsSyncGenerator() ||
-       innermost_function().IsAsyncGenerator() ||
-       innermost_function().IsAsyncGenClosure()) &&
-      (try_blocks_list_ != NULL)) {
-    LocalScope* scope = try_blocks_list_->try_block()->scope;
-    if (scope->function_level() == current_block_->scope->function_level()) {
-      current_block_->statements->Add(
-          AwaitTransformer::RestoreSavedTryContext(
-              Z, scope->parent(), try_blocks_list_->try_index()));
+  if (is_async) {
+    if (try_blocks_list_ != NULL) {
+      LocalScope* scope = try_blocks_list_->try_block()->scope;
+      if (scope->function_level() == current_block_->scope->function_level()) {
+        current_block_->statements->Add(
+            AwaitTransformer::RestoreSavedTryContext(
+                Z, scope->parent(), try_blocks_list_->try_index()));
+      }
     }
+    // We need to save the exception variables as in catch clauses, whether
+    // there is an outer try or not. Note that this is only necessary if the
+    // finally clause contains an await or yield.
+    // TODO(hausner): Optimize.
+    SaveExceptionAndStacktrace(current_block_->statements,
+                               exception_var,
+                               stack_trace_var,
+                               rethrow_exception_var,
+                               rethrow_stack_trace_var);
   }
 
   ParseStatementSequence();
@@ -8805,6 +8785,7 @@ void Parser::AddFinallyBlockToNode(AstNode* node,
 
 SequenceNode* Parser::ParseCatchClauses(
     intptr_t handler_pos,
+    bool is_async,
     LocalVariable* exception_var,
     LocalVariable* stack_trace_var,
     LocalVariable* rethrow_exception_var,
@@ -8881,31 +8862,6 @@ SequenceNode* Parser::ParseCatchClauses(
     // Add nested block with user-defined code.  This block allows
     // declarations in the body to shadow the catch parameters.
     CheckToken(Token::kLBRACE);
-
-    // In case of async closures we need to restore the saved try index of an
-    // outer try block (if it exists).
-    ASSERT(try_blocks_list_ != NULL);
-    if (innermost_function().IsAsyncClosure() ||
-        innermost_function().IsAsyncFunction() ||
-        innermost_function().IsSyncGenClosure() ||
-        innermost_function().IsSyncGenerator() ||
-        innermost_function().IsAsyncGenerator() ||
-        innermost_function().IsAsyncGenClosure()) {
-      const TryBlocks* try_block = try_blocks_list_->outer_try_block();
-      if (try_block != NULL) {
-        LocalScope* scope = try_block->try_block()->scope;
-        if (scope->function_level() ==
-            current_block_->scope->function_level()) {
-          current_block_->statements->Add(
-              AwaitTransformer::RestoreSavedTryContext(
-                  Z, scope->parent(), try_block->try_index()));
-        }
-      }
-      SaveExceptionAndStacktrace(exception_var,
-                                 stack_trace_var,
-                                 rethrow_exception_var,
-                                 rethrow_stack_trace_var);
-    }
 
     current_block_->statements->Add(ParseNestedStatement(false, NULL));
     catch_blocks.Add(CloseBlock());
@@ -9000,29 +8956,33 @@ SequenceNode* Parser::ParseCatchClauses(
         type_test->token_pos(), type_test, catch_block, current));
     current = CloseBlock();
   }
-  // Restore :saved_try_context_var before executing the catch clauses.
-  if (current != NULL) {
+  // In case of async closures, restore :saved_try_context_var before executing
+  // the catch clauses.
+  if (is_async && (current != NULL)) {
     ASSERT(try_blocks_list_ != NULL);
-    if (innermost_function().IsAsyncClosure() ||
-        innermost_function().IsAsyncFunction() ||
-        innermost_function().IsSyncGenClosure() ||
-        innermost_function().IsSyncGenerator() ||
-        innermost_function().IsAsyncGenerator() ||
-        innermost_function().IsAsyncGenClosure()) {
-      const TryBlocks* try_block = try_blocks_list_->outer_try_block();
-      if (try_block != NULL) {
-        LocalScope* scope = try_block->try_block()->scope;
-        if (scope->function_level() ==
-            current_block_->scope->function_level()) {
-          SequenceNode* restore_code = new(Z) SequenceNode(handler_pos, NULL);
-          restore_code->Add(
-              AwaitTransformer::RestoreSavedTryContext(
-                  Z, scope->parent(), try_block->try_index()));
-          restore_code->Add(current);
-          current = restore_code;
-        }
+    SequenceNode* async_code = new(Z) SequenceNode(handler_pos, NULL);
+    const TryBlocks* try_block = try_blocks_list_->outer_try_block();
+    if (try_block != NULL) {
+      LocalScope* scope = try_block->try_block()->scope;
+      if (scope->function_level() ==
+          current_block_->scope->function_level()) {
+        async_code->Add(
+            AwaitTransformer::RestoreSavedTryContext(
+                Z, scope->parent(), try_block->try_index()));
       }
     }
+    SaveExceptionAndStacktrace(async_code,
+                               exception_var,
+                               stack_trace_var,
+                               rethrow_exception_var,
+                               rethrow_stack_trace_var);
+    // The async_code node sequence contains code to restore the context (if
+    // an outer try block is present) and code to save the exception and
+    // stack trace variables.
+    // This async code is inserted before the current node sequence containing
+    // the chain of if/then/else handling all catch clauses.
+    async_code->Add(current);
+    current = async_code;
   }
   return current;
 }
@@ -9052,79 +9012,99 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
 }
 
 
-AstNode* Parser::ParseTryStatement(String* label_name) {
-  TRACE_PARSER("ParseTryStatement");
-
-  // We create three variables for exceptions here:
-  // ':saved_try_context_var' - Used to save the context before the start of
-  //                            the try block. The context register is
-  //                            restored from this variable before
-  //                            processing the catch block handler.
-  // ':exception_var' - Used to save the current exception object that was
-  //                    thrown.
-  // ':stack_trace_var' - Used to save the current stack trace object which
-  //                      the stack trace was copied into when an exception
-  //                      was thrown.
-  // :exception_var and :stack_trace_var get set with the exception object
-  // and the stack trace object when an exception is thrown.  These three
-  // implicit variables can never be captured.
+// We create three variables for exceptions:
+// ':saved_try_context_var' - Used to save the context before the start of
+//                            the try block. The context register is
+//                            restored from this variable before
+//                            processing the catch block handler.
+// ':exception_var' - Used to save the current exception object that was
+//                    thrown.
+// ':stack_trace_var' - Used to save the current stack trace object which
+//                      the stack trace was copied into when an exception
+//                      was thrown.
+// :exception_var and :stack_trace_var get set with the exception object
+// and the stack trace object when an exception is thrown.  These three
+// implicit variables can never be captured.
+//
+// In case of async code, we create two additional variables:
+// ':saved_exception_var' - Used to capture the exception object above.
+// ':saved_stack_trace_var' - Used to capture the stack trace object above.
+void Parser::SetupExceptionVariables(LocalScope* try_scope,
+                                     bool is_async,
+                                     LocalVariable** context_var,
+                                     LocalVariable** exception_var,
+                                     LocalVariable** stack_trace_var,
+                                     LocalVariable** saved_exception_var,
+                                     LocalVariable** saved_stack_trace_var) {
   const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   // Consecutive try statements share the same set of variables.
-  LocalVariable* context_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  if (context_var == NULL) {
-    context_var = new(Z) LocalVariable(
+  *context_var = try_scope->LocalLookupVariable(Symbols::SavedTryContextVar());
+  if (*context_var == NULL) {
+    *context_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::SavedTryContextVar(),
         dynamic_type);
-    current_block_->scope->AddVariable(context_var);
+    try_scope->AddVariable(*context_var);
   }
-  LocalVariable* exception_var =
-      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
-  if (exception_var == NULL) {
-    exception_var = new(Z) LocalVariable(
+  *exception_var = try_scope->LocalLookupVariable(Symbols::ExceptionVar());
+  if (*exception_var == NULL) {
+    *exception_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::ExceptionVar(),
         dynamic_type);
-    current_block_->scope->AddVariable(exception_var);
+    try_scope->AddVariable(*exception_var);
   }
-  LocalVariable* stack_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
-  if (stack_trace_var == NULL) {
-    stack_trace_var = new(Z) LocalVariable(
+  *stack_trace_var = try_scope->LocalLookupVariable(Symbols::StackTraceVar());
+  if (*stack_trace_var == NULL) {
+    *stack_trace_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::StackTraceVar(),
         dynamic_type);
-    current_block_->scope->AddVariable(stack_trace_var);
+    try_scope->AddVariable(*stack_trace_var);
   }
-  LocalVariable* saved_exception_var = NULL;
-  LocalVariable* saved_stack_trace_var = NULL;
+  if (is_async) {
+    *saved_exception_var = try_scope->LocalLookupVariable(
+        Symbols::SavedExceptionVar());
+    if (*saved_exception_var == NULL) {
+      *saved_exception_var = new(Z) LocalVariable(
+          TokenPos(),
+          Symbols::SavedExceptionVar(),
+          dynamic_type);
+      try_scope->AddVariable(*saved_exception_var);
+    }
+    *saved_stack_trace_var = try_scope->LocalLookupVariable(
+        Symbols::SavedStackTraceVar());
+    if (*saved_stack_trace_var == NULL) {
+      *saved_stack_trace_var = new(Z) LocalVariable(
+          TokenPos(),
+          Symbols::SavedStackTraceVar(),
+          dynamic_type);
+      try_scope->AddVariable(*saved_stack_trace_var);
+    }
+  }
+}
+
+
+AstNode* Parser::ParseTryStatement(String* label_name) {
+  TRACE_PARSER("ParseTryStatement");
   const bool is_async = innermost_function().IsAsyncClosure() ||
                         innermost_function().IsAsyncFunction() ||
                         innermost_function().IsSyncGenClosure() ||
                         innermost_function().IsSyncGenerator() ||
                         innermost_function().IsAsyncGenClosure() ||
                         innermost_function().IsAsyncGenerator();
-  if (is_async) {
-    saved_exception_var = current_block_->scope->LocalLookupVariable(
-        Symbols::SavedExceptionVar());
-    if (saved_exception_var == NULL) {
-      saved_exception_var = new(Z) LocalVariable(
-          TokenPos(),
-          Symbols::SavedExceptionVar(),
-          dynamic_type);
-      current_block_->scope->AddVariable(saved_exception_var);
-    }
-    saved_stack_trace_var = current_block_->scope->LocalLookupVariable(
-        Symbols::SavedStackTraceVar());
-    if (saved_stack_trace_var == NULL) {
-      saved_stack_trace_var = new(Z) LocalVariable(
-          TokenPos(),
-          Symbols::SavedStackTraceVar(),
-          dynamic_type);
-      current_block_->scope->AddVariable(saved_stack_trace_var);
-    }
-  }
+  LocalVariable* context_var = NULL;
+  LocalVariable* exception_var = NULL;
+  LocalVariable* stack_trace_var = NULL;
+  LocalVariable* saved_exception_var = NULL;
+  LocalVariable* saved_stack_trace_var = NULL;
+  SetupExceptionVariables(current_block_->scope,
+                          is_async,
+                          &context_var,
+                          &exception_var,
+                          &stack_trace_var,
+                          &saved_exception_var,
+                          &saved_stack_trace_var);
 
   const intptr_t try_pos = TokenPos();
   ConsumeToken();  // Consume the 'try'.
@@ -9161,10 +9141,14 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
   bool needs_stack_trace = false;
   SequenceNode* catch_handler_list =
-      ParseCatchClauses(handler_pos, exception_var, stack_trace_var,
+      ParseCatchClauses(handler_pos,
+                        is_async,
+                        exception_var,
+                        stack_trace_var,
                         is_async ? saved_exception_var : exception_var,
                         is_async ? saved_stack_trace_var : stack_trace_var,
-                        handler_types, &needs_stack_trace);
+                        handler_types,
+                        &needs_stack_trace);
 
   TryBlocks* inner_try_block = PopTryBlock();
   const intptr_t try_index = inner_try_block->try_index();
@@ -9183,7 +9167,12 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     AstNode* node_to_inline =
         inner_try_block->GetNodeToInlineFinally(node_index);
     while (node_to_inline != NULL) {
-      finally_block = ParseFinallyBlock();
+      finally_block = ParseFinallyBlock(
+          is_async,
+          exception_var,
+          stack_trace_var,
+          is_async ? saved_exception_var : exception_var,
+          is_async ? saved_stack_trace_var : stack_trace_var);
       InlinedFinallyNode* node = new(Z) InlinedFinallyNode(finally_pos,
                                                            finally_block,
                                                            context_var,
@@ -9193,7 +9182,12 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
       tokens_iterator_.SetCurrentPosition(finally_pos);
     }
-    finally_block = ParseFinallyBlock();
+    finally_block = ParseFinallyBlock(
+        is_async,
+        exception_var,
+        stack_trace_var,
+        is_async ? saved_exception_var : exception_var,
+        is_async ? saved_stack_trace_var : stack_trace_var);
   }
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(

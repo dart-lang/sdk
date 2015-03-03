@@ -592,12 +592,21 @@ class Parser : public ValueObject {
   void AddCatchParamsToScope(CatchParamDesc* exception_param,
                              CatchParamDesc* stack_trace_param,
                              LocalScope* scope);
-  void SaveExceptionAndStacktrace(LocalVariable* exception_var,
+  void SetupExceptionVariables(LocalScope* try_scope,
+                               bool is_async,
+                               LocalVariable** context_var,
+                               LocalVariable** exception_var,
+                               LocalVariable** stack_trace_var,
+                               LocalVariable** saved_exception_var,
+                               LocalVariable** saved_stack_trace_var);
+  void SaveExceptionAndStacktrace(SequenceNode* statements,
+                                  LocalVariable* exception_var,
                                   LocalVariable* stack_trace_var,
                                   LocalVariable* saved_exception_var,
                                   LocalVariable* saved_stack_trace_var);
   // Parse all the catch clause of a try.
   SequenceNode* ParseCatchClauses(intptr_t handler_pos,
+                                  bool is_async,
                                   LocalVariable* exception_var,
                                   LocalVariable* stack_trace_var,
                                   LocalVariable* rethrow_exception_var,
@@ -605,7 +614,11 @@ class Parser : public ValueObject {
                                   const GrowableObjectArray& handler_types,
                                   bool* needs_stack_trace);
   // Parse finally block and create an AST for it.
-  SequenceNode* ParseFinallyBlock();
+  SequenceNode* ParseFinallyBlock(bool is_async,
+                                  LocalVariable* exception_var,
+                                  LocalVariable* stack_trace_var,
+                                  LocalVariable* rethrow_exception_var,
+                                  LocalVariable* rethrow_stack_trace_var);
   // Adds try block to the list of try blocks seen so far.
   void PushTryBlock(Block* try_block);
   // Pops the inner most try block from the list.
