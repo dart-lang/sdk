@@ -58,6 +58,9 @@ int_parse_radix_test/02: Fail # No bigints.
 double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 integer_to_radix_string_test: RuntimeError # issue 22045
 
+[ $runtime != vm ]
+hash_set_type_check_test: Fail # Issue 22635
+
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
 [ $compiler == none || $compiler == dart2js || $compiler == dart2dart]
