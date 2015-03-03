@@ -12251,7 +12251,8 @@ A f(A p) {
     ReturnStatement statement =
         (ifStatement.thenStatement as Block).statements[0] as ReturnStatement;
     MethodInvocation invocation = statement.expression as MethodInvocation;
-    expect(invocation.methodName.propagatedElement, isNotNull);
+    expect(invocation.methodName.staticElement, isNotNull);
+    expect(invocation.methodName.propagatedElement, isNull);
   }
 
   void test_is_while() {
