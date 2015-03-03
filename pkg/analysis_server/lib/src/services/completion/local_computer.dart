@@ -196,9 +196,10 @@ class _ConstructorVisitor extends LocalDeclarationVisitor {
    */
   CompletionSuggestion _addSuggestion(
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
+    SimpleIdentifier elemId;
     String completion = classDecl.name.name;
     if (constructorDecl != null) {
-      SimpleIdentifier elemId = constructorDecl.name;
+      elemId = constructorDecl.name;
       if (elemId != null) {
         String name = elemId.name;
         if (name != null && name.length > 0) {
@@ -250,9 +251,8 @@ class _ConstructorVisitor extends LocalDeclarationVisitor {
     }
     paramBuf.write(')');
     protocol.Element element = _createElement(
-        protocol.ElementKind.CONSTRUCTOR, null,
+        protocol.ElementKind.CONSTRUCTOR, elemId,
         parameters: paramBuf.toString());
-    element.name = completion;
     element.returnType = classDecl.name.name;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,

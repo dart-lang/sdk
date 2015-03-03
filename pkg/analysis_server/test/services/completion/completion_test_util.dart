@@ -206,7 +206,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
-    expect(element.name, name);
+    int index = name.indexOf('.');
+    expect(element.name, index >= 0 ? name.substring(index + 1) : '');
     return cs;
   }
 

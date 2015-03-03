@@ -186,7 +186,6 @@ class DartCompletionCache extends CompletionCache {
         String name = suggestion.completion;
         name = name.length > 0 ? '$className.$name' : className;
         suggestion.completion = name;
-        suggestion.element.name = name;
         suggestion.selectionOffset = suggestion.completion.length;
         importedConstructorSuggestions.add(suggestion);
       }
