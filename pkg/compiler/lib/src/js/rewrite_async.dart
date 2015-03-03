@@ -1305,7 +1305,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         if (clause is js.Case) {
           labels[i] = newLabel("case");
           clauses.add(new js.Case(clause.expression, gotoAndBreak(labels[i])));
-        } else if (i is js.Default) {
+        } else if (clause is js.Default) {
           labels[i] = newLabel("default");
           clauses.add(new js.Default(gotoAndBreak(labels[i])));
           hasDefault = true;
@@ -1315,12 +1315,14 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         }
         i++;
       }
+      if (!hasDefault) {
+        clauses.add(new js.Default(gotoAndBreak(after)));
+      }
       withExpression(node.key, (js.Expression key) {
         addStatement(new js.Switch(key, clauses));
       }, store: false);
-      if (!hasDefault) {
-        addGoto(after);
-      }
+
+      addBreak();
     }
 
     jumpTargets.add(node);

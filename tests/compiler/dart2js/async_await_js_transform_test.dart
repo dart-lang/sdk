@@ -419,9 +419,11 @@ function(x, y) {
               // goto case
               __goto = 9;
               break;
+            default:
+              // goto after switch
+              __goto = 5;
+              break;
           }
-          // goto after switch
-          __goto = 5;
           break;
         case 6:
           // case
