@@ -6,10 +6,14 @@ function fail {
   return 1
 }
 
+# Arguments passed to the diff tool. We exclude *.map files so they aren't
+# compared, as the diff is not human readable.
+DIFF_ARGS="-u -r -N --exclude=\*.map expect actual"
+
 function show_diff {
   echo "Fail: actual output did not match expected"
   echo
-  diff -u -r -N $1 $2 |\
+  diff $DIFF_ARGS |\
     sed -e "s/^\(+.*\)/[32m\1[0m/" |\
     sed -e "s/^\(-.*\)/[31m\1[0m/"
   echo
@@ -36,12 +40,12 @@ dart -c test/all_tests.dart || fail
 
 # validate codegen_test output
 pushd test/codegen/ &> /dev/null
-diff -u -r -N expect actual > /dev/null || show_diff expect actual
+diff $DIFF_ARGS > /dev/null || show_diff
 popd &> /dev/null
 
 # validate dart_codegen_test output
 pushd test/dart_codegen/ &> /dev/null
-diff -u -r -N expect actual > /dev/null || show_diff expect actual
+diff $DIFF_ARGS > /dev/null || show_diff
 popd &> /dev/null
 
 # run self host and analyzer after other tests, because they're ~seconds to run.
