@@ -40,6 +40,12 @@ class AnalyzerImpl {
 
   final CommandLineOptions options;
   final int startTime;
+
+  /**
+   * True if the analyzer is running in batch mode.
+   */
+  final bool isBatch;
+
   ContentCache contentCache = new ContentCache();
 
   SourceFactory sourceFactory;
@@ -55,7 +61,7 @@ class AnalyzerImpl {
   final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap =
       new HashMap<Source, AnalysisErrorInfo>();
 
-  AnalyzerImpl(String sourcePath, this.options, this.startTime)
+  AnalyzerImpl(String sourcePath, this.options, this.startTime, this.isBatch)
       : sourcePath = _normalizeSourcePath(sourcePath) {
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
@@ -263,6 +269,13 @@ class AnalyzerImpl {
     // ability to suppress errors, warnings, and hints for files reached via
     // custom URI's using the "--url-mapping" flag.
     if (source.uri.scheme == 'dart') {
+      if (isBatch) {
+        // When running in batch mode, the SDK files are cached from one
+        // analysis run to the next.  So we need to parse function bodies even
+        // if the user hasn't asked for errors/warnings from the SDK, since
+        // they might ask for errors/warnings from the SDK in the future.
+        return true;
+      }
       return options.showSdkWarnings;
     }
     if (source.uri.scheme == 'package') {

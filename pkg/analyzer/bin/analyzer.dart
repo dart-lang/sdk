@@ -25,14 +25,14 @@ void main(List<String> args) {
   if (options.shouldBatch) {
     BatchRunner.runAsBatch(args, (List<String> args) {
       CommandLineOptions options = CommandLineOptions.parse(args);
-      return _analyzeAll(options);
+      return _analyzeAll(options, true);
     });
   } else {
-    _analyzeAll(options);
+    _analyzeAll(options, false);
   }
 }
 
-_analyzeAll(CommandLineOptions options) {
+_analyzeAll(CommandLineOptions options, bool isBatch) {
   if (!options.machineFormat) {
     stdout.writeln("Analyzing ${options.sourceFiles}...");
   }
@@ -53,31 +53,33 @@ _analyzeAll(CommandLineOptions options) {
       // fail fast; don't analyze more files
       return ErrorSeverity.ERROR;
     }
-    ErrorSeverity status = _runAnalyzer(options, sourcePath);
+    ErrorSeverity status = _runAnalyzer(options, sourcePath, isBatch);
     allResult = allResult.max(status);
   }
   return allResult;
 }
 
-_runAnalyzer(CommandLineOptions options, String sourcePath) {
+_runAnalyzer(CommandLineOptions options, String sourcePath, bool isBatch) {
   if (options.warmPerf) {
     int startTime = JavaSystem.currentTimeMillis();
-    AnalyzerImpl analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+    AnalyzerImpl analyzer =
+        new AnalyzerImpl(sourcePath, options, startTime, isBatch);
     analyzer.analyzeSync(printMode: 2);
 
     for (int i = 0; i < 8; i++) {
       startTime = JavaSystem.currentTimeMillis();
-      analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+      analyzer = new AnalyzerImpl(sourcePath, options, startTime, isBatch);
       analyzer.analyzeSync(printMode: 0);
     }
 
     PerformanceTag.reset();
     startTime = JavaSystem.currentTimeMillis();
-    analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+    analyzer = new AnalyzerImpl(sourcePath, options, startTime, isBatch);
     return analyzer.analyzeSync();
   }
   int startTime = JavaSystem.currentTimeMillis();
-  AnalyzerImpl analyzer = new AnalyzerImpl(sourcePath, options, startTime);
+  AnalyzerImpl analyzer =
+      new AnalyzerImpl(sourcePath, options, startTime, isBatch);
   var errorSeverity = analyzer.analyzeSync();
   if (errorSeverity == ErrorSeverity.ERROR) {
     exitCode = errorSeverity.ordinal;
