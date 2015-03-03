@@ -6266,24 +6266,6 @@ class MemberMapTest {
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
-  void fail_propagatedFieldType() {
-    // From dartbug.com/20019
-    Source source = addSource(r'''
-class A { }
-class X<T> {
-  final x = new List<T>();
-}
-class Z {
-  final X<A> y = new X<A>();
-  foo() {
-    y.x.add(new A());
-  }
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(r'''
 const bool DEBUG = true;
@@ -6706,6 +6688,23 @@ class A {
 class B extends A {
   @override
   set m(int x) {}
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_propagatedFieldType() {
+    Source source = addSource(r'''
+class A { }
+class X<T> {
+  final x = new List<T>();
+}
+class Z {
+  final X<A> y = new X<A>();
+  foo() {
+    y.x.add(new A());
+  }
 }''');
     resolve(source);
     assertNoErrors(source);
@@ -11991,6 +11990,68 @@ f() {
     PrefixedIdentifier invocation = statement.expression as PrefixedIdentifier;
     SimpleIdentifier variableName = invocation.prefix;
     expect(variableName.propagatedType, same(typeProvider.stringType));
+  }
+
+  void test_initializer_hasStaticType() {
+    Source source = addSource(r'''
+f() {
+  int v = 0;
+  return v;
+}''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    NodeList<Statement> statements = body.block.statements;
+    // Type of 'v' in declaration.
+    {
+      VariableDeclarationStatement statement =
+          statements[0] as VariableDeclarationStatement;
+      SimpleIdentifier variableName = statement.variables.variables[0].name;
+      expect(variableName.staticType, same(typeProvider.intType));
+      expect(variableName.propagatedType, isNull);
+    }
+    // Type of 'v' in reference.
+    {
+      ReturnStatement statement = statements[1] as ReturnStatement;
+      SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+      expect(variableName.staticType, same(typeProvider.intType));
+      expect(variableName.propagatedType, isNull);
+    }
+  }
+
+  void test_initializer_hasStaticType_parameterized() {
+    Source source = addSource(r'''
+f() {
+  List<int> v = <int>[];
+  return v;
+}''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    NodeList<Statement> statements = body.block.statements;
+    // Type of 'v' in declaration.
+    {
+      VariableDeclarationStatement statement =
+          statements[0] as VariableDeclarationStatement;
+      SimpleIdentifier variableName = statement.variables.variables[0].name;
+      expect(variableName.staticType, isNotNull);
+      expect(variableName.propagatedType, isNull);
+    }
+    // Type of 'v' in reference.
+    {
+      ReturnStatement statement = statements[1] as ReturnStatement;
+      SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+      expect(variableName.staticType, isNotNull);
+      expect(variableName.propagatedType, isNull);
+    }
   }
 
   void test_initializer_null() {

@@ -6338,8 +6338,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<TypeParameterElement> get typeParameters => element.typeParameters;
 
   @override
-  bool operator ==(Object object) =>
-      internalEquals(object, new HashSet<ElementPair>());
+  bool operator ==(Object object) {
+    if (identical(object, this)) {
+      return true;
+    }
+    return internalEquals(object, new HashSet<ElementPair>());
+  }
 
   @override
   void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
@@ -6432,6 +6436,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    if (identical(object, this)) {
+      return true;
+    }
     if (object is! InterfaceTypeImpl) {
       return false;
     }

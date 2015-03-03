@@ -10437,6 +10437,10 @@ class ResolverVisitor extends ScopedVisitor {
     }
     DartType currentType = _overrideManager.getBestType(element);
 
+    if (potentialType == currentType) {
+      return;
+    }
+
     // If we aren't allowing precision loss then the third and fourth conditions
     // check that we aren't losing precision.
     //

@@ -1282,10 +1282,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (initializer != null) {
       DartType rightType = initializer.bestType;
       SimpleIdentifier name = node.name;
-      _recordPropagatedType(name, rightType);
       VariableElement element = name.staticElement as VariableElement;
       if (element != null) {
         _resolver.overrideVariable(element, rightType, true);
+        if (_isReallyMoreSpecificThan(rightType, element.type)) {
+          _recordPropagatedType(name, rightType);
+        }
       }
     }
     return null;
@@ -1879,6 +1881,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     map["ul"] = "UListElement";
     map["video"] = "VideoElement";
     return map;
+  }
+
+  /**
+   * Return `true` if [propagatedType] is more specific than [staticType].
+   * In addition to [DartType.isMoreSpecificThan], we need to check that
+   * [propagatedType] is not the same as [staticType].
+   */
+  static bool _isReallyMoreSpecificThan(
+      DartType propagatedType, DartType staticType) {
+    if (propagatedType == null) {
+      return false;
+    }
+    if (propagatedType == staticType) {
+      return false;
+    }
+    return propagatedType.isMoreSpecificThan(staticType);
   }
 }
 
