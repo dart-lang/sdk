@@ -1094,7 +1094,7 @@ void FlowGraphCompiler::CompileGraph() {
     LocalVariable* closure_parameter = scope->VariableAt(0);
     __ movq(CTX, Address(RBP, closure_parameter->index() * kWordSize));
     __ movq(CTX, FieldAddress(CTX, Closure::context_offset()));
-#ifdef dEBUG
+#ifdef DEBUG
     Label ok;
     __ LoadClassId(RAX, CTX);
     __ cmpq(RAX, Immediate(kContextCid));

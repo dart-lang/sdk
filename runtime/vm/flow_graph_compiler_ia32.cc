@@ -1087,7 +1087,7 @@ void FlowGraphCompiler::CompileGraph() {
     // don't use it.
     __ movl(CTX, Address(EBP, closure_parameter->index() * kWordSize));
     __ movl(CTX, FieldAddress(CTX, Closure::context_offset()));
-#ifdef dEBUG
+#ifdef DEBUG
     Label ok;
     __ LoadClassId(EBX, CTX);
     __ cmpl(EBX, Immediate(kContextCid));
