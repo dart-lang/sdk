@@ -16,6 +16,11 @@ import 'package:analyzer/src/generated/scanner.dart';
 class OpType {
 
   /**
+   * Indicates whether constructor suggestions should be included.
+   */
+  bool includeConstructorSuggestions = false;
+
+  /**
    * Indicates whether invocation suggestions should be included.
    */
   bool includeInvocationSuggestions = false;
@@ -346,7 +351,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(entity, node.constructorName)) {
-      optype.includeTypeNameSuggestions = true;
+      optype.includeConstructorSuggestions = true;
     }
   }
 

@@ -33,6 +33,11 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
+  CompletionSuggestion assertSuggestLocalConstructor(String name) {
+    return assertSuggestConstructor(name);
+  }
+
+  @override
   CompletionSuggestion assertSuggestLocalField(String name, String type,
       {int relevance: DART_RELEVANCE_LOCAL_FIELD, bool deprecated: false}) {
     return assertSuggestField(name, type,
@@ -522,6 +527,50 @@ class B extends A {
     expect(suggestion.parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_InstanceCreationExpression() {
+    addTestSource('''
+class A {foo(){var f; {var x;}}}
+class B {B(this.x, [String boo]) { } int x;}
+class C {C.bar({boo: 'hoo', int z: 0}) { } }
+main() {new ^ String x = "hello";}''');
+    computeFast();
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion;
+
+      suggestion = assertSuggestLocalConstructor('A');
+      expect(suggestion.element.parameters, '()');
+      expect(suggestion.element.returnType, 'A');
+      expect(suggestion.declaringType, 'A');
+      expect(suggestion.parameterNames, hasLength(0));
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+
+      suggestion = assertSuggestLocalConstructor('B');
+      expect(suggestion.element.parameters, '(int x, [String boo])');
+      expect(suggestion.element.returnType, 'B');
+      expect(suggestion.declaringType, 'B');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'int');
+      expect(suggestion.parameterNames[1], 'boo');
+      expect(suggestion.parameterTypes[1], 'String');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, false);
+
+      suggestion = assertSuggestLocalConstructor('C.bar');
+      expect(suggestion.element.parameters, '({dynamic boo, int z})');
+      expect(suggestion.element.returnType, 'C');
+      expect(suggestion.declaringType, 'C');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'boo');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'z');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, true);
+    });
   }
 
   test_method_parameters_mixed_required_and_named() {

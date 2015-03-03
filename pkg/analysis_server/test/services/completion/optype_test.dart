@@ -44,7 +44,7 @@ class OpTypeTest {
 
   void assertOpType({bool invocation: false, bool returnValue: false,
       bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
-      bool caseLabel: false}) {
+      bool caseLabel: false, bool constructors: false}) {
     expect(visitor.includeInvocationSuggestions, equals(invocation),
         reason: 'invocation');
     expect(visitor.includeReturnValueSuggestions, equals(returnValue),
@@ -57,6 +57,8 @@ class OpTypeTest {
         reason: 'statementLabel');
     expect(visitor.includeCaseLabelSuggestions, equals(caseLabel),
         reason: 'caseLabel');
+    expect(visitor.includeConstructorSuggestions, equals(constructors),
+        reason: 'constructors');
   }
 
   test_Annotation() {
@@ -331,7 +333,7 @@ class OpTypeTest {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('main() {new Str^ing.fromCharCodes([]);}', resolved: true);
-    assertOpType(typeNames: true);
+    assertOpType(constructors: true);
   }
 
   test_ConstructorName_resolved() {
@@ -554,10 +556,16 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_InstanceCreationExpression_imported() {
+  test_InstanceCreationExpression() {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^}}');
-    assertOpType(typeNames: true);
+    assertOpType(constructors: true);
+  }
+
+  test_InstanceCreationExpression_trailingStmt() {
+    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    addTestSource('class C {foo(){var f; {var x;} new ^ int x = 7;}}');
+    assertOpType(constructors: true);
   }
 
   test_InstanceCreationExpression_keyword() {

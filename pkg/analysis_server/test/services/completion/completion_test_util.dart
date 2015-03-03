@@ -201,6 +201,15 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestConstructor(String name) {
+    CompletionSuggestion cs = assertSuggest(name);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
+    expect(element.name, name);
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestField(String name, String type,
       {int relevance: DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
@@ -568,6 +577,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestImportedConstructor(String name) {
+    return assertNotSuggested(name);
+  }
+
   CompletionSuggestion assertSuggestImportedField(String name, String type,
       {int relevance: DART_RELEVANCE_INHERITED_FIELD}) {
     return assertNotSuggested(name);
@@ -686,6 +699,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
       {int relevance: DART_RELEVANCE_DEFAULT}) {
+    return assertNotSuggested(name);
+  }
+
+  CompletionSuggestion assertSuggestLocalConstructor(String name) {
     return assertNotSuggested(name);
   }
 
@@ -2112,21 +2129,21 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addSource('/testA.dart', '''
       int T1;
       F1() { }
-      class A {int x;}''');
+      class A {A(this.x) { } int x;}''');
     addTestSource('''
       import "/testA.dart";
       int T2;
       F2() { }
-      class B {int x;}
+      class B {B(this.x, [String boo]) { } int x;}
       class C {foo(){var f; {var x;} new ^}}''');
     computeFast();
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestImportedClass('Object');
-      assertSuggestImportedClass('A');
-      assertSuggestLocalClass('B');
-      assertSuggestLocalClass('C');
+      assertSuggestImportedConstructor('Object');
+      assertSuggestImportedConstructor('A');
+      assertSuggestLocalConstructor('B');
+      assertSuggestLocalConstructor('C');
       assertNotSuggested('f');
       assertNotSuggested('x');
       assertNotSuggested('foo');
@@ -2484,16 +2501,17 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       var m;''');
     addTestSource('''
       part of libA;
-      class B { }
+      class B { factory B.bar(int x) => null; }
       main() {new ^}''');
     computeFast();
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestLocalClass('B');
-      assertSuggestImportedClass('Object');
-      assertSuggestImportedClass('X');
-      assertSuggestNonLocalClass('A');
+      assertSuggestLocalConstructor('B.bar');
+      assertSuggestImportedConstructor('Object');
+      assertSuggestImportedConstructor('X.c');
+      assertNotSuggested('X._d');
+      assertSuggestImportedConstructor('A');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');
@@ -2516,17 +2534,18 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       library libA;
       import "/testB.dart";
       part "/testA.dart";
-      class A { }
+      class A { A({String boo: 'hoo'}) { } }
       main() {new ^}
       var m;''');
     computeFast();
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestLocalClass('A');
-      assertSuggestImportedClass('Object');
-      assertSuggestImportedClass('X');
-      assertSuggestNonLocalClass('B');
+      assertSuggestLocalConstructor('A');
+      assertSuggestImportedConstructor('Object');
+      assertSuggestImportedConstructor('X.c');
+      assertNotSuggested('X._d');
+      assertSuggestImportedConstructor('B');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');

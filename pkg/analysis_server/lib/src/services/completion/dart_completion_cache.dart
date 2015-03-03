@@ -56,6 +56,12 @@ class DartCompletionCache extends CompletionCache {
   List<CompletionSuggestion> otherImportedSuggestions;
 
   /**
+   * Suggestions for constructors
+   * or `null` if nothing has been cached.
+   */
+  List<CompletionSuggestion> importedConstructorSuggestions;
+
+  /**
    * A collection of all imported completions
    * or `null` if nothing has been cached.
    */
@@ -111,6 +117,7 @@ class DartCompletionCache extends CompletionCache {
     importedTypeSuggestions = <CompletionSuggestion>[];
     libraryPrefixSuggestions = <CompletionSuggestion>[];
     otherImportedSuggestions = <CompletionSuggestion>[];
+    importedConstructorSuggestions = <CompletionSuggestion>[];
     importedVoidReturnSuggestions = <CompletionSuggestion>[];
     importedClassMap = new Map<String, ClassElement>();
     _importedCompletions = new HashSet<String>();
@@ -166,6 +173,25 @@ class DartCompletionCache extends CompletionCache {
    */
   bool isImportInfoCached(CompilationUnit unit) =>
       _importKey != null && _importKey == _computeImportKey(unit);
+
+  /**
+   * Add constructor suggestions for the given class.
+   */
+  void _addConstructorSuggestions(ClassElement classElem, int relevance) {
+    String className = classElem.name;
+    for (ConstructorElement constructor in classElem.constructors) {
+      if (!constructor.isPrivate) {
+        CompletionSuggestion suggestion =
+            createSuggestion(constructor, relevance: relevance);
+        String name = suggestion.completion;
+        name = name.length > 0 ? '$className.$name' : className;
+        suggestion.completion = name;
+        suggestion.element.name = name;
+        suggestion.selectionOffset = suggestion.completion.length;
+        importedConstructorSuggestions.add(suggestion);
+      }
+    }
+  }
 
   /**
    * Add suggestions for implicitly imported elements in dart:core.
@@ -282,6 +308,7 @@ class DartCompletionCache extends CompletionCache {
       }
     } else if (element is ClassElement) {
       importedTypeSuggestions.add(suggestion);
+      _addConstructorSuggestions(element, relevance);
     } else {
       otherImportedSuggestions.add(suggestion);
     }

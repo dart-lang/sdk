@@ -16,6 +16,66 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
+const _DYNAMIC = 'dynamic';
+
+final TypeName _NO_RETURN_TYPE = new TypeName(
+    new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)), null);
+
+/**
+ * Create a new protocol Element for inclusion in a completion suggestion.
+ */
+protocol.Element _createElement(protocol.ElementKind kind, SimpleIdentifier id,
+    {String parameters, TypeName returnType, bool isAbstract: false,
+    bool isDeprecated: false}) {
+  String name = id != null ? id.name : '';
+  int flags = protocol.Element.makeFlags(
+      isAbstract: isAbstract,
+      isDeprecated: isDeprecated,
+      isPrivate: Identifier.isPrivateName(name));
+  return new protocol.Element(kind, name, flags,
+      parameters: parameters, returnType: _nameForType(returnType));
+}
+
+/**
+ * Return `true` if the @deprecated annotation is present
+ */
+bool _isDeprecated(AnnotatedNode node) {
+  if (node != null) {
+    NodeList<Annotation> metadata = node.metadata;
+    if (metadata != null) {
+      return metadata.any((Annotation a) {
+        return a.name is SimpleIdentifier && a.name.name == 'deprecated';
+      });
+    }
+  }
+  return false;
+}
+
+/**
+ * Return the name for the given type.
+ */
+String _nameForType(TypeName type) {
+  if (type == _NO_RETURN_TYPE) {
+    return null;
+  }
+  if (type == null) {
+    return _DYNAMIC;
+  }
+  Identifier id = type.name;
+  if (id == null) {
+    return _DYNAMIC;
+  }
+  String name = id.name;
+  if (name == null || name.length <= 0) {
+    return _DYNAMIC;
+  }
+  TypeArgumentList typeArgs = type.typeArguments;
+  if (typeArgs != null) {
+    //TODO (danrubel) include type arguments
+  }
+  return name;
+}
+
 /**
  * A computer for calculating `completion.getSuggestions` request results
  * for the local library in which the completion is requested.
@@ -24,13 +84,13 @@ class LocalComputer extends DartCompletionComputer {
   @override
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
+
+    // Collect suggestions from the specific child [AstNode] that contains
+    // the completion offset and all of its parents recursively.
     if (optype.includeTopLevelSuggestions) {
       _LocalVisitor localVisitor = new _LocalVisitor(request, request.offset,
           optype.includeOnlyTypeNameSuggestions,
           !optype.includeVoidReturnSuggestions);
-
-      // Collect suggestions from the specific child [AstNode] that contains
-      // the completion offset and all of its parents recursively.
       localVisitor.visit(request.node);
     }
     if (optype.includeStatementLabelSuggestions ||
@@ -39,6 +99,9 @@ class LocalComputer extends DartCompletionComputer {
           optype.includeStatementLabelSuggestions,
           optype.includeCaseLabelSuggestions);
       labelVisitor.visit(request.node);
+    }
+    if (optype.includeConstructorSuggestions) {
+      new _ConstructorVisitor(request).visit(request.node);
     }
 
     // If the unit is not a part and does not reference any parts
@@ -52,6 +115,183 @@ class LocalComputer extends DartCompletionComputer {
     // TODO: implement computeFull
     // include results from part files that are included in the library
     return new Future.value(false);
+  }
+}
+
+/**
+ * A visitor for collecting constructor suggestions.
+ */
+class _ConstructorVisitor extends LocalDeclarationVisitor {
+  final DartCompletionRequest request;
+
+  _ConstructorVisitor(DartCompletionRequest request)
+      : super(request.offset),
+        request = request;
+
+  @override
+  void declaredClass(ClassDeclaration declaration) {
+    bool found = false;
+    for (ClassMember member in declaration.members) {
+      if (member is ConstructorDeclaration) {
+        found = true;
+        _addSuggestion(declaration, member);
+      }
+    }
+    if (!found) {
+      _addSuggestion(declaration, null);
+    }
+  }
+
+  @override
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {
+    // TODO: implement declaredClassTypeAlias
+  }
+
+  @override
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
+    // TODO: implement declaredField
+  }
+
+  @override
+  void declaredFunction(FunctionDeclaration declaration) {
+    // TODO: implement declaredFunction
+  }
+
+  @override
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
+    // TODO: implement declaredFunctionTypeAlias
+  }
+
+  @override
+  void declaredLabel(Label label, bool isCaseLabel) {
+    // TODO: implement declaredLabel
+  }
+
+  @override
+  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
+    // TODO: implement declaredLocalVar
+  }
+
+  @override
+  void declaredMethod(MethodDeclaration declaration) {
+    // TODO: implement declaredMethod
+  }
+
+  @override
+  void declaredParam(SimpleIdentifier name, TypeName type) {
+    // TODO: implement declaredParam
+  }
+
+  @override
+  void declaredTopLevelVar(
+      VariableDeclarationList varList, VariableDeclaration varDecl) {
+    // TODO: implement declaredTopLevelVar
+  }
+
+  /**
+   * For the given class and constructor,
+   * add a suggestion of the form B(...) or B.name(...).
+   * If the given constructor is `null`
+   * then add a default constructor suggestion.
+   */
+  CompletionSuggestion _addSuggestion(
+      ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
+    String completion = classDecl.name.name;
+    if (constructorDecl != null) {
+      SimpleIdentifier elemId = constructorDecl.name;
+      if (elemId != null) {
+        String name = elemId.name;
+        if (name != null && name.length > 0) {
+          completion = '$completion.$name';
+        }
+      }
+    }
+    bool isDeprecated =
+        constructorDecl != null && _isDeprecated(constructorDecl);
+    List<String> parameterNames = new List<String>();
+    List<String> parameterTypes = new List<String>();
+    int requiredParameterCount = 0;
+    bool hasNamedParameters = false;
+    StringBuffer paramBuf = new StringBuffer();
+    paramBuf.write('(');
+    int paramCount = 0;
+    if (constructorDecl != null) {
+      for (FormalParameter param in constructorDecl.parameters.parameters) {
+        if (paramCount > 0) {
+          paramBuf.write(', ');
+        }
+        String paramName;
+        String typeName;
+        if (param is NormalFormalParameter) {
+          paramName = param.identifier.name;
+          typeName = _nameForParamType(param);
+          ++requiredParameterCount;
+        } else if (param is DefaultFormalParameter) {
+          NormalFormalParameter childParam = param.parameter;
+          paramName = childParam.identifier.name;
+          typeName = _nameForParamType(childParam);
+          if (param.kind == ParameterKind.NAMED) {
+            hasNamedParameters = true;
+          }
+          if (paramCount == requiredParameterCount) {
+            paramBuf.write(hasNamedParameters ? '{' : '[');
+          }
+        }
+        parameterNames.add(paramName);
+        parameterTypes.add(typeName);
+        paramBuf.write(typeName);
+        paramBuf.write(' ');
+        paramBuf.write(paramName);
+        ++paramCount;
+      }
+    }
+    if (paramCount > requiredParameterCount) {
+      paramBuf.write(hasNamedParameters ? '}' : ']');
+    }
+    paramBuf.write(')');
+    protocol.Element element = _createElement(
+        protocol.ElementKind.CONSTRUCTOR, null,
+        parameters: paramBuf.toString());
+    element.name = completion;
+    element.returnType = classDecl.name.name;
+    CompletionSuggestion suggestion = new CompletionSuggestion(
+        CompletionSuggestionKind.INVOCATION,
+        isDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT, completion,
+        completion.length, 0, isDeprecated, false,
+        declaringType: classDecl.name.name,
+        element: element,
+        parameterNames: parameterNames,
+        parameterTypes: parameterTypes,
+        requiredParameterCount: requiredParameterCount,
+        hasNamedParameters: hasNamedParameters);
+    request.suggestions.add(suggestion);
+    return suggestion;
+  }
+
+  /**
+   * Determine the name of the type for the given constructor parameter.
+   */
+  String _nameForParamType(NormalFormalParameter param) {
+    if (param is SimpleFormalParameter) {
+      return _nameForType(param.type);
+    }
+    SimpleIdentifier id = param.identifier;
+    if (param is FieldFormalParameter && id != null) {
+      String fieldName = id.name;
+      AstNode classDecl = param.getAncestor((p) => p is ClassDeclaration);
+      if (classDecl is ClassDeclaration) {
+        for (ClassMember member in classDecl.members) {
+          if (member is FieldDeclaration) {
+            for (VariableDeclaration field in member.fields.variables) {
+              if (field.name.name == fieldName) {
+                return _nameForType(member.fields.type);
+              }
+            }
+          }
+        }
+      }
+    }
+    return _DYNAMIC;
   }
 }
 
@@ -178,11 +418,6 @@ class _LabelVisitor extends LocalDeclarationVisitor {
  * that contains the completion offset to the [CompilationUnit].
  */
 class _LocalVisitor extends LocalDeclarationVisitor {
-  static const DYNAMIC = 'dynamic';
-
-  static final TypeName NO_RETURN_TYPE = new TypeName(
-      new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)), null);
-
   final DartCompletionRequest request;
   final bool typesOnly;
   final bool excludeVoidReturn;
@@ -194,12 +429,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClass(ClassDeclaration declaration) {
     bool isDeprecated = _isDeprecated(declaration);
-    CompletionSuggestion suggestion = _addSuggestion(
-        declaration.name, NO_RETURN_TYPE, isDeprecated, DART_RELEVANCE_DEFAULT);
+    CompletionSuggestion suggestion = _addSuggestion(declaration.name,
+        _NO_RETURN_TYPE, isDeprecated, DART_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS, declaration.name,
-          returnType: NO_RETURN_TYPE,
+          returnType: _NO_RETURN_TYPE,
           isAbstract: declaration.isAbstract,
           isDeprecated: isDeprecated);
     }
@@ -208,12 +443,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     bool isDeprecated = _isDeprecated(declaration);
-    CompletionSuggestion suggestion = _addSuggestion(
-        declaration.name, NO_RETURN_TYPE, isDeprecated, DART_RELEVANCE_DEFAULT);
+    CompletionSuggestion suggestion = _addSuggestion(declaration.name,
+        _NO_RETURN_TYPE, isDeprecated, DART_RELEVANCE_DEFAULT);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS_TYPE_ALIAS, declaration.name,
-          returnType: NO_RETURN_TYPE,
+          returnType: _NO_RETURN_TYPE,
           isAbstract: true,
           isDeprecated: isDeprecated);
     }
@@ -253,7 +488,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         return;
       }
       kind = protocol.ElementKind.SETTER;
-      returnType = NO_RETURN_TYPE;
+      returnType = _NO_RETURN_TYPE;
       defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
     } else {
       if (excludeVoidReturn && _isVoid(returnType)) {
@@ -327,7 +562,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         return;
       }
       kind = protocol.ElementKind.SETTER;
-      returnType = NO_RETURN_TYPE;
+      returnType = _NO_RETURN_TYPE;
       defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
     } else {
       if (excludeVoidReturn && _isVoid(returnType)) {
@@ -444,36 +679,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     return null;
   }
 
-  /**
-   * Create a new protocol Element for inclusion in a completion suggestion.
-   */
-  protocol.Element _createElement(
-      protocol.ElementKind kind, SimpleIdentifier id, {String parameters,
-      TypeName returnType, bool isAbstract: false, bool isDeprecated: false}) {
-    String name = id.name;
-    int flags = protocol.Element.makeFlags(
-        isAbstract: isAbstract,
-        isDeprecated: isDeprecated,
-        isPrivate: Identifier.isPrivateName(name));
-    return new protocol.Element(kind, name, flags,
-        parameters: parameters, returnType: _nameForType(returnType));
-  }
-
-  /**
-   * Return `true` if the @deprecated annotation is present
-   */
-  bool _isDeprecated(AnnotatedNode node) {
-    if (node != null) {
-      NodeList<Annotation> metadata = node.metadata;
-      if (metadata != null) {
-        return metadata.any((Annotation a) {
-          return a.name is SimpleIdentifier && a.name.name == 'deprecated';
-        });
-      }
-    }
-    return false;
-  }
-
   bool _isVoid(TypeName returnType) {
     if (returnType != null) {
       Identifier id = returnType.name;
@@ -482,30 +687,5 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return false;
-  }
-
-  /**
-   * Return the name for the given type.
-   */
-  String _nameForType(TypeName type) {
-    if (type == NO_RETURN_TYPE) {
-      return null;
-    }
-    if (type == null) {
-      return DYNAMIC;
-    }
-    Identifier id = type.name;
-    if (id == null) {
-      return DYNAMIC;
-    }
-    String name = id.name;
-    if (name == null || name.length <= 0) {
-      return DYNAMIC;
-    }
-    TypeArgumentList typeArgs = type.typeArguments;
-    if (typeArgs != null) {
-      //TODO (danrubel) include type arguments
-    }
-    return name;
   }
 }

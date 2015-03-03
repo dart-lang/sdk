@@ -239,7 +239,7 @@ class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
 f(){int x;int y=!1;}''', <String>["1+x"]);
 
     buildTests('testCommentSnippets048', '''
-import 'dart:convert' as json;f() {var x=new js!1}''', <String>["1+json"]);
+import 'dart:convert' as json;f() {var x=new js!1}''', <String>["1+json"], failingTests: '1');
 
     buildTests('testCommentSnippets049', '''
 import 'dart:convert' as json;
@@ -253,7 +253,7 @@ f1() {var x=new !2j!1s!3}''', <String>[
       "2-JsonDecoder",
       "3+json",
       "3-jxx"
-    ]);
+    ], failingTests: '123');
 
     buildTests('testCommentSnippets050', '''
 class xdr {
@@ -277,7 +277,7 @@ k() {
       "2-xdr.b",
       "3-b",
       "3+a"
-    ], failingTests: '123');
+    ], failingTests: '23');
 
     // Type propagation.
     buildTests('testCommentSnippets051', '''
@@ -625,7 +625,7 @@ f() => new Fil!1''', <String>[
       "1+FileMode",
       "1+FileMode._internal1",
       "1+FileMode._internal"
-    ], failingTests: '1');
+    ]);
 
     buildTests('testCommentSnippets078', '''
 class Map{static from()=>null;clear(){}}void main() { Map.!1 }''',

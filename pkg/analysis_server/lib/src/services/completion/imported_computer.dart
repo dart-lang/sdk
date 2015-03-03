@@ -29,10 +29,12 @@ class ImportedComputer extends DartCompletionComputer {
   @override
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
-    if (optype.includeTopLevelSuggestions) {
+    if (optype.includeTopLevelSuggestions ||
+        optype.includeConstructorSuggestions) {
       builder = new _ImportedSuggestionBuilder(request,
           typesOnly: optype.includeOnlyTypeNameSuggestions,
-          excludeVoidReturn: !optype.includeVoidReturnSuggestions);
+          excludeVoidReturn: !optype.includeVoidReturnSuggestions,
+          constructorsOnly: optype.includeConstructorSuggestions);
       builder.shouldWaitForLowPrioritySuggestions =
           shouldWaitForLowPrioritySuggestions;
       return builder.computeFast(request.node);
@@ -59,10 +61,11 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
   final DartCompletionRequest request;
   final bool typesOnly;
   final bool excludeVoidReturn;
+  final bool constructorsOnly;
   DartCompletionCache cache;
 
-  _ImportedSuggestionBuilder(this.request,
-      {this.typesOnly: false, this.excludeVoidReturn: false}) {
+  _ImportedSuggestionBuilder(this.request, {this.typesOnly: false,
+      this.excludeVoidReturn: false, this.constructorsOnly: false}) {
     cache = request.cache;
   }
 
@@ -76,8 +79,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
   bool computeFast(AstNode node) {
     CompilationUnit unit = request.unit;
     if (cache.isImportInfoCached(unit)) {
-      _addInheritedSuggestions(node);
-      _addTopLevelSuggestions();
+      _addSuggestions(node);
       return true;
     }
     return false;
@@ -88,8 +90,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
    */
   Future<bool> computeFull(AstNode node) {
     Future<bool> addSuggestions(_) {
-      _addInheritedSuggestions(node);
-      _addTopLevelSuggestions();
+      _addSuggestions(node);
       return new Future.value(true);
     }
 
@@ -102,6 +103,22 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
       return future.then(addSuggestions);
     }
     return addSuggestions(true);
+  }
+
+  /**
+   * Add constructor suggestions from the cache.
+   * To reduce the number of suggestions sent to the client,
+   * filter the suggestions based upon the first character typed.
+   * If no characters are available to use for filtering,
+   * then exclude all low priority suggestions.
+   */
+  void _addConstructorSuggestions() {
+    String filterText = request.filterText;
+    if (filterText.length > 1) {
+      filterText = filterText.substring(0, 1);
+    }
+    DartCompletionCache cache = request.cache;
+    _addFilteredSuggestions(filterText, cache.importedConstructorSuggestions);
   }
 
   /**
@@ -124,6 +141,25 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
         }
       }
       addSuggestion(elem, relevance: relevance);
+    });
+  }
+
+  /**
+   * Add suggestions which start with the given text.
+   */
+  _addFilteredSuggestions(
+      String filterText, List<CompletionSuggestion> unfiltered) {
+    //TODO (danrubel) Revisit this filtering once paged API has been added
+    unfiltered.forEach((CompletionSuggestion suggestion) {
+      if (filterText.length > 0) {
+        if (suggestion.completion.startsWith(filterText)) {
+          request.suggestions.add(suggestion);
+        }
+      } else {
+        if (suggestion.relevance != DART_RELEVANCE_LOW) {
+          request.suggestions.add(suggestion);
+        }
+      }
     });
   }
 
@@ -168,6 +204,18 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
   }
 
   /**
+   * Add suggested based upon imported elements.
+   */
+  void _addSuggestions(AstNode node) {
+    if (constructorsOnly) {
+      _addConstructorSuggestions();
+    } else {
+      _addInheritedSuggestions(node);
+      _addTopLevelSuggestions();
+    }
+  }
+
+  /**
    * Add top level suggestions from the cache.
    * To reduce the number of suggestions sent to the client,
    * filter the suggestions based upon the first character typed.
@@ -179,29 +227,14 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
     if (filterText.length > 1) {
       filterText = filterText.substring(0, 1);
     }
-
-    //TODO (danrubel) Revisit this filtering once paged API has been added
-    addFilteredSuggestions(List<CompletionSuggestion> unfiltered) {
-      unfiltered.forEach((CompletionSuggestion suggestion) {
-        if (filterText.length > 0) {
-          if (suggestion.completion.startsWith(filterText)) {
-            request.suggestions.add(suggestion);
-          }
-        } else {
-          if (suggestion.relevance != DART_RELEVANCE_LOW) {
-            request.suggestions.add(suggestion);
-          }
-        }
-      });
-    }
-
     DartCompletionCache cache = request.cache;
-    addFilteredSuggestions(cache.importedTypeSuggestions);
-    addFilteredSuggestions(cache.libraryPrefixSuggestions);
+    _addFilteredSuggestions(filterText, cache.importedTypeSuggestions);
+    _addFilteredSuggestions(filterText, cache.libraryPrefixSuggestions);
     if (!typesOnly) {
-      addFilteredSuggestions(cache.otherImportedSuggestions);
+      _addFilteredSuggestions(filterText, cache.otherImportedSuggestions);
       if (!excludeVoidReturn) {
-        addFilteredSuggestions(cache.importedVoidReturnSuggestions);
+        _addFilteredSuggestions(
+            filterText, cache.importedVoidReturnSuggestions);
       }
     }
   }

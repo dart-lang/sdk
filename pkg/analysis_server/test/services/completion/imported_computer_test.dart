@@ -100,6 +100,11 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
+  CompletionSuggestion assertSuggestImportedConstructor(String name) {
+    return assertSuggestConstructor(name);
+  }
+
+  @override
   CompletionSuggestion assertSuggestImportedField(String name, String type,
       {int relevance: DART_RELEVANCE_INHERITED_FIELD}) {
     return assertSuggestField(name, type, relevance: relevance);
@@ -344,6 +349,53 @@ class B extends A {
       expect(suggestion.parameterTypes[1], 'int');
       expect(suggestion.requiredParameterCount, 2);
       expect(suggestion.hasNamedParameters, false);
+    });
+  }
+
+  test_InstanceCreationExpression() {
+    addSource('/testA.dart', '''
+class A {foo(){var f; {var x;}}}
+class B {B(this.x, [String boo]) { } int x;}
+class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
+    addTestSource('''
+import "/testA.dart";
+main() {new ^ String x = "hello";}''');
+    computeFast();
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion;
+
+      suggestion = assertSuggestImportedConstructor('Object');
+      expect(suggestion.element.parameters, '()');
+      expect(suggestion.parameterNames, hasLength(0));
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+
+      suggestion = assertSuggestImportedConstructor('A');
+      expect(suggestion.element.parameters, '()');
+      expect(suggestion.parameterNames, hasLength(0));
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+
+      suggestion = assertSuggestImportedConstructor('B');
+      expect(suggestion.element.parameters, '(int x, [String boo])');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'int');
+      expect(suggestion.parameterNames[1], 'boo');
+      expect(suggestion.parameterTypes[1], 'String');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, false);
+
+      suggestion = assertSuggestImportedConstructor('C.bar');
+      expect(
+          suggestion.element.parameters, "({dynamic boo: 'hoo'}, {int z: 0})");
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'boo');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'z');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, true);
     });
   }
 
