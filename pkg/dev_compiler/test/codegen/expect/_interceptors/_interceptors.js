@@ -560,6 +560,14 @@ var _interceptors;
     return JSExtendableArray;
   });
   let JSExtendableArray = JSExtendableArray$(dynamic);
+  let _handleIEtoString = Symbol('_handleIEtoString');
+  let _isInt32 = Symbol('_isInt32');
+  let _tdivFast = Symbol('_tdivFast');
+  let _tdivSlow = Symbol('_tdivSlow');
+  let _shlPositive = Symbol('_shlPositive');
+  let _shrReceiverPositive = Symbol('_shrReceiverPositive');
+  let _shrOtherPositive = Symbol('_shrOtherPositive');
+  let _shrBothPositive = Symbol('_shrBothPositive');
   class JSNumber extends Interceptor {
     JSNumber() {
       super.Interceptor();
@@ -716,7 +724,7 @@ var _interceptors;
       }
       return _handleIEtoString(result);
     }
-    static _handleIEtoString(result) {
+    static [_handleIEtoString](result) {
       let match = /^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(result);
       if (match === null) {
         throw new core.UnsupportedError(`Unexpected toString result: ${result}`);
@@ -776,22 +784,22 @@ var _interceptors;
         return dart.notNull(result) + dart.notNull(other);
       }
     }
-    _isInt32(value) {
+    [_isInt32](value) {
       return (value | 0) === value;
     }
     ['~/'](other) {
       if (false)
-        this._tdivFast(other);
-      if (dart.notNull(dart.notNull(dart.notNull(this._isInt32(this)) && dart.notNull(this._isInt32(other))) && dart.notNull(0 !== other)) && dart.notNull(-1 !== other)) {
+        this[_tdivFast](other);
+      if (dart.notNull(dart.notNull(dart.notNull(this[_isInt32](this)) && dart.notNull(this[_isInt32](other))) && dart.notNull(0 !== other)) && dart.notNull(-1 !== other)) {
         return this / other | 0;
       } else {
-        return this._tdivSlow(other);
+        return this[_tdivSlow](other);
       }
     }
-    _tdivFast(other) {
-      return this._isInt32(this) ? this / other | 0 : (this / other).toInt();
+    [_tdivFast](other) {
+      return this[_isInt32](this) ? this / other | 0 : (this / other).toInt();
     }
-    _tdivSlow(other) {
+    [_tdivSlow](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
       return (this / other).toInt();
@@ -801,29 +809,29 @@ var _interceptors;
         throw new core.ArgumentError(other);
       if (dart.notNull(other) < 0)
         throw new core.ArgumentError(other);
-      return this._shlPositive(other);
+      return this[_shlPositive](other);
     }
-    _shlPositive(other) {
+    [_shlPositive](other) {
       return dart.as(other > 31 ? 0 : this << other >>> 0, core.num);
     }
     ['>>'](other) {
       if (false)
-        this._shrReceiverPositive(other);
+        this[_shrReceiverPositive](other);
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
       if (dart.notNull(other) < 0)
         throw new core.ArgumentError(other);
-      return this._shrOtherPositive(other);
+      return this[_shrOtherPositive](other);
     }
-    _shrOtherPositive(other) {
-      return dart.as(dart.notNull(this) > 0 ? this._shrBothPositive(other) : this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
+    [_shrOtherPositive](other) {
+      return dart.as(dart.notNull(this) > 0 ? this[_shrBothPositive](other) : this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
     }
-    _shrReceiverPositive(other) {
+    [_shrReceiverPositive](other) {
       if (dart.notNull(other) < 0)
         throw new core.ArgumentError(other);
-      return this._shrBothPositive(other);
+      return this[_shrBothPositive](other);
     }
-    _shrBothPositive(other) {
+    [_shrBothPositive](other) {
       return dart.as(other > 31 ? 0 : this >>> other, core.num);
     }
     ['&'](other) {
@@ -867,6 +875,11 @@ var _interceptors;
   }
   JSNumber._MIN_INT32 = -2147483648;
   JSNumber._MAX_INT32 = 2147483647;
+  let _bitCount = Symbol('_bitCount');
+  let _shru = Symbol('_shru');
+  let _shrs = Symbol('_shrs');
+  let _ors = Symbol('_ors');
+  let _spread = Symbol('_spread');
   class JSInt extends JSNumber {
     JSInt() {
       super.JSNumber();
@@ -892,7 +905,7 @@ var _interceptors;
       }
       return _bitCount(_spread(nonneg));
     }
-    static _bitCount(i) {
+    static [_bitCount](i) {
       i = dart.as(dart.dbinary(_shru(i, 0), '-', dart.dbinary(_shru(i, 1), '&', 1431655765)), core.int);
       i = dart.notNull((i & 858993459)['+'](dart.dbinary(_shru(i, 2), '&', 858993459)));
       i = 252645135 & dart.notNull(i['+'](_shru(i, 4)));
@@ -900,16 +913,16 @@ var _interceptors;
       i = dart.as(_shru(i, 16), core.int);
       return i & 63;
     }
-    static _shru(value, shift) {
+    static [_shru](value, shift) {
       return value >>> shift;
     }
-    static _shrs(value, shift) {
+    static [_shrs](value, shift) {
       return value >> shift;
     }
-    static _ors(a, b) {
+    static [_ors](a, b) {
       return a | b;
     }
-    static _spread(i) {
+    static [_spread](i) {
       i = dart.as(_ors(i, dart.as(_shrs(i, 1), core.int)), core.int);
       i = dart.as(_ors(i, dart.as(_shrs(i, 2), core.int)), core.int);
       i = dart.as(_ors(i, dart.as(_shrs(i, 4), core.int)), core.int);
@@ -938,6 +951,10 @@ var _interceptors;
   }
   class JSUInt31 extends JSUInt32 {
   }
+  let _defaultSplit = Symbol('_defaultSplit');
+  let _isWhitespace = Symbol('_isWhitespace');
+  let _skipLeadingWhitespace = Symbol('_skipLeadingWhitespace');
+  let _skipTrailingWhitespace = Symbol('_skipTrailingWhitespace');
   class JSString extends Interceptor {
     JSString() {
       super.Interceptor();
@@ -1018,10 +1035,10 @@ var _interceptors;
         let re = _js_helper.regExpGetNative(pattern);
         return dart.as(this.split(re), core.List$(core.String));
       } else {
-        return this._defaultSplit(pattern);
+        return this[_defaultSplit](pattern);
       }
     }
-    _defaultSplit(pattern) {
+    [_defaultSplit](pattern) {
       let result = new List.from([]);
       let start = 0;
       let length = 1;
@@ -1079,7 +1096,7 @@ var _interceptors;
     toUpperCase() {
       return this.toUpperCase();
     }
-    static _isWhitespace(codeUnit) {
+    static [_isWhitespace](codeUnit) {
       if (codeUnit < 256) {
         switch (codeUnit) {
           case 9:
@@ -1120,7 +1137,7 @@ var _interceptors;
           return false;
       }
     }
-    static _skipLeadingWhitespace(string, index) {
+    static [_skipLeadingWhitespace](string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (index < string.length) {
@@ -1132,7 +1149,7 @@ var _interceptors;
       }
       return index;
     }
-    static _skipTrailingWhitespace(string, index) {
+    static [_skipTrailingWhitespace](string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (index > 0) {
@@ -1347,16 +1364,17 @@ var _interceptors;
       return this[index];
     }
   }
+  let _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
-    _CodeUnits(_string) {
-      this._string = _string;
+    _CodeUnits($_string) {
+      this[_string] = $_string;
       super.UnmodifiableListBase();
     }
     get length() {
-      return this._string.length;
+      return this[_string].length;
     }
     get(i) {
-      return this._string.codeUnitAt(i);
+      return this[_string].codeUnitAt(i);
     }
   }
   // Exports:

@@ -118,10 +118,13 @@ var math;
       return Math.random() < 0.5;
     }
   }
+  let _lo = Symbol('_lo');
+  let _hi = Symbol('_hi');
+  let _nextState = Symbol('_nextState');
   class _Random extends dart.Object {
     _Random(seed) {
-      this._lo = 0;
-      this._hi = 0;
+      this[_lo] = 0;
+      this[_hi] = 0;
       let empty_seed = 0;
       if (seed < 0) {
         empty_seed = -1;
@@ -159,61 +162,61 @@ var math;
         tmplow = low;
         low = tmplow & _MASK32;
         high = high + tmphigh + ((tmplow - low) / 4294967296).truncate() & _MASK32;
-        tmplow = this._lo * 1037;
-        this._lo = tmplow & _MASK32;
-        this._hi = this._hi * 1037 + ((tmplow - this._lo) / 4294967296).truncate() & _MASK32;
-        this._lo = low;
-        this._hi = high;
+        tmplow = this[_lo] * 1037;
+        this[_lo] = tmplow & _MASK32;
+        this[_hi] = this[_hi] * 1037 + ((tmplow - this[_lo]) / 4294967296).truncate() & _MASK32;
+        this[_lo] = low;
+        this[_hi] = high;
       } while (seed !== empty_seed);
-      if (dart.notNull(this._hi === 0) && dart.notNull(this._lo === 0)) {
-        this._lo = 23063;
+      if (dart.notNull(this[_hi] === 0) && dart.notNull(this[_lo] === 0)) {
+        this[_lo] = 23063;
       }
-      this._nextState();
-      this._nextState();
-      this._nextState();
-      this._nextState();
+      this[_nextState]();
+      this[_nextState]();
+      this[_nextState]();
+      this[_nextState]();
     }
-    _nextState() {
-      let tmpHi = 4294901760 * this._lo;
+    [_nextState]() {
+      let tmpHi = 4294901760 * this[_lo];
       let tmpHiLo = tmpHi & _MASK32;
       let tmpHiHi = tmpHi - tmpHiLo;
-      let tmpLo = 55905 * this._lo;
+      let tmpLo = 55905 * this[_lo];
       let tmpLoLo = tmpLo & _MASK32;
       let tmpLoHi = tmpLo - tmpLoLo;
-      let newLo = tmpLoLo + tmpHiLo + this._hi;
-      this._lo = newLo & _MASK32;
-      let newLoHi = newLo - this._lo;
-      this._hi = ((tmpLoHi + tmpHiHi + newLoHi) / _POW2_32).truncate() & _MASK32;
-      dart.assert(this._lo < _POW2_32);
-      dart.assert(this._hi < _POW2_32);
+      let newLo = tmpLoLo + tmpHiLo + this[_hi];
+      this[_lo] = newLo & _MASK32;
+      let newLoHi = newLo - this[_lo];
+      this[_hi] = ((tmpLoHi + tmpHiHi + newLoHi) / _POW2_32).truncate() & _MASK32;
+      dart.assert(this[_lo] < _POW2_32);
+      dart.assert(this[_hi] < _POW2_32);
     }
     nextInt(max) {
       if (dart.notNull(max <= 0) || dart.notNull(max > _POW2_32)) {
         throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
       }
       if ((max & max - 1) === 0) {
-        this._nextState();
-        return this._lo & max - 1;
+        this[_nextState]();
+        return this[_lo] & max - 1;
       }
       let rnd32 = null;
       let result = null;
       do {
-        this._nextState();
-        rnd32 = this._lo;
+        this[_nextState]();
+        rnd32 = this[_lo];
         result = dart.notNull(rnd32.remainder(max));
       } while (rnd32 - result + max >= _POW2_32);
       return result;
     }
     nextDouble() {
-      this._nextState();
-      let bits26 = this._lo & (1 << 26) - 1;
-      this._nextState();
-      let bits27 = this._lo & (1 << 27) - 1;
+      this[_nextState]();
+      let bits26 = this[_lo] & (1 << 26) - 1;
+      this[_nextState]();
+      let bits27 = this[_lo] & (1 << 27) - 1;
       return (bits26 * _POW2_27_D + bits27) / _POW2_53_D;
     }
     nextBool() {
-      this._nextState();
-      return (this._lo & 1) === 0;
+      this[_nextState]();
+      return (this[_lo] & 1) === 0;
     }
   }
   _Random._POW2_53_D = 1.0 * 9007199254740992;
@@ -373,13 +376,15 @@ var math;
     return Rectangle;
   });
   let Rectangle = Rectangle$(dynamic);
+  let _width = Symbol('_width');
+  let _height = Symbol('_height');
   let MutableRectangle$ = dart.generic(function(T) {
     class MutableRectangle extends _RectangleBase$(T) {
       MutableRectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this._width = dart.as(width['<'](0) ? _clampToZero(width) : width, T);
-        this._height = dart.as(height['<'](0) ? _clampToZero(height) : height, T);
+        this[_width] = dart.as(width['<'](0) ? _clampToZero(width) : width, T);
+        this[_height] = dart.as(height['<'](0) ? _clampToZero(height) : height, T);
         super._RectangleBase();
       }
       MutableRectangle$fromPoints(a, b) {
@@ -390,20 +395,20 @@ var math;
         return new MutableRectangle(left, top, width, height);
       }
       get width() {
-        return this._width;
+        return this[_width];
       }
       set width(width) {
         if (width['<'](0))
           width = dart.as(_clampToZero(width), T);
-        this._width = width;
+        this[_width] = width;
       }
       get height() {
-        return this._height;
+        return this[_height];
       }
       set height(height) {
         if (height['<'](0))
           height = dart.as(_clampToZero(height), T);
-        this._height = height;
+        this[_height] = height;
       }
     }
     dart.defineNamedConstructor(MutableRectangle, 'fromPoints');

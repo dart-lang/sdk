@@ -1,9 +1,10 @@
 var methods;
 (function(exports) {
   'use strict';
+  let _c = Symbol('_c');
   class A extends dart.Object {
     A() {
-      this._c = 3;
+      this[_c] = 3;
     }
     x() {
       return 42;
@@ -34,10 +35,10 @@ var methods;
     }
     set b(b) {}
     get c() {
-      return this._c;
+      return this[_c];
     }
     set c(c) {
-      this._c = c;
+      this[_c] = c;
     }
   }
   class Bar extends dart.Object {

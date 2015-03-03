@@ -4,6 +4,7 @@
 
 library ddc.src.codegen.js_codegen;
 
+import 'dart:collection' show HashSet;
 import 'dart:io' show Directory, File;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
@@ -46,6 +47,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _exports = <String>[];
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
+  final _privateNames = new HashSet<String>();
+  final _pendingPrivateNames = <String>[];
 
   JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules)
       : libraryInfo = libraryInfo,
@@ -77,14 +80,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = jsLibraryName(libraryInfo.library);
     return new JS.Block([
       js.statement('var #;', name),
-      js.statement('''
-        (function ($_EXPORTS) {
-          'use strict';
-          #;
-        })(# || (# = {}));
-      ''', [body, name, name])
+      js.statement("(function($_EXPORTS) { 'use strict'; #; })(# || (# = {}));",
+          [body, name, name])
     ]);
   }
+
+  JS.Statement _initPrivateSymbol(String name) =>
+      js.statement('let # = Symbol(#);', [name, js.string(name, "'")]);
 
   @override
   JS.Statement visitCompilationUnit(CompilationUnit node) {
@@ -96,11 +98,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (child is! FunctionDeclaration) _flushLibraryProperties(body);
 
       var code = _visit(child);
-      if (code != null) body.add(code);
+
+      if (code != null) {
+        if (_pendingPrivateNames.isNotEmpty) {
+          body.addAll(_pendingPrivateNames.map(_initPrivateSymbol));
+          _pendingPrivateNames.clear();
+        }
+        body.add(code);
+      }
     }
+
     // Flush any unwritten fields/properties.
     _flushLazyFields(body);
     _flushLibraryProperties(body);
+
+    assert(_pendingPrivateNames.isEmpty);
     return _statement(body);
   }
 
@@ -402,7 +414,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var className = classDecl.name.name;
 
     var name = _constructorName(className, node.constructorName);
-    return js.statement('this.#(#);', [name, _visit(node.argumentList)]);
+    return js.statement(
+        'this.#(#);', [_jsMemberName(name), _visit(node.argumentList)]);
   }
 
   JS.Statement _superConstructorCall(ClassDeclaration clazz,
@@ -452,7 +465,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         if (p is DefaultFormalParameter) p = p.parameter;
         if (p is FieldFormalParameter) {
           var name = p.identifier.name;
-          body.add(js.statement('this.# = #;', [name, name]));
+          body.add(
+              js.statement('this.# = #;', [_jsMemberName(name), _visit(p)]));
           unsetFields.remove(name);
         }
       }
@@ -482,7 +496,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           value = new JS.LiteralNull();
         }
       }
-      body.add(js.statement('this.# = #;', [name, value]));
+      body.add(js.statement('this.# = #;', [_jsMemberName(name), value]));
     });
 
     return _statement(body);
@@ -550,8 +564,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var params = _visit(node.parameters);
     if (params == null) params = [];
 
-    return new JS.Method(new JS.PropertyName(_jsMethodName(node.name.name)),
-        new JS.Fun(params, _visit(node.body)),
+    return new JS.Method(
+        _jsMemberName(node.name.name), new JS.Fun(params, _visit(node.body)),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -643,7 +657,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         (e.library != libraryInfo.library || _needsModuleGetter(e))) {
       return js.call('#.#', [_libraryName(e.library), name]);
     } else if (currentClass != null && _needsImplicitThis(e)) {
-      return js.call('this.#', name);
+      return js.call('this.#', _jsMemberName(name));
+    } else if (e is ParameterElement && e.isInitializingFormal) {
+      name = _fieldParameterName(name);
     }
     return new JS.VariableUse(name);
   }
@@ -850,7 +866,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         result.add(new JS.Parameter(_jsNamedParameterName));
         break;
       }
-      result.add(new JS.Parameter(param.identifier.name));
+      result.add(_visit(param));
     }
     return result;
   }
@@ -1213,12 +1229,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       _visit(node.expression);
 
   @override
-  visitSimpleFormalParameter(SimpleFormalParameter node) =>
-      _visit(node.identifier);
+  visitFormalParameter(FormalParameter node) =>
+      new JS.Parameter(node.identifier.name);
 
   @override
-  visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      _visit(node.identifier);
+  visitFieldFormalParameter(FieldFormalParameter node) =>
+      new JS.Parameter(_fieldParameterName(node.identifier.name));
+
+  /// Rename private names so they don't shadow the private field symbol.
+  // TODO(jmesserly): replace this ad-hoc rename with a general strategy.
+  _fieldParameterName(name) => name.startsWith('_') ? '\$$name' : name;
 
   @override
   JS.This visitThisExpression(ThisExpression node) => new JS.This();
@@ -1245,7 +1265,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.call(
           'dart.dload(#, #)', [_visit(target), js.string(name.name, "'")]);
     } else {
-      return js.call('#.#', [_visit(target), name.name]);
+      return js.call('#.#', [_visit(target), _jsMemberName(name.name)]);
     }
   }
 
@@ -1289,7 +1309,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   @override
-  visitRethrowExpression(RethrowExpression node){
+  visitRethrowExpression(RethrowExpression node) {
     if (node.parent is ExpressionStatement) {
       return js.statement('throw #;', _catchParameter);
     } else {
@@ -1611,11 +1631,34 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return result;
   }
 
-  /// The following names are allowed for user-defined operators:
+  /// This handles member renaming for private names and operators.
+  ///
+  /// Private names are generated using ES6 symbols:
+  ///
+  ///     // At the top of the module:
+  ///     let _x = Symbol('_x');
+  ///     let _y = Symbol('_y');
+  ///     ...
+  ///
+  ///     class Point {
+  ///       Point(x, y) {
+  ///         this[_x] = x;
+  ///         this[_y] = y;
+  ///       }
+  ///       get x() { return this[_x]; }
+  ///       get y() { return this[_y]; }
+  ///     }
+  ///
+  /// For user-defined operators the following names are allowed:
   ///
   ///     <, >, <=, >=, ==, -, +, /, ˜/, *, %, |, ˆ, &, <<, >>, []=, [], ˜
   ///
-  /// For the indexing operators, we use `get` and `set` instead:
+  /// They generate code like:
+  ///
+  ///     x['+'](y)
+  ///
+  /// There are three exceptions: [], []= and unary -.
+  /// The indexing operators we use `get` and `set` instead:
   ///
   ///     x.get('hi')
   ///     x.set('hi', 123)
@@ -1623,16 +1666,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// This follows the same pattern as EcmaScript 6 Map:
   /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map>
   ///
-  /// For all others we use the operator name:
-  ///
-  ///     x['+'](y)
+  /// Unary minus looks like: `x['unary-']()`. Note that [unary] must be passed
+  /// for this transformation to happen, otherwise binary minus is assumed.
   ///
   /// Equality is a bit special, it is generated via the Dart `equals` runtime
   /// helper, that checks for null. The user defined method is called '=='.
-  String _jsMethodName(String name) {
-    if (name == '[]') return 'get';
-    if (name == '[]=') return 'set';
-    return name;
+  ///
+  JS.Expression _jsMemberName(String name, {bool unary: false}) {
+    if (name.startsWith('_')) {
+      if (_privateNames.add(name)) _pendingPrivateNames.add(name);
+      return new JS.VariableUse(name);
+    }
+    if (name == '[]') {
+      name = 'get';
+    } else if (name == '[]=') {
+      name = 'set';
+    } else if (unary && name == '-') {
+      name = 'unary-';
+    }
+    return new JS.PropertyName(name);
   }
 
   bool _externalOrNative(node) =>

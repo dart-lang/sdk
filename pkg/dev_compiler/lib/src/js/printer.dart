@@ -867,21 +867,7 @@ class Printer implements NodeVisitor {
     visitNestedExpression(access.receiver, CALL,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
-    Node selector = access.selector;
-    if (selector is LiteralString) {
-      LiteralString selectorString = selector;
-      String fieldWithQuotes = selectorString.value;
-      if (isValidJavaScriptId(fieldWithQuotes)) {
-        if (access.receiver is LiteralNumber) out(" ");
-        out(".");
-        out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
-        return;
-      }
-    }
-    out("[");
-    visitNestedExpression(selector, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
-    out("]");
+    propertyNameOut(access.selector, inAccess: true);
   }
 
   visitNamedFunction(NamedFunction namedFunction) {
@@ -1084,13 +1070,14 @@ class Printer implements NodeVisitor {
 
   visitPropertyName(PropertyName node) => propertyNameOut(node);
 
-  void propertyNameOut(Expression node, {bool inMethod: false}) {
-    inForInit = false;
-    atStatementBegin = false;
+  void propertyNameOut(Expression node, {bool inMethod: false,
+      bool inAccess: false}) {
 
     if (node is LiteralNumber) {
       LiteralNumber nameNumber = node;
+      if (inAccess) out('[');
       out(nameNumber.value);
+      if (inAccess) out(']');
     } else {
       String quotedName;
       if (node is PropertyName) {
@@ -1100,16 +1087,18 @@ class Printer implements NodeVisitor {
       }
       if (quotedName != null) {
         if (isValidJavaScriptId(quotedName)) {
+          if (inAccess) out('.');
           out(quotedName.substring(1, quotedName.length - 1));
         } else {
-          if (inMethod) out("[");
+          if (inMethod || inAccess) out("[");
           out(quotedName);
-          if (inMethod) out("]");
+          if (inMethod || inAccess) out("]");
         }
       } else {
         // ComputedPropertyName
         out("[");
-        visit(node);
+        visitNestedExpression(node, EXPRESSION,
+                              newInForInit: false, newAtStatementBegin: false);
         out("]");
       }
     }

@@ -117,21 +117,25 @@ var _native_typed_data;
       return new NativeByteData.view(this, offsetInBytes, length);
     }
   }
+  let _storage = Symbol('_storage');
+  let _invalidIndex = Symbol('_invalidIndex');
+  let _checkIndex = Symbol('_checkIndex');
+  let _checkSublistArguments = Symbol('_checkSublistArguments');
   class NativeFloat32x4List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float32x4), _internal.FixedLengthListMixin$(typed_data.Float32x4)) {
     NativeFloat32x4List(length) {
-      this._storage = new NativeFloat32List(length * 4);
+      this[_storage] = new NativeFloat32List(length * 4);
     }
-    NativeFloat32x4List$_externalStorage(_storage) {
-      this._storage = _storage;
+    NativeFloat32x4List$_externalStorage($_storage) {
+      this[_storage] = $_storage;
     }
     NativeFloat32x4List$_slowFromList(list) {
-      this._storage = new NativeFloat32List(list.length * 4);
+      this[_storage] = new NativeFloat32List(list.length * 4);
       for (let i = 0; i < list.length; i++) {
         let e = list.get(i);
-        this._storage.set(i * 4 + 0, e.x);
-        this._storage.set(i * 4 + 1, e.y);
-        this._storage.set(i * 4 + 2, e.z);
-        this._storage.set(i * 4 + 3, e.w);
+        this[_storage].set(i * 4 + 0, e.x);
+        this[_storage].set(i * 4 + 1, e.y);
+        this[_storage].set(i * 4 + 2, e.z);
+        this[_storage].set(i * 4 + 3, e.w);
       }
     }
     get runtimeType() {
@@ -139,24 +143,24 @@ var _native_typed_data;
     }
     NativeFloat32x4List$fromList(list) {
       if (dart.is(list, NativeFloat32x4List)) {
-        return new NativeFloat32x4List._externalStorage(new NativeFloat32List.fromList(list._storage));
+        return new NativeFloat32x4List._externalStorage(new NativeFloat32List.fromList(list[_storage]));
       } else {
         return new NativeFloat32x4List._slowFromList(list);
       }
     }
     get buffer() {
-      return this._storage.buffer;
+      return this[_storage].buffer;
     }
     get lengthInBytes() {
-      return this._storage.lengthInBytes;
+      return this[_storage].lengthInBytes;
     }
     get offsetInBytes() {
-      return this._storage.offsetInBytes;
+      return this[_storage].offsetInBytes;
     }
     get elementSizeInBytes() {
       return typed_data.Float32x4List.BYTES_PER_ELEMENT;
     }
-    _invalidIndex(index, length) {
+    [_invalidIndex](index, length) {
       if (dart.notNull(index < 0) || dart.notNull(index >= length)) {
         if (length === this.length) {
           throw new core.RangeError.index(index, this);
@@ -166,43 +170,43 @@ var _native_typed_data;
         throw new core.ArgumentError(`Invalid list index ${index}`);
       }
     }
-    _checkIndex(index, length) {
+    [_checkIndex](index, length) {
       if (dart.notNull(index >>> 0 != index) || dart.notNull(index >= length)) {
-        this._invalidIndex(index, length);
+        this[_invalidIndex](index, length);
       }
     }
-    _checkSublistArguments(start, end, length) {
-      this._checkIndex(start, length + 1);
+    [_checkSublistArguments](start, end, length) {
+      this[_checkIndex](start, length + 1);
       if (end === null)
         return length;
-      this._checkIndex(end, length + 1);
+      this[_checkIndex](end, length + 1);
       if (start > end)
         throw new core.RangeError.range(start, 0, end);
       return end;
     }
     get length() {
-      return (this._storage.length / 4).truncate();
+      return (this[_storage].length / 4).truncate();
     }
     get(index) {
-      this._checkIndex(index, this.length);
-      let _x = dart.notNull(this._storage.get(index * 4 + 0));
-      let _y = dart.notNull(this._storage.get(index * 4 + 1));
-      let _z = dart.notNull(this._storage.get(index * 4 + 2));
-      let _w = dart.notNull(this._storage.get(index * 4 + 3));
+      this[_checkIndex](index, this.length);
+      let _x = dart.notNull(this[_storage].get(index * 4 + 0));
+      let _y = dart.notNull(this[_storage].get(index * 4 + 1));
+      let _z = dart.notNull(this[_storage].get(index * 4 + 2));
+      let _w = dart.notNull(this[_storage].get(index * 4 + 3));
       return new NativeFloat32x4._truncated(_x, _y, _z, _w);
     }
     set(index, value) {
-      this._checkIndex(index, this.length);
-      this._storage.set(index * 4 + 0, value.x);
-      this._storage.set(index * 4 + 1, value.y);
-      this._storage.set(index * 4 + 2, value.z);
-      this._storage.set(index * 4 + 3, value.w);
+      this[_checkIndex](index, this.length);
+      this[_storage].set(index * 4 + 0, value.x);
+      this[_storage].set(index * 4 + 1, value.y);
+      this[_storage].set(index * 4 + 2, value.z);
+      this[_storage].set(index * 4 + 3, value.w);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
-      return new NativeFloat32x4List._externalStorage(dart.as(this._storage.sublist(start * 4, end * 4), NativeFloat32List));
+      end = this[_checkSublistArguments](start, end, this.length);
+      return new NativeFloat32x4List._externalStorage(dart.as(this[_storage].sublist(start * 4, end * 4), NativeFloat32List));
     }
   }
   dart.defineNamedConstructor(NativeFloat32x4List, '_externalStorage');
@@ -210,19 +214,19 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeFloat32x4List, 'fromList');
   class NativeInt32x4List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Int32x4), _internal.FixedLengthListMixin$(typed_data.Int32x4)) {
     NativeInt32x4List(length) {
-      this._storage = new NativeInt32List(length * 4);
+      this[_storage] = new NativeInt32List(length * 4);
     }
     NativeInt32x4List$_externalStorage(storage) {
-      this._storage = storage;
+      this[_storage] = storage;
     }
     NativeInt32x4List$_slowFromList(list) {
-      this._storage = new NativeInt32List(list.length * 4);
+      this[_storage] = new NativeInt32List(list.length * 4);
       for (let i = 0; i < list.length; i++) {
         let e = list.get(i);
-        this._storage.set(i * 4 + 0, e.x);
-        this._storage.set(i * 4 + 1, e.y);
-        this._storage.set(i * 4 + 2, e.z);
-        this._storage.set(i * 4 + 3, e.w);
+        this[_storage].set(i * 4 + 0, e.x);
+        this[_storage].set(i * 4 + 1, e.y);
+        this[_storage].set(i * 4 + 2, e.z);
+        this[_storage].set(i * 4 + 3, e.w);
       }
     }
     get runtimeType() {
@@ -230,24 +234,24 @@ var _native_typed_data;
     }
     NativeInt32x4List$fromList(list) {
       if (dart.is(list, NativeInt32x4List)) {
-        return new NativeInt32x4List._externalStorage(new NativeInt32List.fromList(list._storage));
+        return new NativeInt32x4List._externalStorage(new NativeInt32List.fromList(list[_storage]));
       } else {
         return new NativeInt32x4List._slowFromList(list);
       }
     }
     get buffer() {
-      return this._storage.buffer;
+      return this[_storage].buffer;
     }
     get lengthInBytes() {
-      return this._storage.lengthInBytes;
+      return this[_storage].lengthInBytes;
     }
     get offsetInBytes() {
-      return this._storage.offsetInBytes;
+      return this[_storage].offsetInBytes;
     }
     get elementSizeInBytes() {
       return typed_data.Int32x4List.BYTES_PER_ELEMENT;
     }
-    _invalidIndex(index, length) {
+    [_invalidIndex](index, length) {
       if (dart.notNull(index < 0) || dart.notNull(index >= length)) {
         if (length === this.length) {
           throw new core.RangeError.index(index, this);
@@ -257,43 +261,43 @@ var _native_typed_data;
         throw new core.ArgumentError(`Invalid list index ${index}`);
       }
     }
-    _checkIndex(index, length) {
+    [_checkIndex](index, length) {
       if (dart.notNull(index >>> 0 != index) || dart.notNull(index >= length)) {
-        this._invalidIndex(index, length);
+        this[_invalidIndex](index, length);
       }
     }
-    _checkSublistArguments(start, end, length) {
-      this._checkIndex(start, length + 1);
+    [_checkSublistArguments](start, end, length) {
+      this[_checkIndex](start, length + 1);
       if (end === null)
         return length;
-      this._checkIndex(end, length + 1);
+      this[_checkIndex](end, length + 1);
       if (start > end)
         throw new core.RangeError.range(start, 0, end);
       return end;
     }
     get length() {
-      return (this._storage.length / 4).truncate();
+      return (this[_storage].length / 4).truncate();
     }
     get(index) {
-      this._checkIndex(index, this.length);
-      let _x = this._storage.get(index * 4 + 0);
-      let _y = this._storage.get(index * 4 + 1);
-      let _z = this._storage.get(index * 4 + 2);
-      let _w = this._storage.get(index * 4 + 3);
+      this[_checkIndex](index, this.length);
+      let _x = this[_storage].get(index * 4 + 0);
+      let _y = this[_storage].get(index * 4 + 1);
+      let _z = this[_storage].get(index * 4 + 2);
+      let _w = this[_storage].get(index * 4 + 3);
       return new NativeInt32x4._truncated(_x, _y, _z, _w);
     }
     set(index, value) {
-      this._checkIndex(index, this.length);
-      this._storage.set(index * 4 + 0, value.x);
-      this._storage.set(index * 4 + 1, value.y);
-      this._storage.set(index * 4 + 2, value.z);
-      this._storage.set(index * 4 + 3, value.w);
+      this[_checkIndex](index, this.length);
+      this[_storage].set(index * 4 + 0, value.x);
+      this[_storage].set(index * 4 + 1, value.y);
+      this[_storage].set(index * 4 + 2, value.z);
+      this[_storage].set(index * 4 + 3, value.w);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
-      return new NativeInt32x4List._externalStorage(dart.as(this._storage.sublist(start * 4, end * 4), typed_data.Int32List));
+      end = this[_checkSublistArguments](start, end, this.length);
+      return new NativeInt32x4List._externalStorage(dart.as(this[_storage].sublist(start * 4, end * 4), typed_data.Int32List));
     }
   }
   dart.defineNamedConstructor(NativeInt32x4List, '_externalStorage');
@@ -301,22 +305,22 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeInt32x4List, 'fromList');
   class NativeFloat64x2List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float64x2), _internal.FixedLengthListMixin$(typed_data.Float64x2)) {
     NativeFloat64x2List(length) {
-      this._storage = new NativeFloat64List(length * 2);
+      this[_storage] = new NativeFloat64List(length * 2);
     }
-    NativeFloat64x2List$_externalStorage(_storage) {
-      this._storage = _storage;
+    NativeFloat64x2List$_externalStorage($_storage) {
+      this[_storage] = $_storage;
     }
     NativeFloat64x2List$_slowFromList(list) {
-      this._storage = new NativeFloat64List(list.length * 2);
+      this[_storage] = new NativeFloat64List(list.length * 2);
       for (let i = 0; i < list.length; i++) {
         let e = list.get(i);
-        this._storage.set(i * 2 + 0, e.x);
-        this._storage.set(i * 2 + 1, e.y);
+        this[_storage].set(i * 2 + 0, e.x);
+        this[_storage].set(i * 2 + 1, e.y);
       }
     }
     NativeFloat64x2List$fromList(list) {
       if (dart.is(list, NativeFloat64x2List)) {
-        return new NativeFloat64x2List._externalStorage(new NativeFloat64List.fromList(list._storage));
+        return new NativeFloat64x2List._externalStorage(new NativeFloat64List.fromList(list[_storage]));
       } else {
         return new NativeFloat64x2List._slowFromList(list);
       }
@@ -325,18 +329,18 @@ var _native_typed_data;
       return typed_data.Float64x2List;
     }
     get buffer() {
-      return this._storage.buffer;
+      return this[_storage].buffer;
     }
     get lengthInBytes() {
-      return this._storage.lengthInBytes;
+      return this[_storage].lengthInBytes;
     }
     get offsetInBytes() {
-      return this._storage.offsetInBytes;
+      return this[_storage].offsetInBytes;
     }
     get elementSizeInBytes() {
       return typed_data.Float64x2List.BYTES_PER_ELEMENT;
     }
-    _invalidIndex(index, length) {
+    [_invalidIndex](index, length) {
       if (dart.notNull(index < 0) || dart.notNull(index >= length)) {
         if (length === this.length) {
           throw new core.RangeError.index(index, this);
@@ -346,39 +350,39 @@ var _native_typed_data;
         throw new core.ArgumentError(`Invalid list index ${index}`);
       }
     }
-    _checkIndex(index, length) {
+    [_checkIndex](index, length) {
       if (dart.notNull(index >>> 0 != index) || dart.notNull(index >= length)) {
-        this._invalidIndex(index, length);
+        this[_invalidIndex](index, length);
       }
     }
-    _checkSublistArguments(start, end, length) {
-      this._checkIndex(start, length + 1);
+    [_checkSublistArguments](start, end, length) {
+      this[_checkIndex](start, length + 1);
       if (end === null)
         return length;
-      this._checkIndex(end, length + 1);
+      this[_checkIndex](end, length + 1);
       if (start > end)
         throw new core.RangeError.range(start, 0, end);
       return end;
     }
     get length() {
-      return (this._storage.length / 2).truncate();
+      return (this[_storage].length / 2).truncate();
     }
     get(index) {
-      this._checkIndex(index, this.length);
-      let _x = dart.notNull(this._storage.get(index * 2 + 0));
-      let _y = dart.notNull(this._storage.get(index * 2 + 1));
+      this[_checkIndex](index, this.length);
+      let _x = dart.notNull(this[_storage].get(index * 2 + 0));
+      let _y = dart.notNull(this[_storage].get(index * 2 + 1));
       return new typed_data.Float64x2(_x, _y);
     }
     set(index, value) {
-      this._checkIndex(index, this.length);
-      this._storage.set(index * 2 + 0, value.x);
-      this._storage.set(index * 2 + 1, value.y);
+      this[_checkIndex](index, this.length);
+      this[_storage].set(index * 2 + 0, value.x);
+      this[_storage].set(index * 2 + 1, value.y);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
-      return new NativeFloat64x2List._externalStorage(dart.as(this._storage.sublist(start * 2, end * 2), NativeFloat64List));
+      end = this[_checkSublistArguments](start, end, this.length);
+      return new NativeFloat64x2List._externalStorage(dart.as(this[_storage].sublist(start * 2, end * 2), NativeFloat64List));
     }
   }
   dart.defineNamedConstructor(NativeFloat64x2List, '_externalStorage');
@@ -391,7 +395,7 @@ var _native_typed_data;
       this.offsetInBytes = dart.as(null, core.int);
       this.elementSizeInBytes = dart.as(null, core.int);
     }
-    _invalidIndex(index, length) {
+    [_invalidIndex](index, length) {
       if (dart.notNull(index < 0) || dart.notNull(index >= length)) {
         if (dart.is(this, core.List)) {
           let list = this;
@@ -404,16 +408,16 @@ var _native_typed_data;
         throw new core.ArgumentError(`Invalid list index ${index}`);
       }
     }
-    _checkIndex(index, length) {
+    [_checkIndex](index, length) {
       if (dart.notNull(index >>> 0 !== index) || dart.notNull(index >= length)) {
-        this._invalidIndex(index, length);
+        this[_invalidIndex](index, length);
       }
     }
-    _checkSublistArguments(start, end, length) {
-      this._checkIndex(start, length + 1);
+    [_checkSublistArguments](start, end, length) {
+      this[_checkIndex](start, length + 1);
       if (end === null)
         return length;
-      this._checkIndex(end, length + 1);
+      this[_checkIndex](end, length + 1);
       if (start > end)
         throw new core.RangeError.range(start, 0, end);
       return end;
@@ -447,6 +451,21 @@ var _native_typed_data;
     }
     return result;
   }
+  let _getFloat32 = Symbol('_getFloat32');
+  let _getFloat64 = Symbol('_getFloat64');
+  let _getInt16 = Symbol('_getInt16');
+  let _getInt32 = Symbol('_getInt32');
+  let _getUint16 = Symbol('_getUint16');
+  let _getUint32 = Symbol('_getUint32');
+  let _setFloat32 = Symbol('_setFloat32');
+  let _setFloat64 = Symbol('_setFloat64');
+  let _setInt16 = Symbol('_setInt16');
+  let _setInt32 = Symbol('_setInt32');
+  let _setUint16 = Symbol('_setUint16');
+  let _setUint32 = Symbol('_setUint32');
+  let _create1 = Symbol('_create1');
+  let _create2 = Symbol('_create2');
+  let _create3 = Symbol('_create3');
   class NativeByteData extends NativeTypedData {
     NativeByteData(length) {
       return _create1(_checkLength(length));
@@ -464,22 +483,22 @@ var _native_typed_data;
     getFloat32(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._getFloat32(byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_getFloat32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     getFloat64(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._getFloat64(byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_getFloat64](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     getInt16(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._getInt16(byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_getInt16](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     getInt32(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._getInt32(byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_getInt32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     getInt64(byteOffset, endian) {
       if (endian === void 0)
@@ -489,12 +508,12 @@ var _native_typed_data;
     getUint16(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._getUint16(byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_getUint16](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     getUint32(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._getUint32(byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_getUint32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     getUint64(byteOffset, endian) {
       if (endian === void 0)
@@ -504,22 +523,22 @@ var _native_typed_data;
     setFloat32(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._setFloat32(byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_setFloat32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     setFloat64(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._setFloat64(byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_setFloat64](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     setInt16(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._setInt16(byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_setInt16](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     setInt32(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._setInt32(byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_setInt32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     setInt64(byteOffset, value, endian) {
       if (endian === void 0)
@@ -529,37 +548,38 @@ var _native_typed_data;
     setUint16(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._setUint16(byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_setUint16](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     setUint32(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      return this._setUint32(byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
+      return this[_setUint32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     setUint64(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
       throw new core.UnsupportedError('Uint64 accessor not supported by dart2js.');
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new DataView(new ArrayBuffer(arg)), NativeByteData);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new DataView(arg1, arg2), NativeByteData);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new DataView(arg1, arg2, arg3), NativeByteData);
     }
   }
   dart.defineNamedConstructor(NativeByteData, 'view');
+  let _setRangeFast = Symbol('_setRangeFast');
   class NativeTypedArray extends NativeTypedData {
     get length() {
       return dart.as(this.length, core.int);
     }
-    _setRangeFast(start, end, source, skipCount) {
+    [_setRangeFast](start, end, source, skipCount) {
       let targetLength = this.length;
-      this._checkIndex(start, targetLength + 1);
-      this._checkIndex(end, targetLength + 1);
+      this[_checkIndex](start, targetLength + 1);
+      this[_checkIndex](end, targetLength + 1);
       if (start > end)
         throw new core.RangeError.range(start, 0, end);
       let count = end - start;
@@ -577,18 +597,18 @@ var _native_typed_data;
   }
   class NativeTypedArrayOfDouble extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return this[index];
     }
     set(index, value) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       this[index] = value;
     }
     setRange(start, end, iterable, skipCount) {
       if (skipCount === void 0)
         skipCount = 0;
       if (dart.is(iterable, NativeTypedArrayOfDouble)) {
-        this._setRangeFast(start, end, iterable, skipCount);
+        this[_setRangeFast](start, end, iterable, skipCount);
         return;
       }
       super.setRange(start, end, iterable, skipCount);
@@ -596,14 +616,14 @@ var _native_typed_data;
   }
   class NativeTypedArrayOfInt extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
     set(index, value) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       this[index] = value;
     }
     setRange(start, end, iterable, skipCount) {
       if (skipCount === void 0)
         skipCount = 0;
       if (dart.is(iterable, NativeTypedArrayOfInt)) {
-        this._setRangeFast(start, end, iterable, skipCount);
+        this[_setRangeFast](start, end, iterable, skipCount);
         return;
       }
       super.setRange(start, end, iterable, skipCount);
@@ -626,17 +646,17 @@ var _native_typed_data;
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Float32Array(arg), NativeFloat32List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Float32Array(arg1, arg2), NativeFloat32List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Float32Array(arg1, arg2, arg3), NativeFloat32List);
     }
   }
@@ -659,17 +679,17 @@ var _native_typed_data;
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Float64Array(arg), NativeFloat64List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Float64Array(arg1, arg2), NativeFloat64List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Float64Array(arg1, arg2, arg3), NativeFloat64List);
     }
   }
@@ -690,23 +710,23 @@ var _native_typed_data;
       return typed_data.Int16List;
     }
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Int16Array(arg), NativeInt16List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Int16Array(arg1, arg2), NativeInt16List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Int16Array(arg1, arg2, arg3), NativeInt16List);
     }
   }
@@ -727,23 +747,23 @@ var _native_typed_data;
       return typed_data.Int32List;
     }
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Int32Array(arg), NativeInt32List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Int32Array(arg1, arg2), NativeInt32List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Int32Array(arg1, arg2, arg3), NativeInt32List);
     }
   }
@@ -764,23 +784,23 @@ var _native_typed_data;
       return typed_data.Int8List;
     }
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Int8Array(arg), NativeInt8List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Int8Array(arg1, arg2), NativeInt8List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Int8Array(arg1, arg2, arg3), typed_data.Int8List);
     }
   }
@@ -801,23 +821,23 @@ var _native_typed_data;
       return typed_data.Uint16List;
     }
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Uint16Array(arg), NativeUint16List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Uint16Array(arg1, arg2), NativeUint16List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Uint16Array(arg1, arg2, arg3), NativeUint16List);
     }
   }
@@ -838,23 +858,23 @@ var _native_typed_data;
       return typed_data.Uint32List;
     }
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Uint32Array(arg), NativeUint32List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Uint32Array(arg1, arg2), NativeUint32List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Uint32Array(arg1, arg2, arg3), NativeUint32List);
     }
   }
@@ -878,23 +898,23 @@ var _native_typed_data;
       return dart.as(this.length, core.int);
     }
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Uint8ClampedArray(arg), NativeUint8ClampedList);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Uint8ClampedArray(arg1, arg2), NativeUint8ClampedList);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Uint8ClampedArray(arg1, arg2, arg3), NativeUint8ClampedList);
     }
   }
@@ -918,30 +938,31 @@ var _native_typed_data;
       return dart.as(this.length, core.int);
     }
     get(index) {
-      this._checkIndex(index, this.length);
+      this[_checkIndex](index, this.length);
       return dart.as(this[index], core.int);
     }
     sublist(start, end) {
       if (end === void 0)
         end = null;
-      end = this._checkSublistArguments(start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this.length);
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static _create1(arg) {
+    static [_create1](arg) {
       return dart.as(new Uint8Array(arg), NativeUint8List);
     }
-    static _create2(arg1, arg2) {
+    static [_create2](arg1, arg2) {
       return dart.as(new Uint8Array(arg1, arg2), NativeUint8List);
     }
-    static _create3(arg1, arg2, arg3) {
+    static [_create3](arg1, arg2, arg3) {
       return dart.as(new Uint8Array(arg1, arg2, arg3), NativeUint8List);
     }
   }
   dart.defineNamedConstructor(NativeUint8List, 'fromList');
   dart.defineNamedConstructor(NativeUint8List, 'view');
+  let _truncate = Symbol('_truncate');
   class NativeFloat32x4 extends dart.Object {
-    static _truncate(x) {
+    static [_truncate](x) {
       _list.set(0, dart.as(x, core.num));
       return _list.get(0);
     }
@@ -1207,8 +1228,10 @@ var _native_typed_data;
       return _list.buffer.asUint32List();
     }
   });
+  let _list = Symbol('_list');
+  let _uint32view = Symbol('_uint32view');
   class NativeInt32x4 extends dart.Object {
-    static _truncate(x) {
+    static [_truncate](x) {
       dart.dsetindex(_list, 0, x);
       return dart.dindex(_list, 0);
     }
@@ -1233,7 +1256,7 @@ var _native_typed_data;
       this.w = w ? -1 : 0;
     }
     NativeInt32x4$fromFloat32x4Bits(f) {
-      let floatList = NativeFloat32x4._list;
+      let floatList = NativeFloat32x4[_list];
       floatList.set(0, f.x);
       floatList.set(1, f.y);
       floatList.set(2, f.z);
@@ -1352,8 +1375,8 @@ var _native_typed_data;
       return new NativeInt32x4._truncated(this.x, this.y, this.z, _w);
     }
     select(trueValue, falseValue) {
-      let floatList = NativeFloat32x4._list;
-      let intView = NativeFloat32x4._uint32view;
+      let floatList = NativeFloat32x4[_list];
+      let intView = NativeFloat32x4[_uint32view];
       floatList.set(0, trueValue.x);
       floatList.set(1, trueValue.y);
       floatList.set(2, trueValue.z);

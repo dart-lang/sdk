@@ -9,6 +9,7 @@ var isolate;
       return `IsolateSpawnException: ${this.message}`;
     }
   }
+  let _pause = Symbol('_pause');
   class Isolate extends dart.Object {
     Isolate(controlPort, opt$) {
       let pauseCapability = opt$.pauseCapability === void 0 ? null : opt$.pauseCapability;
@@ -57,10 +58,10 @@ var isolate;
         resumeCapability = null;
       if (resumeCapability === null)
         resumeCapability = new Capability();
-      this._pause(resumeCapability);
+      this[_pause](resumeCapability);
       return resumeCapability;
     }
-    _pause(resumeCapability) {
+    [_pause](resumeCapability) {
       let message = new core.List(3);
       dart.dsetindex(message, 0, "pause");
       dart.dsetindex(message, 1, this.pauseCapability);
@@ -175,21 +176,23 @@ var isolate;
       return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${dart.dinvoke(dart.dinvoke(this.source, 'toString'), 'replaceAll', "\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${this.stackTrace.toString().replaceAll("\n", "\n  ")}`;
     }
   }
+  let _description = Symbol('_description');
   class RemoteError extends dart.Object {
     RemoteError(description, stackDescription) {
-      this._description = description;
+      this[_description] = description;
       this.stackTrace = new _RemoteStackTrace(stackDescription);
     }
     toString() {
-      return this._description;
+      return this[_description];
     }
   }
+  let _trace = Symbol('_trace');
   class _RemoteStackTrace extends dart.Object {
-    _RemoteStackTrace(_trace) {
-      this._trace = _trace;
+    _RemoteStackTrace($_trace) {
+      this[_trace] = $_trace;
     }
     toString() {
-      return this._trace;
+      return this[_trace];
     }
   }
   class Capability extends dart.Object {
