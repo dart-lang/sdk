@@ -6024,7 +6024,16 @@ class SsaBuilder extends ResolvedVisitor {
 
   /// Calls [buildTry] inside a synthetic try block with [buildFinally] in the
   /// finally block.
+  ///
+  /// Note that to get the right locals behavior, the code visited by [buildTry]
+  /// and [buildFinally] must have been analyzed as if inside a try-statement by
+  /// [ClosureTranslator].
   void buildProtectedByFinally(void buildTry(), void buildFinally()) {
+    // Save the current locals. The finally block must not reuse the existing
+    // locals handler. None of the variables that have been defined in the
+    // body-block will be used, but for loops we will add (unnecessary) phis
+    // that will reference the body variables. This makes it look as if the
+    // variables were used in a non-dominated block.
     HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
     close(tryInstruction);
