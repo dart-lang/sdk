@@ -123,7 +123,7 @@ main(arguments) {
           cheapTestFormat: true,
           emitSourceMaps: false);
       var sdkPath = dartGen
-          ? path.join(testDir, '..', 'tool', 'input_sdk_src')
+          ? path.join(testDir, '..', 'tool', 'input_sdk')
           : path.join(testDir, 'generated_sdk');
       var testSdk = new TypeResolver.fromDir(sdkPath, options);
       compile('dart:core', testSdk, options);
