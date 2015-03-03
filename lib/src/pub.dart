@@ -119,7 +119,8 @@ abstract class PSNodeList extends Object with IterableMixin<PSNode> {
 }
 
 abstract class PubSpec {
-  factory PubSpec.parse(String source) => new _PubSpec(source);
+  factory PubSpec.parse(String source, {String sourceUrl}) =>
+      new _PubSpec(source, sourceUrl: sourceUrl);
   PSEntry get author;
   PSNodeList get authors;
   PSDependencyList get dependencies;
@@ -300,8 +301,8 @@ class _PubSpec implements PubSpec {
   PSDependencyList dependencies;
   PSDependencyList devDependencies;
 
-  _PubSpec(String src) {
-    _parse(src);
+  _PubSpec(String src, {String sourceUrl}) {
+    _parse(src, sourceUrl: sourceUrl);
   }
 
   void accept(PubSpecVisitor visitor) {
@@ -350,8 +351,8 @@ class _PubSpec implements PubSpec {
     return sb.toString();
   }
 
-  _parse(String src) {
-    var yaml = loadYamlNode(src);
+  _parse(String src, {String sourceUrl}) {
+    var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
     if (yaml is! YamlMap) {
       return;
       // WARN?

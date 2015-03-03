@@ -30,12 +30,12 @@ class MockLinterOptions extends Mock implements LinterOptions {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockRule extends Mock implements LintRule {
+class MockPubVisitor extends Mock implements PubSpecVisitor {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockPubVisitor extends Mock implements PubSpecVisitor {
+class MockRule extends Mock implements LintRule {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

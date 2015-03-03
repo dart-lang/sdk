@@ -241,8 +241,11 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   }
 
   void reportPubLint(PSNode node) {
+
+    Source source = createSource(node.span.sourceUrl);
+
     // Cache error and location info for creating AnalysisErrorInfos
-    var error = new AnalysisError.con2(reporter.source, node.span.start.offset,
+    var error = new AnalysisError.con2(source, node.span.start.offset,
         node.span.length, new LintCode(name.value, description));
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
@@ -339,11 +342,13 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   }
 
   @override
-  Iterable<AnalysisErrorInfo> lintPubspecSource({String contents}) {
+  Iterable<AnalysisErrorInfo> lintPubspecSource({String contents, String sourceUrl}) {
+
+
     var results = <AnalysisErrorInfo>[];
 
     //TODO: error handling
-    var spec = new PubSpec.parse(contents);
+    var spec = new PubSpec.parse(contents, sourceUrl: sourceUrl);
 
     for (Linter lint in options.enabledLints) {
       if (lint is LintRule) {
@@ -355,8 +360,9 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           } on Exception catch (e) {
             reporter.exception(new LinterException(e.toString()));
           }
-          if (rule._locationInfo != null) {
+          if (!rule._locationInfo.isEmpty) {
             results.addAll(rule._locationInfo);
+            rule._locationInfo.clear();
           }
         }
       }
@@ -369,7 +375,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   onError(AnalysisError error) => errors.add(error);
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
-      lintPubspecSource(contents: sourceFile.readAsStringSync());
+      lintPubspecSource(contents: sourceFile.readAsStringSync(), sourceUrl: sourceFile.path);
 
   static LinterOptions _defaultOptions() =>
       new LinterOptions(() => ruleMap.values);

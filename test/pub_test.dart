@@ -4,10 +4,14 @@
 
 library linter.test.pub;
 
+import 'dart:io';
+
 import 'package:linter/src/pub.dart';
 import 'package:mockito/mockito.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
+
+import 'mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -107,7 +111,7 @@ dev_dependencies:
     });
     group('visiting', () {
       test('smoke', () {
-        var mock = new MockVisitor();
+        var mock = new MockPubVisitor();
         ps.accept(mock);
         verify(mock.visitPackageAuthor(any)).called(1);
         verify(mock.visitPackageAuthors(any)).called(1);
@@ -120,6 +124,15 @@ dev_dependencies:
         verify(mock.visitPackageHomepage(any)).called(1);
         verify(mock.visitPackageName(any)).called(1);
         verify(mock.visitPackageVersion(any)).called(1);
+      });
+    });
+    group('initialization', () {
+      test('sourceUrl', () {
+        File ps = new File('test/_data/p1/_pubspec.yaml');
+        PubSpec spec =
+            new PubSpec.parse(ps.readAsStringSync(), sourceUrl: ps.path);
+        expect(spec.name.key.span.sourceUrl.toFilePath(),
+            equals('test/_data/p1/_pubspec.yaml'));
       });
     });
   });
@@ -182,8 +195,4 @@ testValueSpan(String label, PSEntry node, {int startOffset, int endOffset}) {
       testSpan(node.value.span, startOffset: startOffset, endOffset: endOffset);
     });
   });
-}
-
-class MockVisitor extends Mock implements PubSpecVisitor {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -301,6 +301,7 @@ defineRuleUnitTests() {
       var good = [
         'bwu_server.shared.datastore.some_file',
         'foo_bar.baz',
+        'foo_bar',
         'foo.bar',
         'foo_bar_baz',
         'foo',
