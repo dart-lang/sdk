@@ -5,6 +5,6 @@ var html_input_c;
     get y() {
       return 3 + html_input_e.w;
     },
-    set y() {}
+    set y(_) {}
   });
 })(html_input_c || (html_input_c = {}));

@@ -973,7 +973,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // TODO(jmesserly): use a dummy setter to indicate writable.
       if (!node.isFinal) {
         methods.add(new JS.Method(
-            new JS.PropertyName(name), js.call('function() {}'),
+            new JS.PropertyName(name), js.call('function(_) {}'),
             isSetter: true));
       }
     }

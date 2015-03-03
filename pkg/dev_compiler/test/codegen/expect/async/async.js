@@ -3764,7 +3764,7 @@ var async;
       get _SENTINEL() {
         return new core.Object();
       },
-      set _SENTINEL() {}
+      set _SENTINEL(_) {}
     });
     return _DistinctStream;
   });
@@ -4715,7 +4715,7 @@ var async;
     get _rootMap() {
       return new collection.HashMap();
     },
-    set _rootMap() {}
+    set _rootMap(_) {}
   });
   let _ROOT_ZONE = new _RootZone();
   // Function runZoned: (() → dynamic, {zoneValues: Map<dynamic, dynamic>, zoneSpecification: ZoneSpecification, onError: Function}) → dynamic

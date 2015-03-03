@@ -1201,7 +1201,10 @@ class Method extends Property {
 
   Method(Expression name, Fun function,
       {this.isGetter: false, this.isSetter: false, this.isStatic: false})
-      : super(name, function);
+      : super(name, function) {
+    assert(!isGetter || function.params.length == 0);
+    assert(!isSetter || function.params.length == 1);
+  }
 
   Fun get function => super.value;
 

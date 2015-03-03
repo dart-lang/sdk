@@ -1484,11 +1484,11 @@ var _native_typed_data;
     get _list() {
       return new NativeFloat64List(2);
     },
-    set _list() {},
+    set _list(_) {},
     get _uint32View() {
       return dart.as(_list.buffer.asUint32List(), NativeUint32List);
     },
-    set _uint32View() {}
+    set _uint32View(_) {}
   });
   // Exports:
   exports.NativeByteBuffer = NativeByteBuffer;

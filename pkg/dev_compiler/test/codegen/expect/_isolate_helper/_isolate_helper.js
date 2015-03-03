@@ -708,7 +708,7 @@ var _isolate_helper;
     get thisScript() {
       return computeThisScript();
     },
-    set thisScript() {},
+    set thisScript(_) {},
     get workerIds() {
       return new core.Expando();
     }

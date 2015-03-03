@@ -39,7 +39,7 @@ var fieldtest;
     get y() {
       return compute() + 444;
     },
-    set y() {}
+    set y(_) {}
   });
   dart.copyProperties(exports, {
     get q() {
