@@ -239,7 +239,7 @@ class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
 f(){int x;int y=!1;}''', <String>["1+x"]);
 
     buildTests('testCommentSnippets048', '''
-import 'dart:convert' as json;f() {var x=new js!1}''', <String>["1+json"], failingTests: '1');
+import 'dart:convert' as json;f() {var x=new js!1}''', <String>["1+json"]);
 
     buildTests('testCommentSnippets049', '''
 import 'dart:convert' as json;
@@ -253,7 +253,7 @@ f1() {var x=new !2j!1s!3}''', <String>[
       "2-JsonDecoder",
       "3+json",
       "3-jxx"
-    ], failingTests: '123');
+    ]);
 
     buildTests('testCommentSnippets050', '''
 class xdr {
@@ -271,13 +271,13 @@ k() {
       "1+xa",
       "1+xdr.a",
       "1+xdr.b",
-      "2-xa",
-      "2-xdr",
+      "2+xa", // suggest default constructor
+      "2+xdr", // suggest normal constructor
       "2+xdr.a",
-      "2-xdr.b",
-      "3-b",
+      "2+xdr.b", // suggest named constructor
+      "3+b", // suggest named constructor
       "3+a"
-    ], failingTests: '23');
+    ]);
 
     // Type propagation.
     buildTests('testCommentSnippets051', '''
@@ -1281,8 +1281,8 @@ func({foo, bar}) {} main() { func(!1); }''', <String>[
     ], failingTests: '1');
 
     buildTests('testCompletion_namedArgument_function', '''
-func({foo, bar}) {} main() { func(fo!1); }''', <String>["1+foo", "1-bar"],
-        failingTests: '1');
+func({foo, bar}) {} main() { func(fo!1); }''',
+        <String>["1+foo", "1-bar"], failingTests: '1');
 
     buildTests('testCompletion_namedArgument_notNamed', '''
 func([foo]) {} main() { func(fo!1); }''', <String>["1-foo"]);

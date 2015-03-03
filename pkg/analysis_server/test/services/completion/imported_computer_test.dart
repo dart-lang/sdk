@@ -4,7 +4,9 @@
 
 library test.services.completion.toplevel;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol.dart' as protocol
+    show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -126,6 +128,21 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   CompletionSuggestion assertSuggestImportedSetter(String name,
       {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
     return assertSuggestSetter(name, relevance);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLibraryPrefix(String prefix,
+      [int relevance = DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+    CompletionSuggestion cs =
+        assertSuggest(prefix, csKind: kind, relevance: relevance);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.LIBRARY));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    assertHasNoParameterInfo(cs);
+    return cs;
   }
 
   bool isCached(List<CompletionSuggestion> suggestions, String completion) =>
@@ -359,6 +376,7 @@ class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addTestSource('''
 import "/testA.dart";
+import "dart:math" as math;
 main() {new ^ String x = "hello";}''');
     computeFast();
     return computeFull((bool result) {
@@ -396,6 +414,8 @@ main() {new ^ String x = "hello";}''');
       expect(suggestion.parameterTypes[1], 'int');
       expect(suggestion.requiredParameterCount, 0);
       expect(suggestion.hasNamedParameters, true);
+
+      assertSuggestLibraryPrefix('math');
     });
   }
 

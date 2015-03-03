@@ -319,19 +319,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     // Library prefix should only be suggested by ImportedComputer
-    if (computer is ImportedComputer) {
-      CompletionSuggestion cs =
-          assertSuggest(prefix, csKind: kind, relevance: relevance);
-      protocol.Element element = cs.element;
-      expect(element, isNotNull);
-      expect(element.kind, equals(protocol.ElementKind.LIBRARY));
-      expect(element.parameters, isNull);
-      expect(element.returnType, isNull);
-      assertHasNoParameterInfo(cs);
-      return cs;
-    } else {
-      return assertNotSuggested(prefix);
-    }
+    return assertNotSuggested(prefix);
   }
 
   CompletionSuggestion assertSuggestMethod(

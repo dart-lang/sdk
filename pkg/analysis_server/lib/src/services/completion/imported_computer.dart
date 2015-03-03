@@ -106,7 +106,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
   }
 
   /**
-   * Add constructor suggestions from the cache.
+   * Add constructor and library prefix suggestions from the cache.
    * To reduce the number of suggestions sent to the client,
    * filter the suggestions based upon the first character typed.
    * If no characters are available to use for filtering,
@@ -119,6 +119,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
     }
     DartCompletionCache cache = request.cache;
     _addFilteredSuggestions(filterText, cache.importedConstructorSuggestions);
+    _addFilteredSuggestions(filterText, cache.libraryPrefixSuggestions);
   }
 
   /**
