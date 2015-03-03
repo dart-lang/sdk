@@ -337,7 +337,7 @@ class _CompactIterator<E> implements Iterator<E> {
 // Set implementation, analogous to _CompactLinkedHashMap.
 class _CompactLinkedHashSet<K>
     extends SetBase<K> with _HashBase
-    implements HashSet<K>, LinkedHashSet<K> {
+    implements LinkedHashSet<K> {
 
   _CompactLinkedHashSet() {
     assert(_HashBase._UNUSED_PAIR == 0);
@@ -377,7 +377,7 @@ class _CompactLinkedHashSet<K>
     }
   }
 
-  bool add(Object key) {
+  bool add(K key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
