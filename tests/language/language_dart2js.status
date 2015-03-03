@@ -11,9 +11,6 @@ sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 
-[ $compiler == dart2js && $csp && $browser ]
-deferred_mixin_test: RuntimeError # Issue 21863
-
 [ $compiler == dart2js || $compiler == dart2dart ]
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363

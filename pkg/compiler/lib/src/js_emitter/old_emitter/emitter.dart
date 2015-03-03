@@ -718,16 +718,21 @@ class OldEmitter implements Emitter {
     return ':$names';
   }
 
-  jsAst.FunctionDeclaration buildCspPrecompiledFunctionFor(
+  jsAst.Statement buildCspPrecompiledFunctionFor(
       OutputUnit outputUnit) {
     // TODO(ahe): Compute a hash code.
+    // TODO(sigurdm): Avoid this precompiled function. Generated
+    // constructor-functions and getter/setter functions can be stored in the
+    // library-description table. Setting properties on these can be moved to
+    // finishClasses.
     return js.statement('''
-      function dart_precompiled(\$collectedClasses) {
+      # = function (\$collectedClasses) {
         var \$desc;
         #;
         return #;
-      }''',
-        [cspPrecompiledFunctionFor(outputUnit),
+      };''',
+        [generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
+         cspPrecompiledFunctionFor(outputUnit),
          new jsAst.ArrayInitializer(
              cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
@@ -1442,8 +1447,19 @@ class OldEmitter implements Emitter {
     // traces and profile entries.
     mainOutput..add('var dart = [$n')
               ..addBuffer(libraryBuffer)
-              ..add(']$N')
-              ..add('$parseReflectionDataName(dart)$N');
+              ..add(']$N');
+    if (compiler.useContentSecurityPolicy) {
+      jsAst.Statement precompiledFunctionAst =
+          buildCspPrecompiledFunctionFor(mainOutputUnit);
+      mainOutput.addBuffer(
+          jsAst.prettyPrint(
+              precompiledFunctionAst,
+              compiler,
+              monitor: compiler.dumpInfoTask,
+              allowVariableMinification: false));
+    }
+
+    mainOutput.add('$parseReflectionDataName(dart)$N');
 
     interceptorEmitter.emitGetInterceptorMethods(mainOutput);
     interceptorEmitter.emitOneShotInterceptors(mainOutput);
@@ -1528,20 +1544,11 @@ class OldEmitter implements Emitter {
       }
     }
 
-    jsAst.FunctionDeclaration precompiledFunctionAst =
-        buildCspPrecompiledFunctionFor(mainOutputUnit);
     emitInitFunction(mainOutput);
     emitMain(mainOutput, mainFragment.invokeMain);
+
     mainOutput.add('})()\n');
 
-    if (compiler.useContentSecurityPolicy) {
-      mainOutput.addBuffer(
-          jsAst.prettyPrint(
-              precompiledFunctionAst,
-              compiler,
-              monitor: compiler.dumpInfoTask,
-              allowVariableMinification: false));
-    }
 
     if (generateSourceMap) {
       mainOutput.add(
@@ -1897,8 +1904,19 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
             // in stack traces and profile entries.
             ..add('var dart = [$n ')
             ..addBuffer(libraryDescriptorBuffer)
-            ..add(']$N')
-            ..add('$parseReflectionDataName(dart)$N');
+            ..add(']$N');
+
+        if (compiler.useContentSecurityPolicy) {
+          jsAst.Statement precompiledFunctionAst =
+              buildCspPrecompiledFunctionFor(outputUnit);
+
+          output.addBuffer(
+              jsAst.prettyPrint(
+                  precompiledFunctionAst, compiler,
+                  monitor: compiler.dumpInfoTask,
+                  allowVariableMinification: false));
+        }
+        output.add('$parseReflectionDataName(dart)$N');
       }
 
       // Set the currentIsolate variable to the current isolate (which is
@@ -1915,19 +1933,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       emitCompileTimeConstants(
           output, fragment.constants, isMainFragment: false);
       emitStaticNonFinalFieldInitializations(output, outputUnit);
+
       output.add('}$N');
-
-      if (compiler.useContentSecurityPolicy) {
-        jsAst.FunctionDeclaration precompiledFunctionAst =
-            buildCspPrecompiledFunctionFor(outputUnit);
-
-        output.addBuffer(
-            jsAst.prettyPrint(
-                precompiledFunctionAst, compiler,
-                monitor: compiler.dumpInfoTask,
-                allowVariableMinification: false));
-      }
-
       // Make a unique hash of the code (before the sourcemaps are added)
       // This will be used to retrieve the initializing function from the global
       // variable.

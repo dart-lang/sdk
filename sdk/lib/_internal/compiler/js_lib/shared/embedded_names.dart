@@ -44,6 +44,7 @@ const INITIALIZE_LOADED_HUNK = 'initializeLoadedHunk';
 const IS_HUNK_LOADED = 'isHunkLoaded';
 const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 const DEFERRED_INITIALIZED = 'deferredInitialized';
+const PRECOMPILED = 'precompiled';
 
 /// Returns a function that creates a new Isolate (its static state).
 ///

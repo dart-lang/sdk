@@ -375,7 +375,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
     var allClasses = #allClasses;
 
     if (#inCspMode) {
-      var constructors = dart_precompiled(processedClasses.collected);
+      var constructors = #precompiled(processedClasses.collected);
     }
 
     if (#notInCspMode) {
@@ -418,7 +418,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
        'finishClassFunction': oldEmitter.buildFinishClass(hasNativeClasses),
        'trivialNsmHandlers': oldEmitter.buildTrivialNsmHandlers(),
        'inCspMode': compiler.useContentSecurityPolicy,
-       'notInCspMode': !compiler.useContentSecurityPolicy});
+       'notInCspMode': !compiler.useContentSecurityPolicy,
+       'precompiled': oldEmitter
+           .generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED)});
 
   List<jsAst.Statement> incrementalSupport = <jsAst.Statement>[];
   if (compiler.hasIncrementalSupport) {
