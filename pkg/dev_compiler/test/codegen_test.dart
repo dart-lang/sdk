@@ -85,9 +85,11 @@ main(arguments) {
       new File(path.join(actualDir, '$filename.txt'))
           .writeAsStringSync(compilerMessages.toString());
 
-      var outputDir = new Directory(path.join(actualDir, filename));
-      expect(outputDir.existsSync(), success,
-          reason: '${outputDir.path} was created iff compilation succeeds');
+      var outFile = dartGen
+          ? new File(path.join(actualDir, '$filename/$filename.dart'))
+          : new File(path.join(actualDir, '$filename.js'));
+      expect(outFile.existsSync(), success,
+          reason: '${outFile.path} was created iff compilation succeeds');
 
       // TODO(jmesserly): ideally we'd diff the output here. For now it
       // happens in the containing shell script.
@@ -127,9 +129,11 @@ main(arguments) {
           : path.join(testDir, 'generated_sdk');
       var testSdk = new TypeResolver.fromDir(sdkPath, options);
       compile('dart:core', testSdk, options);
-      var outputDir = new Directory(path.join(actualDir, 'core'));
-      expect(outputDir.existsSync(), true,
-          reason: '${outputDir.path} was created for dart:core');
+      var outFile = dartGen
+          ? new File(path.join(actualDir, 'core/core'))
+          : new File(path.join(actualDir, 'dart/core.js'));
+      expect(outFile.existsSync(), true,
+          reason: '${outFile.path} was created for dart:core');
     });
   });
 

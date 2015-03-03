@@ -43,9 +43,10 @@ void generateEntryHtml(String inputFile, CompilerOptions options,
       .dirname(path.relative(Platform.script.path, from: options.outputDir)));
   var fragment = _loadRuntimeScripts(path.join(pathToDdc, 'lib'));
   if (!options.checkSdk) fragment.nodes.add(_miniMockSdk);
+  var root = new Uri.file(path.absolute(inputFile));
   for (var lib in results.libraries) {
     if (lib.isEntry) mainLibraryName = jsLibraryName(lib.library);
-    fragment.nodes.add(_libraryInclude(jsOutputPath(lib)));
+    fragment.nodes.add(_libraryInclude(jsOutputPath(lib, root)));
   }
   fragment.nodes.add(_invokeMain(mainLibraryName));
   mainScript.replaceWith(fragment);

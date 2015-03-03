@@ -1799,7 +1799,7 @@ class JSGenerator extends CodeGenerator {
     JS.Block jsTree =
         new JSCodegenVisitor(info, rules).generateLibrary(units, reporter);
 
-    var outputPath = path.join(outDir, jsOutputPath(info));
+    var outputPath = path.join(outDir, jsOutputPath(info, root));
     new Directory(path.dirname(outputPath)).createSync(recursive: true);
 
     if (options.emitSourceMaps) {
@@ -1841,11 +1841,23 @@ String debugJsNodeToString(JS.Node node) {
 /// declaration) as it doesn't have any meaningful rules enforced.
 String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
 
-/// Path to file that will be generated for [info].
-// TODO(jmesserly): library directory should be relative to its package
-// root. For example, "package:dev_compiler/src/codegen/js_codegen.dart" would be:
-// "ddc/src/codegen/js_codegen.js" under the output directory.
-String jsOutputPath(LibraryInfo info) => '${info.name}/${info.name}.js';
+/// Path to file that will be generated for [info]. In case it's url is a
+/// `file:` url, we use [root] to determine the relative path from the entry
+/// point file.
+String jsOutputPath(LibraryInfo info, Uri root) {
+  var uri = info.library.source.uri;
+  var filepath = '${path.withoutExtension(uri.path)}.js';
+  if (uri.scheme == 'dart') {
+    filepath = 'dart/$filepath';
+  } else if (uri.scheme == 'file') {
+    filepath = path.relative(filepath, from: path.dirname(root.path));
+  } else {
+    assert(uri.scheme == 'package');
+    // filepath is good here, we want the output to start with a directory
+    // matching the package name.
+  }
+  return filepath;
+}
 
 class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
   final srcmaps.Printer printer;

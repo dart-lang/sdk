@@ -80,7 +80,8 @@ CheckerResults _compileHtml(
     return _earlyErrorResult;
   }
 
-  var results = _compileDart(dartInputFile, resolver, options, reporter);
+  var results = _compileDart(dartInputFile, resolver, options, reporter,
+      new Uri.file(path.absolute(inputFile)));
   if (results.failure && !options.forceCompile) return results;
 
   if (options.outputDir != null) {
@@ -91,14 +92,14 @@ CheckerResults _compileHtml(
 
 CheckerResults _compileDart(
     String inputFile, TypeResolver resolver, CompilerOptions options,
-    [CheckerReporter reporter]) {
+    [CheckerReporter reporter, Uri htmlUri]) {
   Uri uri;
   if (inputFile.startsWith('dart:') || inputFile.startsWith('package:')) {
     uri = Uri.parse(inputFile);
   } else {
     uri = new Uri.file(path.absolute(inputFile));
   }
-
+  var codegenRoot = htmlUri != null ? htmlUri : uri;
   if (reporter == null) {
     reporter = options.dumpInfo
         ? new SummaryReporter()
@@ -111,14 +112,14 @@ CheckerResults _compileDart(
   var codeChecker = new CodeChecker(rules, reporter, options);
   var generators = <CodeGenerator>[];
   if (options.dumpSrcDir != null) {
-    generators
-        .add(new EmptyDartGenerator(options.dumpSrcDir, uri, rules, options));
+    generators.add(new EmptyDartGenerator(
+        options.dumpSrcDir, codegenRoot, rules, options));
   }
   var outputDir = options.outputDir;
   if (outputDir != null) {
     var cg = options.outputDart
-        ? new DartGenerator(outputDir, uri, rules, options)
-        : new JSGenerator(outputDir, uri, rules, options);
+        ? new DartGenerator(outputDir, codegenRoot, rules, options)
+        : new JSGenerator(outputDir, codegenRoot, rules, options);
     generators.add(cg);
   }
 
