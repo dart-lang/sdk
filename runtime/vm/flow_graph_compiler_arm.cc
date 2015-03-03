@@ -1222,10 +1222,22 @@ int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
   // Used by CodePatcher; so must be constant across all code in an isolate.
   int32_t size = 3 * Instr::kInstrSize;
 #if defined(DEBUG)
-  size += 35 * Instr::kInstrSize;
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    size += 35 * Instr::kInstrSize;
+  } else {
+    // To update this number for e.g. ARMv6, run a SIMARM build with
+    // --sim_use_armv6 on any Dart program.
+    size += 51 * Instr::kInstrSize;
+  }
 #endif  // DEBUG
   if (VerifiedMemory::enabled()) {
-    size += 20 * Instr::kInstrSize;
+    if (TargetCPUFeatures::arm_version() == ARMv7) {
+      size += 20 * Instr::kInstrSize;
+    } else {
+      // To update this number for e.g. ARMv6, run a SIMARM build with
+      // --sim_use_armv6 --verified_mem on any Dart program.
+      size += 28 * Instr::kInstrSize;
+    }
   }
   return size;
 }
