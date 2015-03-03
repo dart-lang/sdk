@@ -18,6 +18,10 @@ class Block {
   final List<Block> predecessors = <Block>[];
   final List<Block> successors = <Block>[];
 
+  /// The catch block associated with the immediately enclosing try block or
+  /// `null` if not inside a try block.
+  Block catcher;
+
   String get name => 'B$index';
 
   Block([this.label]);
@@ -37,7 +41,9 @@ class BlockCollector extends StatementVisitor {
   // (if targets) to blocks.
   final Map<Label, Block> breakTargets = <Label, Block>{};
   final Map<Label, Block> continueTargets = <Label, Block>{};
-  final Map<Statement, Block> ifTargets = <Statement, Block>{};
+  final Map<Statement, Block> substatements = <Statement, Block>{};
+
+  Block catcher;
 
   void _addStatement(Statement statement) {
     blocks.last.statements.add(statement);
@@ -48,6 +54,7 @@ class BlockCollector extends StatementVisitor {
 
   void _addBlock(Block block) {
     block.index = blocks.length;
+    block.catcher = catcher;
     blocks.add(block);
   }
 
@@ -95,8 +102,8 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     Block thenTarget = new Block();
     Block elseTarget = new Block();
-    ifTargets[node.thenStatement] = thenTarget;
-    ifTargets[node.elseStatement] = elseTarget;
+    substatements[node.thenStatement] = thenTarget;
+    substatements[node.elseStatement] = elseTarget;
     blocks.last.addEdgeTo(thenTarget);
     blocks.last.addEdgeTo(elseTarget);
     _addBlock(thenTarget);
@@ -137,13 +144,26 @@ class BlockCollector extends StatementVisitor {
     _addBlock(nextBlock);
     visitStatement(node.next);
 
-    ifTargets[node.body] = bodyBlock;
-    ifTargets[node.next] = nextBlock;
+    substatements[node.body] = bodyBlock;
+    substatements[node.next] = nextBlock;
   }
 
   visitTry(Try node) {
-    // It's not obvious how we want to represent try statements here.
-    // TODO(kmillikin).
+    _addStatement(node);
+    Block tryBlock = new Block();
+    Block catchBlock = new Block();
+
+    Block oldCatcher = catcher;
+    catcher = catchBlock;
+    _addBlock(tryBlock);
+    visitStatement(node.tryBody);
+    catcher = oldCatcher;
+
+    _addBlock(catchBlock);
+    visitStatement(node.catchBody);
+
+    substatements[node.tryBody] = tryBlock;
+    substatements[node.catchBody] = catchBlock;
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -212,6 +232,9 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
           printStatement(null,
               "Label ${block.name}, useCount=${block.label.useCount}");
         }
+        if (block.catcher != null) {
+          printStatement(null, 'Catch exceptions at ${block.catcher.name}');
+        }
         block.statements.forEach(visitBlockMember);
       });
     });
@@ -263,8 +286,8 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
 
   visitIf(If node) {
     String condition = expr(node.condition);
-    String thenTarget = collector.ifTargets[node.thenStatement].name;
-    String elseTarget = collector.ifTargets[node.elseStatement].name;
+    String thenTarget = collector.substatements[node.thenStatement].name;
+    String elseTarget = collector.substatements[node.elseStatement].name;
     printStatement(null, "if $condition then $thenTarget else $elseTarget");
   }
 
@@ -273,16 +296,18 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
   }
 
   visitWhileCondition(WhileCondition node) {
-    String bodyTarget = collector.ifTargets[node.body].name;
-    String nextTarget = collector.ifTargets[node.next].name;
+    String bodyTarget = collector.substatements[node.body].name;
+    String nextTarget = collector.substatements[node.next].name;
     printStatement(null, "while ${expr(node.condition)}");
     printStatement(null, "do $bodyTarget");
     printStatement(null, "then $nextTarget" );
   }
 
   visitTry(Try node) {
-    // It's not obvious how we want to represent try statements here.
-    // TODO(kmillikin).
+    String tryTarget = collector.substatements[node.tryBody].name;
+    String catchParams = node.catchParameters.map(names.varName).join(',');
+    String catchTarget = collector.substatements[node.catchBody].name;
+    printStatement(null, 'try $tryTarget catch($catchParams) $catchTarget');
   }
 
   visitExpressionStatement(ExpressionStatement node) {
