@@ -1072,6 +1072,19 @@ main() {
     expect(refactoring.returnType, 'double');
   }
 
+  test_returnType_closure() async {
+    indexTestUnit('''
+process(f(x)) {}
+main() {
+  process((x) => x * 2);
+}
+''');
+    _createRefactoringForString('(x) => x * 2');
+    // do check
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, '');
+  }
+
   test_returnType_statements_nullMix() async {
     indexTestUnit('''
 main(bool p) {

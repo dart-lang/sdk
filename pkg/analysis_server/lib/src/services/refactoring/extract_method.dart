@@ -629,7 +629,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   void _initializeReturnType() {
-    if (_returnType == null) {
+    if (_selectionFunctionExpression != null) {
+      returnType = '';
+    } else if (_returnType == null) {
       returnType = 'void';
     } else {
       returnType = _getTypeCode(_returnType);
