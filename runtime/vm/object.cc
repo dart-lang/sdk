@@ -12662,8 +12662,7 @@ RawStackmap* Code::GetStackmap(
       return map->raw();  // We found a stack map for this frame.
     }
   }
-  // If the code has stackmaps, it must have them for all safepoints.
-  UNREACHABLE();
+  ASSERT(!is_optimized());
   return Stackmap::null();
 }
 

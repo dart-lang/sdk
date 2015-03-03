@@ -103,8 +103,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         current_block_(NULL),
         exception_handlers_list_(NULL),
         pc_descriptors_list_(NULL),
-        stackmap_table_builder_(
-            is_optimizing ? new StackmapTableBuilder() : NULL),
+        stackmap_table_builder_(NULL),
         block_info_(block_order_.length()),
         deopt_infos_(),
         static_calls_target_table_(GrowableObjectArray::ZoneHandle(
@@ -668,28 +667,34 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
 
 // This function must be in sync with FlowGraphCompiler::SaveLiveRegisters
 // and FlowGraphCompiler::SlowPathEnvironmentFor.
+// See StackFrame::VisitObjectPointers for the details of how stack map is
+// interpreted.
 void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
-  if (is_optimizing()) {
+  if (is_optimizing() || locs->live_registers()->HasUntaggedValues()) {
+    const intptr_t spill_area_size = is_optimizing() ?
+        flow_graph_.graph_entry()->spill_slot_count() : 0;
+
     RegisterSet* registers = locs->live_registers();
     ASSERT(registers != NULL);
     const intptr_t kFpuRegisterSpillFactor =
             kFpuRegisterSize / kWordSize;
     const intptr_t live_registers_size = registers->CpuRegisterCount() +
         (registers->FpuRegisterCount() * kFpuRegisterSpillFactor);
+
     BitmapBuilder* bitmap = locs->stack_bitmap();
-    ASSERT(bitmap != NULL);
+
     // An instruction may have two safepoints in deferred code. The
     // call to RecordSafepoint has the side-effect of appending the live
     // registers to the bitmap. This is why the second call to RecordSafepoint
     // with the same instruction (and same location summary) sees a bitmap that
     // is larger that StackSize(). It will never be larger than StackSize() +
     // live_registers_size.
-    ASSERT(bitmap->Length() <= (StackSize() + live_registers_size));
-    // The first safepoint will grow the bitmap to be the size of StackSize()
-    // but the second safepoint will truncate the bitmap and append the
-    // live registers to it again. The bitmap produced by both calls will
-    // be the same.
-    bitmap->SetLength(StackSize());
+    ASSERT(bitmap->Length() <= (spill_area_size + live_registers_size));
+    // The first safepoint will grow the bitmap to be the size of
+    // spill_area_size but the second safepoint will truncate the bitmap and
+    // append the live registers to it again. The bitmap produced by both calls
+    // will be the same.
+    bitmap->SetLength(spill_area_size);
 
     // Mark the bits in the stack map in the same order we push registers in
     // slow path code (see FlowGraphCompiler::SaveLiveRegisters).
@@ -724,10 +729,10 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
       }
     }
 
-    intptr_t register_bit_count = bitmap->Length() - StackSize();
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                      bitmap,
-                                      register_bit_count);
+    intptr_t register_bit_count = bitmap->Length() - spill_area_size;
+    stackmap_table_builder()->AddEntry(assembler()->CodeSize(),
+                                       bitmap,
+                                       register_bit_count);
   }
 }
 
@@ -868,7 +873,6 @@ void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
     code.set_stackmaps(Object::null_array());
   } else {
     // Finalize the stack map array and add it to the code object.
-    ASSERT(is_optimizing());
     code.set_stackmaps(
         Array::Handle(stackmap_table_builder_->FinalizeStackmaps(code)));
   }
