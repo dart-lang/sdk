@@ -287,7 +287,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool isClosed = false;
   bool isClosing = false;
   bool isClosedRead = false;
-  bool closedReadEventSent = false;
   bool isClosedWrite = false;
   Completer closeCompleter = new Completer.sync();
 
@@ -695,7 +694,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   void issueReadEvent() {
-    if (closedReadEventSent) return;
     if (readEventIssued) return;
     readEventIssued = true;
     void issue() {
@@ -703,11 +701,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isClosing) return;
       if (!sendReadEvents) return;
       if (available == 0) {
-        if (isClosedRead && !closedReadEventSent) {
+        if (isClosedRead) {
           if (isClosedWrite) close();
           var handler = eventHandlers[CLOSED_EVENT];
           if (handler == null) return;
-          closedReadEventSent = true;
           handler();
         }
         return;
@@ -863,7 +860,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   void shutdownWrite() {
     if (!isClosing && !isClosed) {
-      if (closedReadEventSent) {
+      if (isClosedRead) {
         close();
       } else {
         sendToEventHandler(1 << SHUTDOWN_WRITE_COMMAND);
