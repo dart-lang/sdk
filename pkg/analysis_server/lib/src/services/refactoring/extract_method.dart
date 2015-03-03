@@ -71,6 +71,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   String returnType;
   String name;
   bool extractAll = true;
+  bool canCreateGetter = false;
   bool createGetter = false;
   final List<String> names = <String>[];
   final List<int> offsets = <int>[];
@@ -98,21 +99,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     libraryElement = unitElement.library;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
-  }
-
-  bool get canCreateGetter {
-    if (!parameters.isEmpty) {
-      return false;
-    }
-    if (_selectionExpression != null) {
-      if (_selectionExpression is AssignmentExpression) {
-        return false;
-      }
-    }
-    if (_selectionStatements != null) {
-      return returnType != 'void';
-    }
-    return true;
   }
 
   @override
@@ -188,10 +174,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // prepare parts
     result.addStatus(_initializeParameters());
     _initializeReturnType();
-    _initializeGetter();
     // occurrences
     _initializeOccurrences();
     _prepareOffsetsLengths();
+    // getter
+    canCreateGetter = _computeCanCreateGetter();
+    _initializeCreateGetter();
     // names
     _prepareExcludedNames();
     _prepareNames();
@@ -454,6 +442,32 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   /**
+   * Initializes [canCreateGetter] flag.
+   */
+  bool _computeCanCreateGetter() {
+    // is a function expression
+    if (_selectionFunctionExpression != null) {
+      return false;
+    }
+    // has parameters
+    if (!parameters.isEmpty) {
+      return false;
+    }
+    // is assignment
+    if (_selectionExpression != null) {
+      if (_selectionExpression is AssignmentExpression) {
+        return false;
+      }
+    }
+    // doesn't return a value
+    if (_selectionStatements != null) {
+      return returnType != 'void';
+    }
+    // OK
+    return true;
+  }
+
+  /**
    * Returns the selected [Expression] source, with applying new parameter
    * names.
    */
@@ -511,7 +525,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /**
    * Initializes [createGetter] flag.
    */
-  void _initializeGetter() {
+  void _initializeCreateGetter() {
     createGetter = false;
     // maybe we cannot at all
     if (!canCreateGetter) {

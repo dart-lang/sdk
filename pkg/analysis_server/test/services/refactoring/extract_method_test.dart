@@ -623,6 +623,20 @@ main() {
         "Operation not applicable to a while statement's expression and body.");
   }
 
+  test_canExtractGetter_false_closure() async {
+    indexTestUnit('''
+main() {
+  useFunction((_) => true);
+}
+useFunction(filter(String p)) {}
+''');
+    _createRefactoringForString('(_) => true');
+    // apply refactoring
+    await assertRefactoringConditionsOK();
+    expect(refactoring.canCreateGetter, false);
+    expect(refactoring.createGetter, false);
+  }
+
   test_canExtractGetter_false_fieldAssignment() async {
     indexTestUnit('''
 class A {
