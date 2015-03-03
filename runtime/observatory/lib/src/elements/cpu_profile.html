@@ -157,7 +157,7 @@
             <div class="memberName">Call Tree Direction</div>
             <div class="memberValue">
               <select value="{{directionSelector}}">
-                <!-- Experimental: <option value="Down">Top down</option> -->
+                <!--- Experimental <option value="Down">Top down</option> --->
                 <option value="Up">Bottom up</option>
               </select>
             </div>
@@ -172,7 +172,7 @@
           <div>Child nodes are callees.</div>
           <br>
           <div class="notice">To get the most out of this mode you may need to launch Dart with a higher --profile-depth flag value.</div>
-          <div class="notice">Try 16, 32, ... up to 256 until each sample captures the entire call stack.</div>
+          <div class="notice">Try 16, 32, ... up to 256 until [Truncated] approaches zero.</div>
           <div class="red">NOTE: Higher values will impact performance</div>
         </div>
       </template>

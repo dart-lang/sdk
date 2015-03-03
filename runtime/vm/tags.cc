@@ -33,11 +33,12 @@ const char* VMTag::TagName(uword tag) {
 
 
 bool VMTag::IsNativeEntryTag(uword tag) {
-  if (tag == 0) {
+  if ((tag == kRootTagId) || (tag == kTruncatedTagId)) {
     return false;
   }
   ASSERT(tag != kInvalidTagId);
   ASSERT(tag != kNumVMTags);
+  ASSERT(tag != kLastTagId);
   return (tag > kNumVMTags) && !IsRuntimeEntryTag(tag);
 }
 

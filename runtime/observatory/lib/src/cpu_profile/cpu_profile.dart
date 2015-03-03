@@ -9,9 +9,10 @@ class CodeCallTreeNode {
   final int count;
   double get percentage => _percentage;
   double _percentage = 0.0;
-  final children = new List<CodeCallTreeNode>();
+  final children;
   final Set<String> attributes = new Set<String>();
-  CodeCallTreeNode(this.profileCode, this.count) {
+  CodeCallTreeNode(this.profileCode, this.count, int childCount)
+      : children = new List<CodeCallTreeNode>(childCount) {
     attributes.addAll(profileCode.attributes);
   }
 }
@@ -58,6 +59,10 @@ class FunctionCallTreeNode {
   final codes = new List<FunctionCallTreeNodeCode>();
   int _totalCodeTicks = 0;
   int get totalCodesTicks => _totalCodeTicks;
+
+  FunctionCallTreeNode(this.profileFunction, this.count){
+    profileFunction._addKindBasedAttributes(attributes);
+  }
 
   // Does this function have an optimized version of itself?
   bool hasOptimizedCode() {
@@ -121,10 +126,6 @@ class FunctionCallTreeNode {
     if (isInlined()) {
       attributes.add('inlined');
     }
-  }
-
-  FunctionCallTreeNode(this.profileFunction, this.count) {
-    profileFunction._addKindBasedAttributes(attributes);
   }
 }
 
@@ -413,13 +414,25 @@ class CpuProfile {
 
   double timeSpan = 0.0;
 
-  final Map<String, CodeCallTree> codeTrees =
-      <String, CodeCallTree>{};
-  final Map<String, FunctionCallTree> functionTrees =
-      <String, FunctionCallTree>{};
-
+  final Map<String, List> tries = <String, List>{};
   final List<ProfileCode> codes = new List<ProfileCode>();
   final List<ProfileFunction> functions = new List<ProfileFunction>();
+
+  CodeCallTree loadCodeTree(String name) {
+    if (name == 'inclusive') {
+      return _loadCodeTree(true, tries['inclusiveCodeTrie']);
+    } else {
+      return _loadCodeTree(false, tries['exclusiveCodeTrie']);
+    }
+  }
+
+  FunctionCallTree loadFunctionTree(String name) {
+    if (name == 'inclusive') {
+      return _loadFunctionTree(true, tries['inclusiveFunctionTrie']);
+    } else {
+      return _loadFunctionTree(false, tries['exclusiveFunctionTrie']);
+    }
+  }
 
   void clear() {
     sampleCount = 0;
@@ -427,21 +440,19 @@ class CpuProfile {
     sampleRate = 0.0;
     stackDepth = 0;
     timeSpan = 0.0;
-    codeTrees.clear();
-    functionTrees.clear();
     codes.clear();
     functions.clear();
+    tries.clear();
   }
 
   void load(Isolate isolate, ServiceMap profile) {
+    clear();
     if ((isolate == null) || (profile == null)) {
       return;
     }
 
     this.isolate = isolate;
     isolate.resetCachedProfileData();
-
-    clear();
 
     sampleCount = profile['sampleCount'];
     samplePeriod = profile['samplePeriod'];
@@ -464,32 +475,18 @@ class CpuProfile {
           new ProfileFunction.fromMap(this, function, profileFunction));
     }
 
-    // Process code trees.
-    var exclusiveCodeTrie = profile['exclusiveCodeTrie'];
-    if (exclusiveCodeTrie != null) {
-      codeTrees['exclusive'] = _loadCodeTree(false, exclusiveCodeTrie);
-    }
-    var inclusiveCodeTrie = profile['inclusiveCodeTrie'];
-    if (inclusiveCodeTrie != null) {
-      codeTrees['inclusive'] = _loadCodeTree(true, inclusiveCodeTrie);
-    }
-
-    // Process function trees.
-    var exclusiveFunctionTrie = profile['exclusiveFunctionTrie'];
-    if (exclusiveFunctionTrie != null) {
-      functionTrees['exclusive'] =
-          _loadFunctionTree(false, exclusiveFunctionTrie);
-    }
-    var inclusiveFunctionTrie = profile['inclusiveFunctionTrie'];
-    if (inclusiveFunctionTrie != null) {
-      functionTrees['inclusive'] =
-          _loadFunctionTree(true, inclusiveFunctionTrie);
-    }
+    tries['exclusiveCodeTrie'] =
+        new Uint32List.fromList(profile['exclusiveCodeTrie']);
+    tries['inclusiveCodeTrie'] =
+        new Uint32List.fromList(profile['inclusiveCodeTrie']);
+    tries['exclusiveFunctionTrie'] =
+        new Uint32List.fromList(profile['exclusiveFunctionTrie']);
+    tries['inclusiveFunctionTrie'] =
+        new Uint32List.fromList(profile['inclusiveFunctionTrie']);
   }
 
   // Data shared across calls to _read*TrieNode.
-  int _trieDataCursor;
-  List<int> _trieData;
+  int _dataCursor = 0;
 
   // The code trie is serialized as a list of integers. Each node
   // is recreated by consuming some portion of the list. The format is as
@@ -500,86 +497,161 @@ class CpuProfile {
   // Reading the trie is done by recursively reading the tree depth-first
   // pre-order.
   CodeCallTree _loadCodeTree(bool inclusive, List<int> data) {
-    // Setup state shared across calls to _readTrieNode.
-    _trieDataCursor = 0;
-    _trieData = data;
-    if (_trieData == null) {
+    if (data == null) {
       return null;
     }
-    if (_trieData.length < 3) {
-      // Not enough integers for 1 node.
+    if (data.length < 3) {
+      // Not enough for root node.
       return null;
     }
     // Read the tree, returns the root node.
-    var root = _readCodeTrieNode();
+    var root = _readCodeTrie(data);
     return new CodeCallTree(inclusive, root);
   }
 
-  CodeCallTreeNode _readCodeTrieNode() {
-    // Read index into code table.
-    var index = _trieData[_trieDataCursor++];
+  CodeCallTreeNode _readCodeTrieNode(List<int> data) {
     // Lookup code object.
-    var code = codes[index];
-    // Frame counter.
-    var count = _trieData[_trieDataCursor++];
+    var codeIndex = data[_dataCursor++];
+    var code = codes[codeIndex];
+    // Node tick counter.
+    var count = data[_dataCursor++];
+    // Child node count.
+    var children = data[_dataCursor++];
     // Create node.
-    var node = new CodeCallTreeNode(code, count);
-    // Number of children.
-    var children = _trieData[_trieDataCursor++];
-    // Recursively read child nodes.
-    for (var i = 0; i < children; i++) {
-      var child = _readCodeTrieNode();
-      node.children.add(child);
-    }
+    var node = new CodeCallTreeNode(code, count, children);
     return node;
   }
 
+  CodeCallTreeNode _readCodeTrie(List<int> data) {
+    final nodeStack = new List<CodeCallTreeNode>();
+    final childIndexStack = new List<int>();
+
+    _dataCursor = 0;
+    // Read root.
+    var root = _readCodeTrieNode(data);
+
+    // Push root onto stack.
+    if (root.children.length > 0) {
+      nodeStack.add(root);
+      childIndexStack.add(0);
+    }
+
+    while (nodeStack.length > 0) {
+      var lastIndex = nodeStack.length - 1;
+      // Pop parent from stack.
+      var parent = nodeStack[lastIndex];
+      var childIndex = childIndexStack[lastIndex];
+
+      // Read child node.
+      assert(childIndex < parent.children.length);
+      var node = _readCodeTrieNode(data);
+      parent.children[childIndex++] = node;
+
+      // If parent still has children, update child index.
+      if (childIndex < parent.children.length) {
+        childIndexStack[lastIndex] = childIndex;
+      } else {
+        // Finished processing parent node.
+        nodeStack.removeLast();
+        childIndexStack.removeLast();
+      }
+
+      // If node has children, push onto stack.
+      if (node.children.length > 0) {
+        nodeStack.add(node);
+        childIndexStack.add(0);
+      }
+    }
+
+    return root;
+  }
+
   FunctionCallTree _loadFunctionTree(bool inclusive, List<int> data) {
-    // Setup state shared across calls to _readTrieNode.
-    _trieDataCursor = 0;
-    _trieData = data;
-    if (_trieData == null) {
+    if (data == null) {
       return null;
     }
-    if (_trieData.length < 3) {
+    if (data.length < 3) {
       // Not enough integers for 1 node.
       return null;
     }
     // Read the tree, returns the root node.
-    var root = _readFunctionTrieNode();
+    var root = _readFunctionTrie(data);
     return new FunctionCallTree(inclusive, root);
   }
 
-  FunctionCallTreeNode _readFunctionTrieNode() {
+  FunctionCallTreeNode _readFunctionTrieNode(List<int> data) {
     // Read index into function table.
-    var index = _trieData[_trieDataCursor++];
+    var index = data[_dataCursor++];
     // Lookup function object.
     var function = functions[index];
-    // Frame counter.
-    var count = _trieData[_trieDataCursor++];
+    // Counter.
+    var count = data[_dataCursor++];
     // Create node.
     var node = new FunctionCallTreeNode(function, count);
     // Number of code index / count pairs.
-    var codeCount = _trieData[_trieDataCursor++];
+    var codeCount = data[_dataCursor++];
+    node.codes.length = codeCount;
     var totalCodeTicks = 0;
     for (var i = 0; i < codeCount; i++) {
-      var codeIndex = _trieData[_trieDataCursor++];
+      var codeIndex = data[_dataCursor++];
       var code = codes[codeIndex];
-      var codeTicks = _trieData[_trieDataCursor++];
+      assert(code != null);
+      var codeTicks = data[_dataCursor++];
       totalCodeTicks += codeTicks;
       var nodeCode = new FunctionCallTreeNodeCode(code, codeTicks);
-      node.codes.add(nodeCode);
-      node.setCodeAttributes();
+      node.codes[i] = nodeCode;
     }
+    node.setCodeAttributes();
     node._totalCodeTicks = totalCodeTicks;
     // Number of children.
-    var children = _trieData[_trieDataCursor++];
-    // Recursively read child nodes.
-    for (var i = 0; i < children; i++) {
-      var child = _readFunctionTrieNode();
-      node.children.add(child);
-    }
+    var childCount = data[_dataCursor++];
+    node.children.length = childCount;
     return node;
+  }
+
+  FunctionCallTreeNode _readFunctionTrie(List<int> data) {
+    final nodeStack = new List<FunctionCallTreeNode>();
+    final childIndexStack = new List<int>();
+
+    _dataCursor = 0;
+
+    // Read root.
+    var root = _readFunctionTrieNode(data);
+
+    // Push root onto stack.
+    if (root.children.length > 0) {
+      nodeStack.add(root);
+      childIndexStack.add(0);
+    }
+
+    while (nodeStack.length > 0) {
+      var lastIndex = nodeStack.length - 1;
+      // Pop parent from stack.
+      var parent = nodeStack[lastIndex];
+      var childIndex = childIndexStack[lastIndex];
+
+      // Read child node.
+      assert(childIndex < parent.children.length);
+      var node = _readFunctionTrieNode(data);
+      parent.children[childIndex++] = node;
+
+      // If parent still has children, update child index.
+      if (childIndex < parent.children.length) {
+        childIndexStack[lastIndex] = childIndex;
+      } else {
+        // Finished processing parent node.
+        nodeStack.removeLast();
+        childIndexStack.removeLast();
+      }
+
+      // If node has children, push onto stack.
+      if (node.children.length > 0) {
+        nodeStack.add(node);
+        childIndexStack.add(0);
+      }
+    }
+
+    return root;
   }
 
   int approximateMillisecondsForCount(count) {

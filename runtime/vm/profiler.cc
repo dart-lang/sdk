@@ -46,6 +46,14 @@ DEFINE_FLAG(bool, profile_vm, false,
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 
+static intptr_t NumberOfFramesToCollect() {
+  if (FLAG_profile_depth <= 0) {
+    return 0;
+  }
+  // Subtract to reserve space for the possible missing frame.
+  return FLAG_profile_depth - 1;
+}
+
 void Profiler::InitOnce() {
   // Place some sane restrictions on user controlled flags.
   SetSamplePeriod(FLAG_profile_period);
@@ -74,7 +82,7 @@ void Profiler::Shutdown() {
 
 
 void Profiler::SetSampleDepth(intptr_t depth) {
-  const int kMinimumDepth = 1;
+  const int kMinimumDepth = 2;
   const int kMaximumDepth = 255;
   if (depth < kMinimumDepth) {
     FLAG_profile_depth = kMinimumDepth;
@@ -213,7 +221,7 @@ intptr_t Sample::instance_size_ = 0;
 
 
 void Sample::InitOnce() {
-  ASSERT(FLAG_profile_depth >= 1);
+  ASSERT(FLAG_profile_depth >= 2);
   pcs_length_ = FLAG_profile_depth;
   instance_size_ =
       sizeof(Sample) + (sizeof(uword) * pcs_length_);  // NOLINT.
@@ -592,7 +600,8 @@ class ProfilerDartExitStackWalker : public ValueObject {
     while (frame != NULL) {
       sample_->SetAt(frame_index, frame->pc());
       frame_index++;
-      if (frame_index >= FLAG_profile_depth) {
+      if (frame_index >= NumberOfFramesToCollect()) {
+        sample_->set_truncated_trace(true);
         break;
       }
       frame = frame_iterator_.NextFrame();
@@ -642,12 +651,13 @@ class ProfilerDartStackWalker : public ValueObject {
         return;
       }
     }
-    for (int i = 0; i < FLAG_profile_depth; i++) {
+    for (int i = 0; i < NumberOfFramesToCollect(); i++) {
       sample_->SetAt(i, reinterpret_cast<uword>(pc_));
       if (!Next()) {
         return;
       }
     }
+    sample_->set_truncated_trace(true);
   }
 
  private:
@@ -800,7 +810,7 @@ class ProfilerNativeStackWalker : public ValueObject {
       return;
     }
 
-    for (int i = 0; i < FLAG_profile_depth; i++) {
+    for (int i = 0; i < NumberOfFramesToCollect(); i++) {
       sample_->SetAt(i, reinterpret_cast<uword>(pc));
 
       pc = CallerPC(fp);
@@ -830,6 +840,8 @@ class ProfilerNativeStackWalker : public ValueObject {
       // Move the lower bound up.
       lower_bound_ = reinterpret_cast<uword>(fp);
     }
+
+    sample_->set_truncated_trace(true);
   }
 
  private:

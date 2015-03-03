@@ -4,6 +4,7 @@
 
 library cpu_profiler;
 
+import 'dart:typed_data';
 import 'package:observatory/service.dart';
 import 'package:observatory/utils.dart';
 

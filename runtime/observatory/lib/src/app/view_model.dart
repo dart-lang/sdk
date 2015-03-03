@@ -21,6 +21,8 @@ abstract class TableTreeRow extends Observable {
   final List<TableTreeRow> children = new List<TableTreeRow>();
   final List<TableCellElement> _tableColumns = new List<TableCellElement>();
   final List<DivElement> flexColumns = new List<DivElement>();
+  final List<StreamSubscription> listeners = new List<StreamSubscription>();
+
   SpanElement _expander;
   TableRowElement _tr;
   TableRowElement get tr => _tr;
@@ -67,8 +69,15 @@ abstract class TableTreeRow extends Observable {
   HtmlElement _makeExpander() {
     var expander = new SpanElement();
     expander.style.minWidth = '1.5em';
-    expander.onClick.listen(onClick);
+    listeners.add(expander.onClick.listen(onClick));
     return expander;
+  }
+
+  void _cleanUpListeners() {
+    for (var i = 0; i < listeners.length; i++) {
+      listeners[i].cancel();
+    }
+    listeners.clear();
   }
 
   void onClick(Event e) {
@@ -112,7 +121,7 @@ abstract class TableTreeRow extends Observable {
     _expander = _makeExpander();
     firstColumn.children.add(_expander);
     // Enable expansion by clicking anywhere on the first column.
-    firstColumn.onClick.listen(onClick);
+    listeners.add(firstColumn.onClick.listen(onClick));
     _updateExpanderView();
   }
 
@@ -153,6 +162,7 @@ abstract class TableTreeRow extends Observable {
     if (flexColumns != null) {
       flexColumns.clear();
     }
+    _cleanUpListeners();
   }
 }
 
@@ -166,6 +176,9 @@ class TableTree extends Observable {
 
   void clear() {
     tableBody.children.clear();
+    for (var i = 0; i < rows.length; i++) {
+      rows[i]._cleanUpListeners();
+    }
     rows.clear();
   }
 

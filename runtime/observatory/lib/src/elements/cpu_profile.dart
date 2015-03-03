@@ -59,7 +59,7 @@ abstract class ProfileTreeRow<T> extends TableTreeRow {
     infoBox.classes.add('infoBox');
     infoBox.classes.add('shadow');
     infoBox.style.display = 'none';
-    infoBox.onClick.listen((e) => e.stopPropagation());
+    listeners.add(infoBox.onClick.listen((e) => e.stopPropagation()));
   }
 
   makeInfoButton() {
@@ -67,10 +67,10 @@ abstract class ProfileTreeRow<T> extends TableTreeRow {
     infoButton.style.marginLeft = 'auto';
     infoButton.style.marginRight = '1em';
     infoButton.children.add(new Element.tag('icon-info-outline'));
-    infoButton.onClick.listen((event) {
+    listeners.add(infoButton.onClick.listen((event) {
       event.stopPropagation();
       toggleInfoBox();
-    });
+    }));
   }
 
   static const attributes = const {
@@ -523,32 +523,38 @@ class CpuProfileElement extends ObservatoryElement {
     state = 'Loaded';
   }
 
-  Future _getCpuProfile() async {
+  Future _getCpuProfile() {
     profile.clear();
     if (functionTree != null) {
       functionTree.clear();
+      functionTree = null;
     }
     if (codeTree != null) {
       codeTree.clear();
+      codeTree = null;
     }
     if (isolate == null) {
       return new Future.value(null);
     }
     _onFetchStarted();
-    var response =
-        await isolate.invokeRpc('getCpuProfile', { 'tags': tagSelector });
-    _onFetchFinished();
-    _onLoadStarted();
-    await window.animationFrame;
-    try {
-      profile.load(isolate, response);
-      _onLoadFinished();
-      _updateView();
-    } catch (e, st) {
+    return isolate.invokeRpc('getCpuProfile', { 'tags': tagSelector })
+        .then((response) {
+      _onFetchFinished();
+      _onLoadStarted();
+      try {
+        profile.load(isolate, response);
+        _onLoadFinished();
+        _updateView();
+      } catch (e, st) {
+        state = 'Exception';
+        exception = e;
+        stackTrace = st;
+      }
+    }).catchError((e, st) {
       state = 'Exception';
       exception = e;
       stackTrace = st;
-    }
+    });
   }
 
   void _updateView() {
@@ -557,13 +563,15 @@ class CpuProfileElement extends ObservatoryElement {
     stackDepth = profile.stackDepth.toString();
     sampleRate = profile.sampleRate.toStringAsFixed(0);
     timeSpan = formatTime(profile.timeSpan);
+    bool exclusive = directionSelector == 'Up';
     if (functionTree != null) {
       functionTree.clear();
+      functionTree = null;
     }
     if (codeTree != null) {
       codeTree.clear();
+      codeTree = null;
     }
-    bool exclusive = directionSelector == 'Up';
     if (modeSelector == 'Code') {
       _buildCodeTree(exclusive);
     } else {
@@ -580,7 +588,7 @@ class CpuProfileElement extends ObservatoryElement {
       assert(tableBody != null);
       functionTree = new TableTree(tableBody, 2);
     }
-    var tree = profile.functionTrees[exclusive ? 'exclusive' : 'inclusive'];
+    var tree = profile.loadFunctionTree(exclusive ? 'exclusive' : 'inclusive');
     if (tree == null) {
       return;
     }
@@ -595,7 +603,7 @@ class CpuProfileElement extends ObservatoryElement {
       assert(tableBody != null);
       codeTree = new TableTree(tableBody, 2);
     }
-    var tree = profile.codeTrees[exclusive ? 'exclusive' : 'inclusive'];
+    var tree = profile.loadCodeTree(exclusive ? 'exclusive' : 'inclusive');
     if (tree == null) {
       return;
     }

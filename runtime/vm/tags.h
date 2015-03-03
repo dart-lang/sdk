@@ -36,6 +36,9 @@ class VMTag : public AllStatic {
     VM_TAG_LIST(DEFINE_VM_TAG_ID)
 #undef DEFINE_VM_TAG_KIND
     kNumVMTags,
+    kRootTagId,       // Special tag used as root of all profiles.
+    kTruncatedTagId,  // Special tag used to indicate a truncated call stack.
+    kLastTagId,
   };
 
   static bool IsVMTag(uword id) {

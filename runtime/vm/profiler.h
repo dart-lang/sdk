@@ -298,6 +298,14 @@ class Sample {
     state_ = MissingFrameInsertedBit::update(missing_frame_inserted, state_);
   }
 
+  bool truncated_trace() const {
+    return TruncatedTraceBit::decode(state_);
+  }
+
+  void set_truncated_trace(bool truncated_trace) {
+    state_ = TruncatedTraceBit::update(truncated_trace, state_);
+  }
+
   static void InitOnce();
 
   static intptr_t instance_size() {
@@ -320,6 +328,7 @@ class Sample {
     kIgnoreBit = 2,
     kExitFrameBit = 3,
     kMissingFrameInsertedBit = 4,
+    kTruncatedTrace = 5,
   };
   class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
@@ -327,6 +336,8 @@ class Sample {
   class ExitFrameBit : public BitField<bool, kExitFrameBit, 1> {};
   class MissingFrameInsertedBit
     : public BitField<bool, kMissingFrameInsertedBit, 1> {};
+  class TruncatedTraceBit : public BitField<bool, kTruncatedTrace, 1> {};
+
   int64_t timestamp_;
   ThreadId tid_;
   Isolate* isolate_;

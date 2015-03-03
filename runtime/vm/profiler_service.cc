@@ -504,8 +504,12 @@ class CodeRegion : public ZoneAllocated {
           ASSERT(tag_name != NULL);
           SetName(tag_name);
         } else {
-          ASSERT(start() == 0);
-          SetName("root");
+          if (start() == VMTag::kRootTagId) {
+            SetName("Root");
+          } else {
+            ASSERT(start() == VMTag::kTruncatedTagId);
+            SetName("[Truncated]");
+          }
         }
       }
       function = table->AddTag(start(), name());
@@ -1170,16 +1174,34 @@ class CodeRegionFunctionMapper : public ValueObject {
     dead_code_table_offset_ = live_code_table_->Length();
     tag_code_table_offset_ = dead_code_table_offset_ +
                              dead_code_table_->Length();
-    intptr_t root_index = tag_code_table_->FindIndex(0);
-    // Verify that the "0" tag does not exist.
-    ASSERT(root_index < 0);
-    // Insert the dummy tag CodeRegion as the root.
+
     const Code& null_code = Code::ZoneHandle();
-    CodeRegion* region =
-        new CodeRegion(CodeRegion::kTagCode, 0, 1, 0, null_code);
-    root_index = tag_code_table_->InsertCodeRegion(region);
+
+    // Create the truncated tag.
+    intptr_t truncated_index =
+        tag_code_table_->FindIndex(VMTag::kTruncatedTagId);
+    ASSERT(truncated_index < 0);
+    CodeRegion* truncated =
+        new CodeRegion(CodeRegion::kTagCode,
+                       VMTag::kTruncatedTagId,
+                       VMTag::kTruncatedTagId + 1,
+                       0,
+                       null_code);
+    truncated_index = tag_code_table_->InsertCodeRegion(truncated);
+    ASSERT(truncated_index >= 0);
+    truncated->set_creation_serial(0);
+
+    // Create the root tag.
+    intptr_t root_index = tag_code_table_->FindIndex(VMTag::kRootTagId);
+    ASSERT(root_index < 0);
+    CodeRegion* root = new CodeRegion(CodeRegion::kTagCode,
+                                      VMTag::kRootTagId,
+                                      VMTag::kRootTagId + 1,
+                                      0,
+                                      null_code);
+    root_index = tag_code_table_->InsertCodeRegion(root);
     ASSERT(root_index >= 0);
-    region->set_creation_serial(0);
+    root->set_creation_serial(0);
   }
 
   void Map() {
@@ -1399,9 +1421,14 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     ASSERT(function_table_ != NULL);
     set_tag_order(ProfilerService::kUserVM);
 
-    intptr_t root_index = tag_code_table_->FindIndex(0);
-    // Verify that the "0" tag does exist.
+    // Verify that the truncated tag exists.
+    ASSERT(tag_code_table_->FindIndex(VMTag::kTruncatedTagId) >= 0);
+
+    // Verify that the root tag exists.
+    intptr_t root_index = tag_code_table_->FindIndex(VMTag::kRootTagId);
     ASSERT(root_index >= 0);
+
+    // Setup root.
     CodeRegion* region = tag_code_table_->At(root_index);
     ASSERT(region != NULL);
     ProfileFunction* function = region->function();
@@ -1439,7 +1466,10 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     // Give the root a tick.
     inclusive_root_->Tick();
     ProfileFunctionTrieNode* current = inclusive_root_;
-    current = ProcessTags(sample, current);
+    current = AppendTags(sample, current);
+    if (sample->truncated_trace()) {
+      current = AppendTruncatedTag(current);
+    }
     // Walk the sampled PCs.
     for (intptr_t i = FLAG_profile_depth - 1; i >= 0; i--) {
       if (sample->At(i) == 0) {
@@ -1458,7 +1488,7 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     // Give the root a tick.
     exclusive_root_->Tick();
     ProfileFunctionTrieNode* current = exclusive_root_;
-    current = ProcessTags(sample, current);
+    current = AppendTags(sample, current);
     // Walk the sampled PCs.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
       if (sample->At(i) == 0) {
@@ -1471,10 +1501,13 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
                           visited(), exclusive_tick,
                           sample->missing_frame_inserted());
     }
+    if (sample->truncated_trace()) {
+      current = AppendTruncatedTag(current);
+    }
   }
 
-  ProfileFunctionTrieNode* ProcessUserTags(Sample* sample,
-                                           ProfileFunctionTrieNode* current) {
+  ProfileFunctionTrieNode* AppendUserTag(Sample* sample,
+                                         ProfileFunctionTrieNode* current) {
     intptr_t user_tag_index = FindTagIndex(sample->user_tag());
     if (user_tag_index >= 0) {
       current = current->GetChild(user_tag_index);
@@ -1484,8 +1517,19 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     return current;
   }
 
-  ProfileFunctionTrieNode* ProcessVMTags(Sample* sample,
-                                         ProfileFunctionTrieNode* current) {
+
+  ProfileFunctionTrieNode* AppendTruncatedTag(
+      ProfileFunctionTrieNode* current) {
+    intptr_t truncated_tag_index = FindTagIndex(VMTag::kTruncatedTagId);
+    ASSERT(truncated_tag_index >= 0);
+    current = current->GetChild(truncated_tag_index);
+    current->Tick();
+    return current;
+  }
+
+
+  ProfileFunctionTrieNode* AppendVMTag(Sample* sample,
+                                       ProfileFunctionTrieNode* current) {
     if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
       // Insert a dummy kNativeTagId node.
       intptr_t tag_index = FindTagIndex(VMTag::kNativeTagId);
@@ -1498,6 +1542,21 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
       current = current->GetChild(tag_index);
       // Give the tag a tick.
       current->Tick();
+    } else {
+      intptr_t tag_index = FindTagIndex(sample->vm_tag());
+      current = current->GetChild(tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    }
+    return current;
+  }
+
+  ProfileFunctionTrieNode* AppendSpecificNativeRuntimeEntryVMTag(
+      Sample* sample, ProfileFunctionTrieNode* current) {
+    // Only Native and Runtime entries have a second VM tag.
+    if (!VMTag::IsNativeEntryTag(sample->vm_tag()) &&
+        !VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
+      return current;
     }
     intptr_t tag_index = FindTagIndex(sample->vm_tag());
     current = current->GetChild(tag_index);
@@ -1506,8 +1565,15 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     return current;
   }
 
-  ProfileFunctionTrieNode* ProcessTags(Sample* sample,
-                                       ProfileFunctionTrieNode* current) {
+  ProfileFunctionTrieNode* AppendVMTags(Sample* sample,
+                                        ProfileFunctionTrieNode* current) {
+    current = AppendVMTag(sample, current);
+    current = AppendSpecificNativeRuntimeEntryVMTag(sample, current);
+    return current;
+  }
+
+  ProfileFunctionTrieNode* AppendTags(Sample* sample,
+                                      ProfileFunctionTrieNode* current) {
     // None.
     if (tag_order() == ProfilerService::kNoTags) {
       return current;
@@ -1515,22 +1581,22 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     // User first.
     if ((tag_order() == ProfilerService::kUserVM) ||
         (tag_order() == ProfilerService::kUser)) {
-      current = ProcessUserTags(sample, current);
+      current = AppendUserTag(sample, current);
       // Only user.
       if (tag_order() == ProfilerService::kUser) {
         return current;
       }
-      return ProcessVMTags(sample, current);
+      return AppendVMTags(sample, current);
     }
     // VM first.
     ASSERT((tag_order() == ProfilerService::kVMUser) ||
            (tag_order() == ProfilerService::kVM));
-    current = ProcessVMTags(sample, current);
+    current = AppendVMTags(sample, current);
     // Only VM.
     if (tag_order() == ProfilerService::kVM) {
       return current;
     }
-    return ProcessUserTags(sample, current);
+    return AppendUserTag(sample, current);
   }
 
   intptr_t FindTagIndex(uword tag) const {
@@ -1796,8 +1862,11 @@ class CodeRegionTrieBuilder : public SampleVisitor {
     ASSERT(tag_code_table_ != NULL);
     set_tag_order(ProfilerService::kUserVM);
 
-    intptr_t root_index = tag_code_table_->FindIndex(0);
-    // Verify that the "0" (root) tag does exist.
+    // Verify that the truncated tag exists.
+    ASSERT(tag_code_table_->FindIndex(VMTag::kTruncatedTagId) >= 0);
+
+    // Verify that the root tag exists.
+    intptr_t root_index = tag_code_table_->FindIndex(VMTag::kRootTagId);
     ASSERT(root_index >= 0);
     CodeRegion* region = tag_code_table_->At(root_index);
     ASSERT(region != NULL);
@@ -1832,7 +1901,10 @@ class CodeRegionTrieBuilder : public SampleVisitor {
     // Give the root a tick.
     inclusive_root_->Tick();
     CodeRegionTrieNode* current = inclusive_root_;
-    current = ProcessTags(sample, current);
+    current = AppendTags(sample, current);
+    if (sample->truncated_trace()) {
+      current = AppendTruncatedTag(current);
+    }
     // Walk the sampled PCs.
     for (intptr_t i = FLAG_profile_depth - 1; i >= 0; i--) {
       if (sample->At(i) == 0) {
@@ -1851,7 +1923,7 @@ class CodeRegionTrieBuilder : public SampleVisitor {
     // Give the root a tick.
     exclusive_root_->Tick();
     CodeRegionTrieNode* current = exclusive_root_;
-    current = ProcessTags(sample, current);
+    current = AppendTags(sample, current);
     // Walk the sampled PCs.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
       if (sample->At(i) == 0) {
@@ -1864,10 +1936,13 @@ class CodeRegionTrieBuilder : public SampleVisitor {
       current = current->GetChild(index);
       current->Tick();
     }
+    if (sample->truncated_trace()) {
+      current = AppendTruncatedTag(current);
+    }
   }
 
-  CodeRegionTrieNode* ProcessUserTags(Sample* sample,
-                                      CodeRegionTrieNode* current) {
+  CodeRegionTrieNode* AppendUserTag(Sample* sample,
+                                    CodeRegionTrieNode* current) {
     intptr_t user_tag_index = FindTagIndex(sample->user_tag());
     if (user_tag_index >= 0) {
       current = current->GetChild(user_tag_index);
@@ -1877,8 +1952,16 @@ class CodeRegionTrieBuilder : public SampleVisitor {
     return current;
   }
 
-  CodeRegionTrieNode* ProcessVMTags(Sample* sample,
-                                    CodeRegionTrieNode* current) {
+  CodeRegionTrieNode* AppendTruncatedTag(CodeRegionTrieNode* current) {
+    intptr_t truncated_tag_index = FindTagIndex(VMTag::kTruncatedTagId);
+    ASSERT(truncated_tag_index >= 0);
+    current = current->GetChild(truncated_tag_index);
+    current->Tick();
+    return current;
+  }
+
+  CodeRegionTrieNode* AppendVMTag(Sample* sample,
+                                  CodeRegionTrieNode* current) {
     if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
       // Insert a dummy kNativeTagId node.
       intptr_t tag_index = FindTagIndex(VMTag::kNativeTagId);
@@ -1891,6 +1974,21 @@ class CodeRegionTrieBuilder : public SampleVisitor {
       current = current->GetChild(tag_index);
       // Give the tag a tick.
       current->Tick();
+    } else {
+      intptr_t tag_index = FindTagIndex(sample->vm_tag());
+      current = current->GetChild(tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    }
+    return current;
+  }
+
+  CodeRegionTrieNode* AppendSpecificNativeRuntimeEntryVMTag(
+      Sample* sample, CodeRegionTrieNode* current) {
+    // Only Native and Runtime entries have a second VM tag.
+    if (!VMTag::IsNativeEntryTag(sample->vm_tag()) &&
+        !VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
+      return current;
     }
     intptr_t tag_index = FindTagIndex(sample->vm_tag());
     current = current->GetChild(tag_index);
@@ -1899,7 +1997,14 @@ class CodeRegionTrieBuilder : public SampleVisitor {
     return current;
   }
 
-  CodeRegionTrieNode* ProcessTags(Sample* sample, CodeRegionTrieNode* current) {
+  CodeRegionTrieNode* AppendVMTags(Sample* sample,
+                                   CodeRegionTrieNode* current) {
+    current = AppendVMTag(sample, current);
+    current = AppendSpecificNativeRuntimeEntryVMTag(sample, current);
+    return current;
+  }
+
+  CodeRegionTrieNode* AppendTags(Sample* sample, CodeRegionTrieNode* current) {
     // None.
     if (tag_order() == ProfilerService::kNoTags) {
       return current;
@@ -1907,22 +2012,22 @@ class CodeRegionTrieBuilder : public SampleVisitor {
     // User first.
     if ((tag_order() == ProfilerService::kUserVM) ||
         (tag_order() == ProfilerService::kUser)) {
-      current = ProcessUserTags(sample, current);
+      current = AppendUserTag(sample, current);
       // Only user.
       if (tag_order() == ProfilerService::kUser) {
         return current;
       }
-      return ProcessVMTags(sample, current);
+      return AppendVMTags(sample, current);
     }
     // VM first.
     ASSERT((tag_order() == ProfilerService::kVMUser) ||
            (tag_order() == ProfilerService::kVM));
-    current = ProcessVMTags(sample, current);
+    current = AppendVMTags(sample, current);
     // Only VM.
     if (tag_order() == ProfilerService::kVM) {
       return current;
     }
-    return ProcessUserTags(sample, current);
+    return AppendUserTag(sample, current);
   }
 
   intptr_t FindTagIndex(uword tag) const {
