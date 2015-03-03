@@ -2,20 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.test_all;
+library test.src.context.test_all;
 
 import 'package:unittest/unittest.dart';
 
-import 'context/test_all.dart' as context;
-import 'task/test_all.dart' as task;
-import 'util/test_all.dart' as util;
+import 'cache_test.dart' as cache_test;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
-  group('src tests', () {
-    context.main();
-    task.main();
-    util.main();
+  group('task tests', () {
+    cache_test.main();
   });
 }
