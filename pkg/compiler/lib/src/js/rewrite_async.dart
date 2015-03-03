@@ -831,7 +831,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     if (!shouldTransform(node.then) && !shouldTransform(node.otherwise)) {
       return withExpression(node.condition, (js.Expression condition) {
         return js.js('# ? # : #', [condition, node.then, node.otherwise]);
-      });
+      }, store: false);
     }
     int thenLabel = newLabel("then");
     int joinLabel = newLabel("join");
