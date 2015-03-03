@@ -117,10 +117,12 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    bool containsNativeClasses =
-        nativeClasses.length != _unneededNativeClasses.length;
-
     List<Holder> holders = _registry.holders.toList(growable: false);
+
+    bool needsNativeSupport = _compiler.enqueuer.codegen.nativeEnqueuer
+        .hasInstantiatedNativeClasses();
+
+    assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 
     return new Program(
         fragments,
@@ -128,7 +130,7 @@ class ProgramBuilder {
         _buildLoadMap(),
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
-        outputContainsNativeClasses: containsNativeClasses,
+        needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: _task.outputContainsConstantList,
         hasIsolateSupport: _compiler.hasIsolateSupport);
   }

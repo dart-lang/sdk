@@ -502,7 +502,7 @@ class OldEmitter implements Emitter {
     return js(r'var inheritFrom = #', [result]);
   }
 
-  jsAst.Statement buildFinishClass(bool hasNativeClasses) {
+  jsAst.Statement buildFinishClass(bool needsNativeSupport) {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
 
     jsAst.Expression finishedClassesAccess =
@@ -570,13 +570,13 @@ class OldEmitter implements Emitter {
         var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
-        if (#hasNativeClasses)
+        if (#needsNativeSupport)
           if (Object.prototype.hasOwnProperty.call(prototype, $specProperty))
             #nativeInfoHandler
       }
     }''', {'finishedClassesAccess': finishedClassesAccess,
            'needsMixinSupport': needsMixinSupport,
-           'hasNativeClasses': hasNativeClasses,
+           'needsNativeSupport': needsNativeSupport,
            'nativeInfoHandler': nativeInfoHandler});
   }
 
@@ -1434,11 +1434,11 @@ class OldEmitter implements Emitter {
       elementDescriptors.remove(library);
     }
 
-    bool hasNativeClasses = program.outputContainsNativeClasses;
+    bool needsNativeSupport = program.needsNativeSupport;
     mainOutput
         ..addBuffer(
             jsAst.prettyPrint(
-                getReflectionDataParser(this, backend, hasNativeClasses),
+                getReflectionDataParser(this, backend, needsNativeSupport),
                 compiler))
         ..add(n);
 

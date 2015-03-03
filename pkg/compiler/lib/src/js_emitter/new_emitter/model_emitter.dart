@@ -234,8 +234,8 @@ class ModelEmitter {
         interceptorsByTagAccess,
         leafTagsAccess);
 
-    nativeHoles['hasNativeClasses'] = program.outputContainsNativeClasses;
-    nativeHoles['hasNoNativeClasses'] = !program.outputContainsNativeClasses;
+    nativeHoles['needsNativeSupport'] = program.needsNativeSupport;
+    nativeHoles['needsNoNativeSupport'] = !program.needsNativeSupport;
     nativeHoles['nativeInfoHandler'] = nativeInfoHandler;
 
     return nativeHoles;
@@ -292,7 +292,7 @@ class ModelEmitter {
 
     globals.add(emitMetadata(program));
 
-    if (program.outputContainsNativeClasses) {
+    if (program.needsNativeSupport) {
       globals.add(new js.Property(js.string(INTERCEPTORS_BY_TAG),
                                   js.js('Object.create(null)', [])));
       globals.add(new js.Property(js.string(LEAF_TAGS),
@@ -832,7 +832,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
       var name = classes[i];
       var cls = classes[i + 1];
 
-      if (#hasNativeClasses) {
+      if (#needsNativeSupport) {
         // $nativeInfoDescription.
         var indexOrNativeInfo = classes[i + 2];
         if (typeof indexOrNativeInfo == "number") {
@@ -844,7 +844,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
         }
       }
 
-      if (#hasNoNativeClasses) {
+      if (#needsNoNativeSupport) {
         var holderIndex = classes[i + 2];
       }
 
@@ -1039,7 +1039,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     }
   }
 
-  if (#hasNativeClasses) {
+  if (#needsNativeSupport) {
     function handleNativeClassInfos() {
       for (var nativeClass in nativeInfos) {
         var constructor = holdersMap[nativeClass][nativeClass].ensureResolved();
@@ -1062,7 +1062,7 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   // generic arguments (which should be fine, but maybe there are other
   // similar things).
   // Initialize natives.
-  if (#hasNativeClasses) handleNativeClassInfos();
+  if (#needsNativeSupport) handleNativeClassInfos();
 
   // Initialize static non-final fields.
   #staticNonFinals;

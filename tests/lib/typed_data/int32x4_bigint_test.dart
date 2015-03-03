@@ -6,8 +6,8 @@
 // Library tag to be able to run in html test framework.
 library int32x4_bigint_test;
 
-import 'package:expect/expect.dart';
 import 'dart:typed_data';
+import 'package:expect/expect.dart';
 
 main() {
   var n = 18446744073709551617;

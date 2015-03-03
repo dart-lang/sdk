@@ -17,7 +17,7 @@ class Program {
   final List<Fragment> fragments;
   final List<Holder> holders;
   final bool outputContainsConstantList;
-  final bool outputContainsNativeClasses;
+  final bool needsNativeSupport;
   final bool hasIsolateSupport;
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
@@ -35,10 +35,10 @@ class Program {
           this.loadMap,
           this.typeToInterceptorMap,
           this._metadataCollector,
-          {this.outputContainsNativeClasses,
+          {this.needsNativeSupport,
            this.outputContainsConstantList,
            this.hasIsolateSupport}) {
-    assert(outputContainsNativeClasses != null);
+    assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
     assert(hasIsolateSupport != null);
   }

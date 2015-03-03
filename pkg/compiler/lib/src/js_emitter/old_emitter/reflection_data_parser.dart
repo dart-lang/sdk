@@ -19,7 +19,7 @@ String get parseReflectionDataName => 'parseReflectionData';
 
 jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
                                          JavaScriptBackend backend,
-                                         bool hasNativeClasses) {
+                                         bool needsNativeSupport) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   CodeEmitterTask emitter = backend.emitter;
@@ -415,7 +415,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 }''', {'allClasses': allClassesAccess,
        'debugFastObjects': DEBUG_FAST_OBJECTS,
        'isTreeShakingDisabled': backend.isTreeShakingDisabled,
-       'finishClassFunction': oldEmitter.buildFinishClass(hasNativeClasses),
+       'finishClassFunction': oldEmitter.buildFinishClass(needsNativeSupport),
        'trivialNsmHandlers': oldEmitter.buildTrivialNsmHandlers(),
        'inCspMode': compiler.useContentSecurityPolicy,
        'notInCspMode': !compiler.useContentSecurityPolicy,

@@ -5,8 +5,8 @@
 
 library float64x2_functional_test;
 
-import "package:expect/expect.dart";
 import 'dart:typed_data';
+import "package:expect/expect.dart";
 
 testConstructor() {
   var a = new Float64x2(1.0, 2.0);

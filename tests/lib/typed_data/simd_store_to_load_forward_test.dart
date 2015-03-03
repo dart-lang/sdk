@@ -6,8 +6,8 @@
 // Library tag to be able to run in html test framework.
 library simd_store_to_load_forward_test;
 
-import "package:expect/expect.dart";
 import 'dart:typed_data';
+import "package:expect/expect.dart";
 
 Float32x4 testLoadStoreForwardingFloat32x4(Float32x4List l, Float32x4 v) {
   l[1] = v;

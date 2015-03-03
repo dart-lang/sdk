@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
 import 'dart:typed_data';
+import 'package:expect/expect.dart';
 
 void testListFunctions(list, first, last, toElementType) {
   assert(list.length > 0);
@@ -55,7 +55,7 @@ void testListFunctions(list, first, last, toElementType) {
   Expect.equals(0, list.lastIndexOf(first));
   Expect.equals(list.length - 1, list.lastIndexOf(last));
   Expect.equals(-1, list.lastIndexOf(-1));
-  
+
   var copy = list.toList();
   list.fillRange(1, list.length - 1, toElementType(0));
   Expect.equals(copy.first, list.first);

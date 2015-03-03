@@ -4,8 +4,8 @@
 
 library setRange_lib;
 
-import 'package:expect/expect.dart';
 import 'dart:typed_data';
+import 'package:expect/expect.dart';
 
 initialize(a) {
   for (int i = 0; i < a.length; i++) {

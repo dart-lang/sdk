@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
 import 'dart:typed_data';
+import 'package:expect/expect.dart';
 
 void testIterableFunctions(list, first, last) {
   assert(list.length > 0);

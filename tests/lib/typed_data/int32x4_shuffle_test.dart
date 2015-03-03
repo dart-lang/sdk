@@ -6,8 +6,8 @@
 // Library tag to be able to run in html test framework.
 library uint32x4_shuffle_test;
 
-import "package:expect/expect.dart";
 import 'dart:typed_data';
+import "package:expect/expect.dart";
 
 void testShuffle() {
   var m = new Int32x4(1, 2, 3, 4);
