@@ -8,12 +8,15 @@
 // Similarly for C2, ..., C5.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "deferred_static_seperate_lib1.dart" deferred as lib1;
 import "deferred_static_seperate_lib2.dart" deferred as lib2;
 
 void main() {
+  asyncStart();
   lib1.loadLibrary().then((_) {
     lib2.loadLibrary().then((_) {
+      print("HERE");
       Expect.equals(1, new lib1.C().bar());
       var x = new lib1.C2();
       Expect.mapEquals({1: 2}, x.bar);
@@ -25,6 +28,7 @@ void main() {
       Expect.equals(1, new lib1.C5().bar());
 
       lib2.foo();
+      asyncEnd();
     });
   });
 }
