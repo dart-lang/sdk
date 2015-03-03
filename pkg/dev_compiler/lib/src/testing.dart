@@ -20,6 +20,7 @@ import 'package:dev_compiler/src/utils.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/config.dart';
 import 'package:dev_compiler/devc.dart' show compile;
 
 /// Run the checker on a program with files contents as indicated in
@@ -49,7 +50,8 @@ import 'package:dev_compiler/devc.dart' show compile;
 CheckerResults testChecker(Map<String, String> testFiles,
     {bool allowConstCasts: true, String sdkDir, CheckerReporter reporter,
     covariantGenerics: true, relaxedCasts: true, inferFromOverrides: true,
-    inferStaticsFromIdentifiers: false, inferInNonStableOrder: false}) {
+    inferStaticsFromIdentifiers: false, inferInNonStableOrder: false,
+    nonnullableTypes: TypeOptions.NONNULLABLE_TYPES}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
@@ -61,7 +63,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
       relaxedCasts: relaxedCasts,
       inferFromOverrides: inferFromOverrides,
       inferStaticsFromIdentifiers: inferStaticsFromIdentifiers,
-      inferInNonStableOrder: inferInNonStableOrder);
+      inferInNonStableOrder: inferInNonStableOrder,
+      nonnullableTypes: nonnullableTypes);
   var resolver = sdkDir == null
       ? new TypeResolver.fromMock(mockSdkSources, options,
           otherResolvers: [testUriResolver])

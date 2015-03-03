@@ -6,7 +6,11 @@
 import 'dart:collection';
 import 'dart:mirrors';
 import 'package:unittest/unittest.dart';
+import 'package:dev_compiler/config.dart';
 import 'package:dev_compiler/runtime/dart_runtime.dart';
+
+final bool intIsNonNullable = TypeOptions.NONNULLABLE_TYPES.contains('int');
+final bool doubleIsNonNullable = TypeOptions.NONNULLABLE_TYPES.contains('double');
 
 class A {
   int x;
@@ -91,7 +95,11 @@ void main() {
     checkType(5, String, false);
 
     expect(cast(5, int), equals(5));
-    expect(() => cast(null, int), throws);
+    if (intIsNonNullable) {
+      expect(() => cast(null, int), throws);
+    } else {
+      expect(cast(null, int), equals(null));
+    }
   });
 
   test('dynamic', () {

@@ -7,7 +7,7 @@ var _js_primitives;
       dartPrint(string);
       return;
     }
-    if (dart.notNull(typeof console == "object") && dart.notNull(typeof console.log != "undefined")) {
+    if (typeof console == "object" && typeof console.log != "undefined") {
       console.log(string);
       return;
     }

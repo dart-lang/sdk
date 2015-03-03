@@ -9,9 +9,9 @@ var fieldtest;
   let B$ = dart.generic(function(T) {
     class B extends dart.Object {
       B() {
-        this.x = dart.as(null, core.int);
+        this.x = null;
         this.y = null;
-        this.z = dart.as(null, T);
+        this.z = null;
       }
     }
     return B;
@@ -37,7 +37,7 @@ var fieldtest;
   }
   dart.defineLazyProperties(exports, {
     get y() {
-      return compute() + 444;
+      return dart.notNull(compute()) + 444;
     },
     set y(_) {}
   });

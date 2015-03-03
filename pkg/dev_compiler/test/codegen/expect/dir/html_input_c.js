@@ -3,7 +3,7 @@ var html_input_c;
   'use strict';
   dart.defineLazyProperties(exports, {
     get y() {
-      return 3 + html_input_e.w;
+      return 3 + dart.notNull(html_input_e.w);
     },
     set y(_) {}
   });

@@ -22,10 +22,10 @@ var math;
     if (typeof b == number) {
       if (typeof a == number) {
         if (a === 0.0) {
-          return (a + b) * a * b;
+          return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
         }
       }
-      if (dart.notNull(dart.notNull(a === 0) && dart.notNull(b.isNegative)) || dart.notNull(b.isNaN))
+      if (a === 0 && dart.notNull(b.isNegative) || dart.notNull(b.isNaN))
         return b;
       return a;
     }
@@ -44,14 +44,14 @@ var math;
     if (typeof b == number) {
       if (typeof a == number) {
         if (a === 0.0) {
-          return a + b;
+          return dart.notNull(a) + dart.notNull(b);
         }
       }
       if (b.isNaN)
         return b;
       return a;
     }
-    if (dart.notNull(b === 0) && dart.notNull(a.isNegative))
+    if (b === 0 && dart.notNull(a.isNegative))
       return b;
     return a;
   }
@@ -106,7 +106,7 @@ var math;
     _JSRandom() {
     }
     nextInt(max) {
-      if (dart.notNull(max <= 0) || dart.notNull(max > _POW2_32)) {
+      if (dart.notNull(max) <= 0 || dart.notNull(max) > dart.notNull(_POW2_32)) {
         throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
       }
       return Math.random() * max >>> 0;
@@ -126,49 +126,49 @@ var math;
       this[_lo] = 0;
       this[_hi] = 0;
       let empty_seed = 0;
-      if (seed < 0) {
+      if (dart.notNull(seed) < 0) {
         empty_seed = -1;
       }
       do {
-        let low = seed & _MASK32;
-        seed = ((seed - low) / _POW2_32).truncate();
-        let high = seed & _MASK32;
-        seed = ((seed - high) / _POW2_32).truncate();
-        let tmplow = low << 21;
-        let tmphigh = high << 21 | low >> 11;
-        tmplow = (~low & _MASK32) + tmplow;
-        low = tmplow & _MASK32;
-        high = ~high + tmphigh + ((tmplow - low) / 4294967296).truncate() & _MASK32;
-        tmphigh = high >> 24;
-        tmplow = low >> 24 | high << 8;
+        let low = dart.notNull(seed) & dart.notNull(_MASK32);
+        seed = ((dart.notNull(seed) - dart.notNull(low)) / dart.notNull(_POW2_32)).truncate();
+        let high = dart.notNull(seed) & dart.notNull(_MASK32);
+        seed = ((dart.notNull(seed) - dart.notNull(high)) / dart.notNull(_POW2_32)).truncate();
+        let tmplow = dart.notNull(low) << 21;
+        let tmphigh = dart.notNull(high) << 21 | dart.notNull(low) >> 11;
+        tmplow = (~dart.notNull(low) & dart.notNull(_MASK32)) + dart.notNull(tmplow);
+        low = dart.notNull(tmplow) & dart.notNull(_MASK32);
+        high = ~dart.notNull(high) + dart.notNull(tmphigh) + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296).truncate() & dart.notNull(_MASK32);
+        tmphigh = dart.notNull(high) >> 24;
+        tmplow = dart.notNull(low) >> 24 | dart.notNull(high) << 8;
         low = tmplow;
         high = tmphigh;
-        tmplow = low * 265;
-        low = tmplow & _MASK32;
-        high = high * 265 + ((tmplow - low) / 4294967296).truncate() & _MASK32;
-        tmphigh = high >> 14;
-        tmplow = low >> 14 | high << 18;
+        tmplow = dart.notNull(low) * 265;
+        low = dart.notNull(tmplow) & dart.notNull(_MASK32);
+        high = dart.notNull(high) * 265 + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296).truncate() & dart.notNull(_MASK32);
+        tmphigh = dart.notNull(high) >> 14;
+        tmplow = dart.notNull(low) >> 14 | dart.notNull(high) << 18;
         low = tmplow;
         high = tmphigh;
-        tmplow = low * 21;
-        low = tmplow & _MASK32;
-        high = high * 21 + ((tmplow - low) / 4294967296).truncate() & _MASK32;
-        tmphigh = high >> 28;
-        tmplow = low >> 28 | high << 4;
+        tmplow = dart.notNull(low) * 21;
+        low = dart.notNull(tmplow) & dart.notNull(_MASK32);
+        high = dart.notNull(high) * 21 + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296).truncate() & dart.notNull(_MASK32);
+        tmphigh = dart.notNull(high) >> 28;
+        tmplow = dart.notNull(low) >> 28 | dart.notNull(high) << 4;
         low = tmplow;
         high = tmphigh;
-        tmplow = low << 31;
-        tmphigh = high << 31 | low >> 1;
+        tmplow = dart.notNull(low) << 31;
+        tmphigh = dart.notNull(high) << 31 | dart.notNull(low) >> 1;
         tmplow = low;
-        low = tmplow & _MASK32;
-        high = high + tmphigh + ((tmplow - low) / 4294967296).truncate() & _MASK32;
-        tmplow = this[_lo] * 1037;
-        this[_lo] = tmplow & _MASK32;
-        this[_hi] = this[_hi] * 1037 + ((tmplow - this[_lo]) / 4294967296).truncate() & _MASK32;
+        low = dart.notNull(tmplow) & dart.notNull(_MASK32);
+        high = dart.notNull(high) + dart.notNull(tmphigh) + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296).truncate() & dart.notNull(_MASK32);
+        tmplow = dart.notNull(this[_lo]) * 1037;
+        this[_lo] = dart.notNull(tmplow) & dart.notNull(_MASK32);
+        this[_hi] = dart.notNull(this[_hi]) * 1037 + ((dart.notNull(tmplow) - dart.notNull(this[_lo])) / 4294967296).truncate() & dart.notNull(_MASK32);
         this[_lo] = low;
         this[_hi] = high;
       } while (seed !== empty_seed);
-      if (dart.notNull(this[_hi] === 0) && dart.notNull(this[_lo] === 0)) {
+      if (this[_hi] === 0 && this[_lo] === 0) {
         this[_lo] = 23063;
       }
       this[_nextState]();
@@ -177,46 +177,46 @@ var math;
       this[_nextState]();
     }
     [_nextState]() {
-      let tmpHi = 4294901760 * this[_lo];
-      let tmpHiLo = tmpHi & _MASK32;
-      let tmpHiHi = tmpHi - tmpHiLo;
-      let tmpLo = 55905 * this[_lo];
-      let tmpLoLo = tmpLo & _MASK32;
-      let tmpLoHi = tmpLo - tmpLoLo;
-      let newLo = tmpLoLo + tmpHiLo + this[_hi];
-      this[_lo] = newLo & _MASK32;
-      let newLoHi = newLo - this[_lo];
-      this[_hi] = ((tmpLoHi + tmpHiHi + newLoHi) / _POW2_32).truncate() & _MASK32;
-      dart.assert(this[_lo] < _POW2_32);
-      dart.assert(this[_hi] < _POW2_32);
+      let tmpHi = 4294901760 * dart.notNull(this[_lo]);
+      let tmpHiLo = dart.notNull(tmpHi) & dart.notNull(_MASK32);
+      let tmpHiHi = dart.notNull(tmpHi) - dart.notNull(tmpHiLo);
+      let tmpLo = 55905 * dart.notNull(this[_lo]);
+      let tmpLoLo = dart.notNull(tmpLo) & dart.notNull(_MASK32);
+      let tmpLoHi = dart.notNull(tmpLo) - dart.notNull(tmpLoLo);
+      let newLo = dart.notNull(tmpLoLo) + dart.notNull(tmpHiLo) + dart.notNull(this[_hi]);
+      this[_lo] = dart.notNull(newLo) & dart.notNull(_MASK32);
+      let newLoHi = dart.notNull(newLo) - dart.notNull(this[_lo]);
+      this[_hi] = ((dart.notNull(tmpLoHi) + dart.notNull(tmpHiHi) + dart.notNull(newLoHi)) / dart.notNull(_POW2_32)).truncate() & dart.notNull(_MASK32);
+      dart.assert(dart.notNull(this[_lo]) < dart.notNull(_POW2_32));
+      dart.assert(dart.notNull(this[_hi]) < dart.notNull(_POW2_32));
     }
     nextInt(max) {
-      if (dart.notNull(max <= 0) || dart.notNull(max > _POW2_32)) {
+      if (dart.notNull(max) <= 0 || dart.notNull(max) > dart.notNull(_POW2_32)) {
         throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
       }
-      if ((max & max - 1) === 0) {
+      if ((dart.notNull(max) & dart.notNull(max) - 1) === 0) {
         this[_nextState]();
-        return this[_lo] & max - 1;
+        return dart.notNull(this[_lo]) & dart.notNull(max) - 1;
       }
       let rnd32 = null;
       let result = null;
       do {
         this[_nextState]();
         rnd32 = this[_lo];
-        result = dart.notNull(rnd32.remainder(max));
-      } while (rnd32 - result + max >= _POW2_32);
+        result = rnd32.remainder(max);
+      } while (dart.notNull(rnd32) - dart.notNull(result) + dart.notNull(max) >= dart.notNull(_POW2_32));
       return result;
     }
     nextDouble() {
       this[_nextState]();
-      let bits26 = this[_lo] & (1 << 26) - 1;
+      let bits26 = dart.notNull(this[_lo]) & (1 << 26) - 1;
       this[_nextState]();
-      let bits27 = this[_lo] & (1 << 27) - 1;
-      return (bits26 * _POW2_27_D + bits27) / _POW2_53_D;
+      let bits27 = dart.notNull(this[_lo]) & (1 << 27) - 1;
+      return (dart.notNull(bits26) * dart.notNull(_POW2_27_D) + dart.notNull(bits27)) / dart.notNull(_POW2_53_D);
     }
     nextBool() {
       this[_nextState]();
-      return (this[_lo] & 1) === 0;
+      return (dart.notNull(this[_lo]) & 1) === 0;
     }
   }
   _Random._POW2_53_D = 1.0 * 9007199254740992;
@@ -224,14 +224,14 @@ var math;
   _Random._MASK32 = 4294967295;
   class _JenkinsSmiHash extends dart.Object {
     static combine(hash, value) {
-      hash = 536870911 & hash + value;
-      hash = 536870911 & hash + ((524287 & hash) << 10);
-      return hash ^ hash >> 6;
+      hash = 536870911 & dart.notNull(hash) + dart.notNull(value);
+      hash = 536870911 & dart.notNull(hash) + ((524287 & dart.notNull(hash)) << 10);
+      return dart.notNull(hash) ^ dart.notNull(hash) >> 6;
     }
     static finish(hash) {
-      hash = 536870911 & hash + ((67108863 & hash) << 3);
-      hash = hash ^ hash >> 11;
-      return 536870911 & hash + ((16383 & hash) << 15);
+      hash = 536870911 & dart.notNull(hash) + ((67108863 & dart.notNull(hash)) << 3);
+      hash = dart.notNull(hash) ^ dart.notNull(hash) >> 11;
+      return 536870911 & dart.notNull(hash) + ((16383 & dart.notNull(hash)) << 15);
     }
     static hash2(a, b) {
       return finish(combine(combine(0, dart.as(a, core.int)), dart.as(b, core.int)));
@@ -272,12 +272,12 @@ var math;
       distanceTo(other) {
         let dx = this.x['-'](other.x);
         let dy = this.y['-'](other.y);
-        return sqrt(dart.notNull(dart.notNull(dx) * dart.notNull(dx)) + dart.notNull(dart.notNull(dy) * dart.notNull(dy)));
+        return sqrt(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy));
       }
       squaredDistanceTo(other) {
         let dx = this.x['-'](other.x);
         let dy = this.y['-'](other.y);
-        return dart.as(dart.notNull(dart.notNull(dx) * dart.notNull(dx)) + dart.notNull(dart.notNull(dy) * dart.notNull(dy)), T);
+        return dart.as(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy), T);
       }
     }
     return Point;
@@ -306,7 +306,7 @@ var math;
       ['=='](other) {
         if (!dart.is(other, Rectangle))
           return false;
-        return dart.notNull(dart.notNull(dart.notNull(dart.equals(this.left, dart.dload(other, 'left'))) && dart.notNull(dart.equals(this.top, dart.dload(other, 'top')))) && dart.notNull(dart.equals(this.right, dart.dload(other, 'right')))) && dart.notNull(dart.equals(this.bottom, dart.dload(other, 'bottom')));
+        return dart.notNull(dart.equals(this.left, dart.dload(other, 'left'))) && dart.notNull(dart.equals(this.top, dart.dload(other, 'top'))) && dart.notNull(dart.equals(this.right, dart.dload(other, 'right'))) && dart.notNull(dart.equals(this.bottom, dart.dload(other, 'bottom')));
       }
       get hashCode() {
         return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode);
@@ -324,7 +324,7 @@ var math;
         return null;
       }
       intersects(other) {
-        return dart.notNull(dart.notNull(dart.notNull(this.left['<='](dart.notNull(other.left) + dart.notNull(other.width))) && dart.notNull(dart.notNull(other.left) <= dart.notNull(this.left['+'](this.width)))) && dart.notNull(this.top['<='](dart.notNull(other.top) + dart.notNull(other.height)))) && dart.notNull(dart.notNull(other.top) <= dart.notNull(this.top['+'](this.height)));
+        return dart.notNull(this.left['<='](dart.notNull(other.left) + dart.notNull(other.width))) && dart.notNull(other.left) <= dart.notNull(this.left['+'](this.width)) && dart.notNull(this.top['<='](dart.notNull(other.top) + dart.notNull(other.height))) && dart.notNull(other.top) <= dart.notNull(this.top['+'](this.height));
       }
       boundingBox(other) {
         let right = max(this.left['+'](this.width), other.left['+'](other.width));
@@ -334,10 +334,10 @@ var math;
         return new Rectangle(dart.as(left, T), dart.as(top, T), dart.as(dart.notNull(right) - dart.notNull(left), T), dart.as(dart.notNull(bottom) - dart.notNull(top), T));
       }
       containsRectangle(another) {
-        return dart.notNull(dart.notNull(dart.notNull(this.left['<='](another.left)) && dart.notNull(dart.notNull(this.left['+'](this.width)) >= dart.notNull(dart.notNull(another.left) + dart.notNull(another.width)))) && dart.notNull(this.top['<='](another.top))) && dart.notNull(dart.notNull(this.top['+'](this.height)) >= dart.notNull(dart.notNull(another.top) + dart.notNull(another.height)));
+        return dart.notNull(this.left['<='](another.left)) && dart.notNull(this.left['+'](this.width)) >= dart.notNull(another.left) + dart.notNull(another.width) && dart.notNull(this.top['<='](another.top)) && dart.notNull(this.top['+'](this.height)) >= dart.notNull(another.top) + dart.notNull(another.height);
       }
       containsPoint(another) {
-        return dart.notNull(dart.notNull(dart.notNull(core.num['>='](another.x, this.left)) && dart.notNull(dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)))) && dart.notNull(core.num['>='](another.y, this.top))) && dart.notNull(dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height)));
+        return core.num['>='](another.x, this.left) && dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)) && core.num['>='](another.y, this.top) && dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height));
       }
       get topLeft() {
         return new Point(this.left, this.top);
@@ -418,7 +418,7 @@ var math;
   // Function _clampToZero: (num) → num
   function _clampToZero(value) {
     dart.assert(dart.notNull(value) < 0);
-    return dart.notNull(-dart.notNull(value)) * 0;
+    return -dart.notNull(value) * 0;
   }
   // Exports:
   exports.E = E;

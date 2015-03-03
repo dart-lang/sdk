@@ -73,7 +73,7 @@ if (index > 0 && index < string.length && _isLeadSurrogate(string.codeUnitAt(ind
 throw new ArgumentError('Index inside surrogate pair: $index');
 }
 }
- int get rawIndex => ((__x14) => DDC$RT.cast(__x14, dynamic, int, "CastGeneral", """line 665, column 24 of dart:core/string.dart: """, __x14 is int, true))((_position != _nextPosition) ? _position : null);
+ int get rawIndex => ((__x12) => DDC$RT.cast(__x12, dynamic, int, "CastGeneral", """line 665, column 24 of dart:core/string.dart: """, __x12 is int, true))((_position != _nextPosition) ? _position : null);
  void set rawIndex(int rawIndex) {
 RangeError.checkValidIndex(rawIndex, string, "rawIndex");
  reset(rawIndex);

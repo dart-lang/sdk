@@ -4,11 +4,11 @@ part of dart.async;
   void onListen(), void onPause(), void onResume(), onCancel(), bool sync : false}
 ) {
   if (onListen == null && onPause == null && onResume == null && onCancel == null) {
-    return ((__x117) => DDC$RT.cast(__x117, DDC$RT.type((_StreamController<dynamic> _) {
+    return ((__x106) => DDC$RT.cast(__x106, DDC$RT.type((_StreamController<dynamic> _) {
       }
     ), DDC$RT.type((StreamController<T> _) {
       }
-    ), "CastDynamic", """line 83, column 14 of dart:async/stream_controller.dart: """, __x117 is StreamController<T>, false))(sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController());
+    ), "CastDynamic", """line 83, column 14 of dart:async/stream_controller.dart: """, __x106 is StreamController<T>, false))(sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController());
     }
    return sync ? new _SyncStreamController<T>(onListen, onPause, onResume, onCancel) : new _AsyncStreamController<T>(onListen, onPause, onResume, onCancel);
   }
@@ -47,11 +47,11 @@ part of dart.async;
  _NotificationHandler get _onPause;
  _NotificationHandler get _onResume;
  _NotificationHandler get _onCancel;
- Stream<T> get stream => ((__x118) => DDC$RT.cast(__x118, DDC$RT.type((_ControllerStream<dynamic> _) {
+ Stream<T> get stream => ((__x107) => DDC$RT.cast(__x107, DDC$RT.type((_ControllerStream<dynamic> _) {
 }
 ), DDC$RT.type((Stream<T> _) {
 }
-), "CastExact", """line 293, column 27 of dart:async/stream_controller.dart: """, __x118 is Stream<T>, false))(new _ControllerStream(this));
+), "CastExact", """line 293, column 27 of dart:async/stream_controller.dart: """, __x107 is Stream<T>, false))(new _ControllerStream(this));
  StreamSink<T> get sink => new _StreamSinkWrapper<T>(this);
  bool get _isCanceled => (_state & _STATE_CANCELED) != 0;
  bool get hasListener => (_state & _STATE_SUBSCRIBED) != 0;
@@ -175,13 +175,13 @@ assert (_isAddingStream); _StreamControllerAddStreamState addState = DDC$RT.cast
 if (!_isInitialState) {
 throw new StateError("Stream has already been listened to.");
 }
- _ControllerSubscription subscription = new _ControllerSubscription(this, DDC$RT.wrap((void f(T __u119)) {
+ _ControllerSubscription subscription = new _ControllerSubscription(this, DDC$RT.wrap((void f(T __u108)) {
 void c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam", """line 499, column 43 of dart:async/stream_controller.dart: """, x0 is T, false));
  return f == null ? null : c;
 }
-, onData, DDC$RT.type((__t122<T> _) {
+, onData, DDC$RT.type((__t111<T> _) {
 }
-), __t120, "Wrap", """line 499, column 43 of dart:async/stream_controller.dart: """, onData is __t120), onError, onDone, cancelOnError);
+), __t109, "Wrap", """line 499, column 43 of dart:async/stream_controller.dart: """, onData is __t109), onError, onDone, cancelOnError);
  _PendingEvents pendingEvents = _pendingEvents;
  _state |= _STATE_SUBSCRIBED;
  if (_isAddingStream) {
@@ -218,9 +218,9 @@ _StreamControllerAddStreamState addState = DDC$RT.cast(_varData, dynamic, DDC$RT
  if (_onCancel != null) {
 if (result == null) {
   try {
-    result = ((__x124) => DDC$RT.cast(__x124, dynamic, DDC$RT.type((Future<dynamic> _) {
+    result = ((__x113) => DDC$RT.cast(__x113, dynamic, DDC$RT.type((Future<dynamic> _) {
       }
-    ), "CastGeneral", """line 542, column 20 of dart:async/stream_controller.dart: """, __x124 is Future<dynamic>, true))(_onCancel());
+    ), "CastGeneral", """line 542, column 20 of dart:async/stream_controller.dart: """, __x113 is Future<dynamic>, true))(_onCancel());
     }
    catch (e, s) {
     result = new _Future().._asyncCompleteError(e, s);
@@ -356,13 +356,13 @@ bool cancelOnError : true}
 }
  class _AddStreamState<T> {final _Future addStreamFuture;
  final StreamSubscription addSubscription;
- _AddStreamState(_EventSink<T> controller, Stream source, bool cancelOnError) : addStreamFuture = new _Future(), addSubscription = source.listen(DDC$RT.wrap((void f(T __u125)) {
+ _AddStreamState(_EventSink<T> controller, Stream source, bool cancelOnError) : addStreamFuture = new _Future(), addSubscription = source.listen(DDC$RT.wrap((void f(T __u114)) {
 void c(T x0) => f(DDC$RT.cast(x0, dynamic, T, "CastParam", """line 745, column 41 of dart:async/stream_controller.dart: """, x0 is T, false));
  return f == null ? null : c;
 }
-, controller._add, DDC$RT.type((__t126<T> _) {
+, controller._add, DDC$RT.type((__t115<T> _) {
 }
-), __t120, "Wrap", """line 745, column 41 of dart:async/stream_controller.dart: """, controller._add is __t120), onError: ((__x128) => DDC$RT.cast(__x128, dynamic, Function, "CastGeneral", """line 746, column 50 of dart:async/stream_controller.dart: """, __x128 is Function, true))(cancelOnError ? makeErrorHandler(controller) : controller._addError), onDone: controller._close, cancelOnError: cancelOnError);
+), __t109, "Wrap", """line 745, column 41 of dart:async/stream_controller.dart: """, controller._add is __t109), onError: ((__x117) => DDC$RT.cast(__x117, dynamic, Function, "CastGeneral", """line 746, column 50 of dart:async/stream_controller.dart: """, __x117 is Function, true))(cancelOnError ? makeErrorHandler(controller) : controller._addError), onDone: controller._close, cancelOnError: cancelOnError);
  static makeErrorHandler(_EventSink controller) => (e, StackTrace s) {
 controller._addError(e, s);
  controller._close();
@@ -400,6 +400,6 @@ addSubscription.pause();
 }
 }
 }
- typedef void __t120(dynamic __u121);
- typedef void __t122<T>(T __u123);
- typedef void __t126<T>(T __u127);
+ typedef void __t109(dynamic __u110);
+ typedef void __t111<T>(T __u112);
+ typedef void __t115<T>(T __u116);

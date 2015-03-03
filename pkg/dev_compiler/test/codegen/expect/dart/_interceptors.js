@@ -91,14 +91,14 @@ var _interceptors;
   // Function findIndexForNativeSubclassType: (Type) → int
   function findIndexForNativeSubclassType(type) {
     if (exports.mapTypeToInterceptor == null)
-      return dart.as(null, core.int);
+      return null;
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    for (let i = 0; i + 1 < map.length; i = 3) {
+    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map.length); i = 3) {
       if (dart.equals(type, map.get(i))) {
         return i;
       }
     }
-    return dart.as(null, core.int);
+    return null;
   }
   // Function findInterceptorConstructorForType: (Type) → dynamic
   function findInterceptorConstructorForType(type) {
@@ -106,7 +106,7 @@ var _interceptors;
     if (index === null)
       return null;
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    return map.get(index + 1);
+    return map.get(dart.notNull(index) + 1);
   }
   // Function findConstructorForNativeSubclassType: (Type, String) → dynamic
   function findConstructorForNativeSubclassType(type, name) {
@@ -114,7 +114,7 @@ var _interceptors;
     if (index === null)
       return null;
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    let constructorMap = map.get(index + 2);
+    let constructorMap = map.get(dart.notNull(index) + 2);
     let constructorFn = constructorMap[name];
     return constructorFn;
   }
@@ -214,7 +214,7 @@ var _interceptors;
         super.Interceptor();
       }
       JSArray$fixed(length) {
-        if (dart.notNull(!(typeof length == number)) || dart.notNull(length < 0)) {
+        if (dart.notNull(!(typeof length == number)) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
         return new JSArray.markFixed(new Array(length));
@@ -223,7 +223,7 @@ var _interceptors;
         return new JSArray.markGrowable([]);
       }
       JSArray$growable(length) {
-        if (dart.notNull(!(typeof length == number)) || dart.notNull(length < 0)) {
+        if (dart.notNull(!(typeof length == number)) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
         return new JSArray.markGrowable(new Array(length));
@@ -258,7 +258,7 @@ var _interceptors;
       removeAt(index) {
         if (!(typeof index == number))
           throw new core.ArgumentError(index);
-        if (dart.notNull(index < 0) || dart.notNull(index >= this.length)) {
+        if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length)) {
           throw new core.RangeError.value(index);
         }
         this.checkGrowable('removeAt');
@@ -267,7 +267,7 @@ var _interceptors;
       insert(index, value) {
         if (!(typeof index == number))
           throw new core.ArgumentError(index);
-        if (dart.notNull(index < 0) || dart.notNull(index > this.length)) {
+        if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this.length)) {
           throw new core.RangeError.value(index);
         }
         this.checkGrowable('insert');
@@ -289,7 +289,7 @@ var _interceptors;
       }
       remove(element) {
         this.checkGrowable('remove');
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
           if (dart.equals(this.get(i), element)) {
             this.splice(i, 1);
             return true;
@@ -319,7 +319,7 @@ var _interceptors;
       }
       forEach(f) {
         let length = this.length;
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(length); dart.notNull(i)++) {
           f(dart.as(this[i], E));
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -333,7 +333,7 @@ var _interceptors;
         if (separator === void 0)
           separator = "";
         let list = new core.List(this.length);
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
           list.set(i, `${this.get(i)}`);
         }
         return list.join(separator);
@@ -376,7 +376,7 @@ var _interceptors;
         _js_helper.checkNull(start);
         if (!(typeof start == number))
           throw new core.ArgumentError(start);
-        if (dart.notNull(start < 0) || dart.notNull(start > this.length)) {
+        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
           throw new core.RangeError.range(start, 0, this.length);
         }
         if (end === null) {
@@ -384,7 +384,7 @@ var _interceptors;
         } else {
           if (!(typeof end == number))
             throw new core.ArgumentError(end);
-          if (dart.notNull(end < start) || dart.notNull(end > this.length)) {
+          if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(this.length)) {
             throw new core.RangeError.range(end, start, this.length);
           }
         }
@@ -396,13 +396,13 @@ var _interceptors;
         return new _internal.IterableMixinWorkaround().getRangeList(this, start, end);
       }
       get first() {
-        if (this.length > 0)
+        if (dart.notNull(this.length) > 0)
           return this.get(0);
         throw new core.StateError("No elements");
       }
       get last() {
-        if (this.length > 0)
-          return this.get(this.length - 1);
+        if (dart.notNull(this.length) > 0)
+          return this.get(dart.notNull(this.length) - 1);
         throw new core.StateError("No elements");
       }
       get single() {
@@ -415,14 +415,14 @@ var _interceptors;
       removeRange(start, end) {
         this.checkGrowable('removeRange');
         let receiverLength = this.length;
-        if (dart.notNull(start < 0) || dart.notNull(start > receiverLength)) {
+        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(receiverLength)) {
           throw new core.RangeError.range(start, 0, receiverLength);
         }
-        if (dart.notNull(end < start) || dart.notNull(end > receiverLength)) {
+        if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(receiverLength)) {
           throw new core.RangeError.range(end, start, receiverLength);
         }
-        _internal.Lists.copy(this, end, this, start, receiverLength - end);
-        this.length = receiverLength - (end - start);
+        _internal.Lists.copy(this, end, this, start, dart.notNull(receiverLength) - dart.notNull(end));
+        this.length = dart.notNull(receiverLength) - (dart.notNull(end) - dart.notNull(start));
       }
       setRange(start, end, iterable, skipCount) {
         if (skipCount === void 0)
@@ -471,7 +471,7 @@ var _interceptors;
         return _internal.IterableMixinWorkaround.lastIndexOfList(this, element, start);
       }
       contains(other) {
-        for (let i = 0; i < this.length; i++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
           if (dart.equals(this.get(i), other))
             return true;
         }
@@ -509,7 +509,7 @@ var _interceptors;
       set length(newLength) {
         if (!(typeof newLength == number))
           throw new core.ArgumentError(newLength);
-        if (newLength < 0)
+        if (dart.notNull(newLength) < 0)
           throw new core.RangeError.value(newLength);
         this.checkGrowable('set length');
         this.length = newLength;
@@ -517,7 +517,7 @@ var _interceptors;
       get(index) {
         if (!(typeof index == number))
           throw new core.ArgumentError(index);
-        if (dart.notNull(index >= this.length) || dart.notNull(index < 0))
+        if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
           throw new core.RangeError.value(index);
         return dart.as(this[index], E);
       }
@@ -525,7 +525,7 @@ var _interceptors;
         this.checkMutable('indexed set');
         if (!(typeof index == number))
           throw new core.ArgumentError(index);
-        if (dart.notNull(index >= this.length) || dart.notNull(index < 0))
+        if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
           throw new core.RangeError.value(index);
         this[index] = value;
       }
@@ -605,7 +605,7 @@ var _interceptors;
       return isNaN(this);
     }
     get isInfinite() {
-      return dart.notNull(this == Infinity) || dart.notNull(this == -Infinity);
+      return this == Infinity || this == -Infinity;
     }
     get isFinite() {
       return isFinite(this);
@@ -644,16 +644,16 @@ var _interceptors;
       return this.roundToDouble().toInt();
     }
     ceilToDouble() {
-      return dart.notNull(Math.ceil(this));
+      return Math.ceil(this);
     }
     floorToDouble() {
-      return dart.notNull(Math.floor(this));
+      return Math.floor(this);
     }
     roundToDouble() {
       if (this['<'](0)) {
-        return dart.notNull(-Math.round(-this));
+        return -Math.round(-this);
       } else {
-        return dart.notNull(Math.round(this));
+        return Math.round(this);
       }
     }
     truncateToDouble() {
@@ -667,9 +667,9 @@ var _interceptors;
       if (dart.dbinary(dart.dinvoke(lowerLimit, 'compareTo', upperLimit), '>', 0)) {
         throw new core.ArgumentError(lowerLimit);
       }
-      if (this.compareTo(dart.as(lowerLimit, core.num)) < 0)
+      if (dart.notNull(this.compareTo(dart.as(lowerLimit, core.num))) < 0)
         return dart.as(lowerLimit, core.num);
-      if (this.compareTo(dart.as(upperLimit, core.num)) > 0)
+      if (dart.notNull(this.compareTo(dart.as(upperLimit, core.num))) > 0)
         return dart.as(upperLimit, core.num);
       return this;
     }
@@ -678,7 +678,7 @@ var _interceptors;
     }
     toStringAsFixed(fractionDigits) {
       _js_helper.checkInt(fractionDigits);
-      if (dart.notNull(fractionDigits < 0) || dart.notNull(fractionDigits > 20)) {
+      if (dart.notNull(fractionDigits) < 0 || dart.notNull(fractionDigits) > 20) {
         throw new core.RangeError(fractionDigits);
       }
       let result = this.toFixed(fractionDigits);
@@ -692,7 +692,7 @@ var _interceptors;
       let result = null;
       if (fractionDigits !== null) {
         _js_helper.checkInt(fractionDigits);
-        if (dart.notNull(fractionDigits < 0) || dart.notNull(fractionDigits > 20)) {
+        if (dart.notNull(fractionDigits) < 0 || dart.notNull(fractionDigits) > 20) {
           throw new core.RangeError(fractionDigits);
         }
         result = this.toExponential(fractionDigits);
@@ -705,7 +705,7 @@ var _interceptors;
     }
     toStringAsPrecision(precision) {
       _js_helper.checkInt(precision);
-      if (dart.notNull(precision < 1) || dart.notNull(precision > 21)) {
+      if (dart.notNull(precision) < 1 || dart.notNull(precision) > 21) {
         throw new core.RangeError(precision);
       }
       let result = this.toPrecision(precision);
@@ -715,11 +715,11 @@ var _interceptors;
     }
     toRadixString(radix) {
       _js_helper.checkInt(radix);
-      if (dart.notNull(radix < 2) || dart.notNull(radix > 36))
+      if (dart.notNull(radix) < 2 || dart.notNull(radix) > 36)
         throw new core.RangeError(radix);
       let result = this.toString(radix);
       let rightParenCode = 41;
-      if (result.codeUnitAt(result.length - 1) !== rightParenCode) {
+      if (result.codeUnitAt(dart.notNull(result.length) - 1) !== rightParenCode) {
         return result;
       }
       return _handleIEtoString(result);
@@ -738,7 +738,7 @@ var _interceptors;
       return core.String['+'](result, core.String['*']("0", exponent));
     }
     toString() {
-      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(1 / this < 0)) {
+      if (dart.notNull(dart.equals(this, 0)) && 1 / this < 0) {
         return '-0.0';
       } else {
         return "" + this;
@@ -778,10 +778,10 @@ var _interceptors;
         return 0;
       if (dart.notNull(result) > 0)
         return result;
-      if (dart.notNull(other) < 0) {
-        return dart.notNull(result) - dart.notNull(other);
+      if (other < 0) {
+        return dart.notNull(result) - other;
       } else {
-        return dart.notNull(result) + dart.notNull(other);
+        return dart.notNull(result) + other;
       }
     }
     [_isInt32](value) {
@@ -790,7 +790,7 @@ var _interceptors;
     ['~/'](other) {
       if (false)
         this[_tdivFast](other);
-      if (dart.notNull(dart.notNull(dart.notNull(this[_isInt32](this)) && dart.notNull(this[_isInt32](other))) && dart.notNull(0 !== other)) && dart.notNull(-1 !== other)) {
+      if (dart.notNull(this[_isInt32](this)) && dart.notNull(this[_isInt32](other)) && 0 !== other && -1 !== other) {
         return this / other | 0;
       } else {
         return this[_tdivSlow](other);
@@ -807,7 +807,7 @@ var _interceptors;
     ['<<'](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      if (dart.notNull(other) < 0)
+      if (other < 0)
         throw new core.ArgumentError(other);
       return this[_shlPositive](other);
     }
@@ -819,15 +819,15 @@ var _interceptors;
         this[_shrReceiverPositive](other);
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      if (dart.notNull(other) < 0)
+      if (other < 0)
         throw new core.ArgumentError(other);
       return this[_shrOtherPositive](other);
     }
     [_shrOtherPositive](other) {
-      return dart.as(dart.notNull(this) > 0 ? this[_shrBothPositive](other) : this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
+      return dart.as(this > 0 ? this[_shrBothPositive](other) : this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
     }
     [_shrReceiverPositive](other) {
-      if (dart.notNull(other) < 0)
+      if (other < 0)
         throw new core.ArgumentError(other);
       return this[_shrBothPositive](other);
     }
@@ -891,27 +891,27 @@ var _interceptors;
       return this['&'](1) === 1;
     }
     toUnsigned(width) {
-      return dart.notNull(this['&']((1 << width) - 1));
+      return this['&']((1 << dart.notNull(width)) - 1);
     }
     toSigned(width) {
-      let signMask = 1 << width - 1;
-      return dart.notNull(dart.notNull(this['&'](signMask - 1)) - dart.notNull(this['&'](signMask)));
+      let signMask = 1 << dart.notNull(width) - 1;
+      return dart.notNull(this['&'](dart.notNull(signMask) - 1)) - dart.notNull(this['&'](signMask));
     }
     get bitLength() {
-      let nonneg = dart.notNull(this['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -this")) - 1 : this);
-      if (nonneg >= 4294967296) {
-        nonneg = (nonneg / 4294967296).truncate();
-        return _bitCount(_spread(nonneg)) + 32;
+      let nonneg = this['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -this")) - 1 : this;
+      if (dart.notNull(nonneg) >= 4294967296) {
+        nonneg = (dart.notNull(nonneg) / 4294967296).truncate();
+        return dart.notNull(_bitCount(_spread(nonneg))) + 32;
       }
       return _bitCount(_spread(nonneg));
     }
     static [_bitCount](i) {
       i = dart.as(dart.dbinary(_shru(i, 0), '-', dart.dbinary(_shru(i, 1), '&', 1431655765)), core.int);
-      i = dart.notNull((i & 858993459)['+'](dart.dbinary(_shru(i, 2), '&', 858993459)));
-      i = 252645135 & dart.notNull(i['+'](_shru(i, 4)));
+      i = (dart.notNull(i) & 858993459)['+'](dart.dbinary(_shru(i, 2), '&', 858993459));
+      i = 252645135 & i['+'](_shru(i, 4));
       i = dart.as(_shru(i, 8), core.int);
       i = dart.as(_shru(i, 16), core.int);
-      return i & 63;
+      return dart.notNull(i) & 63;
     }
     static [_shru](value, shift) {
       return value >>> shift;
@@ -962,9 +962,9 @@ var _interceptors;
     codeUnitAt(index) {
       if (!(typeof index == number))
         throw new core.ArgumentError(index);
-      if (index < 0)
+      if (dart.notNull(index) < 0)
         throw new core.RangeError.value(index);
-      if (index >= this.length)
+      if (dart.notNull(index) >= dart.notNull(this.length))
         throw new core.RangeError.value(index);
       return dart.as(this.charCodeAt(index), core.int);
     }
@@ -973,7 +973,7 @@ var _interceptors;
         start = 0;
       _js_helper.checkString(string);
       _js_helper.checkInt(start);
-      if (dart.notNull(0 > start) || dart.notNull(start > string.length)) {
+      if (0 > dart.notNull(start) || dart.notNull(start) > dart.notNull(string.length)) {
         throw new core.RangeError.range(start, 0, string.length);
       }
       return _js_helper.allMatchesInStringUnchecked(this, string, start);
@@ -981,13 +981,13 @@ var _interceptors;
     matchAsPrefix(string, start) {
       if (start === void 0)
         start = 0;
-      if (dart.notNull(start < 0) || dart.notNull(start > string.length)) {
+      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string.length)) {
         throw new core.RangeError.range(start, 0, string.length);
       }
-      if (start + this.length > string.length)
+      if (dart.notNull(start) + dart.notNull(this.length) > dart.notNull(string.length))
         return null;
-      for (let i = 0; i < this.length; i++) {
-        if (string.codeUnitAt(start + i) !== this.codeUnitAt(i)) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
+        if (string.codeUnitAt(dart.notNull(start) + dart.notNull(i)) !== this.codeUnitAt(i)) {
           return null;
         }
       }
@@ -1001,9 +1001,9 @@ var _interceptors;
     endsWith(other) {
       _js_helper.checkString(other);
       let otherLength = other.length;
-      if (otherLength > this.length)
+      if (dart.notNull(otherLength) > dart.notNull(this.length))
         return false;
-      return dart.equals(other, this.substring(this.length - otherLength));
+      return dart.equals(other, this.substring(dart.notNull(this.length) - dart.notNull(otherLength)));
     }
     replaceAll(from, to) {
       _js_helper.checkString(to);
@@ -1022,7 +1022,7 @@ var _interceptors;
         startIndex = 0;
       _js_helper.checkString(to);
       _js_helper.checkInt(startIndex);
-      if (dart.notNull(startIndex < 0) || dart.notNull(startIndex > this.length)) {
+      if (dart.notNull(startIndex) < 0 || dart.notNull(startIndex) > dart.notNull(this.length)) {
         throw new core.RangeError.range(startIndex, 0, this.length);
       }
       return dart.as(_js_helper.stringReplaceFirstUnchecked(this, from, to, startIndex), core.String);
@@ -1031,7 +1031,7 @@ var _interceptors;
       _js_helper.checkNull(pattern);
       if (typeof pattern == string) {
         return dart.as(this.split(pattern), core.List$(core.String));
-      } else if (dart.notNull(dart.is(pattern, _js_helper.JSSyntaxRegExp)) && dart.notNull(_js_helper.regExpCaptureCount(pattern) === 0)) {
+      } else if (dart.notNull(dart.is(pattern, _js_helper.JSSyntaxRegExp)) && _js_helper.regExpCaptureCount(pattern) === 0) {
         let re = _js_helper.regExpGetNative(pattern);
         return dart.as(this.split(re), core.List$(core.String));
       } else {
@@ -1045,15 +1045,15 @@ var _interceptors;
       for (let match of pattern.allMatches(this)) {
         let matchStart = dart.as(dart.dload(match, 'start'), core.int);
         let matchEnd = dart.as(dart.dload(match, 'end'), core.int);
-        length = matchEnd - matchStart;
-        if (dart.notNull(length === 0) && dart.notNull(start === matchStart)) {
+        length = dart.notNull(matchEnd) - dart.notNull(matchStart);
+        if (length === 0 && start === matchStart) {
           continue;
         }
         let end = matchStart;
         result.add(this.substring(start, end));
         start = matchEnd;
       }
-      if (dart.notNull(start < this.length) || dart.notNull(length > 0)) {
+      if (dart.notNull(start) < dart.notNull(this.length) || dart.notNull(length) > 0) {
         result.add(this.substring(start));
       }
       return result;
@@ -1062,14 +1062,14 @@ var _interceptors;
       if (index === void 0)
         index = 0;
       _js_helper.checkInt(index);
-      if (dart.notNull(index < 0) || dart.notNull(index > this.length)) {
+      if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this.length)) {
         throw new core.RangeError.range(index, 0, this.length);
       }
       if (typeof pattern == string) {
         let other = pattern;
         let otherLength = other.length;
-        let endIndex = index + otherLength;
-        if (endIndex > this.length)
+        let endIndex = dart.notNull(index) + dart.notNull(otherLength);
+        if (dart.notNull(endIndex) > dart.notNull(this.length))
           return false;
         return dart.equals(other, this.substring(index, endIndex));
       }
@@ -1082,11 +1082,11 @@ var _interceptors;
       if (endIndex === null)
         endIndex = this.length;
       _js_helper.checkInt(endIndex);
-      if (startIndex < 0)
+      if (dart.notNull(startIndex) < 0)
         throw new core.RangeError.value(startIndex);
-      if (startIndex > endIndex)
+      if (dart.notNull(startIndex) > dart.notNull(endIndex))
         throw new core.RangeError.value(startIndex);
-      if (endIndex > this.length)
+      if (dart.notNull(endIndex) > dart.notNull(this.length))
         throw new core.RangeError.value(endIndex);
       return this.substring(startIndex, endIndex);
     }
@@ -1097,7 +1097,7 @@ var _interceptors;
       return this.toUpperCase();
     }
     static [_isWhitespace](codeUnit) {
-      if (codeUnit < 256) {
+      if (dart.notNull(codeUnit) < 256) {
         switch (codeUnit) {
           case 9:
           case 10:
@@ -1140,24 +1140,24 @@ var _interceptors;
     static [_skipLeadingWhitespace](string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
-      while (index < string.length) {
+      while (dart.notNull(index) < dart.notNull(string.length)) {
         let codeUnit = string.codeUnitAt(index);
-        if (dart.notNull(dart.notNull(codeUnit !== SPACE) && dart.notNull(codeUnit !== CARRIAGE_RETURN)) && dart.notNull(!dart.notNull(_isWhitespace(codeUnit)))) {
+        if (codeUnit !== SPACE && codeUnit !== CARRIAGE_RETURN && !dart.notNull(_isWhitespace(codeUnit))) {
           break;
         }
-        index++;
+        dart.notNull(index)++;
       }
       return index;
     }
     static [_skipTrailingWhitespace](string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
-      while (index > 0) {
-        let codeUnit = string.codeUnitAt(index - 1);
-        if (dart.notNull(dart.notNull(codeUnit !== SPACE) && dart.notNull(codeUnit !== CARRIAGE_RETURN)) && dart.notNull(!dart.notNull(_isWhitespace(codeUnit)))) {
+      while (dart.notNull(index) > 0) {
+        let codeUnit = string.codeUnitAt(dart.notNull(index) - 1);
+        if (codeUnit !== SPACE && codeUnit !== CARRIAGE_RETURN && !dart.notNull(_isWhitespace(codeUnit))) {
           break;
         }
-        index--;
+        dart.notNull(index)--;
       }
       return index;
     }
@@ -1174,11 +1174,11 @@ var _interceptors;
           return "";
       }
       let endIndex = result.length;
-      let lastCode = result.codeUnitAt(endIndex - 1);
+      let lastCode = result.codeUnitAt(dart.notNull(endIndex) - 1);
       if (lastCode === NEL) {
-        endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+        endIndex = _skipTrailingWhitespace(result, dart.notNull(endIndex) - 1);
       }
-      if (dart.notNull(startIndex === 0) && dart.notNull(endIndex === result.length))
+      if (startIndex === 0 && endIndex === result.length)
         return result;
       return result.substring(startIndex, endIndex);
     }
@@ -1213,9 +1213,9 @@ var _interceptors;
         endIndex = result.length;
         if (endIndex === 0)
           return result;
-        let lastCode = result.codeUnitAt(endIndex - 1);
+        let lastCode = result.codeUnitAt(dart.notNull(endIndex) - 1);
         if (lastCode === NEL) {
-          endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+          endIndex = _skipTrailingWhitespace(result, dart.notNull(endIndex) - 1);
         }
       } else {
         result = this;
@@ -1228,9 +1228,9 @@ var _interceptors;
       return result.substring(0, endIndex);
     }
     ['*'](times) {
-      if (0 >= times)
+      if (0 >= dart.notNull(times))
         return '';
-      if (dart.notNull(times === 1) || dart.notNull(this.length === 0))
+      if (times === 1 || this.length === 0)
         return this;
       if (times !== times >>> 0) {
         throw new core.OutOfMemoryError();
@@ -1238,7 +1238,7 @@ var _interceptors;
       let result = '';
       let s = this;
       while (true) {
-        if ((times & 1) === 1)
+        if ((dart.notNull(times) & 1) === 1)
           result = s['+'](result);
         times = dart.as(times >>> 1, core.int);
         if (times === 0)
@@ -1250,16 +1250,16 @@ var _interceptors;
     padLeft(width, padding) {
       if (padding === void 0)
         padding = ' ';
-      let delta = width - this.length;
-      if (delta <= 0)
+      let delta = dart.notNull(width) - dart.notNull(this.length);
+      if (dart.notNull(delta) <= 0)
         return this;
       return core.String['+'](core.String['*'](padding, delta), this);
     }
     padRight(width, padding) {
       if (padding === void 0)
         padding = ' ';
-      let delta = width - this.length;
-      if (delta <= 0)
+      let delta = dart.notNull(width) - dart.notNull(this.length);
+      if (dart.notNull(delta) <= 0)
         return this;
       return this['+'](core.String['*'](padding, delta));
     }
@@ -1275,7 +1275,7 @@ var _interceptors;
       _js_helper.checkNull(pattern);
       if (!(typeof start == number))
         throw new core.ArgumentError(start);
-      if (dart.notNull(start < 0) || dart.notNull(start > this.length)) {
+      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
         throw new core.RangeError.range(start, 0, this.length);
       }
       if (typeof pattern == string) {
@@ -1286,7 +1286,7 @@ var _interceptors;
         let match = _js_helper.firstMatchAfter(re, this, start);
         return match === null ? -1 : match.start;
       }
-      for (let i = start; i <= this.length; i++) {
+      for (let i = start; dart.notNull(i) <= dart.notNull(this.length); dart.notNull(i)++) {
         if (pattern.matchAsPrefix(this, i) !== null)
           return i;
       }
@@ -1300,17 +1300,17 @@ var _interceptors;
         start = this.length;
       } else if (!(typeof start == number)) {
         throw new core.ArgumentError(start);
-      } else if (dart.notNull(start < 0) || dart.notNull(start > this.length)) {
+      } else if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
         throw new core.RangeError.range(start, 0, this.length);
       }
       if (typeof pattern == string) {
         let other = pattern;
-        if (start + other.length > this.length) {
-          start = this.length - other.length;
+        if (dart.notNull(start) + dart.notNull(other.length) > dart.notNull(this.length)) {
+          start = dart.notNull(this.length) - dart.notNull(other.length);
         }
         return dart.as(_js_helper.stringLastIndexOfUnchecked(this, other, start), core.int);
       }
-      for (let i = start; i >= 0; i--) {
+      for (let i = start; dart.notNull(i) >= 0; dart.notNull(i)--) {
         if (pattern.matchAsPrefix(this, i) !== null)
           return i;
       }
@@ -1320,7 +1320,7 @@ var _interceptors;
       if (startIndex === void 0)
         startIndex = 0;
       _js_helper.checkNull(other);
-      if (dart.notNull(startIndex < 0) || dart.notNull(startIndex > this.length)) {
+      if (dart.notNull(startIndex) < 0 || dart.notNull(startIndex) > dart.notNull(this.length)) {
         throw new core.RangeError.range(startIndex, 0, this.length);
       }
       return dart.as(_js_helper.stringContainsUnchecked(this, other, startIndex), core.bool);
@@ -1341,14 +1341,14 @@ var _interceptors;
     }
     get hashCode() {
       let hash = 0;
-      for (let i = 0; i < this.length; i++) {
-        hash = 536870911 & hash + this.charCodeAt(i);
-        hash = 536870911 & hash + ((524287 & hash) << 10);
+      for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
+        hash = 536870911 & dart.notNull(hash) + this.charCodeAt(i);
+        hash = 536870911 & dart.notNull(hash) + ((524287 & dart.notNull(hash)) << 10);
         hash = hash ^ hash >> 6;
       }
-      hash = 536870911 & hash + ((67108863 & hash) << 3);
+      hash = 536870911 & dart.notNull(hash) + ((67108863 & dart.notNull(hash)) << 3);
       hash = hash ^ hash >> 11;
-      return 536870911 & hash + ((16383 & hash) << 15);
+      return 536870911 & dart.notNull(hash) + ((16383 & dart.notNull(hash)) << 15);
     }
     get runtimeType() {
       return core.String;
@@ -1359,7 +1359,7 @@ var _interceptors;
     get(index) {
       if (!(typeof index == number))
         throw new core.ArgumentError(index);
-      if (dart.notNull(index >= this.length) || dart.notNull(index < 0))
+      if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
         throw new core.RangeError.value(index);
       return this[index];
     }

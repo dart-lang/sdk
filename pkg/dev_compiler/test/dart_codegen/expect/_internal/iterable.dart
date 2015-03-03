@@ -88,7 +88,7 @@ int length = this.length;
 }
  E singleWhere(bool test(E element)) {
 int length = this.length;
- E match = ((__x0) => DDC$RT.cast(__x0, Null, E, "CastLiteral", """line 125, column 15 of dart:_internal/iterable.dart: """, __x0 is E, false))(null);
+ E match = null;
  bool matchFound = false;
  for (int i = 0; i < length; i++) {
   E element = elementAt(i);
@@ -136,11 +136,11 @@ int length = this.length;
   }
 }
  Iterable<E> where(bool test(E element)) => super.where(test);
- Iterable map(f(E element)) => new MappedListIterable(this, DDC$RT.wrap((dynamic f(E __u1)) {
+ Iterable map(f(E element)) => new MappedListIterable(this, DDC$RT.wrap((dynamic f(E __u0)) {
 dynamic c(E x0) => f(DDC$RT.cast(x0, dynamic, E, "CastParam", """line 175, column 62 of dart:_internal/iterable.dart: """, x0 is E, false));
  return f == null ? null : c;
 }
-, f, null, __t2, "Wrap", """line 175, column 62 of dart:_internal/iterable.dart: """, f is __t2));
+, f, null, __t1, "Wrap", """line 175, column 62 of dart:_internal/iterable.dart: """, f is __t1));
  E reduce(E combine(var value, E element)) {
 int length = this.length;
  if (length == 0) throw IterableElementError.noElement();
@@ -164,7 +164,7 @@ var value = initialValue;
   }
  return value;
 }
- Iterable<E> skip(int count) => new SubListIterable<E>(this, count, ((__x6) => DDC$RT.cast(__x6, Null, int, "CastLiteral", """line 203, column 70 of dart:_internal/iterable.dart: """, __x6 is int, true))(null));
+ Iterable<E> skip(int count) => new SubListIterable<E>(this, count, null);
  Iterable<E> skipWhile(bool test(E element)) => super.skipWhile(test);
  Iterable<E> take(int count) => new SubListIterable<E>(this, 0, count);
  Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
@@ -279,7 +279,7 @@ int length = _iterable.length;
 throw new ConcurrentModificationError(_iterable);
 }
  if (_index >= length) {
-_current = ((__x7) => DDC$RT.cast(__x7, Null, E, "CastLiteral", """line 338, column 18 of dart:_internal/iterable.dart: """, __x7 is E, false))(null);
+_current = null;
  return false;
 }
  _current = _iterable.elementAt(_index);
@@ -324,7 +324,7 @@ if (_iterator.moveNext()) {
 _current = _f(_iterator.current);
  return true;
 }
- _current = ((__x8) => DDC$RT.cast(__x8, Null, T, "CastLiteral", """line 393, column 16 of dart:_internal/iterable.dart: """, __x8 is T, false))(null);
+ _current = null;
  return false;
 }
  T get current => _current;
@@ -358,23 +358,23 @@ return true;
  class ExpandIterable<S, T> extends IterableBase<T> {final Iterable<S> _iterable;
  final _ExpandFunction _f;
  ExpandIterable(this._iterable, Iterable<T> this._f(S element));
- Iterator<T> get iterator => new ExpandIterator<S, T>(_iterable.iterator, DDC$RT.wrap((Iterable<dynamic> f(dynamic __u10)) {
-Iterable<dynamic> c(dynamic x0) => ((__x9) => DDC$RT.cast(__x9, DDC$RT.type((Iterable<dynamic> _) {
+ Iterator<T> get iterator => new ExpandIterator<S, T>(_iterable.iterator, DDC$RT.wrap((Iterable<dynamic> f(dynamic __u6)) {
+Iterable<dynamic> c(dynamic x0) => ((__x5) => DDC$RT.cast(__x5, DDC$RT.type((Iterable<dynamic> _) {
 }
 ), DDC$RT.type((Iterable<T> _) {
 }
-), "CastResult", """line 454, column 76 of dart:_internal/iterable.dart: """, __x9 is Iterable<T>, false))(f(x0));
+), "CastResult", """line 454, column 76 of dart:_internal/iterable.dart: """, __x5 is Iterable<T>, false))(f(x0));
  return f == null ? null : c;
 }
-, _f, null, DDC$RT.type((__t11<S, T> _) {
+, _f, null, DDC$RT.type((__t7<S, T> _) {
 }
-), "Wrap", """line 454, column 76 of dart:_internal/iterable.dart: """, _f is __t11<S, T>));
+), "Wrap", """line 454, column 76 of dart:_internal/iterable.dart: """, _f is __t7<S, T>));
 }
  class ExpandIterator<S, T> implements Iterator<T> {final Iterator<S> _iterator;
  final _ExpandFunction _f;
- Iterator<T> _currentExpansion = ((__x15) => DDC$RT.cast(__x15, null, DDC$RT.type((Iterator<T> _) {
+ Iterator<T> _currentExpansion = ((__x11) => DDC$RT.cast(__x11, null, DDC$RT.type((Iterator<T> _) {
 }
-), "CastExact", """line 463, column 35 of dart:_internal/iterable.dart: """, __x15 is Iterator<T>, false))(const EmptyIterator());
+), "CastExact", """line 463, column 35 of dart:_internal/iterable.dart: """, __x11 is Iterator<T>, false))(const EmptyIterator());
  T _current;
  ExpandIterator(this._iterator, Iterable<T> this._f(S element));
  void _nextExpansion() {
@@ -383,14 +383,14 @@ Iterable<dynamic> c(dynamic x0) => ((__x9) => DDC$RT.cast(__x9, DDC$RT.type((Ite
  bool moveNext() {
 if (_currentExpansion == null) return false;
  while (!_currentExpansion.moveNext()) {
-_current = ((__x16) => DDC$RT.cast(__x16, Null, T, "CastLiteral", """line 476, column 18 of dart:_internal/iterable.dart: """, __x16 is T, false))(null);
+_current = null;
  if (_iterator.moveNext()) {
 _currentExpansion = null;
- _currentExpansion = ((__x17) => DDC$RT.cast(__x17, DDC$RT.type((Iterator<dynamic> _) {
+ _currentExpansion = ((__x12) => DDC$RT.cast(__x12, DDC$RT.type((Iterator<dynamic> _) {
 }
 ), DDC$RT.type((Iterator<T> _) {
 }
-), "CastDynamic", """line 481, column 29 of dart:_internal/iterable.dart: """, __x17 is Iterator<T>, false))(_f(_iterator.current).iterator);
+), "CastDynamic", """line 481, column 29 of dart:_internal/iterable.dart: """, __x12 is Iterator<T>, false))(_f(_iterator.current).iterator);
 }
  else {
 return false;
@@ -436,7 +436,7 @@ return _iterator.moveNext();
  return false;
 }
  E get current {
-if (_remaining < 0) return ((__x18) => DDC$RT.cast(__x18, Null, E, "CastLiteral", """line 543, column 32 of dart:_internal/iterable.dart: """, __x18 is E, false))(null);
+if (_remaining < 0) return null;
  return _iterator.current;
 }
 }
@@ -460,7 +460,7 @@ _isFinished = true;
  return true;
 }
  E get current {
-if (_isFinished) return ((__x19) => DDC$RT.cast(__x19, Null, E, "CastLiteral", """line 576, column 29 of dart:_internal/iterable.dart: """, __x19 is E, false))(null);
+if (_isFinished) return null;
  return _iterator.current;
 }
 }
@@ -530,9 +530,9 @@ if (!_f(_iterator.current)) return true;
  E get current => _iterator.current;
 }
  class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {const EmptyIterable();
- Iterator<E> get iterator => ((__x20) => DDC$RT.cast(__x20, null, DDC$RT.type((Iterator<E> _) {
+ Iterator<E> get iterator => ((__x13) => DDC$RT.cast(__x13, null, DDC$RT.type((Iterator<E> _) {
 }
-), "CastExact", """line 678, column 31 of dart:_internal/iterable.dart: """, __x20 is Iterator<E>, false))(const EmptyIterator());
+), "CastExact", """line 678, column 31 of dart:_internal/iterable.dart: """, __x13 is Iterator<E>, false))(const EmptyIterator());
  void forEach(void action(E element)) {
 }
  bool get isEmpty => true;
@@ -596,7 +596,7 @@ bool growable : true}
 }
  class EmptyIterator<E> implements Iterator<E> {const EmptyIterator();
  bool moveNext() => false;
- E get current => ((__x21) => DDC$RT.cast(__x21, Null, E, "CastLiteral", """line 752, column 20 of dart:_internal/iterable.dart: """, __x21 is E, false))(null);
+ E get current => null;
 }
  abstract class BidirectionalIterator<T> implements Iterator<T> {bool movePrevious();
 }
@@ -794,7 +794,7 @@ return new SubListIterable<T>(DDC$RT.cast(list, DDC$RT.type((List<dynamic> _) {
 }
 ), DDC$RT.type((Iterable<T> _) {
 }
-), "CastDynamic", """line 988, column 35 of dart:_internal/iterable.dart: """, list is Iterable<T>, false), n, ((__x22) => DDC$RT.cast(__x22, Null, int, "CastLiteral", """line 988, column 44 of dart:_internal/iterable.dart: """, __x22 is int, true))(null));
+), "CastDynamic", """line 988, column 35 of dart:_internal/iterable.dart: """, list is Iterable<T>, false), n, null);
 }
  Iterable<T> skipWhile(Iterable iterable, bool test(var value)) {
 return new SkipWhileIterable<T>(DDC$RT.cast(iterable, DDC$RT.type((Iterable<dynamic> _) {
@@ -811,7 +811,7 @@ return new ReversedListIterable<T>(DDC$RT.cast(list, DDC$RT.type((List<dynamic> 
 ), "CastDynamic", """line 997, column 40 of dart:_internal/iterable.dart: """, list is Iterable<T>, false));
 }
  static void sortList(List list, int compare(a, b)) {
-if (compare == null) compare = DDC$RT.wrap((int f(Comparable<dynamic> __u23, Comparable<dynamic> __u24)) {
+if (compare == null) compare = DDC$RT.wrap((int f(Comparable<dynamic> __u14, Comparable<dynamic> __u15)) {
 int c(Comparable<dynamic> x0, Comparable<dynamic> x1) => f(DDC$RT.cast(x0, dynamic, DDC$RT.type((Comparable<dynamic> _) {
 }
 ), "CastParam", """line 1001, column 36 of dart:_internal/iterable.dart: """, x0 is Comparable<dynamic>, true), DDC$RT.cast(x1, dynamic, DDC$RT.type((Comparable<dynamic> _) {
@@ -819,7 +819,7 @@ int c(Comparable<dynamic> x0, Comparable<dynamic> x1) => f(DDC$RT.cast(x0, dynam
 ), "CastParam", """line 1001, column 36 of dart:_internal/iterable.dart: """, x1 is Comparable<dynamic>, true));
  return f == null ? null : c;
 }
-, Comparable.compare, __t28, __t25, "Wrap", """line 1001, column 36 of dart:_internal/iterable.dart: """, Comparable.compare is __t25);
+, Comparable.compare, __t19, __t16, "Wrap", """line 1001, column 36 of dart:_internal/iterable.dart: """, Comparable.compare is __t16);
  Sort.sort(list, compare);
 }
  static void shuffleList(List list, Random random) {
@@ -969,9 +969,9 @@ result.add(element);
  static StateError tooMany() => new StateError("Too many elements");
  static StateError tooFew() => new StateError("Too few elements");
 }
- typedef dynamic __t2(dynamic __u3);
- typedef dynamic __t4<E>(E __u5);
- typedef Iterable<T> __t11<S, T>(S __u12);
- typedef Iterable<dynamic> __t13(dynamic __u14);
- typedef int __t25(dynamic __u26, dynamic __u27);
- typedef int __t28(Comparable<dynamic> __u29, Comparable<dynamic> __u30);
+ typedef dynamic __t1(dynamic __u2);
+ typedef dynamic __t3<E>(E __u4);
+ typedef Iterable<T> __t7<S, T>(S __u8);
+ typedef Iterable<dynamic> __t9(dynamic __u10);
+ typedef int __t16(dynamic __u17, dynamic __u18);
+ typedef int __t19(Comparable<dynamic> __u20, Comparable<dynamic> __u21);

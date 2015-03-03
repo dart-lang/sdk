@@ -85,7 +85,7 @@ main() {
           b = true;
         }
       '''
-    });
+    }, nonnullableTypes: <String>['int', 'double']);
   });
 
   test('Primitives and generics', () {
@@ -127,7 +127,7 @@ main() {
           T foo() => /*warning:DownCastLiteral*/null;
         }
       '''
-    });
+    }, nonnullableTypes: <String>['int', 'double']);
   });
 
   test('Constructors', () {

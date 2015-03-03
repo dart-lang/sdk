@@ -10,12 +10,12 @@ var _isolate_helper;
   let _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
   // Function enterJsAsync: () → dynamic
   function enterJsAsync() {
-    exports._globalState.topEventLoop[_activeJsAsyncCount]++;
+    dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount])++;
   }
   // Function leaveJsAsync: () → dynamic
   function leaveJsAsync() {
-    exports._globalState.topEventLoop[_activeJsAsyncCount]--;
-    dart.assert(exports._globalState.topEventLoop[_activeJsAsyncCount] >= 0);
+    dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount])--;
+    dart.assert(dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) >= 0);
   }
   // Function isWorker: () → bool
   function isWorker() {
@@ -94,9 +94,9 @@ var _isolate_helper;
     [_nativeDetectEnvironment]() {
       let isWindowDefined = exports.globalWindow !== null;
       let isWorkerDefined = exports.globalWorker !== null;
-      this.isWorker = dart.notNull(!dart.notNull(isWindowDefined)) && dart.notNull(exports.globalPostMessageDefined);
-      this.supportsWorkers = dart.notNull(this.isWorker) || dart.notNull(dart.notNull(isWorkerDefined) && dart.notNull(IsolateNatives.thisScript !== null));
-      this.fromCommandLine = dart.notNull(!dart.notNull(isWindowDefined)) && dart.notNull(!dart.notNull(this.isWorker));
+      this.isWorker = !dart.notNull(isWindowDefined) && dart.notNull(exports.globalPostMessageDefined);
+      this.supportsWorkers = dart.notNull(this.isWorker) || dart.notNull(isWorkerDefined) && dart.notNull(IsolateNatives.thisScript !== null);
+      this.fromCommandLine = !dart.notNull(isWindowDefined) && !dart.notNull(this.isWorker);
     }
     [_nativeInitWorkerMessageHandler]() {
       let function = function(f, a) {
@@ -119,7 +119,7 @@ var _isolate_helper;
       return _serializeMessage(dart.map({command: "print", msg: object}));
     }
     maybeCloseWorker() {
-      if (dart.notNull(dart.notNull(this.isWorker) && dart.notNull(this.isolates.isEmpty)) && dart.notNull(this.topEventLoop[_activeJsAsyncCount] === 0)) {
+      if (dart.notNull(this.isWorker) && dart.notNull(this.isolates.isEmpty) && this.topEventLoop[_activeJsAsyncCount] === 0) {
         this.mainManager.postMessage(_serializeMessage(dart.map({command: 'close'})));
       }
     }
@@ -132,7 +132,7 @@ var _isolate_helper;
   let _addRegistration = Symbol('_addRegistration');
   class _IsolateContext extends dart.Object {
     _IsolateContext() {
-      this.id = exports._globalState.nextIsolateId++;
+      this.id = dart.notNull(exports._globalState.nextIsolateId)++;
       this.ports = new core.Map();
       this.weakPorts = new core.Set();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
@@ -153,7 +153,7 @@ var _isolate_helper;
     addPause(authentification, resume) {
       if (!dart.equals(this.pauseCapability, authentification))
         return;
-      if (dart.notNull(this.pauseTokens.add(resume)) && dart.notNull(!dart.notNull(this.isPaused))) {
+      if (dart.notNull(this.pauseTokens.add(resume)) && !dart.notNull(this.isPaused)) {
         this.isPaused = true;
       }
       this[_updateGlobalState]();
@@ -190,7 +190,7 @@ var _isolate_helper;
       this.errorsAreFatal = errorsAreFatal;
     }
     handlePing(responsePort, pingType) {
-      if (dart.notNull(pingType === isolate.Isolate.IMMEDIATE) || dart.notNull(dart.notNull(pingType === isolate.Isolate.BEFORE_NEXT_EVENT) && dart.notNull(!dart.notNull(this[_isExecutingEvent])))) {
+      if (pingType === isolate.Isolate.IMMEDIATE || pingType === isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
         responsePort.send(null);
         return;
       }
@@ -211,7 +211,7 @@ var _isolate_helper;
     handleKill(authentification, priority) {
       if (!dart.equals(this.terminateCapability, authentification))
         return;
-      if (dart.notNull(priority === isolate.Isolate.IMMEDIATE) || dart.notNull(dart.notNull(priority === isolate.Isolate.BEFORE_NEXT_EVENT) && dart.notNull(!dart.notNull(this[_isExecutingEvent])))) {
+      if (priority === isolate.Isolate.IMMEDIATE || priority === isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
         this.kill();
         return;
       }
@@ -335,7 +335,7 @@ var _isolate_helper;
       this[_addRegistration](portId, port);
     }
     [_updateGlobalState]() {
-      if (dart.notNull(dart.notNull(this.ports.length - this.weakPorts.length > 0) || dart.notNull(this.isPaused)) || dart.notNull(!dart.notNull(this.initialized))) {
+      if (dart.notNull(this.ports.length) - dart.notNull(this.weakPorts.length) > 0 || dart.notNull(this.isPaused) || !dart.notNull(this.initialized)) {
         exports._globalState.isolates.set(this.id, this);
       } else {
         this.kill();
@@ -383,7 +383,7 @@ var _isolate_helper;
       return this.events.removeFirst();
     }
     checkOpenReceivePortsFromCommandLine() {
-      if (dart.notNull(dart.notNull(dart.notNull(exports._globalState.rootContext !== null) && dart.notNull(exports._globalState.isolates.containsKey(exports._globalState.rootContext.id))) && dart.notNull(exports._globalState.fromCommandLine)) && dart.notNull(exports._globalState.rootContext.ports.isEmpty)) {
+      if (dart.notNull(exports._globalState.rootContext !== null) && dart.notNull(exports._globalState.isolates.containsKey(exports._globalState.rootContext.id)) && dart.notNull(exports._globalState.fromCommandLine) && dart.notNull(exports._globalState.rootContext.ports.isEmpty)) {
         throw new core.Exception("Program exited with open ReceivePorts.");
       }
     }
@@ -635,7 +635,7 @@ var _isolate_helper;
         }
       }).bind(this));
       let signalReply = port.sendPort;
-      if (dart.notNull(exports._globalState.useWorkers) && dart.notNull(!dart.notNull(isLight))) {
+      if (dart.notNull(exports._globalState.useWorkers) && !dart.notNull(isLight)) {
         _startWorker(functionName, uri, args, message, isSpawnUri, startPaused, signalReply, ((message) => completer.completeError(message)).bind(this));
       } else {
         _startNonWorker(functionName, uri, args, message, isSpawnUri, startPaused, signalReply);
@@ -708,7 +708,7 @@ var _isolate_helper;
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(_processWorkerMessage), worker);
       worker.onmessage = processWorkerMessageTrampoline;
-      let workerId = exports._globalState.nextManagerId++;
+      let workerId = dart.notNull(exports._globalState.nextManagerId)++;
       workerIds.set(worker, workerId);
       exports._globalState.managers.set(workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
@@ -742,7 +742,7 @@ var _isolate_helper;
       this[_isolateId] = $_isolateId;
     }
     [_checkReplyTo](replyTo) {
-      if (dart.notNull(dart.notNull(replyTo !== null) && dart.notNull(!dart.is(replyTo, _NativeJsSendPort))) && dart.notNull(!dart.is(replyTo, _WorkerSendPort))) {
+      if (dart.notNull(replyTo !== null) && dart.notNull(!dart.is(replyTo, _NativeJsSendPort)) && dart.notNull(!dart.is(replyTo, _WorkerSendPort))) {
         throw new core.Exception("SendPort.send: Illegal replyTo port type");
       }
     }
@@ -798,10 +798,10 @@ var _isolate_helper;
       }
     }
     ['=='](other) {
-      return dart.notNull(dart.notNull(dart.notNull(dart.is(other, _WorkerSendPort)) && dart.notNull(this[_workerId] === dart.dload(other, '_workerId'))) && dart.notNull(this[_isolateId] === dart.dload(other, '_isolateId'))) && dart.notNull(this[_receivePortId] === dart.dload(other, '_receivePortId'));
+      return dart.notNull(dart.is(other, _WorkerSendPort)) && this[_workerId] === dart.dload(other, '_workerId') && this[_isolateId] === dart.dload(other, '_isolateId') && this[_receivePortId] === dart.dload(other, '_receivePortId');
     }
     get hashCode() {
-      return this[_workerId] << 16 ^ this[_isolateId] << 8 ^ this[_receivePortId];
+      return dart.notNull(this[_workerId]) << 16 ^ dart.notNull(this[_isolateId]) << 8 ^ dart.notNull(this[_receivePortId]);
     }
   }
   let _handler = Symbol('_handler');
@@ -810,13 +810,13 @@ var _isolate_helper;
   class RawReceivePortImpl extends dart.Object {
     RawReceivePortImpl($_handler) {
       this[_handler] = $_handler;
-      this[_id] = _nextFreeId++;
+      this[_id] = dart.notNull(_nextFreeId)++;
       this[_isClosed] = false;
       exports._globalState.currentContext.register(this[_id], this);
     }
     RawReceivePortImpl$weak($_handler) {
       this[_handler] = $_handler;
-      this[_id] = _nextFreeId++;
+      this[_id] = dart.notNull(_nextFreeId)++;
       this[_isClosed] = false;
       exports._globalState.currentContext.registerWeak(this[_id], this);
     }
@@ -890,11 +890,11 @@ var _isolate_helper;
     TimerImpl(milliseconds, callback) {
       this[_once] = true;
       this[_inEventLoop] = false;
-      this[_handle] = dart.as(null, core.int);
-      if (dart.notNull(milliseconds === 0) && dart.notNull(dart.notNull(!dart.notNull(hasTimer())) || dart.notNull(exports._globalState.isWorker))) {
+      this[_handle] = null;
+      if (milliseconds === 0 && (!dart.notNull(hasTimer()) || dart.notNull(exports._globalState.isWorker))) {
         // Function internalCallback: () → void
         function internalCallback() {
-          this[_handle] = dart.as(null, core.int);
+          this[_handle] = null;
           callback();
         }
         this[_handle] = 1;
@@ -903,21 +903,21 @@ var _isolate_helper;
       } else if (hasTimer()) {
         // Function internalCallback: () → void
         function internalCallback() {
-          this[_handle] = dart.as(null, core.int);
+          this[_handle] = null;
           leaveJsAsync();
           callback();
         }
         enterJsAsync();
         this[_handle] = self.setTimeout(_js_helper.convertDartClosureToJS(internalCallback, 0), milliseconds);
       } else {
-        dart.assert(milliseconds > 0);
+        dart.assert(dart.notNull(milliseconds) > 0);
         throw new core.UnsupportedError("Timer greater than 0.");
       }
     }
     TimerImpl$periodic(milliseconds, callback) {
       this[_once] = false;
       this[_inEventLoop] = false;
-      this[_handle] = dart.as(null, core.int);
+      this[_handle] = null;
       if (hasTimer()) {
         enterJsAsync();
         this[_handle] = self.setInterval(_js_helper.convertDartClosureToJS((() => {
@@ -940,7 +940,7 @@ var _isolate_helper;
         } else {
           self.clearInterval(this[_handle]);
         }
-        this[_handle] = dart.as(null, core.int);
+        this[_handle] = null;
       } else {
         throw new core.UnsupportedError("Canceling a timer.");
       }
@@ -964,13 +964,13 @@ var _isolate_helper;
     }
     get hashCode() {
       let hash = this[_id];
-      hash = hash >> 0 ^ (hash / 4294967296).truncate();
-      hash = ~hash + (hash << 15) & 4294967295;
-      hash = hash >> 12;
-      hash = hash * 5 & 4294967295;
-      hash = hash >> 4;
-      hash = hash * 2057 & 4294967295;
-      hash = hash >> 16;
+      hash = dart.notNull(hash) >> 0 ^ (dart.notNull(hash) / 4294967296).truncate();
+      hash = ~dart.notNull(hash) + (dart.notNull(hash) << 15) & 4294967295;
+      hash = dart.notNull(hash) >> 12;
+      hash = dart.notNull(hash) * 5 & 4294967295;
+      hash = dart.notNull(hash) >> 4;
+      hash = dart.notNull(hash) * 2057 & 4294967295;
+      hash = dart.notNull(hash) >> 16;
       return hash;
     }
     ['=='](other) {
@@ -1046,7 +1046,7 @@ var _isolate_helper;
       return new List.from(["ref", serializationId]);
     }
     isPrimitive(x) {
-      return dart.notNull(dart.notNull(dart.notNull(x === null) || dart.notNull(typeof x == string)) || dart.notNull(dart.is(x, core.num))) || dart.notNull(typeof x == boolean);
+      return dart.notNull(x === null) || dart.notNull(typeof x == string) || dart.notNull(dart.is(x, core.num)) || dart.notNull(typeof x == boolean);
     }
     serializePrimitive(primitive) {
       return primitive;
@@ -1074,13 +1074,13 @@ var _isolate_helper;
     serializeArray(x) {
       let serialized = new List.from([]);
       serialized.length = x.length;
-      for (let i = 0; i < x.length; i++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); dart.notNull(i)++) {
         serialized.set(i, this.serialize(x.get(i)));
       }
       return serialized;
     }
     serializeArrayInPlace(x) {
-      for (let i = 0; i < x.length; i++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); dart.notNull(i)++) {
         x.set(i, this.serialize(x.get(i)));
       }
       return x;
@@ -1090,13 +1090,13 @@ var _isolate_helper;
       return new List.from(['map', x.keys.map(dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic"))).toList(), x.values.map(dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic"))).toList()]);
     }
     serializeJSObject(x) {
-      if (dart.notNull(!!x.constructor) && dart.notNull(x.constructor !== Object)) {
+      if (!!x.constructor && x.constructor !== Object) {
         this.unsupported(x, "Only plain JS Objects are supported:");
       }
       let keys = dart.as(Object.keys(x), core.List);
       let values = new List.from([]);
       values.length = keys.length;
-      for (let i = 0; i < keys.length; i++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); dart.notNull(i)++) {
         values.set(i, this.serialize(x[keys.get(i)]));
       }
       return new List.from(['js-object', keys, values]);
@@ -1176,7 +1176,7 @@ var _isolate_helper;
       }
     }
     isPrimitive(x) {
-      return dart.notNull(dart.notNull(dart.notNull(x === null) || dart.notNull(typeof x == string)) || dart.notNull(dart.is(x, core.num))) || dart.notNull(typeof x == boolean);
+      return dart.notNull(x === null) || dart.notNull(typeof x == string) || dart.notNull(dart.is(x, core.num)) || dart.notNull(typeof x == boolean);
     }
     deserializePrimitive(x) {
       return x;
@@ -1199,7 +1199,7 @@ var _isolate_helper;
       return result;
     }
     deserializeArrayInPlace(x) {
-      for (let i = 0; i < x.length; i++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); dart.notNull(i)++) {
         x.set(i, this.deserialize(x.get(i)));
       }
       return x;
@@ -1235,7 +1235,7 @@ var _isolate_helper;
       let result = dart.map();
       this.deserializedObjects.add(result);
       keys = keys.map(this.deserialize).toList();
-      for (let i = 0; i < keys.length; i++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); dart.notNull(i)++) {
         result.set(keys.get(i), this.deserialize(values.get(i)));
       }
       return result;
@@ -1272,7 +1272,7 @@ var _isolate_helper;
       let values = dart.as(dart.dindex(x, 2), core.List);
       let o = {};
       this.deserializedObjects.add(o);
-      for (let i = 0; i < keys.length; i++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); dart.notNull(i)++) {
         o[keys.get(i)] = this.deserialize(values.get(i));
       }
       return o;

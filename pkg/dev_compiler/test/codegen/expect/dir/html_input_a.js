@@ -4,7 +4,7 @@ var html_input_a;
   // Function main: () → dynamic
   function main() {
     core.print(`fib(${html_input_b.x} + ${html_input_c.y}) = `);
-    core.print(`  ... ${html_input_d.fib(html_input_b.x + html_input_c.y)}`);
+    core.print(`  ... ${html_input_d.fib(dart.notNull(html_input_b.x) + dart.notNull(html_input_c.y))}`);
   }
   // Exports:
   exports.main = main;

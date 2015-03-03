@@ -1047,9 +1047,56 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
 
+  bool _isNonNullableExpression(Expression expr) {
+    // TODO(vsm): Revisit whether we really need this when we get
+    // better non-nullability in the type system.
+
+    if (expr is Literal && expr is! NullLiteral) {
+      return true;
+    }
+    if (expr is ParenthesizedExpression) {
+      return _isNonNullableExpression(expr.expression);
+    }
+    DartType type = null;
+    if (expr is BinaryExpression) {
+      type = rules.getStaticType(expr.leftOperand);
+    } else if (expr is PrefixExpression) {
+      type = rules.getStaticType(expr.operand);
+    } else if (expr is PostfixExpression) {
+      type = rules.getStaticType(expr.operand);
+    }
+    if (type != null && typeIsPrimitiveInJS(type)) {
+      return true;
+    }
+    if (expr is MethodInvocation) {
+      // TODO(vsm): This logic overlaps with the resolver.
+      // Where is the best place to put this?
+      var e = expr.methodName.staticElement;
+      if (e is FunctionElement &&
+          e.library.name == '_foreign_helper' &&
+          e.name == 'JS') {
+        // Fix types for JS builtin calls.
+        //
+        // This code was taken from analyzer. It's not super sophisticated:
+        // only looks for the type name in dart:core, so we just copy it here.
+        //
+        // TODO(jmesserly): we'll likely need something that can handle a wider
+        // variety of types, especially when we get to JS interop.
+        var args = expr.argumentList.arguments;
+        if (args.isNotEmpty && args.first is SimpleStringLiteral) {
+          var types = args.first.stringValue;
+          if (!types.split('|').contains('Null')) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   JS.Expression notNull(Expression expr) {
     var type = rules.getStaticType(expr);
-    if (rules.isNonNullableType(type)) {
+    if (rules.isNonNullableType(type) || _isNonNullableExpression(expr)) {
       return _visit(expr);
     } else {
       return js.call('dart.notNull(#)', _visit(expr));

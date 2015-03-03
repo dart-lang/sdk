@@ -77,22 +77,22 @@ var constructors;
   }
   class M extends L {
     M$named(x) {
-      super.L(x + 42);
+      super.L(dart.notNull(x) + 42);
     }
   }
   dart.defineNamedConstructor(M, 'named');
   class N extends M {
     N$named(y) {
-      super.M$named(y + 100);
+      super.M$named(dart.notNull(y) + 100);
     }
   }
   dart.defineNamedConstructor(N, 'named');
   class P extends N {
     P(z) {
-      super.N$named(z + 9000);
+      super.N$named(dart.notNull(z) + 9000);
     }
     P$foo(x) {
-      this.P(x + 42);
+      this.P(dart.notNull(x) + 42);
     }
     P$bar() {
       this.P$foo(1);

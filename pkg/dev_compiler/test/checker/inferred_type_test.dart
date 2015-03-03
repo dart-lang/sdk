@@ -42,7 +42,7 @@ main() {
         x = /*warning:DownCastLiteral*/null;
       }
     '''
-  });
+  }, nonnullableTypes: <String>['int', 'double']);
 
   // Error when inferred type is `int` and assigned null.
   testChecker({
@@ -52,7 +52,7 @@ main() {
         x = /*warning:DownCastLiteral*/null;
       }
     '''
-  });
+  }, nonnullableTypes: <String>['int', 'double']);
 
   // No error when declared type is `num` and assigned null.
   testChecker({

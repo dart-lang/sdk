@@ -4,9 +4,9 @@ var sunflower;
   let ORANGE = "orange";
   let SEED_RADIUS = 2;
   let SCALE_FACTOR = 4;
-  let TAU = math.PI * 2;
+  let TAU = dart.notNull(math.PI) * 2;
   let MAX_D = 300;
-  let centerX = MAX_D / 2;
+  let centerX = dart.notNull(MAX_D) / 2;
   let centerY = centerX;
   // Function querySelector: (String) → Element
   function querySelector(selector) {
@@ -21,7 +21,7 @@ var sunflower;
       return querySelector("#notes");
     },
     get PHI() {
-      return (math.sqrt(5) + 1) / 2;
+      return (dart.notNull(math.sqrt(5)) + 1) / 2;
     },
     get context() {
       return dart.as(dart.as(querySelector("#canvas"), dom.CanvasElement).getContext('2d'), dom.CanvasRenderingContext2D);
@@ -67,11 +67,11 @@ var sunflower;
   function draw() {
     exports.seeds = core.int.parse(exports.slider.value);
     exports.context.clearRect(0, 0, MAX_D, MAX_D);
-    for (let i = 0; i < exports.seeds; i++) {
-      let theta = dart.notNull(i * dart.notNull(TAU)) / dart.notNull(exports.PHI);
-      let r = math.sqrt(i) * SCALE_FACTOR;
-      let x = dart.notNull(centerX) + dart.notNull(dart.notNull(r) * math.cos(theta));
-      let y = dart.notNull(centerY) - dart.notNull(dart.notNull(r) * math.sin(theta));
+    for (let i = 0; dart.notNull(i) < dart.notNull(exports.seeds); dart.notNull(i)++) {
+      let theta = dart.notNull(i) * dart.notNull(TAU) / dart.notNull(exports.PHI);
+      let r = dart.notNull(math.sqrt(i)) * dart.notNull(SCALE_FACTOR);
+      let x = dart.notNull(centerX) + dart.notNull(r) * dart.notNull(math.cos(theta));
+      let y = dart.notNull(centerY) - dart.notNull(r) * dart.notNull(math.sin(theta));
       new SunflowerSeed(x, y, SEED_RADIUS).draw();
     }
     exports.notes.textContent = `${exports.seeds} seeds`;

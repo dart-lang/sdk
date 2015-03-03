@@ -15,7 +15,7 @@ var methods;
     z(b) {
       if (b === void 0)
         b = null;
-      return dart.notNull(b);
+      return b;
     }
     zz(b) {
       if (b === void 0)
@@ -24,11 +24,11 @@ var methods;
     }
     w(a, opt$) {
       let b = opt$.b === void 0 ? null : opt$.b;
-      return dart.notNull(a + dart.notNull(b));
+      return dart.notNull(a) + dart.notNull(b);
     }
     ww(a, opt$) {
       let b = opt$.b === void 0 ? 0 : opt$.b;
-      return a + b;
+      return dart.notNull(a) + dart.notNull(b);
     }
     get a() {
       return this.x();

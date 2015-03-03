@@ -11,7 +11,7 @@ var BenchmarkBase;
       if (expected.length !== actual.length) {
         throw `Lists have different lengths: ${expected.length} vs ${actual.length}`;
       }
-      for (let i = 0; i < actual.length; i++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(actual.length); dart.notNull(i)++) {
         equals(expected.get(i), actual.get(i));
       }
     }
@@ -28,7 +28,7 @@ var BenchmarkBase;
       this.run();
     }
     exercise() {
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; dart.notNull(i) < 10; dart.notNull(i)++) {
         this.run();
       }
     }
@@ -40,12 +40,12 @@ var BenchmarkBase;
       let watch = new core.Stopwatch();
       watch.start();
       let elapsed = 0;
-      while (elapsed < timeMinimum) {
+      while (dart.notNull(elapsed) < dart.notNull(timeMinimum)) {
         dart.dinvokef(f);
         elapsed = watch.elapsedMilliseconds;
-        iter++;
+        dart.notNull(iter)++;
       }
-      return 1000.0 * elapsed / iter;
+      return 1000.0 * dart.notNull(elapsed) / dart.notNull(iter);
     }
     measure() {
       this.setup();

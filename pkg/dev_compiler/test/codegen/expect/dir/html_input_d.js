@@ -7,11 +7,11 @@ var html_input_d;
   }
   // Function _fib: (int, Map<int, int>) → int
   function _fib(n, seen) {
-    if (dart.notNull(n === 0) || dart.notNull(n === 1))
+    if (n === 0 || n === 1)
       return 1;
     if (seen.get(n) !== null)
       return seen.get(n);
-    seen.set(n, _fib(n - 1, seen) + _fib(n - 2, seen));
+    seen.set(n, dart.notNull(_fib(dart.notNull(n) - 1, seen)) + dart.notNull(_fib(dart.notNull(n) - 2, seen)));
     return seen.get(n);
   }
   // Exports:
