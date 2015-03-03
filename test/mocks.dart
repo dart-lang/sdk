@@ -6,9 +6,32 @@ library linter.test.mocks;
 
 import 'dart:io';
 
+import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/linter.dart';
-import 'package:mockito/mockito.dart';
 import 'package:linter/src/pub.dart';
+import 'package:mockito/mockito.dart';
+
+class MockAnalysisError extends Mock implements AnalysisError {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockAnalysisErrorInfo extends Mock implements AnalysisErrorInfo {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockErrorCode extends Mock implements ErrorCode {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockErrorType extends Mock implements ErrorType {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 class MockFile extends Mock implements File {
   @override
@@ -16,6 +39,16 @@ class MockFile extends Mock implements File {
 }
 
 class MockIOSink extends Mock implements IOSink {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockLineInfo extends Mock implements LineInfo {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockLineInfo_Location extends Mock implements LineInfo_Location {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -35,12 +68,17 @@ class MockPubVisitor extends Mock implements PubSpecVisitor {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class MockReporter extends Mock implements Reporter {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class MockRule extends Mock implements LintRule {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockReporter extends Mock implements Reporter {
+class MockSource extends Mock implements Source {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

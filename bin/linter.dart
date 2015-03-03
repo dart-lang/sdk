@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
+import 'package:linter/src/formatter.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 
@@ -50,8 +51,11 @@ void main(List<String> args) {
   var linter = new DartLinter();
   try {
     List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
-    //TODO: format errors
-    errors.forEach((info) => (info.errors.forEach((e) => print(e))));
+
+    var commonRoot = getRoot(options.rest);
+    ReportFormatter reporter = new ReportFormatter(errors, std_out,
+        fileCount: filesToLint.length, fileRoot: commonRoot);
+    reporter.write();
   } catch (err, stack) {
     std_err.writeln('''An error occurred while linting 
   Please report it at: github.com/dart-lang/linter/issues
@@ -63,6 +67,9 @@ $stack''');
 const processFileFailedExitCode = 65;
 
 const unableToProcessExitCode = 64;
+
+String getRoot(List<String> paths) =>
+    paths.length == 1 && new Directory(paths[0]).existsSync() ? paths[0] : null;
 
 isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;

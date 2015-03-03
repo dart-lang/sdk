@@ -4,6 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 
+import 'formatter_test.dart' as formatter_test;
 import 'io_test.dart' as io_test;
 import 'linter_test.dart' as linter_test;
 import 'pub_test.dart' as pub_test;
@@ -17,4 +18,5 @@ main() {
   linter_test.main();
   pub_test.main();
   io_test.main();
+  formatter_test.main();
 }
