@@ -92,6 +92,9 @@ class AnalysisDriver {
   }
 }
 
+Source createSource(Uri sourceUri) =>
+    new FileBasedSource.con1(new JavaFile(sourceUri.toFilePath()));
+
 class DriverOptions {
 
   /// The maximum number of sources for which AST structures should be kept

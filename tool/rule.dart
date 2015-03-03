@@ -32,7 +32,8 @@ void generateTest(String libName, {String outDir}) {
   }
 }
 
-/// Generates rule and rule test stub files
+/// Generates rule and rule test stub files (int src/rules and test/rules
+/// respectively), as well as the rule index (rules.dart).
 void main([args]) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
@@ -128,3 +129,8 @@ String _generateTest(String libName, String className) => '''
 // BSD-style license that can be found in the LICENSE file.
 
 ''';
+
+
+void addToRuleIndex(String libName, String className) {
+  //TODO: find right place to insert into imports and ruleMap
+}
