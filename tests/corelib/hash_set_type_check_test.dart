@@ -1,8 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// VMOptions=--enable_type_checks
 
 // Tests of hash set type checking.
 
@@ -24,7 +22,20 @@ void testIdentitySet(Set create()) {
 }
 
 
+bool get inCheckedMode {
+  try {
+    var i = 1;
+    String j = i;
+  } catch (_) {
+    return true;
+  }
+  return false;
+}
+
+
 void main() {
+  if (!inCheckedMode) return;
+
   testSet(() => new Set<String>());
   testSet(() => new HashSet<String>());
   testSet(() => new LinkedHashSet<String>());
