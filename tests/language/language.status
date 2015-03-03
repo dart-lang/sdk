@@ -42,13 +42,11 @@ cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
 [ $compiler == none || ($compiler == dart2dart && $builder_tag != new_backend) ]
-async_finally_rethrow_test: RuntimeError # Issue 22595.
 async_throw_in_catch_test: Crash, RuntimeError # Issue 21404 or it could be a test error
 asyncstar_throw_in_catch_test: RuntimeError # Issue 21404
 sync_generator3_test/test2: Fail # Issue 22300
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
-async_finally_rethrow_test: RuntimeError # Issue 22595.
 async_throw_in_catch_test: Timeout, Fail # Issue 21404 or it could be a test error
 asyncstar_throw_in_catch_test: RuntimeError # Issue 21404
 async_await_syntax_test/a03a: RuntimeError # Issue 21404
