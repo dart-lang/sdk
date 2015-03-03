@@ -160,12 +160,12 @@ void main(List<String> args) {
   for (var combination in combinations) {
     for (var mode in combination['modes']) {
       if (!modes.contains(mode)) {
-        break;
+        continue;
       }
 
       for (var arch in combination['archs']) {
         if (!arches.contains(arch)) {
-          break;
+          continue;
         }
 
         for (var runtime in combination['runtimes']) {
