@@ -744,7 +744,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void _recordTopLevelElementDefinition(Element element) {
     Location location = createLocation(element);
     recordRelationship(_libraryElement, IndexConstants.DEFINES, location);
-    _store.recordTopDeclaration(element);
+    _store.recordTopLevelDeclaration(element);
   }
 
   /**

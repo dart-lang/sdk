@@ -792,7 +792,7 @@ class SplitIndexStore implements IndexStore {
     _currentNode.recordRelationship(element, relationship, location);
   }
 
-  void recordTopDeclaration(Element element) {
+  void recordTopLevelDeclaration(Element element) {
     // in current context
     Map<int, List<_TopElementData>> nodeDeclarations =
         _topDeclarations[_currentContextId];

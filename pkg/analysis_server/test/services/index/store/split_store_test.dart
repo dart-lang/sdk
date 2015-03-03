@@ -884,17 +884,17 @@ class _SplitIndexStoreTest {
   void test_removeSources_unit() {
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordTopDeclaration(elementA);
+      store.recordTopLevelDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordTopDeclaration(elementB);
+      store.recordTopLevelDeclaration(elementB);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementC);
-      store.recordTopDeclaration(elementC);
+      store.recordTopLevelDeclaration(elementC);
       store.doneIndex();
     }
     // A, B, C elements
@@ -916,12 +916,12 @@ class _SplitIndexStoreTest {
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordTopDeclaration(elementA);
+      store.recordTopLevelDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordTopDeclaration(elementB);
+      store.recordTopLevelDeclaration(elementB);
       store.doneIndex();
     }
     // elementA, elementB
@@ -945,12 +945,12 @@ class _SplitIndexStoreTest {
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordTopDeclaration(elementA);
+      store.recordTopLevelDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordTopDeclaration(elementB);
+      store.recordTopLevelDeclaration(elementB);
       store.doneIndex();
     }
     // elementA, elementB
@@ -971,12 +971,12 @@ class _SplitIndexStoreTest {
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordTopDeclaration(elementA);
+      store.recordTopLevelDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordTopDeclaration(elementB);
+      store.recordTopLevelDeclaration(elementB);
       store.doneIndex();
     }
     // elementA, elementB
@@ -997,12 +997,12 @@ class _SplitIndexStoreTest {
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordTopDeclaration(elementA);
+      store.recordTopLevelDeclaration(elementA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordTopDeclaration(elementB);
+      store.recordTopLevelDeclaration(elementB);
       store.doneIndex();
     }
     // elementA, elementB

@@ -116,7 +116,7 @@ abstract class IndexStore {
   /**
    * Records the declaration of the given top-level [element].
    */
-  void recordTopDeclaration(Element element);
+  void recordTopLevelDeclaration(Element element);
 
   /**
    * Removes from the index all of the information associated with [context].

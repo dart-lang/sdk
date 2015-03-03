@@ -70,7 +70,7 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
       recordedRelations
           .add(new RecordedRelation(element, relationship, location));
     });
-    when(store.recordTopDeclaration(anyObject)).thenInvoke((Element element) {
+    when(store.recordTopLevelDeclaration(anyObject)).thenInvoke((Element element) {
       recordedTopElements.add(element);
     });
   }

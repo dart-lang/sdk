@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/services/correction/source_range.dart';
 
 /**
  * A [SearchEngine] implementation.
@@ -102,13 +103,10 @@ class SearchEngineImpl implements SearchEngine {
     List<Element> elements =
         _index.getTopLevelDeclarations((String name) => regExp.hasMatch(name));
     List<SearchMatch> matches = <SearchMatch>[];
-    for (var element in elements) {
-      SourceRange range =
-          new SourceRange(element.nameOffset, element.name.length);
-      matches.add(
-          new SearchMatch(MatchKind.DECLARATION, element, range, true, false));
+    for (Element element in elements) {
+      matches.add(new SearchMatch(MatchKind.DECLARATION, element,
+          rangeElementName(element), true, false));
     }
-    // TODO(scheglov) it does not have to be a Future
     return new Future.value(matches);
   }
 
