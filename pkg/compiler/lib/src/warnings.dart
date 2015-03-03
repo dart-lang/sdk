@@ -2399,6 +2399,12 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 ****************************************************************
 ''');
 
+
+  static const MessageKind MIRRORS_LIBRARY_NEW_EMITTER =
+      const MessageKind(
+          "dart:mirrors library is not supported when using the new emitter "
+            "(DART_VM_OPTIONS='-Ddart2js.use.new.emitter=true')");
+
   static const MessageKind CALL_NOT_SUPPORTED_ON_NATIVE_CLASS =
       const MessageKind(
           "Non-supported 'call' member on a native class, or a "

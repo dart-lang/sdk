@@ -1322,10 +1322,16 @@ abstract class Compiler implements DiagnosticListener {
           }
           return true;
         });
-        reportWarning(NO_LOCATION_SPANNABLE,
-            MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
-            {'importChain': importChains.join(
-                 MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
+
+        if (const bool.fromEnvironment("dart2js.use.new.emitter")) {
+          reportError(NO_LOCATION_SPANNABLE,
+                      MessageKind.MIRRORS_LIBRARY_NEW_EMITTER);
+        } else {
+          reportWarning(NO_LOCATION_SPANNABLE,
+             MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+              {'importChain': importChains.join(
+                   MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
+        }
       }
 
       functionClass.ensureResolved(this);
