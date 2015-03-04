@@ -132,6 +132,7 @@ mirrors/invocation_fuzz_test/none: RuntimeError # Issue 15566
 mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
 [ $compiler == dart2js && $runtime == jsshell ]
+async/timer_regress22626_test: RuntimeError # Non-zero timers not supported; Issue 7728.
 async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/slow_consumer2_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/slow_consumer3_test: RuntimeError # Timer interface not supported; Issue 7728.
