@@ -194,9 +194,13 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       return irBuilder.makeConstructorDefinition(const <ConstantExpression>[],
           const <ir.Initializer>[]);
     } else if (element.isGenerativeConstructor) {
-      initializers = buildConstructorInitializers(node, element);
-      visit(node.body);
-      return irBuilder.makeConstructorDefinition(defaults, initializers);
+      if (element.isExternal) {
+        return irBuilder.makeAbstractConstructorDefinition(defaults);
+      } else {
+        initializers = buildConstructorInitializers(node, element);
+        visit(node.body);
+        return irBuilder.makeConstructorDefinition(defaults, initializers);
+      }
     } else {
       visit(node.body);
       return irBuilder.makeFunctionDefinition(defaults);
@@ -211,7 +215,7 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     void tryAddInitializingFormal(ParameterElement parameterElement) {
       if (parameterElement.isInitializingFormal) {
         InitializingFormalElement initializingFormal = parameterElement;
-        withBuilder(irBuilder.makeDelimitedBuilder(), () {
+        withBuilder(irBuilder.makeInitializerBuilder(), () {
           ir.Primitive value = irBuilder.buildLocalGet(parameterElement);
           result.add(irBuilder.makeFieldInitializer(
               initializingFormal.fieldElement,
@@ -229,7 +233,7 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       if (initializer is ast.SendSet) {
         // Field initializer.
         FieldElement field = elements[initializer];
-        withBuilder(irBuilder.makeDelimitedBuilder(), () {
+        withBuilder(irBuilder.makeInitializerBuilder(), () {
           ir.Primitive value = visit(initializer.arguments.head);
           ir.RunnableBody body = irBuilder.makeRunnableBody(value);
           result.add(irBuilder.makeFieldInitializer(field, body));
@@ -243,7 +247,7 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         Selector selector = elements.getSelector(initializer);
         List<ir.RunnableBody> arguments =
             initializer.arguments.mapToList((ast.Node argument) {
-          return withBuilder(irBuilder.makeDelimitedBuilder(), () {
+          return withBuilder(irBuilder.makeInitializerBuilder(), () {
             ir.Primitive value = visit(argument);
             return irBuilder.makeRunnableBody(value);
           });

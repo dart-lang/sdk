@@ -368,6 +368,14 @@ abstract class IrBuilder {
         ..environment = new Environment.from(environment);
   }
 
+  /// Construct a builder for making constructor field initializers.
+  IrBuilder makeInitializerBuilder() {
+    return _makeInstance()
+        ..state = new IrBuilderDelimitedState(state.constantSystem,
+                                              state.currentElement)
+        ..environment = new Environment.from(environment);
+  }
+
   /// Construct a visitor for a recursive continuation.
   ///
   /// The recursive continuation builder has fresh parameters (i.e. SSA phis)
@@ -666,18 +674,23 @@ abstract class IrBuilder {
     }
   }
 
+  /// Create a constructor definition without a body, for representing
+  /// external constructors declarations.
+  ir.ConstructorDefinition makeAbstractConstructorDefinition(
+      List<ConstantExpression> defaults) {
+    FunctionElement element = state.currentElement;
+    assert(invariant(element, _root == null,
+        message: "Non-empty body for external constructor $element: $_root"));
+    assert(invariant(element, state.localConstants.isEmpty,
+        message: "Local constants for external constructor $element: "
+                 "${state.localConstants}"));
+    return new ir.ConstructorDefinition.abstract(
+        element, state.functionParameters, defaults);
+  }
+
   ir.ConstructorDefinition makeConstructorDefinition(
       List<ConstantExpression> defaults, List<ir.Initializer> initializers) {
     FunctionElement element = state.currentElement;
-    if (element.isExternal) {
-      assert(invariant(element, _root == null,
-          message: "Non-empty body for external constructor $element: $_root"));
-      assert(invariant(element, state.localConstants.isEmpty,
-          message: "Local constants for external constructor $element: "
-                   "${state.localConstants}"));
-      return new ir.ConstructorDefinition.abstract(
-                element, state.functionParameters, defaults);
-    }
     ir.RunnableBody body = makeRunnableBody();
     return new ir.ConstructorDefinition(
         element, state.functionParameters, body, initializers,
