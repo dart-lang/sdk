@@ -10,6 +10,19 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+String getLineContents(int lineNumber, AnalysisError error) {
+  var path = error.source.fullName;
+  var file = new File(path);
+  if (file.existsSync()) {
+    var lines = file.readAsLinesSync();
+    var lineIndex = lineNumber - 1;
+    if (lines.length > lineIndex) {
+      return lines[lineIndex];
+    }
+  }
+  return null;
+}
+
 String pluralize(String word, int count) => count == 1 ? '$word' : '${word}s';
 
 String shorten(String fileRoot, String fullName) {
@@ -19,7 +32,36 @@ String shorten(String fileRoot, String fullName) {
   return fullName.substring(fileRoot.length);
 }
 
-class ReportFormatter {
+class DetailedReporter extends SimpleFormatter {
+  DetailedReporter(Iterable<AnalysisErrorInfo> errors, IOSink out,
+      {int fileCount, String fileRoot})
+      : super(errors, out, fileCount: fileCount, fileRoot: fileRoot);
+
+  @override
+  writeLint(AnalysisError error, LineInfo lineInfo) {
+    super.writeLint(error, lineInfo);
+
+    var location = lineInfo.getLocation(error.offset);
+    var contents = getLineContents(location.lineNumber, error);
+    out.writeln(contents);
+
+    var arrows = '^' * error.length;
+    var spaces = location.columnNumber - 1;
+    var result = '${" " * spaces}$arrows';
+    out.writeln(result);
+  }
+}
+
+abstract class ReportFormatter {
+  factory ReportFormatter(List<AnalysisErrorInfo> errors, IOSink out,
+      {int fileCount, String fileRoot}) => new DetailedReporter(errors, out,
+      fileCount: fileCount, fileRoot: fileRoot);
+
+  write();
+}
+
+/// Simple formatter suitable for subclassing.
+class SimpleFormatter implements ReportFormatter {
   final IOSink out;
   final Iterable<AnalysisErrorInfo> errors;
 
@@ -27,14 +69,15 @@ class ReportFormatter {
   final int fileCount;
   final String fileRoot;
 
-  ReportFormatter(this.errors, this.out, {this.fileCount, this.fileRoot});
+  SimpleFormatter(this.errors, this.out, {this.fileCount, this.fileRoot});
 
+  @override
   write() {
     writeLints();
     writeSummary();
   }
 
-  writeError(AnalysisError error, LineInfo lineInfo) {
+  writeLint(AnalysisError error, LineInfo lineInfo) {
     LineInfo_Location location = lineInfo.getLocation(error.offset);
 
     // [lint] DO name types... (test/linter_test.dart, line 417, col 1)
@@ -47,7 +90,7 @@ class ReportFormatter {
   writeLints() {
     errors.forEach((info) => info.errors.forEach((e) {
       ++errorCount;
-      writeError(e, info.lineInfo);
+      writeLint(e, info.lineInfo);
     }));
     out.writeln();
   }

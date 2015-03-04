@@ -51,7 +51,7 @@ defineTests() {
       when(info.errors).thenReturn([error]);
       var out = new CollectingSink();
 
-      var reporter = new ReportFormatter([info], out, fileCount: 1);
+      var reporter = new SimpleFormatter([info], out, fileCount: 1);
       reporter.write();
 
       test('count', () {
@@ -62,7 +62,7 @@ defineTests() {
         expect(out.buffer.toString(), equals(
             '''[test] MSG (/foo/bar/baz.dart, line 3, col 3)
 
-1 file analyzed, 1 issues found.
+1 file analyzed, 1 issue found.
 '''));
       });
     });
