@@ -19,8 +19,7 @@ class Annotation {
   String title;
 
   void applyStyleTo(element) {
-    element.style.color = "blue";
-    element.style.textDecoration = "underline";
+    element.classes.add("currentCol");
     element.title = title;
   }
 }
@@ -243,7 +242,7 @@ class ScriptInsetElement extends ObservatoryElement {
 
     if (line != null) {
       if (line.line == currentLine) {
-        e.classes.add("sourceItemCurrent");
+        e.classes.add("currentLine");
       }
 
       e.id = makeLineId(line.line);
