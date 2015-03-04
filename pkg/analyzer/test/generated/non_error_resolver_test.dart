@@ -3758,6 +3758,15 @@ class A {
     verify([source]);
   }
 
+  void test_parameterDefaultDoesNotReferToParameterName() {
+    // The final "f" should refer to the toplevel function "f", not to the
+    // parameter called "f".  See dartbug.com/13179.
+    Source source = addSource('void f([void f([x]) = f]) {}');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_parameterScope_local() {
     // Parameter names shouldn't conflict with the name of the function they
     // are enclosed in.

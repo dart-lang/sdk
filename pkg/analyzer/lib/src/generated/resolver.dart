@@ -12189,8 +12189,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   Object visitFormalParameterList(FormalParameterList node) {
     super.visitFormalParameterList(node);
     // We finished resolving function signature, now include formal parameters
-    // scope.
-    if (_nameScope is FunctionScope) {
+    // scope.  Note: we must not do this if the parent is a
+    // FunctionTypedFormalParameter, because in that case we aren't finished
+    // resolving the full function signature, just a part of it.
+    if (_nameScope is FunctionScope &&
+        node.parent is! FunctionTypedFormalParameter) {
       (_nameScope as FunctionScope).defineParameters();
     }
     if (_nameScope is FunctionTypeScope) {
