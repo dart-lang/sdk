@@ -289,7 +289,7 @@ var _interceptors;
       }
       remove(element) {
         this.checkGrowable('remove');
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
           if (dart.equals(this.get(i), element)) {
             this.splice(i, 1);
             return true;
@@ -319,7 +319,7 @@ var _interceptors;
       }
       forEach(f) {
         let length = this.length;
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); dart.notNull(i)++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           f(dart.as(this[i], E));
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -333,7 +333,7 @@ var _interceptors;
         if (separator === void 0)
           separator = "";
         let list = new core.List(this.length);
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
           list.set(i, `${this.get(i)}`);
         }
         return list.join(separator);
@@ -471,7 +471,7 @@ var _interceptors;
         return _internal.IterableMixinWorkaround.lastIndexOfList(this, element, start);
       }
       contains(other) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
           if (dart.equals(this.get(i), other))
             return true;
         }
@@ -986,7 +986,7 @@ var _interceptors;
       }
       if (dart.notNull(start) + dart.notNull(this.length) > dart.notNull(string.length))
         return null;
-      for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
         if (string.codeUnitAt(dart.notNull(start) + dart.notNull(i)) !== this.codeUnitAt(i)) {
           return null;
         }
@@ -1145,7 +1145,7 @@ var _interceptors;
         if (codeUnit !== SPACE && codeUnit !== CARRIAGE_RETURN && !dart.notNull(_isWhitespace(codeUnit))) {
           break;
         }
-        dart.notNull(index)++;
+        index = dart.notNull(index) + 1;
       }
       return index;
     }
@@ -1157,7 +1157,7 @@ var _interceptors;
         if (codeUnit !== SPACE && codeUnit !== CARRIAGE_RETURN && !dart.notNull(_isWhitespace(codeUnit))) {
           break;
         }
-        dart.notNull(index)--;
+        index = dart.notNull(index) - 1;
       }
       return index;
     }
@@ -1286,7 +1286,7 @@ var _interceptors;
         let match = _js_helper.firstMatchAfter(re, this, start);
         return match === null ? -1 : match.start;
       }
-      for (let i = start; dart.notNull(i) <= dart.notNull(this.length); dart.notNull(i)++) {
+      for (let i = start; dart.notNull(i) <= dart.notNull(this.length); i = dart.notNull(i) + 1) {
         if (pattern.matchAsPrefix(this, i) !== null)
           return i;
       }
@@ -1310,7 +1310,7 @@ var _interceptors;
         }
         return dart.as(_js_helper.stringLastIndexOfUnchecked(this, other, start), core.int);
       }
-      for (let i = start; dart.notNull(i) >= 0; dart.notNull(i)--) {
+      for (let i = start; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
         if (pattern.matchAsPrefix(this, i) !== null)
           return i;
       }
@@ -1341,7 +1341,7 @@ var _interceptors;
     }
     get hashCode() {
       let hash = 0;
-      for (let i = 0; dart.notNull(i) < dart.notNull(this.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
         hash = 536870911 & dart.notNull(hash) + this.charCodeAt(i);
         hash = 536870911 & dart.notNull(hash) + ((524287 & dart.notNull(hash)) << 10);
         hash = hash ^ hash >> 6;

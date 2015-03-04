@@ -10,11 +10,11 @@ var _isolate_helper;
   let _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
   // Function enterJsAsync: () → dynamic
   function enterJsAsync() {
-    dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount])++;
+    exports._globalState.topEventLoop[_activeJsAsyncCount] = dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) + 1;
   }
   // Function leaveJsAsync: () → dynamic
   function leaveJsAsync() {
-    dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount])--;
+    exports._globalState.topEventLoop[_activeJsAsyncCount] = dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) - 1;
     dart.assert(dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) >= 0);
   }
   // Function isWorker: () → bool
@@ -132,7 +132,7 @@ var _isolate_helper;
   let _addRegistration = Symbol('_addRegistration');
   class _IsolateContext extends dart.Object {
     _IsolateContext() {
-      this.id = dart.notNull(exports._globalState.nextIsolateId)++;
+      this.id = (($tmp) => exports._globalState.nextIsolateId = dart.notNull($tmp) + 1, $tmp).bind(this)(exports._globalState.nextIsolateId);
       this.ports = new core.Map();
       this.weakPorts = new core.Set();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
@@ -708,7 +708,7 @@ var _isolate_helper;
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(_processWorkerMessage), worker);
       worker.onmessage = processWorkerMessageTrampoline;
-      let workerId = dart.notNull(exports._globalState.nextManagerId)++;
+      let workerId = (($tmp) => exports._globalState.nextManagerId = dart.notNull($tmp) + 1, $tmp).bind(this)(exports._globalState.nextManagerId);
       workerIds.set(worker, workerId);
       exports._globalState.managers.set(workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
@@ -810,13 +810,13 @@ var _isolate_helper;
   class RawReceivePortImpl extends dart.Object {
     RawReceivePortImpl($_handler) {
       this[_handler] = $_handler;
-      this[_id] = dart.notNull(_nextFreeId)++;
+      this[_id] = (($tmp) => _nextFreeId = dart.notNull($tmp) + 1, $tmp)(_nextFreeId);
       this[_isClosed] = false;
       exports._globalState.currentContext.register(this[_id], this);
     }
     RawReceivePortImpl$weak($_handler) {
       this[_handler] = $_handler;
-      this[_id] = dart.notNull(_nextFreeId)++;
+      this[_id] = (($tmp) => _nextFreeId = dart.notNull($tmp) + 1, $tmp)(_nextFreeId);
       this[_isClosed] = false;
       exports._globalState.currentContext.registerWeak(this[_id], this);
     }
@@ -1074,13 +1074,13 @@ var _isolate_helper;
     serializeArray(x) {
       let serialized = new List.from([]);
       serialized.length = x.length;
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
         serialized.set(i, this.serialize(x.get(i)));
       }
       return serialized;
     }
     serializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
         x.set(i, this.serialize(x.get(i)));
       }
       return x;
@@ -1096,7 +1096,7 @@ var _isolate_helper;
       let keys = dart.as(Object.keys(x), core.List);
       let values = new List.from([]);
       values.length = keys.length;
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
         values.set(i, this.serialize(x[keys.get(i)]));
       }
       return new List.from(['js-object', keys, values]);
@@ -1199,7 +1199,7 @@ var _isolate_helper;
       return result;
     }
     deserializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
         x.set(i, this.deserialize(x.get(i)));
       }
       return x;
@@ -1235,7 +1235,7 @@ var _isolate_helper;
       let result = dart.map();
       this.deserializedObjects.add(result);
       keys = keys.map(this.deserialize).toList();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
         result.set(keys.get(i), this.deserialize(values.get(i)));
       }
       return result;
@@ -1272,7 +1272,7 @@ var _isolate_helper;
       let values = dart.as(dart.dindex(x, 2), core.List);
       let o = {};
       this.deserializedObjects.add(o);
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
         o[keys.get(i)] = this.deserialize(values.get(i));
       }
       return o;

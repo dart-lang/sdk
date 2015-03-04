@@ -38,7 +38,7 @@ var isolate;
         throw new core.UnimplementedError("packageRoot");
       try {
         if (dart.is(args, core.List$(core.String))) {
-          for (let i = 0; dart.notNull(i) < dart.notNull(args.length); dart.notNull(i)++) {
+          for (let i = 0; dart.notNull(i) < dart.notNull(args.length); i = dart.notNull(i) + 1) {
             if (!(typeof args.get(i) == string)) {
               throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
             }

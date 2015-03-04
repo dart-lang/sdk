@@ -130,7 +130,7 @@ var _native_typed_data;
     }
     NativeFloat32x4List$_slowFromList(list) {
       this[_storage] = new NativeFloat32List(dart.notNull(list.length) * 4);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
         let e = list.get(i);
         this[_storage].set(dart.notNull(i) * 4 + 0, e.x);
         this[_storage].set(dart.notNull(i) * 4 + 1, e.y);
@@ -221,7 +221,7 @@ var _native_typed_data;
     }
     NativeInt32x4List$_slowFromList(list) {
       this[_storage] = new NativeInt32List(dart.notNull(list.length) * 4);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
         let e = list.get(i);
         this[_storage].set(dart.notNull(i) * 4 + 0, e.x);
         this[_storage].set(dart.notNull(i) * 4 + 1, e.y);
@@ -312,7 +312,7 @@ var _native_typed_data;
     }
     NativeFloat64x2List$_slowFromList(list) {
       this[_storage] = new NativeFloat64List(dart.notNull(list.length) * 2);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
         let e = list.get(i);
         this[_storage].set(dart.notNull(i) * 2 + 0, e.x);
         this[_storage].set(dart.notNull(i) * 2 + 1, e.y);
@@ -446,7 +446,7 @@ var _native_typed_data;
     if (dart.is(list, _interceptors.JSIndexable))
       return list;
     let result = new core.List(list.length);
-    for (let i = 0; dart.notNull(i) < dart.notNull(list.length); dart.notNull(i)++) {
+    for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
       result.set(i, list.get(i));
     }
     return result;

@@ -1065,6 +1065,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
 
   bool _isNonNullableExpression(Expression expr) {
+    // If the type is non-nullable, no further checking needed.
+    if (rules.isNonNullableType(rules.getStaticType(expr))) return true;
+
     // TODO(vsm): Revisit whether we really need this when we get
     // better non-nullability in the type system.
 
@@ -1112,8 +1115,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   JS.Expression notNull(Expression expr) {
-    var type = rules.getStaticType(expr);
-    if (rules.isNonNullableType(type) || _isNonNullableExpression(expr)) {
+    if (_isNonNullableExpression(expr)) {
       return _visit(expr);
     } else {
       return js.call('dart.notNull(#)', _visit(expr));
@@ -1196,11 +1198,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   JS.Expression _emitPostfixIncrement(Expression expr, Token op) {
-    var tmp = _createTemporary('\$tmp', rules.getStaticType(expr));
+    var type = rules.getStaticType(expr);
+    assert(type != null);
+    var tmp = _createTemporary('\$tmp', type);
 
     // Increment and write
     var one = AstBuilder.integerLiteral(1);
+    one.staticType = rules.provider.intType;
     var increment = AstBuilder.binaryExpression(tmp, op.lexeme[0], one);
+    increment.staticType = type;
     var write = _emitAssignment(expr, increment);
 
     var bindThis = _maybeBindThis(expr);
@@ -1217,14 +1223,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var op = node.operator;
     var expr = node.operand;
 
+    if (node.parent is Statement) {
+      // Prefix code is simpler.  If the expr result isn't used, fall to that.
+      return _emitPrefixExpression(op, expr);
+    }
+
     var dispatchType = rules.getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
-      // TODO(vsm): When do Dart ops not map to JS?
-      return js.call('#$op', notNull(expr));
-    } else {
-      assert(op.lexeme == '++' || op.lexeme == '--');
-      return _emitPostfixIncrement(expr, op);
+      if (_isNonNullableExpression(expr)) {
+        return js.call('#$op', _visit(expr));
+      }
     }
+
+    assert(op.lexeme == '++' || op.lexeme == '--');
+    return _emitPostfixIncrement(expr, op);
   }
 
   JS.Expression _emitPrefixIncrement(Token op, Expression expr) {
@@ -1235,15 +1247,23 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Expression visitPrefixExpression(PrefixExpression node) {
-    var op = node.operator;
-    var expr = node.operand;
+    return _emitPrefixExpression(node.operator, node.operand);
+  }
 
+  JS.Expression _emitPrefixExpression(Token op, Expression expr) {
     var dispatchType = rules.getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
-      // TODO(vsm): When do Dart ops not map to JS?
-      return js.call('$op#', notNull(expr));
+      if (_isNonNullableExpression(expr)) {
+        return js.call('$op#', _visit(expr));
+      } else if (op.lexeme == '++' || op.lexeme == '--') {
+        // We need a null check, so the increment must be expanded out.
+        var mathop = op.lexeme[0];
+        return js.call('# = # $mathop 1', [_visit(expr), notNull(expr)]);
+      } else {
+        return js.call('$op#', notNull(expr));
+      }
     } else {
-      // Increment or decrement requires expansion
+      // Increment or decrement requires expansion.
       if (op.lexeme == '++' || op.lexeme == '--') {
         return _emitPrefixIncrement(op, expr);
       }

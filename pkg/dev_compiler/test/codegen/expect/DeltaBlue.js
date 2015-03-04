@@ -275,7 +275,7 @@ var DeltaBlue;
       let unsatisfied = this.removePropagateFrom(out);
       let strength = REQUIRED;
       do {
-        for (let i = 0; dart.notNull(i) < dart.notNull(unsatisfied.length); dart.notNull(i)++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(unsatisfied.length); i = dart.notNull(i) + 1) {
           let u = unsatisfied.get(i);
           if (dart.equals(u.strength, strength))
             this.incrementalAdd(u);
@@ -284,7 +284,7 @@ var DeltaBlue;
       } while (!dart.equals(strength, WEAKEST));
     }
     newMark() {
-      return ++dart.notNull(this.currentMark);
+      return this.currentMark = dart.notNull(this.currentMark) + 1;
     }
     makePlan(sources) {
       let mark = this.newMark();
@@ -302,7 +302,7 @@ var DeltaBlue;
     }
     extractPlanFromConstraints(constraints) {
       let sources = new List.from([]);
-      for (let i = 0; dart.notNull(i) < dart.notNull(constraints.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(constraints.length); i = dart.notNull(i) + 1) {
         let c = constraints.get(i);
         if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied()))
           sources.add(c);
@@ -330,13 +330,13 @@ var DeltaBlue;
       let todo = new List.from([out]);
       while (dart.notNull(todo.length) > 0) {
         let v = todo.removeLast();
-        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); dart.notNull(i)++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
           let c = v.constraints.get(i);
           if (!dart.notNull(c.isSatisfied()))
             unsatisfied.add(c);
         }
         let determining = v.determinedBy;
-        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); dart.notNull(i)++) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
           let next = v.constraints.get(i);
           if (dart.notNull(!dart.equals(next, determining)) && dart.notNull(next.isSatisfied())) {
             next.recalculate();
@@ -348,7 +348,7 @@ var DeltaBlue;
     }
     addConstraintsConsumingTo(v, coll) {
       let determining = v.determinedBy;
-      for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
         let c = v.constraints.get(i);
         if (dart.notNull(!dart.equals(c, determining)) && dart.notNull(c.isSatisfied()))
           coll.add(c);
@@ -366,7 +366,7 @@ var DeltaBlue;
       return this.list.length;
     }
     execute() {
-      for (let i = 0; dart.notNull(i) < dart.notNull(this.list.length); dart.notNull(i)++) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(this.list.length); i = dart.notNull(i) + 1) {
         this.list.get(i).execute();
       }
     }
@@ -375,7 +375,7 @@ var DeltaBlue;
   function chainTest(n) {
     exports.planner = new Planner();
     let prev = null, first = null, last = null;
-    for (let i = 0; dart.notNull(i) <= dart.notNull(n); dart.notNull(i)++) {
+    for (let i = 0; dart.notNull(i) <= dart.notNull(n); i = dart.notNull(i) + 1) {
       let v = new Variable("v", 0);
       if (prev !== null)
         new EqualityConstraint(prev, v, REQUIRED);
@@ -388,7 +388,7 @@ var DeltaBlue;
     new StayConstraint(last, STRONG_DEFAULT);
     let edit = new EditConstraint(first, PREFERRED);
     let plan = exports.planner.extractPlanFromConstraints(new List.from([edit]));
-    for (let i = 0; dart.notNull(i) < 100; dart.notNull(i)++) {
+    for (let i = 0; dart.notNull(i) < 100; i = dart.notNull(i) + 1) {
       first.value = i;
       plan.execute();
       if (last.value !== i) {
@@ -404,7 +404,7 @@ var DeltaBlue;
     let offset = new Variable("offset", 1000);
     let src = null, dst = null;
     let dests = new List.from([]);
-    for (let i = 0; dart.notNull(i) < dart.notNull(n); dart.notNull(i)++) {
+    for (let i = 0; dart.notNull(i) < dart.notNull(n); i = dart.notNull(i) + 1) {
       src = new Variable("src", i);
       dst = new Variable("dst", i);
       dests.add(dst);
@@ -418,12 +418,12 @@ var DeltaBlue;
     if (src.value !== 5)
       core.print("Projection 2 failed");
     change(scale, 5);
-    for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; dart.notNull(i)++) {
+    for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
       if (dests.get(i).value !== dart.notNull(i) * 5 + 1000)
         core.print("Projection 3 failed");
     }
     change(offset, 2000);
-    for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; dart.notNull(i)++) {
+    for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
       if (dests.get(i).value !== dart.notNull(i) * 5 + 2000)
         core.print("Projection 4 failed");
     }
@@ -432,7 +432,7 @@ var DeltaBlue;
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
     let plan = exports.planner.extractPlanFromConstraints(new List.from([edit]));
-    for (let i = 0; dart.notNull(i) < 10; dart.notNull(i)++) {
+    for (let i = 0; dart.notNull(i) < 10; i = dart.notNull(i) + 1) {
       v.value = newValue;
       plan.execute();
     }

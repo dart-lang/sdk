@@ -493,14 +493,14 @@ var async;
           resumeSignal = null;
         if (resumeSignal !== null)
           resumeSignal.then(this[_resume]);
-        dart.notNull(this[_pauseCount])++;
+        this[_pauseCount] = dart.notNull(this[_pauseCount]) + 1;
       }
       resume() {
         this[_resume](null);
       }
       [_resume](_) {
         if (dart.notNull(this[_pauseCount]) > 0)
-          dart.notNull(this[_pauseCount])--;
+          this[_pauseCount] = dart.notNull(this[_pauseCount]) - 1;
       }
       cancel() {
         return new _Future.immediate(null);
@@ -618,7 +618,7 @@ var async;
         let stackTrace = null;
         // Function handleError: (dynamic, dynamic) → void
         function handleError(theError, theStackTrace) {
-          dart.notNull(remaining)--;
+          remaining = dart.notNull(remaining) - 1;
           if (values !== null) {
             if (cleanUp !== null) {
               for (let value of values) {
@@ -641,9 +641,9 @@ var async;
           }
         }
         for (let future of futures) {
-          let pos = dart.notNull(remaining)++;
+          let pos = (($tmp) => remaining = dart.notNull($tmp) + 1, $tmp)(remaining);
           future.then(dart.as(((value) => {
-            dart.notNull(remaining)--;
+            remaining = dart.notNull(remaining) - 1;
             if (values !== null) {
               values.set(pos, value);
               if (remaining === 0) {
@@ -1495,7 +1495,7 @@ var async;
         // Function sendEvent: () → void
         function sendEvent() {
           watch.reset();
-          let data = computation(dart.notNull(computationCount)++);
+          let data = computation((($tmp) => computationCount = dart.notNull($tmp) + 1, $tmp)(computationCount));
           controller.add(data);
         }
         // Function startPeriodicTimer: () → void
@@ -1765,7 +1765,7 @@ var async;
         let future = new _Future();
         let count = 0;
         this.listen((_) => {
-          dart.notNull(count)++;
+          count = dart.notNull(count) + 1;
         }, {onError: future[_completeError], onDone: (() => {
             future._complete(count);
           }).bind(this), cancelOnError: true});
@@ -3822,7 +3822,7 @@ var async;
       }
       [_handleData](inputEvent, sink) {
         if (dart.notNull(this[_remaining]) > 0) {
-          dart.notNull(this[_remaining])--;
+          this[_remaining] = dart.notNull(this[_remaining]) - 1;
           return;
         }
         sink._add(inputEvent);
