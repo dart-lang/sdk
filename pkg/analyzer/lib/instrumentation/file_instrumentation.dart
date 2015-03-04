@@ -16,7 +16,7 @@ class FileInstrumentationServer implements InstrumentationServer {
 
   FileInstrumentationServer(String path) {
     File file = new File(path);
-    _sink = file.openWrite(mode: FileMode.APPEND);
+    _sink = file.openWrite();
   }
 
   @override
