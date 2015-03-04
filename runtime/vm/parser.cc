@@ -9094,6 +9094,15 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
 
 AstNode* Parser::ParseTryStatement(String* label_name) {
   TRACE_PARSER("ParseTryStatement");
+
+  const intptr_t try_pos = TokenPos();
+  SourceLabel* try_label = NULL;
+  if (label_name != NULL) {
+    try_label = SourceLabel::New(try_pos, label_name, SourceLabel::kStatement);
+    OpenBlock();
+    current_block_->scope->AddLabel(try_label);
+  }
+
   const bool is_async = innermost_function().IsAsyncClosure() ||
                         innermost_function().IsAsyncFunction() ||
                         innermost_function().IsSyncGenClosure() ||
@@ -9113,15 +9122,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                           &saved_exception_var,
                           &saved_stack_trace_var);
 
-  const intptr_t try_pos = TokenPos();
   ConsumeToken();  // Consume the 'try'.
-
-  SourceLabel* try_label = NULL;
-  if (label_name != NULL) {
-    try_label = SourceLabel::New(try_pos, label_name, SourceLabel::kStatement);
-    OpenBlock();
-    current_block_->scope->AddLabel(try_label);
-  }
 
   // Now parse the 'try' block.
   OpenBlock();
