@@ -14,12 +14,15 @@ import 'package:analyzer/src/generated/ast.dart'
         ExportDirective,
         PartDirective,
         CompilationUnit,
-        Identifier;
+        Identifier,
+        AnnotatedNode,
+        AstNode;
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/analyzer.dart' show parseDirectives;
+import 'package:source_span/source_span.dart';
 
 bool isDartPrivateLibrary(LibraryElement library) {
   var uri = library.source.uri;
@@ -231,4 +234,25 @@ class OutWriter {
   void close() {
     new File(_path).writeAsStringSync('$_sb');
   }
+}
+
+SourceLocation locationForOffset(CompilationUnit unit, Uri uri, int offset) {
+  var lineInfo = unit.lineInfo.getLocation(offset);
+  return new SourceLocation(offset,
+      sourceUrl: uri,
+      line: lineInfo.lineNumber - 1,
+      column: lineInfo.columnNumber - 1);
+}
+
+// TODO(sigmund): change to show the span from the beginning of the line (#73)
+SourceSpan spanForNode(CompilationUnit unit, Source source, AstNode node) {
+  var currentToken = node is AnnotatedNode
+      ? node.firstTokenAfterCommentAndMetadata
+      : node.beginToken;
+  var begin = currentToken.offset;
+  var end = node.end;
+  var text = source.contents.data.substring(begin, end);
+  var uri = source.uri;
+  return new SourceSpan(locationForOffset(unit, uri, begin),
+      locationForOffset(unit, uri, end), '$text');
 }

@@ -1940,13 +1940,7 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
     }
   }
 
-  SourceLocation _location(int offset) {
-    var lineInfo = unit.lineInfo.getLocation(offset);
-    return new SourceLocation(offset,
-        sourceUrl: uri,
-        line: lineInfo.lineNumber - 1,
-        column: lineInfo.columnNumber - 1);
-  }
+  SourceLocation _location(int offset) => locationForOffset(unit, uri, offset);
 
   Uri _makeRelativeUri(Uri src) {
     return new Uri(path: path.relative(src.path, from: outputDir));

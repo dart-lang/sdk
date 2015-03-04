@@ -21,7 +21,7 @@ import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/config.dart';
-import 'package:dev_compiler/devc.dart' show compile;
+import 'package:dev_compiler/devc.dart' show Compiler;
 
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].
@@ -56,7 +56,7 @@ CheckerResults testChecker(Map<String, String> testFiles,
       reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
-  var testUriResolver = new _TestUriResolver(testFiles);
+  var testUriResolver = new TestUriResolver(testFiles);
   var options = new CompilerOptions(
       allowConstCasts: allowConstCasts,
       covariantGenerics: covariantGenerics,
@@ -64,7 +64,10 @@ CheckerResults testChecker(Map<String, String> testFiles,
       inferFromOverrides: inferFromOverrides,
       inferStaticsFromIdentifiers: inferStaticsFromIdentifiers,
       inferInNonStableOrder: inferInNonStableOrder,
-      nonnullableTypes: nonnullableTypes);
+      nonnullableTypes: nonnullableTypes,
+      useMockSdk: sdkDir == null,
+      dartSdkPath: sdkDir,
+      entryPointFile: '/main.dart');
   var resolver = sdkDir == null
       ? new TypeResolver.fromMock(mockSdkSources, options,
           otherResolvers: [testUriResolver])
@@ -75,7 +78,7 @@ CheckerResults testChecker(Map<String, String> testFiles,
   var mainFile = new Uri.file('/main.dart');
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
-  var results = compile('/main.dart', resolver, options, reporter);
+  var results = new Compiler(options, resolver, reporter).run();
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
@@ -176,7 +179,7 @@ String _messageWithSpan(StaticInfo info) {
 
 SourceSpan _spanFor(AstNode node) {
   var root = node.root as CompilationUnit;
-  _TestSource source = (root.element as CompilationUnitElementImpl).source;
+  TestSource source = (root.element as CompilationUnitElementImpl).source;
   return source.spanFor(node);
 }
 
@@ -259,36 +262,45 @@ class _ErrorExpectation {
 }
 
 /// Uri resolver that can load test files from memory.
-class _TestUriResolver extends UriResolver {
-  final Map<Uri, _TestSource> files = <Uri, _TestSource>{};
+class TestUriResolver extends UriResolver {
+  final Map<Uri, TestSource> files = <Uri, TestSource>{};
 
-  _TestUriResolver(Map<String, String> allFiles) {
+  TestUriResolver(Map<String, String> allFiles) {
     allFiles.forEach((key, value) {
       var uri = key.startsWith('package:') ? Uri.parse(key) : new Uri.file(key);
-      files[uri] = new _TestSource(uri, value);
+      files[uri] = new TestSource(uri, value);
     });
   }
 
   Source resolveAbsolute(Uri uri) {
     if (uri.scheme != 'file' && uri.scheme != 'package') return null;
-    return files[uri];
+    return files.putIfAbsent(uri, () => new TestSource(uri, null));
   }
 }
 
+class TestContents implements TimestampedData<String> {
+  int modificationTime;
+  String data;
+
+  TestContents(this.modificationTime, this.data);
+}
+
 /// An in memory source file.
-class _TestSource implements Source {
+class TestSource implements Source {
   final Uri uri;
-  final TimestampedData<String> contents;
+  TestContents contents;
   final SourceFile _file;
   final UriKind uriKind;
+  bool _exists;
 
-  _TestSource(uri, contents)
+  TestSource(uri, contents)
       : uri = uri,
-        contents = new TimestampedData<String>(0, contents),
-        _file = new SourceFile(contents, url: uri),
+        _exists = contents != null,
+        contents = new TestContents(1, contents),
+        _file = contents != null ? new SourceFile(contents, url: uri) : null,
         uriKind = uri.scheme == 'file' ? UriKind.FILE_URI : UriKind.PACKAGE_URI;
 
-  bool exists() => true;
+  bool exists() => _exists;
 
   Source get source => this;
 
@@ -297,10 +309,10 @@ class _TestSource implements Source {
 
   String get fullName => uri.path;
 
-  int get modificationStamp => 0;
+  int get modificationStamp => contents.modificationTime;
   String get shortName => path.basename(uri.path);
 
-  operator ==(other) => other is _TestSource && uri == other.uri;
+  operator ==(other) => other is TestSource && uri == other.uri;
   int get hashCode => uri.hashCode;
   bool get isInSystemLibrary => false;
 

@@ -77,6 +77,10 @@ class SummaryReporter implements CheckerReporter {
   LibrarySummary _currentLibrary;
   SourceFile _file;
 
+  clear() {
+    result = new GlobalSummary();
+  }
+
   void enterLibrary(LibraryInfo lib) {
     var libKey = '${lib.library.source.uri}';
     var libSummary = _currentLibrary = new LibrarySummary(libKey);
@@ -489,6 +493,7 @@ class _Counter extends RecursiveSummaryVisitor {
 }
 
 /// Returns a [SourceSpan] in [file] for the offsets of [node].
+// TODO(sigmund): convert to use span information from AST (issue #73)
 SourceSpan _spanForNode(SourceFile file, AstNode node) {
   final begin = node is AnnotatedNode
       ? node.firstTokenAfterCommentAndMetadata.offset

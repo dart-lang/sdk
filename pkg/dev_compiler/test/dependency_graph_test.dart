@@ -1,0 +1,750 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library ddc.test.dependency_graph_test;
+
+import 'package:unittest/compact_vm_config.dart';
+import 'package:unittest/unittest.dart';
+
+import 'package:dev_compiler/src/checker/dart_sdk.dart'
+    show mockSdkSources, dartSdkDirectory;
+import 'package:dev_compiler/src/testing.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/checker/resolver.dart';
+import 'package:dev_compiler/src/dependency_graph.dart';
+import 'package:path/path.dart' as path;
+
+main() {
+  groupSep = " > ";
+  useCompactVMConfiguration();
+
+  var options = new CompilerOptions();
+  var testUriResolver;
+  var context;
+  var graph;
+
+  /// Initial values for test files
+  var testFiles = {
+    '/index1.html': '''
+        <script src="foo.js"></script>
+        ''',
+    '/index2.html': '''
+        <script type="application/dart" src="a1.dart"></script>
+        ''',
+    '/index3.html': '''
+        <script type="application/dart" src="a2.dart"></script>
+        ''',
+    '/a1.dart': '''
+        library a1;
+      ''',
+    '/a2.dart': '''
+        library a2;
+        import 'a3.dart';
+        import 'a4.dart';
+        export 'a5.dart';
+        part 'a6.dart';
+      ''',
+    '/a3.dart': 'library a3;',
+    '/a4.dart': 'library a4; export "a10.dart";',
+    '/a5.dart': 'library a5;',
+    '/a6.dart': 'part of a2;',
+    '/a8.dart': 'library a8; import "a8.dart";',
+    '/a9.dart': 'library a9; import "a8.dart";',
+    '/a10.dart': 'library a10;',
+  };
+
+  nodeOf(String filepath, [bool isPart = false]) =>
+      graph.nodeFromUri(new Uri.file(filepath), isPart);
+
+  setUp(() {
+    /// We completely reset the TestUriResolver to avoid interference between
+    /// tests (since some tests modify the state of the files).
+    testUriResolver = new TestUriResolver(testFiles);
+    context = new TypeResolver.fromMock(mockSdkSources, options,
+        otherResolvers: [testUriResolver]).context;
+    graph = new SourceGraph(context, options);
+  });
+
+  group('HTML deps', () {
+    test('initial deps', () {
+      var i1 = nodeOf('/index1.html');
+      var i2 = nodeOf('/index2.html');
+      expect(i1.scripts.length, 0);
+      expect(i2.scripts.length, 0);
+      i1.update(graph);
+      i2.update(graph);
+      expect(i1.scripts.length, 0);
+      expect(i2.scripts.length, 1);
+      expect(i2.scripts.first, nodeOf('/a1.dart'));
+    });
+
+    test('add a dep', () {
+      // After initial load, dependencies are 0:
+      var node = nodeOf('/index1.html');
+      node.update(graph);
+      expect(node.scripts.length, 0);
+
+      // Adding the dependency is discovered on the next round of updates:
+      node.source.contents.modificationTime++;
+      node.source.contents.data =
+          '<script type="application/dart" src="a2.dart"></script>';
+      expect(node.scripts.length, 0);
+      node.update(graph);
+      expect(node.scripts.length, 1);
+      expect(node.scripts.first, nodeOf('/a2.dart'));
+    });
+
+    test('add more deps', () {
+      // After initial load, dependencies are 1:
+      var node = nodeOf('/index2.html');
+      node.update(graph);
+      expect(node.scripts.length, 1);
+      expect(node.scripts.first, nodeOf('/a1.dart'));
+
+      node.source.contents.modificationTime++;
+      node.source.contents.data +=
+          '<script type="application/dart" src="a2.dart"></script>';
+      expect(node.scripts.length, 1);
+      node.update(graph);
+      expect(node.scripts.length, 2);
+      expect(node.scripts.first, nodeOf('/a1.dart'));
+      expect(node.scripts.last, nodeOf('/a2.dart'));
+    });
+
+    test('remove all deps', () {
+      // After initial load, dependencies are 1:
+      var node = nodeOf('/index2.html');
+      node.update(graph);
+      expect(node.scripts.length, 1);
+      expect(node.scripts.first, nodeOf('/a1.dart'));
+
+      // Removing the dependency is discovered on the next round of updates:
+      node.source.contents.modificationTime++;
+      node.source.contents.data = '';
+      expect(node.scripts.length, 1);
+      node.update(graph);
+      expect(node.scripts.length, 0);
+    });
+  });
+
+  group('Dart deps', () {
+    test('initial deps', () {
+      var a1 = nodeOf('/a1.dart');
+      var a2 = nodeOf('/a2.dart');
+      expect(a1.imports.length, 0);
+      expect(a1.exports.length, 0);
+      expect(a1.parts.length, 0);
+      expect(a2.imports.length, 0);
+      expect(a2.exports.length, 0);
+      expect(a2.parts.length, 0);
+
+      a1.update(graph);
+      a2.update(graph);
+
+      expect(a1.imports.length, 0);
+      expect(a1.exports.length, 0);
+      expect(a1.parts.length, 0);
+      expect(a2.imports.length, 2);
+      expect(a2.exports.length, 1);
+      expect(a2.parts.length, 1);
+      expect(a2.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(a2.imports.contains(nodeOf('/a4.dart')), isTrue);
+      expect(a2.exports.contains(nodeOf('/a5.dart')), isTrue);
+      expect(a2.parts.contains(nodeOf('/a6.dart')), isTrue);
+    });
+
+    test('add deps', () {
+      var node = nodeOf('/a1.dart');
+      node.update(graph);
+      expect(node.imports.length, 0);
+      expect(node.exports.length, 0);
+      expect(node.parts.length, 0);
+
+      node.source.contents.modificationTime++;
+      node.source.contents.data =
+          'import "a3.dart"; export "a5.dart"; part "a8.dart";';
+      node.update(graph);
+
+      expect(node.imports.length, 1);
+      expect(node.exports.length, 1);
+      expect(node.parts.length, 1);
+      expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
+      expect(node.parts.contains(nodeOf('/a8.dart')), isTrue);
+    });
+
+    test('remove deps', () {
+      var node = nodeOf('/a2.dart');
+      node.update(graph);
+      expect(node.imports.length, 2);
+      expect(node.exports.length, 1);
+      expect(node.parts.length, 1);
+      expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(node.imports.contains(nodeOf('/a4.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
+      expect(node.parts.contains(nodeOf('/a6.dart')), isTrue);
+
+      node.source.contents.modificationTime++;
+      node.source.contents.data =
+          'import "a3.dart"; export "a6.dart"; part "a8.dart";';
+      node.update(graph);
+
+      expect(node.imports.length, 1);
+      expect(node.exports.length, 1);
+      expect(node.parts.length, 1);
+      expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a6.dart')), isTrue);
+      expect(node.parts.contains(nodeOf('/a8.dart')), isTrue);
+    });
+  });
+
+  group('local changes', () {
+    group('needs rebuild', () {
+      test('in HTML', () {
+        var node = nodeOf('/index1.html');
+        node.update(graph);
+        expect(node.needsRebuild, isTrue);
+        node.needsRebuild = false;
+
+        node.update(graph);
+        expect(node.needsRebuild, isFalse);
+
+        // For now, an empty modification is enough to trigger a rebuild
+        node.source.contents.modificationTime++;
+        expect(node.needsRebuild, isFalse);
+        node.update(graph);
+        expect(node.needsRebuild, isTrue);
+      });
+
+      test('main library in Dart', () {
+        var node = nodeOf('/a2.dart');
+        var partNode = nodeOf('/a6.dart', true);
+        node.update(graph);
+        expect(node.needsRebuild, isTrue);
+        node.needsRebuild = false;
+        partNode.needsRebuild = false;
+
+        node.update(graph);
+        expect(node.needsRebuild, isFalse);
+
+        // For now, an empty modification is enough to trigger a rebuild
+        node.source.contents.modificationTime++;
+        expect(node.needsRebuild, isFalse);
+        node.update(graph);
+        expect(node.needsRebuild, isTrue);
+      });
+
+      test('part of library in Dart', () {
+        var node = nodeOf('/a2.dart');
+        var importNode = nodeOf('/a3.dart');
+        var exportNode = nodeOf('/a5.dart');
+        var partNode = nodeOf('/a6.dart', true);
+        node.update(graph);
+        expect(node.needsRebuild, isTrue);
+        node.needsRebuild = false;
+        partNode.needsRebuild = false;
+
+        node.update(graph);
+        expect(node.needsRebuild, isFalse);
+
+        // Modification in imported/exported node makes no difference for local
+        // rebuild label (globally that's tested elsewhere)
+        importNode.source.contents.modificationTime++;
+        exportNode.source.contents.modificationTime++;
+        node.update(graph);
+        expect(node.needsRebuild, isFalse);
+        expect(partNode.needsRebuild, isFalse);
+
+        // Modification in part triggers change in containing library:
+        partNode.source.contents.modificationTime++;
+        expect(node.needsRebuild, isFalse);
+        expect(partNode.needsRebuild, isFalse);
+        node.update(graph);
+        expect(node.needsRebuild, isTrue);
+        expect(partNode.needsRebuild, isTrue);
+      });
+    });
+
+    group('structure change', () {
+      test('no mod in HTML', () {
+        var node = nodeOf('/index2.html');
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        node.structureChanged = false;
+
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // An empty modification will not trigger a structural change
+        node.source.contents.modificationTime++;
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+      });
+
+      test('added scripts in HTML', () {
+        var node = nodeOf('/index2.html');
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        expect(node.scripts.length, 1);
+
+        node.structureChanged = false;
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // This change will not include new script tags:
+        node.source.contents.modificationTime++;
+        node.source.contents.data += '<div></div>';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+        expect(node.scripts.length, 1);
+
+        node.source.contents.modificationTime++;
+        node.source.contents.data +=
+            '<script type="application/dart" src="a4.dart"></script>';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        expect(node.scripts.length, 2);
+      });
+
+      test('no mod in Dart', () {
+        var node = nodeOf('/a2.dart');
+        var importNode = nodeOf('/a3.dart');
+        var exportNode = nodeOf('/a5.dart');
+        var partNode = nodeOf('/a6.dart', true);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        node.structureChanged = false;
+
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // These modifications make no difference at all.
+        importNode.source.contents.modificationTime++;
+        exportNode.source.contents.modificationTime++;
+        partNode.source.contents.modificationTime++;
+        node.source.contents.modificationTime++;
+
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+      });
+
+      test('same directives, different order', () {
+        var node = nodeOf('/a2.dart');
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        node.structureChanged = false;
+
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // modified order of imports, but structure stays the same:
+        node.source.contents.modificationTime++;
+        node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
+            'export "a5.dart"; part "a6.dart";';
+        node.update(graph);
+
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+      });
+
+      test('changed parts', () {
+        var node = nodeOf('/a2.dart');
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        node.structureChanged = false;
+
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // added one.
+        node.source.contents.modificationTime++;
+        node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
+            'export "a5.dart"; part "a6.dart"; part "a7.dart";';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+
+        // no change
+        node.structureChanged = false;
+        node.source.contents.modificationTime++;
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // removed one
+        node.source.contents.modificationTime++;
+        node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
+            'export "a5.dart"; part "a7.dart";';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+      });
+
+      test('changed import', () {
+        var node = nodeOf('/a2.dart');
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        node.structureChanged = false;
+
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // added one.
+        node.source.contents.modificationTime++;
+        node.source.contents.data =
+            'import "a4.dart"; import "a3.dart"; import "a7.dart";'
+            'export "a5.dart"; part "a6.dart";';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+
+        // no change
+        node.structureChanged = false;
+        node.source.contents.modificationTime++;
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // removed one
+        node.source.contents.modificationTime++;
+        node.source.contents.data = 'import "a4.dart"; import "a7.dart"; '
+            'export "a5.dart"; part "a6.dart";';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+      });
+
+      test('changed exports', () {
+        var node = nodeOf('/a2.dart');
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+        node.structureChanged = false;
+
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // added one.
+        node.source.contents.modificationTime++;
+        node.source.contents.data = 'import "a4.dart"; import "a3.dart";'
+            'export "a5.dart"; export "a9.dart"; part "a6.dart";';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+
+        // no change
+        node.structureChanged = false;
+        node.source.contents.modificationTime++;
+        node.update(graph);
+        expect(node.structureChanged, isFalse);
+
+        // removed one
+        node.source.contents.modificationTime++;
+        node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
+            'export "a5.dart"; part "a6.dart";';
+        expect(node.structureChanged, isFalse);
+        node.update(graph);
+        expect(node.structureChanged, isTrue);
+      });
+    });
+  });
+
+  group('refresh structure and marks', () {
+    test('initial marks', () {
+      var node = nodeOf('/index3.html');
+      expectGraph(node, 'index3.html');
+      refreshStructureAndMarks(node, graph);
+      expectGraph(node, '''
+          index3.html [needs-rebuild] [structure-changed]
+          |-- a2.dart [needs-rebuild] [structure-changed]
+          |    |-- a3.dart [needs-rebuild]
+          |    |-- a4.dart [needs-rebuild] [structure-changed]
+          |    |    |-- a10.dart [needs-rebuild]
+          |    |-- a5.dart [needs-rebuild]
+          |    |-- a6.dart [needs-rebuild]
+          ''');
+    });
+
+    test('cleared marks stay clear', () {
+      var node = nodeOf('/index3.html');
+      refreshStructureAndMarks(node, graph);
+      expectGraph(node, '''
+          index3.html [needs-rebuild] [structure-changed]
+          |-- a2.dart [needs-rebuild] [structure-changed]
+          |    |-- a3.dart [needs-rebuild]
+          |    |-- a4.dart [needs-rebuild] [structure-changed]
+          |    |    |-- a10.dart [needs-rebuild]
+          |    |-- a5.dart [needs-rebuild]
+          |    |-- a6.dart [needs-rebuild]
+          ''');
+      clearMarks(node);
+      expectGraph(node, '''
+          index3.html
+          |-- a2.dart
+          |    |-- a3.dart
+          |    |-- a4.dart
+          |    |    |-- a10.dart
+          |    |-- a5.dart
+          |    |-- a6.dart
+          ''');
+
+      refreshStructureAndMarks(node, graph);
+      expectGraph(node, '''
+          index3.html
+          |-- a2.dart
+          |    |-- a3.dart
+          |    |-- a4.dart
+          |    |    |-- a10.dart
+          |    |-- a5.dart
+          |    |-- a6.dart
+          ''');
+    });
+
+    test('needsRebuild mark updated on local modifications', () {
+      var node = nodeOf('/index3.html');
+      refreshStructureAndMarks(node, graph);
+      clearMarks(node);
+      var a3 = nodeOf('/a3.dart');
+      a3.source.contents.modificationTime++;
+
+      refreshStructureAndMarks(node, graph);
+      expectGraph(node, '''
+          index3.html
+          |-- a2.dart
+          |    |-- a3.dart [needs-rebuild]
+          |    |-- a4.dart
+          |    |    |-- a10.dart
+          |    |-- a5.dart
+          |    |-- a6.dart
+          ''');
+    });
+
+    test('structuredChanged mark updated on structure modifications', () {
+      var node = nodeOf('/index3.html');
+      refreshStructureAndMarks(node, graph);
+      clearMarks(node);
+      var a5 = nodeOf('/a5.dart');
+      a5.source.contents.modificationTime++;
+      a5.source.contents.data = 'import "a8.dart";';
+
+      refreshStructureAndMarks(node, graph);
+      expectGraph(node, '''
+          index3.html
+          |-- a2.dart
+          |    |-- a3.dart
+          |    |-- a4.dart
+          |    |    |-- a10.dart
+          |    |-- a5.dart [needs-rebuild] [structure-changed]
+          |    |    |-- a8.dart [needs-rebuild] [structure-changed]
+          |    |    |    |-- a8.dart...
+          |    |-- a6.dart
+          ''');
+    });
+  });
+
+  group('rebuild', () {
+    var results;
+    void addName(SourceNode n) => results.add(nameFor(n));
+
+    bool buildNoTransitiveChange(SourceNode n) {
+      addName(n);
+      return false;
+    }
+
+    bool buildWithTransitiveChange(SourceNode n) {
+      addName(n);
+      return true;
+    }
+
+    setUp(() {
+      results = [];
+    });
+
+    test('everything build on first run', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      // Note: a6.dart is not included because it built as part of a2.dart
+      expect(results, [
+        'a3.dart',
+        'a10.dart',
+        'a4.dart',
+        'a5.dart',
+        'a2.dart',
+        'index3.html'
+      ]);
+
+      // Marks are removed automatically by rebuild
+      expectGraph(node, '''
+          index3.html
+          |-- a2.dart
+          |    |-- a3.dart
+          |    |-- a4.dart
+          |    |    |-- a10.dart
+          |    |-- a5.dart
+          |    |-- a6.dart
+          ''');
+    });
+
+    test('nothing to do after build', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+
+    test('modified part triggers building library', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      results = [];
+
+      var a6 = nodeOf('/a6.dart');
+      a6.source.contents.modificationTime++;
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, ['a2.dart']);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+
+    test('non-API change triggers build stays local', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      results = [];
+
+      var a3 = nodeOf('/a3.dart');
+      a3.source.contents.modificationTime++;
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, ['a3.dart']);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+
+    test('no-API change in exported file stays local', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      results = [];
+
+      // similar to the test above, but a10 is exported from a4.
+      var a3 = nodeOf('/a10.dart');
+      a3.source.contents.modificationTime++;
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, ['a10.dart']);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+
+    test('API change in lib, triggers build on imports', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      results = [];
+
+      var a3 = nodeOf('/a3.dart');
+      a3.source.contents.modificationTime++;
+      rebuild(node, graph, buildWithTransitiveChange);
+      expect(results, ['a3.dart', 'a2.dart']);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+
+    test('API change in export, triggers build on imports', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      results = [];
+
+      var a3 = nodeOf('/a10.dart');
+      a3.source.contents.modificationTime++;
+      rebuild(node, graph, buildWithTransitiveChange);
+
+      // Node: a4.dart reexports a10.dart, but it doesn't import it, so we don't
+      // need to rebuild it.
+      expect(results, ['a10.dart', 'a2.dart']);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+
+    test('structural change rebuilds HTML, but skips unreachable code', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      results = [];
+
+      var a2 = nodeOf('/a2.dart');
+      a2.source.contents.modificationTime++;
+      a2.source.contents.data = 'import "a4.dart";';
+
+      var a3 = nodeOf('/a3.dart');
+      a3.source.contents.modificationTime++;
+      rebuild(node, graph, buildNoTransitiveChange);
+
+      // a3 will become unreachable, index3 reflects structural changes.
+      expect(results, ['a2.dart', 'index3.html']);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+
+    test('newly discovered files get built too', () {
+      var node = nodeOf('/index3.html');
+      rebuild(node, graph, buildNoTransitiveChange);
+      results = [];
+
+      var a2 = nodeOf('/a2.dart');
+      a2.source.contents.modificationTime++;
+      a2.source.contents.data = 'import "a9.dart";';
+
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, ['a8.dart', 'a9.dart', 'a2.dart', 'index3.html']);
+
+      results = [];
+      rebuild(node, graph, buildNoTransitiveChange);
+      expect(results, []);
+    });
+  });
+}
+
+expectGraph(SourceNode node, String expectation) {
+  expect(printReachable(node), equalsIgnoringWhitespace(expectation));
+}
+
+nameFor(SourceNode node) => path.basename(node.uri.path);
+printReachable(SourceNode node) {
+  var seen = new Set();
+  var sb = new StringBuffer();
+  helper(n, {indent: 0}) {
+    if (indent > 0) {
+      sb
+        ..write("|   " * (indent - 1))
+        ..write("|-- ");
+    }
+    sb.write(nameFor(n));
+    if (seen.contains(n)) {
+      sb.write('...\n');
+      return;
+    }
+    seen.add(n);
+    sb
+      ..write(' ')
+      ..write(n.needsRebuild ? '[needs-rebuild] ' : '')
+      ..write(n.structureChanged ? '[structure-changed] ' : ' ')
+      ..write('\n');
+    n.directDeps.forEach((e) => helper(e, indent: indent + 1));
+  }
+  helper(node);
+  return sb.toString();
+}
+
+bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);

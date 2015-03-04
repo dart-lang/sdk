@@ -6,9 +6,12 @@ function fail {
   return 1
 }
 
-# Arguments passed to the diff tool. We exclude *.map files so they aren't
-# compared, as the diff is not human readable.
-DIFF_ARGS="-u -r -N --exclude=\*.map expect actual"
+# Arguments passed to the diff tool. We exclude:
+#  - *.map files so they aren't compared, as the diff is not human readable.
+#  - runtime JS files that are just copied over from the sources and are not
+#    duplicated in the expected folder.
+DIFF_ARGS="-u -r -N --exclude=\*.map --exclude=dart_runtime.js \
+  --exclude=harmony_feature_check.js expect actual"
 
 function show_diff {
   echo "Fail: actual output did not match expected"
@@ -22,7 +25,7 @@ function show_diff {
   fail
 }
 
-# the directory of this script 
+# the directory of this script
 TEST_DIR=$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd )
 
 # Some tests require being run from the package root

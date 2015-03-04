@@ -7,22 +7,18 @@
 library ddc.test.end_to_end;
 
 import 'dart:io';
-import 'package:dev_compiler/devc.dart' show compile;
-import 'package:dev_compiler/src/checker/dart_sdk.dart' show mockSdkSources;
-import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
+import 'package:dev_compiler/devc.dart' show Compiler;
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 main() {
-  var options = new CompilerOptions();
-  var mockSdk = new TypeResolver.fromMock(mockSdkSources, options);
-
   var testDir = path.absolute(path.dirname(Platform.script.path));
-
   _check(testfile) {
-    compile('$testDir/$testfile.dart', mockSdk, options, new LogReporter());
+    var options = new CompilerOptions(
+        entryPointFile: '$testDir/$testfile.dart', useMockSdk: true);
+    new Compiler(options).run();
   }
 
   test('checker runs correctly (end-to-end)', () {

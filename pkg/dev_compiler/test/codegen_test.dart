@@ -8,12 +8,12 @@
 library ddc.test.codegen_test;
 
 import 'dart:io';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:dev_compiler/devc.dart';
-import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 import 'package:dev_compiler/src/options.dart';
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
@@ -56,13 +56,21 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  var options = new CompilerOptions(
-      outputDir: actualDir,
-      useColors: false,
-      outputDart: dartGen,
-      formatOutput: dartGen,
-      emitSourceMaps: false);
-  var realSdk = new TypeResolver.fromDir(getSdkDir(arguments).path, options);
+  compile(String entryPoint, String sdkPath, [bool checkSdk = false]) {
+    var options = new CompilerOptions(
+        outputDir: actualDir,
+        useColors: false,
+        outputDart: dartGen,
+        formatOutput: dartGen,
+        emitSourceMaps: false,
+        forceCompile: checkSdk,
+        cheapTestFormat: checkSdk,
+        checkSdk: checkSdk,
+        entryPointFile: entryPoint,
+        dartSdkPath: sdkPath);
+    return new Compiler(options).run();
+  }
+  var realSdk = getSdkDir(arguments).path;
 
   // Validate that old output is gone before running.
   // TODO(jmesserly): it'd be nice to do all cleanup here, including removing
@@ -78,7 +86,7 @@ main(arguments) {
     test('devc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      var result = compile(filePath, realSdk, options);
+      var result = compile(filePath, realSdk);
       var success = !result.failure;
 
       // Write compiler messages to disk.
@@ -116,19 +124,11 @@ main(arguments) {
       // generated against a specific SDK version.
       // TODO(jmesserly): eventually we should track compiler messages.
       // For now we're just trying to get decent code generation.
-      var options = new CompilerOptions(
-          outputDir: actualDir,
-          checkSdk: true,
-          forceCompile: true,
-          outputDart: dartGen,
-          formatOutput: dartGen,
-          cheapTestFormat: true,
-          emitSourceMaps: false);
-      var sdkPath = dartGen
+      var testSdk = dartGen
           ? path.join(testDir, '..', 'tool', 'input_sdk')
           : path.join(testDir, 'generated_sdk');
-      var testSdk = new TypeResolver.fromDir(sdkPath, options);
-      compile('dart:core', testSdk, options);
+      var result = compile('dart:core', testSdk, true);
+      var outputDir = new Directory(path.join(actualDir, 'core'));
       var outFile = dartGen
           ? new File(path.join(actualDir, 'core/core'))
           : new File(path.join(actualDir, 'dart/core.js'));
@@ -142,7 +142,7 @@ main(arguments) {
       var filePath = path.join(inputDir, 'html_input.html');
       compilerMessages.writeln('// Messages from compiling html_input.html');
 
-      var result = compile(filePath, realSdk, options);
+      var result = compile(filePath, realSdk);
       var success = !result.failure;
 
       // Write compiler messages to disk.

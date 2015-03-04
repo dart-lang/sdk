@@ -141,6 +141,12 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final bool allowConstCasts;
 
+  /// Whether to run as a development server.
+  final bool serverMode;
+
+  /// Port used for the HTTP server when [serverMode] is on.
+  final int port;
+
   /// Whether to use covariant generics
   @override
   final bool covariantGenerics;
@@ -204,7 +210,8 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.onlyInferConstsAndFinalFields: false,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
-      this.emitSourceMaps: true, this.entryPointFile: null});
+      this.emitSourceMaps: true, this.entryPointFile: null,
+      this.serverMode: false, this.port: 8080});
 }
 
 /// Parses options from the command-line
@@ -245,7 +252,9 @@ CompilerOptions parseOptions(List<String> argv) {
       logLevel: Level.LEVELS.firstWhere((Level l) => l.name == levelName,
           orElse: () => Level.SEVERE),
       emitSourceMaps: args['source-maps'],
-      entryPointFile: args.rest.length == 0 ? null : args.rest.first);
+      entryPointFile: args.rest.length == 0 ? null : args.rest.first,
+      serverMode: args['server'],
+      port: int.parse(args['port']));
 }
 
 final ArgParser argParser = new ArgParser()
@@ -301,6 +310,10 @@ final ArgParser argParser = new ArgParser()
 
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')
+  ..addFlag('server', help: 'Run as a development server.', defaultsTo: false)
+  ..addOption('port',
+      help: 'Port where to serve files from (used only when --serve is on)',
+      defaultsTo: '8080')
   ..addFlag('force-compile',
       help: 'Compile code with static errors', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')

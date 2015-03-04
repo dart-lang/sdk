@@ -9,8 +9,6 @@ library ddc.bin.checker;
 import 'dart:io';
 
 import 'package:dev_compiler/devc.dart';
-import 'package:dev_compiler/src/checker/dart_sdk.dart' show mockSdkSources;
-import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 import 'package:dev_compiler/src/options.dart';
 
 void _showUsageAndExit() {
@@ -38,9 +36,10 @@ void main(List<String> args) {
 
   if (!options.dumpInfo) setupLogger(options.logLevel, print);
 
-  var typeResolver = options.useMockSdk
-      ? new TypeResolver.fromMock(mockSdkSources, options)
-      : new TypeResolver.fromDir(options.dartSdkPath, options);
-  var result = compile(options.entryPointFile, typeResolver, options);
-  exit(result.failure ? 1 : 0);
+  if (options.serverMode) {
+    new CompilerServer(options).start();
+  } else {
+    var result = new Compiler(options).run();
+    exit(result.failure ? 1 : 0);
+  }
 }

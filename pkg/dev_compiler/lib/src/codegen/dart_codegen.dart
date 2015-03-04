@@ -485,6 +485,16 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
   EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
+  void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
+      CheckerReporter reporter) {
+    for (var unit in units) {
+      var outputDir = makeOutputDirectory(info, unit);
+      reporter.enterSource(unit.element.source);
+      generateUnit(unit, info, outputDir);
+      reporter.leaveSource();
+    }
+  }
+
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
     var uri = unit.element.source.uri;
     _log.fine("Emitting original unit " + uri.toString());

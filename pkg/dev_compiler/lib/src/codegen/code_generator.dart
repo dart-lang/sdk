@@ -129,18 +129,6 @@ abstract class CodeGenerator {
   CodeGenerator(String outDir, this.root, this.rules)
       : outDir = path.absolute(outDir);
 
-  // TODO(jmesserly): JS generates per library outputs, so it does not use this
-  // method and instead overrides generateLibrary.
-  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
-  }
-
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
-      CheckerReporter reporter) {
-    for (var unit in units) {
-      var outputDir = makeOutputDirectory(info, unit);
-      reporter.enterSource(unit.element.source);
-      generateUnit(unit, info, outputDir);
-      reporter.leaveSource();
-    }
-  }
+      CheckerReporter reporter);
 }
