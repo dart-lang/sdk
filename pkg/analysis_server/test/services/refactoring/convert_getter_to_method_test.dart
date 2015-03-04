@@ -15,12 +15,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(ConvertGetterToMethodTest);
 }
-
 
 @reflectiveTest
 class ConvertGetterToMethodTest extends RefactoringTest {
@@ -134,9 +132,7 @@ main() {
 
   Future _assertInitialConditions_fatal(String message) async {
     RefactoringStatus status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.FATAL,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
 

@@ -14,7 +14,6 @@ import 'package:watcher/watcher.dart';
 
 import 'file_system.dart';
 
-
 /**
  * An in-memory implementation of [ResourceProvider].
  * Use `/` as a path separator.
@@ -31,8 +30,33 @@ class MemoryResourceProvider implements ResourceProvider {
   @override
   Context get pathContext => posix;
 
+  /**
+   * Delete the file with the given path.
+   */
   void deleteFile(String path) {
     _checkFileAtPath(path);
+    _pathToResource.remove(path);
+    _pathToContent.remove(path);
+    _pathToTimestamp.remove(path);
+    _notifyWatchers(path, ChangeType.REMOVE);
+  }
+
+  /**
+   * Delete the folder with the given path
+   * and recurively delete nested files and folders.
+   */
+  void deleteFolder(String path) {
+    _checkFolderAtPath(path);
+    _MemoryFolder folder = _pathToResource[path];
+    for (Resource child in folder.getChildren()) {
+      if (child is File) {
+        deleteFile(child.path);
+      } else if (child is Folder) {
+        deleteFolder(child.path);
+      } else {
+        throw 'failed to delete resource: $child';
+      }
+    }
     _pathToResource.remove(path);
     _pathToContent.remove(path);
     _pathToTimestamp.remove(path);
@@ -75,14 +99,25 @@ class MemoryResourceProvider implements ResourceProvider {
     return link;
   }
 
-  File newFile(String path, String content) {
+  File newFile(String path, String content, [int stamp]) {
     path = posix.normalize(path);
     newFolder(posix.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
     _pathToContent[path] = content;
-    _pathToTimestamp[path] = nextStamp++;
+    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
+    return file;
+  }
+
+  File updateFile(String path, String content, [int stamp]) {
+    path = posix.normalize(path);
+    newFolder(posix.dirname(path));
+    _MemoryFile file = new _MemoryFile(this, path);
+    _pathToResource[path] = file;
+    _pathToContent[path] = content;
+    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
+    _notifyWatchers(path, ChangeType.MODIFY);
     return file;
   }
 
@@ -118,19 +153,26 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
+  void _checkFolderAtPath(String path) {
+    _MemoryResource resource = _pathToResource[path];
+    if (resource is! _MemoryFolder) {
+      throw new ArgumentError(
+          'Folder expected at "$path" but ${resource.runtimeType} found');
+    }
+  }
+
   void _notifyWatchers(String path, ChangeType changeType) {
-    _pathToWatchers.forEach(
-        (String watcherPath, List<StreamController<WatchEvent>> streamControllers) {
+    _pathToWatchers.forEach((String watcherPath,
+        List<StreamController<WatchEvent>> streamControllers) {
       if (posix.isWithin(watcherPath, path)) {
-        for (StreamController<WatchEvent> streamController in streamControllers)
-            {
+        for (StreamController<WatchEvent> streamController
+            in streamControllers) {
           streamController.add(new WatchEvent(changeType, path));
         }
       }
     });
   }
 }
-
 
 /**
  * An in-memory implementation of [File] which acts like a symbolic link to a
@@ -166,13 +208,15 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 }
 
-
 /**
  * An in-memory implementation of [File].
  */
 class _MemoryFile extends _MemoryResource implements File {
   _MemoryFile(MemoryResourceProvider provider, String path)
       : super(provider, path);
+
+  @override
+  bool get exists => _provider._pathToResource[path] is _MemoryFile;
 
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
@@ -203,7 +247,6 @@ class _MemoryFile extends _MemoryResource implements File {
     return path == this.path;
   }
 }
-
 
 /**
  * An in-memory implementation of [Source].
@@ -279,13 +322,13 @@ class _MemoryFileSource extends Source {
   String toString() => _file.toString();
 }
 
-
 /**
  * An in-memory implementation of [Folder].
  */
 class _MemoryFolder extends _MemoryResource implements Folder {
   _MemoryFolder(MemoryResourceProvider provider, String path)
       : super(provider, path);
+
   @override
   Stream<WatchEvent> get changes {
     StreamController<WatchEvent> streamController =
@@ -302,6 +345,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     });
     return streamController.stream;
   }
+
+  @override
+  bool get exists => _provider._pathToResource[path] is _MemoryFolder;
 
   @override
   String canonicalizePath(String relPath) {
@@ -327,6 +373,16 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   }
 
   @override
+  _MemoryFolder getChildAssumingFolder(String relPath) {
+    String childPath = canonicalizePath(relPath);
+    _MemoryResource resource = _provider._pathToResource[childPath];
+    if (resource is _MemoryFolder) {
+      return resource;
+    }
+    return new _MemoryFolder(_provider, childPath);
+  }
+
+  @override
   List<Resource> getChildren() {
     List<Resource> children = <Resource>[];
     _provider._pathToResource.forEach((resourcePath, resource) {
@@ -346,7 +402,6 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   }
 }
 
-
 /**
  * An in-memory implementation of [Resource].
  */
@@ -355,9 +410,6 @@ abstract class _MemoryResource implements Resource {
   final String path;
 
   _MemoryResource(this._provider, this.path);
-
-  @override
-  bool get exists => _provider._pathToResource.containsKey(path);
 
   @override
   get hashCode => path.hashCode;

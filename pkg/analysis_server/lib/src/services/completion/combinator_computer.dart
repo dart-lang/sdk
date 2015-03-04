@@ -6,8 +6,8 @@ library services.completion.computer.dart.combinator;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' hide Element,
-    ElementKind;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -39,8 +39,8 @@ class CombinatorComputer extends DartCompletionComputer {
  * A visitor for determining which imported classes and top level variables
  * should be suggested and building those suggestions.
  */
-class _CombinatorAstVisitor extends
-    GeneralizingAstVisitor<_CombinatorSuggestionBuilder> {
+class _CombinatorAstVisitor
+    extends GeneralizingAstVisitor<_CombinatorSuggestionBuilder> {
   final DartCompletionRequest request;
 
   _CombinatorAstVisitor(this.request);
@@ -48,8 +48,7 @@ class _CombinatorAstVisitor extends
   @override
   _CombinatorSuggestionBuilder visitCombinator(Combinator node) {
     return new _CombinatorSuggestionBuilder(
-        request,
-        CompletionSuggestionKind.IDENTIFIER);
+        request, CompletionSuggestionKind.IDENTIFIER);
   }
 
   @override
@@ -70,9 +69,8 @@ class _CombinatorAstVisitor extends
  * and calculates the suggestions during `computeFull`.
  */
 class _CombinatorSuggestionBuilder extends LibraryElementSuggestionBuilder {
-
-  _CombinatorSuggestionBuilder(DartCompletionRequest request,
-      CompletionSuggestionKind kind)
+  _CombinatorSuggestionBuilder(
+      DartCompletionRequest request, CompletionSuggestionKind kind)
       : super(request, kind);
 
   Future<bool> execute(AstNode node) {

@@ -1001,6 +1001,8 @@ class Class : public Object {
   // not overlapping with the type arguments of the super class of this class.
   intptr_t NumOwnTypeArguments() const;
 
+  bool IsGeneric() const;
+
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t type_arguments_field_offset() const {
@@ -2170,6 +2172,20 @@ class Function : public Object {
   bool IsSyncGenClosure() const {
     return is_generated_body() &&
         Function::Handle(parent_function()).IsSyncGenerator();
+  }
+
+  bool IsGeneratorClosure() const {
+    return is_generated_body() &&
+        Function::Handle(parent_function()).IsGenerator();
+  }
+
+  bool IsAsyncGenerator() const {
+    return modifier() == RawFunction::kAsyncGen;
+  }
+
+  bool IsAsyncGenClosure() const {
+    return is_generated_body() &&
+        Function::Handle(parent_function()).IsAsyncGenerator();
   }
 
   bool IsAsyncOrGenerator() const {
@@ -4181,6 +4197,10 @@ class Code : public Object {
   void set_lazy_deopt_pc_offset(intptr_t pc) const {
     StoreNonPointer(&raw_ptr()->lazy_deopt_pc_offset_, pc);
   }
+
+  bool IsAllocationStubCode() const;
+  bool IsStubCode() const;
+  bool IsFunctionCode() const;
 
  private:
   void set_state_bits(intptr_t bits) const;
@@ -6949,7 +6969,7 @@ class TypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return element_size[ElementType(class_id)];
+    return element_size(ElementType(class_id));
   }
 
   static TypedDataElementType ElementType(intptr_t class_id) {
@@ -7030,7 +7050,15 @@ class TypedData : public Instance {
   }
 
  private:
-  static const intptr_t element_size[];
+  static intptr_t element_size(intptr_t index) {
+    ASSERT(0 <= index && index < kNumElementSizes);
+    intptr_t size = element_size_table[index];
+    ASSERT(size != 0);
+    return size;
+  }
+  static const intptr_t kNumElementSizes =
+      kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid + 1;
+  static const intptr_t element_size_table[kNumElementSizes];
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, Instance);
   friend class Class;
@@ -7107,7 +7135,7 @@ class ExternalTypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return TypedData::element_size[ElementType(class_id)];
+    return TypedData::element_size(ElementType(class_id));
   }
 
   static TypedDataElementType ElementType(intptr_t class_id) {
@@ -7200,8 +7228,7 @@ class TypedDataView : public AllStatic {
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
     return (class_id == kByteDataViewCid) ?
-        TypedData::element_size[kTypedDataInt8ArrayCid] :
-        TypedData::element_size[class_id - kTypedDataInt8ArrayViewCid];
+        1 : TypedData::element_size(class_id - kTypedDataInt8ArrayViewCid);
   }
 
  private:

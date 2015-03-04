@@ -2132,7 +2132,7 @@ main() => new A();""",
 """
 class A {
   A();
-  factory A.a() async* => new A();
+  factory A.a() async* {}
 }
 main() => new A.a();"""]);
 
@@ -2175,6 +2175,23 @@ main() async* {
 main() sync* {
  var yield;
 }"""]);
+
+  static const MessageKind RETURN_IN_GENERATOR =
+      const MessageKind(
+          "'return' with a value is not allowed in a method body using the "
+          "'#{modifier}' modifier.",
+          howToFix: "Try removing the value, replacing 'return' with 'yield' "
+                    "or changing the method body modifier.",
+          examples: const [
+"""
+foo() async* { return 0; }
+main() => foo();
+""",
+
+"""
+foo() sync* { return 0; }
+main() => foo();
+"""]);
 
   static const MessageKind NATIVE_NOT_SUPPORTED = const MessageKind(
       "'native' modifier is not supported.",
@@ -2381,6 +2398,12 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 *    http://dartlang.org/dart2js-reflection
 ****************************************************************
 ''');
+
+
+  static const MessageKind MIRRORS_LIBRARY_NEW_EMITTER =
+      const MessageKind(
+          "dart:mirrors library is not supported when using the new emitter "
+            "(DART_VM_OPTIONS='-Ddart2js.use.new.emitter=true')");
 
   static const MessageKind CALL_NOT_SUPPORTED_ON_NATIVE_CLASS =
       const MessageKind(

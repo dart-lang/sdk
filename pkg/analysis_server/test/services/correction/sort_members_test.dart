@@ -11,12 +11,10 @@ import 'package:unittest/unittest.dart';
 import '../../abstract_single_unit.dart';
 import '../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(SortMembersTest);
 }
-
 
 @reflectiveTest
 class SortMembersTest extends AbstractSingleUnitTest {
@@ -483,7 +481,7 @@ typedef FC();
 import 'dart:a';
 import 'package:b';
 
-main() {
+foo() {
 }
 
 f() => null;
@@ -496,8 +494,28 @@ import 'package:b';
 
 f() => null;
 
-main() {
+foo() {
 }
+''');
+  }
+
+  void test_unitMembers_mainFirst() {
+    _parseTestUnit(r'''
+class C {}
+aaa() {}
+get bbb() {}
+class A {}
+main() {}
+class B {}
+''');
+    // validate change
+    _assertSort(r'''
+main() {}
+get bbb() {}
+aaa() {}
+class A {}
+class B {}
+class C {}
 ''');
   }
 

@@ -5,8 +5,8 @@
 
 library int32x4_test;
 
-import 'package:expect/expect.dart';
 import 'dart:typed_data';
+import 'package:expect/expect.dart';
 
 void testBadArguments() {
   Expect.throws(() => new Int32x4(null, 2, 3, 4),

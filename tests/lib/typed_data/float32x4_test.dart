@@ -6,8 +6,8 @@
 // Library tag to be able to run in html test framework.
 library float32x4_test;
 
-import "package:expect/expect.dart";
 import 'dart:typed_data';
+import "package:expect/expect.dart";
 
 testAdd() {
   var m = new Float32x4(-1.0, -2.0, -3.0, -4.0);

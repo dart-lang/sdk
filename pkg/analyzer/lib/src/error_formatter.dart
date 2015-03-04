@@ -28,8 +28,8 @@ class ErrorFormatter {
 
   ErrorFormatter(this.out, this.options, [this.errorFilter = _anyError]);
 
-  void formatError(Map<AnalysisError, LineInfo> errorToLine,
-      AnalysisError error) {
+  void formatError(
+      Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
     LineInfo_Location location = errorToLine[error].getLocation(error.offset);
     int length = error.length;
@@ -91,8 +91,7 @@ class ErrorFormatter {
         return compare;
       }
       // path
-      compare = Comparable.compare(
-          error1.source.fullName.toLowerCase(),
+      compare = Comparable.compare(error1.source.fullName.toLowerCase(),
           error2.source.fullName.toLowerCase());
       if (compare != 0) {
         return compare;

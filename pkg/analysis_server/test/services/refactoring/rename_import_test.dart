@@ -11,12 +11,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(RenameImportTest);
 }
-
 
 @reflectiveTest
 class RenameImportTest extends RenameRefactoringTest {
@@ -27,14 +25,12 @@ class RenameImportTest extends RenameRefactoringTest {
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Import prefix name must not be null.");
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
     // empty
     refactoring.newName = '';

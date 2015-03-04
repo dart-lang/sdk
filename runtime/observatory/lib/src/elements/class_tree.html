@@ -8,86 +8,18 @@
     <link rel="stylesheet" href="css/shared.css">
     <style>
       .table {
-        border-collapse: collapse!important;
+        border-spacing: 0px;
         width: 100%;
         margin-bottom: 20px
-      }
-      .table thead > tr > th,
-      .table tbody > tr > th,
-      .table tfoot > tr > th,
-      .table thead > tr > td,
-      .table tbody > tr > td,
-      .table tfoot > tr > td {
-        padding: 8px;
-        vertical-align: top;
-      }
-      .table thead > tr > th {
-        vertical-align: bottom;
-        text-align: left;
-        border-bottom:2px solid #ddd;
+      vertical-align: middle;
       }
 
-      tr:hover > td {
-        background-color: #FFF3E3;
-      }
-      .rowColor0 {
-        background-color: #FFE9CC;
-      }
-      .rowColor1 {
-        background-color: #FFDEB2;
-      }
-      .rowColor2 {
-        background-color: #FFD399;
-      }
-      .rowColor3 {
-        background-color: #FFC87F;
-      }
-      .rowColor4 {
-        background-color: #FFBD66;
-      }
-      .rowColor5 {
-        background-color: #FFB24C;
-      }
-      .rowColor6 {
-        background-color: #FFA733;
-      }
-      .rowColor7 {
-        background-color: #FF9C19;
-      }
-      .rowColor8 {
-        background-color: #FF9100;
+      tr {
+        background-color: #FFFFFF;
       }
 
-      .tooltip {
-        display: block;
-        position: absolute;
-        visibility: hidden;
-        opacity: 0;
-        transition: visibility 0s linear 0.5s;
-        transition: opacity .4s ease-in-out;
-      }
-
-      tr:hover .tooltip {
-        display: block;
-        position: absolute;
-        top: 100%;
-        right: 100%;
-        visibility: visible;
-        z-index: 999;
-        width: 400px;
-        color: #ffffff;
-        background-color: #0489c3;
-        border-top-right-radius: 8px;
-        border-top-left-radius: 8px;
-        border-bottom-right-radius: 8px;
-        border-bottom-left-radius: 8px;
-        transition: visibility 0s linear 0.5s;
-        transition: opacity .4s ease-in-out;
-        opacity: 1;
-      }
-
-      .white {
-        color: #ffffff;
+      tr:hover {
+        background-color: #FAFAFA;
       }
     </style>
     <nav-bar>

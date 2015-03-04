@@ -9,6 +9,7 @@ import logging.config
 import os.path
 import sys
 import time
+import utilities
 
 _logger = logging.getLogger('fremontcutbuilder')
 
@@ -77,6 +78,8 @@ def build_database(idl_files, database_dir, feature_defines=None,
     rename_operation_arguments_on_merge=True,
     logging_level=logging_level)
 
+  utilities.KNOWN_COMPONENTS = frozenset(['core', 'modules', 'dart'])
+
   builder.import_idl_files(
       [ os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl') ],
       dart_options, True)
@@ -91,6 +94,9 @@ def build_database(idl_files, database_dir, feature_defines=None,
 
   # Cleanup:
   builder.normalize_annotations(['WebKit', 'Dart'])
+
+  # Map any IDL defined dictionaries to Dictionary.
+  builder.map_dictionaries()
 
   conditionals_met = set(
       'ENABLE_' + conditional for conditional in builder.conditionals_met)

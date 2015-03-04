@@ -7,6 +7,7 @@ library services.completion.computer.dart.invocation;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -64,8 +65,8 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
       node = (node as PropertyAccess).realTarget;
     }
     if (node is Identifier && node.bestElement is ClassElement) {
-      node.bestElement.accept(
-          new _PrefixedIdentifierSuggestionBuilder(request));
+      node.bestElement
+          .accept(new _PrefixedIdentifierSuggestionBuilder(request));
       return new Future.value(true);
     }
     if (node is Expression) {
@@ -121,12 +122,125 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
 }
 
 /**
+ * An [AstVisitor] which looks for a declaration with the given name
+ * and if found, tries to determine a type for that declaration.
+ */
+class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
+
+  /**
+   * The name for the declaration to be found.
+   */
+  final String targetName;
+
+  /**
+   * The best type for the found declaration,
+   * or `null` if no declaration found or failed to determine a type.
+   */
+  DartType typeFound;
+
+  /**
+   * Construct a new instance to search for a declaration
+   */
+  _LocalBestTypeVisitor(this.targetName, int offset) : super(offset);
+
+  @override
+  void declaredClass(ClassDeclaration declaration) {
+    if (declaration.name.name == targetName) {
+      // no type
+      finished();
+    }
+  }
+
+  @override
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {
+    if (declaration.name.name == targetName) {
+      // no type
+      finished();
+    }
+  }
+
+  @override
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
+    if (varDecl.name.name == targetName) {
+      // Type provided by the element in computeFull above
+      finished();
+    }
+  }
+
+  @override
+  void declaredFunction(FunctionDeclaration declaration) {
+    if (declaration.name.name == targetName) {
+      TypeName typeName = declaration.returnType;
+      if (typeName != null) {
+        typeFound = typeName.type;
+      }
+      finished();
+    }
+  }
+
+  @override
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
+    if (declaration.name.name == targetName) {
+      TypeName typeName = declaration.returnType;
+      if (typeName != null) {
+        typeFound = typeName.type;
+      }
+      finished();
+    }
+  }
+
+  @override
+  void declaredLabel(Label label, bool isCaseLabel) {
+    if (label.label.name == targetName) {
+      // no type
+      finished();
+    }
+  }
+
+  @override
+  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
+    if (name.name == targetName) {
+      typeFound = name.bestType;
+      finished();
+    }
+  }
+
+  @override
+  void declaredMethod(MethodDeclaration declaration) {
+    if (declaration.name.name == targetName) {
+      TypeName typeName = declaration.returnType;
+      if (typeName != null) {
+        typeFound = typeName.type;
+      }
+      finished();
+    }
+  }
+
+  @override
+  void declaredParam(SimpleIdentifier name, TypeName type) {
+    if (name.name == targetName) {
+      // Type provided by the element in computeFull above
+      finished();
+    }
+  }
+
+  @override
+  void declaredTopLevelVar(
+      VariableDeclarationList varList, VariableDeclaration varDecl) {
+    if (varDecl.name.name == targetName) {
+      // Type provided by the element in computeFull above
+      finished();
+    }
+  }
+}
+
+/**
  * An [Element] visitor for determining the appropriate invocation/access
  * suggestions based upon the element for which the completion is requested.
  */
-class _PrefixedIdentifierSuggestionBuilder extends
-    GeneralizingElementVisitor<Future<bool>> implements SuggestionBuilder {
-
+class _PrefixedIdentifierSuggestionBuilder
+    extends GeneralizingElementVisitor<Future<bool>>
+    implements SuggestionBuilder {
   final DartCompletionRequest request;
 
   _PrefixedIdentifierSuggestionBuilder(this.request);
@@ -151,12 +265,26 @@ class _PrefixedIdentifierSuggestionBuilder extends
       if (prefix != null) {
         Element element = prefix.bestElement;
         DartType type = prefix.bestType;
-        if (element is! ClassElement && type != null && !type.isDynamic) {
-          InterfaceTypeSuggestionBuilder.suggestionsFor(
-              request,
-              type);
-          return new Future.value(true);
-        } else if (element != null) {
+        if (element is! ClassElement) {
+          if (type == null || type.isDynamic) {
+            //
+            // Given `g. int y = 0;`, the parser interprets `g` as a prefixed
+            // identifier with no type.
+            // If the user is requesting completions for `g`,
+            // then check for a function, getter, or similar with a type.
+            //
+            _LocalBestTypeVisitor visitor =
+                new _LocalBestTypeVisitor(prefix.name, request.offset);
+            if (visitor.visit(prefix)) {
+              type = visitor.typeFound;
+            }
+          }
+          if (type != null && !type.isDynamic) {
+            InterfaceTypeSuggestionBuilder.suggestionsFor(request, type);
+            return new Future.value(true);
+          }
+        }
+        if (element != null) {
           return element.accept(this);
         }
       }
@@ -170,8 +298,7 @@ class _PrefixedIdentifierSuggestionBuilder extends
       InterfaceType type = element.type;
       if (type != null) {
         StaticClassElementSuggestionBuilder.suggestionsFor(
-            request,
-            type.element);
+            request, type.element);
       }
     }
     return new Future.value(false);
@@ -188,21 +315,20 @@ class _PrefixedIdentifierSuggestionBuilder extends
     // once that accessor is implemented and available in Dart
     bool modified = false;
     // Find the import directive with the given prefix
-    request.unit.directives.forEach((Directive directive) {
+    for (Directive directive in request.unit.directives) {
       if (directive is ImportDirective) {
         if (directive.prefix != null) {
           if (directive.prefix.name == element.name) {
             // Suggest elements from the imported library
             LibraryElement library = directive.uriElement;
             LibraryElementSuggestionBuilder.suggestionsFor(
-                request,
-                CompletionSuggestionKind.INVOCATION,
-                library);
+                request, CompletionSuggestionKind.INVOCATION, library);
             modified = true;
           }
         }
       }
-    });
+    }
+    ;
     return new Future.value(modified);
   }
 

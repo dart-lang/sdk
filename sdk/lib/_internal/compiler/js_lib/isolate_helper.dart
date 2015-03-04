@@ -52,7 +52,8 @@ part 'isolate_serialization.dart';
  */
 _callInIsolate(_IsolateContext isolate, Function function) {
   var result = isolate.eval(function);
-  _globalState.topEventLoop.run();
+  // If we are not already running the event-loop start it now.
+  if (!_currentIsolate()._isExecutingEvent) _globalState.topEventLoop.run();
   return result;
 }
 
@@ -452,6 +453,7 @@ class _IsolateContext implements IsolateContext {
     _globalState.currentContext = this;
     this._setGlobals();
     var result = null;
+    var oldIsExecutingEvent = _isExecutingEvent;
     _isExecutingEvent = true;
     try {
       result = code();
@@ -465,7 +467,7 @@ class _IsolateContext implements IsolateContext {
         }
       }
     } finally {
-      _isExecutingEvent = false;
+      _isExecutingEvent = oldIsExecutingEvent;
       _globalState.currentContext = old;
       if (old != null) old._setGlobals();
       if (_scheduledControlEvents != null) {
@@ -661,7 +663,7 @@ class _EventLoop {
   }
 
   /**
-   * Call [_runHelper] but ensure that worker exceptions are propragated.
+   * Call [_runHelper] but ensure that worker exceptions are propagated.
    */
   void run() {
     if (!_globalState.isWorker) {

@@ -467,12 +467,12 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildLetTempExpressions(LetNode* node);
 
-  void BuildYieldJump(LocalVariable* old_context,
-                      LocalVariable* iterator_param,
-                      const intptr_t old_ctx_level,
-                      JoinEntryInstr* target);
+  void BuildSyncYieldJump(LocalVariable* old_context,
+                          LocalVariable* iterator_param,
+                          const intptr_t old_ctx_level,
+                          JoinEntryInstr* target);
 
-  void BuildAwaitJump(LocalVariable* old_context,
+  void BuildAsyncJump(LocalVariable* old_context,
                       LocalVariable* continuation_result,
                       LocalVariable* continuation_error,
                       LocalVariable* continuation_stack_trace,

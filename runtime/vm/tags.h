@@ -23,6 +23,7 @@ class RuntimeEntry;
   V(Dart)                                                                      \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
+  V(Embedder)                                                                  \
   V(Runtime)                                                                   \
   V(Native)                                                                    \
 
@@ -35,6 +36,9 @@ class VMTag : public AllStatic {
     VM_TAG_LIST(DEFINE_VM_TAG_ID)
 #undef DEFINE_VM_TAG_KIND
     kNumVMTags,
+    kRootTagId,       // Special tag used as root of all profiles.
+    kTruncatedTagId,  // Special tag used to indicate a truncated call stack.
+    kLastTagId,
   };
 
   static bool IsVMTag(uword id) {
@@ -87,7 +91,7 @@ class VMTagCounters {
 class UserTags : public AllStatic {
  public:
   // UserTag id space: [kUserTagIdOffset, kUserTagIdOffset + kMaxUserTags).
-  static const intptr_t kMaxUserTags = 64;
+  static const intptr_t kMaxUserTags = 256;
   static const uword kUserTagIdOffset = 0x4096;
   static const uword kDefaultUserTag = kUserTagIdOffset;
   static const char* TagName(uword tag_id);

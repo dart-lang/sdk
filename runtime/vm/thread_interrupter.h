@@ -18,6 +18,7 @@ struct InterruptedThreadState {
   uintptr_t csp;
   uintptr_t dsp;
   uintptr_t fp;
+  uintptr_t lr;
 };
 
 // When a thread is interrupted the thread specific interrupt callback will be

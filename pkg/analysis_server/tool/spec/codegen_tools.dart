@@ -117,8 +117,8 @@ class CodeGenerator {
    * The first line of output is indented by [firstAdditionalIndent] instead of
    * [additionalIndent].
    */
-  void indentSpecial(String firstAdditionalIndent, String additionalIndent, void
-      callback()) {
+  void indentSpecial(
+      String firstAdditionalIndent, String additionalIndent, void callback()) {
     String oldNextIndent = _state.nextIndent;
     String oldIndent = _state.indent;
     try {
@@ -237,9 +237,10 @@ class CodeGeneratorSettings {
    */
   int commentLineLength;
 
-  CodeGeneratorSettings({this.languageName: 'java', this.lineCommentLineLeader:
-      '// ', this.docCommentStartMarker: '/**', this.docCommentLineLeader: ' * ',
-      this.docCommentEndMarker: ' */', this.commentLineLength: 99});
+  CodeGeneratorSettings({this.languageName: 'java',
+      this.lineCommentLineLeader: '// ', this.docCommentStartMarker: '/**',
+      this.docCommentLineLeader: ' * ', this.docCommentEndMarker: ' */',
+      this.commentLineLength: 99});
 }
 
 abstract class GeneratedContent {
@@ -290,9 +291,8 @@ class GeneratedDirectory extends GeneratedContent {
         }
       }
       int nonHiddenFileCount = 0;
-      outputFile.listSync(
-          recursive: false,
-          followLinks: false).forEach((FileSystemEntity fileSystemEntity) {
+      outputFile.listSync(recursive: false, followLinks: false).forEach(
+          (FileSystemEntity fileSystemEntity) {
         if (fileSystemEntity is File &&
             !basename(fileSystemEntity.path).startsWith('.')) {
           nonHiddenFileCount++;

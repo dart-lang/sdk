@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -269,6 +269,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
 
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.
+  self.self = self
   self.dartMainRunner = function(main, args) {
     // Initialize.
     var action = function() { main(args); }
@@ -279,5 +280,14 @@ if (typeof global != "undefined") self = global;  // Node.js.
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
-  self.self = self;
+
+  // Support for deferred loading.
+  self.dartDeferredLibraryLoader = function(uri, successCallback, errorCallback) {
+    try {
+      load(uri);
+      successCallback();
+    } catch (error) {
+      errorCallback(error);
+    }
+  };
 })(self);

@@ -12,7 +12,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 abstract class SearchFilter {
   bool passes(SearchMatch match);
 }
@@ -22,10 +21,7 @@ class SearchMatch {
   final SourceRange sourceRange = null;
 }
 
-
-class SearchEngine {
-}
-
+class SearchEngine {}
 
 class SourceRangeFactory {
   static SourceRange rangeElementName(Element element) {
@@ -83,7 +79,6 @@ class SourceRangeFactory {
   }
 }
 
-
 class StringUtils {
   static String capitalize(String str) {
     if (isEmpty(str)) {
@@ -106,8 +101,8 @@ class StringUtils {
     return str == null || str.isEmpty;
   }
 
-  static String join(Iterable iter, [String separator = ' ', int start = 0, int
-      end = -1]) {
+  static String join(Iterable iter,
+      [String separator = ' ', int start = 0, int end = -1]) {
     if (start != 0) {
       iter = iter.skip(start);
     }
@@ -146,8 +141,8 @@ class StringUtils {
     return s.split(pattern);
   }
 
-  static List<String> splitByWholeSeparatorPreserveAllTokens(String s, String
-      pattern) {
+  static List<String> splitByWholeSeparatorPreserveAllTokens(
+      String s, String pattern) {
     return s.split(pattern);
   }
 }

@@ -26,11 +26,113 @@ class _EnumHelper {
   String toString() => _enum_names[index];
 }
 
-typedef bool SyncGeneratorCallback(Iterator iterator);
+
+// _AsyncStarStreamController is used by the compiler to implement
+// async* generator functions.
+class _AsyncStarStreamController {
+  StreamController controller;
+  Function asyncStarBody;
+  bool isAdding = false;
+  bool onListenReceived = false;
+  bool isScheduled = false;
+
+  Stream get stream => controller.stream;
+
+  void runBody() {
+    isScheduled = false;
+    asyncStarBody();
+  }
+
+  void scheduleGenerator() {
+    if (isScheduled || controller.isPaused || isAdding) {
+      return;
+    }
+    isScheduled = true;
+    scheduleMicrotask(runBody);
+  }
+
+  // Adds element to steam, returns true if the caller should terminate
+  // execution of the generator.
+  //
+  // TODO(hausner): Per spec, the generator should be suspended before
+  // exiting when the stream is closed. We could add a getter like this:
+  // get isCancelled => controller.hasListener;
+  // The generator would translate a 'yield e' statement to
+  // controller.add(e);
+  // suspend;
+  // if (controller.isCanelled) return;
+  bool add(event) {
+    if (!onListenReceived) _fatal("yield before stream is listened to!");
+    // If stream is cancelled, tell caller to exit the async generator.
+    if (!controller.hasListener) {
+      return true;
+    }
+    controller.add(event);
+    scheduleGenerator();
+    return false;
+  }
+
+  // Adds the elements of stream into this controller's stream.
+  // The generator will be scheduled again when all of the
+  // elements of the added stream have been consumed.
+  // Returns true if the caller should terminate
+  // execution of the generator.
+  bool addStream(Stream stream) {
+    if (!onListenReceived) _fatal("yield before stream is listened to!");
+    // If stream is cancelled, tell caller to exit the async generator.
+    if (!controller.hasListener) return true;
+    isAdding = true;
+    var whenDoneAdding =
+        controller.addStream(stream as Stream, cancelOnError: false);
+    whenDoneAdding.then((_) {
+      isAdding = false;
+      scheduleGenerator();
+    });
+    return false;
+  }
+
+  void addError(error, stackTrace) {
+    // If stream is cancelled, tell caller to exit the async generator.
+    if (!controller.hasListener) return;
+    controller.addError(error, stackTrace);
+    // No need to schedule the generator body here. This code is only
+    // called from the catch clause of the implicit try-catch-finally
+    // around the generator body. That is, we are on the error path out
+    // of the generator and do not need to run the generator again.
+  }
+
+  close() {
+    controller.close();
+  }
+
+  _AsyncStarStreamController(this.asyncStarBody) {
+    controller = new StreamController(onListen: this.onListen,
+                                      onResume: this.onResume,
+                                      onCancel: this.onCancel);
+  }
+
+  onListen() {
+    assert(!onListenReceived);
+    onListenReceived = true;
+    scheduleGenerator();
+  }
+
+  onResume() {
+    scheduleGenerator();
+  }
+
+  onCancel() {
+    scheduleGenerator();
+  }
+}
+
 
 // _SyncIterable and _syncIterator are used by the compiler to
 // implement sync* generator functions. A sync* generator allocates
 // and returns a new _SyncIterable object.
+
+typedef bool SyncGeneratorCallback(Iterator iterator);
+
 class _SyncIterable extends IterableBase {
   // moveNextFn is the closurized body of the generator function.
   final SyncGeneratorCallback moveNextFn;

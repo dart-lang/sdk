@@ -7,12 +7,13 @@
 
 library engine.source.io;
 
+import 'dart:collection';
+
 import 'engine.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'java_io.dart';
 import 'source.dart';
-import 'utilities_general.dart';
 
 export 'source.dart';
 
@@ -93,9 +94,23 @@ class FileBasedSource extends Source {
   static Function fileReadMode = (String s) => s;
 
   /**
+   * Map from encoded URI/filepath pair to a unique integer identifier.  This
+   * identifier is used for equality tests and hash codes.
+   *
+   * The URI and filepath are joined into a pair by separating them with an '@'
+   * character.
+   */
+  static final Map<String, int> _idTable = new HashMap<String, int>();
+
+  /**
    * The URI from which this source was originally derived.
    */
   final Uri uri;
+
+  /**
+   * The unique ID associated with this [FileBasedSource].
+   */
+  final int id;
 
   /**
    * The file represented by this source.
@@ -125,7 +140,11 @@ class FileBasedSource extends Source {
    * @param file the file represented by this source
    * @param uri the URI from which this source was originally derived
    */
-  FileBasedSource.con2(this.uri, this.file);
+  FileBasedSource.con2(Uri uri, JavaFile file)
+      : uri = uri,
+        file = file,
+        id = _idTable.putIfAbsent(
+            '$uri@${file.getPath()}', () => _idTable.length);
 
   @override
   TimestampedData<String> get contents {
@@ -147,8 +166,7 @@ class FileBasedSource extends Source {
    */
   TimestampedData<String> get contentsFromFile {
     return new TimestampedData<String>(
-        file.lastModified(),
-        fileReadMode(file.readAsStringSync()));
+        file.lastModified(), fileReadMode(file.readAsStringSync()));
   }
 
   @override
@@ -168,7 +186,7 @@ class FileBasedSource extends Source {
   }
 
   @override
-  int get hashCode => file.hashCode;
+  int get hashCode => id;
 
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
@@ -194,7 +212,7 @@ class FileBasedSource extends Source {
 
   @override
   bool operator ==(Object object) =>
-      object is FileBasedSource && uri == object.uri;
+      object is FileBasedSource && id == object.id;
 
   @override
   bool exists() => file.isFile();
@@ -214,8 +232,8 @@ class FileBasedSource extends Source {
       }
       Uri result = baseUri.resolveUri(containedUri);
       if (isOpaque) {
-        result =
-            parseUriWithException("${result.scheme}:${result.path.substring(1)}");
+        result = parseUriWithException(
+            "${result.scheme}:${result.path.substring(1)}");
       }
       return result;
     } catch (exception, stackTrace) {
@@ -365,26 +383,23 @@ class PackageUriResolver extends UriResolver {
    *          but may be empty string)
    * @return the file (not `null`)
    */
-  JavaFile getCanonicalFile(JavaFile packagesDirectory, String pkgName,
-      String relPath) {
+  JavaFile getCanonicalFile(
+      JavaFile packagesDirectory, String pkgName, String relPath) {
     JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
     } on JavaIOException catch (exception, stackTrace) {
       if (!exception.toString().contains("Required key not available")) {
-        AnalysisEngine.instance.logger.logError(
-            "Canonical failed: $pkgDir",
+        AnalysisEngine.instance.logger.logError("Canonical failed: $pkgDir",
             new CaughtException(exception, stackTrace));
       } else if (_CanLogRequiredKeyIoException) {
         _CanLogRequiredKeyIoException = false;
-        AnalysisEngine.instance.logger.logError(
-            "Canonical failed: $pkgDir",
+        AnalysisEngine.instance.logger.logError("Canonical failed: $pkgDir",
             new CaughtException(exception, stackTrace));
       }
     }
-    return new JavaFile.relative(
-        pkgDir,
-        relPath.replaceAll('/', new String.fromCharCode(JavaFile.separatorChar)));
+    return new JavaFile.relative(pkgDir, relPath.replaceAll(
+        '/', new String.fromCharCode(JavaFile.separatorChar)));
   }
 
   @override
@@ -426,8 +441,7 @@ class PackageUriResolver extends UriResolver {
       }
     }
     return new FileBasedSource.con2(
-        uri,
-        getCanonicalFile(_packagesDirectories[0], pkgName, relPath));
+        uri, getCanonicalFile(_packagesDirectories[0], pkgName, relPath));
   }
 
   @override
@@ -444,8 +458,7 @@ class PackageUriResolver extends UriResolver {
               return parseUriWithException(
                   "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
-          } catch (e) {
-          }
+          } catch (e) {}
         }
       }
     }

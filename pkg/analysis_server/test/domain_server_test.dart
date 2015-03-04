@@ -22,14 +22,9 @@ main() {
   setUp(() {
     var serverChannel = new MockServerChannel();
     var resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        new MockPackageMapProvider(),
-        null,
-        new AnalysisServerOptions(),
-        new MockSdk(),
-        InstrumentationService.NULL_SERVICE);
+    server = new AnalysisServer(serverChannel, resourceProvider,
+        new MockPackageMapProvider(), null, new AnalysisServerOptions(),
+        new MockSdk(), InstrumentationService.NULL_SERVICE);
     handler = new ServerDomainHandler(server);
   });
 
@@ -39,17 +34,14 @@ main() {
       var response = handler.handleRequest(request);
       expect(response.toJson(), equals({
         Response.ID: '0',
-        Response.RESULT: {
-          VERSION: AnalysisServer.VERSION
-        }
+        Response.RESULT: {VERSION: AnalysisServer.VERSION}
       }));
     });
 
     group('setSubscriptions', () {
       test('invalid service name', () {
-        Request request = new Request('0', SERVER_SET_SUBSCRIPTIONS, {
-          SUBSCRIPTIONS: ['noSuchService']
-        });
+        Request request = new Request(
+            '0', SERVER_SET_SUBSCRIPTIONS, {SUBSCRIPTIONS: ['noSuchService']});
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
       });
@@ -58,7 +50,8 @@ main() {
         expect(server.serverServices, isEmpty);
         // send request
         Request request =
-            new ServerSetSubscriptionsParams([ServerService.STATUS]).toRequest('0');
+            new ServerSetSubscriptionsParams([ServerService.STATUS])
+                .toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
         // set of services has been changed

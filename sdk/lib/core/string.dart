@@ -477,6 +477,19 @@ abstract class String implements Comparable<String>, Pattern {
   String replaceAllMapped(Pattern from, String replace(Match match));
 
   /**
+   * Replaces the substring from [start] to [end] with [replacement].
+   *
+   * Returns a new string equivalent to:
+   *
+   *     this.substring(0, start) + replacement + this.substring(end)
+   *
+   * The [start] and [end] indices must specify a valid range of this string.
+   * That is `0 <= start <= end <= this.length`.
+   * If [end] is `null`, it defaults to [length].
+   */
+  String replaceRange(int start, int end, String replacement);
+
+  /**
    * Splits the string at matches of [pattern] and returns a list of substrings.
    *
    * Finds all the matches of `pattern` in this string,

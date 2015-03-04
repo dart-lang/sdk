@@ -90,14 +90,21 @@ List<Map> getCombinations() {
   return COMBINATIONS[Platform.operatingSystem];
 }
 
-void ensureBuild(Iterable<String> archs) {
+void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
   print('Building many platforms. Please be patient.');
 
   var archString = '-a${archs.join(',')}';
 
-  var args = ['tools/build.py', '-mrelease,debug', archString, 'create_sdk',
+  var modeString = '-m${modes.join(',')}';
+
+  var args = [
+    'tools/build.py',
+    modeString,
+    archString,
+    'create_sdk',
     // We build runtime to be able to list cc tests
-    'runtime'];
+    'runtime'
+  ];
 
   print('Running: python ${args.join(" ")}');
 
@@ -134,17 +141,33 @@ void sanityCheck(String output) {
 void main(List<String> args) {
   var combinations = getCombinations();
 
-  var arches = combinations.fold(new Set<String>(), (set, value) {
-    set.addAll(value['archs']);
-    return set;
-  });
+  var arches = new Set<String>();
+  var modes = new Set<String>();
 
-  ensureBuild(arches);
+  if (args.contains('--simple')) {
+    arches = ['ia32'].toSet();
+    modes = ['release'].toSet();
+  } else {
+    for (var combo in combinations) {
+      arches.addAll(combo['archs']);
+      modes.addAll(combo['modes']);
+    }
+  }
+
+  ensureBuild(modes, arches);
 
   List<String> keys;
   for (var combination in combinations) {
     for (var mode in combination['modes']) {
+      if (!modes.contains(mode)) {
+        continue;
+      }
+
       for (var arch in combination['archs']) {
+        if (!arches.contains(arch)) {
+          continue;
+        }
+
         for (var runtime in combination['runtimes']) {
           var compiler = combination['compiler'];
 

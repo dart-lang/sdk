@@ -98,7 +98,19 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
       }
     }
     String body = indentBlock(() => visit(node.body));
-    return '$indentation($LetCont ($conts)\n$body)';
+    return '$indentation(LetCont ($conts)\n$body)';
+  }
+
+  String visitLetHandler(LetHandler node) {
+    // There are no explicit references to the handler, so we leave it
+    // anonymous in the printed representation.
+    String parameters = node.handler.parameters
+        .map((p) => '${decorator(p, newValueName(p))}')
+        .join(' ');
+    String handlerBody =
+        indentBlock(() => indentBlock(() => visit(node.handler.body)));
+    String body = indentBlock(() => visit(node.body));
+    return '$indentation(LetHandler (($parameters)\n$handlerBody)\n$body)';
   }
 
   String visitLetMutable(LetMutable node) {
@@ -315,19 +327,27 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   }
 
   String visitList(ListConstantValue constant, _) {
-    return _failWith(constant);
+    String entries =
+      constant.entries.map((entry) => entry.accept(this, _)).join(' ');
+    return '(List $entries)';
   }
 
   String visitMap(MapConstantValue constant, _) {
-    return _failWith(constant);
+    List<String> elements = <String>[];
+    for (int i = 0; i < constant.keys.length; ++i) {
+      ConstantValue key = constant.keys[i];
+      ConstantValue value = constant.values[i];
+      elements.add('(${key.accept(this, _)} . ${value.accept(this, _)})');
+    }
+    return '(Map (${elements.join(' ')}))';
   }
 
   String visitConstructed(ConstructedConstantValue constant, _) {
-    return _failWith(constant);
+    return '(Constructed "${constant.unparse()}")';
   }
 
   String visitType(TypeConstantValue constant, _) {
-    return _failWith(constant);
+    return '(Type "${constant.representedType}")';
   }
 
   String visitInterceptor(InterceptorConstantValue constant, _) {

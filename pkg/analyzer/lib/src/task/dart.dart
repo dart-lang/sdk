@@ -39,17 +39,15 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BUILD_COMPILATION_UNIT_ELEMENT',
-      createTask,
-      buildInputs,
+      'BUILD_COMPILATION_UNIT_ELEMENT', createTask, buildInputs,
       <ResultDescriptor>[COMPILATION_UNIT_ELEMENT, BUILT_UNIT]);
 
   /**
    * Initialize a newly created task to build a compilation unit element for
    * the given [target] in the given [context].
    */
-  BuildCompilationUnitElementTask(InternalAnalysisContext context,
-      AnalysisTarget target)
+  BuildCompilationUnitElementTask(
+      InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
   @override
@@ -81,8 +79,8 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
    * Create a [BuildCompilationUnitElementTask] based on the given [target] in
    * the given [context].
    */
-  static BuildCompilationUnitElementTask createTask(AnalysisContext context,
-      AnalysisTarget target) {
+  static BuildCompilationUnitElementTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
     return new BuildCompilationUnitElementTask(context, target);
   }
 }
@@ -105,17 +103,15 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   /**
    * The task descriptor describing this kind of task.
    */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'PARSE_DART',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[
-          EXPORTED_LIBRARIES,
-          IMPORTED_LIBRARIES,
-          INCLUDED_PARTS,
-          PARSE_ERRORS,
-          PARSED_UNIT,
-          SOURCE_KIND]);
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('PARSE_DART',
+      createTask, buildInputs, <ResultDescriptor>[
+    EXPORTED_LIBRARIES,
+    IMPORTED_LIBRARIES,
+    INCLUDED_PARTS,
+    PARSE_ERRORS,
+    PARSED_UNIT,
+    SOURCE_KIND
+  ]);
 
   /**
    * Initialize a newly created task to parse the content of the Dart file
@@ -136,7 +132,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Parser parser = new Parser(source, errorListener);
     AnalysisOptions options = context.analysisOptions;
-    parser.parseFunctionBodies = options.analyzeFunctionBodies;
+    parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 
@@ -198,8 +194,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
    * Create a [ParseDartTask] based on the given [target] in the given
    * [context].
    */
-  static ParseDartTask createTask(AnalysisContext context,
-      AnalysisTarget target) {
+  static ParseDartTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
     return new ParseDartTask(context, target);
   }
 
@@ -230,22 +226,15 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       return null;
     }
     if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(
-          new AnalysisError.con2(
-              librarySource,
-              uriLiteral.offset,
-              uriLiteral.length,
-              CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      errorListener.onError(new AnalysisError.con2(librarySource,
+          uriLiteral.offset, uriLiteral.length,
+          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     if (code == UriValidationCode.INVALID_URI) {
-      errorListener.onError(
-          new AnalysisError.con2(
-              librarySource,
-              uriLiteral.offset,
-              uriLiteral.length,
-              CompileTimeErrorCode.INVALID_URI,
-              [uriContent]));
+      errorListener.onError(new AnalysisError.con2(librarySource,
+          uriLiteral.offset, uriLiteral.length,
+          CompileTimeErrorCode.INVALID_URI, [uriContent]));
       return null;
     }
     throw new AnalysisException('Failed to handle validation code: $code');
@@ -264,11 +253,12 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   /**
    * The task descriptor describing this kind of task.
    */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'SCAN_DART',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[LINE_INFO, SCAN_ERRORS, TOKEN_STREAM]);
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('SCAN_DART',
+      createTask, buildInputs, <ResultDescriptor>[
+    LINE_INFO,
+    SCAN_ERRORS,
+    TOKEN_STREAM
+  ]);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -299,16 +289,14 @@ class ScanDartTask extends SourceBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the given [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    return <String, TaskInput>{
-      CONTENT_INPUT_NAME: CONTENT.inputFor(target)
-    };
+    return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.inputFor(target)};
   }
 
   /**
    * Create a [ScanDartTask] based on the given [target] in the given [context].
    */
-  static ScanDartTask createTask(AnalysisContext context,
-      AnalysisTarget target) {
+  static ScanDartTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
     return new ScanDartTask(context, target);
   }
 }

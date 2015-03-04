@@ -6,8 +6,8 @@ library services.completion.computer.dart.arglist;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' hide Element,
-    ElementKind;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -39,8 +39,8 @@ class ArgListComputer extends DartCompletionComputer {
  * A visitor for determining whether an argument list suggestion is needed
  * and instantiating the builder to create the suggestion.
  */
-class _ArgListAstVisitor extends
-    GeneralizingAstVisitor<_ArgListSuggestionBuilder> {
+class _ArgListAstVisitor
+    extends GeneralizingAstVisitor<_ArgListSuggestionBuilder> {
   final DartCompletionRequest request;
 
   _ArgListAstVisitor(this.request);
@@ -61,8 +61,8 @@ class _ArgListAstVisitor extends
                * indicating that suggestions were added
                * and no further action is necessary
                */
-              if (node.accept(
-                  new _LocalDeclarationFinder(request, request.offset, name))) {
+              if (new _LocalDeclarationFinder(request, request.offset, name)
+                  .visit(node)) {
                 return null;
               }
             } else {
@@ -104,62 +104,53 @@ class _ArgListSuggestionBuilder {
  * suggestions and sets finished to `true`.
  */
 class _LocalDeclarationFinder extends LocalDeclarationVisitor {
-
   final DartCompletionRequest request;
   final String name;
 
   _LocalDeclarationFinder(this.request, int offset, this.name) : super(offset);
 
   @override
-  void declaredClass(ClassDeclaration declaration) {
-  }
+  void declaredClass(ClassDeclaration declaration) {}
 
   @override
-  void declaredClassTypeAlias(ClassTypeAlias declaration) {
-  }
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {}
 
   @override
-  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-  }
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {}
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
     SimpleIdentifier selector = declaration.name;
     if (selector != null && name == selector.name) {
-      finished = true;
       _addArgListSuggestion(declaration.functionExpression.parameters);
+      finished();
     }
   }
 
   @override
-  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-  }
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {}
 
   @override
-  void declaredLabel(Label label, bool isCaseLabel) {
-  }
+  void declaredLabel(Label label, bool isCaseLabel) {}
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
-  }
+  void declaredLocalVar(SimpleIdentifier name, TypeName type) {}
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
     SimpleIdentifier selector = declaration.name;
     if (selector != null && name == selector.name) {
-      finished = true;
       _addArgListSuggestion(declaration.parameters);
+      finished();
     }
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeName type) {
-  }
+  void declaredParam(SimpleIdentifier name, TypeName type) {}
 
   @override
-  void declaredTopLevelVar(VariableDeclarationList varList,
-      VariableDeclaration varDecl) {
-  }
+  void declaredTopLevelVar(
+      VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
   void _addArgListSuggestion(FormalParameterList parameters) {
     if (parameters.parameters.length == 0) {
@@ -184,13 +175,8 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
     }
     completion.write(')');
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.ARGUMENT_LIST,
-        DART_RELEVANCE_HIGH,
-        completion.toString(),
-        completion.length,
-        0,
-        false,
-        false);
+        CompletionSuggestionKind.ARGUMENT_LIST, DART_RELEVANCE_HIGH,
+        completion.toString(), completion.length, 0, false, false);
     suggestion.parameterNames = paramNames;
     suggestion.parameterTypes = paramTypes;
     request.suggestions.add(suggestion);

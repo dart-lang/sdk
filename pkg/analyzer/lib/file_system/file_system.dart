@@ -10,7 +10,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
-
 /**
  * [File]s are leaf [Resource]s which contain data.
  */
@@ -27,7 +26,6 @@ abstract class File extends Resource {
   Source createSource([Uri uri]);
 }
 
-
 /**
  * Base class for all file system exceptions.
  */
@@ -39,7 +37,6 @@ class FileSystemException implements Exception {
 
   String toString() => 'FileSystemException(path=$path; message=$message)';
 }
-
 
 /**
  * [Folder]s are [Resource]s which may contain files and/or other folders.
@@ -77,8 +74,15 @@ abstract class Folder extends Resource {
    * in this folder, in no particular order.
    */
   List<Resource> getChildren();
-}
 
+  /**
+   * Return a [Folder] representing a child [Resource] with the given
+   * [relPath].  This call does not check whether a folder with the given name
+   * exists on the filesystem--client must call the [Folder]'s `exists` getter
+   * to determine whether the folder actually exists.
+   */
+  Folder getChildAssumingFolder(String relPath);
+}
 
 /**
  * The abstract class [Resource] is an abstraction of file or folder.
@@ -113,7 +117,6 @@ abstract class Resource {
   bool isOrContains(String path);
 }
 
-
 /**
  * Instances of the class [ResourceProvider] convert [String] paths into
  * [Resource]s.
@@ -138,7 +141,6 @@ abstract class ResourceProvider {
    */
   Folder getStateLocation(String pluginId);
 }
-
 
 /**
  * A [UriResolver] for [Resource]s.

@@ -1322,10 +1322,16 @@ abstract class Compiler implements DiagnosticListener {
           }
           return true;
         });
-        reportWarning(NO_LOCATION_SPANNABLE,
-            MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
-            {'importChain': importChains.join(
-                 MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
+
+        if (const bool.fromEnvironment("dart2js.use.new.emitter")) {
+          reportError(NO_LOCATION_SPANNABLE,
+                      MessageKind.MIRRORS_LIBRARY_NEW_EMITTER);
+        } else {
+          reportWarning(NO_LOCATION_SPANNABLE,
+             MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+              {'importChain': importChains.join(
+                   MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
+        }
       }
 
       functionClass.ensureResolved(this);
@@ -2222,6 +2228,9 @@ bool invariant(Spannable spannable, var condition, {var message: null}) {
 
 /// Returns `true` when [s] is private if used as an identifier.
 bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
+
+/// Returns `true` when [s] is public if used as an identifier.
+bool isPublicName(String s) => !isPrivateName(s);
 
 /// A sink that drains into /dev/null.
 class NullSink implements EventSink<String> {

@@ -15,8 +15,7 @@ void main() {
 
   test("throws errors for an invalid compilation unit", () {
     expect(() {
-      parseCompilationUnit(
-          "void main() => print('Hello, world!')",
+      parseCompilationUnit("void main() => print('Hello, world!')",
           name: 'test.dart');
     }, throwsA(predicate((error) {
       return error is AnalyzerErrorGroup &&
@@ -29,7 +28,9 @@ void main() {
       parseCompilationUnit("void main() => print('Hello, world!')");
     }, throwsA(predicate((error) {
       return error is AnalyzerErrorGroup &&
-          error.toString().contains("Error in <unknown source>: Expected to find ';'");
+          error
+              .toString()
+              .contains("Error in <unknown source>: Expected to find ';'");
     })));
   });
 }

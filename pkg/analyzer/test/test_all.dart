@@ -18,7 +18,6 @@ import 'src/test_all.dart' as src;
 import 'task/test_all.dart' as task;
 import 'cancelable_future_test.dart' as cancelable_future_test;
 
-
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';

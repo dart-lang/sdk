@@ -54,9 +54,7 @@ part of foo;
 ''';
     writeFile(pathname2, text2);
     standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({
-      AnalysisService.NAVIGATION: [pathname1]
-    });
+    sendAnalysisSetSubscriptions({AnalysisService.NAVIGATION: [pathname1]});
     List<NavigationRegion> regions;
     List<NavigationTarget> targets;
     List<String> targetFiles;
@@ -82,8 +80,8 @@ part of foo;
         fail('No element found for index $index');
         return null;
       }
-      void checkLocal(String source, String expectedTarget,
-          ElementKind expectedKind) {
+      void checkLocal(
+          String source, String expectedTarget, ElementKind expectedKind) {
         int sourceIndex = text1.indexOf(source);
         int targetIndex = text1.indexOf(expectedTarget);
         NavigationTarget element = findTargetElement(sourceIndex);
@@ -102,39 +100,26 @@ part of foo;
       // as a navigation target?
       checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
       checkRemote(
-          "part 'test2.dart';",
-          r'test2.dart$',
-          ElementKind.COMPILATION_UNIT);
-      checkLocal(
-          'new Class<int>.constructor',
+          "part 'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
+      checkLocal('new Class<int>.constructor',
           'constructor(); /* constructor declaration */',
           ElementKind.CONSTRUCTOR);
       checkLocal('field;', 'field;', ElementKind.FIELD);
-      checkLocal(
-          'function(() => localVariable.field)',
-          'function(FunctionTypeAlias parameter)',
-          ElementKind.FUNCTION);
-      checkLocal(
-          'FunctionTypeAlias parameter',
-          'FunctionTypeAlias();',
+      checkLocal('function(() => localVariable.field)',
+          'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
+      checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
           ElementKind.FUNCTION_TYPE_ALIAS);
       checkLocal('field)', 'field;', ElementKind.GETTER);
       checkRemote("import 'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
       checkLocal(
-          'localVariable.field',
-          'localVariable =',
-          ElementKind.LOCAL_VARIABLE);
+          'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
       checkLocal('method();', 'method() {', ElementKind.METHOD);
       checkLocal('parameter());', 'parameter) {', ElementKind.PARAMETER);
       checkLocal('field = 1', 'field;', ElementKind.SETTER);
-      checkLocal(
-          'topLevelVariable;',
-          'topLevelVariable;',
+      checkLocal('topLevelVariable;', 'topLevelVariable;',
           ElementKind.TOP_LEVEL_VARIABLE);
       checkLocal(
-          'TypeParameter field;',
-          'TypeParameter>',
-          ElementKind.TYPE_PARAMETER);
+          'TypeParameter field;', 'TypeParameter>', ElementKind.TYPE_PARAMETER);
     });
   }
 }

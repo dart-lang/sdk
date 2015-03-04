@@ -167,9 +167,8 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       String name = element.name;
       if (name != null) {
         buffer.write('&nbsp;&nbsp;[');
-        buffer.write(GetHandler.makeLink(GetHandler.INDEX_ELEMENT_BY_NAME, {
-          'name': name
-        }, 'search index'));
+        buffer.write(GetHandler.makeLink(
+            GetHandler.INDEX_ELEMENT_BY_NAME, {'name': name}, 'search index'));
         buffer.write(']');
       }
     }

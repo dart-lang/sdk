@@ -11,8 +11,8 @@ import 'package:analyzer/task/model.dart';
 /**
  * A concrete implementation of a [ContributionPoint].
  */
-class ContributionPointImpl<V> extends ResultDescriptorImpl<V> implements
-    ContributionPoint<V> {
+class ContributionPointImpl<V> extends ResultDescriptorImpl<V>
+    implements ContributionPoint<V> {
   /**
    * The results that contribute to this result.
    */
@@ -97,8 +97,8 @@ class TaskDescriptorImpl implements TaskDescriptor {
    * and produces the given [results]. The [buildTask] will be used to create
    * the instance of [AnalysisTask] thusly described.
    */
-  TaskDescriptorImpl(this.name, this.buildTask, this.createTaskInputs,
-      this.results);
+  TaskDescriptorImpl(
+      this.name, this.buildTask, this.createTaskInputs, this.results);
 
   @override
   AnalysisTask createTask(AnalysisContext context, AnalysisTarget target,

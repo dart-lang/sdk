@@ -16,6 +16,11 @@ import 'package:analyzer/src/generated/scanner.dart';
 class OpType {
 
   /**
+   * Indicates whether constructor suggestions should be included.
+   */
+  bool includeConstructorSuggestions = false;
+
+  /**
    * Indicates whether invocation suggestions should be included.
    */
   bool includeInvocationSuggestions = false;
@@ -53,8 +58,8 @@ class OpType {
    */
   factory OpType.forCompletion(CompletionTarget target, int offset) {
     OpType optype = new OpType._();
-    target.containingNode.accept(
-        new _OpTypeAstVisitor(optype, target.entity, offset));
+    target.containingNode
+        .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
     return optype;
   }
 
@@ -63,20 +68,17 @@ class OpType {
   /**
    * Indicate whether only type names should be suggested
    */
-  bool get includeOnlyTypeNameSuggestions =>
-      includeTypeNameSuggestions &&
-          !includeReturnValueSuggestions &&
-          !includeVoidReturnSuggestions &&
-          !includeInvocationSuggestions;
+  bool get includeOnlyTypeNameSuggestions => includeTypeNameSuggestions &&
+      !includeReturnValueSuggestions &&
+      !includeVoidReturnSuggestions &&
+      !includeInvocationSuggestions;
 
   /**
    * Indicate whether top level elements should be suggested
    */
-  bool get includeTopLevelSuggestions =>
-      includeReturnValueSuggestions ||
-          includeTypeNameSuggestions ||
-          includeVoidReturnSuggestions;
-
+  bool get includeTopLevelSuggestions => includeReturnValueSuggestions ||
+      includeTypeNameSuggestions ||
+      includeVoidReturnSuggestions;
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
@@ -179,8 +181,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitClassMember(ClassMember node) {
-  }
+  void visitClassMember(ClassMember node) {}
 
   @override
   void visitCommentReference(CommentReference node) {
@@ -350,7 +351,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(entity, node.constructorName)) {
-      optype.includeTypeNameSuggestions = true;
+      optype.includeConstructorSuggestions = true;
     }
   }
 
@@ -384,8 +385,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-  }
+  void visitMethodDeclaration(MethodDeclaration node) {}
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -513,8 +513,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-  }
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {}
 
   @override
   void visitWhileStatement(WhileStatement node) {

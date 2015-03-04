@@ -270,7 +270,7 @@ class HashCodeBuilder {
 }
 
 bool deepJsonCompare(Object a, Object b) {
-  if (a == null || a is num || a is String) {
+  if (a == null || a is num || a is String || a is Uri) {
     return a == b;
   } else if (a is List) {
     if (b is List) {

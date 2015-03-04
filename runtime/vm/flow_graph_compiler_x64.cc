@@ -977,6 +977,8 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+// NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
+// needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
   ASSERT(Assembler::EntryPointToPcMarkerOffset() == 0);
 
@@ -1092,7 +1094,7 @@ void FlowGraphCompiler::CompileGraph() {
     LocalVariable* closure_parameter = scope->VariableAt(0);
     __ movq(CTX, Address(RBP, closure_parameter->index() * kWordSize));
     __ movq(CTX, FieldAddress(CTX, Closure::context_offset()));
-#ifdef dEBUG
+#ifdef DEBUG
     Label ok;
     __ LoadClassId(RAX, CTX);
     __ cmpq(RAX, Immediate(kContextCid));

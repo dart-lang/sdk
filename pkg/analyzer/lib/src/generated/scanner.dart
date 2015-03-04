@@ -375,55 +375,56 @@ class Keyword {
   static const Keyword TYPEDEF = const Keyword('TYPEDEF', "typedef", true);
 
   static const List<Keyword> values = const [
-      ASSERT,
-      BREAK,
-      CASE,
-      CATCH,
-      CLASS,
-      CONST,
-      CONTINUE,
-      DEFAULT,
-      DO,
-      ELSE,
-      ENUM,
-      EXTENDS,
-      FALSE,
-      FINAL,
-      FINALLY,
-      FOR,
-      IF,
-      IN,
-      IS,
-      NEW,
-      NULL,
-      RETHROW,
-      RETURN,
-      SUPER,
-      SWITCH,
-      THIS,
-      THROW,
-      TRUE,
-      TRY,
-      VAR,
-      VOID,
-      WHILE,
-      WITH,
-      ABSTRACT,
-      AS,
-      DEFERRED,
-      DYNAMIC,
-      EXPORT,
-      EXTERNAL,
-      FACTORY,
-      GET,
-      IMPLEMENTS,
-      IMPORT,
-      LIBRARY,
-      OPERATOR,
-      PART,
-      SET,
-      STATIC,
-      TYPEDEF];
+    ASSERT,
+    BREAK,
+    CASE,
+    CATCH,
+    CLASS,
+    CONST,
+    CONTINUE,
+    DEFAULT,
+    DO,
+    ELSE,
+    ENUM,
+    EXTENDS,
+    FALSE,
+    FINAL,
+    FINALLY,
+    FOR,
+    IF,
+    IN,
+    IS,
+    NEW,
+    NULL,
+    RETHROW,
+    RETURN,
+    SUPER,
+    SWITCH,
+    THIS,
+    THROW,
+    TRUE,
+    TRY,
+    VAR,
+    VOID,
+    WHILE,
+    WITH,
+    ABSTRACT,
+    AS,
+    DEFERRED,
+    DYNAMIC,
+    EXPORT,
+    EXTERNAL,
+    FACTORY,
+    GET,
+    IMPLEMENTS,
+    IMPORT,
+    LIBRARY,
+    OPERATOR,
+    PART,
+    SET,
+    STATIC,
+    TYPEDEF
+  ];
 
   /**
    * A table mapping the lexemes of keywords to the corresponding keyword.
@@ -533,8 +534,8 @@ class KeywordState {
    * [length] the number of strings in the array that pass through the state
    * being built
    */
-  static KeywordState _computeKeywordStateTable(int start, List<String> strings,
-      int offset, int length) {
+  static KeywordState _computeKeywordStateTable(
+      int start, List<String> strings, int offset, int length) {
     List<KeywordState> result = new List<KeywordState>(26);
     assert(length != 0);
     int chunk = 0x0;
@@ -548,8 +549,8 @@ class KeywordState {
         int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
-            result[chunk - 0x61] =
-                _computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
+            result[chunk - 0x61] = _computeKeywordStateTable(
+                start + 1, strings, chunkStart, i - chunkStart);
           }
           chunkStart = i;
           chunk = c;
@@ -558,12 +559,8 @@ class KeywordState {
     }
     if (chunkStart != -1) {
       assert(result[chunk - 0x61] == null);
-      result[chunk -
-          0x61] = _computeKeywordStateTable(
-              start + 1,
-              strings,
-              chunkStart,
-              offset + length - chunkStart);
+      result[chunk - 0x61] = _computeKeywordStateTable(
+          start + 1, strings, chunkStart, offset + length - chunkStart);
     } else {
       assert(length == 1);
       return new KeywordState(_EMPTY_TABLE, strings[offset]);
@@ -651,8 +648,8 @@ class KeywordTokenWithComment extends KeywordToken {
   }
 
   @override
-  Token copy() =>
-      new KeywordTokenWithComment(keyword, offset, copyComments(precedingComments));
+  Token copy() => new KeywordTokenWithComment(
+      keyword, offset, copyComments(precedingComments));
 }
 
 /**
@@ -891,8 +888,7 @@ class Scanner {
     }
     if (next == 0x5D) {
       _appendEndToken(
-          TokenType.CLOSE_SQUARE_BRACKET,
-          TokenType.OPEN_SQUARE_BRACKET);
+          TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
       return _reader.advance();
     }
     if (next == 0x60) {
@@ -905,8 +901,7 @@ class Scanner {
     }
     if (next == 0x7D) {
       _appendEndToken(
-          TokenType.CLOSE_CURLY_BRACKET,
-          TokenType.OPEN_CURLY_BRACKET);
+          TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
       return _reader.advance();
     }
     if (next == 0x2F) {
@@ -1038,8 +1033,8 @@ class Scanner {
     if (_firstComment == null) {
       eofToken = new Token(TokenType.EOF, _reader.offset + 1);
     } else {
-      eofToken =
-          new TokenWithComment(TokenType.EOF, _reader.offset + 1, _firstComment);
+      eofToken = new TokenWithComment(
+          TokenType.EOF, _reader.offset + 1, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -1079,8 +1074,8 @@ class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart + offset));
     } else {
-      _tail = _tail.setNext(
-          new StringTokenWithComment(type, value, _tokenStart + offset, _firstComment));
+      _tail = _tail.setNext(new StringTokenWithComment(
+          type, value, _tokenStart + offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -1141,8 +1136,8 @@ class Scanner {
    * [arguments] any arguments needed to complete the error message
    */
   void _reportError(ScannerErrorCode errorCode, [List<Object> arguments]) {
-    _errorListener.onError(
-        new AnalysisError.con2(source, _reader.offset, 1, errorCode, arguments));
+    _errorListener.onError(new AnalysisError.con2(
+        source, _reader.offset, 1, errorCode, arguments));
   }
 
   int _select(int choice, TokenType yesType, TokenType noType) {
@@ -1156,8 +1151,8 @@ class Scanner {
     }
   }
 
-  int _selectWithOffset(int choice, TokenType yesType, TokenType noType,
-      int offset) {
+  int _selectWithOffset(
+      int choice, TokenType yesType, TokenType noType, int offset) {
     int next = _reader.advance();
     if (next == choice) {
       _appendTokenOfTypeWithOffset(yesType, offset);
@@ -1208,9 +1203,7 @@ class Scanner {
       return _tokenizeFractionPart(next, start);
     } else if (0x2E == next) {
       return _select(
-          0x2E,
-          TokenType.PERIOD_PERIOD_PERIOD,
-          TokenType.PERIOD_PERIOD);
+          0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
     } else {
       _appendTokenOfType(TokenType.PERIOD);
       return next;
@@ -1280,18 +1273,14 @@ class Scanner {
     if (!hasDigit) {
       _appendStringToken(TokenType.INT, _reader.getString(start, -2));
       if (0x2E == next) {
-        return _selectWithOffset(
-            0x2E,
-            TokenType.PERIOD_PERIOD_PERIOD,
-            TokenType.PERIOD_PERIOD,
-            _reader.offset - 1);
+        return _selectWithOffset(0x2E, TokenType.PERIOD_PERIOD_PERIOD,
+            TokenType.PERIOD_PERIOD, _reader.offset - 1);
       }
       _appendTokenOfTypeWithOffset(TokenType.PERIOD, _reader.offset - 1);
       return bigSwitch(next);
     }
     _appendStringToken(
-        TokenType.DOUBLE,
-        _reader.getString(start, next < 0 ? 0 : -1));
+        TokenType.DOUBLE, _reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
@@ -1330,8 +1319,7 @@ class Scanner {
           _reportError(ScannerErrorCode.MISSING_HEX_DIGIT);
         }
         _appendStringToken(
-            TokenType.HEXADECIMAL,
-            _reader.getString(start, next < 0 ? 0 : -1));
+            TokenType.HEXADECIMAL, _reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
@@ -1355,8 +1343,7 @@ class Scanner {
       next = _reader.advance();
     }
     _appendStringToken(
-        TokenType.IDENTIFIER,
-        _reader.getString(start, next < 0 ? 0 : -1));
+        TokenType.IDENTIFIER, _reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
@@ -1376,14 +1363,12 @@ class Scanner {
         } else if (begin.type == TokenType.OPEN_CURLY_BRACKET) {
           _beginToken();
           _appendEndToken(
-              TokenType.CLOSE_CURLY_BRACKET,
-              TokenType.OPEN_CURLY_BRACKET);
+              TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
           next = _reader.advance();
           _beginToken();
         } else if (begin.type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
           _beginToken();
-          _appendEndToken(
-              TokenType.CLOSE_CURLY_BRACKET,
+          _appendEndToken(TokenType.CLOSE_CURLY_BRACKET,
               TokenType.STRING_INTERPOLATION_EXPRESSION);
           next = _reader.advance();
           _beginToken();
@@ -1398,9 +1383,7 @@ class Scanner {
 
   int _tokenizeInterpolatedIdentifier(int next, int start) {
     _appendStringTokenWithOffset(
-        TokenType.STRING_INTERPOLATION_IDENTIFIER,
-        "\$",
-        0);
+        TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
     if ((0x41 <= next && next <= 0x5A) ||
         (0x61 <= next && next <= 0x7A) ||
         next == 0x5F) {
@@ -1470,16 +1453,14 @@ class Scanner {
       if (-1 == next) {
         _reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT);
         _appendCommentToken(
-            TokenType.MULTI_LINE_COMMENT,
-            _reader.getString(_tokenStart, 0));
+            TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
       } else if (0x2A == next) {
         next = _reader.advance();
         if (0x2F == next) {
           --nesting;
           if (0 == nesting) {
-            _appendCommentToken(
-                TokenType.MULTI_LINE_COMMENT,
+            _appendCommentToken(TokenType.MULTI_LINE_COMMENT,
                 _reader.getString(_tokenStart, 0));
             return _reader.advance();
           } else {
@@ -1617,8 +1598,7 @@ class Scanner {
         return _tokenizeFractionPart(next, start);
       } else {
         _appendStringToken(
-            TokenType.INT,
-            _reader.getString(start, next < 0 ? 0 : -1));
+            TokenType.INT, _reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
@@ -1658,13 +1638,11 @@ class Scanner {
       next = _reader.advance();
       if (-1 == next) {
         _appendCommentToken(
-            TokenType.SINGLE_LINE_COMMENT,
-            _reader.getString(_tokenStart, 0));
+            TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
       } else if (0xA == next || 0xD == next) {
         _appendCommentToken(
-            TokenType.SINGLE_LINE_COMMENT,
-            _reader.getString(_tokenStart, -1));
+            TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, -1));
         return next;
       }
     }
@@ -1770,8 +1748,7 @@ class Scanner {
           next = _reader.advance();
         } while (next != 0xA && next != 0xD && next > 0);
         _appendStringToken(
-            TokenType.SCRIPT_TAG,
-            _reader.getString(_tokenStart, 0));
+            TokenType.SCRIPT_TAG, _reader.getString(_tokenStart, 0));
         return next;
       }
     }
@@ -1816,18 +1793,16 @@ class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode MISSING_QUOTE =
       const ScannerErrorCode('MISSING_QUOTE', "Expected quote (' or \")");
 
-  static const ScannerErrorCode UNABLE_GET_CONTENT =
-      const ScannerErrorCode('UNABLE_GET_CONTENT', "Unable to get content: {0}");
+  static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
+      'UNABLE_GET_CONTENT', "Unable to get content: {0}");
 
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
-          'UNTERMINATED_MULTI_LINE_COMMENT',
-          "Unterminated multi-line comment");
+          'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment");
 
   static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
       const ScannerErrorCode(
-          'UNTERMINATED_STRING_LITERAL',
-          "Unterminated string literal");
+          'UNTERMINATED_STRING_LITERAL', "Unterminated string literal");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -1886,8 +1861,8 @@ class StringTokenWithComment extends StringToken {
    * [offset] and to be preceded by the comments reachable from the given
    * [comment].
    */
-  StringTokenWithComment(TokenType type, String value, int offset,
-      this._precedingComment)
+  StringTokenWithComment(
+      TokenType type, String value, int offset, this._precedingComment)
       : super(type, value, offset) {
     _setCommentParent(_precedingComment);
   }
@@ -1910,12 +1885,8 @@ class StringTokenWithComment extends StringToken {
   }
 
   @override
-  Token copy() =>
-      new StringTokenWithComment(
-          type,
-          lexeme,
-          offset,
-          copyComments(precedingComments));
+  Token copy() => new StringTokenWithComment(
+      type, lexeme, offset, copyComments(precedingComments));
 }
 
 /**
@@ -2306,8 +2277,8 @@ class TokenType {
   static const TokenType AMPERSAND =
       const TokenType('AMPERSAND', TokenClass.BITWISE_AND_OPERATOR, "&");
 
-  static const TokenType AMPERSAND_AMPERSAND =
-      const TokenType('AMPERSAND_AMPERSAND', TokenClass.LOGICAL_AND_OPERATOR, "&&");
+  static const TokenType AMPERSAND_AMPERSAND = const TokenType(
+      'AMPERSAND_AMPERSAND', TokenClass.LOGICAL_AND_OPERATOR, "&&");
 
   static const TokenType AMPERSAND_EQ =
       const TokenType('AMPERSAND_EQ', TokenClass.ASSIGNMENT_OPERATOR, "&=");
@@ -2410,8 +2381,8 @@ class TokenType {
   static const TokenType OPEN_PAREN =
       const TokenType('OPEN_PAREN', TokenClass.UNARY_POSTFIX_OPERATOR, "(");
 
-  static const TokenType OPEN_SQUARE_BRACKET =
-      const TokenType('OPEN_SQUARE_BRACKET', TokenClass.UNARY_POSTFIX_OPERATOR, "[");
+  static const TokenType OPEN_SQUARE_BRACKET = const TokenType(
+      'OPEN_SQUARE_BRACKET', TokenClass.UNARY_POSTFIX_OPERATOR, "[");
 
   static const TokenType PERCENT =
       const TokenType('PERCENT', TokenClass.MULTIPLICATIVE_OPERATOR, "%");
@@ -2452,11 +2423,11 @@ class TokenType {
   static const TokenType STAR_EQ =
       const TokenType('STAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, "*=");
 
-  static const TokenType STRING_INTERPOLATION_EXPRESSION =
-      const TokenType('STRING_INTERPOLATION_EXPRESSION', TokenClass.NO_CLASS, "\${");
+  static const TokenType STRING_INTERPOLATION_EXPRESSION = const TokenType(
+      'STRING_INTERPOLATION_EXPRESSION', TokenClass.NO_CLASS, "\${");
 
-  static const TokenType STRING_INTERPOLATION_IDENTIFIER =
-      const TokenType('STRING_INTERPOLATION_IDENTIFIER', TokenClass.NO_CLASS, "\$");
+  static const TokenType STRING_INTERPOLATION_IDENTIFIER = const TokenType(
+      'STRING_INTERPOLATION_IDENTIFIER', TokenClass.NO_CLASS, "\$");
 
   static const TokenType TILDE =
       const TokenType('TILDE', TokenClass.UNARY_PREFIX_OPERATOR, "~");
@@ -2492,8 +2463,8 @@ class TokenType {
    */
   final String lexeme;
 
-  const TokenType(this.name, [this._tokenClass = TokenClass.NO_CLASS,
-      this.lexeme = null]);
+  const TokenType(this.name,
+      [this._tokenClass = TokenClass.NO_CLASS, this.lexeme = null]);
 
   /**
    * Return `true` if this type of token represents an additive operator.
@@ -2518,14 +2489,13 @@ class TokenType {
    * operators can have an effect because evaluation of the right-hand operand
    * is conditional.
    */
-  bool get isAssociativeOperator =>
-      this == AMPERSAND ||
-          this == AMPERSAND_AMPERSAND ||
-          this == BAR ||
-          this == BAR_BAR ||
-          this == CARET ||
-          this == PLUS ||
-          this == STAR;
+  bool get isAssociativeOperator => this == AMPERSAND ||
+      this == AMPERSAND_AMPERSAND ||
+      this == BAR ||
+      this == BAR_BAR ||
+      this == CARET ||
+      this == PLUS ||
+      this == STAR;
 
   /**
    * Return `true` if this type of token represents an equality operator.
@@ -2547,11 +2517,10 @@ class TokenType {
   /**
    * Return `true` if this token type represents an operator.
    */
-  bool get isOperator =>
-      _tokenClass != TokenClass.NO_CLASS &&
-          this != OPEN_PAREN &&
-          this != OPEN_SQUARE_BRACKET &&
-          this != PERIOD;
+  bool get isOperator => _tokenClass != TokenClass.NO_CLASS &&
+      this != OPEN_PAREN &&
+      this != OPEN_SQUARE_BRACKET &&
+      this != PERIOD;
 
   /**
    * Return `true` if this type of token represents a relational operator.
@@ -2580,26 +2549,25 @@ class TokenType {
    * Return `true` if this token type represents an operator that can be defined
    * by users.
    */
-  bool get isUserDefinableOperator =>
-      identical(lexeme, "==") ||
-          identical(lexeme, "~") ||
-          identical(lexeme, "[]") ||
-          identical(lexeme, "[]=") ||
-          identical(lexeme, "*") ||
-          identical(lexeme, "/") ||
-          identical(lexeme, "%") ||
-          identical(lexeme, "~/") ||
-          identical(lexeme, "+") ||
-          identical(lexeme, "-") ||
-          identical(lexeme, "<<") ||
-          identical(lexeme, ">>") ||
-          identical(lexeme, ">=") ||
-          identical(lexeme, ">") ||
-          identical(lexeme, "<=") ||
-          identical(lexeme, "<") ||
-          identical(lexeme, "&") ||
-          identical(lexeme, "^") ||
-          identical(lexeme, "|");
+  bool get isUserDefinableOperator => identical(lexeme, "==") ||
+      identical(lexeme, "~") ||
+      identical(lexeme, "[]") ||
+      identical(lexeme, "[]=") ||
+      identical(lexeme, "*") ||
+      identical(lexeme, "/") ||
+      identical(lexeme, "%") ||
+      identical(lexeme, "~/") ||
+      identical(lexeme, "+") ||
+      identical(lexeme, "-") ||
+      identical(lexeme, "<<") ||
+      identical(lexeme, ">>") ||
+      identical(lexeme, ">=") ||
+      identical(lexeme, ">") ||
+      identical(lexeme, "<=") ||
+      identical(lexeme, "<") ||
+      identical(lexeme, "&") ||
+      identical(lexeme, "^") ||
+      identical(lexeme, "|");
 
   /**
    * Return the precedence of the token, or `0` if the token does not represent

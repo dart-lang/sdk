@@ -5,19 +5,52 @@
 library test.src.task.test_support;
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/task/model.dart';
 
+/**
+ * A configurable analysis task that can be used by tests.
+ */
 class TestAnalysisTask extends AnalysisTask {
-  TestAnalysisTask(AnalysisContext context, AnalysisTarget target)
+  /**
+   * The descriptor describing this task.
+   */
+  TaskDescriptor descriptor;
+
+  /**
+   * The exception that is to be "thrown" by this task.
+   */
+  CaughtException exception;
+
+  /**
+   * The results whose values are to be provided as outputs from this task.
+   */
+  List<ResultDescriptor> results;
+
+  /**
+   * The next value that is to be used for a result.
+   */
+  int value = 1;
+
+  TestAnalysisTask(AnalysisContext context, AnalysisTarget target,
+      {this.descriptor, this.exception, this.results})
       : super(context, target);
 
   @override
   String get description => 'Test task';
 
   @override
-  TaskDescriptor get descriptor => null;
-
-  @override
   internalPerform() {
+    if (exception != null) {
+      caughtException = exception;
+    } else if (results != null) {
+      for (ResultDescriptor result in results) {
+        outputs[result] = value++;
+      }
+    } else if (descriptor != null) {
+      for (ResultDescriptor result in descriptor.results) {
+        outputs[result] = value++;
+      }
+    }
   }
 }

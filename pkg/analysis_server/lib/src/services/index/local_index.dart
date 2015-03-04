@@ -7,15 +7,14 @@ library services.src.index.local_index;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/index_contributor.dart' as
-    contributors;
+import 'package:analysis_server/src/services/index/index_contributor.dart'
+    as contributors;
 import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
-
 
 /**
  * A local implementation of [Index].
@@ -38,8 +37,8 @@ class LocalIndex extends Index {
   /**
    * Returns all relations with [Element]s with the given [name].
    */
-  Future<Map<List<String>, List<InspectLocation>>>
-      findElementsByName(String name) {
+  Future<Map<List<String>, List<InspectLocation>>> findElementsByName(
+      String name) {
     return _store.inspect_getElementRelations(name);
   }
 
@@ -52,9 +51,14 @@ class LocalIndex extends Index {
    * places where the function is invoked.
    */
   @override
-  Future<List<Location>> getRelationships(Element element,
-      Relationship relationship) {
+  Future<List<Location>> getRelationships(
+      Element element, Relationship relationship) {
     return _store.getRelationships(element, relationship);
+  }
+
+  @override
+  List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter) {
+    return _store.getTopLevelDeclarations(nameFilter);
   }
 
   @override

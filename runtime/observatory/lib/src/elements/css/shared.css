@@ -117,6 +117,11 @@ hr {
   flex-direction: row;
 }
 
+.inline-flex-row {
+  display: inline-flex;
+  flex-direction: row;
+}
+
 /* Flex column container */
 .flex-column {
   display: flex;
@@ -250,4 +255,32 @@ hr {
 
 .break-wrap {
   word-wrap: break-word;
+}
+
+body.busy, body.busy * {
+  cursor: progress !important;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.shadow {
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16),
+  0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+@-webkit-keyframes fadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@-moz-keyframes fadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
 }

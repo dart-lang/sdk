@@ -24,8 +24,8 @@
 
 import 'dart:io';
 import 'dart:convert';
-import '../pkg/utf/lib/utf.dart';
-import '../pkg/crypto/lib/crypto.dart';
+import '../third_party/pkg/utf/lib/utf.dart';
+import '../third_party/pkg/crypto/lib/crypto.dart';
 
 // ----------------------------------------------------------------------
 // Normalization of the text: removal or normalization of parts that

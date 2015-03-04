@@ -27,7 +27,7 @@ def main():
 
   updateFile(REVISION_FILE, version_string)
 
-  expiration_date = datetime.date.today() + datetime.timedelta(weeks=12)
+  expiration_date = datetime.date.today() + datetime.timedelta(days=365)
   updateFile(EXPIRATION_FILE,
              "%dLL\n" % time.mktime(expiration_date.timetuple()))
 

@@ -8,11 +8,12 @@ library dart2js.ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
+import '../cps_ir/optimizers.dart';
+import '../dart_types.dart' show DartType, GenericType;
 import '../dart2jslib.dart' as dart2js show invariant;
 import '../elements/elements.dart';
+import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart' show Selector, SelectorKind;
-import '../dart_types.dart' show DartType, GenericType;
-import '../cps_ir/optimizers.dart';
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -154,6 +155,24 @@ class LetCont extends Expression implements InteriorNode {
   accept(Visitor visitor) => visitor.visitLetCont(this);
 }
 
+// Binding an exception handler.
+//
+// let handler h(v0, v1) = E0 in E1
+//
+// The handler is a two-argument (exception, stack trace) continuation which
+// is implicitly the error continuation of all the code in its body E1.
+// [LetHandler] differs from a [LetCont] binding in that it (1) has the
+// runtime semantics of pushing/popping a handler from the dynamic exception
+// handler stack and (2) it does not have any explicit invocations.
+class LetHandler extends Expression implements InteriorNode {
+  Continuation handler;
+  Expression body;
+
+  LetHandler(this.handler, this.body);
+
+  accept(Visitor visitor) => visitor.visitLetHandler(this);
+}
+
 /// Binding mutable variables.
 ///
 /// let mutable v = P in E
@@ -209,9 +228,13 @@ class InvokeStatic extends Expression implements Invoke {
 
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final SourceInformation sourceInformation;
 
-  InvokeStatic(this.target, this.selector, Continuation cont,
-               List<Primitive> args)
+  InvokeStatic(this.target,
+               this.selector,
+               Continuation cont,
+               List<Primitive> args,
+               this.sourceInformation)
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(target is ErroneousElement || selector.name == target.name);
@@ -873,6 +896,7 @@ abstract class Visitor<T> {
   // Expressions.
   T visitLetPrim(LetPrim node) => visitExpression(node);
   T visitLetCont(LetCont node) => visitExpression(node);
+  T visitLetHandler(LetHandler node) => visitExpression(node);
   T visitLetMutable(LetMutable node) => visitExpression(node);
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
@@ -982,6 +1006,13 @@ abstract class RecursiveVisitor extends Visitor {
   visitLetCont(LetCont node) {
     processLetCont(node);
     node.continuations.forEach(visit);
+    visit(node.body);
+  }
+
+  processLetHandler(LetHandler node) {}
+  visitLetHandler(LetHandler node) {
+    processLetHandler(node);
+    visit(node.handler);
     visit(node.body);
   }
 
@@ -1276,6 +1307,22 @@ class RegisterAllocator extends Visitor {
 
   void visitLetCont(LetCont node) {
     node.continuations.forEach(visit);
+    visit(node.body);
+  }
+
+  void visitLetHandler(LetHandler node) {
+    visit(node.handler);
+    // Handler parameters that were not used in the handler body will not have
+    // had register indexes assigned.  Assign them here, otherwise they will
+    // be eliminated later and they should not be (i.e., a catch clause that
+    // does not use the exception parameter should not have the exception
+    // parameter eliminated, because it would not be well-formed anymore).
+    // In any case release the parameter indexes because the parameters are
+    // not live in the try block.
+    node.handler.parameters.forEach((Parameter parameter) {
+      allocate(parameter);
+      release(parameter);
+    });
     visit(node.body);
   }
 

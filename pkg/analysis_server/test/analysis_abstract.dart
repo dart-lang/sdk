@@ -19,7 +19,6 @@ import 'package:unittest/unittest.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
 
-
 int findIdentifierLength(String search) {
   int length = 0;
   while (length < search.length) {
@@ -33,7 +32,6 @@ int findIdentifierLength(String search) {
   }
   return length;
 }
-
 
 /**
  * An abstract base for all 'analysis' domain tests.
@@ -64,8 +62,8 @@ class AbstractAnalysisTest {
     }
     files.add(file);
     // set subscriptions
-    Request request =
-        new AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
+    Request request = new AnalysisSetSubscriptionsParams(analysisSubscriptions)
+        .toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -81,13 +79,8 @@ class AbstractAnalysisTest {
   }
 
   AnalysisServer createAnalysisServer(Index index) {
-    return new AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        packageMapProvider,
-        index,
-        new AnalysisServerOptions(),
-        new MockSdk(),
+    return new AnalysisServer(serverChannel, resourceProvider,
+        packageMapProvider, index, new AnalysisServerOptions(), new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 

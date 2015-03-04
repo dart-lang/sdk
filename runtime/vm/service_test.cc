@@ -1466,7 +1466,7 @@ TEST_CASE(Service_Profile) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
-  EXPECT_SUBSTRING("\"type\":\"CpuProfile\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"_CpuProfile\"", handler.msg());
 
   service_msg =
       Eval(lib, "[0, port, 'getCpuProfile', ['tags'], ['Bogus']]");

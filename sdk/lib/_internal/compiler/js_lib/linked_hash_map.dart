@@ -85,12 +85,12 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
       var strings = _strings;
       if (strings == null) return null;
       LinkedHashMapCell cell = _getTableEntry(strings, key);
-      return (cell == null) ? null : cell.value;
+      return (cell == null) ? null : cell.hashMapCellValue;
     } else if (_isNumericKey(key)) {
       var nums = _nums;
       if (nums == null) return null;
       LinkedHashMapCell cell = _getTableEntry(nums, key);
-      return (cell == null) ? null : cell.value;
+      return (cell == null) ? null : cell.hashMapCellValue;
     } else {
       return internalGet(key);
     }
@@ -103,7 +103,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     int index = internalFindBucketIndex(bucket, key);
     if (index < 0) return null;
     LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
-    return cell.value;
+    return cell.hashMapCellValue;
   }
 
   void operator[]=(K key, V value) {
@@ -132,7 +132,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
       int index = internalFindBucketIndex(bucket, key);
       if (index >= 0) {
         LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
-        cell.value = value;
+        cell.hashMapCellValue = value;
       } else {
         LinkedHashMapCell cell = _newLinkedCell(key, value);
         JS('void', '#.push(#)', bucket, cell);
@@ -169,7 +169,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     _unlinkCell(cell);
     // TODO(kasperl): Consider getting rid of the bucket list when
     // the length reaches zero.
-    return cell.value;
+    return cell.hashMapCellValue;
   }
 
   void clear() {
@@ -184,7 +184,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     LinkedHashMapCell cell = _first;
     int modifications = _modifications;
     while (cell != null) {
-      action(cell.key, cell.value);
+      action(cell.hashMapCellKey, cell.hashMapCellValue);
       if (modifications != _modifications) {
         throw new ConcurrentModificationError(this);
       }
@@ -197,7 +197,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     if (cell == null) {
       _setTableEntry(table, key, _newLinkedCell(key, value));
     } else {
-      cell.value = value;
+      cell.hashMapCellValue = value;
     }
   }
 
@@ -207,7 +207,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     if (cell == null) return null;
     _unlinkCell(cell);
     _deleteTableEntry(table, key);
-    return cell.value;
+    return cell.hashMapCellValue;
   }
 
   void _modified() {
@@ -293,7 +293,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
       LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
-      if (cell.key == key) return i;
+      if (cell.hashMapCellKey == key) return i;
     }
     return -1;
   }
@@ -315,13 +315,13 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
 }
 
 class LinkedHashMapCell {
-  final key;
-  var value;
+  final hashMapCellKey;
+  var hashMapCellValue;
 
   LinkedHashMapCell _next;
   LinkedHashMapCell _previous;
 
-  LinkedHashMapCell(this.key, this.value);
+  LinkedHashMapCell(this.hashMapCellKey, this.hashMapCellValue);
 }
 
 class LinkedHashMapKeyIterable<E> extends IterableBase<E>
@@ -344,7 +344,7 @@ class LinkedHashMapKeyIterable<E> extends IterableBase<E>
     LinkedHashMapCell cell = _map._first;
     int modifications = _map._modifications;
     while (cell != null) {
-      f(cell.key);
+      f(cell.hashMapCellKey);
       if (modifications != _map._modifications) {
         throw new ConcurrentModificationError(_map);
       }
@@ -372,7 +372,7 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
       _current = null;
       return false;
     } else {
-      _current = _cell.key;
+      _current = _cell.hashMapCellKey;
       _cell = _cell._next;
       return true;
     }

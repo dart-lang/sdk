@@ -61,8 +61,7 @@ class HttpAnalysisServer {
     _printBuffer.add(line);
     if (_printBuffer.length > MAX_PRINT_BUFFER_LENGTH) {
       _printBuffer.removeRange(
-          0,
-          _printBuffer.length - MAX_PRINT_BUFFER_LENGTH);
+          0, _printBuffer.length - MAX_PRINT_BUFFER_LENGTH);
     }
   }
 
@@ -107,8 +106,8 @@ class HttpAnalysisServer {
    * running an analysis server on a [WebSocket]-based communication channel.
    */
   void _handleWebSocket(WebSocket socket) {
-    socketServer.createAnalysisServer(
-        new WebSocketServerChannel(socket, socketServer.instrumentationService));
+    socketServer.createAnalysisServer(new WebSocketServerChannel(
+        socket, socketServer.instrumentationService));
   }
 
   /**

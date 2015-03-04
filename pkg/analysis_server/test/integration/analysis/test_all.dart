@@ -8,8 +8,8 @@ import 'package:unittest/unittest.dart';
 
 import 'error_test.dart' as error_test;
 import 'get_errors_after_analysis_test.dart' as get_errors_after_analysis_test;
-import 'get_errors_before_analysis_test.dart' as
-    get_errors_before_analysis_test;
+import 'get_errors_before_analysis_test.dart'
+    as get_errors_before_analysis_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'highlights_test.dart' as highlights_test;
 import 'navigation_test.dart' as navigation_test;

@@ -44,6 +44,11 @@ def ChangeDirectory(directory):
   os.chdir(directory);
 
 def PubGet(dart_executable, pkg_root):
+  # Always remove pubspec.lock before running 'pub get'.
+  try:
+    os.remove('pubspec.lock');
+  except OSError as e:
+    pass
   return subprocess.call(['python',
                           RUN_PUB,
                           '--package-root=' + pkg_root,

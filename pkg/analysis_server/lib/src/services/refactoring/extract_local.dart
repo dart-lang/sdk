@@ -24,15 +24,13 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 const String _TOKEN_SEPARATOR = "\uFFFF";
-
 
 /**
  * [ExtractLocalRefactoring] implementation.
  */
-class ExtractLocalRefactoringImpl extends RefactoringImpl implements
-    ExtractLocalRefactoring {
+class ExtractLocalRefactoringImpl extends RefactoringImpl
+    implements ExtractLocalRefactoring {
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
@@ -55,8 +53,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   final Map<Element, int> elementIds = <Element, int>{};
   final Set<String> excludedVariableNames = new Set<String>();
 
-  ExtractLocalRefactoringImpl(this.unit, this.selectionOffset,
-      this.selectionLength) {
+  ExtractLocalRefactoringImpl(
+      this.unit, this.selectionOffset, this.selectionLength) {
     unitElement = unit.element;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
@@ -77,10 +75,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   Future<RefactoringStatus> checkFinalConditions() {
     RefactoringStatus result = new RefactoringStatus();
     if (excludedVariableNames.contains(name)) {
-      result.addWarning(
-          format(
-              "A variable with name '{0}' is already defined in the visible scope.",
-              name));
+      result.addWarning(format(
+          "A variable with name '{0}' is already defined in the visible scope.",
+          name));
     }
     return new Future.value(result);
   }
@@ -153,16 +150,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
         String declStatement = prefix + indent + declarationSource + eol;
         String exprStatement = prefix + indent + 'return ';
         Expression expr = target.expression;
-        doSourceChange_addElementEdit(
-            change,
-            unitElement,
-            new SourceEdit(
-                target.offset,
-                expr.offset - target.offset,
-                '{' + eol + declStatement + exprStatement));
-        doSourceChange_addElementEdit(
-            change,
-            unitElement,
+        doSourceChange_addElementEdit(change, unitElement, new SourceEdit(
+            target.offset, expr.offset - target.offset,
+            '{' + eol + declStatement + exprStatement));
+        doSourceChange_addElementEdit(change, unitElement,
             new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
       }
     }
@@ -204,7 +195,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
         coveringNode.getAncestor((node) => node is Block) == null) {
       return new RefactoringStatus.fatal(
           'Expression inside of function must be selected '
-              'to activate this refactoring.');
+          'to activate this refactoring.');
     }
     // part of string literal
     if (coveringNode is StringLiteral) {
@@ -221,8 +212,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     // single node selected
     if (_selectionAnalyzer.selectedNodes.length == 1 &&
         !utils.selectionIncludesNonWhitespaceOutsideNode(
-            selectionRange,
-            _selectionAnalyzer.firstSelectedNode)) {
+            selectionRange, _selectionAnalyzer.firstSelectedNode)) {
       AstNode selectedNode = _selectionAnalyzer.firstSelectedNode;
       if (selectedNode is Expression) {
         rootExpression = selectedNode;
@@ -236,8 +226,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     if (coveringNode is BinaryExpression) {
       BinaryExpression binaryExpression = coveringNode;
       if (utils.validateBinaryExpressionRange(
-          binaryExpression,
-          selectionRange)) {
+          binaryExpression, selectionRange)) {
         rootExpression = binaryExpression;
         singleExpression = null;
         return new RefactoringStatus();
@@ -410,14 +399,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   void _prepareNames() {
     names.clear();
     if (stringLiteralPart != null) {
-      names.addAll(
-          getVariableNameSuggestionsForText(stringLiteralPart, excludedVariableNames));
+      names.addAll(getVariableNameSuggestionsForText(
+          stringLiteralPart, excludedVariableNames));
     } else if (singleExpression != null) {
-      names.addAll(
-          getVariableNameSuggestionsForExpression(
-              singleExpression.staticType,
-              singleExpression,
-              excludedVariableNames));
+      names.addAll(getVariableNameSuggestionsForExpression(
+          singleExpression.staticType, singleExpression,
+          excludedVariableNames));
     }
   }
 
@@ -444,8 +431,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       enclosingFunction = getEnclosingExecutableNode(selectionNode);
     }
     // visit function
-    enclosingFunction.accept(
-        new _OccurrencesVisitor(this, occurrences, selectionSource));
+    enclosingFunction
+        .accept(new _OccurrencesVisitor(this, occurrences, selectionSource));
   }
 
   void _prepareOffsetsLengths() {
@@ -457,7 +444,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     }
   }
 }
-
 
 /**
  * [SelectionAnalyzer] for [ExtractLocalRefactoringImpl].
@@ -479,8 +465,7 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
     super.visitAssignmentExpression(node);
     Expression lhs = node.leftHandSide;
     if (_isFirstSelectedNode(lhs)) {
-      _invalidSelection(
-          'Cannot extract the left-hand side of an assignment.',
+      _invalidSelection('Cannot extract the left-hand side of an assignment.',
           newLocation_fromNode(lhs));
     }
     return null;
@@ -522,7 +507,6 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
   bool _isFirstSelectedNode(AstNode node) => node == firstSelectedNode;
 }
 
-
 class _HasStatementVisitor extends GeneralizingAstVisitor {
   bool result = false;
 
@@ -533,7 +517,6 @@ class _HasStatementVisitor extends GeneralizingAstVisitor {
     result = true;
   }
 }
-
 
 class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   final ExtractLocalRefactoringImpl ref;
@@ -633,7 +616,6 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
     }
   }
 }
-
 
 class _TokenLocalElementVisitor extends RecursiveAstVisitor {
   final Map<Token, Element> map;

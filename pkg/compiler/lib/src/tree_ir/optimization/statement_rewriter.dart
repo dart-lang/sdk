@@ -37,8 +37,8 @@ part of tree_ir.optimization;
  * environment and the definition is recursively processed (in the
  * new environment at the use site) before being propagated.
  *
- * See [visitVariable] for the implementation of the heuristic for propagating
- * a definition.
+ * See [visitVariableUse] for the implementation of the heuristic for
+ * propagating a definition.
  *
  *
  * IF-TO-CONDITIONAL CONVERSION:
@@ -111,7 +111,15 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   StatementRewriter.nested(StatementRewriter parent)
       : constantEnvironment = parent.constantEnvironment;
 
-  /// Returns the redirect target of [label] or [label] itself if it should not
+  /// A set of labels that can be safely inlined at their use.
+  ///
+  /// The successor statements for labeled statements that have only one break
+  /// from them are normally rewritten inline at the site of the break.  This
+  /// is not safe if the code would be moved inside the scope of an exception
+  /// handler (i.e., if the code would be moved into a try from outside it).
+  Set<Label> safeForInlining = new Set<Label>();
+
+  /// Returns the redirect target of [jump] or [jump] itself if it should not
   /// be redirected.
   Jump redirect(Jump jump) {
     Jump newJump = labelRedirects[jump.target];
@@ -157,9 +165,10 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
 
   Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);
 
-  Expression visitVariable(Variable node) {
+  @override
+  Expression visitVariableUse(VariableUse node) {
     // Propagate constant to use site.
-    Expression constant = constantEnvironment[node];
+    Expression constant = constantEnvironment[node.variable];
     if (constant != null) return constant;
 
     // Propagate a variable's definition to its use site if:
@@ -168,10 +177,11 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     // 2.  It was the most recent expression evaluated so that we do not
     //     reorder expressions with side effects.
     if (!environment.isEmpty &&
-        environment.last.variable == node &&
+        environment.last.variable == node.variable &&
         environment.last.hasExactlyOneUse) {
       return visitExpression(environment.removeLast().definition);
     }
+
     // If the definition could not be propagated, leave the variable use.
     return node;
   }
@@ -185,7 +195,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return exp is Constant ||
            exp is This ||
            exp is ReifyTypeVar ||
-           exp is Variable && constantEnvironment.containsKey(exp);
+           exp is VariableUse && constantEnvironment.containsKey(exp.variable);
   }
 
   Statement visitAssign(Assign node) {
@@ -310,7 +320,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     // Note that useCount was accounted for at visitLabeledStatement.
     // Note redirect may return either a Break or Continue statement.
     Jump jump = redirect(node);
-    if (jump is Break && jump.target.useCount == 1) {
+    if (jump is Break &&
+        jump.target.useCount == 1 &&
+        safeForInlining.contains(jump.target)) {
       --jump.target.useCount;
       return visitStatement(jump.target.binding.next);
     }
@@ -337,7 +349,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
       return result;
     }
 
+    safeForInlining.add(node.label);
     node.body = visitStatement(node.body);
+    safeForInlining.remove(node.label);
 
     if (node.label.useCount == 0) {
       // Eliminate the label if next was inlined at a break
@@ -395,6 +409,15 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   Statement visitWhileCondition(WhileCondition node) {
     // Not introduced yet
     throw "Unexpected WhileCondition in StatementRewriter";
+  }
+
+  Statement visitTry(Try node) {
+    Set<Label> saved = safeForInlining;
+    safeForInlining = new Set<Label>();
+    node.tryBody = visitStatement(node.tryBody);
+    safeForInlining = saved;
+    node.catchBody = visitStatement(node.catchBody);
+    return node;
   }
 
   Expression visitConstant(Constant node) {
@@ -537,8 +560,8 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   /// If non-null is returned, the caller must discard [e1] and [e2] and use
   /// the resulting expression in the tree.
   static Expression combineExpressions(Expression e1, Expression e2) {
-    if (e1 is Variable && e1 == e2) {
-      --e1.readCount; // Two references become one.
+    if (e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable) {
+      --e1.variable.readCount; // Two references become one.
       return e1;
     }
     if (e1 is Constant && e2 is Constant && e1.value == e2.value) {

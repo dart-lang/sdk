@@ -45,7 +45,8 @@ class DartGenerator(object):
       return self._IsCompoundType(database, type_name[:-len('[]')])
 
     stripped_type_name = self._StripModules(type_name)
-    if database.HasInterface(stripped_type_name):
+    if (database.HasInterface(stripped_type_name) or
+        database.HasDictionary(stripped_type_name)):
       return True
 
     if database.HasEnum(stripped_type_name):
@@ -229,7 +230,13 @@ class DartGenerator(object):
     ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'object')), ('Id', 'arg')])
     for interface in database.GetInterfaces():
       for operation in interface.operations:
-        call_with = (operation.ext_attrs.get('CallWith', '') +
-                     operation.ext_attrs.get('ConstructorCallWith', ''))
+        call_with = operation.ext_attrs.get('CallWith', [])
+        if not(isinstance(call_with, list)):
+          call_with = [call_with]
+        constructor_with = operation.ext_attrs.get('ConstructorCallWith', [])
+        if not(isinstance(constructor_with, list)):
+          constructor_with = [constructor_with]
+        call_with = call_with + constructor_with
+
         if 'ScriptArguments' in call_with:
           operation.arguments.append(ARG)

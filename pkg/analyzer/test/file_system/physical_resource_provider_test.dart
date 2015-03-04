@@ -14,11 +14,9 @@ import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
-
 var _isFile = new isInstanceOf<File>();
 var _isFolder = new isInstanceOf<Folder>();
 var _isFileSystemException = new isInstanceOf<FileSystemException>();
-
 
 main() {
   groupSep = ' | ';
@@ -37,7 +35,6 @@ main() {
     });
 
     group('Watch', () {
-
       Future delayed(computation()) {
         // Give the tests 1 second to detect the changes. While it may only
         // take up to a few hundred ms, a whole second gives a good margin
@@ -293,6 +290,28 @@ main() {
         });
       });
 
+      group('getChildAssumingFolder', () {
+        test('does not exist', () {
+          Folder child = folder.getChildAssumingFolder('no-such-resource');
+          expect(child, isNotNull);
+          expect(child.exists, isFalse);
+        });
+
+        test('file', () {
+          new io.File(join(path, 'myFile')).createSync();
+          Folder child = folder.getChildAssumingFolder('myFile');
+          expect(child, isNotNull);
+          expect(child.exists, isFalse);
+        });
+
+        test('folder', () {
+          new io.Directory(join(path, 'myFolder')).createSync();
+          Folder child = folder.getChildAssumingFolder('myFolder');
+          expect(child, isNotNull);
+          expect(child.exists, isTrue);
+        });
+      });
+
       test('getChildren', () {
         // create 2 files and 1 folder
         new io.File(join(path, 'a.txt')).createSync();
@@ -342,14 +361,11 @@ main() {
         expect(folder.canonicalizePath('baz'), equals(join(path, 'baz')));
         expect(folder.canonicalizePath(path2), equals(path2));
         expect(folder.canonicalizePath(join('..', 'folder2')), equals(path2));
-        expect(
-            folder.canonicalizePath(join(path2, '..', 'folder3')),
+        expect(folder.canonicalizePath(join(path2, '..', 'folder3')),
             equals(path3));
-        expect(
-            folder.canonicalizePath(join('.', 'baz')),
+        expect(folder.canonicalizePath(join('.', 'baz')),
             equals(join(path, 'baz')));
-        expect(
-            folder.canonicalizePath(join(path2, '.', 'baz')),
+        expect(folder.canonicalizePath(join(path2, '.', 'baz')),
             equals(join(path2, 'baz')));
       });
     });

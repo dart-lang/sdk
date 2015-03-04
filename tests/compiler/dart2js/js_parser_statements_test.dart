@@ -133,6 +133,7 @@ void main() {
                   {'a': false, 'b': block12},
                   '{\n  1;\n  2;\n}'),
 
+
     testStatement('while (#) #', [eOne, block12], 'while (1) {\n  1;\n  2;\n}'),
     testStatement('while (#) #;', [eTrue, block12],
         'while (true) {\n  1;\n  2;\n}'),
@@ -143,9 +144,9 @@ void main() {
     testStatement('while (#) #;', ['a', stm],
         'while (a)\n  foo();'),
 
-    testStatement(
-        'do { {print(1);} do while(true); while (false) } while ( true )', [],
-        '''
+  testStatement(
+      'do { {print(1);} do while(true); while (false) } while ( true )', [],
+      '''
 do {
   print(1);
   do
@@ -323,7 +324,7 @@ switch (true) {
                   '};'),
 
     testStatement('label: while (a) { label2: break label;}', [],
-        'label:\n  while (a) {\n    label2:\n      break label;\n  }'),
+        'label:\n  while (a)\n    label2:\n      break label;\n  '),
 
 
     testStatement('var # = 3', ['x'], 'var x = 3;'),
@@ -345,5 +346,58 @@ switch (true) {
     testStatement('try {} catch (#a) {}',
                   {"a": new jsAst.VariableDeclaration('x')},
                   'try {\n} catch (x) {\n}'),
+
+    // Test that braces around a single-statement block are removed by printer.
+    testStatement('while (a) {foo()}', [],
+        'while (a)\n  foo();'),
+    testStatement('if (a) {foo();}', [],
+        'if (a)\n  foo();'),
+    testStatement('if (a) {foo();} else {foo2();}', [],
+        'if (a)\n  foo();\nelse\n  foo2();'),
+    testStatement('if (a) foo(); else {foo2();}', [],
+        'if (a)\n  foo();\nelse\n  foo2();'),
+    testStatement('do {foo();} while(a);', [],
+        'do\n  foo();\nwhile (a);'),
+    testStatement('label: {foo();}', [],
+        'label:\n  foo();'),
+    testStatement('for (var key in a) {foo();}', [],
+        'for (var key in a)\n  foo();'),
+    // `label: break label;` gives problems on IE. Test that it is avoided.
+    testStatement('label: {break label;}', [],
+        ';'),
+    // This works on IE:
+    testStatement('label: {label2: {break label;}}', [],
+        'label:\n  label2:\n    break label;\n'),
+    // Test dangling else:
+    testStatement('if (a) {if (b) {foo1();}} else {foo2();}', [], """
+if (a) {
+  if (b)
+    foo1();
+} else
+  foo2();"""),
+    testStatement('if (a) {if (b) {foo1();} else {foo2();}}', [], """
+if (a)
+  if (b)
+    foo1();
+  else
+    foo2();
+"""),
+    testStatement('if (a) {if (b) {foo1();} else {foo2();}} else {foo3();}',
+        [], """
+if (a)
+  if (b)
+    foo1();
+  else
+    foo2();
+else
+  foo3();"""),
+    testStatement('if (a) {while (true) if (b) {foo1();}} else {foo2();}',
+        [], """
+if (a) {
+  while (true)
+    if (b)
+      foo1();
+} else
+  foo2();"""),
   ]));
 }

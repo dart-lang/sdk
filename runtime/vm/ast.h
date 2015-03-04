@@ -159,19 +159,37 @@ class AstNode : public ZoneAllocated {
 
 class AwaitNode : public AstNode {
  public:
-  AwaitNode(intptr_t token_pos, AstNode* expr)
-    : AstNode(token_pos), expr_(expr) { }
+  AwaitNode(intptr_t token_pos,
+            AstNode* expr,
+            LocalScope* try_scope,
+            int16_t try_index,
+            LocalScope* outer_try_scope,
+            intptr_t outer_try_index)
+    : AstNode(token_pos),
+      expr_(expr),
+      try_scope_(try_scope),
+      try_index_(try_index),
+      outer_try_scope_(outer_try_scope),
+      outer_try_index_(outer_try_index) { }
 
   void VisitChildren(AstNodeVisitor* visitor) const {
     expr_->Visit(visitor);
   }
 
   AstNode* expr() const { return expr_; }
+  LocalScope* try_scope() const { return try_scope_; }
+  int16_t try_index() const { return try_index_; }
+  LocalScope* outer_try_scope() const { return outer_try_scope_; }
+  int16_t outer_try_index() const { return outer_try_index_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(AwaitNode);
 
  private:
   AstNode* expr_;
+  LocalScope* try_scope_;
+  int16_t try_index_;
+  LocalScope* outer_try_scope_;
+  int16_t outer_try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(AwaitNode);
 };
@@ -1767,6 +1785,8 @@ class CatchClauseNode : public AstNode {
                   const LocalVariable* context_var,
                   const LocalVariable* exception_var,
                   const LocalVariable* stacktrace_var,
+                  const LocalVariable* rethrow_exception_var,
+                  const LocalVariable* rethrow_stacktrace_var,
                   intptr_t catch_handler_index,
                   bool needs_stacktrace)
       : AstNode(token_pos),
@@ -1775,6 +1795,8 @@ class CatchClauseNode : public AstNode {
         context_var_(*context_var),
         exception_var_(*exception_var),
         stacktrace_var_(*stacktrace_var),
+        rethrow_exception_var_(*rethrow_exception_var),
+        rethrow_stacktrace_var_(*rethrow_stacktrace_var),
         catch_handler_index_(catch_handler_index),
         needs_stacktrace_(needs_stacktrace) {
     ASSERT(catch_block_ != NULL);
@@ -1788,6 +1810,12 @@ class CatchClauseNode : public AstNode {
   const LocalVariable& context_var() const { return context_var_; }
   const LocalVariable& exception_var() const { return exception_var_; }
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
+  const LocalVariable& rethrow_exception_var() const {
+      return rethrow_exception_var_;
+  }
+  const LocalVariable& rethrow_stacktrace_var() const {
+      return rethrow_stacktrace_var_;
+  }
   intptr_t catch_handler_index() const { return catch_handler_index_; }
   bool needs_stacktrace() const { return needs_stacktrace_; }
 
@@ -1803,6 +1831,8 @@ class CatchClauseNode : public AstNode {
   const LocalVariable& context_var_;
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
+  const LocalVariable& rethrow_exception_var_;
+  const LocalVariable& rethrow_stacktrace_var_;
   const intptr_t catch_handler_index_;
   const bool needs_stacktrace_;
 

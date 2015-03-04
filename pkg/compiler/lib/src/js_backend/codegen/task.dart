@@ -30,7 +30,6 @@ import '../../cps_ir/cps_ir_nodes_sexpr.dart';
 import 'js_tree_builder.dart';
 
 class CpsFunctionCompiler implements FunctionCompiler {
-  final IrBuilderTask irBuilderTask;
   final ConstantSystem constantSystem;
   final Compiler compiler;
   final Glue glue;
@@ -42,9 +41,12 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   Tracer get tracer => compiler.tracer;
 
-  CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend)
-      : irBuilderTask = new IrBuilderTask(compiler),
-        fallbackCompiler = new ssa.SsaFunctionCompiler(backend, true),
+  IrBuilderTask get irBuilderTask => compiler.irBuilder;
+
+  CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend,
+                      {bool generateSourceMap: true})
+      : fallbackCompiler =
+            new ssa.SsaFunctionCompiler(backend, generateSourceMap),
         constantSystem = backend.constantSystem,
         compiler = compiler,
         glue = new Glue(compiler);

@@ -40,8 +40,8 @@ class BuildUnitElementTask extends AnalysisTask {
    * the given [source] in the given [library] based on the compilation [unit]
    * that was parsed.
    */
-  BuildUnitElementTask(InternalAnalysisContext context, this.source,
-      this.library, this.unit)
+  BuildUnitElementTask(
+      InternalAnalysisContext context, this.source, this.library, this.unit)
       : super(context);
 
   @override

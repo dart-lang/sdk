@@ -10,6 +10,7 @@ import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
 import '../io/source_file.dart';
+import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../universe/universe.dart' show SelectorKind;
@@ -111,6 +112,8 @@ class JumpCollector {
   final JumpTarget target;
   final List<ir.InvokeContinuation> _invocations = <ir.InvokeContinuation>[];
   final List<Environment> _environments = <Environment>[];
+  final List<Iterable<LocalVariableElement>> boxedTryVariables =
+      <Iterable<LocalVariableElement>>[];
 
   JumpCollector(this.target);
 
@@ -120,6 +123,15 @@ class JumpCollector {
   List<Environment> get environments => _environments;
 
   void addJump(IrBuilder builder) {
+    // Unbox all variables that were boxed on entry to try blocks between the
+    // jump and the target.
+    for (Iterable<LocalVariableElement> boxedOnEntry in boxedTryVariables) {
+      for (LocalVariableElement variable in boxedOnEntry) {
+        assert(builder.isInMutableVariable(variable));
+        ir.Primitive value = builder.buildLocalGet(variable);
+        builder.environment.update(variable, value);
+      }
+    }
     ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized();
     builder.add(invoke);
     _invocations.add(invoke);
@@ -127,6 +139,26 @@ class JumpCollector {
     builder._current = null;
     // TODO(kmillikin): Can we set builder.environment to null to make it
     // less likely to mutate it?
+  }
+
+  /// Add a set of variables that were boxed on entry to a try block.
+  ///
+  /// Jumps from a try block to targets outside have to unbox the variables
+  /// that were boxed on entry before invoking the target continuation.  Call
+  /// this function before translating a try block and call [leaveTry] after
+  /// translating it.
+  void enterTry(Iterable<LocalVariableElement> boxedOnEntry) {
+    // The boxed variables are maintained as a stack to make leaving easy.
+    boxedTryVariables.add(boxedOnEntry);
+  }
+
+  /// Remove the most recently added set of variables boxed on entry to a try
+  /// block.
+  ///
+  /// Call [enterTry] before translating a try block and call this function
+  /// after translating it.
+  void leaveTry() {
+    boxedTryVariables.removeLast();
   }
 }
 
@@ -207,6 +239,30 @@ class IrBuilderDelimitedState {
 /// variables in different ways.
 abstract class IrBuilder {
   IrBuilder _makeInstance();
+
+  /// A map from TryStatements in the AST to their analysis information.
+  ///
+  /// This includes which variables should be copied into [ir.MutableVariable]s
+  /// on entry to the try and copied out on exit.
+  Map<ast.TryStatement, TryStatementInfo> get tryStatements;
+
+  /// The set of local variables that will spend their lifetime as
+  /// [ir.MutableVariable]s due to being captured by a nested function.
+  Set<Local> get mutableCapturedVariables;
+
+  /// True if [local] should currently be accessed from a [ir.MutableVariable].
+  bool isInMutableVariable(Local local);
+
+  /// Creates a [ir.MutableVariable] for the given local.
+  void makeMutableVariable(Local local);
+
+  /// Remove an [ir.MutableVariable] for a local.
+  ///
+  /// Subsequent access to the local will be direct rather than through the
+  /// mutable variable.  This is used for variables that do not spend their
+  /// entire lifetime as mutable variables (e.g., variables that are boxed
+  /// in mutable variables for a try block).
+  void removeMutableVariable(Local local);
 
   void declareLocalVariable(LocalVariableElement element,
                             {ir.Primitive initialValue});
@@ -390,10 +446,12 @@ abstract class IrBuilder {
 
   ir.Primitive _buildInvokeStatic(Element element,
                                   Selector selector,
-                                  List<ir.Primitive> arguments) {
+                                  List<ir.Primitive> arguments,
+                                  SourceInformation sourceInformation) {
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, k, arguments));
+        (k) => new ir.InvokeStatic(element, selector, k, arguments,
+                                   sourceInformation));
   }
 
   ir.Primitive _buildInvokeSuper(Element target,
@@ -689,26 +747,32 @@ abstract class IrBuilder {
   /// defined by [selector] and the argument values are defined by [arguments].
   ir.Primitive buildStaticInvocation(Element element,
                                      Selector selector,
-                                     List<ir.Primitive> arguments) {
-    return _buildInvokeStatic(element, selector, arguments);
+                                     List<ir.Primitive> arguments,
+                                     {SourceInformation sourceInformation}) {
+    return _buildInvokeStatic(element, selector, arguments, sourceInformation);
   }
 
   /// Create a static getter invocation of [element] where the getter name is
   /// defined by [selector].
-  ir.Primitive buildStaticGet(Element element, Selector selector) {
+  ir.Primitive buildStaticGet(Element element,
+                              Selector selector,
+                              {SourceInformation sourceInformation}) {
     assert(selector.isGetter);
     // TODO(karlklose,sigurdm): build different nodes for getters.
-    return _buildInvokeStatic(element, selector, const <ir.Primitive>[]);
+    return _buildInvokeStatic(
+        element, selector, const <ir.Primitive>[], sourceInformation);
   }
 
   /// Create a static setter invocation of [element] where the setter name and
   /// argument are defined by [selector] and [value], respectively.
   ir.Primitive buildStaticSet(Element element,
                               Selector selector,
-                              ir.Primitive value) {
+                              ir.Primitive value,
+                              {SourceInformation sourceInformation}) {
     assert(selector.isSetter);
     // TODO(karlklose,sigurdm): build different nodes for setters.
-    _buildInvokeStatic(element, selector, <ir.Primitive>[value]);
+    _buildInvokeStatic(
+        element, selector, <ir.Primitive>[value], sourceInformation);
     return value;
   }
 
@@ -816,6 +880,19 @@ abstract class IrBuilder {
     }
   }
 
+  void jumpTo(ir.Continuation continuation) {
+    assert(isOpen);
+    assert(environment.length >= continuation.parameters.length);
+    ir.InvokeContinuation jump = new ir.InvokeContinuation.uninitialized();
+    jump.continuation = new ir.Reference(continuation);
+    jump.arguments = new List<ir.Reference>.generate(
+        continuation.parameters.length, (i) {
+      return new ir.Reference(environment[i]);
+    });
+    add(jump);
+    _current = null;
+  }
+
   /// Invoke a join-point continuation that contains arguments for all local
   /// variables.
   ///
@@ -824,6 +901,9 @@ abstract class IrBuilder {
   void invokeFullJoin(ir.Continuation join,
                       JumpCollector jumps,
                       {recursive: false}) {
+    // TODO(kmillikin): If the JumpCollector collected open IrBuilders instead
+    // of pairs of invocations and environments, we could use IrBuilder.jumpTo
+    // here --- the code is almost the same.
     join.isRecursive = recursive;
     for (int i = 0; i < jumps.length; ++i) {
       Environment currentEnvironment = jumps.environments[i];
@@ -1518,7 +1598,7 @@ class DartIrBuilderSharedState {
   final Map<Local, ir.MutableVariable> local2mutable =
       <Local, ir.MutableVariable>{};
 
-  final DartCapturedVariableInfo capturedVariables;
+  final DartCapturedVariables capturedVariables;
 
   /// Creates a [MutableVariable] for the given local.
   void makeMutableVariable(Local local) {
@@ -1550,15 +1630,30 @@ class DartIrBuilder extends IrBuilder {
 
   DartIrBuilder(ConstantSystem constantSystem,
                 ExecutableElement currentElement,
-                DartCapturedVariableInfo capturedVariables)
+                DartCapturedVariables capturedVariables)
       : dartState = new DartIrBuilderSharedState(capturedVariables) {
     _init(constantSystem, currentElement);
   }
 
-  /// True if [local] should currently be accessed from a [MutableVariable].
+  Map<ast.TryStatement, TryStatementInfo> get tryStatements {
+    return dartState.capturedVariables.tryStatements;
+  }
+
+  Set<Local> get mutableCapturedVariables {
+    return dartState.capturedVariables.capturedVariables;
+  }
+
   bool isInMutableVariable(Local local) {
     return dartState.local2mutable.containsKey(local) &&
            !dartState.registerizedMutableVariables.contains(local);
+  }
+
+  void makeMutableVariable(Local local) {
+    dartState.makeMutableVariable(local);
+  }
+
+  void removeMutableVariable(Local local) {
+    dartState.local2mutable.remove(local);
   }
 
   /// Gets the [MutableVariable] containing the value of [local].
@@ -1733,6 +1828,12 @@ class JsIrBuilder extends IrBuilder {
       : jsState = new JsIrBuilderSharedState() {
     _init(constantSystem, currentElement);
   }
+
+  Map<ast.TryStatement, TryStatementInfo> get tryStatements => null;
+  Set<Local> get mutableCapturedVariables => null;
+  bool isInMutableVariable(Local local) => false;
+  void makeMutableVariable(Local local) {}
+  void removeMutableVariable(Local local) {}
 
   void _enterClosureEnvironment(ClosureEnvironment env) {
     if (env == null) return;
@@ -2012,10 +2113,8 @@ class ClosureEnvironment {
   ClosureEnvironment(this.selfReference, this.thisLocal, this.freeVariables);
 }
 
-/// Information about which variables are captured by a nested function.
-///
-/// This is used by the [DartIrBuilder] instead of [ClosureScope] and
-/// [ClosureEnvironment].
-abstract class DartCapturedVariableInfo {
-  Iterable<Local> get capturedVariables;
+class TryStatementInfo {
+  final Set<LocalVariableElement> declared = new Set<LocalVariableElement>();
+  final Set<LocalVariableElement> boxedOnEntry =
+      new Set<LocalVariableElement>();
 }

@@ -11,12 +11,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(RenameUnitMemberTest);
 }
-
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
@@ -29,9 +27,7 @@ class NewName {} // existing
     // check status
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Library already declares class with name 'NewName'.",
         expectedContextSearch: 'NewName {} // existing');
   }
@@ -45,11 +41,8 @@ typedef NewName(); // existing
     // check status
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Library already declares function type alias with name 'NewName'.",
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Library already declares function type alias with name 'NewName'.",
         expectedContextSearch: 'NewName(); // existing');
   }
 
@@ -86,11 +79,8 @@ class A {
     // check status
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Reference to renamed class will be shadowed by method 'A.NewName'.",
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Reference to renamed class will be shadowed by method 'A.NewName'.",
         expectedContextSearch: 'NewName() {}');
   }
 
@@ -114,17 +104,11 @@ class B extends A {
     // check status
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will shadow method 'A.NewName'.");
   }
 
-
-
-
-
-      test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
+  test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
     indexTestUnit('''
 class Test {}
 ''');
@@ -163,9 +147,7 @@ class B extends A {
     // check status
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will shadow method 'A.NewName'.",
         expectedContextSearch: 'NewName(); // super-ref');
   }
@@ -219,20 +201,17 @@ class Test {}
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not be empty.");
     // same
     refactoring.newName = 'Test';
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
     // OK
     refactoring.newName = 'NewName';
@@ -247,14 +226,12 @@ test() {}
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not be empty.");
     // OK
     refactoring.newName = 'newName';
@@ -269,8 +246,7 @@ typedef Test();
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function type alias name must not be null.");
     // OK
     refactoring.newName = 'NewName';
@@ -285,14 +261,12 @@ var test;
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be empty.");
     // OK
     refactoring.newName = 'newName';

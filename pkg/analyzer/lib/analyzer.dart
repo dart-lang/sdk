@@ -28,8 +28,8 @@ export 'src/generated/utilities_dart.dart';
 ///
 /// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
 /// [suppressErrors] is `true`, in which case any errors are discarded.
-CompilationUnit parseCompilationUnit(String contents, {String name,
-    bool suppressErrors: false}) {
+CompilationUnit parseCompilationUnit(String contents,
+    {String name, bool suppressErrors: false}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
@@ -82,8 +82,8 @@ CompilationUnit parseDartFile(String path) {
 ///
 /// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
 /// [suppressErrors] is `true`, in which case any errors are discarded.
-CompilationUnit parseDirectives(String contents, {String name,
-    bool suppressErrors: false}) {
+CompilationUnit parseDirectives(String contents,
+    {String name, bool suppressErrors: false}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();

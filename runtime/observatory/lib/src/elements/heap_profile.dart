@@ -102,13 +102,13 @@ class HeapProfileElement extends ObservatoryElement {
     _subscription.cancel((){});
     super.detached();
   }
-  
+
   void _onEvent(ServiceEvent event) {
     if (autoRefresh && event.eventType == 'GC') {
       refresh((){});
     }
   }
-  
+
   void _updatePieCharts() {
     assert(profile != null);
     _newPieDataTable.clearRows();

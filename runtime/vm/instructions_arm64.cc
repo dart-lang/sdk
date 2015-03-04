@@ -365,6 +365,19 @@ void JumpPattern::SetTargetAddress(uword target_address) const {
   CPU::FlushICache(pc_, 4 * Instr::kInstrSize);
 }
 
+
+ReturnPattern::ReturnPattern(uword pc)
+    : pc_(pc) {
+}
+
+
+bool ReturnPattern::IsValid() const {
+  Instr* bx_lr = Instr::At(pc_);
+  const Register crn = ConcreteRegister(LR);
+  const int32_t instruction = RET | (static_cast<int32_t>(crn) << kRnShift);
+  return bx_lr->InstructionBits() == instruction;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM64

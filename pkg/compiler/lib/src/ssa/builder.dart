@@ -24,7 +24,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     if (element is FunctionElement) {
       JavaScriptBackend backend = builder.backend;
 
-      AsyncRewriter rewriter = null;
+      AsyncRewriterBase rewriter = null;
 
       if (element.asyncMarker == AsyncMarker.ASYNC) {
         rewriter = new AsyncRewriter(
@@ -36,7 +36,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.getCompleterConstructor()),
             safeVariableName: backend.namer.safeVariableName);
       } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
-        rewriter = new AsyncRewriter(
+        rewriter = new SyncStarRewriter(
             backend.compiler,
             backend.compiler.currentElement,
             endOfIteration: backend.emitter.staticFunctionAccess(
@@ -50,10 +50,10 @@ class SsaFunctionCompiler implements FunctionCompiler {
             safeVariableName: backend.namer.safeVariableName);
       }
       else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
-        rewriter = new AsyncRewriter(
+        rewriter = new AsyncStarRewriter(
             backend.compiler,
             backend.compiler.currentElement,
-            streamHelper: backend.emitter.staticFunctionAccess(
+            asyncStarHelper: backend.emitter.staticFunctionAccess(
                 backend.getAsyncStarHelper()),
             streamOfController: backend.emitter.staticFunctionAccess(
                 backend.getStreamOfController()),
@@ -2228,6 +2228,15 @@ class SsaBuilder extends ResolvedVisitor {
         }
       });
 
+      // If there are locals that escape (ie mutated in closures), we
+      // pass the box to the constructor.
+      // The box must be passed before any type variable.
+      ClosureScope scopeData = parameterClosureData.capturingScopes[node];
+      if (scopeData != null) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      }
+
+      // Type variables arguments must come after the box (if there is one).
       ClassElement currentClass = constructor.enclosingClass;
       if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
@@ -2238,13 +2247,6 @@ class SsaBuilder extends ResolvedVisitor {
           bodyCallInputs.add(localsHandler.readLocal(
               localsHandler.getTypeVariableAsLocal(argument)));
         });
-      }
-
-      // If there are locals that escape (ie mutated in closures), we
-      // pass the box to the constructor.
-      ClosureScope scopeData = parameterClosureData.capturingScopes[node];
-      if (scopeData != null) {
-        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
       }
 
       if (!isNativeUpgradeFactory && // TODO(13836): Fix inlining.
@@ -3711,12 +3713,17 @@ class SsaBuilder extends ResolvedVisitor {
      }
      String name = string.dartString.slowToString();
      bool value = false;
-     if (name == 'MUST_RETAIN_METADATA') {
-       value = backend.mustRetainMetadata;
-     } else {
-       compiler.reportError(
-           node, MessageKind.GENERIC,
-           {'text': 'Error: Unknown internal flag "$name".'});
+     switch (name) {
+       case 'MUST_RETAIN_METADATA':
+         value = backend.mustRetainMetadata;
+         break;
+       case 'USE_CONTENT_SECURITY_POLICY':
+         value = compiler.useContentSecurityPolicy;
+         break;
+       default:
+         compiler.reportError(
+             node, MessageKind.GENERIC,
+             {'text': 'Error: Unknown internal flag "$name".'});
      }
      stack.add(graph.addConstantBool(value, compiler));
   }
@@ -3741,16 +3748,20 @@ class SsaBuilder extends ResolvedVisitor {
       }
       return;
     }
-    ast.LiteralString string = argument.asLiteralString();
-    if (string == null) {
+    Element element = elements[argument];
+    if (element == null ||
+        element is! FieldElement ||
+        element.enclosingClass != backend.jsGetNameEnum) {
       compiler.reportError(
           argument, MessageKind.GENERIC,
-          {'text': 'Error: Expected a literal string.'});
+          {'text': 'Error: Expected a JsGetName enum value.'});
     }
+    EnumClassElement enumClass = element.enclosingClass;
+    int index = enumClass.enumValues.indexOf(element);
     stack.add(
         addConstantString(
             backend.namer.getNameForJsGetName(
-                argument, string.dartString.slowToString())));
+                argument, JsGetName.values[index])));
   }
 
   void handleForeignJsEmbeddedGlobal(ast.Send node) {
@@ -3934,15 +3945,15 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(addConstantString(backend.namer.operatorIsPrefix));
     } else if (name == 'JS_OBJECT_CLASS_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
+      String name = backend.namer.runtimeTypeName(compiler.objectClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_NULL_CLASS_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
+      String name = backend.namer.runtimeTypeName(compiler.nullClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_FUNCTION_CLASS_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
+      String name = backend.namer.runtimeTypeName(compiler.functionClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
       // TODO(floitsch): this should be a JS_NAME.
@@ -4139,7 +4150,7 @@ class SsaBuilder extends ResolvedVisitor {
       // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
       // string concatenation in the implementation), and may prevent
       // segmentation of '$'.
-      String substitutionNameString = backend.namer.getNameForRti(cls);
+      String substitutionNameString = backend.namer.runtimeTypeName(cls);
       HInstruction substitutionName = graph.addConstantString(
           new ast.LiteralDartString(substitutionNameString), compiler);
       pushInvokeStatic(null,
@@ -6013,7 +6024,16 @@ class SsaBuilder extends ResolvedVisitor {
 
   /// Calls [buildTry] inside a synthetic try block with [buildFinally] in the
   /// finally block.
+  ///
+  /// Note that to get the right locals behavior, the code visited by [buildTry]
+  /// and [buildFinally] must have been analyzed as if inside a try-statement by
+  /// [ClosureTranslator].
   void buildProtectedByFinally(void buildTry(), void buildFinally()) {
+    // Save the current locals. The finally block must not reuse the existing
+    // locals handler. None of the variables that have been defined in the
+    // body-block will be used, but for loops we will add (unnecessary) phis
+    // that will reference the body variables. This makes it look as if the
+    // variables were used in a non-dominated block.
     HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
     close(tryInstruction);

@@ -19,7 +19,6 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
 
-
 int findIdentifierLength(String search) {
   int length = 0;
   while (length < search.length) {
@@ -33,7 +32,6 @@ int findIdentifierLength(String search) {
   }
   return length;
 }
-
 
 /**
  * The base class for all [Refactoring] tests.
@@ -92,9 +90,10 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   /**
    * Asserts that [status] has expected severity and message.
    */
-  void assertRefactoringStatus(RefactoringStatus status,
-      RefactoringProblemSeverity expectedSeverity, {String expectedMessage,
-      SourceRange expectedContextRange, String expectedContextSearch}) {
+  void assertRefactoringStatus(
+      RefactoringStatus status, RefactoringProblemSeverity expectedSeverity,
+      {String expectedMessage, SourceRange expectedContextRange,
+      String expectedContextSearch}) {
     expect(status.severity, expectedSeverity, reason: status.toString());
     if (expectedSeverity != null) {
       RefactoringProblem problem = status.problem;

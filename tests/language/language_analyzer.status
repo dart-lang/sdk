@@ -9,6 +9,8 @@ async_return_types_test/nestedFuture: MissingStaticWarning # Issue 22410
 await_backwards_compatibility_test/none: CompileTimeError # Issue 22052
 await_test: CompileTimeError # Issue 22052
 
+issue13179_test: CompileTimeError # Issue 13179
+
 sync_generator2_test/01: MissingCompileTimeError # Issue 22252
 sync_generator2_test/02: MissingCompileTimeError # Issue 22252
 sync_generator2_test/03: MissingCompileTimeError # Issue 22252
@@ -175,6 +177,7 @@ private_member3_negative_test: fail
 malformed_test/none: fail # test issue 14079, legit warnings for malformed type
 malformed_test/05: fail # test issue 14079, it is not error, but warning to instantiate malformed type
 malformed_test/06: fail # test issue 14079, it is not error, but warning to use malformed type in "try-on" clause
+regress_22438_test: fail # test issue 14079, it is not error, but warning to use malformed type in "try-on" clause
 
 # test issue 14228
 black_listed_test/none: fail # test issue 14228, warnings are required but not expected

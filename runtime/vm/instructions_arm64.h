@@ -105,6 +105,24 @@ class JumpPattern : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };
 
+
+class ReturnPattern : public ValueObject {
+ public:
+  explicit ReturnPattern(uword pc);
+
+  // bx_lr = 1.
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int pattern_length_in_bytes() const {
+    return kLengthInBytes;
+  }
+
+  bool IsValid() const;
+
+ private:
+  const uword pc_;
+};
+
 }  // namespace dart
 
 #endif  // VM_INSTRUCTIONS_ARM64_H_

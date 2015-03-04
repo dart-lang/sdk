@@ -106,17 +106,61 @@ class SampleVisitor : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(SampleVisitor);
 };
 
+
+class PreprocessVisitor : public SampleVisitor {
+ public:
+  explicit PreprocessVisitor(Isolate* isolate);
+
+  virtual void VisitSample(Sample* sample);
+
+ private:
+  void CheckForMissingDartFrame(const Code& code, Sample* sample) const;
+
+  bool ContainedInDartCodeHeaps(uword pc) const;
+
+  Isolate* vm_isolate() const {
+    return vm_isolate_;
+  }
+
+  RawCode* FindCodeForPC(uword pc) const;
+
+  Isolate* vm_isolate_;
+};
+
+
+class ClearProfileVisitor : public SampleVisitor {
+ public:
+  explicit ClearProfileVisitor(Isolate* isolate);
+
+  virtual void VisitSample(Sample* sample);
+};
+
+
 // Each Sample holds a stack trace from an isolate.
 class Sample {
  public:
   void Init(Isolate* isolate, int64_t timestamp, ThreadId tid) {
+    Clear();
     timestamp_ = timestamp;
     tid_ = tid;
     isolate_ = isolate;
+  }
+
+  // Isolate sample was taken from.
+  Isolate* isolate() const {
+    return isolate_;
+  }
+
+  void Clear() {
+    isolate_ = NULL;
     pc_marker_ = 0;
+    for (intptr_t i = 0; i < kStackBufferSizeInWords; i++) {
+      stack_buffer_[i] = 0;
+    }
     vm_tag_ = VMTag::kInvalidTagId;
     user_tag_ = UserTags::kDefaultUserTag;
     sp_ = 0;
+    lr_ = 0;
     fp_ = 0;
     state_ = 0;
     uword* pcs = GetPCArray();
@@ -125,14 +169,14 @@ class Sample {
     }
   }
 
-  // Isolate sample was taken from.
-  Isolate* isolate() const {
-    return isolate_;
-  }
-
   // Timestamp sample was taken at.
   int64_t timestamp() const {
     return timestamp_;
+  }
+
+  // Top most pc.
+  uword pc() const {
+    return At(0);
   }
 
   // Get stack trace entry.
@@ -190,6 +234,14 @@ class Sample {
     fp_ = fp;
   }
 
+  uword lr() const {
+    return lr_;
+  }
+
+  void set_lr(uword link_register) {
+    lr_ = link_register;
+  }
+
   void InsertCallerForTopFrame(uword pc) {
     if (pcs_length_ == 1) {
       // Only sampling top frame.
@@ -203,6 +255,7 @@ class Sample {
     }
     // Insert caller for top frame.
     pcs[1] = pc;
+    set_missing_frame_inserted(true);
   }
 
   bool processed() const {
@@ -237,6 +290,22 @@ class Sample {
     state_ = ExitFrameBit::update(exit_frame_sample, state_);
   }
 
+  bool missing_frame_inserted() const {
+    return MissingFrameInsertedBit::decode(state_);
+  }
+
+  void set_missing_frame_inserted(bool missing_frame_inserted) {
+    state_ = MissingFrameInsertedBit::update(missing_frame_inserted, state_);
+  }
+
+  bool truncated_trace() const {
+    return TruncatedTraceBit::decode(state_);
+  }
+
+  void set_truncated_trace(bool truncated_trace) {
+    state_ = TruncatedTraceBit::update(truncated_trace, state_);
+  }
+
   static void InitOnce();
 
   static intptr_t instance_size() {
@@ -244,6 +313,11 @@ class Sample {
   }
 
   uword* GetPCArray() const;
+
+  static const int kStackBufferSizeInWords = 2;
+  uword* GetStackBuffer() {
+    return &stack_buffer_[0];
+  }
 
  private:
   static intptr_t instance_size_;
@@ -253,20 +327,27 @@ class Sample {
     kLeafFrameIsDartBit = 1,
     kIgnoreBit = 2,
     kExitFrameBit = 3,
+    kMissingFrameInsertedBit = 4,
+    kTruncatedTrace = 5,
   };
   class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
   class IgnoreBit : public BitField<bool, kIgnoreBit, 1> {};
   class ExitFrameBit : public BitField<bool, kExitFrameBit, 1> {};
+  class MissingFrameInsertedBit
+    : public BitField<bool, kMissingFrameInsertedBit, 1> {};
+  class TruncatedTraceBit : public BitField<bool, kTruncatedTrace, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
   Isolate* isolate_;
   uword pc_marker_;
+  uword stack_buffer_[kStackBufferSizeInWords];
   uword vm_tag_;
   uword user_tag_;
   uword sp_;
   uword fp_;
+  uword lr_;
   uword state_;
 
   /* There are a variable number of words that follow, the words hold the

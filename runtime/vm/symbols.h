@@ -44,6 +44,15 @@ class ObjectPointerVisitor;
   V(_SyncIterableConstructor, "_SyncIterable.")                                \
   V(_SyncIterator, "_SyncIterator")                                            \
   V(IteratorParameter, ":iterator")                                            \
+  V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
+  V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
+  V(Controller, ":controller")                                                 \
+  V(Stream, "stream")                                                          \
+  V(isPaused, "isPaused")                                                      \
+  V(AddError, "addError")                                                      \
+  V(AddStream, "addStream")                                                    \
+  V(Cancel, "cancel")                                                          \
+  V(Close, "close")                                                            \
   V(Values, "values")                                                          \
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
@@ -94,6 +103,7 @@ class ObjectPointerVisitor;
   V(AsyncOperationParam, ":async_result")                                      \
   V(AsyncOperationErrorParam, ":async_error_param")                            \
   V(AsyncOperationStackTraceParam, ":async_stack_trace_param")                 \
+  V(AsyncSavedTryCtxVarPrefix, ":async_saved_try_ctx_var_")                    \
   V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
   V(Await, "await")                                                            \
   V(AwaitContextVar, ":await_ctx_var")                                         \
@@ -340,7 +350,7 @@ class ObjectPointerVisitor;
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
-  V(AllocationStubFor, "Allocation stub for ")                                 \
+  V(AllocationStubFor, "[Stub] Allocate ")                                     \
   V(TempParam, ":temp_param")                                                  \
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \

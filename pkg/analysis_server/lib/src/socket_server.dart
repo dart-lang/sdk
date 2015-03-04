@@ -10,11 +10,10 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
+import 'package:analysis_server/src/source/caching_pub_package_map_provider.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-
 
 /**
  * Instances of the class [SocketServer] implement the common parts of
@@ -44,8 +43,7 @@ class SocketServer {
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       RequestError error = new RequestError(
-          RequestErrorCode.SERVER_ALREADY_STARTED,
-          "Server already started");
+          RequestErrorCode.SERVER_ALREADY_STARTED, "Server already started");
       serverChannel.sendResponse(new Response('', error: error));
       serverChannel.listen((Request request) {
         serverChannel.sendResponse(new Response(request.id, error: error));
@@ -57,8 +55,8 @@ class SocketServer {
     if (analysisServerOptions.fileReadMode == 'as-is') {
       resourceProvider = PhysicalResourceProvider.INSTANCE;
     } else if (analysisServerOptions.fileReadMode == 'normalize-eol-always') {
-      resourceProvider =
-          new PhysicalResourceProvider(PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
+      resourceProvider = new PhysicalResourceProvider(
+          PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
     } else {
       throw new Exception(
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
@@ -70,14 +68,9 @@ class SocketServer {
       index.run();
     }
 
-    analysisServer = new AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        new PubPackageMapProvider(resourceProvider, defaultSdk),
-        index,
-        analysisServerOptions,
-        defaultSdk,
-        instrumentationService,
+    analysisServer = new AnalysisServer(serverChannel, resourceProvider,
+        new CachingPubPackageMapProvider(resourceProvider, defaultSdk), index,
+        analysisServerOptions, defaultSdk, instrumentationService,
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
   }

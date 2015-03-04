@@ -1512,9 +1512,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
 
 void ConstantPropagator::Transform() {
   if (FLAG_trace_constant_propagation) {
-    OS::Print("\n==== Before constant propagation ====\n");
-    FlowGraphPrinter printer(*graph_);
-    printer.PrintBlocks();
+    FlowGraphPrinter::PrintGraph("Before CP", graph_);
   }
 
   // We will recompute dominators, block ordering, block ids, block last
@@ -1662,9 +1660,7 @@ void ConstantPropagator::Transform() {
   graph_->ComputeDominators(&dominance_frontier);
 
   if (FLAG_trace_constant_propagation) {
-    OS::Print("\n==== After constant propagation ====\n");
-    FlowGraphPrinter printer(*graph_);
-    printer.PrintBlocks();
+    FlowGraphPrinter::PrintGraph("After CP", graph_);
   }
 }
 

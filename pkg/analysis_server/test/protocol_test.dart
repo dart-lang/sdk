@@ -12,9 +12,7 @@ import 'package:unittest/unittest.dart';
 
 import 'reflective_tests.dart';
 
-
 Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
-
 
 main() {
   groupSep = ' | ';
@@ -23,7 +21,6 @@ main() {
   runReflectiveTests(RequestErrorTest);
   runReflectiveTests(ResponseTest);
 }
-
 
 @reflectiveTest
 class InvalidParameterResponseMatcher extends Matcher {
@@ -53,7 +50,6 @@ class InvalidParameterResponseMatcher extends Matcher {
   }
 }
 
-
 @reflectiveTest
 class NotificationTest {
   void test_fromJson() {
@@ -64,42 +60,27 @@ class NotificationTest {
   }
 
   void test_fromJson_withParams() {
-    Notification original = new Notification('foo', {
-      'x': 'y'
-    });
+    Notification original = new Notification('foo', {'x': 'y'});
     Notification notification = new Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
-    expect(notification.toJson()['params'], equals({
-      'x': 'y'
-    }));
+    expect(notification.toJson()['params'], equals({'x': 'y'}));
   }
 
   void test_toJson_noParams() {
     Notification notification = new Notification('foo');
     expect(notification.event, equals('foo'));
     expect(notification.toJson().keys, isNot(contains('params')));
-    expect(notification.toJson(), equals({
-      'event': 'foo'
-    }));
+    expect(notification.toJson(), equals({'event': 'foo'}));
   }
 
   void test_toJson_withParams() {
-    Notification notification = new Notification('foo', {
-      'x': 'y'
-    });
+    Notification notification = new Notification('foo', {'x': 'y'});
     expect(notification.event, equals('foo'));
-    expect(notification.toJson()['params'], equals({
-      'x': 'y'
-    }));
-    expect(notification.toJson(), equals({
-      'event': 'foo',
-      'params': {
-        'x': 'y'
-      }
-    }));
+    expect(notification.toJson()['params'], equals({'x': 'y'}));
+    expect(
+        notification.toJson(), equals({'event': 'foo', 'params': {'x': 'y'}}));
   }
 }
-
 
 @reflectiveTest
 class RequestErrorTest {
@@ -108,10 +89,7 @@ class RequestErrorTest {
         new RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
     expect(error.code, RequestErrorCode.INVALID_REQUEST);
     expect(error.message, "msg");
-    expect(error.toJson(), equals({
-      CODE: 'INVALID_REQUEST',
-      MESSAGE: "msg"
-    }));
+    expect(error.toJson(), equals({CODE: 'INVALID_REQUEST', MESSAGE: "msg"}));
   }
 
   void test_fromJson() {
@@ -130,16 +108,12 @@ class RequestErrorTest {
 
   void test_toJson() {
     var trace = 'a stack trace\r\nbar';
-    RequestError error =
-        new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'msg', stackTrace: trace);
-    expect(error.toJson(), {
-      CODE: 'UNKNOWN_REQUEST',
-      MESSAGE: 'msg',
-      STACK_TRACE: trace
-    });
+    RequestError error = new RequestError(
+        RequestErrorCode.UNKNOWN_REQUEST, 'msg', stackTrace: trace);
+    expect(error.toJson(),
+        {CODE: 'UNKNOWN_REQUEST', MESSAGE: 'msg', STACK_TRACE: trace});
   }
 }
-
 
 @reflectiveTest
 class RequestTest {
@@ -192,40 +166,29 @@ class RequestTest {
   }
 
   void test_fromJson_withParams() {
-    Request original = new Request('one', 'aMethod', {
-      'foo': 'bar'
-    });
+    Request original = new Request('one', 'aMethod', {'foo': 'bar'});
     String json = JSON.encode(original.toJson());
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
-    expect(request.toJson()['params'], equals({
-      'foo': 'bar'
-    }));
+    expect(request.toJson()['params'], equals({'foo': 'bar'}));
   }
 
   void test_toJson() {
     Request request = new Request('one', 'aMethod');
-    expect(request.toJson(), equals({
-      Request.ID: 'one',
-      Request.METHOD: 'aMethod'
-    }));
+    expect(request.toJson(),
+        equals({Request.ID: 'one', Request.METHOD: 'aMethod'}));
   }
 
   void test_toJson_withParams() {
-    Request request = new Request('one', 'aMethod', {
-      'foo': 'bar'
-    });
+    Request request = new Request('one', 'aMethod', {'foo': 'bar'});
     expect(request.toJson(), equals({
       Request.ID: 'one',
       Request.METHOD: 'aMethod',
-      Request.PARAMS: {
-        'foo': 'bar'
-      }
+      Request.PARAMS: {'foo': 'bar'}
     }));
   }
 }
-
 
 @reflectiveTest
 class ResponseTest {
@@ -235,10 +198,7 @@ class ResponseTest {
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({
       Response.ID: '',
-      Response.ERROR: {
-        'code': 'INVALID_REQUEST',
-        'message': 'Invalid request'
-      }
+      Response.ERROR: {'code': 'INVALID_REQUEST', 'message': 'Invalid request'}
     }));
   }
 
@@ -261,10 +221,7 @@ class ResponseTest {
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({
       Response.ID: '0',
-      Response.ERROR: {
-        'code': 'UNKNOWN_REQUEST',
-        'message': 'Unknown request'
-      }
+      Response.ERROR: {'code': 'UNKNOWN_REQUEST', 'message': 'Unknown request'}
     }));
   }
 
@@ -285,9 +242,7 @@ class ResponseTest {
   }
 
   void test_fromJson_withResult() {
-    Response original = new Response('myId', result: {
-      'foo': 'bar'
-    });
+    Response original = new Response('myId', result: {'foo': 'bar'});
     Response response = new Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
     Map<String, Object> result = response.toJson()['result'];

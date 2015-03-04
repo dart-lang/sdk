@@ -5,12 +5,10 @@
 library lint;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/visitors.dart';
-
 
 /// Implementers contribute lint warnings via the provided error [reporter].
 abstract class Linter {

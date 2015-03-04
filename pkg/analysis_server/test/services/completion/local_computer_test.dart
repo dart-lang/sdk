@@ -19,14 +19,11 @@ main() {
 
 @reflectiveTest
 class LocalComputerTest extends AbstractSelectorSuggestionTest {
-
   @override
-  CompletionSuggestion assertSuggestLocalClass(String name, {int relevance:
-      DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
-    return assertSuggestClass(
-        name,
-        relevance: relevance,
-        isDeprecated: isDeprecated);
+  CompletionSuggestion assertSuggestLocalClass(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+    return assertSuggestClass(name,
+        relevance: relevance, isDeprecated: isDeprecated);
   }
 
   @override
@@ -36,75 +33,67 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalField(String name, String type,
-      {int relevance: DART_RELEVANCE_LOCAL_FIELD, bool deprecated: false}) {
-    return assertSuggestField(
-        name,
-        type,
-        relevance: relevance,
-        isDeprecated: deprecated);
+  CompletionSuggestion assertSuggestLocalConstructor(String name) {
+    return assertSuggestConstructor(name);
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalFunction(String name,
-      String returnType, {bool deprecated: false, int relevance:
-      DART_RELEVANCE_LOCAL_FUNCTION}) {
+  CompletionSuggestion assertSuggestLocalField(String name, String type,
+      {int relevance: DART_RELEVANCE_LOCAL_FIELD, bool deprecated: false}) {
+    return assertSuggestField(name, type,
+        relevance: relevance, isDeprecated: deprecated);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestLocalFunction(
+      String name, String returnType,
+      {bool deprecated: false, int relevance: DART_RELEVANCE_LOCAL_FUNCTION}) {
     return assertSuggestFunction(name, returnType, deprecated, relevance);
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalFunctionTypeAlias(String name,
-      String returnType, {bool deprecated: false, int relevance:
-      DART_RELEVANCE_DEFAULT}) {
+  CompletionSuggestion assertSuggestLocalFunctionTypeAlias(
+      String name, String returnType,
+      {bool deprecated: false, int relevance: DART_RELEVANCE_DEFAULT}) {
     return assertSuggestFunctionTypeAlias(
-        name,
-        returnType,
-        deprecated,
-        relevance);
+        name, returnType, deprecated, relevance);
   }
 
   @override
   CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
       {int relevance: DART_RELEVANCE_LOCAL_ACCESSOR, bool deprecated: false}) {
-    return assertSuggestGetter(
-        name,
-        returnType,
-        relevance: relevance,
-        isDeprecated: deprecated);
+    return assertSuggestGetter(name, returnType,
+        relevance: relevance, isDeprecated: deprecated);
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalMethod(String name,
-      String declaringType, String returnType, {int relevance:
-      DART_RELEVANCE_LOCAL_METHOD, bool deprecated: false}) {
-    return assertSuggestMethod(
-        name,
-        declaringType,
-        returnType,
-        relevance: relevance,
-        isDeprecated: deprecated);
+  CompletionSuggestion assertSuggestLocalMethod(
+      String name, String declaringType, String returnType,
+      {int relevance: DART_RELEVANCE_LOCAL_METHOD, bool deprecated: false}) {
+    return assertSuggestMethod(name, declaringType, returnType,
+        relevance: relevance, isDeprecated: deprecated);
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalSetter(String name, {int relevance:
-      DART_RELEVANCE_LOCAL_ACCESSOR}) {
+  CompletionSuggestion assertSuggestLocalSetter(String name,
+      {int relevance: DART_RELEVANCE_LOCAL_ACCESSOR}) {
     return assertSuggestSetter(name, relevance);
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalTopLevelVar(String name,
-      String returnType, {int relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE}) {
+  CompletionSuggestion assertSuggestLocalTopLevelVar(
+      String name, String returnType,
+      {int relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE}) {
     return assertSuggestTopLevelVar(name, returnType, relevance);
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalVariable(String name,
-      String returnType, {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
+  CompletionSuggestion assertSuggestLocalVariable(
+      String name, String returnType,
+      {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
     // Local variables should only be suggested by LocalComputer
-    CompletionSuggestion cs = assertSuggest(
-        name,
-        csKind: CompletionSuggestionKind.INVOCATION,
-        relevance: relevance);
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     Element element = cs.element;
     expect(element, isNotNull);
@@ -118,18 +107,15 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
       {int relevance: DART_RELEVANCE_PARAMETER}) {
-    CompletionSuggestion cs = assertSuggest(
-        name,
-        csKind: CompletionSuggestionKind.INVOCATION,
-        relevance: relevance);
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.PARAMETER));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
-    expect(
-        element.returnType,
+    expect(element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
     return cs;
   }
@@ -541,6 +527,50 @@ class B extends A {
     expect(suggestion.parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_InstanceCreationExpression() {
+    addTestSource('''
+class A {foo(){var f; {var x;}}}
+class B {B(this.x, [String boo]) { } int x;}
+class C {C.bar({boo: 'hoo', int z: 0}) { } }
+main() {new ^ String x = "hello";}''');
+    computeFast();
+    return computeFull((bool result) {
+      CompletionSuggestion suggestion;
+
+      suggestion = assertSuggestLocalConstructor('A');
+      expect(suggestion.element.parameters, '()');
+      expect(suggestion.element.returnType, 'A');
+      expect(suggestion.declaringType, 'A');
+      expect(suggestion.parameterNames, hasLength(0));
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, false);
+
+      suggestion = assertSuggestLocalConstructor('B');
+      expect(suggestion.element.parameters, '(int x, [String boo])');
+      expect(suggestion.element.returnType, 'B');
+      expect(suggestion.declaringType, 'B');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'x');
+      expect(suggestion.parameterTypes[0], 'int');
+      expect(suggestion.parameterNames[1], 'boo');
+      expect(suggestion.parameterTypes[1], 'String');
+      expect(suggestion.requiredParameterCount, 1);
+      expect(suggestion.hasNamedParameters, false);
+
+      suggestion = assertSuggestLocalConstructor('C.bar');
+      expect(suggestion.element.parameters, '({dynamic boo, int z})');
+      expect(suggestion.element.returnType, 'C');
+      expect(suggestion.declaringType, 'C');
+      expect(suggestion.parameterNames, hasLength(2));
+      expect(suggestion.parameterNames[0], 'boo');
+      expect(suggestion.parameterTypes[0], 'dynamic');
+      expect(suggestion.parameterNames[1], 'z');
+      expect(suggestion.parameterTypes[1], 'int');
+      expect(suggestion.requiredParameterCount, 0);
+      expect(suggestion.hasNamedParameters, true);
+    });
   }
 
   test_method_parameters_mixed_required_and_named() {

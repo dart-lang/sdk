@@ -146,11 +146,12 @@ class TestTypeProvider implements TypeProvider {
     if (_boolType == null) {
       ClassElementImpl boolElement = ElementFactory.classElement2("bool");
       _boolType = boolElement.type;
-      ConstructorElementImpl fromEnvironment =
-          ElementFactory.constructorElement(boolElement, "fromEnvironment", true);
+      ConstructorElementImpl fromEnvironment = ElementFactory
+          .constructorElement(boolElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
-          ElementFactory.requiredParameter2("name", stringType),
-          ElementFactory.namedParameter2("defaultValue", _boolType)];
+        ElementFactory.requiredParameter2("name", stringType),
+        ElementFactory.namedParameter2("defaultValue", _boolType)
+      ];
       fromEnvironment.factory = true;
       boolElement.constructors = <ConstructorElement>[fromEnvironment];
     }
@@ -171,7 +172,9 @@ class TestTypeProvider implements TypeProvider {
       ClassElementImpl deprecatedElement =
           ElementFactory.classElement2("Deprecated");
       deprecatedElement.constructors = <ConstructorElement>[
-          ElementFactory.constructorElement(deprecatedElement, null, true, [stringType])];
+        ElementFactory.constructorElement(
+            deprecatedElement, null, true, [stringType])
+      ];
       _deprecatedType = deprecatedElement.type;
     }
     return _deprecatedType;
@@ -248,14 +251,11 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.classElement2("Iterable", ["E"]);
       _iterableType = iterableElement.type;
       DartType eType = iterableElement.typeParameters[0].type;
-      _setAccessors(
-          iterableElement,
-          <PropertyAccessorElement>[
-              ElementFactory.getterElement(
-                  "iterator",
-                  false,
-                  iteratorType.substitute4(<DartType>[eType])),
-              ElementFactory.getterElement("last", false, eType)]);
+      _setAccessors(iterableElement, <PropertyAccessorElement>[
+        ElementFactory.getterElement(
+            "iterator", false, iteratorType.substitute4(<DartType>[eType])),
+        ElementFactory.getterElement("last", false, eType)
+      ]);
       _propagateTypeArguments(iterableElement);
     }
     return _iterableType;
@@ -267,10 +267,9 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.classElement2("Iterator", ["E"]);
       _iteratorType = iteratorElement.type;
       DartType eType = iteratorElement.typeParameters[0].type;
-      _setAccessors(
-          iteratorElement,
-          <PropertyAccessorElement>[
-              ElementFactory.getterElement("current", false, eType)]);
+      _setAccessors(iteratorElement, <PropertyAccessorElement>[
+        ElementFactory.getterElement("current", false, eType)
+      ]);
       _propagateTypeArguments(iteratorElement);
     }
     return _iteratorType;
@@ -281,21 +280,23 @@ class TestTypeProvider implements TypeProvider {
     if (_listType == null) {
       ClassElementImpl listElement =
           ElementFactory.classElement2("List", ["E"]);
-      listElement.constructors =
-          <ConstructorElement>[ElementFactory.constructorElement2(listElement, null)];
+      listElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement2(listElement, null)
+      ];
       _listType = listElement.type;
       DartType eType = listElement.typeParameters[0].type;
       InterfaceType iterableType =
           this.iterableType.substitute4(<DartType>[eType]);
       listElement.interfaces = <InterfaceType>[iterableType];
-      _setAccessors(
-          listElement,
-          <PropertyAccessorElement>[
-              ElementFactory.getterElement("length", false, intType)]);
+      _setAccessors(listElement, <PropertyAccessorElement>[
+        ElementFactory.getterElement("length", false, intType)
+      ]);
       listElement.methods = <MethodElement>[
-          ElementFactory.methodElement("[]", eType, [intType]),
-          ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
-          ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])];
+        ElementFactory.methodElement("[]", eType, [intType]),
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [intType, eType]),
+        ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])
+      ];
       _propagateTypeArguments(listElement);
     }
     return _listType;
@@ -309,13 +310,14 @@ class TestTypeProvider implements TypeProvider {
       _mapType = mapElement.type;
       DartType kType = mapElement.typeParameters[0].type;
       DartType vType = mapElement.typeParameters[1].type;
-      _setAccessors(
-          mapElement,
-          <PropertyAccessorElement>[
-              ElementFactory.getterElement("length", false, intType)]);
+      _setAccessors(mapElement, <PropertyAccessorElement>[
+        ElementFactory.getterElement("length", false, intType)
+      ]);
       mapElement.methods = <MethodElement>[
-          ElementFactory.methodElement("[]", vType, [objectType]),
-          ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [kType, vType])];
+        ElementFactory.methodElement("[]", vType, [objectType]),
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [kType, vType])
+      ];
       _propagateTypeArguments(mapElement);
     }
     return _mapType;
@@ -342,17 +344,18 @@ class TestTypeProvider implements TypeProvider {
     if (_objectType == null) {
       ClassElementImpl objectElement = ElementFactory.object;
       _objectType = objectElement.type;
-      objectElement.constructors =
-          <ConstructorElement>[ElementFactory.constructorElement2(objectElement, null)];
+      objectElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement2(objectElement, null)
+      ];
       objectElement.methods = <MethodElement>[
-          ElementFactory.methodElement("toString", stringType),
-          ElementFactory.methodElement("==", boolType, [_objectType]),
-          ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])];
-      _setAccessors(
-          objectElement,
-          <PropertyAccessorElement>[
-              ElementFactory.getterElement("hashCode", false, intType),
-              ElementFactory.getterElement("runtimeType", false, typeType)]);
+        ElementFactory.methodElement("toString", stringType),
+        ElementFactory.methodElement("==", boolType, [_objectType]),
+        ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])
+      ];
+      _setAccessors(objectElement, <PropertyAccessorElement>[
+        ElementFactory.getterElement("hashCode", false, intType),
+        ElementFactory.getterElement("runtimeType", false, typeType)
+      ]);
     }
     return _objectType;
   }
@@ -386,24 +389,23 @@ class TestTypeProvider implements TypeProvider {
     if (_stringType == null) {
       _stringType = ElementFactory.classElement2("String").type;
       ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
-      _setAccessors(
-          stringElement,
-          <PropertyAccessorElement>[
-              ElementFactory.getterElement("isEmpty", false, boolType),
-              ElementFactory.getterElement("length", false, intType),
-              ElementFactory.getterElement(
-                  "codeUnits",
-                  false,
-                  listType.substitute4(<DartType>[intType]))]);
+      _setAccessors(stringElement, <PropertyAccessorElement>[
+        ElementFactory.getterElement("isEmpty", false, boolType),
+        ElementFactory.getterElement("length", false, intType),
+        ElementFactory.getterElement(
+            "codeUnits", false, listType.substitute4(<DartType>[intType]))
+      ]);
       stringElement.methods = <MethodElement>[
-          ElementFactory.methodElement("+", _stringType, [_stringType]),
-          ElementFactory.methodElement("toLowerCase", _stringType),
-          ElementFactory.methodElement("toUpperCase", _stringType)];
-      ConstructorElementImpl fromEnvironment =
-          ElementFactory.constructorElement(stringElement, "fromEnvironment", true);
+        ElementFactory.methodElement("+", _stringType, [_stringType]),
+        ElementFactory.methodElement("toLowerCase", _stringType),
+        ElementFactory.methodElement("toUpperCase", _stringType)
+      ];
+      ConstructorElementImpl fromEnvironment = ElementFactory
+          .constructorElement(stringElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
-          ElementFactory.requiredParameter2("name", stringType),
-          ElementFactory.namedParameter2("defaultValue", _stringType)];
+        ElementFactory.requiredParameter2("name", stringType),
+        ElementFactory.namedParameter2("defaultValue", _stringType)
+      ];
       fromEnvironment.factory = true;
       stringElement.constructors = <ConstructorElement>[fromEnvironment];
     }
@@ -414,8 +416,8 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get symbolType {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor =
-          ElementFactory.constructorElement(symbolClass, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory.constructorElement(
+          symbolClass, null, true, [stringType]);
       constructor.factory = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
       _symbolType = symbolClass.type;
@@ -464,65 +466,68 @@ class TestTypeProvider implements TypeProvider {
     // Add the methods.
     //
     numElement.methods = <MethodElement>[
-        ElementFactory.methodElement("+", _numType, [_numType]),
-        ElementFactory.methodElement("-", _numType, [_numType]),
-        ElementFactory.methodElement("*", _numType, [_numType]),
-        ElementFactory.methodElement("%", _numType, [_numType]),
-        ElementFactory.methodElement("/", _doubleType, [_numType]),
-        ElementFactory.methodElement("~/", _numType, [_numType]),
-        ElementFactory.methodElement("-", _numType),
-        ElementFactory.methodElement("remainder", _numType, [_numType]),
-        ElementFactory.methodElement("<", _boolType, [_numType]),
-        ElementFactory.methodElement("<=", _boolType, [_numType]),
-        ElementFactory.methodElement(">", _boolType, [_numType]),
-        ElementFactory.methodElement(">=", _boolType, [_numType]),
-        ElementFactory.methodElement("==", _boolType, [_objectType]),
-        ElementFactory.methodElement("isNaN", _boolType),
-        ElementFactory.methodElement("isNegative", _boolType),
-        ElementFactory.methodElement("isInfinite", _boolType),
-        ElementFactory.methodElement("abs", _numType),
-        ElementFactory.methodElement("floor", _numType),
-        ElementFactory.methodElement("ceil", _numType),
-        ElementFactory.methodElement("round", _numType),
-        ElementFactory.methodElement("truncate", _numType),
-        ElementFactory.methodElement("toInt", _intType),
-        ElementFactory.methodElement("toDouble", _doubleType),
-        ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-        ElementFactory.methodElement("toStringAsExponential", _stringType, [_intType]),
-        ElementFactory.methodElement("toStringAsPrecision", _stringType, [_intType]),
-        ElementFactory.methodElement("toRadixString", _stringType, [_intType])];
+      ElementFactory.methodElement("+", _numType, [_numType]),
+      ElementFactory.methodElement("-", _numType, [_numType]),
+      ElementFactory.methodElement("*", _numType, [_numType]),
+      ElementFactory.methodElement("%", _numType, [_numType]),
+      ElementFactory.methodElement("/", _doubleType, [_numType]),
+      ElementFactory.methodElement("~/", _numType, [_numType]),
+      ElementFactory.methodElement("-", _numType),
+      ElementFactory.methodElement("remainder", _numType, [_numType]),
+      ElementFactory.methodElement("<", _boolType, [_numType]),
+      ElementFactory.methodElement("<=", _boolType, [_numType]),
+      ElementFactory.methodElement(">", _boolType, [_numType]),
+      ElementFactory.methodElement(">=", _boolType, [_numType]),
+      ElementFactory.methodElement("==", _boolType, [_objectType]),
+      ElementFactory.methodElement("isNaN", _boolType),
+      ElementFactory.methodElement("isNegative", _boolType),
+      ElementFactory.methodElement("isInfinite", _boolType),
+      ElementFactory.methodElement("abs", _numType),
+      ElementFactory.methodElement("floor", _numType),
+      ElementFactory.methodElement("ceil", _numType),
+      ElementFactory.methodElement("round", _numType),
+      ElementFactory.methodElement("truncate", _numType),
+      ElementFactory.methodElement("toInt", _intType),
+      ElementFactory.methodElement("toDouble", _doubleType),
+      ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsExponential", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsPrecision", _stringType, [_intType]),
+      ElementFactory.methodElement("toRadixString", _stringType, [_intType])
+    ];
     intElement.methods = <MethodElement>[
-        ElementFactory.methodElement("&", _intType, [_intType]),
-        ElementFactory.methodElement("|", _intType, [_intType]),
-        ElementFactory.methodElement("^", _intType, [_intType]),
-        ElementFactory.methodElement("~", _intType),
-        ElementFactory.methodElement("<<", _intType, [_intType]),
-        ElementFactory.methodElement(">>", _intType, [_intType]),
-        ElementFactory.methodElement("-", _intType),
-        ElementFactory.methodElement("abs", _intType),
-        ElementFactory.methodElement("round", _intType),
-        ElementFactory.methodElement("floor", _intType),
-        ElementFactory.methodElement("ceil", _intType),
-        ElementFactory.methodElement("truncate", _intType),
-        ElementFactory.methodElement("toString", _stringType)];
+      ElementFactory.methodElement("&", _intType, [_intType]),
+      ElementFactory.methodElement("|", _intType, [_intType]),
+      ElementFactory.methodElement("^", _intType, [_intType]),
+      ElementFactory.methodElement("~", _intType),
+      ElementFactory.methodElement("<<", _intType, [_intType]),
+      ElementFactory.methodElement(">>", _intType, [_intType]),
+      ElementFactory.methodElement("-", _intType),
+      ElementFactory.methodElement("abs", _intType),
+      ElementFactory.methodElement("round", _intType),
+      ElementFactory.methodElement("floor", _intType),
+      ElementFactory.methodElement("ceil", _intType),
+      ElementFactory.methodElement("truncate", _intType),
+      ElementFactory.methodElement("toString", _stringType)
+    ];
     ConstructorElementImpl fromEnvironment =
         ElementFactory.constructorElement(intElement, "fromEnvironment", true);
     fromEnvironment.parameters = <ParameterElement>[
-        ElementFactory.requiredParameter2("name", stringType),
-        ElementFactory.namedParameter2("defaultValue", _intType)];
+      ElementFactory.requiredParameter2("name", stringType),
+      ElementFactory.namedParameter2("defaultValue", _intType)
+    ];
     fromEnvironment.factory = true;
     intElement.constructors = <ConstructorElement>[fromEnvironment];
     List<FieldElement> fields = <FieldElement>[
-        ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
-        ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),
-        ElementFactory.fieldElement(
-            "NEGATIVE_INFINITY",
-            true,
-            false,
-            true,
-            _doubleType),
-        ElementFactory.fieldElement("MIN_POSITIVE", true, false, true, _doubleType),
-        ElementFactory.fieldElement("MAX_FINITE", true, false, true, _doubleType)];
+      ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
+      ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),
+      ElementFactory.fieldElement(
+          "NEGATIVE_INFINITY", true, false, true, _doubleType),
+      ElementFactory.fieldElement(
+          "MIN_POSITIVE", true, false, true, _doubleType),
+      ElementFactory.fieldElement("MAX_FINITE", true, false, true, _doubleType)
+    ];
     doubleElement.fields = fields;
     int fieldCount = fields.length;
     List<PropertyAccessorElement> accessors =
@@ -532,20 +537,21 @@ class TestTypeProvider implements TypeProvider {
     }
     doubleElement.accessors = accessors;
     doubleElement.methods = <MethodElement>[
-        ElementFactory.methodElement("remainder", _doubleType, [_numType]),
-        ElementFactory.methodElement("+", _doubleType, [_numType]),
-        ElementFactory.methodElement("-", _doubleType, [_numType]),
-        ElementFactory.methodElement("*", _doubleType, [_numType]),
-        ElementFactory.methodElement("%", _doubleType, [_numType]),
-        ElementFactory.methodElement("/", _doubleType, [_numType]),
-        ElementFactory.methodElement("~/", _doubleType, [_numType]),
-        ElementFactory.methodElement("-", _doubleType),
-        ElementFactory.methodElement("abs", _doubleType),
-        ElementFactory.methodElement("round", _doubleType),
-        ElementFactory.methodElement("floor", _doubleType),
-        ElementFactory.methodElement("ceil", _doubleType),
-        ElementFactory.methodElement("truncate", _doubleType),
-        ElementFactory.methodElement("toString", _stringType)];
+      ElementFactory.methodElement("remainder", _doubleType, [_numType]),
+      ElementFactory.methodElement("+", _doubleType, [_numType]),
+      ElementFactory.methodElement("-", _doubleType, [_numType]),
+      ElementFactory.methodElement("*", _doubleType, [_numType]),
+      ElementFactory.methodElement("%", _doubleType, [_numType]),
+      ElementFactory.methodElement("/", _doubleType, [_numType]),
+      ElementFactory.methodElement("~/", _doubleType, [_numType]),
+      ElementFactory.methodElement("-", _doubleType),
+      ElementFactory.methodElement("abs", _doubleType),
+      ElementFactory.methodElement("round", _doubleType),
+      ElementFactory.methodElement("floor", _doubleType),
+      ElementFactory.methodElement("ceil", _doubleType),
+      ElementFactory.methodElement("truncate", _doubleType),
+      ElementFactory.methodElement("toString", _stringType)
+    ];
   }
 
   /**
@@ -575,10 +581,11 @@ class TestTypeProvider implements TypeProvider {
    * Set the accessors for the given class [element] to the given [accessors]
    * and also set the fields to those that correspond to the accessors.
    */
-  void _setAccessors(ClassElementImpl element,
-      List<PropertyAccessorElement> accessors) {
+  void _setAccessors(
+      ClassElementImpl element, List<PropertyAccessorElement> accessors) {
     element.accessors = accessors;
-    element.fields = accessors.map(
-        (PropertyAccessorElement accessor) => accessor.variable).toList();
+    element.fields = accessors
+        .map((PropertyAccessorElement accessor) => accessor.variable)
+        .toList();
   }
 }

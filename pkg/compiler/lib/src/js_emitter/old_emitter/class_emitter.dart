@@ -22,7 +22,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassElement superclass = classElement.superclass;
     String superName = "";
     if (superclass != null) {
-      superName = namer.getNameOfClass(superclass);
+      superName = namer.className(superclass);
     }
 
     if (cls.isMixinApplication) {
@@ -44,6 +44,14 @@ class ClassEmitter extends CodeEmitterHelper {
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 
+    if (classElement == backend.closureClass) {
+      // We add a special getter here to allow for tearing off a closure from
+      // itself.
+      jsAst.Fun function = js('function() { return this; }');
+      String name = namer.getterForPublicMember(Compiler.CALL_OPERATOR_NAME);
+      builder.addProperty(name, function);
+    }
+
     emitClassBuilderWithReflectionData(cls, builder, enclosingBuilder);
   }
   /**
@@ -63,7 +71,7 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression constructorAst =
         _stubGenerator.generateClassConstructor(classElement, fieldNames);
 
-    String constructorName = namer.getNameOfClass(classElement);
+    String constructorName = namer.className(classElement);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
     emitter.emitPrecompiledConstructor(
@@ -134,14 +142,14 @@ class ClassEmitter extends CodeEmitterHelper {
 
           if (field.needsInterceptedGetter) {
             emitter.interceptorEmitter.interceptorInvocationNames.add(
-                namer.getterName(fieldElement));
+                namer.getterForElement(fieldElement));
           }
           // TODO(16168): The setter creator only looks at the getter-name.
           // Even though the setter could avoid the interceptor convention we
           // currently still need to add the additional argument.
           if (field.needsInterceptedGetter || field.needsInterceptedSetter) {
             emitter.interceptorEmitter.interceptorInvocationNames.add(
-                namer.setterName(fieldElement));
+                namer.setterForElement(fieldElement));
           }
 
           int code = field.getterFlags + (field.setterFlags << 2);
@@ -483,7 +491,7 @@ class ClassEmitter extends CodeEmitterHelper {
                              ClassBuilder builder) {
     jsAst.Expression code = backend.generatedCode[member];
     assert(code != null);
-    String setterName = namer.setterNameFromAccessorName(accessorName);
+    String setterName = namer.deriveSetterName(accessorName);
     compiler.dumpInfoTask.registerElementAst(member,
         builder.addProperty(setterName, code));
     generateReflectionDataForFieldGetterOrSetter(
@@ -495,9 +503,9 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
 
-    String getterName = namer.getterNameFromAccessorName(accessorName);
+    String getterName = namer.deriveGetterName(accessorName);
     ClassElement cls = member.enclosingClass;
-    String className = namer.getNameOfClass(cls);
+    String className = namer.className(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(
@@ -514,9 +522,9 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);
 
-    String setterName = namer.setterNameFromAccessorName(accessorName);
+    String setterName = namer.deriveSetterName(accessorName);
     ClassElement cls = member.enclosingClass;
-    String className = namer.getNameOfClass(cls);
+    String className = namer.className(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(

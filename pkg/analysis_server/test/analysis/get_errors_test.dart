@@ -14,12 +14,10 @@ import 'package:unittest/unittest.dart';
 import '../analysis_abstract.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(GetErrorsTest);
 }
-
 
 @reflectiveTest
 class GetErrorsTest extends AbstractAnalysisTest {

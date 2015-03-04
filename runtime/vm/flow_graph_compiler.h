@@ -637,6 +637,13 @@ class FlowGraphCompiler : public ValueObject {
 
   intptr_t GetOptimizationThreshold() const;
 
+  StackmapTableBuilder* stackmap_table_builder() {
+    if (stackmap_table_builder_ == NULL) {
+      stackmap_table_builder_ = new StackmapTableBuilder();
+    }
+    return stackmap_table_builder_;
+  }
+
   Isolate* isolate_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;

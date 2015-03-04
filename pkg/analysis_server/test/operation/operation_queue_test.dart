@@ -16,12 +16,10 @@ import 'package:unittest/unittest.dart';
 import '../mocks.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(ServerOperationQueueTest);
 }
-
 
 /**
  *  Return a [ServerOperation] mock with the given priority.
@@ -32,24 +30,20 @@ ServerOperation mockOperation(ServerOperationPriority priority) {
   return operation;
 }
 
-
 class AnalysisContextMock extends TypedMock implements InternalAnalysisContext {
   List<Source> prioritySources = <Source>[];
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
 class AnalysisServerMock extends TypedMock implements AnalysisServer {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
-class ServerContextManagerMock extends TypedMock implements ServerContextManager
-    {
+class ServerContextManagerMock extends TypedMock
+    implements ServerContextManager {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 @reflectiveTest
 class ServerOperationQueueTest {
@@ -153,7 +147,6 @@ class ServerOperationQueueTest {
   }
 }
 
-
 class _ServerOperationMock extends TypedMock implements ServerOperation {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -162,8 +155,8 @@ class _SourceMock extends TypedMock implements Source {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _SourceSensitiveOperationMock extends TypedMock implements
-    SourceSensitiveOperation {
+class _SourceSensitiveOperationMock extends TypedMock
+    implements SourceSensitiveOperation {
   final Source source;
 
   _SourceSensitiveOperationMock(this.source);

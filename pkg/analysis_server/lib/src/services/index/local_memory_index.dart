@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_index.dart';
 import 'package:analysis_server/src/services/index/store/memory_node_manager.dart';
 
-
 Index createLocalMemoryIndex() {
   return new LocalIndex(new MemoryNodeManager());
 }

@@ -117,10 +117,12 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    bool containsNativeClasses =
-        nativeClasses.length != _unneededNativeClasses.length;
-
     List<Holder> holders = _registry.holders.toList(growable: false);
+
+    bool needsNativeSupport = _compiler.enqueuer.codegen.nativeEnqueuer
+        .hasInstantiatedNativeClasses();
+
+    assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 
     return new Program(
         fragments,
@@ -128,7 +130,7 @@ class ProgramBuilder {
         _buildLoadMap(),
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
-        outputContainsNativeClasses: containsNativeClasses,
+        needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: _task.outputContainsConstantList,
         hasIsolateSupport: _compiler.hasIsolateSupport);
   }
@@ -216,7 +218,7 @@ class ProgramBuilder {
     // a static field.
     _registry.registerHolder(namer.globalObjectForConstant(initialValue));
     js.Expression code = _task.emitter.constantReference(initialValue);
-    String name = namer.getNameOfGlobalField(element);
+    String name = namer.globalPropertyName(element);
     bool isFinal = false;
     bool isLazy = false;
 
@@ -252,7 +254,7 @@ class ProgramBuilder {
     // before code generation.
     if (code == null) return null;
 
-    String name = namer.getNameOfGlobalField(element);
+    String name = namer.globalPropertyName(element);
     bool isFinal = element.isFinal;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
@@ -308,7 +310,7 @@ class ProgramBuilder {
     assert(_compiler.hasIncrementalSupport);
 
     List<Field> instanceFields = _buildFields(element, false);
-    String name = namer.getNameOfClass(element);
+    String name = namer.className(element);
 
     return new Class(
         element, name, null, [], instanceFields, [], [], [], [], [], null,
@@ -356,7 +358,7 @@ class ProgramBuilder {
         runtimeTypeGenerator.generateTypeVariableReaderStubs(element);
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
-    if (element == _compiler.objectClass) {
+    if (_compiler.enabledNoSuchMethod && element == _compiler.objectClass) {
       Map<String, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((String name, Selector selector) {
@@ -369,8 +371,7 @@ class ProgramBuilder {
     if (element == backend.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
-      String name = namer.getterNameFromAccessorName(
-          namer.getMappedInstanceName(Compiler.CALL_OPERATOR_NAME));
+      String name = namer.getterForPublicMember(Compiler.CALL_OPERATOR_NAME);
       js.Fun function = js.js('function() { return this; }');
       callStubs.add(_buildStubMethod(name, function));
     }
@@ -398,7 +399,7 @@ class ProgramBuilder {
       isChecks.add(_buildStubMethod(name, code));
     });
 
-    String name = namer.getNameOfClass(element);
+    String name = namer.className(element);
     String holderName = namer.globalObjectFor(element);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
@@ -485,7 +486,7 @@ class ProgramBuilder {
   }
 
   DartMethod _buildMethod(FunctionElement element) {
-    String name = namer.getNameOfInstanceMember(element);
+    String name = namer.methodPropertyName(element);
     js.Expression code = backend.generatedCode[element];
 
     // TODO(kasperl): Figure out under which conditions code is null.
@@ -501,7 +502,7 @@ class ProgramBuilder {
     bool canBeApplied = _methodCanBeApplied(element);
 
     String aliasName = backend.isAliasedSuperMember(element)
-        ? namer.getNameOfAliasedSuperMember(element)
+        ? namer.aliasedSuperMemberPropertyName(element)
         : null;
 
     if (isNotApplyTarget) {
@@ -516,7 +517,7 @@ class ProgramBuilder {
             (canBeReflected && !element.isOperator);
         assert(canTearOff ||
                !universe.methodsNeedingSuperGetter.contains(element));
-        tearOffName = namer.getterName(element);
+        tearOffName = namer.getterForElement(element);
       }
     }
 
@@ -692,7 +693,7 @@ class ProgramBuilder {
   }
 
   StaticDartMethod _buildStaticMethod(FunctionElement element) {
-    String name = namer.getNameOfMember(element);
+    String name = namer.methodPropertyName(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
 
@@ -705,7 +706,7 @@ class ProgramBuilder {
             universe.staticFunctionsNeedingGetter.contains(element));
 
     String tearOffName =
-        needsTearOff ? namer.getStaticClosureName(element) : null;
+        needsTearOff ? namer.staticClosureName(element) : null;
 
 
     String callName = null;

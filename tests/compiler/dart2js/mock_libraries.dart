@@ -365,7 +365,12 @@ const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
 
 const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'DeferredLibrary': 'class DeferredLibrary {}',
-  'Future': 'class Future<T> {}',
+  'Future': 
+      '''
+      class Future<T> {
+        Future.value([value]);
+      }
+      ''',
   'Stream': 'class Stream<T> {}',
   'Completer': 'class Completer<T> {}',
   'StreamIterator': 'class StreamIterator<T> {}',

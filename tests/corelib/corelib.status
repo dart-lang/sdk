@@ -213,6 +213,7 @@ list_insert_test: fail
 list_removeat_test: fail
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.

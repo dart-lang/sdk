@@ -38,8 +38,9 @@ class ElementFactory {
 
   static InterfaceType get objectType => object.type;
 
-  static ClassElementImpl classElement(String typeName,
-      InterfaceType superclassType, [List<String> parameterNames]) {
+  static ClassElementImpl classElement(
+      String typeName, InterfaceType superclassType,
+      [List<String> parameterNames]) {
     ClassElementImpl element = new ClassElementImpl(typeName, 0);
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(element);
@@ -66,7 +67,7 @@ class ElementFactory {
   }
 
   static ClassElementImpl classElement2(String typeName,
-      [List<String> parameterNames]) =>
+          [List<String> parameterNames]) =>
       classElement(typeName, objectType, parameterNames);
 
   static CompilationUnitElementImpl compilationUnit(String fileName) {
@@ -76,12 +77,13 @@ class ElementFactory {
     return unit;
   }
 
-  static ConstructorElementImpl constructorElement(ClassElement definingClass,
-      String name, bool isConst, [List<DartType> argumentTypes]) {
+  static ConstructorElementImpl constructorElement(
+      ClassElement definingClass, String name, bool isConst,
+      [List<DartType> argumentTypes]) {
     DartType type = definingClass.type;
-    ConstructorElementImpl constructor = name == null ?
-        new ConstructorElementImpl("", -1) :
-        new ConstructorElementImpl(name, 0);
+    ConstructorElementImpl constructor = name == null
+        ? new ConstructorElementImpl("", -1)
+        : new ConstructorElementImpl(name, 0);
     constructor.const2 = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
@@ -102,12 +104,14 @@ class ElementFactory {
     return constructor;
   }
 
-  static ConstructorElementImpl constructorElement2(ClassElement definingClass,
-      String name, [List<DartType> argumentTypes]) =>
+  static ConstructorElementImpl constructorElement2(
+          ClassElement definingClass, String name,
+          [List<DartType> argumentTypes]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
-  static ClassElementImpl enumElement(TypeProvider typeProvider,
-      String enumName, [List<String> constantNames]) {
+  static ClassElementImpl enumElement(
+      TypeProvider typeProvider, String enumName,
+      [List<String> constantNames]) {
     //
     // Build the enum.
     //
@@ -176,8 +180,8 @@ class ElementFactory {
     return spec;
   }
 
-  static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal,
-      bool isConst, DartType type) {
+  static FieldElementImpl fieldElement(
+      String name, bool isStatic, bool isFinal, bool isConst, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, 0);
     field.const3 = isConst;
     field.final2 = isFinal;
@@ -198,8 +202,9 @@ class ElementFactory {
       setter.setter = true;
       setter.synthetic = true;
       setter.variable = field;
-      setter.parameters =
-          <ParameterElement>[requiredParameter2("_$name", type)];
+      setter.parameters = <ParameterElement>[
+        requiredParameter2("_$name", type)
+      ];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       field.setter = setter;
@@ -207,15 +212,14 @@ class ElementFactory {
     return field;
   }
 
-  static FieldFormalParameterElementImpl
-      fieldFormalParameter(Identifier name) =>
-      new FieldFormalParameterElementImpl(name);
+  static FieldFormalParameterElementImpl fieldFormalParameter(
+      Identifier name) => new FieldFormalParameterElementImpl(name);
 
   static FunctionElementImpl functionElement(String functionName) =>
       functionElement4(functionName, null, null, null, null);
 
-  static FunctionElementImpl functionElement2(String functionName,
-      ClassElement returnElement) =>
+  static FunctionElementImpl functionElement2(
+          String functionName, ClassElement returnElement) =>
       functionElement3(functionName, returnElement, null, null);
 
   static FunctionElementImpl functionElement3(String functionName,
@@ -295,18 +299,19 @@ class ElementFactory {
     return functionElement;
   }
 
-  static FunctionElementImpl functionElement5(String functionName,
-      List<ClassElement> normalParameters) =>
+  static FunctionElementImpl functionElement5(
+          String functionName, List<ClassElement> normalParameters) =>
       functionElement3(functionName, null, normalParameters, null);
 
   static FunctionElementImpl functionElement6(String functionName,
-      List<ClassElement> normalParameters, List<ClassElement> optionalParameters) =>
-      functionElement3(functionName, null, normalParameters, optionalParameters);
+      List<ClassElement> normalParameters,
+      List<ClassElement> optionalParameters) => functionElement3(
+          functionName, null, normalParameters, optionalParameters);
 
   static FunctionElementImpl functionElement7(String functionName,
       List<ClassElement> normalParameters, List<String> names,
-      List<ClassElement> namedParameters) =>
-      functionElement4(functionName, null, normalParameters, names, namedParameters);
+      List<ClassElement> namedParameters) => functionElement4(
+          functionName, null, normalParameters, names, namedParameters);
 
   static FunctionElementImpl functionElementWithParameters(String functionName,
       DartType returnType, List<ParameterElement> parameters) {
@@ -320,8 +325,8 @@ class ElementFactory {
     return functionElement;
   }
 
-  static PropertyAccessorElementImpl getterElement(String name, bool isStatic,
-      DartType type) {
+  static PropertyAccessorElementImpl getterElement(
+      String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
     field.static = isStatic;
     field.synthetic = true;
@@ -344,9 +349,9 @@ class ElementFactory {
     return unit;
   }
 
-  static ImportElementImpl importFor(LibraryElement importedLibrary,
-      PrefixElement prefix, [List<NamespaceCombinator> combinators =
-      NamespaceCombinator.EMPTY_ARRAY]) {
+  static ImportElementImpl importFor(
+      LibraryElement importedLibrary, PrefixElement prefix,
+      [List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY]) {
     ImportElementImpl spec = new ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
     spec.prefix = prefix;
@@ -354,8 +359,8 @@ class ElementFactory {
     return spec;
   }
 
-  static LibraryElementImpl library(AnalysisContext context,
-      String libraryName) {
+  static LibraryElementImpl library(
+      AnalysisContext context, String libraryName) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library =
@@ -446,8 +451,8 @@ class ElementFactory {
     return parameter;
   }
 
-  static PropertyAccessorElementImpl setterElement(String name, bool isStatic,
-      DartType type) {
+  static PropertyAccessorElementImpl setterElement(
+      String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
     field.static = isStatic;
     field.synthetic = true;
@@ -479,8 +484,8 @@ class ElementFactory {
   static TopLevelVariableElementImpl topLevelVariableElement2(String name) =>
       topLevelVariableElement3(name, false, false, null);
 
-  static TopLevelVariableElementImpl topLevelVariableElement3(String name,
-      bool isConst, bool isFinal, DartType type) {
+  static TopLevelVariableElementImpl topLevelVariableElement3(
+      String name, bool isConst, bool isFinal, DartType type) {
     TopLevelVariableElementImpl variable =
         new TopLevelVariableElementImpl(name, -1);
     variable.const3 = isConst;
@@ -502,8 +507,9 @@ class ElementFactory {
       setter.static = true;
       setter.synthetic = true;
       setter.variable = variable;
-      setter.parameters =
-          <ParameterElement>[requiredParameter2("_$name", type)];
+      setter.parameters = <ParameterElement>[
+        requiredParameter2("_$name", type)
+      ];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       variable.setter = setter;

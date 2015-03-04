@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
-
 /**
  * A computer for navigation regions in a Dart [CompilationUnit].
  */
@@ -54,8 +53,8 @@ class DartUnitNavigationComputer {
       return;
     }
     int targetIndex = _addTarget(element);
-    regions.add(
-        new protocol.NavigationRegion(offset, length, <int>[targetIndex]));
+    regions
+        .add(new protocol.NavigationRegion(offset, length, <int>[targetIndex]));
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
@@ -94,7 +93,6 @@ class DartUnitNavigationComputer {
     return index;
   }
 }
-
 
 class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   final DartUnitNavigationComputer computer;
@@ -141,9 +139,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
       }
       if (firstNode != null && lastNode != null) {
         computer._addRegion_nodeStart_nodeEnd(
-            firstNode,
-            lastNode,
-            node.element);
+            firstNode, lastNode, node.element);
       }
     }
     super.visitConstructorDeclaration(node);
@@ -190,18 +186,14 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   @override
   visitPartDirective(PartDirective node) {
     computer._addRegion_tokenStart_nodeEnd(
-        node.keyword,
-        node.uri,
-        node.element);
+        node.keyword, node.uri, node.element);
     super.visitPartDirective(node);
   }
 
   @override
   visitPartOfDirective(PartOfDirective node) {
     computer._addRegion_tokenStart_nodeEnd(
-        node.keyword,
-        node.libraryName,
-        node.element);
+        node.keyword, node.libraryName, node.element);
     super.visitPartOfDirective(node);
   }
 
@@ -237,7 +229,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     if (name != null) {
       computer._addRegion_nodeStart_nodeEnd(node, name, element);
     } else {
-      computer._addRegionForToken(node.keyword, element);
+      computer._addRegionForToken(node.superKeyword, element);
     }
     // process arguments
     _safelyVisit(node.argumentList);

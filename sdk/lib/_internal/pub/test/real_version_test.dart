@@ -11,7 +11,6 @@ import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../lib/src/exit_codes.dart' as exit_codes;
-import '../lib/src/sdk.dart' as sdk;
 import 'test_pub.dart';
 
 main() {
@@ -28,8 +27,10 @@ main() {
   // in the built SDK's "bin" directory. Note also that this invokes pub from
   // the built SDK directory, and not the live pub code directly in the repo.
   integration('parse the real SDK "version" file', () {
-    // Get the path to the pub binary in the SDK.
-    var pubPath = path.join(sdk.rootDirectory, 'bin',
+    // Get the path to the pub binary in the SDK. Note that we can't use
+    // sdk.rootDirectory here because that assumes the entrypoint Dart script
+    // being run is pub itself. Here, the entrypoint is this test file.
+    var pubPath = path.join(path.dirname(Platform.executable),
         Platform.operatingSystem == "windows" ? "pub.bat" : "pub");
 
     var pub = new ScheduledProcess.start(pubPath, ['version']);

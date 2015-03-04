@@ -10,4 +10,17 @@ import 'service_ref.dart';
 @CustomTag('class-ref')
 class ClassRefElement extends ServiceRefElement {
   ClassRefElement.created() : super.created();
+
+  refChanged(oldValue) {
+    super.refChanged(oldValue);
+    _updateShadowDom();
+  }
+
+  void _updateShadowDom() {
+    clearShadowRoot();
+    if (ref == null) {
+      return;
+    }
+    insertLinkIntoShadowRoot(name, url, hoverText);
+  }
 }

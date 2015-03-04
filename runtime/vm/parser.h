@@ -57,9 +57,7 @@ class ParsedFunction : public ZoneAllocated {
         first_stack_local_index_(0),
         num_copied_params_(0),
         num_stack_locals_(0),
-        have_seen_await_expr_(false),
-        saved_try_ctx_(NULL),
-        async_saved_try_ctx_name_(String::ZoneHandle(zone(), String::null())) {
+        have_seen_await_expr_(false) {
     ASSERT(function.IsZoneHandle());
     // Every function has a local variable for the current context.
     LocalVariable* temp = new(zone()) LocalVariable(
@@ -123,7 +121,7 @@ class ParsedFunction : public ZoneAllocated {
   bool has_finally_return_temp_var() const {
     return finally_return_temp_var_ != NULL;
   }
-  void EnsureFinallyReturnTemp();
+  void EnsureFinallyReturnTemp(bool is_async);
 
   LocalVariable* EnsureExpressionTemp();
 
@@ -152,24 +150,6 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
-  void set_saved_try_ctx(LocalVariable* saved_try_ctx) {
-    ASSERT((saved_try_ctx == NULL) || !saved_try_ctx->is_captured());
-    saved_try_ctx_ = saved_try_ctx;
-  }
-  LocalVariable* saved_try_ctx() const { return saved_try_ctx_; }
-
-  void set_async_saved_try_ctx_name(const String& async_saved_try_ctx_name) {
-    async_saved_try_ctx_name_ = async_saved_try_ctx_name.raw();
-  }
-  RawString* async_saved_try_ctx_name() const {
-    return async_saved_try_ctx_name_.raw();
-  }
-
-  void reset_saved_try_ctx_vars() {
-    saved_try_ctx_ = NULL;
-    async_saved_try_ctx_name_ = String::null();
-  }
-
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread()->isolate(); }
   Zone* zone() const { return thread()->zone(); }
@@ -193,8 +173,6 @@ class ParsedFunction : public ZoneAllocated {
   int num_copied_params_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
-  LocalVariable* saved_try_ctx_;
-  String& async_saved_try_ctx_name_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
@@ -563,16 +541,28 @@ class Parser : public ValueObject {
   SequenceNode* CloseSyncGenFunction(const Function& closure,
                                      SequenceNode* closure_node);
   void AddSyncGenClosureParameters(ParamList* params);
+  void AddAsyncGenClosureParameters(ParamList* params);
+
+  // Support for async* functions.
+  RawFunction* OpenAsyncGeneratorFunction(intptr_t func_pos);
+  SequenceNode* CloseAsyncGeneratorFunction(const Function& closure,
+                                            SequenceNode* closure_node);
+  void OpenAsyncGeneratorClosure();
+  SequenceNode* CloseAsyncGeneratorClosure(SequenceNode* body);
+
   void OpenAsyncTryBlock();
   SequenceNode* CloseBlock();
   SequenceNode* CloseAsyncFunction(const Function& closure,
                                    SequenceNode* closure_node);
+
   SequenceNode* CloseAsyncClosure(SequenceNode* body);
   SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block);
+  SequenceNode* CloseAsyncGeneratorTryBlock(SequenceNode *body);
+
   void AddAsyncClosureParameters(ParamList* params);
   void AddContinuationVariables();
   void AddAsyncClosureVariables();
-
+  void AddAsyncGeneratorVariables();
 
   LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
@@ -602,26 +592,49 @@ class Parser : public ValueObject {
   void AddCatchParamsToScope(CatchParamDesc* exception_param,
                              CatchParamDesc* stack_trace_param,
                              LocalScope* scope);
-  void AddSavedExceptionAndStacktraceToScope(LocalVariable* exception_var,
-                                             LocalVariable* stack_trace_var,
-                                             LocalScope* scope);
-  // Parse all the catch clause of a try.
-  SequenceNode* ParseCatchClauses(intptr_t handler_pos,
+  void SetupExceptionVariables(LocalScope* try_scope,
+                               bool is_async,
+                               LocalVariable** context_var,
+                               LocalVariable** exception_var,
+                               LocalVariable** stack_trace_var,
+                               LocalVariable** saved_exception_var,
+                               LocalVariable** saved_stack_trace_var);
+  void SaveExceptionAndStacktrace(SequenceNode* statements,
                                   LocalVariable* exception_var,
                                   LocalVariable* stack_trace_var,
+                                  LocalVariable* saved_exception_var,
+                                  LocalVariable* saved_stack_trace_var);
+  // Parse all the catch clause of a try.
+  SequenceNode* ParseCatchClauses(intptr_t handler_pos,
+                                  bool is_async,
+                                  LocalVariable* exception_var,
+                                  LocalVariable* stack_trace_var,
+                                  LocalVariable* rethrow_exception_var,
+                                  LocalVariable* rethrow_stack_trace_var,
                                   const GrowableObjectArray& handler_types,
                                   bool* needs_stack_trace);
   // Parse finally block and create an AST for it.
-  SequenceNode* ParseFinallyBlock();
+  SequenceNode* ParseFinallyBlock(bool is_async,
+                                  LocalVariable* exception_var,
+                                  LocalVariable* stack_trace_var,
+                                  LocalVariable* rethrow_exception_var,
+                                  LocalVariable* rethrow_stack_trace_var);
   // Adds try block to the list of try blocks seen so far.
   void PushTryBlock(Block* try_block);
   // Pops the inner most try block from the list.
   TryBlocks* PopTryBlock();
+  // Collect try block scopes and indices if await or yield is in try block.
+  void CheckAsyncOpInTryBlock(LocalScope** try_scope,
+                              int16_t* try_index,
+                              LocalScope** outer_try_scope,
+                              int16_t* outer_try_index) const;
   // Add specified node to try block list so that it can be patched with
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
   // Add the inlined finally block to the specified node.
-  void AddFinallyBlockToNode(AstNode* node, InlinedFinallyNode* finally_node);
+  void AddFinallyBlockToNode(bool is_async,
+                             AstNode* node,
+                             InlinedFinallyNode* finally_node);
   AstNode* ParseTryStatement(String* label_name);
   RawAbstractType* ParseConstFinalVarOrType(
       ClassFinalizer::FinalizationKind finalization);
@@ -631,6 +644,7 @@ class Parser : public ValueObject {
                                     SequenceNode** await_preamble);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
+  AstNode* ParseYieldStatement();
   AstNode* ParseStatement();
   SequenceNode* ParseNestedStatement(bool parsing_loop_body,
                                      SourceLabel* label);
@@ -752,9 +766,6 @@ class Parser : public ValueObject {
                                   const Function* func);
 
   void SetupSavedTryContext(LocalVariable* saved_try_context);
-  void RestoreSavedTryContext(LocalScope* saved_try_context_scope,
-                              int16_t try_index,
-                              SequenceNode* target);
 
   void CheckOperatorArity(const MemberDesc& member);
 

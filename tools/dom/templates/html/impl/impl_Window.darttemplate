@@ -220,7 +220,7 @@ $endif
    * convertPointFromNodeToPage and convertPointFromPageToNode are removed.
    * see http://dev.w3.org/csswg/cssom-view/#geometry
    */
-  static bool get supportsPointConversions => _DomPoint.supported;
+  static bool get supportsPointConversions => DomPoint.supported;
 $!MEMBERS
 
   /**

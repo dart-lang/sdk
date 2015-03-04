@@ -47,9 +47,15 @@ class AssistContext {
 
   bool _coveredElementFound = false;
 
-  AssistContext.con1(this.searchEngine, this.analysisContext, this.analysisContextId, this.source, this.compilationUnit, this.selectionOffset, this.selectionLength);
+  AssistContext.con1(this.searchEngine, this.analysisContext,
+      this.analysisContextId, this.source, this.compilationUnit,
+      this.selectionOffset, this.selectionLength);
 
-  AssistContext.con2(SearchEngine searchEngine, AnalysisContext analysisContext, String analysisContextId, Source source, CompilationUnit compilationUnit, SourceRange selectionRange) : this.con1(searchEngine, analysisContext, analysisContextId, source, compilationUnit, selectionRange.offset, selectionRange.length);
+  AssistContext.con2(SearchEngine searchEngine, AnalysisContext analysisContext,
+      String analysisContextId, Source source, CompilationUnit compilationUnit,
+      SourceRange selectionRange)
+      : this.con1(searchEngine, analysisContext, analysisContextId, source,
+          compilationUnit, selectionRange.offset, selectionRange.length);
 
   /**
    * @return the resolved [CompilationUnitElement] of the [Source].
@@ -66,7 +72,8 @@ class AssistContext {
       if (coveredNode == null) {
         return null;
       }
-      _coveredElement = ElementLocator.locateWithOffset(coveredNode, selectionOffset);
+      _coveredElement =
+          ElementLocator.locateWithOffset(coveredNode, selectionOffset);
     }
     return _coveredElement;
   }
@@ -76,7 +83,8 @@ class AssistContext {
    */
   AstNode get coveredNode {
     if (_coveredNode == null) {
-      NodeLocator locator = new NodeLocator.con2(selectionOffset, selectionOffset);
+      NodeLocator locator =
+          new NodeLocator.con2(selectionOffset, selectionOffset);
       _coveredNode = locator.searchWithin(compilationUnit);
     }
     return _coveredNode;
@@ -87,7 +95,8 @@ class AssistContext {
    */
   AstNode get coveringNode {
     if (_coveringNode == null) {
-      NodeLocator locator = new NodeLocator.con2(selectionOffset, selectionOffset + selectionLength);
+      NodeLocator locator = new NodeLocator.con2(
+          selectionOffset, selectionOffset + selectionLength);
       _coveringNode = locator.searchWithin(compilationUnit);
     }
     return _coveringNode;
@@ -107,7 +116,8 @@ class AssistContext {
   /**
    * @return the [SourceRange] of the selection.
    */
-  SourceRange get selectionRange => new SourceRange(selectionOffset, selectionLength);
+  SourceRange get selectionRange =>
+      new SourceRange(selectionOffset, selectionLength);
 }
 
 /**
@@ -140,7 +150,8 @@ class CorrectionUtils {
   /**
    * @return all direct children of the given [Element].
    */
-  static List<Element> getChildren(Element parent) => getChildren2(parent, null);
+  static List<Element> getChildren(Element parent) =>
+      getChildren2(parent, null);
 
   /**
    * @param name the required name of children; may be <code>null</code> to get children with any
@@ -149,7 +160,8 @@ class CorrectionUtils {
    */
   static List<Element> getChildren2(Element parent, String name) {
     List<Element> children = [];
-    parent.accept(new GeneralizingElementVisitor_CorrectionUtils_getChildren(parent, name, children));
+    parent.accept(new GeneralizingElementVisitor_CorrectionUtils_getChildren(
+        parent, name, children));
     return children;
   }
 
@@ -255,7 +267,8 @@ class CorrectionUtils {
    * @return the namespace of the given [ExportElement].
    */
   static Map<String, Element> getExportNamespace(ExportElement exp) {
-    Namespace namespace = new NamespaceBuilder().createExportNamespaceForDirective(exp);
+    Namespace namespace =
+        new NamespaceBuilder().createExportNamespaceForDirective(exp);
     return namespace.definedNames;
   }
 
@@ -265,7 +278,8 @@ class CorrectionUtils {
    * @return the export namespace of the given [LibraryElement].
    */
   static Map<String, Element> getExportNamespace2(LibraryElement library) {
-    Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(library);
+    Namespace namespace =
+        new NamespaceBuilder().createExportNamespaceForLibrary(library);
     return namespace.definedNames;
   }
 
@@ -300,7 +314,8 @@ class CorrectionUtils {
    * @return the namespace of the given [ImportElement].
    */
   static Map<String, Element> getImportNamespace(ImportElement imp) {
-    Namespace namespace = new NamespaceBuilder().createImportNamespaceForDirective(imp);
+    Namespace namespace =
+        new NamespaceBuilder().createImportNamespaceForDirective(imp);
     return namespace.definedNames;
   }
 
@@ -335,7 +350,8 @@ class CorrectionUtils {
    *         [SimpleIdentifier] is the reference to local variable or parameter, or
    *         <code>null</code> in the other case.
    */
-  static VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
+  static VariableElement getLocalOrParameterVariableElement(
+      SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element is LocalVariableElement) {
       return element;
@@ -481,7 +497,8 @@ class CorrectionUtils {
    * @return the [PropertyAccessorElement] if given [SimpleIdentifier] is the reference
    *         to property, or <code>null</code> in the other case.
    */
-  static PropertyAccessorElement getPropertyAccessorElement(SimpleIdentifier node) {
+  static PropertyAccessorElement getPropertyAccessorElement(
+      SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element is PropertyAccessorElement) {
       return element;
@@ -521,9 +538,9 @@ class CorrectionUtils {
     for (int i = 0; i < len; i++) {
       int c = className.codeUnitAt(i);
       if (Character.isUpperCase(c)) {
-        bool nextIsUpper = i < len - 1 && Character.isUpperCase(className.codeUnitAt(i + 1));
-        if (i == 0) {
-        } else if (prevWasUpper) {
+        bool nextIsUpper =
+            i < len - 1 && Character.isUpperCase(className.codeUnitAt(i + 1));
+        if (i == 0) {} else if (prevWasUpper) {
           // HTTPServer
           //     ^
           if (!nextIsUpper) {
@@ -564,7 +581,8 @@ class CorrectionUtils {
   /**
    * @return the [String] content of the given [Source].
    */
-  static String getSourceContent(AnalysisContext context, Source source) => context.getContents(source).data.toString();
+  static String getSourceContent(AnalysisContext context, Source source) =>
+      context.getContents(source).data.toString();
 
   /**
    * @return given [Statement] if not [Block], all children [Statement]s if
@@ -595,7 +613,8 @@ class CorrectionUtils {
   /**
    * @return the possible names for variable with initializer of the given [StringLiteral].
    */
-  static List<String> getVariableNameSuggestions(String text, Set<String> excluded) {
+  static List<String> getVariableNameSuggestions(
+      String text, Set<String> excluded) {
     // filter out everything except of letters and white spaces
     {
       StringBuffer buffer = new StringBuffer();
@@ -629,16 +648,19 @@ class CorrectionUtils {
   /**
    * @return the possible names for variable with given expected type and expression.
    */
-  static List<String> getVariableNameSuggestions2(DartType expectedType, Expression assignedExpression, Set<String> excluded) {
+  static List<String> getVariableNameSuggestions2(DartType expectedType,
+      Expression assignedExpression, Set<String> excluded) {
     Set<String> res = new LinkedHashSet();
     // use expression
     if (assignedExpression != null) {
-      String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
+      String nameFromExpression =
+          _getBaseNameFromExpression(assignedExpression);
       if (nameFromExpression != null) {
         nameFromExpression = StringUtils.removeStart(nameFromExpression, "_");
         _addAll(excluded, res, _getVariableNameSuggestions(nameFromExpression));
       }
-      String nameFromParent = _getBaseNameFromLocationInParent(assignedExpression);
+      String nameFromParent =
+          _getBaseNameFromLocationInParent(assignedExpression);
       if (nameFromParent != null) {
         _addAll(excluded, res, _getVariableNameSuggestions(nameFromParent));
       }
@@ -706,7 +728,8 @@ class CorrectionUtils {
   /**
    * Adds "toAdd" items which are not excluded.
    */
-  static void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
+  static void _addAll(
+      Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
     for (String item in toAdd) {
       // add name based on "item", but not "excluded"
       for (int suffix = 1;; suffix++) {
@@ -727,7 +750,8 @@ class CorrectionUtils {
   /**
    * Add to "result" then given "c" or the first ASCII character after it.
    */
-  static void _addSingleCharacterName(Set<String> excluded, Set<String> result, int c) {
+  static void _addSingleCharacterName(
+      Set<String> excluded, Set<String> result, int c) {
     while (c < 0x7A) {
       String name = new String.fromCharCode(c);
       // may be done
@@ -821,7 +845,8 @@ class CorrectionUtils {
    * @return [Expression]s from <code>operands</code> which are completely covered by given
    *         [SourceRange]. Range should start and end between given [Expression]s.
    */
-  static List<Expression> _getOperandsForSourceRange(List<Expression> operands, SourceRange range) {
+  static List<Expression> _getOperandsForSourceRange(
+      List<Expression> operands, SourceRange range) {
     assert(!operands.isEmpty);
     List<Expression> subOperands = [];
     // track range enter/exit
@@ -835,7 +860,8 @@ class CorrectionUtils {
     for (int i = 0; i < operands.length - 1; i++) {
       Expression operand = operands[i];
       Expression nextOperand = operands[i + 1];
-      SourceRange inclusiveGap = SourceRangeFactory.rangeEndStart(operand, nextOperand).getMoveEnd(1);
+      SourceRange inclusiveGap =
+          SourceRangeFactory.rangeEndStart(operand, nextOperand).getMoveEnd(1);
       // add operand, if already entered range
       if (entered) {
         subOperands.add(operand);
@@ -871,7 +897,9 @@ class CorrectionUtils {
   static List<Expression> _getOperandsInOrderFor(BinaryExpression groupRoot) {
     List<Expression> operands = [];
     TokenType groupOperatorType = groupRoot.operator.type;
-    groupRoot.accept(new GeneralizingAstVisitor_CorrectionUtils_getOperandsInOrderFor(groupOperatorType, operands));
+    groupRoot.accept(
+        new GeneralizingAstVisitor_CorrectionUtils_getOperandsInOrderFor(
+            groupOperatorType, operands));
     return operands;
   }
 
@@ -880,9 +908,11 @@ class CorrectionUtils {
    */
   static List<String> _getVariableNameSuggestions(String name) {
     List<String> result = [];
-    List<String> parts = name.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
+    List<String> parts =
+        name.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
     for (int i = 0; i < parts.length; i++) {
-      String suggestion = "${parts[i].toLowerCase()}${StringUtils.join(parts, "", i + 1, parts.length)}";
+      String suggestion =
+          "${parts[i].toLowerCase()}${StringUtils.join(parts, "", i + 1, parts.length)}";
       result.add(suggestion);
     }
     return result;
@@ -905,7 +935,8 @@ class CorrectionUtils {
   /**
    * @return the [AstNode] that encloses the given offset.
    */
-  AstNode findNode(int offset) => new NodeLocator.con1(offset).searchWithin(unit);
+  AstNode findNode(int offset) =>
+      new NodeLocator.con1(offset).searchWithin(unit);
 
   /**
    * TODO(scheglov) replace with nodes once there will be [CompilationUnit.comments].
@@ -949,7 +980,8 @@ class CorrectionUtils {
    * @return the source of the given [SourceRange] with indentation changed from "oldIndent"
    *         to "newIndent", keeping indentation of the lines relative to each other.
    */
-  String getIndentSource(SourceRange range, String oldIndent, String newIndent) {
+  String getIndentSource(
+      SourceRange range, String oldIndent, String newIndent) {
     String oldSource = getText3(range);
     return getIndentSource3(oldSource, oldIndent, newIndent);
   }
@@ -963,7 +995,8 @@ class CorrectionUtils {
     StringBuffer buffer = new StringBuffer();
     String indent = getIndent(1);
     String eol = endOfLine;
-    List<String> lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
+    List<String> lines =
+        StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
       // last line, stop if empty
@@ -998,7 +1031,8 @@ class CorrectionUtils {
     // re-indent lines
     StringBuffer buffer = new StringBuffer();
     String eol = endOfLine;
-    List<String> lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
+    List<String> lines =
+        StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
     int lineOffset = 0;
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
@@ -1035,7 +1069,9 @@ class CorrectionUtils {
     // analyze directives
     Directive prevDirective = null;
     for (Directive directive in unit.directives) {
-      if (directive is LibraryDirective || directive is ImportDirective || directive is ExportDirective) {
+      if (directive is LibraryDirective ||
+          directive is ImportDirective ||
+          directive is ExportDirective) {
         prevDirective = directive;
       }
     }
@@ -1248,7 +1284,8 @@ class CorrectionUtils {
     int endOffset = range.end;
     int afterEndLineOffset = getLineContentEnd(endOffset);
     // range
-    return SourceRangeFactory.rangeStartEnd(startLineOffset, afterEndLineOffset);
+    return SourceRangeFactory.rangeStartEnd(
+        startLineOffset, afterEndLineOffset);
   }
 
   /**
@@ -1360,7 +1397,8 @@ class CorrectionUtils {
   /**
    * @return the given range of text from unit.
    */
-  String getText2(int offset, int length) => _buffer.substring(offset, offset + length);
+  String getText2(int offset, int length) =>
+      _buffer.substring(offset, offset + length);
 
   /**
    * @return the given range of text from unit.
@@ -1439,7 +1477,8 @@ class CorrectionUtils {
   /**
    * @return <code>true</code> if selection range contains only whitespace.
    */
-  bool isJustWhitespace(SourceRange range) => getText3(range).trim().length == 0;
+  bool isJustWhitespace(SourceRange range) =>
+      getText3(range).trim().length == 0;
 
   /**
    * @return <code>true</code> if selection range contains only whitespace or comments
@@ -1458,12 +1497,16 @@ class CorrectionUtils {
    * @return <code>true</code> if "selection" covers "node" and there are any non-whitespace tokens
    *         between "selection" and "node" start/end.
    */
-  bool selectionIncludesNonWhitespaceOutsideNode(SourceRange selection, AstNode node) => _selectionIncludesNonWhitespaceOutsideRange(selection, SourceRangeFactory.rangeNode(node));
+  bool selectionIncludesNonWhitespaceOutsideNode(
+          SourceRange selection, AstNode node) =>
+      _selectionIncludesNonWhitespaceOutsideRange(
+          selection, SourceRangeFactory.rangeNode(node));
 
   /**
    * @return <code>true</code> if given range of [BinaryExpression] can be extracted.
    */
-  bool validateBinaryExpressionRange(BinaryExpression binaryExpression, SourceRange range) {
+  bool validateBinaryExpressionRange(
+      BinaryExpression binaryExpression, SourceRange range) {
     // only parts of associative expression are safe to extract
     if (!binaryExpression.operator.type.isAssociativeOperator) {
       return false;
@@ -1497,23 +1540,29 @@ class CorrectionUtils {
     return null;
   }
 
-  bool _selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection, List<Expression> operands) => _selectionIncludesNonWhitespaceOutsideRange(selection, SourceRangeFactory.rangeNodes(operands));
+  bool _selectionIncludesNonWhitespaceOutsideOperands(
+          SourceRange selection, List<Expression> operands) =>
+      _selectionIncludesNonWhitespaceOutsideRange(
+          selection, SourceRangeFactory.rangeNodes(operands));
 
   /**
    * @return <code>true</code> if "selection" covers "range" and there are any non-whitespace tokens
    *         between "selection" and "range" start/end.
    */
-  bool _selectionIncludesNonWhitespaceOutsideRange(SourceRange selection, SourceRange range) {
+  bool _selectionIncludesNonWhitespaceOutsideRange(
+      SourceRange selection, SourceRange range) {
     // selection should cover range
     if (!selection.covers(range)) {
       return false;
     }
     // non-whitespace between selection start and range start
-    if (!isJustWhitespaceOrComment(SourceRangeFactory.rangeStartStart(selection, range))) {
+    if (!isJustWhitespaceOrComment(
+        SourceRangeFactory.rangeStartStart(selection, range))) {
       return true;
     }
     // non-whitespace after range
-    if (!isJustWhitespaceOrComment(SourceRangeFactory.rangeEndEnd(range, selection))) {
+    if (!isJustWhitespaceOrComment(
+        SourceRangeFactory.rangeEndEnd(range, selection))) {
       return true;
     }
     // only whitespace in selection around range
@@ -1532,12 +1581,15 @@ class CorrectionUtils_InsertDesc {
   String suffix = "";
 }
 
-class GeneralizingAstVisitor_CorrectionUtils_getOperandsInOrderFor extends GeneralizingAstVisitor<Object> {
+class GeneralizingAstVisitor_CorrectionUtils_getOperandsInOrderFor
+    extends GeneralizingAstVisitor<Object> {
   TokenType groupOperatorType;
 
   List<Expression> operands;
 
-  GeneralizingAstVisitor_CorrectionUtils_getOperandsInOrderFor(this.groupOperatorType, this.operands) : super();
+  GeneralizingAstVisitor_CorrectionUtils_getOperandsInOrderFor(
+      this.groupOperatorType, this.operands)
+      : super();
 
   @override
   Object visitExpression(Expression node) {
@@ -1549,14 +1601,17 @@ class GeneralizingAstVisitor_CorrectionUtils_getOperandsInOrderFor extends Gener
   }
 }
 
-class GeneralizingElementVisitor_CorrectionUtils_getChildren extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_CorrectionUtils_getChildren
+    extends GeneralizingElementVisitor<Object> {
   Element parent;
 
   String name;
 
   List<Element> children;
 
-  GeneralizingElementVisitor_CorrectionUtils_getChildren(this.parent, this.name, this.children) : super();
+  GeneralizingElementVisitor_CorrectionUtils_getChildren(
+      this.parent, this.name, this.children)
+      : super();
 
   @override
   Object visitElement(Element element) {
@@ -1569,14 +1624,17 @@ class GeneralizingElementVisitor_CorrectionUtils_getChildren extends Generalizin
   }
 }
 
-class GeneralizingElementVisitor_HierarchyUtils_getDirectMembers extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_HierarchyUtils_getDirectMembers
+    extends GeneralizingElementVisitor<Object> {
   ClassElement clazz;
 
   bool includeSynthetic = false;
 
   List<Element> members;
 
-  GeneralizingElementVisitor_HierarchyUtils_getDirectMembers(this.clazz, this.includeSynthetic, this.members) : super();
+  GeneralizingElementVisitor_HierarchyUtils_getDirectMembers(
+      this.clazz, this.includeSynthetic, this.members)
+      : super();
 
   @override
   Object visitElement(Element element) {
@@ -1622,8 +1680,10 @@ class NameOccurrencesFinder extends RecursiveAstVisitor<Object> {
   NameOccurrencesFinder(Element source) {
     this._target = source;
     while (true) {
-      if (source.kind == ElementKind.GETTER || source.kind == ElementKind.SETTER) {
-        PropertyAccessorElement accessorElem = source as PropertyAccessorElement;
+      if (source.kind == ElementKind.GETTER ||
+          source.kind == ElementKind.SETTER) {
+        PropertyAccessorElement accessorElem =
+            source as PropertyAccessorElement;
         this._target2 = accessorElem.variable;
         if (source is Member) {
           Member member = source;
@@ -1633,8 +1693,10 @@ class NameOccurrencesFinder extends RecursiveAstVisitor<Object> {
           Member member = source as Member;
           this._target3 = member.baseElement;
         }
-      } else if (source.kind == ElementKind.FIELD || source.kind == ElementKind.TOP_LEVEL_VARIABLE) {
-        PropertyInducingElement propertyElem = source as PropertyInducingElement;
+      } else if (source.kind == ElementKind.FIELD ||
+          source.kind == ElementKind.TOP_LEVEL_VARIABLE) {
+        PropertyInducingElement propertyElem =
+            source as PropertyInducingElement;
         this._target2 = propertyElem.getter;
         this._target3 = propertyElem.setter;
       } else if (source.kind == ElementKind.METHOD) {
@@ -1645,11 +1707,11 @@ class NameOccurrencesFinder extends RecursiveAstVisitor<Object> {
       } else if (source.kind == ElementKind.PARAMETER) {
         ParameterElement param = source as ParameterElement;
         if (param.isInitializingFormal) {
-          FieldFormalParameterElement fieldInit = param as FieldFormalParameterElement;
+          FieldFormalParameterElement fieldInit =
+              param as FieldFormalParameterElement;
           this._target2 = fieldInit.field;
         }
-      } else {
-      }
+      } else {}
       break;
     }
     if (_target2 == null) {
@@ -1678,28 +1740,35 @@ class NameOccurrencesFinder extends RecursiveAstVisitor<Object> {
       _match(member.baseElement, node);
     }
     while (true) {
-      if (element.kind == ElementKind.GETTER || element.kind == ElementKind.SETTER) {
-        PropertyAccessorElement accessorElem = element as PropertyAccessorElement;
+      if (element.kind == ElementKind.GETTER ||
+          element.kind == ElementKind.SETTER) {
+        PropertyAccessorElement accessorElem =
+            element as PropertyAccessorElement;
         _match(accessorElem.variable, node);
-      } else if (element.kind == ElementKind.FIELD || element.kind == ElementKind.TOP_LEVEL_VARIABLE) {
-        PropertyInducingElement propertyElem = element as PropertyInducingElement;
+      } else if (element.kind == ElementKind.FIELD ||
+          element.kind == ElementKind.TOP_LEVEL_VARIABLE) {
+        PropertyInducingElement propertyElem =
+            element as PropertyInducingElement;
         _match(propertyElem.getter, node);
         _match(propertyElem.setter, node);
       } else if (element.kind == ElementKind.PARAMETER) {
         ParameterElement param = element as ParameterElement;
         if (param.isInitializingFormal) {
-          FieldFormalParameterElement fieldInit = param as FieldFormalParameterElement;
+          FieldFormalParameterElement fieldInit =
+              param as FieldFormalParameterElement;
           _match(fieldInit.field, node);
         }
-      } else {
-      }
+      } else {}
       break;
     }
     return null;
   }
 
   void _match(Element element, AstNode node) {
-    if (identical(_target, element) || identical(_target2, element) || identical(_target3, element) || identical(_target4, element)) {
+    if (identical(_target, element) ||
+        identical(_target2, element) ||
+        identical(_target3, element) ||
+        identical(_target4, element)) {
       _matches.add(node);
     }
   }
@@ -1761,5 +1830,6 @@ class TokenUtils {
    * @return <code>true</code> if given [Token]s contain only single [Token] with given
    *         [TokenType].
    */
-  static bool hasOnly(List<Token> tokens, TokenType type) => tokens.length == 1 && tokens[0].type == type;
+  static bool hasOnly(List<Token> tokens, TokenType type) =>
+      tokens.length == 1 && tokens[0].type == type;
 }

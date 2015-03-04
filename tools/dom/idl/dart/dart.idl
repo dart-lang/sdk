@@ -228,12 +228,6 @@ interface EntrySync {
 interface Blob {
 };
 
-[DartSupplemental,
-  Constructor(float x, float y)
-]
-interface WebKitPoint {
-};
-
 [DartSupplemental, Callback] // Add missing Callback attribute.
 interface VoidCallback {
 };

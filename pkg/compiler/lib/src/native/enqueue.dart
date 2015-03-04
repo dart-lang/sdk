@@ -65,6 +65,7 @@ class NativeEnqueuer {
 
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
+  static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
 
   /**
    * The set of all native classes.  Each native class is in [nativeClasses] and
@@ -399,7 +400,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   handleMethodAnnotations(Element method) {
     if (isNativeMethod(method)) {
-      setNativeName(method);
+      if (method.isStatic) {
+        setNativeNameForStaticMethod(method);
+      } else {
+        setNativeName(method);
+      }
     }
   }
 
@@ -410,6 +415,32 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     if (name == null) name = element.name;
     element.setNative(name);
   }
+
+  /// Sets the native name of the static native method [element], using the
+  /// following rules:
+  /// 1. If [element] has a @JSName annotation that is an identifier, qualify
+  ///    that identifier to the @Native name of the enclosing class
+  /// 2. If [element] has a @JSName annotation that is not an identifier,
+  ///    use the declared @JSName as the expression
+  /// 3. If [element] does not have a @JSName annotation, qualify the name of
+  ///    the method with the @Native name of the enclosing class.
+  void setNativeNameForStaticMethod(Element element) {
+    String name = findJsNameFromAnnotation(element);
+    if (name == null) name = element.name;
+    if (isIdentifier(name)) {
+      List<String> nativeNames = nativeTagsOfClassRaw(element.enclosingClass);
+      if (nativeNames.length != 1) {
+        compiler.internalError(element,
+            'Unable to determine a native name for the enclosing class, '
+            'options: $nativeNames');
+      }
+      element.setNative('${nativeNames[0]}.$name');
+    } else {
+      element.setNative(name);
+    }
+  }
+
+  bool isIdentifier(String s) => _identifier.hasMatch(s);
 
   bool isNativeMethod(FunctionElementX element) {
     if (!element.library.canUseNative) return false;

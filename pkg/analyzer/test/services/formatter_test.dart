@@ -23,8 +23,8 @@ main() {
     // NOTE: statement tests are run with transforms enabled
     runTests('stmt_tests.data', (input, expectedOutput) {
       expect(formatStatement(input,
-          options: new FormatterOptions(codeTransforms: true)) + '\n',
-          equals(expectedOutput));
+              options: new FormatterOptions(codeTransforms: true)) +
+          '\n', equals(expectedOutput));
     });
   });
 
@@ -51,16 +51,14 @@ main() {
 
   /// Formatter tests
   group('formatter', () {
-
     test('failed parse', () {
       var formatter = new CodeFormatter();
       expect(() => formatter.format(CodeKind.COMPILATION_UNIT, '~'),
-                   throwsA(new isInstanceOf<FormatterException>()));
+          throwsA(new isInstanceOf<FormatterException>()));
     });
 
     test('indent', () {
-      var original =
-          'class A {\n'
+      var original = 'class A {\n'
           '  var z;\n'
           '  inc(int x) => ++x;\n'
           '  foo(int x) {\n'
@@ -69,13 +67,8 @@ main() {
           '    }\n'
           '  }\n'
           '}\n';
-      expectCUFormatsTo(
-          original,
-          original
-        );
-      expectIndentFormatsTo(3, false,
-          original,
-          'class A {\n'
+      expectCUFormatsTo(original, original);
+      expectIndentFormatsTo(3, false, original, 'class A {\n'
           '   var z;\n'
           '   inc(int x) => ++x;\n'
           '   foo(int x) {\n'
@@ -83,11 +76,8 @@ main() {
           '         return true;\n'
           '      }\n'
           '   }\n'
-          '}\n'
-        );
-      expectIndentFormatsTo(1, true,
-          original,
-          'class A {\n'
+          '}\n');
+      expectIndentFormatsTo(1, true, original, 'class A {\n'
           '\tvar z;\n'
           '\tinc(int x) => ++x;\n'
           '\tfoo(int x) {\n'
@@ -95,298 +85,226 @@ main() {
           '\t\t\treturn true;\n'
           '\t\t}\n'
           '\t}\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU (1)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  var z;\n'
           '  inc(int x) => ++x;\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  var z;\n'
           '  inc(int x) => ++x;\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU (2)', () {
-      expectCUFormatsTo(
-          'class      A  {  \n'
-          '}\n',
-          'class A {\n'
-          '}\n'
-        );
+      expectCUFormatsTo('class      A  {  \n'
+          '}\n', 'class A {\n'
+          '}\n');
     });
 
     test('CU (3)', () {
-      expectCUFormatsTo(
-          'class A {\n'
-          '  }',
-          'class A {\n'
-          '}\n'
-        );
+      expectCUFormatsTo('class A {\n'
+          '  }', 'class A {\n'
+          '}\n');
     });
 
     test('CU (4)', () {
-      expectCUFormatsTo(
-          ' class A {\n'
-          '}\n',
-          'class A {\n'
-          '}\n'
-        );
+      expectCUFormatsTo(' class A {\n'
+          '}\n', 'class A {\n'
+          '}\n');
     });
 
     test('CU (5)', () {
-      expectCUFormatsTo(
-          'class A  { int meaningOfLife() => 42; }',
-          'class A {\n'
+      expectCUFormatsTo('class A  { int meaningOfLife() => 42; }', 'class A {\n'
           '  int meaningOfLife() => 42;\n'
-          '}\n'
-      );
+          '}\n');
     });
 
     test('CU - EOL comments', () {
-      expectCUFormatsTo(
-          '//comment one\n\n'
-          '//comment two\n\n',
-          '//comment one\n\n'
-          '//comment two\n\n'
-      );
-      expectCUFormatsTo(
-          'var x;   //x\n',
-          'var x; //x\n'
-      );
-      expectCUFormatsTo(
-          'library foo;\n'
+      expectCUFormatsTo('//comment one\n\n'
+          '//comment two\n\n', '//comment one\n\n'
+          '//comment two\n\n');
+      expectCUFormatsTo('var x;   //x\n', 'var x; //x\n');
+      expectCUFormatsTo('library foo;\n'
           '\n'
           '//comment one\n'
           '\n'
           'class C {\n'
-          '}\n',
-          'library foo;\n'
+          '}\n', 'library foo;\n'
           '\n'
           '//comment one\n'
           '\n'
           'class C {\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'library foo;\n'
+          '}\n');
+      expectCUFormatsTo('library foo;\n'
           '\n'
           '//comment one\n'
           '\n'
           '//comment two\n'
           '\n'
           'class C {\n'
-          '}\n',
-          'library foo;\n'
+          '}\n', 'library foo;\n'
           '\n'
           '//comment one\n'
           '\n'
           '//comment two\n'
           '\n'
           'class C {\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'main() {\n'
+          '}\n');
+      expectCUFormatsTo('main() {\n'
           '//  print(1);\n'
           '//  print(2);\n'
           '  print(3);\n'
-          '}\n',
-          'main() {\n'
+          '}\n', 'main() {\n'
           '//  print(1);\n'
           '//  print(2);\n'
           '  print(3);\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'class A {\n'
+          '}\n');
+      expectCUFormatsTo('class A {\n'
           '//  int a;\n'
           '//  int b;\n'
           '  int c;\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '//  int a;\n'
           '//  int b;\n'
           '  int c;\n'
-          '}\n'
-      );
+          '}\n');
     });
 
     test('CU - nested functions', () {
-      expectCUFormatsTo(
-          'x() {\n'
+      expectCUFormatsTo('x() {\n'
           '  y() {\n'
           '  }\n'
-          '}\n',
-          'x() {\n'
+          '}\n', 'x() {\n'
           '  y() {\n'
           '  }\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU - top level', () {
-      expectCUFormatsTo(
-          '\n\n'
+      expectCUFormatsTo('\n\n'
           'foo() {\n'
           '}\n'
           'bar() {\n'
-          '}\n',
-          '\n\n'
+          '}\n', '\n\n'
           'foo() {\n'
           '}\n'
           'bar() {\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'const A = 42;\n'
-          'final foo = 32;\n',
-          'const A = 42;\n'
-          'final foo = 32;\n'
-      );
+          '}\n');
+      expectCUFormatsTo('const A = 42;\n'
+          'final foo = 32;\n', 'const A = 42;\n'
+          'final foo = 32;\n');
     });
 
     test('CU - imports', () {
-      expectCUFormatsTo(
-          'import "dart:io";\n\n'
+      expectCUFormatsTo('import "dart:io";\n\n'
           'import "package:unittest/unittest.dart";\n'
           'foo() {\n'
-          '}\n',
-          'import "dart:io";\n\n'
+          '}\n', 'import "dart:io";\n\n'
           'import "package:unittest/unittest.dart";\n'
           'foo() {\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'library a; class B { }',
-          'library a;\n'
-          'class B {}\n'
-      );
+          '}\n');
+      expectCUFormatsTo('library a; class B { }', 'library a;\n'
+          'class B {}\n');
     });
 
     test('CU - method invocations', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  foo() {\n'
           '    bar();\n'
           '    for (int i = 0; i < 42; i++) {\n'
           '      baz();\n'
           '    }\n'
           '  }\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  foo() {\n'
           '    bar();\n'
           '    for (int i = 0; i < 42; i++) {\n'
           '      baz();\n'
           '    }\n'
           '  }\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU w/class decl comment', () {
-      expectCUFormatsTo(
-          'import "foo";\n\n'
+      expectCUFormatsTo('import "foo";\n\n'
           '//Killer class\n'
           'class A {\n'
-          '}',
-          'import "foo";\n\n'
+          '}', 'import "foo";\n\n'
           '//Killer class\n'
           'class A {\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU (method body)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  foo(path) {\n'
           '    var buffer = new StringBuffer();\n'
           '    var file = new File(path);\n'
           '    return file;\n'
           '  }\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  foo(path) {\n'
           '    var buffer = new StringBuffer();\n'
           '    var file = new File(path);\n'
           '    return file;\n'
           '  }\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'class A {\n'
+          '}\n');
+      expectCUFormatsTo('class A {\n'
           '  foo(files) {\n'
           '    for (var  file in files) {\n'
           '      print(file);\n'
           '    }\n'
           '  }\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  foo(files) {\n'
           '    for (var file in files) {\n'
           '      print(file);\n'
           '    }\n'
           '  }\n'
-          '}\n'
-      );
+          '}\n');
     });
 
     test('CU (method indent)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           'void x(){\n'
           '}\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  void x() {\n'
           '  }\n'
-          '}\n'
-      );
+          '}\n');
     });
 
     test('CU (method indent - 2)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           ' static  bool x(){\n'
           'return true; }\n'
-          ' }\n',
-          'class A {\n'
+          ' }\n', 'class A {\n'
           '  static bool x() {\n'
           '    return true;\n'
           '  }\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU (method indent - 3)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           ' int x() =>   42   + 3 ;  \n'
-          '   }\n',
-          'class A {\n'
+          '   }\n', 'class A {\n'
           '  int x() => 42 + 3;\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU (method indent - 4)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           ' int x() { \n'
           'if (true) {\n'
           'return 42;\n'
           '} else {\n'
           'return 13;\n }\n'
           '   }'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  int x() {\n'
           '    if (true) {\n'
           '      return 42;\n'
@@ -394,80 +312,63 @@ main() {
           '      return 13;\n'
           '    }\n'
           '  }\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU (multiple members)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '}\n'
           'class B {\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '}\n'
           'class B {\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU (multiple members w/blanks)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '}\n\n'
           'class B {\n\n\n'
           '  int b() => 42;\n\n'
           '  int c() => b();\n\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '}\n\n'
           'class B {\n\n\n'
           '  int b() => 42;\n\n'
           '  int c() => b();\n\n'
-          '}\n'
-      );
+          '}\n');
     });
 
     test('CU - Block comments', () {
-      expectCUFormatsTo(
-          '/** Old school class comment */\n'
+      expectCUFormatsTo('/** Old school class comment */\n'
           'class C {\n'
           '  /** Foo! */ int foo() => 42;\n'
-          '}\n',
-          '/** Old school class comment */\n'
+          '}\n', '/** Old school class comment */\n'
           'class C {\n'
           '  /** Foo! */\n'
           '  int foo() => 42;\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'library foo;\n'
+          '}\n');
+      expectCUFormatsTo('library foo;\n'
           'class C /* is cool */ {\n'
           '  /* int */ foo() => 42;\n'
-          '}\n',
-          'library foo;\n'
+          '}\n', 'library foo;\n'
           'class C /* is cool */ {\n'
           '  /* int */ foo() => 42;\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'library foo;\n'
+          '}\n');
+      expectCUFormatsTo('library foo;\n'
           '/* A long\n'
           ' * Comment\n'
           '*/\n'
           'class C /* is cool */ {\n'
           '  /* int */ foo() => 42;\n'
-          '}\n',
-          'library foo;\n'
+          '}\n', 'library foo;\n'
           '/* A long\n'
           ' * Comment\n'
           '*/\n'
           'class C /* is cool */ {\n'
           '  /* int */ foo() => 42;\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          'library foo;\n'
+          '}\n');
+      expectCUFormatsTo('library foo;\n'
           '/* A long\n'
           ' * Comment\n'
           '*/\n'
@@ -480,8 +381,7 @@ main() {
           '\n'
           'class C /* is cool */ {\n'
           '  /* int */ foo() => 42;\n'
-          '}\n',
-          'library foo;\n'
+          '}\n', 'library foo;\n'
           '/* A long\n'
           ' * Comment\n'
           '*/\n'
@@ -494,124 +394,91 @@ main() {
           '\n'
           'class C /* is cool */ {\n'
           '  /* int */ foo() => 42;\n'
-          '}\n'
-      );
-      expectCUFormatsTo(
-          '/// Copyright info\n'
+          '}\n');
+      expectCUFormatsTo('/// Copyright info\n'
           '\n'
           'library foo;\n'
           '/// Class comment\n'
           '//TODO: implement\n'
           'class C {\n'
-          '}\n',
-          '/// Copyright info\n'
+          '}\n', '/// Copyright info\n'
           '\n'
           'library foo;\n'
           '/// Class comment\n'
           '//TODO: implement\n'
           'class C {\n'
-          '}\n'
-      );
+          '}\n');
     });
 
     test('CU - mixed comments', () {
-      expectCUFormatsTo(
-          'library foo;\n'
+      expectCUFormatsTo('library foo;\n'
           '\n'
           '\n'
           '/* Comment 1 */\n'
           '\n'
           '// Comment 2\n'
           '\n'
-          '/* Comment 3 */',
-          'library foo;\n'
+          '/* Comment 3 */', 'library foo;\n'
           '\n'
           '\n'
           '/* Comment 1 */\n'
           '\n'
           '// Comment 2\n'
           '\n'
-          '/* Comment 3 */\n'
-        );
+          '/* Comment 3 */\n');
     });
 
     test('CU - comments (EOF)', () {
-      expectCUFormatsTo(
-          'library foo; //zamm',
+      expectCUFormatsTo('library foo; //zamm',
           'library foo; //zamm\n' //<-- note extra NEWLINE
-        );
+          );
     });
 
     test('CU - comments (0)', () {
-      expectCUFormatsTo(
-          'library foo; //zamm\n'
+      expectCUFormatsTo('library foo; //zamm\n'
           '\n'
           'class A {\n'
-          '}\n',
-          'library foo; //zamm\n'
+          '}\n', 'library foo; //zamm\n'
           '\n'
           'class A {\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU - comments (1)', () {
-      expectCUFormatsTo(
-          '/* foo */ /* bar */\n',
-          '/* foo */ /* bar */\n'
-      );
+      expectCUFormatsTo('/* foo */ /* bar */\n', '/* foo */ /* bar */\n');
     });
 
     test('CU - comments (2)', () {
-      expectCUFormatsTo(
-          '/** foo */ /** bar */\n',
-          '/** foo */\n'
-          '/** bar */\n'
-      );
+      expectCUFormatsTo('/** foo */ /** bar */\n', '/** foo */\n'
+          '/** bar */\n');
     });
 
     test('CU - comments (3)', () {
-      expectCUFormatsTo(
-          'var x;   //x\n',
-          'var x; //x\n'
-      );
+      expectCUFormatsTo('var x;   //x\n', 'var x; //x\n');
     });
 
     test('CU - comments (4)', () {
-      expectCUFormatsTo(
-          'class X { //X!\n'
-          '}',
-          'class X { //X!\n'
-          '}\n'
-      );
+      expectCUFormatsTo('class X { //X!\n'
+          '}', 'class X { //X!\n'
+          '}\n');
     });
 
     test('CU - comments (5)', () {
-      expectCUFormatsTo(
-          '//comment one\n\n'
-          '//comment two\n\n',
-          '//comment one\n\n'
-          '//comment two\n\n'
-      );
+      expectCUFormatsTo('//comment one\n\n'
+          '//comment two\n\n', '//comment one\n\n'
+          '//comment two\n\n');
     });
 
     test('CU - comments (6)', () {
-      expectCUFormatsTo(
-          'var x;   //x\n',
-          'var x; //x\n'
-      );
+      expectCUFormatsTo('var x;   //x\n', 'var x; //x\n');
     });
 
     test('CU - comments (6)', () {
-      expectCUFormatsTo(
-          'var /* int */ x; //x\n',
-          'var /* int */ x; //x\n'
-      );
+      expectCUFormatsTo('var /* int */ x; //x\n', 'var /* int */ x; //x\n');
     });
 
     test('CU - comments (7)', () {
-      expectCUFormatsTo(
-          'library foo;\n'
+      expectCUFormatsTo('library foo;\n'
           '\n'
           '/// Docs\n'
           '/// spanning\n'
@@ -622,8 +489,7 @@ main() {
           '/// ... and\n'
           '\n'
           '/// Dangling ones too\n'
-          'int x;\n',
-          'library foo;\n'
+          'int x;\n', 'library foo;\n'
           '\n'
           '/// Docs\n'
           '/// spanning\n'
@@ -634,433 +500,319 @@ main() {
           '/// ... and\n'
           '\n'
           '/// Dangling ones too\n'
-          'int x;\n'
-        );
+          'int x;\n');
     });
 
     test('CU - comments (8)', () {
-      expectCUFormatsTo(
-          'var x /* X */, y;\n',
-          'var x /* X */, y;\n'
-      );
+      expectCUFormatsTo('var x /* X */, y;\n', 'var x /* X */, y;\n');
     });
 
     test('CU - comments (9)', () {
-      expectCUFormatsTo(
-          'main() {\n'
+      expectCUFormatsTo('main() {\n'
           '  foo(1 /* bang */, 2);\n'
           '}\n'
-          'foo(x, y) => null;\n',
-          'main() {\n'
+          'foo(x, y) => null;\n', 'main() {\n'
           '  foo(1 /* bang */, 2);\n'
           '}\n'
-          'foo(x, y) => null;\n'
-      );
+          'foo(x, y) => null;\n');
     });
 
     test('CU - comments (10)', () {
       expectCUFormatsTo(
-          'var l = [1 /* bang */, 2];\n',
-          'var l = [1 /* bang */, 2];\n'
-      );
+          'var l = [1 /* bang */, 2];\n', 'var l = [1 /* bang */, 2];\n');
     });
 
     test('CU - comments (11)', () {
-      expectCUFormatsTo(
-          'var m = {1: 2 /* bang */, 3: 4};\n',
-          'var m = {\n'
+      expectCUFormatsTo('var m = {1: 2 /* bang */, 3: 4};\n', 'var m = {\n'
           '  1: 2 /* bang */,\n'
           '  3: 4\n'
-          '};\n'
-      );
+          '};\n');
     });
 
     test('CU - EOF nl', () {
-      expectCUFormatsTo(
-          'var x = 1;',
-          'var x = 1;\n'
-      );
+      expectCUFormatsTo('var x = 1;', 'var x = 1;\n');
     });
 
     test('CU - constructor', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  const _a;\n'
           '  A();\n'
           '  int a() => _a;\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  const _a;\n'
           '  A();\n'
           '  int a() => _a;\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU - method decl w/ named params', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  int a(var x, {optional: null}) => null;\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  int a(var x, {optional: null}) => null;\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU - method decl w/ optional params', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  int a(var x, [optional = null]) => null;\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  int a(var x, [optional = null]) => null;\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU - factory constructor redirects', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  const factory A() = B;\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  const factory A() = B;\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU - constructor auto field inits', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  int _a;\n'
           '  A(this._a);\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  int _a;\n'
           '  A(this._a);\n'
-          '}\n'
-        );
+          '}\n');
     });
 
     test('CU - parts', () {
-      expectCUFormatsTo(
-        'part of foo;',
-        'part of foo;\n'
-      );
+      expectCUFormatsTo('part of foo;', 'part of foo;\n');
     });
 
     test('CU (cons inits)', () {
       expectCUFormatsTo('class X {\n'
           '  var x, y;\n'
           '  X() : x = 1, y = 2;\n'
-          '}\n',
-          'class X {\n'
+          '}\n', 'class X {\n'
           '  var x, y;\n'
           '  X()\n'
           '      : x = 1,\n'
           '        y = 2;\n'
-          '}\n'
-      );
+          '}\n');
     });
 
     test('CU (empty cons bodies)', () {
-      expectCUFormatsTo(
-          'class A {\n'
+      expectCUFormatsTo('class A {\n'
           '  A() {\n'
           '  }\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  A();\n'
-          '}\n',
-          transforms: true
-      );
-      expectCUFormatsTo(
-          'class A {\n'
+          '}\n', transforms: true);
+      expectCUFormatsTo('class A {\n'
           '  A() {\n'
           '  }\n'
-          '}\n',
-          'class A {\n'
+          '}\n', 'class A {\n'
           '  A() {\n'
           '  }\n'
-          '}\n',
-          transforms: false
-      );
+          '}\n', transforms: false);
     });
 
     test('stmt', () {
-      expectStmtFormatsTo(
-         'if (true){\n'
-         'if (true){\n'
-         'if (true){\n'
-         'return true;\n'
-         '} else{\n'
-         'return false;\n'
-         '}\n'
-         '}\n'
-         '}else{\n'
-         'return false;\n'
-         '}',
-         'if (true) {\n'
-         '  if (true) {\n'
-         '    if (true) {\n'
-         '      return true;\n'
-         '    } else {\n'
-         '      return false;\n'
-         '    }\n'
-         '  }\n'
-         '} else {\n'
-         '  return false;\n'
-         '}'
-      );
+      expectStmtFormatsTo('if (true){\n'
+          'if (true){\n'
+          'if (true){\n'
+          'return true;\n'
+          '} else{\n'
+          'return false;\n'
+          '}\n'
+          '}\n'
+          '}else{\n'
+          'return false;\n'
+          '}', 'if (true) {\n'
+          '  if (true) {\n'
+          '    if (true) {\n'
+          '      return true;\n'
+          '    } else {\n'
+          '      return false;\n'
+          '    }\n'
+          '  }\n'
+          '} else {\n'
+          '  return false;\n'
+          '}');
     });
 
     test('stmt (switch)', () {
-      expectStmtFormatsTo(
-        'switch (fruit) {\n'
-        'case "apple":\n'
-        'print("delish");\n'
-        'break;\n'
-        'case "fig":\n'
-        'print("bleh");\n'
-        'break;\n'
-        '}',
-        'switch (fruit) {\n'
-        '  case "apple":\n'
-        '    print("delish");\n'
-        '    break;\n'
-        '  case "fig":\n'
-        '    print("bleh");\n'
-        '    break;\n'
-        '}'
-      );
+      expectStmtFormatsTo('switch (fruit) {\n'
+          'case "apple":\n'
+          'print("delish");\n'
+          'break;\n'
+          'case "fig":\n'
+          'print("bleh");\n'
+          'break;\n'
+          '}', 'switch (fruit) {\n'
+          '  case "apple":\n'
+          '    print("delish");\n'
+          '    break;\n'
+          '  case "fig":\n'
+          '    print("bleh");\n'
+          '    break;\n'
+          '}');
     });
 
     test('stmt (empty while body)', () {
-      expectStmtFormatsTo(
-        'while (true);',
-        'while (true);'
-      );
+      expectStmtFormatsTo('while (true);', 'while (true);');
     });
 
     test('stmt (empty for body)', () {
-      expectStmtFormatsTo(
-        'for ( ; ; );',
-        'for ( ; ; );'
-      );
+      expectStmtFormatsTo('for ( ; ; );', 'for ( ; ; );');
     });
 
     test('stmt (cascades)', () {
-      expectStmtFormatsTo(
-        '"foo"\n'
-        '..toString()\n'
-        '..toString();',
-        '"foo"\n'
-        '    ..toString()\n'
-        '    ..toString();'
-      );
+      expectStmtFormatsTo('"foo"\n'
+          '..toString()\n'
+          '..toString();', '"foo"\n'
+          '    ..toString()\n'
+          '    ..toString();');
     });
 
     test('stmt (generics)', () {
-      expectStmtFormatsTo(
-        'var numbers = <int>[1, 2, (3 + 4)];',
-        'var numbers = <int>[1, 2, (3 + 4)];'
-      );
+      expectStmtFormatsTo('var numbers = <int>[1, 2, (3 + 4)];',
+          'var numbers = <int>[1, 2, (3 + 4)];');
     });
 
     test('stmt (lists)', () {
-      expectStmtFormatsTo(
-        'var l = [1,2,3,4];',
-        'var l = [1, 2, 3, 4];'
-      );
-      expectStmtFormatsTo(
-        'var l = [\n'
-        '1,\n'
-        '2,\n'
-        '];',
-        'var l = [1, 2,];'
-      );
+      expectStmtFormatsTo('var l = [1,2,3,4];', 'var l = [1, 2, 3, 4];');
+      expectStmtFormatsTo('var l = [\n'
+          '1,\n'
+          '2,\n'
+          '];', 'var l = [1, 2,];');
       //Dangling ','
-      expectStmtFormatsTo(
-        'var l = [1,];',
-        'var l = [1,];'
-      );
+      expectStmtFormatsTo('var l = [1,];', 'var l = [1,];');
     });
 
     test('stmt (maps)', () {
-      expectStmtFormatsTo(
-        'var map = const {"foo": "bar", "fuz": null};',
-        'var map = const {\n'
-        '  "foo": "bar",\n'
-        '  "fuz": null\n'
-        '};'
-      );
+      expectStmtFormatsTo('var map = const {"foo": "bar", "fuz": null};',
+          'var map = const {\n'
+          '  "foo": "bar",\n'
+          '  "fuz": null\n'
+          '};');
 
-      expectStmtFormatsTo(
-          'var map = {\n'
+      expectStmtFormatsTo('var map = {\n'
           '"foo": "bar",\n'
           '"bar": "baz"\n'
-          '};',
-          'var map = {\n'
+          '};', 'var map = {\n'
           '  "foo": "bar",\n'
           '  "bar": "baz"\n'
-          '};'
-      );
+          '};');
 
       //Dangling ','
-      expectStmtFormatsTo(
-        'var map = {"foo": "bar",};',
-        'var map = {\n'
-        '  "foo": "bar",\n'
-        '};'
-      );
+      expectStmtFormatsTo('var map = {"foo": "bar",};', 'var map = {\n'
+          '  "foo": "bar",\n'
+          '};');
     });
 
     test('stmt (try/catch)', () {
-      expectStmtFormatsTo(
-        'try {\n'
-        'doSomething();\n'
-        '} catch (e) {\n'
-        'print(e);\n'
-        '}',
-        'try {\n'
-        '  doSomething();\n'
-        '} catch (e) {\n'
-        '  print(e);\n'
-        '}'
-      );
-      expectStmtFormatsTo(
-          'try{\n'
+      expectStmtFormatsTo('try {\n'
+          'doSomething();\n'
+          '} catch (e) {\n'
+          'print(e);\n'
+          '}', 'try {\n'
+          '  doSomething();\n'
+          '} catch (e) {\n'
+          '  print(e);\n'
+          '}');
+      expectStmtFormatsTo('try{\n'
           'doSomething();\n'
           '}on Exception catch (e){\n'
           'print(e);\n'
-          '}',
-          'try {\n'
+          '}', 'try {\n'
           '  doSomething();\n'
           '} on Exception catch (e) {\n'
           '  print(e);\n'
-          '}'
-      );
+          '}');
     });
 
     test('stmt (binary/ternary ops)', () {
       expectStmtFormatsTo(
-        'var a = 1 + 2 / (3 * -b);',
-        'var a = 1 + 2 / (3 * -b);'
-      );
+          'var a = 1 + 2 / (3 * -b);', 'var a = 1 + 2 / (3 * -b);');
       expectStmtFormatsTo(
-        'var c = !condition == a > b;',
-        'var c = !condition == a > b;'
-      );
+          'var c = !condition == a > b;', 'var c = !condition == a > b;');
+      expectStmtFormatsTo('var d = condition ? b : object.method(a, b, c);',
+          'var d = condition ? b : object.method(a, b, c);');
       expectStmtFormatsTo(
-        'var d = condition ? b : object.method(a, b, c);',
-        'var d = condition ? b : object.method(a, b, c);'
-      );
-      expectStmtFormatsTo(
-        'var d = obj is! SomeType;',
-        'var d = obj is! SomeType;'
-      );
+          'var d = obj is! SomeType;', 'var d = obj is! SomeType;');
     });
 
     test('stmt (for in)', () {
-      expectStmtFormatsTo(
-        'for (Foo foo in bar.foos) {\n'
-        '  print(foo);\n'
-        '}',
-        'for (Foo foo in bar.foos) {\n'
-        '  print(foo);\n'
-        '}'
-      );
-      expectStmtFormatsTo(
-        'for (final Foo foo in bar.foos) {\n'
-        '  print(foo);\n'
-        '}',
-        'for (final Foo foo in bar.foos) {\n'
-        '  print(foo);\n'
-        '}'
-      );
-      expectStmtFormatsTo(
-        'for (final foo in bar.foos) {\n'
-        '  print(foo);\n'
-        '}',
-        'for (final foo in bar.foos) {\n'
-        '  print(foo);\n'
-        '}'
-      );
+      expectStmtFormatsTo('for (Foo foo in bar.foos) {\n'
+          '  print(foo);\n'
+          '}', 'for (Foo foo in bar.foos) {\n'
+          '  print(foo);\n'
+          '}');
+      expectStmtFormatsTo('for (final Foo foo in bar.foos) {\n'
+          '  print(foo);\n'
+          '}', 'for (final Foo foo in bar.foos) {\n'
+          '  print(foo);\n'
+          '}');
+      expectStmtFormatsTo('for (final foo in bar.foos) {\n'
+          '  print(foo);\n'
+          '}', 'for (final foo in bar.foos) {\n'
+          '  print(foo);\n'
+          '}');
     });
 
     test('Statement (if)', () {
-      expectStmtFormatsTo('if (true) print("true!");',
-                          'if (true) print("true!");');
-      expectStmtFormatsTo('if (true) { print("true!"); }',
-                          'if (true) {\n'
-                          '  print("true!");\n'
-                          '}');
+      expectStmtFormatsTo(
+          'if (true) print("true!");', 'if (true) print("true!");');
+      expectStmtFormatsTo('if (true) { print("true!"); }', 'if (true) {\n'
+          '  print("true!");\n'
+          '}');
       expectStmtFormatsTo('if (true) print("true!"); else print("false!");',
-                          'if (true) {\n'
-                          '  print("true!");\n'
-                          '} else {\n'
-                          '  print("false!");\n'
-                          '}');
+          'if (true) {\n'
+          '  print("true!");\n'
+          '} else {\n'
+          '  print("false!");\n'
+          '}');
       expectStmtFormatsTo('if (true) print("true!"); else print("false!");',
-                          'if (true) print("true!"); else print("false!");',
-                          transforms: false);
+          'if (true) print("true!"); else print("false!");', transforms: false);
     });
 
     test('String - multiline - short - same line', () {
-      expectCUFormatsTo(
-        'main() {\n'
-        '  print("""01234567890123456789012345678901234567890123456789""");\n'
-        '}\n',
-        'main() {\n'
-        '  print("""01234567890123456789012345678901234567890123456789""");\n'
-        '}\n'
-      );
+      expectCUFormatsTo('main() {\n'
+          '  print("""01234567890123456789012345678901234567890123456789""");\n'
+          '}\n', 'main() {\n'
+          '  print("""01234567890123456789012345678901234567890123456789""");\n'
+          '}\n');
     });
 
     test('String - multiline - short - next line', () {
-      expectCUFormatsTo(
-        'main() {\n'
-        '  print("""\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '""");\n'
-        '}\n',
-        'main() {\n'
-        '  print("""\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '""");\n'
-        '}\n'
-      );
+      expectCUFormatsTo('main() {\n'
+          '  print("""\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '""");\n'
+          '}\n', 'main() {\n'
+          '  print("""\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '""");\n'
+          '}\n');
     });
 
     test('String - multiline - long', () {
-      expectCUFormatsTo(
-        'main() {\n'
-        '  print("""\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '""");\n'
-        '}\n',
-        'main() {\n'
-        '  print("""\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '01234567890123456789012345678901234567890123456789\n'
-        '""");\n'
-        '}\n'
-      );
+      expectCUFormatsTo('main() {\n'
+          '  print("""\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '""");\n'
+          '}\n', 'main() {\n'
+          '  print("""\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '01234567890123456789012345678901234567890123456789\n'
+          '""");\n'
+          '}\n');
     });
 
     // smoketest to ensure we're enforcing the 'no gratuitous linebreaks'
     // opinion
     test('CU (eat newlines)', () {
-      expectCUFormatsTo(
-        'abstract\n'
-        'class\n'
-        'A{}',
-        'abstract class A {}\n'
-      );
+      expectCUFormatsTo('abstract\n'
+          'class\n'
+          'A{}', 'abstract class A {}\n');
     });
 
 //    test('line continuations - 1', () {
@@ -1181,8 +933,8 @@ main() {
 //    });
 
     test('initialIndent', () {
-      var formatter = new CodeFormatter(
-          new FormatterOptions(initialIndentationLevel: 2));
+      var formatter =
+          new CodeFormatter(new FormatterOptions(initialIndentationLevel: 2));
       var formattedSource =
           formatter.format(CodeKind.STATEMENT, 'var x;').source;
       expect(formattedSource, startsWith('    '));
@@ -1195,13 +947,10 @@ main() {
       expectSelectedPostFormat('class X{int y;}', '}');
       expectSelectedPostFormat('class X {}', ' {');
     });
-
   });
-
 
   /// Token streams
   group('token streams', () {
-
     test('string tokens', () {
       expectTokenizedEqual('class A{}', 'class A{ }');
       expectTokenizedEqual('class A{}', 'class A{\n  }\n');
@@ -1240,13 +989,10 @@ main() {
       var t2 = string('foo')..setNext(eof());
       expectStreamsNotEqual(t1, t2);
     });
-
   });
-
 
   /// Line tests
   group('line', () {
-
     test('space', () {
       var line = new Line(indentLevel: 0);
       line.addSpaces(2);
@@ -1259,7 +1005,7 @@ main() {
     });
 
     test('initial indent (tabbed)', () {
-      var line = new Line(indentLevel:1, useTabs: true);
+      var line = new Line(indentLevel: 1, useTabs: true);
       expect(line.toString(), equals('\t'));
     });
 
@@ -1279,12 +1025,10 @@ main() {
       var line = new Line(indentLevel: 1);
       expect(line.isWhitespace(), isTrue);
     });
-
   });
 
   /// Writer tests
   group('writer', () {
-
     test('basic print', () {
       var writer = new SourceWriter();
       writer.write('foo');
@@ -1301,7 +1045,7 @@ main() {
     });
 
     test('newline trims whitespace', () {
-      var writer = new SourceWriter(indentCount:2);
+      var writer = new SourceWriter(indentCount: 2);
       writer.newline();
       expect(writer.toString(), equals('\n'));
     });
@@ -1326,27 +1070,21 @@ main() {
       expect(writer.toString(), equals('\n  aaa\nbbb\nccc'));
       expect(writer.currentLine.toString(), equals('ccc'));
     });
-
   });
-
-
 
   /// Line breaker tests
   group('linebreaker', () {
-
     List<Chunk> breakLine(Line line, int maxLength) =>
         new SimpleLineBreaker(maxLength).breakLine(line);
 
     String printLine(Line line, int maxLength) =>
-        new SimpleLineBreaker(
-            maxLength,
-            (n) => new List.filled(n, '  ').join()
-        ).printLine(line);
+        new SimpleLineBreaker(maxLength, (n) => new List.filled(n, '  ').join())
+            .printLine(line);
 
     Line line(List tokens) {
       var line = new Line();
-      tokens.forEach((t) =>
-          line.addToken(t is LineToken ? t : new LineToken(t)));
+      tokens
+          .forEach((t) => line.addToken(t is LineToken ? t : new LineToken(t)));
       return line;
     }
 
@@ -1358,19 +1096,40 @@ main() {
       expect(tokens.map((token) => token.toString()), orderedEquals(texts));
     }
 
-
     final SP_1 = new SpaceToken(1, breakWeight: DEFAULT_SPACE_WEIGHT);
     final SP_w1 = new SpaceToken(1, breakWeight: 1);
     final SP_w2 = new SpaceToken(1, breakWeight: 2);
     final SP_i = new SpaceToken(1, breakWeight: SINGLE_SPACE_WEIGHT);
 
     // 'foo|1|bar|1|baz|1|foo|1|bar|1|baz'
-    final LINE_1 = line(['foo', SP_1, 'bar', SP_1, 'baz', SP_1,
-                         'foo', SP_1, 'bar', SP_1, 'baz']);
+    final LINE_1 = line([
+      'foo',
+      SP_1,
+      'bar',
+      SP_1,
+      'baz',
+      SP_1,
+      'foo',
+      SP_1,
+      'bar',
+      SP_1,
+      'baz'
+    ]);
 
     // '  foo|1|bar|1|baz|1|foo|1|bar|1|baz'
-    final LINE_2 = line(['  foo', SP_1, 'bar', SP_1, 'baz', SP_1,
-                         'foo', SP_1, 'bar', SP_1, 'baz']);
+    final LINE_2 = line([
+      '  foo',
+      SP_1,
+      'bar',
+      SP_1,
+      'baz',
+      SP_1,
+      'foo',
+      SP_1,
+      'bar',
+      SP_1,
+      'baz'
+    ]);
 
     test('breakLine - 0', () {
       var chunks = breakLine(line(['  foo']), 8);
@@ -1403,8 +1162,19 @@ main() {
     });
 
     test('breakLine - use weights - 1', () {
-      var source = line(['111', SP_w2, '222', SP_w1, '333', SP_w2,
-                           '444', SP_w1, '555', SP_w2, '666']);
+      var source = line([
+        '111',
+        SP_w2,
+        '222',
+        SP_w1,
+        '333',
+        SP_w2,
+        '444',
+        SP_w1,
+        '555',
+        SP_w2,
+        '666'
+      ]);
       var chunks = breakLine(source, 12);
       expectTextsEqual(chunks, ['111 222', '333 444', '555 666']);
     });
@@ -1430,34 +1200,61 @@ main() {
     });
 
     test('printLine - use weight - 1', () {
-      var source = line(
-                     ['111111', SP_w2, '222222', SP_w1,
-                      '333333', SP_w2, '444444', SP_w1,
-                      '555555', SP_w2, '666666']);
+      var source = line([
+        '111111',
+        SP_w2,
+        '222222',
+        SP_w1,
+        '333333',
+        SP_w2,
+        '444444',
+        SP_w1,
+        '555555',
+        SP_w2,
+        '666666'
+      ]);
       var result = printLine(source, 20);
       expect(result, '111111 222222\n    333333 444444\n    555555 666666');
     });
 
     test('printLine - use weight - initializer - success', () {
-      var source = line(
-                     ['111111', SP_i, '2222', SP_w1,
-                      '3333', SP_w1, '4444']);
+      var source = line(['111111', SP_i, '2222', SP_w1, '3333', SP_w1, '4444']);
       var result = printLine(source, 20);
       expect(result, '111111\n    2222 3333 4444');
     });
 
     test('printLine - use weight - initializer - rest too long', () {
-      var source = line(
-                     ['111', SP_i, '222', SP_w1,
-                      '333', SP_w1, '444', SP_w1, '555', SP_w1, '666']);
+      var source = line([
+        '111',
+        SP_i,
+        '222',
+        SP_w1,
+        '333',
+        SP_w1,
+        '444',
+        SP_w1,
+        '555',
+        SP_w1,
+        '666'
+      ]);
       var result = printLine(source, 15);
       expect(result, '111 222\n    333\n    444\n    555\n    666');
     });
 
     test('printLine - use weight - initializer - decl/rest too long', () {
-      var source = line(
-                     ['111', SP_i, '2222222222222', SP_w1,
-                      '333', SP_w1, '444', SP_w1, '555', SP_w1, '666']);
+      var source = line([
+        '111',
+        SP_i,
+        '2222222222222',
+        SP_w1,
+        '333',
+        SP_w1,
+        '444',
+        SP_w1,
+        '555',
+        SP_w1,
+        '666'
+      ]);
       var result = printLine(source, 15);
       expect(result, '111\n    2222222222222\n'
           '        333\n        444\n        555\n        666');
@@ -1493,12 +1290,10 @@ main() {
       var processed = SimpleLineBreaker.preprocess(tokens);
       expectTokensEqual(processed, ['foo', ' ', 'bar', ' ']);
     });
-
   });
 
   /// Helper method tests
   group('helpers', () {
-
     test('indentString', () {
       expect(getIndentString(0), '');
       expect(getIndentString(1), '  ');
@@ -1516,9 +1311,7 @@ main() {
       expect(repeat('x', 1), 'x');
       expect(repeat('x', 4), 'xxxx');
     });
-
   });
-
 }
 
 Token closeSqBracket() => new Token(TokenType.CLOSE_SQUARE_BRACKET, 0);
@@ -1554,8 +1347,8 @@ Token chain(List<Token> tokens) {
 }
 
 FormattedSource formatCU(src, {options: const FormatterOptions(), selection}) =>
-    new CodeFormatter(options).format(
-        CodeKind.COMPILATION_UNIT, src, selection: selection);
+    new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src,
+        selection: selection);
 
 String formatStatement(src, {options: const FormatterOptions()}) =>
     new CodeFormatter(options).format(CodeKind.STATEMENT, src).source;
@@ -1577,44 +1370,43 @@ expectSelectedPostFormat(src, token) {
 expectTokenizedEqual(String s1, String s2) =>
     expectStreamsEqual(tokenize(s1), tokenize(s2));
 
-expectTokenizedNotEqual(String s1, String s2) =>
-    expect(()=> expectStreamsEqual(tokenize(s1), tokenize(s2)),
+expectTokenizedNotEqual(String s1, String s2) => expect(
+    () => expectStreamsEqual(tokenize(s1), tokenize(s2)),
     throwsA(new isInstanceOf<FormatterException>()));
 
 expectStreamsEqual(Token t1, Token t2) =>
     new TokenStreamComparator(null, t1, t2).verifyEquals();
 
-expectStreamsNotEqual(Token t1, Token t2) =>
-    expect(() => new TokenStreamComparator(null, t1, t2).verifyEquals(),
+expectStreamsNotEqual(Token t1, Token t2) => expect(
+    () => new TokenStreamComparator(null, t1, t2).verifyEquals(),
     throwsA(new isInstanceOf<FormatterException>()));
 
-expectCUFormatsTo(src, expected, {transforms: true}) =>
-    expect(formatCU(src, options: new FormatterOptions(
-        codeTransforms: transforms)).source, equals(expected));
+expectCUFormatsTo(src, expected, {transforms: true}) => expect(formatCU(src,
+        options: new FormatterOptions(codeTransforms: transforms)).source,
+    equals(expected));
 
-expectIndentFormatsTo(spacesPerIndent, tabsForIndent, src, expected) =>
-    expect(
-      formatCU(src, options: new FormatterOptions(
-          spacesPerIndent: spacesPerIndent,
-          tabsForIndent: tabsForIndent
-        )).source,
-      equals(expected));
+expectIndentFormatsTo(spacesPerIndent, tabsForIndent, src, expected) => expect(
+    formatCU(src,
+        options: new FormatterOptions(
+            spacesPerIndent: spacesPerIndent,
+            tabsForIndent: tabsForIndent)).source, equals(expected));
 
-expectStmtFormatsTo(src, expected, {transforms: true}) =>
-    expect(formatStatement(src, options:
-      new FormatterOptions(codeTransforms: transforms)), equals(expected));
-
+expectStmtFormatsTo(src, expected, {transforms: true}) => expect(
+    formatStatement(src,
+        options: new FormatterOptions(codeTransforms: transforms)),
+    equals(expected));
 
 runTests(testFileName, expectClause(String input, String output)) {
   var testIndex = 1;
   var testFile = new File(join(TEST_DATA_DIR, testFileName));
   var lines = testFile.readAsLinesSync();
   for (var i = 1; i < lines.length; ++i) {
-    var input = '', expectedOutput = '';
-    while(!lines[i].startsWith('<<<')) {
+    var input = '',
+        expectedOutput = '';
+    while (!lines[i].startsWith('<<<')) {
       input += lines[i++] + '\n';
     }
-    while(++i < lines.length && !lines[i].startsWith('>>>')) {
+    while (++i < lines.length && !lines[i].startsWith('>>>')) {
       expectedOutput += lines[i] + '\n';
     }
     test('test - (${testIndex++})', () {

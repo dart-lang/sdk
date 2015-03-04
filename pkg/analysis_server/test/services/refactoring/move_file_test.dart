@@ -17,12 +17,10 @@ import '../../abstract_context.dart';
 import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(MoveFileTest);
 }
-
 
 @reflectiveTest
 class MoveFileTest extends RefactoringTest {
@@ -105,11 +103,11 @@ import '22/new_name.dart';
     Map<String, List<Folder>> packageMap = {
       'my_pkg': [provider.getResource('/packages/my_pkg')]
     };
-    context.sourceFactory = new SourceFactory(
-        [
-            AbstractContextTest.SDK_RESOLVER,
-            resourceResolver,
-            new PackageMapUriResolver(provider, packageMap)]);
+    context.sourceFactory = new SourceFactory([
+      AbstractContextTest.SDK_RESOLVER,
+      resourceResolver,
+      new PackageMapUriResolver(provider, packageMap)
+    ]);
     // do testing
     String pathA = '/project/bin/a.dart';
     addSource(pathA, '''
@@ -194,10 +192,7 @@ part '1111/22/new_name.dart';
 
   void _createRefactoring(String newName) {
     refactoring = new MoveFileRefactoring(
-        provider.pathContext,
-        searchEngine,
-        context,
-        testSource);
+        provider.pathContext, searchEngine, context, testSource);
     refactoring.newFile = newName;
   }
 

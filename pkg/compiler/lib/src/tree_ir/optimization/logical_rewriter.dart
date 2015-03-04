@@ -171,14 +171,19 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
+  Statement visitTry(Try node) {
+    node.tryBody = visitStatement(node.tryBody);
+    node.catchBody = visitStatement(node.catchBody);
+    return node;
+  }
+
   Statement visitExpressionStatement(ExpressionStatement node) {
     node.expression = visitExpression(node.expression);
     node.next = visitStatement(node.next);
     return node;
   }
 
-
-  Expression visitVariable(Variable node) {
+  Expression visitVariableUse(VariableUse node) {
     return node;
   }
 

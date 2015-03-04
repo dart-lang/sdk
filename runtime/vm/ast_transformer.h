@@ -10,7 +10,6 @@
 
 namespace dart {
 
-class ParsedFunction;
 class Thread;
 
 // Translate an AstNode containing an expression (that itself contains one or
@@ -40,9 +39,7 @@ class Thread;
 //
 class AwaitTransformer : public AstNodeVisitor {
  public:
-  AwaitTransformer(SequenceNode* preamble,
-                   const ParsedFunction& parsed_function,
-                   LocalScope* function_top);
+  AwaitTransformer(SequenceNode* preamble, LocalScope* function_top);
 
 #define DECLARE_VISIT(BaseName)                                                \
   virtual void Visit##BaseName##Node(BaseName##Node* node);
@@ -51,6 +48,10 @@ class AwaitTransformer : public AstNodeVisitor {
 #undef DECLARE_VISIT
 
   AstNode* Transform(AstNode* expr);
+
+  static AstNode* RestoreSavedTryContext(Zone* zone,
+                                         LocalScope* scope,
+                                         int16_t try_index);
 
  private:
   LocalVariable* EnsureCurrentTempVar();
@@ -69,7 +70,6 @@ class AwaitTransformer : public AstNodeVisitor {
   SequenceNode* preamble_;
   int32_t temp_cnt_;
   AstNode* result_;
-  const ParsedFunction& parsed_function_;
   LocalScope* function_top_;
 
   Thread* thread_;

@@ -78,6 +78,24 @@ class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
       return value;
     }
 
+    // If uniqueDefinition is in the body of the LetCont binding the
+    // continuation, then we will drop the continuation binding to just inside
+    // the binding of uniqueDefiniton.  This is not safe if we drop the
+    // continuation binding inside a LetHandler exception handler binding.
+    LetCont letCont = cont.parent;
+    bool safeForHandlers(Definition uniqueDefinition) {
+      bool seenHandler = false;
+      Node current = uniqueDefinition.parent;
+      while (current != null) {
+        if (current == letCont) return !seenHandler;
+        seenHandler = seenHandler || current is LetHandler;
+        current = current.parent;
+      }
+      // When uniqueDefinition is not in the body of the LetCont binding the
+      // continuation, we will not move any code, so that is safe.
+      return true;
+    }
+
     // Check if individual parameters are always called with a unique
     // definition, and remove them if that is the case. During each iteration,
     // we read the current parameter/argument from index `src` and copy it
@@ -86,13 +104,14 @@ class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
     for (int src = 0; src < cont.parameters.length; src++) {
       // Is the current phi redundant?
       Definition uniqueDefinition = uniqueDefinitionOf(src);
-      if (uniqueDefinition == null) {
+      if (uniqueDefinition == null || !safeForHandlers(uniqueDefinition)) {
         // Reorganize parameters and arguments in case of deletions.
-        cont.parameters[dst] = cont.parameters[src];
-        for (InvokeContinuation invoke in invokes) {
+        if (src != dst) {
+          cont.parameters[dst] = cont.parameters[src];
+          for (InvokeContinuation invoke in invokes) {
             invoke.arguments[dst] = invoke.arguments[src];
+          }
         }
-
         dst++;
         continue;
       }
@@ -101,7 +120,8 @@ class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
 
       // Add continuations of about-to-be modified invokes to worklist since
       // we might introduce new optimization opportunities.
-      for (Reference ref = oldDefinition.firstRef; ref != null;
+      for (Reference ref = oldDefinition.firstRef;
+           ref != null;
            ref = ref.next) {
         Node parent = ref.parent;
         if (parent is InvokeContinuation) {
@@ -128,7 +148,6 @@ class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
       // invokes, and all such invokes must be within the scope of
       // [uniqueDefinition]. Note that this is linear in the depth of
       // the binding of [uniqueDefinition].
-      LetCont letCont = cont.parent;
       assert(letCont != null);
       _moveIntoScopeOf(letCont, uniqueDefinition);
     }

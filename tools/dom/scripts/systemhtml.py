@@ -412,6 +412,7 @@ js_support_checks = dict({
     'Crypto':
         "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
     'Database': "JS('bool', '!!(window.openDatabase)')",
+    'DOMPoint': "JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)')",
     'ApplicationCache': "JS('bool', '!!(window.applicationCache)')",
     'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
     'FormData': "JS('bool', '!!(window.FormData)')",
@@ -433,7 +434,6 @@ js_support_checks = dict({
         "element, element)"),
     'TouchList': "JS('bool', '!!document.createTouchList')",
     'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
-    'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
     'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
     'Worker': "JS('bool', '(typeof window.Worker != \"undefined\")')",
     'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",

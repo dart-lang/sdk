@@ -18,8 +18,16 @@ test(a) {
   throw "fail";
 }
 
+Object Y = 1.0;
+
+test_object_type(x) => identical(x, Y);
+
 main() {
   for (var i = 0; i < 20; i++) test(0);
   Expect.equals("ok", test(0));
+
+  var x = 0.0 + 1.0;
+  for (var i = 0; i < 20; i++) test_object_type(x);
+  Expect.equals(true, test_object_type(x));
 }
 

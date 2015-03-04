@@ -520,13 +520,24 @@ class ResolverTask extends CompilerTask {
 
         }
         if (functionExpression.body.asReturn() != null &&
-                 element.asyncMarker.isYielding) {
+            element.asyncMarker.isYielding) {
           compiler.reportError(asyncModifier,
               MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
               {'modifier': element.asyncMarker});
         }
       }
       registry.registerAsyncMarker(element);
+      switch (element.asyncMarker) {
+      case AsyncMarker.ASYNC:
+        compiler.futureClass.ensureResolved(compiler);
+        break;
+      case AsyncMarker.ASYNC_STAR:
+        compiler.streamClass.ensureResolved(compiler);
+        break;
+      case AsyncMarker.SYNC_STAR:
+        compiler.iterableClass.ensureResolved(compiler);
+        break;
+      }
     }
   }
 
@@ -3132,13 +3143,19 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   visitReturn(Return node) {
     Node expression = node.expression;
-    if (expression != null &&
-        enclosingElement.isGenerativeConstructor) {
-      // It is a compile-time error if a return statement of the form
-      // `return e;` appears in a generative constructor.  (Dart Language
-      // Specification 13.12.)
-      compiler.reportError(expression,
-                           MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
+    if (expression != null) {
+      if (enclosingElement.isGenerativeConstructor) {
+        // It is a compile-time error if a return statement of the form
+        // `return e;` appears in a generative constructor.  (Dart Language
+        // Specification 13.12.)
+        compiler.reportError(expression,
+                             MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
+      } else if (!node.isArrowBody && currentAsyncMarker.isYielding) {
+        compiler.reportError(
+            node, 
+            MessageKind.RETURN_IN_GENERATOR, 
+            {'modifier': currentAsyncMarker});
+      }
     }
     visit(node.expression);
   }

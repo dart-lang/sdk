@@ -6,8 +6,10 @@ library services.src.correction.util;
 
 import 'dart:math';
 
-import 'package:analysis_server/src/protocol.dart' show SourceChange,
-    SourceEdit;
+import 'package:analysis_server/src/protocol.dart'
+    show SourceChange, SourceEdit;
+import 'package:analysis_server/src/protocol_server.dart'
+    show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -18,6 +20,47 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 
+/**
+ * Adds edits to the given [change] that ensure that all the [libraries] are
+ * imported into the given [targetLibrary].
+ */
+void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
+    Set<LibraryElement> libraries) {
+  CompilationUnit libUnit = targetLibrary.definingCompilationUnit.node;
+  // prepare new import location
+  int offset = 0;
+  String prefix;
+  String suffix;
+  {
+    // if no directives
+    prefix = '';
+    CorrectionUtils libraryUtils = new CorrectionUtils(libUnit);
+    String eol = libraryUtils.endOfLine;
+    suffix = eol;
+    // after last directive in library
+    for (Directive directive in libUnit.directives) {
+      if (directive is LibraryDirective || directive is ImportDirective) {
+        offset = directive.end;
+        prefix = eol;
+        suffix = '';
+      }
+    }
+    // if still at the beginning of the file, skip shebang and line comments
+    if (offset == 0) {
+      CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
+      offset = desc.offset;
+      prefix = desc.prefix;
+      suffix = desc.suffix + eol;
+    }
+  }
+  // insert imports
+  for (LibraryElement library in libraries) {
+    String importPath = getLibrarySourceUri(targetLibrary, library.source);
+    String importCode = "${prefix}import '$importPath';$suffix";
+    doSourceChange_addElementEdit(
+        change, targetLibrary, new SourceEdit(offset, 0, importCode));
+  }
+}
 
 /**
  * @return <code>true</code> if given [List]s are identical at given position.
@@ -31,7 +74,6 @@ bool allListsIdentical(List<List> lists, int position) {
   }
   return true;
 }
-
 
 /**
  * Climbs up [PrefixedIdentifier] and [ProperyAccess] nodes that include [node].
@@ -51,7 +93,6 @@ Expression climbPropertyAccess(AstNode node) {
   }
 }
 
-
 /**
  * Attempts to convert the given absolute path into an absolute URI, such as
  * "dart" or "package" URI.
@@ -69,7 +110,6 @@ String findAbsoluteUri(AnalysisContext context, String path) {
   }
   return uri.toString();
 }
-
 
 /**
  * TODO(scheglov) replace with nodes once there will be [CompilationUnit.getComments].
@@ -89,7 +129,6 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   }
   return ranges;
 }
-
 
 String getDefaultValueCode(DartType type) {
   if (type != null) {
@@ -111,8 +150,6 @@ String getDefaultValueCode(DartType type) {
   return "null";
 }
 
-
-
 /**
  * Return the name of the [Element] kind.
  */
@@ -132,7 +169,6 @@ String getElementQualifiedName(Element element) {
   }
 }
 
-
 /**
  * If the given [AstNode] is in a [ClassDeclaration], returns the
  * [ClassElement]. Otherwise returns `null`.
@@ -145,7 +181,6 @@ ClassElement getEnclosingClassElement(AstNode node) {
   }
   return null;
 }
-
 
 /**
  * Returns a class or an unit member enclosing the given [node].
@@ -164,7 +199,6 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
   }
   return null;
 }
-
 
 /**
  * @return the [ExecutableElement] of the enclosing executable [AstNode].
@@ -185,7 +219,6 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
   return null;
 }
 
-
 /**
  * @return the enclosing executable [AstNode].
  */
@@ -205,7 +238,6 @@ AstNode getEnclosingExecutableNode(AstNode node) {
   return null;
 }
 
-
 /**
  * Returns [getExpressionPrecedence] for the parent of [node],
  * or `0` if the parent node is [ParenthesizedExpression].
@@ -220,7 +252,6 @@ int getExpressionParentPrecedence(AstNode node) {
   return getExpressionPrecedence(parent);
 }
 
-
 /**
  * Returns the precedence of [node] it is an [Expression], negative otherwise.
  */
@@ -230,7 +261,6 @@ int getExpressionPrecedence(AstNode node) {
   }
   return -1000;
 }
-
 
 /**
  * Returns the namespace of the given [ImportElement].
@@ -274,7 +304,6 @@ String getLinePrefix(String line) {
   return line.substring(0, index);
 }
 
-
 /**
  * @return the [LocalVariableElement] or [ParameterElement] if given
  *         [SimpleIdentifier] is the reference to local variable or parameter, or
@@ -291,7 +320,6 @@ VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
   return null;
 }
 
-
 /**
  * @return the [LocalVariableElement] if given [SimpleIdentifier] is the reference to
  *         local variable, or <code>null</code> in the other case.
@@ -303,7 +331,6 @@ LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
   }
   return null;
 }
-
 
 /**
  * @return the nearest common ancestor [AstNode] of the given [AstNode]s.
@@ -325,14 +352,13 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   }
   // find deepest parent
   int i = 0;
-  for ( ; i < minLength; i++) {
+  for (; i < minLength; i++) {
     if (!allListsIdentical(parents, i)) {
       break;
     }
   }
   return parents[0][i - 1];
 }
-
 
 /**
  * Returns the [Expression] qualifier if given node is the name part of a
@@ -355,7 +381,6 @@ Expression getNodeQualifier(SimpleIdentifier node) {
   return null;
 }
 
-
 /**
  * Returns the [ParameterElement] if the given [SimpleIdentifier] is a reference
  * to a parameter, or `null` in the other case.
@@ -367,7 +392,6 @@ ParameterElement getParameterElement(SimpleIdentifier node) {
   }
   return null;
 }
-
 
 /**
  * @return parent [AstNode]s from [CompilationUnit] (at index "0") to the given one.
@@ -393,7 +417,6 @@ List<AstNode> getParents(AstNode node) {
   return parents;
 }
 
-
 /**
  * Returns a [PropertyAccessorElement] if the given [SimpleIdentifier] is a
  * reference to a property, or `null` in the other case.
@@ -405,7 +428,6 @@ PropertyAccessorElement getPropertyAccessorElement(SimpleIdentifier node) {
   }
   return null;
 }
-
 
 /**
  * If given [AstNode] is name of qualified property extraction, returns target from which
@@ -443,14 +465,12 @@ Statement getSingleStatement(Statement statement) {
   return statement;
 }
 
-
 /**
  * Returns the [String] content of the given [Source].
  */
 String getSourceContent(AnalysisContext context, Source source) {
   return context.getContents(source).data;
 }
-
 
 /**
  * Returns the given [Statement] if not a [Block], or all the children
@@ -463,7 +483,6 @@ List<Statement> getStatements(Statement statement) {
   return [statement];
 }
 
-
 /**
  * Checks if the given [Element]'s display name equals to the given name.
  */
@@ -474,7 +493,6 @@ bool hasDisplayName(Element element, String name) {
   return element.displayName == name;
 }
 
-
 /**
  * Checks if the given [PropertyAccessorElement] is an accessor of a
  * [FieldElement].
@@ -482,7 +500,6 @@ bool hasDisplayName(Element element, String name) {
 bool isFieldAccessorElement(PropertyAccessorElement accessor) {
   return accessor != null && accessor.variable is FieldElement;
 }
-
 
 /**
  * Checks if given [DartNode] is the left hand side of an assignment, or a
@@ -495,7 +512,6 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
   return node.parent is VariableDeclaration &&
       (node.parent as VariableDeclaration).name == node;
 }
-
 
 /**
  * @return `true` if the given [SimpleIdentifier] is the name of the
@@ -515,7 +531,6 @@ bool isNamedExpressionName(SimpleIdentifier node) {
   return false;
 }
 
-
 /**
  * If the given [expression] is the `expression` property of a [NamedExpression]
  * then returns this [NamedExpression]. Otherwise returns [expression].
@@ -529,7 +544,6 @@ Expression stepUpNamedExpression(Expression expression) {
   }
   return expression;
 }
-
 
 class CorrectionUtils {
   final CompilationUnit unit;
@@ -569,8 +583,8 @@ class CorrectionUtils {
    * [SourceRange] from [oldIndent] to [newIndent], keeping indentation of lines
    * relative to each other.
    */
-  SourceEdit createIndentEdit(SourceRange range, String oldIndent,
-      String newIndent) {
+  SourceEdit createIndentEdit(
+      SourceRange range, String oldIndent, String newIndent) {
     String newSource = replaceSourceRangeIndent(range, oldIndent, newIndent);
     return new SourceEdit(range.offset, range.length, newSource);
   }
@@ -585,8 +599,8 @@ class CorrectionUtils {
    * Returns the actual type source of the given [Expression], may be `null`
    * if can not be resolved, should be treated as the `dynamic` type.
    */
-  String getExpressionTypeSource(Expression expression,
-      Set<LibraryElement> librariesToImport) {
+  String getExpressionTypeSource(
+      Expression expression, Set<LibraryElement> librariesToImport) {
     if (expression == null) {
       return null;
     }
@@ -870,8 +884,8 @@ class CorrectionUtils {
   /**
    * @return the source for the parameter with the given type and name.
    */
-  String getParameterSource(DartType type, String name,
-      Set<LibraryElement> librariesToImport) {
+  String getParameterSource(
+      DartType type, String name, Set<LibraryElement> librariesToImport) {
     // no type
     if (type == null || type.isDynamic) {
       return name;
@@ -897,8 +911,8 @@ class CorrectionUtils {
         if (i != 0) {
           sb.write(", ");
         }
-        sb.write(
-            getParameterSource(fParameter.type, fParameter.name, librariesToImport));
+        sb.write(getParameterSource(
+            fParameter.type, fParameter.name, librariesToImport));
       }
       sb.write(')');
       // done
@@ -957,7 +971,8 @@ class CorrectionUtils {
       return source;
     }
     // check if imported
-    if (element.library != _library) {
+    LibraryElement library = element.library;
+    if (library != null && library != _library) {
       ImportElement importElement = _getImportElement(element);
       if (importElement != null) {
         if (importElement.prefix != null) {
@@ -965,7 +980,7 @@ class CorrectionUtils {
           sb.write(".");
         }
       } else {
-        librariesToImport.add(element.library);
+        librariesToImport.add(library);
       }
     }
     // append simple name
@@ -997,18 +1012,6 @@ class CorrectionUtils {
     }
     // done
     return sb.toString();
-  }
-
-  /**
-   * Checks if [type] is visible at [targetOffset].
-   */
-  bool _isTypeVisible(DartType type) {
-    if (type is TypeParameterType) {
-      TypeParameterElement parameterElement = type.element;
-      Element parameterClassElement = parameterElement.enclosingElement;
-      return identical(parameterClassElement, targetClassElement);
-    }
-    return true;
   }
 
   /**
@@ -1061,8 +1064,8 @@ class CorrectionUtils {
    * Returns the source with indentation changed from [oldIndent] to
    * [newIndent], keeping indentation of lines relative to each other.
    */
-  String replaceSourceIndent(String source, String oldIndent,
-      String newIndent) {
+  String replaceSourceIndent(
+      String source, String oldIndent, String newIndent) {
     // prepare STRING token ranges
     List<SourceRange> lineRanges = [];
     {
@@ -1112,8 +1115,8 @@ class CorrectionUtils {
    * from [oldIndent] to [newIndent], keeping indentation of lines relative
    * to each other.
    */
-  String replaceSourceRangeIndent(SourceRange range, String oldIndent,
-      String newIndent) {
+  String replaceSourceRangeIndent(
+      SourceRange range, String oldIndent, String newIndent) {
     String oldSource = getRangeText(range);
     return replaceSourceIndent(oldSource, oldIndent, newIndent);
   }
@@ -1122,18 +1125,17 @@ class CorrectionUtils {
    * @return <code>true</code> if "selection" covers "node" and there are any non-whitespace tokens
    *         between "selection" and "node" start/end.
    */
-  bool selectionIncludesNonWhitespaceOutsideNode(SourceRange selection,
-      AstNode node) {
+  bool selectionIncludesNonWhitespaceOutsideNode(
+      SourceRange selection, AstNode node) {
     return _selectionIncludesNonWhitespaceOutsideRange(
-        selection,
-        rangeNode(node));
+        selection, rangeNode(node));
   }
 
   /**
    * @return <code>true</code> if given range of [BinaryExpression] can be extracted.
    */
-  bool validateBinaryExpressionRange(BinaryExpression binaryExpression,
-      SourceRange range) {
+  bool validateBinaryExpressionRange(
+      BinaryExpression binaryExpression, SourceRange range) {
     // only parts of associative expression are safe to extract
     if (!binaryExpression.operator.type.isAssociativeOperator) {
       return false;
@@ -1206,17 +1208,11 @@ class CorrectionUtils {
       }
       if (operator == TokenType.AMPERSAND_AMPERSAND) {
         return _InvertedCondition._binary(
-            TokenType.BAR_BAR.precedence,
-            ls,
-            " || ",
-            rs);
+            TokenType.BAR_BAR.precedence, ls, " || ", rs);
       }
       if (operator == TokenType.BAR_BAR) {
         return _InvertedCondition._binary(
-            TokenType.AMPERSAND_AMPERSAND.precedence,
-            ls,
-            " && ",
-            rs);
+            TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
       }
     }
     if (expression is IsExpression) {
@@ -1224,11 +1220,11 @@ class CorrectionUtils {
       String expressionSource = getNodeText(isExpression.expression);
       String typeSource = getNodeText(isExpression.type);
       if (isExpression.notOperator == null) {
-        return _InvertedCondition._simple(
-            "${expressionSource} is! ${typeSource}");
+        return _InvertedCondition
+            ._simple("${expressionSource} is! ${typeSource}");
       } else {
-        return _InvertedCondition._simple(
-            "${expressionSource} is ${typeSource}");
+        return _InvertedCondition
+            ._simple("${expressionSource} is ${typeSource}");
       }
     }
     if (expression is PrefixExpression) {
@@ -1258,19 +1254,30 @@ class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  bool _selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection,
-      List<Expression> operands) {
+  /**
+   * Checks if [type] is visible at [targetOffset].
+   */
+  bool _isTypeVisible(DartType type) {
+    if (type is TypeParameterType) {
+      TypeParameterElement parameterElement = type.element;
+      Element parameterClassElement = parameterElement.enclosingElement;
+      return identical(parameterClassElement, targetClassElement);
+    }
+    return true;
+  }
+
+  bool _selectionIncludesNonWhitespaceOutsideOperands(
+      SourceRange selection, List<Expression> operands) {
     return _selectionIncludesNonWhitespaceOutsideRange(
-        selection,
-        rangeNodes(operands));
+        selection, rangeNodes(operands));
   }
 
   /**
    * @return <code>true</code> if "selection" covers "range" and there are any non-whitespace tokens
    *         between "selection" and "range" start/end.
    */
-  bool _selectionIncludesNonWhitespaceOutsideRange(SourceRange selection,
-      SourceRange range) {
+  bool _selectionIncludesNonWhitespaceOutsideRange(
+      SourceRange selection, SourceRange range) {
     // selection should cover range
     if (!selection.covers(range)) {
       return false;
@@ -1291,8 +1298,8 @@ class CorrectionUtils {
    * @return [Expression]s from <code>operands</code> which are completely covered by given
    *         [SourceRange]. Range should start and end between given [Expression]s.
    */
-  static List<Expression> _getOperandsForSourceRange(List<Expression> operands,
-      SourceRange range) {
+  static List<Expression> _getOperandsForSourceRange(
+      List<Expression> operands, SourceRange range) {
     assert(!operands.isEmpty);
     List<Expression> subOperands = [];
     // track range enter/exit
@@ -1348,7 +1355,6 @@ class CorrectionUtils {
   }
 }
 
-
 /**
  * Describes where to insert new directive or top-level declaration.
  */
@@ -1357,7 +1363,6 @@ class CorrectionUtils_InsertDesc {
   String prefix = "";
   String suffix = "";
 }
-
 
 /**
  * Utilities to work with [Token]s.
@@ -1419,7 +1424,6 @@ class TokenUtils {
       tokens.length == 1 && tokens[0].type == type;
 }
 
-
 /**
  * A container with a source and its precedence.
  */
@@ -1432,27 +1436,25 @@ class _InvertedCondition {
 
   static _InvertedCondition _binary(int precedence, _InvertedCondition left,
       String operation, _InvertedCondition right) {
-    String src =
-        _parenthesizeIfRequired(left, precedence) +
+    String src = _parenthesizeIfRequired(left, precedence) +
         operation +
         _parenthesizeIfRequired(right, precedence);
     return new _InvertedCondition(precedence, src);
   }
 
-  static _InvertedCondition _binary2(_InvertedCondition left, String operation,
-      _InvertedCondition right) {
+  static _InvertedCondition _binary2(
+      _InvertedCondition left, String operation, _InvertedCondition right) {
     // TODO(scheglov) conside merging with "_binary()" after testing
     return new _InvertedCondition(
-        1 << 20,
-        "${left._source}${operation}${right._source}");
+        1 << 20, "${left._source}${operation}${right._source}");
   }
 
   /**
    * Adds enclosing parenthesis if the precedence of the [_InvertedCondition] if less than the
    * precedence of the expression we are going it to use in.
    */
-  static String _parenthesizeIfRequired(_InvertedCondition expr,
-      int newOperatorPrecedence) {
+  static String _parenthesizeIfRequired(
+      _InvertedCondition expr, int newOperatorPrecedence) {
     if (expr._precedence < newOperatorPrecedence) {
       return "(${expr._source})";
     }
@@ -1462,7 +1464,6 @@ class _InvertedCondition {
   static _InvertedCondition _simple(String source) =>
       new _InvertedCondition(2147483647, source);
 }
-
 
 class _OrderedOperandsVisitor extends GeneralizingAstVisitor {
   final TokenType groupOperatorType;

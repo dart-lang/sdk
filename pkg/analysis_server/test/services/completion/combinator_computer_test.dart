@@ -19,7 +19,6 @@ main() {
 
 @reflectiveTest
 class CombinatorComputerTest extends AbstractCompletionTest {
-
   @override
   void setUpComputer() {
     computer = new CombinatorComputer();
@@ -60,29 +59,19 @@ class CombinatorComputerTest extends AbstractCompletionTest {
       class X {}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestClass(
-          'A',
+      assertSuggestClass('A',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestClass(
-          'B',
+      assertSuggestClass('B',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestClass(
-          'PB',
+      assertSuggestClass('PB',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestTopLevelVar(
-          'T1',
-          null,
-          DART_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestFunction(
-          'F1',
-          'PB',
-          false,
-          DART_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestTopLevelVar('T1', null,
+          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestFunction('F1', 'PB', false,
+          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
       assertNotSuggested('C');
       assertNotSuggested('D');
       assertNotSuggested('X');
@@ -113,39 +102,24 @@ class CombinatorComputerTest extends AbstractCompletionTest {
       class X {}''');
     computeFast();
     return computeFull((bool result) {
-      assertSuggestClass(
-          'A',
+      assertSuggestClass('A',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestClass(
-          'B',
+      assertSuggestClass('B',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestClass(
-          'PB',
+      assertSuggestClass('PB',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestTopLevelVar(
-          'T1',
-          null,
-          DART_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestFunction(
-          'F1',
-          'PB',
-          false,
-          DART_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestClass(
-          'Clz',
+      assertSuggestTopLevelVar('T1', null,
+          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestFunction('F1', 'PB', false,
+          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestClass('Clz',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestFunctionTypeAlias(
-          'F2',
-          null,
-          false,
-          DART_RELEVANCE_DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestFunctionTypeAlias('F2', null,
+          false, DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
       assertNotSuggested('C');
       assertNotSuggested('D');
       assertNotSuggested('X');

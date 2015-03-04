@@ -572,11 +572,31 @@ class _StringBase {
                         : pattern.allMatches(this, startIndex).iterator;
     if (!iterator.moveNext()) return this;
     Match match = iterator.current;
-    return "${this.substring(0, match.start)}"
-           "$replacement"
-           "${this.substring(match.end)}";
+    return replaceRange(match.start, match.end, replacement);
   }
 
+  String replaceRange(int start, int end, String replacement) {
+    int length = this.length;
+    end = RangeError.checkValidRange(start, end, length);
+    bool replacementIsOneByte = replacement._isOneByte;
+    if (start == 0 && end == length) return replacement;
+    int replacementLength = replacement.length;
+    int totalLength = start + (length - end) + replacementLength;
+    if (replacementIsOneByte && this._isOneByte) {
+      var result = _OneByteString._allocate(totalLength);
+      int index = 0;
+      index = result._setRange(index, this, 0, start);
+      index = result._setRange(start, replacement, 0, replacementLength);
+      result._setRange(index, this, end, length);
+      return result;
+    }
+    List slices = [];
+    _addReplaceSlice(slices, 0, start);
+    if (replacement.length > 0) slices.add(replacement);
+    _addReplaceSlice(slices, end, length);
+    return _joinReplaceAllResult(this, slices, totalLength,
+                                 replacementIsOneByte);
+  }
 
   static int _addReplaceSlice(List matches, int start, int end) {
     int length = end - start;
@@ -719,23 +739,7 @@ class _StringBase {
     if (!matches.moveNext()) return this;
     var match = matches.current;
     var replacement = "${replace(match)}";
-    var slices = [];
-    int length = 0;
-    if (match.start > 0) {
-      length += _addReplaceSlice(slices, 0, match.start);
-    }
-    slices.add(replacement);
-    length += replacement.length;
-    if (match.end < this.length) {
-      length += _addReplaceSlice(slices, match.end, this.length);
-    }
-    bool replacementIsOneByte = replacement._isOneByte;
-    if (replacementIsOneByte &&
-        length < _maxJoinReplaceOneByteStringLength &&
-        this._isOneByte) {
-      return _joinReplaceAllOneByteResult(this, slices, length);
-    }
-    return _joinReplaceAllResult(this, slices, length, replacementIsOneByte);
+    return replaceRange(match.start, match.end, replacement);
   }
 
   static String _matchString(Match match) => match[0];
@@ -1216,6 +1220,23 @@ class _OneByteString extends _StringBase implements String {
   // This is internal helper method. Code point value must be a valid
   // Latin1 value (0..0xFF), index must be valid.
   void _setAt(int index, int codePoint) native "OneByteString_setAt";
+
+  // Should be optimizable to a memory move.
+  // Accepts both _OneByteString and _ExternalOneByteString as argument.
+  // Returns index after last character written.
+  int _setRange(int index, String oneByteString, int start, int end) {
+    assert(oneByteString._isOneByte);
+    assert(0 <= start);
+    assert(start <= end);
+    assert(end <= oneByteString.length);
+    assert(0 <= index);
+    assert(index + (end - start) <= length);
+    for (int i = start; i < end; i++) {
+      _setAt(index, oneByteString.codeUnitAt(i));
+      index += 1;
+    }
+    return index;
+  }
 }
 
 

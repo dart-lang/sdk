@@ -21,12 +21,15 @@ class _TestLauncher {
                             Platform.script.toFilePath(),
                             _TESTEE_MODE_FLAG] {}
 
-  Future<int> launch() {
+  Future<int> launch(bool pause_on_exit) {
     String dartExecutable = Platform.executable;
     var fullArgs = [];
+    if (pause_on_exit == true) {
+      fullArgs.add('--pause-isolates-on-exit');
+    }
     fullArgs.addAll(Platform.executableArguments);
     fullArgs.addAll(args);
-    print('** Launching $fullArgs');
+    print('** Launching $dartExecutable ${fullArgs.join(' ')}');
     return Process.start(dartExecutable, fullArgs).then((p) {
 
       Completer completer = new Completer();
@@ -71,6 +74,7 @@ class _TestLauncher {
 }
 
 typedef Future IsolateTest(Isolate isolate);
+typedef Future VMTest(VM vm);
 
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
@@ -79,7 +83,8 @@ typedef Future IsolateTest(Isolate isolate);
 void runIsolateTests(List<String> mainArgs,
                      List<IsolateTest> tests,
                      {void testeeBefore(),
-                      void testeeConcurrent()}) {
+                      void testeeConcurrent(),
+                      bool pause_on_exit}) {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (testeeBefore != null) {
       testeeBefore();
@@ -92,13 +97,71 @@ void runIsolateTests(List<String> mainArgs,
     stdin.first.then((_) => exit(0));
   } else {
     var process = new _TestLauncher();
-    process.launch().then((port) {
+    process.launch(pause_on_exit).then((port) {
       String addr = 'ws://localhost:$port/ws';
+      var testIndex = 0;
+      var totalTests = tests.length - 1;
+      var name = Platform.script.pathSegments.last;
       new WebSocketVM(new WebSocketVMTarget(addr)).load()
           .then((VM vm) => vm.isolates.first.load())
-          .then((Isolate isolate) =>
-              Future.forEach(tests, (test) => test(isolate)))
-          .then((_) => exit(0));
+          .then((Isolate isolate) => Future.forEach(tests, (test) {
+            print('Running $name [$testIndex/$totalTests]');
+            testIndex++;
+            return test(isolate);
+          })).then((_) => exit(0));
+    });
+  }
+}
+
+
+// Cancel the subscription and complete the completer when finished processing
+// events.
+typedef void ServiceEventHandler(ServiceEvent event,
+                                 StreamSubscription subscription,
+                                 Completer completer);
+
+Future processServiceEvents(VM vm, ServiceEventHandler handler) {
+  Completer completer = new Completer();
+  var subscription;
+  subscription = vm.events.stream.listen((ServiceEvent event) {
+    handler(event, subscription, completer);
+  });
+  return completer.future;
+}
+
+
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invokation of the script.
+Future runVMTests(List<String> mainArgs,
+                  List<VMTest> tests,
+                  {Future testeeBefore(),
+                   Future testeeConcurrent(),
+                   bool pause_on_exit}) async {
+  if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
+    if (testeeBefore != null) {
+      await testeeBefore();
+    }
+    print(''); // Print blank line to signal that we are ready.
+    if (testeeConcurrent != null) {
+      await testeeConcurrent();
+    }
+    // Wait until signaled from spawning test.
+    stdin.first.then((_) => exit(0));
+  } else {
+    var process = new _TestLauncher();
+    process.launch(pause_on_exit).then((port) async {
+      String addr = 'ws://localhost:$port/ws';
+      var testIndex = 0;
+      var totalTests = tests.length - 1;
+      var name = Platform.script.pathSegments.last;
+      new WebSocketVM(new WebSocketVMTarget(addr)).load()
+          .then((VM vm) => Future.forEach(tests, (test) {
+            print('Running $name [$testIndex/$totalTests]');
+            testIndex++;
+            return test(vm);
+          })).then((_) => exit(0));
     });
   }
 }

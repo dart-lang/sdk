@@ -70,9 +70,7 @@ int topLevelVariable;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({
-      AnalysisService.HIGHLIGHTS: [pathname]
-    });
+    sendAnalysisSetSubscriptions({AnalysisService.HIGHLIGHTS: [pathname]});
     // Map from highlight type to highlighted text
     Map<HighlightRegionType, Set<String>> highlights;
     onAnalysisHighlights.listen((AnalysisHighlightsParams params) {
@@ -98,19 +96,21 @@ int topLevelVariable;
         highlights.remove(type);
       }
       check(HighlightRegionType.ANNOTATION, ['@override']);
-      check(
-          HighlightRegionType.BUILT_IN,
+      check(HighlightRegionType.BUILT_IN,
           ['as', 'get', 'import', 'set', 'static', 'typedef']);
-      check(
-          HighlightRegionType.CLASS,
-          ['Class', 'Class2', 'Future', 'Map', 'int']);
+      check(HighlightRegionType.CLASS, [
+        'Class',
+        'Class2',
+        'Future',
+        'Map',
+        'int'
+      ]);
       check(HighlightRegionType.COMMENT_BLOCK, ['/* Block comment */']);
+      check(HighlightRegionType.COMMENT_DOCUMENTATION, [
+        '/**\n * Doc comment\n */'
+      ]);
       check(
-          HighlightRegionType.COMMENT_DOCUMENTATION,
-          ['/**\n * Doc comment\n */']);
-      check(
-          HighlightRegionType.COMMENT_END_OF_LINE,
-          ['// End of line comment']);
+          HighlightRegionType.COMMENT_END_OF_LINE, ['// End of line comment']);
       check(HighlightRegionType.CONSTRUCTOR, ['constructor']);
       check(HighlightRegionType.DIRECTIVE, ["import 'dart:async' as async;"]);
       check(HighlightRegionType.DYNAMIC_TYPE, ['dynamicType']);
@@ -127,8 +127,7 @@ int topLevelVariable;
       check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
       check(HighlightRegionType.LITERAL_INTEGER, ['2', '42']);
       check(HighlightRegionType.LITERAL_LIST, ['[]']);
-      check(
-          HighlightRegionType.LITERAL_MAP,
+      check(HighlightRegionType.LITERAL_MAP,
           ['{1.0: [].toList()}', '{2: local}']);
       check(HighlightRegionType.LITERAL_STRING, ["'dart:async'", "'string'"]);
       check(HighlightRegionType.LOCAL_VARIABLE, ['local']);
@@ -139,8 +138,7 @@ int topLevelVariable;
       check(HighlightRegionType.METHOD_STATIC, ['wait']);
       check(HighlightRegionType.PARAMETER, ['parameter']);
       check(HighlightRegionType.SETTER_DECLARATION, ['setter']);
-      check(
-          HighlightRegionType.TOP_LEVEL_VARIABLE,
+      check(HighlightRegionType.TOP_LEVEL_VARIABLE,
           ['override', 'topLevelVariable']);
       check(HighlightRegionType.TYPE_NAME_DYNAMIC, ['dynamic']);
       check(HighlightRegionType.TYPE_PARAMETER, ['TypeParameter']);

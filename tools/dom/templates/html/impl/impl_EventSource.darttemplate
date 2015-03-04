@@ -5,11 +5,11 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-  factory $CLASSNAME(String title, {withCredentials: false}) {
+  factory $CLASSNAME(String url, {withCredentials: false}) {
     var parsedOptions = {
       'withCredentials': withCredentials,
     };
-    return $CLASSNAME._factory$CLASSNAME(title, parsedOptions);
+    return $CLASSNAME._factory$CLASSNAME(url, parsedOptions);
   }
 $!MEMBERS
 }

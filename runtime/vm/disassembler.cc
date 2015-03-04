@@ -6,9 +6,11 @@
 
 #include "vm/assembler.h"
 #include "vm/globals.h"
-#include "vm/os.h"
-#include "vm/log.h"
+#include "vm/il_printer.h"
 #include "vm/json_stream.h"
+#include "vm/log.h"
+#include "vm/os.h"
+
 
 namespace dart {
 
@@ -130,6 +132,8 @@ void Disassembler::Disassemble(uword start,
       comment_finger++;
     }
     if (old_comment_finger != comment_finger) {
+      char str[4000];
+      BufferFormatter f(str, sizeof(str));
       // Comment emitted, emit inlining information.
       code.GetInlinedFunctionsAt(offset, &inlined_functions);
       // Skip top scope function printing (last entry in 'inlined_functions').
@@ -137,14 +141,15 @@ void Disassembler::Disassemble(uword start,
       for (intptr_t i = inlined_functions.length() - 2; i >= 0; i--) {
         const char* name = inlined_functions[i]->ToQualifiedCString();
         if (first) {
-          formatter->Print("        ;; Inlined [%s", name);
+          f.Print("        ;; Inlined [%s", name);
           first = false;
         } else {
-          formatter->Print(" -> %s", name);
+          f.Print(" -> %s", name);
         }
       }
       if (!first) {
-        formatter->Print("]\n");
+        f.Print("]\n");
+        formatter->Print(str);
       }
     }
     int instruction_length;

@@ -9,13 +9,619 @@ library dart.dom._blink;
 final resolverMap = {
 };
 
-dynamic _resolver(String s) native "blinkInstanceResolver";
-
 dynamic resolver(String s) {
-  String className = s;
-  if (resolverMap.containsKey(s))
-    className = resolverMap[s];
-  return _resolver(className);
+  if (s == "ANGLEInstancedArrays") return BlinkANGLEInstancedArrays.instance;
+  if (s == "AnalyserNode") return BlinkAnalyserNode.instance;
+  if (s == "Animation") return BlinkAnimation.instance;
+  if (s == "AnimationEffect") return BlinkAnimationEffect.instance;
+  if (s == "AnimationNode") return BlinkAnimationNode.instance;
+  if (s == "AnimationPlayer") return BlinkAnimationPlayer.instance;
+  if (s == "AnimationPlayerEvent") return BlinkAnimationPlayerEvent.instance;
+  if (s == "AnimationTimeline") return BlinkAnimationTimeline.instance;
+  if (s == "ApplicationCache") return BlinkApplicationCache.instance;
+  if (s == "ApplicationCacheErrorEvent") return BlinkApplicationCacheErrorEvent.instance;
+  if (s == "Attr") return BlinkAttr.instance;
+  if (s == "AudioBuffer") return BlinkAudioBuffer.instance;
+  if (s == "AudioBufferSourceNode") return BlinkAudioBufferSourceNode.instance;
+  if (s == "AudioContext") return BlinkAudioContext.instance;
+  if (s == "AudioDestinationNode") return BlinkAudioDestinationNode.instance;
+  if (s == "AudioListener") return BlinkAudioListener.instance;
+  if (s == "AudioNode") return BlinkAudioNode.instance;
+  if (s == "AudioParam") return BlinkAudioParam.instance;
+  if (s == "AudioProcessingEvent") return BlinkAudioProcessingEvent.instance;
+  if (s == "AudioSourceNode") return BlinkAudioSourceNode.instance;
+  if (s == "AudioTrack") return BlinkAudioTrack.instance;
+  if (s == "AudioTrackList") return BlinkAudioTrackList.instance;
+  if (s == "AutocompleteErrorEvent") return BlinkAutocompleteErrorEvent.instance;
+  if (s == "BarProp") return BlinkBarProp.instance;
+  if (s == "BatteryManager") return BlinkBatteryManager.instance;
+  if (s == "BeforeUnloadEvent") return BlinkBeforeUnloadEvent.instance;
+  if (s == "BiquadFilterNode") return BlinkBiquadFilterNode.instance;
+  if (s == "Blob") return BlinkBlob.instance;
+  if (s == "Body") return BlinkBody.instance;
+  if (s == "CDATASection") return BlinkCDATASection.instance;
+  if (s == "CSS") return BlinkCSS.instance;
+  if (s == "CSSCharsetRule") return BlinkCSSCharsetRule.instance;
+  if (s == "CSSFontFaceRule") return BlinkCSSFontFaceRule.instance;
+  if (s == "CSSImportRule") return BlinkCSSImportRule.instance;
+  if (s == "CSSKeyframeRule") return BlinkCSSKeyframeRule.instance;
+  if (s == "CSSKeyframesRule") return BlinkCSSKeyframesRule.instance;
+  if (s == "CSSMediaRule") return BlinkCSSMediaRule.instance;
+  if (s == "CSSPageRule") return BlinkCSSPageRule.instance;
+  if (s == "CSSPrimitiveValue") return BlinkCSSPrimitiveValue.instance;
+  if (s == "CSSRule") return BlinkCSSRule.instance;
+  if (s == "CSSRuleList") return BlinkCSSRuleList.instance;
+  if (s == "CSSStyleDeclaration") return BlinkCSSStyleDeclaration.instance;
+  if (s == "CSSStyleRule") return BlinkCSSStyleRule.instance;
+  if (s == "CSSStyleSheet") return BlinkCSSStyleSheet.instance;
+  if (s == "CSSSupportsRule") return BlinkCSSSupportsRule.instance;
+  if (s == "CSSUnknownRule") return BlinkCSSUnknownRule.instance;
+  if (s == "CSSValue") return BlinkCSSValue.instance;
+  if (s == "CSSValueList") return BlinkCSSValueList.instance;
+  if (s == "CSSViewportRule") return BlinkCSSViewportRule.instance;
+  if (s == "Cache") return BlinkCache.instance;
+  if (s == "CacheStorage") return BlinkCacheStorage.instance;
+  if (s == "Canvas2DContextAttributes") return BlinkCanvas2DContextAttributes.instance;
+  if (s == "CanvasGradient") return BlinkCanvasGradient.instance;
+  if (s == "CanvasPattern") return BlinkCanvasPattern.instance;
+  if (s == "CanvasRenderingContext2D") return BlinkCanvasRenderingContext2D.instance;
+  if (s == "ChannelMergerNode") return BlinkChannelMergerNode.instance;
+  if (s == "ChannelSplitterNode") return BlinkChannelSplitterNode.instance;
+  if (s == "CharacterData") return BlinkCharacterData.instance;
+  if (s == "CircularGeofencingRegion") return BlinkCircularGeofencingRegion.instance;
+  if (s == "ClientRect") return BlinkClientRect.instance;
+  if (s == "ClientRectList") return BlinkClientRectList.instance;
+  if (s == "CloseEvent") return BlinkCloseEvent.instance;
+  if (s == "Comment") return BlinkComment.instance;
+  if (s == "CompositionEvent") return BlinkCompositionEvent.instance;
+  if (s == "Console") return BlinkConsole.instance;
+  if (s == "ConsoleBase") return BlinkConsoleBase.instance;
+  if (s == "ConvolverNode") return BlinkConvolverNode.instance;
+  if (s == "Coordinates") return BlinkCoordinates.instance;
+  if (s == "Counter") return BlinkCounter.instance;
+  if (s == "Credential") return BlinkCredential.instance;
+  if (s == "CredentialsContainer") return BlinkCredentialsContainer.instance;
+  if (s == "Crypto") return BlinkCrypto.instance;
+  if (s == "CryptoKey") return BlinkCryptoKey.instance;
+  if (s == "CustomEvent") return BlinkCustomEvent.instance;
+  if (s == "DOMError") return BlinkDOMError.instance;
+  if (s == "DOMException") return BlinkDOMException.instance;
+  if (s == "DOMFileSystem") return BlinkDOMFileSystem.instance;
+  if (s == "DOMFileSystemSync") return BlinkDOMFileSystemSync.instance;
+  if (s == "DOMImplementation") return BlinkDOMImplementation.instance;
+  if (s == "DOMMatrix") return BlinkDOMMatrix.instance;
+  if (s == "DOMMatrixReadOnly") return BlinkDOMMatrixReadOnly.instance;
+  if (s == "DOMParser") return BlinkDOMParser.instance;
+  if (s == "DOMPoint") return BlinkDOMPoint.instance;
+  if (s == "DOMPointReadOnly") return BlinkDOMPointReadOnly.instance;
+  if (s == "DOMRect") return BlinkDOMRect.instance;
+  if (s == "DOMRectReadOnly") return BlinkDOMRectReadOnly.instance;
+  if (s == "DOMSettableTokenList") return BlinkDOMSettableTokenList.instance;
+  if (s == "DOMStringList") return BlinkDOMStringList.instance;
+  if (s == "DOMStringMap") return BlinkDOMStringMap.instance;
+  if (s == "DOMTokenList") return BlinkDOMTokenList.instance;
+  if (s == "DataTransfer") return BlinkDataTransfer.instance;
+  if (s == "DataTransferItem") return BlinkDataTransferItem.instance;
+  if (s == "DataTransferItemList") return BlinkDataTransferItemList.instance;
+  if (s == "Database") return BlinkDatabase.instance;
+  if (s == "DedicatedWorkerGlobalScope") return BlinkDedicatedWorkerGlobalScope.instance;
+  if (s == "DelayNode") return BlinkDelayNode.instance;
+  if (s == "DeprecatedStorageInfo") return BlinkDeprecatedStorageInfo.instance;
+  if (s == "DeprecatedStorageQuota") return BlinkDeprecatedStorageQuota.instance;
+  if (s == "DeviceAcceleration") return BlinkDeviceAcceleration.instance;
+  if (s == "DeviceLightEvent") return BlinkDeviceLightEvent.instance;
+  if (s == "DeviceMotionEvent") return BlinkDeviceMotionEvent.instance;
+  if (s == "DeviceOrientationEvent") return BlinkDeviceOrientationEvent.instance;
+  if (s == "DeviceRotationRate") return BlinkDeviceRotationRate.instance;
+  if (s == "DirectoryEntry") return BlinkDirectoryEntry.instance;
+  if (s == "DirectoryEntrySync") return BlinkDirectoryEntrySync.instance;
+  if (s == "DirectoryReader") return BlinkDirectoryReader.instance;
+  if (s == "DirectoryReaderSync") return BlinkDirectoryReaderSync.instance;
+  if (s == "Document") return BlinkDocument.instance;
+  if (s == "DocumentFragment") return BlinkDocumentFragment.instance;
+  if (s == "DocumentType") return BlinkDocumentType.instance;
+  if (s == "DynamicsCompressorNode") return BlinkDynamicsCompressorNode.instance;
+  if (s == "EXTBlendMinMax") return BlinkEXTBlendMinMax.instance;
+  if (s == "EXTFragDepth") return BlinkEXTFragDepth.instance;
+  if (s == "EXTShaderTextureLOD") return BlinkEXTShaderTextureLOD.instance;
+  if (s == "EXTTextureFilterAnisotropic") return BlinkEXTTextureFilterAnisotropic.instance;
+  if (s == "Element") return BlinkElement.instance;
+  if (s == "Entry") return BlinkEntry.instance;
+  if (s == "EntrySync") return BlinkEntrySync.instance;
+  if (s == "ErrorEvent") return BlinkErrorEvent.instance;
+  if (s == "Event") return BlinkEvent.instance;
+  if (s == "EventSource") return BlinkEventSource.instance;
+  if (s == "EventTarget") return BlinkEventTarget.instance;
+  if (s == "ExtendableEvent") return BlinkExtendableEvent.instance;
+  if (s == "FederatedCredential") return BlinkFederatedCredential.instance;
+  if (s == "FetchEvent") return BlinkFetchEvent.instance;
+  if (s == "File") return BlinkFile.instance;
+  if (s == "FileEntry") return BlinkFileEntry.instance;
+  if (s == "FileEntrySync") return BlinkFileEntrySync.instance;
+  if (s == "FileError") return BlinkFileError.instance;
+  if (s == "FileList") return BlinkFileList.instance;
+  if (s == "FileReader") return BlinkFileReader.instance;
+  if (s == "FileReaderSync") return BlinkFileReaderSync.instance;
+  if (s == "FileWriter") return BlinkFileWriter.instance;
+  if (s == "FileWriterSync") return BlinkFileWriterSync.instance;
+  if (s == "FocusEvent") return BlinkFocusEvent.instance;
+  if (s == "FontFace") return BlinkFontFace.instance;
+  if (s == "FontFaceSet") return BlinkFontFaceSet.instance;
+  if (s == "FontFaceSetLoadEvent") return BlinkFontFaceSetLoadEvent.instance;
+  if (s == "FormData") return BlinkFormData.instance;
+  if (s == "GainNode") return BlinkGainNode.instance;
+  if (s == "Gamepad") return BlinkGamepad.instance;
+  if (s == "GamepadButton") return BlinkGamepadButton.instance;
+  if (s == "GamepadEvent") return BlinkGamepadEvent.instance;
+  if (s == "GamepadList") return BlinkGamepadList.instance;
+  if (s == "Geofencing") return BlinkGeofencing.instance;
+  if (s == "GeofencingRegion") return BlinkGeofencingRegion.instance;
+  if (s == "Geolocation") return BlinkGeolocation.instance;
+  if (s == "Geoposition") return BlinkGeoposition.instance;
+  if (s == "HTMLAllCollection") return BlinkHTMLAllCollection.instance;
+  if (s == "HTMLAnchorElement") return BlinkHTMLAnchorElement.instance;
+  if (s == "HTMLAppletElement") return BlinkHTMLAppletElement.instance;
+  if (s == "HTMLAreaElement") return BlinkHTMLAreaElement.instance;
+  if (s == "HTMLAudioElement") return BlinkHTMLAudioElement.instance;
+  if (s == "HTMLBRElement") return BlinkHTMLBRElement.instance;
+  if (s == "HTMLBaseElement") return BlinkHTMLBaseElement.instance;
+  if (s == "HTMLBodyElement") return BlinkHTMLBodyElement.instance;
+  if (s == "HTMLButtonElement") return BlinkHTMLButtonElement.instance;
+  if (s == "HTMLCanvasElement") return BlinkHTMLCanvasElement.instance;
+  if (s == "HTMLCollection") return BlinkHTMLCollection.instance;
+  if (s == "HTMLContentElement") return BlinkHTMLContentElement.instance;
+  if (s == "HTMLDListElement") return BlinkHTMLDListElement.instance;
+  if (s == "HTMLDataListElement") return BlinkHTMLDataListElement.instance;
+  if (s == "HTMLDetailsElement") return BlinkHTMLDetailsElement.instance;
+  if (s == "HTMLDialogElement") return BlinkHTMLDialogElement.instance;
+  if (s == "HTMLDirectoryElement") return BlinkHTMLDirectoryElement.instance;
+  if (s == "HTMLDivElement") return BlinkHTMLDivElement.instance;
+  if (s == "HTMLDocument") return BlinkHTMLDocument.instance;
+  if (s == "HTMLElement") return BlinkHTMLElement.instance;
+  if (s == "HTMLEmbedElement") return BlinkHTMLEmbedElement.instance;
+  if (s == "HTMLFieldSetElement") return BlinkHTMLFieldSetElement.instance;
+  if (s == "HTMLFontElement") return BlinkHTMLFontElement.instance;
+  if (s == "HTMLFormControlsCollection") return BlinkHTMLFormControlsCollection.instance;
+  if (s == "HTMLFormElement") return BlinkHTMLFormElement.instance;
+  if (s == "HTMLFrameElement") return BlinkHTMLFrameElement.instance;
+  if (s == "HTMLFrameSetElement") return BlinkHTMLFrameSetElement.instance;
+  if (s == "HTMLHRElement") return BlinkHTMLHRElement.instance;
+  if (s == "HTMLHeadElement") return BlinkHTMLHeadElement.instance;
+  if (s == "HTMLHeadingElement") return BlinkHTMLHeadingElement.instance;
+  if (s == "HTMLHtmlElement") return BlinkHTMLHtmlElement.instance;
+  if (s == "HTMLIFrameElement") return BlinkHTMLIFrameElement.instance;
+  if (s == "HTMLImageElement") return BlinkHTMLImageElement.instance;
+  if (s == "HTMLInputElement") return BlinkHTMLInputElement.instance;
+  if (s == "HTMLKeygenElement") return BlinkHTMLKeygenElement.instance;
+  if (s == "HTMLLIElement") return BlinkHTMLLIElement.instance;
+  if (s == "HTMLLabelElement") return BlinkHTMLLabelElement.instance;
+  if (s == "HTMLLegendElement") return BlinkHTMLLegendElement.instance;
+  if (s == "HTMLLinkElement") return BlinkHTMLLinkElement.instance;
+  if (s == "HTMLMapElement") return BlinkHTMLMapElement.instance;
+  if (s == "HTMLMarqueeElement") return BlinkHTMLMarqueeElement.instance;
+  if (s == "HTMLMediaElement") return BlinkHTMLMediaElement.instance;
+  if (s == "HTMLMenuElement") return BlinkHTMLMenuElement.instance;
+  if (s == "HTMLMenuItemElement") return BlinkHTMLMenuItemElement.instance;
+  if (s == "HTMLMetaElement") return BlinkHTMLMetaElement.instance;
+  if (s == "HTMLMeterElement") return BlinkHTMLMeterElement.instance;
+  if (s == "HTMLModElement") return BlinkHTMLModElement.instance;
+  if (s == "HTMLOListElement") return BlinkHTMLOListElement.instance;
+  if (s == "HTMLObjectElement") return BlinkHTMLObjectElement.instance;
+  if (s == "HTMLOptGroupElement") return BlinkHTMLOptGroupElement.instance;
+  if (s == "HTMLOptionElement") return BlinkHTMLOptionElement.instance;
+  if (s == "HTMLOptionsCollection") return BlinkHTMLOptionsCollection.instance;
+  if (s == "HTMLOutputElement") return BlinkHTMLOutputElement.instance;
+  if (s == "HTMLParagraphElement") return BlinkHTMLParagraphElement.instance;
+  if (s == "HTMLParamElement") return BlinkHTMLParamElement.instance;
+  if (s == "HTMLPictureElement") return BlinkHTMLPictureElement.instance;
+  if (s == "HTMLPreElement") return BlinkHTMLPreElement.instance;
+  if (s == "HTMLProgressElement") return BlinkHTMLProgressElement.instance;
+  if (s == "HTMLQuoteElement") return BlinkHTMLQuoteElement.instance;
+  if (s == "HTMLScriptElement") return BlinkHTMLScriptElement.instance;
+  if (s == "HTMLSelectElement") return BlinkHTMLSelectElement.instance;
+  if (s == "HTMLShadowElement") return BlinkHTMLShadowElement.instance;
+  if (s == "HTMLSourceElement") return BlinkHTMLSourceElement.instance;
+  if (s == "HTMLSpanElement") return BlinkHTMLSpanElement.instance;
+  if (s == "HTMLStyleElement") return BlinkHTMLStyleElement.instance;
+  if (s == "HTMLTableCaptionElement") return BlinkHTMLTableCaptionElement.instance;
+  if (s == "HTMLTableCellElement") return BlinkHTMLTableCellElement.instance;
+  if (s == "HTMLTableColElement") return BlinkHTMLTableColElement.instance;
+  if (s == "HTMLTableElement") return BlinkHTMLTableElement.instance;
+  if (s == "HTMLTableRowElement") return BlinkHTMLTableRowElement.instance;
+  if (s == "HTMLTableSectionElement") return BlinkHTMLTableSectionElement.instance;
+  if (s == "HTMLTemplateElement") return BlinkHTMLTemplateElement.instance;
+  if (s == "HTMLTextAreaElement") return BlinkHTMLTextAreaElement.instance;
+  if (s == "HTMLTitleElement") return BlinkHTMLTitleElement.instance;
+  if (s == "HTMLTrackElement") return BlinkHTMLTrackElement.instance;
+  if (s == "HTMLUListElement") return BlinkHTMLUListElement.instance;
+  if (s == "HTMLUnknownElement") return BlinkHTMLUnknownElement.instance;
+  if (s == "HTMLVideoElement") return BlinkHTMLVideoElement.instance;
+  if (s == "HashChangeEvent") return BlinkHashChangeEvent.instance;
+  if (s == "Headers") return BlinkHeaders.instance;
+  if (s == "History") return BlinkHistory.instance;
+  if (s == "IDBCursor") return BlinkIDBCursor.instance;
+  if (s == "IDBCursorWithValue") return BlinkIDBCursorWithValue.instance;
+  if (s == "IDBDatabase") return BlinkIDBDatabase.instance;
+  if (s == "IDBFactory") return BlinkIDBFactory.instance;
+  if (s == "IDBIndex") return BlinkIDBIndex.instance;
+  if (s == "IDBKeyRange") return BlinkIDBKeyRange.instance;
+  if (s == "IDBObjectStore") return BlinkIDBObjectStore.instance;
+  if (s == "IDBOpenDBRequest") return BlinkIDBOpenDBRequest.instance;
+  if (s == "IDBRequest") return BlinkIDBRequest.instance;
+  if (s == "IDBTransaction") return BlinkIDBTransaction.instance;
+  if (s == "IDBVersionChangeEvent") return BlinkIDBVersionChangeEvent.instance;
+  if (s == "ImageBitmap") return BlinkImageBitmap.instance;
+  if (s == "ImageData") return BlinkImageData.instance;
+  if (s == "InjectedScriptHost") return BlinkInjectedScriptHost.instance;
+  if (s == "InputMethodContext") return BlinkInputMethodContext.instance;
+  if (s == "InspectorFrontendHost") return BlinkInspectorFrontendHost.instance;
+  if (s == "InspectorOverlayHost") return BlinkInspectorOverlayHost.instance;
+  if (s == "InstallEvent") return BlinkInstallEvent.instance;
+  if (s == "Iterator") return BlinkIterator.instance;
+  if (s == "JavaScriptCallFrame") return BlinkJavaScriptCallFrame.instance;
+  if (s == "KeyboardEvent") return BlinkKeyboardEvent.instance;
+  if (s == "LocalCredential") return BlinkLocalCredential.instance;
+  if (s == "Location") return BlinkLocation.instance;
+  if (s == "MIDIAccess") return BlinkMIDIAccess.instance;
+  if (s == "MIDIConnectionEvent") return BlinkMIDIConnectionEvent.instance;
+  if (s == "MIDIInput") return BlinkMIDIInput.instance;
+  if (s == "MIDIInputMap") return BlinkMIDIInputMap.instance;
+  if (s == "MIDIMessageEvent") return BlinkMIDIMessageEvent.instance;
+  if (s == "MIDIOutput") return BlinkMIDIOutput.instance;
+  if (s == "MIDIOutputMap") return BlinkMIDIOutputMap.instance;
+  if (s == "MIDIPort") return BlinkMIDIPort.instance;
+  if (s == "MediaController") return BlinkMediaController.instance;
+  if (s == "MediaDeviceInfo") return BlinkMediaDeviceInfo.instance;
+  if (s == "MediaElementAudioSourceNode") return BlinkMediaElementAudioSourceNode.instance;
+  if (s == "MediaError") return BlinkMediaError.instance;
+  if (s == "MediaKeyError") return BlinkMediaKeyError.instance;
+  if (s == "MediaKeyEvent") return BlinkMediaKeyEvent.instance;
+  if (s == "MediaKeyMessageEvent") return BlinkMediaKeyMessageEvent.instance;
+  if (s == "MediaKeyNeededEvent") return BlinkMediaKeyNeededEvent.instance;
+  if (s == "MediaKeySession") return BlinkMediaKeySession.instance;
+  if (s == "MediaKeys") return BlinkMediaKeys.instance;
+  if (s == "MediaList") return BlinkMediaList.instance;
+  if (s == "MediaQueryList") return BlinkMediaQueryList.instance;
+  if (s == "MediaQueryListEvent") return BlinkMediaQueryListEvent.instance;
+  if (s == "MediaSource") return BlinkMediaSource.instance;
+  if (s == "MediaStream") return BlinkMediaStream.instance;
+  if (s == "MediaStreamAudioDestinationNode") return BlinkMediaStreamAudioDestinationNode.instance;
+  if (s == "MediaStreamAudioSourceNode") return BlinkMediaStreamAudioSourceNode.instance;
+  if (s == "MediaStreamEvent") return BlinkMediaStreamEvent.instance;
+  if (s == "MediaStreamTrack") return BlinkMediaStreamTrack.instance;
+  if (s == "MediaStreamTrackEvent") return BlinkMediaStreamTrackEvent.instance;
+  if (s == "MemoryInfo") return BlinkMemoryInfo.instance;
+  if (s == "MessageChannel") return BlinkMessageChannel.instance;
+  if (s == "MessageEvent") return BlinkMessageEvent.instance;
+  if (s == "MessagePort") return BlinkMessagePort.instance;
+  if (s == "Metadata") return BlinkMetadata.instance;
+  if (s == "MimeType") return BlinkMimeType.instance;
+  if (s == "MimeTypeArray") return BlinkMimeTypeArray.instance;
+  if (s == "MouseEvent") return BlinkMouseEvent.instance;
+  if (s == "MutationEvent") return BlinkMutationEvent.instance;
+  if (s == "MutationObserver") return BlinkMutationObserver.instance;
+  if (s == "MutationRecord") return BlinkMutationRecord.instance;
+  if (s == "NamedNodeMap") return BlinkNamedNodeMap.instance;
+  if (s == "Navigator") return BlinkNavigator.instance;
+  if (s == "NavigatorUserMediaError") return BlinkNavigatorUserMediaError.instance;
+  if (s == "NetworkInformation") return BlinkNetworkInformation.instance;
+  if (s == "Node") return BlinkNode.instance;
+  if (s == "NodeFilter") return BlinkNodeFilter.instance;
+  if (s == "NodeIterator") return BlinkNodeIterator.instance;
+  if (s == "NodeList") return BlinkNodeList.instance;
+  if (s == "Notification") return BlinkNotification.instance;
+  if (s == "OESElementIndexUint") return BlinkOESElementIndexUint.instance;
+  if (s == "OESStandardDerivatives") return BlinkOESStandardDerivatives.instance;
+  if (s == "OESTextureFloat") return BlinkOESTextureFloat.instance;
+  if (s == "OESTextureFloatLinear") return BlinkOESTextureFloatLinear.instance;
+  if (s == "OESTextureHalfFloat") return BlinkOESTextureHalfFloat.instance;
+  if (s == "OESTextureHalfFloatLinear") return BlinkOESTextureHalfFloatLinear.instance;
+  if (s == "OESVertexArrayObject") return BlinkOESVertexArrayObject.instance;
+  if (s == "OfflineAudioCompletionEvent") return BlinkOfflineAudioCompletionEvent.instance;
+  if (s == "OfflineAudioContext") return BlinkOfflineAudioContext.instance;
+  if (s == "OscillatorNode") return BlinkOscillatorNode.instance;
+  if (s == "OverflowEvent") return BlinkOverflowEvent.instance;
+  if (s == "PagePopupController") return BlinkPagePopupController.instance;
+  if (s == "PageTransitionEvent") return BlinkPageTransitionEvent.instance;
+  if (s == "PannerNode") return BlinkPannerNode.instance;
+  if (s == "Path2D") return BlinkPath2D.instance;
+  if (s == "Performance") return BlinkPerformance.instance;
+  if (s == "PerformanceEntry") return BlinkPerformanceEntry.instance;
+  if (s == "PerformanceMark") return BlinkPerformanceMark.instance;
+  if (s == "PerformanceMeasure") return BlinkPerformanceMeasure.instance;
+  if (s == "PerformanceNavigation") return BlinkPerformanceNavigation.instance;
+  if (s == "PerformanceResourceTiming") return BlinkPerformanceResourceTiming.instance;
+  if (s == "PerformanceTiming") return BlinkPerformanceTiming.instance;
+  if (s == "PeriodicWave") return BlinkPeriodicWave.instance;
+  if (s == "Plugin") return BlinkPlugin.instance;
+  if (s == "PluginArray") return BlinkPluginArray.instance;
+  if (s == "PluginPlaceholderElement") return BlinkPluginPlaceholderElement.instance;
+  if (s == "PopStateEvent") return BlinkPopStateEvent.instance;
+  if (s == "PositionError") return BlinkPositionError.instance;
+  if (s == "Presentation") return BlinkPresentation.instance;
+  if (s == "ProcessingInstruction") return BlinkProcessingInstruction.instance;
+  if (s == "ProgressEvent") return BlinkProgressEvent.instance;
+  if (s == "PushEvent") return BlinkPushEvent.instance;
+  if (s == "PushManager") return BlinkPushManager.instance;
+  if (s == "PushRegistration") return BlinkPushRegistration.instance;
+  if (s == "RGBColor") return BlinkRGBColor.instance;
+  if (s == "RTCDTMFSender") return BlinkRTCDTMFSender.instance;
+  if (s == "RTCDTMFToneChangeEvent") return BlinkRTCDTMFToneChangeEvent.instance;
+  if (s == "RTCDataChannel") return BlinkRTCDataChannel.instance;
+  if (s == "RTCDataChannelEvent") return BlinkRTCDataChannelEvent.instance;
+  if (s == "RTCIceCandidate") return BlinkRTCIceCandidate.instance;
+  if (s == "RTCIceCandidateEvent") return BlinkRTCIceCandidateEvent.instance;
+  if (s == "RTCPeerConnection") return BlinkRTCPeerConnection.instance;
+  if (s == "RTCSessionDescription") return BlinkRTCSessionDescription.instance;
+  if (s == "RTCStatsReport") return BlinkRTCStatsReport.instance;
+  if (s == "RTCStatsResponse") return BlinkRTCStatsResponse.instance;
+  if (s == "RadioNodeList") return BlinkRadioNodeList.instance;
+  if (s == "Range") return BlinkRange.instance;
+  if (s == "ReadableStream") return BlinkReadableStream.instance;
+  if (s == "Rect") return BlinkRect.instance;
+  if (s == "RelatedEvent") return BlinkRelatedEvent.instance;
+  if (s == "Request") return BlinkRequest.instance;
+  if (s == "ResourceProgressEvent") return BlinkResourceProgressEvent.instance;
+  if (s == "Response") return BlinkResponse.instance;
+  if (s == "SQLError") return BlinkSQLError.instance;
+  if (s == "SQLResultSet") return BlinkSQLResultSet.instance;
+  if (s == "SQLResultSetRowList") return BlinkSQLResultSetRowList.instance;
+  if (s == "SQLTransaction") return BlinkSQLTransaction.instance;
+  if (s == "SVGAElement") return BlinkSVGAElement.instance;
+  if (s == "SVGAltGlyphDefElement") return BlinkSVGAltGlyphDefElement.instance;
+  if (s == "SVGAltGlyphElement") return BlinkSVGAltGlyphElement.instance;
+  if (s == "SVGAltGlyphItemElement") return BlinkSVGAltGlyphItemElement.instance;
+  if (s == "SVGAngle") return BlinkSVGAngle.instance;
+  if (s == "SVGAnimateElement") return BlinkSVGAnimateElement.instance;
+  if (s == "SVGAnimateMotionElement") return BlinkSVGAnimateMotionElement.instance;
+  if (s == "SVGAnimateTransformElement") return BlinkSVGAnimateTransformElement.instance;
+  if (s == "SVGAnimatedAngle") return BlinkSVGAnimatedAngle.instance;
+  if (s == "SVGAnimatedBoolean") return BlinkSVGAnimatedBoolean.instance;
+  if (s == "SVGAnimatedEnumeration") return BlinkSVGAnimatedEnumeration.instance;
+  if (s == "SVGAnimatedInteger") return BlinkSVGAnimatedInteger.instance;
+  if (s == "SVGAnimatedLength") return BlinkSVGAnimatedLength.instance;
+  if (s == "SVGAnimatedLengthList") return BlinkSVGAnimatedLengthList.instance;
+  if (s == "SVGAnimatedNumber") return BlinkSVGAnimatedNumber.instance;
+  if (s == "SVGAnimatedNumberList") return BlinkSVGAnimatedNumberList.instance;
+  if (s == "SVGAnimatedPreserveAspectRatio") return BlinkSVGAnimatedPreserveAspectRatio.instance;
+  if (s == "SVGAnimatedRect") return BlinkSVGAnimatedRect.instance;
+  if (s == "SVGAnimatedString") return BlinkSVGAnimatedString.instance;
+  if (s == "SVGAnimatedTransformList") return BlinkSVGAnimatedTransformList.instance;
+  if (s == "SVGAnimationElement") return BlinkSVGAnimationElement.instance;
+  if (s == "SVGCircleElement") return BlinkSVGCircleElement.instance;
+  if (s == "SVGClipPathElement") return BlinkSVGClipPathElement.instance;
+  if (s == "SVGComponentTransferFunctionElement") return BlinkSVGComponentTransferFunctionElement.instance;
+  if (s == "SVGCursorElement") return BlinkSVGCursorElement.instance;
+  if (s == "SVGDefsElement") return BlinkSVGDefsElement.instance;
+  if (s == "SVGDescElement") return BlinkSVGDescElement.instance;
+  if (s == "SVGDiscardElement") return BlinkSVGDiscardElement.instance;
+  if (s == "SVGElement") return BlinkSVGElement.instance;
+  if (s == "SVGEllipseElement") return BlinkSVGEllipseElement.instance;
+  if (s == "SVGFEBlendElement") return BlinkSVGFEBlendElement.instance;
+  if (s == "SVGFEColorMatrixElement") return BlinkSVGFEColorMatrixElement.instance;
+  if (s == "SVGFEComponentTransferElement") return BlinkSVGFEComponentTransferElement.instance;
+  if (s == "SVGFECompositeElement") return BlinkSVGFECompositeElement.instance;
+  if (s == "SVGFEConvolveMatrixElement") return BlinkSVGFEConvolveMatrixElement.instance;
+  if (s == "SVGFEDiffuseLightingElement") return BlinkSVGFEDiffuseLightingElement.instance;
+  if (s == "SVGFEDisplacementMapElement") return BlinkSVGFEDisplacementMapElement.instance;
+  if (s == "SVGFEDistantLightElement") return BlinkSVGFEDistantLightElement.instance;
+  if (s == "SVGFEDropShadowElement") return BlinkSVGFEDropShadowElement.instance;
+  if (s == "SVGFEFloodElement") return BlinkSVGFEFloodElement.instance;
+  if (s == "SVGFEFuncAElement") return BlinkSVGFEFuncAElement.instance;
+  if (s == "SVGFEFuncBElement") return BlinkSVGFEFuncBElement.instance;
+  if (s == "SVGFEFuncGElement") return BlinkSVGFEFuncGElement.instance;
+  if (s == "SVGFEFuncRElement") return BlinkSVGFEFuncRElement.instance;
+  if (s == "SVGFEGaussianBlurElement") return BlinkSVGFEGaussianBlurElement.instance;
+  if (s == "SVGFEImageElement") return BlinkSVGFEImageElement.instance;
+  if (s == "SVGFEMergeElement") return BlinkSVGFEMergeElement.instance;
+  if (s == "SVGFEMergeNodeElement") return BlinkSVGFEMergeNodeElement.instance;
+  if (s == "SVGFEMorphologyElement") return BlinkSVGFEMorphologyElement.instance;
+  if (s == "SVGFEOffsetElement") return BlinkSVGFEOffsetElement.instance;
+  if (s == "SVGFEPointLightElement") return BlinkSVGFEPointLightElement.instance;
+  if (s == "SVGFESpecularLightingElement") return BlinkSVGFESpecularLightingElement.instance;
+  if (s == "SVGFESpotLightElement") return BlinkSVGFESpotLightElement.instance;
+  if (s == "SVGFETileElement") return BlinkSVGFETileElement.instance;
+  if (s == "SVGFETurbulenceElement") return BlinkSVGFETurbulenceElement.instance;
+  if (s == "SVGFilterElement") return BlinkSVGFilterElement.instance;
+  if (s == "SVGFontElement") return BlinkSVGFontElement.instance;
+  if (s == "SVGFontFaceElement") return BlinkSVGFontFaceElement.instance;
+  if (s == "SVGFontFaceFormatElement") return BlinkSVGFontFaceFormatElement.instance;
+  if (s == "SVGFontFaceNameElement") return BlinkSVGFontFaceNameElement.instance;
+  if (s == "SVGFontFaceSrcElement") return BlinkSVGFontFaceSrcElement.instance;
+  if (s == "SVGFontFaceUriElement") return BlinkSVGFontFaceUriElement.instance;
+  if (s == "SVGForeignObjectElement") return BlinkSVGForeignObjectElement.instance;
+  if (s == "SVGGElement") return BlinkSVGGElement.instance;
+  if (s == "SVGGeometryElement") return BlinkSVGGeometryElement.instance;
+  if (s == "SVGGlyphElement") return BlinkSVGGlyphElement.instance;
+  if (s == "SVGGlyphRefElement") return BlinkSVGGlyphRefElement.instance;
+  if (s == "SVGGradientElement") return BlinkSVGGradientElement.instance;
+  if (s == "SVGGraphicsElement") return BlinkSVGGraphicsElement.instance;
+  if (s == "SVGHKernElement") return BlinkSVGHKernElement.instance;
+  if (s == "SVGImageElement") return BlinkSVGImageElement.instance;
+  if (s == "SVGLength") return BlinkSVGLength.instance;
+  if (s == "SVGLengthList") return BlinkSVGLengthList.instance;
+  if (s == "SVGLineElement") return BlinkSVGLineElement.instance;
+  if (s == "SVGLinearGradientElement") return BlinkSVGLinearGradientElement.instance;
+  if (s == "SVGMPathElement") return BlinkSVGMPathElement.instance;
+  if (s == "SVGMarkerElement") return BlinkSVGMarkerElement.instance;
+  if (s == "SVGMaskElement") return BlinkSVGMaskElement.instance;
+  if (s == "SVGMatrix") return BlinkSVGMatrix.instance;
+  if (s == "SVGMetadataElement") return BlinkSVGMetadataElement.instance;
+  if (s == "SVGMissingGlyphElement") return BlinkSVGMissingGlyphElement.instance;
+  if (s == "SVGNumber") return BlinkSVGNumber.instance;
+  if (s == "SVGNumberList") return BlinkSVGNumberList.instance;
+  if (s == "SVGPathElement") return BlinkSVGPathElement.instance;
+  if (s == "SVGPathSeg") return BlinkSVGPathSeg.instance;
+  if (s == "SVGPathSegArcAbs") return BlinkSVGPathSegArcAbs.instance;
+  if (s == "SVGPathSegArcRel") return BlinkSVGPathSegArcRel.instance;
+  if (s == "SVGPathSegClosePath") return BlinkSVGPathSegClosePath.instance;
+  if (s == "SVGPathSegCurvetoCubicAbs") return BlinkSVGPathSegCurvetoCubicAbs.instance;
+  if (s == "SVGPathSegCurvetoCubicRel") return BlinkSVGPathSegCurvetoCubicRel.instance;
+  if (s == "SVGPathSegCurvetoCubicSmoothAbs") return BlinkSVGPathSegCurvetoCubicSmoothAbs.instance;
+  if (s == "SVGPathSegCurvetoCubicSmoothRel") return BlinkSVGPathSegCurvetoCubicSmoothRel.instance;
+  if (s == "SVGPathSegCurvetoQuadraticAbs") return BlinkSVGPathSegCurvetoQuadraticAbs.instance;
+  if (s == "SVGPathSegCurvetoQuadraticRel") return BlinkSVGPathSegCurvetoQuadraticRel.instance;
+  if (s == "SVGPathSegCurvetoQuadraticSmoothAbs") return BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance;
+  if (s == "SVGPathSegCurvetoQuadraticSmoothRel") return BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance;
+  if (s == "SVGPathSegLinetoAbs") return BlinkSVGPathSegLinetoAbs.instance;
+  if (s == "SVGPathSegLinetoHorizontalAbs") return BlinkSVGPathSegLinetoHorizontalAbs.instance;
+  if (s == "SVGPathSegLinetoHorizontalRel") return BlinkSVGPathSegLinetoHorizontalRel.instance;
+  if (s == "SVGPathSegLinetoRel") return BlinkSVGPathSegLinetoRel.instance;
+  if (s == "SVGPathSegLinetoVerticalAbs") return BlinkSVGPathSegLinetoVerticalAbs.instance;
+  if (s == "SVGPathSegLinetoVerticalRel") return BlinkSVGPathSegLinetoVerticalRel.instance;
+  if (s == "SVGPathSegList") return BlinkSVGPathSegList.instance;
+  if (s == "SVGPathSegMovetoAbs") return BlinkSVGPathSegMovetoAbs.instance;
+  if (s == "SVGPathSegMovetoRel") return BlinkSVGPathSegMovetoRel.instance;
+  if (s == "SVGPatternElement") return BlinkSVGPatternElement.instance;
+  if (s == "SVGPoint") return BlinkSVGPoint.instance;
+  if (s == "SVGPointList") return BlinkSVGPointList.instance;
+  if (s == "SVGPolygonElement") return BlinkSVGPolygonElement.instance;
+  if (s == "SVGPolylineElement") return BlinkSVGPolylineElement.instance;
+  if (s == "SVGPreserveAspectRatio") return BlinkSVGPreserveAspectRatio.instance;
+  if (s == "SVGRadialGradientElement") return BlinkSVGRadialGradientElement.instance;
+  if (s == "SVGRect") return BlinkSVGRect.instance;
+  if (s == "SVGRectElement") return BlinkSVGRectElement.instance;
+  if (s == "SVGRenderingIntent") return BlinkSVGRenderingIntent.instance;
+  if (s == "SVGSVGElement") return BlinkSVGSVGElement.instance;
+  if (s == "SVGScriptElement") return BlinkSVGScriptElement.instance;
+  if (s == "SVGSetElement") return BlinkSVGSetElement.instance;
+  if (s == "SVGStopElement") return BlinkSVGStopElement.instance;
+  if (s == "SVGStringList") return BlinkSVGStringList.instance;
+  if (s == "SVGStyleElement") return BlinkSVGStyleElement.instance;
+  if (s == "SVGSwitchElement") return BlinkSVGSwitchElement.instance;
+  if (s == "SVGSymbolElement") return BlinkSVGSymbolElement.instance;
+  if (s == "SVGTSpanElement") return BlinkSVGTSpanElement.instance;
+  if (s == "SVGTextContentElement") return BlinkSVGTextContentElement.instance;
+  if (s == "SVGTextElement") return BlinkSVGTextElement.instance;
+  if (s == "SVGTextPathElement") return BlinkSVGTextPathElement.instance;
+  if (s == "SVGTextPositioningElement") return BlinkSVGTextPositioningElement.instance;
+  if (s == "SVGTitleElement") return BlinkSVGTitleElement.instance;
+  if (s == "SVGTransform") return BlinkSVGTransform.instance;
+  if (s == "SVGTransformList") return BlinkSVGTransformList.instance;
+  if (s == "SVGUnitTypes") return BlinkSVGUnitTypes.instance;
+  if (s == "SVGUseElement") return BlinkSVGUseElement.instance;
+  if (s == "SVGVKernElement") return BlinkSVGVKernElement.instance;
+  if (s == "SVGViewElement") return BlinkSVGViewElement.instance;
+  if (s == "SVGViewSpec") return BlinkSVGViewSpec.instance;
+  if (s == "SVGZoomEvent") return BlinkSVGZoomEvent.instance;
+  if (s == "Screen") return BlinkScreen.instance;
+  if (s == "ScreenOrientation") return BlinkScreenOrientation.instance;
+  if (s == "ScriptProcessorNode") return BlinkScriptProcessorNode.instance;
+  if (s == "SecurityPolicyViolationEvent") return BlinkSecurityPolicyViolationEvent.instance;
+  if (s == "Selection") return BlinkSelection.instance;
+  if (s == "ServiceWorker") return BlinkServiceWorker.instance;
+  if (s == "ServiceWorkerClient") return BlinkServiceWorkerClient.instance;
+  if (s == "ServiceWorkerClients") return BlinkServiceWorkerClients.instance;
+  if (s == "ServiceWorkerContainer") return BlinkServiceWorkerContainer.instance;
+  if (s == "ServiceWorkerGlobalScope") return BlinkServiceWorkerGlobalScope.instance;
+  if (s == "ServiceWorkerRegistration") return BlinkServiceWorkerRegistration.instance;
+  if (s == "ShadowRoot") return BlinkShadowRoot.instance;
+  if (s == "SharedWorker") return BlinkSharedWorker.instance;
+  if (s == "SharedWorkerGlobalScope") return BlinkSharedWorkerGlobalScope.instance;
+  if (s == "SourceBuffer") return BlinkSourceBuffer.instance;
+  if (s == "SourceBufferList") return BlinkSourceBufferList.instance;
+  if (s == "SourceInfo") return BlinkSourceInfo.instance;
+  if (s == "SpeechGrammar") return BlinkSpeechGrammar.instance;
+  if (s == "SpeechGrammarList") return BlinkSpeechGrammarList.instance;
+  if (s == "SpeechRecognition") return BlinkSpeechRecognition.instance;
+  if (s == "SpeechRecognitionAlternative") return BlinkSpeechRecognitionAlternative.instance;
+  if (s == "SpeechRecognitionError") return BlinkSpeechRecognitionError.instance;
+  if (s == "SpeechRecognitionEvent") return BlinkSpeechRecognitionEvent.instance;
+  if (s == "SpeechRecognitionResult") return BlinkSpeechRecognitionResult.instance;
+  if (s == "SpeechRecognitionResultList") return BlinkSpeechRecognitionResultList.instance;
+  if (s == "SpeechSynthesis") return BlinkSpeechSynthesis.instance;
+  if (s == "SpeechSynthesisEvent") return BlinkSpeechSynthesisEvent.instance;
+  if (s == "SpeechSynthesisUtterance") return BlinkSpeechSynthesisUtterance.instance;
+  if (s == "SpeechSynthesisVoice") return BlinkSpeechSynthesisVoice.instance;
+  if (s == "Storage") return BlinkStorage.instance;
+  if (s == "StorageEvent") return BlinkStorageEvent.instance;
+  if (s == "StorageInfo") return BlinkStorageInfo.instance;
+  if (s == "StorageQuota") return BlinkStorageQuota.instance;
+  if (s == "Stream") return BlinkStream.instance;
+  if (s == "StyleMedia") return BlinkStyleMedia.instance;
+  if (s == "StyleSheet") return BlinkStyleSheet.instance;
+  if (s == "StyleSheetList") return BlinkStyleSheetList.instance;
+  if (s == "SubtleCrypto") return BlinkSubtleCrypto.instance;
+  if (s == "Text") return BlinkText.instance;
+  if (s == "TextDecoder") return BlinkTextDecoder.instance;
+  if (s == "TextEncoder") return BlinkTextEncoder.instance;
+  if (s == "TextEvent") return BlinkTextEvent.instance;
+  if (s == "TextMetrics") return BlinkTextMetrics.instance;
+  if (s == "TextTrack") return BlinkTextTrack.instance;
+  if (s == "TextTrackCue") return BlinkTextTrackCue.instance;
+  if (s == "TextTrackCueList") return BlinkTextTrackCueList.instance;
+  if (s == "TextTrackList") return BlinkTextTrackList.instance;
+  if (s == "TimeRanges") return BlinkTimeRanges.instance;
+  if (s == "Timing") return BlinkTiming.instance;
+  if (s == "Touch") return BlinkTouch.instance;
+  if (s == "TouchEvent") return BlinkTouchEvent.instance;
+  if (s == "TouchList") return BlinkTouchList.instance;
+  if (s == "TrackEvent") return BlinkTrackEvent.instance;
+  if (s == "TransitionEvent") return BlinkTransitionEvent.instance;
+  if (s == "TreeWalker") return BlinkTreeWalker.instance;
+  if (s == "UIEvent") return BlinkUIEvent.instance;
+  if (s == "URL") return BlinkURL.instance;
+  if (s == "VTTCue") return BlinkVTTCue.instance;
+  if (s == "VTTRegion") return BlinkVTTRegion.instance;
+  if (s == "VTTRegionList") return BlinkVTTRegionList.instance;
+  if (s == "ValidityState") return BlinkValidityState.instance;
+  if (s == "VideoPlaybackQuality") return BlinkVideoPlaybackQuality.instance;
+  if (s == "VideoTrack") return BlinkVideoTrack.instance;
+  if (s == "VideoTrackList") return BlinkVideoTrackList.instance;
+  if (s == "WaveShaperNode") return BlinkWaveShaperNode.instance;
+  if (s == "WebGLActiveInfo") return BlinkWebGLActiveInfo.instance;
+  if (s == "WebGLBuffer") return BlinkWebGLBuffer.instance;
+  if (s == "WebGLCompressedTextureATC") return BlinkWebGLCompressedTextureATC.instance;
+  if (s == "WebGLCompressedTextureETC1") return BlinkWebGLCompressedTextureETC1.instance;
+  if (s == "WebGLCompressedTexturePVRTC") return BlinkWebGLCompressedTexturePVRTC.instance;
+  if (s == "WebGLCompressedTextureS3TC") return BlinkWebGLCompressedTextureS3TC.instance;
+  if (s == "WebGLContextAttributes") return BlinkWebGLContextAttributes.instance;
+  if (s == "WebGLContextEvent") return BlinkWebGLContextEvent.instance;
+  if (s == "WebGLDebugRendererInfo") return BlinkWebGLDebugRendererInfo.instance;
+  if (s == "WebGLDebugShaders") return BlinkWebGLDebugShaders.instance;
+  if (s == "WebGLDepthTexture") return BlinkWebGLDepthTexture.instance;
+  if (s == "WebGLDrawBuffers") return BlinkWebGLDrawBuffers.instance;
+  if (s == "WebGLFramebuffer") return BlinkWebGLFramebuffer.instance;
+  if (s == "WebGLLoseContext") return BlinkWebGLLoseContext.instance;
+  if (s == "WebGLProgram") return BlinkWebGLProgram.instance;
+  if (s == "WebGLRenderbuffer") return BlinkWebGLRenderbuffer.instance;
+  if (s == "WebGLRenderingContext") return BlinkWebGLRenderingContext.instance;
+  if (s == "WebGLShader") return BlinkWebGLShader.instance;
+  if (s == "WebGLShaderPrecisionFormat") return BlinkWebGLShaderPrecisionFormat.instance;
+  if (s == "WebGLTexture") return BlinkWebGLTexture.instance;
+  if (s == "WebGLUniformLocation") return BlinkWebGLUniformLocation.instance;
+  if (s == "WebGLVertexArrayObjectOES") return BlinkWebGLVertexArrayObjectOES.instance;
+  if (s == "WebKitAnimationEvent") return BlinkWebKitAnimationEvent.instance;
+  if (s == "WebKitCSSFilterRule") return BlinkWebKitCSSFilterRule.instance;
+  if (s == "WebKitCSSFilterValue") return BlinkWebKitCSSFilterValue.instance;
+  if (s == "WebKitCSSMatrix") return BlinkWebKitCSSMatrix.instance;
+  if (s == "WebKitCSSTransformValue") return BlinkWebKitCSSTransformValue.instance;
+  if (s == "WebKitGamepad") return BlinkWebKitGamepad.instance;
+  if (s == "WebKitGamepadList") return BlinkWebKitGamepadList.instance;
+  if (s == "WebSocket") return BlinkWebSocket.instance;
+  if (s == "WheelEvent") return BlinkWheelEvent.instance;
+  if (s == "Window") return BlinkWindow.instance;
+  if (s == "Worker") return BlinkWorker.instance;
+  if (s == "WorkerConsole") return BlinkWorkerConsole.instance;
+  if (s == "WorkerGlobalScope") return BlinkWorkerGlobalScope.instance;
+  if (s == "WorkerLocation") return BlinkWorkerLocation.instance;
+  if (s == "WorkerNavigator") return BlinkWorkerNavigator.instance;
+  if (s == "WorkerPerformance") return BlinkWorkerPerformance.instance;
+  if (s == "XMLDocument") return BlinkXMLDocument.instance;
+  if (s == "XMLHttpRequest") return BlinkXMLHttpRequest.instance;
+  if (s == "XMLHttpRequestEventTarget") return BlinkXMLHttpRequestEventTarget.instance;
+  if (s == "XMLHttpRequestProgressEvent") return BlinkXMLHttpRequestProgressEvent.instance;
+  if (s == "XMLHttpRequestUpload") return BlinkXMLHttpRequestUpload.instance;
+  if (s == "XMLSerializer") return BlinkXMLSerializer.instance;
+  if (s == "XPathEvaluator") return BlinkXPathEvaluator.instance;
+  if (s == "XPathExpression") return BlinkXPathExpression.instance;
+  if (s == "XPathNSResolver") return BlinkXPathNSResolver.instance;
+  if (s == "XPathResult") return BlinkXPathResult.instance;
+  if (s == "XSLTProcessor") return BlinkXSLTProcessor.instance;
+  // Failed to find it, check for custom renames
+  dynamic obj = resolverMap[s];
+  if (obj != null) return obj;
+  throw("No such interface exposed in blink: ${s}");
 }
 
 class BlinkANGLEInstancedArrays {
@@ -232,9 +838,6 @@ class BlinkAnimationPlayer extends BlinkEventTarget {
   static finish_Callback_2(mthis, __arg_0, __arg_1) native "AnimationPlayer_finish_Callback";
   finish_Callback_2_(mthis, __arg_0, __arg_1) => finish_Callback_2(mthis, __arg_0, __arg_1);
 
-  static finished_Getter(mthis) native "AnimationPlayer_finished_Getter";
-  finished_Getter_(mthis) => finished_Getter(mthis);
-
   static onfinish_Getter(mthis) native "AnimationPlayer_onfinish_Getter";
   onfinish_Getter_(mthis) => onfinish_Getter(mthis);
 
@@ -250,8 +853,8 @@ class BlinkAnimationPlayer extends BlinkEventTarget {
   static pause_Callback_2(mthis, __arg_0, __arg_1) native "AnimationPlayer_pause_Callback";
   pause_Callback_2_(mthis, __arg_0, __arg_1) => pause_Callback_2(mthis, __arg_0, __arg_1);
 
-  static paused_Getter(mthis) native "AnimationPlayer_paused_Getter";
-  paused_Getter_(mthis) => paused_Getter(mthis);
+  static playState_Getter(mthis) native "AnimationPlayer_playState_Getter";
+  playState_Getter_(mthis) => playState_Getter(mthis);
 
   static play_Callback_0(mthis) native "AnimationPlayer_play_Callback";
   play_Callback_0_(mthis) => play_Callback_0(mthis);
@@ -1310,6 +1913,50 @@ class BlinkBlob {
 
 }
 
+class BlinkBody {
+  static final instance = new BlinkBody();
+
+  static arrayBuffer_Callback_0(mthis) native "Body_arrayBuffer_Callback";
+  arrayBuffer_Callback_0_(mthis) => arrayBuffer_Callback_0(mthis);
+
+  static arrayBuffer_Callback_1(mthis, __arg_0) native "Body_arrayBuffer_Callback";
+  arrayBuffer_Callback_1_(mthis, __arg_0) => arrayBuffer_Callback_1(mthis, __arg_0);
+
+  static arrayBuffer_Callback_2(mthis, __arg_0, __arg_1) native "Body_arrayBuffer_Callback";
+  arrayBuffer_Callback_2_(mthis, __arg_0, __arg_1) => arrayBuffer_Callback_2(mthis, __arg_0, __arg_1);
+
+  static blob_Callback_0(mthis) native "Body_blob_Callback";
+  blob_Callback_0_(mthis) => blob_Callback_0(mthis);
+
+  static blob_Callback_1(mthis, __arg_0) native "Body_blob_Callback";
+  blob_Callback_1_(mthis, __arg_0) => blob_Callback_1(mthis, __arg_0);
+
+  static blob_Callback_2(mthis, __arg_0, __arg_1) native "Body_blob_Callback";
+  blob_Callback_2_(mthis, __arg_0, __arg_1) => blob_Callback_2(mthis, __arg_0, __arg_1);
+
+  static bodyUsed_Getter(mthis) native "Body_bodyUsed_Getter";
+  bodyUsed_Getter_(mthis) => bodyUsed_Getter(mthis);
+
+  static json_Callback_0(mthis) native "Body_json_Callback";
+  json_Callback_0_(mthis) => json_Callback_0(mthis);
+
+  static json_Callback_1(mthis, __arg_0) native "Body_json_Callback";
+  json_Callback_1_(mthis, __arg_0) => json_Callback_1(mthis, __arg_0);
+
+  static json_Callback_2(mthis, __arg_0, __arg_1) native "Body_json_Callback";
+  json_Callback_2_(mthis, __arg_0, __arg_1) => json_Callback_2(mthis, __arg_0, __arg_1);
+
+  static text_Callback_0(mthis) native "Body_text_Callback";
+  text_Callback_0_(mthis) => text_Callback_0(mthis);
+
+  static text_Callback_1(mthis, __arg_0) native "Body_text_Callback";
+  text_Callback_1_(mthis, __arg_0) => text_Callback_1(mthis, __arg_0);
+
+  static text_Callback_2(mthis, __arg_0, __arg_1) native "Body_text_Callback";
+  text_Callback_2_(mthis, __arg_0, __arg_1) => text_Callback_2(mthis, __arg_0, __arg_1);
+
+}
+
 class BlinkCDATASection extends BlinkText {
   static final instance = new BlinkCDATASection();
 
@@ -2087,6 +2734,18 @@ class BlinkCanvasGradient {
 class BlinkCanvasPattern {
   static final instance = new BlinkCanvasPattern();
 
+  static setTransform_Callback_0(mthis) native "CanvasPattern_setTransform_Callback";
+  setTransform_Callback_0_(mthis) => setTransform_Callback_0(mthis);
+
+  static setTransform_Callback_1(mthis, __arg_0) native "CanvasPattern_setTransform_Callback";
+  setTransform_Callback_1_(mthis, __arg_0) => setTransform_Callback_1(mthis, __arg_0);
+
+  static setTransform_Callback_2(mthis, __arg_0, __arg_1) native "CanvasPattern_setTransform_Callback";
+  setTransform_Callback_2_(mthis, __arg_0, __arg_1) => setTransform_Callback_2(mthis, __arg_0, __arg_1);
+
+  static setTransform_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "CanvasPattern_setTransform_Callback";
+  setTransform_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => setTransform_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
 }
 
 class BlinkCanvasRenderingContext2D {
@@ -2277,6 +2936,12 @@ class BlinkCanvasRenderingContext2D {
 
   static currentTransform_Setter(mthis, __arg_0) native "CanvasRenderingContext2D_currentTransform_Setter";
   currentTransform_Setter_(mthis, __arg_0) => currentTransform_Setter(mthis, __arg_0);
+
+  static direction_Getter(mthis) native "CanvasRenderingContext2D_direction_Getter";
+  direction_Getter_(mthis) => direction_Getter(mthis);
+
+  static direction_Setter(mthis, __arg_0) native "CanvasRenderingContext2D_direction_Setter";
+  direction_Setter_(mthis, __arg_0) => direction_Setter(mthis, __arg_0);
 
   static drawFocusIfNeeded_Callback_0(mthis) native "CanvasRenderingContext2D_drawFocusIfNeeded_Callback";
   drawFocusIfNeeded_Callback_0_(mthis) => drawFocusIfNeeded_Callback_0(mthis);
@@ -2958,28 +3623,28 @@ class BlinkCharacterData extends BlinkNode {
 
 }
 
-class BlinkCircularRegion extends BlinkGeofencingRegion {
-  static final instance = new BlinkCircularRegion();
+class BlinkCircularGeofencingRegion extends BlinkGeofencingRegion {
+  static final instance = new BlinkCircularGeofencingRegion();
 
-  static constructorCallback_0() native "CircularRegion_constructorCallback";
+  static constructorCallback_0() native "CircularGeofencingRegion_constructorCallback";
   constructorCallback_0_() => constructorCallback_0();
 
-  static constructorCallback_1(__arg_0) native "CircularRegion_constructorCallback";
+  static constructorCallback_1(__arg_0) native "CircularGeofencingRegion_constructorCallback";
   constructorCallback_1_(__arg_0) => constructorCallback_1(__arg_0);
 
-  static constructorCallback_2(__arg_0, __arg_1) native "CircularRegion_constructorCallback";
+  static constructorCallback_2(__arg_0, __arg_1) native "CircularGeofencingRegion_constructorCallback";
   constructorCallback_2_(__arg_0, __arg_1) => constructorCallback_2(__arg_0, __arg_1);
 
-  static constructorCallback_3(__arg_0, __arg_1, __arg_2) native "CircularRegion_constructorCallback";
+  static constructorCallback_3(__arg_0, __arg_1, __arg_2) native "CircularGeofencingRegion_constructorCallback";
   constructorCallback_3_(__arg_0, __arg_1, __arg_2) => constructorCallback_3(__arg_0, __arg_1, __arg_2);
 
-  static latitude_Getter(mthis) native "CircularRegion_latitude_Getter";
+  static latitude_Getter(mthis) native "CircularGeofencingRegion_latitude_Getter";
   latitude_Getter_(mthis) => latitude_Getter(mthis);
 
-  static longitude_Getter(mthis) native "CircularRegion_longitude_Getter";
+  static longitude_Getter(mthis) native "CircularGeofencingRegion_longitude_Getter";
   longitude_Getter_(mthis) => longitude_Getter(mthis);
 
-  static radius_Getter(mthis) native "CircularRegion_radius_Getter";
+  static radius_Getter(mthis) native "CircularGeofencingRegion_radius_Getter";
   radius_Getter_(mthis) => radius_Getter(mthis);
 
 }
@@ -3831,6 +4496,114 @@ class BlinkDOMMatrix extends BlinkDOMMatrixReadOnly {
   static m44_Setter(mthis, __arg_0) native "DOMMatrix_m44_Setter";
   m44_Setter_(mthis, __arg_0) => m44_Setter(mthis, __arg_0);
 
+  static multiplySelf_Callback_0(mthis) native "DOMMatrix_multiplySelf_Callback";
+  multiplySelf_Callback_0_(mthis) => multiplySelf_Callback_0(mthis);
+
+  static multiplySelf_Callback_1(mthis, __arg_0) native "DOMMatrix_multiplySelf_Callback";
+  multiplySelf_Callback_1_(mthis, __arg_0) => multiplySelf_Callback_1(mthis, __arg_0);
+
+  static multiplySelf_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrix_multiplySelf_Callback";
+  multiplySelf_Callback_2_(mthis, __arg_0, __arg_1) => multiplySelf_Callback_2(mthis, __arg_0, __arg_1);
+
+  static multiplySelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrix_multiplySelf_Callback";
+  multiplySelf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => multiplySelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static preMultiplySelf_Callback_0(mthis) native "DOMMatrix_preMultiplySelf_Callback";
+  preMultiplySelf_Callback_0_(mthis) => preMultiplySelf_Callback_0(mthis);
+
+  static preMultiplySelf_Callback_1(mthis, __arg_0) native "DOMMatrix_preMultiplySelf_Callback";
+  preMultiplySelf_Callback_1_(mthis, __arg_0) => preMultiplySelf_Callback_1(mthis, __arg_0);
+
+  static preMultiplySelf_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrix_preMultiplySelf_Callback";
+  preMultiplySelf_Callback_2_(mthis, __arg_0, __arg_1) => preMultiplySelf_Callback_2(mthis, __arg_0, __arg_1);
+
+  static preMultiplySelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrix_preMultiplySelf_Callback";
+  preMultiplySelf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => preMultiplySelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scale3dSelf_Callback_0(mthis) native "DOMMatrix_scale3dSelf_Callback";
+  scale3dSelf_Callback_0_(mthis) => scale3dSelf_Callback_0(mthis);
+
+  static scale3dSelf_Callback_1(mthis, __arg_0) native "DOMMatrix_scale3dSelf_Callback";
+  scale3dSelf_Callback_1_(mthis, __arg_0) => scale3dSelf_Callback_1(mthis, __arg_0);
+
+  static scale3dSelf_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrix_scale3dSelf_Callback";
+  scale3dSelf_Callback_2_(mthis, __arg_0, __arg_1) => scale3dSelf_Callback_2(mthis, __arg_0, __arg_1);
+
+  static scale3dSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrix_scale3dSelf_Callback";
+  scale3dSelf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => scale3dSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scale3dSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrix_scale3dSelf_Callback";
+  scale3dSelf_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => scale3dSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static scale3dSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrix_scale3dSelf_Callback";
+  scale3dSelf_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => scale3dSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
+  static scale3dSelf_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "DOMMatrix_scale3dSelf_Callback";
+  scale3dSelf_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => scale3dSelf_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
+
+  static scaleNonUniformSelf_Callback_0(mthis) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_0_(mthis) => scaleNonUniformSelf_Callback_0(mthis);
+
+  static scaleNonUniformSelf_Callback_1(mthis, __arg_0) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_1_(mthis, __arg_0) => scaleNonUniformSelf_Callback_1(mthis, __arg_0);
+
+  static scaleNonUniformSelf_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_2_(mthis, __arg_0, __arg_1) => scaleNonUniformSelf_Callback_2(mthis, __arg_0, __arg_1);
+
+  static scaleNonUniformSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => scaleNonUniformSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scaleNonUniformSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => scaleNonUniformSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static scaleNonUniformSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => scaleNonUniformSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
+  static scaleNonUniformSelf_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => scaleNonUniformSelf_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
+
+  static scaleNonUniformSelf_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => scaleNonUniformSelf_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6);
+
+  static scaleNonUniformSelf_Callback_8(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) native "DOMMatrix_scaleNonUniformSelf_Callback";
+  scaleNonUniformSelf_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => scaleNonUniformSelf_Callback_8(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7);
+
+  static scaleSelf_Callback_0(mthis) native "DOMMatrix_scaleSelf_Callback";
+  scaleSelf_Callback_0_(mthis) => scaleSelf_Callback_0(mthis);
+
+  static scaleSelf_Callback_1(mthis, __arg_0) native "DOMMatrix_scaleSelf_Callback";
+  scaleSelf_Callback_1_(mthis, __arg_0) => scaleSelf_Callback_1(mthis, __arg_0);
+
+  static scaleSelf_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrix_scaleSelf_Callback";
+  scaleSelf_Callback_2_(mthis, __arg_0, __arg_1) => scaleSelf_Callback_2(mthis, __arg_0, __arg_1);
+
+  static scaleSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrix_scaleSelf_Callback";
+  scaleSelf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => scaleSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scaleSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrix_scaleSelf_Callback";
+  scaleSelf_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => scaleSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static scaleSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrix_scaleSelf_Callback";
+  scaleSelf_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => scaleSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
+  static translateSelf_Callback_0(mthis) native "DOMMatrix_translateSelf_Callback";
+  translateSelf_Callback_0_(mthis) => translateSelf_Callback_0(mthis);
+
+  static translateSelf_Callback_1(mthis, __arg_0) native "DOMMatrix_translateSelf_Callback";
+  translateSelf_Callback_1_(mthis, __arg_0) => translateSelf_Callback_1(mthis, __arg_0);
+
+  static translateSelf_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrix_translateSelf_Callback";
+  translateSelf_Callback_2_(mthis, __arg_0, __arg_1) => translateSelf_Callback_2(mthis, __arg_0, __arg_1);
+
+  static translateSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrix_translateSelf_Callback";
+  translateSelf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => translateSelf_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static translateSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrix_translateSelf_Callback";
+  translateSelf_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => translateSelf_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static translateSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrix_translateSelf_Callback";
+  translateSelf_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => translateSelf_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
 }
 
 class BlinkDOMMatrixReadOnly {
@@ -3907,6 +4680,120 @@ class BlinkDOMMatrixReadOnly {
 
   static m44_Getter(mthis) native "DOMMatrixReadOnly_m44_Getter";
   m44_Getter_(mthis) => m44_Getter(mthis);
+
+  static multiply_Callback_0(mthis) native "DOMMatrixReadOnly_multiply_Callback";
+  multiply_Callback_0_(mthis) => multiply_Callback_0(mthis);
+
+  static multiply_Callback_1(mthis, __arg_0) native "DOMMatrixReadOnly_multiply_Callback";
+  multiply_Callback_1_(mthis, __arg_0) => multiply_Callback_1(mthis, __arg_0);
+
+  static multiply_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrixReadOnly_multiply_Callback";
+  multiply_Callback_2_(mthis, __arg_0, __arg_1) => multiply_Callback_2(mthis, __arg_0, __arg_1);
+
+  static multiply_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrixReadOnly_multiply_Callback";
+  multiply_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => multiply_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scale3d_Callback_0(mthis) native "DOMMatrixReadOnly_scale3d_Callback";
+  scale3d_Callback_0_(mthis) => scale3d_Callback_0(mthis);
+
+  static scale3d_Callback_1(mthis, __arg_0) native "DOMMatrixReadOnly_scale3d_Callback";
+  scale3d_Callback_1_(mthis, __arg_0) => scale3d_Callback_1(mthis, __arg_0);
+
+  static scale3d_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrixReadOnly_scale3d_Callback";
+  scale3d_Callback_2_(mthis, __arg_0, __arg_1) => scale3d_Callback_2(mthis, __arg_0, __arg_1);
+
+  static scale3d_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrixReadOnly_scale3d_Callback";
+  scale3d_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => scale3d_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scale3d_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrixReadOnly_scale3d_Callback";
+  scale3d_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => scale3d_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static scale3d_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrixReadOnly_scale3d_Callback";
+  scale3d_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => scale3d_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
+  static scale3d_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "DOMMatrixReadOnly_scale3d_Callback";
+  scale3d_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => scale3d_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
+
+  static scaleNonUniform_Callback_0(mthis) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_0_(mthis) => scaleNonUniform_Callback_0(mthis);
+
+  static scaleNonUniform_Callback_1(mthis, __arg_0) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_1_(mthis, __arg_0) => scaleNonUniform_Callback_1(mthis, __arg_0);
+
+  static scaleNonUniform_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_2_(mthis, __arg_0, __arg_1) => scaleNonUniform_Callback_2(mthis, __arg_0, __arg_1);
+
+  static scaleNonUniform_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => scaleNonUniform_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scaleNonUniform_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => scaleNonUniform_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static scaleNonUniform_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => scaleNonUniform_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
+  static scaleNonUniform_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => scaleNonUniform_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
+
+  static scaleNonUniform_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => scaleNonUniform_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6);
+
+  static scaleNonUniform_Callback_8(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) native "DOMMatrixReadOnly_scaleNonUniform_Callback";
+  scaleNonUniform_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => scaleNonUniform_Callback_8(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7);
+
+  static scale_Callback_0(mthis) native "DOMMatrixReadOnly_scale_Callback";
+  scale_Callback_0_(mthis) => scale_Callback_0(mthis);
+
+  static scale_Callback_1(mthis, __arg_0) native "DOMMatrixReadOnly_scale_Callback";
+  scale_Callback_1_(mthis, __arg_0) => scale_Callback_1(mthis, __arg_0);
+
+  static scale_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrixReadOnly_scale_Callback";
+  scale_Callback_2_(mthis, __arg_0, __arg_1) => scale_Callback_2(mthis, __arg_0, __arg_1);
+
+  static scale_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrixReadOnly_scale_Callback";
+  scale_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => scale_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static scale_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrixReadOnly_scale_Callback";
+  scale_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => scale_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static scale_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrixReadOnly_scale_Callback";
+  scale_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => scale_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
+  static toFloat32Array_Callback_0(mthis) native "DOMMatrixReadOnly_toFloat32Array_Callback";
+  toFloat32Array_Callback_0_(mthis) => toFloat32Array_Callback_0(mthis);
+
+  static toFloat32Array_Callback_1(mthis, __arg_0) native "DOMMatrixReadOnly_toFloat32Array_Callback";
+  toFloat32Array_Callback_1_(mthis, __arg_0) => toFloat32Array_Callback_1(mthis, __arg_0);
+
+  static toFloat32Array_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrixReadOnly_toFloat32Array_Callback";
+  toFloat32Array_Callback_2_(mthis, __arg_0, __arg_1) => toFloat32Array_Callback_2(mthis, __arg_0, __arg_1);
+
+  static toFloat64Array_Callback_0(mthis) native "DOMMatrixReadOnly_toFloat64Array_Callback";
+  toFloat64Array_Callback_0_(mthis) => toFloat64Array_Callback_0(mthis);
+
+  static toFloat64Array_Callback_1(mthis, __arg_0) native "DOMMatrixReadOnly_toFloat64Array_Callback";
+  toFloat64Array_Callback_1_(mthis, __arg_0) => toFloat64Array_Callback_1(mthis, __arg_0);
+
+  static toFloat64Array_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrixReadOnly_toFloat64Array_Callback";
+  toFloat64Array_Callback_2_(mthis, __arg_0, __arg_1) => toFloat64Array_Callback_2(mthis, __arg_0, __arg_1);
+
+  static translate_Callback_0(mthis) native "DOMMatrixReadOnly_translate_Callback";
+  translate_Callback_0_(mthis) => translate_Callback_0(mthis);
+
+  static translate_Callback_1(mthis, __arg_0) native "DOMMatrixReadOnly_translate_Callback";
+  translate_Callback_1_(mthis, __arg_0) => translate_Callback_1(mthis, __arg_0);
+
+  static translate_Callback_2(mthis, __arg_0, __arg_1) native "DOMMatrixReadOnly_translate_Callback";
+  translate_Callback_2_(mthis, __arg_0, __arg_1) => translate_Callback_2(mthis, __arg_0, __arg_1);
+
+  static translate_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DOMMatrixReadOnly_translate_Callback";
+  translate_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => translate_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static translate_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DOMMatrixReadOnly_translate_Callback";
+  translate_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => translate_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static translate_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DOMMatrixReadOnly_translate_Callback";
+  translate_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => translate_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
 
 }
 
@@ -4484,59 +5371,6 @@ class BlinkDatabase {
   transaction_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => transaction_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
 
   static version_Getter(mthis) native "Database_version_Getter";
-  version_Getter_(mthis) => version_Getter(mthis);
-
-}
-
-class BlinkDatabaseSync {
-  static final instance = new BlinkDatabaseSync();
-
-  static changeVersion_Callback_0(mthis) native "DatabaseSync_changeVersion_Callback";
-  changeVersion_Callback_0_(mthis) => changeVersion_Callback_0(mthis);
-
-  static changeVersion_Callback_1(mthis, __arg_0) native "DatabaseSync_changeVersion_Callback";
-  changeVersion_Callback_1_(mthis, __arg_0) => changeVersion_Callback_1(mthis, __arg_0);
-
-  static changeVersion_Callback_2(mthis, __arg_0, __arg_1) native "DatabaseSync_changeVersion_Callback";
-  changeVersion_Callback_2_(mthis, __arg_0, __arg_1) => changeVersion_Callback_2(mthis, __arg_0, __arg_1);
-
-  static changeVersion_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DatabaseSync_changeVersion_Callback";
-  changeVersion_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => changeVersion_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static changeVersion_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "DatabaseSync_changeVersion_Callback";
-  changeVersion_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => changeVersion_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
-
-  static changeVersion_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "DatabaseSync_changeVersion_Callback";
-  changeVersion_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => changeVersion_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
-
-  static lastErrorMessage_Getter(mthis) native "DatabaseSync_lastErrorMessage_Getter";
-  lastErrorMessage_Getter_(mthis) => lastErrorMessage_Getter(mthis);
-
-  static readTransaction_Callback_0(mthis) native "DatabaseSync_readTransaction_Callback";
-  readTransaction_Callback_0_(mthis) => readTransaction_Callback_0(mthis);
-
-  static readTransaction_Callback_1(mthis, __arg_0) native "DatabaseSync_readTransaction_Callback";
-  readTransaction_Callback_1_(mthis, __arg_0) => readTransaction_Callback_1(mthis, __arg_0);
-
-  static readTransaction_Callback_2(mthis, __arg_0, __arg_1) native "DatabaseSync_readTransaction_Callback";
-  readTransaction_Callback_2_(mthis, __arg_0, __arg_1) => readTransaction_Callback_2(mthis, __arg_0, __arg_1);
-
-  static readTransaction_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DatabaseSync_readTransaction_Callback";
-  readTransaction_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => readTransaction_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static transaction_Callback_0(mthis) native "DatabaseSync_transaction_Callback";
-  transaction_Callback_0_(mthis) => transaction_Callback_0(mthis);
-
-  static transaction_Callback_1(mthis, __arg_0) native "DatabaseSync_transaction_Callback";
-  transaction_Callback_1_(mthis, __arg_0) => transaction_Callback_1(mthis, __arg_0);
-
-  static transaction_Callback_2(mthis, __arg_0, __arg_1) native "DatabaseSync_transaction_Callback";
-  transaction_Callback_2_(mthis, __arg_0, __arg_1) => transaction_Callback_2(mthis, __arg_0, __arg_1);
-
-  static transaction_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "DatabaseSync_transaction_Callback";
-  transaction_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => transaction_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static version_Getter(mthis) native "DatabaseSync_version_Getter";
   version_Getter_(mthis) => version_Getter(mthis);
 
 }
@@ -6025,6 +6859,18 @@ class BlinkDocument extends BlinkNode {
   static title_Setter(mthis, __arg_0) native "Document_title_Setter";
   title_Setter_(mthis, __arg_0) => title_Setter(mthis, __arg_0);
 
+  static transformDocumentToTreeView_Callback_0(mthis) native "Document_transformDocumentToTreeView_Callback";
+  transformDocumentToTreeView_Callback_0_(mthis) => transformDocumentToTreeView_Callback_0(mthis);
+
+  static transformDocumentToTreeView_Callback_1(mthis, __arg_0) native "Document_transformDocumentToTreeView_Callback";
+  transformDocumentToTreeView_Callback_1_(mthis, __arg_0) => transformDocumentToTreeView_Callback_1(mthis, __arg_0);
+
+  static transformDocumentToTreeView_Callback_2(mthis, __arg_0, __arg_1) native "Document_transformDocumentToTreeView_Callback";
+  transformDocumentToTreeView_Callback_2_(mthis, __arg_0, __arg_1) => transformDocumentToTreeView_Callback_2(mthis, __arg_0, __arg_1);
+
+  static transformDocumentToTreeView_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "Document_transformDocumentToTreeView_Callback";
+  transformDocumentToTreeView_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => transformDocumentToTreeView_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
   static visibilityState_Getter(mthis) native "Document_visibilityState_Getter";
   visibilityState_Getter_(mthis) => visibilityState_Getter(mthis);
 
@@ -7186,6 +8032,23 @@ class BlinkEventTarget {
 
 }
 
+class BlinkExtendableEvent extends BlinkEvent {
+  static final instance = new BlinkExtendableEvent();
+
+  static waitUntil_Callback_0(mthis) native "ExtendableEvent_waitUntil_Callback";
+  waitUntil_Callback_0_(mthis) => waitUntil_Callback_0(mthis);
+
+  static waitUntil_Callback_1(mthis, __arg_0) native "ExtendableEvent_waitUntil_Callback";
+  waitUntil_Callback_1_(mthis, __arg_0) => waitUntil_Callback_1(mthis, __arg_0);
+
+  static waitUntil_Callback_2(mthis, __arg_0, __arg_1) native "ExtendableEvent_waitUntil_Callback";
+  waitUntil_Callback_2_(mthis, __arg_0, __arg_1) => waitUntil_Callback_2(mthis, __arg_0, __arg_1);
+
+  static waitUntil_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "ExtendableEvent_waitUntil_Callback";
+  waitUntil_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => waitUntil_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+}
+
 class BlinkFederatedCredential extends BlinkCredential {
   static final instance = new BlinkFederatedCredential();
 
@@ -7206,47 +8069,6 @@ class BlinkFederatedCredential extends BlinkCredential {
 
   static federation_Getter(mthis) native "FederatedCredential_federation_Getter";
   federation_Getter_(mthis) => federation_Getter(mthis);
-
-}
-
-class BlinkFetchBodyStream {
-  static final instance = new BlinkFetchBodyStream();
-
-  static asArrayBuffer_Callback_0(mthis) native "FetchBodyStream_asArrayBuffer_Callback";
-  asArrayBuffer_Callback_0_(mthis) => asArrayBuffer_Callback_0(mthis);
-
-  static asArrayBuffer_Callback_1(mthis, __arg_0) native "FetchBodyStream_asArrayBuffer_Callback";
-  asArrayBuffer_Callback_1_(mthis, __arg_0) => asArrayBuffer_Callback_1(mthis, __arg_0);
-
-  static asArrayBuffer_Callback_2(mthis, __arg_0, __arg_1) native "FetchBodyStream_asArrayBuffer_Callback";
-  asArrayBuffer_Callback_2_(mthis, __arg_0, __arg_1) => asArrayBuffer_Callback_2(mthis, __arg_0, __arg_1);
-
-  static asBlob_Callback_0(mthis) native "FetchBodyStream_asBlob_Callback";
-  asBlob_Callback_0_(mthis) => asBlob_Callback_0(mthis);
-
-  static asBlob_Callback_1(mthis, __arg_0) native "FetchBodyStream_asBlob_Callback";
-  asBlob_Callback_1_(mthis, __arg_0) => asBlob_Callback_1(mthis, __arg_0);
-
-  static asBlob_Callback_2(mthis, __arg_0, __arg_1) native "FetchBodyStream_asBlob_Callback";
-  asBlob_Callback_2_(mthis, __arg_0, __arg_1) => asBlob_Callback_2(mthis, __arg_0, __arg_1);
-
-  static asJSON_Callback_0(mthis) native "FetchBodyStream_asJSON_Callback";
-  asJSON_Callback_0_(mthis) => asJSON_Callback_0(mthis);
-
-  static asJSON_Callback_1(mthis, __arg_0) native "FetchBodyStream_asJSON_Callback";
-  asJSON_Callback_1_(mthis, __arg_0) => asJSON_Callback_1(mthis, __arg_0);
-
-  static asJSON_Callback_2(mthis, __arg_0, __arg_1) native "FetchBodyStream_asJSON_Callback";
-  asJSON_Callback_2_(mthis, __arg_0, __arg_1) => asJSON_Callback_2(mthis, __arg_0, __arg_1);
-
-  static asText_Callback_0(mthis) native "FetchBodyStream_asText_Callback";
-  asText_Callback_0_(mthis) => asText_Callback_0(mthis);
-
-  static asText_Callback_1(mthis, __arg_0) native "FetchBodyStream_asText_Callback";
-  asText_Callback_1_(mthis, __arg_0) => asText_Callback_1(mthis, __arg_0);
-
-  static asText_Callback_2(mthis, __arg_0, __arg_1) native "FetchBodyStream_asText_Callback";
-  asText_Callback_2_(mthis, __arg_0, __arg_1) => asText_Callback_2(mthis, __arg_0, __arg_1);
 
 }
 
@@ -8994,6 +9816,12 @@ class BlinkHTMLElement extends BlinkElement {
 
   static contentEditable_Setter(mthis, __arg_0) native "HTMLElement_contentEditable_Setter";
   contentEditable_Setter_(mthis, __arg_0) => contentEditable_Setter(mthis, __arg_0);
+
+  static contextMenu_Getter(mthis) native "HTMLElement_contextMenu_Getter";
+  contextMenu_Getter_(mthis) => contextMenu_Getter(mthis);
+
+  static contextMenu_Setter(mthis, __arg_0) native "HTMLElement_contextMenu_Setter";
+  contextMenu_Setter_(mthis, __arg_0) => contextMenu_Setter(mthis, __arg_0);
 
   static dir_Getter(mthis) native "HTMLElement_dir_Getter";
   dir_Getter_(mthis) => dir_Getter(mthis);
@@ -13096,6 +13924,9 @@ class BlinkImageData {
 class BlinkInjectedScriptHost {
   static final instance = new BlinkInjectedScriptHost();
 
+  static callFunction_Callback_0(mthis) native "InjectedScriptHost_callFunction_Callback";
+  callFunction_Callback_0_(mthis) => callFunction_Callback_0(mthis);
+
   static callFunction_Callback_1(mthis, __arg_0) native "InjectedScriptHost_callFunction_Callback";
   callFunction_Callback_1_(mthis, __arg_0) => callFunction_Callback_1(mthis, __arg_0);
 
@@ -13119,6 +13950,18 @@ class BlinkInjectedScriptHost {
 
   static clearConsoleMessages_Callback_2(mthis, __arg_0, __arg_1) native "InjectedScriptHost_clearConsoleMessages_Callback";
   clearConsoleMessages_Callback_2_(mthis, __arg_0, __arg_1) => clearConsoleMessages_Callback_2(mthis, __arg_0, __arg_1);
+
+  static collectionEntries_Callback_0(mthis) native "InjectedScriptHost_collectionEntries_Callback";
+  collectionEntries_Callback_0_(mthis) => collectionEntries_Callback_0(mthis);
+
+  static collectionEntries_Callback_1(mthis, __arg_0) native "InjectedScriptHost_collectionEntries_Callback";
+  collectionEntries_Callback_1_(mthis, __arg_0) => collectionEntries_Callback_1(mthis, __arg_0);
+
+  static collectionEntries_Callback_2(mthis, __arg_0, __arg_1) native "InjectedScriptHost_collectionEntries_Callback";
+  collectionEntries_Callback_2_(mthis, __arg_0, __arg_1) => collectionEntries_Callback_2(mthis, __arg_0, __arg_1);
+
+  static collectionEntries_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "InjectedScriptHost_collectionEntries_Callback";
+  collectionEntries_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => collectionEntries_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
 
   static debugFunction_Callback_0(mthis) native "InjectedScriptHost_debugFunction_Callback";
   debugFunction_Callback_0_(mthis) => debugFunction_Callback_0(mthis);
@@ -13270,6 +14113,36 @@ class BlinkInjectedScriptHost {
   static setFunctionVariableValue_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "InjectedScriptHost_setFunctionVariableValue_Callback";
   setFunctionVariableValue_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => setFunctionVariableValue_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
 
+  static setNonEnumProperty_Callback_1(mthis, __arg_0) native "InjectedScriptHost_setNonEnumProperty_Callback";
+  setNonEnumProperty_Callback_1_(mthis, __arg_0) => setNonEnumProperty_Callback_1(mthis, __arg_0);
+
+  static setNonEnumProperty_Callback_2(mthis, __arg_0, __arg_1) native "InjectedScriptHost_setNonEnumProperty_Callback";
+  setNonEnumProperty_Callback_2_(mthis, __arg_0, __arg_1) => setNonEnumProperty_Callback_2(mthis, __arg_0, __arg_1);
+
+  static setNonEnumProperty_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "InjectedScriptHost_setNonEnumProperty_Callback";
+  setNonEnumProperty_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => setNonEnumProperty_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static setNonEnumProperty_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "InjectedScriptHost_setNonEnumProperty_Callback";
+  setNonEnumProperty_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => setNonEnumProperty_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static setNonEnumProperty_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "InjectedScriptHost_setNonEnumProperty_Callback";
+  setNonEnumProperty_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => setNonEnumProperty_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
+
+  static subtype_Callback_0(mthis) native "InjectedScriptHost_subtype_Callback";
+  subtype_Callback_0_(mthis) => subtype_Callback_0(mthis);
+
+  static subtype_Callback_1(mthis, __arg_0) native "InjectedScriptHost_subtype_Callback";
+  subtype_Callback_1_(mthis, __arg_0) => subtype_Callback_1(mthis, __arg_0);
+
+  static subtype_Callback_2(mthis, __arg_0, __arg_1) native "InjectedScriptHost_subtype_Callback";
+  subtype_Callback_2_(mthis, __arg_0, __arg_1) => subtype_Callback_2(mthis, __arg_0, __arg_1);
+
+  static subtype_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "InjectedScriptHost_subtype_Callback";
+  subtype_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => subtype_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static suppressWarningsAndCallFunction_Callback_0(mthis) native "InjectedScriptHost_suppressWarningsAndCallFunction_Callback";
+  suppressWarningsAndCallFunction_Callback_0_(mthis) => suppressWarningsAndCallFunction_Callback_0(mthis);
+
   static suppressWarningsAndCallFunction_Callback_1(mthis, __arg_0) native "InjectedScriptHost_suppressWarningsAndCallFunction_Callback";
   suppressWarningsAndCallFunction_Callback_1_(mthis, __arg_0) => suppressWarningsAndCallFunction_Callback_1(mthis, __arg_0);
 
@@ -13284,18 +14157,6 @@ class BlinkInjectedScriptHost {
 
   static suppressWarningsAndCallFunction_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "InjectedScriptHost_suppressWarningsAndCallFunction_Callback";
   suppressWarningsAndCallFunction_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => suppressWarningsAndCallFunction_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
-
-  static type_Callback_0(mthis) native "InjectedScriptHost_type_Callback";
-  type_Callback_0_(mthis) => type_Callback_0(mthis);
-
-  static type_Callback_1(mthis, __arg_0) native "InjectedScriptHost_type_Callback";
-  type_Callback_1_(mthis, __arg_0) => type_Callback_1(mthis, __arg_0);
-
-  static type_Callback_2(mthis, __arg_0, __arg_1) native "InjectedScriptHost_type_Callback";
-  type_Callback_2_(mthis, __arg_0, __arg_1) => type_Callback_2(mthis, __arg_0, __arg_1);
-
-  static type_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "InjectedScriptHost_type_Callback";
-  type_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => type_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
 
   static undebugFunction_Callback_0(mthis) native "InjectedScriptHost_undebugFunction_Callback";
   undebugFunction_Callback_0_(mthis) => undebugFunction_Callback_0(mthis);
@@ -13602,7 +14463,7 @@ class BlinkInspectorOverlayHost {
 
 }
 
-class BlinkInstallEvent extends BlinkInstallPhaseEvent {
+class BlinkInstallEvent extends BlinkExtendableEvent {
   static final instance = new BlinkInstallEvent();
 
   static reloadAll_Callback_0(mthis) native "InstallEvent_reloadAll_Callback";
@@ -13625,20 +14486,20 @@ class BlinkInstallEvent extends BlinkInstallPhaseEvent {
 
 }
 
-class BlinkInstallPhaseEvent extends BlinkEvent {
-  static final instance = new BlinkInstallPhaseEvent();
+class BlinkIterator {
+  static final instance = new BlinkIterator();
 
-  static waitUntil_Callback_0(mthis) native "InstallPhaseEvent_waitUntil_Callback";
-  waitUntil_Callback_0_(mthis) => waitUntil_Callback_0(mthis);
+  static next_Callback_0(mthis) native "Iterator_next_Callback";
+  next_Callback_0_(mthis) => next_Callback_0(mthis);
 
-  static waitUntil_Callback_1(mthis, __arg_0) native "InstallPhaseEvent_waitUntil_Callback";
-  waitUntil_Callback_1_(mthis, __arg_0) => waitUntil_Callback_1(mthis, __arg_0);
+  static next_Callback_1(mthis, __arg_0) native "Iterator_next_Callback";
+  next_Callback_1_(mthis, __arg_0) => next_Callback_1(mthis, __arg_0);
 
-  static waitUntil_Callback_2(mthis, __arg_0, __arg_1) native "InstallPhaseEvent_waitUntil_Callback";
-  waitUntil_Callback_2_(mthis, __arg_0, __arg_1) => waitUntil_Callback_2(mthis, __arg_0, __arg_1);
+  static next_Callback_2(mthis, __arg_0, __arg_1) native "Iterator_next_Callback";
+  next_Callback_2_(mthis, __arg_0, __arg_1) => next_Callback_2(mthis, __arg_0, __arg_1);
 
-  static waitUntil_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "InstallPhaseEvent_waitUntil_Callback";
-  waitUntil_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => waitUntil_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+  static next_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "Iterator_next_Callback";
+  next_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => next_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
 
 }
 
@@ -13941,14 +14802,8 @@ class BlinkLocation {
 class BlinkMIDIAccess extends BlinkEventTarget {
   static final instance = new BlinkMIDIAccess();
 
-  static inputs_Callback_0(mthis) native "MIDIAccess_inputs_Callback";
-  inputs_Callback_0_(mthis) => inputs_Callback_0(mthis);
-
-  static inputs_Callback_1(mthis, __arg_0) native "MIDIAccess_inputs_Callback";
-  inputs_Callback_1_(mthis, __arg_0) => inputs_Callback_1(mthis, __arg_0);
-
-  static inputs_Callback_2(mthis, __arg_0, __arg_1) native "MIDIAccess_inputs_Callback";
-  inputs_Callback_2_(mthis, __arg_0, __arg_1) => inputs_Callback_2(mthis, __arg_0, __arg_1);
+  static inputs_Getter(mthis) native "MIDIAccess_inputs_Getter";
+  inputs_Getter_(mthis) => inputs_Getter(mthis);
 
   static onconnect_Getter(mthis) native "MIDIAccess_onconnect_Getter";
   onconnect_Getter_(mthis) => onconnect_Getter(mthis);
@@ -13962,14 +14817,8 @@ class BlinkMIDIAccess extends BlinkEventTarget {
   static ondisconnect_Setter(mthis, __arg_0) native "MIDIAccess_ondisconnect_Setter";
   ondisconnect_Setter_(mthis, __arg_0) => ondisconnect_Setter(mthis, __arg_0);
 
-  static outputs_Callback_0(mthis) native "MIDIAccess_outputs_Callback";
-  outputs_Callback_0_(mthis) => outputs_Callback_0(mthis);
-
-  static outputs_Callback_1(mthis, __arg_0) native "MIDIAccess_outputs_Callback";
-  outputs_Callback_1_(mthis, __arg_0) => outputs_Callback_1(mthis, __arg_0);
-
-  static outputs_Callback_2(mthis, __arg_0, __arg_1) native "MIDIAccess_outputs_Callback";
-  outputs_Callback_2_(mthis, __arg_0, __arg_1) => outputs_Callback_2(mthis, __arg_0, __arg_1);
+  static outputs_Getter(mthis) native "MIDIAccess_outputs_Getter";
+  outputs_Getter_(mthis) => outputs_Getter(mthis);
 
   static sysexEnabled_Getter(mthis) native "MIDIAccess_sysexEnabled_Getter";
   sysexEnabled_Getter_(mthis) => sysexEnabled_Getter(mthis);
@@ -13995,6 +14844,65 @@ class BlinkMIDIInput extends BlinkMIDIPort {
 
   static onmidimessage_Setter(mthis, __arg_0) native "MIDIInput_onmidimessage_Setter";
   onmidimessage_Setter_(mthis, __arg_0) => onmidimessage_Setter(mthis, __arg_0);
+
+}
+
+class BlinkMIDIInputMap {
+  static final instance = new BlinkMIDIInputMap();
+
+  static entries_Callback_0(mthis) native "MIDIInputMap_entries_Callback";
+  entries_Callback_0_(mthis) => entries_Callback_0(mthis);
+
+  static entries_Callback_1(mthis, __arg_0) native "MIDIInputMap_entries_Callback";
+  entries_Callback_1_(mthis, __arg_0) => entries_Callback_1(mthis, __arg_0);
+
+  static entries_Callback_2(mthis, __arg_0, __arg_1) native "MIDIInputMap_entries_Callback";
+  entries_Callback_2_(mthis, __arg_0, __arg_1) => entries_Callback_2(mthis, __arg_0, __arg_1);
+
+  static get_Callback_0(mthis) native "MIDIInputMap_get_Callback";
+  get_Callback_0_(mthis) => get_Callback_0(mthis);
+
+  static get_Callback_1(mthis, __arg_0) native "MIDIInputMap_get_Callback";
+  get_Callback_1_(mthis, __arg_0) => get_Callback_1(mthis, __arg_0);
+
+  static get_Callback_2(mthis, __arg_0, __arg_1) native "MIDIInputMap_get_Callback";
+  get_Callback_2_(mthis, __arg_0, __arg_1) => get_Callback_2(mthis, __arg_0, __arg_1);
+
+  static get_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "MIDIInputMap_get_Callback";
+  get_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => get_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static has_Callback_0(mthis) native "MIDIInputMap_has_Callback";
+  has_Callback_0_(mthis) => has_Callback_0(mthis);
+
+  static has_Callback_1(mthis, __arg_0) native "MIDIInputMap_has_Callback";
+  has_Callback_1_(mthis, __arg_0) => has_Callback_1(mthis, __arg_0);
+
+  static has_Callback_2(mthis, __arg_0, __arg_1) native "MIDIInputMap_has_Callback";
+  has_Callback_2_(mthis, __arg_0, __arg_1) => has_Callback_2(mthis, __arg_0, __arg_1);
+
+  static has_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "MIDIInputMap_has_Callback";
+  has_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => has_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static keys_Callback_0(mthis) native "MIDIInputMap_keys_Callback";
+  keys_Callback_0_(mthis) => keys_Callback_0(mthis);
+
+  static keys_Callback_1(mthis, __arg_0) native "MIDIInputMap_keys_Callback";
+  keys_Callback_1_(mthis, __arg_0) => keys_Callback_1(mthis, __arg_0);
+
+  static keys_Callback_2(mthis, __arg_0, __arg_1) native "MIDIInputMap_keys_Callback";
+  keys_Callback_2_(mthis, __arg_0, __arg_1) => keys_Callback_2(mthis, __arg_0, __arg_1);
+
+  static size_Getter(mthis) native "MIDIInputMap_size_Getter";
+  size_Getter_(mthis) => size_Getter(mthis);
+
+  static values_Callback_0(mthis) native "MIDIInputMap_values_Callback";
+  values_Callback_0_(mthis) => values_Callback_0(mthis);
+
+  static values_Callback_1(mthis, __arg_0) native "MIDIInputMap_values_Callback";
+  values_Callback_1_(mthis, __arg_0) => values_Callback_1(mthis, __arg_0);
+
+  static values_Callback_2(mthis, __arg_0, __arg_1) native "MIDIInputMap_values_Callback";
+  values_Callback_2_(mthis, __arg_0, __arg_1) => values_Callback_2(mthis, __arg_0, __arg_1);
 
 }
 
@@ -14029,6 +14937,65 @@ class BlinkMIDIOutput extends BlinkMIDIPort {
 
   static send_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "MIDIOutput_send_Callback";
   send_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => send_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+}
+
+class BlinkMIDIOutputMap {
+  static final instance = new BlinkMIDIOutputMap();
+
+  static entries_Callback_0(mthis) native "MIDIOutputMap_entries_Callback";
+  entries_Callback_0_(mthis) => entries_Callback_0(mthis);
+
+  static entries_Callback_1(mthis, __arg_0) native "MIDIOutputMap_entries_Callback";
+  entries_Callback_1_(mthis, __arg_0) => entries_Callback_1(mthis, __arg_0);
+
+  static entries_Callback_2(mthis, __arg_0, __arg_1) native "MIDIOutputMap_entries_Callback";
+  entries_Callback_2_(mthis, __arg_0, __arg_1) => entries_Callback_2(mthis, __arg_0, __arg_1);
+
+  static get_Callback_0(mthis) native "MIDIOutputMap_get_Callback";
+  get_Callback_0_(mthis) => get_Callback_0(mthis);
+
+  static get_Callback_1(mthis, __arg_0) native "MIDIOutputMap_get_Callback";
+  get_Callback_1_(mthis, __arg_0) => get_Callback_1(mthis, __arg_0);
+
+  static get_Callback_2(mthis, __arg_0, __arg_1) native "MIDIOutputMap_get_Callback";
+  get_Callback_2_(mthis, __arg_0, __arg_1) => get_Callback_2(mthis, __arg_0, __arg_1);
+
+  static get_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "MIDIOutputMap_get_Callback";
+  get_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => get_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static has_Callback_0(mthis) native "MIDIOutputMap_has_Callback";
+  has_Callback_0_(mthis) => has_Callback_0(mthis);
+
+  static has_Callback_1(mthis, __arg_0) native "MIDIOutputMap_has_Callback";
+  has_Callback_1_(mthis, __arg_0) => has_Callback_1(mthis, __arg_0);
+
+  static has_Callback_2(mthis, __arg_0, __arg_1) native "MIDIOutputMap_has_Callback";
+  has_Callback_2_(mthis, __arg_0, __arg_1) => has_Callback_2(mthis, __arg_0, __arg_1);
+
+  static has_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "MIDIOutputMap_has_Callback";
+  has_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => has_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static keys_Callback_0(mthis) native "MIDIOutputMap_keys_Callback";
+  keys_Callback_0_(mthis) => keys_Callback_0(mthis);
+
+  static keys_Callback_1(mthis, __arg_0) native "MIDIOutputMap_keys_Callback";
+  keys_Callback_1_(mthis, __arg_0) => keys_Callback_1(mthis, __arg_0);
+
+  static keys_Callback_2(mthis, __arg_0, __arg_1) native "MIDIOutputMap_keys_Callback";
+  keys_Callback_2_(mthis, __arg_0, __arg_1) => keys_Callback_2(mthis, __arg_0, __arg_1);
+
+  static size_Getter(mthis) native "MIDIOutputMap_size_Getter";
+  size_Getter_(mthis) => size_Getter(mthis);
+
+  static values_Callback_0(mthis) native "MIDIOutputMap_values_Callback";
+  values_Callback_0_(mthis) => values_Callback_0(mthis);
+
+  static values_Callback_1(mthis, __arg_0) native "MIDIOutputMap_values_Callback";
+  values_Callback_1_(mthis, __arg_0) => values_Callback_1(mthis, __arg_0);
+
+  static values_Callback_2(mthis, __arg_0, __arg_1) native "MIDIOutputMap_values_Callback";
+  values_Callback_2_(mthis, __arg_0, __arg_1) => values_Callback_2(mthis, __arg_0, __arg_1);
 
 }
 
@@ -14257,6 +15224,21 @@ class BlinkMediaKeySession extends BlinkEventTarget {
   static error_Getter(mthis) native "MediaKeySession_error_Getter";
   error_Getter_(mthis) => error_Getter(mthis);
 
+  static generateRequest_Callback_0(mthis) native "MediaKeySession_generateRequest_Callback";
+  generateRequest_Callback_0_(mthis) => generateRequest_Callback_0(mthis);
+
+  static generateRequest_Callback_1(mthis, __arg_0) native "MediaKeySession_generateRequest_Callback";
+  generateRequest_Callback_1_(mthis, __arg_0) => generateRequest_Callback_1(mthis, __arg_0);
+
+  static generateRequest_Callback_2(mthis, __arg_0, __arg_1) native "MediaKeySession_generateRequest_Callback";
+  generateRequest_Callback_2_(mthis, __arg_0, __arg_1) => generateRequest_Callback_2(mthis, __arg_0, __arg_1);
+
+  static generateRequest_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "MediaKeySession_generateRequest_Callback";
+  generateRequest_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => generateRequest_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static generateRequest_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "MediaKeySession_generateRequest_Callback";
+  generateRequest_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => generateRequest_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
   static keySystem_Getter(mthis) native "MediaKeySession_keySystem_Getter";
   keySystem_Getter_(mthis) => keySystem_Getter(mthis);
 
@@ -14300,12 +15282,6 @@ class BlinkMediaKeys {
 
   static createSession_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "MediaKeys_createSession_Callback";
   createSession_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => createSession_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static createSession_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "MediaKeys_createSession_Callback";
-  createSession_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => createSession_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
-
-  static createSession_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "MediaKeys_createSession_Callback";
-  createSession_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => createSession_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
 
   static create_Callback_0() native "MediaKeys_create_Callback";
   create_Callback_0_() => create_Callback_0();
@@ -14392,7 +15368,7 @@ class BlinkMediaList {
 
 }
 
-class BlinkMediaQueryList {
+class BlinkMediaQueryList extends BlinkEventTarget {
   static final instance = new BlinkMediaQueryList();
 
   static addListener_Callback_0(mthis) native "MediaQueryList_addListener_Callback";
@@ -14413,6 +15389,12 @@ class BlinkMediaQueryList {
   static media_Getter(mthis) native "MediaQueryList_media_Getter";
   media_Getter_(mthis) => media_Getter(mthis);
 
+  static onchange_Getter(mthis) native "MediaQueryList_onchange_Getter";
+  onchange_Getter_(mthis) => onchange_Getter(mthis);
+
+  static onchange_Setter(mthis, __arg_0) native "MediaQueryList_onchange_Setter";
+  onchange_Setter_(mthis, __arg_0) => onchange_Setter(mthis, __arg_0);
+
   static removeListener_Callback_0(mthis) native "MediaQueryList_removeListener_Callback";
   removeListener_Callback_0_(mthis) => removeListener_Callback_0(mthis);
 
@@ -14424,6 +15406,20 @@ class BlinkMediaQueryList {
 
   static removeListener_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "MediaQueryList_removeListener_Callback";
   removeListener_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => removeListener_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+}
+
+class BlinkMediaQueryListEvent extends BlinkEvent {
+  static final instance = new BlinkMediaQueryListEvent();
+
+  static constructorCallback_2(__arg_0, __arg_1) native "MediaQueryListEvent_constructorCallback";
+  constructorCallback_2_(__arg_0, __arg_1) => constructorCallback_2(__arg_0, __arg_1);
+
+  static matches_Getter(mthis) native "MediaQueryListEvent_matches_Getter";
+  matches_Getter_(mthis) => matches_Getter(mthis);
+
+  static media_Getter(mthis) native "MediaQueryListEvent_media_Getter";
+  media_Getter_(mthis) => media_Getter(mthis);
 
 }
 
@@ -15398,6 +16394,9 @@ class BlinkNavigator {
   static plugins_Getter(mthis) native "Navigator_plugins_Getter";
   plugins_Getter_(mthis) => plugins_Getter(mthis);
 
+  static presentation_Getter(mthis) native "Navigator_presentation_Getter";
+  presentation_Getter_(mthis) => presentation_Getter(mthis);
+
   static productSub_Getter(mthis) native "Navigator_productSub_Getter";
   productSub_Getter_(mthis) => productSub_Getter(mthis);
 
@@ -15754,11 +16753,6 @@ class BlinkNodeList {
 
 }
 
-class BlinkNotation extends BlinkNode {
-  static final instance = new BlinkNotation();
-
-}
-
 class BlinkNotification extends BlinkEventTarget {
   static final instance = new BlinkNotification();
 
@@ -16094,6 +17088,21 @@ class BlinkPagePopupController {
 
   static formatShortMonth_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "PagePopupController_formatShortMonth_Callback";
   formatShortMonth_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => formatShortMonth_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static formatWeek_Callback_1(mthis, __arg_0) native "PagePopupController_formatWeek_Callback";
+  formatWeek_Callback_1_(mthis, __arg_0) => formatWeek_Callback_1(mthis, __arg_0);
+
+  static formatWeek_Callback_2(mthis, __arg_0, __arg_1) native "PagePopupController_formatWeek_Callback";
+  formatWeek_Callback_2_(mthis, __arg_0, __arg_1) => formatWeek_Callback_2(mthis, __arg_0, __arg_1);
+
+  static formatWeek_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "PagePopupController_formatWeek_Callback";
+  formatWeek_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => formatWeek_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static formatWeek_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "PagePopupController_formatWeek_Callback";
+  formatWeek_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => formatWeek_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
+
+  static formatWeek_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "PagePopupController_formatWeek_Callback";
+  formatWeek_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => formatWeek_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
 
   static histogramEnumeration_Callback_1(mthis, __arg_0) native "PagePopupController_histogramEnumeration_Callback";
   histogramEnumeration_Callback_1_(mthis, __arg_0) => histogramEnumeration_Callback_1(mthis, __arg_0);
@@ -16810,6 +17819,26 @@ class BlinkPluginArray {
 
 }
 
+class BlinkPluginPlaceholderElement extends BlinkHTMLDivElement {
+  static final instance = new BlinkPluginPlaceholderElement();
+
+  static createdCallback_Callback_0(mthis) native "PluginPlaceholderElement_createdCallback_Callback";
+  createdCallback_Callback_0_(mthis) => createdCallback_Callback_0(mthis);
+
+  static createdCallback_Callback_1(mthis, __arg_0) native "PluginPlaceholderElement_createdCallback_Callback";
+  createdCallback_Callback_1_(mthis, __arg_0) => createdCallback_Callback_1(mthis, __arg_0);
+
+  static createdCallback_Callback_2(mthis, __arg_0, __arg_1) native "PluginPlaceholderElement_createdCallback_Callback";
+  createdCallback_Callback_2_(mthis, __arg_0, __arg_1) => createdCallback_Callback_2(mthis, __arg_0, __arg_1);
+
+  static message_Getter(mthis) native "PluginPlaceholderElement_message_Getter";
+  message_Getter_(mthis) => message_Getter(mthis);
+
+  static message_Setter(mthis, __arg_0) native "PluginPlaceholderElement_message_Setter";
+  message_Setter_(mthis, __arg_0) => message_Setter(mthis, __arg_0);
+
+}
+
 class BlinkPopStateEvent extends BlinkEvent {
   static final instance = new BlinkPopStateEvent();
 
@@ -16829,6 +17858,17 @@ class BlinkPositionError {
 
   static message_Getter(mthis) native "PositionError_message_Getter";
   message_Getter_(mthis) => message_Getter(mthis);
+
+}
+
+class BlinkPresentation extends BlinkEventTarget {
+  static final instance = new BlinkPresentation();
+
+  static onavailablechange_Getter(mthis) native "Presentation_onavailablechange_Getter";
+  onavailablechange_Getter_(mthis) => onavailablechange_Getter(mthis);
+
+  static onavailablechange_Setter(mthis, __arg_0) native "Presentation_onavailablechange_Setter";
+  onavailablechange_Setter_(mthis, __arg_0) => onavailablechange_Setter(mthis, __arg_0);
 
 }
 
@@ -17834,6 +18874,42 @@ class BlinkRange {
 class BlinkReadableStream {
   static final instance = new BlinkReadableStream();
 
+  static cancel_Callback_0(mthis) native "ReadableStream_cancel_Callback";
+  cancel_Callback_0_(mthis) => cancel_Callback_0(mthis);
+
+  static cancel_Callback_1(mthis, __arg_0) native "ReadableStream_cancel_Callback";
+  cancel_Callback_1_(mthis, __arg_0) => cancel_Callback_1(mthis, __arg_0);
+
+  static cancel_Callback_2(mthis, __arg_0, __arg_1) native "ReadableStream_cancel_Callback";
+  cancel_Callback_2_(mthis, __arg_0, __arg_1) => cancel_Callback_2(mthis, __arg_0, __arg_1);
+
+  static cancel_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "ReadableStream_cancel_Callback";
+  cancel_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => cancel_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
+
+  static closed_Getter(mthis) native "ReadableStream_closed_Getter";
+  closed_Getter_(mthis) => closed_Getter(mthis);
+
+  static read_Callback_0(mthis) native "ReadableStream_read_Callback";
+  read_Callback_0_(mthis) => read_Callback_0(mthis);
+
+  static read_Callback_1(mthis, __arg_0) native "ReadableStream_read_Callback";
+  read_Callback_1_(mthis, __arg_0) => read_Callback_1(mthis, __arg_0);
+
+  static read_Callback_2(mthis, __arg_0, __arg_1) native "ReadableStream_read_Callback";
+  read_Callback_2_(mthis, __arg_0, __arg_1) => read_Callback_2(mthis, __arg_0, __arg_1);
+
+  static state_Getter(mthis) native "ReadableStream_state_Getter";
+  state_Getter_(mthis) => state_Getter(mthis);
+
+  static wait_Callback_0(mthis) native "ReadableStream_wait_Callback";
+  wait_Callback_0_(mthis) => wait_Callback_0(mthis);
+
+  static wait_Callback_1(mthis, __arg_0) native "ReadableStream_wait_Callback";
+  wait_Callback_1_(mthis, __arg_0) => wait_Callback_1(mthis, __arg_0);
+
+  static wait_Callback_2(mthis, __arg_0, __arg_1) native "ReadableStream_wait_Callback";
+  wait_Callback_2_(mthis, __arg_0, __arg_1) => wait_Callback_2(mthis, __arg_0, __arg_1);
+
 }
 
 class BlinkRect {
@@ -17867,6 +18943,36 @@ class BlinkRelatedEvent extends BlinkEvent {
 class BlinkRequest {
   static final instance = new BlinkRequest();
 
+  static arrayBuffer_Callback_0(mthis) native "Request_arrayBuffer_Callback";
+  arrayBuffer_Callback_0_(mthis) => arrayBuffer_Callback_0(mthis);
+
+  static arrayBuffer_Callback_1(mthis, __arg_0) native "Request_arrayBuffer_Callback";
+  arrayBuffer_Callback_1_(mthis, __arg_0) => arrayBuffer_Callback_1(mthis, __arg_0);
+
+  static arrayBuffer_Callback_2(mthis, __arg_0, __arg_1) native "Request_arrayBuffer_Callback";
+  arrayBuffer_Callback_2_(mthis, __arg_0, __arg_1) => arrayBuffer_Callback_2(mthis, __arg_0, __arg_1);
+
+  static blob_Callback_0(mthis) native "Request_blob_Callback";
+  blob_Callback_0_(mthis) => blob_Callback_0(mthis);
+
+  static blob_Callback_1(mthis, __arg_0) native "Request_blob_Callback";
+  blob_Callback_1_(mthis, __arg_0) => blob_Callback_1(mthis, __arg_0);
+
+  static blob_Callback_2(mthis, __arg_0, __arg_1) native "Request_blob_Callback";
+  blob_Callback_2_(mthis, __arg_0, __arg_1) => blob_Callback_2(mthis, __arg_0, __arg_1);
+
+  static bodyUsed_Getter(mthis) native "Request_bodyUsed_Getter";
+  bodyUsed_Getter_(mthis) => bodyUsed_Getter(mthis);
+
+  static clone_Callback_0(mthis) native "Request_clone_Callback";
+  clone_Callback_0_(mthis) => clone_Callback_0(mthis);
+
+  static clone_Callback_1(mthis, __arg_0) native "Request_clone_Callback";
+  clone_Callback_1_(mthis, __arg_0) => clone_Callback_1(mthis, __arg_0);
+
+  static clone_Callback_2(mthis, __arg_0, __arg_1) native "Request_clone_Callback";
+  clone_Callback_2_(mthis, __arg_0, __arg_1) => clone_Callback_2(mthis, __arg_0, __arg_1);
+
   static constructorCallback_0() native "Request_constructorCallback";
   constructorCallback_0_() => constructorCallback_0();
 
@@ -17888,6 +18994,15 @@ class BlinkRequest {
   static headers_Getter(mthis) native "Request_headers_Getter";
   headers_Getter_(mthis) => headers_Getter(mthis);
 
+  static json_Callback_0(mthis) native "Request_json_Callback";
+  json_Callback_0_(mthis) => json_Callback_0(mthis);
+
+  static json_Callback_1(mthis, __arg_0) native "Request_json_Callback";
+  json_Callback_1_(mthis, __arg_0) => json_Callback_1(mthis, __arg_0);
+
+  static json_Callback_2(mthis, __arg_0, __arg_1) native "Request_json_Callback";
+  json_Callback_2_(mthis, __arg_0, __arg_1) => json_Callback_2(mthis, __arg_0, __arg_1);
+
   static method_Getter(mthis) native "Request_method_Getter";
   method_Getter_(mthis) => method_Getter(mthis);
 
@@ -17896,6 +19011,15 @@ class BlinkRequest {
 
   static referrer_Getter(mthis) native "Request_referrer_Getter";
   referrer_Getter_(mthis) => referrer_Getter(mthis);
+
+  static text_Callback_0(mthis) native "Request_text_Callback";
+  text_Callback_0_(mthis) => text_Callback_0(mthis);
+
+  static text_Callback_1(mthis, __arg_0) native "Request_text_Callback";
+  text_Callback_1_(mthis, __arg_0) => text_Callback_1(mthis, __arg_0);
+
+  static text_Callback_2(mthis, __arg_0, __arg_1) native "Request_text_Callback";
+  text_Callback_2_(mthis, __arg_0, __arg_1) => text_Callback_2(mthis, __arg_0, __arg_1);
 
   static url_Getter(mthis) native "Request_url_Getter";
   url_Getter_(mthis) => url_Getter(mthis);
@@ -17913,8 +19037,35 @@ class BlinkResourceProgressEvent extends BlinkProgressEvent {
 class BlinkResponse {
   static final instance = new BlinkResponse();
 
-  static body_Getter(mthis) native "Response_body_Getter";
-  body_Getter_(mthis) => body_Getter(mthis);
+  static arrayBuffer_Callback_0(mthis) native "Response_arrayBuffer_Callback";
+  arrayBuffer_Callback_0_(mthis) => arrayBuffer_Callback_0(mthis);
+
+  static arrayBuffer_Callback_1(mthis, __arg_0) native "Response_arrayBuffer_Callback";
+  arrayBuffer_Callback_1_(mthis, __arg_0) => arrayBuffer_Callback_1(mthis, __arg_0);
+
+  static arrayBuffer_Callback_2(mthis, __arg_0, __arg_1) native "Response_arrayBuffer_Callback";
+  arrayBuffer_Callback_2_(mthis, __arg_0, __arg_1) => arrayBuffer_Callback_2(mthis, __arg_0, __arg_1);
+
+  static blob_Callback_0(mthis) native "Response_blob_Callback";
+  blob_Callback_0_(mthis) => blob_Callback_0(mthis);
+
+  static blob_Callback_1(mthis, __arg_0) native "Response_blob_Callback";
+  blob_Callback_1_(mthis, __arg_0) => blob_Callback_1(mthis, __arg_0);
+
+  static blob_Callback_2(mthis, __arg_0, __arg_1) native "Response_blob_Callback";
+  blob_Callback_2_(mthis, __arg_0, __arg_1) => blob_Callback_2(mthis, __arg_0, __arg_1);
+
+  static bodyUsed_Getter(mthis) native "Response_bodyUsed_Getter";
+  bodyUsed_Getter_(mthis) => bodyUsed_Getter(mthis);
+
+  static clone_Callback_0(mthis) native "Response_clone_Callback";
+  clone_Callback_0_(mthis) => clone_Callback_0(mthis);
+
+  static clone_Callback_1(mthis, __arg_0) native "Response_clone_Callback";
+  clone_Callback_1_(mthis, __arg_0) => clone_Callback_1(mthis, __arg_0);
+
+  static clone_Callback_2(mthis, __arg_0, __arg_1) native "Response_clone_Callback";
+  clone_Callback_2_(mthis, __arg_0, __arg_1) => clone_Callback_2(mthis, __arg_0, __arg_1);
 
   static constructorCallback_0() native "Response_constructorCallback";
   constructorCallback_0_() => constructorCallback_0();
@@ -17934,11 +19085,29 @@ class BlinkResponse {
   static headers_Getter(mthis) native "Response_headers_Getter";
   headers_Getter_(mthis) => headers_Getter(mthis);
 
+  static json_Callback_0(mthis) native "Response_json_Callback";
+  json_Callback_0_(mthis) => json_Callback_0(mthis);
+
+  static json_Callback_1(mthis, __arg_0) native "Response_json_Callback";
+  json_Callback_1_(mthis, __arg_0) => json_Callback_1(mthis, __arg_0);
+
+  static json_Callback_2(mthis, __arg_0, __arg_1) native "Response_json_Callback";
+  json_Callback_2_(mthis, __arg_0, __arg_1) => json_Callback_2(mthis, __arg_0, __arg_1);
+
   static statusText_Getter(mthis) native "Response_statusText_Getter";
   statusText_Getter_(mthis) => statusText_Getter(mthis);
 
   static status_Getter(mthis) native "Response_status_Getter";
   status_Getter_(mthis) => status_Getter(mthis);
+
+  static text_Callback_0(mthis) native "Response_text_Callback";
+  text_Callback_0_(mthis) => text_Callback_0(mthis);
+
+  static text_Callback_1(mthis, __arg_0) native "Response_text_Callback";
+  text_Callback_1_(mthis, __arg_0) => text_Callback_1(mthis, __arg_0);
+
+  static text_Callback_2(mthis, __arg_0, __arg_1) native "Response_text_Callback";
+  text_Callback_2_(mthis, __arg_0, __arg_1) => text_Callback_2(mthis, __arg_0, __arg_1);
 
   static type_Getter(mthis) native "Response_type_Getter";
   type_Getter_(mthis) => type_Getter(mthis);
@@ -18016,26 +19185,6 @@ class BlinkSQLTransaction {
 
   static executeSql_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "SQLTransaction_executeSql_Callback";
   executeSql_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => executeSql_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
-
-}
-
-class BlinkSQLTransactionSync {
-  static final instance = new BlinkSQLTransactionSync();
-
-  static executeSql_Callback_0(mthis) native "SQLTransactionSync_executeSql_Callback";
-  executeSql_Callback_0_(mthis) => executeSql_Callback_0(mthis);
-
-  static executeSql_Callback_1(mthis, __arg_0) native "SQLTransactionSync_executeSql_Callback";
-  executeSql_Callback_1_(mthis, __arg_0) => executeSql_Callback_1(mthis, __arg_0);
-
-  static executeSql_Callback_2(mthis, __arg_0, __arg_1) native "SQLTransactionSync_executeSql_Callback";
-  executeSql_Callback_2_(mthis, __arg_0, __arg_1) => executeSql_Callback_2(mthis, __arg_0, __arg_1);
-
-  static executeSql_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "SQLTransactionSync_executeSql_Callback";
-  executeSql_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => executeSql_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static executeSql_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "SQLTransactionSync_executeSql_Callback";
-  executeSql_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => executeSql_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
 
 }
 
@@ -22709,6 +23858,12 @@ class BlinkScriptProcessorNode extends BlinkAudioNode {
   static bufferSize_Getter(mthis) native "ScriptProcessorNode_bufferSize_Getter";
   bufferSize_Getter_(mthis) => bufferSize_Getter(mthis);
 
+  static onaudioprocess_Getter(mthis) native "ScriptProcessorNode_onaudioprocess_Getter";
+  onaudioprocess_Getter_(mthis) => onaudioprocess_Getter(mthis);
+
+  static onaudioprocess_Setter(mthis, __arg_0) native "ScriptProcessorNode_onaudioprocess_Setter";
+  onaudioprocess_Setter_(mthis, __arg_0) => onaudioprocess_Setter(mthis, __arg_0);
+
   static setEventListener_Callback_0(mthis) native "ScriptProcessorNode_setEventListener_Callback";
   setEventListener_Callback_0_(mthis) => setEventListener_Callback_0(mthis);
 
@@ -23015,6 +24170,15 @@ class BlinkServiceWorker extends BlinkEventTarget {
   static state_Getter(mthis) native "ServiceWorker_state_Getter";
   state_Getter_(mthis) => state_Getter(mthis);
 
+  static terminate_Callback_0(mthis) native "ServiceWorker_terminate_Callback";
+  terminate_Callback_0_(mthis) => terminate_Callback_0(mthis);
+
+  static terminate_Callback_1(mthis, __arg_0) native "ServiceWorker_terminate_Callback";
+  terminate_Callback_1_(mthis, __arg_0) => terminate_Callback_1(mthis, __arg_0);
+
+  static terminate_Callback_2(mthis, __arg_0, __arg_1) native "ServiceWorker_terminate_Callback";
+  terminate_Callback_2_(mthis, __arg_0, __arg_1) => terminate_Callback_2(mthis, __arg_0, __arg_1);
+
 }
 
 class BlinkServiceWorkerClient {
@@ -23043,28 +24207,37 @@ class BlinkServiceWorkerClient {
 class BlinkServiceWorkerClients {
   static final instance = new BlinkServiceWorkerClients();
 
-  static getServiced_Callback_0(mthis) native "ServiceWorkerClients_getServiced_Callback";
-  getServiced_Callback_0_(mthis) => getServiced_Callback_0(mthis);
+  static getAll_Callback_0(mthis) native "ServiceWorkerClients_getAll_Callback";
+  getAll_Callback_0_(mthis) => getAll_Callback_0(mthis);
 
-  static getServiced_Callback_1(mthis, __arg_0) native "ServiceWorkerClients_getServiced_Callback";
-  getServiced_Callback_1_(mthis, __arg_0) => getServiced_Callback_1(mthis, __arg_0);
+  static getAll_Callback_1(mthis, __arg_0) native "ServiceWorkerClients_getAll_Callback";
+  getAll_Callback_1_(mthis, __arg_0) => getAll_Callback_1(mthis, __arg_0);
 
-  static getServiced_Callback_2(mthis, __arg_0, __arg_1) native "ServiceWorkerClients_getServiced_Callback";
-  getServiced_Callback_2_(mthis, __arg_0, __arg_1) => getServiced_Callback_2(mthis, __arg_0, __arg_1);
+  static getAll_Callback_2(mthis, __arg_0, __arg_1) native "ServiceWorkerClients_getAll_Callback";
+  getAll_Callback_2_(mthis, __arg_0, __arg_1) => getAll_Callback_2(mthis, __arg_0, __arg_1);
+
+  static getAll_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "ServiceWorkerClients_getAll_Callback";
+  getAll_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => getAll_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
 
 }
 
 class BlinkServiceWorkerContainer {
   static final instance = new BlinkServiceWorkerContainer();
 
-  static active_Getter(mthis) native "ServiceWorkerContainer_active_Getter";
-  active_Getter_(mthis) => active_Getter(mthis);
-
   static controller_Getter(mthis) native "ServiceWorkerContainer_controller_Getter";
   controller_Getter_(mthis) => controller_Getter(mthis);
 
-  static installing_Getter(mthis) native "ServiceWorkerContainer_installing_Getter";
-  installing_Getter_(mthis) => installing_Getter(mthis);
+  static getRegistration_Callback_0(mthis) native "ServiceWorkerContainer_getRegistration_Callback";
+  getRegistration_Callback_0_(mthis) => getRegistration_Callback_0(mthis);
+
+  static getRegistration_Callback_1(mthis, __arg_0) native "ServiceWorkerContainer_getRegistration_Callback";
+  getRegistration_Callback_1_(mthis, __arg_0) => getRegistration_Callback_1(mthis, __arg_0);
+
+  static getRegistration_Callback_2(mthis, __arg_0, __arg_1) native "ServiceWorkerContainer_getRegistration_Callback";
+  getRegistration_Callback_2_(mthis, __arg_0, __arg_1) => getRegistration_Callback_2(mthis, __arg_0, __arg_1);
+
+  static getRegistration_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "ServiceWorkerContainer_getRegistration_Callback";
+  getRegistration_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => getRegistration_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
 
   static ready_Getter(mthis) native "ServiceWorkerContainer_ready_Getter";
   ready_Getter_(mthis) => ready_Getter(mthis);
@@ -23084,28 +24257,25 @@ class BlinkServiceWorkerContainer {
   static register_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "ServiceWorkerContainer_register_Callback";
   register_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => register_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
 
-  static unregister_Callback_0(mthis) native "ServiceWorkerContainer_unregister_Callback";
-  unregister_Callback_0_(mthis) => unregister_Callback_0(mthis);
-
-  static unregister_Callback_1(mthis, __arg_0) native "ServiceWorkerContainer_unregister_Callback";
-  unregister_Callback_1_(mthis, __arg_0) => unregister_Callback_1(mthis, __arg_0);
-
-  static unregister_Callback_2(mthis, __arg_0, __arg_1) native "ServiceWorkerContainer_unregister_Callback";
-  unregister_Callback_2_(mthis, __arg_0, __arg_1) => unregister_Callback_2(mthis, __arg_0, __arg_1);
-
-  static unregister_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "ServiceWorkerContainer_unregister_Callback";
-  unregister_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => unregister_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static waiting_Getter(mthis) native "ServiceWorkerContainer_waiting_Getter";
-  waiting_Getter_(mthis) => waiting_Getter(mthis);
-
 }
 
 class BlinkServiceWorkerGlobalScope extends BlinkWorkerGlobalScope {
   static final instance = new BlinkServiceWorkerGlobalScope();
 
+  static caches_Getter(mthis) native "ServiceWorkerGlobalScope_caches_Getter";
+  caches_Getter_(mthis) => caches_Getter(mthis);
+
   static clients_Getter(mthis) native "ServiceWorkerGlobalScope_clients_Getter";
   clients_Getter_(mthis) => clients_Getter(mthis);
+
+  static close_Callback_0(mthis) native "ServiceWorkerGlobalScope_close_Callback";
+  close_Callback_0_(mthis) => close_Callback_0(mthis);
+
+  static close_Callback_1(mthis, __arg_0) native "ServiceWorkerGlobalScope_close_Callback";
+  close_Callback_1_(mthis, __arg_0) => close_Callback_1(mthis, __arg_0);
+
+  static close_Callback_2(mthis, __arg_0, __arg_1) native "ServiceWorkerGlobalScope_close_Callback";
+  close_Callback_2_(mthis, __arg_0, __arg_1) => close_Callback_2(mthis, __arg_0, __arg_1);
 
   static fetch_Callback_0(mthis) native "ServiceWorkerGlobalScope_fetch_Callback";
   fetch_Callback_0_(mthis) => fetch_Callback_0(mthis);
@@ -23121,9 +24291,6 @@ class BlinkServiceWorkerGlobalScope extends BlinkWorkerGlobalScope {
 
   static fetch_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "ServiceWorkerGlobalScope_fetch_Callback";
   fetch_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => fetch_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
-
-  static nativeCaches_Getter(mthis) native "ServiceWorkerGlobalScope_nativeCaches_Getter";
-  nativeCaches_Getter_(mthis) => nativeCaches_Getter(mthis);
 
   static onactivate_Getter(mthis) native "ServiceWorkerGlobalScope_onactivate_Getter";
   onactivate_Getter_(mthis) => onactivate_Getter(mthis);
@@ -28119,38 +29286,6 @@ class BlinkWebKitGamepadList {
 
 }
 
-class BlinkWebKitPoint {
-  static final instance = new BlinkWebKitPoint();
-
-  static constructorCallback_0() native "WebKitPoint_constructorCallback";
-  constructorCallback_0_() => constructorCallback_0();
-
-  static constructorCallback_1(__arg_0) native "WebKitPoint_constructorCallback";
-  constructorCallback_1_(__arg_0) => constructorCallback_1(__arg_0);
-
-  static constructorCallback_2(__arg_0, __arg_1) native "WebKitPoint_constructorCallback";
-  constructorCallback_2_(__arg_0, __arg_1) => constructorCallback_2(__arg_0, __arg_1);
-
-  static constructorCallback_3(__arg_0, __arg_1, __arg_2) native "WebKitPoint_constructorCallback";
-  constructorCallback_3_(__arg_0, __arg_1, __arg_2) => constructorCallback_3(__arg_0, __arg_1, __arg_2);
-
-  static constructorCallback_4(__arg_0, __arg_1, __arg_2, __arg_3) native "WebKitPoint_constructorCallback";
-  constructorCallback_4_(__arg_0, __arg_1, __arg_2, __arg_3) => constructorCallback_4(__arg_0, __arg_1, __arg_2, __arg_3);
-
-  static x_Getter(mthis) native "WebKitPoint_x_Getter";
-  x_Getter_(mthis) => x_Getter(mthis);
-
-  static x_Setter(mthis, __arg_0) native "WebKitPoint_x_Setter";
-  x_Setter_(mthis, __arg_0) => x_Setter(mthis, __arg_0);
-
-  static y_Getter(mthis) native "WebKitPoint_y_Getter";
-  y_Getter_(mthis) => y_Getter(mthis);
-
-  static y_Setter(mthis, __arg_0) native "WebKitPoint_y_Setter";
-  y_Setter_(mthis, __arg_0) => y_Setter(mthis, __arg_0);
-
-}
-
 class BlinkWebSocket extends BlinkEventTarget {
   static final instance = new BlinkWebSocket();
 
@@ -29661,42 +30796,6 @@ class BlinkWorkerGlobalScope extends BlinkEventTarget {
   static onerror_Setter(mthis, __arg_0) native "WorkerGlobalScope_onerror_Setter";
   onerror_Setter_(mthis, __arg_0) => onerror_Setter(mthis, __arg_0);
 
-  static openDatabaseSync_Callback_2(mthis, __arg_0, __arg_1) native "WorkerGlobalScope_openDatabaseSync_Callback";
-  openDatabaseSync_Callback_2_(mthis, __arg_0, __arg_1) => openDatabaseSync_Callback_2(mthis, __arg_0, __arg_1);
-
-  static openDatabaseSync_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "WorkerGlobalScope_openDatabaseSync_Callback";
-  openDatabaseSync_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => openDatabaseSync_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static openDatabaseSync_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "WorkerGlobalScope_openDatabaseSync_Callback";
-  openDatabaseSync_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => openDatabaseSync_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
-
-  static openDatabaseSync_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "WorkerGlobalScope_openDatabaseSync_Callback";
-  openDatabaseSync_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => openDatabaseSync_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
-
-  static openDatabaseSync_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "WorkerGlobalScope_openDatabaseSync_Callback";
-  openDatabaseSync_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => openDatabaseSync_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
-
-  static openDatabaseSync_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) native "WorkerGlobalScope_openDatabaseSync_Callback";
-  openDatabaseSync_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => openDatabaseSync_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6);
-
-  static openDatabase_Callback_2(mthis, __arg_0, __arg_1) native "WorkerGlobalScope_openDatabase_Callback";
-  openDatabase_Callback_2_(mthis, __arg_0, __arg_1) => openDatabase_Callback_2(mthis, __arg_0, __arg_1);
-
-  static openDatabase_Callback_3(mthis, __arg_0, __arg_1, __arg_2) native "WorkerGlobalScope_openDatabase_Callback";
-  openDatabase_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => openDatabase_Callback_3(mthis, __arg_0, __arg_1, __arg_2);
-
-  static openDatabase_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3) native "WorkerGlobalScope_openDatabase_Callback";
-  openDatabase_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => openDatabase_Callback_4(mthis, __arg_0, __arg_1, __arg_2, __arg_3);
-
-  static openDatabase_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) native "WorkerGlobalScope_openDatabase_Callback";
-  openDatabase_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => openDatabase_Callback_5(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4);
-
-  static openDatabase_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) native "WorkerGlobalScope_openDatabase_Callback";
-  openDatabase_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => openDatabase_Callback_6(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5);
-
-  static openDatabase_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) native "WorkerGlobalScope_openDatabase_Callback";
-  openDatabase_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => openDatabase_Callback_7(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6);
-
   static performance_Getter(mthis) native "WorkerGlobalScope_performance_Getter";
   performance_Getter_(mthis) => performance_Getter(mthis);
 
@@ -29859,6 +30958,9 @@ class BlinkWorkerNavigator {
 
   static dartEnabled_Getter(mthis) native "WorkerNavigator_dartEnabled_Getter";
   dartEnabled_Getter_(mthis) => dartEnabled_Getter(mthis);
+
+  static geofencing_Getter(mthis) native "WorkerNavigator_geofencing_Getter";
+  geofencing_Getter_(mthis) => geofencing_Getter(mthis);
 
   static hardwareConcurrency_Getter(mthis) native "WorkerNavigator_hardwareConcurrency_Getter";
   hardwareConcurrency_Getter_(mthis) => hardwareConcurrency_Getter(mthis);
@@ -30428,6 +31530,8 @@ class Blink_Utils {
   static forwardingPrint(message) native "Utils_forwardingPrint";
 
   static spawnDomUri(uri) native "Utils_spawnDomUri";
+
+  static void spawnDomHelper(Function f, int replyTo) native "Utils_spawnDomHelper";
 
   static register(document, tag, customType, extendsTagName) native "Utils_register";
 

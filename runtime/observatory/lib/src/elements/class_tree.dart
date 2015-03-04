@@ -31,12 +31,11 @@ class ClassTreeRow extends TableTreeRow {
         children.add(row);
       }
     }
-    var classCell = tableColumns[0];
-    // Enable expansion by clicking anywhere on the class column.
-    classCell.onClick.listen(onClick);
-
+    var classCell = flexColumns[0];
+    classCell.style.justifyContent = 'flex-start';
     var classRef = new Element.tag('class-ref');
     classRef.ref = cls;
+    classRef.style.alignSelf = 'center';
     classCell.children.add(classRef);
   }
 

@@ -97,6 +97,14 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
   }
 
+  String replaceRange(int start, int end, String replacement) {
+    checkString(replacement);
+    checkInt(start);
+    end = RangeError.checkValidRange(start, end, this.length);
+    checkInt(end);
+    return stringReplaceRangeUnchecked(this, start, end, replacement);
+  }
+
   List<String> _defaultSplit(Pattern pattern) {
     List<String> result = <String>[];
     // End of most recent match. That is, start of next part to add to result.

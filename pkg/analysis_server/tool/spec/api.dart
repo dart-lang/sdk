@@ -140,8 +140,7 @@ class HierarchicalApiVisitor extends ApiVisitor {
     typeEnum.values.forEach(visitTypeEnumValue);
   }
 
-  void visitTypeEnumValue(TypeEnumValue typeEnumValue) {
-  }
+  void visitTypeEnumValue(TypeEnumValue typeEnumValue) {}
 
   @override
   void visitTypeList(TypeList typeList) {
@@ -164,8 +163,7 @@ class HierarchicalApiVisitor extends ApiVisitor {
   }
 
   @override
-  void visitTypeReference(TypeReference typeReference) {
-  }
+  void visitTypeReference(TypeReference typeReference) {}
 
   void visitTypes(Types types) {
     types.forEach(visitTypeDefinition);
@@ -211,11 +209,9 @@ class Notification extends ApiNode {
    */
   TypeDecl get notificationType {
     List<TypeObjectField> fields = [
-        new TypeObjectField(
-            'event',
-            new TypeReference('String', null),
-            null,
-            value: '$domainName.$event')];
+      new TypeObjectField('event', new TypeReference('String', null), null,
+          value: '$domainName.$event')
+    ];
     if (params != null) {
       fields.add(new TypeObjectField('params', params, null));
     }
@@ -286,8 +282,8 @@ class Request extends ApiNode {
    */
   final TypeObject result;
 
-  Request(this.domainName, this.method, this.params, this.result,
-      dom.Element html)
+  Request(
+      this.domainName, this.method, this.params, this.result, dom.Element html)
       : super(html);
 
   /**
@@ -301,12 +297,10 @@ class Request extends ApiNode {
    */
   TypeDecl get requestType {
     List<TypeObjectField> fields = [
-        new TypeObjectField('id', new TypeReference('String', null), null),
-        new TypeObjectField(
-            'method',
-            new TypeReference('String', null),
-            null,
-            value: '$domainName.$method')];
+      new TypeObjectField('id', new TypeReference('String', null), null),
+      new TypeObjectField('method', new TypeReference('String', null), null,
+          value: '$domainName.$method')
+    ];
     if (params != null) {
       fields.add(new TypeObjectField('params', params, null));
     }
@@ -319,12 +313,11 @@ class Request extends ApiNode {
    */
   TypeDecl get responseType {
     List<TypeObjectField> fields = [
-        new TypeObjectField('id', new TypeReference('String', null), null),
-        new TypeObjectField(
-            'error',
-            new TypeReference('RequestError', null),
-            null,
-            optional: true)];
+      new TypeObjectField('id', new TypeReference('String', null), null),
+      new TypeObjectField(
+          'error', new TypeReference('RequestError', null), null,
+          optional: true)
+    ];
     if (result != null) {
       fields.add(new TypeObjectField('result', result, null));
     }
@@ -440,8 +433,8 @@ class TypeObjectField extends ApiNode {
    */
   final Object value;
 
-  TypeObjectField(this.name, this.type, dom.Element html, {this.optional: false,
-      this.value})
+  TypeObjectField(this.name, this.type, dom.Element html,
+      {this.optional: false, this.value})
       : super(html);
 }
 

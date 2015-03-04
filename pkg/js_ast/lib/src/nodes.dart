@@ -260,8 +260,8 @@ class EmptyStatement extends Statement {
 
 class If extends Statement {
   final Expression condition;
-  final Node then;
-  final Node otherwise;
+  final Statement then;
+  final Statement otherwise;
 
   If(this.condition, this.then, this.otherwise);
   If.noElse(this.condition, this.then) : this.otherwise = new EmptyStatement();
@@ -663,7 +663,10 @@ class Call extends Expression {
   Expression target;
   List<Expression> arguments;
 
-  Call(this.target, this.arguments);
+  Call(this.target, this.arguments,
+       {JavaScriptNodeSourceInformation sourceInformation}) {
+    this._sourceInformation = sourceInformation;
+  }
 
   accept(NodeVisitor visitor) => visitor.visitCall(this);
 

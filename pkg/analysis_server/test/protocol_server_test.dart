@@ -20,8 +20,6 @@ import 'abstract_context.dart';
 import 'mocks.dart';
 import 'reflective_tests.dart';
 
-
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisErrorTest);
@@ -30,11 +28,9 @@ main() {
   runReflectiveTests(EnumTest);
 }
 
-
 class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 @reflectiveTest
 class AnalysisErrorTest {
@@ -49,8 +45,8 @@ class AnalysisErrorTest {
     lineInfo = new engine.LineInfo([0, 5, 9, 20]);
     // prepare AnalysisError
     when(engineError.source).thenReturn(source);
-    when(
-        engineError.errorCode).thenReturn(engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+    when(engineError.errorCode)
+        .thenReturn(engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT);
     when(engineError.message).thenReturn('my message');
     when(engineError.offset).thenReturn(10);
     when(engineError.length).thenReturn(20);
@@ -114,92 +110,67 @@ class AnalysisErrorTest {
   }
 }
 
-
 @reflectiveTest
 class ElementKindTest {
   void test_fromEngine() {
     expect(
-        newElementKind_fromEngine(engine.ElementKind.CLASS),
-        ElementKind.CLASS);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.COMPILATION_UNIT),
+        newElementKind_fromEngine(engine.ElementKind.CLASS), ElementKind.CLASS);
+    expect(newElementKind_fromEngine(engine.ElementKind.COMPILATION_UNIT),
         ElementKind.COMPILATION_UNIT);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.CONSTRUCTOR),
+    expect(newElementKind_fromEngine(engine.ElementKind.CONSTRUCTOR),
         ElementKind.CONSTRUCTOR);
     expect(
-        newElementKind_fromEngine(engine.ElementKind.FIELD),
-        ElementKind.FIELD);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.FUNCTION),
+        newElementKind_fromEngine(engine.ElementKind.FIELD), ElementKind.FIELD);
+    expect(newElementKind_fromEngine(engine.ElementKind.FUNCTION),
         ElementKind.FUNCTION);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+    expect(newElementKind_fromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
         ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.GETTER),
+    expect(newElementKind_fromEngine(engine.ElementKind.GETTER),
         ElementKind.GETTER);
     expect(
-        newElementKind_fromEngine(engine.ElementKind.LABEL),
-        ElementKind.LABEL);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.LIBRARY),
+        newElementKind_fromEngine(engine.ElementKind.LABEL), ElementKind.LABEL);
+    expect(newElementKind_fromEngine(engine.ElementKind.LIBRARY),
         ElementKind.LIBRARY);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.LOCAL_VARIABLE),
+    expect(newElementKind_fromEngine(engine.ElementKind.LOCAL_VARIABLE),
         ElementKind.LOCAL_VARIABLE);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.METHOD),
+    expect(newElementKind_fromEngine(engine.ElementKind.METHOD),
         ElementKind.METHOD);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.PARAMETER),
+    expect(newElementKind_fromEngine(engine.ElementKind.PARAMETER),
         ElementKind.PARAMETER);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.SETTER),
+    expect(newElementKind_fromEngine(engine.ElementKind.SETTER),
         ElementKind.SETTER);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
+    expect(newElementKind_fromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
         ElementKind.TOP_LEVEL_VARIABLE);
-    expect(
-        newElementKind_fromEngine(engine.ElementKind.TYPE_PARAMETER),
+    expect(newElementKind_fromEngine(engine.ElementKind.TYPE_PARAMETER),
         ElementKind.TYPE_PARAMETER);
   }
 
   void test_string_constructor() {
     expect(new ElementKind(ElementKind.CLASS.name), ElementKind.CLASS);
-    expect(
-        new ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
+    expect(new ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
         ElementKind.CLASS_TYPE_ALIAS);
-    expect(
-        new ElementKind(ElementKind.COMPILATION_UNIT.name),
+    expect(new ElementKind(ElementKind.COMPILATION_UNIT.name),
         ElementKind.COMPILATION_UNIT);
     expect(
-        new ElementKind(ElementKind.CONSTRUCTOR.name),
-        ElementKind.CONSTRUCTOR);
+        new ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
     expect(new ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
     expect(new ElementKind(ElementKind.FUNCTION.name), ElementKind.FUNCTION);
-    expect(
-        new ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
+    expect(new ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
         ElementKind.FUNCTION_TYPE_ALIAS);
     expect(new ElementKind(ElementKind.GETTER.name), ElementKind.GETTER);
     expect(new ElementKind(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
-    expect(
-        new ElementKind(ElementKind.LOCAL_VARIABLE.name),
+    expect(new ElementKind(ElementKind.LOCAL_VARIABLE.name),
         ElementKind.LOCAL_VARIABLE);
     expect(new ElementKind(ElementKind.METHOD.name), ElementKind.METHOD);
     expect(new ElementKind(ElementKind.PARAMETER.name), ElementKind.PARAMETER);
     expect(new ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
-    expect(
-        new ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
+    expect(new ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
         ElementKind.TOP_LEVEL_VARIABLE);
-    expect(
-        new ElementKind(ElementKind.TYPE_PARAMETER.name),
+    expect(new ElementKind(ElementKind.TYPE_PARAMETER.name),
         ElementKind.TYPE_PARAMETER);
-    expect(
-        new ElementKind(ElementKind.UNIT_TEST_TEST.name),
+    expect(new ElementKind(ElementKind.UNIT_TEST_TEST.name),
         ElementKind.UNIT_TEST_TEST);
-    expect(
-        new ElementKind(ElementKind.UNIT_TEST_GROUP.name),
+    expect(new ElementKind(ElementKind.UNIT_TEST_GROUP.name),
         ElementKind.UNIT_TEST_GROUP);
     expect(new ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
     expect(() {
@@ -209,12 +180,10 @@ class ElementKindTest {
 
   void test_toString() {
     expect(ElementKind.CLASS.toString(), 'ElementKind.CLASS');
-    expect(
-        ElementKind.COMPILATION_UNIT.toString(),
+    expect(ElementKind.COMPILATION_UNIT.toString(),
         'ElementKind.COMPILATION_UNIT');
   }
 }
-
 
 @reflectiveTest
 class ElementTest extends AbstractContextTest {
@@ -242,8 +211,7 @@ abstract class _MyClass {}''');
       expect(location.startColumn, 16);
     }
     expect(element.parameters, isNull);
-    expect(
-        element.flags,
+    expect(element.flags,
         Element.FLAG_ABSTRACT | Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE);
   }
 
@@ -313,7 +281,8 @@ class A {
 typedef int f(String x);
 ''');
     engine.CompilationUnit unit = resolveLibraryUnit(source);
-    engine.FunctionTypeAliasElement engineElement = findElementInUnit(unit, 'f');
+    engine.FunctionTypeAliasElement engineElement =
+        findElementInUnit(unit, 'f');
     // create notification Element
     Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
@@ -442,9 +411,7 @@ class EnumTest {
     new EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
         (engine.ErrorSeverity engineErrorSeverity) =>
             new AnalysisErrorSeverity(engineErrorSeverity.name),
-        exceptions: {
-      engine.ErrorSeverity.NONE: null
-    });
+        exceptions: {engine.ErrorSeverity.NONE: null});
   }
 
   void test_AnalysisErrorType() {
@@ -455,8 +422,7 @@ class EnumTest {
 
   void test_ElementKind() {
     new EnumTester<engine.ElementKind, ElementKind>().run(
-        newElementKind_fromEngine,
-        exceptions: {
+        newElementKind_fromEngine, exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
       engine.ElementKind.EMBEDDED_HTML_SCRIPT: ElementKind.UNKNOWN,
@@ -473,11 +439,10 @@ class EnumTest {
   void test_SearchResultKind() {
     // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
     // use SearchResultKind inside the analysis server?
-    new EnumTester<MatchKind, SearchResultKind>().run(
-        newSearchResultKind_fromEngine);
+    new EnumTester<MatchKind, SearchResultKind>()
+        .run(newSearchResultKind_fromEngine);
   }
 }
-
 
 /**
  * Helper class for testing the correspondence between an analysis engine enum
@@ -492,8 +457,8 @@ class EnumTester<EngineEnum, ApiEnum extends Enum> {
    * If the corresponding value is an [ApiEnum], then we check that converting
    * the given key results in the given value.
    */
-  void run(ApiEnum convert(EngineEnum value), {Map<EngineEnum,
-      ApiEnum> exceptions: const {}}) {
+  void run(ApiEnum convert(EngineEnum value),
+      {Map<EngineEnum, ApiEnum> exceptions: const {}}) {
     ClassMirror engineClass = reflectClass(EngineEnum);
     engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
       if (symbol == #values) {

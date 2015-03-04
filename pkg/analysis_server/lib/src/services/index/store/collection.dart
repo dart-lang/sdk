@@ -9,14 +9,12 @@ import 'dart:typed_data' show Uint32List;
 
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-
 /**
  * A hash map with `List<int>` keys and [int] values.
  */
 class IntArrayToIntMap {
   final Map<Uint32List, int> map = new HashMap<Uint32List, int>(
-      equals: _intArrayEquals,
-      hashCode: _intArrayHashCode);
+      equals: _intArrayEquals, hashCode: _intArrayHashCode);
 
   /**
    * Returns the value for the given [key] or null if [key] is not in the map.
@@ -64,7 +62,6 @@ class IntArrayToIntMap {
     return key.fold(0, JenkinsSmiHash.combine);
   }
 }
-
 
 /**
  * A table mapping [int] keys to sets of [int]s.

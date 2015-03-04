@@ -41,6 +41,9 @@ abstract class CodeOutput {
   /// Closes the output. Further writes will cause a [StateError].
   void close();
 
+  /// Sets the [sourcePosition] for the code next added to this output.
+  void setSourceLocation(SourceLocation sourcePosition);
+
   /// Applies [f] to every marker in this output.
   void forEachSourceLocation(void f(int targetOffset,
                                     SourceLocation sourceLocation));

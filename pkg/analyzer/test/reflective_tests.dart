@@ -10,7 +10,6 @@ import 'dart:async';
 
 import 'package:unittest/unittest.dart';
 
-
 /**
  * Runs test methods existing in the given [type].
  *
@@ -29,13 +28,11 @@ import 'package:unittest/unittest.dart';
  */
 void runReflectiveTests(Type type) {
   ClassMirror classMirror = reflectClass(type);
-  if (!classMirror.metadata.any(
-      (InstanceMirror annotation) =>
-          annotation.type.reflectedType == ReflectiveTest)) {
+  if (!classMirror.metadata.any((InstanceMirror annotation) =>
+      annotation.type.reflectedType == ReflectiveTest)) {
     String name = MirrorSystem.getName(classMirror.qualifiedName);
-    throw new Exception(
-        'Class $name must have annotation "@reflectiveTest" '
-            'in order to be run by runReflectiveTests.');
+    throw new Exception('Class $name must have annotation "@reflectiveTest" '
+        'in order to be run by runReflectiveTests.');
   }
   String className = MirrorSystem.getName(classMirror.simpleName);
   group(className, () {
@@ -74,20 +71,17 @@ void runReflectiveTests(Type type) {
   });
 }
 
-
 Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   var invocationResult = null;
   try {
     invocationResult = instanceMirror.invoke(symbol, []).reflectee;
-  } on NoSuchMethodError catch (e) {
-  }
+  } on NoSuchMethodError catch (e) {}
   if (invocationResult is Future) {
     return invocationResult;
   } else {
     return new Future.value(invocationResult);
   }
 }
-
 
 /**
  * Run a test that is expected to fail, and confirm that it fails.
@@ -105,20 +99,12 @@ Future _runFailingTest(ClassMirror classMirror, Symbol symbol) {
   }, onError: (_) {});
 }
 
-
 _runTest(ClassMirror classMirror, Symbol symbol) {
   InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
-  return _invokeSymbolIfExists(
-      instanceMirror,
-      #setUp).then(
-          (_) =>
-              instanceMirror.invoke(
-                  symbol,
-                  [
-                      ]).reflectee).whenComplete(
-                          () => _invokeSymbolIfExists(instanceMirror, #tearDown));
+  return _invokeSymbolIfExists(instanceMirror, #setUp)
+      .then((_) => instanceMirror.invoke(symbol, []).reflectee)
+      .whenComplete(() => _invokeSymbolIfExists(instanceMirror, #tearDown));
 }
-
 
 /**
  * A marker annotation used to instruct dart2js to keep reflection information

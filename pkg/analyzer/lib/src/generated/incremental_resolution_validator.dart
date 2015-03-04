@@ -7,7 +7,6 @@ library engine.incremental_resolution_validator;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-
 /**
  * Validates that the [actual] and the [expected] units have the same structure
  * and resolution. Throws [IncrementalResolutionMismatch] otherwise.
@@ -19,7 +18,6 @@ void assertSameResolution(CompilationUnit actual, CompilationUnit expected,
   actual.accept(validator);
 }
 
-
 /**
  * This exception is thrown when a mismatch between actual and expected AST
  * or resolution is found.
@@ -29,7 +27,6 @@ class IncrementalResolutionMismatch {
   IncrementalResolutionMismatch(this.message);
 }
 
-
 class _SameResolutionValidator implements AstVisitor {
   final bool validateTypes;
   AstNode other;
@@ -37,8 +34,7 @@ class _SameResolutionValidator implements AstVisitor {
   _SameResolutionValidator(this.validateTypes, this.other);
 
   @override
-  visitAdjacentStrings(AdjacentStrings node) {
-  }
+  visitAdjacentStrings(AdjacentStrings node) {}
 
   @override
   visitAnnotation(Annotation node) {
@@ -248,12 +244,10 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
-  visitEmptyFunctionBody(EmptyFunctionBody node) {
-  }
+  visitEmptyFunctionBody(EmptyFunctionBody node) {}
 
   @override
-  visitEmptyStatement(EmptyStatement node) {
-  }
+  visitEmptyStatement(EmptyStatement node) {}
 
   @override
   visitEnumConstantDeclaration(EnumConstantDeclaration node) {
@@ -445,8 +439,7 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
-  visitInterpolationString(InterpolationString node) {
-  }
+  visitInterpolationString(InterpolationString node) {}
 
   @override
   visitIsExpression(IsExpression node) {
@@ -528,12 +521,10 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
-  visitNativeClause(NativeClause node) {
-  }
+  visitNativeClause(NativeClause node) {}
 
   @override
-  visitNativeFunctionBody(NativeFunctionBody node) {
-  }
+  visitNativeFunctionBody(NativeFunctionBody node) {}
 
   @override
   visitNullLiteral(NullLiteral node) {
@@ -615,8 +606,7 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
-  visitScriptTag(ScriptTag node) {
-  }
+  visitScriptTag(ScriptTag node) {}
 
   @override
   visitShowCombinator(ShowCombinator node) {
@@ -640,8 +630,7 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
-  visitSimpleStringLiteral(SimpleStringLiteral node) {
-  }
+  visitSimpleStringLiteral(SimpleStringLiteral node) {}
 
   @override
   visitStringInterpolation(StringInterpolation node) {
@@ -685,8 +674,7 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) {
-  }
+  visitSymbolLiteral(SymbolLiteral node) {}
 
   @override
   visitThisExpression(ThisExpression node) {
@@ -894,8 +882,8 @@ class _SameResolutionValidator implements AstVisitor {
     }
   }
 
-  void _visitNormalFormalParameter(NormalFormalParameter node,
-      NormalFormalParameter other) {
+  void _visitNormalFormalParameter(
+      NormalFormalParameter node, NormalFormalParameter other) {
     _verifyElement(node.element, other.element);
     _visitNode(node.documentationComment, other.documentationComment);
     _visitList(node.metadata, other.metadata);
@@ -915,9 +903,9 @@ class _SameResolutionValidator implements AstVisitor {
     ElementLocation location = element.location;
     List<String> components = location.components;
     String uriPrefix = '';
-    Element unit = element is CompilationUnitElement ?
-        element :
-        element.getAncestor((e) => e is CompilationUnitElement);
+    Element unit = element is CompilationUnitElement
+        ? element
+        : element.getAncestor((e) => e is CompilationUnitElement);
     if (unit != null) {
       String libComponent = components[0];
       String unitComponent = components[1];

@@ -2135,6 +2135,20 @@ static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* clear_cpu_profile_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool ClearCpuProfile(Isolate* isolate, JSONStream* js) {
+  ProfilerService::ClearSamples();
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Success");
+  return true;
+}
+
+
 static const MethodParameter* get_allocation_profile_params[] = {
   ISOLATE_PARAMETER,
   NULL,
@@ -2497,6 +2511,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     add_breakpoint_params },
   { "addBreakpointAtEntry", AddBreakpointAtEntry,
     add_breakpoint_at_entry_params },
+  { "clearCpuProfile", ClearCpuProfile,
+    clear_cpu_profile_params },
   { "eval", Eval,
     eval_params },
   { "getAllocationProfile", GetAllocationProfile,

@@ -7,7 +7,7 @@ import os
 import sys
 
 import idl_definitions
-from idl_types import IdlType, IdlUnionType, IdlArrayOrSequenceType
+from idl_types import IdlType, IdlNullableType, IdlUnionType, IdlArrayOrSequenceType
 
 from compute_interfaces_info_overall import interfaces_info
 
@@ -166,7 +166,7 @@ class IDLNode(object):
       if hasattr(ast, field_name):
         field_value = getattr(ast, field_name)
         if field_value:
-          if label == 'Interface' or label == 'Enum':
+          if label == 'Interface' or label == 'Enum' or label == "Dictionary":
             for key in field_value:
               value = field_value[key]
               res.append(value)
@@ -222,6 +222,9 @@ class IDLNode(object):
       'Enum': 'enumerations',
       'Annotation': '',         # TODO(terry): Ignore annotation used for database cache.
       'TypeDef': '',            # typedef in an IDL are already resolved.
+      'Dictionary': 'dictionaries',
+      'Member': 'members',
+      'Default': 'default_value',   # Dictionary member default value
     }
     result = label_field.get(label)
     if result != '' and not(result):
@@ -265,6 +268,10 @@ class IDLNode(object):
   def _convert_annotations(self, ast):
     """Helper method for uniform conversion of annotations."""
     self.annotations = IDLAnnotations(ast)
+
+  def _convert_constants(self, ast, js_name):
+    """Helper method for uniform conversion of dictionary members."""
+    self.members = IDLDictionaryMembers(ast, js_name)
 
 
 class IDLDictNode(IDLNode):
@@ -343,6 +350,7 @@ class IDLFile(IDLNode):
     filename_basename = os.path.basename(filename)
 
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
+    self.dictionaries = self._convert_all(ast, 'Dictionary', IDLDictionary)
 
     is_blink = not(isinstance(ast, list)) and ast.__module__ == 'idl_definitions'
 
@@ -369,7 +377,7 @@ class IDLFile(IDLNode):
                                                                   implemented_name)
 
             self.implementsStatements.append(implement_statement)
-        else:
+        elif interface.id in interfaces_info:
           interface_info = interfaces_info[interface.id]
 
           implements = interface_info['implements_interfaces']
@@ -455,6 +463,14 @@ class IDLExtAttrs(IDLDictNode):
               self.setdefault('Constructor', []).append(func_value)
             else:
               self[name] = func_value
+        elif name == 'SetWrapperReferenceTo':
+          # NOTE: No need to process handling for GC wrapper.  But if its a reference
+          # to another type via an IdlArgument we'd need to convert to IDLArgument
+          # otherwise the type might be a reference to another type and the circularity
+          # will break deep_copy which is done later to the interfaces in the
+          # database.  If we every need SetWrapperReferenceTo then we'd need to
+          # convert IdlArgument to IDLArgument.
+          continue
         else:
           self[name] = value
     else:
@@ -547,7 +563,8 @@ class IDLType(IDLNode):
       self.id = ast
     # New blink handling.
     elif ast.__module__ == "idl_types":
-      if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType):
+      if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
+         isinstance(ast, IdlNullableType):
         type_name = str(ast)
 
         # TODO(terry): For now don't handle unrestricted types see
@@ -564,7 +581,7 @@ class IDLType(IDLNode):
           print 'WARNING type %s is union mapped to \'any\'' % self.id
         # TODO(terry): For union types use any otherwise type is unionType is
         #              not found and is removed during merging.
-        self.id = 'any'
+          self.id = 'any'
         # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
         #                            'typedef (Type1 or Type2) UnionType'
         # Is a problem we need to extend IDLType and IDLTypeDef to handle more
@@ -611,6 +628,31 @@ class IDLTypeDef(IDLNode):
     IDLNode.__init__(self, ast)
     self._convert_annotations(ast)
     self.type = self._convert_first(ast, 'Type', IDLType)
+
+
+class IDLDictionary(IDLNode):
+  """IDLDictionary node contains members,
+  as well as parent references."""
+
+  def __init__(self, ast):
+    IDLNode.__init__(self, ast)
+
+    self.javascript_binding_name = self.id
+    self._convert_ext_attrs(ast)
+    self._convert_constants(ast, self.id)
+
+
+class IDLDictionaryMembers(IDLDictNode):
+  """IDLDictionaryMembers specialization for a list of FremontCut dictionary values."""
+  def __init__(self, ast=None, js_name=None):
+    IDLDictNode.__init__(self, ast)
+    self.id = None
+    if not ast:
+      return
+    for member in self._find_all(ast, 'Member'):
+      name = self._find_first(member, 'Id')
+      value = IDLDictionaryMember(member, js_name)
+      self[name] = value
 
 
 class IDLInterface(IDLNode):
@@ -783,6 +825,14 @@ class IDLArgument(IDLNode):
 
   def __repr__(self):
     return '<IDLArgument(type = %s, id = %s)>' % (self.type, self.id)
+
+
+class IDLDictionaryMember(IDLMember):
+  """IDLNode specialization for 'const type name = value' declarations."""
+  def __init__(self, ast, doc_js_interface_name):
+    IDLMember.__init__(self, ast, doc_js_interface_name)
+    default_value = self._find_first(ast, 'Default')
+    self.value = default_value.value if default_value else None
 
 
 class IDLImplementsStatement(IDLNode):

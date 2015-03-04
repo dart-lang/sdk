@@ -22,10 +22,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 
-
-
 typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
-
 
 /**
  * The computer for Dart assists.
@@ -44,8 +41,8 @@ class AssistProcessor {
   String unitLibraryFolder;
 
   final List<Assist> assists = <Assist>[];
-  final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
-      LinkedEditGroup>{};
+  final Map<String, LinkedEditGroup> linkedPositionGroups =
+      <String, LinkedEditGroup>{};
   Position exitPosition = null;
 
   int selectionEnd;
@@ -54,8 +51,8 @@ class AssistProcessor {
 
   SourceChange change = new SourceChange('<message>');
 
-  AssistProcessor(this.source, this.file, this.unit,
-      this.selectionOffset, this.selectionLength) {
+  AssistProcessor(this.source, this.file, this.unit, this.selectionOffset,
+      this.selectionLength) {
     unitElement = unit.element;
     context = unitElement.context;
     unitLibraryElement = unitElement.library;
@@ -148,8 +145,8 @@ class AssistProcessor {
     }
     // prepare Change
     change.message = formatList(kind.message, args);
-    linkedPositionGroups.values.forEach(
-        (group) => change.addLinkedEditGroup(group));
+    linkedPositionGroups.values
+        .forEach((group) => change.addLinkedEditGroup(group));
     change.selection = exitPosition;
     // add Assist
     Assist assist = new Assist(kind, change);
@@ -171,46 +168,6 @@ class AssistProcessor {
   void _addInsertEdit(int offset, String text) {
     SourceEdit edit = new SourceEdit(offset, 0, text);
     doSourceChange_addElementEdit(change, unitElement, edit);
-  }
-
-  void _addLibraryImports(Set<LibraryElement> libraries) {
-    LibraryElement libElement = unitLibraryElement;
-    CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
-    CompilationUnit libUnit = libUnitElement.node;
-    // prepare new import location
-    int offset = 0;
-    String prefix;
-    String suffix;
-    {
-      // if no directives
-      prefix = '';
-      suffix = eol;
-      CorrectionUtils libraryUtils = new CorrectionUtils(libUnit);
-      // after last directive in library
-      for (Directive directive in libUnit.directives) {
-        if (directive is LibraryDirective || directive is ImportDirective) {
-          offset = directive.end;
-          prefix = eol;
-          suffix = '';
-        }
-      }
-      // if still at the beginning of the file, skip shebang and line comments
-      if (offset == 0) {
-        CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
-        offset = desc.offset;
-        prefix = desc.prefix;
-        suffix = desc.suffix + eol;
-      }
-    }
-    // insert imports
-    for (LibraryElement library in libraries) {
-      String importPath = getLibrarySourceUri(libElement, library.source);
-      String importCode = "${prefix}import '$importPath';$suffix";
-      doSourceChange_addElementEdit(
-          change,
-          unitLibraryElement,
-          new SourceEdit(offset, 0, importCode));
-    }
   }
 
   void _addProposal_addTypeAnnotation_DeclaredIdentifier() {
@@ -241,7 +198,7 @@ class AssistProcessor {
       _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
-      _addLibraryImports(librariesToImport);
+      addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
       _coverageMarker();
       return;
@@ -296,7 +253,7 @@ class AssistProcessor {
       _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
-      _addLibraryImports(librariesToImport);
+      addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
       _coverageMarker();
       return;
@@ -343,7 +300,7 @@ class AssistProcessor {
       _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
-      _addLibraryImports(librariesToImport);
+      addLibraryImports(change, unitLibraryElement, librariesToImport);
     }
     // add edit
     _addInsertEdit(name.offset, '$typeSource ');
@@ -362,6 +319,11 @@ class AssistProcessor {
     // prepare expression
     Expression expression = expressionStatement.expression;
     int offset = expression.offset;
+    // ignore if in arguments
+    if (node.getAncestor((node) => node is ArgumentList) != null) {
+      _coverageMarker();
+      return;
+    }
     // ignore if already assignment
     if (expression is AssignmentExpression) {
       _coverageMarker();
@@ -625,9 +587,7 @@ class AssistProcessor {
     BinaryExpression binaryExpression = node as BinaryExpression;
     // prepare operator position
     if (!_isOperatorSelected(
-        binaryExpression,
-        selectionOffset,
-        selectionLength)) {
+        binaryExpression, selectionOffset, selectionLength)) {
       _coverageMarker();
       return;
     }
@@ -864,8 +824,7 @@ class AssistProcessor {
           utils.getLinesRangeStatements(innerThenStatements);
       String oldSource = utils.getRangeText(lineRanges);
       String newSource = utils.indentSourceLeftRight(oldSource, false);
-      _addReplaceEdit(
-          rangeNode(targetIfStatement),
+      _addReplaceEdit(rangeNode(targetIfStatement),
           'if ($condition) {$eol$newSource$prefix}');
     }
     // done
@@ -927,8 +886,7 @@ class AssistProcessor {
           utils.getLinesRangeStatements(targetThenStatements);
       String oldSource = utils.getRangeText(lineRanges);
       String newSource = utils.indentSourceLeftRight(oldSource, false);
-      _addReplaceEdit(
-          rangeNode(outerIfStatement),
+      _addReplaceEdit(rangeNode(outerIfStatement),
           'if ($condition) {$eol$newSource$prefix}');
     }
     // done
@@ -940,8 +898,7 @@ class AssistProcessor {
     if (node is SimpleIdentifier &&
         node.parent is AssignmentExpression &&
         (node.parent as AssignmentExpression).leftHandSide == node &&
-        node.parent.parent is ExpressionStatement) {
-    } else {
+        node.parent.parent is ExpressionStatement) {} else {
       _coverageMarker();
       return;
     }
@@ -963,8 +920,7 @@ class AssistProcessor {
         declNode.parent is VariableDeclaration &&
         (declNode.parent as VariableDeclaration).name == declNode &&
         declNode.parent.parent is VariableDeclarationList &&
-        declNode.parent.parent.parent is VariableDeclarationStatement) {
-    } else {
+        declNode.parent.parent.parent is VariableDeclarationStatement) {} else {
       _coverageMarker();
       return;
     }
@@ -986,8 +942,7 @@ class AssistProcessor {
     ExpressionStatement assignStatement =
         node.parent.parent as ExpressionStatement;
     if (assignStatement.parent is Block &&
-        assignStatement.parent == declStatement.parent) {
-    } else {
+        assignStatement.parent == declStatement.parent) {} else {
       _coverageMarker();
       return;
     }
@@ -995,8 +950,7 @@ class AssistProcessor {
     // check that "declaration" and "assignment" statements are adjacent
     List<Statement> statements = block.statements;
     if (statements.indexOf(assignStatement) ==
-        statements.indexOf(declStatement) + 1) {
-    } else {
+        statements.indexOf(declStatement) + 1) {} else {
       _coverageMarker();
       return;
     }
@@ -1013,8 +967,7 @@ class AssistProcessor {
     // prepare enclosing VariableDeclarationList
     VariableDeclarationList declList =
         node.getAncestor((node) => node is VariableDeclarationList);
-    if (declList != null && declList.variables.length == 1) {
-    } else {
+    if (declList != null && declList.variables.length == 1) {} else {
       _coverageMarker();
       return;
     }
@@ -1026,8 +979,7 @@ class AssistProcessor {
     }
     // prepare VariableDeclarationStatement in Block
     if (declList.parent is VariableDeclarationStatement &&
-        declList.parent.parent is Block) {
-    } else {
+        declList.parent.parent is Block) {} else {
       _coverageMarker();
       return;
     }
@@ -1040,23 +992,20 @@ class AssistProcessor {
     {
       // declaration should not be last Statement
       int declIndex = statements.indexOf(declStatement);
-      if (declIndex < statements.length - 1) {
-      } else {
+      if (declIndex < statements.length - 1) {} else {
         _coverageMarker();
         return;
       }
       // next Statement should be assignment
       Statement assignStatement = statements[declIndex + 1];
-      if (assignStatement is ExpressionStatement) {
-      } else {
+      if (assignStatement is ExpressionStatement) {} else {
         _coverageMarker();
         return;
       }
       ExpressionStatement expressionStatement =
           assignStatement as ExpressionStatement;
       // expression should be assignment
-      if (expressionStatement.expression is AssignmentExpression) {
-      } else {
+      if (expressionStatement.expression is AssignmentExpression) {} else {
         _coverageMarker();
         return;
       }
@@ -1139,8 +1088,8 @@ class AssistProcessor {
     bool inVariable = false;
     if (statement is VariableDeclarationStatement) {
       VariableDeclarationStatement variableStatement = statement;
-      for (VariableDeclaration variable in
-          variableStatement.variables.variables) {
+      for (VariableDeclaration variable
+          in variableStatement.variables.variables) {
         if (variable.initializer is ConditionalExpression) {
           conditional = variable.initializer as ConditionalExpression;
           inVariable = true;
@@ -1244,8 +1193,7 @@ class AssistProcessor {
       String theSrc = _getNodeText(thenStatement.expression);
       String elseSrc = _getNodeText(elseStatement.expression);
       _addReplaceEdit(
-          rangeNode(ifStatement),
-          'return $conditionSrc ? $theSrc : $elseSrc;');
+          rangeNode(ifStatement), 'return $conditionSrc ? $theSrc : $elseSrc;');
     }
     // assignments -> v = Conditional;
     if (thenStatement is ExpressionStatement &&
@@ -1264,8 +1212,7 @@ class AssistProcessor {
           String conditionSrc = _getNodeText(ifStatement.condition);
           String theSrc = _getNodeText(thenAssignment.rightHandSide);
           String elseSrc = _getNodeText(elseAssignment.rightHandSide);
-          _addReplaceEdit(
-              rangeNode(ifStatement),
+          _addReplaceEdit(rangeNode(ifStatement),
               '$thenTarget = $conditionSrc ? $theSrc : $elseSrc;');
         }
       }
@@ -1283,9 +1230,7 @@ class AssistProcessor {
     BinaryExpression binaryExpression = node as BinaryExpression;
     // prepare operator position
     if (!_isOperatorSelected(
-        binaryExpression,
-        selectionOffset,
-        selectionLength)) {
+        binaryExpression, selectionOffset, selectionLength)) {
       _coverageMarker();
       return;
     }
@@ -1369,8 +1314,7 @@ class AssistProcessor {
     // prepare DartVariableStatement, should be part of Block
     VariableDeclarationStatement statement =
         node.getAncestor((node) => node is VariableDeclarationStatement);
-    if (statement != null && statement.parent is Block) {
-    } else {
+    if (statement != null && statement.parent is Block) {} else {
       _coverageMarker();
       return;
     }
@@ -1744,15 +1688,14 @@ class AssistProcessor {
    *
    * https://code.google.com/p/dart/issues/detail?id=19912
    */
-  static void _coverageMarker() {
-  }
+  static void _coverageMarker() {}
 
   /**
    * Returns `true` if the selection covers an operator of the given
    * [BinaryExpression].
    */
-  static bool _isOperatorSelected(BinaryExpression binaryExpression, int offset,
-      int length) {
+  static bool _isOperatorSelected(
+      BinaryExpression binaryExpression, int offset, int length) {
     AstNode left = binaryExpression.leftOperand;
     AstNode right = binaryExpression.rightOperand;
     // between the nodes
@@ -1787,7 +1730,6 @@ class AssistProcessor {
     return false;
   }
 }
-
 
 class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
   final _SimpleIdentifierVisitor visitor;

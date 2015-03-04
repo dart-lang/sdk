@@ -5,6 +5,7 @@
 library dart._js_mirrors;
 
 import 'dart:_js_embedded_names' show
+    JsGetName,
     ALL_CLASSES,
     LAZIES,
     LIBRARIES,
@@ -21,6 +22,7 @@ import 'dart:mirrors';
 
 import 'dart:_foreign_helper' show
     JS,
+    JS_GET_FLAG,
     JS_CURRENT_ISOLATE,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EMBEDDED_GLOBAL,
@@ -71,7 +73,7 @@ import 'dart:_js_names';
 const String METHODS_WITH_OPTIONAL_ARGUMENTS = r'$methodsWithOptionalArguments';
 
 bool hasReflectableProperty(var jsFunction) {
-  return JS('bool', '# in #', JS_GET_NAME("REFLECTABLE"), jsFunction);
+  return JS('bool', '# in #', JS_GET_NAME(JsGetName.REFLECTABLE), jsFunction);
 }
 
 /// No-op method that is called to inform the compiler that tree-shaking needs
@@ -650,7 +652,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
   } else {
     fields = JS('', '#[#]', descriptor,
-        JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY'));
+        JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY));
     if (fields is List) {
       fieldsMetadata = fields.getRange(1, fields.length).toList();
       fields = fields[0];
@@ -875,6 +877,8 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
+  bool get isEnum => throw new UnimplementedError();
+
   bool isSubclassOf(ClassMirror other) {
     superclass.isSubclassOf(other) || mixin.isSubclassOf(other);
   }
@@ -1087,7 +1091,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   static bool isMissingProbe(Symbol symbol)
       => JS('bool', 'typeof #.\$p == "undefined"', symbol);
   static bool isEvalAllowed()
-      => JS('bool', 'typeof dart_precompiled != "function"');
+      => !JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
 
 
   /// The getter cache is lazily allocated after a couple
@@ -1531,6 +1535,8 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   bool get isAbstract => _class.isAbstract;
 
+  bool get isEnum => _class.isEnum;
+
   bool isSubclassOf(ClassMirror other) => _class.isSubclassOf(other);
 
   SourceLocation get location => _class.location;
@@ -1746,7 +1752,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       parseCompactFieldSpecification(
           fieldOwner,
           JS('', '#[#]',
-              staticDescriptor, JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY')),
+              staticDescriptor,
+              JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY)),
           true, result);
     }
     return result;
@@ -2084,6 +2091,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   bool get isAbstract => throw new UnimplementedError();
 
+  bool get isEnum => throw new UnimplementedError();
+
   bool isSubclassOf(ClassMirror other) {
     if (other is! ClassMirror) {
       throw new ArgumentError(other);
@@ -2152,7 +2161,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
     if (isStatic) {
       unmangledName = mangledGlobalNames[accessorName];
     } else {
-      String getterPrefix = JS_GET_NAME('GETTER_PREFIX');
+      String getterPrefix = JS_GET_NAME(JsGetName.GETTER_PREFIX);
       unmangledName = mangledNames['$getterPrefix$accessorName'];
     }
     if (unmangledName == null) unmangledName = accessorName;
@@ -2231,7 +2240,7 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
     if (cachedFunction != null) return cachedFunction;
     disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
-    String callPrefix = "${JS_GET_NAME("CALL_PREFIX")}\$";
+    String callPrefix = "${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$";
     var extractCallName = JS('', r'''
 function(reflectee) {
   var properties = Object.keys(reflectee.constructor.prototype);
@@ -2665,6 +2674,8 @@ class JsFunctionTypeMirror extends BrokenClassMirror
 
   bool get isAbstract => false;
 
+  bool get isEnum => false;
+
   TypeMirror get returnType {
     if (_cachedReturnType != null) return _cachedReturnType;
     if (_isVoid) return _cachedReturnType = JsMirrorSystem._voidType;
@@ -2945,7 +2956,7 @@ bool isOperatorName(String name) {
 /// Returns true if the key represent ancillary reflection data, that is, not a
 /// method.
 bool isReflectiveDataInPrototype(String key) {
-  if (key == JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY') ||
+  if (key == JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY) ||
       key == METHODS_WITH_OPTIONAL_ARGUMENTS) {
     return true;
   }

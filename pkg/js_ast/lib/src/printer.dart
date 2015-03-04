@@ -204,10 +204,20 @@ class Printer implements NodeVisitor {
     visitAll(program.body);
   }
 
-  bool blockBody(Node body, {bool needsSeparation, bool needsNewline}) {
+  Statement unwrapBlockIfSingleStatement(Statement body) {
+    Statement result = body;
+    while (result is Block) {
+      Block block = result;
+      if (block.statements.length != 1) break;
+      result = block.statements.single;
+    }
+    return result;
+  }
+
+  bool blockBody(Statement body, {bool needsSeparation, bool needsNewline}) {
     if (body is Block) {
       spaceOut();
-      blockOut(body, false, needsNewline);
+      blockOut(body, shouldIndent: false, needsNewline: needsNewline);
       return true;
     }
     if (shouldCompressOutput && needsSeparation) {
@@ -234,7 +244,7 @@ class Printer implements NodeVisitor {
     }
   }
 
-  void blockOut(Block node, bool shouldIndent, bool needsNewline) {
+  void blockOut(Block node, {bool shouldIndent, bool needsNewline}) {
     if (shouldIndent) indent();
     context.enterNode(node);
     out("{");
@@ -249,7 +259,7 @@ class Printer implements NodeVisitor {
   }
 
   visitBlock(Block block) {
-    blockOut(block, true, true);
+    blockOut(block, shouldIndent: true, needsNewline: true);
   }
 
   visitExpressionStatement(ExpressionStatement expressionStatement) {
@@ -264,15 +274,15 @@ class Printer implements NodeVisitor {
   }
 
   void ifOut(If node, bool shouldIndent) {
-    Node then = node.then;
-    Node elsePart = node.otherwise;
+    Statement then = unwrapBlockIfSingleStatement(node.then);
+    Statement elsePart = node.otherwise;
     bool hasElse = node.hasElse;
 
     // Handle dangling elses and a work-around for Android 4.0 stock browser.
     // Android 4.0 requires braces for a single do-while in the `then` branch.
     // See issue 10923.
     if (hasElse) {
-      bool needsBraces = node.then.accept(danglingElseVisitor) || then is Do;
+      bool needsBraces = then.accept(danglingElseVisitor) || then is Do;
       if (needsBraces) {
         then = new Block(<Statement>[then]);
       }
@@ -297,7 +307,8 @@ class Printer implements NodeVisitor {
         pendingSpace = true;
         ifOut(elsePart, false);
       } else {
-        blockBody(elsePart, needsSeparation: true, needsNewline: true);
+        blockBody(unwrapBlockIfSingleStatement(elsePart),
+                  needsSeparation: true, needsNewline: true);
       }
     }
   }
@@ -327,7 +338,8 @@ class Printer implements NodeVisitor {
                             newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
-    blockBody(loop.body, needsSeparation: false, needsNewline: true);
+    blockBody(unwrapBlockIfSingleStatement(loop.body),
+              needsSeparation: false, needsNewline: true);
   }
 
   visitForIn(ForIn loop) {
@@ -341,7 +353,8 @@ class Printer implements NodeVisitor {
     visitNestedExpression(loop.object, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     out(")");
-    blockBody(loop.body, needsSeparation: false, needsNewline: true);
+    blockBody(unwrapBlockIfSingleStatement(loop.body),
+              needsSeparation: false, needsNewline: true);
   }
 
   visitWhile(While loop) {
@@ -351,12 +364,14 @@ class Printer implements NodeVisitor {
     visitNestedExpression(loop.condition, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     out(")");
-    blockBody(loop.body, needsSeparation: false, needsNewline: true);
+    blockBody(unwrapBlockIfSingleStatement(loop.body),
+              needsSeparation: false, needsNewline: true);
   }
 
   visitDo(Do loop) {
     outIndent("do");
-    if (blockBody(loop.body, needsSeparation: true, needsNewline: false)) {
+    if (blockBody(unwrapBlockIfSingleStatement(loop.body),
+                  needsSeparation: true, needsNewline: false)) {
       spaceOut();
     } else {
       indent();
@@ -444,7 +459,7 @@ class Printer implements NodeVisitor {
     visitNestedExpression(node.declaration, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     out(")");
-    blockBody(node.body, needsSeparation: false, needsNewline: true);
+    blockBody(node.body, needsSeparation: false, needsNewline: false);
   }
 
   visitSwitch(Switch node) {
@@ -485,8 +500,18 @@ class Printer implements NodeVisitor {
   }
 
   visitLabeledStatement(LabeledStatement node) {
+    Statement body = unwrapBlockIfSingleStatement(node.body);
+    // `label: break label;`
+    // Does not work on IE. The statement is a nop, so replace it by an empty
+    // statement.
+    // See:
+    // https://connect.microsoft.com/IE/feedback/details/891889/parser-bugs
+    if (body is Break && body.targetLabel == node.label) {
+      visit(new EmptyStatement());
+      return;
+    }
     outIndent("${node.label}:");
-    blockBody(node.body, needsSeparation: false, needsNewline: true);
+    blockBody(body, needsSeparation: false, needsNewline: true);
   }
 
   void functionOut(Fun fun, Node name, VarCollector vars) {

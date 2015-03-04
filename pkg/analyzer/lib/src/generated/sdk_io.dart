@@ -267,12 +267,11 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   JavaFile get dart2JsExecutable {
     if (_dart2jsExecutable == null) {
-      _dart2jsExecutable = _verifyExecutable(
-          new JavaFile.relative(
-              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
-              OSUtilities.isWindows() ?
-                  _DART2JS_EXECUTABLE_NAME_WIN :
-                  _DART2JS_EXECUTABLE_NAME));
+      _dart2jsExecutable = _verifyExecutable(new JavaFile.relative(
+          new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+          OSUtilities.isWindows()
+              ? _DART2JS_EXECUTABLE_NAME_WIN
+              : _DART2JS_EXECUTABLE_NAME));
     }
     return _dart2jsExecutable;
   }
@@ -284,12 +283,11 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   JavaFile get dartFmtExecutable {
     if (_dartFmtExecutable == null) {
-      _dartFmtExecutable = _verifyExecutable(
-          new JavaFile.relative(
-              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
-              OSUtilities.isWindows() ?
-                  _DARTFMT_EXECUTABLE_NAME_WIN :
-                  _DARTFMT_EXECUTABLE_NAME));
+      _dartFmtExecutable = _verifyExecutable(new JavaFile.relative(
+          new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+          OSUtilities.isWindows()
+              ? _DARTFMT_EXECUTABLE_NAME_WIN
+              : _DARTFMT_EXECUTABLE_NAME));
     }
     return _dartFmtExecutable;
   }
@@ -375,10 +373,9 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   JavaFile get pubExecutable {
     if (_pubExecutable == null) {
-      _pubExecutable = _verifyExecutable(
-          new JavaFile.relative(
-              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
-              OSUtilities.isWindows() ? _PUB_EXECUTABLE_NAME_WIN : _PUB_EXECUTABLE_NAME));
+      _pubExecutable = _verifyExecutable(new JavaFile.relative(
+          new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), OSUtilities
+              .isWindows() ? _PUB_EXECUTABLE_NAME_WIN : _PUB_EXECUTABLE_NAME));
     }
     return _pubExecutable;
   }
@@ -438,10 +435,9 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   JavaFile get vmExecutable {
     if (_vmExecutable == null) {
-      _vmExecutable = _verifyExecutable(
-          new JavaFile.relative(
-              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
-              vmBinaryName));
+      _vmExecutable = _verifyExecutable(new JavaFile.relative(
+          new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+          vmBinaryName));
     }
     return _vmExecutable;
   }
@@ -532,8 +528,8 @@ class DirectoryBasedDartSdk implements DartSdk {
         _LIBRARIES_FILE);
     try {
       String contents = librariesFile.readAsStringSync();
-      return new SdkLibrariesReader(
-          useDart2jsPaths).readFromFile(librariesFile, contents);
+      return new SdkLibrariesReader(useDart2jsPaths).readFromFile(
+          librariesFile, contents);
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError(
           "Could not initialize the library map from ${librariesFile.getAbsolutePath()}",
@@ -637,9 +633,7 @@ class SdkLibrariesReader {
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
     Scanner scanner = new Scanner(
-        source,
-        new CharSequenceReader(libraryFileContents),
-        errorListener);
+        source, new CharSequenceReader(libraryFileContents), errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =

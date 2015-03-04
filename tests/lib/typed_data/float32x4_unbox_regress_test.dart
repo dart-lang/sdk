@@ -6,8 +6,8 @@
 // Library tag to be able to run in html test framework.
 library float32x4_unbox_regress_test;
 
-import 'package:expect/expect.dart';
 import 'dart:typed_data';
+import 'package:expect/expect.dart';
 
 testListStore(array, index, value) {
   array[index] = value;

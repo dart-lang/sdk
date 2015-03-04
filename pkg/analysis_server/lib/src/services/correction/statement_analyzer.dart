@@ -14,7 +14,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * Returns [Token]s of the given Dart source, not `null`, may be empty if no
  * tokens or some exception happens.
@@ -33,7 +32,6 @@ List<Token> _getTokens(String text) {
     return new List<Token>(0);
   }
 }
-
 
 /**
  * Analyzer to check if a selection covers a valid set of statements of AST.
@@ -102,8 +100,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   Object visitForStatement(ForStatement node) {
     super.visitForStatement(node);
     List<AstNode> selectedNodes = this.selectedNodes;
-    bool containsInit =
-        _contains(selectedNodes, node.initialization) ||
+    bool containsInit = _contains(selectedNodes, node.initialization) ||
         _contains(selectedNodes, node.variables);
     bool containsCondition = _contains(selectedNodes, node.condition);
     bool containsUpdaters = _containsAny(selectedNodes, node.updaters);
@@ -184,7 +181,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
       if (_hasTokens(rangeBeforeFirstNode)) {
         invalidSelection(
             "The beginning of the selection contains characters that "
-                "do not belong to a statement.",
+            "do not belong to a statement.",
             newLocation_fromUnit(unit, rangeBeforeFirstNode));
       }
     }
@@ -193,9 +190,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
       AstNode lastNode = nodes.last;
       SourceRange rangeAfterLastNode = rangeEndEnd(lastNode, selection);
       if (_hasTokens(rangeAfterLastNode)) {
-        invalidSelection(
-            "The end of the selection contains characters that "
-                "do not belong to a statement.",
+        invalidSelection("The end of the selection contains characters that "
+            "do not belong to a statement.",
             newLocation_fromUnit(unit, rangeAfterLastNode));
       }
     }

@@ -16,7 +16,6 @@ import '../analysis_abstract.dart';
 import '../mocks.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(ConvertGetterMethodToMethodTest);
@@ -30,7 +29,6 @@ main() {
   runReflectiveTests(RenameTest);
   runReflectiveTests(_NoSearchEngine);
 }
-
 
 @reflectiveTest
 class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
@@ -63,8 +61,7 @@ main() {
     return getRefactoringResult(() {
       return _sendConvertRequest('test;');
     }).then((result) {
-      assertResultProblemsFatal(
-          result.initialProblems,
+      assertResultProblemsFatal(result.initialProblems,
           'Only explicit getters can be converted to methods.');
       // ...there is no any change
       expect(result.change, isNull);
@@ -118,15 +115,11 @@ main(A a, B b, C c, D d) {
 
   Future<Response> _sendConvertRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
-        testFile,
-        findOffset(search),
-        0,
-        false).toRequest('0');
+        RefactoringKind.CONVERT_GETTER_TO_METHOD, testFile, findOffset(search),
+        0, false).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
-
 
 @reflectiveTest
 class ConvertMethodToGetterTest extends _AbstractGetRefactoring_Test {
@@ -159,8 +152,7 @@ main() {
     return getRefactoringResult(() {
       return _sendConvertRequest('test(p)');
     }).then((result) {
-      assertResultProblemsFatal(
-          result.initialProblems,
+      assertResultProblemsFatal(result.initialProblems,
           'Only methods without parameters can be converted to getters.');
       // ...there is no any change
       expect(result.change, isNull);
@@ -178,8 +170,7 @@ main() {
       return _sendConvertRequest('abc');
     }).then((result) {
       assertResultProblemsFatal(
-          result.initialProblems,
-          'Unable to create a refactoring');
+          result.initialProblems, 'Unable to create a refactoring');
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -232,35 +223,31 @@ main(A a, B b, C c, D d) {
 
   Future<Response> _sendConvertRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.CONVERT_METHOD_TO_GETTER,
-        testFile,
-        findOffset(search),
-        0,
-        false).toRequest('0');
+        RefactoringKind.CONVERT_METHOD_TO_GETTER, testFile, findOffset(search),
+        0, false).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
 
-
 @reflectiveTest
 class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
-  Future<Response> sendExtractRequest(int offset, int length, String name,
-      bool extractAll) {
+  Future<Response> sendExtractRequest(
+      int offset, int length, String name, bool extractAll) {
     RefactoringKind kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
     ExtractLocalVariableOptions options =
         name != null ? new ExtractLocalVariableOptions(name, extractAll) : null;
     return sendRequest(kind, offset, length, options, false);
   }
 
-  Future<Response> sendStringRequest(String search, String name,
-      bool extractAll) {
+  Future<Response> sendStringRequest(
+      String search, String name, bool extractAll) {
     int offset = findOffset(search);
     int length = search.length;
     return sendExtractRequest(offset, length, name, extractAll);
   }
 
-  Future<Response> sendStringSuffixRequest(String search, String suffix,
-      String name, bool extractAll) {
+  Future<Response> sendStringSuffixRequest(
+      String search, String suffix, String name, bool extractAll) {
     int offset = findOffset(search + suffix);
     int length = search.length;
     return sendExtractRequest(offset, length, name, extractAll);
@@ -321,8 +308,7 @@ main() {
       return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
     }).then((result) {
       ExtractLocalVariableFeedback feedback = result.feedback;
-      expect(
-          feedback.names,
+      expect(feedback.names,
           unorderedEquals(['treeItem', 'item', 'selectedItem']));
       expect(result.change, isNull);
     });
@@ -337,8 +323,7 @@ main() {
     return getRefactoringResult(() {
       return sendStringRequest('1 + 2', 'Name', true);
     }).then((result) {
-      assertResultProblemsWarning(
-          result.optionsProblems,
+      assertResultProblemsWarning(result.optionsProblems,
           'Variable name should start with a lowercase letter.');
       // ...but there is still a change
       assertTestRefactoringResult(result, '''
@@ -411,7 +396,6 @@ main() {
     });
   }
 }
-
 
 @reflectiveTest
 class ExtractMethodTest extends _AbstractGetRefactoring_Test {
@@ -523,8 +507,7 @@ main() {
 ''');
     _setOffsetLengthForString('getSelectedItem( )');
     return _computeInitialFeedback().then((feedback) {
-      expect(
-          feedback.names,
+      expect(feedback.names,
           unorderedEquals(['treeItem', 'item', 'selectedItem']));
       expect(feedback.returnType, 'TreeItem');
     });
@@ -599,11 +582,7 @@ void res(int a, int b) {
       // fill options from result
       ExtractMethodFeedback feedback = result.feedback;
       options = new ExtractMethodOptions(
-          feedback.returnType,
-          false,
-          name,
-          feedback.parameters,
-          true);
+          feedback.returnType, false, name, feedback.parameters, true);
       // done
       return new Future.value();
     });
@@ -625,7 +604,6 @@ void res(int a, int b) {
   }
 }
 
-
 @reflectiveTest
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
@@ -641,8 +619,8 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
    * Tests that there is refactoring of the given [kind] is available at the
    * [search] offset.
    */
-  Future assertHasKind(String code, String search, RefactoringKind kind,
-      bool expected) async {
+  Future assertHasKind(
+      String code, String search, RefactoringKind kind, bool expected) async {
     addTestFile(code);
     await waitForTasksFinished();
     await getRefactoringsAtString(search);
@@ -665,9 +643,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
    */
   Future getRefactorings(int offset, int length) async {
     Request request = new EditGetAvailableRefactoringsParams(
-        testFile,
-        offset,
-        length).toRequest('0');
+        testFile, offset, length).toRequest('0');
     serverChannel.sendRequest(request);
     var response = await serverChannel.waitForResponse(request);
     var result = new EditGetAvailableRefactoringsResult.fromResponse(response);
@@ -830,7 +806,6 @@ main() {
   }
 }
 
-
 @reflectiveTest
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
   test_feedback() {
@@ -855,8 +830,7 @@ main() {
     return getRefactoringResult(() {
       return _sendInlineRequest('main() {}');
     }).then((result) {
-      assertResultProblemsFatal(
-          result.initialProblems,
+      assertResultProblemsFatal(result.initialProblems,
           'Local variable declaration or reference must be selected to activate this refactoring.');
       // ...there is no any change
       expect(result.change, isNull);
@@ -883,15 +857,11 @@ main() {
 
   Future<Response> _sendInlineRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.INLINE_LOCAL_VARIABLE,
-        testFile,
-        findOffset(search),
-        0,
+        RefactoringKind.INLINE_LOCAL_VARIABLE, testFile, findOffset(search), 0,
         false).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
-
 
 @reflectiveTest
 class InlineMethodTest extends _AbstractGetRefactoring_Test {
@@ -924,8 +894,7 @@ class A {
     return getRefactoringResult(() {
       return _sendInlineRequest('// nothing');
     }).then((result) {
-      assertResultProblemsFatal(
-          result.initialProblems,
+      assertResultProblemsFatal(result.initialProblems,
           'Method declaration or reference must be selected to activate this refactoring.');
       // ...there is no any change
       expect(result.change, isNull);
@@ -1009,16 +978,11 @@ main() {
 
   Future<Response> _sendInlineRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.INLINE_METHOD,
-        testFile,
-        findOffset(search),
-        0,
-        false,
+        RefactoringKind.INLINE_METHOD, testFile, findOffset(search), 0, false,
         options: options).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
-
 
 @reflectiveTest
 class MoveFileTest extends _AbstractGetRefactoring_Test {
@@ -1041,28 +1005,19 @@ import 'bin/lib.dart';
 
   Future<Response> _sendMoveRequest() {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.MOVE_FILE,
-        testFile,
-        0,
-        0,
-        false,
-        options: options).toRequest('0');
+            RefactoringKind.MOVE_FILE, testFile, 0, 0, false, options: options)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
 
-
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
-  Future<Response> sendRenameRequest(String search, String newName, {String id:
-      '0', bool validateOnly: false}) {
+  Future<Response> sendRenameRequest(String search, String newName,
+      {String id: '0', bool validateOnly: false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.RENAME,
-        testFile,
-        findOffset(search),
-        0,
-        validateOnly,
+        RefactoringKind.RENAME, testFile, findOffset(search), 0, validateOnly,
         options: options).toRequest(id);
     return serverChannel.sendRequest(request);
   }
@@ -1082,8 +1037,7 @@ main() {
     Response responseA = await futureA;
     // "1" was cancelled
     // "2" is successful
-    expect(
-        responseA,
+    expect(responseA,
         isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
     expect(responseB, isResponseSuccess('2'));
   }
@@ -1126,8 +1080,7 @@ main() {
       return sendRenameRequest('Test {}', '');
     }).then((result) {
       assertResultProblemsFatal(
-          result.optionsProblems,
-          'Class name must not be empty.');
+          result.optionsProblems, 'Class name must not be empty.');
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -1161,8 +1114,7 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('Test {}', 'newName');
     }).then((result) {
-      assertResultProblemsWarning(
-          result.optionsProblems,
+      assertResultProblemsWarning(result.optionsProblems,
           'Class name should start with an uppercase letter.');
       // ...but there is still a change
       assertTestRefactoringResult(result, '''
@@ -1521,8 +1473,7 @@ main() {
       return sendRenameRequest('// nothing', null);
     }).then((result) {
       assertResultProblemsFatal(
-          result.initialProblems,
-          'Unable to create a refactoring');
+          result.initialProblems, 'Unable to create a refactoring');
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -1596,8 +1547,7 @@ main() {
       List<RefactoringProblem> problems = result.finalProblems;
       expect(problems, hasLength(1));
       assertResultProblemsError(
-          problems,
-          "Duplicate local variable 'newName'.");
+          problems, "Duplicate local variable 'newName'.");
     });
   }
 
@@ -1624,9 +1574,7 @@ main() {
       // send the second request, with the same kind, file and offset
       return waitForTasksFinished().then((_) {
         return getRefactoringResult(() {
-          return sendRenameRequest(
-              'otherName =',
-              'newName',
+          return sendRenameRequest('otherName =', 'newName',
               validateOnly: true);
         }).then((result) {
           RenameFeedback feedback = result.feedback;
@@ -1650,7 +1598,6 @@ main() {
   }
 }
 
-
 @reflectiveTest
 class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   /**
@@ -1659,9 +1606,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   void assertResultProblemsError(List<RefactoringProblem> problems,
       [String message]) {
     RefactoringProblem problem = problems[0];
-    expect(
-        problem.severity,
-        RefactoringProblemSeverity.ERROR,
+    expect(problem.severity, RefactoringProblemSeverity.ERROR,
         reason: problem.toString());
     if (message != null) {
       expect(problem.message, message);
@@ -1675,9 +1620,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
       [String message]) {
     RefactoringProblem problem = problems[0];
     expect(problems, hasLength(1));
-    expect(
-        problem.severity,
-        RefactoringProblemSeverity.FATAL,
+    expect(problem.severity, RefactoringProblemSeverity.FATAL,
         reason: problem.toString());
     if (message != null) {
       expect(problem.message, message);
@@ -1700,17 +1643,15 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
       [String message]) {
     RefactoringProblem problem = problems[0];
     expect(problems, hasLength(1));
-    expect(
-        problem.severity,
-        RefactoringProblemSeverity.WARNING,
+    expect(problem.severity, RefactoringProblemSeverity.WARNING,
         reason: problem.toString());
     if (message != null) {
       expect(problem.message, message);
     }
   }
 
-  Future assertSuccessfulRefactoring(Future<Response> requestSender(),
-      String expectedCode) {
+  Future assertSuccessfulRefactoring(
+      Future<Response> requestSender(), String expectedCode) {
     return getRefactoringResult(requestSender).then((result) {
       assertResultProblemsOK(result);
       assertTestRefactoringResult(result, expectedCode);
@@ -1721,8 +1662,8 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
    * Asserts that the given [EditGetRefactoringResult] has a [testFile] change
    * which results in the [expectedCode].
    */
-  void assertTestRefactoringResult(EditGetRefactoringResult result,
-      String expectedCode) {
+  void assertTestRefactoringResult(
+      EditGetRefactoringResult result, String expectedCode) {
     SourceChange change = result.change;
     expect(change, isNotNull);
     for (SourceFileEdit fileEdit in change.edits) {
@@ -1740,8 +1681,8 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     return createLocalMemoryIndex();
   }
 
-  Future<EditGetRefactoringResult> getRefactoringResult(Future<Response>
-      requestSender()) {
+  Future<EditGetRefactoringResult> getRefactoringResult(
+      Future<Response> requestSender()) {
     return waitForTasksFinished().then((_) {
       return requestSender().then((Response response) {
         return new EditGetRefactoringResult.fromResponse(response);
@@ -1749,15 +1690,12 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     });
   }
 
-  Future<Response> sendRequest(RefactoringKind kind, int offset, int length,
-      RefactoringOptions options, [bool validateOnly = false]) {
+  Future<Response> sendRequest(
+      RefactoringKind kind, int offset, int length, RefactoringOptions options,
+      [bool validateOnly = false]) {
     Request request = new EditGetRefactoringParams(
-        kind,
-        testFile,
-        offset,
-        length,
-        validateOnly,
-        options: options).toRequest('0');
+            kind, testFile, offset, length, validateOnly, options: options)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 
@@ -1769,7 +1707,6 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server);
   }
 }
-
 
 @reflectiveTest
 class _NoSearchEngine extends _AbstractGetRefactoring_Test {
@@ -1798,11 +1735,8 @@ main() {
 ''');
     await waitForTasksFinished();
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
-        testFile,
-        0,
-        0,
-        true).toRequest('0');
+            RefactoringKind.EXTRACT_LOCAL_VARIABLE, testFile, 0, 0, true)
+        .toRequest('0');
     return _assertErrorResposeNoIndex(request);
   }
 

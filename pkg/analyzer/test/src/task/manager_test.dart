@@ -63,8 +63,7 @@ class TaskManagerTest extends EngineTestCase {
   test_findTask_empty() {
     TaskManager manager = new TaskManager();
     AnalysisTarget target = new TestSource();
-    expect(
-        () => manager.findTask(target, result1),
+    expect(() => manager.findTask(target, result1),
         throwsA(new isInstanceOf<AnalysisException>()));
   }
 
@@ -91,8 +90,7 @@ class TaskManagerTest extends EngineTestCase {
         new TaskDescriptor('task', null, null, [result1]);
     manager.addTaskDescriptor(descriptor);
     AnalysisTarget target = new TestSource();
-    expect(
-        () => manager.findTask(target, result2),
+    expect(() => manager.findTask(target, result2),
         throwsA(new isInstanceOf<AnalysisException>()));
   }
 

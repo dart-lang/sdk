@@ -14,12 +14,10 @@ import 'package:watcher/watcher.dart';
 
 import 'file_system.dart';
 
-
 /**
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-
   static final NORMALIZE_EOL_ALWAYS =
       (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
 
@@ -70,7 +68,6 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 }
 
-
 /**
  * A `dart:io` based implementation of [File].
  */
@@ -103,7 +100,6 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 }
 
-
 /**
  * A `dart:io` based implementation of [Folder].
  */
@@ -127,6 +123,13 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   Resource getChild(String relPath) {
     String canonicalPath = canonicalizePath(relPath);
     return PhysicalResourceProvider.INSTANCE.getResource(canonicalPath);
+  }
+
+  @override
+  _PhysicalFolder getChildAssumingFolder(String relPath) {
+    String canonicalPath = canonicalizePath(relPath);
+    io.Directory directory = new io.Directory(canonicalPath);
+    return new _PhysicalFolder(directory);
   }
 
   @override
@@ -154,7 +157,6 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     return contains(path);
   }
 }
-
 
 /**
  * A `dart:io` based implementation of [Resource].

@@ -7,7 +7,9 @@ library context.directory.manager;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -17,18 +19,15 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
-
 /**
  * The name of `packages` folders.
  */
 const String PACKAGES_NAME = 'packages';
 
-
 /**
  * File name of pubspec files.
  */
 const String PUBSPEC_NAME = 'pubspec.yaml';
-
 
 /**
  * Class that maintains a mapping from included/excluded paths to a set of
@@ -85,7 +84,13 @@ abstract class ContextManager {
    */
   final PackageMapProvider _packageMapProvider;
 
-  ContextManager(this.resourceProvider, this._packageMapProvider) {
+  /**
+   * The instrumentation service used to report instrumentation data.
+   */
+  final InstrumentationService _instrumentationService;
+
+  ContextManager(this.resourceProvider, this._packageMapProvider,
+      this._instrumentationService) {
     pathContext = resourceProvider.pathContext;
   }
 
@@ -180,9 +185,8 @@ abstract class ContextManager {
         includedFolders.add(resource);
       } else {
         // TODO(scheglov) implemented separate files analysis
-        throw new UnimplementedError(
-            '$path is not a folder. '
-                'Only support for folder analysis is implemented currently.');
+        throw new UnimplementedError('$path is not a folder. '
+            'Only support for folder analysis is implemented currently.');
       }
     }
     this.includedPaths = includedPaths;
@@ -244,8 +248,8 @@ abstract class ContextManager {
   /**
    * Called when the package map for a context has changed.
    */
-  void updateContextPackageUriResolver(Folder contextFolder,
-      UriResolver packageUriResolver);
+  void updateContextPackageUriResolver(
+      Folder contextFolder, UriResolver packageUriResolver);
 
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
@@ -265,8 +269,7 @@ abstract class ContextManager {
           continue;
         }
         // ignore if was not excluded
-        bool wasExcluded =
-            _isExcludedBy(oldExcludedPaths, path) &&
+        bool wasExcluded = _isExcludedBy(oldExcludedPaths, path) &&
             !_isExcludedBy(excludedPaths, path);
         if (!wasExcluded) {
           continue;
@@ -326,16 +329,17 @@ abstract class ContextManager {
       return new PackageUriResolver([new JavaFile(info.packageRoot)]);
     } else {
       beginComputePackageMap();
-      PackageMapInfo packageMapInfo =
-          _packageMapProvider.computePackageMap(folder);
+      PackageMapInfo packageMapInfo;
+      ServerPerformanceStatistics.pub.makeCurrentWhile(() {
+        packageMapInfo = _packageMapProvider.computePackageMap(folder);
+      });
       endComputePackageMap();
       info.packageMapDependencies = packageMapInfo.dependencies;
       if (packageMapInfo.packageMap == null) {
         return null;
       }
       return new PackageMapUriResolver(
-          resourceProvider,
-          packageMapInfo.packageMap);
+          resourceProvider, packageMapInfo.packageMap);
       // TODO(paulberry): if any of the dependencies is outside of [folder],
       // we'll need to watch their parent folders as well.
     }
@@ -344,33 +348,17 @@ abstract class ContextManager {
   /**
    * Create a new empty context associated with [folder].
    */
-  _ContextInfo _createContext(Folder folder, File pubspecFile,
-      List<_ContextInfo> children) {
+  _ContextInfo _createContext(
+      Folder folder, File pubspecFile, List<_ContextInfo> children) {
     _ContextInfo info = new _ContextInfo(
-        folder,
-        pubspecFile,
-        children,
-        normalizedPackageRoots[folder.path]);
+        folder, pubspecFile, children, normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
     UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
     info.context = addContext(folder, packageUriResolver);
-    return info;
-  }
-
-  /**
-   * Create a new context associated with the given [folder]. The [pubspecFile]
-   * is the `pubspec.yaml` file contained in the folder. Add any sources that
-   * are not included in one of the [children] to the context.
-   */
-  _ContextInfo _createContextWithSources(Folder folder, File pubspecFile,
-      List<_ContextInfo> children) {
-    _ContextInfo info = _createContext(folder, pubspecFile, children);
-    ChangeSet changeSet = new ChangeSet();
-    _addSourceFiles(changeSet, folder, info);
-    applyChangesToContext(folder, changeSet);
+    info.context.name = folder.path;
     return info;
   }
 
@@ -411,6 +399,20 @@ abstract class ContextManager {
     // OK, create a context without a pubspec
     _createContextWithSources(folder, pubspecFile, children);
     return children;
+  }
+
+  /**
+   * Create a new context associated with the given [folder]. The [pubspecFile]
+   * is the `pubspec.yaml` file contained in the folder. Add any sources that
+   * are not included in one of the [children] to the context.
+   */
+  _ContextInfo _createContextWithSources(
+      Folder folder, File pubspecFile, List<_ContextInfo> children) {
+    _ContextInfo info = _createContext(folder, pubspecFile, children);
+    ChangeSet changeSet = new ChangeSet();
+    _addSourceFiles(changeSet, folder, info);
+    applyChangesToContext(folder, changeSet);
+    return info;
   }
 
   /**
@@ -457,6 +459,8 @@ abstract class ContextManager {
   }
 
   void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
+    _instrumentationService.logWatchEvent(
+        folder.path, event.path, event.type.toString());
     String path = event.path;
     // maybe excluded globally
     if (_isExcluded(path)) {

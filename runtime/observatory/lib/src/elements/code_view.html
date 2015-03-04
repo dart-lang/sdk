@@ -9,48 +9,33 @@
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
-      div.flex-row:hover {
-        background-color: #FFF3E3;
+      .table {
+        table-layout: fixed;
       }
 
-      .highlight {
-        background-color: #FFF3E3;
+      th:nth-of-type(1), td:nth-of-type(1) {
+        min-width: 10em;
+        text-align: left;
       }
 
-      .tooltip {
+      th:nth-of-type(2), td:nth-of-type(2) {
+        min-width: 10em;
+        text-align: left;
+      }
+
+      th:nth-of-type(3), td:nth-of-type(3) {
+        padding-right: 3em;
+      }
+
+      th:nth-of-type(4), td:nth-of-type(4) {
+        padding-left: 3em;
+        overflow: visible;
+        white-space: pre;
         display: block;
-        position: absolute;
-        visibility: hidden;
-        opacity: 0;
-        transition: visibility 0s linear 0.5s;
-        transition: opacity .4s ease-in-out;
       }
 
-      .flex-row:hover .tooltip {
-        display: block;
-        position: absolute;
-        top: 100%;
-        visibility: visible;
-        z-index: 999;
-        width: auto;
-        min-width: 400px;
-        color: #ffffff;
-        background-color: #FFF3E3;
-        border-bottom-right-radius: 8px;
-        border-bottom-left-radius: 8px;
-        transition: visibility 0s linear 0.5s;
-        transition: opacity .4s ease-in-out;
-        opacity: 1;
-      }
-
-      .descriptor-address {
-        color: #0489c3;
-      }
-
-      .snippet {
-        text-align: center;
-        margin-left: 10px;
-        margin-right: 10px;
+      tr:hover > td {
+        background-color: #F4C7C3;
       }
 
     </style>
@@ -59,6 +44,7 @@
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/inspect', code) }}" anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-refresh callback="{{ refreshTicks }}" label="Refresh Ticks"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
     <div class="content">
@@ -71,12 +57,12 @@
       <div class="memberList">
         <div class="memberItem">
           <div class="memberName">Kind</div>
-          <div class="memberValue">{{code.kind}}</div>
+          <div class="memberValue">{{ code.kind.toString() }}</div>
         </div>
         <template if="{{ code.isDartCode }}">
           <div class="memberItem">
             <div class="memberName">Optimized</div>
-            <div class="memberValue">{{code.isOptimized}}</div>
+            <div class="memberValue">{{ code.isOptimized }}</div>
           </div>
         </template>
         <div class="memberItem">
@@ -88,11 +74,11 @@
         </div>
         <div class="memberItem">
           <div class="memberName">Inclusive</div>
-          <div class="memberValue">{{ code.formattedInclusiveTicks }}</div>
+          <div class="memberValue">{{ code.profile.formattedInclusiveTicks }}</div>
         </div>
         <div class="memberItem">
           <div class="memberName">Exclusive</div>
-          <div class="memberValue">{{ code.formattedExclusiveTicks }}</div>
+          <div class="memberValue">{{ code.profile.formattedExclusiveTicks }}</div>
         </div>
         <div class="memberItem">
           <div class="memberName">Constant object pool</div>
@@ -100,70 +86,54 @@
             <any-service-ref ref="{{ code.objectPool }}"></any-service-ref>
           </div>
         </div>
+        <template if="{{ code.inlinedFunctions.isNotEmpty }}">
+          <div class="memberItem">
+            <div class="memberName">inlined functions ({{ code.inlinedFunctions.length }})</div>
+            <div class="memberValue">
+              <curly-block expand="{{ code.inlinedFunctions.length <= 8 }}">
+                <div class="memberList">
+                  <template repeat="{{ func in code.inlinedFunctions }}">
+                    <div class="memberItem">
+                      <div class="memberValue">
+                        <function-ref ref="{{ func }}"></function-ref>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </curly-block>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
     <hr>
-    <div class="content">
-      <template if="{{ code.hasDisassembly }}">
-        <div class="flex-row">
-            <div class="flex-item-fixed-2-12 memberHeader">Inclusive</div>
-            <div class="flex-item-fixed-2-12 memberHeader">Exclusive</div>
-            <div class="flex-item-fixed-2-12 memberHeader">Address</div>
-            <div class="flex-item-fixed-6-12 memberHeader">Disassembly</div>
-        </div>
-      </template>
-      <template repeat="{{ instruction in code.instructions }}">
-        <div class="flex-row" on-mouseover="{{ mouseOver }}" on-mouseout="{{ mouseOut }}" data-jump-target="{{ instruction.jumpTarget.address }}" id="addr-{{ instruction.address }}" style="position: relative">
-          <template if="{{ instruction.isComment }}">
-            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedInclusive(code) }}</div>
-            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedExclusive(code) }}</div>
-            <div class="flex-item-fixed-8-12 monospace">{{ instruction.human }}</div>
-          </template>
-          <template if="{{ !instruction.isComment }}">
-            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedInclusive(code) }}</div>
-            <div class="flex-item-fixed-2-12 monospace">{{ instruction.formattedExclusive(code) }}</div>
-            <template if="{{ instruction.hasDescriptors }}">
-              <div class="flex-item-fixed-2-12 monospace descriptor-address">
-                <div class="tooltip">
-                  <template repeat="{{ descriptor in instruction.descriptors }}">
-                    <div class="memberList">
-                      <div class="memberItem">
-                       <div class="memberName">Kind</div>
-                       <div class="memberValue">{{ descriptor.kind }}</div>
-                      </div>
-                      <div class="memberItem">
-                       <div class="memberName">Deoptimization ID</div>
-                       <div class="memberValue">{{ descriptor.formattedDeoptId() }}</div>
-                      </div>
-                      <template if="{{ descriptor.script != null }}">
-                        <div class="memberItem">
-                         <div class="memberName">Script</div>
-                         <div class="memberValue"><script-ref ref="{{ descriptor.script }}" pos="{{ descriptor.tokenPos }}"></script-ref></div>
-                        </div>
-                      </template>
-                    </div>
-                    <template if="{{ descriptor.script != null }}">
-                      <div class="snippet monospace">
-                        <span>{{ descriptor.formattedLine }}</span>
-                      </div>
-                    </template>
-                  </template>
-                </div>
-                {{ instruction.formattedAddress() }}
-              </div>
-            </template>
-            <template if="{{ !instruction.hasDescriptors }}">
-              <div class="flex-item-fixed-2-12 monospace">
-                {{ instruction.formattedAddress() }}
-              </div>
-            </template>
-            <div class="flex-item-fixed-6-12 monospace">
-              {{ instruction.human }}
-            </div>
-          </template>
-        </div>
-      </template>
-    </div>
+    <table id="inlineRangeTable" class="table">
+      <thead id="inlineRangeTableHead">
+        <tr>
+          <th class="address" title="Address range">Address Range</th>
+          <th class="tick" title="Inclusive">Inclusive</th>
+          <th class="tick" title="Exclusive">Exclusive</th>
+          <th title="Functions">Functions</th>
+        </tr>
+      </thead>
+      <tbody class="monospace" id="inlineRangeTableBody">
+      </tbody>
+    </table>
+    <hr>
+    <table id="disassemblyTable" class="table">
+      <thead id="disassemblyTableHead">
+      <tr>
+        <th class="address" title="Address">Address</th>
+        <th class="tick" title="Inclusive">Inclusive</th>
+        <th class="tick" title="Exclusive">Exclusive</th>
+        <th class="disassembly" title="Disassembly">Disassembly</th>
+      </tr>
+      </thead>
+      <tbody class="monospace" id="disassemblyTableBody">
+      </tbody>
+    </table>
+    <br><br><br>
+    <br><br><br>
   </template>
 </polymer-element>
 

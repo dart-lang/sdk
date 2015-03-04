@@ -73,6 +73,8 @@ class JavaScriptBackend extends Backend {
       new Uri(scheme: 'dart', path: '_js_mirrors');
   static final Uri DART_JS_NAMES =
       new Uri(scheme: 'dart', path: '_js_names');
+  static final Uri DART_EMBEDDED_NAMES =
+      new Uri(scheme: 'dart', path: '_js_embedded_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
   static final Uri DART_HTML =
@@ -363,6 +365,9 @@ class JavaScriptBackend extends Backend {
   /// Holds the method "requiresPreamble" in _js_helper.
   FunctionElement requiresPreambleMarker;
 
+  /// Holds the class for the [JsGetName] enum.
+  EnumClassElement jsGetNameEnum;
+
   /// True if a call to preserveMetadataMarker has been seen.  This means that
   /// metadata must be retained for dart:mirrors to work correctly.
   bool mustRetainMetadata = false;
@@ -460,7 +465,8 @@ class JavaScriptBackend extends Backend {
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = USE_CPS_IR
-         ? new CpsFunctionCompiler(compiler, this)
+         ? new CpsFunctionCompiler(
+             compiler, this, generateSourceMap: generateSourceMap)
          : new SsaFunctionCompiler(this, generateSourceMap);
   }
 
@@ -542,7 +548,7 @@ class JavaScriptBackend extends Backend {
 
   String registerOneShotInterceptor(Selector selector) {
     Set<ClassElement> classes = getInterceptedClassesOn(selector.name);
-    String name = namer.getOneShotInterceptorName(selector, classes);
+    String name = namer.nameForGetOneShotInterceptor(selector, classes);
     if (!oneShotInterceptors.containsKey(name)) {
       registerSpecializedGetInterceptor(classes);
       oneShotInterceptors[name] = selector;
@@ -741,7 +747,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    String name = namer.getInterceptorName(getInterceptorMethod, classes);
+    String name = namer.nameForGetInterceptor(classes);
     if (classes.contains(jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
@@ -1875,6 +1881,8 @@ class JavaScriptBackend extends Backend {
         preserveLibraryNamesMarker = find(library, 'preserveLibraryNames');
       } else if (uri == DART_JS_NAMES) {
         preserveNamesMarker = find(library, 'preserveNames');
+      } else if (uri == DART_EMBEDDED_NAMES) {
+        jsGetNameEnum = find(library, 'JsGetName');
       } else if (uri == DART_HTML) {
         htmlLibraryIsLoaded = true;
       }

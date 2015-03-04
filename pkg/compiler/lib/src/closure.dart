@@ -1028,6 +1028,18 @@ class ClosureTranslator extends Visitor {
     node.visitChildren(this);
     inTryStatement = oldInTryStatement;
   }
+
+  visitForIn(ForIn node) {
+    if (node.awaitToken != null) {
+      // An `await for` loop is enclosed in an implicit try-finally.
+      bool oldInTryStatement = inTryStatement;
+      inTryStatement = true;
+      visitLoop(node);
+      inTryStatement = oldInTryStatement;
+    } else {
+      visitLoop(node);
+    }
+  }
 }
 
 /// A type variable as a local variable.

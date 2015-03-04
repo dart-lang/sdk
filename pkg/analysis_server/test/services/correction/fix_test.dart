@@ -17,15 +17,12 @@ import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
 import '../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(FixProcessorTest);
 }
 
-
 typedef bool AnalysisErrorFilter(AnalysisError error);
-
 
 @reflectiveTest
 class FixProcessorTest extends AbstractSingleUnitTest {
@@ -88,8 +85,8 @@ bool test() {
     return positions;
   }
 
-  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
-      List<String> values) {
+  List<LinkedEditSuggestion> expectedSuggestions(
+      LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
       return new LinkedEditSuggestion(value, kind);
     }).toList();
@@ -185,6 +182,33 @@ main(A a) {
 ''');
   }
 
+  void test_changeToStaticAccess_method_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {
+  static foo() {}
+}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+class B extends A {}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+main(B b) {
+  b.foo();
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO_STATIC_ACCESS, '''
+import 'libB.dart';
+import 'libA.dart';
+main(B b) {
+  A.foo();
+}
+''');
+  }
+
   void test_changeToStaticAccess_method_prefixLibrary() {
     resolveTestUnit('''
 import 'dart:async' as pref;
@@ -214,6 +238,33 @@ class A {
   static get foo => 42;
 }
 main(A a) {
+  A.foo;
+}
+''');
+  }
+
+  void test_changeToStaticAccess_property_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {
+  static get foo => null;
+}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+class B extends A {}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+main(B b) {
+  b.foo;
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO_STATIC_ACCESS, '''
+import 'libB.dart';
+import 'libA.dart';
+main(B b) {
   A.foo;
 }
 ''');
@@ -408,6 +459,32 @@ class B extends A {
 ''');
   }
 
+  void test_createConstructorSuperImplicit_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+class B {
+  B(A a);
+}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+class C extends B {
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR_SUPER, '''
+import 'libB.dart';
+import 'libA.dart';
+class C extends B {
+  C(A a) : super(a);
+}
+''');
+  }
+
   void test_createConstructorSuperImplicit_named() {
     resolveTestUnit('''
 class A {
@@ -580,6 +657,36 @@ class A {
   main() {
     test;
   }
+}
+''');
+  }
+
+  void test_createField_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+A getA() => null;
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+class C {
+}
+main(C c) {
+  c.test = getA();
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+import 'libB.dart';
+import 'libA.dart';
+class C {
+  A test;
+}
+main(C c) {
+  c.test = getA();
 }
 ''');
   }
@@ -1477,6 +1584,34 @@ int test(double a, String b) {
 ''');
   }
 
+  void test_creationFunction_forFunctionType_importType() {
+    addSource('/libA.dart', r'''
+library libA;
+class A {}
+''');
+    addSource('/libB.dart', r'''
+library libB;
+import 'libA.dart';
+useFunction(int g(A a)) {}
+''');
+    resolveTestUnit('''
+import 'libB.dart';
+main() {
+  useFunction(test);
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+import 'libB.dart';
+import 'libA.dart';
+main() {
+  useFunction(test);
+}
+
+int test(A a) {
+}
+''');
+  }
+
   void test_creationFunction_forFunctionType_method_enclosingClass_static() {
     resolveTestUnit('''
 class A {
@@ -1540,8 +1675,7 @@ useFunction(int g(double a, String b)) {}
 ''');
   }
 
-  void
-      test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() {
+  void test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() {
     resolveTestUnit('''
 main(A a) {
   useFunction(a.test);
@@ -1602,7 +1736,7 @@ main() {
 ''');
   }
 
-  void test_importLibraryPackage_withType() {
+  void test_importLibraryPackage_withClass() {
     _configureMyPkg('''
 library my_lib;
 class Test {}
@@ -1619,6 +1753,23 @@ import 'package:my_pkg/my_lib.dart';
 
 main() {
   Test test = null;
+}
+''');
+  }
+
+  void test_importLibraryPrefix_withClass() {
+    resolveTestUnit('''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  Future f = null;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_PREFIX, '''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  pref.Future f = null;
 }
 ''');
   }
@@ -1640,19 +1791,87 @@ main() {
 ''');
   }
 
-  void test_importLibraryPrefix_withType() {
-    resolveTestUnit('''
-import 'dart:async' as pref;
-main() {
-  pref.Stream s = null;
-  Future f = null;
+  void test_importLibraryProject_withClass_annotation() {
+    addSource('/lib.dart', '''
+library lib;
+class Test {
+  const Test(int p);
 }
 ''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_PREFIX, '''
-import 'dart:async' as pref;
+    resolveTestUnit('''
+@Test(0)
 main() {
-  pref.Stream s = null;
-  pref.Future f = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+@Test(0)
+main() {
+}
+''');
+  }
+
+  void test_importLibraryProject_withClass_inParentFolder() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/lib.dart', '''
+library lib;
+class Test {}
+''');
+    resolveTestUnit('''
+main() {
+  Test t = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import '../lib.dart';
+
+main() {
+  Test t = null;
+}
+''');
+  }
+
+  void test_importLibraryProject_withClass_inRelativeFolder() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/lib/sub/folder/lib.dart', '''
+library lib;
+class Test {}
+''');
+    resolveTestUnit('''
+main() {
+  Test t = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import '../lib/sub/folder/lib.dart';
+
+main() {
+  Test t = null;
+}
+''');
+  }
+
+  void test_importLibraryProject_withClass_inSameFolder() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/bin/lib.dart', '''
+library lib;
+class Test {}
+''');
+    resolveTestUnit('''
+main() {
+  Test t = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+main() {
+  Test t = null;
 }
 ''');
   }
@@ -1701,6 +1920,27 @@ class A {
 ''');
   }
 
+  void test_importLibraryProject_withFunctionTypeAlias() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/bin/lib.dart', '''
+library lib;
+typedef MyFunction();
+''');
+    resolveTestUnit('''
+main() {
+  MyFunction t = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+main() {
+  MyFunction t = null;
+}
+''');
+  }
+
   void test_importLibraryProject_withTopLevelVariable() {
     addSource('/lib.dart', '''
 library lib;
@@ -1721,87 +1961,92 @@ main() {
 ''');
   }
 
-  void test_importLibraryProject_withType_annotation() {
-    addSource('/lib.dart', '''
-library lib;
-class Test {
-  const Test(int p);
-}
-''');
+  void test_importLibrarySdk_withClass_AsExpression() {
     resolveTestUnit('''
-@Test(0)
-main() {
+main(p) {
+  p as Future;
 }
 ''');
-    performAllAnalysisTasks();
-    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
-import 'lib.dart';
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
 
-@Test(0)
-main() {
+main(p) {
+  p as Future;
 }
 ''');
   }
 
-  void test_importLibraryProject_withType_inParentFolder() {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/lib.dart', '''
-library lib;
-class Test {}
-''');
+  void test_importLibrarySdk_withClass_invocationTarget() {
     resolveTestUnit('''
 main() {
-  Test t = null;
+  Future.wait(null);
 }
 ''');
-    performAllAnalysisTasks();
-    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
-import '../lib.dart';
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
 
 main() {
-  Test t = null;
+  Future.wait(null);
 }
 ''');
   }
 
-  void test_importLibraryProject_withType_inRelativeFolder() {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/lib/sub/folder/lib.dart', '''
-library lib;
-class Test {}
-''');
+  void test_importLibrarySdk_withClass_IsExpression() {
     resolveTestUnit('''
-main() {
-  Test t = null;
+main(p) {
+  p is Future;
 }
 ''');
-    performAllAnalysisTasks();
-    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
-import '../lib/sub/folder/lib.dart';
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
 
-main() {
-  Test t = null;
+main(p) {
+  p is Future;
 }
 ''');
   }
 
-  void test_importLibraryProject_withType_inSameFolder() {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/bin/lib.dart', '''
-library lib;
-class Test {}
-''');
+  void test_importLibrarySdk_withClass_typeAnnotation() {
     resolveTestUnit('''
 main() {
-  Test t = null;
+  Future f = null;
 }
 ''');
-    performAllAnalysisTasks();
-    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
-import 'lib.dart';
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
 
 main() {
-  Test t = null;
+  Future f = null;
+}
+''');
+  }
+
+  void test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier() {
+    resolveTestUnit('''
+main() {
+  Future.wait;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main() {
+  Future.wait;
+}
+''');
+  }
+
+  void test_importLibrarySdk_withClass_typeArgument() {
+    resolveTestUnit('''
+main() {
+  List<Future> futures = [];
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main() {
+  List<Future> futures = [];
 }
 ''');
   }
@@ -1834,96 +2079,6 @@ import 'dart:math';
 
 @PI
 main() {
-}
-''');
-  }
-
-  void test_importLibrarySdk_withType_AsExpression() {
-    resolveTestUnit('''
-main(p) {
-  p as Future;
-}
-''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
-import 'dart:async';
-
-main(p) {
-  p as Future;
-}
-''');
-  }
-
-  void test_importLibrarySdk_withType_invocationTarget() {
-    resolveTestUnit('''
-main() {
-  Future.wait(null);
-}
-''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
-import 'dart:async';
-
-main() {
-  Future.wait(null);
-}
-''');
-  }
-
-  void test_importLibrarySdk_withType_IsExpression() {
-    resolveTestUnit('''
-main(p) {
-  p is Future;
-}
-''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
-import 'dart:async';
-
-main(p) {
-  p is Future;
-}
-''');
-  }
-
-  void test_importLibrarySdk_withType_typeAnnotation() {
-    resolveTestUnit('''
-main() {
-  Future f = null;
-}
-''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
-import 'dart:async';
-
-main() {
-  Future f = null;
-}
-''');
-  }
-
-  void test_importLibrarySdk_withType_typeAnnotation_PrefixedIdentifier() {
-    resolveTestUnit('''
-main() {
-  Future.wait;
-}
-''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
-import 'dart:async';
-
-main() {
-  Future.wait;
-}
-''');
-  }
-
-  void test_importLibrarySdk_withType_typeArgument() {
-    resolveTestUnit('''
-main() {
-  List<Future> futures = [];
-}
-''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
-import 'dart:async';
-
-main() {
-  List<Future> futures = [];
 }
 ''');
   }
@@ -2284,6 +2439,30 @@ class A {
 }
 
 void process(List<int> items) {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_importType() {
+    addSource('/lib.dart', r'''
+library lib;
+import 'dart:async';
+Future getFuture() => null;
+''');
+    resolveTestUnit('''
+import 'lib.dart';
+main() {
+  test(getFuture());
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+import 'lib.dart';
+import 'dart:async';
+main() {
+  test(getFuture());
+}
+
+void test(Future future) {
 }
 ''');
   }
@@ -2654,31 +2833,27 @@ class A {
     // linked positions
     int index = 0;
     _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['void myUndefinedMethod(']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
+        change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
+    _assertLinkedGroup(change.linkedEditGroups[index++],
         ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['int i'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE,
-            ['int', 'num', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], [
+      'int i'
+    ], expectedSuggestions(
+        LinkedEditSuggestionKind.TYPE, ['int', 'num', 'Object', 'Comparable']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['double d'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE,
-            ['double', 'num', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], [
+      'double d'
+    ], expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+      'double',
+      'num',
+      'Object',
+      'Comparable'
+    ]));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['d,']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['String s'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], [
+      'String s'
+    ], expectedSuggestions(
+        LinkedEditSuggestionKind.TYPE, ['String', 'Object', 'Comparable']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
@@ -2702,8 +2877,7 @@ class A {
 ''');
     // linked positions
     _assertLinkedGroup(change.linkedEditGroups[0], ['int myUndefinedMethod(']);
-    _assertLinkedGroup(
-        change.linkedEditGroups[1],
+    _assertLinkedGroup(change.linkedEditGroups[1],
         ['myUndefinedMethod();', 'myUndefinedMethod() {']);
   }
 
@@ -2883,9 +3057,8 @@ main() {
     provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
     // configure SourceFactory
     Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my_pkg': [myPkgFolder]
-    });
+    UriResolver pkgResolver =
+        new PackageMapUriResolver(provider, {'my_pkg': [myPkgFolder]});
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
     // force 'my_pkg' resolution

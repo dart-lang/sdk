@@ -18,12 +18,11 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * [ConvertMethodToGetterRefactoring] implementation.
  */
-class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implements
-    ConvertGetterToMethodRefactoring {
+class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
+    implements ConvertGetterToMethodRefactoring {
   final SearchEngine searchEngine;
   final PropertyAccessorElement element;
 

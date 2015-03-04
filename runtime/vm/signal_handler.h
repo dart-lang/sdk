@@ -48,6 +48,7 @@ class SignalHandler : public AllStatic {
   static uintptr_t GetFramePointer(const mcontext_t& mcontext);
   static uintptr_t GetCStackPointer(const mcontext_t& mcontext);
   static uintptr_t GetDartStackPointer(const mcontext_t& mcontext);
+  static uintptr_t GetLinkRegister(const mcontext_t& mcontext);
  private:
 };
 

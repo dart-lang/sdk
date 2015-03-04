@@ -7,7 +7,6 @@ library services.src.correction.source_buffer;
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * Helper for building Dart source with linked positions.
  */
@@ -16,8 +15,8 @@ class SourceBuilder {
   final int offset;
   final StringBuffer _buffer = new StringBuffer();
 
-  final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
-      LinkedEditGroup>{};
+  final Map<String, LinkedEditGroup> linkedPositionGroups =
+      <String, LinkedEditGroup>{};
   LinkedEditGroup _currentLinkedPositionGroup;
   int _currentPositionStart;
   int _exitOffset;

@@ -9,12 +9,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisTaskTest);
 }
-
 
 @reflectiveTest
 class AnalysisTaskTest {

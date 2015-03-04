@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'setRange_lib.dart';
-import 'package:expect/expect.dart';
 import 'dart:typed_data';
+import 'package:expect/expect.dart';
+import 'setRange_lib.dart';
 
 expandContractTest() {
   // Copying between views that have different element sizes can't be done with

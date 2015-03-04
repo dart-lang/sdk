@@ -16,6 +16,6 @@ class VMViewElement extends ObservatoryElement {
   VMViewElement.created() : super.created();
 
   void refresh(var done) {
-    vm.reload().whenComplete(done);
+    vm.reload().then((vm) => vm.reloadIsolates()).whenComplete(done);
   }
 }

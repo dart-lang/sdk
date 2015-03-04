@@ -6,8 +6,8 @@ library services.src.refactoring.rename_unit_member;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' show
-    newLocation_fromElement, newLocation_fromMatch;
+import 'package:analysis_server/src/protocol_server.dart'
+    show newLocation_fromElement, newLocation_fromMatch;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -18,33 +18,25 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
-
 /**
  * Checks if creating a top-level function with the given [name] in [library]
  * will cause any conflicts.
  */
-Future<RefactoringStatus> validateCreateFunction(SearchEngine searchEngine,
-    LibraryElement library, String name) {
+Future<RefactoringStatus> validateCreateFunction(
+    SearchEngine searchEngine, LibraryElement library, String name) {
   return new _RenameUnitMemberValidator.forCreate(
-      searchEngine,
-      library,
-      ElementKind.FUNCTION,
-      name).validate();
+      searchEngine, library, ElementKind.FUNCTION, name).validate();
 }
-
 
 /**
  * Checks if creating a top-level function with the given [name] in [element]
  * will cause any conflicts.
  */
-Future<RefactoringStatus> validateRenameTopLevel(SearchEngine searchEngine,
-    Element element, String name) {
-  return new _RenameUnitMemberValidator.forRename(
-      searchEngine,
-      element,
-      name).validate();
+Future<RefactoringStatus> validateRenameTopLevel(
+    SearchEngine searchEngine, Element element, String name) {
+  return new _RenameUnitMemberValidator.forRename(searchEngine, element, name)
+      .validate();
 }
-
 
 /**
  * A [Refactoring] for renaming compilation unit member [Element]s.
@@ -115,7 +107,6 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-
 /**
  * Helper to check if the created or renamed [Element] will cause any conflicts.
  */
@@ -129,12 +120,12 @@ class _RenameUnitMemberValidator {
 
   final RefactoringStatus result = new RefactoringStatus();
 
-  _RenameUnitMemberValidator.forCreate(this.searchEngine, this.library,
-      this.elementKind, this.name)
+  _RenameUnitMemberValidator.forCreate(
+      this.searchEngine, this.library, this.elementKind, this.name)
       : isRename = false;
 
-  _RenameUnitMemberValidator.forRename(this.searchEngine, this.element,
-      this.name)
+  _RenameUnitMemberValidator.forRename(
+      this.searchEngine, this.element, this.name)
       : isRename = true {
     library = element.getAncestor((e) => e is LibraryElement);
     elementKind = element.kind;
@@ -189,8 +180,7 @@ class _RenameUnitMemberValidator {
           if (hasDisplayName(shadow, name)) {
             String message = format(
                 "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-                getElementKindName(element),
-                getElementKindName(shadow),
+                getElementKindName(element), getElementKindName(shadow),
                 getElementQualifiedName(shadow));
             result.addError(message, newLocation_fromElement(shadow));
           }
@@ -206,10 +196,8 @@ class _RenameUnitMemberValidator {
   void _validateWillConflict() {
     visitLibraryTopLevelElements(library, (element) {
       if (hasDisplayName(element, name)) {
-        String message = format(
-            "Library already declares {0} with name '{1}'.",
-            getElementKindName(element),
-            name);
+        String message = format("Library already declares {0} with name '{1}'.",
+            getElementKindName(element), name);
         result.addError(message, newLocation_fromElement(element));
       }
     });
@@ -243,13 +231,10 @@ class _RenameUnitMemberValidator {
           continue;
         }
         // OK, reference will be shadowed be the element being renamed
-        String message = format(
-            isRename ?
-                "Renamed {0} will shadow {1} '{2}'." :
-                "Created {0} will shadow {1} '{2}'.",
-            elementKind.displayName,
-            getElementKindName(member),
-            getElementQualifiedName(member));
+        String message = format(isRename
+                ? "Renamed {0} will shadow {1} '{2}'."
+                : "Created {0} will shadow {1} '{2}'.", elementKind.displayName,
+            getElementKindName(member), getElementQualifiedName(member));
         result.addError(message, newLocation_fromMatch(memberReference));
       }
     }

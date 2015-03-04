@@ -7,26 +7,25 @@ part of app;
 abstract class TableTreeRow extends Observable {
   static const arrowRight = '\u2192';
   static const arrowDownRight = '\u21b3';
-  // Number of pixels each subtree is indented.
-  static const subtreeIndent = 16;
+  // Number of ems each subtree is indented.
+  static const subtreeIndent = 2;
+
+  TableTreeRow(this.tree, TableTreeRow parent) :
+      parent = parent,
+      depth = parent != null ? parent.depth + 1 : 0 {
+  }
 
   final TableTree tree;
   final TableTreeRow parent;
   final int depth;
   final List<TableTreeRow> children = new List<TableTreeRow>();
-  final List<TableCellElement> tableColumns = new List<TableCellElement>();
+  final List<TableCellElement> _tableColumns = new List<TableCellElement>();
+  final List<DivElement> flexColumns = new List<DivElement>();
+  final List<StreamSubscription> listeners = new List<StreamSubscription>();
+
   SpanElement _expander;
   TableRowElement _tr;
-  TableRowElement get tr {
-    assert(_tr != null);
-    return _tr;
-  }
-
-  TableTreeRow(this.tree, TableTreeRow parent) :
-      parent = parent,
-      depth = parent != null ? parent.depth+1 : 0 {
-  }
-
+  TableRowElement get tr => _tr;
   bool _expanded = false;
   bool get expanded => _expanded;
   set expanded(bool expanded) {
@@ -42,52 +41,109 @@ abstract class TableTreeRow extends Observable {
     }
   }
 
-  bool expandOrCollapse() {
+  /// Fired when the tree row is being expanded.
+  void _onExpand() {
+    _updateExpanderView();
+  }
+
+  /// Fired when the tree row is being collapsed.
+  void _onCollapse() {
+    for (var child in children) {
+      child.onHide();
+    }
+    _updateExpanderView();
+  }
+
+  bool toggle() {
     expanded = !expanded;
     return expanded;
   }
 
-  bool hasChildren();
-
-  String _backgroundColorClassForRow() {
-    const colors = const ['rowColor0', 'rowColor1', 'rowColor2', 'rowColor3',
-                          'rowColor4', 'rowColor5', 'rowColor6', 'rowColor7',
-                          'rowColor8'];
-    var index = (depth - 1) % colors.length;
-    return colors[index];
+  HtmlElement _makeColorBlock(String backgroundColor) {
+    var colorBlock = new DivElement();
+    colorBlock.style.minWidth = '2px';
+    colorBlock.style.backgroundColor = backgroundColor;
+    return colorBlock;
   }
 
+  HtmlElement _makeExpander() {
+    var expander = new SpanElement();
+    expander.style.minWidth = '1.5em';
+    listeners.add(expander.onClick.listen(onClick));
+    return expander;
+  }
+
+  void _cleanUpListeners() {
+    for (var i = 0; i < listeners.length; i++) {
+      listeners[i].cancel();
+    }
+    listeners.clear();
+  }
+
+  void onClick(Event e) {
+    e.stopPropagation();
+    tree.toggle(this);
+  }
+
+  static const redColor = '#F44336';
+  static const blueColor = '#3F51B5';
+  static const purpleColor = '#673AB7';
+  static const greenColor = '#4CAF50';
+  static const orangeColor = '#FF9800';
+  static const lightGrayColor = '#FAFAFA';
+
   void _buildRow() {
+    const List backgroundColors = const [
+      purpleColor,
+      redColor,
+      greenColor,
+      blueColor,
+      orangeColor,
+    ];
     _tr = new TableRowElement();
     for (var i = 0; i < tree.columnCount; i++) {
       var cell = _tr.insertCell(-1);
-      cell.classes.add(_backgroundColorClassForRow());
-      tableColumns.add(cell);
+      _tableColumns.add(cell);
+      var flex = new DivElement();
+      flex.classes.add('flex-row');
+      cell.children.add(flex);
+      flexColumns.add(flex);
     }
-    var firstColumn = tableColumns[0];
-    _expander = new SpanElement();
-    _expander.style.display = 'inline-block';
-    _expander.style.minWidth = '1.5em';
-    _expander.onClick.listen(onClick);
+    var firstColumn = flexColumns[0];
+    _tableColumns[0].style.paddingLeft = '${(depth - 1) * subtreeIndent}em';
+    var backgroundColor = lightGrayColor;
+    if (depth > 1) {
+      var colorIndex = (depth - 1) % backgroundColors.length;
+      backgroundColor = backgroundColors[colorIndex];
+    }
+    var colorBlock = _makeColorBlock(backgroundColor);
+    firstColumn.children.add(colorBlock);
+    _expander = _makeExpander();
     firstColumn.children.add(_expander);
-    firstColumn.style.paddingLeft = '${depth * subtreeIndent}px';
-    updateExpanderView();
+    // Enable expansion by clicking anywhere on the first column.
+    listeners.add(firstColumn.onClick.listen(onClick));
+    _updateExpanderView();
   }
 
-  void updateExpanderView() {
+  void _updateExpanderView() {
     if (_expander == null) {
       return;
     }
     if (!hasChildren()) {
       _expander.style.visibility = 'hidden';
-      _expander.style.cursor = 'auto';
+      _expander.classes.remove('pointer');
       return;
     } else {
       _expander.style.visibility = 'visible';
-      _expander.style.cursor = 'pointer';
+      _expander.classes.add('pointer');
     }
-    _expander.text = expanded ? arrowDownRight : arrowRight;
+    _expander.children.clear();
+    _expander.children.add(expanded ?
+        new Element.tag('icon-expand-more') :
+        new Element.tag('icon-chevron-right'));
   }
+
+  bool hasChildren();
 
   /// Fired when the tree row is being shown.
   /// Populate tr and add logical children here.
@@ -98,32 +154,15 @@ abstract class TableTreeRow extends Observable {
 
   /// Fired when the tree row is being hidden.
   void onHide() {
-    assert(_tr != null);
     _tr = null;
-    tableColumns.clear();
     _expander = null;
-  }
-
-  /// Fired when the tree row is being expanded.
-  void _onExpand() {
-    for (var child in children) {
-      child.onShow();
-      child.updateExpanderView();
+    if (_tableColumns != null) {
+      _tableColumns.clear();
     }
-    updateExpanderView();
-  }
-
-  /// Fired when the tree row is being collapsed.
-  void _onCollapse() {
-    for (var child in children) {
-      child.onHide();
+    if (flexColumns != null) {
+      flexColumns.clear();
     }
-    updateExpanderView();
-  }
-
-  void onClick(Event e) {
-    tree.toggle(this);
-    e.stopPropagation();
+    _cleanUpListeners();
   }
 }
 
@@ -131,43 +170,80 @@ class TableTree extends Observable {
   final TableSectionElement tableBody;
   final List<TableTreeRow> rows = [];
   final int columnCount;
-
+  Future _pendingOperation;
   /// Create a table tree with column [headers].
   TableTree(this.tableBody, this.columnCount);
 
+  void clear() {
+    tableBody.children.clear();
+    for (var i = 0; i < rows.length; i++) {
+      rows[i]._cleanUpListeners();
+    }
+    rows.clear();
+  }
+
   /// Initialize the table tree with the list of root children.
   void initialize(TableTreeRow root) {
-    tableBody.children.clear();
-    rows.clear();
+    clear();
     root.onShow();
-    rows.addAll(root.children);
-    for (var i = 0; i < rows.length; i++) {
-      rows[i].onShow();
-      tableBody.children.add(rows[i].tr);
-    }
+    toggle(root);
   }
 
   /// Toggle expansion of row in tree.
-  void toggle(TableTreeRow row) {
-    if (row.expandOrCollapse()) {
-      _expand(row);
+  toggle(TableTreeRow row) async {
+    if (_pendingOperation != null) {
+      return;
+    }
+    if (row.toggle()) {
+      document.body.classes.add('busy');
+      _pendingOperation = _expand(row);
+      await _pendingOperation;
+      _pendingOperation = null;
+      document.body.classes.remove('busy');
+      if (row.children.length == 1) {
+        // Auto expand single child.
+        await toggle(row.children[0]);
+      }
     } else {
-      _collapse(row);
+      document.body.classes.add('busy');
+      _pendingOperation = _collapse(row);
+      await _pendingOperation;
+      _pendingOperation = null;
+      document.body.classes.remove('busy');
     }
   }
 
   int _index(TableTreeRow row) => rows.indexOf(row);
 
-  void _expand(TableTreeRow row) {
+  _insertRow(index, child) {
+    rows.insert(index, child);
+    tableBody.children.insert(index, child.tr);
+  }
+
+  _expand(TableTreeRow row) async {
     int index = _index(row);
-    assert(index != -1);
-    rows.insertAll(index + 1, row.children);
-    for (var i = 0; i < row.children.length; i++) {
-      tableBody.children.insert(index + i + 1, row.children[i].tr);
+    if ((index == -1) && (rows.length != 0)) {
+      return;
+    }
+    assert((index != -1) || (rows.length == 0));
+    var i = 0;
+    var addPerIteration = 10;
+    while (i < row.children.length) {
+      await window.animationFrame;
+      for (var j = 0; j < addPerIteration; j++) {
+        if (i == row.children.length) {
+          break;
+        }
+        var child = row.children[i];
+        child.onShow();
+        child._updateExpanderView();
+        _insertRow(index + i + 1, child);
+        i++;
+      }
     }
   }
 
-  void _collapse(TableTreeRow row) {
+  _collapseSync(TableTreeRow row) {
     var childCount = row.children.length;
     if (childCount == 0) {
       return;
@@ -175,17 +251,21 @@ class TableTree extends Observable {
     for (var i = 0; i < childCount; i++) {
       // Close all inner rows.
       if (row.children[i].expanded) {
-        _collapse(row.children[i]);
+        _collapseSync(row.children[i]);
       }
     }
     // Collapse this row.
     row.expanded = false;
     // Remove all children.
     int index = _index(row);
-    rows.removeRange(index + 1, index + 1 + childCount);
     for (var i = 0; i < childCount; i++) {
+      rows.removeAt(index + 1);
       tableBody.children.removeAt(index + 1);
     }
+  }
+
+  _collapse(TableTreeRow row) async {
+    _collapseSync(row);
   }
 }
 
@@ -247,7 +327,6 @@ class SortedTable extends Observable {
   }
 
   void sort() {
-    Stopwatch sw = new Stopwatch()..start();
     assert(_sortColumnIndex >= 0);
     assert(_sortColumnIndex < columns.length);
     if (_sortDescending) {

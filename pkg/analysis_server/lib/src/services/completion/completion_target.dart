@@ -82,8 +82,8 @@ class CompletionTarget {
    * Compute the appropriate [CompletionTarget] for the given [offset] within
    * the [compilationUnit].
    */
-  factory CompletionTarget.forOffset(CompilationUnit compilationUnit,
-      int offset) {
+  factory CompletionTarget.forOffset(
+      CompilationUnit compilationUnit, int offset) {
     // The precise algorithm is as follows.  We perform a depth-first search of
     // all edges in the parse tree (both those that point to AST nodes and
     // those that point to tokens), visiting parents before children.  The

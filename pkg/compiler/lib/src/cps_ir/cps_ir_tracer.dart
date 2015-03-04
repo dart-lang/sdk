@@ -120,6 +120,15 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     visit(node.body);
   }
 
+  visitLetHandler(cps_ir.LetHandler node) {
+    if (IR_TRACE_LET_CONT) {
+      String dummy = names.name(node);
+      String id = names.name(node.handler);
+      printStmt(dummy, "LetHandler $id = <$id>");
+    }
+    visit(node.body);
+  }
+
   visitLetMutable(cps_ir.LetMutable node) {
     String id = names.name(node.variable);
     printStmt(id, "${node.runtimeType} $id = ${formatReference(node.value)}");
@@ -435,6 +444,15 @@ class BlockCollector extends cps_ir.Visitor {
     visit(exp.body);
   }
 
+  visitLetHandler(cps_ir.LetHandler exp) {
+    visit(exp.handler);
+    visit(exp.body);
+  }
+
+  visitLetMutable(cps_ir.LetMutable exp) {
+    visit(exp.body);
+  }
+
   void addEdgeToContinuation(cps_ir.Reference continuation) {
     cps_ir.Definition target = continuation.definition;
     if (target is cps_ir.Continuation && !target.isReturnContinuation) {
@@ -463,10 +481,6 @@ class BlockCollector extends cps_ir.Visitor {
   }
 
   visitSetMutableVariable(cps_ir.SetMutableVariable exp) {
-    visit(exp.body);
-  }
-
-  visitLetMutable(cps_ir.LetMutable exp) {
     visit(exp.body);
   }
 

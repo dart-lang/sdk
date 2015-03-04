@@ -1111,7 +1111,9 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   AddReturnExit(node->token_pos(), return_value);
 
-  if ((function.IsAsyncClosure() || function.IsSyncGenClosure()) &&
+  if ((function.IsAsyncClosure() ||
+      function.IsSyncGenClosure() ||
+      function.IsAsyncGenClosure()) &&
       (node->return_type() == ReturnNode::kContinuationTarget)) {
     JoinEntryInstr* const join = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
@@ -1483,10 +1485,10 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
 }
 
 
-void EffectGraphVisitor::BuildYieldJump(LocalVariable* old_context,
-                                        LocalVariable* iterator_param,
-                                        const intptr_t old_ctx_level,
-                                        JoinEntryInstr* target) {
+void EffectGraphVisitor::BuildSyncYieldJump(LocalVariable* old_context,
+                                            LocalVariable* iterator_param,
+                                            const intptr_t old_ctx_level,
+                                            JoinEntryInstr* target) {
   // Building a jump consists of the following actions:
   // * Load the generator body's iterator parameter (:iterator)
   //   from the current context into a temporary.
@@ -1539,7 +1541,7 @@ void EffectGraphVisitor::BuildYieldJump(LocalVariable* old_context,
 }
 
 
-void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
+void EffectGraphVisitor::BuildAsyncJump(LocalVariable* old_context,
                                         LocalVariable* continuation_result,
                                         LocalVariable* continuation_error,
                                         LocalVariable* continuation_stack_trace,
@@ -3882,7 +3884,9 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // The preamble is generated after visiting the body.
   GotoInstr* preamble_start = NULL;
   if (is_top_level_sequence &&
-      (function.IsAsyncClosure() || function.IsSyncGenClosure())) {
+      (function.IsAsyncClosure() ||
+          function.IsSyncGenClosure() ||
+          function.IsAsyncGenClosure())) {
     JoinEntryInstr* preamble_end = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
     ASSERT(exit() != NULL);
@@ -3908,7 +3912,9 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // After generating the CFG for the body we can create the preamble
   // because we know exactly how many continuation states we need.
   if (is_top_level_sequence &&
-      (function.IsAsyncClosure() || function.IsSyncGenClosure())) {
+      (function.IsAsyncClosure() ||
+          function.IsSyncGenClosure() ||
+          function.IsAsyncGenClosure())) {
     ASSERT(preamble_start != NULL);
     // We are at the top level. Fetch the corresponding scope.
     LocalScope* top_scope = node->scope();
@@ -3939,7 +3945,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       EffectGraphVisitor for_true(owner());
       EffectGraphVisitor for_false(owner());
 
-      if (function.IsAsyncClosure()) {
+      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
         LocalVariable* result_param =
             top_scope->LookupVariable(Symbols::AsyncOperationParam(), false);
         LocalVariable* error_param =
@@ -3948,7 +3954,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         LocalVariable* stack_trace_param =
             top_scope->LookupVariable(Symbols::AsyncOperationStackTraceParam(),
                                       false);
-        for_true.BuildAwaitJump(old_context,
+        for_true.BuildAsyncJump(old_context,
                                 result_param,
                                 error_param,
                                 stack_trace_param,
@@ -3958,10 +3964,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         ASSERT(function.IsSyncGenClosure());
         LocalVariable* iterator_param =
             top_scope->LookupVariable(Symbols::IteratorParameter(), false);
-        for_true.BuildYieldJump(old_context,
-                                iterator_param,
-                                (*owner()->await_levels())[i],
-                                (*owner()->await_joins())[i]);
+        for_true.BuildSyncYieldJump(old_context,
+                                    iterator_param,
+                                    (*owner()->await_levels())[i],
+                                    (*owner()->await_joins())[i]);
       }
 
       Join(for_test, for_true, for_false);
@@ -4093,10 +4099,10 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     if (for_finally.is_open()) {
       // Rethrow the exception.  Manually build the graph for rethrow.
       Value* exception = for_finally.Bind(
-          for_finally.BuildLoadLocal(catch_block->exception_var()));
+          for_finally.BuildLoadLocal(catch_block->rethrow_exception_var()));
       for_finally.PushArgument(exception);
       Value* stacktrace = for_finally.Bind(
-          for_finally.BuildLoadLocal(catch_block->stacktrace_var()));
+          for_finally.BuildLoadLocal(catch_block->rethrow_stacktrace_var()));
       for_finally.PushArgument(stacktrace);
       for_finally.AddInstruction(
           new(I) ReThrowInstr(catch_block->token_pos(), catch_handler_index));

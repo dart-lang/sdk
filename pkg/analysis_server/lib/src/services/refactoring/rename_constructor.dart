@@ -20,13 +20,12 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-
 /**
  * A [Refactoring] for renaming [ConstructorElement]s.
  */
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
-  RenameConstructorRefactoringImpl(SearchEngine searchEngine,
-      ConstructorElement element)
+  RenameConstructorRefactoringImpl(
+      SearchEngine searchEngine, ConstructorElement element)
       : super(searchEngine, element);
 
   @override
@@ -73,9 +72,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     for (Element newNameMember in getChildren(parentClass, newName)) {
       String message = format(
           "Class '{0}' already declares {1} with name '{2}'.",
-          parentClass.displayName,
-          getElementKindName(newNameMember),
-          newName);
+          parentClass.displayName, getElementKindName(newNameMember), newName);
       result.addError(message, newLocation_fromElement(newNameMember));
     }
   }

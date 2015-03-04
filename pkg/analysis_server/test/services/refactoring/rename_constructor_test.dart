@@ -13,12 +13,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(RenameConstructorTest);
 }
-
 
 @reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
@@ -33,9 +31,7 @@ class A {
     // check status
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Class 'A' already declares constructor with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
@@ -51,9 +47,7 @@ class A {
     // check status
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(
-        status,
-        RefactoringProblemSeverity.ERROR,
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Class 'A' already declares method with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
@@ -69,14 +63,12 @@ class A {
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constructor name must not be null.");
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
     // empty
     refactoring.newName = '';
@@ -189,8 +181,8 @@ main() {
   }
 
   void _createConstructorDeclarationRefactoring(String search) {
-    ConstructorElement element =
-        findNodeElementAtString(search, (node) => node is ConstructorDeclaration);
+    ConstructorElement element = findNodeElementAtString(
+        search, (node) => node is ConstructorDeclaration);
     createRenameRefactoringForElement(element);
   }
 }

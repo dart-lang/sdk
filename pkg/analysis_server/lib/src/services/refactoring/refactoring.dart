@@ -6,8 +6,8 @@ library services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' show
-    RefactoringMethodParameter, SourceChange;
+import 'package:analysis_server/src/protocol.dart'
+    show RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
 import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
@@ -30,7 +30,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as pathos;
 
-
 /**
  * [Refactoring] to convert getters into normal [MethodDeclaration]s.
  */
@@ -39,12 +38,11 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
    * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
    * [element] and all the corresponding hierarchy elements.
    */
-  factory ConvertGetterToMethodRefactoring(SearchEngine searchEngine,
-      PropertyAccessorElement element) {
+  factory ConvertGetterToMethodRefactoring(
+      SearchEngine searchEngine, PropertyAccessorElement element) {
     return new ConvertGetterToMethodRefactoringImpl(searchEngine, element);
   }
 }
-
 
 /**
  * [Refactoring] to convert normal [MethodDeclaration]s into getters.
@@ -54,12 +52,11 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
    * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
    * [element] and all the corresponding hierarchy elements.
    */
-  factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
-      ExecutableElement element) {
+  factory ConvertMethodToGetterRefactoring(
+      SearchEngine searchEngine, ExecutableElement element) {
     return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
   }
 }
-
 
 /**
  * [Refactoring] to extract an expression into a local variable declaration.
@@ -68,12 +65,10 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractLocalRefactoring] instance.
    */
-  factory ExtractLocalRefactoring(CompilationUnit unit, int selectionOffset,
-      int selectionLength) {
+  factory ExtractLocalRefactoring(
+      CompilationUnit unit, int selectionOffset, int selectionLength) {
     return new ExtractLocalRefactoringImpl(
-        unit,
-        selectionOffset,
-        selectionLength);
+        unit, selectionOffset, selectionLength);
   }
 
   /**
@@ -122,7 +117,6 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   RefactoringStatus checkName();
 }
 
-
 /**
  * [Refactoring] to extract an [Expression] or [Statement]s into a new method.
  */
@@ -133,10 +127,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   factory ExtractMethodRefactoring(SearchEngine searchEngine,
       CompilationUnit unit, int selectionOffset, int selectionLength) {
     return new ExtractMethodRefactoringImpl(
-        searchEngine,
-        unit,
-        selectionOffset,
-        selectionLength);
+        searchEngine, unit, selectionOffset, selectionLength);
   }
 
   /**
@@ -215,7 +206,6 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   RefactoringStatus checkName();
 }
 
-
 /**
  * [Refactoring] to inline a local [VariableElement].
  */
@@ -223,8 +213,8 @@ abstract class InlineLocalRefactoring implements Refactoring {
   /**
    * Returns a new [InlineLocalRefactoring] instance.
    */
-  factory InlineLocalRefactoring(SearchEngine searchEngine,
-      CompilationUnit unit, int offset) {
+  factory InlineLocalRefactoring(
+      SearchEngine searchEngine, CompilationUnit unit, int offset) {
     return new InlineLocalRefactoringImpl(searchEngine, unit, offset);
   }
 
@@ -239,7 +229,6 @@ abstract class InlineLocalRefactoring implements Refactoring {
   String get variableName;
 }
 
-
 /**
  * [Refactoring] to inline an [ExecutableElement].
  */
@@ -247,8 +236,8 @@ abstract class InlineMethodRefactoring implements Refactoring {
   /**
    * Returns a new [InlineMethodRefactoring] instance.
    */
-  factory InlineMethodRefactoring(SearchEngine searchEngine,
-      CompilationUnit unit, int offset) {
+  factory InlineMethodRefactoring(
+      SearchEngine searchEngine, CompilationUnit unit, int offset) {
     return new InlineMethodRefactoringImpl(searchEngine, unit, offset);
   }
 
@@ -282,7 +271,6 @@ abstract class InlineMethodRefactoring implements Refactoring {
   String get methodName;
 }
 
-
 /**
  * [Refactoring] to move/rename a file.
  */
@@ -293,10 +281,7 @@ abstract class MoveFileRefactoring implements Refactoring {
   factory MoveFileRefactoring(pathos.Context pathContext,
       SearchEngine searchEngine, AnalysisContext context, Source source) {
     return new MoveFileRefactoringImpl(
-        pathContext,
-        searchEngine,
-        context,
-        source);
+        pathContext, searchEngine, context, source);
   }
 
   /**
@@ -304,7 +289,6 @@ abstract class MoveFileRefactoring implements Refactoring {
    */
   void set newFile(String newName);
 }
-
 
 /**
  * Abstract interface for all refactorings.
@@ -357,7 +341,6 @@ abstract class Refactoring {
    */
   bool requiresPreview();
 }
-
 
 /**
  * Abstract [Refactoring] for renaming some [Element].

@@ -49,6 +49,12 @@ const int* JumpPattern::pattern() const {
 }
 
 
+const int* ReturnPattern::pattern() const {
+  static const int kReturnPattern[kLengthInBytes] = { 0xC3 };
+  return kReturnPattern;
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

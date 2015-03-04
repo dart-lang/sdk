@@ -459,6 +459,8 @@ class SmallSet {
 
   void Remove(T value) { data_ &= ~ToMask(value); }
 
+  bool IsEmpty() const { return data_ != 0; }
+
   intptr_t data() const { return data_; }
 
  private:
@@ -533,6 +535,10 @@ class RegisterSet : public ValueObject {
   void MarkUntagged(Location loc) {
     ASSERT(loc.IsRegister());
     untagged_cpu_registers_.Add(loc.reg());
+  }
+
+  bool HasUntaggedValues() const {
+    return !untagged_cpu_registers_.IsEmpty() || !fpu_registers_.IsEmpty();
   }
 
   bool IsTagged(Register reg) const {

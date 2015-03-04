@@ -7,8 +7,8 @@ library analysis.type_hierarhy;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol_server.dart' show
-    TypeHierarchyItem, newElement_fromEngine;
+import 'package:analysis_server/src/protocol_server.dart'
+    show TypeHierarchyItem, newElement_fromEngine;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -19,7 +19,9 @@ import 'package:analyzer/src/generated/element.dart';
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
+  LibraryElement _pivotLibrary;
   ElementKind _pivotKind;
+  bool _pivotFieldFinal;
   String _pivotName;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
@@ -33,8 +35,13 @@ class TypeHierarchyComputer {
    * Returns the computed type hierarchy, maybe `null`.
    */
   Future<List<TypeHierarchyItem>> compute(Element element) {
+    _pivotLibrary = element.library;
     _pivotKind = element.kind;
     _pivotName = element.name;
+    if (element is FieldElement) {
+      _pivotFieldFinal = (element as FieldElement).isFinal;
+      element = element.enclosingElement;
+    }
     if (element is ExecutableElement &&
         element.enclosingElement is ClassElement) {
       element = element.enclosingElement;
@@ -49,8 +56,8 @@ class TypeHierarchyComputer {
     return new Future.value(null);
   }
 
-  Future _createSubclasses(TypeHierarchyItem item, int itemId,
-      InterfaceType type) {
+  Future _createSubclasses(
+      TypeHierarchyItem item, int itemId, InterfaceType type) {
     var future = getDirectSubClasses(_searchEngine, type.element);
     return future.then((Set<ClassElement> subElements) {
       List<int> subItemIds = <int>[];
@@ -64,11 +71,10 @@ class TypeHierarchyComputer {
         }
         // create a subclass item
         ExecutableElement subMemberElement = _findMemberElement(subElement);
-        subItem = new TypeHierarchyItem(
-            newElement_fromEngine(subElement),
-            memberElement: subMemberElement != null ?
-                newElement_fromEngine(subMemberElement) :
-                null,
+        subItem = new TypeHierarchyItem(newElement_fromEngine(subElement),
+            memberElement: subMemberElement != null
+                ? newElement_fromEngine(subMemberElement)
+                : null,
             superclass: itemId);
         int subItemId = _items.length;
         // remember
@@ -104,12 +110,11 @@ class TypeHierarchyComputer {
       }
       ClassElement classElement = type.element;
       ExecutableElement memberElement = _findMemberElement(classElement);
-      item = new TypeHierarchyItem(
-          newElement_fromEngine(classElement),
+      item = new TypeHierarchyItem(newElement_fromEngine(classElement),
           displayName: displayName,
-          memberElement: memberElement != null ?
-              newElement_fromEngine(memberElement) :
-              null);
+          memberElement: memberElement != null
+              ? newElement_fromEngine(memberElement)
+              : null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
       _items.add(item);
@@ -136,16 +141,44 @@ class TypeHierarchyComputer {
     return itemId;
   }
 
-  ExecutableElement _findMemberElement(ClassElement classElement) {
+  ExecutableElement _findMemberElement(ClassElement clazz) {
+    ExecutableElement result;
+    // try to find in the class itself
     if (_pivotKind == ElementKind.METHOD) {
-      return classElement.getMethod(_pivotName);
+      result = clazz.getMethod(_pivotName);
+    } else if (_pivotKind == ElementKind.GETTER) {
+      result = clazz.getGetter(_pivotName);
+    } else if (_pivotKind == ElementKind.SETTER) {
+      result = clazz.getSetter(_pivotName);
+    } else if (_pivotKind == ElementKind.FIELD) {
+      result = clazz.getGetter(_pivotName);
+      if (result == null && !_pivotFieldFinal) {
+        result = clazz.getSetter(_pivotName);
+      }
     }
-    if (_pivotKind == ElementKind.GETTER) {
-      return classElement.getGetter(_pivotName);
+    if (result != null) {
+      return result;
     }
-    if (_pivotKind == ElementKind.SETTER) {
-      return classElement.getSetter(_pivotName);
+    // try to find in the class mixin
+    for (InterfaceType mixin in clazz.mixins.reversed) {
+      ClassElement mixinElement = mixin.element;
+      if (_pivotKind == ElementKind.METHOD) {
+        result = mixinElement.lookUpMethod(_pivotName, _pivotLibrary);
+      } else if (_pivotKind == ElementKind.GETTER) {
+        result = mixinElement.lookUpGetter(_pivotName, _pivotLibrary);
+      } else if (_pivotKind == ElementKind.SETTER) {
+        result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
+      } else if (_pivotKind == ElementKind.FIELD) {
+        result = mixinElement.lookUpGetter(_pivotName, _pivotLibrary);
+        if (result == null && !_pivotFieldFinal) {
+          result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
+        }
+      }
+      if (result != null) {
+        return result;
+      }
     }
+    // not found
     return null;
   }
 }

@@ -12,12 +12,10 @@ import 'package:unittest/unittest.dart';
 import '../../abstract_single_unit.dart';
 import '../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(AssistProcessorTest);
 }
-
 
 @reflectiveTest
 class AssistProcessorTest extends AbstractSingleUnitTest {
@@ -47,8 +45,8 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   /**
    * Calls [assertHasAssist] at the offset of [offsetSearch] in [testCode].
    */
-  void assertHasAssistAt(String offsetSearch, AssistKind kind,
-      String expected) {
+  void assertHasAssistAt(
+      String offsetSearch, AssistKind kind, String expected) {
     offset = findOffset(offsetSearch);
     assertHasAssist(kind, expected);
   }
@@ -86,8 +84,8 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     return positions;
   }
 
-  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
-      List<String> values) {
+  List<LinkedEditSuggestion> expectedSuggestions(
+      LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
       return new LinkedEditSuggestion(value, kind);
     }).toList();
@@ -595,12 +593,10 @@ main() {
 }
 List<int> readBytes() => <int>[];
 ''');
-    _assertLinkedGroup(
-        change.linkedEditGroups[0],
-        ['readBytes = '],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.VARIABLE,
-            ['list', 'bytes2', 'readBytes']));
+    _assertLinkedGroup(change.linkedEditGroups[0], [
+      'readBytes = '
+    ], expectedSuggestions(
+        LinkedEditSuggestionKind.VARIABLE, ['list', 'bytes2', 'readBytes']));
   }
 
   void test_assignToLocalVariable_alreadyAssignment() {
@@ -611,6 +607,16 @@ main() {
 }
 ''');
     assertNoAssistAt('vvv =', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
+  }
+
+  void test_assignToLocalVariable_invocationArgument() {
+    resolveTestUnit(r'''
+main() {
+  f(12345);
+}
+int f(p) {}
+''');
+    assertNoAssistAt('345', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
   void test_assignToLocalVariable_throw() {
@@ -779,9 +785,7 @@ class A {
   }
 }
 ''');
-    assertHasAssistAt(
-        '{ // marker',
-        AssistKind.CONVERT_INTO_EXPRESSION_BODY,
+    assertHasAssistAt('{ // marker', AssistKind.CONVERT_INTO_EXPRESSION_BODY,
         '''
 class A {
   m() => 42;
@@ -1132,8 +1136,7 @@ main() {
 ''');
   }
 
-  void
-      test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterFirst() {
+  void test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterFirst() {
     resolveTestUnit('''
 main() {
   1 + 2 + 3;
@@ -1146,8 +1149,7 @@ main() {
 ''');
   }
 
-  void
-      test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterSecond() {
+  void test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterSecond() {
     resolveTestUnit('''
 main() {
   1 + 2 + 3;
@@ -1362,15 +1364,11 @@ main(p) {
 }
 ''';
     assertHasAssistAt(
-        'is MyType',
-        AssistKind.INTRODUCE_LOCAL_CAST_TYPE,
-        expected);
-    _assertLinkedGroup(
-        change.linkedEditGroups[0],
-        ['myTypeName = '],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.VARIABLE,
-            ['myTypeName', 'typeName', 'name']));
+        'is MyType', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
+    _assertLinkedGroup(change.linkedEditGroups[0], [
+      'myTypeName = '
+    ], expectedSuggestions(
+        LinkedEditSuggestionKind.VARIABLE, ['myTypeName', 'typeName', 'name']));
     // another good location
     assertHasAssistAt('if (p', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
   }
@@ -1392,13 +1390,9 @@ main(p) {
 }
 ''';
     assertHasAssistAt(
-        'is String',
-        AssistKind.INTRODUCE_LOCAL_CAST_TYPE,
-        expected);
+        'is String', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
     assertHasAssistAt(
-        'while (p',
-        AssistKind.INTRODUCE_LOCAL_CAST_TYPE,
-        expected);
+        'while (p', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
   }
 
   void test_invalidSelection() {
@@ -2018,8 +2012,7 @@ main() {
     assertNoAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  void
-      test_joinVariableDeclaration_onDeclaration_wrong_nextNotAssignmentExpression() {
+  void test_joinVariableDeclaration_onDeclaration_wrong_nextNotAssignmentExpression() {
     resolveTestUnit('''
 main() {
   var v;
@@ -2029,8 +2022,7 @@ main() {
     assertNoAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  void
-      test_joinVariableDeclaration_onDeclaration_wrong_nextNotExpressionStatement() {
+  void test_joinVariableDeclaration_onDeclaration_wrong_nextNotExpressionStatement() {
     resolveTestUnit('''
 main() {
   var v;
@@ -2040,8 +2032,7 @@ main() {
     assertNoAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  void
-      test_joinVariableDeclaration_onDeclaration_wrong_nextNotPureAssignment() {
+  void test_joinVariableDeclaration_onDeclaration_wrong_nextNotPureAssignment() {
     resolveTestUnit('''
 main() {
   var v;
@@ -2133,9 +2124,7 @@ main() {
   return true ? 111 : 222;
 }
 ''');
-    assertHasAssistAt(
-        'return ',
-        AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE,
+    assertHasAssistAt('return ', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE,
         '''
 main() {
   if (true) {
@@ -2192,9 +2181,7 @@ main() {
   }
 }
 ''');
-    assertHasAssistAt(
-        'if (true)',
-        AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
+    assertHasAssistAt('if (true)', AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
         '''
 main() {
   int vvv;
@@ -2213,9 +2200,7 @@ main() {
   }
 }
 ''');
-    assertHasAssistAt(
-        'if (true)',
-        AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
+    assertHasAssistAt('if (true)', AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
         '''
 main() {
   return true ? 111 : 222;

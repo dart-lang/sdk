@@ -61,55 +61,30 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
 
   @override
   visitNotification(Notification notification) {
-    storeType(
-        notification.longEvent,
-        'params',
-        notification.params,
-        'notificationParams',
-        notification);
+    storeType(notification.longEvent, 'params', notification.params,
+        'notificationParams', notification);
   }
 
   @override
   visitRefactoring(Refactoring refactoring) {
     String camelKind = camelJoin(refactoring.kind.toLowerCase().split('_'));
-    storeType(
-        camelKind,
-        'feedback',
-        refactoring.feedback,
-        'refactoringFeedback',
-        refactoring);
-    storeType(
-        camelKind,
-        'options',
-        refactoring.options,
-        'refactoringOptions',
+    storeType(camelKind, 'feedback', refactoring.feedback,
+        'refactoringFeedback', refactoring);
+    storeType(camelKind, 'options', refactoring.options, 'refactoringOptions',
         refactoring);
   }
 
   @override
   visitRequest(Request request) {
     storeType(
-        request.longMethod,
-        'params',
-        request.params,
-        'requestParams',
-        request);
+        request.longMethod, 'params', request.params, 'requestParams', request);
     storeType(
-        request.longMethod,
-        'result',
-        request.result,
-        'requestResult',
-        request);
+        request.longMethod, 'result', request.result, 'requestResult', request);
   }
 
   @override
   visitTypeDefinition(TypeDefinition typeDefinition) {
-    storeType(
-        typeDefinition.name,
-        null,
-        typeDefinition.type,
-        'typeDefinition',
+    storeType(typeDefinition.name, null, typeDefinition.type, 'typeDefinition',
         typeDefinition);
   }
-
 }

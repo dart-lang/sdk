@@ -7,13 +7,12 @@ library search.element_references;
 import 'dart:async';
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/protocol_server.dart' show SearchResult,
-    newSearchResult_fromMatch;
+import 'package:analysis_server/src/protocol_server.dart'
+    show SearchResult, newSearchResult_fromMatch;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-
 
 /**
  * A computer for `search.findElementReferences` request results.
@@ -92,12 +91,8 @@ class ElementReferencesComputer {
   SearchResult _newDeclarationResult(Element refElement) {
     int nameOffset = refElement.nameOffset;
     int nameLength = refElement.name.length;
-    SearchMatch searchMatch = new SearchMatch(
-        MatchKind.DECLARATION,
-        refElement,
-        new SourceRange(nameOffset, nameLength),
-        true,
-        false);
+    SearchMatch searchMatch = new SearchMatch(MatchKind.DECLARATION, refElement,
+        new SourceRange(nameOffset, nameLength), true, false);
     return newSearchResult_fromMatch(searchMatch);
   }
 
@@ -131,7 +126,6 @@ class ElementReferencesComputer {
     return element.enclosingElement is ClassElement;
   }
 }
-
 
 /**
  * A collection of [Future]s that concats [List] results of added [Future]s into

@@ -987,6 +987,8 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+// NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
+// needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() &&
@@ -1085,7 +1087,7 @@ void FlowGraphCompiler::CompileGraph() {
     // don't use it.
     __ movl(CTX, Address(EBP, closure_parameter->index() * kWordSize));
     __ movl(CTX, FieldAddress(CTX, Closure::context_offset()));
-#ifdef dEBUG
+#ifdef DEBUG
     Label ok;
     __ LoadClassId(EBX, CTX);
     __ cmpl(EBX, Immediate(kContextCid));

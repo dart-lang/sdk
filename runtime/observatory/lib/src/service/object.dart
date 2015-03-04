@@ -281,6 +281,11 @@ abstract class ServiceObject extends Observable {
 
   // Updates internal state from [map]. [map] can be a reference.
   void _update(ObservableMap map, bool mapIsRef);
+
+  // Helper that can be passed to .catchError that ignores the error.
+  _ignoreError(error, stackTrace) {
+    // do nothing.
+  }
 }
 
 abstract class Coverage {
@@ -308,6 +313,7 @@ abstract class Coverage {
           var coverageList = coverage['coverage'];
           assert(coverageList != null);
           processCoverageData(coverageList);
+          return this;
         });
   }
 }
@@ -326,6 +332,11 @@ abstract class ServiceObjectOwner extends ServiceObject {
 abstract class VM extends ServiceObjectOwner {
   @reflectable VM get vm => this;
   @reflectable Isolate get isolate => null;
+
+  // TODO(johnmccutchan): Ensure that isolates do not end up in _cache.
+  Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
+  final ObservableMap<String,Isolate> _isolateCache =
+      new ObservableMap<String,Isolate>();
 
   @reflectable Iterable<Isolate> get isolates => _isolateCache.values;
 
@@ -352,87 +363,159 @@ abstract class VM extends ServiceObjectOwner {
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
 
-  void postEventMessage(String eventMessage, [dynamic data]) {
-      var map;
-      try {
-        map = _parseJSON(eventMessage);
-        assert(!map.containsKey('_data'));
-        if (data != null) {
-          map['_data'] = data;
+  bool _isIsolateLifecycleEvent(String eventType) {
+    return _isIsolateShutdownEvent(eventType) ||
+           _isIsolateCreatedEvent(eventType);
+  }
+
+  bool _isIsolateShutdownEvent(String eventType) {
+    return (eventType == 'IsolateShutdown');
+  }
+
+  bool _isIsolateCreatedEvent(String eventType) {
+    return (eventType == 'IsolateCreated');
+  }
+
+  void postServiceEvent(String response, ByteData data) {
+    var map;
+    try {
+      map = _parseJSON(response);
+      assert(!map.containsKey('_data'));
+      if (data != null) {
+        map['_data'] = data;
+      }
+    } catch (e, st) {
+      Logger.root.severe('Ignoring malformed event response: ${response}');
+      return;
+    }
+    if (map['type'] != 'ServiceEvent') {
+      Logger.root.severe(
+          "Expected 'ServiceEvent' but found '${map['type']}'");
+      return;
+    }
+
+    var eventType = map['eventType'];
+
+    if (_isIsolateLifecycleEvent(eventType)) {
+      String isolateId = map['isolate']['id'];
+      var event;
+      if (_isIsolateCreatedEvent(eventType)) {
+        _onIsolateCreated(map['isolate']);
+        // By constructing the event *after* adding the isolate to the
+        // isolate cache, the call to getFromMap will use the cached Isolate.
+        event = new ServiceObject._fromMap(this, map);
+      } else {
+        assert(_isIsolateShutdownEvent(eventType));
+        // By constructing the event *before* removing the isolate from the
+        // isolate cache, the call to getFromMap will use the cached Isolate.
+        event = new ServiceObject._fromMap(this, map);
+        _onIsolateShutdown(isolateId);
+      }
+      assert(event != null);
+      events.add(event);
+      return;
+    }
+
+    // Extract the owning isolate from the event itself.
+    String owningIsolateId = map['isolate']['id'];
+    getIsolate(owningIsolateId).then((owningIsolate) {
+        if (owningIsolate == null) {
+          // TODO(koda): Do we care about GC events in VM isolate?
+          Logger.root.severe('Ignoring event with unknown isolate id: '
+                             '$owningIsolateId');
+          return;
         }
-      } catch (e, st) {
-        Logger.root.severe('Ignoring malformed event message: ${eventMessage}');
-        return;
-      }
-      if (map['type'] != 'ServiceEvent') {
-        Logger.root.severe(
-            "Expected 'ServiceEvent' but found '${map['type']}'");
-        return;
-      }
-
-      // Extract the owning isolate from the event itself.
-      String owningIsolateId = map['isolate']['id'];
-      getIsolate(owningIsolateId).then((owningIsolate) {
-          if (owningIsolate == null) {
-            // TODO(koda): Do we care about GC events in VM isolate?
-            Logger.root.severe(
-                'Ignoring event with unknown isolate id: $owningIsolateId');
-          } else {
-            var event = new ServiceObject._fromMap(owningIsolate, map);
-            events.add(event);
-          }
-      });
+        var event = new ServiceObject._fromMap(owningIsolate, map);
+        events.add(event);
+    });
   }
 
-  static final RegExp _currentIsolateMatcher = new RegExp(r'isolates/\d+');
-  static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+/');
-  static final String _isolatesPrefix = 'isolates/';
+  Isolate _onIsolateCreated(Map isolateMap) {
+    var isolateId = isolateMap['id'];
+    assert(!_isolateCache.containsKey(isolateId));
+    Isolate isolate = new ServiceObject._fromMap(this, isolateMap);
+    _isolateCache[isolateId] = isolate;
+    notifyPropertyChange(#isolates, true, false);
+    // Eagerly load the isolate.
+    isolate.load().catchError((e) {
+      Logger.root.info('Eagerly loading an isolate failed: $e');
+    });
+    return isolate;
+  }
 
-  String _parseObjectId(String id) {
-    Match m = _currentObjectMatcher.matchAsPrefix(id);
-    if (m == null) {
-      return null;
+  void _onIsolateShutdown(String isolateId) {
+    assert(_isolateCache.containsKey(isolateId));
+    _isolateCache.remove(isolateId);
+    notifyPropertyChange(#isolates, true, false);
+  }
+
+  void _updateIsolatesFromList(List isolateList) {
+    var shutdownIsolates = <String>[];
+    var createdIsolates = <Map>[];
+    var isolateStillExists = <String, bool>{};
+
+    // Start with the assumption that all isolates are gone.
+    for (var isolateId in _isolateCache.keys) {
+      isolateStillExists[isolateId] = false;
     }
-    return m.input.substring(m.end);
-  }
 
-  String _parseIsolateId(String id) {
-    Match m = _currentIsolateMatcher.matchAsPrefix(id);
-    if (m == null) {
-      return '';
+    // Find created isolates and mark existing isolates as living.
+    for (var isolateMap in isolateList) {
+      var isolateId = isolateMap['id'];
+      if (!_isolateCache.containsKey(isolateId)) {
+        createdIsolates.add(isolateMap);
+      } else {
+        isolateStillExists[isolateId] = true;
+      }
     }
-    return id.substring(0, m.end);
+
+    // Find shutdown isolates.
+    isolateStillExists.forEach((isolateId, exists) {
+      if (!exists) {
+        shutdownIsolates.add(isolateId);
+      }
+    });
+
+    // Process shutdown.
+    for (var isolateId in shutdownIsolates) {
+      _onIsolateShutdown(isolateId);
+    }
+
+    // Process creation.
+    for (var isolateMap in createdIsolates) {
+      _onIsolateCreated(isolateMap);
+    }
   }
 
-  Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
-  Map<String,Isolate> _isolateCache = new Map<String,Isolate>();
+  static final String _isolateIdPrefix = 'isolates/';
 
   ServiceObject getFromMap(ObservableMap map) {
-    throw new UnimplementedError();
+    if (map == null) {
+      return null;
+    }
+    String id = map['id'];
+    if (!id.startsWith(_isolateIdPrefix)) {
+      // Currently the VM only supports upgrading Isolate ServiceObjects.
+      throw new UnimplementedError();
+    }
+
+    // Check cache.
+    var isolate = _isolateCache[id];
+    if (isolate == null) {
+      // We should never see an unknown isolate here.
+      throw new UnimplementedError();
+    }
+    return isolate;
   }
 
   // Note that this function does not reload the isolate if it found
   // in the cache.
   Future<ServiceObject> getIsolate(String isolateId) {
-    if (isolateId == '') {
-      return new Future.value(null);
+    if (!loaded) {
+      // Trigger a VM load, then get the isolate.
+      return load().then((_) => getIsolate(isolateId)).catchError(_ignoreError);
     }
-    Isolate isolate = _isolateCache[isolateId];
-    if (isolate != null) {
-      return new Future.value(isolate);
-    }
-    // The isolate is not in the cache.  Reload the vm and see if the
-    // requested isolate is found.
-    //
-    // TODO(turnidge): We don't want to reload all isolates so much.
-    // Doesn't scale well.  Change this to be more fine-grained.
-    return reload().then((result) {
-        if (result is! VM) {
-          return null;
-        }
-        assert(result == this);
-        return _isolateCache[isolateId];
-      });
+    return new Future.value(_isolateCache[isolateId]);
   }
 
   dynamic _reviver(dynamic key, dynamic value) {
@@ -504,11 +587,12 @@ abstract class VM extends ServiceObjectOwner {
 
   Future<ServiceObject> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
-	var obj = new ServiceObject._fromMap(this, response);
-        if (obj.canCache) {
-          _cache.putIfAbsent(id, () => obj);
-        }
-        return obj;
+      var obj = new ServiceObject._fromMap(this, response);
+      if ((obj != null) && obj.canCache) {
+        String objId = obj.id;
+        _cache.putIfAbsent(objId, () => obj);
+      }
+      return obj;
     });
   }
 
@@ -541,29 +625,19 @@ abstract class VM extends ServiceObjectOwner {
     assertsEnabled = map['assertsEnabled'];
     pid = map['pid'];
     typeChecksEnabled = map['typeChecksEnabled'];
-    _updateIsolates(map['isolates']);
+    _updateIsolatesFromList(map['isolates']);
   }
 
-  void _updateIsolates(List newIsolates) {
-    var oldIsolateCache = _isolateCache;
-    var newIsolateCache = new Map<String,Isolate>();
-    for (var isolateMap in newIsolates) {
-      var isolateId = isolateMap['id'];
-      var isolate = oldIsolateCache[isolateId];
-      if (isolate != null) {
-        newIsolateCache[isolateId] = isolate;
-      } else {
-        isolate = new ServiceObject._fromMap(this, isolateMap);
-        newIsolateCache[isolateId] = isolate;
-        Logger.root.info('New isolate \'${isolate.id}\'');
-      }
+  // Reload all isolates.
+  Future reloadIsolates() {
+    var reloads = [];
+    for (var isolate in isolates) {
+      var reload = isolate.reload().catchError((e) {
+        Logger.root.info('Bulk reloading of isolates failed: $e');
+      });
+      reloads.add(reload);
     }
-    // Update the individual isolates asynchronously.
-    newIsolateCache.forEach((isolateId, isolate) {
-      isolate.reload();
-    });
-
-    _isolateCache = newIsolateCache;
+    return Future.wait(reloads);
   }
 }
 
@@ -714,47 +788,16 @@ class Isolate extends ServiceObjectOwner with Coverage {
     assert(owner is VM);
   }
 
-  static const TAG_ROOT_ID = 'code/tag-0';
-
-  /// Returns the Code object for the root tag.
-  Code tagRoot() {
-    // TODO(turnidge): Use get() here instead?
-    return _cache[TAG_ROOT_ID];
-  }
-
-  void processProfile(ServiceMap profile) {
-    assert(profile.type == 'CpuProfile');
-    var codeTable = new List<Code>();
-    var codeRegions = profile['codes'];
-    for (var codeRegion in codeRegions) {
-      Code code = codeRegion['code'];
-      assert(code != null);
-      codeTable.add(code);
-    }
-    _resetProfileData();
-    _updateProfileData(profile, codeTable);
-    var exclusiveTrie = profile['exclusive_trie'];
-    if (exclusiveTrie != null) {
-      profileTrieRoot = _processProfileTrie(exclusiveTrie, codeTable);
-    }
-  }
-
-  void _resetProfileData() {
+  void resetCachedProfileData() {
     _cache.values.forEach((value) {
-        if (value is Code) {
-          Code code = value;
-          code.resetProfileData();
-        }
-      });
-  }
-
-  void _updateProfileData(ServiceMap profile, List<Code> codeTable) {
-    var codeRegions = profile['codes'];
-    var sampleCount = profile['samples'];
-    for (var codeRegion in codeRegions) {
-      Code code = codeRegion['code'];
-      code.updateProfileData(codeRegion, codeTable, sampleCount);
-    }
+      if (value is Code) {
+        Code code = value;
+        code.profile = null;
+      } else if (value is ServiceFunction) {
+        ServiceFunction function = value;
+        function.profile = null;
+      }
+    });
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -798,16 +841,16 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (map == null) {
       return null;
     }
-    String id = map['id'];
-    var obj = _cache[id];
+    String mapId = map['id'];
+    var obj = (mapId != null) ? _cache[mapId] : null;
     if (obj != null) {
       // Consider calling update when map is not a reference.
       return obj;
     }
     // Build the object from the map directly.
     obj = new ServiceObject._fromMap(this, map);
-    if (obj != null && obj.canCache) {
-      _cache[id] = obj;
+    if ((obj != null) && obj.canCache) {
+      _cache[mapId] = obj;
     }
     return obj;
   }
@@ -819,11 +862,12 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   Future<ServiceObject> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
-        var obj = new ServiceObject._fromMap(this, response);
-        if (obj.canCache) {
-          _cache.putIfAbsent(id, () => obj);
-        }
-	return obj;
+      var obj = new ServiceObject._fromMap(this, response);
+      if ((obj != null) && obj.canCache) {
+        String objId = obj.id;
+        _cache.putIfAbsent(objId, () => obj);
+      }
+      return obj;
     });
   }
 
@@ -977,51 +1021,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
         tagProfile._processTagProfile(seconds, map);
         return tagProfile;
       });
-  }
-
-  @reflectable CodeTrieNode profileTrieRoot;
-  // The profile trie is serialized as a list of integers. Each node
-  // is recreated by consuming some portion of the list. The format is as
-  // follows:
-  // [0] index into codeTable of code object.
-  // [1] tick count (number of times this stack frame occured).
-  // [2] child node count
-  // Reading the trie is done by recursively reading the tree depth-first
-  // pre-order.
-  CodeTrieNode _processProfileTrie(List<int> data, List<Code> codeTable) {
-    // Setup state shared across calls to _readTrieNode.
-    _trieDataCursor = 0;
-    _trieData = data;
-    if (_trieData == null) {
-      return null;
-    }
-    if (_trieData.length < 3) {
-      // Not enough integers for 1 node.
-      return null;
-    }
-    // Read the tree, returns the root node.
-    return _readTrieNode(codeTable);
-  }
-  int _trieDataCursor;
-  List<int> _trieData;
-  CodeTrieNode _readTrieNode(List<Code> codeTable) {
-    // Read index into code table.
-    var index = _trieData[_trieDataCursor++];
-    // Lookup code object.
-    var code = codeTable[index];
-    // Frame counter.
-    var count = _trieData[_trieDataCursor++];
-    // Create node.
-    var node = new CodeTrieNode(code, count);
-    // Number of children.
-    var children = _trieData[_trieDataCursor++];
-    // Recursively read child nodes.
-    for (var i = 0; i < children; i++) {
-      var child = _readTrieNode(codeTable);
-      node.children.add(child);
-      node.summedChildCount += child.count;
-    }
-    return node;
   }
 
   ObservableList<Breakpoint> breakpoints = new ObservableList();
@@ -1805,8 +1804,10 @@ class FunctionKind {
   final String _strValue;
   FunctionKind._internal(this._strValue);
   toString() => _strValue;
-  bool isFake() => [kCollected, kNative, kTag, kReused].contains(this);
-
+  bool isSynthetic() => [kCollected, kNative, kStub, kTag].contains(this);
+  bool isDart() => !isSynthetic();
+  bool isStub() => (this == kStub);
+  bool hasDartCode() => isDart() || isStub();
   static FunctionKind fromJSON(String value) {
     switch(value) {
       case 'kRegularFunction': return kRegularFunction;
@@ -1816,16 +1817,19 @@ class FunctionKind {
       case 'kConstructor': return kConstructor;
       case 'kImplicitGetter': return kImplicitGetterFunction;
       case 'kImplicitSetter': return kImplicitSetterFunction;
+      case 'kImplicitStaticFinalGetter': return kImplicitStaticFinalGetter;
+      case 'kIrregexpFunction': return kIrregexpFunction;
       case 'kStaticInitializer': return kStaticInitializer;
       case 'kMethodExtractor': return kMethodExtractor;
       case 'kNoSuchMethodDispatcher': return kNoSuchMethodDispatcher;
       case 'kInvokeFieldDispatcher': return kInvokeFieldDispatcher;
       case 'Collected': return kCollected;
       case 'Native': return kNative;
+      case 'Stub': return kStub;
       case 'Tag': return kTag;
-      case 'Reused': return kReused;
     }
-    return kUNKNOWN;
+    print('did not understand $value');
+    throw new FallThroughError();
   }
 
   static FunctionKind kRegularFunction = new FunctionKind._internal('function');
@@ -1835,6 +1839,8 @@ class FunctionKind {
   static FunctionKind kConstructor = new FunctionKind._internal('constructor');
   static FunctionKind kImplicitGetterFunction = new FunctionKind._internal('implicit getter function');
   static FunctionKind kImplicitSetterFunction = new FunctionKind._internal('implicit setter function');
+  static FunctionKind kImplicitStaticFinalGetter = new FunctionKind._internal('implicit static final getter');
+  static FunctionKind kIrregexpFunction = new FunctionKind._internal('ir regexp function');
   static FunctionKind kStaticInitializer = new FunctionKind._internal('static initializer');
   static FunctionKind kMethodExtractor = new FunctionKind._internal('method extractor');
   static FunctionKind kNoSuchMethodDispatcher = new FunctionKind._internal('noSuchMethod dispatcher');
@@ -1842,7 +1848,7 @@ class FunctionKind {
   static FunctionKind kCollected = new FunctionKind._internal('Collected');
   static FunctionKind kNative = new FunctionKind._internal('Native');
   static FunctionKind kTag = new FunctionKind._internal('Tag');
-  static FunctionKind kReused = new FunctionKind._internal('Reused');
+  static FunctionKind kStub = new FunctionKind._internal('Stub');
   static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
 }
 
@@ -1864,6 +1870,10 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable String qualifiedName;
   @observable int usageCounter;
   @observable bool isDart;
+  @observable ProfileFunction profile;
+
+  bool get canCache => true;
+  bool get immutable => false;
 
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
 
@@ -1876,7 +1886,7 @@ class ServiceFunction extends ServiceObject with Coverage {
     owningClass = map.containsKey('owningClass') ? map['owningClass'] : null;
     owningLibrary = map.containsKey('owningLibrary') ? map['owningLibrary'] : null;
     kind = FunctionKind.fromJSON(map['kind']);
-    isDart = !kind.isFake();
+    isDart = !kind.isSynthetic();
 
     if (parent == null) {
       qualifiedName = (owningClass != null) ?
@@ -1886,7 +1896,9 @@ class ServiceFunction extends ServiceObject with Coverage {
       qualifiedName = "${parent.qualifiedName}.${name}";
     }
 
-    if (mapIsRef) { return; }
+    if (mapIsRef) {
+      return;
+    }
 
     isStatic = map['static'];
     isConst = map['const'];
@@ -1900,7 +1912,6 @@ class ServiceFunction extends ServiceObject with Coverage {
     isInlinable = map['inlinable'];
     deoptimizations = map['deoptimizations'];
     usageCounter = map['usageCounter'];
-
   }
 }
 
@@ -2113,6 +2124,8 @@ class Script extends ServiceObject with Coverage {
       _hits[line] = hit;
     }
     _applyHitsToLines();
+    // Notify any Observers that this Script's state has changed.
+    notifyChange(null);
   }
 
   void _processSource(String source) {
@@ -2133,6 +2146,8 @@ class Script extends ServiceObject with Coverage {
       lines.add(new ScriptLine(this, i + 1, sourceLines[i]));
     }
     _applyHitsToLines();
+    // Notify any Observers that this Script's state has changed.
+    notifyChange(null);
   }
 
   void _applyHitsToLines() {
@@ -2141,13 +2156,6 @@ class Script extends ServiceObject with Coverage {
       line.hits = hits;
     }
   }
-}
-
-class CodeTick {
-  final int address;
-  final int exclusiveTicks;
-  final int inclusiveTicks;
-  CodeTick(this.address, this.exclusiveTicks, this.inclusiveTicks);
 }
 
 class PcDescriptor extends Observable {
@@ -2293,50 +2301,10 @@ class CodeInstruction extends Observable {
   @reflectable List<PcDescriptor> descriptors =
       new ObservableList<PcDescriptor>();
 
-  static String formatPercent(num a, num total) {
-    var percent = 100.0 * (a / total);
-    return '${percent.toStringAsFixed(2)}%';
-  }
-
   CodeInstruction(this.address, this.pcOffset, this.machine, this.human);
 
   @reflectable bool get isComment => address == 0;
   @reflectable bool get hasDescriptors => descriptors.length > 0;
-
-  @reflectable String formattedAddress() {
-    if (address == 0) {
-      return '';
-    }
-    return '0x${address.toRadixString(16)}';
-  }
-
-  @reflectable String formattedInclusive(Code code) {
-    if (code == null) {
-      return '';
-    }
-    var tick = code.addressTicks[address];
-    if (tick == null) {
-      return '';
-    }
-    // Don't show inclusive ticks if they are the same as exclusive ticks.
-    if (tick.inclusiveTicks == tick.exclusiveTicks) {
-      return '';
-    }
-    var pcent = formatPercent(tick.inclusiveTicks, code.totalSamplesInProfile);
-    return '$pcent (${tick.inclusiveTicks})';
-  }
-
-  @reflectable String formattedExclusive(Code code) {
-    if (code == null) {
-      return '';
-    }
-    var tick = code.addressTicks[address];
-    if (tick == null) {
-      return '';
-    }
-    var pcent = formatPercent(tick.exclusiveTicks, code.totalSamplesInProfile);
-    return '$pcent (${tick.exclusiveTicks})';
-  }
 
   bool _isJumpInstruction() {
     return human.startsWith('j');
@@ -2367,8 +2335,6 @@ class CodeInstruction extends Observable {
     }
     int address = _getJumpAddress();
     if (address == 0) {
-      // Could not determine jump address.
-      Logger.root.severe('Could not determine jump address for $human');
       return;
     }
     for (var i = 0; i < instructions.length; i++) {
@@ -2378,8 +2344,6 @@ class CodeInstruction extends Observable {
         return;
       }
     }
-    Logger.root.severe(
-        'Could not find instruction at ${address.toRadixString(16)}');
   }
 }
 
@@ -2387,7 +2351,8 @@ class CodeKind {
   final _value;
   const CodeKind._internal(this._value);
   String toString() => '$_value';
-
+  bool isSynthetic() => [Collected, Native, Tag].contains(this);
+  bool isDart() => !isSynthetic();
   static CodeKind fromString(String s) {
     if (s == 'Native') {
       return Native;
@@ -2395,69 +2360,47 @@ class CodeKind {
       return Dart;
     } else if (s == 'Collected') {
       return Collected;
-    } else if (s == 'Reused') {
-      return Reused;
     } else if (s == 'Tag') {
       return Tag;
+    } else if (s == 'Stub') {
+      return Stub;
     }
-    Logger.root.warning('Unknown code kind $s');
+    print('do not understand code kind $s');
     throw new FallThroughError();
   }
-  static const Native = const CodeKind._internal('Native');
-  static const Dart = const CodeKind._internal('Dart');
   static const Collected = const CodeKind._internal('Collected');
-  static const Reused = const CodeKind._internal('Reused');
+  static const Dart = const CodeKind._internal('Dart');
+  static const Native = const CodeKind._internal('Native');
+  static const Stub = const CodeKind._internal('Stub');
   static const Tag = const CodeKind._internal('Tag');
 }
 
-class CodeCallCount {
-  final Code code;
-  final int count;
-  CodeCallCount(this.code, this.count);
-}
-
-class CodeTrieNode {
-  final Code code;
-  final int count;
-  final children = new List<CodeTrieNode>();
-  int summedChildCount = 0;
-  CodeTrieNode(this.code, this.count);
+class CodeInlineInterval {
+  final int start;
+  final int end;
+  final List<ServiceFunction> functions = new List<ServiceFunction>();
+  bool contains(int pc) => (pc >= start) && (pc < end);
+  CodeInlineInterval(this.start, this.end);
 }
 
 class Code extends ServiceObject {
   @observable CodeKind kind;
-  @observable int totalSamplesInProfile = 0;
-  @reflectable int exclusiveTicks = 0;
-  @reflectable int inclusiveTicks = 0;
-  @reflectable int startAddress = 0;
-  @reflectable int endAddress = 0;
-  @reflectable final callers = new List<CodeCallCount>();
-  @reflectable final callees = new List<CodeCallCount>();
-  @reflectable final instructions = new ObservableList<CodeInstruction>();
-  @reflectable final addressTicks = new ObservableMap<int, CodeTick>();
-  @observable String formattedInclusiveTicks = '';
-  @observable String formattedExclusiveTicks = '';
   @observable Instance objectPool;
   @observable ServiceFunction function;
   @observable Script script;
   @observable bool isOptimized = false;
-
+  @reflectable int startAddress = 0;
+  @reflectable int endAddress = 0;
+  @reflectable final instructions = new ObservableList<CodeInstruction>();
+  @observable ProfileCode profile;
+  final List<CodeInlineInterval> inlineIntervals =
+      new List<CodeInlineInterval>();
+  final ObservableList<ServiceFunction> inlinedFunctions =
+      new ObservableList<ServiceFunction>();
   bool get canCache => true;
   bool get immutable => true;
 
   Code._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  // Reset all data associated with a profile.
-  void resetProfileData() {
-    totalSamplesInProfile = 0;
-    exclusiveTicks = 0;
-    inclusiveTicks = 0;
-    formattedInclusiveTicks = '';
-    formattedExclusiveTicks = '';
-    callers.clear();
-    callees.clear();
-    addressTicks.clear();
-  }
 
   void _updateDescriptors(Script script) {
     this.script = script;
@@ -2507,49 +2450,6 @@ class Code extends ServiceObject {
     return new Future.value(this);
   }
 
-  void _resolveCalls(List<CodeCallCount> calls, List data, List<Code> codes) {
-    // Assert that this has been cleared.
-    assert(calls.length == 0);
-    // Resolve.
-    for (var i = 0; i < data.length; i += 2) {
-      var index = int.parse(data[i]);
-      var count = int.parse(data[i + 1]);
-      assert(index >= 0);
-      assert(index < codes.length);
-      calls.add(new CodeCallCount(codes[index], count));
-    }
-    // Sort to descending count order.
-    calls.sort((a, b) => b.count - a.count);
-  }
-
-
-  static String formatPercent(num a, num total) {
-    var percent = 100.0 * (a / total);
-    return '${percent.toStringAsFixed(2)}%';
-  }
-
-  void updateProfileData(Map profileData,
-                         List<Code> codeTable,
-                         int sampleCount) {
-    // Assert we are handed profile data for this code object.
-    assert(profileData['code'] == this);
-    totalSamplesInProfile = sampleCount;
-    inclusiveTicks = int.parse(profileData['inclusive_ticks']);
-    exclusiveTicks = int.parse(profileData['exclusive_ticks']);
-    _resolveCalls(callers, profileData['callers'], codeTable);
-    _resolveCalls(callees, profileData['callees'], codeTable);
-    var ticks = profileData['ticks'];
-    if (ticks != null) {
-      _processTicks(ticks);
-    }
-    formattedInclusiveTicks =
-        '${formatPercent(inclusiveTicks, totalSamplesInProfile)} '
-        '($inclusiveTicks)';
-    formattedExclusiveTicks =
-        '${formatPercent(exclusiveTicks, totalSamplesInProfile)} '
-        '($exclusiveTicks)';
-  }
-
   void _update(ObservableMap m, bool mapIsRef) {
     name = m['name'];
     vmName = (m.containsKey('vmName') ? m['vmName'] : name);
@@ -2558,6 +2458,10 @@ class Code extends ServiceObject {
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);
     function = isolate.getFromMap(m['function']);
+    if (mapIsRef) {
+      return;
+    }
+    _loaded = true;
     objectPool = isolate.getFromMap(m['objectPool']);
     var disassembly = m['disassembly'];
     if (disassembly != null) {
@@ -2568,9 +2472,56 @@ class Code extends ServiceObject {
       descriptors = descriptors['members'];
       _processDescriptors(descriptors);
     }
-    // We are loaded if we have instructions or are not Dart code.
-    _loaded = (instructions.length != 0) || (kind != CodeKind.Dart);
     hasDisassembly = (instructions.length != 0) && (kind == CodeKind.Dart);
+    inlinedFunctions.clear();
+    var inlinedFunctionsTable = m['inlinedFunctions'];
+    var inlinedIntervals = m['inlinedIntervals'];
+    if (inlinedFunctionsTable != null) {
+      // Iterate and upgrade each ServiceFunction.
+      for (var i = 0; i < inlinedFunctionsTable.length; i++) {
+        // Upgrade each function and set it back in the list.
+        var func = isolate.getFromMap(inlinedFunctionsTable[i]);
+        inlinedFunctionsTable[i] = func;
+        if (!inlinedFunctions.contains(func)) {
+          inlinedFunctions.add(func);
+        }
+      }
+    }
+    if ((inlinedIntervals == null) || (inlinedFunctionsTable == null)) {
+      // No inline information.
+      inlineIntervals.clear();
+      return;
+    }
+    _processInline(inlinedFunctionsTable, inlinedIntervals);
+  }
+
+  CodeInlineInterval findInterval(int pc) {
+    for (var i = 0; i < inlineIntervals.length; i++) {
+      var interval = inlineIntervals[i];
+      if (interval.contains(pc)) {
+        return interval;
+      }
+    }
+    return null;
+  }
+
+  void _processInline(List<ServiceFunction> inlinedFunctionsTable,
+                      List<List<int>> inlinedIntervals) {
+    for (var i = 0; i < inlinedIntervals.length; i++) {
+      var inlinedInterval = inlinedIntervals[i];
+      var start = inlinedInterval[0] + startAddress;
+      var end = inlinedInterval[1] + startAddress;
+      var codeInlineInterval = new CodeInlineInterval(start, end);
+      for (var i = 2; i < inlinedInterval.length - 1; i++) {
+        var inline_id = inlinedInterval[i];
+        if (inline_id < 0) {
+          continue;
+        }
+        var function = inlinedFunctionsTable[inline_id];
+        codeInlineInterval.functions.add(function);
+      }
+      inlineIntervals.add(codeInlineInterval);
+    }
   }
 
   @observable bool hasDisassembly = false;
@@ -2624,50 +2575,13 @@ class Code extends ServiceObject {
     }
   }
 
-  void _processTicks(List<String> profileTicks) {
-    assert(profileTicks != null);
-    assert((profileTicks.length % 3) == 0);
-    for (var i = 0; i < profileTicks.length; i += 3) {
-      var address = int.parse(profileTicks[i], radix:16);
-      var exclusive = int.parse(profileTicks[i + 1]);
-      var inclusive = int.parse(profileTicks[i + 2]);
-      var tick = new CodeTick(address, exclusive, inclusive);
-      addressTicks[address] = tick;
-    }
-  }
-
   /// Returns true if [address] is contained inside [this].
   bool contains(int address) {
     return (address >= startAddress) && (address < endAddress);
   }
 
-  /// Sum all caller counts.
-  int sumCallersCount() => _sumCallCount(callers);
-  /// Specific caller count.
-  int callersCount(Code code) => _callCount(callers, code);
-  /// Sum of callees count.
-  int sumCalleesCount() => _sumCallCount(callees);
-  /// Specific callee count.
-  int calleesCount(Code code) => _callCount(callees, code);
-
-  int _sumCallCount(List<CodeCallCount> calls) {
-    var sum = 0;
-    for (CodeCallCount caller in calls) {
-      sum += caller.count;
-    }
-    return sum;
-  }
-
-  int _callCount(List<CodeCallCount> calls, Code code) {
-    for (CodeCallCount caller in calls) {
-      if (caller.code == code) {
-        return caller.count;
-      }
-    }
-    return 0;
-  }
-
-  @reflectable bool get isDartCode => kind == CodeKind.Dart;
+  @reflectable bool get isDartCode => (kind == CodeKind.Dart) ||
+                                      (kind == CodeKind.Stub);
 }
 
 

@@ -63,15 +63,15 @@ class AdjacentStrings extends StringLiteral {
   accept(AstVisitor visitor) => visitor.visitAdjacentStrings(this);
 
   @override
-  void appendStringValue(StringBuffer buffer) {
-    for (StringLiteral stringLiteral in strings) {
-      stringLiteral.appendStringValue(buffer);
-    }
+  void visitChildren(AstVisitor visitor) {
+    _strings.accept(visitor);
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {
-    _strings.accept(visitor);
+  void _appendStringValue(StringBuffer buffer) {
+    for (StringLiteral stringLiteral in strings) {
+      stringLiteral._appendStringValue(buffer);
+    }
   }
 }
 
@@ -97,7 +97,7 @@ abstract class AnnotatedNode extends AstNode {
    * attribute.
    */
   AnnotatedNode(Comment comment, List<Annotation> metadata) {
-    _comment = becomeParentOf(comment);
+    _comment = _becomeParentOf(comment);
     _metadata = new NodeList<Annotation>(this, metadata);
   }
 
@@ -130,7 +130,7 @@ abstract class AnnotatedNode extends AstNode {
    * [comment].
    */
   void set documentationComment(Comment comment) {
-    _comment = becomeParentOf(comment);
+    _comment = _becomeParentOf(comment);
   }
 
   /**
@@ -146,6 +146,7 @@ abstract class AnnotatedNode extends AstNode {
   /**
    * Set the metadata associated with this node to the given [metadata].
    */
+  @deprecated // Directly modify the list returned by "this.metadata"
   void set metadata(List<Annotation> metadata) {
     _metadata.clear();
     _metadata.addAll(metadata);
@@ -157,17 +158,20 @@ abstract class AnnotatedNode extends AstNode {
    */
   List<AstNode> get sortedCommentAndAnnotations {
     return <AstNode>[]
-        ..add(_comment)
-        ..addAll(_metadata)
-        ..sort(AstNode.LEXICAL_ORDER);
+      ..add(_comment)
+      ..addAll(_metadata)
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 
+  /**
+   * Return a holder of child entities that subclasses can add to.
+   */
   ChildEntities get _childEntities {
     ChildEntities result = new ChildEntities();
     if (_commentIsBeforeAnnotations()) {
       result
-          ..add(_comment)
-          ..addAll(_metadata);
+        ..add(_comment)
+        ..addAll(_metadata);
     } else {
       result.addAll(sortedCommentAndAnnotations);
     }
@@ -187,9 +191,12 @@ abstract class AnnotatedNode extends AstNode {
   }
 
   /**
-   * Return `true` if the comment is lexically before any annotations.
+   * Return `true` if there are no annotations before the comment. Note that a
+   * result of `true` does not imply that there is a comment, nor that there are
+   * annotations associated with this node.
    */
   bool _commentIsBeforeAnnotations() {
+    // TODO(brianwilkerson) Convert this to a getter.
     if (_comment == null || _metadata.isEmpty) {
       return true;
     }
@@ -256,9 +263,9 @@ class Annotation extends AstNode {
    */
   Annotation(this.atSign, Identifier name, this.period,
       SimpleIdentifier constructorName, ArgumentList arguments) {
-    _name = becomeParentOf(name);
-    _constructorName = becomeParentOf(constructorName);
-    _arguments = becomeParentOf(arguments);
+    _name = _becomeParentOf(name);
+    _constructorName = _becomeParentOf(constructorName);
+    _arguments = _becomeParentOf(arguments);
   }
 
   /**
@@ -271,7 +278,7 @@ class Annotation extends AstNode {
    * Set the arguments to the constructor being invoked to the given arguments.
    */
   void set arguments(ArgumentList arguments) {
-    _arguments = becomeParentOf(arguments);
+    _arguments = _becomeParentOf(arguments);
   }
 
   @override
@@ -279,11 +286,11 @@ class Annotation extends AstNode {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(atSign)
-      ..add(_name)
-      ..add(period)
-      ..add(_constructorName)
-      ..add(_arguments);
+    ..add(atSign)
+    ..add(_name)
+    ..add(period)
+    ..add(_constructorName)
+    ..add(_arguments);
 
   /**
    * Return the name of the constructor being invoked, or `null` if this
@@ -295,7 +302,7 @@ class Annotation extends AstNode {
    * Set the name of the constructor being invoked to the given [name].
    */
   void set constructorName(SimpleIdentifier name) {
-    _constructorName = becomeParentOf(name);
+    _constructorName = _becomeParentOf(name);
   }
 
   /**
@@ -340,7 +347,7 @@ class Annotation extends AstNode {
    * the name of the field that is being referenced to the given [name].
    */
   void set name(Identifier name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   @override
@@ -355,8 +362,8 @@ class Annotation extends AstNode {
 }
 
 /**
- * A list of arguments in the invocation of an executable element: a function,
- * method, or constructor.
+ * A list of arguments in the invocation of an executable element (that is, a
+ * function, method, or constructor).
  *
  * > argumentList ::=
  * >     '(' arguments? ')'
@@ -405,8 +412,8 @@ class ArgumentList extends AstNode {
    * Initialize a newly created list of arguments. The list of [arguments] can
    * be `null` if there are no arguments.
    */
-  ArgumentList(this.leftParenthesis, List<Expression> arguments,
-      this.rightParenthesis) {
+  ArgumentList(
+      this.leftParenthesis, List<Expression> arguments, this.rightParenthesis) {
     _arguments = new NodeList<Expression>(this, arguments);
   }
 
@@ -425,9 +432,9 @@ class ArgumentList extends AstNode {
    */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(leftParenthesis)
-      ..addAll(_arguments)
-      ..add(rightParenthesis);
+    ..add(leftParenthesis)
+    ..addAll(_arguments)
+    ..add(rightParenthesis);
 
   /**
    * Set the parameter elements corresponding to each of the arguments in this
@@ -435,8 +442,8 @@ class ArgumentList extends AstNode {
    * same length as the number of arguments, but can contain `null` entries if a
    * given argument does not correspond to a formal parameter.
    */
-  void set
-      correspondingPropagatedParameters(List<ParameterElement> parameters) {
+  void set correspondingPropagatedParameters(
+      List<ParameterElement> parameters) {
     if (parameters.length != _arguments.length) {
       throw new IllegalArgumentException(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
@@ -474,14 +481,49 @@ class ArgumentList extends AstNode {
    *   invoked,
    * then return the parameter element representing the parameter to which the
    * value of the given expression will be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.propagatedParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement getPropagatedParameterElementFor(Expression expression) {
-    if (_correspondingPropagatedParameters == null) {
-      // Either the AST structure has not been resolved or the invocation
-      // of which this list is a part could not be resolved.
+    return _getPropagatedParameterElementFor(expression);
+  }
+
+  /**
+   * If
+   * * the given [expression] is a child of this list,
+   * * the AST structure has been resolved,
+   * * the function being invoked is known based on static type information, and
+   * * the expression corresponds to one of the parameters of the function being
+   *   invoked,
+   * then return the parameter element representing the parameter to which the
+   * value of the given expression will be bound. Otherwise, return `null`.
+   */
+  @deprecated // Use "expression.propagatedParameterElement"
+  ParameterElement getStaticParameterElementFor(Expression expression) {
+    return _getStaticParameterElementFor(expression);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _arguments.accept(visitor);
+  }
+
+  /**
+   * If
+   * * the given [expression] is a child of this list,
+   * * the AST structure has been resolved,
+   * * the function being invoked is known based on propagated type information,
+   *   and
+   * * the expression corresponds to one of the parameters of the function being
+   *   invoked,
+   * then return the parameter element representing the parameter to which the
+   * value of the given expression will be bound. Otherwise, return `null`.
+   */
+  ParameterElement _getPropagatedParameterElementFor(Expression expression) {
+    if (_correspondingPropagatedParameters == null ||
+        _correspondingPropagatedParameters.length != _arguments.length) {
+      // Either the AST structure has not been resolved, the invocation of which
+      // this list is a part could not be resolved, or the argument list was
+      // modified after the parameters were set.
       return null;
     }
     int index = _arguments.indexOf(expression);
@@ -501,14 +543,13 @@ class ArgumentList extends AstNode {
    *   invoked,
    * then return the parameter element representing the parameter to which the
    * value of the given expression will be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.staticParameterElement].
    */
-  ParameterElement getStaticParameterElementFor(Expression expression) {
-    if (_correspondingStaticParameters == null) {
-      // Either the AST structure has not been resolved or the invocation
-      // of which this list is a part could not be resolved.
+  ParameterElement _getStaticParameterElementFor(Expression expression) {
+    if (_correspondingStaticParameters == null ||
+        _correspondingStaticParameters.length != _arguments.length) {
+      // Either the AST structure has not been resolved, the invocation of which
+      // this list is a part could not be resolved, or the argument list was
+      // modified after the parameters were set.
       return null;
     }
     int index = _arguments.indexOf(expression);
@@ -517,11 +558,6 @@ class ArgumentList extends AstNode {
       return null;
     }
     return _correspondingStaticParameters[index];
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _arguments.accept(visitor);
   }
 }
 
@@ -538,7 +574,7 @@ class AsExpression extends Expression {
   Expression _expression;
 
   /**
-   * The as operator.
+   * The 'as' operator.
    */
   Token asOperator;
 
@@ -551,8 +587,8 @@ class AsExpression extends Expression {
    * Initialize a newly created as expression.
    */
   AsExpression(Expression expression, this.asOperator, TypeName type) {
-    _expression = becomeParentOf(expression);
-    _type = becomeParentOf(type);
+    _expression = _becomeParentOf(expression);
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -560,9 +596,9 @@ class AsExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_expression)
-      ..add(asOperator)
-      ..add(_type);
+    ..add(_expression)
+    ..add(asOperator)
+    ..add(_type);
 
   @override
   Token get endToken => _type.endToken;
@@ -577,7 +613,7 @@ class AsExpression extends Expression {
    * [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -592,7 +628,7 @@ class AsExpression extends Expression {
    * Set the name of the type being cast to to the given [name].
    */
   void set type(TypeName name) {
-    _type = becomeParentOf(name);
+    _type = _becomeParentOf(name);
   }
 
   @override
@@ -615,7 +651,7 @@ class AssertStatement extends Statement {
   /**
    * The token representing the 'assert' keyword.
    */
-  Token keyword;
+  Token assertKeyword;
 
   /**
    * The left parenthesis.
@@ -640,24 +676,21 @@ class AssertStatement extends Statement {
   /**
    * Initialize a newly created assert statement.
    */
-  AssertStatement(this.keyword, this.leftParenthesis, Expression condition,
-      this.rightParenthesis, this.semicolon) {
-    _condition = becomeParentOf(condition);
+  AssertStatement(this.assertKeyword, this.leftParenthesis,
+      Expression condition, this.rightParenthesis, this.semicolon) {
+    _condition = _becomeParentOf(condition);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => assertKeyword;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(leftParenthesis)
-      ..add(_condition)
-      ..add(rightParenthesis)
-      ..add(semicolon);
+    ..add(assertKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
+    ..add(semicolon);
 
   /**
    * Return the condition that is being asserted to be `true`.
@@ -669,11 +702,25 @@ class AssertStatement extends Statement {
    * [expression].
    */
   void set condition(Expression condition) {
-    _condition = becomeParentOf(condition);
+    _condition = _becomeParentOf(condition);
   }
 
   @override
   Token get endToken => semicolon;
+
+  /**
+   * Return the token representing the 'assert' keyword.
+   */
+  @deprecated // Use "this.assertKeyword"
+  Token get keyword => assertKeyword;
+
+  /**
+   * Set the token representing the 'assert' keyword to the given [token].
+   */
+  @deprecated // Use "this.assertKeyword"
+  set keyword(Token token) {
+    assertKeyword = token;
+  }
 
   @override
   accept(AstVisitor visitor) => visitor.visitAssertStatement(this);
@@ -725,8 +772,8 @@ class AssignmentExpression extends Expression {
   /**
    * Initialize a newly created assignment expression.
    */
-  AssignmentExpression(Expression leftHandSide, this.operator,
-      Expression rightHandSide) {
+  AssignmentExpression(
+      Expression leftHandSide, this.operator, Expression rightHandSide) {
     if (leftHandSide == null || rightHandSide == null) {
       String message;
       if (leftHandSide == null) {
@@ -739,11 +786,10 @@ class AssignmentExpression extends Expression {
         message = "The right-hand size is null";
       }
       AnalysisEngine.instance.logger.logError(
-          message,
-          new CaughtException(new AnalysisException(message), null));
+          message, new CaughtException(new AnalysisException(message), null));
     }
-    _leftHandSide = becomeParentOf(leftHandSide);
-    _rightHandSide = becomeParentOf(rightHandSide);
+    _leftHandSide = _becomeParentOf(leftHandSide);
+    _rightHandSide = _becomeParentOf(rightHandSide);
   }
 
   @override
@@ -766,9 +812,9 @@ class AssignmentExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_leftHandSide)
-      ..add(operator)
-      ..add(_rightHandSide);
+    ..add(_leftHandSide)
+    ..add(operator)
+    ..add(_rightHandSide);
 
   @override
   Token get endToken => _rightHandSide.endToken;
@@ -783,7 +829,7 @@ class AssignmentExpression extends Expression {
    * Return the expression used to compute the left hand side.
    */
   void set leftHandSide(Expression expression) {
-    _leftHandSide = becomeParentOf(expression);
+    _leftHandSide = _becomeParentOf(expression);
   }
 
   @override
@@ -794,11 +840,43 @@ class AssignmentExpression extends Expression {
    * known based on propagated type information, then return the parameter
    * element representing the parameter to which the value of the right operand
    * will be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.propagatedParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement get propagatedParameterElementForRightHandSide {
+    return _propagatedParameterElementForRightHandSide;
+  }
+
+  /**
+   * Return the expression used to compute the right hand side.
+   */
+  Expression get rightHandSide => _rightHandSide;
+
+  /**
+   * Set the expression used to compute the left hand side to the given
+   * [expression].
+   */
+  void set rightHandSide(Expression expression) {
+    _rightHandSide = _becomeParentOf(expression);
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on static type information, then return the parameter element
+   * representing the parameter to which the value of the right operand will be
+   * bound. Otherwise, return `null`.
+   */
+  @deprecated // Use "expression.propagatedParameterElement"
+  ParameterElement get staticParameterElementForRightHandSide {
+    return _staticParameterElementForRightHandSide;
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on propagated type information, then return the parameter
+   * element representing the parameter to which the value of the right operand
+   * will be bound. Otherwise, return `null`.
+   */
+  ParameterElement get _propagatedParameterElementForRightHandSide {
     ExecutableElement executableElement = null;
     if (propagatedElement != null) {
       executableElement = propagatedElement;
@@ -830,28 +908,12 @@ class AssignmentExpression extends Expression {
   }
 
   /**
-   * Return the expression used to compute the right hand side.
-   */
-  Expression get rightHandSide => _rightHandSide;
-
-  /**
-   * Set the expression used to compute the left hand side to the given
-   * [expression].
-   */
-  void set rightHandSide(Expression expression) {
-    _rightHandSide = becomeParentOf(expression);
-  }
-
-  /**
    * If the AST structure has been resolved, and the function being invoked is
    * known based on static type information, then return the parameter element
    * representing the parameter to which the value of the right operand will be
    * bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.staticParameterElement].
    */
-  ParameterElement get staticParameterElementForRightHandSide {
+  ParameterElement get _staticParameterElementForRightHandSide {
     ExecutableElement executableElement = null;
     if (staticElement != null) {
       executableElement = staticElement;
@@ -906,8 +968,8 @@ class AstCloner implements AstVisitor<AstNode> {
    * Initialize a newly created AST cloner to optionally clone tokens while
    * cloning AST nodes if [cloneTokens] is `true`.
    */
-  // TODO(brianwilkerson) Change this to be a named parameter.
-  AstCloner([this.cloneTokens = false]);
+  AstCloner(
+      [this.cloneTokens = false]); // TODO(brianwilkerson) Change this to be a named parameter.
 
   /**
    * Return a clone of the given [node].
@@ -958,139 +1020,99 @@ class AstCloner implements AstVisitor<AstNode> {
       new AdjacentStrings(cloneNodeList(node.strings));
 
   @override
-  Annotation visitAnnotation(Annotation node) =>
-      new Annotation(
-          cloneToken(node.atSign),
-          cloneNode(node.name),
-          cloneToken(node.period),
-          cloneNode(node.constructorName),
-          cloneNode(node.arguments));
+  Annotation visitAnnotation(Annotation node) => new Annotation(
+      cloneToken(node.atSign), cloneNode(node.name), cloneToken(node.period),
+      cloneNode(node.constructorName), cloneNode(node.arguments));
 
   @override
-  ArgumentList visitArgumentList(ArgumentList node) =>
-      new ArgumentList(
-          cloneToken(node.leftParenthesis),
-          cloneNodeList(node.arguments),
-          cloneToken(node.rightParenthesis));
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(
+      cloneToken(node.leftParenthesis), cloneNodeList(node.arguments),
+      cloneToken(node.rightParenthesis));
 
   @override
-  AsExpression visitAsExpression(AsExpression node) =>
-      new AsExpression(
-          cloneNode(node.expression),
-          cloneToken(node.asOperator),
-          cloneNode(node.type));
+  AsExpression visitAsExpression(AsExpression node) => new AsExpression(
+      cloneNode(node.expression), cloneToken(node.asOperator),
+      cloneNode(node.type));
 
   @override
-  AstNode visitAssertStatement(AssertStatement node) =>
-      new AssertStatement(
-          cloneToken(node.keyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.condition),
-          cloneToken(node.rightParenthesis),
-          cloneToken(node.semicolon));
+  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(
+      cloneToken(node.assertKeyword), cloneToken(node.leftParenthesis),
+      cloneNode(node.condition), cloneToken(node.rightParenthesis),
+      cloneToken(node.semicolon));
 
   @override
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) =>
-      new AssignmentExpression(
-          cloneNode(node.leftHandSide),
-          cloneToken(node.operator),
-          cloneNode(node.rightHandSide));
+      new AssignmentExpression(cloneNode(node.leftHandSide),
+          cloneToken(node.operator), cloneNode(node.rightHandSide));
 
   @override
   AwaitExpression visitAwaitExpression(AwaitExpression node) =>
-      new AwaitExpression(cloneToken(node.awaitKeyword), cloneNode(node.expression));
+      new AwaitExpression(
+          cloneToken(node.awaitKeyword), cloneNode(node.expression));
 
   @override
   BinaryExpression visitBinaryExpression(BinaryExpression node) =>
-      new BinaryExpression(
-          cloneNode(node.leftOperand),
-          cloneToken(node.operator),
-          cloneNode(node.rightOperand));
+      new BinaryExpression(cloneNode(node.leftOperand),
+          cloneToken(node.operator), cloneNode(node.rightOperand));
 
   @override
-  Block visitBlock(Block node) =>
-      new Block(
-          cloneToken(node.leftBracket),
-          cloneNodeList(node.statements),
-          cloneToken(node.rightBracket));
+  Block visitBlock(Block node) => new Block(cloneToken(node.leftBracket),
+      cloneNodeList(node.statements), cloneToken(node.rightBracket));
 
   @override
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) =>
-      new BlockFunctionBody(
-          cloneToken(node.keyword),
-          cloneToken(node.star),
-          cloneNode(node.block));
+  BlockFunctionBody visitBlockFunctionBody(
+      BlockFunctionBody node) => new BlockFunctionBody(
+      cloneToken(node.keyword), cloneToken(node.star), cloneNode(node.block));
 
   @override
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) =>
       new BooleanLiteral(cloneToken(node.literal), node.value);
 
   @override
-  BreakStatement visitBreakStatement(BreakStatement node) =>
-      new BreakStatement(
-          cloneToken(node.keyword),
-          cloneNode(node.label),
-          cloneToken(node.semicolon));
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(
+      cloneToken(node.breakKeyword), cloneNode(node.label),
+      cloneToken(node.semicolon));
 
   @override
   CascadeExpression visitCascadeExpression(CascadeExpression node) =>
       new CascadeExpression(
-          cloneNode(node.target),
-          cloneNodeList(node.cascadeSections));
+          cloneNode(node.target), cloneNodeList(node.cascadeSections));
 
   @override
-  CatchClause visitCatchClause(CatchClause node) =>
-      new CatchClause(
-          cloneToken(node.onKeyword),
-          cloneNode(node.exceptionType),
-          cloneToken(node.catchKeyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.exceptionParameter),
-          cloneToken(node.comma),
-          cloneNode(node.stackTraceParameter),
-          cloneToken(node.rightParenthesis),
-          cloneNode(node.body));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause(
+      cloneToken(node.onKeyword), cloneNode(node.exceptionType),
+      cloneToken(node.catchKeyword), cloneToken(node.leftParenthesis),
+      cloneNode(node.exceptionParameter), cloneToken(node.comma),
+      cloneNode(node.stackTraceParameter), cloneToken(node.rightParenthesis),
+      cloneNode(node.body));
 
   @override
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration copy = new ClassDeclaration(
-        cloneNode(node.documentationComment),
-        cloneNodeList(node.metadata),
-        cloneToken(node.abstractKeyword),
-        cloneToken(node.classKeyword),
-        cloneNode(node.name),
-        cloneNode(node.typeParameters),
-        cloneNode(node.extendsClause),
-        cloneNode(node.withClause),
-        cloneNode(node.implementsClause),
-        cloneToken(node.leftBracket),
-        cloneNodeList(node.members),
-        cloneToken(node.rightBracket));
+        cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+        cloneToken(node.abstractKeyword), cloneToken(node.classKeyword),
+        cloneNode(node.name), cloneNode(node.typeParameters),
+        cloneNode(node.extendsClause), cloneNode(node.withClause),
+        cloneNode(node.implementsClause), cloneToken(node.leftBracket),
+        cloneNodeList(node.members), cloneToken(node.rightBracket));
     copy.nativeClause = cloneNode(node.nativeClause);
     return copy;
   }
 
   @override
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) =>
-      new ClassTypeAlias(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.name),
-          cloneNode(node.typeParameters),
-          cloneToken(node.equals),
-          cloneToken(node.abstractKeyword),
-          cloneNode(node.superclass),
-          cloneNode(node.withClause),
-          cloneNode(node.implementsClause),
-          cloneToken(node.semicolon));
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(
+      cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+      cloneToken(node.typedefKeyword), cloneNode(node.name),
+      cloneNode(node.typeParameters), cloneToken(node.equals),
+      cloneToken(node.abstractKeyword), cloneNode(node.superclass),
+      cloneNode(node.withClause), cloneNode(node.implementsClause),
+      cloneToken(node.semicolon));
 
   @override
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
       return Comment.createDocumentationCommentWithReferences(
-          cloneTokenList(node.tokens),
-          cloneNodeList(node.references));
+          cloneTokenList(node.tokens), cloneNodeList(node.references));
     } else if (node.isBlock) {
       return Comment.createBlockComment(cloneTokenList(node.tokens));
     }
@@ -1099,100 +1121,70 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   CommentReference visitCommentReference(CommentReference node) =>
-      new CommentReference(cloneToken(node.newKeyword), cloneNode(node.identifier));
+      new CommentReference(
+          cloneToken(node.newKeyword), cloneNode(node.identifier));
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = new CompilationUnit(
-        cloneToken(node.beginToken),
-        cloneNode(node.scriptTag),
-        cloneNodeList(node.directives),
-        cloneNodeList(node.declarations),
-        cloneToken(node.endToken));
+    CompilationUnit clone = new CompilationUnit(cloneToken(node.beginToken),
+        cloneNode(node.scriptTag), cloneNodeList(node.directives),
+        cloneNodeList(node.declarations), cloneToken(node.endToken));
     clone.lineInfo = node.lineInfo;
     return clone;
   }
 
   @override
-  ConditionalExpression
-      visitConditionalExpression(ConditionalExpression node) =>
-      new ConditionalExpression(
-          cloneNode(node.condition),
-          cloneToken(node.question),
-          cloneNode(node.thenExpression),
-          cloneToken(node.colon),
-          cloneNode(node.elseExpression));
+  ConditionalExpression visitConditionalExpression(
+      ConditionalExpression node) => new ConditionalExpression(
+      cloneNode(node.condition), cloneToken(node.question),
+      cloneNode(node.thenExpression), cloneToken(node.colon),
+      cloneNode(node.elseExpression));
 
   @override
-  ConstructorDeclaration
-      visitConstructorDeclaration(ConstructorDeclaration node) =>
-      new ConstructorDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.externalKeyword),
-          cloneToken(node.constKeyword),
-          cloneToken(node.factoryKeyword),
-          cloneNode(node.returnType),
-          cloneToken(node.period),
-          cloneNode(node.name),
-          cloneNode(node.parameters),
-          cloneToken(node.separator),
-          cloneNodeList(node.initializers),
-          cloneNode(node.redirectedConstructor),
-          cloneNode(node.body));
+  ConstructorDeclaration visitConstructorDeclaration(
+      ConstructorDeclaration node) => new ConstructorDeclaration(
+      cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+      cloneToken(node.externalKeyword), cloneToken(node.constKeyword),
+      cloneToken(node.factoryKeyword), cloneNode(node.returnType),
+      cloneToken(node.period), cloneNode(node.name), cloneNode(node.parameters),
+      cloneToken(node.separator), cloneNodeList(node.initializers),
+      cloneNode(node.redirectedConstructor), cloneNode(node.body));
 
   @override
-  ConstructorFieldInitializer
-      visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
-      new ConstructorFieldInitializer(
-          cloneToken(node.keyword),
-          cloneToken(node.period),
-          cloneNode(node.fieldName),
-          cloneToken(node.equals),
-          cloneNode(node.expression));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(
+      ConstructorFieldInitializer node) => new ConstructorFieldInitializer(
+      cloneToken(node.thisKeyword), cloneToken(node.period),
+      cloneNode(node.fieldName), cloneToken(node.equals),
+      cloneNode(node.expression));
 
   @override
   ConstructorName visitConstructorName(ConstructorName node) =>
       new ConstructorName(
-          cloneNode(node.type),
-          cloneToken(node.period),
-          cloneNode(node.name));
+          cloneNode(node.type), cloneToken(node.period), cloneNode(node.name));
 
   @override
   ContinueStatement visitContinueStatement(ContinueStatement node) =>
-      new ContinueStatement(
-          cloneToken(node.keyword),
-          cloneNode(node.label),
-          cloneToken(node.semicolon));
+      new ContinueStatement(cloneToken(node.continueKeyword),
+          cloneNode(node.label), cloneToken(node.semicolon));
 
   @override
   DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) =>
-      new DeclaredIdentifier(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.type),
-          cloneNode(node.identifier));
+      new DeclaredIdentifier(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.keyword),
+          cloneNode(node.type), cloneNode(node.identifier));
 
   @override
-  DefaultFormalParameter
-      visitDefaultFormalParameter(DefaultFormalParameter node) =>
-      new DefaultFormalParameter(
-          cloneNode(node.parameter),
-          node.kind,
-          cloneToken(node.separator),
-          cloneNode(node.defaultValue));
+  DefaultFormalParameter visitDefaultFormalParameter(
+      DefaultFormalParameter node) => new DefaultFormalParameter(
+      cloneNode(node.parameter), node.kind, cloneToken(node.separator),
+      cloneNode(node.defaultValue));
 
   @override
-  DoStatement visitDoStatement(DoStatement node) =>
-      new DoStatement(
-          cloneToken(node.doKeyword),
-          cloneNode(node.body),
-          cloneToken(node.whileKeyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.condition),
-          cloneToken(node.rightParenthesis),
-          cloneToken(node.semicolon));
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement(
+      cloneToken(node.doKeyword), cloneNode(node.body),
+      cloneToken(node.whileKeyword), cloneToken(node.leftParenthesis),
+      cloneNode(node.condition), cloneToken(node.rightParenthesis),
+      cloneToken(node.semicolon));
 
   @override
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) =>
@@ -1208,136 +1200,97 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   AstNode visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
-      new EnumConstantDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneNode(node.name));
+      new EnumConstantDeclaration(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneNode(node.name));
 
   @override
   EnumDeclaration visitEnumDeclaration(EnumDeclaration node) =>
-      new EnumDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.name),
-          cloneToken(node.leftBracket),
-          cloneNodeList(node.constants),
-          cloneToken(node.rightBracket));
+      new EnumDeclaration(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.enumKeyword),
+          cloneNode(node.name), cloneToken(node.leftBracket),
+          cloneNodeList(node.constants), cloneToken(node.rightBracket));
 
   @override
   ExportDirective visitExportDirective(ExportDirective node) {
     ExportDirective directive = new ExportDirective(
-        cloneNode(node.documentationComment),
-        cloneNodeList(node.metadata),
-        cloneToken(node.keyword),
-        cloneNode(node.uri),
-        cloneNodeList(node.combinators),
-        cloneToken(node.semicolon));
+        cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+        cloneToken(node.keyword), cloneNode(node.uri),
+        cloneNodeList(node.combinators), cloneToken(node.semicolon));
     directive.source = node.source;
     directive.uriContent = node.uriContent;
     return directive;
   }
 
   @override
-  ExpressionFunctionBody
-      visitExpressionFunctionBody(ExpressionFunctionBody node) =>
-      new ExpressionFunctionBody(
-          cloneToken(node.keyword),
-          cloneToken(node.functionDefinition),
-          cloneNode(node.expression),
-          cloneToken(node.semicolon));
+  ExpressionFunctionBody visitExpressionFunctionBody(
+      ExpressionFunctionBody node) => new ExpressionFunctionBody(
+      cloneToken(node.keyword), cloneToken(node.functionDefinition),
+      cloneNode(node.expression), cloneToken(node.semicolon));
 
   @override
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) =>
-      new ExpressionStatement(cloneNode(node.expression), cloneToken(node.semicolon));
+      new ExpressionStatement(
+          cloneNode(node.expression), cloneToken(node.semicolon));
 
   @override
-  ExtendsClause visitExtendsClause(ExtendsClause node) =>
-      new ExtendsClause(cloneToken(node.keyword), cloneNode(node.superclass));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(
+      cloneToken(node.extendsKeyword), cloneNode(node.superclass));
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
-      new FieldDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.staticKeyword),
-          cloneNode(node.fields),
-          cloneToken(node.semicolon));
+      new FieldDeclaration(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.staticKeyword),
+          cloneNode(node.fields), cloneToken(node.semicolon));
 
   @override
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) =>
-      new FieldFormalParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.type),
-          cloneToken(node.thisToken),
-          cloneToken(node.period),
-          cloneNode(node.identifier),
+      new FieldFormalParameter(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.keyword),
+          cloneNode(node.type), cloneToken(node.thisKeyword),
+          cloneToken(node.period), cloneNode(node.identifier),
           cloneNode(node.parameters));
 
   @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(
-          cloneToken(node.awaitKeyword),
-          cloneToken(node.forKeyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.identifier),
-          cloneToken(node.inKeyword),
-          cloneNode(node.iterable),
-          cloneToken(node.rightParenthesis),
+      return new ForEachStatement.con2(cloneToken(node.awaitKeyword),
+          cloneToken(node.forKeyword), cloneToken(node.leftParenthesis),
+          cloneNode(node.identifier), cloneToken(node.inKeyword),
+          cloneNode(node.iterable), cloneToken(node.rightParenthesis),
           cloneNode(node.body));
     }
-    return new ForEachStatement.con1(
-        cloneToken(node.awaitKeyword),
-        cloneToken(node.forKeyword),
-        cloneToken(node.leftParenthesis),
-        cloneNode(loopVariable),
-        cloneToken(node.inKeyword),
-        cloneNode(node.iterable),
-        cloneToken(node.rightParenthesis),
+    return new ForEachStatement.con1(cloneToken(node.awaitKeyword),
+        cloneToken(node.forKeyword), cloneToken(node.leftParenthesis),
+        cloneNode(loopVariable), cloneToken(node.inKeyword),
+        cloneNode(node.iterable), cloneToken(node.rightParenthesis),
         cloneNode(node.body));
   }
 
   @override
   FormalParameterList visitFormalParameterList(FormalParameterList node) =>
-      new FormalParameterList(
-          cloneToken(node.leftParenthesis),
-          cloneNodeList(node.parameters),
-          cloneToken(node.leftDelimiter),
-          cloneToken(node.rightDelimiter),
-          cloneToken(node.rightParenthesis));
+      new FormalParameterList(cloneToken(node.leftParenthesis),
+          cloneNodeList(node.parameters), cloneToken(node.leftDelimiter),
+          cloneToken(node.rightDelimiter), cloneToken(node.rightParenthesis));
 
   @override
-  ForStatement visitForStatement(ForStatement node) =>
-      new ForStatement(
-          cloneToken(node.forKeyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.variables),
-          cloneNode(node.initialization),
-          cloneToken(node.leftSeparator),
-          cloneNode(node.condition),
-          cloneToken(node.rightSeparator),
-          cloneNodeList(node.updaters),
-          cloneToken(node.rightParenthesis),
-          cloneNode(node.body));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement(
+      cloneToken(node.forKeyword), cloneToken(node.leftParenthesis),
+      cloneNode(node.variables), cloneNode(node.initialization),
+      cloneToken(node.leftSeparator), cloneNode(node.condition),
+      cloneToken(node.rightSeparator), cloneNodeList(node.updaters),
+      cloneToken(node.rightParenthesis), cloneNode(node.body));
 
   @override
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) =>
-      new FunctionDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.externalKeyword),
-          cloneNode(node.returnType),
-          cloneToken(node.propertyKeyword),
-          cloneNode(node.name),
-          cloneNode(node.functionExpression));
+      new FunctionDeclaration(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.externalKeyword),
+          cloneNode(node.returnType), cloneToken(node.propertyKeyword),
+          cloneNode(node.name), cloneNode(node.functionExpression));
 
   @override
-  FunctionDeclarationStatement
-      visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(
+          FunctionDeclarationStatement node) =>
       new FunctionDeclarationStatement(cloneNode(node.functionDeclaration));
 
   @override
@@ -1345,64 +1298,48 @@ class AstCloner implements AstVisitor<AstNode> {
       new FunctionExpression(cloneNode(node.parameters), cloneNode(node.body));
 
   @override
-  FunctionExpressionInvocation
-      visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      new FunctionExpressionInvocation(
-          cloneNode(node.function),
-          cloneNode(node.argumentList));
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) => new FunctionExpressionInvocation(
+      cloneNode(node.function), cloneNode(node.argumentList));
 
   @override
   FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) =>
-      new FunctionTypeAlias(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.returnType),
-          cloneNode(node.name),
-          cloneNode(node.typeParameters),
-          cloneNode(node.parameters),
+      new FunctionTypeAlias(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.typedefKeyword),
+          cloneNode(node.returnType), cloneNode(node.name),
+          cloneNode(node.typeParameters), cloneNode(node.parameters),
           cloneToken(node.semicolon));
 
   @override
-  FunctionTypedFormalParameter
-      visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      new FunctionTypedFormalParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneNode(node.returnType),
-          cloneNode(node.identifier),
-          cloneNode(node.parameters));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(
+      FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(
+      cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+      cloneNode(node.returnType), cloneNode(node.identifier),
+      cloneNode(node.parameters));
 
   @override
-  HideCombinator visitHideCombinator(HideCombinator node) =>
-      new HideCombinator(cloneToken(node.keyword), cloneNodeList(node.hiddenNames));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(
+      cloneToken(node.keyword), cloneNodeList(node.hiddenNames));
 
   @override
-  IfStatement visitIfStatement(IfStatement node) =>
-      new IfStatement(
-          cloneToken(node.ifKeyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.condition),
-          cloneToken(node.rightParenthesis),
-          cloneNode(node.thenStatement),
-          cloneToken(node.elseKeyword),
-          cloneNode(node.elseStatement));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement(
+      cloneToken(node.ifKeyword), cloneToken(node.leftParenthesis),
+      cloneNode(node.condition), cloneToken(node.rightParenthesis),
+      cloneNode(node.thenStatement), cloneToken(node.elseKeyword),
+      cloneNode(node.elseStatement));
 
   @override
   ImplementsClause visitImplementsClause(ImplementsClause node) =>
-      new ImplementsClause(cloneToken(node.keyword), cloneNodeList(node.interfaces));
+      new ImplementsClause(
+          cloneToken(node.implementsKeyword), cloneNodeList(node.interfaces));
 
   @override
   ImportDirective visitImportDirective(ImportDirective node) {
     ImportDirective directive = new ImportDirective(
-        cloneNode(node.documentationComment),
-        cloneNodeList(node.metadata),
-        cloneToken(node.keyword),
-        cloneNode(node.uri),
-        cloneToken(node.deferredToken),
-        cloneToken(node.asToken),
-        cloneNode(node.prefix),
-        cloneNodeList(node.combinators),
+        cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+        cloneToken(node.keyword), cloneNode(node.uri),
+        cloneToken(node.deferredKeyword), cloneToken(node.asKeyword),
+        cloneNode(node.prefix), cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
     directive.source = node.source;
     directive.uriContent = node.uriContent;
@@ -1413,51 +1350,40 @@ class AstCloner implements AstVisitor<AstNode> {
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
-      return new IndexExpression.forTarget(
-          cloneNode(node.target),
-          cloneToken(node.leftBracket),
-          cloneNode(node.index),
+      return new IndexExpression.forTarget(cloneNode(node.target),
+          cloneToken(node.leftBracket), cloneNode(node.index),
           cloneToken(node.rightBracket));
     } else {
-      return new IndexExpression.forCascade(
-          cloneToken(period),
-          cloneToken(node.leftBracket),
-          cloneNode(node.index),
+      return new IndexExpression.forCascade(cloneToken(period),
+          cloneToken(node.leftBracket), cloneNode(node.index),
           cloneToken(node.rightBracket));
     }
   }
 
   @override
-  InstanceCreationExpression
-      visitInstanceCreationExpression(InstanceCreationExpression node) =>
-      new InstanceCreationExpression(
-          cloneToken(node.keyword),
-          cloneNode(node.constructorName),
-          cloneNode(node.argumentList));
+  InstanceCreationExpression visitInstanceCreationExpression(
+      InstanceCreationExpression node) => new InstanceCreationExpression(
+      cloneToken(node.keyword), cloneNode(node.constructorName),
+      cloneNode(node.argumentList));
 
   @override
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) =>
       new IntegerLiteral(cloneToken(node.literal), node.value);
 
   @override
-  InterpolationExpression
-      visitInterpolationExpression(InterpolationExpression node) =>
-      new InterpolationExpression(
-          cloneToken(node.leftBracket),
-          cloneNode(node.expression),
-          cloneToken(node.rightBracket));
+  InterpolationExpression visitInterpolationExpression(
+      InterpolationExpression node) => new InterpolationExpression(
+      cloneToken(node.leftBracket), cloneNode(node.expression),
+      cloneToken(node.rightBracket));
 
   @override
   InterpolationString visitInterpolationString(InterpolationString node) =>
       new InterpolationString(cloneToken(node.contents), node.value);
 
   @override
-  IsExpression visitIsExpression(IsExpression node) =>
-      new IsExpression(
-          cloneNode(node.expression),
-          cloneToken(node.isOperator),
-          cloneToken(node.notOperator),
-          cloneNode(node.type));
+  IsExpression visitIsExpression(IsExpression node) => new IsExpression(
+      cloneNode(node.expression), cloneToken(node.isOperator),
+      cloneToken(node.notOperator), cloneNode(node.type));
 
   @override
   Label visitLabel(Label node) =>
@@ -1465,67 +1391,49 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   LabeledStatement visitLabeledStatement(LabeledStatement node) =>
-      new LabeledStatement(cloneNodeList(node.labels), cloneNode(node.statement));
+      new LabeledStatement(
+          cloneNodeList(node.labels), cloneNode(node.statement));
 
   @override
   LibraryDirective visitLibraryDirective(LibraryDirective node) =>
-      new LibraryDirective(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.libraryToken),
-          cloneNode(node.name),
-          cloneToken(node.semicolon));
+      new LibraryDirective(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.libraryKeyword),
+          cloneNode(node.name), cloneToken(node.semicolon));
 
   @override
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) =>
       new LibraryIdentifier(cloneNodeList(node.components));
 
   @override
-  ListLiteral visitListLiteral(ListLiteral node) =>
-      new ListLiteral(
-          cloneToken(node.constKeyword),
-          cloneNode(node.typeArguments),
-          cloneToken(node.leftBracket),
-          cloneNodeList(node.elements),
-          cloneToken(node.rightBracket));
+  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral(
+      cloneToken(node.constKeyword), cloneNode(node.typeArguments),
+      cloneToken(node.leftBracket), cloneNodeList(node.elements),
+      cloneToken(node.rightBracket));
 
   @override
-  MapLiteral visitMapLiteral(MapLiteral node) =>
-      new MapLiteral(
-          cloneToken(node.constKeyword),
-          cloneNode(node.typeArguments),
-          cloneToken(node.leftBracket),
-          cloneNodeList(node.entries),
-          cloneToken(node.rightBracket));
+  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral(
+      cloneToken(node.constKeyword), cloneNode(node.typeArguments),
+      cloneToken(node.leftBracket), cloneNodeList(node.entries),
+      cloneToken(node.rightBracket));
 
   @override
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
-      new MapLiteralEntry(
-          cloneNode(node.key),
-          cloneToken(node.separator),
-          cloneNode(node.value));
+  MapLiteralEntry visitMapLiteralEntry(
+      MapLiteralEntry node) => new MapLiteralEntry(
+      cloneNode(node.key), cloneToken(node.separator), cloneNode(node.value));
 
   @override
   MethodDeclaration visitMethodDeclaration(MethodDeclaration node) =>
-      new MethodDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.externalKeyword),
-          cloneToken(node.modifierKeyword),
-          cloneNode(node.returnType),
-          cloneToken(node.propertyKeyword),
-          cloneToken(node.operatorKeyword),
-          cloneNode(node.name),
-          cloneNode(node.parameters),
+      new MethodDeclaration(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.externalKeyword),
+          cloneToken(node.modifierKeyword), cloneNode(node.returnType),
+          cloneToken(node.propertyKeyword), cloneToken(node.operatorKeyword),
+          cloneNode(node.name), cloneNode(node.parameters),
           cloneNode(node.body));
 
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) =>
-      new MethodInvocation(
-          cloneNode(node.target),
-          cloneToken(node.period),
-          cloneNode(node.methodName),
-          cloneNode(node.argumentList));
+      new MethodInvocation(cloneNode(node.target), cloneToken(node.period),
+          cloneNode(node.methodName), cloneNode(node.argumentList));
 
   @override
   NamedExpression visitNamedExpression(NamedExpression node) =>
@@ -1533,34 +1441,28 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   AstNode visitNativeClause(NativeClause node) =>
-      new NativeClause(cloneToken(node.keyword), cloneNode(node.name));
+      new NativeClause(cloneToken(node.nativeKeyword), cloneNode(node.name));
 
   @override
   NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) =>
-      new NativeFunctionBody(
-          cloneToken(node.nativeToken),
-          cloneNode(node.stringLiteral),
-          cloneToken(node.semicolon));
+      new NativeFunctionBody(cloneToken(node.nativeKeyword),
+          cloneNode(node.stringLiteral), cloneToken(node.semicolon));
 
   @override
   NullLiteral visitNullLiteral(NullLiteral node) =>
       new NullLiteral(cloneToken(node.literal));
 
   @override
-  ParenthesizedExpression
-      visitParenthesizedExpression(ParenthesizedExpression node) =>
-      new ParenthesizedExpression(
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.expression),
-          cloneToken(node.rightParenthesis));
+  ParenthesizedExpression visitParenthesizedExpression(
+      ParenthesizedExpression node) => new ParenthesizedExpression(
+      cloneToken(node.leftParenthesis), cloneNode(node.expression),
+      cloneToken(node.rightParenthesis));
 
   @override
   PartDirective visitPartDirective(PartDirective node) {
     PartDirective directive = new PartDirective(
-        cloneNode(node.documentationComment),
-        cloneNodeList(node.metadata),
-        cloneToken(node.partToken),
-        cloneNode(node.uri),
+        cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+        cloneToken(node.partKeyword), cloneNode(node.uri),
         cloneToken(node.semicolon));
     directive.source = node.source;
     directive.uriContent = node.uriContent;
@@ -1569,12 +1471,9 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   PartOfDirective visitPartOfDirective(PartOfDirective node) =>
-      new PartOfDirective(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.partToken),
-          cloneToken(node.ofToken),
-          cloneNode(node.libraryName),
+      new PartOfDirective(cloneNode(node.documentationComment),
+          cloneNodeList(node.metadata), cloneToken(node.partKeyword),
+          cloneToken(node.ofKeyword), cloneNode(node.libraryName),
           cloneToken(node.semicolon));
 
   @override
@@ -1583,9 +1482,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      new PrefixedIdentifier(
-          cloneNode(node.prefix),
-          cloneToken(node.period),
+      new PrefixedIdentifier(cloneNode(node.prefix), cloneToken(node.period),
           cloneNode(node.identifier));
 
   @override
@@ -1593,49 +1490,40 @@ class AstCloner implements AstVisitor<AstNode> {
       new PrefixExpression(cloneToken(node.operator), cloneNode(node.operand));
 
   @override
-  PropertyAccess visitPropertyAccess(PropertyAccess node) =>
-      new PropertyAccess(
-          cloneNode(node.target),
-          cloneToken(node.operator),
-          cloneNode(node.propertyName));
+  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess(
+      cloneNode(node.target), cloneToken(node.operator),
+      cloneNode(node.propertyName));
 
   @override
-  RedirectingConstructorInvocation
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) =>
-      new RedirectingConstructorInvocation(
-          cloneToken(node.keyword),
-          cloneToken(node.period),
-          cloneNode(node.constructorName),
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
+          RedirectingConstructorInvocation node) =>
+      new RedirectingConstructorInvocation(cloneToken(node.thisKeyword),
+          cloneToken(node.period), cloneNode(node.constructorName),
           cloneNode(node.argumentList));
 
   @override
   RethrowExpression visitRethrowExpression(RethrowExpression node) =>
-      new RethrowExpression(cloneToken(node.keyword));
+      new RethrowExpression(cloneToken(node.rethrowKeyword));
 
   @override
   ReturnStatement visitReturnStatement(ReturnStatement node) =>
-      new ReturnStatement(
-          cloneToken(node.keyword),
-          cloneNode(node.expression),
-          cloneToken(node.semicolon));
+      new ReturnStatement(cloneToken(node.returnKeyword),
+          cloneNode(node.expression), cloneToken(node.semicolon));
 
   @override
   ScriptTag visitScriptTag(ScriptTag node) =>
       new ScriptTag(cloneToken(node.scriptTag));
 
   @override
-  ShowCombinator visitShowCombinator(ShowCombinator node) =>
-      new ShowCombinator(cloneToken(node.keyword), cloneNodeList(node.shownNames));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(
+      cloneToken(node.keyword), cloneNodeList(node.shownNames));
 
   @override
-  SimpleFormalParameter
-      visitSimpleFormalParameter(SimpleFormalParameter node) =>
-      new SimpleFormalParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.type),
-          cloneNode(node.identifier));
+  SimpleFormalParameter visitSimpleFormalParameter(
+      SimpleFormalParameter node) => new SimpleFormalParameter(
+      cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+      cloneToken(node.keyword), cloneNode(node.type),
+      cloneNode(node.identifier));
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) =>
@@ -1650,149 +1538,109 @@ class AstCloner implements AstVisitor<AstNode> {
       new StringInterpolation(cloneNodeList(node.elements));
 
   @override
-  SuperConstructorInvocation
-      visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
-      new SuperConstructorInvocation(
-          cloneToken(node.keyword),
-          cloneToken(node.period),
-          cloneNode(node.constructorName),
-          cloneNode(node.argumentList));
+  SuperConstructorInvocation visitSuperConstructorInvocation(
+      SuperConstructorInvocation node) => new SuperConstructorInvocation(
+      cloneToken(node.superKeyword), cloneToken(node.period),
+      cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   @override
   SuperExpression visitSuperExpression(SuperExpression node) =>
-      new SuperExpression(cloneToken(node.keyword));
+      new SuperExpression(cloneToken(node.superKeyword));
 
   @override
-  SwitchCase visitSwitchCase(SwitchCase node) =>
-      new SwitchCase(
-          cloneNodeList(node.labels),
-          cloneToken(node.keyword),
-          cloneNode(node.expression),
-          cloneToken(node.colon),
-          cloneNodeList(node.statements));
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(
+      cloneNodeList(node.labels), cloneToken(node.keyword),
+      cloneNode(node.expression), cloneToken(node.colon),
+      cloneNodeList(node.statements));
 
   @override
-  SwitchDefault visitSwitchDefault(SwitchDefault node) =>
-      new SwitchDefault(
-          cloneNodeList(node.labels),
-          cloneToken(node.keyword),
-          cloneToken(node.colon),
-          cloneNodeList(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(
+      cloneNodeList(node.labels), cloneToken(node.keyword),
+      cloneToken(node.colon), cloneNodeList(node.statements));
 
   @override
   SwitchStatement visitSwitchStatement(SwitchStatement node) =>
-      new SwitchStatement(
-          cloneToken(node.keyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.expression),
-          cloneToken(node.rightParenthesis),
-          cloneToken(node.leftBracket),
-          cloneNodeList(node.members),
-          cloneToken(node.rightBracket));
+      new SwitchStatement(cloneToken(node.switchKeyword),
+          cloneToken(node.leftParenthesis), cloneNode(node.expression),
+          cloneToken(node.rightParenthesis), cloneToken(node.leftBracket),
+          cloneNodeList(node.members), cloneToken(node.rightBracket));
 
   @override
-  SymbolLiteral visitSymbolLiteral(SymbolLiteral node) =>
-      new SymbolLiteral(cloneToken(node.poundSign), cloneTokenList(node.components));
+  SymbolLiteral visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(
+      cloneToken(node.poundSign), cloneTokenList(node.components));
 
   @override
   ThisExpression visitThisExpression(ThisExpression node) =>
-      new ThisExpression(cloneToken(node.keyword));
+      new ThisExpression(cloneToken(node.thisKeyword));
 
   @override
   ThrowExpression visitThrowExpression(ThrowExpression node) =>
-      new ThrowExpression(cloneToken(node.keyword), cloneNode(node.expression));
+      new ThrowExpression(
+          cloneToken(node.throwKeyword), cloneNode(node.expression));
 
   @override
-  TopLevelVariableDeclaration
-      visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
-      new TopLevelVariableDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneNode(node.variables),
-          cloneToken(node.semicolon));
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(
+      TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(
+      cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+      cloneNode(node.variables), cloneToken(node.semicolon));
 
   @override
-  TryStatement visitTryStatement(TryStatement node) =>
-      new TryStatement(
-          cloneToken(node.tryKeyword),
-          cloneNode(node.body),
-          cloneNodeList(node.catchClauses),
-          cloneToken(node.finallyKeyword),
-          cloneNode(node.finallyBlock));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement(
+      cloneToken(node.tryKeyword), cloneNode(node.body),
+      cloneNodeList(node.catchClauses), cloneToken(node.finallyKeyword),
+      cloneNode(node.finallyBlock));
 
   @override
   TypeArgumentList visitTypeArgumentList(TypeArgumentList node) =>
-      new TypeArgumentList(
-          cloneToken(node.leftBracket),
-          cloneNodeList(node.arguments),
-          cloneToken(node.rightBracket));
+      new TypeArgumentList(cloneToken(node.leftBracket),
+          cloneNodeList(node.arguments), cloneToken(node.rightBracket));
 
   @override
   TypeName visitTypeName(TypeName node) =>
       new TypeName(cloneNode(node.name), cloneNode(node.typeArguments));
 
   @override
-  TypeParameter visitTypeParameter(TypeParameter node) =>
-      new TypeParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneNode(node.name),
-          cloneToken(node.keyword),
-          cloneNode(node.bound));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(
+      cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+      cloneNode(node.name), cloneToken(node.extendsKeyword),
+      cloneNode(node.bound));
 
   @override
   TypeParameterList visitTypeParameterList(TypeParameterList node) =>
-      new TypeParameterList(
-          cloneToken(node.leftBracket),
-          cloneNodeList(node.typeParameters),
-          cloneToken(node.rightBracket));
+      new TypeParameterList(cloneToken(node.leftBracket),
+          cloneNodeList(node.typeParameters), cloneToken(node.rightBracket));
 
   @override
   VariableDeclaration visitVariableDeclaration(VariableDeclaration node) =>
-      new VariableDeclaration(
-          null,
-          cloneNodeList(node.metadata),
-          cloneNode(node.name),
-          cloneToken(node.equals),
+      new VariableDeclaration(null, cloneNodeList(node.metadata),
+          cloneNode(node.name), cloneToken(node.equals),
           cloneNode(node.initializer));
 
   @override
-  VariableDeclarationList
-      visitVariableDeclarationList(VariableDeclarationList node) =>
-      new VariableDeclarationList(
-          null,
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.type),
-          cloneNodeList(node.variables));
+  VariableDeclarationList visitVariableDeclarationList(
+      VariableDeclarationList node) => new VariableDeclarationList(null,
+      cloneNodeList(node.metadata), cloneToken(node.keyword),
+      cloneNode(node.type), cloneNodeList(node.variables));
 
   @override
-  VariableDeclarationStatement
-      visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
-      new VariableDeclarationStatement(
-          cloneNode(node.variables),
-          cloneToken(node.semicolon));
+  VariableDeclarationStatement visitVariableDeclarationStatement(
+      VariableDeclarationStatement node) => new VariableDeclarationStatement(
+      cloneNode(node.variables), cloneToken(node.semicolon));
 
   @override
-  WhileStatement visitWhileStatement(WhileStatement node) =>
-      new WhileStatement(
-          cloneToken(node.keyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.condition),
-          cloneToken(node.rightParenthesis),
-          cloneNode(node.body));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(
+      cloneToken(node.whileKeyword), cloneToken(node.leftParenthesis),
+      cloneNode(node.condition), cloneToken(node.rightParenthesis),
+      cloneNode(node.body));
 
   @override
-  WithClause visitWithClause(WithClause node) =>
-      new WithClause(cloneToken(node.withKeyword), cloneNodeList(node.mixinTypes));
+  WithClause visitWithClause(WithClause node) => new WithClause(
+      cloneToken(node.withKeyword), cloneNodeList(node.mixinTypes));
 
   @override
-  YieldStatement visitYieldStatement(YieldStatement node) =>
-      new YieldStatement(
-          cloneToken(node.yieldKeyword),
-          cloneToken(node.star),
-          cloneNode(node.expression),
-          cloneToken(node.semicolon));
+  YieldStatement visitYieldStatement(YieldStatement node) => new YieldStatement(
+      cloneToken(node.yieldKeyword), cloneToken(node.star),
+      cloneNode(node.expression), cloneToken(node.semicolon));
 }
 
 /**
@@ -1881,7 +1729,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitAssertStatement(AssertStatement node) {
     AssertStatement other = _other as AssertStatement;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.assertKeyword, other.assertKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.condition, other.condition) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
@@ -1935,7 +1783,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitBreakStatement(BreakStatement node) {
     BreakStatement other = _other as BreakStatement;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.breakKeyword, other.breakKeyword) &&
         isEqualNodes(node.label, other.label) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -1965,8 +1813,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration other = _other as ClassDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
         isEqualTokens(node.classKeyword, other.classKeyword) &&
@@ -1984,10 +1831,9 @@ class AstComparator implements AstVisitor<bool> {
   bool visitClassTypeAlias(ClassTypeAlias node) {
     ClassTypeAlias other = _other as ClassTypeAlias;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.typedefKeyword, other.typedefKeyword) &&
         isEqualNodes(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.equals, other.equals) &&
@@ -2035,8 +1881,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = _other as ConstructorDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.externalKeyword, other.externalKeyword) &&
         isEqualTokens(node.constKeyword, other.constKeyword) &&
@@ -2054,7 +1899,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     ConstructorFieldInitializer other = _other as ConstructorFieldInitializer;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.thisKeyword, other.thisKeyword) &&
         isEqualTokens(node.period, other.period) &&
         isEqualNodes(node.fieldName, other.fieldName) &&
         isEqualTokens(node.equals, other.equals) &&
@@ -2072,7 +1917,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement other = _other as ContinueStatement;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.continueKeyword, other.continueKeyword) &&
         isEqualNodes(node.label, other.label) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2081,8 +1926,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
     DeclaredIdentifier other = _other as DeclaredIdentifier;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.type, other.type) &&
@@ -2133,8 +1977,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     EnumConstantDeclaration other = _other as EnumConstantDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualNodes(node.name, other.name);
   }
@@ -2143,10 +1986,9 @@ class AstComparator implements AstVisitor<bool> {
   bool visitEnumDeclaration(EnumDeclaration node) {
     EnumDeclaration other = _other as EnumDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.enumKeyword, other.enumKeyword) &&
         isEqualNodes(node.name, other.name) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.constants, other.constants) &&
@@ -2157,8 +1999,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitExportDirective(ExportDirective node) {
     ExportDirective other = _other as ExportDirective;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.uri, other.uri) &&
@@ -2184,7 +2025,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause other = _other as ExtendsClause;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
         isEqualNodes(node.superclass, other.superclass);
   }
 
@@ -2192,8 +2033,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = _other as FieldDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.staticKeyword, other.staticKeyword) &&
         isEqualNodes(node.fields, other.fields) &&
@@ -2204,12 +2044,11 @@ class AstComparator implements AstVisitor<bool> {
   bool visitFieldFormalParameter(FieldFormalParameter node) {
     FieldFormalParameter other = _other as FieldFormalParameter;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.type, other.type) &&
-        isEqualTokens(node.thisToken, other.thisToken) &&
+        isEqualTokens(node.thisKeyword, other.thisKeyword) &&
         isEqualTokens(node.period, other.period) &&
         isEqualNodes(node.identifier, other.identifier);
   }
@@ -2255,8 +2094,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionDeclaration other = _other as FunctionDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.externalKeyword, other.externalKeyword) &&
         isEqualNodes(node.returnType, other.returnType) &&
@@ -2289,10 +2127,9 @@ class AstComparator implements AstVisitor<bool> {
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAlias other = _other as FunctionTypeAlias;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.typedefKeyword, other.typedefKeyword) &&
         isEqualNodes(node.returnType, other.returnType) &&
         isEqualNodes(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
@@ -2304,8 +2141,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     FunctionTypedFormalParameter other = _other as FunctionTypedFormalParameter;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualNodes(node.returnType, other.returnType) &&
         isEqualNodes(node.identifier, other.identifier) &&
@@ -2334,7 +2170,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitImplementsClause(ImplementsClause node) {
     ImplementsClause other = _other as ImplementsClause;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.implementsKeyword, other.implementsKeyword) &&
         _isEqualNodeLists(node.interfaces, other.interfaces);
   }
 
@@ -2342,12 +2178,12 @@ class AstComparator implements AstVisitor<bool> {
   bool visitImportDirective(ImportDirective node) {
     ImportDirective other = _other as ImportDirective;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.uri, other.uri) &&
-        isEqualTokens(node.asToken, other.asToken) &&
+        isEqualTokens(node.deferredKeyword, other.deferredKeyword) &&
+        isEqualTokens(node.asKeyword, other.asKeyword) &&
         isEqualNodes(node.prefix, other.prefix) &&
         _isEqualNodeLists(node.combinators, other.combinators) &&
         isEqualTokens(node.semicolon, other.semicolon);
@@ -2419,10 +2255,9 @@ class AstComparator implements AstVisitor<bool> {
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective other = _other as LibraryDirective;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.libraryToken, other.libraryToken) &&
+        isEqualTokens(node.libraryKeyword, other.libraryKeyword) &&
         isEqualNodes(node.name, other.name) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2465,8 +2300,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitMethodDeclaration(MethodDeclaration node) {
     MethodDeclaration other = _other as MethodDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.externalKeyword, other.externalKeyword) &&
         isEqualTokens(node.modifierKeyword, other.modifierKeyword) &&
@@ -2497,14 +2331,14 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitNativeClause(NativeClause node) {
     NativeClause other = _other as NativeClause;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.nativeKeyword, other.nativeKeyword) &&
         isEqualNodes(node.name, other.name);
   }
 
   @override
   bool visitNativeFunctionBody(NativeFunctionBody node) {
     NativeFunctionBody other = _other as NativeFunctionBody;
-    return isEqualTokens(node.nativeToken, other.nativeToken) &&
+    return isEqualTokens(node.nativeKeyword, other.nativeKeyword) &&
         isEqualNodes(node.stringLiteral, other.stringLiteral) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2527,10 +2361,9 @@ class AstComparator implements AstVisitor<bool> {
   bool visitPartDirective(PartDirective node) {
     PartDirective other = _other as PartDirective;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.partToken, other.partToken) &&
+        isEqualTokens(node.partKeyword, other.partKeyword) &&
         isEqualNodes(node.uri, other.uri) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2539,11 +2372,10 @@ class AstComparator implements AstVisitor<bool> {
   bool visitPartOfDirective(PartOfDirective node) {
     PartOfDirective other = _other as PartOfDirective;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.partToken, other.partToken) &&
-        isEqualTokens(node.ofToken, other.ofToken) &&
+        isEqualTokens(node.partKeyword, other.partKeyword) &&
+        isEqualTokens(node.ofKeyword, other.ofKeyword) &&
         isEqualNodes(node.libraryName, other.libraryName) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2579,11 +2411,11 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  bool visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation other =
         _other as RedirectingConstructorInvocation;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.thisKeyword, other.thisKeyword) &&
         isEqualTokens(node.period, other.period) &&
         isEqualNodes(node.constructorName, other.constructorName) &&
         isEqualNodes(node.argumentList, other.argumentList);
@@ -2592,13 +2424,13 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitRethrowExpression(RethrowExpression node) {
     RethrowExpression other = _other as RethrowExpression;
-    return isEqualTokens(node.keyword, other.keyword);
+    return isEqualTokens(node.rethrowKeyword, other.rethrowKeyword);
   }
 
   @override
   bool visitReturnStatement(ReturnStatement node) {
     ReturnStatement other = _other as ReturnStatement;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.returnKeyword, other.returnKeyword) &&
         isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2620,8 +2452,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter other = _other as SimpleFormalParameter;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.type, other.type) &&
@@ -2650,7 +2481,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation other = _other as SuperConstructorInvocation;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.superKeyword, other.superKeyword) &&
         isEqualTokens(node.period, other.period) &&
         isEqualNodes(node.constructorName, other.constructorName) &&
         isEqualNodes(node.argumentList, other.argumentList);
@@ -2659,7 +2490,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitSuperExpression(SuperExpression node) {
     SuperExpression other = _other as SuperExpression;
-    return isEqualTokens(node.keyword, other.keyword);
+    return isEqualTokens(node.superKeyword, other.superKeyword);
   }
 
   @override
@@ -2684,7 +2515,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitSwitchStatement(SwitchStatement node) {
     SwitchStatement other = _other as SwitchStatement;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.switchKeyword, other.switchKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
@@ -2703,13 +2534,13 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitThisExpression(ThisExpression node) {
     ThisExpression other = _other as ThisExpression;
-    return isEqualTokens(node.keyword, other.keyword);
+    return isEqualTokens(node.thisKeyword, other.thisKeyword);
   }
 
   @override
   bool visitThrowExpression(ThrowExpression node) {
     ThrowExpression other = _other as ThrowExpression;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.throwKeyword, other.throwKeyword) &&
         isEqualNodes(node.expression, other.expression);
   }
 
@@ -2717,8 +2548,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     TopLevelVariableDeclaration other = _other as TopLevelVariableDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualNodes(node.variables, other.variables) &&
         isEqualTokens(node.semicolon, other.semicolon);
@@ -2753,11 +2583,10 @@ class AstComparator implements AstVisitor<bool> {
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter other = _other as TypeParameter;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualNodes(node.name, other.name) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
         isEqualNodes(node.bound, other.bound);
   }
 
@@ -2773,8 +2602,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitVariableDeclaration(VariableDeclaration node) {
     VariableDeclaration other = _other as VariableDeclaration;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualNodes(node.name, other.name) &&
         isEqualTokens(node.equals, other.equals) &&
@@ -2785,8 +2613,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitVariableDeclarationList(VariableDeclarationList node) {
     VariableDeclarationList other = _other as VariableDeclarationList;
     return isEqualNodes(
-        node.documentationComment,
-        other.documentationComment) &&
+            node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.type, other.type) &&
@@ -2803,7 +2630,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitWhileStatement(WhileStatement node) {
     WhileStatement other = _other as WhileStatement;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return isEqualTokens(node.whileKeyword, other.whileKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.condition, other.condition) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
@@ -2878,15 +2705,21 @@ class AstComparator implements AstVisitor<bool> {
  */
 abstract class AstNode {
   /**
-   * An empty list of ast nodes.
+   * An empty list of AST nodes.
    */
-  static const List<AstNode> EMPTY_ARRAY = const <AstNode>[];
+  @deprecated // Use "AstNode.EMPTY_LIST"
+  static const List<AstNode> EMPTY_ARRAY = EMPTY_LIST;
+
+  /**
+   * An empty list of AST nodes.
+   */
+  static const List<AstNode> EMPTY_LIST = const <AstNode>[];
 
   /**
    * A comparator that can be used to sort AST nodes in lexical order. In other
    * words, `compare` will return a negative value if the offset of the first
    * node is less than the offset of the second node, zero (0) if the nodes have
-   * the same offset, and a positive value if if the offset of the first node is
+   * the same offset, and a positive value if the offset of the first node is
    * greater than the offset of the second node.
    */
   static Comparator<AstNode> LEXICAL_ORDER =
@@ -2974,7 +2807,7 @@ abstract class AstNode {
   /**
    * Set the parent of this node to the [newParent].
    */
-  @deprecated
+  @deprecated // Never intended for public use.
   void set parent(AstNode newParent) {
     _parent = newParent;
   }
@@ -3003,11 +2836,9 @@ abstract class AstNode {
   /**
    * Make this node the parent of the given [child] node. Return the child node.
    */
+  @deprecated // Never intended for public use.
   AstNode becomeParentOf(AstNode child) {
-    if (child != null) {
-      child._parent = this;
-    }
-    return child;
+    return _becomeParentOf(child);
   }
 
   /**
@@ -3038,7 +2869,7 @@ abstract class AstNode {
   /**
    * If the given [child] is not `null`, use the given [visitor] to visit it.
    */
-  @deprecated
+  @deprecated // Never intended for public use.
   void safelyVisitChild(AstNode child, AstVisitor visitor) {
     if (child != null) {
       child.accept(visitor);
@@ -3084,6 +2915,16 @@ abstract class AstNode {
    * children will be visited in lexical order.
    */
   void visitChildren(AstVisitor visitor);
+
+  /**
+   * Make this node the parent of the given [child] node. Return the child node.
+   */
+  AstNode _becomeParentOf(AstNode child) {
+    if (child != null) {
+      child._parent = this;
+    }
+    return child;
+  }
 
   /**
    * If the given [child] is not `null`, use the given [visitor] to visit it.
@@ -3253,8 +3094,8 @@ abstract class AstVisitor<R> {
 
   R visitPropertyAccess(PropertyAccess node);
 
-  R
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node);
+  R visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node);
 
   R visitRethrowExpression(RethrowExpression node);
 
@@ -3334,7 +3175,7 @@ class AwaitExpression extends Expression {
    * Initialize a newly created await expression.
    */
   AwaitExpression(this.awaitKeyword, Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -3347,8 +3188,8 @@ class AwaitExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(awaitKeyword)
-      ..add(_expression);
+    ..add(awaitKeyword)
+    ..add(_expression);
 
   @override
   Token get endToken => _expression.endToken;
@@ -3362,7 +3203,7 @@ class AwaitExpression extends Expression {
    * Set the expression whose value is being waited on to the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -3417,10 +3258,10 @@ class BinaryExpression extends Expression {
   /**
    * Initialize a newly created binary expression.
    */
-  BinaryExpression(Expression leftOperand, this.operator,
-      Expression rightOperand) {
-    _leftOperand = becomeParentOf(leftOperand);
-    _rightOperand = becomeParentOf(rightOperand);
+  BinaryExpression(
+      Expression leftOperand, this.operator, Expression rightOperand) {
+    _leftOperand = _becomeParentOf(leftOperand);
+    _rightOperand = _becomeParentOf(rightOperand);
   }
 
   @override
@@ -3443,9 +3284,9 @@ class BinaryExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_leftOperand)
-      ..add(operator)
-      ..add(_rightOperand);
+    ..add(_leftOperand)
+    ..add(operator)
+    ..add(_rightOperand);
 
   @override
   Token get endToken => _rightOperand.endToken;
@@ -3460,7 +3301,7 @@ class BinaryExpression extends Expression {
    * [expression].
    */
   void set leftOperand(Expression expression) {
-    _leftOperand = becomeParentOf(expression);
+    _leftOperand = _becomeParentOf(expression);
   }
 
   @override
@@ -3471,19 +3312,10 @@ class BinaryExpression extends Expression {
    * known based on propagated type information, then return the parameter
    * element representing the parameter to which the value of the right operand
    * will be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.propagatedParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement get propagatedParameterElementForRightOperand {
-    if (propagatedElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = propagatedElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
+    return _propagatedParameterElementForRightOperand;
   }
 
   /**
@@ -3496,7 +3328,7 @@ class BinaryExpression extends Expression {
    * [expression].
    */
   void set rightOperand(Expression expression) {
-    _rightOperand = becomeParentOf(expression);
+    _rightOperand = _becomeParentOf(expression);
   }
 
   /**
@@ -3504,11 +3336,36 @@ class BinaryExpression extends Expression {
    * known based on static type information, then return the parameter element
    * representing the parameter to which the value of the right operand will be
    * bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.staticParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement get staticParameterElementForRightOperand {
+    return _staticParameterElementForRightOperand;
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on propagated type information, then return the parameter
+   * element representing the parameter to which the value of the right operand
+   * will be bound. Otherwise, return `null`.
+   */
+  ParameterElement get _propagatedParameterElementForRightOperand {
+    if (propagatedElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = propagatedElement.parameters;
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on static type information, then return the parameter element
+   * representing the parameter to which the value of the right operand will be
+   * bound. Otherwise, return `null`.
+   */
+  ParameterElement get _staticParameterElementForRightOperand {
     if (staticElement == null) {
       return null;
     }
@@ -3563,9 +3420,9 @@ class Block extends Statement {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(leftBracket)
-      ..addAll(_statements)
-      ..add(rightBracket);
+    ..add(leftBracket)
+    ..addAll(_statements)
+    ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket;
@@ -3615,7 +3472,7 @@ class BlockFunctionBody extends FunctionBody {
    * keyword (and must be `null` if there is no keyword).
    */
   BlockFunctionBody(this.keyword, this.star, Block block) {
-    _block = becomeParentOf(block);
+    _block = _becomeParentOf(block);
   }
 
   @override
@@ -3630,26 +3487,20 @@ class BlockFunctionBody extends FunctionBody {
    * Set the block representing the body of the function to the given [block].
    */
   void set block(Block block) {
-    _block = becomeParentOf(block);
+    _block = _becomeParentOf(block);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(star)
-      ..add(_block);
+    ..add(keyword)
+    ..add(star)
+    ..add(_block);
 
   @override
   Token get endToken => _block.endToken;
 
   @override
-  bool get isAsynchronous {
-    if (keyword == null) {
-      return false;
-    }
-    String keywordValue = keyword.lexeme;
-    return keywordValue == Parser.ASYNC;
-  }
+  bool get isAsynchronous => keyword != null && keyword.lexeme == Parser.ASYNC;
 
   @override
   bool get isGenerator => star != null;
@@ -3691,9 +3542,6 @@ class BooleanLiteral extends Literal {
   @override
   Token get beginToken => literal;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(literal);
 
@@ -3777,7 +3625,7 @@ class BreakStatement extends Statement {
   /**
    * The token representing the 'break' keyword.
    */
-  Token keyword;
+  Token breakKeyword;
 
   /**
    * The label associated with the statement, or `null` if there is no label.
@@ -3804,24 +3652,35 @@ class BreakStatement extends Statement {
    * Initialize a newly created break statement. The [label] can be `null` if
    * there is no label associated with the statement.
    */
-  BreakStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
-    _label = becomeParentOf(label);
+  BreakStatement(this.breakKeyword, SimpleIdentifier label, this.semicolon) {
+    _label = _becomeParentOf(label);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => breakKeyword;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(_label)
-      ..add(semicolon);
+    ..add(breakKeyword)
+    ..add(_label)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
+
+  /**
+   * Return the token representing the 'break' keyword.
+   */
+  @deprecated // Use "this.breakKeyword"
+  Token get keyword => breakKeyword;
+
+  /**
+   * Sethe token representing the 'break' keyword to the given [token].
+   */
+  @deprecated // Use "this.breakKeyword"
+  void set keyword(Token token) {
+    breakKeyword = token;
+  }
 
   /**
    * Return the label associated with the statement, or `null` if there is no
@@ -3833,7 +3692,7 @@ class BreakStatement extends Statement {
    * Set the label associated with the statement to the given [identifier].
    */
   void set label(SimpleIdentifier identifier) {
-    _label = becomeParentOf(identifier);
+    _label = _becomeParentOf(identifier);
   }
 
   @override
@@ -3877,7 +3736,7 @@ class CascadeExpression extends Expression {
    * [cascadeSections] must contain at least one element.
    */
   CascadeExpression(Expression target, List<Expression> cascadeSections) {
-    _target = becomeParentOf(target);
+    _target = _becomeParentOf(target);
     _cascadeSections = new NodeList<Expression>(this, cascadeSections);
   }
 
@@ -3891,8 +3750,8 @@ class CascadeExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_target)
-      ..addAll(_cascadeSections);
+    ..add(_target)
+    ..addAll(_cascadeSections);
 
   @override
   Token get endToken => _cascadeSections.endToken;
@@ -3909,7 +3768,7 @@ class CascadeExpression extends Expression {
    * Set the target of the cascade sections to the given [expression].
    */
   void set target(Expression target) {
-    _target = becomeParentOf(target);
+    _target = _becomeParentOf(target);
   }
 
   @override
@@ -3952,12 +3811,13 @@ class CatchClause extends AstNode {
   Token catchKeyword;
 
   /**
-   * The left parenthesis.
+   * The left parenthesis, or `null` if there is no 'catch' keyword.
    */
   Token leftParenthesis;
 
   /**
-   * The parameter whose value will be the exception that was thrown.
+   * The parameter whose value will be the exception that was thrown, or `null`
+   * if there is no 'catch' keyword.
    */
   SimpleIdentifier _exceptionParameter;
 
@@ -3974,7 +3834,7 @@ class CatchClause extends AstNode {
   SimpleIdentifier _stackTraceParameter;
 
   /**
-   * The right parenthesis.
+   * The right parenthesis, or `null` if there is no 'catch' keyword.
    */
   Token rightParenthesis;
 
@@ -3992,10 +3852,10 @@ class CatchClause extends AstNode {
   CatchClause(this.onKeyword, TypeName exceptionType, this.catchKeyword,
       this.leftParenthesis, SimpleIdentifier exceptionParameter, this.comma,
       SimpleIdentifier stackTraceParameter, this.rightParenthesis, Block body) {
-    _exceptionType = becomeParentOf(exceptionType);
-    _exceptionParameter = becomeParentOf(exceptionParameter);
-    _stackTraceParameter = becomeParentOf(stackTraceParameter);
-    _body = becomeParentOf(body);
+    _exceptionType = _becomeParentOf(exceptionType);
+    _exceptionParameter = _becomeParentOf(exceptionParameter);
+    _stackTraceParameter = _becomeParentOf(stackTraceParameter);
+    _body = _becomeParentOf(body);
   }
 
   @override
@@ -4015,26 +3875,27 @@ class CatchClause extends AstNode {
    * Set the body of the catch block to the given [block].
    */
   void set body(Block block) {
-    _body = becomeParentOf(block);
+    _body = _becomeParentOf(block);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(onKeyword)
-      ..add(_exceptionType)
-      ..add(catchKeyword)
-      ..add(leftParenthesis)
-      ..add(_exceptionParameter)
-      ..add(comma)
-      ..add(_stackTraceParameter)
-      ..add(rightParenthesis)
-      ..add(_body);
+    ..add(onKeyword)
+    ..add(_exceptionType)
+    ..add(catchKeyword)
+    ..add(leftParenthesis)
+    ..add(_exceptionParameter)
+    ..add(comma)
+    ..add(_stackTraceParameter)
+    ..add(rightParenthesis)
+    ..add(_body);
 
   @override
   Token get endToken => _body.endToken;
 
   /**
-   * Return the parameter whose value will be the exception that was thrown.
+   * Return the parameter whose value will be the exception that was thrown, or
+   * `null` if there is no 'catch' keyword.
    */
   SimpleIdentifier get exceptionParameter => _exceptionParameter;
 
@@ -4043,7 +3904,7 @@ class CatchClause extends AstNode {
    * given [parameter].
    */
   void set exceptionParameter(SimpleIdentifier parameter) {
-    _exceptionParameter = becomeParentOf(parameter);
+    _exceptionParameter = _becomeParentOf(parameter);
   }
 
   /**
@@ -4057,7 +3918,7 @@ class CatchClause extends AstNode {
    * [exceptionType].
    */
   void set exceptionType(TypeName exceptionType) {
-    _exceptionType = becomeParentOf(exceptionType);
+    _exceptionType = _becomeParentOf(exceptionType);
   }
 
   /**
@@ -4071,7 +3932,7 @@ class CatchClause extends AstNode {
    * exception to the given [parameter].
    */
   void set stackTraceParameter(SimpleIdentifier parameter) {
-    _stackTraceParameter = becomeParentOf(parameter);
+    _stackTraceParameter = _becomeParentOf(parameter);
   }
 
   @override
@@ -4090,6 +3951,9 @@ class CatchClause extends AstNode {
  * Helper class to allow iteration of child entities of an AST node.
  */
 class ChildEntities extends Object with IterableMixin implements Iterable {
+  /**
+   * The list of child entities to be iterated over.
+   */
   List _entities = [];
 
   @override
@@ -4198,30 +4062,30 @@ class ClassDeclaration extends CompilationUnitMember {
   ClassDeclaration(Comment comment, List<Annotation> metadata,
       this.abstractKeyword, this.classKeyword, SimpleIdentifier name,
       TypeParameterList typeParameters, ExtendsClause extendsClause,
-      WithClause withClause, ImplementsClause implementsClause, this.leftBracket,
-      List<ClassMember> members, this.rightBracket)
+      WithClause withClause, ImplementsClause implementsClause,
+      this.leftBracket, List<ClassMember> members, this.rightBracket)
       : super(comment, metadata) {
-    _name = becomeParentOf(name);
-    _typeParameters = becomeParentOf(typeParameters);
-    _extendsClause = becomeParentOf(extendsClause);
-    _withClause = becomeParentOf(withClause);
-    _implementsClause = becomeParentOf(implementsClause);
+    _name = _becomeParentOf(name);
+    _typeParameters = _becomeParentOf(typeParameters);
+    _extendsClause = _becomeParentOf(extendsClause);
+    _withClause = _becomeParentOf(withClause);
+    _implementsClause = _becomeParentOf(implementsClause);
     _members = new NodeList<ClassMember>(this, members);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(abstractKeyword)
-      ..add(classKeyword)
-      ..add(_name)
-      ..add(_typeParameters)
-      ..add(_extendsClause)
-      ..add(_withClause)
-      ..add(_implementsClause)
-      ..add(_nativeClause)
-      ..add(leftBracket)
-      ..addAll(members)
-      ..add(rightBracket);
+    ..add(abstractKeyword)
+    ..add(classKeyword)
+    ..add(_name)
+    ..add(_typeParameters)
+    ..add(_extendsClause)
+    ..add(_withClause)
+    ..add(_implementsClause)
+    ..add(_nativeClause)
+    ..add(leftBracket)
+    ..addAll(members)
+    ..add(rightBracket);
 
   @override
   ClassElement get element =>
@@ -4240,7 +4104,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * Set the extends clause for this class to the given [extendsClause].
    */
   void set extendsClause(ExtendsClause extendsClause) {
-    _extendsClause = becomeParentOf(extendsClause);
+    _extendsClause = _becomeParentOf(extendsClause);
   }
 
   @override
@@ -4261,7 +4125,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * Set the implements clause for the class to the given [implementsClause].
    */
   void set implementsClause(ImplementsClause implementsClause) {
-    _implementsClause = becomeParentOf(implementsClause);
+    _implementsClause = _becomeParentOf(implementsClause);
   }
 
   /**
@@ -4283,7 +4147,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * Set the name of the class being declared to the given [identifier].
    */
   void set name(SimpleIdentifier identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   /**
@@ -4296,7 +4160,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * Set the native clause for this class to the given [nativeClause].
    */
   void set nativeClause(NativeClause nativeClause) {
-    _nativeClause = becomeParentOf(nativeClause);
+    _nativeClause = _becomeParentOf(nativeClause);
   }
 
   /**
@@ -4309,7 +4173,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * Set the type parameters for the class to the given list of [typeParameters].
    */
   void set typeParameters(TypeParameterList typeParameters) {
-    _typeParameters = becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   /**
@@ -4322,7 +4186,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * Set the with clause for the class to the given [withClause].
    */
   void set withClause(WithClause withClause) {
-    _withClause = becomeParentOf(withClause);
+    _withClause = _becomeParentOf(withClause);
   }
 
   @override
@@ -4421,9 +4285,6 @@ abstract class ClassMember extends Declaration {
  * >
  * > mixinApplication ::=
  * >     [TypeName] [WithClause] [ImplementsClause]? ';'
- *
- * Deprecated: This class captures obsolete syntax that is no longer part of the
- * Dart language.
  */
 class ClassTypeAlias extends TypeAlias {
   /**
@@ -4477,24 +4338,24 @@ class ClassTypeAlias extends TypeAlias {
       this.abstractKeyword, TypeName superclass, WithClause withClause,
       ImplementsClause implementsClause, Token semicolon)
       : super(comment, metadata, keyword, semicolon) {
-    _name = becomeParentOf(name);
-    _typeParameters = becomeParentOf(typeParameters);
-    _superclass = becomeParentOf(superclass);
-    _withClause = becomeParentOf(withClause);
-    _implementsClause = becomeParentOf(implementsClause);
+    _name = _becomeParentOf(name);
+    _typeParameters = _becomeParentOf(typeParameters);
+    _superclass = _becomeParentOf(superclass);
+    _withClause = _becomeParentOf(withClause);
+    _implementsClause = _becomeParentOf(implementsClause);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(keyword)
-      ..add(_name)
-      ..add(_typeParameters)
-      ..add(equals)
-      ..add(abstractKeyword)
-      ..add(_superclass)
-      ..add(_withClause)
-      ..add(_implementsClause)
-      ..add(semicolon);
+    ..add(typedefKeyword)
+    ..add(_name)
+    ..add(_typeParameters)
+    ..add(equals)
+    ..add(abstractKeyword)
+    ..add(_superclass)
+    ..add(_withClause)
+    ..add(_implementsClause)
+    ..add(semicolon);
 
   @override
   ClassElement get element =>
@@ -4510,7 +4371,7 @@ class ClassTypeAlias extends TypeAlias {
    * Set the implements clause for this class to the given [implementsClause].
    */
   void set implementsClause(ImplementsClause implementsClause) {
-    _implementsClause = becomeParentOf(implementsClause);
+    _implementsClause = _becomeParentOf(implementsClause);
   }
 
   /**
@@ -4527,7 +4388,7 @@ class ClassTypeAlias extends TypeAlias {
    * Set the name of the class being declared to the given [identifier].
    */
   void set name(SimpleIdentifier name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   /**
@@ -4540,7 +4401,7 @@ class ClassTypeAlias extends TypeAlias {
    * [superclass] name.
    */
   void set superclass(TypeName superclass) {
-    _superclass = becomeParentOf(superclass);
+    _superclass = _becomeParentOf(superclass);
   }
 
   /**
@@ -4553,7 +4414,7 @@ class ClassTypeAlias extends TypeAlias {
    * Set the type parameters for the class to the given list of [typeParameters].
    */
   void set typeParameters(TypeParameterList typeParameters) {
-    _typeParameters = becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   /**
@@ -4565,7 +4426,7 @@ class ClassTypeAlias extends TypeAlias {
    * Set the with clause for this class to the given with [withClause].
    */
   void set withClause(WithClause withClause) {
-    _withClause = becomeParentOf(withClause);
+    _withClause = _becomeParentOf(withClause);
   }
 
   @override
@@ -4591,13 +4452,13 @@ class ClassTypeAlias extends TypeAlias {
  */
 abstract class Combinator extends AstNode {
   /**
-   * The keyword specifying what kind of processing is to be done on the
-   * imported names.
+   * The 'hide' or 'show' keyword specifying what kind of processing is to be
+   * done on the names.
    */
   Token keyword;
 
   /**
-   * Initialize a newly created import combinator.
+   * Initialize a newly created combinator.
    */
   Combinator(this.keyword);
 
@@ -4697,15 +4558,15 @@ class Comment extends AstNode {
   /**
    * Create a documentation comment consisting of the given [tokens].
    */
-  static Comment createDocumentationComment(List<Token> tokens) =>
-      new Comment(tokens, CommentType.DOCUMENTATION, new List<CommentReference>());
+  static Comment createDocumentationComment(List<Token> tokens) => new Comment(
+      tokens, CommentType.DOCUMENTATION, new List<CommentReference>());
 
   /**
    * Create a documentation comment consisting of the given [tokens] and having
    * the given [references] embedded within it.
    */
-  static Comment createDocumentationCommentWithReferences(List<Token> tokens,
-      List<CommentReference> references) =>
+  static Comment createDocumentationCommentWithReferences(
+          List<Token> tokens, List<CommentReference> references) =>
       new Comment(tokens, CommentType.DOCUMENTATION, references);
 
   /**
@@ -4738,7 +4599,7 @@ class CommentReference extends AstNode {
    * can be `null` if the reference is not to a constructor.
    */
   CommentReference(this.newKeyword, Identifier identifier) {
-    _identifier = becomeParentOf(identifier);
+    _identifier = _becomeParentOf(identifier);
   }
 
   @override
@@ -4746,8 +4607,8 @@ class CommentReference extends AstNode {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(newKeyword)
-      ..add(_identifier);
+    ..add(newKeyword)
+    ..add(_identifier);
 
   @override
   Token get endToken => _identifier.endToken;
@@ -4761,7 +4622,7 @@ class CommentReference extends AstNode {
    * Set the identifier being referenced to the given [identifier].
    */
   void set identifier(Identifier identifier) {
-    _identifier = becomeParentOf(identifier);
+    _identifier = _becomeParentOf(identifier);
   }
 
   @override
@@ -4879,7 +4740,7 @@ class CompilationUnit extends AstNode {
   CompilationUnit(this.beginToken, ScriptTag scriptTag,
       List<Directive> directives, List<CompilationUnitMember> declarations,
       this.endToken) {
-    _scriptTag = becomeParentOf(scriptTag);
+    _scriptTag = _becomeParentOf(scriptTag);
     _directives = new NodeList<Directive>(this, directives);
     _declarations = new NodeList<CompilationUnitMember>(this, declarations);
   }
@@ -4887,10 +4748,10 @@ class CompilationUnit extends AstNode {
   @override
   Iterable get childEntities {
     ChildEntities result = new ChildEntities()..add(_scriptTag);
-    if (_directivesAreBeforeDeclarations()) {
+    if (_directivesAreBeforeDeclarations) {
       result
-          ..addAll(_directives)
-          ..addAll(_declarations);
+        ..addAll(_directives)
+        ..addAll(_declarations);
     } else {
       result.addAll(sortedDirectivesAndDeclarations);
     }
@@ -4930,7 +4791,7 @@ class CompilationUnit extends AstNode {
    * [scriptTag].
    */
   void set scriptTag(ScriptTag scriptTag) {
-    _scriptTag = becomeParentOf(scriptTag);
+    _scriptTag = _becomeParentOf(scriptTag);
   }
 
   /**
@@ -4939,9 +4800,22 @@ class CompilationUnit extends AstNode {
    */
   List<AstNode> get sortedDirectivesAndDeclarations {
     return <AstNode>[]
-        ..addAll(_directives)
-        ..addAll(_declarations)
-        ..sort(AstNode.LEXICAL_ORDER);
+      ..addAll(_directives)
+      ..addAll(_declarations)
+      ..sort(AstNode.LEXICAL_ORDER);
+  }
+
+  /**
+   * Return `true` if all of the directives are lexically before any
+   * declarations.
+   */
+  bool get _directivesAreBeforeDeclarations {
+    if (_directives.isEmpty || _declarations.isEmpty) {
+      return true;
+    }
+    Directive lastDirective = _directives[_directives.length - 1];
+    CompilationUnitMember firstDeclaration = _declarations[0];
+    return lastDirective.offset < firstDeclaration.offset;
   }
 
   @override
@@ -4950,7 +4824,7 @@ class CompilationUnit extends AstNode {
   @override
   void visitChildren(AstVisitor visitor) {
     _safelyVisitChild(_scriptTag, visitor);
-    if (_directivesAreBeforeDeclarations()) {
+    if (_directivesAreBeforeDeclarations) {
       _directives.accept(visitor);
       _declarations.accept(visitor);
     } else {
@@ -4958,19 +4832,6 @@ class CompilationUnit extends AstNode {
         child.accept(visitor);
       }
     }
-  }
-
-  /**
-   * Return `true` if all of the directives are lexically before any
-   * declarations.
-   */
-  bool _directivesAreBeforeDeclarations() {
-    if (_directives.isEmpty || _declarations.isEmpty) {
-      return true;
-    }
-    Directive lastDirective = _directives[_directives.length - 1];
-    CompilationUnitMember firstDeclaration = _declarations[0];
-    return lastDirective.offset < firstDeclaration.offset;
   }
 }
 
@@ -5032,24 +4893,21 @@ class ConditionalExpression extends Expression {
    */
   ConditionalExpression(Expression condition, this.question,
       Expression thenExpression, this.colon, Expression elseExpression) {
-    _condition = becomeParentOf(condition);
-    _thenExpression = becomeParentOf(thenExpression);
-    _elseExpression = becomeParentOf(elseExpression);
+    _condition = _becomeParentOf(condition);
+    _thenExpression = _becomeParentOf(thenExpression);
+    _elseExpression = _becomeParentOf(elseExpression);
   }
 
   @override
   Token get beginToken => _condition.beginToken;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_condition)
-      ..add(question)
-      ..add(_thenExpression)
-      ..add(colon)
-      ..add(_elseExpression);
+    ..add(_condition)
+    ..add(question)
+    ..add(_thenExpression)
+    ..add(colon)
+    ..add(_elseExpression);
 
   /**
    * Return the condition used to determine which of the expressions is executed
@@ -5062,7 +4920,7 @@ class ConditionalExpression extends Expression {
    * next to the given [expression].
    */
   void set condition(Expression expression) {
-    _condition = becomeParentOf(expression);
+    _condition = _becomeParentOf(expression);
   }
 
   /**
@@ -5076,7 +4934,7 @@ class ConditionalExpression extends Expression {
    * to the given [expression].
    */
   void set elseExpression(Expression expression) {
-    _elseExpression = becomeParentOf(expression);
+    _elseExpression = _becomeParentOf(expression);
   }
 
   @override
@@ -5096,7 +4954,7 @@ class ConditionalExpression extends Expression {
    * the given [expression].
    */
   void set thenExpression(Expression expression) {
-    _thenExpression = becomeParentOf(expression);
+    _thenExpression = _becomeParentOf(expression);
   }
 
   @override
@@ -5113,7 +4971,8 @@ class ConditionalExpression extends Expression {
 /**
  * An object that can be used to evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification:
- * <blockquote>A constant expression is one of the following:
+ * <blockquote>
+ * A constant expression is one of the following:
  * * A literal number.
  * * A literal boolean.
  * * A literal string where any interpolated expression is a compile-time
@@ -5316,8 +5175,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand ~/ rightOperand;
         }
-      } else {
-      }
+      } else {}
       break;
     }
     // TODO(brianwilkerson) This doesn't handle numeric conversions.
@@ -5418,8 +5276,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         } else if (operand is double) {
           return -operand;
         }
-      } else {
-      }
+      } else {}
       break;
     }
     return NOT_A_CONSTANT;
@@ -5598,12 +5455,12 @@ class ConstructorDeclaration extends ClassMember {
       List<ConstructorInitializer> initializers,
       ConstructorName redirectedConstructor, FunctionBody body)
       : super(comment, metadata) {
-    _returnType = becomeParentOf(returnType);
-    _name = becomeParentOf(name);
-    _parameters = becomeParentOf(parameters);
+    _returnType = _becomeParentOf(returnType);
+    _name = _becomeParentOf(name);
+    _parameters = _becomeParentOf(parameters);
     _initializers = new NodeList<ConstructorInitializer>(this, initializers);
-    _redirectedConstructor = becomeParentOf(redirectedConstructor);
-    _body = becomeParentOf(body);
+    _redirectedConstructor = _becomeParentOf(redirectedConstructor);
+    _body = _becomeParentOf(body);
   }
 
   /**
@@ -5616,22 +5473,22 @@ class ConstructorDeclaration extends ClassMember {
    * Set the body of the constructor to the given [functionBody].
    */
   void set body(FunctionBody functionBody) {
-    _body = becomeParentOf(functionBody);
+    _body = _becomeParentOf(functionBody);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(externalKeyword)
-      ..add(constKeyword)
-      ..add(factoryKeyword)
-      ..add(_returnType)
-      ..add(period)
-      ..add(_name)
-      ..add(_parameters)
-      ..add(separator)
-      ..addAll(initializers)
-      ..add(_redirectedConstructor)
-      ..add(_body);
+    ..add(externalKeyword)
+    ..add(constKeyword)
+    ..add(factoryKeyword)
+    ..add(_returnType)
+    ..add(period)
+    ..add(_name)
+    ..add(_parameters)
+    ..add(separator)
+    ..addAll(initializers)
+    ..add(_redirectedConstructor)
+    ..add(_body);
 
   @override
   Token get endToken {
@@ -5668,7 +5525,7 @@ class ConstructorDeclaration extends ClassMember {
    * Set the name of the constructor to the given [identifier].
    */
   void set name(SimpleIdentifier identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   /**
@@ -5681,7 +5538,7 @@ class ConstructorDeclaration extends ClassMember {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters) {
-    _parameters = becomeParentOf(parameters);
+    _parameters = _becomeParentOf(parameters);
   }
 
   /**
@@ -5695,7 +5552,7 @@ class ConstructorDeclaration extends ClassMember {
    * redirected to the given [redirectedConstructor] name.
    */
   void set redirectedConstructor(ConstructorName redirectedConstructor) {
-    _redirectedConstructor = becomeParentOf(redirectedConstructor);
+    _redirectedConstructor = _becomeParentOf(redirectedConstructor);
   }
 
   /**
@@ -5709,7 +5566,7 @@ class ConstructorDeclaration extends ClassMember {
    * Set the type of object being created to the given [typeName].
    */
   void set returnType(Identifier typeName) {
-    _returnType = becomeParentOf(typeName);
+    _returnType = _becomeParentOf(typeName);
   }
 
   @override
@@ -5737,7 +5594,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   /**
    * The token for the 'this' keyword, or `null` if there is no 'this' keyword.
    */
-  Token keyword;
+  Token thisKeyword;
 
   /**
    * The token for the period after the 'this' keyword, or `null` if there is no
@@ -5762,30 +5619,30 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
 
   /**
    * Initialize a newly created field initializer to initialize the field with
-   * the given name to the value of the given expression. The [keyword] and
+   * the given name to the value of the given expression. The [thisKeyword] and
    * [period] can be `null` if the 'this' keyword was not specified.
    */
-  ConstructorFieldInitializer(this.keyword, this.period,
+  ConstructorFieldInitializer(this.thisKeyword, this.period,
       SimpleIdentifier fieldName, this.equals, Expression expression) {
-    _fieldName = becomeParentOf(fieldName);
-    _expression = becomeParentOf(expression);
+    _fieldName = _becomeParentOf(fieldName);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
   Token get beginToken {
-    if (keyword != null) {
-      return keyword;
+    if (thisKeyword != null) {
+      return thisKeyword;
     }
     return _fieldName.beginToken;
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(period)
-      ..add(_fieldName)
-      ..add(equals)
-      ..add(_expression);
+    ..add(thisKeyword)
+    ..add(period)
+    ..add(_fieldName)
+    ..add(equals)
+    ..add(_expression);
 
   @override
   Token get endToken => _expression.endToken;
@@ -5801,7 +5658,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * initialized to the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   /**
@@ -5813,7 +5670,22 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * Set the name of the field being initialized to the given [identifier].
    */
   void set fieldName(SimpleIdentifier identifier) {
-    _fieldName = becomeParentOf(identifier);
+    _fieldName = _becomeParentOf(identifier);
+  }
+
+  /**
+   * Return the token for the 'this' keyword, or `null` if there is no 'this'
+   * keyword.
+   */
+  @deprecated // Use "this.thisKeyword"
+  Token get keyword => thisKeyword;
+
+  /**
+   * Set the token for the 'this' keyword to the given [token].
+   */
+  @deprecated // Use "this.thisKeyword"
+  set keyword(Token token) {
+    thisKeyword = token;
   }
 
   @override
@@ -5833,8 +5705,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
  * >     [SuperConstructorInvocation]
  * >   | [ConstructorFieldInitializer]
  */
-abstract class ConstructorInitializer extends AstNode {
-}
+abstract class ConstructorInitializer extends AstNode {}
 
 /**
  * The name of the constructor.
@@ -5872,8 +5743,8 @@ class ConstructorName extends AstNode {
    * `null` if the constructor being named is the unnamed constructor.
    */
   ConstructorName(TypeName type, this.period, SimpleIdentifier name) {
-    _type = becomeParentOf(type);
-    _name = becomeParentOf(name);
+    _type = _becomeParentOf(type);
+    _name = _becomeParentOf(name);
   }
 
   @override
@@ -5881,9 +5752,9 @@ class ConstructorName extends AstNode {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_type)
-      ..add(period)
-      ..add(_name);
+    ..add(_type)
+    ..add(period)
+    ..add(_name);
 
   @override
   Token get endToken {
@@ -5903,7 +5774,7 @@ class ConstructorName extends AstNode {
    * Set the name of the constructor to the given [name].
    */
   void set name(SimpleIdentifier name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   /**
@@ -5915,7 +5786,7 @@ class ConstructorName extends AstNode {
    * Set the name of the type defining the constructor to the given [type] name.
    */
   void set type(TypeName type) {
-    _type = becomeParentOf(type);
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -5938,7 +5809,7 @@ class ContinueStatement extends Statement {
   /**
    * The token representing the 'continue' keyword.
    */
-  Token keyword;
+  Token continueKeyword;
 
   /**
    * The label associated with the statement, or `null` if there is no label.
@@ -5964,24 +5835,37 @@ class ContinueStatement extends Statement {
    * Initialize a newly created continue statement. The [label] can be `null` if
    * there is no label associated with the statement.
    */
-  ContinueStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
-    _label = becomeParentOf(label);
+  ContinueStatement(
+      this.continueKeyword, SimpleIdentifier label, this.semicolon) {
+    _label = _becomeParentOf(label);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => continueKeyword;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(_label)
-      ..add(semicolon);
+    ..add(continueKeyword)
+    ..add(_label)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
+
+  /**
+   * Return the token for the 'continue' keyword, or `null` if there is no
+   * 'continue' keyword.
+   */
+  @deprecated // Use "this.continueKeyword"
+  Token get keyword => continueKeyword;
+
+  /**
+   * Set the token for the 'continue' keyword to the given [token].
+   */
+  @deprecated // Use "this.continueKeyword"
+  set keyword(Token token) {
+    continueKeyword = token;
+  }
 
   /**
    * Return the label associated with the statement, or `null` if there is no
@@ -5993,7 +5877,7 @@ class ContinueStatement extends Statement {
    * Set the label associated with the statement to the given [identifier].
    */
   void set label(SimpleIdentifier identifier) {
-    _label = becomeParentOf(identifier);
+    _label = _becomeParentOf(identifier);
   }
 
   @override
@@ -6059,18 +5943,15 @@ class DeclaredIdentifier extends Declaration {
   DeclaredIdentifier(Comment comment, List<Annotation> metadata, this.keyword,
       TypeName type, SimpleIdentifier identifier)
       : super(comment, metadata) {
-    _type = becomeParentOf(type);
-    _identifier = becomeParentOf(identifier);
+    _type = _becomeParentOf(type);
+    _identifier = _becomeParentOf(identifier);
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => super._childEntities
-      ..add(keyword)
-      ..add(_type)
-      ..add(_identifier);
+    ..add(keyword)
+    ..add(_type)
+    ..add(_identifier);
 
   @override
   LocalVariableElement get element {
@@ -6102,22 +5983,22 @@ class DeclaredIdentifier extends Declaration {
    * Set the name of the variable being declared to the given [identifier].
    */
   void set identifier(SimpleIdentifier identifier) {
-    _identifier = becomeParentOf(identifier);
+    _identifier = _becomeParentOf(identifier);
   }
 
   /**
    * Return `true` if this variable was declared with the 'const' modifier.
    */
-  bool get isConst =>
-      (keyword is KeywordToken) && (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => (keyword is KeywordToken) &&
+      (keyword as KeywordToken).keyword == Keyword.CONST;
 
   /**
    * Return `true` if this variable was declared with the 'final' modifier.
    * Variables that are declared with the 'const' modifier will return `false`
    * even though they are implicitly final.
    */
-  bool get isFinal =>
-      (keyword is KeywordToken) && (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => (keyword is KeywordToken) &&
+      (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
    * Return the name of the declared type of the parameter, or `null` if the
@@ -6129,7 +6010,7 @@ class DeclaredIdentifier extends Declaration {
    * Set the name of the declared type of the parameter to the given [typeName].
    */
   void set type(TypeName typeName) {
-    _type = becomeParentOf(typeName);
+    _type = _becomeParentOf(typeName);
   }
 
   @override
@@ -6183,21 +6064,18 @@ class DefaultFormalParameter extends FormalParameter {
    */
   DefaultFormalParameter(NormalFormalParameter parameter, this.kind,
       this.separator, Expression defaultValue) {
-    _parameter = becomeParentOf(parameter);
-    _defaultValue = becomeParentOf(defaultValue);
+    _parameter = _becomeParentOf(parameter);
+    _defaultValue = _becomeParentOf(defaultValue);
   }
 
   @override
   Token get beginToken => _parameter.beginToken;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_parameter)
-      ..add(separator)
-      ..add(_defaultValue);
+    ..add(_parameter)
+    ..add(separator)
+    ..add(_defaultValue);
 
   /**
    * Return the expression computing the default value for the parameter, or
@@ -6210,7 +6088,7 @@ class DefaultFormalParameter extends FormalParameter {
    * given [expression].
    */
   void set defaultValue(Expression expression) {
-    _defaultValue = becomeParentOf(expression);
+    _defaultValue = _becomeParentOf(expression);
   }
 
   @override
@@ -6240,7 +6118,7 @@ class DefaultFormalParameter extends FormalParameter {
    * given [formalParameter].
    */
   void set parameter(NormalFormalParameter formalParameter) {
-    _parameter = becomeParentOf(formalParameter);
+    _parameter = _becomeParentOf(formalParameter);
   }
 
   @override
@@ -6364,8 +6242,8 @@ class DoStatement extends Statement {
   DoStatement(this.doKeyword, Statement body, this.whileKeyword,
       this.leftParenthesis, Expression condition, this.rightParenthesis,
       this.semicolon) {
-    _body = becomeParentOf(body);
-    _condition = becomeParentOf(condition);
+    _body = _becomeParentOf(body);
+    _condition = _becomeParentOf(condition);
   }
 
   @override
@@ -6380,18 +6258,18 @@ class DoStatement extends Statement {
    * Set the body of the loop to the given [statement].
    */
   void set body(Statement statement) {
-    _body = becomeParentOf(statement);
+    _body = _becomeParentOf(statement);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(doKeyword)
-      ..add(_body)
-      ..add(whileKeyword)
-      ..add(leftParenthesis)
-      ..add(_condition)
-      ..add(rightParenthesis)
-      ..add(semicolon);
+    ..add(doKeyword)
+    ..add(_body)
+    ..add(whileKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
+    ..add(semicolon);
 
   /**
    * Return the condition that determines when the loop will terminate.
@@ -6403,7 +6281,7 @@ class DoStatement extends Statement {
    * [expression].
    */
   void set condition(Expression expression) {
-    _condition = becomeParentOf(expression);
+    _condition = _becomeParentOf(expression);
   }
 
   @override
@@ -6438,7 +6316,7 @@ class DoubleLiteral extends Literal {
   /**
    * The value of the literal.
    */
-  double value = 0.0;
+  double value;
 
   /**
    * Initialize a newly created floating point literal.
@@ -6448,9 +6326,6 @@ class DoubleLiteral extends Literal {
   @override
   Token get beginToken => literal;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(literal);
 
@@ -6475,6 +6350,9 @@ class ElementLocator {
    * no element associated with the node.
    */
   static Element locate(AstNode node) {
+    if (node == null) {
+      return null;
+    }
     ElementLocator_ElementMapper mapper = new ElementLocator_ElementMapper();
     return node.accept(mapper);
   }
@@ -6484,6 +6362,8 @@ class ElementLocator {
    * no element associated with the node.
    */
   static Element locateWithOffset(AstNode node, int offset) {
+    // TODO(brianwilkerson) 'offset' is not used. Figure out what's going on:
+    // whether there's a bug or whether this method is unnecessary.
     if (node == null) {
       return null;
     }
@@ -6627,9 +6507,6 @@ class EmptyFunctionBody extends FunctionBody {
   @override
   Token get beginToken => semicolon;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(semicolon);
 
@@ -6665,9 +6542,6 @@ class EmptyStatement extends Statement {
   @override
   Token get beginToken => semicolon;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(semicolon);
 
@@ -6698,15 +6572,12 @@ class EnumConstantDeclaration extends Declaration {
    * corresponding attribute. (Technically, enum constants cannot have metadata,
    * but we allow it for consistency.)
    */
-  EnumConstantDeclaration(Comment comment, List<Annotation> metadata,
-      SimpleIdentifier name)
+  EnumConstantDeclaration(
+      Comment comment, List<Annotation> metadata, SimpleIdentifier name)
       : super(comment, metadata) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => super._childEntities..add(_name);
 
@@ -6729,7 +6600,7 @@ class EnumConstantDeclaration extends Declaration {
    * Set the name of the constant to the given [name].
    */
   void set name(SimpleIdentifier name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   @override
@@ -6752,7 +6623,7 @@ class EnumDeclaration extends CompilationUnitMember {
   /**
    * The 'enum' keyword.
    */
-  Token keyword;
+  Token enumKeyword;
 
   /**
    * The name of the enumeration.
@@ -6780,24 +6651,22 @@ class EnumDeclaration extends CompilationUnitMember {
    * corresponding attribute. The list of [constants] must contain at least one
    * value.
    */
-  EnumDeclaration(Comment comment, List<Annotation> metadata, this.keyword,
+  EnumDeclaration(Comment comment, List<Annotation> metadata, this.enumKeyword,
       SimpleIdentifier name, this.leftBracket,
       List<EnumConstantDeclaration> constants, this.rightBracket)
       : super(comment, metadata) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
     _constants = new NodeList<EnumConstantDeclaration>(this, constants);
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
+  // TODO(brianwilkerson) Add commas?
   Iterable get childEntities => super._childEntities
-      ..add(keyword)
-      ..add(_name)
-      ..add(leftBracket)
-      ..addAll(_constants)
-      ..add(rightBracket);
+    ..add(enumKeyword)
+    ..add(_name)
+    ..add(leftBracket)
+    ..addAll(_constants)
+    ..add(rightBracket);
 
   /**
    * Return the enumeration constants being declared.
@@ -6812,7 +6681,22 @@ class EnumDeclaration extends CompilationUnitMember {
   Token get endToken => rightBracket;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => keyword;
+  Token get firstTokenAfterCommentAndMetadata => enumKeyword;
+
+  /**
+   * Return the token for the 'enum' keyword, or `null` if there is no
+   * 'enum' keyword.
+   */
+  @deprecated // Use "this.enumKeyword"
+  Token get keyword => enumKeyword;
+
+  /**
+   * Set the token for the 'enum' keyword to the given [token].
+   */
+  @deprecated // Use "this.enumKeyword"
+  set keyword(Token token) {
+    enumKeyword = token;
+  }
 
   /**
    * Return the name of the enumeration.
@@ -6823,7 +6707,7 @@ class EnumDeclaration extends CompilationUnitMember {
    * Set the name of the enumeration to the given [name].
    */
   void set name(SimpleIdentifier name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   @override
@@ -6844,7 +6728,7 @@ class EnumDeclaration extends CompilationUnitMember {
 class EphemeralIdentifier extends SimpleIdentifier {
   EphemeralIdentifier(AstNode parent, int location)
       : super(new StringToken(TokenType.IDENTIFIER, "", location)) {
-    parent.becomeParentOf(this);
+    parent._becomeParentOf(this);
   }
 }
 
@@ -6867,9 +6751,9 @@ class ExportDirective extends NamespaceDirective {
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(_uri)
-      ..addAll(combinators)
-      ..add(semicolon);
+    ..add(_uri)
+    ..addAll(combinators)
+    ..add(semicolon);
 
   @override
   ExportElement get element => super.element as ExportElement;
@@ -6904,7 +6788,13 @@ abstract class Expression extends AstNode {
   /**
    * An empty list of expressions.
    */
-  static const List<Expression> EMPTY_ARRAY = const <Expression>[];
+  @deprecated // Use "Expression.EMPTY_LIST"
+  static const List<Expression> EMPTY_ARRAY = EMPTY_LIST;
+
+  /**
+   * An empty list of expressions.
+   */
+  static const List<Expression> EMPTY_LIST = const <Expression>[];
 
   /**
    * The static type of this expression, or `null` if the AST structure has not
@@ -6977,26 +6867,26 @@ abstract class Expression extends AstNode {
   ParameterElement get propagatedParameterElement {
     AstNode parent = this.parent;
     if (parent is ArgumentList) {
-      return parent.getPropagatedParameterElementFor(this);
+      return parent._getPropagatedParameterElementFor(this);
     } else if (parent is IndexExpression) {
       IndexExpression indexExpression = parent;
       if (identical(indexExpression.index, this)) {
-        return indexExpression.propagatedParameterElementForIndex;
+        return indexExpression._propagatedParameterElementForIndex;
       }
     } else if (parent is BinaryExpression) {
       BinaryExpression binaryExpression = parent;
       if (identical(binaryExpression.rightOperand, this)) {
-        return binaryExpression.propagatedParameterElementForRightOperand;
+        return binaryExpression._propagatedParameterElementForRightOperand;
       }
     } else if (parent is AssignmentExpression) {
       AssignmentExpression assignmentExpression = parent;
       if (identical(assignmentExpression.rightHandSide, this)) {
-        return assignmentExpression.propagatedParameterElementForRightHandSide;
+        return assignmentExpression._propagatedParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
-      return parent.propagatedParameterElementForOperand;
+      return parent._propagatedParameterElementForOperand;
     } else if (parent is PostfixExpression) {
-      return parent.propagatedParameterElementForOperand;
+      return parent._propagatedParameterElementForOperand;
     }
     return null;
   }
@@ -7012,26 +6902,26 @@ abstract class Expression extends AstNode {
   ParameterElement get staticParameterElement {
     AstNode parent = this.parent;
     if (parent is ArgumentList) {
-      return parent.getStaticParameterElementFor(this);
+      return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpression) {
       IndexExpression indexExpression = parent;
       if (identical(indexExpression.index, this)) {
-        return indexExpression.staticParameterElementForIndex;
+        return indexExpression._staticParameterElementForIndex;
       }
     } else if (parent is BinaryExpression) {
       BinaryExpression binaryExpression = parent;
       if (identical(binaryExpression.rightOperand, this)) {
-        return binaryExpression.staticParameterElementForRightOperand;
+        return binaryExpression._staticParameterElementForRightOperand;
       }
     } else if (parent is AssignmentExpression) {
       AssignmentExpression assignmentExpression = parent;
       if (identical(assignmentExpression.rightHandSide, this)) {
-        return assignmentExpression.staticParameterElementForRightHandSide;
+        return assignmentExpression._staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
-      return parent.staticParameterElementForOperand;
+      return parent._staticParameterElementForOperand;
     } else if (parent is PostfixExpression) {
-      return parent.staticParameterElementForOperand;
+      return parent._staticParameterElementForOperand;
     }
     return null;
   }
@@ -7073,18 +6963,23 @@ class ExpressionFunctionBody extends FunctionBody {
    */
   ExpressionFunctionBody(this.keyword, this.functionDefinition,
       Expression expression, this.semicolon) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
-  Token get beginToken => functionDefinition;
+  Token get beginToken {
+    if (keyword != null) {
+      return keyword;
+    }
+    return functionDefinition;
+  }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(functionDefinition)
-      ..add(_expression)
-      ..add(semicolon);
+    ..add(keyword)
+    ..add(functionDefinition)
+    ..add(_expression)
+    ..add(semicolon);
 
   @override
   Token get endToken {
@@ -7104,7 +6999,7 @@ class ExpressionFunctionBody extends FunctionBody {
    * [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -7144,7 +7039,7 @@ class ExpressionStatement extends Statement {
    * Initialize a newly created expression statement.
    */
   ExpressionStatement(Expression expression, this.semicolon) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -7152,8 +7047,8 @@ class ExpressionStatement extends Statement {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_expression)
-      ..add(semicolon);
+    ..add(_expression)
+    ..add(semicolon);
 
   @override
   Token get endToken {
@@ -7172,7 +7067,7 @@ class ExpressionStatement extends Statement {
    * Set the expression that comprises the statement to the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -7197,7 +7092,7 @@ class ExtendsClause extends AstNode {
   /**
    * The token representing the 'extends' keyword.
    */
-  Token keyword;
+  Token extendsKeyword;
 
   /**
    * The name of the class that is being extended.
@@ -7207,20 +7102,34 @@ class ExtendsClause extends AstNode {
   /**
    * Initialize a newly created extends clause.
    */
-  ExtendsClause(this.keyword, TypeName superclass) {
-    _superclass = becomeParentOf(superclass);
+  ExtendsClause(this.extendsKeyword, TypeName superclass) {
+    _superclass = _becomeParentOf(superclass);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => extendsKeyword;
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(_superclass);
+    ..add(extendsKeyword)
+    ..add(_superclass);
 
   @override
   Token get endToken => _superclass.endToken;
+
+  /**
+   * Return the token for the 'extends' keyword.
+   */
+  @deprecated // Use "this.extendsKeyword"
+  Token get keyword => extendsKeyword;
+
+  /**
+   * Set the token for the 'extends' keyword to the given [token].
+   */
+  @deprecated // Use "this.extendsKeyword"
+  set keyword(Token token) {
+    extendsKeyword = token;
+  }
 
   /**
    * Return the name of the class that is being extended.
@@ -7231,7 +7140,7 @@ class ExtendsClause extends AstNode {
    * Set the name of the class that is being extended to the given [name].
    */
   void set superclass(TypeName name) {
-    _superclass = becomeParentOf(name);
+    _superclass = _becomeParentOf(name);
   }
 
   @override
@@ -7275,14 +7184,14 @@ class FieldDeclaration extends ClassMember {
   FieldDeclaration(Comment comment, List<Annotation> metadata,
       this.staticKeyword, VariableDeclarationList fieldList, this.semicolon)
       : super(comment, metadata) {
-    _fieldList = becomeParentOf(fieldList);
+    _fieldList = _becomeParentOf(fieldList);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(staticKeyword)
-      ..add(_fieldList)
-      ..add(semicolon);
+    ..add(staticKeyword)
+    ..add(_fieldList)
+    ..add(semicolon);
 
   @override
   Element get element => null;
@@ -7299,7 +7208,7 @@ class FieldDeclaration extends ClassMember {
    * Set the fields being declared to the given list of [fields].
    */
   void set fields(VariableDeclarationList fields) {
-    _fieldList = becomeParentOf(fields);
+    _fieldList = _becomeParentOf(fields);
   }
 
   @override
@@ -7348,7 +7257,7 @@ class FieldFormalParameter extends NormalFormalParameter {
   /**
    * The token representing the 'this' keyword.
    */
-  Token thisToken;
+  Token thisKeyword;
 
   /**
    * The token representing the period.
@@ -7365,17 +7274,17 @@ class FieldFormalParameter extends NormalFormalParameter {
    * Initialize a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
    * corresponding attribute. The [keyword] can be `null` if there is a type.
-   * The [type] must be `null` if the keyword is 'var'. The [thisToken] and
+   * The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
    * [period] can be `null` if the keyword 'this' was not provided.  The
    * [parameters] can be `null` if this is not a function-typed field formal
    * parameter.
    */
   FieldFormalParameter(Comment comment, List<Annotation> metadata, this.keyword,
-      TypeName type, this.thisToken, this.period, SimpleIdentifier identifier,
+      TypeName type, this.thisKeyword, this.period, SimpleIdentifier identifier,
       FormalParameterList parameters)
       : super(comment, metadata, identifier) {
-    _type = becomeParentOf(type);
-    _parameters = becomeParentOf(parameters);
+    _type = _becomeParentOf(type);
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
@@ -7385,17 +7294,17 @@ class FieldFormalParameter extends NormalFormalParameter {
     } else if (_type != null) {
       return _type.beginToken;
     }
-    return thisToken;
+    return thisKeyword;
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(keyword)
-      ..add(_type)
-      ..add(thisToken)
-      ..add(period)
-      ..add(identifier)
-      ..add(_parameters);
+    ..add(keyword)
+    ..add(_type)
+    ..add(thisKeyword)
+    ..add(period)
+    ..add(identifier)
+    ..add(_parameters);
 
   @override
   Token get endToken {
@@ -7406,12 +7315,12 @@ class FieldFormalParameter extends NormalFormalParameter {
   }
 
   @override
-  bool get isConst =>
-      (keyword is KeywordToken) && (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => (keyword is KeywordToken) &&
+      (keyword as KeywordToken).keyword == Keyword.CONST;
 
   @override
-  bool get isFinal =>
-      (keyword is KeywordToken) && (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => (keyword is KeywordToken) &&
+      (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
    * Return the parameters of the function-typed parameter, or `null` if this is
@@ -7424,7 +7333,21 @@ class FieldFormalParameter extends NormalFormalParameter {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters) {
-    _parameters = becomeParentOf(parameters);
+    _parameters = _becomeParentOf(parameters);
+  }
+
+  /**
+   * Return the token representing the 'this' keyword.
+   */
+  @deprecated // Use "this.thisKeyword"
+  Token get thisToken => thisKeyword;
+
+  /**
+   * Set the token representing the 'this' keyword to the given [token].
+   */
+  @deprecated // Use "this.thisKeyword"
+  set thisToken(Token token) {
+    thisKeyword = token;
   }
 
   /**
@@ -7439,7 +7362,7 @@ class FieldFormalParameter extends NormalFormalParameter {
    * Set the name of the declared type of the parameter to the given [typeName].
    */
   void set type(TypeName typeName) {
-    _type = becomeParentOf(typeName);
+    _type = _becomeParentOf(typeName);
   }
 
   @override
@@ -7516,9 +7439,9 @@ class ForEachStatement extends Statement {
   ForEachStatement.con1(this.awaitKeyword, this.forKeyword,
       this.leftParenthesis, DeclaredIdentifier loopVariable, this.inKeyword,
       Expression iterator, this.rightParenthesis, Statement body) {
-    _loopVariable = becomeParentOf(loopVariable);
-    _iterable = becomeParentOf(iterator);
-    _body = becomeParentOf(body);
+    _loopVariable = _becomeParentOf(loopVariable);
+    _iterable = _becomeParentOf(iterator);
+    _body = _becomeParentOf(body);
   }
 
   /**
@@ -7528,9 +7451,9 @@ class ForEachStatement extends Statement {
   ForEachStatement.con2(this.awaitKeyword, this.forKeyword,
       this.leftParenthesis, SimpleIdentifier identifier, this.inKeyword,
       Expression iterator, this.rightParenthesis, Statement body) {
-    _identifier = becomeParentOf(identifier);
-    _iterable = becomeParentOf(iterator);
-    _body = becomeParentOf(body);
+    _identifier = _becomeParentOf(identifier);
+    _iterable = _becomeParentOf(iterator);
+    _body = _becomeParentOf(body);
   }
 
   @override
@@ -7545,20 +7468,20 @@ class ForEachStatement extends Statement {
    * Set the body of the loop to the given [statement].
    */
   void set body(Statement statement) {
-    _body = becomeParentOf(statement);
+    _body = _becomeParentOf(statement);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(awaitKeyword)
-      ..add(forKeyword)
-      ..add(leftParenthesis)
-      ..add(_loopVariable)
-      ..add(_identifier)
-      ..add(inKeyword)
-      ..add(_iterable)
-      ..add(rightParenthesis)
-      ..add(_body);
+    ..add(awaitKeyword)
+    ..add(forKeyword)
+    ..add(leftParenthesis)
+    ..add(_loopVariable)
+    ..add(_identifier)
+    ..add(inKeyword)
+    ..add(_iterable)
+    ..add(rightParenthesis)
+    ..add(_body);
 
   @override
   Token get endToken => _body.endToken;
@@ -7573,7 +7496,7 @@ class ForEachStatement extends Statement {
    * Set the loop variable to the given [identifier].
    */
   void set identifier(SimpleIdentifier identifier) {
-    _identifier = becomeParentOf(identifier);
+    _identifier = _becomeParentOf(identifier);
   }
 
   /**
@@ -7586,15 +7509,13 @@ class ForEachStatement extends Statement {
    * [expression].
    */
   void set iterable(Expression expression) {
-    _iterable = becomeParentOf(expression);
+    _iterable = _becomeParentOf(expression);
   }
 
   /**
    * Return the expression evaluated to produce the iterator.
-   *
-   * Deprecated, use [iterable] instead.
    */
-  @deprecated
+  @deprecated // Use "this.iterable"
   Expression get iterator => iterable;
 
   /**
@@ -7607,7 +7528,7 @@ class ForEachStatement extends Statement {
    * Set the declaration of the loop variable to the given [variable].
    */
   void set loopVariable(DeclaredIdentifier variable) {
-    _loopVariable = becomeParentOf(variable);
+    _loopVariable = _becomeParentOf(variable);
   }
 
   @override
@@ -7711,7 +7632,7 @@ class FormalParameterList extends AstNode {
   Token leftDelimiter;
 
   /**
-   * The right square bracket (']') or right curly brace ('}') introducing the
+   * The right square bracket (']') or right curly brace ('}') terminating the
    * optional parameters, or `null` if there are no optional parameters.
    */
   Token rightDelimiter;
@@ -7747,8 +7668,8 @@ class FormalParameterList extends AstNode {
       result.add(parameter);
     }
     return result
-        ..add(rightDelimiter)
-        ..add(rightParenthesis);
+      ..add(rightDelimiter)
+      ..add(rightParenthesis);
   }
 
   @override
@@ -7861,11 +7782,11 @@ class ForStatement extends Statement {
       VariableDeclarationList variableList, Expression initialization,
       this.leftSeparator, Expression condition, this.rightSeparator,
       List<Expression> updaters, this.rightParenthesis, Statement body) {
-    _variableList = becomeParentOf(variableList);
-    _initialization = becomeParentOf(initialization);
-    _condition = becomeParentOf(condition);
+    _variableList = _becomeParentOf(variableList);
+    _initialization = _becomeParentOf(initialization);
+    _condition = _becomeParentOf(condition);
     _updaters = new NodeList<Expression>(this, updaters);
-    _body = becomeParentOf(body);
+    _body = _becomeParentOf(body);
   }
 
   @override
@@ -7880,21 +7801,21 @@ class ForStatement extends Statement {
    * Set the body of the loop to the given [statement].
    */
   void set body(Statement statement) {
-    _body = becomeParentOf(statement);
+    _body = _becomeParentOf(statement);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(forKeyword)
-      ..add(leftParenthesis)
-      ..add(_variableList)
-      ..add(_initialization)
-      ..add(leftSeparator)
-      ..add(_condition)
-      ..add(rightSeparator)
-      ..addAll(_updaters)
-      ..add(rightParenthesis)
-      ..add(_body);
+    ..add(forKeyword)
+    ..add(leftParenthesis)
+    ..add(_variableList)
+    ..add(_initialization)
+    ..add(leftSeparator)
+    ..add(_condition)
+    ..add(rightSeparator)
+    ..addAll(_updaters)
+    ..add(rightParenthesis)
+    ..add(_body);
 
   /**
    * Return the condition used to determine when to terminate the loop, or
@@ -7907,7 +7828,7 @@ class ForStatement extends Statement {
    * [expression].
    */
   void set condition(Expression expression) {
-    _condition = becomeParentOf(expression);
+    _condition = _becomeParentOf(expression);
   }
 
   @override
@@ -7923,7 +7844,7 @@ class ForStatement extends Statement {
    * Set the initialization expression to the given [expression].
    */
   void set initialization(Expression initialization) {
-    _initialization = becomeParentOf(initialization);
+    _initialization = _becomeParentOf(initialization);
   }
 
   /**
@@ -7941,7 +7862,7 @@ class ForStatement extends Statement {
    * Set the declaration of the loop variables to the given [variableList].
    */
   void set variables(VariableDeclarationList variableList) {
-    _variableList = becomeParentOf(variableList);
+    _variableList = _becomeParentOf(variableList);
   }
 
   @override
@@ -8044,18 +7965,18 @@ class FunctionDeclaration extends CompilationUnitMember {
       this.externalKeyword, TypeName returnType, this.propertyKeyword,
       SimpleIdentifier name, FunctionExpression functionExpression)
       : super(comment, metadata) {
-    _returnType = becomeParentOf(returnType);
-    _name = becomeParentOf(name);
-    _functionExpression = becomeParentOf(functionExpression);
+    _returnType = _becomeParentOf(returnType);
+    _name = _becomeParentOf(name);
+    _functionExpression = _becomeParentOf(functionExpression);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(externalKeyword)
-      ..add(_returnType)
-      ..add(propertyKeyword)
-      ..add(_name)
-      ..add(_functionExpression);
+    ..add(externalKeyword)
+    ..add(_returnType)
+    ..add(propertyKeyword)
+    ..add(_name)
+    ..add(_functionExpression);
 
   @override
   ExecutableElement get element =>
@@ -8088,22 +8009,20 @@ class FunctionDeclaration extends CompilationUnitMember {
    * [functionExpression].
    */
   void set functionExpression(FunctionExpression functionExpression) {
-    _functionExpression = becomeParentOf(functionExpression);
+    _functionExpression = _becomeParentOf(functionExpression);
   }
 
   /**
    * Return `true` if this function declares a getter.
    */
-  bool get isGetter =>
-      propertyKeyword != null &&
-          (propertyKeyword as KeywordToken).keyword == Keyword.GET;
+  bool get isGetter => propertyKeyword != null &&
+      (propertyKeyword as KeywordToken).keyword == Keyword.GET;
 
   /**
    * Return `true` if this function declares a setter.
    */
-  bool get isSetter =>
-      propertyKeyword != null &&
-          (propertyKeyword as KeywordToken).keyword == Keyword.SET;
+  bool get isSetter => propertyKeyword != null &&
+      (propertyKeyword as KeywordToken).keyword == Keyword.SET;
 
   /**
    * Return the name of the function, or `null` if the function is not named.
@@ -8114,7 +8033,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * Set the name of the function to the given [identifier].
    */
   void set name(SimpleIdentifier identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   /**
@@ -8127,7 +8046,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * Set the return type of the function to the given [returnType].
    */
   void set returnType(TypeName returnType) {
-    _returnType = becomeParentOf(returnType);
+    _returnType = _becomeParentOf(returnType);
   }
 
   @override
@@ -8155,7 +8074,7 @@ class FunctionDeclarationStatement extends Statement {
    * Initialize a newly created function declaration statement.
    */
   FunctionDeclarationStatement(FunctionDeclaration functionDeclaration) {
-    _functionDeclaration = becomeParentOf(functionDeclaration);
+    _functionDeclaration = _becomeParentOf(functionDeclaration);
   }
 
   @override
@@ -8177,7 +8096,7 @@ class FunctionDeclarationStatement extends Statement {
    * [functionDeclaration].
    */
   void set functionDeclaration(FunctionDeclaration functionDeclaration) {
-    _functionDeclaration = becomeParentOf(functionDeclaration);
+    _functionDeclaration = _becomeParentOf(functionDeclaration);
   }
 
   @override
@@ -8216,8 +8135,8 @@ class FunctionExpression extends Expression {
    * Initialize a newly created function declaration.
    */
   FunctionExpression(FormalParameterList parameters, FunctionBody body) {
-    _parameters = becomeParentOf(parameters);
-    _body = becomeParentOf(body);
+    _parameters = _becomeParentOf(parameters);
+    _body = _becomeParentOf(body);
   }
 
   @override
@@ -8241,13 +8160,13 @@ class FunctionExpression extends Expression {
    * Set the body of the function to the given [functionBody].
    */
   void set body(FunctionBody functionBody) {
-    _body = becomeParentOf(functionBody);
+    _body = _becomeParentOf(functionBody);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_parameters)
-      ..add(_body);
+    ..add(_parameters)
+    ..add(_body);
 
   @override
   Token get endToken {
@@ -8271,7 +8190,7 @@ class FunctionExpression extends Expression {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters) {
-    _parameters = becomeParentOf(parameters);
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
@@ -8325,8 +8244,8 @@ class FunctionExpressionInvocation extends Expression {
    * Initialize a newly created function expression invocation.
    */
   FunctionExpressionInvocation(Expression function, ArgumentList argumentList) {
-    _function = becomeParentOf(function);
-    _argumentList = becomeParentOf(argumentList);
+    _function = _becomeParentOf(function);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   /**
@@ -8338,7 +8257,7 @@ class FunctionExpressionInvocation extends Expression {
    * Set the list of arguments to the method to the given [argumentList].
    */
   void set argumentList(ArgumentList argumentList) {
-    _argumentList = becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -8359,13 +8278,10 @@ class FunctionExpressionInvocation extends Expression {
     return element;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_function)
-      ..add(_argumentList);
+    ..add(_function)
+    ..add(_argumentList);
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -8380,7 +8296,7 @@ class FunctionExpressionInvocation extends Expression {
    * [expression].
    */
   void set function(Expression expression) {
-    _function = becomeParentOf(expression);
+    _function = _becomeParentOf(expression);
   }
 
   @override
@@ -8436,23 +8352,24 @@ class FunctionTypeAlias extends TypeAlias {
    * type parameters.
    */
   FunctionTypeAlias(Comment comment, List<Annotation> metadata, Token keyword,
-      TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters,
-      FormalParameterList parameters, Token semicolon)
+      TypeName returnType, SimpleIdentifier name,
+      TypeParameterList typeParameters, FormalParameterList parameters,
+      Token semicolon)
       : super(comment, metadata, keyword, semicolon) {
-    _returnType = becomeParentOf(returnType);
-    _name = becomeParentOf(name);
-    _typeParameters = becomeParentOf(typeParameters);
-    _parameters = becomeParentOf(parameters);
+    _returnType = _becomeParentOf(returnType);
+    _name = _becomeParentOf(name);
+    _typeParameters = _becomeParentOf(typeParameters);
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(keyword)
-      ..add(_returnType)
-      ..add(_name)
-      ..add(_typeParameters)
-      ..add(_parameters)
-      ..add(semicolon);
+    ..add(typedefKeyword)
+    ..add(_returnType)
+    ..add(_name)
+    ..add(_typeParameters)
+    ..add(_parameters)
+    ..add(semicolon);
 
   @override
   FunctionTypeAliasElement get element =>
@@ -8467,7 +8384,7 @@ class FunctionTypeAlias extends TypeAlias {
    * Set the name of the function type being declared to the given [name].
    */
   void set name(SimpleIdentifier name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   /**
@@ -8480,7 +8397,7 @@ class FunctionTypeAlias extends TypeAlias {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters) {
-    _parameters = becomeParentOf(parameters);
+    _parameters = _becomeParentOf(parameters);
   }
 
   /**
@@ -8494,7 +8411,7 @@ class FunctionTypeAlias extends TypeAlias {
    * given [typeName].
    */
   void set returnType(TypeName typeName) {
-    _returnType = becomeParentOf(typeName);
+    _returnType = _becomeParentOf(typeName);
   }
 
   /**
@@ -8508,7 +8425,7 @@ class FunctionTypeAlias extends TypeAlias {
    * [typeParameters].
    */
   void set typeParameters(TypeParameterList typeParameters) {
-    _typeParameters = becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf(typeParameters);
   }
 
   @override
@@ -8552,8 +8469,8 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
       TypeName returnType, SimpleIdentifier identifier,
       FormalParameterList parameters)
       : super(comment, metadata, identifier) {
-    _returnType = becomeParentOf(returnType);
-    _parameters = becomeParentOf(parameters);
+    _returnType = _becomeParentOf(returnType);
+    _parameters = _becomeParentOf(parameters);
   }
 
   @override
@@ -8564,14 +8481,11 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
     return identifier.beginToken;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => super._childEntities
-      ..add(_returnType)
-      ..add(identifier)
-      ..add(parameters);
+    ..add(_returnType)
+    ..add(identifier)
+    ..add(parameters);
 
   @override
   Token get endToken => _parameters.endToken;
@@ -8592,7 +8506,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters) {
-    _parameters = becomeParentOf(parameters);
+    _parameters = _becomeParentOf(parameters);
   }
 
   /**
@@ -8605,7 +8519,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * Set the return type of the function to the given [type].
    */
   void set returnType(TypeName type) {
-    _returnType = becomeParentOf(type);
+    _returnType = _becomeParentOf(type);
   }
 
   @override
@@ -8926,8 +8840,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitPropertyAccess(PropertyAccess node) => visitExpression(node);
 
   @override
-  R
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) =>
+  R visitRedirectingConstructorInvocation(
+          RedirectingConstructorInvocation node) =>
       visitConstructorInitializer(node);
 
   @override
@@ -9038,8 +8952,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitYieldStatement(YieldStatement node) => visitStatement(node);
 }
 
-class GeneralizingAstVisitor_BreadthFirstVisitor extends
-    GeneralizingAstVisitor<Object> {
+class GeneralizingAstVisitor_BreadthFirstVisitor
+    extends GeneralizingAstVisitor<Object> {
   final BreadthFirstVisitor BreadthFirstVisitor_this;
 
   GeneralizingAstVisitor_BreadthFirstVisitor(this.BreadthFirstVisitor_this)
@@ -9075,8 +8989,8 @@ class HideCombinator extends Combinator {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..addAll(_hiddenNames);
+    ..add(keyword)
+    ..addAll(_hiddenNames);
 
   @override
   Token get endToken => _hiddenNames.endToken;
@@ -9196,9 +9110,9 @@ class IfStatement extends Statement {
   IfStatement(this.ifKeyword, this.leftParenthesis, Expression condition,
       this.rightParenthesis, Statement thenStatement, this.elseKeyword,
       Statement elseStatement) {
-    _condition = becomeParentOf(condition);
-    _thenStatement = becomeParentOf(thenStatement);
-    _elseStatement = becomeParentOf(elseStatement);
+    _condition = _becomeParentOf(condition);
+    _thenStatement = _becomeParentOf(thenStatement);
+    _elseStatement = _becomeParentOf(elseStatement);
   }
 
   @override
@@ -9206,13 +9120,13 @@ class IfStatement extends Statement {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(ifKeyword)
-      ..add(leftParenthesis)
-      ..add(_condition)
-      ..add(rightParenthesis)
-      ..add(_thenStatement)
-      ..add(elseKeyword)
-      ..add(_elseStatement);
+    ..add(ifKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
+    ..add(_thenStatement)
+    ..add(elseKeyword)
+    ..add(_elseStatement);
 
   /**
    * Return the condition used to determine which of the statements is executed
@@ -9225,7 +9139,7 @@ class IfStatement extends Statement {
    * next to the given [expression].
    */
   void set condition(Expression expression) {
-    _condition = becomeParentOf(expression);
+    _condition = _becomeParentOf(expression);
   }
 
   /**
@@ -9239,7 +9153,7 @@ class IfStatement extends Statement {
    * to the given [statement].
    */
   void set elseStatement(Statement statement) {
-    _elseStatement = becomeParentOf(statement);
+    _elseStatement = _becomeParentOf(statement);
   }
 
   @override
@@ -9260,7 +9174,7 @@ class IfStatement extends Statement {
    * the given [statement].
    */
   void set thenStatement(Statement statement) {
-    _thenStatement = becomeParentOf(statement);
+    _thenStatement = _becomeParentOf(statement);
   }
 
   @override
@@ -9284,7 +9198,7 @@ class ImplementsClause extends AstNode {
   /**
    * The token representing the 'implements' keyword.
    */
-  Token keyword;
+  Token implementsKeyword;
 
   /**
    * The interfaces that are being implemented.
@@ -9294,20 +9208,20 @@ class ImplementsClause extends AstNode {
   /**
    * Initialize a newly created implements clause.
    */
-  ImplementsClause(this.keyword, List<TypeName> interfaces) {
+  ImplementsClause(this.implementsKeyword, List<TypeName> interfaces) {
     _interfaces = new NodeList<TypeName>(this, interfaces);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => implementsKeyword;
 
   /**
    * TODO(paulberry): add commas.
    */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..addAll(interfaces);
+    ..add(implementsKeyword)
+    ..addAll(interfaces);
 
   @override
   Token get endToken => _interfaces.endToken;
@@ -9316,6 +9230,20 @@ class ImplementsClause extends AstNode {
    * Return the list of the interfaces that are being implemented.
    */
   NodeList<TypeName> get interfaces => _interfaces;
+
+  /**
+   * Return the token representing the 'implements' keyword.
+   */
+  @deprecated // Use "this.implementsKeyword"
+  Token get keyword => implementsKeyword;
+
+  /**
+   * Set the token representing the 'implements' keyword to the given [token].
+   */
+  @deprecated // Use "this.implementsKeyword"
+  set keyword(Token token) {
+    implementsKeyword = token;
+  }
 
   @override
   accept(AstVisitor visitor) => visitor.visitImplementsClause(this);
@@ -9334,8 +9262,8 @@ class ImplementsClause extends AstNode {
  * >   | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
  */
 class ImportDirective extends NamespaceDirective {
-  static Comparator<ImportDirective> COMPARATOR =
-      (ImportDirective import1, ImportDirective import2) {
+  static Comparator<ImportDirective> COMPARATOR = (ImportDirective import1,
+      ImportDirective import2) {
     //
     // uri
     //
@@ -9429,16 +9357,16 @@ class ImportDirective extends NamespaceDirective {
   };
 
   /**
-   * The token representing the 'deferred' token, or `null` if the imported is
+   * The token representing the 'deferred' keyword, or `null` if the imported is
    * not deferred.
    */
-  Token deferredToken;
+  Token deferredKeyword;
 
   /**
-   * The token representing the 'as' token, or `null` if the imported names are
+   * The token representing the 'as' keyword, or `null` if the imported names are
    * not prefixed.
    */
-  Token asToken;
+  Token asKeyword;
 
   /**
    * The prefix to be used with the imported names, or `null` if the imported
@@ -9449,26 +9377,56 @@ class ImportDirective extends NamespaceDirective {
   /**
    * Initialize a newly created import directive. Either or both of the
    * [comment] and [metadata] can be `null` if the function does not have the
-   * corresponding attribute. The [deferredToken] can be `null` if the import is
-   * not deferred. The [asToken] and [prefix] can be `null` if the import does
-   * not specify a prefix. The list of [combinators] can be `null` if there are
-   * no combinators.
+   * corresponding attribute. The [deferredKeyword] can be `null` if the import
+   * is not deferred. The [asKeyword] and [prefix] can be `null` if the import
+   * does not specify a prefix. The list of [combinators] can be `null` if there
+   * are no combinators.
    */
   ImportDirective(Comment comment, List<Annotation> metadata, Token keyword,
-      StringLiteral libraryUri, this.deferredToken, this.asToken,
+      StringLiteral libraryUri, this.deferredKeyword, this.asKeyword,
       SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon)
       : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
-    _prefix = becomeParentOf(prefix);
+    _prefix = _becomeParentOf(prefix);
+  }
+
+  /**
+   * The token representing the 'as' token, or `null` if the imported names are
+   * not prefixed.
+   */
+  @deprecated // Use "this.asKeyword"
+  Token get asToken => asKeyword;
+
+  /**
+   * The token representing the 'as' token to the given token.
+   */
+  @deprecated // Use "this.asKeyword"
+  set asToken(Token token) {
+    asKeyword = token;
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(_uri)
-      ..add(deferredToken)
-      ..add(asToken)
-      ..add(_prefix)
-      ..addAll(combinators)
-      ..add(semicolon);
+    ..add(_uri)
+    ..add(deferredKeyword)
+    ..add(asKeyword)
+    ..add(_prefix)
+    ..addAll(combinators)
+    ..add(semicolon);
+
+  /**
+   * Return the token representing the 'deferred' token, or `null` if the
+   * imported is not deferred.
+   */
+  @deprecated // Use "this.deferredKeyword"
+  Token get deferredToken => deferredKeyword;
+
+  /**
+   * Set the token representing the 'deferred' token to the given token.
+   */
+  @deprecated // Use "this.deferredKeyword"
+  set deferredToken(Token token) {
+    deferredKeyword = token;
+  }
 
   @override
   ImportElement get element => super.element as ImportElement;
@@ -9483,7 +9441,7 @@ class ImportDirective extends NamespaceDirective {
    * Set the prefix to be used with the imported names to the given [identifier].
    */
   void set prefix(SimpleIdentifier identifier) {
-    _prefix = becomeParentOf(identifier);
+    _prefix = _becomeParentOf(identifier);
   }
 
   @override
@@ -9541,48 +9499,37 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   Annotation visitAnnotation(Annotation node) {
-    Annotation copy = new Annotation(
-        _mapToken(node.atSign),
-        _cloneNode(node.name),
-        _mapToken(node.period),
-        _cloneNode(node.constructorName),
-        _cloneNode(node.arguments));
+    Annotation copy = new Annotation(_mapToken(node.atSign),
+        _cloneNode(node.name), _mapToken(node.period),
+        _cloneNode(node.constructorName), _cloneNode(node.arguments));
     copy.element = node.element;
     return copy;
   }
 
   @override
-  ArgumentList visitArgumentList(ArgumentList node) =>
-      new ArgumentList(
-          _mapToken(node.leftParenthesis),
-          _cloneNodeList(node.arguments),
-          _mapToken(node.rightParenthesis));
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(
+      _mapToken(node.leftParenthesis), _cloneNodeList(node.arguments),
+      _mapToken(node.rightParenthesis));
 
   @override
   AsExpression visitAsExpression(AsExpression node) {
-    AsExpression copy = new AsExpression(
-        _cloneNode(node.expression),
-        _mapToken(node.asOperator),
-        _cloneNode(node.type));
+    AsExpression copy = new AsExpression(_cloneNode(node.expression),
+        _mapToken(node.asOperator), _cloneNode(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   @override
-  AstNode visitAssertStatement(AssertStatement node) =>
-      new AssertStatement(
-          _mapToken(node.keyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.condition),
-          _mapToken(node.rightParenthesis),
-          _mapToken(node.semicolon));
+  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(
+      _mapToken(node.assertKeyword), _mapToken(node.leftParenthesis),
+      _cloneNode(node.condition), _mapToken(node.rightParenthesis),
+      _mapToken(node.semicolon));
 
   @override
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression copy = new AssignmentExpression(
-        _cloneNode(node.leftHandSide),
-        _mapToken(node.operator),
+        _cloneNode(node.leftHandSide), _mapToken(node.operator),
         _cloneNode(node.rightHandSide));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
@@ -9593,14 +9540,13 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   AwaitExpression visitAwaitExpression(AwaitExpression node) =>
-      new AwaitExpression(_mapToken(node.awaitKeyword), _cloneNode(node.expression));
+      new AwaitExpression(
+          _mapToken(node.awaitKeyword), _cloneNode(node.expression));
 
   @override
   BinaryExpression visitBinaryExpression(BinaryExpression node) {
-    BinaryExpression copy = new BinaryExpression(
-        _cloneNode(node.leftOperand),
-        _mapToken(node.operator),
-        _cloneNode(node.rightOperand));
+    BinaryExpression copy = new BinaryExpression(_cloneNode(node.leftOperand),
+        _mapToken(node.operator), _cloneNode(node.rightOperand));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -9609,18 +9555,13 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  Block visitBlock(Block node) =>
-      new Block(
-          _mapToken(node.leftBracket),
-          _cloneNodeList(node.statements),
-          _mapToken(node.rightBracket));
+  Block visitBlock(Block node) => new Block(_mapToken(node.leftBracket),
+      _cloneNodeList(node.statements), _mapToken(node.rightBracket));
 
   @override
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) =>
-      new BlockFunctionBody(
-          _mapToken(node.keyword),
-          _mapToken(node.star),
-          _cloneNode(node.block));
+  BlockFunctionBody visitBlockFunctionBody(
+      BlockFunctionBody node) => new BlockFunctionBody(
+      _mapToken(node.keyword), _mapToken(node.star), _cloneNode(node.block));
 
   @override
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) {
@@ -9632,75 +9573,54 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  BreakStatement visitBreakStatement(BreakStatement node) =>
-      new BreakStatement(
-          _mapToken(node.keyword),
-          _cloneNode(node.label),
-          _mapToken(node.semicolon));
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(
+      _mapToken(node.breakKeyword), _cloneNode(node.label),
+      _mapToken(node.semicolon));
 
   @override
   CascadeExpression visitCascadeExpression(CascadeExpression node) {
     CascadeExpression copy = new CascadeExpression(
-        _cloneNode(node.target),
-        _cloneNodeList(node.cascadeSections));
+        _cloneNode(node.target), _cloneNodeList(node.cascadeSections));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   @override
-  CatchClause visitCatchClause(CatchClause node) =>
-      new CatchClause(
-          _mapToken(node.onKeyword),
-          _cloneNode(node.exceptionType),
-          _mapToken(node.catchKeyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.exceptionParameter),
-          _mapToken(node.comma),
-          _cloneNode(node.stackTraceParameter),
-          _mapToken(node.rightParenthesis),
-          _cloneNode(node.body));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause(
+      _mapToken(node.onKeyword), _cloneNode(node.exceptionType),
+      _mapToken(node.catchKeyword), _mapToken(node.leftParenthesis),
+      _cloneNode(node.exceptionParameter), _mapToken(node.comma),
+      _cloneNode(node.stackTraceParameter), _mapToken(node.rightParenthesis),
+      _cloneNode(node.body));
 
   @override
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration copy = new ClassDeclaration(
-        _cloneNode(node.documentationComment),
-        _cloneNodeList(node.metadata),
-        _mapToken(node.abstractKeyword),
-        _mapToken(node.classKeyword),
-        _cloneNode(node.name),
-        _cloneNode(node.typeParameters),
-        _cloneNode(node.extendsClause),
-        _cloneNode(node.withClause),
-        _cloneNode(node.implementsClause),
-        _mapToken(node.leftBracket),
-        _cloneNodeList(node.members),
-        _mapToken(node.rightBracket));
+        _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+        _mapToken(node.abstractKeyword), _mapToken(node.classKeyword),
+        _cloneNode(node.name), _cloneNode(node.typeParameters),
+        _cloneNode(node.extendsClause), _cloneNode(node.withClause),
+        _cloneNode(node.implementsClause), _mapToken(node.leftBracket),
+        _cloneNodeList(node.members), _mapToken(node.rightBracket));
     copy.nativeClause = _cloneNode(node.nativeClause);
     return copy;
   }
 
   @override
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) =>
-      new ClassTypeAlias(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.name),
-          _cloneNode(node.typeParameters),
-          _mapToken(node.equals),
-          _mapToken(node.abstractKeyword),
-          _cloneNode(node.superclass),
-          _cloneNode(node.withClause),
-          _cloneNode(node.implementsClause),
-          _mapToken(node.semicolon));
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(
+      _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+      _mapToken(node.typedefKeyword), _cloneNode(node.name),
+      _cloneNode(node.typeParameters), _mapToken(node.equals),
+      _mapToken(node.abstractKeyword), _cloneNode(node.superclass),
+      _cloneNode(node.withClause), _cloneNode(node.implementsClause),
+      _mapToken(node.semicolon));
 
   @override
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
       return Comment.createDocumentationCommentWithReferences(
-          _mapTokens(node.tokens),
-          _cloneNodeList(node.references));
+          _mapTokens(node.tokens), _cloneNodeList(node.references));
     } else if (node.isBlock) {
       return Comment.createBlockComment(_mapTokens(node.tokens));
     }
@@ -9709,16 +9629,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   CommentReference visitCommentReference(CommentReference node) =>
-      new CommentReference(_mapToken(node.newKeyword), _cloneNode(node.identifier));
+      new CommentReference(
+          _mapToken(node.newKeyword), _cloneNode(node.identifier));
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit copy = new CompilationUnit(
-        _mapToken(node.beginToken),
-        _cloneNode(node.scriptTag),
-        _cloneNodeList(node.directives),
-        _cloneNodeList(node.declarations),
-        _mapToken(node.endToken));
+    CompilationUnit copy = new CompilationUnit(_mapToken(node.beginToken),
+        _cloneNode(node.scriptTag), _cloneNodeList(node.directives),
+        _cloneNodeList(node.declarations), _mapToken(node.endToken));
     copy.lineInfo = node.lineInfo;
     copy.element = node.element;
     return copy;
@@ -9727,10 +9645,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression copy = new ConditionalExpression(
-        _cloneNode(node.condition),
-        _mapToken(node.question),
-        _cloneNode(node.thenExpression),
-        _mapToken(node.colon),
+        _cloneNode(node.condition), _mapToken(node.question),
+        _cloneNode(node.thenExpression), _mapToken(node.colon),
         _cloneNode(node.elseExpression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -9738,81 +9654,58 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  ConstructorDeclaration
-      visitConstructorDeclaration(ConstructorDeclaration node) {
+  ConstructorDeclaration visitConstructorDeclaration(
+      ConstructorDeclaration node) {
     ConstructorDeclaration copy = new ConstructorDeclaration(
-        _cloneNode(node.documentationComment),
-        _cloneNodeList(node.metadata),
-        _mapToken(node.externalKeyword),
-        _mapToken(node.constKeyword),
-        _mapToken(node.factoryKeyword),
-        _cloneNode(node.returnType),
-        _mapToken(node.period),
-        _cloneNode(node.name),
-        _cloneNode(node.parameters),
-        _mapToken(node.separator),
+        _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+        _mapToken(node.externalKeyword), _mapToken(node.constKeyword),
+        _mapToken(node.factoryKeyword), _cloneNode(node.returnType),
+        _mapToken(node.period), _cloneNode(node.name),
+        _cloneNode(node.parameters), _mapToken(node.separator),
         _cloneNodeList(node.initializers),
-        _cloneNode(node.redirectedConstructor),
-        _cloneNode(node.body));
+        _cloneNode(node.redirectedConstructor), _cloneNode(node.body));
     copy.element = node.element;
     return copy;
   }
 
   @override
-  ConstructorFieldInitializer
-      visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
-      new ConstructorFieldInitializer(
-          _mapToken(node.keyword),
-          _mapToken(node.period),
-          _cloneNode(node.fieldName),
-          _mapToken(node.equals),
-          _cloneNode(node.expression));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(
+      ConstructorFieldInitializer node) => new ConstructorFieldInitializer(
+      _mapToken(node.thisKeyword), _mapToken(node.period),
+      _cloneNode(node.fieldName), _mapToken(node.equals),
+      _cloneNode(node.expression));
 
   @override
   ConstructorName visitConstructorName(ConstructorName node) {
     ConstructorName copy = new ConstructorName(
-        _cloneNode(node.type),
-        _mapToken(node.period),
-        _cloneNode(node.name));
+        _cloneNode(node.type), _mapToken(node.period), _cloneNode(node.name));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
   @override
   ContinueStatement visitContinueStatement(ContinueStatement node) =>
-      new ContinueStatement(
-          _mapToken(node.keyword),
-          _cloneNode(node.label),
-          _mapToken(node.semicolon));
+      new ContinueStatement(_mapToken(node.continueKeyword),
+          _cloneNode(node.label), _mapToken(node.semicolon));
 
   @override
   DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) =>
-      new DeclaredIdentifier(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.type),
-          _cloneNode(node.identifier));
+      new DeclaredIdentifier(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.keyword),
+          _cloneNode(node.type), _cloneNode(node.identifier));
 
   @override
-  DefaultFormalParameter
-      visitDefaultFormalParameter(DefaultFormalParameter node) =>
-      new DefaultFormalParameter(
-          _cloneNode(node.parameter),
-          node.kind,
-          _mapToken(node.separator),
-          _cloneNode(node.defaultValue));
+  DefaultFormalParameter visitDefaultFormalParameter(
+      DefaultFormalParameter node) => new DefaultFormalParameter(
+      _cloneNode(node.parameter), node.kind, _mapToken(node.separator),
+      _cloneNode(node.defaultValue));
 
   @override
-  DoStatement visitDoStatement(DoStatement node) =>
-      new DoStatement(
-          _mapToken(node.doKeyword),
-          _cloneNode(node.body),
-          _mapToken(node.whileKeyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.condition),
-          _mapToken(node.rightParenthesis),
-          _mapToken(node.semicolon));
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement(
+      _mapToken(node.doKeyword), _cloneNode(node.body),
+      _mapToken(node.whileKeyword), _mapToken(node.leftParenthesis),
+      _cloneNode(node.condition), _mapToken(node.rightParenthesis),
+      _mapToken(node.semicolon));
 
   @override
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
@@ -9832,141 +9725,102 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   AstNode visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
-      new EnumConstantDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _cloneNode(node.name));
+      new EnumConstantDeclaration(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _cloneNode(node.name));
 
   @override
-  AstNode visitEnumDeclaration(EnumDeclaration node) =>
-      new EnumDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.name),
-          _mapToken(node.leftBracket),
-          _cloneNodeList(node.constants),
-          _mapToken(node.rightBracket));
+  AstNode visitEnumDeclaration(EnumDeclaration node) => new EnumDeclaration(
+      _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+      _mapToken(node.enumKeyword), _cloneNode(node.name),
+      _mapToken(node.leftBracket), _cloneNodeList(node.constants),
+      _mapToken(node.rightBracket));
 
   @override
   ExportDirective visitExportDirective(ExportDirective node) {
     ExportDirective copy = new ExportDirective(
-        _cloneNode(node.documentationComment),
-        _cloneNodeList(node.metadata),
-        _mapToken(node.keyword),
-        _cloneNode(node.uri),
-        _cloneNodeList(node.combinators),
-        _mapToken(node.semicolon));
+        _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+        _mapToken(node.keyword), _cloneNode(node.uri),
+        _cloneNodeList(node.combinators), _mapToken(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
   @override
-  ExpressionFunctionBody
-      visitExpressionFunctionBody(ExpressionFunctionBody node) =>
-      new ExpressionFunctionBody(
-          _mapToken(node.keyword),
-          _mapToken(node.functionDefinition),
-          _cloneNode(node.expression),
-          _mapToken(node.semicolon));
+  ExpressionFunctionBody visitExpressionFunctionBody(
+      ExpressionFunctionBody node) => new ExpressionFunctionBody(
+      _mapToken(node.keyword), _mapToken(node.functionDefinition),
+      _cloneNode(node.expression), _mapToken(node.semicolon));
 
   @override
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) =>
-      new ExpressionStatement(_cloneNode(node.expression), _mapToken(node.semicolon));
+      new ExpressionStatement(
+          _cloneNode(node.expression), _mapToken(node.semicolon));
 
   @override
-  ExtendsClause visitExtendsClause(ExtendsClause node) =>
-      new ExtendsClause(_mapToken(node.keyword), _cloneNode(node.superclass));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(
+      _mapToken(node.extendsKeyword), _cloneNode(node.superclass));
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
-      new FieldDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.staticKeyword),
-          _cloneNode(node.fields),
-          _mapToken(node.semicolon));
+      new FieldDeclaration(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.staticKeyword),
+          _cloneNode(node.fields), _mapToken(node.semicolon));
 
   @override
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) =>
-      new FieldFormalParameter(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.type),
-          _mapToken(node.thisToken),
-          _mapToken(node.period),
-          _cloneNode(node.identifier),
+      new FieldFormalParameter(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.keyword),
+          _cloneNode(node.type), _mapToken(node.thisKeyword),
+          _mapToken(node.period), _cloneNode(node.identifier),
           _cloneNode(node.parameters));
 
   @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(
-          _mapToken(node.awaitKeyword),
-          _mapToken(node.forKeyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.identifier),
-          _mapToken(node.inKeyword),
-          _cloneNode(node.iterable),
-          _mapToken(node.rightParenthesis),
+      return new ForEachStatement.con2(_mapToken(node.awaitKeyword),
+          _mapToken(node.forKeyword), _mapToken(node.leftParenthesis),
+          _cloneNode(node.identifier), _mapToken(node.inKeyword),
+          _cloneNode(node.iterable), _mapToken(node.rightParenthesis),
           _cloneNode(node.body));
     }
-    return new ForEachStatement.con1(
-        _mapToken(node.awaitKeyword),
-        _mapToken(node.forKeyword),
-        _mapToken(node.leftParenthesis),
-        _cloneNode(loopVariable),
-        _mapToken(node.inKeyword),
-        _cloneNode(node.iterable),
-        _mapToken(node.rightParenthesis),
+    return new ForEachStatement.con1(_mapToken(node.awaitKeyword),
+        _mapToken(node.forKeyword), _mapToken(node.leftParenthesis),
+        _cloneNode(loopVariable), _mapToken(node.inKeyword),
+        _cloneNode(node.iterable), _mapToken(node.rightParenthesis),
         _cloneNode(node.body));
   }
 
   @override
   FormalParameterList visitFormalParameterList(FormalParameterList node) =>
-      new FormalParameterList(
-          _mapToken(node.leftParenthesis),
-          _cloneNodeList(node.parameters),
-          _mapToken(node.leftDelimiter),
-          _mapToken(node.rightDelimiter),
-          _mapToken(node.rightParenthesis));
+      new FormalParameterList(_mapToken(node.leftParenthesis),
+          _cloneNodeList(node.parameters), _mapToken(node.leftDelimiter),
+          _mapToken(node.rightDelimiter), _mapToken(node.rightParenthesis));
 
   @override
-  ForStatement visitForStatement(ForStatement node) =>
-      new ForStatement(
-          _mapToken(node.forKeyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.variables),
-          _cloneNode(node.initialization),
-          _mapToken(node.leftSeparator),
-          _cloneNode(node.condition),
-          _mapToken(node.rightSeparator),
-          _cloneNodeList(node.updaters),
-          _mapToken(node.rightParenthesis),
-          _cloneNode(node.body));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement(
+      _mapToken(node.forKeyword), _mapToken(node.leftParenthesis),
+      _cloneNode(node.variables), _cloneNode(node.initialization),
+      _mapToken(node.leftSeparator), _cloneNode(node.condition),
+      _mapToken(node.rightSeparator), _cloneNodeList(node.updaters),
+      _mapToken(node.rightParenthesis), _cloneNode(node.body));
 
   @override
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) =>
-      new FunctionDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.externalKeyword),
-          _cloneNode(node.returnType),
-          _mapToken(node.propertyKeyword),
-          _cloneNode(node.name),
-          _cloneNode(node.functionExpression));
+      new FunctionDeclaration(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.externalKeyword),
+          _cloneNode(node.returnType), _mapToken(node.propertyKeyword),
+          _cloneNode(node.name), _cloneNode(node.functionExpression));
 
   @override
-  FunctionDeclarationStatement
-      visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(
+          FunctionDeclarationStatement node) =>
       new FunctionDeclarationStatement(_cloneNode(node.functionDeclaration));
 
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression copy =
-        new FunctionExpression(_cloneNode(node.parameters), _cloneNode(node.body));
+    FunctionExpression copy = new FunctionExpression(
+        _cloneNode(node.parameters), _cloneNode(node.body));
     copy.element = node.element;
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -9974,11 +9828,10 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  FunctionExpressionInvocation
-      visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
     FunctionExpressionInvocation copy = new FunctionExpressionInvocation(
-        _cloneNode(node.function),
-        _cloneNode(node.argumentList));
+        _cloneNode(node.function), _cloneNode(node.argumentList));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -9988,74 +9841,54 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) =>
-      new FunctionTypeAlias(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.returnType),
-          _cloneNode(node.name),
-          _cloneNode(node.typeParameters),
-          _cloneNode(node.parameters),
+      new FunctionTypeAlias(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.typedefKeyword),
+          _cloneNode(node.returnType), _cloneNode(node.name),
+          _cloneNode(node.typeParameters), _cloneNode(node.parameters),
           _mapToken(node.semicolon));
 
   @override
-  FunctionTypedFormalParameter
-      visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      new FunctionTypedFormalParameter(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _cloneNode(node.returnType),
-          _cloneNode(node.identifier),
-          _cloneNode(node.parameters));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(
+      FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(
+      _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+      _cloneNode(node.returnType), _cloneNode(node.identifier),
+      _cloneNode(node.parameters));
 
   @override
-  HideCombinator visitHideCombinator(HideCombinator node) =>
-      new HideCombinator(_mapToken(node.keyword), _cloneNodeList(node.hiddenNames));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(
+      _mapToken(node.keyword), _cloneNodeList(node.hiddenNames));
 
   @override
-  IfStatement visitIfStatement(IfStatement node) =>
-      new IfStatement(
-          _mapToken(node.ifKeyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.condition),
-          _mapToken(node.rightParenthesis),
-          _cloneNode(node.thenStatement),
-          _mapToken(node.elseKeyword),
-          _cloneNode(node.elseStatement));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement(
+      _mapToken(node.ifKeyword), _mapToken(node.leftParenthesis),
+      _cloneNode(node.condition), _mapToken(node.rightParenthesis),
+      _cloneNode(node.thenStatement), _mapToken(node.elseKeyword),
+      _cloneNode(node.elseStatement));
 
   @override
   ImplementsClause visitImplementsClause(ImplementsClause node) =>
-      new ImplementsClause(_mapToken(node.keyword), _cloneNodeList(node.interfaces));
+      new ImplementsClause(
+          _mapToken(node.implementsKeyword), _cloneNodeList(node.interfaces));
 
   @override
   ImportDirective visitImportDirective(ImportDirective node) =>
-      new ImportDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.uri),
-          _mapToken(node.deferredToken),
-          _mapToken(node.asToken),
-          _cloneNode(node.prefix),
-          _cloneNodeList(node.combinators),
-          _mapToken(node.semicolon));
+      new ImportDirective(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.keyword),
+          _cloneNode(node.uri), _mapToken(node.deferredKeyword),
+          _mapToken(node.asKeyword), _cloneNode(node.prefix),
+          _cloneNodeList(node.combinators), _mapToken(node.semicolon));
 
   @override
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = _mapToken(node.period);
     IndexExpression copy;
     if (period == null) {
-      copy = new IndexExpression.forTarget(
-          _cloneNode(node.target),
-          _mapToken(node.leftBracket),
-          _cloneNode(node.index),
+      copy = new IndexExpression.forTarget(_cloneNode(node.target),
+          _mapToken(node.leftBracket), _cloneNode(node.index),
           _mapToken(node.rightBracket));
     } else {
-      copy = new IndexExpression.forCascade(
-          period,
-          _mapToken(node.leftBracket),
-          _cloneNode(node.index),
-          _mapToken(node.rightBracket));
+      copy = new IndexExpression.forCascade(period, _mapToken(node.leftBracket),
+          _cloneNode(node.index), _mapToken(node.rightBracket));
     }
     copy.auxiliaryElements = node.auxiliaryElements;
     copy.propagatedElement = node.propagatedElement;
@@ -10066,11 +9899,10 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  InstanceCreationExpression
-      visitInstanceCreationExpression(InstanceCreationExpression node) {
+  InstanceCreationExpression visitInstanceCreationExpression(
+      InstanceCreationExpression node) {
     InstanceCreationExpression copy = new InstanceCreationExpression(
-        _mapToken(node.keyword),
-        _cloneNode(node.constructorName),
+        _mapToken(node.keyword), _cloneNode(node.constructorName),
         _cloneNode(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -10088,12 +9920,10 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  InterpolationExpression
-      visitInterpolationExpression(InterpolationExpression node) =>
-      new InterpolationExpression(
-          _mapToken(node.leftBracket),
-          _cloneNode(node.expression),
-          _mapToken(node.rightBracket));
+  InterpolationExpression visitInterpolationExpression(
+      InterpolationExpression node) => new InterpolationExpression(
+      _mapToken(node.leftBracket), _cloneNode(node.expression),
+      _mapToken(node.rightBracket));
 
   @override
   InterpolationString visitInterpolationString(InterpolationString node) =>
@@ -10101,10 +9931,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   IsExpression visitIsExpression(IsExpression node) {
-    IsExpression copy = new IsExpression(
-        _cloneNode(node.expression),
-        _mapToken(node.isOperator),
-        _mapToken(node.notOperator),
+    IsExpression copy = new IsExpression(_cloneNode(node.expression),
+        _mapToken(node.isOperator), _mapToken(node.notOperator),
         _cloneNode(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -10117,16 +9945,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   LabeledStatement visitLabeledStatement(LabeledStatement node) =>
-      new LabeledStatement(_cloneNodeList(node.labels), _cloneNode(node.statement));
+      new LabeledStatement(
+          _cloneNodeList(node.labels), _cloneNode(node.statement));
 
   @override
   LibraryDirective visitLibraryDirective(LibraryDirective node) =>
-      new LibraryDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.libraryToken),
-          _cloneNode(node.name),
-          _mapToken(node.semicolon));
+      new LibraryDirective(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.libraryKeyword),
+          _cloneNode(node.name), _mapToken(node.semicolon));
 
   @override
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
@@ -10139,12 +9965,9 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   ListLiteral visitListLiteral(ListLiteral node) {
-    ListLiteral copy = new ListLiteral(
-        _mapToken(node.constKeyword),
-        _cloneNode(node.typeArguments),
-        _mapToken(node.leftBracket),
-        _cloneNodeList(node.elements),
-        _mapToken(node.rightBracket));
+    ListLiteral copy = new ListLiteral(_mapToken(node.constKeyword),
+        _cloneNode(node.typeArguments), _mapToken(node.leftBracket),
+        _cloneNodeList(node.elements), _mapToken(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
@@ -10152,44 +9975,32 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   MapLiteral visitMapLiteral(MapLiteral node) {
-    MapLiteral copy = new MapLiteral(
-        _mapToken(node.constKeyword),
-        _cloneNode(node.typeArguments),
-        _mapToken(node.leftBracket),
-        _cloneNodeList(node.entries),
-        _mapToken(node.rightBracket));
+    MapLiteral copy = new MapLiteral(_mapToken(node.constKeyword),
+        _cloneNode(node.typeArguments), _mapToken(node.leftBracket),
+        _cloneNodeList(node.entries), _mapToken(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   @override
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
-      new MapLiteralEntry(
-          _cloneNode(node.key),
-          _mapToken(node.separator),
-          _cloneNode(node.value));
+  MapLiteralEntry visitMapLiteralEntry(
+      MapLiteralEntry node) => new MapLiteralEntry(
+      _cloneNode(node.key), _mapToken(node.separator), _cloneNode(node.value));
 
   @override
   MethodDeclaration visitMethodDeclaration(MethodDeclaration node) =>
-      new MethodDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.externalKeyword),
-          _mapToken(node.modifierKeyword),
-          _cloneNode(node.returnType),
-          _mapToken(node.propertyKeyword),
-          _mapToken(node.operatorKeyword),
-          _cloneNode(node.name),
-          _cloneNode(node.parameters),
+      new MethodDeclaration(_cloneNode(node.documentationComment),
+          _cloneNodeList(node.metadata), _mapToken(node.externalKeyword),
+          _mapToken(node.modifierKeyword), _cloneNode(node.returnType),
+          _mapToken(node.propertyKeyword), _mapToken(node.operatorKeyword),
+          _cloneNode(node.name), _cloneNode(node.parameters),
           _cloneNode(node.body));
 
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) {
-    MethodInvocation copy = new MethodInvocation(
-        _cloneNode(node.target),
-        _mapToken(node.period),
-        _cloneNode(node.methodName),
+    MethodInvocation copy = new MethodInvocation(_cloneNode(node.target),
+        _mapToken(node.period), _cloneNode(node.methodName),
         _cloneNode(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -10207,14 +10018,12 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   AstNode visitNativeClause(NativeClause node) =>
-      new NativeClause(_mapToken(node.keyword), _cloneNode(node.name));
+      new NativeClause(_mapToken(node.nativeKeyword), _cloneNode(node.name));
 
   @override
   NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) =>
-      new NativeFunctionBody(
-          _mapToken(node.nativeToken),
-          _cloneNode(node.stringLiteral),
-          _mapToken(node.semicolon));
+      new NativeFunctionBody(_mapToken(node.nativeKeyword),
+          _cloneNode(node.stringLiteral), _mapToken(node.semicolon));
 
   @override
   NullLiteral visitNullLiteral(NullLiteral node) {
@@ -10225,11 +10034,10 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  ParenthesizedExpression
-      visitParenthesizedExpression(ParenthesizedExpression node) {
+  ParenthesizedExpression visitParenthesizedExpression(
+      ParenthesizedExpression node) {
     ParenthesizedExpression copy = new ParenthesizedExpression(
-        _mapToken(node.leftParenthesis),
-        _cloneNode(node.expression),
+        _mapToken(node.leftParenthesis), _cloneNode(node.expression),
         _mapToken(node.rightParenthesis));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -10239,10 +10047,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   PartDirective visitPartDirective(PartDirective node) {
     PartDirective copy = new PartDirective(
-        _cloneNode(node.documentationComment),
-        _cloneNodeList(node.metadata),
-        _mapToken(node.partToken),
-        _cloneNode(node.uri),
+        _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+        _mapToken(node.partKeyword), _cloneNode(node.uri),
         _mapToken(node.semicolon));
     copy.element = node.element;
     return copy;
@@ -10251,20 +10057,17 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   PartOfDirective visitPartOfDirective(PartOfDirective node) {
     PartOfDirective copy = new PartOfDirective(
-        _cloneNode(node.documentationComment),
-        _cloneNodeList(node.metadata),
-        _mapToken(node.partToken),
-        _mapToken(node.ofToken),
-        _cloneNode(node.libraryName),
-        _mapToken(node.semicolon));
+        _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+        _mapToken(node.partKeyword), _mapToken(node.ofKeyword),
+        _cloneNode(node.libraryName), _mapToken(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
   @override
   PostfixExpression visitPostfixExpression(PostfixExpression node) {
-    PostfixExpression copy =
-        new PostfixExpression(_cloneNode(node.operand), _mapToken(node.operator));
+    PostfixExpression copy = new PostfixExpression(
+        _cloneNode(node.operand), _mapToken(node.operator));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -10274,10 +10077,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifier copy = new PrefixedIdentifier(
-        _cloneNode(node.prefix),
-        _mapToken(node.period),
-        _cloneNode(node.identifier));
+    PrefixedIdentifier copy = new PrefixedIdentifier(_cloneNode(node.prefix),
+        _mapToken(node.period), _cloneNode(node.identifier));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
@@ -10285,8 +10086,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   PrefixExpression visitPrefixExpression(PrefixExpression node) {
-    PrefixExpression copy =
-        new PrefixExpression(_mapToken(node.operator), _cloneNode(node.operand));
+    PrefixExpression copy = new PrefixExpression(
+        _mapToken(node.operator), _cloneNode(node.operand));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -10296,23 +10097,19 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   PropertyAccess visitPropertyAccess(PropertyAccess node) {
-    PropertyAccess copy = new PropertyAccess(
-        _cloneNode(node.target),
-        _mapToken(node.operator),
-        _cloneNode(node.propertyName));
+    PropertyAccess copy = new PropertyAccess(_cloneNode(node.target),
+        _mapToken(node.operator), _cloneNode(node.propertyName));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   @override
-  RedirectingConstructorInvocation
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation copy =
-        new RedirectingConstructorInvocation(
-            _mapToken(node.keyword),
-            _mapToken(node.period),
-            _cloneNode(node.constructorName),
+        new RedirectingConstructorInvocation(_mapToken(node.thisKeyword),
+            _mapToken(node.period), _cloneNode(node.constructorName),
             _cloneNode(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
@@ -10320,7 +10117,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   RethrowExpression visitRethrowExpression(RethrowExpression node) {
-    RethrowExpression copy = new RethrowExpression(_mapToken(node.keyword));
+    RethrowExpression copy =
+        new RethrowExpression(_mapToken(node.rethrowKeyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
@@ -10328,28 +10126,23 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   ReturnStatement visitReturnStatement(ReturnStatement node) =>
-      new ReturnStatement(
-          _mapToken(node.keyword),
-          _cloneNode(node.expression),
-          _mapToken(node.semicolon));
+      new ReturnStatement(_mapToken(node.returnKeyword),
+          _cloneNode(node.expression), _mapToken(node.semicolon));
 
   @override
   ScriptTag visitScriptTag(ScriptTag node) =>
       new ScriptTag(_mapToken(node.scriptTag));
 
   @override
-  ShowCombinator visitShowCombinator(ShowCombinator node) =>
-      new ShowCombinator(_mapToken(node.keyword), _cloneNodeList(node.shownNames));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(
+      _mapToken(node.keyword), _cloneNodeList(node.shownNames));
 
   @override
-  SimpleFormalParameter
-      visitSimpleFormalParameter(SimpleFormalParameter node) =>
-      new SimpleFormalParameter(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.type),
-          _cloneNode(node.identifier));
+  SimpleFormalParameter visitSimpleFormalParameter(
+      SimpleFormalParameter node) => new SimpleFormalParameter(
+      _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+      _mapToken(node.keyword), _cloneNode(node.type),
+      _cloneNode(node.identifier));
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
@@ -10390,57 +10183,45 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  SuperConstructorInvocation
-      visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  SuperConstructorInvocation visitSuperConstructorInvocation(
+      SuperConstructorInvocation node) {
     SuperConstructorInvocation copy = new SuperConstructorInvocation(
-        _mapToken(node.keyword),
-        _mapToken(node.period),
-        _cloneNode(node.constructorName),
-        _cloneNode(node.argumentList));
+        _mapToken(node.superKeyword), _mapToken(node.period),
+        _cloneNode(node.constructorName), _cloneNode(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
   @override
   SuperExpression visitSuperExpression(SuperExpression node) {
-    SuperExpression copy = new SuperExpression(_mapToken(node.keyword));
+    SuperExpression copy = new SuperExpression(_mapToken(node.superKeyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   @override
-  SwitchCase visitSwitchCase(SwitchCase node) =>
-      new SwitchCase(
-          _cloneNodeList(node.labels),
-          _mapToken(node.keyword),
-          _cloneNode(node.expression),
-          _mapToken(node.colon),
-          _cloneNodeList(node.statements));
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(
+      _cloneNodeList(node.labels), _mapToken(node.keyword),
+      _cloneNode(node.expression), _mapToken(node.colon),
+      _cloneNodeList(node.statements));
 
   @override
-  SwitchDefault visitSwitchDefault(SwitchDefault node) =>
-      new SwitchDefault(
-          _cloneNodeList(node.labels),
-          _mapToken(node.keyword),
-          _mapToken(node.colon),
-          _cloneNodeList(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(
+      _cloneNodeList(node.labels), _mapToken(node.keyword),
+      _mapToken(node.colon), _cloneNodeList(node.statements));
 
   @override
   SwitchStatement visitSwitchStatement(SwitchStatement node) =>
-      new SwitchStatement(
-          _mapToken(node.keyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.expression),
-          _mapToken(node.rightParenthesis),
-          _mapToken(node.leftBracket),
-          _cloneNodeList(node.members),
-          _mapToken(node.rightBracket));
+      new SwitchStatement(_mapToken(node.switchKeyword),
+          _mapToken(node.leftParenthesis), _cloneNode(node.expression),
+          _mapToken(node.rightParenthesis), _mapToken(node.leftBracket),
+          _cloneNodeList(node.members), _mapToken(node.rightBracket));
 
   @override
   AstNode visitSymbolLiteral(SymbolLiteral node) {
-    SymbolLiteral copy =
-        new SymbolLiteral(_mapToken(node.poundSign), _mapTokens(node.components));
+    SymbolLiteral copy = new SymbolLiteral(
+        _mapToken(node.poundSign), _mapTokens(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
@@ -10448,7 +10229,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   ThisExpression visitThisExpression(ThisExpression node) {
-    ThisExpression copy = new ThisExpression(_mapToken(node.keyword));
+    ThisExpression copy = new ThisExpression(_mapToken(node.thisKeyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
@@ -10456,37 +10237,29 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   ThrowExpression visitThrowExpression(ThrowExpression node) {
-    ThrowExpression copy =
-        new ThrowExpression(_mapToken(node.keyword), _cloneNode(node.expression));
+    ThrowExpression copy = new ThrowExpression(
+        _mapToken(node.throwKeyword), _cloneNode(node.expression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   @override
-  TopLevelVariableDeclaration
-      visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
-      new TopLevelVariableDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _cloneNode(node.variables),
-          _mapToken(node.semicolon));
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(
+      TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(
+      _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+      _cloneNode(node.variables), _mapToken(node.semicolon));
 
   @override
-  TryStatement visitTryStatement(TryStatement node) =>
-      new TryStatement(
-          _mapToken(node.tryKeyword),
-          _cloneNode(node.body),
-          _cloneNodeList(node.catchClauses),
-          _mapToken(node.finallyKeyword),
-          _cloneNode(node.finallyBlock));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement(
+      _mapToken(node.tryKeyword), _cloneNode(node.body),
+      _cloneNodeList(node.catchClauses), _mapToken(node.finallyKeyword),
+      _cloneNode(node.finallyBlock));
 
   @override
   TypeArgumentList visitTypeArgumentList(TypeArgumentList node) =>
-      new TypeArgumentList(
-          _mapToken(node.leftBracket),
-          _cloneNodeList(node.arguments),
-          _mapToken(node.rightBracket));
+      new TypeArgumentList(_mapToken(node.leftBracket),
+          _cloneNodeList(node.arguments), _mapToken(node.rightBracket));
 
   @override
   TypeName visitTypeName(TypeName node) {
@@ -10497,67 +10270,47 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  TypeParameter visitTypeParameter(TypeParameter node) =>
-      new TypeParameter(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _cloneNode(node.name),
-          _mapToken(node.keyword),
-          _cloneNode(node.bound));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(
+      _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
+      _cloneNode(node.name), _mapToken(node.extendsKeyword),
+      _cloneNode(node.bound));
 
   @override
   TypeParameterList visitTypeParameterList(TypeParameterList node) =>
-      new TypeParameterList(
-          _mapToken(node.leftBracket),
-          _cloneNodeList(node.typeParameters),
-          _mapToken(node.rightBracket));
+      new TypeParameterList(_mapToken(node.leftBracket),
+          _cloneNodeList(node.typeParameters), _mapToken(node.rightBracket));
 
   @override
   VariableDeclaration visitVariableDeclaration(VariableDeclaration node) =>
-      new VariableDeclaration(
-          null,
-          _cloneNodeList(node.metadata),
-          _cloneNode(node.name),
-          _mapToken(node.equals),
+      new VariableDeclaration(null, _cloneNodeList(node.metadata),
+          _cloneNode(node.name), _mapToken(node.equals),
           _cloneNode(node.initializer));
 
   @override
-  VariableDeclarationList
-      visitVariableDeclarationList(VariableDeclarationList node) =>
-      new VariableDeclarationList(
-          null,
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.type),
-          _cloneNodeList(node.variables));
+  VariableDeclarationList visitVariableDeclarationList(
+      VariableDeclarationList node) => new VariableDeclarationList(null,
+      _cloneNodeList(node.metadata), _mapToken(node.keyword),
+      _cloneNode(node.type), _cloneNodeList(node.variables));
 
   @override
-  VariableDeclarationStatement
-      visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
-      new VariableDeclarationStatement(
-          _cloneNode(node.variables),
-          _mapToken(node.semicolon));
+  VariableDeclarationStatement visitVariableDeclarationStatement(
+      VariableDeclarationStatement node) => new VariableDeclarationStatement(
+      _cloneNode(node.variables), _mapToken(node.semicolon));
 
   @override
-  WhileStatement visitWhileStatement(WhileStatement node) =>
-      new WhileStatement(
-          _mapToken(node.keyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.condition),
-          _mapToken(node.rightParenthesis),
-          _cloneNode(node.body));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(
+      _mapToken(node.whileKeyword), _mapToken(node.leftParenthesis),
+      _cloneNode(node.condition), _mapToken(node.rightParenthesis),
+      _cloneNode(node.body));
 
   @override
-  WithClause visitWithClause(WithClause node) =>
-      new WithClause(_mapToken(node.withKeyword), _cloneNodeList(node.mixinTypes));
+  WithClause visitWithClause(WithClause node) => new WithClause(
+      _mapToken(node.withKeyword), _cloneNodeList(node.mixinTypes));
 
   @override
-  YieldStatement visitYieldStatement(YieldStatement node) =>
-      new YieldStatement(
-          _mapToken(node.yieldKeyword),
-          _mapToken(node.star),
-          _cloneNode(node.expression),
-          _mapToken(node.semicolon));
+  YieldStatement visitYieldStatement(YieldStatement node) => new YieldStatement(
+      _mapToken(node.yieldKeyword), _mapToken(node.star),
+      _cloneNode(node.expression), _mapToken(node.semicolon));
 
   AstNode _cloneNode(AstNode node) {
     if (node == null) {
@@ -10652,9 +10405,9 @@ class IndexExpression extends Expression {
   /**
    * Initialize a newly created index expression.
    */
-  IndexExpression.forCascade(this.period, this.leftBracket, Expression index,
-      this.rightBracket) {
-    _index = becomeParentOf(index);
+  IndexExpression.forCascade(
+      this.period, this.leftBracket, Expression index, this.rightBracket) {
+    _index = _becomeParentOf(index);
   }
 
   /**
@@ -10662,8 +10415,8 @@ class IndexExpression extends Expression {
    */
   IndexExpression.forTarget(Expression target, this.leftBracket,
       Expression index, this.rightBracket) {
-    _target = becomeParentOf(target);
-    _index = becomeParentOf(index);
+    _target = _becomeParentOf(target);
+    _index = _becomeParentOf(index);
   }
 
   @override
@@ -10689,16 +10442,13 @@ class IndexExpression extends Expression {
     return element;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_target)
-      ..add(period)
-      ..add(leftBracket)
-      ..add(_index)
-      ..add(rightBracket);
+    ..add(_target)
+    ..add(period)
+    ..add(leftBracket)
+    ..add(_index)
+    ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket;
@@ -10712,7 +10462,7 @@ class IndexExpression extends Expression {
    * Set the expression used to compute the index to the given [expression].
    */
   void set index(Expression expression) {
-    _index = becomeParentOf(expression);
+    _index = _becomeParentOf(expression);
   }
 
   @override
@@ -10733,19 +10483,10 @@ class IndexExpression extends Expression {
    * known based on propagated type information, then return the parameter
    * element representing the parameter to which the value of the index
    * expression will be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.propagatedParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement get propagatedParameterElementForIndex {
-    if (propagatedElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = propagatedElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
+    return _propagatedParameterElementForIndex;
   }
 
   /**
@@ -10773,19 +10514,10 @@ class IndexExpression extends Expression {
    * known based on static type information, then return the parameter element
    * representing the parameter to which the value of the index expression will
    * be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.staticParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement get staticParameterElementForIndex {
-    if (staticElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
+    return _staticParameterElementForIndex;
   }
 
   /**
@@ -10802,7 +10534,41 @@ class IndexExpression extends Expression {
    * [expression].
    */
   void set target(Expression expression) {
-    _target = becomeParentOf(expression);
+    _target = _becomeParentOf(expression);
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on propagated type information, then return the parameter
+   * element representing the parameter to which the value of the index
+   * expression will be bound. Otherwise, return `null`.
+   */
+  ParameterElement get _propagatedParameterElementForIndex {
+    if (propagatedElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = propagatedElement.parameters;
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on static type information, then return the parameter element
+   * representing the parameter to which the value of the index expression will
+   * be bound. Otherwise, return `null`.
+   */
+  ParameterElement get _staticParameterElementForIndex {
+    if (staticElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = staticElement.parameters;
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
   }
 
   @override
@@ -10818,6 +10584,7 @@ class IndexExpression extends Expression {
    * methods to return `true` when invoked on the same node.
    */
   bool inGetterContext() {
+    // TODO(brianwilkerson) Convert this to a getter.
     AstNode parent = this.parent;
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
@@ -10839,6 +10606,7 @@ class IndexExpression extends Expression {
    * methods to return `true` when invoked on the same node.
    */
   bool inSetterContext() {
+    // TODO(brianwilkerson) Convert this to a getter.
     AstNode parent = this.parent;
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
@@ -10865,7 +10633,8 @@ class IndexExpression extends Expression {
  */
 class InstanceCreationExpression extends Expression {
   /**
-   * The keyword used to indicate how an object should be created.
+   * The 'new' or 'const' keyword used to indicate how an object should be
+   * created.
    */
   Token keyword;
 
@@ -10896,8 +10665,8 @@ class InstanceCreationExpression extends Expression {
    */
   InstanceCreationExpression(this.keyword, ConstructorName constructorName,
       ArgumentList argumentList) {
-    _constructorName = becomeParentOf(constructorName);
-    _argumentList = becomeParentOf(argumentList);
+    _constructorName = _becomeParentOf(constructorName);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   /**
@@ -10909,7 +10678,7 @@ class InstanceCreationExpression extends Expression {
    * Set the list of arguments to the constructor to the given [argumentList].
    */
   void set argumentList(ArgumentList argumentList) {
-    _argumentList = becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -10917,9 +10686,9 @@ class InstanceCreationExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(_constructorName)
-      ..add(_argumentList);
+    ..add(keyword)
+    ..add(_constructorName)
+    ..add(_argumentList);
 
   /**
    * Return the name of the constructor to be invoked.
@@ -10930,7 +10699,7 @@ class InstanceCreationExpression extends Expression {
    * Set the name of the constructor to be invoked to the given [name].
    */
   void set constructorName(ConstructorName name) {
-    _constructorName = becomeParentOf(name);
+    _constructorName = _becomeParentOf(name);
   }
 
   @override
@@ -10940,8 +10709,8 @@ class InstanceCreationExpression extends Expression {
    * Return `true` if this creation expression is used to invoke a constant
    * constructor.
    */
-  bool get isConst =>
-      keyword is KeywordToken && (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => keyword is KeywordToken &&
+      (keyword as KeywordToken).keyword == Keyword.CONST;
 
   @override
   int get precedence => 16;
@@ -10989,9 +10758,6 @@ class IntegerLiteral extends Literal {
   @override
   Token get beginToken => literal;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(literal);
 
@@ -11014,8 +10780,7 @@ class IntegerLiteral extends Literal {
  * >     [InterpolationExpression]
  * >   | [InterpolationString]
  */
-abstract class InterpolationElement extends AstNode {
-}
+abstract class InterpolationElement extends AstNode {}
 
 /**
  * An expression embedded in a string interpolation.
@@ -11046,9 +10811,9 @@ class InterpolationExpression extends InterpolationElement {
   /**
    * Initialize a newly created interpolation expression.
    */
-  InterpolationExpression(this.leftBracket, Expression expression,
-      this.rightBracket) {
-    _expression = becomeParentOf(expression);
+  InterpolationExpression(
+      this.leftBracket, Expression expression, this.rightBracket) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -11056,9 +10821,9 @@ class InterpolationExpression extends InterpolationElement {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(leftBracket)
-      ..add(_expression)
-      ..add(rightBracket);
+    ..add(leftBracket)
+    ..add(_expression)
+    ..add(rightBracket);
 
   @override
   Token get endToken {
@@ -11079,7 +10844,7 @@ class InterpolationExpression extends InterpolationElement {
    * string to the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -11119,9 +10884,6 @@ class InterpolationString extends InterpolationElement {
   @override
   Token get beginToken => contents;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(contents);
 
@@ -11177,8 +10939,7 @@ class InterpolationString extends InterpolationElement {
   accept(AstVisitor visitor) => visitor.visitInterpolationString(this);
 
   @override
-  void visitChildren(AstVisitor visitor) {
-  }
+  void visitChildren(AstVisitor visitor) {}
 }
 
 /**
@@ -11212,10 +10973,10 @@ class IsExpression extends Expression {
    * Initialize a newly created is expression. The [notOperator] can be `null`
    * if the sense of the test is not negated.
    */
-  IsExpression(Expression expression, this.isOperator, this.notOperator,
-      TypeName type) {
-    _expression = becomeParentOf(expression);
-    _type = becomeParentOf(type);
+  IsExpression(
+      Expression expression, this.isOperator, this.notOperator, TypeName type) {
+    _expression = _becomeParentOf(expression);
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -11223,10 +10984,10 @@ class IsExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_expression)
-      ..add(isOperator)
-      ..add(notOperator)
-      ..add(_type);
+    ..add(_expression)
+    ..add(isOperator)
+    ..add(notOperator)
+    ..add(_type);
 
   @override
   Token get endToken => _type.endToken;
@@ -11241,7 +11002,7 @@ class IsExpression extends Expression {
    * the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -11256,7 +11017,7 @@ class IsExpression extends Expression {
    * Set the name of the type being tested for to the given [name].
    */
   void set type(TypeName name) {
-    _type = becomeParentOf(name);
+    _type = _becomeParentOf(name);
   }
 
   @override
@@ -11290,19 +11051,16 @@ class Label extends AstNode {
    * Initialize a newly created label.
    */
   Label(SimpleIdentifier label, this.colon) {
-    _label = becomeParentOf(label);
+    _label = _becomeParentOf(label);
   }
 
   @override
   Token get beginToken => _label.beginToken;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_label)
-      ..add(colon);
+    ..add(_label)
+    ..add(colon);
 
   @override
   Token get endToken => colon;
@@ -11316,7 +11074,7 @@ class Label extends AstNode {
    * Set the label being associated with the statement to the given [label].
    */
   void set label(SimpleIdentifier label) {
-    _label = becomeParentOf(label);
+    _label = _becomeParentOf(label);
   }
 
   @override
@@ -11350,7 +11108,7 @@ class LabeledStatement extends Statement {
    */
   LabeledStatement(List<Label> labels, Statement statement) {
     _labels = new NodeList<Label>(this, labels);
-    _statement = becomeParentOf(statement);
+    _statement = _becomeParentOf(statement);
   }
 
   @override
@@ -11361,13 +11119,10 @@ class LabeledStatement extends Statement {
     return _statement.beginToken;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..addAll(_labels)
-      ..add(_statement);
+    ..addAll(_labels)
+    ..add(_statement);
 
   @override
   Token get endToken => _statement.endToken;
@@ -11387,7 +11142,7 @@ class LabeledStatement extends Statement {
    * [statement].
    */
   void set statement(Statement statement) {
-    _statement = becomeParentOf(statement);
+    _statement = _becomeParentOf(statement);
   }
 
   @override
@@ -11411,9 +11166,9 @@ class LabeledStatement extends Statement {
  */
 class LibraryDirective extends Directive {
   /**
-   * The token representing the 'library' token.
+   * The token representing the 'library' keyword.
    */
-  Token libraryToken;
+  Token libraryKeyword;
 
   /**
    * The name of the library being defined.
@@ -11431,25 +11186,39 @@ class LibraryDirective extends Directive {
    * corresponding attribute.
    */
   LibraryDirective(Comment comment, List<Annotation> metadata,
-      this.libraryToken, LibraryIdentifier name, this.semicolon)
+      this.libraryKeyword, LibraryIdentifier name, this.semicolon)
       : super(comment, metadata) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(libraryToken)
-      ..add(_name)
-      ..add(semicolon);
+    ..add(libraryKeyword)
+    ..add(_name)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => libraryToken;
+  Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
 
   @override
-  Token get keyword => libraryToken;
+  Token get keyword => libraryKeyword;
+
+  /**
+   * Return the token representing the 'library' token.
+   */
+  @deprecated // Use "this.libraryKeyword"
+  Token get libraryToken => libraryKeyword;
+
+  /**
+   * Set the token representing the 'library' token to the given [token].
+   */
+  @deprecated // Use "this.libraryKeyword"
+  set libraryToken(Token token) {
+    libraryKeyword = token;
+  }
 
   /**
    * Return the name of the library being defined.
@@ -11460,7 +11229,7 @@ class LibraryDirective extends Directive {
    * Set the name of the library being defined to the given [name].
    */
   void set name(LibraryIdentifier name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   @override
@@ -11596,9 +11365,9 @@ class ListLiteral extends TypedLiteral {
    */
   @override
   Iterable get childEntities => super._childEntities
-      ..add(leftBracket)
-      ..addAll(_elements)
-      ..add(rightBracket);
+    ..add(leftBracket)
+    ..addAll(_elements)
+    ..add(rightBracket);
 
   /**
    * Return the expressions used to compute the elements of the list.
@@ -11682,14 +11451,13 @@ class MapLiteral extends TypedLiteral {
   }
 
   /**
-   * TODO(paulberry): untested.
    * TODO(paulberry): add commas.
    */
   @override
   Iterable get childEntities => super._childEntities
-      ..add(leftBracket)
-      ..addAll(entries)
-      ..add(rightBracket);
+    ..add(leftBracket)
+    ..addAll(entries)
+    ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket;
@@ -11735,21 +11503,18 @@ class MapLiteralEntry extends AstNode {
    * Initialize a newly created map literal entry.
    */
   MapLiteralEntry(Expression key, this.separator, Expression value) {
-    _key = becomeParentOf(key);
-    _value = becomeParentOf(value);
+    _key = _becomeParentOf(key);
+    _value = _becomeParentOf(value);
   }
 
   @override
   Token get beginToken => _key.beginToken;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_key)
-      ..add(separator)
-      ..add(_value);
+    ..add(_key)
+    ..add(separator)
+    ..add(_value);
 
   @override
   Token get endToken => _value.endToken;
@@ -11765,7 +11530,7 @@ class MapLiteralEntry extends AstNode {
    * associated to the given [string].
    */
   void set key(Expression string) {
-    _key = becomeParentOf(string);
+    _key = _becomeParentOf(string);
   }
 
   /**
@@ -11779,7 +11544,7 @@ class MapLiteralEntry extends AstNode {
    * to the given [expression].
    */
   void set value(Expression expression) {
-    _value = becomeParentOf(expression);
+    _value = _becomeParentOf(expression);
   }
 
   @override
@@ -11868,10 +11633,10 @@ class MethodDeclaration extends ClassMember {
       this.propertyKeyword, this.operatorKeyword, SimpleIdentifier name,
       FormalParameterList parameters, FunctionBody body)
       : super(comment, metadata) {
-    _returnType = becomeParentOf(returnType);
-    _name = becomeParentOf(name);
-    _parameters = becomeParentOf(parameters);
-    _body = becomeParentOf(body);
+    _returnType = _becomeParentOf(returnType);
+    _name = _becomeParentOf(name);
+    _parameters = _becomeParentOf(parameters);
+    _body = _becomeParentOf(body);
   }
 
   /**
@@ -11883,19 +11648,19 @@ class MethodDeclaration extends ClassMember {
    * Set the body of the method to the given [functionBody].
    */
   void set body(FunctionBody functionBody) {
-    _body = becomeParentOf(functionBody);
+    _body = _becomeParentOf(functionBody);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(externalKeyword)
-      ..add(modifierKeyword)
-      ..add(_returnType)
-      ..add(propertyKeyword)
-      ..add(operatorKeyword)
-      ..add(_name)
-      ..add(_parameters)
-      ..add(_body);
+    ..add(externalKeyword)
+    ..add(modifierKeyword)
+    ..add(_returnType)
+    ..add(propertyKeyword)
+    ..add(operatorKeyword)
+    ..add(_name)
+    ..add(_parameters)
+    ..add(_body);
 
   /**
    * Return the element associated with this method, or `null` if the AST
@@ -11928,15 +11693,17 @@ class MethodDeclaration extends ClassMember {
   /**
    * Return `true` if this method is declared to be an abstract method.
    */
-  bool get isAbstract =>
-      externalKeyword == null && (_body is EmptyFunctionBody);
+  bool get isAbstract {
+    FunctionBody body = _body;
+    return externalKeyword == null &&
+        (body is EmptyFunctionBody && !body.semicolon.isSynthetic);
+  }
 
   /**
    * Return `true` if this method declares a getter.
    */
-  bool get isGetter =>
-      propertyKeyword != null &&
-          (propertyKeyword as KeywordToken).keyword == Keyword.GET;
+  bool get isGetter => propertyKeyword != null &&
+      (propertyKeyword as KeywordToken).keyword == Keyword.GET;
 
   /**
    * Return `true` if this method declares an operator.
@@ -11946,16 +11713,14 @@ class MethodDeclaration extends ClassMember {
   /**
    * Return `true` if this method declares a setter.
    */
-  bool get isSetter =>
-      propertyKeyword != null &&
-          (propertyKeyword as KeywordToken).keyword == Keyword.SET;
+  bool get isSetter => propertyKeyword != null &&
+      (propertyKeyword as KeywordToken).keyword == Keyword.SET;
 
   /**
    * Return `true` if this method is declared to be a static method.
    */
-  bool get isStatic =>
-      modifierKeyword != null &&
-          (modifierKeyword as KeywordToken).keyword == Keyword.STATIC;
+  bool get isStatic => modifierKeyword != null &&
+      (modifierKeyword as KeywordToken).keyword == Keyword.STATIC;
 
   /**
    * Return the name of the method.
@@ -11966,7 +11731,7 @@ class MethodDeclaration extends ClassMember {
    * Set the name of the method to the given [identifier].
    */
   void set name(SimpleIdentifier identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   /**
@@ -11980,7 +11745,7 @@ class MethodDeclaration extends ClassMember {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters) {
-    _parameters = becomeParentOf(parameters);
+    _parameters = _becomeParentOf(parameters);
   }
 
   /**
@@ -11993,7 +11758,7 @@ class MethodDeclaration extends ClassMember {
    * Set the return type of the method to the given [typeName].
    */
   void set returnType(TypeName typeName) {
-    _returnType = becomeParentOf(typeName);
+    _returnType = _becomeParentOf(typeName);
   }
 
   @override
@@ -12047,9 +11812,9 @@ class MethodInvocation extends Expression {
    */
   MethodInvocation(Expression target, this.period, SimpleIdentifier methodName,
       ArgumentList argumentList) {
-    _target = becomeParentOf(target);
-    _methodName = becomeParentOf(methodName);
-    _argumentList = becomeParentOf(argumentList);
+    _target = _becomeParentOf(target);
+    _methodName = _becomeParentOf(methodName);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   /**
@@ -12061,7 +11826,7 @@ class MethodInvocation extends Expression {
    * Set the list of arguments to the method to the given [argumentList].
    */
   void set argumentList(ArgumentList argumentList) {
-    _argumentList = becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -12076,10 +11841,10 @@ class MethodInvocation extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_target)
-      ..add(period)
-      ..add(_methodName)
-      ..add(_argumentList);
+    ..add(_target)
+    ..add(period)
+    ..add(_methodName)
+    ..add(_argumentList);
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -12101,7 +11866,7 @@ class MethodInvocation extends Expression {
    * Set the name of the method being invoked to the given [identifier].
    */
   void set methodName(SimpleIdentifier identifier) {
-    _methodName = becomeParentOf(identifier);
+    _methodName = _becomeParentOf(identifier);
   }
 
   @override
@@ -12142,7 +11907,7 @@ class MethodInvocation extends Expression {
    * the given [expression].
    */
   void set target(Expression expression) {
-    _target = becomeParentOf(expression);
+    _target = _becomeParentOf(expression);
   }
 
   @override
@@ -12178,8 +11943,8 @@ class NamedExpression extends Expression {
    * Initialize a newly created named expression..
    */
   NamedExpression(Label name, Expression expression) {
-    _name = becomeParentOf(name);
-    _expression = becomeParentOf(expression);
+    _name = _becomeParentOf(name);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -12187,8 +11952,8 @@ class NamedExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_name)
-      ..add(_expression);
+    ..add(_name)
+    ..add(_expression);
 
   /**
    * Return the element representing the parameter being named by this
@@ -12216,7 +11981,7 @@ class NamedExpression extends Expression {
    * [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   /**
@@ -12228,7 +11993,7 @@ class NamedExpression extends Expression {
    * Set the name associated with the expression to the given [identifier].
    */
   void set name(Label identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   @override
@@ -12304,7 +12069,7 @@ class NativeClause extends AstNode {
   /**
    * The token representing the 'native' keyword.
    */
-  Token keyword;
+  Token nativeKeyword;
 
   /**
    * The name of the native object that implements the class.
@@ -12314,23 +12079,34 @@ class NativeClause extends AstNode {
   /**
    * Initialize a newly created native clause.
    */
-  NativeClause(this.keyword, StringLiteral name) {
-    _name = becomeParentOf(name);
+  NativeClause(this.nativeKeyword, StringLiteral name) {
+    _name = _becomeParentOf(name);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => nativeKeyword;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(_name);
+    ..add(nativeKeyword)
+    ..add(_name);
 
   @override
   Token get endToken => _name.endToken;
+
+  /**
+   * Get the token representing the 'native' keyword.
+   */
+  @deprecated // Use "this.nativeKeyword"
+  Token get keyword => nativeKeyword;
+
+  /**
+   * Set the token representing the 'native' keyword to the given [token].
+   */
+  @deprecated // Use "this.nativeKeyword"
+  set keyword(Token token) {
+    nativeKeyword = token;
+  }
 
   /**
    * Return the name of the native object that implements the class.
@@ -12342,7 +12118,7 @@ class NativeClause extends AstNode {
    * [name].
    */
   void set name(StringLiteral name) {
-    _name = becomeParentOf(name);
+    _name = _becomeParentOf(name);
   }
 
   @override
@@ -12365,7 +12141,7 @@ class NativeFunctionBody extends FunctionBody {
   /**
    * The token representing 'native' that marks the start of the function body.
    */
-  Token nativeToken;
+  Token nativeKeyword;
 
   /**
    * The string literal, after the 'native' token.
@@ -12382,25 +12158,38 @@ class NativeFunctionBody extends FunctionBody {
    * Initialize a newly created function body consisting of the 'native' token,
    * a string literal, and a semicolon.
    */
-  NativeFunctionBody(this.nativeToken, StringLiteral stringLiteral,
-      this.semicolon) {
-    _stringLiteral = becomeParentOf(stringLiteral);
+  NativeFunctionBody(
+      this.nativeKeyword, StringLiteral stringLiteral, this.semicolon) {
+    _stringLiteral = _becomeParentOf(stringLiteral);
   }
 
   @override
-  Token get beginToken => nativeToken;
+  Token get beginToken => nativeKeyword;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(nativeToken)
-      ..add(_stringLiteral)
-      ..add(semicolon);
+    ..add(nativeKeyword)
+    ..add(_stringLiteral)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
+
+  /**
+   * Return the token representing 'native' that marks the start of the function
+   * body.
+   */
+  @deprecated // Use "this.nativeKeyword"
+  Token get nativeToken => nativeKeyword;
+
+  /**
+   * Set the token representing 'native' that marks the start of the function
+   * body to the given [token].
+   */
+  @deprecated // Use "this.nativeKeyword"
+  set nativeToken(Token token) {
+    nativeKeyword = token;
+  }
 
   /**
    * Return the string literal representing the string after the 'native' token.
@@ -12412,7 +12201,7 @@ class NativeFunctionBody extends FunctionBody {
    * the given [stringLiteral].
    */
   void set stringLiteral(StringLiteral stringLiteral) {
-    _stringLiteral = becomeParentOf(stringLiteral);
+    _stringLiteral = _becomeParentOf(stringLiteral);
   }
 
   @override
@@ -12472,7 +12261,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
 
   int get length => _elements.length;
 
-  @deprecated
+  @deprecated // Never intended for public use.
   void set length(int value) {
     throw new UnsupportedError("Cannot resize NodeList.");
   }
@@ -12488,7 +12277,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     if (index < 0 || index >= _elements.length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
-    owner.becomeParentOf(node);
+    owner._becomeParentOf(node);
     _elements[index] = node;
   }
 
@@ -12512,7 +12301,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     if (nodes != null && !nodes.isEmpty) {
       _elements.addAll(nodes);
       for (E node in nodes) {
-        owner.becomeParentOf(node);
+        owner._becomeParentOf(node);
       }
       return true;
     }
@@ -12530,7 +12319,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     if (index < 0 || index > length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
-    owner.becomeParentOf(node);
+    owner._becomeParentOf(node);
     if (length == 0) {
       _elements.add(node);
     } else {
@@ -12550,10 +12339,8 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
 
   /**
    * Create an empty list with the given [owner].
-   *
-   * Use "new NodeList<E>(owner)"
    */
-  @deprecated
+  @deprecated // Use "new NodeList<E>(owner)"
   static NodeList create(AstNode owner) => new NodeList(owner);
 }
 
@@ -12655,8 +12442,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
  * An exception used by [NodeLocator] to cancel visiting after a node has been
  * found.
  */
-class NodeLocator_NodeFoundException extends RuntimeException {
-}
+class NodeLocator_NodeFoundException extends RuntimeException {}
 
 /**
  * An object that will replace one child node in an AST node with another node.
@@ -13527,8 +13313,8 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
-  bool
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  bool visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as SimpleIdentifier;
       return true;
@@ -13852,11 +13638,11 @@ abstract class NormalFormalParameter extends FormalParameter {
    * [comment] and [metadata] can be `null` if the parameter does not have the
    * corresponding attribute.
    */
-  NormalFormalParameter(Comment comment, List<Annotation> metadata,
-      SimpleIdentifier identifier) {
-    _comment = becomeParentOf(comment);
+  NormalFormalParameter(
+      Comment comment, List<Annotation> metadata, SimpleIdentifier identifier) {
+    _comment = _becomeParentOf(comment);
     _metadata = new NodeList<Annotation>(this, metadata);
-    _identifier = becomeParentOf(identifier);
+    _identifier = _becomeParentOf(identifier);
   }
 
   /**
@@ -13870,7 +13656,7 @@ abstract class NormalFormalParameter extends FormalParameter {
    * [comment].
    */
   void set documentationComment(Comment comment) {
-    _comment = becomeParentOf(comment);
+    _comment = _becomeParentOf(comment);
   }
 
   @override
@@ -13880,7 +13666,7 @@ abstract class NormalFormalParameter extends FormalParameter {
    * Set the name of the parameter being declared to the given [identifier].
    */
   void set identifier(SimpleIdentifier identifier) {
-    _identifier = becomeParentOf(identifier);
+    _identifier = _becomeParentOf(identifier);
   }
 
   @override
@@ -13911,17 +13697,17 @@ abstract class NormalFormalParameter extends FormalParameter {
    */
   List<AstNode> get sortedCommentAndAnnotations {
     return <AstNode>[]
-        ..add(_comment)
-        ..addAll(_metadata)
-        ..sort(AstNode.LEXICAL_ORDER);
+      ..add(_comment)
+      ..addAll(_metadata)
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 
   ChildEntities get _childEntities {
     ChildEntities result = new ChildEntities();
     if (_commentIsBeforeAnnotations()) {
       result
-          ..add(_comment)
-          ..addAll(_metadata);
+        ..add(_comment)
+        ..addAll(_metadata);
     } else {
       result.addAll(sortedCommentAndAnnotations);
     }
@@ -13976,9 +13762,6 @@ class NullLiteral extends Literal {
   @override
   Token get beginToken => literal;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(literal);
 
@@ -14019,9 +13802,9 @@ class ParenthesizedExpression extends Expression {
   /**
    * Initialize a newly created parenthesized expression.
    */
-  ParenthesizedExpression(this.leftParenthesis, Expression expression,
-      this.rightParenthesis) {
-    _expression = becomeParentOf(expression);
+  ParenthesizedExpression(
+      this.leftParenthesis, Expression expression, this.rightParenthesis) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -14029,9 +13812,9 @@ class ParenthesizedExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(leftParenthesis)
-      ..add(_expression)
-      ..add(rightParenthesis);
+    ..add(leftParenthesis)
+    ..add(_expression)
+    ..add(rightParenthesis);
 
   @override
   Token get endToken => rightParenthesis;
@@ -14045,7 +13828,7 @@ class ParenthesizedExpression extends Expression {
    * Set the expression within the parentheses to the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -14068,9 +13851,9 @@ class ParenthesizedExpression extends Expression {
  */
 class PartDirective extends UriBasedDirective {
   /**
-   * The token representing the 'part' token.
+   * The token representing the 'part' keyword.
    */
-  Token partToken;
+  Token partKeyword;
 
   /**
    * The semicolon terminating the directive.
@@ -14082,27 +13865,38 @@ class PartDirective extends UriBasedDirective {
    * and [metadata] can be `null` if the directive does not have the
    * corresponding attribute.
    */
-  PartDirective(Comment comment, List<Annotation> metadata, this.partToken,
+  PartDirective(Comment comment, List<Annotation> metadata, this.partKeyword,
       StringLiteral partUri, this.semicolon)
       : super(comment, metadata, partUri);
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => super._childEntities
-      ..add(partToken)
-      ..add(_uri)
-      ..add(semicolon);
+    ..add(partKeyword)
+    ..add(_uri)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => partToken;
+  Token get firstTokenAfterCommentAndMetadata => partKeyword;
 
   @override
-  Token get keyword => partToken;
+  Token get keyword => partKeyword;
+
+  /**
+   * Return the token representing the 'part' token.
+   */
+  @deprecated // Use "this.partKeyword"
+  Token get partToken => partKeyword;
+
+  /**
+   * Set the token representing the 'part' token to the given [token].
+   */
+  @deprecated // Use "this.partKeyword"
+  set partToken(Token token) {
+    partKeyword = token;
+  }
 
   @override
   CompilationUnitElement get uriElement => element as CompilationUnitElement;
@@ -14119,14 +13913,14 @@ class PartDirective extends UriBasedDirective {
  */
 class PartOfDirective extends Directive {
   /**
-   * The token representing the 'part' token.
+   * The token representing the 'part' keyword.
    */
-  Token partToken;
+  Token partKeyword;
 
   /**
-   * The token representing the 'of' token.
+   * The token representing the 'of' keyword.
    */
-  Token ofToken;
+  Token ofKeyword;
 
   /**
    * The name of the library that the containing compilation unit is part of.
@@ -14143,27 +13937,27 @@ class PartOfDirective extends Directive {
    * [comment] and [metadata] can be `null` if the directive does not have the
    * corresponding attribute.
    */
-  PartOfDirective(Comment comment, List<Annotation> metadata, this.partToken,
-      this.ofToken, LibraryIdentifier libraryName, this.semicolon)
+  PartOfDirective(Comment comment, List<Annotation> metadata, this.partKeyword,
+      this.ofKeyword, LibraryIdentifier libraryName, this.semicolon)
       : super(comment, metadata) {
-    _libraryName = becomeParentOf(libraryName);
+    _libraryName = _becomeParentOf(libraryName);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(partToken)
-      ..add(ofToken)
-      ..add(_libraryName)
-      ..add(semicolon);
+    ..add(partKeyword)
+    ..add(ofKeyword)
+    ..add(_libraryName)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => partToken;
+  Token get firstTokenAfterCommentAndMetadata => partKeyword;
 
   @override
-  Token get keyword => partToken;
+  Token get keyword => partKeyword;
 
   /**
    * Return the name of the library that the containing compilation unit is part
@@ -14176,7 +13970,35 @@ class PartOfDirective extends Directive {
    * to the given [libraryName].
    */
   void set libraryName(LibraryIdentifier libraryName) {
-    _libraryName = becomeParentOf(libraryName);
+    _libraryName = _becomeParentOf(libraryName);
+  }
+
+  /**
+   * Return the token representing the 'of' token.
+   */
+  @deprecated // Use "this.ofKeyword"
+  Token get ofToken => ofKeyword;
+
+  /**
+   * Set the token representing the 'of' token to the given [token].
+   */
+  @deprecated // Use "this.ofKeyword"
+  set ofToken(Token token) {
+    ofKeyword = token;
+  }
+
+  /**
+   * Return the token representing the 'part' token.
+   */
+  @deprecated // Use "this.partKeyword"
+  Token get partToken => partKeyword;
+
+  /**
+   * Set the token representing the 'part' token to the given [token].
+   */
+  @deprecated // Use "this.partKeyword"
+  set partToken(Token token) {
+    partKeyword = token;
   }
 
   @override
@@ -14225,7 +14047,7 @@ class PostfixExpression extends Expression {
    * Initialize a newly created postfix expression.
    */
   PostfixExpression(Expression operand, this.operator) {
-    _operand = becomeParentOf(operand);
+    _operand = _becomeParentOf(operand);
   }
 
   @override
@@ -14246,13 +14068,10 @@ class PostfixExpression extends Expression {
     return element;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_operand)
-      ..add(operator);
+    ..add(_operand)
+    ..add(operator);
 
   @override
   Token get endToken => operator;
@@ -14267,7 +14086,7 @@ class PostfixExpression extends Expression {
    * [expression].
    */
   void set operand(Expression expression) {
-    _operand = becomeParentOf(expression);
+    _operand = _becomeParentOf(expression);
   }
 
   @override
@@ -14278,11 +14097,30 @@ class PostfixExpression extends Expression {
    * known based on propagated type information, then return the parameter
    * element representing the parameter to which the value of the operand will
    * be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.propagatedParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement get propagatedParameterElementForOperand {
+    return _propagatedParameterElementForOperand;
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on static type information, then return the parameter element
+   * representing the parameter to which the value of the operand will be bound.
+   * Otherwise, return `null`.
+   */
+  @deprecated // Use "expression.propagatedParameterElement"
+  ParameterElement get staticParameterElementForOperand {
+    return _staticParameterElementForOperand;
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on propagated type information, then return the parameter
+   * element representing the parameter to which the value of the operand will
+   * be bound. Otherwise, return `null`.
+   */
+  ParameterElement get _propagatedParameterElementForOperand {
     if (propagatedElement == null) {
       return null;
     }
@@ -14298,11 +14136,8 @@ class PostfixExpression extends Expression {
    * known based on static type information, then return the parameter element
    * representing the parameter to which the value of the operand will be bound.
    * Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.staticParameterElement].
    */
-  ParameterElement get staticParameterElementForOperand {
+  ParameterElement get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
     }
@@ -14348,10 +14183,10 @@ class PrefixedIdentifier extends Identifier {
   /**
    * Initialize a newly created prefixed identifier.
    */
-  PrefixedIdentifier(SimpleIdentifier prefix, this.period,
-      SimpleIdentifier identifier) {
-    _prefix = becomeParentOf(prefix);
-    _identifier = becomeParentOf(identifier);
+  PrefixedIdentifier(
+      SimpleIdentifier prefix, this.period, SimpleIdentifier identifier) {
+    _prefix = _becomeParentOf(prefix);
+    _identifier = _becomeParentOf(identifier);
   }
 
   @override
@@ -14367,9 +14202,9 @@ class PrefixedIdentifier extends Identifier {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_prefix)
-      ..add(period)
-      ..add(_identifier);
+    ..add(_prefix)
+    ..add(period)
+    ..add(_identifier);
 
   @override
   Token get endToken => _identifier.endToken;
@@ -14383,7 +14218,7 @@ class PrefixedIdentifier extends Identifier {
    * Set the identifier being prefixed to the given [identifier].
    */
   void set identifier(SimpleIdentifier identifier) {
-    _identifier = becomeParentOf(identifier);
+    _identifier = _becomeParentOf(identifier);
   }
 
   /**
@@ -14424,7 +14259,7 @@ class PrefixedIdentifier extends Identifier {
    * defined to the given [identifier].
    */
   void set prefix(SimpleIdentifier identifier) {
-    _prefix = becomeParentOf(identifier);
+    _prefix = _becomeParentOf(identifier);
   }
 
   @override
@@ -14488,7 +14323,7 @@ class PrefixExpression extends Expression {
    * Initialize a newly created prefix expression.
    */
   PrefixExpression(this.operator, Expression operand) {
-    _operand = becomeParentOf(operand);
+    _operand = _becomeParentOf(operand);
   }
 
   @override
@@ -14511,8 +14346,8 @@ class PrefixExpression extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(operator)
-      ..add(_operand);
+    ..add(operator)
+    ..add(_operand);
 
   @override
   Token get endToken => _operand.endToken;
@@ -14527,7 +14362,7 @@ class PrefixExpression extends Expression {
    * [expression].
    */
   void set operand(Expression expression) {
-    _operand = becomeParentOf(expression);
+    _operand = _becomeParentOf(expression);
   }
 
   @override
@@ -14538,11 +14373,30 @@ class PrefixExpression extends Expression {
    * known based on propagated type information, then return the parameter
    * element representing the parameter to which the value of the operand will
    * be bound. Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.propagatedParameterElement].
    */
+  @deprecated // Use "expression.propagatedParameterElement"
   ParameterElement get propagatedParameterElementForOperand {
+    return _propagatedParameterElementForOperand;
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on static type information, then return the parameter element
+   * representing the parameter to which the value of the operand will be bound.
+   * Otherwise, return `null`.
+   */
+  @deprecated // Use "expression.propagatedParameterElement"
+  ParameterElement get staticParameterElementForOperand {
+    return _staticParameterElementForOperand;
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is
+   * known based on propagated type information, then return the parameter
+   * element representing the parameter to which the value of the operand will
+   * be bound. Otherwise, return `null`.
+   */
+  ParameterElement get _propagatedParameterElementForOperand {
     if (propagatedElement == null) {
       return null;
     }
@@ -14558,11 +14412,8 @@ class PrefixExpression extends Expression {
    * known based on static type information, then return the parameter element
    * representing the parameter to which the value of the operand will be bound.
    * Otherwise, return `null`.
-   *
-   * This method is only intended to be used by
-   * [Expression.staticParameterElement].
    */
-  ParameterElement get staticParameterElementForOperand {
+  ParameterElement get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
     }
@@ -14611,10 +14462,10 @@ class PropertyAccess extends Expression {
   /**
    * Initialize a newly created property access expression.
    */
-  PropertyAccess(Expression target, this.operator,
-      SimpleIdentifier propertyName) {
-    _target = becomeParentOf(target);
-    _propertyName = becomeParentOf(propertyName);
+  PropertyAccess(
+      Expression target, this.operator, SimpleIdentifier propertyName) {
+    _target = _becomeParentOf(target);
+    _propertyName = _becomeParentOf(propertyName);
   }
 
   @override
@@ -14627,9 +14478,9 @@ class PropertyAccess extends Expression {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_target)
-      ..add(operator)
-      ..add(_propertyName);
+    ..add(_target)
+    ..add(operator)
+    ..add(_propertyName);
 
   @override
   Token get endToken => _propertyName.endToken;
@@ -14657,7 +14508,7 @@ class PropertyAccess extends Expression {
    * Set the name of the property being accessed to the given [identifier].
    */
   void set propertyName(SimpleIdentifier identifier) {
-    _propertyName = becomeParentOf(identifier);
+    _propertyName = _becomeParentOf(identifier);
   }
 
   /**
@@ -14694,7 +14545,7 @@ class PropertyAccess extends Expression {
    * accessed to the given [expression].
    */
   void set target(Expression expression) {
-    _target = becomeParentOf(expression);
+    _target = _becomeParentOf(expression);
   }
 
   @override
@@ -15181,8 +15032,8 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  R visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     node.visitChildren(this);
     return null;
   }
@@ -15367,7 +15218,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   /**
    * The token for the 'this' keyword.
    */
-  Token keyword;
+  Token thisKeyword;
 
   /**
    * The token for the period before the name of the constructor that is being
@@ -15398,10 +15249,10 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * with the given name with the given arguments. The [constructorName] can be
    * `null` if the constructor being invoked is the unnamed constructor.
    */
-  RedirectingConstructorInvocation(this.keyword, this.period,
+  RedirectingConstructorInvocation(this.thisKeyword, this.period,
       SimpleIdentifier constructorName, ArgumentList argumentList) {
-    _constructorName = becomeParentOf(constructorName);
-    _argumentList = becomeParentOf(argumentList);
+    _constructorName = _becomeParentOf(constructorName);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   /**
@@ -15413,18 +15264,18 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * Set the list of arguments to the constructor to the given [argumentList].
    */
   void set argumentList(ArgumentList argumentList) {
-    _argumentList = becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => thisKeyword;
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(period)
-      ..add(_constructorName)
-      ..add(_argumentList);
+    ..add(thisKeyword)
+    ..add(period)
+    ..add(_constructorName)
+    ..add(_argumentList);
 
   /**
    * Return the name of the constructor that is being invoked, or `null` if the
@@ -15437,11 +15288,25 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * [identifier].
    */
   void set constructorName(SimpleIdentifier identifier) {
-    _constructorName = becomeParentOf(identifier);
+    _constructorName = _becomeParentOf(identifier);
   }
 
   @override
   Token get endToken => _argumentList.endToken;
+
+  /**
+   * Return the token for the 'this' keyword.
+   */
+  @deprecated // Use "this.thisKeyword"
+  Token get keyword => thisKeyword;
+
+  /**
+   * Set the token for the 'this' keyword to the given [token].
+   */
+  @deprecated // Use "this.thisKeyword"
+  set keyword(Token token) {
+    thisKeyword = token;
+  }
 
   @override
   accept(AstVisitor visitor) =>
@@ -15464,24 +15329,35 @@ class RethrowExpression extends Expression {
   /**
    * The token representing the 'rethrow' keyword.
    */
-  Token keyword;
+  Token rethrowKeyword;
 
   /**
    * Initialize a newly created rethrow expression.
    */
-  RethrowExpression(this.keyword);
+  RethrowExpression(this.rethrowKeyword);
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => rethrowKeyword;
+
+  @override
+  Iterable get childEntities => new ChildEntities()..add(rethrowKeyword);
+
+  @override
+  Token get endToken => rethrowKeyword;
 
   /**
-   * TODO(paulberry): untested.
+   * Return the token representing the 'rethrow' keyword.
    */
-  @override
-  Iterable get childEntities => new ChildEntities()..add(keyword);
+  @deprecated // Use "this.rethrowKeyword"
+  Token get keyword => rethrowKeyword;
 
-  @override
-  Token get endToken => keyword;
+  /**
+   * Set the token representing the 'rethrow' keyword to the given [token].
+   */
+  @deprecated // Use "this.rethrowKeyword"
+  set keyword(Token token) {
+    rethrowKeyword = token;
+  }
 
   @override
   int get precedence => 0;
@@ -15505,7 +15381,7 @@ class ReturnStatement extends Statement {
   /**
    * The token representing the 'return' keyword.
    */
-  Token keyword;
+  Token returnKeyword;
 
   /**
    * The expression computing the value to be returned, or `null` if no explicit
@@ -15522,18 +15398,18 @@ class ReturnStatement extends Statement {
    * Initialize a newly created return statement. The [expression] can be `null`
    * if no explicit value was provided.
    */
-  ReturnStatement(this.keyword, Expression expression, this.semicolon) {
-    _expression = becomeParentOf(expression);
+  ReturnStatement(this.returnKeyword, Expression expression, this.semicolon) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => returnKeyword;
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(_expression)
-      ..add(semicolon);
+    ..add(returnKeyword)
+    ..add(_expression)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -15549,7 +15425,21 @@ class ReturnStatement extends Statement {
    * [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
+  }
+
+  /**
+   * Return the token representing the 'return' keyword.
+   */
+  @deprecated // Use "this.returnKeyword"
+  Token get keyword => returnKeyword;
+
+  /**
+   * Set the token representing the 'return' keyword to the given [token].
+   */
+  @deprecated // Use "this.returnKeyword"
+  set keyword(Token token) {
+    returnKeyword = token;
   }
 
   @override
@@ -15766,9 +15656,6 @@ class ScriptTag extends AstNode {
   @override
   Token get beginToken => scriptTag;
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(scriptTag);
 
@@ -15809,8 +15696,8 @@ class ShowCombinator extends Combinator {
    */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..addAll(_shownNames);
+    ..add(keyword)
+    ..addAll(_shownNames);
 
   @override
   Token get endToken => _shownNames.endToken;
@@ -16072,9 +15959,8 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitPropertyAccess(PropertyAccess node) => null;
 
   @override
-  R
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) =>
-      null;
+  R visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) => null;
 
   @override
   R visitRethrowExpression(RethrowExpression node) => null;
@@ -16190,7 +16076,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
   SimpleFormalParameter(Comment comment, List<Annotation> metadata,
       this.keyword, TypeName type, SimpleIdentifier identifier)
       : super(comment, metadata, identifier) {
-    _type = becomeParentOf(type);
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -16206,25 +16092,22 @@ class SimpleFormalParameter extends NormalFormalParameter {
     return identifier.beginToken;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => super._childEntities
-      ..add(keyword)
-      ..add(_type)
-      ..add(identifier);
+    ..add(keyword)
+    ..add(_type)
+    ..add(identifier);
 
   @override
   Token get endToken => identifier.endToken;
 
   @override
-  bool get isConst =>
-      (keyword is KeywordToken) && (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => (keyword is KeywordToken) &&
+      (keyword as KeywordToken).keyword == Keyword.CONST;
 
   @override
-  bool get isFinal =>
-      (keyword is KeywordToken) && (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => (keyword is KeywordToken) &&
+      (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
    * Return the name of the declared type of the parameter, or `null` if the
@@ -16236,7 +16119,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * Set the name of the declared type of the parameter to the given [typeName].
    */
   void set type(TypeName typeName) {
-    _type = becomeParentOf(typeName);
+    _type = _becomeParentOf(typeName);
   }
 
   @override
@@ -16304,9 +16187,6 @@ class SimpleIdentifier extends Identifier {
     return _propagatedElement;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()..add(token);
 
@@ -16372,6 +16252,7 @@ class SimpleIdentifier extends Identifier {
    * declaration.
    */
   bool inDeclarationContext() {
+    // TODO(brianwilkerson) Convert this to a getter.
     AstNode parent = this.parent;
     if (parent is CatchClause) {
       CatchClause clause = parent;
@@ -16419,6 +16300,7 @@ class SimpleIdentifier extends Identifier {
    * methods to return `true` when invoked on the same node.
    */
   bool inGetterContext() {
+    // TODO(brianwilkerson) Convert this to a getter.
     AstNode parent = this.parent;
     AstNode target = this;
     // skip prefix
@@ -16466,6 +16348,7 @@ class SimpleIdentifier extends Identifier {
    * methods to return `true` when invoked on the same node.
    */
   bool inSetterContext() {
+    // TODO(brianwilkerson) Convert this to a getter.
     AstNode parent = this.parent;
     AstNode target = this;
     // skip prefix
@@ -16512,8 +16395,8 @@ class SimpleIdentifier extends Identifier {
    * The [isValid] is `true` if the element is appropriate.
    * The [element] is the element to be associated with this identifier.
    */
-  Element _returnOrReportElement(AstNode parent, bool isValid,
-      Element element) {
+  Element _returnOrReportElement(
+      AstNode parent, bool isValid, Element element) {
     if (!isValid) {
       AnalysisEngine.instance.logger.logInformation(
           "Internal error: attempting to set the name of a ${parent.runtimeType} to a ${element.runtimeType}",
@@ -16539,40 +16422,26 @@ class SimpleIdentifier extends Identifier {
     } else if (parent is DeclaredIdentifier &&
         identical(parent.identifier, this)) {
       return _returnOrReportElement(
-          parent,
-          element is LocalVariableElement,
-          element);
+          parent, element is LocalVariableElement, element);
     } else if (parent is FormalParameter &&
         identical(parent.identifier, this)) {
       return _returnOrReportElement(
-          parent,
-          element is ParameterElement,
-          element);
+          parent, element is ParameterElement, element);
     } else if (parent is FunctionDeclaration && identical(parent.name, this)) {
       return _returnOrReportElement(
-          parent,
-          element is ExecutableElement,
-          element);
+          parent, element is ExecutableElement, element);
     } else if (parent is FunctionTypeAlias && identical(parent.name, this)) {
       return _returnOrReportElement(
-          parent,
-          element is FunctionTypeAliasElement,
-          element);
+          parent, element is FunctionTypeAliasElement, element);
     } else if (parent is MethodDeclaration && identical(parent.name, this)) {
       return _returnOrReportElement(
-          parent,
-          element is ExecutableElement,
-          element);
+          parent, element is ExecutableElement, element);
     } else if (parent is TypeParameter && identical(parent.name, this)) {
       return _returnOrReportElement(
-          parent,
-          element is TypeParameterElement,
-          element);
+          parent, element is TypeParameterElement, element);
     } else if (parent is VariableDeclaration && identical(parent.name, this)) {
       return _returnOrReportElement(
-          parent,
-          element is VariableElement,
-          element);
+          parent, element is VariableElement, element);
     }
     return element;
   }
@@ -16614,6 +16483,7 @@ class SimpleStringLiteral extends SingleStringLiteral {
   /**
    * The toolkit specific element associated with this literal, or `null`.
    */
+  @deprecated // No replacement
   Element toolkitElement;
 
   /**
@@ -16702,13 +16572,13 @@ class SimpleStringLiteral extends SingleStringLiteral {
   accept(AstVisitor visitor) => visitor.visitSimpleStringLiteral(this);
 
   @override
-  void appendStringValue(StringBuffer buffer) {
-    buffer.write(value);
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {
-    // There are no children to visit.
+  void _appendStringValue(StringBuffer buffer) {
+    buffer.write(value);
   }
 }
 
@@ -16845,13 +16715,13 @@ class StringInterpolation extends SingleStringLiteral {
   accept(AstVisitor visitor) => visitor.visitStringInterpolation(this);
 
   @override
-  void appendStringValue(StringBuffer buffer) {
-    throw new IllegalArgumentException();
+  void visitChildren(AstVisitor visitor) {
+    _elements.accept(visitor);
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {
-    _elements.accept(visitor);
+  void _appendStringValue(StringBuffer buffer) {
+    throw new IllegalArgumentException();
   }
 }
 
@@ -16871,7 +16741,7 @@ abstract class StringLiteral extends Literal {
   String get stringValue {
     StringBuffer buffer = new StringBuffer();
     try {
-      appendStringValue(buffer);
+      _appendStringValue(buffer);
     } on IllegalArgumentException catch (exception) {
       return null;
     }
@@ -16883,7 +16753,15 @@ abstract class StringLiteral extends Literal {
    * [IllegalArgumentException] if the string is not a constant string without
    * any string interpolation.
    */
-  void appendStringValue(StringBuffer buffer);
+  @deprecated // Use "this.stringValue"
+  void appendStringValue(StringBuffer buffer) => _appendStringValue(buffer);
+
+  /**
+   * Append the value of this string literal to the given [buffer]. Throw an
+   * [IllegalArgumentException] if the string is not a constant string without
+   * any string interpolation.
+   */
+  void _appendStringValue(StringBuffer buffer);
 }
 
 /**
@@ -16897,7 +16775,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   /**
    * The token for the 'super' keyword.
    */
-  Token keyword;
+  Token superKeyword;
 
   /**
    * The token for the period before the name of the constructor that is being
@@ -16929,10 +16807,10 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * [constructorName] can be `null` if the constructor being invoked is the
    * unnamed constructor.
    */
-  SuperConstructorInvocation(this.keyword, this.period,
+  SuperConstructorInvocation(this.superKeyword, this.period,
       SimpleIdentifier constructorName, ArgumentList argumentList) {
-    _constructorName = becomeParentOf(constructorName);
-    _argumentList = becomeParentOf(argumentList);
+    _constructorName = _becomeParentOf(constructorName);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   /**
@@ -16944,18 +16822,18 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * Set the list of arguments to the constructor to the given [argumentList].
    */
   void set argumentList(ArgumentList argumentList) {
-    _argumentList = becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => superKeyword;
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(period)
-      ..add(_constructorName)
-      ..add(_argumentList);
+    ..add(superKeyword)
+    ..add(period)
+    ..add(_constructorName)
+    ..add(_argumentList);
 
   /**
    * Return the name of the constructor that is being invoked, or `null` if the
@@ -16968,11 +16846,25 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * [identifier].
    */
   void set constructorName(SimpleIdentifier identifier) {
-    _constructorName = becomeParentOf(identifier);
+    _constructorName = _becomeParentOf(identifier);
   }
 
   @override
   Token get endToken => _argumentList.endToken;
+
+  /**
+   * Return the token for the 'super' keyword.
+   */
+  @deprecated // Use "this.superKeyword"
+  Token get keyword => superKeyword;
+
+  /**
+   * Set the token for the 'super' keyword to the given [token].
+   */
+  @deprecated // Use "this.superKeyword"
+  set keyword(Token token) {
+    superKeyword = token;
+  }
 
   @override
   accept(AstVisitor visitor) => visitor.visitSuperConstructorInvocation(this);
@@ -16992,26 +16884,37 @@ class SuperConstructorInvocation extends ConstructorInitializer {
  */
 class SuperExpression extends Expression {
   /**
-   * The token representing the keyword.
+   * The token representing the 'super' keyword.
    */
-  Token keyword;
+  Token superKeyword;
 
   /**
    * Initialize a newly created super expression.
    */
-  SuperExpression(this.keyword);
+  SuperExpression(this.superKeyword);
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => superKeyword;
+
+  @override
+  Iterable get childEntities => new ChildEntities()..add(superKeyword);
+
+  @override
+  Token get endToken => superKeyword;
 
   /**
-   * TODO(paulberry): untested.
+   * Return the token for the 'super' keyword.
    */
-  @override
-  Iterable get childEntities => new ChildEntities()..add(keyword);
+  @deprecated // Use "this.superKeyword"
+  Token get keyword => superKeyword;
 
-  @override
-  Token get endToken => keyword;
+  /**
+   * Set the token for the 'super' keyword to the given [token].
+   */
+  @deprecated // Use "this.superKeyword"
+  set keyword(Token token) {
+    superKeyword = token;
+  }
 
   @override
   int get precedence => 16;
@@ -17044,16 +16947,16 @@ class SwitchCase extends SwitchMember {
   SwitchCase(List<Label> labels, Token keyword, Expression expression,
       Token colon, List<Statement> statements)
       : super(labels, keyword, colon, statements) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..addAll(labels)
-      ..add(keyword)
-      ..add(_expression)
-      ..add(colon)
-      ..addAll(statements);
+    ..addAll(labels)
+    ..add(keyword)
+    ..add(_expression)
+    ..add(colon)
+    ..addAll(statements);
 
   /**
    * Return the expression controlling whether the statements will be executed.
@@ -17065,7 +16968,7 @@ class SwitchCase extends SwitchMember {
    * the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -17094,15 +16997,12 @@ class SwitchDefault extends SwitchMember {
       List<Statement> statements)
       : super(labels, keyword, colon, statements);
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..addAll(labels)
-      ..add(keyword)
-      ..add(colon)
-      ..addAll(statements);
+    ..addAll(labels)
+    ..add(keyword)
+    ..add(colon)
+    ..addAll(statements);
 
   @override
   accept(AstVisitor visitor) => visitor.visitSwitchDefault(this);
@@ -17190,7 +17090,7 @@ class SwitchStatement extends Statement {
   /**
    * The token representing the 'switch' keyword.
    */
-  Token keyword;
+  Token switchKeyword;
 
   /**
    * The left parenthesis.
@@ -17227,25 +17127,25 @@ class SwitchStatement extends Statement {
    * Initialize a newly created switch statement. The list of [members] can be
    * `null` if there are no switch members.
    */
-  SwitchStatement(this.keyword, this.leftParenthesis, Expression expression,
-      this.rightParenthesis, this.leftBracket, List<SwitchMember> members,
-      this.rightBracket) {
-    _expression = becomeParentOf(expression);
+  SwitchStatement(this.switchKeyword, this.leftParenthesis,
+      Expression expression, this.rightParenthesis, this.leftBracket,
+      List<SwitchMember> members, this.rightBracket) {
+    _expression = _becomeParentOf(expression);
     _members = new NodeList<SwitchMember>(this, members);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => switchKeyword;
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(leftParenthesis)
-      ..add(_expression)
-      ..add(rightParenthesis)
-      ..add(leftBracket)
-      ..addAll(_members)
-      ..add(rightBracket);
+    ..add(switchKeyword)
+    ..add(leftParenthesis)
+    ..add(_expression)
+    ..add(rightParenthesis)
+    ..add(leftBracket)
+    ..addAll(_members)
+    ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket;
@@ -17261,7 +17161,21 @@ class SwitchStatement extends Statement {
    * selected to the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
+  }
+
+  /**
+   * Return the token representing the 'switch' keyword.
+   */
+  @deprecated // Use "this.switchKeyword"
+  Token get keyword => switchKeyword;
+
+  /**
+   * Set the token representing the 'switch' keyword to the given [token].
+   */
+  @deprecated // Use "this.switchKeyword"
+  set keyword(Token token) {
+    switchKeyword = token;
   }
 
   /**
@@ -17305,13 +17219,12 @@ class SymbolLiteral extends Literal {
   Token get beginToken => poundSign;
 
   /**
-   * TODO(paulberry): untested.
    * TODO(paulberry): add "." tokens.
    */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(poundSign)
-      ..addAll(components);
+    ..add(poundSign)
+    ..addAll(components);
 
   @override
   Token get endToken => components[components.length - 1];
@@ -17333,26 +17246,37 @@ class SymbolLiteral extends Literal {
  */
 class ThisExpression extends Expression {
   /**
-   * The token representing the keyword.
+   * The token representing the 'this' keyword.
    */
-  Token keyword;
+  Token thisKeyword;
 
   /**
    * Initialize a newly created this expression.
    */
-  ThisExpression(this.keyword);
+  ThisExpression(this.thisKeyword);
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => thisKeyword;
+
+  @override
+  Iterable get childEntities => new ChildEntities()..add(thisKeyword);
+
+  @override
+  Token get endToken => thisKeyword;
 
   /**
-   * TODO(paulberry): untested.
+   * Return the token representing the 'this' keyword.
    */
-  @override
-  Iterable get childEntities => new ChildEntities()..add(keyword);
+  @deprecated // Use "this.thisKeyword"
+  Token get keyword => thisKeyword;
 
-  @override
-  Token get endToken => keyword;
+  /**
+   * Set the token representing the 'this' keyword to the given [token].
+   */
+  @deprecated // Use "this.thisKeyword"
+  set keyword(Token token) {
+    thisKeyword = token;
+  }
 
   @override
   int get precedence => 16;
@@ -17376,7 +17300,7 @@ class ThrowExpression extends Expression {
   /**
    * The token representing the 'throw' keyword.
    */
-  Token keyword;
+  Token throwKeyword;
 
   /**
    * The expression computing the exception to be thrown.
@@ -17386,24 +17310,24 @@ class ThrowExpression extends Expression {
   /**
    * Initialize a newly created throw expression.
    */
-  ThrowExpression(this.keyword, Expression expression) {
-    _expression = becomeParentOf(expression);
+  ThrowExpression(this.throwKeyword, Expression expression) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => throwKeyword;
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(_expression);
+    ..add(throwKeyword)
+    ..add(_expression);
 
   @override
   Token get endToken {
     if (_expression != null) {
       return _expression.endToken;
     }
-    return keyword;
+    return throwKeyword;
   }
 
   /**
@@ -17416,7 +17340,21 @@ class ThrowExpression extends Expression {
    * [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
+  }
+
+  /**
+   * Return the token representing the 'throw' keyword.
+   */
+  @deprecated // Use "this.throwKeyword"
+  Token get keyword => throwKeyword;
+
+  /**
+   * Set the token representing the 'throw' keyword to the given [token].
+   */
+  @deprecated // Use "this.throwKeyword"
+  set keyword(Token token) {
+    throwKeyword = token;
   }
 
   @override
@@ -17457,13 +17395,13 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
   TopLevelVariableDeclaration(Comment comment, List<Annotation> metadata,
       VariableDeclarationList variableList, this.semicolon)
       : super(comment, metadata) {
-    _variableList = becomeParentOf(variableList);
+    _variableList = _becomeParentOf(variableList);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(_variableList)
-      ..add(semicolon);
+    ..add(_variableList)
+    ..add(semicolon);
 
   @override
   Element get element => null;
@@ -17484,7 +17422,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    * [variables].
    */
   void set variables(VariableDeclarationList variables) {
-    _variableList = becomeParentOf(variables);
+    _variableList = _becomeParentOf(variables);
   }
 
   @override
@@ -17719,7 +17657,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    _visitTokenWithSuffix(node.keyword, ".");
+    _visitTokenWithSuffix(node.thisKeyword, ".");
     _visitNode(node.fieldName);
     _writer.print(" = ");
     _visitNode(node.expression);
@@ -18011,7 +17949,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("import ");
     _visitNode(node.uri);
-    if (node.deferredToken != null) {
+    if (node.deferredKeyword != null) {
       _writer.print(" deferred");
     }
     _visitNodeWithPrefix(" as ", node.prefix);
@@ -18258,8 +18196,8 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
-  Object
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  Object visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     _writer.print("this");
     _visitNodeWithPrefix(".", node.constructorName);
     _visitNode(node.argumentList);
@@ -18536,8 +18474,8 @@ class ToSourceVisitor implements AstVisitor<Object> {
    * Print a list of [nodes], prefixed by the given [prefix] if the list is not
    * empty, and separated by the given [separator].
    */
-  void _visitNodeListWithSeparatorAndPrefix(String prefix,
-      NodeList<AstNode> nodes, String separator) {
+  void _visitNodeListWithSeparatorAndPrefix(
+      String prefix, NodeList<AstNode> nodes, String separator) {
     if (nodes != null) {
       int size = nodes.length;
       if (size > 0) {
@@ -18556,8 +18494,8 @@ class ToSourceVisitor implements AstVisitor<Object> {
    * Print a list of [nodes], separated by the given [separator], followed by
    * the given [suffix] if the list is not empty.
    */
-  void _visitNodeListWithSeparatorAndSuffix(NodeList<AstNode> nodes,
-      String separator, String suffix) {
+  void _visitNodeListWithSeparatorAndSuffix(
+      NodeList<AstNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.length;
       if (size > 0) {
@@ -18650,9 +18588,9 @@ class TryStatement extends Statement {
    */
   TryStatement(this.tryKeyword, Block body, List<CatchClause> catchClauses,
       this.finallyKeyword, Block finallyBlock) {
-    _body = becomeParentOf(body);
+    _body = _becomeParentOf(body);
     _catchClauses = new NodeList<CatchClause>(this, catchClauses);
-    _finallyBlock = becomeParentOf(finallyBlock);
+    _finallyBlock = _becomeParentOf(finallyBlock);
   }
 
   @override
@@ -18667,7 +18605,7 @@ class TryStatement extends Statement {
    * Set the body of the statement to the given [block].
    */
   void set body(Block block) {
-    _body = becomeParentOf(block);
+    _body = _becomeParentOf(block);
   }
 
   /**
@@ -18677,11 +18615,11 @@ class TryStatement extends Statement {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(tryKeyword)
-      ..add(_body)
-      ..addAll(_catchClauses)
-      ..add(finallyKeyword)
-      ..add(_finallyBlock);
+    ..add(tryKeyword)
+    ..add(_body)
+    ..addAll(_catchClauses)
+    ..add(finallyKeyword)
+    ..add(_finallyBlock);
 
   @override
   Token get endToken {
@@ -18705,7 +18643,7 @@ class TryStatement extends Statement {
    * Set the finally block contained in the try statement to the given [block].
    */
   void set finallyBlock(Block block) {
-    _finallyBlock = becomeParentOf(block);
+    _finallyBlock = _becomeParentOf(block);
   }
 
   @override
@@ -18733,7 +18671,7 @@ abstract class TypeAlias extends CompilationUnitMember {
   /**
    * The token representing the 'typedef' keyword.
    */
-  Token keyword;
+  Token typedefKeyword;
 
   /**
    * The semicolon terminating the declaration.
@@ -18745,7 +18683,7 @@ abstract class TypeAlias extends CompilationUnitMember {
    * [metadata] can be `null` if the declaration does not have the corresponding
    * attribute.
    */
-  TypeAlias(Comment comment, List<Annotation> metadata, this.keyword,
+  TypeAlias(Comment comment, List<Annotation> metadata, this.typedefKeyword,
       this.semicolon)
       : super(comment, metadata);
 
@@ -18753,7 +18691,21 @@ abstract class TypeAlias extends CompilationUnitMember {
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => keyword;
+  Token get firstTokenAfterCommentAndMetadata => typedefKeyword;
+
+  /**
+   * Return the token representing the 'typedef' keyword.
+   */
+  @deprecated // Use "this.typedefKeyword"
+  Token get keyword => typedefKeyword;
+
+  /**
+   * Set the token representing the 'typedef' keyword to the given [token].
+   */
+  @deprecated // Use "this.typedefKeyword"
+  set keyword(Token token) {
+    typedefKeyword = token;
+  }
 }
 
 /**
@@ -18781,8 +18733,8 @@ class TypeArgumentList extends AstNode {
   /**
    * Initialize a newly created list of type arguments.
    */
-  TypeArgumentList(this.leftBracket, List<TypeName> arguments,
-      this.rightBracket) {
+  TypeArgumentList(
+      this.leftBracket, List<TypeName> arguments, this.rightBracket) {
     _arguments = new NodeList<TypeName>(this, arguments);
   }
 
@@ -18799,9 +18751,9 @@ class TypeArgumentList extends AstNode {
    */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(leftBracket)
-      ..addAll(_arguments)
-      ..add(rightBracket);
+    ..add(leftBracket)
+    ..addAll(_arguments)
+    ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket;
@@ -18841,7 +18793,7 @@ abstract class TypedLiteral extends Literal {
    * type arguments were declared.
    */
   TypedLiteral(this.constKeyword, TypeArgumentList typeArguments) {
-    _typeArguments = becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   /**
@@ -18855,12 +18807,12 @@ abstract class TypedLiteral extends Literal {
    * [typeArguments].
    */
   void set typeArguments(TypeArgumentList typeArguments) {
-    _typeArguments = becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   ChildEntities get _childEntities => new ChildEntities()
-      ..add(constKeyword)
-      ..add(_typeArguments);
+    ..add(constKeyword)
+    ..add(_typeArguments);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -18896,8 +18848,8 @@ class TypeName extends AstNode {
    * there are no type arguments.
    */
   TypeName(Identifier name, TypeArgumentList typeArguments) {
-    _name = becomeParentOf(name);
-    _typeArguments = becomeParentOf(typeArguments);
+    _name = _becomeParentOf(name);
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override
@@ -18905,8 +18857,8 @@ class TypeName extends AstNode {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_name)
-      ..add(_typeArguments);
+    ..add(_name)
+    ..add(_typeArguments);
 
   @override
   Token get endToken {
@@ -18942,7 +18894,7 @@ class TypeName extends AstNode {
    * Set the name of the type to the given [identifier].
    */
   void set name(Identifier identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   /**
@@ -18956,7 +18908,7 @@ class TypeName extends AstNode {
    * [typeArguments].
    */
   void set typeArguments(TypeArgumentList typeArguments) {
-    _typeArguments = becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override
@@ -18985,7 +18937,7 @@ class TypeParameter extends Declaration {
    * The token representing the 'extends' keyword, or `null` if there is no
    * explicit upper bound.
    */
-  Token keyword;
+  Token extendsKeyword;
 
   /**
    * The name of the upper bound for legal arguments, or `null` if there is no
@@ -18996,14 +18948,14 @@ class TypeParameter extends Declaration {
   /**
    * Initialize a newly created type parameter. Either or both of the [comment]
    * and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [keyword] and [bound] can be `null` if the
-   * parameter does not have an upper bound.
+   * corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
+   * the parameter does not have an upper bound.
    */
   TypeParameter(Comment comment, List<Annotation> metadata,
-      SimpleIdentifier name, this.keyword, TypeName bound)
+      SimpleIdentifier name, this.extendsKeyword, TypeName bound)
       : super(comment, metadata) {
-    _name = becomeParentOf(name);
-    _bound = becomeParentOf(bound);
+    _name = _becomeParentOf(name);
+    _bound = _becomeParentOf(bound);
   }
 
   /**
@@ -19017,14 +18969,14 @@ class TypeParameter extends Declaration {
    * [typeName].
    */
   void set bound(TypeName typeName) {
-    _bound = becomeParentOf(typeName);
+    _bound = _becomeParentOf(typeName);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(_name)
-      ..add(keyword)
-      ..add(_bound);
+    ..add(_name)
+    ..add(extendsKeyword)
+    ..add(_bound);
 
   @override
   TypeParameterElement get element =>
@@ -19042,6 +18994,21 @@ class TypeParameter extends Declaration {
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 
   /**
+   * Return the token representing the 'extends' keyword, or `null` if there is
+   * no explicit upper bound.
+   */
+  @deprecated // Use "this.extendsKeyword"
+  Token get keyword => extendsKeyword;
+
+  /**
+   * Set the token representing the 'extends' keyword to the given [token].
+   */
+  @deprecated // Use "this.extendsKeyword"
+  set keyword(Token token) {
+    extendsKeyword = token;
+  }
+
+  /**
    * Return the name of the type parameter.
    */
   SimpleIdentifier get name => _name;
@@ -19050,7 +19017,7 @@ class TypeParameter extends Declaration {
    * Set the name of the type parameter to the given [identifier].
    */
   void set name(SimpleIdentifier identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   @override
@@ -19089,8 +19056,8 @@ class TypeParameterList extends AstNode {
   /**
    * Initialize a newly created list of type parameters.
    */
-  TypeParameterList(this.leftBracket, List<TypeParameter> typeParameters,
-      this.rightBracket) {
+  TypeParameterList(
+      this.leftBracket, List<TypeParameter> typeParameters, this.rightBracket) {
     _typeParameters = new NodeList<TypeParameter>(this, typeParameters);
   }
 
@@ -19099,9 +19066,9 @@ class TypeParameterList extends AstNode {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(leftBracket)
-      ..addAll(_typeParameters)
-      ..add(rightBracket);
+    ..add(leftBracket)
+    ..addAll(_typeParameters)
+    ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket;
@@ -19376,9 +19343,8 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitPropertyAccess(PropertyAccess node) => visitNode(node);
 
   @override
-  R
-      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) =>
-      visitNode(node);
+  R visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) => visitNode(node);
 
   @override
   R visitRethrowExpression(RethrowExpression node) => visitNode(node);
@@ -19504,10 +19470,10 @@ abstract class UriBasedDirective extends Directive {
    * [comment] and [metadata] can be `null` if the directive does not have the
    * corresponding attribute.
    */
-  UriBasedDirective(Comment comment, List<Annotation> metadata,
-      StringLiteral uri)
+  UriBasedDirective(
+      Comment comment, List<Annotation> metadata, StringLiteral uri)
       : super(comment, metadata) {
-    _uri = becomeParentOf(uri);
+    _uri = _becomeParentOf(uri);
   }
 
   /**
@@ -19519,7 +19485,7 @@ abstract class UriBasedDirective extends Directive {
    * Set the URI referenced by this directive to the given [uri].
    */
   void set uri(StringLiteral uri) {
-    _uri = becomeParentOf(uri);
+    _uri = _becomeParentOf(uri);
   }
 
   /**
@@ -19622,15 +19588,15 @@ class VariableDeclaration extends Declaration {
   VariableDeclaration(Comment comment, List<Annotation> metadata,
       SimpleIdentifier name, this.equals, Expression initializer)
       : super(comment, metadata) {
-    _name = becomeParentOf(name);
-    _initializer = becomeParentOf(initializer);
+    _name = _becomeParentOf(name);
+    _initializer = _becomeParentOf(initializer);
   }
 
   @override
   Iterable get childEntities => super._childEntities
-      ..add(_name)
-      ..add(equals)
-      ..add(_initializer);
+    ..add(_name)
+    ..add(equals)
+    ..add(_initializer);
 
   /**
    * This overridden implementation of getDocumentationComment() looks in the
@@ -19677,7 +19643,7 @@ class VariableDeclaration extends Declaration {
    * the given [expression].
    */
   void set initializer(Expression expression) {
-    _initializer = becomeParentOf(expression);
+    _initializer = _becomeParentOf(expression);
   }
 
   /**
@@ -19707,7 +19673,7 @@ class VariableDeclaration extends Declaration {
    * Set the name of the variable being declared to the given [identifier].
    */
   void set name(SimpleIdentifier identifier) {
-    _name = becomeParentOf(identifier);
+    _name = _becomeParentOf(identifier);
   }
 
   @override
@@ -19759,7 +19725,7 @@ class VariableDeclarationList extends AnnotatedNode {
   VariableDeclarationList(Comment comment, List<Annotation> metadata,
       this.keyword, TypeName type, List<VariableDeclaration> variables)
       : super(comment, metadata) {
-    _type = becomeParentOf(type);
+    _type = _becomeParentOf(type);
     _variables = new NodeList<VariableDeclaration>(this, variables);
   }
 
@@ -19768,9 +19734,9 @@ class VariableDeclarationList extends AnnotatedNode {
    */
   @override
   Iterable get childEntities => super._childEntities
-      ..add(keyword)
-      ..add(_type)
-      ..addAll(_variables);
+    ..add(keyword)
+    ..add(_type)
+    ..addAll(_variables);
 
   @override
   Token get endToken => _variables.endToken;
@@ -19789,8 +19755,8 @@ class VariableDeclarationList extends AnnotatedNode {
    * Return `true` if the variables in this list were declared with the 'const'
    * modifier.
    */
-  bool get isConst =>
-      keyword is KeywordToken && (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => keyword is KeywordToken &&
+      (keyword as KeywordToken).keyword == Keyword.CONST;
 
   /**
    * Return `true` if the variables in this list were declared with the 'final'
@@ -19798,8 +19764,8 @@ class VariableDeclarationList extends AnnotatedNode {
    * `false` even though they are implicitly final. (In other words, this is a
    * syntactic check rather than a semantic check.)
    */
-  bool get isFinal =>
-      keyword is KeywordToken && (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => keyword is KeywordToken &&
+      (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
    * Return the type of the variables being declared, or `null` if no type was
@@ -19811,7 +19777,7 @@ class VariableDeclarationList extends AnnotatedNode {
    * Set the type of the variables being declared to the given [typeName].
    */
   void set type(TypeName typeName) {
-    _type = becomeParentOf(typeName);
+    _type = _becomeParentOf(typeName);
   }
 
   /**
@@ -19851,9 +19817,9 @@ class VariableDeclarationStatement extends Statement {
   /**
    * Initialize a newly created variable declaration statement.
    */
-  VariableDeclarationStatement(VariableDeclarationList variableList,
-      this.semicolon) {
-    _variableList = becomeParentOf(variableList);
+  VariableDeclarationStatement(
+      VariableDeclarationList variableList, this.semicolon) {
+    _variableList = _becomeParentOf(variableList);
   }
 
   @override
@@ -19861,8 +19827,8 @@ class VariableDeclarationStatement extends Statement {
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(_variableList)
-      ..add(semicolon);
+    ..add(_variableList)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -19876,7 +19842,7 @@ class VariableDeclarationStatement extends Statement {
    * Set the variables being declared to the given list of [variables].
    */
   void set variables(VariableDeclarationList variables) {
-    _variableList = becomeParentOf(variables);
+    _variableList = _becomeParentOf(variables);
   }
 
   @override
@@ -19898,7 +19864,7 @@ class WhileStatement extends Statement {
   /**
    * The token representing the 'while' keyword.
    */
-  Token keyword;
+  Token whileKeyword;
 
   /**
    * The left parenthesis.
@@ -19923,14 +19889,14 @@ class WhileStatement extends Statement {
   /**
    * Initialize a newly created while statement.
    */
-  WhileStatement(this.keyword, this.leftParenthesis, Expression condition,
+  WhileStatement(this.whileKeyword, this.leftParenthesis, Expression condition,
       this.rightParenthesis, Statement body) {
-    _condition = becomeParentOf(condition);
-    _body = becomeParentOf(body);
+    _condition = _becomeParentOf(condition);
+    _body = _becomeParentOf(body);
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => whileKeyword;
 
   /**
    * Return the body of the loop.
@@ -19941,16 +19907,16 @@ class WhileStatement extends Statement {
    * Set the body of the loop to the given [statement].
    */
   void set body(Statement statement) {
-    _body = becomeParentOf(statement);
+    _body = _becomeParentOf(statement);
   }
 
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(keyword)
-      ..add(leftParenthesis)
-      ..add(_condition)
-      ..add(rightParenthesis)
-      ..add(_body);
+    ..add(whileKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
+    ..add(_body);
 
   /**
    * Return the expression used to determine whether to execute the body of the
@@ -19963,11 +19929,25 @@ class WhileStatement extends Statement {
    * loop to the given [expression].
    */
   void set condition(Expression expression) {
-    _condition = becomeParentOf(expression);
+    _condition = _becomeParentOf(expression);
   }
 
   @override
   Token get endToken => _body.endToken;
+
+  /**
+   * Return the token representing the 'while' keyword.
+   */
+  @deprecated // Use "this.whileKeyword"
+  Token get keyword => whileKeyword;
+
+  /**
+   * Set the token representing the 'while' keyword to the given [token].
+   */
+  @deprecated // Use "this.whileKeyword"
+  set keyword(Token token) {
+    whileKeyword = token;
+  }
 
   @override
   accept(AstVisitor visitor) => visitor.visitWhileStatement(this);
@@ -20011,18 +19991,16 @@ class WithClause extends AstNode {
    */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(withKeyword)
-      ..addAll(_mixinTypes);
+    ..add(withKeyword)
+    ..addAll(_mixinTypes);
 
   @override
   Token get endToken => _mixinTypes.endToken;
 
   /**
    * Set the token representing the 'with' keyword to the given [token].
-   *
-   * Deprecated: Use withKeyword instead.
    */
-  @deprecated
+  @deprecated // Use "this.withKeyword"
   void set mixinKeyword(Token token) {
     this.withKeyword = token;
   }
@@ -20072,9 +20050,9 @@ class YieldStatement extends Statement {
    * Initialize a newly created yield expression. The [star] can be `null` if no
    * star was provided.
    */
-  YieldStatement(this.yieldKeyword, this.star, Expression expression,
-      this.semicolon) {
-    _expression = becomeParentOf(expression);
+  YieldStatement(
+      this.yieldKeyword, this.star, Expression expression, this.semicolon) {
+    _expression = _becomeParentOf(expression);
   }
 
   @override
@@ -20085,15 +20063,12 @@ class YieldStatement extends Statement {
     return _expression.beginToken;
   }
 
-  /**
-   * TODO(paulberry): untested.
-   */
   @override
   Iterable get childEntities => new ChildEntities()
-      ..add(yieldKeyword)
-      ..add(star)
-      ..add(_expression)
-      ..add(semicolon);
+    ..add(yieldKeyword)
+    ..add(star)
+    ..add(_expression)
+    ..add(semicolon);
 
   @override
   Token get endToken {
@@ -20112,7 +20087,7 @@ class YieldStatement extends Statement {
    * Set the expression whose value will be yielded to the given [expression].
    */
   void set expression(Expression expression) {
-    _expression = becomeParentOf(expression);
+    _expression = _becomeParentOf(expression);
   }
 
   @override

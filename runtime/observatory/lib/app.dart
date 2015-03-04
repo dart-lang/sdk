@@ -8,13 +8,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
-import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:observatory/service_html.dart';
 import 'package:observatory/elements.dart';
 import 'package:observatory/tracer.dart';
+import 'package:observatory/utils.dart';
 import 'package:polymer/polymer.dart';
+
+export 'package:observatory/utils.dart';
 
 part 'src/app/application.dart';
 part 'src/app/chart.dart';
@@ -22,5 +24,4 @@ part 'src/app/location_manager.dart';
 part 'src/app/page.dart';
 part 'src/app/settings.dart';
 part 'src/app/target_manager.dart';
-part 'src/app/utils.dart';
 part 'src/app/view_model.dart';

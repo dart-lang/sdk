@@ -53,10 +53,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       List<Source> librarySources = context.getLibrariesContaining(unitSource);
       for (Source librarySource in librarySources) {
         _analyzePossibleConflicts_inLibrary(
-            result,
-            unitSource,
-            librarySource,
-            element);
+            result, unitSource, librarySource, element);
       }
     }
     // done
@@ -161,9 +158,8 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
         String nodeName = getElementQualifiedName(nodeElement);
         String nameElementSourceName = nodeElement.source.shortName;
         String refKind = refactoring.element.kind.displayName;
-        String message =
-            'Usage of $nodeKind "$nodeName" declared in '
-                '"$nameElementSourceName" will be shadowed by renamed $refKind.';
+        String message = 'Usage of $nodeKind "$nodeName" declared in '
+            '"$nameElementSourceName" will be shadowed by renamed $refKind.';
         result.addError(message, newLocation_fromNode(node));
       }
     }

@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
-
 /**
  * A computer for [HighlightRegion]s in a Dart [CompilationUnit].
  */
@@ -106,9 +105,7 @@ class DartUnitHighlightsComputer {
       _addRegion_node(node, HighlightRegionType.ANNOTATION);
     } else {
       _addRegion_nodeStart_tokenEnd(
-          node,
-          arguments.beginToken,
-          HighlightRegionType.ANNOTATION);
+          node, arguments.beginToken, HighlightRegionType.ANNOTATION);
       _addRegion_token(arguments.endToken, HighlightRegionType.ANNOTATION);
     }
   }
@@ -320,8 +317,8 @@ class DartUnitHighlightsComputer {
     return true;
   }
 
-  void _addRegion_nodeStart_tokenEnd(AstNode a, Token b,
-      HighlightRegionType type) {
+  void _addRegion_nodeStart_tokenEnd(
+      AstNode a, Token b, HighlightRegionType type) {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
@@ -335,14 +332,13 @@ class DartUnitHighlightsComputer {
     }
   }
 
-  void _addRegion_tokenStart_tokenEnd(Token a, Token b,
-      HighlightRegionType type) {
+  void _addRegion_tokenStart_tokenEnd(
+      Token a, Token b, HighlightRegionType type) {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
   }
 }
-
 
 /**
  * An AST visitor for [DartUnitHighlightsComputer].
@@ -366,7 +362,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAssertStatement(AssertStatement node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.assertKeyword, HighlightRegionType.KEYWORD);
     return super.visitAssertStatement(node);
   }
 
@@ -391,7 +387,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBreakStatement(BreakStatement node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.breakKeyword, HighlightRegionType.KEYWORD);
     return super.visitBreakStatement(node);
   }
 
@@ -406,33 +402,30 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   Object visitClassDeclaration(ClassDeclaration node) {
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
-        node.abstractKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.abstractKeyword, HighlightRegionType.BUILT_IN);
     return super.visitClassDeclaration(node);
   }
 
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     computer._addRegion_token(
-        node.abstractKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.abstractKeyword, HighlightRegionType.BUILT_IN);
     return super.visitClassTypeAlias(node);
   }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     computer._addRegion_token(
-        node.externalKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
-        node.factoryKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.factoryKeyword, HighlightRegionType.BUILT_IN);
     return super.visitConstructorDeclaration(node);
   }
 
   @override
   Object visitContinueStatement(ContinueStatement node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+        node.continueKeyword, HighlightRegionType.KEYWORD);
     return super.visitContinueStatement(node);
   }
 
@@ -451,7 +444,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
     return super.visitEnumDeclaration(node);
   }
 
@@ -491,17 +484,16 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     computer._addRegion_token(
-        node.externalKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
-        node.propertyKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.propertyKeyword, HighlightRegionType.BUILT_IN);
     return super.visitFunctionDeclaration(node);
   }
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.typedefKeyword, HighlightRegionType.BUILT_IN);
     return super.visitFunctionTypeAlias(node);
   }
 
@@ -519,7 +511,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitImplementsClause(ImplementsClause node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.implementsKeyword, HighlightRegionType.BUILT_IN);
     return super.visitImplementsClause(node);
   }
 
@@ -527,8 +520,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   Object visitImportDirective(ImportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(node.deferredToken, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(node.asToken, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.deferredKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.asKeyword, HighlightRegionType.BUILT_IN);
     return super.visitImportDirective(node);
   }
 
@@ -574,29 +568,25 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     computer._addRegion_token(
-        node.externalKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
-        node.modifierKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.modifierKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
-        node.operatorKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.operatorKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
-        node.propertyKeyword,
-        HighlightRegionType.BUILT_IN);
+        node.propertyKeyword, HighlightRegionType.BUILT_IN);
     return super.visitMethodDeclaration(node);
   }
 
   @override
   Object visitNativeClause(NativeClause node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     return super.visitNativeClause(node);
   }
 
   @override
   Object visitNativeFunctionBody(NativeFunctionBody node) {
-    computer._addRegion_token(node.nativeToken, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     return super.visitNativeFunctionBody(node);
   }
 
@@ -611,21 +601,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   Object visitPartOfDirective(PartOfDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_tokenStart_tokenEnd(
-        node.partToken,
-        node.ofToken,
-        HighlightRegionType.BUILT_IN);
+        node.partKeyword, node.ofKeyword, HighlightRegionType.BUILT_IN);
     return super.visitPartOfDirective(node);
   }
 
   @override
   Object visitRethrowExpression(RethrowExpression node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.rethrowKeyword, HighlightRegionType.KEYWORD);
     return super.visitRethrowExpression(node);
   }
 
   @override
   Object visitReturnStatement(ReturnStatement node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.returnKeyword, HighlightRegionType.KEYWORD);
     return super.visitReturnStatement(node);
   }
 
@@ -649,7 +637,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.superKeyword, HighlightRegionType.KEYWORD);
     return super.visitSuperConstructorInvocation(node);
   }
 
@@ -667,13 +655,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSwitchStatement(SwitchStatement node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.switchKeyword, HighlightRegionType.KEYWORD);
     return super.visitSwitchStatement(node);
   }
 
   @override
   Object visitThisExpression(ThisExpression node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.thisKeyword, HighlightRegionType.KEYWORD);
     return super.visitThisExpression(node);
   }
 
@@ -704,7 +692,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitWhileStatement(WhileStatement node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.whileKeyword, HighlightRegionType.KEYWORD);
     return super.visitWhileStatement(node);
   }
 

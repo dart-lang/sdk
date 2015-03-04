@@ -11,12 +11,10 @@ library collections;
  */
 Iterable concat(Iterable<Iterable> iterables) => iterables.expand((x) => x);
 
-
 /**
  * Returns the concatentation of the input iterables as a [List].
  */
 List concatToList(Iterable<Iterable> iterables) => concat(iterables).toList();
-
 
 /**
  * Returns the given [list] if it is not empty, or `null` otherwise.

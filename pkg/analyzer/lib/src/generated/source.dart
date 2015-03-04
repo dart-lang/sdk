@@ -624,8 +624,8 @@ class SourceFactory {
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
   Map<String, List<Folder>> get packageMap {
-    PackageMapUriResolver resolver =
-        _resolvers.firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
+    PackageMapUriResolver resolver = _resolvers.firstWhere(
+        (r) => r is PackageMapUriResolver, orElse: () => null);
     return resolver != null ? resolver.packageMap : null;
   }
 
@@ -681,7 +681,8 @@ class SourceFactory {
   Source fromEncoding(String encoding) {
     Source source = forUri(encoding);
     if (source == null) {
-      throw new IllegalArgumentException("Invalid source encoding: '$encoding'");
+      throw new IllegalArgumentException(
+          "Invalid source encoding: '$encoding'");
     }
     return source;
   }
@@ -711,8 +712,7 @@ class SourceFactory {
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(
-          containingSource,
-          parseUriWithException(containedUri));
+          containingSource, parseUriWithException(containedUri));
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';

@@ -12,12 +12,10 @@ import 'package:unittest/unittest.dart';
 import '../analysis_abstract.dart';
 import '../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(ReanalyzeTest);
 }
-
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisTest {
@@ -51,9 +49,7 @@ class ReanalyzeTest extends AbstractAnalysisTest {
     resourceProvider.newFile(testFile, 'main() {}');
     return waitForTasksFinished().then((_) {
       // Update the content with an overlay that contains a syntax error.
-      server.updateContent('1', {
-        testFile: new AddContentOverlay('main() {')
-      });
+      server.updateContent('1', {testFile: new AddContentOverlay('main() {')});
       return waitForTasksFinished();
     }).then((_) {
       // Verify that the syntax error was detected.

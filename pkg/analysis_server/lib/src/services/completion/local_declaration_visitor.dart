@@ -10,17 +10,14 @@ import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * `LocalDeclarationCollector` visits an [AstNode] and its parent recursively
- * along with any declarations in those nodes. Setting the [finished] flag
- * `true` will prevent further recursion.
+ * along with any declarations in those nodes. Consumers typically call [visit]
+ * which catches the exception thrown by [finished()].
  */
-abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
-
-  static final TypeName STACKTRACE_TYPE = new TypeName(
-      new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
-      null);
+abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
+  static final TypeName STACKTRACE_TYPE = new TypeName(new SimpleIdentifier(
+      new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)), null);
 
   final int offset;
-  bool finished = false;
 
   LocalDeclarationVisitor(this.offset);
 
@@ -42,21 +39,43 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
 
   void declaredParam(SimpleIdentifier name, TypeName type);
 
-  void declaredTopLevelVar(VariableDeclarationList varList,
-      VariableDeclaration varDecl);
+  void declaredTopLevelVar(
+      VariableDeclarationList varList, VariableDeclaration varDecl);
+
+  /**
+   * Throw an exception indicating that [LocalDeclarationVisitor] should
+   * stop visiting. This is caught in [visit] which then exits normally.
+   */
+  void finished() {
+    throw new _LocalDeclarationVisitorFinished();
+  }
+
+  /**
+   * Visit the given [AstNode] and its parent recursively along with any
+   * declarations in those nodes. Return `true` if [finished] is called
+   * while visiting, else `false`.
+   */
+  bool visit(AstNode node) {
+    try {
+      node.accept(this);
+      return false;
+    } on _LocalDeclarationVisitorFinished {
+      return true;
+    }
+  }
 
   @override
-  bool visitBlock(Block node) {
-    node.statements.forEach((Statement stmt) {
+  void visitBlock(Block node) {
+    for (Statement stmt in node.statements) {
       if (stmt.offset < offset) {
         if (stmt is VariableDeclarationStatement) {
           VariableDeclarationList varList = stmt.variables;
           if (varList != null) {
-            varList.variables.forEach((VariableDeclaration varDecl) {
+            for (VariableDeclaration varDecl in varList.variables) {
               if (varDecl.end < offset) {
                 declaredLocalVar(varDecl.name, varList.type);
               }
-            });
+            }
           }
         } else if (stmt is FunctionDeclarationStatement) {
           FunctionDeclaration declaration = stmt.functionDeclaration;
@@ -71,12 +90,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
           }
         }
       }
-    });
-    return visitNode(node);
+    }
+    visitNode(node);
   }
 
   @override
-  bool visitCatchClause(CatchClause node) {
+  void visitCatchClause(CatchClause node) {
     SimpleIdentifier param = node.exceptionParameter;
     if (param != null) {
       declaredParam(param, node.exceptionType);
@@ -85,22 +104,22 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
     if (param != null) {
       declaredParam(param, STACKTRACE_TYPE);
     }
-    return visitNode(node);
+    visitNode(node);
   }
 
   @override
-  bool visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     _visitClassDeclarationMembers(node);
     visitInheritedTypes(node, (ClassDeclaration classNode) {
       _visitClassDeclarationMembers(classNode);
     }, (String typeName) {
       // ignored
     });
-    return visitNode(node);
+    visitNode(node);
   }
 
   @override
-  bool visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     node.declarations.forEach((Declaration declaration) {
       if (declaration is ClassDeclaration) {
         declaredClass(declaration);
@@ -122,11 +141,10 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
         declaredFunctionTypeAlias(declaration);
       }
     });
-    return finished;
   }
 
   @override
-  bool visitForEachStatement(ForEachStatement node) {
+  void visitForEachStatement(ForEachStatement node) {
     SimpleIdentifier id;
     TypeName type;
     DeclaredIdentifier loopVar = node.loopVariable;
@@ -138,72 +156,69 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
       type = null;
     }
     declaredLocalVar(id, type);
-    return visitNode(node);
+    visitNode(node);
   }
 
   @override
-  bool visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     VariableDeclarationList varList = node.variables;
     if (varList != null) {
       varList.variables.forEach((VariableDeclaration varDecl) {
         declaredLocalVar(varDecl.name, varList.type);
       });
     }
-    return visitNode(node);
+    visitNode(node);
   }
 
   @override
-  bool visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     // declaredFunction is called by the compilation unit containing it
-    return visitNode(node);
+    visitNode(node);
   }
 
   @override
-  bool visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     _visitParamList(node.parameters);
-    return visitNode(node);
+    visitNode(node);
   }
 
   @override
-  bool visitInterpolationExpression(InterpolationExpression node) {
-    return visitNode(node);
+  void visitInterpolationExpression(InterpolationExpression node) {
+    visitNode(node);
   }
 
   @override
-  bool visitSwitchStatement(SwitchStatement node) {
+  void visitLabeledStatement(LabeledStatement node) {
+    for (Label label in node.labels) {
+      declaredLabel(label, false);
+    }
+    visitNode(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    _visitParamList(node.parameters);
+    visitNode(node);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    node.parent.accept(this);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    visitNode(node);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
     for (SwitchMember member in node.members) {
       for (Label label in member.labels) {
         declaredLabel(label, true);
       }
     }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitLabeledStatement(LabeledStatement node) {
-    for (Label label in node.labels) {
-      declaredLabel(label, false);
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitMethodDeclaration(MethodDeclaration node) {
-    _visitParamList(node.parameters);
-    return visitNode(node);
-  }
-
-  @override
-  bool visitNode(AstNode node) {
-    if (finished) {
-      return true;
-    }
-    return node.parent.accept(this);
-  }
-
-  @override
-  bool visitStringInterpolation(StringInterpolation node) {
-    return visitNode(node);
+    visitNode(node);
   }
 
   void _visitClassDeclarationMembers(ClassDeclaration node) {
@@ -241,3 +256,9 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor<bool> {
     }
   }
 }
+
+/**
+ * Internal exception used to indicate that [LocalDeclarationVisitor]
+ * should stop visiting.
+ */
+class _LocalDeclarationVisitorFinished {}

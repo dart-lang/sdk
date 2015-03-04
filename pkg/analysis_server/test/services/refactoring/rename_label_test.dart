@@ -10,12 +10,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(RenameLabelTest);
 }
-
 
 @reflectiveTest
 class RenameLabelTest extends RenameRefactoringTest {
@@ -32,14 +30,12 @@ test:
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Label name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Label name must not be empty.");
     // OK
     refactoring.newName = 'newName';

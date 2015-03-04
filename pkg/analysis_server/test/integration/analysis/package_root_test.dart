@@ -39,9 +39,7 @@ f() {}
     writeFile(mainPath, mainText);
     String normalizedFooBarPath = writeFile(fooBarPath, fooBarText);
     sendServerSetSubscriptions([ServerService.STATUS]);
-    sendAnalysisSetSubscriptions({
-      AnalysisService.NAVIGATION: [mainPath]
-    });
+    sendAnalysisSetSubscriptions({AnalysisService.NAVIGATION: [mainPath]});
     List<NavigationRegion> navigationRegions;
     List<NavigationTarget> navigationTargets;
     List<String> navigationTargetFiles;
@@ -51,9 +49,8 @@ f() {}
       navigationTargets = params.targets;
       navigationTargetFiles = params.files;
     });
-    sendAnalysisSetAnalysisRoots([projPath], [], packageRoots: {
-      projPath: packagesPath
-    });
+    sendAnalysisSetAnalysisRoots([projPath], [],
+        packageRoots: {projPath: packagesPath});
     return analysisFinished.then((_) {
       // Verify that fooBarPath was properly resolved by checking that f()
       // refers to it.
@@ -65,8 +62,10 @@ f() {}
           found = true;
           expect(region.targets, hasLength(1));
           int navigationTargetIndex = region.targets[0];
-          NavigationTarget navigationTarget = navigationTargets[navigationTargetIndex];
-          String navigationFile = navigationTargetFiles[navigationTarget.fileIndex];
+          NavigationTarget navigationTarget =
+              navigationTargets[navigationTargetIndex];
+          String navigationFile =
+              navigationTargetFiles[navigationTarget.fileIndex];
           expect(navigationFile, equals(normalizedFooBarPath));
         }
       }

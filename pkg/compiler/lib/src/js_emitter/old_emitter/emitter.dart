@@ -95,8 +95,8 @@ class OldEmitter implements Emitter {
         cachedEmittedConstants = compiler.cacheStrategy.newSet(),
         cachedClassBuilders = compiler.cacheStrategy.newMap(),
         cachedElements = compiler.cacheStrategy.newSet() {
-    constantEmitter =
-        new ConstantEmitter(compiler, namer, makeConstantListTemplate);
+    constantEmitter = new ConstantEmitter(
+        compiler, namer, this.constantReference, makeConstantListTemplate);
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
@@ -128,12 +128,58 @@ class OldEmitter implements Emitter {
   }
 
   @override
+  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
+    if (constant.isFunction) return true;    // Already emitted.
+    if (constant.isPrimitive) return true;   // Inlined.
+    if (constant.isDummy) return true;       // Inlined.
+    // The name is null when the constant is already a JS constant.
+    // TODO(floitsch): every constant should be registered, so that we can
+    // share the ones that take up too much space (like some strings).
+    if (namer.constantName(constant) == null) return true;
+    return false;
+  }
+
+  @override
+  int compareConstants(ConstantValue a, ConstantValue b) {
+    // Inlined constants don't affect the order and sometimes don't even have
+    // names.
+    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
+    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
+    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
+
+    // Emit constant interceptors first. Constant interceptors for primitives
+    // might be used by code that builds other constants.  See Issue 18173.
+    if (a.isInterceptor != b.isInterceptor) {
+      return a.isInterceptor ? -1 : 1;
+    }
+
+    // Sorting by the long name clusters constants with the same constructor
+    // which compresses a tiny bit better.
+    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
+    if (r != 0) return r;
+    // Resolve collisions in the long name by using the constant name (i.e. JS
+    // name) which is unique.
+    return namer.constantName(a).compareTo(namer.constantName(b));
+  }
+
+  @override
   jsAst.Expression constantReference(ConstantValue value) {
-    return constantEmitter.reference(value);
+    if (value.isFunction) {
+      FunctionConstantValue functionConstant = value;
+      return isolateStaticClosureAccess(functionConstant.element);
+    }
+
+    // We are only interested in the "isInlined" part, but it does not hurt to
+    // test for the other predicates.
+    if (isConstantInlinedOrAlreadyEmitted(value)) {
+      return constantEmitter.generate(value);
+    }
+    return js('#.#', [namer.globalObjectForConstant(value),
+                      namer.constantName(value)]);
   }
 
   jsAst.Expression constantInitializerExpression(ConstantValue value) {
-    return constantEmitter.initializationExpression(value);
+    return constantEmitter.generate(value);
   }
 
   String get name => 'CodeEmitter';
@@ -148,8 +194,7 @@ class OldEmitter implements Emitter {
       => '${namer.isolateName}.${lazyInitializerProperty}';
   String get initName => 'init';
 
-  String get makeConstListProperty
-      => namer.getMappedInstanceName('makeConstantList');
+  String get makeConstListProperty => namer.internalGlobal('makeConstantList');
 
   /// The name of the property that contains all field names.
   ///
@@ -159,8 +204,9 @@ class OldEmitter implements Emitter {
   /// For deferred loading we communicate the initializers via this global var.
   final String deferredInitializers = r"$dart_deferred_initializers";
 
-  /// All the global state can be passed around with this variable.
-  String get globalsHolder => namer.getMappedGlobalName("globalsHolder");
+  /// Contains the global state that is needed to initialize and load a
+  /// deferred library.
+  String get globalsHolder => namer.internalGlobal("globalsHolder");
 
   @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
@@ -173,7 +219,7 @@ class OldEmitter implements Emitter {
   }
 
   jsAst.PropertyAccess globalPropertyAccess(Element element) {
-    String name = namer.getNameX(element);
+    String name = namer.globalPropertyName(element);
     jsAst.PropertyAccess pa = new jsAst.PropertyAccess.field(
         new jsAst.VariableUse(namer.globalObjectFor(element)),
         name);
@@ -183,13 +229,13 @@ class OldEmitter implements Emitter {
   @override
   jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
      return jsAst.js('#.#', [namer.globalObjectFor(element),
-                             namer.getLazyInitializerName(element)]);
+                             namer.lazyInitializerName(element)]);
    }
 
   @override
   jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
      return jsAst.js('#.#()',
-         [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+         [namer.globalObjectFor(element), namer.staticClosureName(element)]);
    }
 
   @override
@@ -456,7 +502,7 @@ class OldEmitter implements Emitter {
     return js(r'var inheritFrom = #', [result]);
   }
 
-  jsAst.Statement buildFinishClass(bool hasNativeClasses) {
+  jsAst.Statement buildFinishClass(bool needsNativeSupport) {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
 
     jsAst.Expression finishedClassesAccess =
@@ -524,13 +570,13 @@ class OldEmitter implements Emitter {
         var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
-        if (#hasNativeClasses)
+        if (#needsNativeSupport)
           if (Object.prototype.hasOwnProperty.call(prototype, $specProperty))
             #nativeInfoHandler
       }
     }''', {'finishedClassesAccess': finishedClassesAccess,
            'needsMixinSupport': needsMixinSupport,
-           'hasNativeClasses': hasNativeClasses,
+           'needsNativeSupport': needsNativeSupport,
            'nativeInfoHandler': nativeInfoHandler});
   }
 
@@ -672,16 +718,21 @@ class OldEmitter implements Emitter {
     return ':$names';
   }
 
-  jsAst.FunctionDeclaration buildCspPrecompiledFunctionFor(
+  jsAst.Statement buildCspPrecompiledFunctionFor(
       OutputUnit outputUnit) {
     // TODO(ahe): Compute a hash code.
+    // TODO(sigurdm): Avoid this precompiled function. Generated
+    // constructor-functions and getter/setter functions can be stored in the
+    // library-description table. Setting properties on these can be moved to
+    // finishClasses.
     return js.statement('''
-      function dart_precompiled(\$collectedClasses) {
+      # = function (\$collectedClasses) {
         var \$desc;
         #;
         return #;
-      }''',
-        [cspPrecompiledFunctionFor(outputUnit),
+      };''',
+        [generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
+         cspPrecompiledFunctionFor(outputUnit),
          new jsAst.ArrayInitializer(
              cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
@@ -726,7 +777,7 @@ class OldEmitter implements Emitter {
     void emitInitialization(Element element, jsAst.Expression initialValue) {
       jsAst.Expression init =
         js('$isolateProperties.# = #',
-            [namer.getNameOfGlobalField(element), initialValue]);
+            [namer.globalPropertyName(element), initialValue]);
       output.addBuffer(jsAst.prettyPrint(init, compiler,
                                          monitor: compiler.dumpInfoTask));
       output.add('$N');
@@ -742,9 +793,7 @@ class OldEmitter implements Emitter {
       for (Element element in fields) {
         compiler.withCurrentElement(element, () {
           ConstantValue constant = handler.getInitialValueFor(element).value;
-          emitInitialization(
-              element,
-              constantEmitter.referenceInInitializationContext(constant));
+          emitInitialization(element, constantReference(constant));
         });
       }
     }
@@ -797,8 +846,8 @@ class OldEmitter implements Emitter {
         [js(lazyInitializerName),
             js(isolateProperties),
             js.string(element.name),
-            js.string(namer.getNameX(element)),
-            js.string(namer.getLazyInitializerName(element)),
+            js.string(namer.globalPropertyName(element)),
+            js.string(namer.lazyInitializerName(element)),
             code]);
   }
 
@@ -817,39 +866,6 @@ class OldEmitter implements Emitter {
       output.add(',$n');
     }
     output.add('];$n');
-  }
-
-  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
-    if (constant.isFunction) return true;    // Already emitted.
-    if (constant.isPrimitive) return true;   // Inlined.
-    if (constant.isDummy) return true;       // Inlined.
-    // The name is null when the constant is already a JS constant.
-    // TODO(floitsch): every constant should be registered, so that we can
-    // share the ones that take up too much space (like some strings).
-    if (namer.constantName(constant) == null) return true;
-    return false;
-  }
-
-  int compareConstants(ConstantValue a, ConstantValue b) {
-    // Inlined constants don't affect the order and sometimes don't even have
-    // names.
-    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
-    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
-    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
-
-    // Emit constant interceptors first. Constant interceptors for primitives
-    // might be used by code that builds other constants.  See Issue 18173.
-    if (a.isInterceptor != b.isInterceptor) {
-      return a.isInterceptor ? -1 : 1;
-    }
-
-    // Sorting by the long name clusters constants with the same constructor
-    // which compresses a tiny bit better.
-    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
-    if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
   }
 
   void emitCompileTimeConstants(CodeOutput output,
@@ -1212,9 +1228,9 @@ class OldEmitter implements Emitter {
       // typedefs are only emitted with reflection, which requires lots of
       // classes.
       assert(compiler.objectClass != null);
-      builder.superName = namer.getNameOfClass(compiler.objectClass);
+      builder.superName = namer.className(compiler.objectClass);
       jsAst.Node declaration = builder.toObjectInitializer();
-      String mangledName = namer.getNameX(typedef);
+      String mangledName = namer.globalPropertyName(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
       getElementDescriptor(library)
           ..addProperty(mangledName, declaration)
@@ -1418,11 +1434,11 @@ class OldEmitter implements Emitter {
       elementDescriptors.remove(library);
     }
 
-    bool hasNativeClasses = program.outputContainsNativeClasses;
+    bool needsNativeSupport = program.needsNativeSupport;
     mainOutput
         ..addBuffer(
             jsAst.prettyPrint(
-                getReflectionDataParser(this, backend, hasNativeClasses),
+                getReflectionDataParser(this, backend, needsNativeSupport),
                 compiler))
         ..add(n);
 
@@ -1431,8 +1447,19 @@ class OldEmitter implements Emitter {
     // traces and profile entries.
     mainOutput..add('var dart = [$n')
               ..addBuffer(libraryBuffer)
-              ..add(']$N')
-              ..add('$parseReflectionDataName(dart)$N');
+              ..add(']$N');
+    if (compiler.useContentSecurityPolicy) {
+      jsAst.Statement precompiledFunctionAst =
+          buildCspPrecompiledFunctionFor(mainOutputUnit);
+      mainOutput.addBuffer(
+          jsAst.prettyPrint(
+              precompiledFunctionAst,
+              compiler,
+              monitor: compiler.dumpInfoTask,
+              allowVariableMinification: false));
+    }
+
+    mainOutput.add('$parseReflectionDataName(dart)$N');
 
     interceptorEmitter.emitGetInterceptorMethods(mainOutput);
     interceptorEmitter.emitOneShotInterceptors(mainOutput);
@@ -1517,20 +1544,11 @@ class OldEmitter implements Emitter {
       }
     }
 
-    jsAst.FunctionDeclaration precompiledFunctionAst =
-        buildCspPrecompiledFunctionFor(mainOutputUnit);
     emitInitFunction(mainOutput);
     emitMain(mainOutput, mainFragment.invokeMain);
+
     mainOutput.add('})()\n');
 
-    if (compiler.useContentSecurityPolicy) {
-      mainOutput.addBuffer(
-          jsAst.prettyPrint(
-              precompiledFunctionAst,
-              compiler,
-              monitor: compiler.dumpInfoTask,
-              allowVariableMinification: false));
-    }
 
     if (generateSourceMap) {
       mainOutput.add(
@@ -1886,8 +1904,19 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
             // in stack traces and profile entries.
             ..add('var dart = [$n ')
             ..addBuffer(libraryDescriptorBuffer)
-            ..add(']$N')
-            ..add('$parseReflectionDataName(dart)$N');
+            ..add(']$N');
+
+        if (compiler.useContentSecurityPolicy) {
+          jsAst.Statement precompiledFunctionAst =
+              buildCspPrecompiledFunctionFor(outputUnit);
+
+          output.addBuffer(
+              jsAst.prettyPrint(
+                  precompiledFunctionAst, compiler,
+                  monitor: compiler.dumpInfoTask,
+                  allowVariableMinification: false));
+        }
+        output.add('$parseReflectionDataName(dart)$N');
       }
 
       // Set the currentIsolate variable to the current isolate (which is
@@ -1904,19 +1933,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       emitCompileTimeConstants(
           output, fragment.constants, isMainFragment: false);
       emitStaticNonFinalFieldInitializations(output, outputUnit);
+
       output.add('}$N');
-
-      if (compiler.useContentSecurityPolicy) {
-        jsAst.FunctionDeclaration precompiledFunctionAst =
-            buildCspPrecompiledFunctionFor(outputUnit);
-
-        output.addBuffer(
-            jsAst.prettyPrint(
-                precompiledFunctionAst, compiler,
-                monitor: compiler.dumpInfoTask,
-                allowVariableMinification: false));
-      }
-
       // Make a unique hash of the code (before the sourcemaps are added)
       // This will be used to retrieve the initializing function from the global
       // variable.

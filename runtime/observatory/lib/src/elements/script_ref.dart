@@ -52,8 +52,6 @@ class ScriptRefElement extends ServiceRefElement {
     }
     if (pos >= 0) {
       if (ref.loaded) {
-        // Script is loaded, get the line number.
-        Script script = ref;
         return '${super.url}---pos=${pos}';
       } else {
         ref.load().then(_updateProperties);

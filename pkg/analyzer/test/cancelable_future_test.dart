@@ -70,7 +70,8 @@ class CancelableFutureTests {
 
   Future test_delayed_noCallback() {
     DateTime start = new DateTime.now();
-    return new CancelableFuture.delayed(new Duration(seconds: 1)).then((result) {
+    return new CancelableFuture.delayed(new Duration(seconds: 1)).then(
+        (result) {
       DateTime end = new DateTime.now();
       expect(result, isNull);
       expect(end.difference(start).inMilliseconds > 900, isTrue);
@@ -146,7 +147,9 @@ class CancelableCompleterTests {
   int cancelCount = 0;
 
   void setUp() {
-    completer = new CancelableCompleter<Object>(() { cancelCount++; });
+    completer = new CancelableCompleter<Object>(() {
+      cancelCount++;
+    });
   }
 
   void test_initialState() {
@@ -158,16 +161,24 @@ class CancelableCompleterTests {
     // As with an ordinary Completer, calling complete() (or completeError)
     // after calling complete() should throw an exception.
     completer.complete();
-    expect(() { completer.complete(); }, throws);
-    expect(() { completer.completeError(new Object()); }, throws);
+    expect(() {
+      completer.complete();
+    }, throws);
+    expect(() {
+      completer.completeError(new Object());
+    }, throws);
   }
 
   void test_complete_after_completeError() {
     // As with an ordinary Completer, calling complete() (or completeError)
     // after calling completeError() should throw an exception.
     completer.completeError(new Object());
-    expect(() { completer.complete(); }, throws);
-    expect(() { completer.completeError(new Object()); }, throws);
+    expect(() {
+      completer.complete();
+    }, throws);
+    expect(() {
+      completer.completeError(new Object());
+    }, throws);
     // Now absorb the error that's in the completer's future.
     completer.future.catchError((_) => null);
   }

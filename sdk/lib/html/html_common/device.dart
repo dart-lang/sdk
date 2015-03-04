@@ -66,36 +66,36 @@ class Device {
    * Gets the CSS property prefix for the current platform.
    */
   static String get cssPrefix {
-    if (_cachedCssPrefix == null) {
-      if (isFirefox) {
-        _cachedCssPrefix = '-moz-';
-      } else if (isIE) {
-        _cachedCssPrefix = '-ms-';
-      } else if (isOpera) {
-        _cachedCssPrefix = '-o-';
-      } else {
-        _cachedCssPrefix = '-webkit-';
-      }
+    String prefix = _cachedCssPrefix;
+    if (prefix != null) return prefix;
+    if (isFirefox) {
+      prefix = '-moz-';
+    } else if (isIE) {
+      prefix = '-ms-';
+    } else if (isOpera) {
+      prefix = '-o-';
+    } else {
+      prefix = '-webkit-';
     }
-    return _cachedCssPrefix;
+    return _cachedCssPrefix = prefix;
   }
 
   /**
    * Prefix as used for JS property names.
    */
   static String get propertyPrefix {
-    if (_cachedPropertyPrefix == null) {
-      if (isFirefox) {
-        _cachedPropertyPrefix = 'moz';
-      } else if (isIE) {
-        _cachedPropertyPrefix = 'ms';
-      } else if (isOpera) {
-        _cachedPropertyPrefix = 'o';
-      } else {
-        _cachedPropertyPrefix = 'webkit';
-      }
+    String prefix = _cachedPropertyPrefix;
+    if (prefix != null) return prefix;
+    if (isFirefox) {
+      prefix = 'moz';
+    } else if (isIE) {
+      prefix = 'ms';
+    } else if (isOpera) {
+      prefix = 'o';
+    } else {
+      prefix = 'webkit';
     }
-    return _cachedPropertyPrefix;
+    return _cachedPropertyPrefix = prefix;
   }
 
   /**

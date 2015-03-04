@@ -12,6 +12,10 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+/**
+ * A filter for [Element] names.
+ */
+typedef bool ElementNameFilter(String name);
 
 /**
  * The interface [Index] defines the behavior of objects that maintain an index
@@ -46,8 +50,13 @@ abstract class Index {
    * [relationship] - the relationship between the given element and the
    * locations to be returned.
    */
-  Future<List<Location>> getRelationships(Element element,
-      Relationship relationship);
+  Future<List<Location>> getRelationships(
+      Element element, Relationship relationship);
+
+  /**
+   * Returns top-level [Element]s whose names satisfy to [nameFilter].
+   */
+  List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter);
 
   /**
    * Processes the given [HtmlUnit] in order to record the relationships.
@@ -112,7 +121,6 @@ abstract class Index {
    */
   void stop();
 }
-
 
 /**
  * Constants used when populating and accessing the index.
@@ -200,7 +208,6 @@ class IndexConstants {
   IndexConstants._();
 }
 
-
 /**
  * Instances of the class [Location] represent a location related to an element.
  *
@@ -245,8 +252,8 @@ class Location {
    * [offset] - the offset within the resource containing [element].
    * [length] - the length of this location
    */
-  Location(this.element, this.offset, this.length, {bool isQualified: false,
-      bool isResolved: true}) {
+  Location(this.element, this.offset, this.length,
+      {bool isQualified: false, bool isResolved: true}) {
     if (element == null) {
       throw new ArgumentError("element location cannot be null");
     }
@@ -282,7 +289,6 @@ class Location {
   }
 }
 
-
 /**
  * A [Location] with attached data.
  */
@@ -293,13 +299,12 @@ class LocationWithData<D> extends Location {
       : super(location.element, location.offset, location.length);
 }
 
-
 /**
  * An [Element] which is used to index references to the name without specifying
  * a concrete kind of this name - field, method or something else.
  */
 class NameElement extends ElementImpl {
-  NameElement(String name) : super("name:${name}", -1);
+  NameElement(String name) : super(name, -1);
 
   @override
   ElementKind get kind => ElementKind.NAME;
@@ -307,7 +312,6 @@ class NameElement extends ElementImpl {
   @override
   accept(ElementVisitor visitor) => null;
 }
-
 
 /**
  * Relationship between an element and a location. Relationships are identified
@@ -356,21 +360,4 @@ class Relationship {
     }
     return relationship;
   }
-}
-
-
-/**
- * An element to use when we want to request "defines" relations without
- * specifying an exact library.
- */
-class UniverseElement extends ElementImpl {
-  static final UniverseElement INSTANCE = new UniverseElement._();
-
-  UniverseElement._() : super("--universe--", -1);
-
-  @override
-  ElementKind get kind => ElementKind.UNIVERSE;
-
-  @override
-  accept(ElementVisitor visitor) => null;
 }

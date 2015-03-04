@@ -55,7 +55,8 @@ main() {
                 testTypePromotionHints,
                 testFunctionCall,
                 testCascade,
-                testAwait];
+                testAwait,
+                testAsyncReturn];
   asyncTest(() => Future.forEach(tests, (test) => setup(test)));
 }
 
@@ -2032,6 +2033,50 @@ testAwait(MockCompiler compiler) {
             NOT_ASSIGNABLE);
 }
 
+testAsyncReturn(MockCompiler compiler) {
+  Future check(String code, [expectedWarnings]) {
+    return analyzeTopLevel(code, expectedWarnings);
+  }
+  return Future.wait([
+    check("Future<int> foo() async { return; }", MessageKind.RETURN_NOTHING),
+    check("Future<int> foo() async { return null; }"),
+    check("Future<int> foo() async { return 0; }"),
+    check("Future<int> foo() async { return ''; }", NOT_ASSIGNABLE),
+    check("Future<int> foo() async { return new Future.value(); }"),
+    check("Future<int> foo() async { return new Future<int>.value(); }"),
+    check("Future<int> foo() async { return new Future<String>.value(); }",
+          NOT_ASSIGNABLE),
+    check("""
+          Future<int> foo() async { return new Future<Future<int>>.value(); }
+          """),
+    check("void foo() async { return; }"),
+    check("void foo() async { return 0; }", MessageKind.RETURN_VALUE_IN_VOID),
+    check("void foo() async { return new Future.value(); }",
+          MessageKind.RETURN_VALUE_IN_VOID),
+    check("int foo() async { return; }", MessageKind.RETURN_NOTHING),
+    check("int foo() async { return 0; }", NOT_ASSIGNABLE),
+    check("int foo() async { return new Future<int>.value(); }",
+          NOT_ASSIGNABLE),
+
+    check("Future<int> foo() async => null;"),
+    check("Future<int> foo() async => 0;"),
+    check("Future<int> foo() async => '';", NOT_ASSIGNABLE),
+    check("Future<int> foo() async => new Future.value();"),
+    check("Future<int> foo() async => new Future<int>.value();"),
+    check("Future<int> foo() async => new Future<String>.value();",
+          NOT_ASSIGNABLE),
+    check("""
+    Future<int> foo() async => new Future<Future<int>>.value();
+    """),
+    check("void foo() async => 0;", MessageKind.RETURN_VALUE_IN_VOID),
+    check("void foo() async => new Future.value();",
+          MessageKind.RETURN_VALUE_IN_VOID),
+    check("int foo() async => 0;", NOT_ASSIGNABLE),
+    check("int foo() async => new Future<int>.value();",
+          NOT_ASSIGNABLE),
+  ]);
+}
+
 const CLASS_WITH_METHODS = '''
 typedef int String2Int(String s);
 
@@ -2131,7 +2176,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   MockCompiler compiler = new MockCompiler.internal();
   compiler.diagnosticHandler = createHandler(compiler, text);
 
-  return compiler.init().then((_) {
+  return compiler.init("import 'dart:async';").then((_) {
     LibraryElement library = compiler.mainApp;
 
     Link<Element> topLevelElements =

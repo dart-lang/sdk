@@ -93,9 +93,7 @@ class ExecutionDomainHandler implements RequestHandler {
     String contextId = params.id;
     String path = contextMap[contextId];
     if (path == null) {
-      return new Response.invalidParameter(
-          request,
-          'id',
+      return new Response.invalidParameter(request, 'id',
           'There is no execution context with an id of $contextId');
     }
     AnalysisContext context = server.getAnalysisContext(path);
@@ -106,9 +104,7 @@ class ExecutionDomainHandler implements RequestHandler {
     String uri = params.uri;
     if (file != null) {
       if (uri != null) {
-        return new Response.invalidParameter(
-            request,
-            'file',
+        return new Response.invalidParameter(request, 'file',
             'Either file or uri must be provided, but not both');
       }
       Resource resource = server.resourceProvider.getResource(file);
@@ -116,9 +112,7 @@ class ExecutionDomainHandler implements RequestHandler {
         return new Response.invalidParameter(request, 'file', 'Must exist');
       } else if (resource is! File) {
         return new Response.invalidParameter(
-            request,
-            'file',
-            'Must not refer to a directory');
+            request, 'file', 'Must not refer to a directory');
       }
       Source source = server.getSource(file);
       uri = context.sourceFactory.restoreUri(source).toString();
@@ -132,9 +126,7 @@ class ExecutionDomainHandler implements RequestHandler {
       return new ExecutionMapUriResult(file: file).toResponse(request.id);
     }
     return new Response.invalidParameter(
-        request,
-        'file',
-        'Either file or uri must be provided');
+        request, 'file', 'Either file or uri must be provided');
   }
 
   /**
@@ -176,13 +168,12 @@ class ExecutionDomainHandler implements RequestHandler {
           kind = ExecutableKind.SERVER;
         }
         server.sendNotification(
-            new ExecutionLaunchDataParams(filePath, kind: kind).toNotification());
+            new ExecutionLaunchDataParams(filePath, kind: kind)
+                .toNotification());
       } else if (AnalysisEngine.isHtmlFileName(filePath)) {
         List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
-        server.sendNotification(
-            new ExecutionLaunchDataParams(
-                filePath,
-                referencedFiles: _getFullNames(libraries)).toNotification());
+        server.sendNotification(new ExecutionLaunchDataParams(filePath,
+            referencedFiles: _getFullNames(libraries)).toNotification());
       }
     });
   }
@@ -219,10 +210,8 @@ class ExecutionDomainHandler implements RequestHandler {
         if (_isInAnalysisRoot(filePath)) {
           List<Source> libraries =
               context.getLibrariesReferencedFromHtml(source);
-          server.sendNotification(
-              new ExecutionLaunchDataParams(
-                  filePath,
-                  referencedFiles: _getFullNames(libraries)).toNotification());
+          server.sendNotification(new ExecutionLaunchDataParams(filePath,
+              referencedFiles: _getFullNames(libraries)).toNotification());
         }
       }
     }

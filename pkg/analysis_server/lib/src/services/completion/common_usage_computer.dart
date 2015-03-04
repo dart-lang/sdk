@@ -5,27 +5,13 @@
 library services.completion.computer.dart.relevance;
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/protocol_server.dart' show
-    CompletionSuggestion, CompletionSuggestionKind;
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-/**
- * A map of <library>.<classname> to an ordered list of method names,
- * field names, getter names, and named constructors.
- * The names are ordered from most relevant to least relevant.
- * Names not listed are considered equally less relevant than those listed.
- */
-const Map<String, List<String>> defaultSelectorRelevance = const {//
-// Sample implementation which updates the relevance of the following
-//     new Random().nextInt(...)
-//     new Random().nextDouble(...)
-//     new Random().nextBool() - not commonly used thus omitted from list
-// Entries should look something like this
-//     'dart.math.Random': const ['nextInt', 'nextDouble'],
-//     'dart.async.Future': const ['value', 'wait'],
-};
+part 'common_usage_generated.dart';
 
 /**
  * A computer for adjusting the relevance of completions computed by others
@@ -84,8 +70,8 @@ class CommonUsageComputer {
    * Adjusts the relevance of all method suggestions based upon the given
    * target type and library.
    */
-  void _updateInvocationRelevance(DartCompletionRequest request, DartType type,
-      LibraryElement libElem) {
+  void _updateInvocationRelevance(
+      DartCompletionRequest request, DartType type, LibraryElement libElem) {
     String typeName = type.name;
     List<String> selectors = selectorRelevance['${libElem.name}.${typeName}'];
     if (selectors != null) {

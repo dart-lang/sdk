@@ -15,7 +15,6 @@ import '../../../abstract_single_unit.dart';
 import '../../../mocks.dart';
 import '../../../reflective_tests.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(_ContextCodecTest);
@@ -23,7 +22,6 @@ main() {
   runReflectiveTests(_RelationshipCodecTest);
   runReflectiveTests(_StringCodecTest);
 }
-
 
 @reflectiveTest
 class _ContextCodecTest {
@@ -62,7 +60,6 @@ class _ContextCodecTest {
     }
   }
 }
-
 
 @reflectiveTest
 class _ElementCodecTest extends AbstractSingleUnitTest {
@@ -124,8 +121,10 @@ class A {
 
   void test_filePackage_uriMix() {
     MethodElement buildMethodElement(Source source) {
-      CompilationUnitElementImpl unitElement = new CompilationUnitElementImpl('file.dart');
-      LibraryElementImpl libraryElement = new LibraryElementImpl(null, 'lib', 0);
+      CompilationUnitElementImpl unitElement =
+          new CompilationUnitElementImpl('file.dart');
+      LibraryElementImpl libraryElement =
+          new LibraryElementImpl(null, 'lib', 0);
       ClassElementImpl classElement = new ClassElementImpl('A', 0);
       MethodElementImpl methodElement = new MethodElementImpl('m', 0);
       unitElement.source = source;
@@ -144,7 +143,8 @@ class A {
     // package:
     int packageId;
     {
-      Source source = new _TestSource('/my/file.dart', 'package:my_pkg/file.dart');
+      Source source =
+          new _TestSource('/my/file.dart', 'package:my_pkg/file.dart');
       var methodElement = buildMethodElement(source);
       packageId = codec.encode(methodElement, true);
     }
@@ -231,7 +231,6 @@ main() {
   }
 }
 
-
 @reflectiveTest
 class _RelationshipCodecTest {
   StringCodec stringCodec = new StringCodec();
@@ -248,7 +247,6 @@ class _RelationshipCodecTest {
   }
 }
 
-
 @reflectiveTest
 class _StringCodecTest {
   StringCodec codec = new StringCodec();
@@ -260,7 +258,6 @@ class _StringCodecTest {
     expect(codec.decode(idB), 'bbb');
   }
 }
-
 
 class _TestSource implements Source {
   final String fullName;

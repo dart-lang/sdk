@@ -445,6 +445,20 @@ class _TypePropagationVisitor<T> extends Visitor {
     setReachable(node.body);
   }
 
+  void visitLetHandler(LetHandler node) {
+    setReachable(node.body);
+    // The handler is assumed to be reachable (we could instead treat it as
+    // unreachable unless we find something reachable that might throw in the
+    // body --- it's not clear if we want to do that here or in some other
+    // pass).  The handler parameters are assumed to be unknown.
+    //
+    // TODO(kmillikin): we should set the type of the exception and stack
+    // trace here.  The way we do that depends on how we handle 'on T' catch
+    // clauses.
+    setReachable(node.handler);
+    node.handler.parameters.forEach((Parameter p) => setValue(p, nonConst()));
+  }
+
   void visitLetMutable(LetMutable node) {
     setValue(node.variable, getValue(node.value.definition));
     setReachable(node.body);

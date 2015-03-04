@@ -271,8 +271,8 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
  * inputs. The task inputs to be built are specified by a table mapping the name
  * of the input to the task used to access the input's value.
  */
-class TopLevelTaskInputBuilder implements TaskInputBuilder<Map<String, Object>>
-    {
+class TopLevelTaskInputBuilder
+    implements TaskInputBuilder<Map<String, Object>> {
   /**
    * The descriptors describing the inputs to be built.
    */

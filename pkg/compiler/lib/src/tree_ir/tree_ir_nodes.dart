@@ -8,6 +8,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, GenericType;
 import '../elements/elements.dart';
+import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart';
 import '../universe/universe.dart' show Selector;
 import 'optimization/optimization.dart';
@@ -84,9 +85,20 @@ class Label {
 }
 
 /**
- * Variables are [Expression]s.
+ * A local variable in the tree IR.
+ *
+ * All tree IR variables are mutable, and may in Dart-mode be referenced inside
+ * nested functions.
+ *
+ * To use a variable as an expression, reference it from a [VariableUse], with
+ * one [VariableUse] per expression.
+ *
+ * [Variable]s are reference counted. The node constructors [VariableUse],
+ * [Assign], [FunctionDefinition], and [Try] automatically update the reference
+ * count for their variables, but when transforming the tree, the transformer
+ * is responsible for updating reference counts.
  */
-class Variable extends Expression {
+class Variable extends Node {
   /// Function that declares this variable.
   ExecutableElement host;
 
@@ -94,20 +106,34 @@ class Variable extends Expression {
   /// Different variables may have the same entity. May be null.
   Entity element;
 
+  /// Number of places where this variable occurs in a [VariableUse].
   int readCount = 0;
 
   /// Number of places where this variable occurs as:
   /// - left-hand of an [Assign]
   /// - left-hand of a [FunctionDeclaration]
   /// - parameter in a [FunctionDefinition]
+  /// - catch parameter in a [Try]
   int writeCount = 0;
 
   Variable(this.host, this.element) {
     assert(host != null);
   }
+}
 
-  accept(ExpressionVisitor visitor) => visitor.visitVariable(this);
-  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitVariable(this, arg);
+/// Read the value of a variable.
+class VariableUse extends Expression {
+  Variable variable;
+
+  /// Creates a use of [variable] and updates its `readCount`.
+  VariableUse(this.variable) {
+    variable.readCount++;
+  }
+
+  accept(ExpressionVisitor visitor) => visitor.visitVariableUse(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitVariableUse(this, arg);
+  }
 }
 
 /**
@@ -127,8 +153,10 @@ class InvokeStatic extends Expression implements Invoke {
   final Entity target;
   final List<Expression> arguments;
   final Selector selector;
+  final SourceInformation sourceInformation;
 
-  InvokeStatic(this.target, this.selector, this.arguments);
+  InvokeStatic(this.target, this.selector, this.arguments,
+               {this.sourceInformation});
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -498,6 +526,7 @@ class Assign extends Statement {
   /// Variable declarations themselves are hoisted to function level.
   bool isDeclaration;
 
+  /// Creates an assignment to [variable] and updates its `writeCount`.
   Assign(this.variable, this.definition, this.next,
          { this.isDeclaration: false }) {
     variable.writeCount++;
@@ -560,6 +589,29 @@ class ExpressionStatement extends Statement {
   }
 }
 
+// TODO(kmillikin): Do we want this 'TryStatement'?  Other than
+// LabeledStatement and EmptyStatement, the statement class names are not
+// suffixed with 'Statement'.
+class Try extends Statement {
+  Statement tryBody;
+  List<Variable> catchParameters;
+  Statement catchBody;
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Try(this.tryBody, this.catchParameters, this.catchBody) {
+    for (Variable variable in catchParameters) {
+      variable.writeCount++; // Being a catch parameter counts as a write.
+    }
+  }
+
+  accept(StatementVisitor visitor) => visitor.visitTry(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitTry(this, arg);
+  }
+}
+
 abstract class ExecutableDefinition {
   ExecutableElement get element;
   Statement body;
@@ -602,8 +654,13 @@ class FunctionDefinition extends Node implements ExecutableDefinition {
   final List<ConstDeclaration> localConstants;
   final List<ConstantExpression> defaultParameterValues;
 
+  /// Creates a function definition and updates `writeCount` for [parameters].
   FunctionDefinition(this.element, this.parameters, this.body,
-      this.localConstants, this.defaultParameterValues);
+      this.localConstants, this.defaultParameterValues) {
+    for (Variable param in parameters) {
+      param.writeCount++; // Being a parameter counts as a write.
+    }
+  }
 
   /// Returns `true` if this function is abstract.
   ///
@@ -700,7 +757,7 @@ class SetField extends Statement implements JsSpecificNode {
 
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression e) => e.accept(this);
-  E visitVariable(Variable node);
+  E visitVariableUse(VariableUse node);
   E visitInvokeStatic(InvokeStatic node);
   E visitInvokeMethod(InvokeMethod node);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node);
@@ -725,7 +782,7 @@ abstract class ExpressionVisitor<E> {
 
 abstract class ExpressionVisitor1<E, A> {
   E visitExpression(Expression e, A arg) => e.accept1(this, arg);
-  E visitVariable(Variable node, A arg);
+  E visitVariableUse(VariableUse node, A arg);
   E visitInvokeStatic(InvokeStatic node, A arg);
   E visitInvokeMethod(InvokeMethod node, A arg);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node, A arg);
@@ -760,6 +817,7 @@ abstract class StatementVisitor<S> {
   S visitWhileCondition(WhileCondition node);
   S visitFunctionDeclaration(FunctionDeclaration node);
   S visitExpressionStatement(ExpressionStatement node);
+  S visitTry(Try node);
   S visitSetField(SetField node);
 }
 
@@ -775,6 +833,7 @@ abstract class StatementVisitor1<S, A> {
   S visitWhileCondition(WhileCondition node, A arg);
   S visitFunctionDeclaration(FunctionDeclaration node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
+  S visitTry(Try node, A arg);
   S visitSetField(SetField node, A arg);
 }
 
@@ -792,10 +851,15 @@ abstract class Visitor1<S, E, A> implements ExpressionVisitor1<E, A>,
 
 class RecursiveVisitor extends Visitor {
   visitFunctionDefinition(FunctionDefinition node) {
+    node.parameters.forEach(visitVariable);
     visitStatement(node.body);
   }
 
   visitVariable(Variable node) {}
+
+  visitVariableUse(VariableUse node) {
+    visitVariable(node.variable);
+  }
 
   visitInvokeStatic(InvokeStatic node) {
     node.arguments.forEach(visitExpression);
@@ -902,6 +966,11 @@ class RecursiveVisitor extends Visitor {
   visitExpressionStatement(ExpressionStatement node) {
     visitExpression(node.expression);
     visitStatement(node.next);
+  }
+
+  visitTry(Try node) {
+    visitStatement(node.tryBody);
+    visitStatement(node.catchBody);
   }
 
   visitFieldInitializer(FieldInitializer node) {

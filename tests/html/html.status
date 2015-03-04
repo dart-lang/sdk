@@ -41,9 +41,9 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
-# Dartium seems to lose the data from the dispatchEvent. 
+# Dartium seems to lose the data from the dispatchEvent.
 postmessage_structured_test/more_primitives: Fail
-async_test: Fail # Background timers not implemented.
+async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
@@ -113,6 +113,10 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 native_gc_test: Pass, Slow
 
+[$runtime == chrome && $compiler == dart2js && $system == macos]
+transition_event_test/functional: Skip # Times out. Issue 
+request_animation_frame_test: Skip # Times out. Issue 
+
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
@@ -175,6 +179,10 @@ xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
 transferables_test: Fail # Issue 9846
+
+[ $compiler == dart2js && $runtime == chrome ]
+css_test/supportsPointConversions: Fail # Issues 21710
+css_test/functional: Fail # Issues 21710
 
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
@@ -321,7 +329,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Firefox do
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
-css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail
@@ -362,11 +369,10 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # Issue 12958
 
-[ $compiler == dart2js && ($runtime == chrome || $runtime == drt) && ($system == windows || $system == linux)]
-css_test/functional: Fail # Issue 21710
-css_test/supportsPointConversions: Fail # Issue 21710
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+node_validator_test: Fail # Issue 22564
 
-[ $compiler == dart2js &&  $runtime == chrome && $system == windows]
+[ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
 
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
@@ -377,8 +383,10 @@ touchevent_test/supported: Fail
 xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $compiler == none && $runtime == dartium ]
-async_test: Timeout # Issue 13719: Please triage this failure.
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
+
+[ $runtime == chrome && $system == macos && $compiler == dart2js]
+element_offset_test/offset: RuntimeError # Issue 22619
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning
