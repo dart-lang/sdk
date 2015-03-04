@@ -12667,6 +12667,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.style')
   @DocsEditable()
+  @Returns('CssStyleDeclaration')
   final CssStyleDeclaration style;
 
   @DomName('Element.tagName')
