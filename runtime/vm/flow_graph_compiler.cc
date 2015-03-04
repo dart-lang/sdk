@@ -389,6 +389,12 @@ void FlowGraphCompiler::VisitBlocks() {
       continue;
     }
 
+#if defined(DEBUG)
+    if (!is_optimizing()) {
+      FrameStateClear();
+    }
+#endif
+
     LoopInfoComment(assembler(), *entry, *loop_headers);
 
     entry->set_offset(assembler()->CodeSize());
@@ -426,7 +432,17 @@ void FlowGraphCompiler::VisitBlocks() {
         pending_deoptimization_env_ = NULL;
         EmitInstructionEpilogue(instr);
       }
+
+#if defined(DEBUG)
+      if (!is_optimizing()) {
+        FrameStateUpdateWith(instr);
+      }
+#endif
     }
+
+#if defined(DEBUG)
+    ASSERT(is_optimizing() || FrameStateIsSafeToCall());
+#endif
   }
 
   if (inline_id_to_function_.length() > max_inlining_id + 1) {
@@ -1596,6 +1612,79 @@ RawArray* FlowGraphCompiler::InliningIdToFunction() const {
   }
   return res.raw();
 }
+
+
+#if defined(DEBUG)
+void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
+  ASSERT(!is_optimizing());
+
+  switch (instr->tag()) {
+    case Instruction::kPushArgument:
+    case Instruction::kPushTemp:
+      // Do nothing.
+      break;
+
+    case Instruction::kDropTemps:
+      FrameStatePop(instr->locs()->input_count() +
+          instr->AsDropTemps()->num_temps());
+      break;
+
+    default:
+      FrameStatePop(instr->locs()->input_count());
+      break;
+  }
+
+  ASSERT(!instr->locs()->can_call() || FrameStateIsSafeToCall());
+
+  FrameStatePop(instr->ArgumentCount());
+  Definition* defn = instr->AsDefinition();
+  if ((defn != NULL) && defn->HasTemp()) {
+    FrameStatePush(defn);
+  }
+}
+
+
+void FlowGraphCompiler::FrameStatePush(Definition* defn) {
+  Representation rep = defn->representation();
+  if ((rep == kUnboxedDouble) ||
+      (rep == kUnboxedFloat64x2) ||
+      (rep == kUnboxedFloat32x4)) {
+    // LoadField instruction lies about its representation in the unoptimized
+    // code because Definition::representation() can't depend on the type of
+    // compilation but MakeLocationSummary and EmitNativeCode can.
+    ASSERT(defn->IsLoadField() && defn->AsLoadField()->IsUnboxedLoad());
+    ASSERT(defn->locs()->out(0).IsRegister());
+    rep = kTagged;
+  }
+  ASSERT(!is_optimizing());
+  ASSERT((rep == kTagged) || (rep == kUntagged));
+  ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
+  frame_state_.Add(rep);
+}
+
+
+void FlowGraphCompiler::FrameStatePop(intptr_t count) {
+  ASSERT(!is_optimizing());
+  frame_state_.TruncateTo(Utils::Maximum(0, frame_state_.length() - count));
+}
+
+
+bool FlowGraphCompiler::FrameStateIsSafeToCall() {
+  ASSERT(!is_optimizing());
+  for (intptr_t i = 0; i < frame_state_.length(); i++) {
+    if (frame_state_[i] != kTagged) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+void FlowGraphCompiler::FrameStateClear() {
+  ASSERT(!is_optimizing());
+  frame_state_.TruncateTo(0);
+}
+#endif
 
 
 }  // namespace dart

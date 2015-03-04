@@ -644,11 +644,23 @@ class FlowGraphCompiler : public ValueObject {
     return stackmap_table_builder_;
   }
 
+#if defined(DEBUG)
+  void FrameStateUpdateWith(Instruction* instr);
+  void FrameStatePush(Definition* defn);
+  void FrameStatePop(intptr_t count);
+  bool FrameStateIsSafeToCall();
+  void FrameStateClear();
+#endif
+
   Isolate* isolate_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
+
+#if defined(DEBUG)
+  GrowableArray<Representation> frame_state_;
+#endif
 
   // Compiler specific per-block state.  Indexed by postorder block number
   // for convenience.  This is not the block's index in the block order,
