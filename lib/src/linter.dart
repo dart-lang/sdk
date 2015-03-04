@@ -251,7 +251,9 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
 
     // Then do the reporting
-    reporter.reportError(error);
+    if (reporter != null) {
+      reporter.reportError(error);
+    }
   }
 }
 
@@ -357,12 +359,10 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           // Analyzer sets reporters; if this file is not being analyzed,
           // we need to set one ourselves.  (Needless to say, when pubspec
           // processing gets pushed down, this hack can go away.)
-          Source source;
-          if (sourceUrl != null) {
-            source = createSource(Uri.parse(sourceUrl));
+          if (rule.reporter == null && sourceUrl != null) {
+            var source = createSource(Uri.parse(sourceUrl));
+            rule.reporter = new ErrorReporter(this, source);
           }
-
-          rule.reporter = new ErrorReporter(this, source);
           try {
             spec.accept(visitor);
           } on Exception catch (e) {

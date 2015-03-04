@@ -84,7 +84,7 @@ class SimpleFormatter implements ReportFormatter {
     out
       ..write('${shorten(fileRoot, error.source.fullName)} ')
       ..write('${location.lineNumber}:${location.columnNumber} ')
-      ..write('[${error.errorCode.type.displayName}] ${error.message} ')
+      ..write('[${error.errorCode.type.displayName}] ${error.message}')
       ..writeln();
   }
 
