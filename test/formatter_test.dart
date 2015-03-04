@@ -60,7 +60,7 @@ defineTests() {
 
       test('write', () {
         expect(out.buffer.toString(), equals(
-            '''[test] MSG (/foo/bar/baz.dart, line 3, col 3)
+            '''/foo/bar/baz.dart 3:3 [test] MSG
 
 1 file analyzed, 1 issue found.
 '''));
