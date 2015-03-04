@@ -237,7 +237,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   void reportLint(AstNode node) {
     reporter.reportErrorForNode(
-        new LintCode(name.value, description), node, []);
+        new _LintCode(name.value, description), node, []);
   }
 
   void reportPubLint(PSNode node) {
@@ -246,7 +246,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
     // Cache error and location info for creating AnalysisErrorInfos
     var error = new AnalysisError.con2(source, node.span.start.offset,
-        node.span.length, new LintCode(name.value, description));
+        node.span.length, new _LintCode(name.value, description));
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
 
@@ -254,6 +254,23 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     reporter.reportError(error);
   }
 }
+
+class _LintCode extends LintCode {
+
+  static final registry = <String, LintCode>{};
+
+  factory _LintCode(String name, String message) {
+    var lint = registry[name];
+    if (lint == null || lint.message != message) {
+      lint = new _LintCode._(name, message);
+      registry[name] = lint;
+    }
+    return lint;
+  }
+
+  _LintCode._(String name, String message) : super(name, message);
+}
+
 
 class Maturity implements Comparable<Maturity> {
   static const Maturity STABLE = const Maturity._('STABLE', ordinal: 0);
