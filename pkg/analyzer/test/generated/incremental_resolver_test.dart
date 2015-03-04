@@ -2843,6 +2843,55 @@ main() {
 ''');
   }
 
+  void test_endOfLineComment_header_add() {
+    _resolveUnit(r'''
+main() {
+  Object x;
+  x.foo();
+}
+''');
+    _updateAndValidate(r'''
+// 000
+main() {
+  Object x;
+  x.foo();
+}
+''');
+  }
+
+  void test_endOfLineComment_header_remove() {
+    _resolveUnit(r'''
+// 000
+main() {
+  Object x;
+  x.foo();
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  Object x;
+  x.foo();
+}
+''');
+  }
+
+  void test_endOfLineComment_header_update() {
+    _resolveUnit(r'''
+// 000
+main() {
+  Object x;
+  x.foo();
+}
+''');
+    _updateAndValidate(r'''
+// 10
+main() {
+  Object x;
+  x.foo();
+}
+''');
+  }
+
   void test_endOfLineComment_localFunction_inTopLevelVariable() {
     _resolveUnit(r'''
 typedef int Binary(one, two, three);

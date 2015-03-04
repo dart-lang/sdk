@@ -1189,9 +1189,15 @@ class PoorMansIncrementalResolver {
           _updateEndOld = endOffsetOld;
           _updateEndNew = endOffsetNew;
           _updateDelta = newUnit.length - _oldUnit.length;
+          // A comment change.
+          if (firstPair.kind == _TokenDifferenceKind.COMMENT) {
+            bool success = _resolveComment(newUnit, firstPair);
+            logger.log('Comment change: $success');
+            return success;
+          }
           // A Dart documentation comment change.
           if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
-            bool success = _resolveComment(_oldUnit, newUnit, firstPair);
+            bool success = _resolveCommentDoc(newUnit, firstPair);
             logger.log('Documentation comment resolved: $success');
             return success;
           }
@@ -1309,11 +1315,32 @@ class PoorMansIncrementalResolver {
   }
 
   /**
+   * Attempts to resolve a comment change.
+   * Returns `true` if success.
+   */
+  bool _resolveComment(CompilationUnit newUnit, _TokenPair firstPair) {
+    Token oldToken = firstPair.oldToken;
+    Token newToken = firstPair.newToken;
+    CommentToken newComments = newToken.precedingComments;
+    // update token references
+    _updateOffset = oldToken.offset - 1;
+    _shiftTokens(firstPair.oldToken);
+    _setPrecedingComments(oldToken, newComments);
+    // update elements
+    IncrementalResolver incrementalResolver = new IncrementalResolver(
+        _unitElement, _updateOffset, _updateEndOld, _updateEndNew);
+    incrementalResolver._updateElementNameOffsets();
+    incrementalResolver._shiftEntryErrors();
+    _updateEntry();
+    // OK
+    return true;
+  }
+
+  /**
    * Attempts to resolve a documentation comment change.
    * Returns `true` if success.
    */
-  bool _resolveComment(
-      CompilationUnit oldUnit, CompilationUnit newUnit, _TokenPair firstPair) {
+  bool _resolveCommentDoc(CompilationUnit newUnit, _TokenPair firstPair) {
     Token oldToken = firstPair.oldToken;
     Token newToken = firstPair.newToken;
     CommentToken oldComments = oldToken.precedingComments;
@@ -1324,7 +1351,7 @@ class PoorMansIncrementalResolver {
     // find nodes
     int offset = oldComments.offset;
     logger.log('offset: $offset');
-    Comment oldComment = _findNodeCovering(oldUnit, offset, offset);
+    Comment oldComment = _findNodeCovering(_oldUnit, offset, offset);
     Comment newComment = _findNodeCovering(newUnit, offset, offset);
     logger.log('oldComment.beginToken: ${oldComment.beginToken}');
     logger.log('newComment.beginToken: ${newComment.beginToken}');
@@ -1353,6 +1380,40 @@ class PoorMansIncrementalResolver {
     Token token = scanner.tokenize();
     _newScanErrors = errorListener.errors;
     return token;
+  }
+
+  /**
+   * Set the given [comment] as a "precedingComments" for [token].
+   */
+  void _setPrecedingComments(Token token, CommentToken comment) {
+    if (token is BeginTokenWithComment) {
+      token.precedingComments = comment;
+    } else if (token is KeywordTokenWithComment) {
+      token.precedingComments = comment;
+    } else if (token is KeywordToken) {
+      KeywordTokenWithComment newToken =
+          new KeywordTokenWithComment(token.keyword, token.offset, comment);
+      token.previous.setNext(newToken);
+      newToken.setNext(token.next);
+      if (_oldUnit.beginToken == token) {
+        _oldUnit.beginToken = newToken;
+      }
+    } else if (token is StringTokenWithComment) {
+      token.precedingComments = comment;
+    } else if (token is StringToken) {
+      StringTokenWithComment newToken = new StringTokenWithComment(
+          token.type, token.value(), token.offset, comment);
+      token.previous.setNext(newToken);
+      newToken.setNext(token.next);
+      if (_oldUnit.beginToken == token) {
+        _oldUnit.beginToken = newToken;
+      }
+    } else if (token is TokenWithComment) {
+      token.precedingComments = comment;
+    } else {
+      Type parentType = token != null ? token.runtimeType : null;
+      throw new AnalysisException('Uknown parent token type: $parentType');
+    }
   }
 
   void _shiftTokens(Token token) {
@@ -1517,24 +1578,6 @@ class PoorMansIncrementalResolver {
       token = token.next;
     }
     return count;
-  }
-
-  /**
-   * Set the given [comment] as a "precedingComments" for [parent].
-   */
-  static void _setPrecedingComments(Token parent, CommentToken comment) {
-    if (parent is BeginTokenWithComment) {
-      parent.precedingComments = comment;
-    } else if (parent is KeywordTokenWithComment) {
-      parent.precedingComments = comment;
-    } else if (parent is StringTokenWithComment) {
-      parent.precedingComments = comment;
-    } else if (parent is TokenWithComment) {
-      parent.precedingComments = comment;
-    } else {
-      Type parentType = parent != null ? parent.runtimeType : null;
-      throw new AnalysisException('Uknown parent token type: $parentType');
-    }
   }
 }
 
