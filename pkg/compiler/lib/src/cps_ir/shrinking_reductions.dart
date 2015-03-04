@@ -509,12 +509,11 @@ class ParentVisitor extends RecursiveVisitor {
   // Expressions.
 
   processFieldInitializer(FieldInitializer node) {
-    node.body.body.parent = node;
+    node.body.parent = node;
   }
 
   processSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach(
-        (RunnableBody argument) => argument.body.parent = node);
+    node.arguments.forEach((RunnableBody argument) => argument.parent = node);
   }
 
   processLetPrim(LetPrim node) {

@@ -155,7 +155,7 @@ class DartBackend extends Backend {
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
     // ranges that can be invalidated by transforming the IR.
-    new cps_ir.RegisterAllocator().visit(cpsDefinition);
+    new cps_ir.RegisterAllocator(context.internalError).visit(cpsDefinition);
 
     tree_builder.Builder builder =
         new tree_builder.Builder(context.internalError);

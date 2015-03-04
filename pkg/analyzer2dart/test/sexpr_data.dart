@@ -1399,7 +1399,8 @@ main() {
     (InvokeConstructor C () k0)))
 ''',
 'C.':  '''
-(FunctionDefinition  () return
+(ConstructorDefinition () return (
+    )
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''}),
@@ -1420,7 +1421,8 @@ main() {
     (InvokeConstructor C () k0)))
 ''',
 'C.': '''
-(FunctionDefinition  () return
+(ConstructorDefinition () return (
+    )
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''}),
@@ -1442,12 +1444,14 @@ main() {
     (InvokeConstructor C () k0)))
 ''',
 'B.':  '''
-(FunctionDefinition  () return
+(ConstructorDefinition () return (
+    )
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 ''',
 'C.': '''
-(FunctionDefinition  () return
+(ConstructorDefinition () return (
+    )
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''}),
@@ -1469,12 +1473,14 @@ main() {
     (InvokeConstructor C () k0)))
 ''',
 'B.': '''
-(FunctionDefinition  () return
+(ConstructorDefinition () return (
+    )
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 ''',
 'C.':  '''
-(FunctionDefinition  () return
+(ConstructorDefinition () return (
+    )
   (LetPrim (v0 (Constant (Null)))
     (InvokeContinuation return (v0))))
 '''}),

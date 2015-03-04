@@ -13,7 +13,7 @@ import 'cps_ir_nodes.dart';
 typedef String Decorator(Node node, String s);
 
 /// Generate a Lisp-like S-expression representation of an IR node as a string.
-class SExpressionStringifier extends Visitor<String> with Indentation {
+class SExpressionStringifier extends Indentation implements Visitor<String> {
   final _Namer namer = new _Namer();
 
   String newValueName(Primitive node) => namer.nameValue(node);
@@ -41,15 +41,14 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   /// Main entry point for creating a [String] from a [Node].  All recursive
   /// calls must go through this method.
   String visit(Node node) {
-    String s = super.visit(node);
+    String s = node.accept(this);
     return decorator(node, s);
   }
 
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
-    namer.setReturnContinuation(node.body.returnContinuation);
     String parameters = node.parameters.map(visit).join(' ');
-    String body = indentBlock(() => visit(node.body.body));
+    String body = visit(node.body);
     return '$indentation(FunctionDefinition $name ($parameters) return\n'
         '$body)';
   }
@@ -57,13 +56,54 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitFieldDefinition(FieldDefinition node) {
     String name = node.element.name;
     if (node.hasInitializer) {
-      namer.setReturnContinuation(node.body.returnContinuation);
-      String body = indentBlock(() => visit(node.body.body));
+      String body = visit(node.body);
       return '$indentation(FieldDefinition $name () return\n'
              '$body)';
     } else {
       return '$indentation(FieldDefinition $name)';
     }
+  }
+
+  String visitConstructorDefinition(ConstructorDefinition node) {
+    String name = node.element.name;
+    if (name != '') name = '$name ';
+    String parameters = node.parameters.map(visit).join(' ');
+    if (node.body != null) {
+      String initializers = indentBlock(() {
+        return indentBlock(() {
+          if (node.initializers.isEmpty) {
+            return '$indentation';
+          } else {
+            return node.initializers.map(visit).join('\n');
+          }
+        });
+      });
+      String body = visit(node.body);
+      return '$indentation(ConstructorDefinition $name($parameters) return'
+          ' (\n$initializers)\n$body)';
+    } else {
+      return '$indentation(ConstructorDefinition $name($parameters) return)';
+    }
+  }
+
+  String visitFieldInitializer(FieldInitializer node) {
+    String name = node.element.name;
+    String body = visit(node.body);
+    return '$indentation(FieldInitializer $name\$body)';
+  }
+
+  String visitSuperInitializer(SuperInitializer node) {
+    String target = node.target.name;
+    String selector = node.selector.name;
+    String arguments =
+        indentBlock(() =>
+          indentBlock(() => node.arguments.map(visit).join('\n')));
+    return '$indentation(SuperInitializer $target $selector (\n$arguments)';
+  }
+
+  String visitRunnableBody(RunnableBody node) {
+    namer.setReturnContinuation(node.returnContinuation);
+    return indentBlock(() => visit(node.body));
   }
 
   String visitLetPrim(LetPrim node) {

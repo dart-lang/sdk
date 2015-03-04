@@ -164,7 +164,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
     // ranges that can be invalidated by transforming the IR.
-    new cps.RegisterAllocator().visit(cpsNode);
+    new cps.RegisterAllocator(compiler.internalError).visit(cpsNode);
     return cpsNode;
   }
 

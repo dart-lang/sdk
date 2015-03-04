@@ -10,7 +10,10 @@ import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
 import '../cps_ir/optimizers.dart';
 import '../dart_types.dart' show DartType, GenericType;
-import '../dart2jslib.dart' as dart2js show invariant;
+import '../dart2jslib.dart' as dart2js show
+    CURRENT_ELEMENT_SPANNABLE,
+    InternalErrorFunction,
+    invariant;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart' show Selector, SelectorKind;
@@ -872,79 +875,66 @@ List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
 abstract class Visitor<T> {
   const Visitor();
 
-  T visit(Node node) => node.accept(this);
-  // Abstract classes.
-  T visitNode(Node node) => null;
-  T visitExpression(Expression node) => visitNode(node);
-  T visitDefinition(Definition node) => visitNode(node);
-  T visitPrimitive(Primitive node) => visitDefinition(node);
-  T visitCondition(Condition node) => visitNode(node);
-  T visitRunnableBody(RunnableBody node) => visitNode(node);
+  T visit(Node node);
 
   // Concrete classes.
-  T visitFieldDefinition(FieldDefinition node) => visitNode(node);
-  T visitFunctionDefinition(FunctionDefinition node) => visitNode(node);
-  T visitConstructorDefinition(ConstructorDefinition node) {
-    return visitFunctionDefinition(node);
-  }
+  T visitFieldDefinition(FieldDefinition node);
+  T visitFunctionDefinition(FunctionDefinition node);
+  T visitConstructorDefinition(ConstructorDefinition node);
+  T visitRunnableBody(RunnableBody node);
 
   // Initializers
-  T visitInitializer(Initializer node) => visitNode(node);
-  T visitFieldInitializer(FieldInitializer node) => visitInitializer(node);
-  T visitSuperInitializer(SuperInitializer node) => visitInitializer(node);
+  T visitFieldInitializer(FieldInitializer node);
+  T visitSuperInitializer(SuperInitializer node);
 
   // Expressions.
-  T visitLetPrim(LetPrim node) => visitExpression(node);
-  T visitLetCont(LetCont node) => visitExpression(node);
-  T visitLetHandler(LetHandler node) => visitExpression(node);
-  T visitLetMutable(LetMutable node) => visitExpression(node);
-  T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
-  T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
-  T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
-  T visitInvokeMethodDirectly(InvokeMethodDirectly node) => visitExpression(node);
-  T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
-  T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
-  T visitBranch(Branch node) => visitExpression(node);
-  T visitTypeOperator(TypeOperator node) => visitExpression(node);
-  T visitSetMutableVariable(SetMutableVariable node) => visitExpression(node);
-  T visitDeclareFunction(DeclareFunction node) => visitExpression(node);
-  T visitSetField(SetField node) => visitExpression(node);
+  T visitLetPrim(LetPrim node);
+  T visitLetCont(LetCont node);
+  T visitLetHandler(LetHandler node);
+  T visitLetMutable(LetMutable node);
+  T visitInvokeContinuation(InvokeContinuation node);
+  T visitInvokeStatic(InvokeStatic node);
+  T visitInvokeMethod(InvokeMethod node);
+  T visitInvokeMethodDirectly(InvokeMethodDirectly node);
+  T visitInvokeConstructor(InvokeConstructor node);
+  T visitConcatenateStrings(ConcatenateStrings node);
+  T visitBranch(Branch node);
+  T visitTypeOperator(TypeOperator node);
+  T visitSetMutableVariable(SetMutableVariable node);
+  T visitDeclareFunction(DeclareFunction node);
 
   // Definitions.
-  T visitLiteralList(LiteralList node) => visitPrimitive(node);
-  T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
-  T visitConstant(Constant node) => visitPrimitive(node);
-  T visitThis(This node) => visitPrimitive(node);
-  T visitReifyTypeVar(ReifyTypeVar node) => visitPrimitive(node);
-  T visitCreateFunction(CreateFunction node) => visitPrimitive(node);
-  T visitGetMutableVariable(GetMutableVariable node) => visitPrimitive(node);
-  T visitParameter(Parameter node) => visitPrimitive(node);
-  T visitContinuation(Continuation node) => visitDefinition(node);
-  T visitMutableVariable(MutableVariable node) => visitDefinition(node);
-  T visitGetField(GetField node) => visitDefinition(node);
-  T visitCreateBox(CreateBox node) => visitDefinition(node);
-  T visitCreateInstance(CreateInstance node) => visitDefinition(node);
+  T visitLiteralList(LiteralList node);
+  T visitLiteralMap(LiteralMap node);
+  T visitConstant(Constant node);
+  T visitThis(This node);
+  T visitReifyTypeVar(ReifyTypeVar node);
+  T visitCreateFunction(CreateFunction node);
+  T visitGetMutableVariable(GetMutableVariable node);
+  T visitParameter(Parameter node);
+  T visitContinuation(Continuation node);
+  T visitMutableVariable(MutableVariable node);
 
   // Conditions.
-  T visitIsTrue(IsTrue node) => visitCondition(node);
+  T visitIsTrue(IsTrue node);
 
   // JavaScript specific nodes.
-  T visitIdentical(Identical node) => visitPrimitive(node);
-  T visitInterceptor(Interceptor node) => visitPrimitive(node);
+  // Expressions.
+  T visitSetField(SetField node);
+  // Definitions.
+  T visitIdentical(Identical node);
+  T visitInterceptor(Interceptor node);
+  T visitCreateInstance(CreateInstance node);
+  T visitGetField(GetField node);
+  T visitCreateBox(CreateBox node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
 /// (i.e. `processLetPrim`) functions in pre-order.
-abstract class RecursiveVisitor extends Visitor {
+class RecursiveVisitor implements Visitor {
   const RecursiveVisitor();
 
-  // Ensures that RecursiveVisitor contains overrides for all relevant nodes.
-  // As a rule of thumb, nodes with structure to traverse should be overridden
-  // with the appropriate visits in this class (for example, visitLetCont),
-  // while leaving other nodes for subclasses (i.e., visitLiteralList).
-  visitNode(Node node) {
-    throw "$this is stale, add missing visit override for $node";
-  }
+  visit(Node node) => node.accept(this);
 
   processReference(Reference ref) {}
 
@@ -983,14 +973,13 @@ abstract class RecursiveVisitor extends Visitor {
   processFieldInitializer(FieldInitializer node) {}
   visitFieldInitializer(FieldInitializer node) {
     processFieldInitializer(node);
-    visit(node.body.body);
+    visit(node.body);
   }
 
   processSuperInitializer(SuperInitializer node) {}
   visitSuperInitializer(SuperInitializer node) {
     processSuperInitializer(node);
-    node.arguments.forEach(
-        (RunnableBody argument) => visit(argument.body));
+    node.arguments.forEach(visit);
   }
 
   // Expressions.
@@ -1139,6 +1128,7 @@ abstract class RecursiveVisitor extends Visitor {
   processGetMutableVariable(GetMutableVariable node) {}
   visitGetMutableVariable(GetMutableVariable node) {
     processGetMutableVariable(node);
+    processReference(node.variable);
   }
 
   processParameter(Parameter node) {}
@@ -1224,10 +1214,14 @@ class RegisterArray {
 /// redundant variables.
 /// Currently, the liveness analysis is very simple and is often inadequate
 /// for removing all of the redundant variables.
-class RegisterAllocator extends Visitor {
+class RegisterAllocator implements Visitor {
+  final dart2js.InternalErrorFunction internalError;
+
   /// Separate register spaces for each source-level variable/parameter.
   /// Note that null is used as key for primitives without hints.
   final Map<Local, RegisterArray> elementRegisters = <Local, RegisterArray>{};
+
+  RegisterAllocator(this.internalError);
 
   RegisterArray getRegisterArray(Local local) {
     RegisterArray registers = elementRegisters[local];
@@ -1251,6 +1245,8 @@ class RegisterAllocator extends Visitor {
       getRegisterArray(primitive.hint).releaseIndex(primitive.registerIndex);
     }
   }
+
+  void visit(Node node) => node.accept(this);
 
   void visitReference(Reference reference) {
     allocate(reference.definition);
@@ -1386,7 +1382,7 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitCreateFunction(CreateFunction node) {
-    new RegisterAllocator().visit(node.definition);
+    new RegisterAllocator(internalError).visit(node.definition);
   }
 
   void visitGetMutableVariable(GetMutableVariable node) {
@@ -1398,13 +1394,20 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitDeclareFunction(DeclareFunction node) {
-    new RegisterAllocator().visit(node.definition);
+    new RegisterAllocator(internalError).visit(node.definition);
     visit(node.body);
   }
 
   void visitParameter(Parameter node) {
-    throw "Parameters should not be visited by RegisterAllocator";
+    // Parameters are handled differently depending on whether they are
+    // function parameters, continuation parameters, exception handler
+    // parameters, etc.  Thus we do not call visitParameter directly and
+    // handle them explicitly in their parent IR node.
+    internalError(dart2js.CURRENT_ELEMENT_SPANNABLE,
+                  'tried to allocate a parameter');
   }
+
+  void visitMutableVariable(MutableVariable node) {}
 
   void visitContinuation(Continuation node) {
     visit(node.body);

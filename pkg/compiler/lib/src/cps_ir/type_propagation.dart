@@ -287,7 +287,7 @@ class _TransformingVisitor extends RecursiveVisitor {
  * const-ness as well as reachability, both of which are used in the subsequent
  * transformation pass.
  */
-class _TypePropagationVisitor<T> extends Visitor {
+class _TypePropagationVisitor<T> implements Visitor {
   // The node worklist stores nodes that are both reachable and need to be
   // processed, but have not been processed yet. Using a worklist avoids deep
   // recursion.
@@ -411,15 +411,12 @@ class _TypePropagationVisitor<T> extends Visitor {
   }
 
   // -------------------------- Visitor overrides ------------------------------
+  void visit(Node node) { node.accept(this); }
 
-  void visitNode(Node node) {
-    internalError(NO_LOCATION_SPANNABLE,
-        "_TypePropagationVisitor is stale,"
-        " add missing visit overrides ($node)");
-  }
-
-  void visitRunnableBody(RunnableBody node) {
-    setReachable(node.body);
+  void visitFieldDefinition(FieldDefinition node) {
+    if (node.hasInitializer) {
+      setReachable(node.body);
+    }
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {
@@ -427,10 +424,22 @@ class _TypePropagationVisitor<T> extends Visitor {
     setReachable(node.body);
   }
 
-  void visitFieldDefinition(FieldDefinition node) {
-    if (node.hasInitializer) {
-      setReachable(node.body);
-    }
+  void visitConstructorDefinition(ConstructorDefinition node) {
+    node.parameters.forEach(visit);
+    node.initializers.forEach(visit);
+    setReachable(node.body);
+  }
+
+  void visitRunnableBody(RunnableBody node) {
+    setReachable(node.body);
+  }
+
+  void visitFieldInitializer(FieldInitializer node) {
+    setReachable(node.body);
+  }
+
+  void visitSuperInitializer(SuperInitializer node) {
+    node.arguments.forEach(setReachable);
   }
 
   // Expressions.

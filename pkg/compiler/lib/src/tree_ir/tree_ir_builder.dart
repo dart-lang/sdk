@@ -43,7 +43,7 @@ import 'tree_ir_nodes.dart';
  * particular, intermediate values and blocks used for local control flow are
  * still all named.
  */
-class Builder extends cps_ir.Visitor<Node> {
+class Builder implements cps_ir.Visitor<Node> {
   final dart2js.InternalErrorFunction internalError;
 
   /// Maps variable/parameter elements to the Tree variables that represent it.
@@ -324,12 +324,30 @@ class Builder extends cps_ir.Visitor<Node> {
     return first;
   }
 
-  visitNode(cps_ir.Node node) {
-    if (node is cps_ir.JsSpecificNode) {
-      throw "Cannot handle JS specific IR nodes in this visitor";
-    } else {
-      throw "Unhandled node: $node";
-    }
+  visit(cps_ir.Node node) => node.accept(this);
+
+  unexpectedNode(cps_ir.Node node) {
+    internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
+  }
+
+  // JS-specific nodes are handled by a subclass.
+  visitSetField(cps_ir.SetField node) => unexpectedNode(node);
+  visitIdentical(cps_ir.Identical node) => unexpectedNode(node);
+  visitInterceptor(cps_ir.Interceptor node) => unexpectedNode(node);
+  visitCreateInstance(cps_ir.CreateInstance node) => unexpectedNode(node);
+  visitGetField(cps_ir.GetField node) => unexpectedNode(node);
+  visitCreateBox(cps_ir.CreateBox node) => unexpectedNode(node);
+
+  // Executable definitions are not visited directly.  They have 'build'
+  // functions as entry points.
+  visitFieldDefinition(cps_ir.FieldDefinition node) {
+    return unexpectedNode(node);
+  }
+  visitFunctionDefinition(cps_ir.FunctionDefinition node) {
+    return unexpectedNode(node);
+  }
+  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
+    return unexpectedNode(node);
   }
 
   Initializer visitFieldInitializer(cps_ir.FieldInitializer node) {
@@ -595,18 +613,22 @@ class Builder extends cps_ir.Visitor<Node> {
     }
   }
 
-  Expression visitParameter(cps_ir.Parameter node) {
+  visitParameter(cps_ir.Parameter node) {
     // Continuation parameters are not visited (continuations themselves are
     // not visited yet).
-    internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
-    return null;
+    unexpectedNode(node);
   }
 
-  Expression visitContinuation(cps_ir.Continuation node) {
+  visitContinuation(cps_ir.Continuation node) {
     // Until continuations with multiple uses are supported, they are not
     // visited.
-    internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node.');
-    return null;
+    unexpectedNode(node);
+  }
+
+  visitMutableVariable(cps_ir.MutableVariable node) {
+    // These occur as parameters or bound by LetMutable.  They are not visited
+    // directly.
+    unexpectedNode(node);
   }
 
   Expression visitIsTrue(cps_ir.IsTrue node) {
