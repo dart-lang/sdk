@@ -108,10 +108,6 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('NodeList|HtmlCollection')",
     ],
 
-    'Element.style': [  # Element.style is never null.
-      "@Returns('CssStyleDeclaration')",
-    ],
-
     "ErrorEvent.error": [
       "@Creates('Null')", # Only returns values created elsewhere.
     ],
