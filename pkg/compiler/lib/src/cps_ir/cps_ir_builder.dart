@@ -943,14 +943,20 @@ abstract class IrBuilder {
     // The CPS translation of
     // [[for (initializer; condition; update) body; successor]] is:
     //
+    // _enterForLoopInitializer();
     // [[initializer]];
     // let cont loop(x, ...) =
     //     let prim cond = [[condition]] in
     //     let cont break() = [[successor]] in
     //     let cont exit() = break(v, ...) in
     //     let cont body() =
-    //       let cont continue(x, ...) = [[update]]; loop(v, ...) in
-    //       [[body]]; continue(v, ...) in
+    //         _enterForLoopBody();
+    //         let cont continue(x, ...) =
+    //             _enterForLoopUpdate();
+    //             [[update]];
+    //             loop(v, ...) in
+    //         [[body]];
+    //         continue(v, ...) in
     //     branch cond (body, exit) in
     // loop(v, ...)
     //
@@ -976,11 +982,12 @@ abstract class IrBuilder {
     state.breakCollectors.add(breakCollector);
     state.continueCollectors.add(continueCollector);
 
-    IrBuilder bodyBuilder = condBuilder.makeDelimitedBuilder();
+    IrBuilder outerBodyBuilder = condBuilder.makeDelimitedBuilder();
+    outerBodyBuilder._enterForLoopBody(closureScope, loopVariables);
 
-    bodyBuilder._enterForLoopBody(closureScope, loopVariables);
+    IrBuilder innerBodyBuilder = outerBodyBuilder.makeDelimitedBuilder();
 
-    buildBody(bodyBuilder);
+    buildBody(innerBodyBuilder);
     assert(state.breakCollectors.last == breakCollector);
     assert(state.continueCollectors.last == continueCollector);
     state.breakCollectors.removeLast();
@@ -992,8 +999,8 @@ abstract class IrBuilder {
     // is instead placed just outside the body of the body continuation.
     bool hasContinues = !continueCollector.isEmpty;
     IrBuilder updateBuilder = hasContinues
-        ? condBuilder.makeRecursiveBuilder()
-        : bodyBuilder;
+        ? outerBodyBuilder.makeRecursiveBuilder()
+        : innerBodyBuilder;
     updateBuilder._enterForLoopUpdate(closureScope, loopVariables);
     buildUpdate(updateBuilder);
 
@@ -1024,7 +1031,7 @@ abstract class IrBuilder {
       // If there are continues in the body, we need a named continue
       // continuation as a join point.
       continueContinuation = new ir.Continuation(updateBuilder._parameters);
-      if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+      if (innerBodyBuilder.isOpen) continueCollector.addJump(innerBodyBuilder);
       invokeFullJoin(continueContinuation, continueCollector);
     }
     ir.Continuation loopContinuation =
@@ -1039,12 +1046,12 @@ abstract class IrBuilder {
     // only after it is guaranteed that they are not empty.
     if (hasContinues) {
       continueContinuation.body = updateBuilder._root;
-      bodyContinuation.body =
-          new ir.LetCont(continueContinuation,
-              bodyBuilder._root);
+      outerBodyBuilder.add(new ir.LetCont(continueContinuation,
+                                          innerBodyBuilder._root));
     } else {
-      bodyContinuation.body = bodyBuilder._root;
+      outerBodyBuilder.add(innerBodyBuilder._root);
     }
+    bodyContinuation.body = outerBodyBuilder._root;
 
     loopContinuation.body = condBuilder._root;
     add(new ir.LetCont(loopContinuation,
