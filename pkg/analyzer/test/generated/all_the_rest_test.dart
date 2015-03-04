@@ -842,8 +842,8 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     NodeList<VariableDeclaration> variables =
         (declaration as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    ConstantEvaluator evaluator = new ConstantEvaluator(
-        source, (analysisContext as AnalysisContextImpl).typeProvider);
+    ConstantEvaluator evaluator =
+        new ConstantEvaluator(source, analysisContext.typeProvider);
     return evaluator.evaluate(variables[0].initializer);
   }
 }

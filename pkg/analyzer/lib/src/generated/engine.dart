@@ -419,6 +419,12 @@ abstract class AnalysisContext {
   set name(String name);
 
   /**
+   * Returns a type provider for this context or throws [AnalysisException] if
+   * `dart:core` or `dart:async` cannot be resolved.
+   */
+  TypeProvider get typeProvider;
+
+  /**
    * The stream that is notified when sources have been added or removed,
    * or the source's content has changed.
    */
@@ -9474,15 +9480,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   AnalysisContextStatistics get statistics;
 
-  /**
-   * Returns a type provider for this context or throws an exception if dart:core cannot be
-   * resolved.
-   *
-   * @return the type provider (not `null`)
-   * @throws AnalysisException if dart:core cannot be resolved
-   */
-  TypeProvider get typeProvider;
-
   /** A factory to override how [TypeResolverVisitor] is created. */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;
 
@@ -11007,8 +11004,7 @@ class ResolveDartUnitTask extends AnalysisTask {
 
   @override
   void internalPerform() {
-    TypeProvider typeProvider =
-        (_libraryElement.context as InternalAnalysisContext).typeProvider;
+    TypeProvider typeProvider = _libraryElement.context.typeProvider;
     CompilationUnit unit = context.computeResolvableCompilationUnit(source);
     if (unit == null) {
       throw new AnalysisException(
