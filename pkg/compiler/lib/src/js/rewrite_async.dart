@@ -1770,14 +1770,33 @@ class SyncStarRewriter extends AsyncRewriterBase {
   }
 
   @override
-  js.Fun finishFunction(List<js.Parameter> params,
+  js.Fun finishFunction(List<js.Parameter> parameters,
                         js.Statement rewrittenBody,
                         js.VariableDeclarationList variableDeclarations) {
+    // Each iterator invocation on the iterable should work on its own copy of
+    // the parameters.
+    // TODO(sigurdm): We only need to do this copying for parameters that are mutated.
+    List<js.VariableInitialization> declarations =
+        new List<js.VariableInitialization>();
+    List<js.Parameter> renamedParameters = new List<js.Parameter>();
+    for (js.Parameter parameter in parameters) {
+      String name = parameter.name;
+      String renamedName = freshName(name);
+      renamedParameters.add(new js.Parameter(renamedName));
+      declarations.add(
+          new js.VariableInitialization(new js.VariableDeclaration(name),
+                                        new js.VariableUse(renamedName)));
+    }
+    js.VariableDeclarationList copyParameters =
+        new js.VariableDeclarationList(declarations);
     return js.js("""
-          function (#params) {
+          function (#renamedParameters) {
             if (#needsThis)
               var #self = this;
             return new #newIterable(function () {
+              if (#hasParameters) {
+                #copyParameters;
+              }
               #varDecl;
               return function #body(#errorCode, #result) {
                 if (#errorCode === #ERROR) {
@@ -1789,9 +1808,11 @@ class SyncStarRewriter extends AsyncRewriterBase {
             });
           }
           """, {
-            "params": params,
+            "renamedParameters": renamedParameters,
             "needsThis": analysis.hasThis,
             "helperBody": rewrittenBody,
+            "hasParameters": parameters.isNotEmpty,
+            "copyParameters": copyParameters,
             "varDecl": variableDeclarations,
             "errorCode": errorCodeName,
             "newIterable": newIterable,
