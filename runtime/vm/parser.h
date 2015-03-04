@@ -465,6 +465,7 @@ class Parser : public ValueObject {
   void GenerateSuperConstructorCall(const Class& cls,
                                     intptr_t supercall_pos,
                                     LocalVariable* receiver,
+                                    AstNode* phase_parameter,
                                     ArgumentListNode* forwarding_args);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
   AstNode* ParseInitializer(const Class& cls,

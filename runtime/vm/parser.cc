@@ -2153,6 +2153,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
 void Parser::GenerateSuperConstructorCall(const Class& cls,
                                           intptr_t supercall_pos,
                                           LocalVariable* receiver,
+                                          AstNode* phase_parameter,
                                           ArgumentListNode* forwarding_args) {
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
   // Omit the implicit super() if there is no super class (i.e.
@@ -2171,9 +2172,6 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
   // Implicit construction phase parameter is second argument.
-  AstNode* phase_parameter =
-      new LiteralNode(supercall_pos,
-                      Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll)));
   arguments->Add(phase_parameter);
 
   // If this is a super call in a forwarding constructor, add the user-
@@ -2564,7 +2562,10 @@ void Parser::ParseInitializers(const Class& cls,
   if (!super_init_seen) {
     // Generate implicit super() if we haven't seen an explicit super call
     // or constructor redirection.
-    GenerateSuperConstructorCall(cls, TokenPos(), receiver, NULL);
+    AstNode* phase_parameter = new LiteralNode(
+        TokenPos(), Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll)));
+    GenerateSuperConstructorCall(
+        cls, TokenPos(), receiver, phase_parameter, NULL);
   }
   CheckFieldsInitialized(cls);
 }
@@ -2686,10 +2687,12 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     }
   }
 
-  GenerateSuperConstructorCall(current_class(),
-                               Scanner::kNoSourcePos,
-                               receiver,
-                               forwarding_args);
+  GenerateSuperConstructorCall(
+      current_class(),
+      Scanner::kNoSourcePos,
+      receiver,
+      new LoadLocalNode(Scanner::kNoSourcePos, phase_parameter),
+      forwarding_args);
   CheckFieldsInitialized(current_class());
 
   // Empty constructor body.
