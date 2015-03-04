@@ -3705,7 +3705,7 @@ var _js_helper;
   }
   // Function hasNoField: (dynamic, dynamic) → dynamic
   function hasNoField(object, name) {
-    return dart.throw_("Unimplemented PrefixExpression: !hasField(object, name)");
+    return dart.dunary('!', hasField(object, name));
   }
   // Function isJsFunction: (dynamic) → bool
   function isJsFunction(o) {

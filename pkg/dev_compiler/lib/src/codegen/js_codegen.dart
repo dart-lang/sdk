@@ -18,6 +18,8 @@ import 'package:source_maps/source_maps.dart' show SourceMapSpan;
 import 'package:source_span/source_span.dart' show SourceLocation;
 import 'package:path/path.dart' as path;
 
+import 'package:dev_compiler/src/codegen/ast_builder.dart' show AstBuilder;
+
 // TODO(jmesserly): import from its own package
 import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/js/js_ast.dart' show js;
@@ -698,10 +700,27 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return result;
   }
 
+  JS.Node _emitDPutIfDynamic(
+      Expression target, SimpleIdentifier id, Expression rhs) {
+    if (rules.isDynamicTarget(target)) {
+      return js.call('dart.dput(#, #, #)', [
+        _visit(target),
+        js.string(id.name, "'"),
+        _visit(rhs)
+      ]);
+    } else {
+      return null;
+    }
+  }
+
   @override
   JS.Node visitAssignmentExpression(AssignmentExpression node) {
     var lhs = node.leftHandSide;
     var rhs = node.rightHandSide;
+    return _emitAssignment(lhs, rhs, node.parent);
+  }
+
+  JS.Node _emitAssignment(Expression lhs, Expression rhs, [AstNode parent]) {
     if (lhs is IndexExpression) {
       String code;
       var target = _getTarget(lhs);
@@ -714,17 +733,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     if (lhs is PropertyAccess) {
-      var target = _getTarget(lhs);
-      if (rules.isDynamicTarget(target)) {
-        return js.call('dart.dput(#, #, #)', [
-          _visit(target),
-          js.string(lhs.propertyName.name, "'"),
-          _visit(rhs)
-        ]);
-      }
+      var result = _emitDPutIfDynamic(_getTarget(lhs), lhs.propertyName, rhs);
+      if (result != null) return result;
+    } else if (lhs is PrefixedIdentifier) {
+      // TODO(vsm): Is this the right code if the prefix is a library?
+      var result = _emitDPutIfDynamic(lhs.prefix, lhs.identifier, rhs);
+      if (result != null) return result;
     }
 
-    if (node.parent is ExpressionStatement &&
+    if (parent is ExpressionStatement &&
         rhs is CascadeExpression &&
         _isStateless(lhs, rhs)) {
       // Special case: cascade assignment to a variable in a statement.
@@ -1169,6 +1186,32 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   bool _isNull(Expression expr) => expr is NullLiteral;
 
+  // TODO(jmesserly, vsm): Refactor this logic.
+  SimpleIdentifier _createTemporary(String name, DartType type) {
+    var id =
+        new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
+    id.staticElement = new LocalVariableElementImpl.forNode(id);
+    id.staticType = type;
+    return id;
+  }
+
+  JS.Expression _emitPostfixIncrement(Expression expr, Token op) {
+    var tmp = _createTemporary('\$tmp', rules.getStaticType(expr));
+
+    // Increment and write
+    var one = AstBuilder.integerLiteral(1);
+    var increment = AstBuilder.binaryExpression(tmp, op.lexeme[0], one);
+    var write = _emitAssignment(expr, increment);
+
+    var bindThis = _maybeBindThis(expr);
+    return js.call("((#) => (#, #))$bindThis(#)", [
+      tmp.name,
+      write,
+      _visit(tmp),
+      _visit(expr)
+    ]);
+  }
+
   @override
   JS.Expression visitPostfixExpression(PostfixExpression node) {
     var op = node.operator;
@@ -1179,9 +1222,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // TODO(vsm): When do Dart ops not map to JS?
       return js.call('#$op', notNull(expr));
     } else {
-      // TODO(vsm): Figure out operator calling convention / dispatch.
-      return visitExpression(node);
+      assert(op.lexeme == '++' || op.lexeme == '--');
+      return _emitPostfixIncrement(expr, op);
     }
+  }
+
+  JS.Expression _emitPrefixIncrement(Token op, Expression expr) {
+    var one = AstBuilder.integerLiteral(1);
+    var increment = AstBuilder.binaryExpression(expr, op.lexeme[0], one);
+    return _emitAssignment(expr, increment);
   }
 
   @override
@@ -1194,8 +1243,23 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // TODO(vsm): When do Dart ops not map to JS?
       return js.call('$op#', notNull(expr));
     } else {
-      // TODO(vsm): Figure out operator calling convention / dispatch.
-      return visitExpression(node);
+      // Increment or decrement requires expansion
+      if (op.lexeme == '++' || op.lexeme == '--') {
+        return _emitPrefixIncrement(op, expr);
+      }
+    }
+
+    // Call the operator
+    var opString = _jsMemberName(op.lexeme, unary: true);
+    if (rules.isDynamicTarget(expr)) {
+      // dynamic dispatch
+      return js.call('dart.dunary(#, #)', [opString, _visit(expr)]);
+    } else if (_isJSBuiltinType(dispatchType)) {
+      return js.call(
+          '#.#(#)', [_emitTypeName(dispatchType), opString, _visit(expr)]);
+    } else {
+      // Generic static-dispatch, user-defined operator code path.
+      return js.call('#.#()', [_visit(expr), opString]);
     }
   }
 

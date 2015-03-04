@@ -4616,7 +4616,7 @@ var async;
   // Function _rootScheduleMicrotask: (Zone, ZoneDelegate, Zone, () → dynamic) → void
   function _rootScheduleMicrotask(self, parent, zone, f) {
     if (!dart.notNull(core.identical(_ROOT_ZONE, zone))) {
-      let hasErrorHandler = dart.throw_("Unimplemented PrefixExpression: !_ROOT_ZONE.inSameErrorZone(zone)");
+      let hasErrorHandler = dart.dunary('!', dart.dinvoke(_ROOT_ZONE, 'inSameErrorZone', zone));
       f = zone.bindCallback(f, {runGuarded: hasErrorHandler});
     }
     _scheduleAsyncCallback(f);

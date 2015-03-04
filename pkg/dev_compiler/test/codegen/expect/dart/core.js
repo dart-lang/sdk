@@ -436,7 +436,7 @@ var core;
         return `0${n}`;
       }
       if (dart.notNull(this.inMicroseconds) < 0) {
-        return `-${dart.throw_("Unimplemented PrefixExpression: -this")}`;
+        return `-${this['unary-']()}`;
       }
       let twoDigitMinutes = twoDigits(this.inMinutes.remainder(MINUTES_PER_HOUR));
       let twoDigitSeconds = twoDigits(this.inSeconds.remainder(SECONDS_PER_MINUTE));
@@ -2313,7 +2313,7 @@ var core;
         }
         first = false;
         result.write(Uri.encodeQueryComponent(dart.as(key, String)));
-        if (dart.notNull(value !== null) && dart.notNull(dart.throw_("Unimplemented PrefixExpression: !value.isEmpty"))) {
+        if (dart.notNull(value !== null) && dart.notNull(dart.dunary('!', dart.dload(value, 'isEmpty')))) {
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }

@@ -63,6 +63,10 @@ class AstBuilder {
     return RawAstBuilder.nullLiteral();
   }
 
+  static IntegerLiteral integerLiteral(int i) {
+    return RawAstBuilder.integerLiteral(i);
+  }
+
   static StringLiteral stringLiteral(String s) {
     return RawAstBuilder.simpleStringLiteral(s);
   }
@@ -91,11 +95,24 @@ class AstBuilder {
     return parenthesizedExpression(exp);
   }
 
-  static BinaryExpression binaryExpression(
-      Expression l, String oper, Expression r) {
-    if (oper == "==") return RawAstBuilder.equalityExpression(l, r);
+  static Token _binaryOperation(String oper) {
+    switch (oper) {
+      case '==':
+        return new Token(TokenType.EQ_EQ, 0);
+      case '+':
+        return new Token(TokenType.PLUS, 0);
+      case '-':
+        return new Token(TokenType.MINUS, 0);
+    }
+    // TODO(vsm): Add cases as needed.
     assert(false);
     return null;
+  }
+
+  static BinaryExpression binaryExpression(
+      Expression l, String oper, Expression r) {
+    Token token = _binaryOperation(oper);
+    return RawAstBuilder.binaryExpression(l, token, r);
   }
 
   static ConditionalExpression conditionalExpression(
@@ -252,6 +269,11 @@ class RawAstBuilder {
     return new NullLiteral(n);
   }
 
+  static IntegerLiteral integerLiteral(int i) {
+    StringToken token = new StringToken(TokenType.INT, '$i', 0);
+    return new IntegerLiteral(token, i);
+  }
+
   static SimpleStringLiteral simpleStringLiteral(String s) {
     StringToken token = new StringToken(TokenType.STRING, "\"" + s + "\"", 0);
     return new SimpleStringLiteral(token, s);
@@ -278,9 +300,9 @@ class RawAstBuilder {
     return new ParenthesizedExpression(lp, exp, rp);
   }
 
-  static BinaryExpression equalityExpression(Expression l, Expression r) {
-    var eq = new Token(TokenType.EQ_EQ, 0);
-    return new BinaryExpression(l, eq, r);
+  static BinaryExpression binaryExpression(
+      Expression l, Token op, Expression r) {
+    return new BinaryExpression(l, op, r);
   }
 
   static ConditionalExpression conditionalExpression(

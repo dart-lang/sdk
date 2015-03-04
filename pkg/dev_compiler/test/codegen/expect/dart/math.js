@@ -360,8 +360,8 @@ var math;
       Rectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this.width = dart.as(width['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -width")) * 0 : width, T);
-        this.height = dart.as(height['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -height")) * 0 : height, T);
+        this.width = dart.as(width['<'](0) ? dart.notNull(width['unary-']()) * 0 : width, T);
+        this.height = dart.as(height['<'](0) ? dart.notNull(height['unary-']()) * 0 : height, T);
         super._RectangleBase();
       }
       Rectangle$fromPoints(a, b) {

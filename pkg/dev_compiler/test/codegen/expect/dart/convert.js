@@ -1189,7 +1189,7 @@ var convert;
     }
     writeJsonValue(object) {
       if (dart.is(object, core.num)) {
-        if (dart.throw_("Unimplemented PrefixExpression: !object.isFinite"))
+        if (dart.dunary('!', dart.dload(object, 'isFinite')))
           return false;
         this.writeNumber(dart.as(object, core.num));
         return true;

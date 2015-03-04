@@ -898,7 +898,7 @@ var _interceptors;
       return dart.notNull(this['&'](dart.notNull(signMask) - 1)) - dart.notNull(this['&'](signMask));
     }
     get bitLength() {
-      let nonneg = this['<'](0) ? dart.notNull(dart.throw_("Unimplemented PrefixExpression: -this")) - 1 : this;
+      let nonneg = this['<'](0) ? dart.notNull(this['unary-']()) - 1 : this;
       if (dart.notNull(nonneg) >= 4294967296) {
         nonneg = (dart.notNull(nonneg) / 4294967296).truncate();
         return dart.notNull(_bitCount(_spread(nonneg))) + 32;
