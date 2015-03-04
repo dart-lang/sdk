@@ -2,14 +2,14 @@ part of dart.collection;
  abstract class _HashSetBase<E> extends SetBase<E> {Set<E> difference(Set<Object> other) {
   Set<E> result = _newSet();
    for (var element in this) {
-    if (!other.contains(element)) result.add(DDC$RT.cast(element, dynamic, E, "CastGeneral", """line 17, column 48 of dart:collection/hash_set.dart: """, element is E, false));
+    if (!other.contains(element)) result.add(DEVC$RT.cast(element, dynamic, E, "CastGeneral", """line 17, column 48 of dart:collection/hash_set.dart: """, element is E, false));
     }
    return result;
   }
  Set<E> intersection(Set<Object> other) {
   Set<E> result = _newSet();
    for (var element in this) {
-    if (other.contains(element)) result.add(DDC$RT.cast(element, dynamic, E, "CastGeneral", """line 25, column 47 of dart:collection/hash_set.dart: """, element is E, false));
+    if (other.contains(element)) result.add(DEVC$RT.cast(element, dynamic, E, "CastGeneral", """line 25, column 47 of dart:collection/hash_set.dart: """, element is E, false));
     }
    return result;
   }

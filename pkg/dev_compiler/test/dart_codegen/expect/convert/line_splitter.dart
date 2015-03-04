@@ -9,7 +9,7 @@ part of dart.convert;
   if (sink is! StringConversionSink) {
     sink = new StringConversionSink.from(sink);
     }
-   return new _LineSplitterSink(DDC$RT.cast(sink, DDC$RT.type((Sink<String> _) {
+   return new _LineSplitterSink(DEVC$RT.cast(sink, DEVC$RT.type((Sink<String> _) {
     }
   ), StringConversionSink, "CastGeneral", """line 26, column 34 of dart:convert/line_splitter.dart: """, sink is StringConversionSink, true));
   }

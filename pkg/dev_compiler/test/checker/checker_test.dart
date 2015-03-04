@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// General type checking tests
-library ddc.test.checker_test;
+library dev_compiler.test.checker_test;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';

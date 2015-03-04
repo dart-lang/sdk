@@ -1,13 +1,13 @@
 part of dart.convert;
  abstract class Encoding extends Codec<String, List<int>> {const Encoding();
  Future<String> decodeStream(Stream<List<int>> byteStream) {
-  return ((__x5) => DDC$RT.cast(__x5, DDC$RT.type((DDC$async$.Future<dynamic> _) {
+  return ((__x5) => DEVC$RT.cast(__x5, DEVC$RT.type((DDC$async$.Future<dynamic> _) {
     }
-  ), DDC$RT.type((DDC$async$.Future<String> _) {
+  ), DEVC$RT.type((DDC$async$.Future<String> _) {
     }
-  ), "CastDynamic", """line 14, column 12 of dart:convert/encoding.dart: """, __x5 is DDC$async$.Future<String>, false))(byteStream.transform(DDC$RT.cast(decoder, DDC$RT.type((Converter<List<int>, String> _) {
+  ), "CastDynamic", """line 14, column 12 of dart:convert/encoding.dart: """, __x5 is DDC$async$.Future<String>, false))(byteStream.transform(DEVC$RT.cast(decoder, DEVC$RT.type((Converter<List<int>, String> _) {
     }
-  ), DDC$RT.type((DDC$async$.StreamTransformer<List<int>, dynamic> _) {
+  ), DEVC$RT.type((DDC$async$.StreamTransformer<List<int>, dynamic> _) {
     }
   ), "CastDynamic", """line 15, column 18 of dart:convert/encoding.dart: """, decoder is DDC$async$.StreamTransformer<List<int>, dynamic>, false)).fold(new StringBuffer(), (buffer, string) => buffer..write(string)).then((buffer) => buffer.toString()));
   }

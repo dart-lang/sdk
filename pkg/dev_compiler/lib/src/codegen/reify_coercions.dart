@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ddc.src.codegen.reify_coercions;
+library dev_compiler.src.codegen.reify_coercions;
 
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/src/generated/ast.dart';
@@ -16,7 +16,7 @@ import 'package:dev_compiler/src/utils.dart' as utils;
 
 import 'ast_builder.dart';
 
-final _log = new logger.Logger('ddc.reify_coercions');
+final _log = new logger.Logger('dev_compiler.reify_coercions');
 
 // TODO(leafp) Factor this out or use an existing library
 class Tuple2<T0, T1> {

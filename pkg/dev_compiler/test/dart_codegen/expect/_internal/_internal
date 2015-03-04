@@ -1,5 +1,5 @@
 library dart._internal;
-import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DDC$RT;
+import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DEVC$RT;
 import 'dart:collection';
  import 'dart:core' hide Symbol;
  import 'dart:core' as core;

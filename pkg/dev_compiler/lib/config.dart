@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Configuration of DDC rule set.
-library ddc.config;
+library dev_compiler.config;
 
 // Options shared by the compiler and runtime.
 class TypeOptions {

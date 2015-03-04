@@ -35,9 +35,9 @@ int stringLength = string.length;
     }
    result[i] = codeUnit;
   }
- return DDC$RT.cast(result, DDC$RT.type((List<dynamic> _) {
+ return DEVC$RT.cast(result, DEVC$RT.type((List<dynamic> _) {
   }
-), DDC$RT.type((List<int> _) {
+), DEVC$RT.type((List<int> _) {
   }
 ), "CastDynamic", """line 96, column 12 of dart:convert/ascii.dart: """, result is List<int>, false);
 }
@@ -45,13 +45,13 @@ int stringLength = string.length;
 if (sink is! ByteConversionSink) {
   sink = new ByteConversionSink.from(sink);
   }
- return new _UnicodeSubsetEncoderSink(_subsetMask, DDC$RT.cast(sink, DDC$RT.type((Sink<List<int>> _) {
+ return new _UnicodeSubsetEncoderSink(_subsetMask, DEVC$RT.cast(sink, DEVC$RT.type((Sink<List<int>> _) {
   }
 ), ByteConversionSink, "CastGeneral", """line 109, column 55 of dart:convert/ascii.dart: """, sink is ByteConversionSink, true));
 }
- Stream<List<int>> bind(Stream<String> stream) => ((__x0) => DDC$RT.cast(__x0, DDC$RT.type((DDC$async$.Stream<dynamic> _) {
+ Stream<List<int>> bind(Stream<String> stream) => ((__x0) => DEVC$RT.cast(__x0, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
 }
-), DDC$RT.type((DDC$async$.Stream<List<int>> _) {
+), DEVC$RT.type((DDC$async$.Stream<List<int>> _) {
 }
 ), "CastDynamic", """line 113, column 52 of dart:convert/ascii.dart: """, __x0 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
 }
@@ -106,9 +106,9 @@ int value = bytes[i];
  return buffer.toString();
 }
  ByteConversionSink startChunkedConversion(Sink<String> sink);
- Stream<String> bind(Stream<List<int>> stream) => ((__x1) => DDC$RT.cast(__x1, DDC$RT.type((DDC$async$.Stream<dynamic> _) {
+ Stream<String> bind(Stream<List<int>> stream) => ((__x1) => DEVC$RT.cast(__x1, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
 }
-), DDC$RT.type((DDC$async$.Stream<String> _) {
+), DEVC$RT.type((DDC$async$.Stream<String> _) {
 }
 ), "CastDynamic", """line 221, column 52 of dart:convert/ascii.dart: """, __x1 is DDC$async$.Stream<String>, false))(super.bind(stream));
 }

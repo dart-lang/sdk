@@ -29,9 +29,9 @@ part of dart.collection;
    for (E element in this) {
     if (test(element)) toRemove.add(element);
     }
-   removeAll(DDC$RT.cast(toRemove, DDC$RT.type((List<dynamic> _) {
+   removeAll(DEVC$RT.cast(toRemove, DEVC$RT.type((List<dynamic> _) {
     }
-  ), DDC$RT.type((Iterable<Object> _) {
+  ), DEVC$RT.type((Iterable<Object> _) {
     }
   ), "CastDynamic", """line 77, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, false));
   }
@@ -40,9 +40,9 @@ part of dart.collection;
    for (E element in this) {
     if (!test(element)) toRemove.add(element);
     }
-   removeAll(DDC$RT.cast(toRemove, DDC$RT.type((List<dynamic> _) {
+   removeAll(DEVC$RT.cast(toRemove, DEVC$RT.type((List<dynamic> _) {
     }
-  ), DDC$RT.type((Iterable<Object> _) {
+  ), DEVC$RT.type((Iterable<Object> _) {
     }
   ), "CastDynamic", """line 85, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, false));
   }
@@ -82,7 +82,7 @@ part of dart.collection;
   if (length > 1) throw IterableElementError.tooMany();
    Iterator it = iterator;
    if (!it.moveNext()) throw IterableElementError.noElement();
-   E result = DDC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 130, column 16 of dart:collection/set.dart: """, it.current is E, false);
+   E result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 130, column 16 of dart:collection/set.dart: """, it.current is E, false);
    return result;
   }
  String toString() => IterableBase.iterableToFullString(this, '{', '}');
@@ -154,7 +154,7 @@ part of dart.collection;
    if (!it.moveNext()) {
     throw IterableElementError.noElement();
     }
-   return DDC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 220, column 12 of dart:collection/set.dart: """, it.current is E, false);
+   return DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 220, column 12 of dart:collection/set.dart: """, it.current is E, false);
   }
  E get last {
   Iterator it = iterator;
@@ -163,7 +163,7 @@ part of dart.collection;
     }
    E result;
    do {
-    result = DDC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 230, column 16 of dart:collection/set.dart: """, it.current is E, false);
+    result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 230, column 16 of dart:collection/set.dart: """, it.current is E, false);
     }
    while (it.moveNext()); return result;
   }

@@ -102,12 +102,12 @@ _stream._handleDone(this);
 }
  typedef bool _Predicate<T>(T value);
  void _addErrorWithReplacement(_EventSink sink, error, stackTrace) {
-AsyncError replacement = Zone.current.errorCallback(error, DDC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 191, column 62 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
+AsyncError replacement = Zone.current.errorCallback(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 191, column 62 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
  if (replacement != null) {
 error = _nonNullError(replacement.error);
  stackTrace = replacement.stackTrace;
 }
- sink._addError(error, DDC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 196, column 25 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
+ sink._addError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 196, column 25 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
 }
  class _WhereStream<T> extends _ForwardingStream<T, T> {final _Predicate<T> _test;
  _WhereStream(Stream<T> source, bool test(T value)) : _test = test, super(source);
@@ -126,17 +126,17 @@ sink._add(inputEvent);
 }
  typedef T _Transformation<S, T>(S value);
  class _MapStream<S, T> extends _ForwardingStream<S, T> {final _Transformation _transform;
- _MapStream(Stream<S> source, T transform(S event)) : this._transform = DDC$RT.wrap((T f(S __u138)) {
-T c(S x0) => f(DDC$RT.cast(x0, dynamic, S, "CastParam", """line 230, column 27 of dart:async/stream_pipe.dart: """, x0 is S, false));
+ _MapStream(Stream<S> source, T transform(S event)) : this._transform = DEVC$RT.wrap((T f(S __u138)) {
+T c(S x0) => f(DEVC$RT.cast(x0, dynamic, S, "CastParam", """line 230, column 27 of dart:async/stream_pipe.dart: """, x0 is S, false));
  return f == null ? null : c;
 }
-, transform, DDC$RT.type((__t141<S, T> _) {
+, transform, DEVC$RT.type((__t141<S, T> _) {
 }
 ), __t139, "Wrap", """line 230, column 27 of dart:async/stream_pipe.dart: """, transform is __t139), super(source);
  void _handleData(S inputEvent, _EventSink<T> sink) {
 T outputEvent;
  try {
-outputEvent = ((__x143) => DDC$RT.cast(__x143, dynamic, T, "CastGeneral", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x143 is T, false))(_transform(inputEvent));
+outputEvent = ((__x143) => DEVC$RT.cast(__x143, dynamic, T, "CastGeneral", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x143 is T, false))(_transform(inputEvent));
 }
  catch (e, s) {
 _addErrorWithReplacement(sink, e, s);
@@ -271,7 +271,7 @@ if (_equals == null) {
 isEqual = (_previous == inputEvent);
 }
  else {
-isEqual = _equals(DDC$RT.cast(_previous, dynamic, T, "CastGeneral", """line 426, column 29 of dart:async/stream_pipe.dart: """, _previous is T, false), inputEvent);
+isEqual = _equals(DEVC$RT.cast(_previous, dynamic, T, "CastGeneral", """line 426, column 29 of dart:async/stream_pipe.dart: """, _previous is T, false), inputEvent);
 }
 }
  catch (e, s) {

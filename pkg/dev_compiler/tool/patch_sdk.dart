@@ -5,7 +5,7 @@
 
 /// Command line tool to merge the SDK libraries and our patch files.
 /// This is currently designed as an offline tool, but we could automate it.
-library ddc.tool.patch_sdk;
+library dev_compiler.tool.patch_sdk;
 
 import 'dart:io';
 

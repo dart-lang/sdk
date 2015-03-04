@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Set of flags and options passed to the compiler
-library ddc.src.options;
+library dev_compiler.src.options;
 
 import 'dart:io';
 
@@ -12,7 +12,7 @@ import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:dev_compiler/config.dart';
 import 'package:logging/logging.dart' show Level;
 
-/// Options used by ddc's TypeResolver.
+/// Options used by our TypeResolver.
 class ResolverOptions {
   /// Whether to resolve 'package:' uris using the multi-package resolver.
   final bool useMultiPackage;
@@ -61,7 +61,7 @@ class ResolverOptions {
 }
 
 // TODO(vsm): Merge RulesOptions and TypeOptions
-/// Options used by ddc's RestrictedRules.
+/// Options used by our RestrictedRules.
 class RulesOptions extends TypeOptions {
   /// Whether to allow casts in constant contexts.
   final bool allowConstCasts;

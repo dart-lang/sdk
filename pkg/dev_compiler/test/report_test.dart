@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tests for summary reporting.
-library ddc.test.report_test;
+library dev_compiler.test.report_test;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';

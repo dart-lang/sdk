@@ -1,6 +1,6 @@
 library dart.convert;
 import 'dart:async' as DDC$async$;
-import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DDC$RT;
+import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DEVC$RT;
 import 'dart:async';
  import 'dart:typed_data';
 part 'ascii.dart';

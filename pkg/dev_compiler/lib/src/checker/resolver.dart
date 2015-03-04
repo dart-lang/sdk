@@ -4,7 +4,7 @@
 
 /// Encapsulates how to invoke the analyzer resolver and overrides how it
 /// computes types on expressions to use our restricted set of types.
-library ddc.src.checker.resolver;
+library dev_compiler.src.checker.resolver;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -26,7 +26,7 @@ import 'package:dev_compiler/src/utils.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 
-final _log = new logger.Logger('ddc.src.resolver');
+final _log = new logger.Logger('dev_compiler.src.resolver');
 
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {

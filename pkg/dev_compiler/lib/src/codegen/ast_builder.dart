@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ddc.src.codegen.ast_builder;
+library dev_compiler.src.codegen.ast_builder;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:logging/logging.dart' as logger;
 
-final _log = new logger.Logger('ddc.ast_builder');
+final _log = new logger.Logger('dev_compiler.ast_builder');
 
 // Wrappers around constructors for the dart ast.  The AstBuilder class
 // provides a higher-level interface, abstracting both from the lexical

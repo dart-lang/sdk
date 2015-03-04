@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Meta-test that runs all tests we have written.
-library ddc.test.all_tests;
+library dev_compiler.test.all_tests;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';

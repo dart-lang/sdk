@@ -4,7 +4,7 @@
 
 /// Tests that run the checker end-to-end using the file system, but with a mock
 /// SDK.
-library ddc.test.end_to_end;
+library dev_compiler.test.end_to_end;
 
 import 'dart:io';
 import 'package:dev_compiler/devc.dart' show Compiler;

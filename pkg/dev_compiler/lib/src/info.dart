@@ -4,7 +4,7 @@
 
 /// Defines static information collected by the type checker and used later by
 /// emitters to generate code.
-library ddc.src.info;
+library dev_compiler.src.info;
 
 import 'dart:mirrors';
 
@@ -574,9 +574,9 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
 final List<Type> infoTypes = () {
   var allTypes = new Set();
   var baseTypes = new Set();
-  var lib = currentMirrorSystem().findLibrary(#ddc.src.info);
   var infoMirror = reflectClass(StaticInfo);
-  for (var cls in lib.declarations.values.where((d) => d is ClassMirror)) {
+  var declarations = infoMirror.owner.declarations.values;
+  for (var cls in declarations.where((d) => d is ClassMirror)) {
     if (cls.isSubtypeOf(infoMirror)) {
       allTypes.add(cls);
       baseTypes.add(cls.superclass);

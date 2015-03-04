@@ -1,7 +1,7 @@
 part of dart.async;
- abstract class Future<T> {static final _Future _nullFuture = ((__x10) => DDC$RT.cast(__x10, DDC$RT.type((Future<dynamic> _) {
+ abstract class Future<T> {static final _Future _nullFuture = ((__x10) => DEVC$RT.cast(__x10, DEVC$RT.type((Future<dynamic> _) {
   }
-), DDC$RT.type((_Future<dynamic> _) {
+), DEVC$RT.type((_Future<dynamic> _) {
   }
 ), "CastExact", """line 98, column 38 of dart:async/future.dart: """, __x10 is _Future<dynamic>, true))(new Future.value(null));
  factory Future(computation()) {
@@ -15,9 +15,9 @@ part of dart.async;
       }
     }
   );
-   return DDC$RT.cast(result, DDC$RT.type((_Future<dynamic> _) {
+   return DEVC$RT.cast(result, DEVC$RT.type((_Future<dynamic> _) {
     }
-  ), DDC$RT.type((Future<T> _) {
+  ), DEVC$RT.type((Future<T> _) {
     }
   ), "CastDynamic", """line 123, column 12 of dart:async/future.dart: """, result is Future<T>, false);
   }
@@ -32,9 +32,9 @@ part of dart.async;
       }
     }
   );
-   return DDC$RT.cast(result, DDC$RT.type((_Future<dynamic> _) {
+   return DEVC$RT.cast(result, DEVC$RT.type((_Future<dynamic> _) {
     }
-  ), DDC$RT.type((Future<T> _) {
+  ), DEVC$RT.type((Future<T> _) {
     }
   ), "CastDynamic", """line 149, column 12 of dart:async/future.dart: """, result is Future<T>, false);
   }
@@ -72,9 +72,9 @@ part of dart.async;
       }
     }
   );
-   return DDC$RT.cast(result, DDC$RT.type((_Future<dynamic> _) {
+   return DEVC$RT.cast(result, DEVC$RT.type((_Future<dynamic> _) {
     }
-  ), DDC$RT.type((Future<T> _) {
+  ), DEVC$RT.type((Future<T> _) {
     }
   ), "CastDynamic", """line 233, column 12 of dart:async/future.dart: """, result is Future<T>, false);
   }
@@ -101,11 +101,11 @@ part of dart.async;
         }
        values = null;
        if (remaining == 0 || eagerError) {
-        result._completeError(theError, DDC$RT.cast(theStackTrace, dynamic, StackTrace, "CastGeneral", """line 280, column 43 of dart:async/future.dart: """, theStackTrace is StackTrace, true));
+        result._completeError(theError, DEVC$RT.cast(theStackTrace, dynamic, StackTrace, "CastGeneral", """line 280, column 43 of dart:async/future.dart: """, theStackTrace is StackTrace, true));
         }
        else {
         error = theError;
-         stackTrace = DDC$RT.cast(theStackTrace, dynamic, StackTrace, "CastGeneral", """line 283, column 24 of dart:async/future.dart: """, theStackTrace is StackTrace, true);
+         stackTrace = DEVC$RT.cast(theStackTrace, dynamic, StackTrace, "CastGeneral", """line 283, column 24 of dart:async/future.dart: """, theStackTrace is StackTrace, true);
         }
       }
      else if (remaining == 0 && !eagerError) {
@@ -114,7 +114,7 @@ part of dart.async;
     }
    for (Future future in futures) {
     int pos = remaining++;
-     future.then(((__x16) => DDC$RT.wrap((dynamic f(Object __u11)) {
+     future.then(((__x16) => DEVC$RT.wrap((dynamic f(Object __u11)) {
       dynamic c(Object x0) => f(x0);
        return f == null ? null : c;
       }
@@ -141,9 +141,9 @@ part of dart.async;
     ), onError: handleError);
     }
    if (remaining == 0) {
-    return ((__x17) => DDC$RT.cast(__x17, DDC$RT.type((Future<dynamic> _) {
+    return ((__x17) => DEVC$RT.cast(__x17, DEVC$RT.type((Future<dynamic> _) {
       }
-    ), DDC$RT.type((Future<List<dynamic>> _) {
+    ), DEVC$RT.type((Future<List<dynamic>> _) {
       }
     ), "CastExact", """line 313, column 14 of dart:async/future.dart: """, __x17 is Future<List<dynamic>>, false))(new Future.value(const []));
     }
@@ -161,13 +161,13 @@ part of dart.async;
  static Future doWhile(f()) {
   _Future doneSignal = new _Future();
    var nextIteration;
-   nextIteration = Zone.current.bindUnaryCallback(((__x21) => DDC$RT.wrap((dynamic f(bool __u18)) {
-    dynamic c(bool x0) => f(DDC$RT.cast(x0, dynamic, bool, "CastParam", """line 359, column 52 of dart:async/future.dart: """, x0 is bool, true));
+   nextIteration = Zone.current.bindUnaryCallback(((__x21) => DEVC$RT.wrap((dynamic f(bool __u18)) {
+    dynamic c(bool x0) => f(DEVC$RT.cast(x0, dynamic, bool, "CastParam", """line 359, column 52 of dart:async/future.dart: """, x0 is bool, true));
      return f == null ? null : c;
     }
   , __x21, __t19, __t12, "WrapLiteral", """line 359, column 52 of dart:async/future.dart: """, __x21 is __t12))((bool keepGoing) {
     if (keepGoing) {
-      new Future.sync(f).then(DDC$RT.cast(nextIteration, dynamic, __t12, "CastGeneral", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t12, false), onError: doneSignal._completeError);
+      new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __t12, "CastGeneral", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t12, false), onError: doneSignal._completeError);
       }
      else {
       doneSignal._complete(null);
@@ -207,12 +207,12 @@ String result = "TimeoutException";
  bool get isCompleted;
 }
  void _completeWithErrorCallback(_Future result, error, stackTrace) {
-AsyncError replacement = Zone.current.errorCallback(error, DDC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 719, column 62 of dart:async/future.dart: """, stackTrace is StackTrace, true));
+AsyncError replacement = Zone.current.errorCallback(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 719, column 62 of dart:async/future.dart: """, stackTrace is StackTrace, true));
  if (replacement != null) {
 error = _nonNullError(replacement.error);
  stackTrace = replacement.stackTrace;
 }
- result._completeError(error, DDC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 724, column 32 of dart:async/future.dart: """, stackTrace is StackTrace, true));
+ result._completeError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 724, column 32 of dart:async/future.dart: """, stackTrace is StackTrace, true));
 }
  Object _nonNullError(Object error) => (error != null) ? error : new NullThrownError();
  typedef dynamic __t12(dynamic __u13);

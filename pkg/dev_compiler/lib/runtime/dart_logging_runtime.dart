@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ddc.runtime.dart_logging_runtime;
+library dev_compiler.runtime.dart_logging_runtime;
 
 import 'dart:mirrors' as mirrors;
 
@@ -18,11 +18,14 @@ const bool _skipSuccess = true;
 class CastRecord {
   final Type runtimeType;
   final Type staticType;
-  final bool ddcSuccess;
-  final bool dartSuccess;
 
-  CastRecord(
-      this.runtimeType, this.staticType, this.ddcSuccess, this.dartSuccess);
+  /// True if the dev_compiler would allow this cast. Otherwise false.
+  final bool soundCast;
+
+  /// True if Dart checked mode would allow this cast. Otherwise false.
+  final bool dartCast;
+
+  CastRecord(this.runtimeType, this.staticType, this.soundCast, this.dartCast);
 }
 
 // Register a handler to process CastRecords.  The default (see below) just
@@ -65,16 +68,16 @@ dynamic cast(dynamic obj, Type fromType, Type staticType, String kind,
 
   CastRecord record = _lookupInCache(runtimeType, staticType);
   if (record == null) {
-    bool ddcSuccess = true;
-    bool dartSuccess = true;
+    bool soundCast = true;
+    bool dartCast = true;
     // TODO(vsm): Use instanceOf once we settle on nullability.
     try {
       rt.cast(obj, staticType);
     } catch (e) {
-      ddcSuccess = false;
+      soundCast = false;
     }
     if (obj == null) {
-      dartSuccess = true;
+      dartCast = true;
     } else {
       // TODO(vsm): We could avoid mirror code by requiring the caller to pass
       // in obj is TypeLiteral as a parameter.  We can't do that once we have a
@@ -82,15 +85,15 @@ dynamic cast(dynamic obj, Type fromType, Type staticType, String kind,
       final staticMirror = mirrors.reflectType(staticType);
       final instanceMirror = mirrors.reflect(obj);
       final classMirror = instanceMirror.type;
-      dartSuccess = classMirror.isSubtypeOf(staticMirror);
+      dartCast = classMirror.isSubtypeOf(staticMirror);
     }
-    if (_skipSuccess && dartSuccess && ddcSuccess) {
+    if (_skipSuccess && dartCast && soundCast) {
       _successCache
           .putIfAbsent(staticType, () => new Set<Type>())
           .add(runtimeType);
       return obj;
     }
-    record = new CastRecord(runtimeType, staticType, ddcSuccess, dartSuccess);
+    record = new CastRecord(runtimeType, staticType, soundCast, dartCast);
     _addToCache(runtimeType, staticType, record);
   }
   castRecordHandler(key, record);
@@ -127,14 +130,14 @@ String summary({bool clear: true}) {
         // assert(staticType == record.staticType);
       }
       runtimeTypes.add(record.runtimeType);
-      if (record.ddcSuccess) {
-        if (record.dartSuccess) {
+      if (record.soundCast) {
+        if (record.dartCast) {
           success++;
         } else {
           error++;
         }
       } else {
-        if (record.dartSuccess) {
+        if (record.dartCast) {
           mismatch++;
         } else {
           failure++;

@@ -52,7 +52,7 @@ throw new RangeError.range(value, minValue, maxValue, name, message);
 }
 }
  static void checkValidIndex(int index, var indexable, [String name, int length, String message]) {
-if (length == null) length = DDC$RT.cast(indexable.length, dynamic, int, "CastGeneral", """line 281, column 34 of dart:core/errors.dart: """, indexable.length is int, true);
+if (length == null) length = DEVC$RT.cast(indexable.length, dynamic, int, "CastGeneral", """line 281, column 34 of dart:core/errors.dart: """, indexable.length is int, true);
  if (index < 0 || index >= length) {
 if (name == null) name = "index";
  throw new RangeError.index(index, indexable, name, message, length);
@@ -97,7 +97,7 @@ explanation = ": Only valid value is $start";
 }
  class IndexError extends ArgumentError implements RangeError {final indexable;
  final int length;
- IndexError(int invalidValue, indexable, [String name, String message, int length]) : this.indexable = indexable, this.length = ((__x3) => DDC$RT.cast(__x3, dynamic, int, "CastGeneral", """line 371, column 23 of dart:core/errors.dart: """, __x3 is int, true))((length != null) ? length : indexable.length), super.value(invalidValue, name, (message != null) ? message : "Index out of range");
+ IndexError(int invalidValue, indexable, [String name, String message, int length]) : this.indexable = indexable, this.length = ((__x3) => DEVC$RT.cast(__x3, dynamic, int, "CastGeneral", """line 371, column 23 of dart:core/errors.dart: """, __x3 is int, true))((length != null) ? length : indexable.length), super.value(invalidValue, name, (message != null) ? message : "Index out of range");
  int get start => 0;
  int get end => length - 1;
  String toString() {

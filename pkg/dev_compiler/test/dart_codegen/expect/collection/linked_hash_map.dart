@@ -6,7 +6,7 @@ part of dart.collection;
  factory LinkedHashMap.from(Map other) {
   LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
    other.forEach((k, v) {
-    result[k] = DDC$RT.cast(v, dynamic, V, "CastGeneral", """line 74, column 40 of dart:collection/linked_hash_map.dart: """, v is V, false);
+    result[k] = DEVC$RT.cast(v, dynamic, V, "CastGeneral", """line 74, column 40 of dart:collection/linked_hash_map.dart: """, v is V, false);
     }
   );
    return result;

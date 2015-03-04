@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tracks the shape of the import/export graph and dependencies between files.
-library ddc.src.dependency_graph;
+library dev_compiler.src.dependency_graph;
 
 import 'dart:collection' show HashSet;
 
@@ -330,4 +330,4 @@ visitInPostOrder(SourceNode node, void action(SourceNode node),
 }
 
 bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);
-final _log = new Logger('ddc.graph');
+final _log = new Logger('dev_compiler.graph');

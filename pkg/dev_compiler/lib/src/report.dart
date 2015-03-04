@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Summarizes the information produced by the checker.
-library ddc.src.report;
+library dev_compiler.src.report;
 
 import 'dart:math' show max;
 
@@ -33,7 +33,7 @@ abstract class CheckerReporter {
   void logAnalyzerError(String message, Level level, int begin, int end);
 }
 
-final _checkerLogger = new Logger('ddc.checker');
+final _checkerLogger = new Logger('dev_compiler.checker');
 
 /// Simple reporter that logs checker messages as they are seen.
 class LogReporter implements CheckerReporter {

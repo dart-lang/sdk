@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tests for type inference.
-library ddc.test.inferred_type_test;
+library dev_compiler.test.inferred_type_test;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';

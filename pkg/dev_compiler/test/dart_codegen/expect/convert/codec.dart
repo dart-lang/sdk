@@ -11,14 +11,14 @@ part of dart.convert;
 }
  class _FusedCodec<S, M, T> extends Codec<S, T> {final Codec<S, M> _first;
  final Codec<M, T> _second;
- Converter<S, T> get encoder => ((__x2) => DDC$RT.cast(__x2, DDC$RT.type((Converter<S, dynamic> _) {
+ Converter<S, T> get encoder => ((__x2) => DEVC$RT.cast(__x2, DEVC$RT.type((Converter<S, dynamic> _) {
 }
-), DDC$RT.type((Converter<S, T> _) {
+), DEVC$RT.type((Converter<S, T> _) {
 }
 ), "CastDynamic", """line 87, column 34 of dart:convert/codec.dart: """, __x2 is Converter<S, T>, false))(_first.encoder.fuse(_second.encoder));
- Converter<T, S> get decoder => ((__x3) => DDC$RT.cast(__x3, DDC$RT.type((Converter<T, dynamic> _) {
+ Converter<T, S> get decoder => ((__x3) => DEVC$RT.cast(__x3, DEVC$RT.type((Converter<T, dynamic> _) {
 }
-), DDC$RT.type((Converter<T, S> _) {
+), DEVC$RT.type((Converter<T, S> _) {
 }
 ), "CastDynamic", """line 88, column 34 of dart:convert/codec.dart: """, __x3 is Converter<T, S>, false))(_second.decoder.fuse(_first.decoder));
  _FusedCodec(this._first, this._second);

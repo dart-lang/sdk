@@ -1,7 +1,7 @@
 part of dart.async;
- class _BroadcastStream<T> extends _ControllerStream<T> {_BroadcastStream(_StreamControllerLifecycle controller) : super(DDC$RT.cast(controller, DDC$RT.type((_StreamControllerLifecycle<dynamic> _) {
+ class _BroadcastStream<T> extends _ControllerStream<T> {_BroadcastStream(_StreamControllerLifecycle controller) : super(DEVC$RT.cast(controller, DEVC$RT.type((_StreamControllerLifecycle<dynamic> _) {
   }
-), DDC$RT.type((_StreamControllerLifecycle<T> _) {
+), DEVC$RT.type((_StreamControllerLifecycle<T> _) {
   }
 ), "CastDynamic", """line 8, column 67 of dart:async/broadcast_stream_controller.dart: """, controller is _StreamControllerLifecycle<T>, false));
  bool get isBroadcast => true;
@@ -15,16 +15,16 @@ part of dart.async;
  int _eventState;
  _BroadcastSubscriptionLink _next;
  _BroadcastSubscriptionLink _previous;
- _BroadcastSubscription(_StreamControllerLifecycle controller, void onData(T data), Function onError, void onDone(), bool cancelOnError) : super(DDC$RT.cast(controller, DDC$RT.type((_StreamControllerLifecycle<dynamic> _) {
+ _BroadcastSubscription(_StreamControllerLifecycle controller, void onData(T data), Function onError, void onDone(), bool cancelOnError) : super(DEVC$RT.cast(controller, DEVC$RT.type((_StreamControllerLifecycle<dynamic> _) {
 }
-), DDC$RT.type((_StreamControllerLifecycle<T> _) {
+), DEVC$RT.type((_StreamControllerLifecycle<T> _) {
 }
 ), "CastDynamic", """line 36, column 15 of dart:async/broadcast_stream_controller.dart: """, controller is _StreamControllerLifecycle<T>, false), onData, onError, onDone, cancelOnError) {
 _next = _previous = this;
 }
- _BroadcastStreamController get _controller => ((__x2) => DDC$RT.cast(__x2, DDC$RT.type((_StreamControllerLifecycle<T> _) {
+ _BroadcastStreamController get _controller => ((__x2) => DEVC$RT.cast(__x2, DEVC$RT.type((_StreamControllerLifecycle<T> _) {
 }
-), DDC$RT.type((_BroadcastStreamController<dynamic> _) {
+), DEVC$RT.type((_BroadcastStreamController<dynamic> _) {
 }
 ), "CastGeneral", """line 40, column 49 of dart:async/broadcast_stream_controller.dart: """, __x2 is _BroadcastStreamController<dynamic>, true))(super._controller);
  bool _expectsEvent(int eventId) => (_eventState & _STATE_EVENT_ID) == eventId;
@@ -92,17 +92,17 @@ if (onDone == null) onDone = _nullDoneHandler;
  return new _DoneStreamSubscription<T>(onDone);
 }
  StreamSubscription subscription = new _BroadcastSubscription<T>(this, onData, onError, onDone, cancelOnError);
- _addListener(DDC$RT.cast(subscription, DDC$RT.type((StreamSubscription<dynamic> _) {
+ _addListener(DEVC$RT.cast(subscription, DEVC$RT.type((StreamSubscription<dynamic> _) {
 }
-), DDC$RT.type((_BroadcastSubscription<T> _) {
+), DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 196, column 18 of dart:async/broadcast_stream_controller.dart: """, subscription is _BroadcastSubscription<T>, false));
  if (identical(_next, _previous)) {
 _runGuarded(_onListen);
 }
- return DDC$RT.cast(subscription, DDC$RT.type((StreamSubscription<dynamic> _) {
+ return DEVC$RT.cast(subscription, DEVC$RT.type((StreamSubscription<dynamic> _) {
 }
-), DDC$RT.type((StreamSubscription<T> _) {
+), DEVC$RT.type((StreamSubscription<T> _) {
 }
 ), "CastDynamic", """line 201, column 12 of dart:async/broadcast_stream_controller.dart: """, subscription is StreamSubscription<T>, false);
 }
@@ -159,9 +159,9 @@ bool cancelOnError : true}
 ) {
 if (!_mayAddEvent) throw _addEventError();
  _state |= _STATE_ADDSTREAM;
- _addStreamState = ((__x3) => DDC$RT.cast(__x3, DDC$RT.type((_AddStreamState<dynamic> _) {
+ _addStreamState = ((__x3) => DEVC$RT.cast(__x3, DEVC$RT.type((_AddStreamState<dynamic> _) {
 }
-), DDC$RT.type((_AddStreamState<T> _) {
+), DEVC$RT.type((_AddStreamState<T> _) {
 }
 ), "CastExact", """line 268, column 23 of dart:async/broadcast_stream_controller.dart: """, __x3 is _AddStreamState<T>, false))(new _AddStreamState(this, stream, cancelOnError));
  return _addStreamState.addStreamFuture;
@@ -186,7 +186,7 @@ throw new StateError("Cannot fire new event. Controller is already firing an eve
  _state ^= _STATE_EVENT_ID | _STATE_FIRING;
  _BroadcastSubscriptionLink link = _next;
  while (!identical(link, this)) {
-_BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<T> _) {
+_BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 309, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  if (subscription._expectsEvent(id)) {
@@ -219,7 +219,7 @@ _doneFuture._asyncComplete(null);
  void _sendData(T data) {
 if (_isEmpty) return; if (_hasOneListener) {
 _state |= _BroadcastStreamController._STATE_FIRING;
- _BroadcastSubscription subscription = DDC$RT.cast(_next, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<dynamic> _) {
+ _BroadcastSubscription subscription = DEVC$RT.cast(_next, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<dynamic> _) {
 }
 ), "CastGeneral", """line 350, column 45 of dart:async/broadcast_stream_controller.dart: """, _next is _BroadcastSubscription<dynamic>, true);
  subscription._add(data);
@@ -241,17 +241,17 @@ subscription._addError(error, stackTrace);
 }
  void _sendDone() {
 if (!_isEmpty) {
-_forEachListener(((__x9) => DDC$RT.wrap((dynamic f(_BroadcastSubscription<T> __u4)) {
-dynamic c(_BroadcastSubscription<T> x0) => f(DDC$RT.cast(x0, DDC$RT.type((_BufferingStreamSubscription<T> _) {
+_forEachListener(((__x9) => DEVC$RT.wrap((dynamic f(_BroadcastSubscription<T> __u4)) {
+dynamic c(_BroadcastSubscription<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((_BufferingStreamSubscription<T> _) {
 }
-), DDC$RT.type((_BroadcastSubscription<T> _) {
+), DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastParam", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, x0 is _BroadcastSubscription<T>, false));
  return f == null ? null : c;
 }
-, __x9, DDC$RT.type((__t7<T> _) {
+, __x9, DEVC$RT.type((__t7<T> _) {
 }
-), DDC$RT.type((__t5<T> _) {
+), DEVC$RT.type((__t5<T> _) {
 }
 ), "WrapLiteral", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, __x9 is __t5<T>))((_BroadcastSubscription<T> subscription) {
 subscription._close();
@@ -266,7 +266,7 @@ assert (_doneFuture != null); assert (_doneFuture._mayComplete); _doneFuture._as
  class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {_AsyncBroadcastStreamController(void onListen(), void onCancel()) : super(onListen, onCancel);
  void _sendData(T data) {
 for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
-_BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<T> _) {
+_BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 393, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  subscription._addPending(new _DelayedData(data));
@@ -274,7 +274,7 @@ _BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptio
 }
  void _sendError(Object error, StackTrace stackTrace) {
 for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
-_BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<T> _) {
+_BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 402, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  subscription._addPending(new _DelayedError(error, stackTrace));
@@ -283,7 +283,7 @@ _BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptio
  void _sendDone() {
 if (!_isEmpty) {
 for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
-_BroadcastSubscription<T> subscription = DDC$RT.cast(link, _BroadcastSubscriptionLink, DDC$RT.type((_BroadcastSubscription<T> _) {
+_BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
 ), "CastGeneral", """line 412, column 50 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  subscription._addPending(const _DelayedDone());

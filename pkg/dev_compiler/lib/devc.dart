@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Command line tool to run the checker on a Dart program.
-library ddc.devc;
+library dev_compiler.devc;
 
 import 'dart:async';
 import 'dart:convert';
@@ -268,5 +268,5 @@ class CompilerServer {
   }
 }
 
-final _log = new Logger('ddc');
+final _log = new Logger('dev_compiler');
 final _earlyErrorResult = new CheckerResults(const [], null, true);

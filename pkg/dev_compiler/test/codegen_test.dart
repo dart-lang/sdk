@@ -5,7 +5,7 @@
 /// Tests code generation.
 /// Runs Dart Dev Compiler on all input in the `codegen` directory and checks
 /// that the output is what we expected.
-library ddc.test.codegen_test;
+library dev_compiler.test.codegen_test;
 
 import 'dart:io';
 import 'package:cli_util/cli_util.dart' show getSdkDir;

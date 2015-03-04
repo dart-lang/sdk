@@ -8,7 +8,7 @@
 /// running devc.dart passing the arguments
 /// --dump-info --dump-info-file info.json
 
-library ddc.bin.edit_files;
+library dev_compiler.bin.edit_files;
 
 import 'dart:io';
 import 'dart:convert';

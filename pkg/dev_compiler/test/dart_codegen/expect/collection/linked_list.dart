@@ -13,7 +13,7 @@ part of dart.collection;
   _insertAfter(_previous, entry);
   }
  void addAll(Iterable<E> entries) {
-  entries.forEach((entry) => _insertAfter(_previous, DDC$RT.cast(entry, dynamic, E, "CastGeneral", """line 65, column 56 of dart:collection/linked_list.dart: """, entry is E, false)));
+  entries.forEach((entry) => _insertAfter(_previous, DEVC$RT.cast(entry, dynamic, E, "CastGeneral", """line 65, column 56 of dart:collection/linked_list.dart: """, entry is E, false)));
   }
  bool remove(E entry) {
   if (entry._list != this) return false;
@@ -26,7 +26,7 @@ part of dart.collection;
   _modificationCount++;
    _LinkedListLink next = _next;
    while (!identical(next, this)) {
-    E entry = DDC$RT.cast(next, _LinkedListLink, E, "CastGeneral", """line 93, column 17 of dart:collection/linked_list.dart: """, next is E, false);
+    E entry = DEVC$RT.cast(next, _LinkedListLink, E, "CastGeneral", """line 93, column 17 of dart:collection/linked_list.dart: """, next is E, false);
      next = entry._next;
      entry._next = entry._previous = entry._list = null;
     }
@@ -37,13 +37,13 @@ part of dart.collection;
   if (identical(_next, this)) {
     throw new StateError('No such element');
     }
-   return DDC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 105, column 12 of dart:collection/linked_list.dart: """, _next is E, false);
+   return DEVC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 105, column 12 of dart:collection/linked_list.dart: """, _next is E, false);
   }
  E get last {
   if (identical(_previous, this)) {
     throw new StateError('No such element');
     }
-   return DDC$RT.cast(_previous, _LinkedListLink, E, "CastGeneral", """line 112, column 12 of dart:collection/linked_list.dart: """, _previous is E, false);
+   return DEVC$RT.cast(_previous, _LinkedListLink, E, "CastGeneral", """line 112, column 12 of dart:collection/linked_list.dart: """, _previous is E, false);
   }
  E get single {
   if (identical(_previous, this)) {
@@ -52,13 +52,13 @@ part of dart.collection;
    if (!identical(_previous, _next)) {
     throw new StateError('Too many elements');
     }
-   return DDC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 122, column 12 of dart:collection/linked_list.dart: """, _next is E, false);
+   return DEVC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 122, column 12 of dart:collection/linked_list.dart: """, _next is E, false);
   }
  void forEach(void action(E entry)) {
   int modificationCount = _modificationCount;
    _LinkedListLink current = _next;
    while (!identical(current, this)) {
-    action(DDC$RT.cast(current, _LinkedListLink, E, "CastGeneral", """line 134, column 14 of dart:collection/linked_list.dart: """, current is E, false));
+    action(DEVC$RT.cast(current, _LinkedListLink, E, "CastGeneral", """line 134, column 14 of dart:collection/linked_list.dart: """, current is E, false));
      if (modificationCount != _modificationCount) {
       throw new ConcurrentModificationError(this);
       }
@@ -102,7 +102,7 @@ if (identical(_next, _list)) {
  if (_modificationCount != _list._modificationCount) {
   throw new ConcurrentModificationError(this);
   }
- _current = DDC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 192, column 16 of dart:collection/linked_list.dart: """, _next is E, false);
+ _current = DEVC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 192, column 16 of dart:collection/linked_list.dart: """, _next is E, false);
  _next = _next._next;
  return true;
 }
@@ -119,12 +119,12 @@ _list._unlink(this);
 }
  E get next {
 if (identical(_next, _list)) return null;
- E result = DDC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 249, column 16 of dart:collection/linked_list.dart: """, _next is E, false);
+ E result = DEVC$RT.cast(_next, _LinkedListLink, E, "CastGeneral", """line 249, column 16 of dart:collection/linked_list.dart: """, _next is E, false);
  return result;
 }
  E get previous {
 if (identical(_previous, _list)) return null;
- return DDC$RT.cast(_previous, _LinkedListLink, E, "CastUser", """line 261, column 12 of dart:collection/linked_list.dart: """, _previous is E, false);
+ return DEVC$RT.cast(_previous, _LinkedListLink, E, "CastUser", """line 261, column 12 of dart:collection/linked_list.dart: """, _previous is E, false);
 }
  void insertAfter(E entry) {
 _list._insertAfter(this, entry);

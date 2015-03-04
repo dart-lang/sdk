@@ -18,7 +18,7 @@ add(chunk.sublist(start, end));
 }
  class _ByteCallbackSink extends ByteConversionSinkBase {static const _INITIAL_BUFFER_SIZE = 1024;
  final _ChunkedConversionCallback<List<int>> _callback;
- List<int> _buffer = new Uint8List(DDC$RT.cast(_INITIAL_BUFFER_SIZE, dynamic, int, "CastGeneral", """line 81, column 37 of dart:convert/byte_conversion.dart: """, _INITIAL_BUFFER_SIZE is int, true));
+ List<int> _buffer = new Uint8List(DEVC$RT.cast(_INITIAL_BUFFER_SIZE, dynamic, int, "CastGeneral", """line 81, column 37 of dart:convert/byte_conversion.dart: """, _INITIAL_BUFFER_SIZE is int, true));
  int _bufferIndex = 0;
  _ByteCallbackSink(void callback(List<int> accumulated)) : this._callback = callback;
  void add(Iterable<int> chunk) {

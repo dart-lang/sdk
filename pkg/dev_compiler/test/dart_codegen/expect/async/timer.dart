@@ -9,8 +9,8 @@ part of dart.async;
   if (Zone.current == Zone.ROOT) {
     return Zone.current.createPeriodicTimer(duration, callback);
     }
-   return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(DDC$RT.wrap((void f(Timer __u162)) {
-    void c(Timer x0) => f(DDC$RT.cast(x0, dynamic, Timer, "CastParam", """line 80, column 50 of dart:async/timer.dart: """, x0 is Timer, true));
+   return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(DEVC$RT.wrap((void f(Timer __u162)) {
+    void c(Timer x0) => f(DEVC$RT.cast(x0, dynamic, Timer, "CastParam", """line 80, column 50 of dart:async/timer.dart: """, x0 is Timer, true));
      return f == null ? null : c;
     }
   , callback, __t165, __t163, "Wrap", """line 80, column 50 of dart:async/timer.dart: """, callback is __t163), runGuarded: true));

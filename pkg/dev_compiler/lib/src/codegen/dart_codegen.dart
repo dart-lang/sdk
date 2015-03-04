@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ddc.src.codegen.dart_codegen;
+library dev_compiler.src.codegen.dart_codegen;
 
 import 'dart:io' show File;
 
@@ -24,29 +24,29 @@ import 'ast_builder.dart';
 import 'code_generator.dart' as codegenerator;
 import 'reify_coercions.dart' as reifier;
 
-final _log = new logger.Logger('ddc.dartgenerator');
+final _log = new logger.Logger('dev_compiler.dart_codegen');
 
-class DdcRuntime {
-  Identifier _ddcRuntimeId = AstBuilder.identifierFromString("DDC\$RT");
+class DevCompilerRuntime {
+  Identifier _runtimeId = AstBuilder.identifierFromString("DEVC\$RT");
 
   Identifier _castId;
   Identifier _typeToTypeId;
   Identifier _wrapId;
 
-  DdcRuntime() {
+  DevCompilerRuntime() {
     _castId = _prefixId(AstBuilder.identifierFromString("cast"));
     _typeToTypeId = _prefixId(AstBuilder.identifierFromString("type"));
     _wrapId = _prefixId(AstBuilder.identifierFromString("wrap"));
   }
 
   String get importString {
-    var name = _ddcRuntimeId;
+    var name = _runtimeId;
     var uri = "package:dev_compiler/runtime/dart_logging_runtime.dart";
     return "import '$uri' as $name;";
   }
 
   Identifier _prefixId(Identifier id) =>
-      AstBuilder.prefixedIdentifier(_ddcRuntimeId, id);
+      AstBuilder.prefixedIdentifier(_runtimeId, id);
 
   Identifier runtimeId(RuntimeOperation oper) {
     if (oper.operation == "cast") return _castId;
@@ -276,7 +276,7 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
   final java_core.PrintWriter _out;
   final String outDir;
   Set<LibraryElement> _extraImports;
-  final ddc = new DdcRuntime();
+  final _runtime = new DevCompilerRuntime();
   LibraryElement _currentLibrary;
   bool _qualifyNames = true;
   Set<Identifier> _newIdentifiers;
@@ -337,7 +337,7 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
     if (ds['library'].length != 0) {
       assert(ds['partof'].length == 0);
       var es = buildExtraImportDirectives();
-      es.add(ddc.importString);
+      es.add(_runtime.importString);
       es.forEach(outputln);
     }
     visitListWithSeparatorAndPrefix(prefix, ds['partof'], " ");
@@ -357,7 +357,7 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
 
   @override
   Object visitRuntimeOperation(RuntimeOperation oper) {
-    var e = ddc.runtimeOperation(oper);
+    var e = _runtime.runtimeOperation(oper);
     e.accept(this);
     return null;
   }

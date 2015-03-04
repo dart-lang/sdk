@@ -111,11 +111,11 @@ if (length == 0) return "";
  return buffer.toString();
 }
  Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
- Iterable map(f(E element)) => new MappedListIterable(this, DDC$RT.wrap((dynamic f(E __u5)) {
-dynamic c(E x0) => f(DDC$RT.cast(x0, dynamic, E, "CastParam", """line 178, column 62 of dart:collection/list.dart: """, x0 is E, false));
+ Iterable map(f(E element)) => new MappedListIterable(this, DEVC$RT.wrap((dynamic f(E __u5)) {
+dynamic c(E x0) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 178, column 62 of dart:collection/list.dart: """, x0 is E, false));
  return f == null ? null : c;
 }
-, f, DDC$RT.type((__t8<E> _) {
+, f, DEVC$RT.type((__t8<E> _) {
 }
 ), __t6, "Wrap", """line 178, column 62 of dart:collection/list.dart: """, f is __t6));
  Iterable expand(Iterable f(E element)) => new ExpandIterable<E, dynamic>(this, f);
@@ -191,20 +191,20 @@ for (int i = 0; i < this.length; i++) {
  return false;
 }
  void removeWhere(bool test(E element)) {
-_filter(this, DDC$RT.wrap((bool f(E __u10)) {
-  bool c(E x0) => f(DDC$RT.cast(x0, dynamic, E, "CastParam", """line 264, column 19 of dart:collection/list.dart: """, x0 is E, false));
+_filter(this, DEVC$RT.wrap((bool f(E __u10)) {
+  bool c(E x0) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 264, column 19 of dart:collection/list.dart: """, x0 is E, false));
    return f == null ? null : c;
   }
-, test, DDC$RT.type((__t13<E> _) {
+, test, DEVC$RT.type((__t13<E> _) {
   }
 ), __t11, "Wrap", """line 264, column 19 of dart:collection/list.dart: """, test is __t11), false);
 }
  void retainWhere(bool test(E element)) {
-_filter(this, DDC$RT.wrap((bool f(E __u15)) {
-  bool c(E x0) => f(DDC$RT.cast(x0, dynamic, E, "CastParam", """line 268, column 19 of dart:collection/list.dart: """, x0 is E, false));
+_filter(this, DEVC$RT.wrap((bool f(E __u15)) {
+  bool c(E x0) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 268, column 19 of dart:collection/list.dart: """, x0 is E, false));
    return f == null ? null : c;
   }
-, test, DDC$RT.type((__t13<E> _) {
+, test, DEVC$RT.type((__t13<E> _) {
   }
 ), __t11, "Wrap", """line 268, column 19 of dart:collection/list.dart: """, test is __t11), true);
 }
@@ -241,11 +241,11 @@ if (compare == null) {
   var defaultCompare = Comparable.compare;
    compare = defaultCompare;
   }
- Sort.sort(this, DDC$RT.wrap((int f(E __u16, E __u17)) {
-  int c(E x0, E x1) => f(DDC$RT.cast(x0, dynamic, E, "CastParam", """line 309, column 21 of dart:collection/list.dart: """, x0 is E, false), DDC$RT.cast(x1, dynamic, E, "CastParam", """line 309, column 21 of dart:collection/list.dart: """, x1 is E, false));
+ Sort.sort(this, DEVC$RT.wrap((int f(E __u16, E __u17)) {
+  int c(E x0, E x1) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 309, column 21 of dart:collection/list.dart: """, x0 is E, false), DEVC$RT.cast(x1, dynamic, E, "CastParam", """line 309, column 21 of dart:collection/list.dart: """, x1 is E, false));
    return f == null ? null : c;
   }
-, compare, DDC$RT.type((__t21<E> _) {
+, compare, DEVC$RT.type((__t21<E> _) {
   }
 ), __t18, "Wrap", """line 309, column 21 of dart:collection/list.dart: """, compare is __t18));
 }
@@ -297,9 +297,9 @@ RangeError.checkValidRange(start, end, this.length);
  List otherList;
  int otherStart;
  if (iterable is List) {
-  otherList = DDC$RT.cast(iterable, DDC$RT.type((Iterable<E> _) {
+  otherList = DEVC$RT.cast(iterable, DEVC$RT.type((Iterable<E> _) {
     }
-  ), DDC$RT.type((List<dynamic> _) {
+  ), DEVC$RT.type((List<dynamic> _) {
     }
   ), "CastGeneral", """line 369, column 19 of dart:collection/list.dart: """, iterable is List<dynamic>, true);
    otherStart = skipCount;
@@ -313,12 +313,12 @@ RangeError.checkValidRange(start, end, this.length);
   }
  if (otherStart < start) {
   for (int i = length - 1; i >= 0; i--) {
-    this[start + i] = ((__x24) => DDC$RT.cast(__x24, dynamic, E, "CastGeneral", """line 381, column 27 of dart:collection/list.dart: """, __x24 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x24) => DEVC$RT.cast(__x24, dynamic, E, "CastGeneral", """line 381, column 27 of dart:collection/list.dart: """, __x24 is E, false))(otherList[otherStart + i]);
     }
   }
  else {
   for (int i = 0; i < length; i++) {
-    this[start + i] = ((__x25) => DDC$RT.cast(__x25, dynamic, E, "CastGeneral", """line 385, column 27 of dart:collection/list.dart: """, __x25 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x25) => DEVC$RT.cast(__x25, dynamic, E, "CastGeneral", """line 385, column 27 of dart:collection/list.dart: """, __x25 is E, false))(otherList[otherStart + i]);
     }
   }
 }
