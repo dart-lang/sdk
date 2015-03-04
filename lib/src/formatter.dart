@@ -80,11 +80,12 @@ class SimpleFormatter implements ReportFormatter {
   writeLint(AnalysisError error, LineInfo lineInfo) {
     LineInfo_Location location = lineInfo.getLocation(error.offset);
 
-    // [lint] DO name types... (test/linter_test.dart, line 417, col 1)
-    out.write('[${error.errorCode.type.displayName}] ${error.message} ');
-    out.write('(${shorten(fileRoot, error.source.fullName)}');
-    out.write(', line ${location.lineNumber}, col ${location.columnNumber})');
-    out.writeln();
+    // test/linter_test.dart 452:9 [lint] DO name types using UpperCamelCase.
+    out
+      ..write('${shorten(fileRoot, error.source.fullName)} ')
+      ..write('${location.lineNumber}:${location.columnNumber} ')
+      ..write('[${error.errorCode.type.displayName}] ${error.message} ')
+      ..writeln();
   }
 
   writeLints() {
@@ -96,7 +97,8 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   writeSummary() {
-    out.write('$fileCount ${pluralize("file", fileCount)} analyzed, ');
-    out.writeln('$errorCount ${pluralize("issue", errorCount)} found.');
+    out
+      ..write('$fileCount ${pluralize("file", fileCount)} analyzed, ')
+      ..writeln('$errorCount ${pluralize("issue", errorCount)} found.');
   }
 }

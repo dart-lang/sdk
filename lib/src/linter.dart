@@ -241,11 +241,11 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   }
 
   void reportPubLint(PSNode node) {
-
     Source source = createSource(node.span.sourceUrl);
 
     // Cache error and location info for creating AnalysisErrorInfos
-    var error = new AnalysisError.con2(source, node.span.start.offset,
+    // Note that error columns are 1-based
+    var error = new AnalysisError.con2(source, node.span.start.column + 1,
         node.span.length, new _LintCode(name.value, description));
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
@@ -254,23 +254,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     reporter.reportError(error);
   }
 }
-
-class _LintCode extends LintCode {
-
-  static final registry = <String, LintCode>{};
-
-  factory _LintCode(String name, String message) {
-    var lint = registry[name];
-    if (lint == null || lint.message != message) {
-      lint = new _LintCode._(name, message);
-      registry[name] = lint;
-    }
-    return lint;
-  }
-
-  _LintCode._(String name, String message) : super(name, message);
-}
-
 
 class Maturity implements Comparable<Maturity> {
   static const Maturity STABLE = const Maturity._('STABLE', ordinal: 0);
@@ -333,11 +316,11 @@ class PrintingReporter implements Reporter, Logger {
     _print('WARN: $message');
   }
 }
+
 abstract class Reporter {
   void exception(LinterException exception);
   void warn(String message);
 }
-
 /// Linter implementation
 class SourceLinter implements DartLinter, AnalysisErrorListener {
   final errors = <AnalysisError>[];
@@ -359,9 +342,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   }
 
   @override
-  Iterable<AnalysisErrorInfo> lintPubspecSource({String contents, String sourceUrl}) {
-
-
+  Iterable<AnalysisErrorInfo> lintPubspecSource(
+      {String contents, String sourceUrl}) {
     var results = <AnalysisErrorInfo>[];
 
     //TODO: error handling
@@ -372,6 +354,15 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
         LintRule rule = lint;
         var visitor = rule.getPubspecVisitor();
         if (visitor != null) {
+          // Analyzer sets reporters; if this file is not being analyzed,
+          // we need to set one ourselves.  (Needless to say, when pubspec
+          // processing gets pushed down, this hack can go away.)
+          Source source;
+          if (sourceUrl != null) {
+            source = createSource(Uri.parse(sourceUrl));
+          }
+
+          rule.reporter = new ErrorReporter(this, source);
           try {
             spec.accept(visitor);
           } on Exception catch (e) {
@@ -392,7 +383,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   onError(AnalysisError error) => errors.add(error);
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
-      lintPubspecSource(contents: sourceFile.readAsStringSync(), sourceUrl: sourceFile.path);
+      lintPubspecSource(
+          contents: sourceFile.readAsStringSync(), sourceUrl: sourceFile.path);
 
   static LinterOptions _defaultOptions() =>
       new LinterOptions(() => ruleMap.values);
@@ -403,6 +395,15 @@ class _LineInfo implements LineInfo {
   _LineInfo(this.node);
 
   @override
-  LineInfo_Location getLocation(int offset) =>
-      new LineInfo_Location(node.span.start.line + 1, node.span.start.column);
+  LineInfo_Location getLocation(int offset) => new LineInfo_Location(
+      node.span.start.line + 1, node.span.start.column + 1);
+}
+
+class _LintCode extends LintCode {
+  static final registry = <String, LintCode>{};
+
+  factory _LintCode(String name, String message) => registry.putIfAbsent(
+      name + message, () => new _LintCode._(name, message));
+
+  _LintCode._(String name, String message) : super(name, message);
 }
