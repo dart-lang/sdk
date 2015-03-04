@@ -49,6 +49,7 @@ main() {
     '/a4.dart': 'library a4; export "a10.dart";',
     '/a5.dart': 'library a5;',
     '/a6.dart': 'part of a2;',
+    '/a7.dart': 'library a7;',
     '/a8.dart': 'library a8; import "a8.dart";',
     '/a9.dart': 'library a9; import "a8.dart";',
     '/a10.dart': 'library a10;',
@@ -187,14 +188,14 @@ main() {
 
       node.source.contents.modificationTime++;
       node.source.contents.data =
-          'import "a3.dart"; export "a6.dart"; part "a8.dart";';
+          'import "a3.dart"; export "a7.dart"; part "a8.dart";';
       node.update(graph);
 
       expect(node.imports.length, 1);
       expect(node.exports.length, 1);
       expect(node.parts.length, 1);
       expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
-      expect(node.exports.contains(nodeOf('/a6.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a7.dart')), isTrue);
       expect(node.parts.contains(nodeOf('/a8.dart')), isTrue);
     });
   });
