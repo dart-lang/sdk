@@ -169,7 +169,10 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   Expression visitVariableUse(VariableUse node) {
     // Propagate constant to use site.
     Expression constant = constantEnvironment[node.variable];
-    if (constant != null) return constant;
+    if (constant != null) {
+      --node.variable.readCount;
+      return constant;
+    }
 
     // Propagate a variable's definition to its use site if:
     // 1.  It has a single use, to avoid code growth and potential duplication
@@ -178,7 +181,8 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     //     reorder expressions with side effects.
     if (!environment.isEmpty &&
         environment.last.variable == node.variable &&
-        environment.last.hasExactlyOneUse) {
+        node.variable.readCount == 1) {
+      --node.variable.readCount;
       return visitExpression(environment.removeLast().definition);
     }
 
@@ -207,6 +211,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
       if (node.variable.readCount <= 1) {
         // A single-use constant should always be propagted to its use site.
         constantEnvironment[node.variable] = visitExpression(node.definition);
+        --node.variable.writeCount;
         return visitStatement(node.next);
       } else {
         // With more than one use, we cannot propagate the constant.
@@ -229,6 +234,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         return node;
       }
       assert(!environment.contains(node));
+      --node.variable.writeCount; // This assignment was removed.
       return next;
     }
   }
@@ -517,7 +523,10 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     if (s is Assign && t is Assign && s.variable == t.variable) {
       Statement next = combineStatements(s.next, t.next);
       if (next != null) {
-        --t.variable.writeCount; // Two assignments become one.
+        // Destroy both original assignments to the variable.
+        --s.variable.writeCount;
+        --t.variable.writeCount;
+        // The Assign constructor will increment the reference count again.
         return new Assign(s.variable,
                           combine(s.definition, t.definition),
                           next);
