@@ -60,17 +60,39 @@ class NativeBehavior {
   final SideEffects sideEffects = new SideEffects.empty();
 
   /// Processes the type specification string of a call to JS and stores the
-  /// result in the [typesReturned] and [typesInstantiated].
+  /// result in the [typesReturned] and [typesInstantiated]. It furthermore
+  /// computes the side effects, and, if given, invokes [setSideEffects] with
+  /// the computed effects. If no side effects are encoded in the [specString]
+  /// the [setSideEffects] method is not invoked.
   ///
   /// Two forms of the string is supported:
   /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn'
   ///    which defines the types returned and for the later form also created by
   ///    the call to JS.
-  /// 2) A sequence of the form '<tag>:<type-string>;' where <tag> is either
-  ///    'returns' or 'creates' and where <type-string> is a type string like in
-  ///    1). The type string marked by 'returns' defines the types returned and
-  ///    'creates' defines the types created by the call to JS. Each tag kind
-  ///    can only occur once in the sequence.
+  /// 2) A sequence of the form
+  ///    '<type-tag>:<type-string>;<effect-tag>:<effect-string>'
+  ///    where <type-tag> is either 'returns' or 'creates' and where
+  ///    <type-string> is a type string like in 1). The type string marked by
+  ///    'returns' defines the types returned and 'creates' defines the types
+  ///    created by the call to JS.
+  ///
+  ///    The <effect-tag> is either 'effects' or 'depends' and
+  ///    <effect-string> is either 'all', 'none' or a comma-separated list of
+  ///    'no-index', 'no-instance', 'no-static'.
+  ///
+  ///    The flag 'all' indicates that the call affects/depends on every
+  ///    side-effect. The flag 'none' indicates that the call does not affect
+  ///    (resp. depends on) anything.
+  ///
+  ///    'no-index' indicates that the call does *not* do any array index-store
+  ///    (for 'effects'), or depends on any value in an array (for 'depends').
+  ///    The flag 'no-instance' indicates that the call does not modify (resp.
+  ///    depends on) any instance variable. Similarly static variables are
+  ///    indicated with 'no-static'. The flags 'effects' and 'depends' must be
+  ///    used in unison (either both are present or none is).
+  ///
+  ///    Each tag kind (including the 'type-tag's) can only occur once in the
+  ///    sequence.
   ///
   /// [specString] is the specification string, [resolveType] resolves named
   /// types into type values, [typesReturned] and [typesInstantiated] collects
@@ -82,7 +104,8 @@ class NativeBehavior {
       DiagnosticListener listener,
       Spannable spannable,
       String specString,
-      {dynamic resolveType(String typeString),
+      {void setSideEffects(SideEffects newEffects),
+       dynamic resolveType(String typeString),
        List typesReturned, List typesInstantiated,
        objectType, nullType}) {
 
@@ -110,10 +133,11 @@ class NativeBehavior {
       }
     }
 
+
     if (specString.contains(':')) {
-      /// Find and remove a substring of the form 'tag:<type-string>;' from
+      /// Find and remove a substring of the form 'tag:<string>;' from
       /// [specString].
-      String getTypesString(String tag) {
+      String getTagString(String tag) {
         String marker = '$tag:';
         int startPos = specString.indexOf(marker);
         if (startPos == -1) return null;
@@ -126,7 +150,7 @@ class NativeBehavior {
         return typeString;
       }
 
-      String returns = getTypesString('returns');
+      String returns = getTagString('returns');
       if (returns != null) {
         resolveTypesString(returns, onVar: () {
           typesReturned.add(objectType);
@@ -136,7 +160,7 @@ class NativeBehavior {
         });
       }
 
-      String creates = getTypesString('creates');
+      String creates = getTagString('creates');
       if (creates != null) {
         resolveTypesString(creates, onVoid: () {
           listener.internalError(spannable,
@@ -149,8 +173,77 @@ class NativeBehavior {
         });
       }
 
+      String effects = getTagString('effects');
+      String depends = getTagString('depends');
+      if (effects != null && depends == null ||
+          effects == null && depends != null) {
+        listener.internalError(spannable,
+            "Invalid JS spec string. "
+            "'effects' and 'depends' must occur together.");
+      }
+
+      if (effects != null) {
+        SideEffects sideEffects = new SideEffects();
+        if (effects == "none") {
+          sideEffects.clearAllSideEffects();
+        } else if (effects == "all") {
+          // Don't do anything.
+        } else {
+          List<String> splitEffects = effects.split(",");
+          if (splitEffects.isEmpty) {
+            listener.internalError(spannable, "Missing side-effect flag.");
+          }
+          for (String effect in splitEffects) {
+            switch (effect) {
+              case "no-index":
+                sideEffects.clearChangesIndex();
+                break;
+              case "no-instance":
+                sideEffects.clearChangesInstanceProperty();
+                break;
+              case "no-static":
+                sideEffects.clearChangesStaticProperty();
+                break;
+              default:
+                listener.internalError(spannable,
+                    "Unrecognized side-effect flag: $effect.");
+            }
+          }
+        }
+
+        if (depends == "none") {
+          sideEffects.clearAllDependencies();
+        } else if (depends == "all") {
+          // Don't do anything.
+        } else {
+          List<String> splitDependencies = depends.split(",");
+          if (splitDependencies.isEmpty) {
+            listener.internalError(spannable,
+                                   "Missing side-effect dependency flag.");
+          }
+          for (String dependency in splitDependencies) {
+            switch (dependency) {
+              case "no-index":
+                sideEffects.clearDependsOnIndexStore();
+                break;
+              case "no-instance":
+                sideEffects.clearDependsOnInstancePropertyStore();
+                break;
+              case "no-static":
+                sideEffects.clearDependsOnStaticPropertyStore();
+                break;
+              default:
+                listener.internalError(spannable,
+                    "Unrecognized side-effect flag: $dependency.");
+            }
+          }
+        }
+
+        setSideEffects(sideEffects);
+      }
+
       if (!specString.isEmpty) {
-        listener.internalError(spannable, "Invalid JS type string.");
+        listener.internalError(spannable, "Invalid JS spec string.");
       }
     } else {
       resolveTypesString(specString, onVar: () {
@@ -190,12 +283,10 @@ class NativeBehavior {
     NativeBehavior behavior = new NativeBehavior();
     behavior.codeTemplate =
         js.js.parseForeignJS(code.dartString.slowToString());
-    new SideEffectsVisitor(behavior.sideEffects)
-        .visit(behavior.codeTemplate.ast);
 
     String specString = specLiteral.dartString.slowToString();
 
-    resolveType(String typeString) {
+    dynamic resolveType(String typeString) {
       return _parseType(
           typeString,
           compiler,
@@ -203,13 +294,26 @@ class NativeBehavior {
           jsCall);
     }
 
+    bool sideEffectsAreEncodedInSpecString = false;
+
+    void setSideEffects(SideEffects newEffects) {
+      sideEffectsAreEncodedInSpecString = true;
+      behavior.sideEffects.setTo(newEffects);
+    }
+
     processSpecString(compiler, jsCall,
                       specString,
+                      setSideEffects: setSideEffects,
                       resolveType: resolveType,
                       typesReturned: behavior.typesReturned,
                       typesInstantiated: behavior.typesInstantiated,
                       objectType: compiler.objectClass.computeType(compiler),
                       nullType: compiler.nullClass.computeType(compiler));
+
+    if (!sideEffectsAreEncodedInSpecString) {
+      new SideEffectsVisitor(behavior.sideEffects)
+          .visit(behavior.codeTemplate.ast);
+    }
 
     return behavior;
   }
@@ -251,7 +355,7 @@ class NativeBehavior {
 
     String specString = specLiteral.dartString.slowToString();
 
-    resolveType(String typeString) {
+    dynamic resolveType(String typeString) {
       return _parseType(
           typeString,
           compiler,
@@ -259,8 +363,15 @@ class NativeBehavior {
           jsGlobalCall);
     }
 
+    void setSideEffects(SideEffects newEffects) {
+      compiler.internalError(jsGlobalCall,
+          'Embedded global calls may not have any side-effect overwrites: '
+          '$specString');
+    }
+
     processSpecString(compiler, jsGlobalCall,
                       specString,
+                      setSideEffects: setSideEffects,
                       resolveType: resolveType,
                       typesReturned: behavior.typesReturned,
                       typesInstantiated: behavior.typesInstantiated,
@@ -404,13 +515,13 @@ class NativeBehavior {
     }
   }
 
-  static _parseType(String typeString, Compiler compiler,
+  static dynamic _parseType(String typeString, Compiler compiler,
       lookup(name), locationNodeOrElement) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
       return const DynamicType();
     }
-    DartType type = lookup(typeString);
+    var type = lookup(typeString);
     if (type != null) return type;
 
     int index = typeString.indexOf('<');
@@ -427,6 +538,7 @@ class NativeBehavior {
     compiler.internalError(
         _errorNode(locationNodeOrElement, compiler),
         "Type '$typeString' not found.");
+    return null;
   }
 
   static _errorNode(locationNodeOrElement, compiler) {

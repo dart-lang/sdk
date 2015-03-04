@@ -21,7 +21,7 @@ class SideEffects {
   static const int FLAG_DEPENDS_ON_COUNT =
       FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE + 1;
 
-  int flags = 0;
+  int _flags = 0;
 
   SideEffects() {
     setAllSideEffects();
@@ -30,63 +30,84 @@ class SideEffects {
 
   SideEffects.empty();
 
-  bool operator==(other) => flags == other.flags;
+  bool operator==(other) => _flags == other._flags;
 
   int get hashCode => throw new UnsupportedError('SideEffects.hashCode');
 
-  bool getFlag(int position) => (flags & (1 << position)) != 0;
-  void setFlag(int position) { flags |= (1 << position); }
+  bool _getFlag(int position) => (_flags & (1 << position)) != 0;
+  void _setFlag(int position) { _flags |= (1 << position); }
+  bool _clearFlag(int position) { _flags &= ~(1 << position); }
 
-  int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
+  int getChangesFlags() => _flags & ((1 << FLAG_CHANGES_COUNT) - 1);
   int getDependsOnFlags() {
-    return (flags & ((1 << FLAG_DEPENDS_ON_COUNT) - 1)) >> FLAG_CHANGES_COUNT;
+    return (_flags & ((1 << FLAG_DEPENDS_ON_COUNT) - 1)) >> FLAG_CHANGES_COUNT;
   }
 
   bool hasSideEffects() => getChangesFlags() != 0;
   bool dependsOnSomething() => getDependsOnFlags() != 0;
 
-  void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
+  void setAllSideEffects() { _flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
 
-  void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
+  void clearAllSideEffects() { _flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
 
   void setDependsOnSomething() {
     int count = FLAG_DEPENDS_ON_COUNT - FLAG_CHANGES_COUNT;
-    flags |= (((1 << count) - 1) << FLAG_CHANGES_COUNT);
+    _flags |= (((1 << count) - 1) << FLAG_CHANGES_COUNT);
   }
   void clearAllDependencies() {
     int count = FLAG_DEPENDS_ON_COUNT - FLAG_CHANGES_COUNT;
-    flags &= ~(((1 << count) - 1) << FLAG_CHANGES_COUNT);
+    _flags &= ~(((1 << count) - 1) << FLAG_CHANGES_COUNT);
   }
 
   bool dependsOnStaticPropertyStore() {
-    return getFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
+    return _getFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
   }
   void setDependsOnStaticPropertyStore() {
-    setFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
+    _setFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
   }
-  void setChangesStaticProperty() { setFlag(FLAG_CHANGES_STATIC_PROPERTY); }
-  bool changesStaticProperty() => getFlag(FLAG_CHANGES_STATIC_PROPERTY);
+  void clearDependsOnStaticPropertyStore() {
+    _clearFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
+  }
+  void setChangesStaticProperty() { _setFlag(FLAG_CHANGES_STATIC_PROPERTY); }
+  void clearChangesStaticProperty() {
+    _clearFlag(FLAG_CHANGES_STATIC_PROPERTY);
+  }
+  bool changesStaticProperty() => _getFlag(FLAG_CHANGES_STATIC_PROPERTY);
 
-  bool dependsOnIndexStore() => getFlag(FLAG_DEPENDS_ON_INDEX_STORE);
-  void setDependsOnIndexStore() { setFlag(FLAG_DEPENDS_ON_INDEX_STORE); }
-  void setChangesIndex() { setFlag(FLAG_CHANGES_INDEX); }
-  bool changesIndex() => getFlag(FLAG_CHANGES_INDEX);
+  bool dependsOnIndexStore() => _getFlag(FLAG_DEPENDS_ON_INDEX_STORE);
+  void setDependsOnIndexStore() { _setFlag(FLAG_DEPENDS_ON_INDEX_STORE); }
+  void clearDependsOnIndexStore() { _clearFlag(FLAG_DEPENDS_ON_INDEX_STORE); }
+  void setChangesIndex() { _setFlag(FLAG_CHANGES_INDEX); }
+  void clearChangesIndex() { _clearFlag(FLAG_CHANGES_INDEX); }
+  bool changesIndex() => _getFlag(FLAG_CHANGES_INDEX);
 
   bool dependsOnInstancePropertyStore() {
-    return getFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
+    return _getFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
   }
   void setDependsOnInstancePropertyStore() {
-    setFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
+    _setFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
   }
-  void setChangesInstanceProperty() { setFlag(FLAG_CHANGES_INSTANCE_PROPERTY); }
-  bool changesInstanceProperty() => getFlag(FLAG_CHANGES_INSTANCE_PROPERTY);
+  void clearDependsOnInstancePropertyStore() {
+    _setFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
+  }
+  void setChangesInstanceProperty() {
+    _setFlag(FLAG_CHANGES_INSTANCE_PROPERTY);
+  }
+  void clearChangesInstanceProperty() {
+    _clearFlag(FLAG_CHANGES_INSTANCE_PROPERTY);
+  }
+  bool changesInstanceProperty() => _getFlag(FLAG_CHANGES_INSTANCE_PROPERTY);
 
   static int computeDependsOnFlags(int flags) => flags << FLAG_CHANGES_COUNT;
 
-  bool dependsOn(int dependsFlags) => (flags & dependsFlags) != 0;
+  bool dependsOn(int dependsFlags) => (_flags & dependsFlags) != 0;
 
   void add(SideEffects other) {
-    flags |= other.flags;
+    _flags |= other._flags;
+  }
+
+  void setTo(SideEffects other) {
+    _flags = other._flags;
   }
 
   String toString() {
