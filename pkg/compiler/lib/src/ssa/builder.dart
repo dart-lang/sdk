@@ -1363,10 +1363,9 @@ class SsaBuilder extends ResolvedVisitor {
         return reductiveHeuristic();
       }
 
-      if (cachedCanBeInlined == true) return cachedCanBeInlined;
-
-      if (backend.functionsToAlwaysInline.contains(function)) {
-        // Inline this function regardless of it's size.
+      if (cachedCanBeInlined == true) {
+        // We may have forced the inlining of some methods. Therefore check
+        // if we can inline this method regardless of size.
         assert(InlineWeeder.canBeInlined(function, -1, false,
                                          allowLoops: true));
         return true;

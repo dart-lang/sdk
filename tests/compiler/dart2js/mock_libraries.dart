@@ -179,6 +179,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'makeLiteralMap': 'makeLiteralMap(List keyValuePairs) {}',
   'Native': 'class Native {}',
   'NoInline': 'class NoInline {}',
+  'ForceInline': 'class ForceInline {}',
   'NoSideEffects': 'class NoSideEffects {}',
   'NoThrows': 'class NoThrows {}',
   'numberOrStringSuperNativeTypeCast':
