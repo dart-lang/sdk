@@ -121,7 +121,7 @@ class ParsedFunction : public ZoneAllocated {
   bool has_finally_return_temp_var() const {
     return finally_return_temp_var_ != NULL;
   }
-  void EnsureFinallyReturnTemp();
+  void EnsureFinallyReturnTemp(bool is_async);
 
   LocalVariable* EnsureExpressionTemp();
 
@@ -632,7 +632,9 @@ class Parser : public ValueObject {
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
   // Add the inlined finally block to the specified node.
-  void AddFinallyBlockToNode(AstNode* node, InlinedFinallyNode* finally_node);
+  void AddFinallyBlockToNode(bool is_async,
+                             AstNode* node,
+                             InlinedFinallyNode* finally_node);
   AstNode* ParseTryStatement(String* label_name);
   RawAbstractType* ParseConstFinalVarOrType(
       ClassFinalizer::FinalizationKind finalization);

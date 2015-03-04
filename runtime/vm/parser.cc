@@ -152,7 +152,7 @@ LocalVariable* ParsedFunction::EnsureExpressionTemp() {
 }
 
 
-void ParsedFunction::EnsureFinallyReturnTemp() {
+void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {
   if (!has_finally_return_temp_var()) {
     LocalVariable* temp = new(Z) LocalVariable(
         function_.token_pos(),
@@ -160,6 +160,9 @@ void ParsedFunction::EnsureFinallyReturnTemp() {
         Type::ZoneHandle(Z, Type::DynamicType()));
     ASSERT(temp != NULL);
     temp->set_is_final();
+    if (is_async) {
+      temp->set_is_captured();
+    }
     set_finally_return_temp_var(temp);
   }
   ASSERT(has_finally_return_temp_var());
@@ -6101,7 +6104,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
                                     // No outer try statement
                                     CatchClauseNode::kInvalidTryIndex);
       finally_clause = NULL;
-      AddFinallyBlockToNode(node_to_inline, node);
+      AddFinallyBlockToNode(true, node_to_inline, node);
       node_index++;
     }
   } while (finally_clause == NULL);
@@ -8769,11 +8772,12 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
 
 
 // Add the inlined finally block to the specified node.
-void Parser::AddFinallyBlockToNode(AstNode* node,
+void Parser::AddFinallyBlockToNode(bool is_async,
+                                   AstNode* node,
                                    InlinedFinallyNode* finally_node) {
   ReturnNode* return_node = node->AsReturnNode();
   if (return_node != NULL) {
-    parsed_function()->EnsureFinallyReturnTemp();
+    parsed_function()->EnsureFinallyReturnTemp(is_async);
     return_node->AddInlinedFinallyNode(finally_node);
     return;
   }
@@ -9177,7 +9181,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                                                            finally_block,
                                                            context_var,
                                                            outer_try_index);
-      AddFinallyBlockToNode(node_to_inline, node);
+      AddFinallyBlockToNode(is_async, node_to_inline, node);
       node_index += 1;
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
       tokens_iterator_.SetCurrentPosition(finally_pos);
@@ -9540,7 +9544,9 @@ AstNode* Parser::ParseStatement() {
     if (innermost_function().IsAsyncClosure() ||
         innermost_function().IsAsyncFunction() ||
         innermost_function().IsSyncGenClosure() ||
-        innermost_function().IsSyncGenerator()) {
+        innermost_function().IsSyncGenerator() ||
+        innermost_function().IsAsyncGenClosure() ||
+        innermost_function().IsAsyncGenerator()) {
       excp_var = scope->LocalLookupVariable(Symbols::SavedExceptionVar());
       trace_var = scope->LocalLookupVariable(Symbols::SavedStackTraceVar());
     } else {
