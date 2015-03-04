@@ -189,7 +189,6 @@ async_await_syntax_test/a03b: CompileTimeError # Issue 21404
 async_await_syntax_test/a11d: CompileTimeError # Issue 21404
 async_await_syntax_test/b03a: CompileTimeError # Issue 21404
 async_await_syntax_test/b11d: CompileTimeError # Issue 21404
-sync_generator3_test/test2: RuntimeError # Issue 21404
 async_await_syntax_test/c03a: CompileTimeError # Issue 21404
 async_await_syntax_test/d03a: CompileTimeError # Issue 21404
 regress_13494_test: Pass # Issue 22370, passes for the wrong reason
@@ -206,7 +205,6 @@ type_variable_conflict2_test/04: Fail # Issue 19725
 
 [ $compiler == dart2dart && $minified && $builder_tag != new_backend ]
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
-sync_generator3_test/test2: Fail
 
 [ $compiler == dart2dart ]
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
