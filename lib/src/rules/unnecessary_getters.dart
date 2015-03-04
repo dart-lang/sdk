@@ -79,7 +79,7 @@ class Visitor extends SimpleAstVisitor {
 
   _visitGetter(MethodDeclaration getter) {
     if (isSimpleGetter(getter)) {
-      rule.reportLint(getter);
+      rule.reportLint(getter.name);
     }
   }
 }

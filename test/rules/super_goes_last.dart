@@ -17,6 +17,6 @@ class B extends A {
 class C extends A {
   int _c;
   C(int a)
-      : super(a), // LINT
+      : super(a), // LINT [9:8]
         _c = a + 1;
 }

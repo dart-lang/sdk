@@ -51,14 +51,14 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     if (!isUpperCamelCase(node.name.toString())) {
-      rule.reportLint(node);
+      rule.reportLint(node.name);
     }
   }
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (!isUpperCamelCase(node.name.toString())) {
-      rule.reportLint(node);
+      rule.reportLint(node.name);
     }
   }
 }

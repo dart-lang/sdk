@@ -4,7 +4,7 @@
 
 class BoxBad {
   var _contents;
-  get contents => _contents; //LINT
+  get contents => _contents; //LINT [7:8]
 }
 
 class BoxGood {

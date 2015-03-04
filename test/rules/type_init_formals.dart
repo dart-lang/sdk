@@ -9,5 +9,5 @@ class Good {
 
 class Bad {
   String name;
-  Bad(String this.name); //LINT
+  Bad(String this.name); //LINT [7:6]
 }

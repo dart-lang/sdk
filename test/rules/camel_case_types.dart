@@ -12,7 +12,7 @@ class _Foo {}
 
 class Foo extends _Foo {}
 
-typedef bool predicate(); //LINT
+typedef bool predicate(); //LINT [14:9]
 
 class fooBar { //LINT
 

@@ -8,7 +8,7 @@ class A {
 }
 
 class B {
-  B() {} //LINT
+  B() {} //LINT [7:2]
 }
 
 class C {

@@ -53,7 +53,7 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.type != null) {
-      rule.reportLint(node);
+      rule.reportLint(node.type);
     }
   }
 }

@@ -53,7 +53,7 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitLibraryDirective(LibraryDirective node) {
     if (!isLowerCaseUnderScoreWithDots(node.name.toString())) {
-      rule.reportLint(node);
+      rule.reportLint(node.name);
     }
   }
 }

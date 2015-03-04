@@ -12,7 +12,7 @@ abstract class Y {
   int f();
 }
 
-abstract class Predicate { //LINT
+abstract class Predicate { //LINT [16:9]
   test();
 }
 

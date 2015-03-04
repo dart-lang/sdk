@@ -340,12 +340,21 @@ void defineSanityTests() {
   group('test framework', () {
     group('annotation', () {
       test('extraction', () {
-        expect(extractAnnotation('int x; // LINT'), isNotNull);
+        expect(extractAnnotation('int x; // LINT [1:3]'), isNotNull);
         expect(extractAnnotation('int x; //LINT'), isNotNull);
         expect(extractAnnotation('int x; // OK'), isNull);
         expect(extractAnnotation('int x;'), isNull);
         expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
             equals('dynamic is bad'));
+        expect(extractAnnotation(
+                'dynamic x; // LINT [1:3] dynamic is bad').message,
+            equals('dynamic is bad'));
+        expect(
+            extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad').column,
+            equals(1));
+        expect(
+            extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad').length,
+            equals(3));
         expect(extractAnnotation('dynamic x; //LINT').message, isNull);
         expect(extractAnnotation('dynamic x; //LINT ').message, isNull);
       });
@@ -374,7 +383,21 @@ void defineSanityTests() {
 Annotation extractAnnotation(String line) {
   int index = line.indexOf(new RegExp(r'(//|#)[ ]?LINT'));
   if (index > -1) {
-    int msgIndex = line.substring(index).indexOf('T') + 1;
+    int column;
+    int length;
+    var annotation = line.substring(index);
+    var leftBrace = annotation.indexOf('[');
+    if (leftBrace != -1) {
+      var sep = annotation.indexOf(':');
+      column = int.parse(annotation.substring(leftBrace + 1, sep));
+      var rightBrace = annotation.indexOf(']');
+      length = int.parse(annotation.substring(sep + 1, rightBrace));
+    }
+
+    int msgIndex = annotation.indexOf(']') + 1;
+    if (msgIndex < 1) {
+      msgIndex = annotation.indexOf('T') + 1;
+    }
     String msg = null;
     if (msgIndex < line.length) {
       msg = line.substring(index + msgIndex).trim();
@@ -382,7 +405,7 @@ Annotation extractAnnotation(String line) {
         msg = null;
       }
     }
-    return new Annotation.forLint(msg);
+    return new Annotation.forLint(msg, column, length);
   }
   return null;
 }
@@ -431,19 +454,26 @@ typedef nodeVisitor(node);
 typedef dynamic /* AstVisitor, PubSpecVisitor*/ VisitorCallback();
 
 class Annotation {
+  final int column;
+  final int length;
   final String message;
   final ErrorType type;
   int lineNumber;
 
-  Annotation(this.message, this.type, this.lineNumber);
+  Annotation(this.message, this.type, this.lineNumber,
+      {this.column, this.length});
 
   Annotation.forError(AnalysisError error, LineInfo lineInfo) : this(
           error.message, error.errorCode.type,
-          lineInfo.getLocation(error.offset).lineNumber);
+          lineInfo.getLocation(error.offset).lineNumber,
+          column: lineInfo.getLocation(error.offset).columnNumber,
+          length: error.length);
 
-  Annotation.forLint([String message]) : this(message, ErrorType.LINT, null);
+  Annotation.forLint([String message, int column, int length])
+      : this(message, ErrorType.LINT, null, column: column, length: length);
 
-  String toString() => '[$type]: "$message" (line: $lineNumber)';
+  String toString() =>
+      '[$type]: "$message" (line: $lineNumber) - [$column:$length]';
 
   static Iterable<Annotation> fromErrors(AnalysisErrorInfo error) {
     List<Annotation> annotations = [];
@@ -467,6 +497,13 @@ class AnnotationMatcher extends Matcher {
     // Only test messages if they're specified in the expectation
     if (_expected.message != null) {
       if (_expected.message != other.message) {
+        return false;
+      }
+    }
+    // Similarly for highlighting
+    if (_expected.column != null) {
+      if (_expected.column != other.column ||
+          _expected.length != other.length) {
         return false;
       }
     }

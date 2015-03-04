@@ -4,7 +4,7 @@
 
 class Box {
   var _contents;
-  get contents => _contents; //LINT
+  get contents => _contents; //LINT [7:8]
   set contents(value) { //LINT
     _contents = value;
   }
