@@ -1665,7 +1665,8 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
 
 void FlowGraphCompiler::FrameStatePop(intptr_t count) {
   ASSERT(!is_optimizing());
-  frame_state_.TruncateTo(Utils::Maximum(0, frame_state_.length() - count));
+  frame_state_.TruncateTo(Utils::Maximum(static_cast<intptr_t>(0),
+      frame_state_.length() - count));
 }
 
 
