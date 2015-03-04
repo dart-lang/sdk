@@ -113,6 +113,10 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 native_gc_test: Pass, Slow
 
+[$runtime == chrome && $compiler == dart2js && $system == macos]
+transition_event_test/functional: Skip # Times out. Issue 
+request_animation_frame_test: Skip # Times out. Issue 
+
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
