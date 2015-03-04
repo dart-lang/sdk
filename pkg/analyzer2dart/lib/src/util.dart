@@ -29,7 +29,7 @@ Selector createSelectorFromMethodInvocation(ArgumentList node,
 /// [source].
 void reportSourceMessage(Source source, AstNode node, String message) {
   SourceFile sourceFile =
-      new StringSourceFile(source.fullName, source.contents.data);
+      new StringSourceFile.fromName(source.fullName, source.contents.data);
 
   print(sourceFile.getLocationMessage(message, node.offset, node.end));
 }
