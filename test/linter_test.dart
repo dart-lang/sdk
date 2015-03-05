@@ -332,6 +332,13 @@ defineRuleUnitTests() {
       ];
       testEach(bad, isLowerCaseUnderScoreWithDots, isFalse);
     });
+    group('lowerCamelCase', () {
+      var good = ['fooBar', 'foo', 'f', 'f1', '_f', '_foo', '_'];
+      testEach(good, isLowerCamelCase, isTrue);
+
+      var bad = ['Foo', 'foo_', 'foo_bar'];
+      testEach(bad, isLowerCamelCase, isFalse);
+    });
   });
 }
 

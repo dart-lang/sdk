@@ -9,6 +9,7 @@ import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
+import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
 import 'package:linter/src/rules/pub/pub_package_names.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
@@ -23,6 +24,7 @@ final Map<String, LintRule> ruleMap = {
   'empty_constructor_bodies': new EmptyConstructorBodies(),
   'library_names': new LibraryNames(),
   'library_prefixes': new LibraryPrefixes(),
+  'non_constant_identifier_names': new NonConstantIdentifierNames(),
   'one_member_abstracts': new OneMemberAbstracts(),
   'pub_package_names': new PubPackageNames(),
   'super_goes_last': new SuperGoesLast(),
