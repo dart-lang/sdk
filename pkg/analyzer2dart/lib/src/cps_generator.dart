@@ -572,6 +572,22 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         converter.convertType(node.type.type),
         isTypeTest: false);
   }
+
+  @override
+  visitTryStatement(TryStatement node) {
+    List<CatchClauseInfo> catchClauseInfos = <CatchClauseInfo>[];
+    for (CatchClause catchClause in node.catchClauses) {
+      catchClauseInfos.add(new CatchClauseInfo(
+          exceptionVariable: converter.convertElement(
+              catchClause.exceptionParameter.staticElement),
+          buildCatchBlock: subbuild(catchClause.body)));
+
+    }
+    irBuilder.buildTry(
+        tryStatementInfo: new TryStatementInfo(),
+        buildTryBlock: subbuild(node.body),
+        catchClauseInfos: catchClauseInfos);
+  }
 }
 
 class NullCapturedVariables extends DartCapturedVariables {

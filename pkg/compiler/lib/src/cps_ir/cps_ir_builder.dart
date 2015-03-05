@@ -20,6 +20,7 @@ import '../elements/modelx.dart' show SynthesizedConstructorElementX,
 import '../closure.dart' hide ClosureScope;
 import '../closure.dart' as closurelib;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../util/util.dart' show Link;
 
 part 'cps_ir_builder_visitor.dart';
 
@@ -240,6 +241,7 @@ class IrBuilderDelimitedState {
 abstract class IrBuilder {
   IrBuilder _makeInstance();
 
+  // TODO(johnniwinther): Remove this from the [IrBuilder].
   /// A map from TryStatements in the AST to their analysis information.
   ///
   /// This includes which variables should be copied into [ir.MutableVariable]s
@@ -1304,6 +1306,145 @@ abstract class IrBuilder {
     }
   }
 
+  /// Creates a try-statement.
+  ///
+  /// [tryInfo] provides information on local variables declared and boxed
+  /// within this try statement.
+  /// [buildTryBlock] builds the try block.
+  /// [catchClauseInfos] provides access to the catch type, exception variable,
+  /// and stack trace variable, and a function for building the catch block.
+  void buildTry(
+      {TryStatementInfo tryStatementInfo,
+       SubbuildFunction buildTryBlock,
+       List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[]}) {
+    assert(isOpen);
+
+    // Catch handlers are in scope for their body.  The CPS translation of
+    // [[try tryBlock catch (e) catchBlock; successor]] is:
+    //
+    // let cont join(v0, v1, ...) = [[successor]] in
+    //   let mutable m0 = x0 in
+    //     let mutable m1 = x1 in
+    //       ...
+    //       let handler catch_(e) =
+    //         let prim p0 = GetMutable(m0) in
+    //           let prim p1 = GetMutable(m1) in
+    //             ...
+    //             [[catchBlock]]
+    //             join(p0, p1, ...)
+    //       in
+    //         [[tryBlock]]
+    //         let prim p0' = GetMutable(m0) in
+    //           let prim p1' = GetMutable(m1) in
+    //             ...
+    //             join(p0', p1', ...)
+    //
+    // In other words, both the try and catch block are in the scope of the
+    // join-point continuation, and they are both in the scope of a sequence
+    // of mutable bindings for the variables assigned in the try.  The join-
+    // point continuation is not in the scope of these mutable bindings.
+    // The tryBlock is in the scope of a binding for the catch handler.  Each
+    // instruction (specifically, each call) in the tryBlock is in the dynamic
+    // scope of the handler.  The mutable bindings are dereferenced at the end
+    // of the try block and at the beginning of the catch block, so the
+    // variables are unboxed in the catch block and at the join point.
+
+    IrBuilder tryCatchBuilder = makeDelimitedBuilder();
+    // Variables that are boxed due to being captured in a closure are boxed
+    // for their entire lifetime, and so they do not need to be boxed on
+    // entry to any try block.  We check for them here because we can not
+    // identify all of them in the same pass where we identify the variables
+    // assigned in the try (the may be captured by a closure after the try
+    // statement).
+    Iterable<LocalVariableElement> boxedOnEntry =
+        tryStatementInfo.boxedOnEntry.where((LocalVariableElement variable) {
+      return !tryCatchBuilder.mutableCapturedVariables.contains(variable);
+    });
+    for (LocalVariableElement variable in boxedOnEntry) {
+      assert(!tryCatchBuilder.isInMutableVariable(variable));
+      ir.Primitive value = tryCatchBuilder.buildLocalGet(variable);
+      tryCatchBuilder.makeMutableVariable(variable);
+      tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
+    }
+
+    IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
+    IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
+    List<ir.Parameter> joinParameters =
+        new List<ir.Parameter>.generate(environment.length, (i) {
+      return new ir.Parameter(environment.index2variable[i]);
+    });
+    ir.Continuation joinContinuation = new ir.Continuation(joinParameters);
+
+    void interceptJumps(JumpCollector collector) {
+      collector.enterTry(boxedOnEntry);
+    }
+    void restoreJumps(JumpCollector collector) {
+      collector.leaveTry();
+    }
+    tryBuilder.state.breakCollectors.forEach(interceptJumps);
+    tryBuilder.state.continueCollectors.forEach(interceptJumps);
+    buildTryBlock(tryBuilder);
+    tryBuilder.state.breakCollectors.forEach(restoreJumps);
+    tryBuilder.state.continueCollectors.forEach(restoreJumps);
+    if (tryBuilder.isOpen) {
+      for (LocalVariableElement variable in boxedOnEntry) {
+        assert(tryBuilder.isInMutableVariable(variable));
+        ir.Primitive value = tryBuilder.buildLocalGet(variable);
+        tryBuilder.environment.update(variable, value);
+      }
+      tryBuilder.jumpTo(joinContinuation);
+    }
+
+    for (LocalVariableElement variable in boxedOnEntry) {
+      assert(catchBuilder.isInMutableVariable(variable));
+      ir.Primitive value = catchBuilder.buildLocalGet(variable);
+      // Note that we remove the variable from the set of mutable variables
+      // here (and not above for the try body).  This is because the set of
+      // mutable variables is global for the whole function and not local to
+      // a delimited builder.
+      catchBuilder.removeMutableVariable(variable);
+      catchBuilder.environment.update(variable, value);
+    }
+
+    // TODO(kmillikin): Handle multiple catch clauses.
+    assert(catchClauseInfos.length == 1);
+    for (CatchClauseInfo catchClauseInfo in catchClauseInfos) {
+      LocalVariableElement exceptionVariable =
+          catchClauseInfo.exceptionVariable;
+      ir.Parameter exceptionParameter = new ir.Parameter(exceptionVariable);
+      catchBuilder.environment.extend(exceptionVariable, exceptionParameter);
+      ir.Parameter traceParameter;
+      LocalVariableElement stackTraceVariable =
+          catchClauseInfo.stackTraceVariable;
+      if (stackTraceVariable != null) {
+        traceParameter = new ir.Parameter(stackTraceVariable);
+        catchBuilder.environment.extend(stackTraceVariable, traceParameter);
+      } else {
+        // Use a dummy continuation parameter for the stack trace parameter.
+        // This will ensure that all handlers have two parameters and so they
+        // can be treated uniformly.
+        traceParameter = new ir.Parameter(null);
+      }
+      catchClauseInfo.buildCatchBlock(catchBuilder);
+      if (catchBuilder.isOpen) {
+        catchBuilder.jumpTo(joinContinuation);
+      }
+      List<ir.Parameter> catchParameters =
+          <ir.Parameter>[exceptionParameter, traceParameter];
+      ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+      catchContinuation.body = catchBuilder._root;
+
+      tryCatchBuilder.add(
+          new ir.LetHandler(catchContinuation, tryBuilder._root));
+      tryCatchBuilder._current = null;
+    }
+
+    add(new ir.LetCont(joinContinuation, tryCatchBuilder._root));
+    for (int i = 0; i < environment.length; ++i) {
+      environment.index2value[i] = joinParameters[i];
+    }
+  }
+
   /// Create a return statement `return value;` or `return;` if [value] is
   /// null.
   void buildReturn([ir.Primitive value]) {
@@ -2137,4 +2278,15 @@ class TryStatementInfo {
   final Set<LocalVariableElement> declared = new Set<LocalVariableElement>();
   final Set<LocalVariableElement> boxedOnEntry =
       new Set<LocalVariableElement>();
+}
+
+// TODO(johnniwinther): Support passing of [DartType] for the exception.
+class CatchClauseInfo {
+  final LocalVariableElement exceptionVariable;
+  final LocalVariableElement stackTraceVariable;
+  final SubbuildFunction buildCatchBlock;
+
+  CatchClauseInfo({this.exceptionVariable,
+                   this.stackTraceVariable,
+                   this.buildCatchBlock});
 }

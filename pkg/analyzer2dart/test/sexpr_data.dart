@@ -1511,4 +1511,40 @@ main() {
     (InvokeContinuation return (v0))))
 '''}),
   ]),
+
+
+  const Group('Try-catch', const <TestSpec>[
+    const TestSpec('''
+main() {
+  try {} catch (e) {}
+}
+''',
+'''
+(FunctionDefinition main () return
+  (LetCont ((k0 ()
+      (LetPrim (v0 (Constant (Null)))
+        (InvokeContinuation return (v0)))))
+    (LetHandler ((v1 v2)
+        (InvokeContinuation k0 ()))
+      (InvokeContinuation k0 ()))))
+'''),
+
+    const TestSpec('''
+main() {
+  try {
+    return;
+  } catch (e) {}
+}
+''',
+'''
+(FunctionDefinition main () return
+  (LetCont ((k0 ()
+      (LetPrim (v0 (Constant (Null)))
+        (InvokeContinuation return (v0)))))
+    (LetHandler ((v1 v2)
+        (InvokeContinuation k0 ()))
+      (LetPrim (v3 (Constant (Null)))
+        (InvokeContinuation return (v3))))))
+'''),
+  ]),
 ];

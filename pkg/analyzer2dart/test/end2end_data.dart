@@ -866,5 +866,38 @@ main() {
   return new C().foo();
 }
 '''),
-]),
+  ]),
+
+  const Group('Try-catch', const <TestSpec>[
+    const TestSpec('''
+main() {
+  try {} catch (e) {}
+}
+''',
+// TODO(kmillikin): Remove the unused stack trace parameter.
+'''
+main() {
+  try {} catch (e, v0) {}
+}
+'''),
+
+    const TestSpec('''
+main() {
+  try {
+    return;
+  } catch (e) {}
+}
+''',
+// TODO(kmillikin): Remove the unused stack trace parameter and unneeded return
+// statement(s).
+'''
+main() {
+  try {
+    return null;
+  } catch (e, v0) {
+    return null;
+  }
+}
+'''),
+  ]),
 ];
