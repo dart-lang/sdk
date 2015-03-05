@@ -9,7 +9,7 @@ library dart2js.ir_nodes;
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
 import '../cps_ir/optimizers.dart';
-import '../dart_types.dart' show DartType, GenericType;
+import '../dart_types.dart' show DartType, GenericType, TypeVariableType;
 import '../dart2jslib.dart' as dart2js show
     CURRENT_ELEMENT_SPANNABLE,
     InternalErrorFunction,
@@ -646,7 +646,7 @@ class This extends Primitive {
 
 /// Reify the given type variable as a [Type].
 /// This depends on the current binding of 'this'.
-class ReifyTypeVar extends Primitive {
+class ReifyTypeVar extends Primitive implements DartSpecificNode {
   final TypeVariableElement typeVariable;
 
   ReifyTypeVar(this.typeVariable);
@@ -868,6 +868,35 @@ class ConstructorDefinition extends FunctionDefinition {
   applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
 }
 
+/// Converts the internal representation of a type to a Dart object of type
+/// [Type].
+class ReifyRuntimeType extends Primitive implements JsSpecificNode {
+  /// Reference to the internal representation of a type (as produced, for
+  /// example, by [ReadTypeVariable]).
+  final Reference<Primitive> value;
+  ReifyRuntimeType(Primitive value)
+    : this.value = new Reference<Primitive>(value);
+
+  @override
+  accept(Visitor visitor) => visitor.visitReifyRuntimeType(this);
+}
+
+/// Read the value the type variable [variable] from the target object.
+///
+/// The resulting value is an internal representation (and not neccessarily a
+/// Dart object), and must be reified by [ReifyRuntimeType], if it should be
+/// used as a Dart value.
+class ReadTypeVariable extends Primitive implements JsSpecificNode {
+  final TypeVariableType variable;
+  final Reference<Primitive> target;
+
+  ReadTypeVariable(this.variable, Primitive target)
+      : this.target = new Reference<Primitive>(target);
+
+  @override
+  accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
+}
+
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
   return definitions.map((e) => new Reference<Primitive>(e)).toList();
 }
@@ -915,18 +944,22 @@ abstract class Visitor<T> {
   T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
 
+  // JavaScript specific nodes.
+
   // Conditions.
   T visitIsTrue(IsTrue node);
 
-  // JavaScript specific nodes.
   // Expressions.
   T visitSetField(SetField node);
+
   // Definitions.
   T visitIdentical(Identical node);
   T visitInterceptor(Interceptor node);
   T visitCreateInstance(CreateInstance node);
   T visitGetField(GetField node);
   T visitCreateBox(CreateBox node);
+  T visitReifyRuntimeType(ReifyRuntimeType node);
+  T visitReadTypeVariable(ReadTypeVariable node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -1186,6 +1219,18 @@ class RecursiveVisitor implements Visitor {
   processCreateBox(CreateBox node) {}
   visitCreateBox(CreateBox node) {
     processCreateBox(node);
+  }
+
+  processReifyRuntimeType(ReifyRuntimeType node) {}
+  visitReifyRuntimeType(ReifyRuntimeType node) {
+    processReifyRuntimeType(node);
+    processReference(node.value);
+  }
+
+  processReadTypeVariable(ReadTypeVariable node) {}
+  visitReadTypeVariable(ReadTypeVariable node) {
+    processReadTypeVariable(node);
+    processReference(node.target);
   }
 }
 
@@ -1450,5 +1495,13 @@ class RegisterAllocator implements Visitor {
 
   void visitInterceptor(Interceptor node) {
     visitReference(node.input);
+  }
+
+  void visitReifyRuntimeType(ReifyRuntimeType node) {
+    visitReference(node.value);
+  }
+
+  void visitReadTypeVariable(ReadTypeVariable node) {
+    visitReference(node.target);
   }
 }

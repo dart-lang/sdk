@@ -337,6 +337,17 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String variable = names.name(node.variable.definition);
     return 'GetMutableVariable $variable';
   }
+
+  @override
+  visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
+    return "ReadTypeVariable ${node.variable.element} "
+        "${formatReference(node.target)}";
+  }
+
+  @override
+  visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
+    return "ReifyRuntimeType ${formatReference(node.value)}";
+  }
 }
 
 /**
@@ -572,6 +583,16 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
   visitInterceptor(cps_ir.Interceptor node) {
+    unexpectedNode(node);
+  }
+
+  @override
+  visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
+    unexpectedNode(node);
+  }
+
+  @override
+  visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     unexpectedNode(node);
   }
 }

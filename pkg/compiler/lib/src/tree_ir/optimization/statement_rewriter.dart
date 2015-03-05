@@ -497,6 +497,16 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
+  Expression visitReifyRuntimeType(ReifyRuntimeType node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Expression visitReadTypeVariable(ReadTypeVariable node) {
+    node.target = visitExpression(node.target);
+    return node;
+  }
+
   /// If [s] and [t] are similar statements we extract their subexpressions
   /// and returns a new statement of the same type using expressions combined
   /// with the [combine] callback. For example:

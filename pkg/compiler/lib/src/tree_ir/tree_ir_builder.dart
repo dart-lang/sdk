@@ -125,6 +125,8 @@ class Builder implements cps_ir.Visitor<Node> {
   VariableUse getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
     Variable variable = getVariable(reference.definition);
     if (variable == null) {
+      // Note: this may fail because you forgot to implement a visit-function
+      // in the RegisterAllocator.
       internalError(
           CURRENT_ELEMENT_SPANNABLE,
           "Reference to ${reference.definition} has no register");
@@ -634,5 +636,12 @@ class Builder implements cps_ir.Visitor<Node> {
   Expression visitIsTrue(cps_ir.IsTrue node) {
     return getVariableUse(node.value);
   }
-}
 
+  Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
+    return new ReifyRuntimeType(getVariableUse(node.value));
+  }
+
+  Expression visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
+    return new ReadTypeVariable(node.variable, getVariableUse(node.target));
+  }
+}

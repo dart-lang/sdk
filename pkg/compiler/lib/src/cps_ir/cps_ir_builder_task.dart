@@ -842,13 +842,14 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
     DartType type = elements.getTypeLiteralType(node);
     if (type is TypeVariableType) {
-      ir.Primitive prim = new ir.ReifyTypeVar(type.element);
-      irBuilder.add(new ir.LetPrim(prim));
-      return prim;
+      return buildReifyTypeVariable(irBuilder.buildThis(), type);
     } else {
       return translateConstant(node);
     }
   }
+
+  ir.Primitive buildReifyTypeVariable(ir.Primitive target,
+                                      TypeVariableType variable);
 
   ir.Primitive visitSendSet(ast.SendSet node) {
     assert(irBuilder.isOpen);
@@ -1262,6 +1263,15 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
       Selector selector,
       List<ir.Primitive> arguments) {
     return arguments;
+  }
+
+  @override
+  ir.Primitive buildReifyTypeVariable(ir.Primitive target,
+                                      TypeVariableType variable) {
+    assert(target is ir.This);
+    ir.Primitive prim = new ir.ReifyTypeVar(variable.element);
+    irBuilder.add(new ir.LetPrim(prim));
+    return prim;
   }
 }
 
@@ -1787,6 +1797,16 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       result.add(arguments[translatedIndex]);
     }
     return result;
+  }
+
+  @override
+  ir.Primitive buildReifyTypeVariable(ir.Primitive target,
+                                      TypeVariableType variable) {
+    ir.Primitive typeArgument = new ir.ReadTypeVariable(variable, target);
+    irBuilder.add(new ir.LetPrim(typeArgument));
+    ir.Primitive type = new ir.ReifyRuntimeType(typeArgument);
+    irBuilder.add(new ir.LetPrim(type));
+    return type;
   }
 }
 

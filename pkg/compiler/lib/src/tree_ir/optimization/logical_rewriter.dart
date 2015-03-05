@@ -342,6 +342,16 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
+  Expression visitReifyRuntimeType(ReifyRuntimeType node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Expression visitReadTypeVariable(ReadTypeVariable node) {
+    node.target = visitExpression(node.target);
+    return node;
+  }
+
   /// True if the given expression is known to evaluate to a boolean.
   /// This will not recursively traverse [Conditional] expressions, but if
   /// applied to the result of [visitExpression] conditionals will have been

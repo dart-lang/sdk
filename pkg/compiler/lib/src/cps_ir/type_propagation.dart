@@ -842,6 +842,16 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visitCreateInstance(CreateInstance node) {
     setValue(node, nonConst());
   }
+
+  void visitReifyRuntimeType(ReifyRuntimeType node) {
+    setValue(node, nonConst(typeSystem.typeType));
+  }
+
+  void visitReadTypeVariable(ReadTypeVariable node) {
+    // TODO(karlklose): come up with a type marker for JS entities or switch to
+    // real constants of type [Type].
+    setValue(node, nonConst());
+  }
 }
 
 /// Represents the abstract value of a primitive value at some point in the

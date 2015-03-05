@@ -489,6 +489,16 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return 'CreateInstance $className($arguments)';
   }
 
+
+  @override
+  String visitReadTypeVariable(ReadTypeVariable node) {
+    return 'read ${node.variable.element} ${visitExpression(node.target)}';
+  }
+
+  @override
+  String visitReifyRuntimeType(ReifyRuntimeType node) {
+    return 'reify ${node.value}';
+  }
 }
 
 /**

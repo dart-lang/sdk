@@ -950,6 +950,16 @@ class ASTEmitter
     return errorUnsupportedNode(node);
   }
 
+  @override
+  Expression visitReadTypeVariable(tree.ReadTypeVariable node, arg) {
+    return errorUnsupportedNode(node);
+  }
+
+  @override
+  Expression visitReifyRuntimeType(tree.ReifyRuntimeType node, arg) {
+    return errorUnsupportedNode(node);
+  }
+
   errorUnsupportedNode(tree.JsSpecificNode node) {
     throw '$node not supported by dart backend';
   }

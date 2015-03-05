@@ -659,6 +659,14 @@ class ParentVisitor extends RecursiveVisitor {
 
   processCreateBox(CreateBox node) {
   }
+
+  processReifyRuntimeType(ReifyRuntimeType node) {
+    node.value.parent = node;
+  }
+
+  processReadTypeVariable(ReadTypeVariable node) {
+    node.target.parent = node;
+  }
 }
 
 class _ReductionKind {

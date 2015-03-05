@@ -329,6 +329,14 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitInterceptor(Interceptor node) {
     return '(Interceptor ${access(node.input)})';
   }
+
+  String visitReifyRuntimeType(ReifyRuntimeType node) {
+    return '(ReifyRuntimeType ${access(node.value)})';
+  }
+
+  String visitReadTypeVariable(ReadTypeVariable node) {
+    return '(ReadTypeVariable ${access(node.target)}.${node.variable})';
+  }
 }
 
 class ConstantStringifier extends ConstantValueVisitor<String, Null> {
