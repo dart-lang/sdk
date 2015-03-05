@@ -70,8 +70,8 @@ class CombinatorComputerTest extends AbstractCompletionTest {
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestTopLevelVar('T1', null,
           DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestFunction('F1', 'PB', false,
-          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestFunction('F1', 'PB',
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertNotSuggested('C');
       assertNotSuggested('D');
       assertNotSuggested('X');
@@ -113,8 +113,8 @@ class CombinatorComputerTest extends AbstractCompletionTest {
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestTopLevelVar('T1', null,
           DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestFunction('F1', 'PB', false,
-          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestFunction('F1', 'PB',
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass('Clz',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);

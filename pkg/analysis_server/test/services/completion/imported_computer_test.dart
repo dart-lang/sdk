@@ -43,9 +43,9 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
    * suggestions to the original set of suggestions.
    */
   @override
-  void assertCachedCompute(_) {
+  assertCachedCompute(_) {
     if (!(computer as ImportedComputer).shouldWaitForLowPrioritySuggestions) {
-      return;
+      return null;
     }
     expect(request.unit.element, isNotNull);
     List<CompletionSuggestion> oldSuggestions = request.suggestions;
@@ -65,30 +65,45 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
         completionOffset, cache, new CompletionPerformance());
     request.replacementOffset = replacementOffset;
     request.replacementLength = replacementLength;
-    expect(computeFast(), isTrue);
-    expect(request.unit.element, isNull);
-    List<CompletionSuggestion> newSuggestions = request.suggestions;
-    if (newSuggestions.length == oldSuggestions.length) {
-      if (!oldSuggestions
-          .any((CompletionSuggestion s) => !newSuggestions.contains(s))) {
-        return;
+
+    void assertResultsFromCache(List<CompletionSuggestion> oldSuggestions) {
+      List<CompletionSuggestion> newSuggestions = request.suggestions;
+      if (newSuggestions.length == oldSuggestions.length) {
+        if (!oldSuggestions
+            .any((CompletionSuggestion s) => !newSuggestions.contains(s))) {
+          return;
+        }
       }
+      StringBuffer sb = new StringBuffer(
+          'suggestions based upon cached results do not match expectations');
+      sb.write('\n  Expected:');
+      oldSuggestions.toList()
+        ..sort(suggestionComparator)
+        ..forEach((CompletionSuggestion suggestion) {
+          sb.write('\n    ${suggestion.completion} -> $suggestion');
+        });
+      sb.write('\n  Actual:');
+      newSuggestions.toList()
+        ..sort(suggestionComparator)
+        ..forEach((CompletionSuggestion suggestion) {
+          sb.write('\n    ${suggestion.completion} -> $suggestion');
+        });
+      fail(sb.toString());
     }
-    StringBuffer sb = new StringBuffer(
-        'suggestions based upon cached results do not match expectations');
-    sb.write('\n  Expected:');
-    oldSuggestions.toList()
-      ..sort(suggestionComparator)
-      ..forEach((CompletionSuggestion suggestion) {
-        sb.write('\n    ${suggestion.completion} -> $suggestion');
+
+    if (computeFast()) {
+      expect(request.unit.element, isNull);
+      assertResultsFromCache(oldSuggestions);
+    } else {
+      // Results from cache might need to be adjusted
+      // if target is a function argument in an argument list
+      resolve(false);
+      return computer.computeFull(request).then((bool result) {
+        expect(result, isTrue);
+        expect(request.unit.element, isNotNull);
+        assertResultsFromCache(oldSuggestions);
       });
-    sb.write('\n  Actual:');
-    newSuggestions.toList()
-      ..sort(suggestionComparator)
-      ..forEach((CompletionSuggestion suggestion) {
-        sb.write('\n    ${suggestion.completion} -> $suggestion');
-      });
-    fail(sb.toString());
+    }
   }
 
   void assertNotCached(String completion) {
@@ -110,6 +125,15 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   CompletionSuggestion assertSuggestImportedField(String name, String type,
       {int relevance: DART_RELEVANCE_INHERITED_FIELD}) {
     return assertSuggestField(name, type, relevance: relevance);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestImportedFunction(
+      String name, String returnType,
+      {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool deprecated: false, int relevance: DART_RELEVANCE_DEFAULT}) {
+    return assertSuggestFunction(name, returnType,
+        kind: kind, deprecated: deprecated, relevance: relevance);
   }
 
   CompletionSuggestion assertSuggestImportedGetter(

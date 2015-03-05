@@ -104,17 +104,24 @@ class LocalComputer extends DartCompletionComputer {
       new _ConstructorVisitor(request).visit(request.node);
     }
 
-    // If the unit is not a part and does not reference any parts
-    // then work is complete
-    return !request.unit.directives.any((Directive directive) =>
-        directive is PartOfDirective || directive is PartDirective);
+    // If target is an argument in an argument list
+    // then suggestions may need to be adjusted
+    return request.target.argIndex == null;
   }
 
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
-    // TODO: implement computeFull
-    // include results from part files that are included in the library
+    _updateSuggestions(request);
     return new Future.value(false);
+  }
+
+  /**
+   * If target is a function argument, suggest identifiers not invocations
+   */
+  void _updateSuggestions(DartCompletionRequest request) {
+    if (request.target.isFunctionalArgument()) {
+      request.convertInvocationsToIdentifiers();
+    }
   }
 }
 

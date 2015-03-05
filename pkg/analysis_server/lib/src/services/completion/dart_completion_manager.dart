@@ -340,4 +340,31 @@ class DartCompletionRequest extends CompletionRequest {
     }
     return _optype;
   }
+
+  /**
+   * Convert all [CompletionSuggestionKind.INVOCATION] suggestions
+   * to [CompletionSuggestionKind.IDENTIFIER] suggestions.
+   */
+  void convertInvocationsToIdentifiers() {
+    for (int index = suggestions.length - 1; index >= 0; --index) {
+      CompletionSuggestion suggestion = suggestions[index];
+      if (suggestion.kind == CompletionSuggestionKind.INVOCATION) {
+        // Create a copy rather than just modifying the existing suggestion
+        // because [DartCompletionCache] may be caching that suggestion
+        // for future completion requests
+        suggestions[index] = new CompletionSuggestion(
+            CompletionSuggestionKind.IDENTIFIER, suggestion.relevance,
+            suggestion.completion, suggestion.selectionOffset,
+            suggestion.selectionLength, suggestion.isDeprecated,
+            suggestion.isPotential,
+            declaringType: suggestion.declaringType,
+            parameterNames: suggestion.parameterNames,
+            parameterTypes: suggestion.parameterTypes,
+            requiredParameterCount: suggestion.requiredParameterCount,
+            hasNamedParameters: suggestion.hasNamedParameters,
+            returnType: suggestion.returnType,
+            element: suggestion.element);
+      }
+    }
+  }
 }

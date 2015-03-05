@@ -1,5 +1,23 @@
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+
+int _computeArgIndex(AstNode containingNode, Object entity) {
+  var argList = containingNode;
+  if (argList is ArgumentList) {
+    NodeList<Expression> args = argList.arguments;
+    for (int index = 0; index < args.length; ++index) {
+      if (entity == args[index]) {
+        return index;
+      }
+    }
+    if (args.isEmpty) {
+      return 0;
+    }
+  }
+  return null;
+}
 
 /**
  * A CompletionTarget represents an edge in the parse tree which connects an
@@ -77,6 +95,12 @@ class CompletionTarget {
    * comment, or a token like "+=", the entity will be always be the token.
    */
   final Object entity;
+
+  /**
+   * If the target is an argument in an [ArgumentList], then this is the index
+   * of the argument in the list, otherwise this is `null`.
+   */
+  final int argIndex;
 
   /**
    * Compute the appropriate [CompletionTarget] for the given [offset] within
@@ -164,7 +188,50 @@ class CompletionTarget {
    * Create a [CompletionTarget] holding the given [containingNode] and
    * [entity].
    */
-  CompletionTarget._(this.containingNode, this.entity);
+  CompletionTarget._(AstNode containingNode, Object entity)
+      : this.containingNode = containingNode,
+        this.entity = entity,
+        this.argIndex = _computeArgIndex(containingNode, entity);
+
+  /**
+   * Return `true` if the target is a functional argument in an argument list.
+   * The target [AstNode] hierarchy *must* be resolved for this to work.
+   */
+  bool isFunctionalArgument() {
+    if (argIndex == null) {
+      return false;
+    }
+    AstNode argList = containingNode;
+    if (argList is! ArgumentList) {
+      return false;
+    }
+    AstNode parent = argList.parent;
+    if (parent is InstanceCreationExpression) {
+      DartType instType = parent.bestType;
+      if (instType != null) {
+        Element intTypeElem = instType.element;
+        if (intTypeElem is ClassElement) {
+          SimpleIdentifier constructorName = parent.constructorName.name;
+          ConstructorElement constructor = constructorName != null
+              ? intTypeElem.getNamedConstructor(constructorName.name)
+              : intTypeElem.unnamedConstructor;
+          return constructor != null &&
+              _isFunctionalParameter(constructor.parameters, argIndex);
+        }
+      }
+    } else if (parent is MethodInvocation) {
+      SimpleIdentifier methodName = parent.methodName;
+      if (methodName != null) {
+        Element methodElem = methodName.bestElement;
+        if (methodElem is MethodElement) {
+          return _isFunctionalParameter(methodElem.parameters, argIndex);
+        } else if (methodElem is FunctionElement) {
+          return _isFunctionalParameter(methodElem.parameters, argIndex);
+        }
+      }
+    }
+    return false;
+  }
 
   /**
    * Determine whether [node] could possibly be the [entity] for a
@@ -204,5 +271,23 @@ class CompletionTarget {
     } else {
       return false;
     }
+  }
+
+  /**
+   * Return `true` if the parameter is a functional parameter.
+   */
+  static bool _isFunctionalParameter(
+      List<ParameterElement> parameters, int paramIndex) {
+    if (paramIndex < parameters.length) {
+      ParameterElement param = parameters[paramIndex];
+      DartType paramType = param.type;
+      if (param.parameterKind == ParameterKind.NAMED) {
+        // TODO(danrubel) handle named parameters
+        return false;
+      } else {
+        return paramType is FunctionType || paramType is FunctionTypeAlias;
+      }
+    }
+    return false;
   }
 }

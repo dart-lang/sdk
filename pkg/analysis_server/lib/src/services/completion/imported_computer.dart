@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/element.dart';
  */
 class ImportedComputer extends DartCompletionComputer {
   bool shouldWaitForLowPrioritySuggestions;
+  bool suggestionsComputed;
   _ImportedSuggestionBuilder builder;
 
   ImportedComputer({this.shouldWaitForLowPrioritySuggestions: false});
@@ -37,7 +38,10 @@ class ImportedComputer extends DartCompletionComputer {
           constructorsOnly: optype.includeConstructorSuggestions);
       builder.shouldWaitForLowPrioritySuggestions =
           shouldWaitForLowPrioritySuggestions;
-      return builder.computeFast(request.node);
+      // If target is an argument in an argument list
+      // then suggestions may need to be adjusted
+      suggestionsComputed = builder.computeFast(request.node);
+      return suggestionsComputed && request.target.argIndex == null;
     }
     return true;
   }
@@ -45,9 +49,25 @@ class ImportedComputer extends DartCompletionComputer {
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
     if (builder != null) {
-      return builder.computeFull(request.node);
+      if (!suggestionsComputed) {
+        return builder.computeFull(request.node).then((bool result) {
+          _updateSuggestions(request);
+          return result;
+        });
+      }
+      _updateSuggestions(request);
+      return new Future.value(true);
     }
     return new Future.value(false);
+  }
+
+  /**
+   * If target is a function argument, suggest identifiers not invocations
+   */
+  void _updateSuggestions(DartCompletionRequest request) {
+    if (request.target.isFunctionalArgument()) {
+      request.convertInvocationsToIdentifiers();
+    }
   }
 }
 

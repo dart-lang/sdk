@@ -21,9 +21,10 @@ main() {
 class LocalComputerTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestLocalClass(String name,
-      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     return assertSuggestClass(name,
-        relevance: relevance, isDeprecated: isDeprecated);
+        kind: kind, relevance: relevance, isDeprecated: isDeprecated);
   }
 
   @override
@@ -47,8 +48,10 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestLocalFunction(
       String name, String returnType,
-      {bool deprecated: false, int relevance: DART_RELEVANCE_LOCAL_FUNCTION}) {
-    return assertSuggestFunction(name, returnType, deprecated, relevance);
+      {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool deprecated: false, int relevance: DART_RELEVANCE_LOCAL_FUNCTION}) {
+    return assertSuggestFunction(name, returnType,
+        kind: kind, deprecated: deprecated, relevance: relevance);
   }
 
   @override
