@@ -14,14 +14,11 @@ class Foo extends _Foo {}
 
 typedef bool predicate(); //LINT [14:9]
 
-class fooBar { //LINT
+class fooBar // LINT
+{}
 
-}
+class Foo$Bar //LINT
+{}
 
-class Foo$Bar { //LINT
-
-}
-
-class Foo_Bar { //LINT
-
-}
+class Foo_Bar //LINT
+{}

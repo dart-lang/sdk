@@ -5,24 +5,28 @@
 class Box {
   var _contents;
   get contents => _contents; //LINT [7:8]
-  set contents(value) { //LINT
+  set contents(value) //LINT
+  {
     _contents = value;
   }
 }
 
 class Box2 {
   var _contents;
-  get contents { //LINT
+  get contents //LINT
+  {
     return _contents;
   }
-  set contents(value) { //LINT
+  set contents(value) //LINT
+  {
     _contents = value;
   }
 }
 
 class Box3 {
   var _contents;
-  get contents { //LINT
+  get contents //LINT
+  {
     return _contents;
   }
   set contents(value) => _contents = value; //LINT
@@ -33,7 +37,8 @@ class Box4 {
   get contents {
     return _contents;
   }
-  set contents(int value) { // OK -- notice the type
+  set contents(int value) // OK -- notice the type
+  {
     _contents = value;
   }
 }
@@ -45,4 +50,3 @@ class LowerCase {
     _contents = value.toLowerCase();
   }
 }
-

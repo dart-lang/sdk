@@ -13,7 +13,8 @@ class BoxGood {
 
 class Bad {
   var _x;
-  get x { //LINT
+  get x //LINT
+  {
     return _x;
   }
 }
