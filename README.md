@@ -25,10 +25,9 @@ Running it looks like this:
 
 With example output looking like this:
 
-    Linting /Users/acme/dart/my_library/lib/my_library.dart...
-    [lint] PREFER using a public final field instead of a private field with 
-    a public getter.
-    (/Users/acme/dart/my_library/lib/my_library.dart, line 4, col 3)
+    lib/src/my_library.dart 13:8 [lint] DO name non-constant identifiers using lowerCamelCase.
+      IOSink std_err = stderr;
+             ^^^^^^^
     1 lint found.
 
 Supported options are
