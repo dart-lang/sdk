@@ -259,7 +259,14 @@ abstract class ContextManager {
     if (info.excludesResource(folder)) {
       return;
     }
-    List<Resource> children = folder.getChildren();
+    List<Resource> children;
+    try {
+      children = folder.getChildren();
+    } on FileSystemException catch (exception) {
+      // The folder no longer exists, or cannot be read, to there's nothing to
+      // do.
+      return;
+    }
     for (Resource child in children) {
       String path = child.path;
       // add files, recurse into folders
