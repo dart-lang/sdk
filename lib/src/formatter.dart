@@ -53,7 +53,7 @@ class DetailedReporter extends SimpleFormatter {
 }
 
 abstract class ReportFormatter {
-  factory ReportFormatter(List<AnalysisErrorInfo> errors, IOSink out,
+  factory ReportFormatter(Iterable<AnalysisErrorInfo> errors, IOSink out,
       {int fileCount, String fileRoot}) => new DetailedReporter(errors, out,
       fileCount: fileCount, fileRoot: fileRoot);
 
@@ -71,13 +71,31 @@ class SimpleFormatter implements ReportFormatter {
 
   SimpleFormatter(this.errors, this.out, {this.fileCount, this.fileRoot});
 
+  /// Override to influence error sorting
+  int compare(AnalysisError error1, AnalysisError error2) {
+    // Severity
+    int compare = error2.errorCode.errorSeverity
+        .compareTo(error1.errorCode.errorSeverity);
+    if (compare != 0) {
+      return compare;
+    }
+    // Path
+    compare = Comparable.compare(error1.source.fullName.toLowerCase(),
+        error2.source.fullName.toLowerCase());
+    if (compare != 0) {
+      return compare;
+    }
+    // Offset
+    return error1.offset - error2.offset;
+  }
+
   @override
   write() {
     writeLints();
     writeSummary();
   }
 
-  writeLint(AnalysisError error, LineInfo lineInfo) {
+  void writeLint(AnalysisError error, LineInfo lineInfo) {
     LineInfo_Location location = lineInfo.getLocation(error.offset);
 
     // test/linter_test.dart 452:9 [lint] DO name types using UpperCamelCase.
@@ -88,15 +106,15 @@ class SimpleFormatter implements ReportFormatter {
       ..writeln();
   }
 
-  writeLints() {
-    errors.forEach((info) => info.errors.forEach((e) {
+  void writeLints() {
+    errors.forEach((info) => (info.errors.toList()..sort(compare)).forEach((e) {
       ++errorCount;
       writeLint(e, info.lineInfo);
     }));
     out.writeln();
   }
 
-  writeSummary() {
+  void writeSummary() {
     out
       ..write('$fileCount ${pluralize("file", fileCount)} analyzed, ')
       ..writeln('$errorCount ${pluralize("issue", errorCount)} found.');
