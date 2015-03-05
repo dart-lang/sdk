@@ -49,7 +49,7 @@ static bool IsWindowsHost() {
 
 // Experimental flag that offloads all script loading I/O onto
 // the service isolate. Disabled for now.
-// #define LOAD_VIA_SERVICE_ISOLATE
+#define LOAD_VIA_SERVICE_ISOLATE
 
 const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
                                      const char* url_string) {
