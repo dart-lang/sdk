@@ -133,8 +133,14 @@ void defineLinterEngineTests() {
     });
 
     group('main', () {
-      setUp(() => exitCode = 0);
-      tearDown(() => exitCode = 0);
+      setUp(() {
+        exitCode = 0;
+        errorSink = new MockIOSink();
+      });
+      tearDown(() {
+        exitCode = 0;
+        errorSink = stderr;
+      });
       test('smoke', () {
         FileSystemEntity firstRuleTest =
             new Directory(ruleDir).listSync().firstWhere((f) => isDartFile(f));

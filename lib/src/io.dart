@@ -9,11 +9,13 @@ import 'dart:io';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 
+/// Shared IO sink for standard error reporting.
 /// Visible for testing
-IOSink std_err = stderr;
+IOSink errorSink = stderr;
 
+/// Shared IO sink for standard out reporting.
 /// Visible for testing
-IOSink std_out = stdout;
+IOSink outSink = stdout;
 
 Iterable<File> collectFiles(String path) {
   List<File> files = [];

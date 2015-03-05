@@ -25,19 +25,19 @@ void main(List<String> args) {
   try {
     options = parser.parse(args);
   } on FormatException catch (err) {
-    printUsage(parser, err.message);
+    printUsage(parser, errorSink, err.message);
     exitCode = unableToProcessExitCode;
     return;
   }
 
   if (options["help"]) {
-    printUsage(parser);
+    printUsage(parser, outSink);
     return;
   }
 
   if (options.rest.isEmpty) {
-    printUsage(
-        parser, "Please provide at least one file or directory to lint.");
+    printUsage(parser, errorSink,
+        "Please provide at least one file or directory to lint.");
     exitCode = unableToProcessExitCode;
     return;
   }
@@ -53,11 +53,11 @@ void main(List<String> args) {
     List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
 
     var commonRoot = getRoot(options.rest);
-    ReportFormatter reporter = new ReportFormatter(errors, std_out,
+    ReportFormatter reporter = new ReportFormatter(errors, outSink,
         fileCount: filesToLint.length, fileRoot: commonRoot);
     reporter.write();
   } catch (err, stack) {
-    std_err.writeln('''An error occurred while linting 
+    errorSink.writeln('''An error occurred while linting
   Please report it at: github.com/dart-lang/linter/issues
 $err
 $stack''');
@@ -74,13 +74,13 @@ String getRoot(List<String> paths) =>
 isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
 
-void printUsage(ArgParser parser, [String error]) {
+void printUsage(ArgParser parser, IOSink out, [String error]) {
   var message = "Lints Dart source files and pubspecs.";
   if (error != null) {
     message = error;
   }
 
-  std_out.writeln('''$message
+  out.writeln('''$message
 Usage: linter <file>
 ${parser.usage}
   

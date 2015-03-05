@@ -20,6 +20,9 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:linter/src/io.dart';
 
+Source createSource(Uri sourceUri) =>
+    new FileBasedSource.con1(new JavaFile(sourceUri.toFilePath()));
+
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   analysisOptions.cacheSize = options.cacheSize;
@@ -92,9 +95,6 @@ class AnalysisDriver {
   }
 }
 
-Source createSource(Uri sourceUri) =>
-    new FileBasedSource.con1(new JavaFile(sourceUri.toFilePath()));
-
 class DriverOptions {
 
   /// The maximum number of sources for which AST structures should be kept
@@ -115,8 +115,9 @@ class DriverOptions {
 }
 
 class _Logger extends Logger {
-  void logError(String message, [exception]) => std_err.writeln(message);
-  void logError2(String message, dynamic exception) => std_err.writeln(message);
+  void logError(String message, [exception]) => errorSink.writeln(message);
+  void logError2(String message, dynamic exception) =>
+      errorSink.writeln(message);
   void logInformation(String message, [exception]) {}
   void logInformation2(String message, dynamic exception) {}
 }

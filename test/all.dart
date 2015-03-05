@@ -18,7 +18,7 @@ main() {
   // useCompactVMConfiguration();
 
   // Redirect output
-  std_out = new MockIOSink();
+  outSink = new MockIOSink();
 
   linter_test.main();
   pub_test.main();
