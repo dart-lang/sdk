@@ -148,7 +148,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitLetMutable(cps_ir.LetMutable node) {
     String id = names.name(node.variable);
-    printStmt(id, "${node.runtimeType} $id = ${formatReference(node.value)}");
+    printStmt(id, "LetMutable $id = ${formatReference(node.value)}");
     visit(node.body);
   }
 
@@ -244,7 +244,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String dummy = names.name(node);
     String variable = names.name(node.variable.definition);
     String value = formatReference(node.value);
-    printStmt(dummy, '${node.runtimeType} $variable := $value');
+    printStmt(dummy, 'SetMutableVariable $variable := $value');
     visit(node.body);
   }
 
@@ -275,7 +275,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitMutableVariable(cps_ir.MutableVariable node) {
-    return "${node.runtimeType} ${names.name(node)}";
+    return "MutableVariable ${names.name(node)}";
   }
 
   visitContinuation(cps_ir.Continuation node) {
@@ -335,7 +335,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitGetMutableVariable(cps_ir.GetMutableVariable node) {
     String variable = names.name(node.variable.definition);
-    return '${node.runtimeType} $variable';
+    return 'GetMutableVariable $variable';
   }
 }
 
