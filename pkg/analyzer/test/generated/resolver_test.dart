@@ -362,6 +362,8 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     AnalysisOptions currentOptions = analysisOptions;
     bool needsRecompute = currentOptions.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
+        currentOptions.generateImplicitErrors !=
+            options.generateImplicitErrors ||
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||

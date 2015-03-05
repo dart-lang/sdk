@@ -1010,7 +1010,10 @@ class GetHandler {
       _writeOption(buffer, 'Cache size', options.cacheSize);
       _writeOption(buffer, 'Generate hints', options.hint);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
-      _writeOption(buffer, 'Generate SDK errors', options.generateSdkErrors);
+      _writeOption(buffer, 'Generate errors in implicit files',
+          options.generateImplicitErrors);
+      _writeOption(
+          buffer, 'Generate errors in SDK files', options.generateSdkErrors);
       _writeOption(buffer, 'Incremental resolution', options.incremental);
       _writeOption(buffer, 'Incremental resolution with API changes',
           options.incrementalApi);

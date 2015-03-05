@@ -150,7 +150,7 @@ class AnalyzerImpl {
       new DartUriResolver(sdk),
       new FileUriResolver()
     ];
-    // may be add package resolver
+    // maybe add package resolver
     {
       JavaFile packageDirectory;
       if (options.packageRootPath != null) {
@@ -187,6 +187,8 @@ class AnalyzerImpl {
     contextOptions.hint = !options.disableHints;
     contextOptions.analyzeFunctionBodiesPredicate =
         _analyzeFunctionBodiesPredicate;
+    contextOptions.generateImplicitErrors = options.showPackageWarnings;
+    contextOptions.generateSdkErrors = options.showSdkWarnings;
     context.analysisOptions = contextOptions;
 
     // Create and add a ChangeSet
