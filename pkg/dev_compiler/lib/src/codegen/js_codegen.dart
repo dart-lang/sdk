@@ -58,7 +58,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   Element get currentLibrary => libraryInfo.library;
 
-  JS.Block generateLibrary(
+  JS.Program generateLibrary(
       Iterable<CompilationUnit> units, CheckerReporter reporter) {
     var body = <JS.Statement>[];
     for (var unit in units) {
@@ -80,7 +80,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     var name = jsLibraryName(libraryInfo.library);
-    return new JS.Block([
+    return new JS.Program([
       js.statement('var #;', name),
       js.statement("(function($_EXPORTS) { 'use strict'; #; })(# || (# = {}));",
           [body, name, name])
@@ -1927,7 +1927,7 @@ class JSGenerator extends CodeGenerator {
 
   void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
-    JS.Block jsTree =
+    JS.Program jsTree =
         new JSCodegenVisitor(info, rules).generateLibrary(units, reporter);
 
     var outputPath = path.join(outDir, jsOutputPath(info, root));
@@ -1936,34 +1936,28 @@ class JSGenerator extends CodeGenerator {
     if (options.emitSourceMaps) {
       var outFilename = path.basename(outputPath);
       var printer = new srcmaps.Printer(outFilename);
-      var context =
-          new SourceMapPrintingContext(printer, path.dirname(outputPath));
-      _writeLibrary(context, jsTree);
+      _writeNode(
+          new SourceMapPrintingContext(printer, path.dirname(outputPath)),
+          jsTree);
       printer.add('//# sourceMappingURL=$outFilename.map');
       // Write output file and source map
       new File(outputPath).writeAsStringSync(printer.text);
       new File('$outputPath.map').writeAsStringSync(printer.map);
     } else {
-      var context = new JS.SimpleJavaScriptPrintingContext();
-      _writeLibrary(context, jsTree);
-      // Write output file and source map
-      new File(outputPath).writeAsStringSync(context.getText());
+      new File(outputPath).writeAsStringSync(jsNodeToString(jsTree));
     }
-  }
-
-  void _writeLibrary(JS.JavaScriptPrintingContext context, JS.Block jsTree) {
-    var opts =
-        new JS.JavaScriptPrintingOptions(avoidKeywordsInIdentifiers: true);
-    new JS.Printer(opts, context).blockOutWithoutBraces(jsTree);
   }
 }
 
-/// This is a debugging helper to print a JS node.
-String debugJsNodeToString(JS.Node node) {
-  var context = new JS.SimpleJavaScriptPrintingContext();
+void _writeNode(JS.JavaScriptPrintingContext context, JS.Node node) {
   var opts = new JS.JavaScriptPrintingOptions(avoidKeywordsInIdentifiers: true);
-  new JS.Printer(opts, context).visit(node);
-  // Write output file and source map
+  node.accept(new JS.Printer(opts, context));
+}
+
+/// This is a debugging helper to print a JS node.
+String jsNodeToString(JS.Node node) {
+  var context = new JS.SimpleJavaScriptPrintingContext();
+  _writeNode(context, node);
   return context.getText();
 }
 

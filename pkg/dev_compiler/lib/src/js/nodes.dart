@@ -1376,7 +1376,6 @@ class Await extends Expression {
   accept(NodeVisitor visitor) => visitor.visitAwait(this);
   void visitChildren(NodeVisitor visitor) => expression.accept(visitor);
   Await _clone() => new Await(expression);
-
 }
 
 /**
