@@ -183,13 +183,6 @@ label_test: Skip
 
 [ $compiler == dart2dart && $builder_tag == new_backend ]
 asyncstar_throw_in_catch_test: RuntimeError # Issue 21404
-async_await_syntax_test/a03a: CompileTimeError # Issue 21404
-async_await_syntax_test/a03b: CompileTimeError # Issue 21404
-async_await_syntax_test/a11d: CompileTimeError # Issue 21404
-async_await_syntax_test/b03a: CompileTimeError # Issue 21404
-async_await_syntax_test/b11d: CompileTimeError # Issue 21404
-async_await_syntax_test/c03a: CompileTimeError # Issue 21404
-async_await_syntax_test/d03a: CompileTimeError # Issue 21404
 regress_13494_test: Pass # Issue 22370, passes for the wrong reason
 
 [ $compiler == dart2dart && $builder_tag == new_backend && $minified == true ]

@@ -976,17 +976,16 @@ class TreePrinter {
         setElement(definition, param.element, param);
       }
       if (param.defaultValue != null) {
-        return new tree.SendSet(
+        definition = new tree.SendSet(
             null,
             definition,
             new tree.Operator(assignOperator),
             singleton(makeExpression(param.defaultValue)));
-      } else {
-        return new tree.VariableDefinitions(
-            null,
-            makeEmptyModifiers(),
-            singleton(definition));
       }
+      return new tree.VariableDefinitions(
+          null,
+          makeEmptyModifiers(),
+          singleton(definition));
     } else {
       tree.Node definition;
       if (param.defaultValue != null) {
