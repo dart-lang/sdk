@@ -279,16 +279,16 @@ struct Parser::Block : public ZoneAllocated {
 // Class which describes an inlined finally block which is used to generate
 // inlined code for the finally blocks when there is an exit from a try
 // block using 'return', 'break' or 'continue'.
-class Parser::TryBlocks : public ZoneAllocated {
+class Parser::TryStack : public ZoneAllocated {
  public:
-  TryBlocks(Block* try_block, TryBlocks* outer_try_block, intptr_t try_index)
+  TryStack(Block* try_block, TryStack* outer_try, intptr_t try_index)
       : try_block_(try_block),
         inlined_finally_nodes_(),
-        outer_try_block_(outer_try_block),
+        outer_try_(outer_try),
         try_index_(try_index),
         inside_catch_(false) { }
 
-  TryBlocks* outer_try_block() const { return outer_try_block_; }
+  TryStack* outer_try() const { return outer_try_; }
   Block* try_block() const { return try_block_; }
   intptr_t try_index() const { return try_index_; }
   bool inside_catch() const { return inside_catch_; }
@@ -305,15 +305,15 @@ class Parser::TryBlocks : public ZoneAllocated {
  private:
   Block* try_block_;
   GrowableArray<AstNode*> inlined_finally_nodes_;
-  TryBlocks* outer_try_block_;
+  TryStack* outer_try_;
   const intptr_t try_index_;
   bool inside_catch_;
 
-  DISALLOW_COPY_AND_ASSIGN(TryBlocks);
+  DISALLOW_COPY_AND_ASSIGN(TryStack);
 };
 
 
-void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
+void Parser::TryStack::AddNodeForFinallyInlining(AstNode* node) {
   inlined_finally_nodes_.Add(node);
 }
 
@@ -335,7 +335,7 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       literal_token_(LiteralToken::Handle(zone())),
       current_class_(Class::Handle(zone())),
       library_(Library::Handle(zone(), library.raw())),
-      try_blocks_list_(NULL),
+      try_stack_(NULL),
       last_used_try_index_(0),
       unregister_pending_function_(false),
       async_temp_scope_(NULL),
@@ -368,7 +368,7 @@ Parser::Parser(const Script& script,
       library_(Library::Handle(zone(), Class::Handle(
           zone(),
           parsed_function->function().origin()).library())),
-      try_blocks_list_(NULL),
+      try_stack_(NULL),
       last_used_try_index_(0),
       unregister_pending_function_(false),
       async_temp_scope_(NULL),
@@ -2153,6 +2153,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
 void Parser::GenerateSuperConstructorCall(const Class& cls,
                                           intptr_t supercall_pos,
                                           LocalVariable* receiver,
+                                          AstNode* phase_parameter,
                                           ArgumentListNode* forwarding_args) {
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
   // Omit the implicit super() if there is no super class (i.e.
@@ -2171,9 +2172,6 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
   // Implicit construction phase parameter is second argument.
-  AstNode* phase_parameter =
-      new LiteralNode(supercall_pos,
-                      Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll)));
   arguments->Add(phase_parameter);
 
   // If this is a super call in a forwarding constructor, add the user-
@@ -2564,7 +2562,10 @@ void Parser::ParseInitializers(const Class& cls,
   if (!super_init_seen) {
     // Generate implicit super() if we haven't seen an explicit super call
     // or constructor redirection.
-    GenerateSuperConstructorCall(cls, TokenPos(), receiver, NULL);
+    AstNode* phase_parameter = new LiteralNode(
+        TokenPos(), Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll)));
+    GenerateSuperConstructorCall(
+        cls, TokenPos(), receiver, phase_parameter, NULL);
   }
   CheckFieldsInitialized(cls);
 }
@@ -2686,10 +2687,12 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     }
   }
 
-  GenerateSuperConstructorCall(current_class(),
-                               Scanner::kNoSourcePos,
-                               receiver,
-                               forwarding_args);
+  GenerateSuperConstructorCall(
+      current_class(),
+      Scanner::kNoSourcePos,
+      receiver,
+      new LoadLocalNode(Scanner::kNoSourcePos, phase_parameter),
+      forwarding_args);
   CheckFieldsInitialized(current_class());
 
   // Empty constructor body.
@@ -5979,8 +5982,8 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   TRACE_PARSER("CloseAsyncGeneratorTryBlock");
   // The generated try-catch-finally that wraps the async generator function
   // body is the outermost try statement.
-  ASSERT(try_blocks_list_ != NULL);
-  ASSERT(try_blocks_list_->outer_try_block() == NULL);
+  ASSERT(try_stack_ != NULL);
+  ASSERT(try_stack_->outer_try() == NULL);
   // We only get here when parsing an async generator body.
   ASSERT(innermost_function().IsAsyncGenClosure());
 
@@ -5989,7 +5992,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   // The try-block (closure body code) has been parsed. We are now
   // generating the code for the catch block.
   LocalScope* try_scope = current_block_->scope;
-  try_blocks_list_->enter_catch();
+  try_stack_->enter_catch();
   OpenBlock();  // Catch handler list.
   OpenBlock();  // Catch block.
 
@@ -6070,8 +6073,8 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   current_block_->statements->Add(catch_block);
   SequenceNode* catch_handler_list = CloseBlock();
 
-  TryBlocks* try_block = PopTryBlock();
-  ASSERT(try_blocks_list_ == NULL);  // We popped the outermost try block.
+  TryStack* try_statement = PopTry();
+  ASSERT(try_stack_ == NULL);  // We popped the outermost try block.
 
   // Finally block: closing the stream and returning. (Note: the return
   // is necessary otherwise the back-end will append a rethrow of the
@@ -6095,7 +6098,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
     current_block_->statements->Add(return_node);
 
     finally_clause = CloseBlock();
-    AstNode* node_to_inline = try_block->GetNodeToInlineFinally(node_index);
+    AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     if (node_to_inline != NULL) {
       InlinedFinallyNode* node =
           new(Z) InlinedFinallyNode(try_end_pos,
@@ -6125,7 +6128,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
       AllocateTryIndex(),
       true);
 
-  const intptr_t try_index = try_block->try_index();
+  const intptr_t try_index = try_statement->try_index();
 
   AstNode* try_catch_node =
       new(Z) TryCatchNode(Scanner::kNoSourcePos,
@@ -6141,12 +6144,12 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
 
 SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   // This is the outermost try-catch of the function.
-  ASSERT(try_blocks_list_ != NULL);
-  ASSERT(try_blocks_list_->outer_try_block() == NULL);
+  ASSERT(try_stack_ != NULL);
+  ASSERT(try_stack_->outer_try() == NULL);
   ASSERT(innermost_function().IsAsyncClosure());
   LocalScope* try_scope = current_block_->scope;
 
-  try_blocks_list_->enter_catch();
+  try_stack_->enter_catch();
 
   OpenBlock();  // Catch handler list.
   OpenBlock();  // Catch block.
@@ -6231,8 +6234,8 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   handler_types.SetLength(0);
   handler_types.Add(*exception_param.type);
 
-  TryBlocks* inner_try_block = PopTryBlock();
-  const intptr_t try_index = inner_try_block->try_index();
+  TryStack* try_statement = PopTry();
+  const intptr_t try_index = try_statement->try_index();
 
   CatchClauseNode* catch_clause = new (Z) CatchClauseNode(
       Scanner::kNoSourcePos,
@@ -6277,8 +6280,8 @@ void Parser::OpenAsyncTryBlock() {
   // Open the try block.
   OpenBlock();
   // This is the outermost try-catch in the function.
-  ASSERT(try_blocks_list_ == NULL);
-  PushTryBlock(current_block_);
+  ASSERT(try_stack_ == NULL);
+  PushTry(current_block_);
 
   SetupSavedTryContext(context_var);
 }
@@ -8150,20 +8153,18 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
 
 // If the await or yield being parsed is in a try block, the continuation code
 // needs to restore the corresponding stack-based variable :saved_try_ctx_var,
-// and possibly the stack-based variable :saved_try_ctx_var of the outer try
-// block.
+// and the stack-based variable :saved_try_ctx_var of the outer try block.
 // The inner :saved_try_ctx_var is used by a finally clause handling an
-// exception thrown by the continuation code in a catch clause. If no finally
-// clause exists, the catch or finally clause of the outer try block, if any,
-// uses the outer :saved_try_ctx_var to handle the exception.
+// exception thrown by the continuation code in a try block or catch block.
+// If no finally clause exists, the catch or finally clause of the outer try
+// block, if any, uses the outer :saved_try_ctx_var to handle the exception.
 //
-// * Try blocks: Set the context variable for this try block.
-// * Catch blocks: Set the context variable for this try block and for any outer
-//                 try block (if existent).
-// * Finally blocks: Set the context variable for any outer try block (if
-//                   existent). Note that this try block is popped before
-//                   parsing the finally clause, so the outer try block (if
-//                   existent) is at the top of the try block list.
+// * Try blocks and catch blocks:
+//     Set the context variable for this try block and for the outer try block.
+// * Finally blocks:
+//     Set the context variable for the outer try block. Note that the try
+//     declaring the finally is popped before parsing the finally clause, so the
+//     outer try block is at the top of the try block list.
 //
 // TODO(regis): Could we return the variables instead of their containing
 // scopes? Check if they are already setup at this point.
@@ -8175,20 +8176,21 @@ void Parser::CheckAsyncOpInTryBlock(LocalScope** try_scope,
   *try_index = CatchClauseNode::kInvalidTryIndex;
   *outer_try_scope = NULL;
   *outer_try_index = CatchClauseNode::kInvalidTryIndex;
-  if (try_blocks_list_ != NULL) {
-    LocalScope* scope = try_blocks_list_->try_block()->scope;
+  if (try_stack_ != NULL) {
+    LocalScope* scope = try_stack_->try_block()->scope;
     const int current_function_level = current_block_->scope->function_level();
     if (scope->function_level() == current_function_level) {
       // The block declaring :saved_try_ctx_var variable is the parent of the
       // pushed try block.
       *try_scope = scope->parent();
-      *try_index = try_blocks_list_->try_index();
-      if (try_blocks_list_->inside_catch() &&
-          (try_blocks_list_->outer_try_block() != NULL)) {
-        scope = try_blocks_list_->outer_try_block()->try_block()->scope;
+      *try_index = try_stack_->try_index();
+      if (try_stack_->outer_try() != NULL) {
+        // TODO(regis): Collecting the outer try scope is not necessary if we
+        // are in a finally block. Add support for try_stack_->inside_finally().
+        scope = try_stack_->outer_try()->try_block()->scope;
         if (scope->function_level() == current_function_level) {
           *outer_try_scope = scope->parent();
-          *outer_try_index = try_blocks_list_->outer_try_block()->try_index();
+          *outer_try_index = try_stack_->outer_try()->try_index();
         }
       }
     }
@@ -8703,12 +8705,12 @@ SequenceNode* Parser::ParseFinallyBlock(
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
   if (is_async) {
-    if (try_blocks_list_ != NULL) {
-      LocalScope* scope = try_blocks_list_->try_block()->scope;
+    if (try_stack_ != NULL) {
+      LocalScope* scope = try_stack_->try_block()->scope;
       if (scope->function_level() == current_block_->scope->function_level()) {
         current_block_->statements->Add(
             AwaitTransformer::RestoreSavedTryContext(
-                Z, scope->parent(), try_blocks_list_->try_index()));
+                Z, scope->parent(), try_stack_->try_index()));
       }
     }
     // We need to save the exception variables as in catch clauses, whether
@@ -8729,18 +8731,16 @@ SequenceNode* Parser::ParseFinallyBlock(
 }
 
 
-void Parser::PushTryBlock(Block* try_block) {
+void Parser::PushTry(Block* try_block) {
   intptr_t try_index = AllocateTryIndex();
-  TryBlocks* block = new(Z) TryBlocks(
-      try_block, try_blocks_list_, try_index);
-  try_blocks_list_ = block;
+  try_stack_ = new(Z) TryStack(try_block, try_stack_, try_index);
 }
 
 
-Parser::TryBlocks* Parser::PopTryBlock() {
-  TryBlocks* innermost_try_block = try_blocks_list_;
-  try_blocks_list_ = try_blocks_list_->outer_try_block();
-  return innermost_try_block;
+Parser::TryStack* Parser::PopTry() {
+  TryStack* innermost_try = try_stack_;
+  try_stack_ = try_stack_->outer_try();
+  return innermost_try;
 }
 
 
@@ -8749,7 +8749,7 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
     return;
   }
   ASSERT(node->IsReturnNode() || node->IsJumpNode());
-  TryBlocks* iterator = try_blocks_list_;
+  TryStack* iterator = try_stack_;
   while (iterator != NULL) {
     // For continue and break node check if the target label is in scope.
     if (node->IsJumpNode()) {
@@ -8766,7 +8766,7 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
       }
     }
     iterator->AddNodeForFinallyInlining(node);
-    iterator = iterator->outer_try_block();
+    iterator = iterator->outer_try();
   }
 }
 
@@ -8963,9 +8963,9 @@ SequenceNode* Parser::ParseCatchClauses(
   // In case of async closures, restore :saved_try_context_var before executing
   // the catch clauses.
   if (is_async && (current != NULL)) {
-    ASSERT(try_blocks_list_ != NULL);
+    ASSERT(try_stack_ != NULL);
     SequenceNode* async_code = new(Z) SequenceNode(handler_pos, NULL);
-    const TryBlocks* try_block = try_blocks_list_->outer_try_block();
+    const TryStack* try_block = try_stack_->outer_try();
     if (try_block != NULL) {
       LocalScope* scope = try_block->try_block()->scope;
       if (scope->function_level() ==
@@ -9091,6 +9091,15 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
 
 AstNode* Parser::ParseTryStatement(String* label_name) {
   TRACE_PARSER("ParseTryStatement");
+
+  const intptr_t try_pos = TokenPos();
+  SourceLabel* try_label = NULL;
+  if (label_name != NULL) {
+    try_label = SourceLabel::New(try_pos, label_name, SourceLabel::kStatement);
+    OpenBlock();
+    current_block_->scope->AddLabel(try_label);
+  }
+
   const bool is_async = innermost_function().IsAsyncClosure() ||
                         innermost_function().IsAsyncFunction() ||
                         innermost_function().IsSyncGenClosure() ||
@@ -9110,19 +9119,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                           &saved_exception_var,
                           &saved_stack_trace_var);
 
-  const intptr_t try_pos = TokenPos();
   ConsumeToken();  // Consume the 'try'.
-
-  SourceLabel* try_label = NULL;
-  if (label_name != NULL) {
-    try_label = SourceLabel::New(try_pos, label_name, SourceLabel::kStatement);
-    OpenBlock();
-    current_block_->scope->AddLabel(try_label);
-  }
 
   // Now parse the 'try' block.
   OpenBlock();
-  PushTryBlock(current_block_);
+  PushTry(current_block_);
   ExpectToken(Token::kLBRACE);
 
   if (is_async) {
@@ -9139,7 +9140,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   }
 
   // Now parse the 'catch' blocks if any.
-  try_blocks_list_->enter_catch();
+  try_stack_->enter_catch();
   const intptr_t handler_pos = TokenPos();
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
@@ -9154,12 +9155,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                         handler_types,
                         &needs_stack_trace);
 
-  TryBlocks* inner_try_block = PopTryBlock();
-  const intptr_t try_index = inner_try_block->try_index();
-  TryBlocks* outer_try_block = try_blocks_list_;
-  const intptr_t outer_try_index = (outer_try_block != NULL)
-      ? outer_try_block->try_index()
-      : CatchClauseNode::kInvalidTryIndex;
+  TryStack* try_statement = PopTry();
+  const intptr_t try_index = try_statement->try_index();
+  TryStack* outer_try = try_stack_;
+  const intptr_t outer_try_index = (outer_try != NULL) ?
+      outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
   // Finally parse the 'finally' block.
   SequenceNode* finally_block = NULL;
@@ -9168,8 +9168,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     const intptr_t finally_pos = TokenPos();
     // Add the finally block to the exit points recorded so far.
     intptr_t node_index = 0;
-    AstNode* node_to_inline =
-        inner_try_block->GetNodeToInlineFinally(node_index);
+    AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     while (node_to_inline != NULL) {
       finally_block = ParseFinallyBlock(
           is_async,
@@ -9183,7 +9182,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                                                            outer_try_index);
       AddFinallyBlockToNode(is_async, node_to_inline, node);
       node_index += 1;
-      node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
+      node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
       tokens_iterator_.SetCurrentPosition(finally_pos);
     }
     finally_block = ParseFinallyBlock(
@@ -9529,7 +9528,7 @@ AstNode* Parser::ParseStatement() {
     ConsumeToken();
     ExpectSemicolon();
     // Check if it is ok to do a rethrow.
-    if ((try_blocks_list_ == NULL) || !try_blocks_list_->inside_catch()) {
+    if ((try_stack_ == NULL) || !try_stack_->inside_catch()) {
       ReportError(statement_pos, "rethrow of an exception is not valid here");
     }
 
@@ -9537,7 +9536,7 @@ AstNode* Parser::ParseStatement() {
     // instead of :exception_var and :stack_trace_var.
     // These variables are bound in the block containing the try.
     // Look in the try scope directly.
-    LocalScope* scope = try_blocks_list_->try_block()->scope->parent();
+    LocalScope* scope = try_stack_->try_block()->scope->parent();
     ASSERT(scope != NULL);
     LocalVariable* excp_var;
     LocalVariable* trace_var;
