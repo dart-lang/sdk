@@ -9,20 +9,11 @@ import '../constants/values.dart' show PrimitiveConstantValue;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
-import '../io/source_file.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
-import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
-import '../universe/universe.dart' show SelectorKind;
-import 'cps_ir_nodes.dart' as ir;
-import '../elements/modelx.dart' show SynthesizedConstructorElementX,
-    ConstructorBodyElementX, FunctionSignatureX;
 import '../closure.dart' hide ClosureScope;
-import '../closure.dart' as closurelib;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../util/util.dart' show Link;
-
-part 'cps_ir_builder_visitor.dart';
+import 'cps_ir_nodes.dart' as ir;
+import 'cps_ir_builder_task.dart' show DartCapturedVariables;
 
 /// A mapping from variable elements to their compile-time values.
 ///
@@ -1484,6 +1475,47 @@ abstract class IrBuilder {
   }
 
 
+  /// Creates a labeled statement
+  void buildLabeledStatement({SubbuildFunction buildBody,
+                              JumpTarget target}) {
+    JumpCollector jumps = new JumpCollector(target);
+    state.breakCollectors.add(jumps);
+    IrBuilder innerBuilder = makeDelimitedBuilder();
+    buildBody(innerBuilder);
+    state.breakCollectors.removeLast();
+    bool hasBreaks = !jumps.isEmpty;
+    ir.Continuation joinContinuation;
+    if (hasBreaks) {
+      if (innerBuilder.isOpen) {
+        jumps.addJump(innerBuilder);
+      }
+
+      // All jumps to the break continuation must be in the scope of the
+      // continuation's binding.  The continuation is bound just outside the
+      // body to satisfy this property without extra analysis.
+      // As a consequence, the break continuation needs parameters for all
+      // local variables in scope at the exit from the body.
+      List<ir.Parameter> parameters =
+          new List<ir.Parameter>.generate(environment.length, (i) {
+        return new ir.Parameter(environment.index2variable[i]);
+      });
+      joinContinuation = new ir.Continuation(parameters);
+      invokeFullJoin(joinContinuation, jumps, recursive: false);
+      add(new ir.LetCont(joinContinuation, innerBuilder._root));
+      for (int i = 0; i < environment.length; ++i) {
+        environment.index2value[i] = parameters[i];
+      }
+    } else {
+      if (innerBuilder._root != null) {
+        add(innerBuilder._root);
+        _current = innerBuilder._current;
+        environment = innerBuilder.environment;
+      }
+    }
+    return null;
+  }
+
+
   // Build(BreakStatement L, C) = C[InvokeContinuation(...)]
   //
   // The continuation and arguments are filled in later after translating
@@ -1759,6 +1791,7 @@ class DartIrBuilderSharedState {
   final Map<Local, ir.MutableVariable> local2mutable =
       <Local, ir.MutableVariable>{};
 
+  // Move this to the IrBuilderVisitor.
   final DartCapturedVariables capturedVariables;
 
   /// Creates a [MutableVariable] for the given local.
@@ -2028,6 +2061,13 @@ class JsIrBuilder extends IrBuilder {
       environment.extend(env.selfReference, thisPrim);
     }
   }
+
+  /// Creates a box for [scope.box] and binds the captured variables to
+  /// that box.
+  ///
+  /// The captured variables can subsequently be manipulated with
+  /// [declareLocalVariable], [buildLocalGet], and [buildLocalSet].
+  void enterScope(ClosureScope scope) => _enterScope(scope);
 
   void _enterScope(ClosureScope scope) {
     if (scope == null) return;

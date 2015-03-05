@@ -13,6 +13,7 @@ import '../compiler.dart' as api;
 import 'colors.dart' as colors;
 import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
+import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
 import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;

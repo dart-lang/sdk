@@ -2,7 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.ir_builder;
+library dart2js.ir_builder_task;
+
+import '../closure.dart' as closurelib;
+import '../closure.dart' hide ClosureScope;
+import '../constants/expressions.dart';
+import '../dart_types.dart';
+import '../dart2jslib.dart';
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show SynthesizedConstructorElementX,
+    ConstructorBodyElementX, FunctionSignatureX;
+import '../io/source_file.dart';
+import '../io/source_information.dart';
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
+import '../tree/tree.dart' as ast;
+import '../universe/universe.dart' show SelectorKind;
+import 'cps_ir_nodes.dart' as ir;
+import 'cps_ir_builder.dart';
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -345,48 +362,16 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         subbuild(node.elsePart));
   }
 
-  ir.Primitive visitLabeledStatement(ast.LabeledStatement node) {
+  visitLabeledStatement(ast.LabeledStatement node) {
     ast.Statement body = node.statement;
-    if (body is ast.Loop) return visit(body);
-    JumpTarget target = elements.getTargetDefinition(body);
-    JumpCollector jumps = new JumpCollector(target);
-    irBuilder.state.breakCollectors.add(jumps);
-    IrBuilder innerBuilder = irBuilder.makeDelimitedBuilder();
-    withBuilder(innerBuilder, () {
+    if (body is ast.Loop) {
       visit(body);
-    });
-    irBuilder.state.breakCollectors.removeLast();
-    bool hasBreaks = !jumps.isEmpty;
-    ir.Continuation joinContinuation;
-    if (hasBreaks) {
-      if (innerBuilder.isOpen) {
-        jumps.addJump(innerBuilder);
-      }
-
-      // All jumps to the break continuation must be in the scope of the
-      // continuation's binding.  The continuation is bound just outside the
-      // body to satisfy this property without extra analysis.
-      // As a consequence, the break continuation needs parameters for all
-      // local variables in scope at the exit from the body.
-      List<ir.Parameter> parameters =
-          new List<ir.Parameter>.generate(irBuilder.environment.length, (i) {
-        return new ir.Parameter(irBuilder.environment.index2variable[i]);
-      });
-      joinContinuation = new ir.Continuation(parameters);
-      irBuilder.invokeFullJoin(joinContinuation, jumps, recursive: false);
-      irBuilder.add(new ir.LetCont(joinContinuation,
-          innerBuilder._root));
-      for (int i = 0; i < irBuilder.environment.length; ++i) {
-        irBuilder.environment.index2value[i] = parameters[i];
-      }
     } else {
-      if (innerBuilder._root != null) {
-        irBuilder.add(innerBuilder._root);
-        irBuilder._current = innerBuilder._current;
-        irBuilder.environment = innerBuilder.environment;
-      }
+      JumpTarget target = elements.getTargetDefinition(body);
+      irBuilder.buildLabeledStatement(
+          buildBody: subbuild(body),
+          target: target);
     }
-    return null;
   }
 
   visitWhile(ast.While node) {
@@ -1577,7 +1562,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
     // Establish a scope in case parameters are captured.
     ClosureScope scope = getClosureScopeForFunction(target);
-    irBuilder._enterScope(scope);
+    irBuilder.enterScope(scope);
 
     // Load required parameters
     int index = 0;

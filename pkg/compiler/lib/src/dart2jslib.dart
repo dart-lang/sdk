@@ -15,7 +15,7 @@ import 'closure.dart' as closureMapping;
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'core_types.dart';
-import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
+import 'cps_ir/cps_ir_builder_task.dart' show IrBuilderTask;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart';
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;

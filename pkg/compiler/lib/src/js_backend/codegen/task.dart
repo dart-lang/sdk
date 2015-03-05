@@ -12,7 +12,7 @@ import 'unsugar.dart';
 import '../js_backend.dart';
 import '../../dart2jslib.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
-import '../../cps_ir/cps_ir_builder.dart';
+import '../../cps_ir/cps_ir_builder_task.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
