@@ -25,6 +25,7 @@ class ResolverOptions {
 
   /// Whether to infer return types and field types from overriden members.
   final bool inferFromOverrides;
+  static const bool INFER_FROM_OVERRIDES_DEFAULT = false;
 
   /// Whether to infer types for consts and static fields by looking at
   /// identifiers on the RHS. For example, in a constant declaration like:
@@ -54,7 +55,8 @@ class ResolverOptions {
   final bool onlyInferConstsAndFinalFields;
 
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[], this.inferFromOverrides: true,
+      this.packagePaths: const <String>[],
+      this.inferFromOverrides: INFER_FROM_OVERRIDES_DEFAULT,
       this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false});
@@ -204,7 +206,8 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.outputDart: false, this.useColors: true,
       this.covariantGenerics: true, this.relaxedCasts: true,
       this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[], this.inferFromOverrides: true,
+      this.packagePaths: const <String>[],
+      this.inferFromOverrides: ResolverOptions.INFER_FROM_OVERRIDES_DEFAULT,
       this.inferStaticsFromIdentifiers: false,
       this.inferInNonStableOrder: false,
       this.onlyInferConstsAndFinalFields: false,
@@ -277,7 +280,8 @@ final ArgParser argParser = new ArgParser()
       defaultsTo: null)
   ..addFlag('infer-from-overrides',
       help: 'Infer unspecified types of fields and return types from '
-      'definitions in supertypes', defaultsTo: true)
+      'definitions in supertypes',
+      defaultsTo: ResolverOptions.INFER_FROM_OVERRIDES_DEFAULT)
   ..addFlag('infer-transitively',
       help: 'Infer consts/fields from definitions in other libraries',
       defaultsTo: false)

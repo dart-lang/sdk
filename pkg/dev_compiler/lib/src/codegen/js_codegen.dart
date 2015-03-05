@@ -1936,9 +1936,8 @@ class JSGenerator extends CodeGenerator {
     if (options.emitSourceMaps) {
       var outFilename = path.basename(outputPath);
       var printer = new srcmaps.Printer(outFilename);
-      _writeNode(
-          new SourceMapPrintingContext(printer, path.dirname(outputPath)),
-          jsTree);
+      _writeNode(new SourceMapPrintingContext(
+          printer, path.dirname(outputPath)), jsTree);
       printer.add('//# sourceMappingURL=$outFilename.map');
       // Write output file and source map
       new File(outputPath).writeAsStringSync(printer.text);

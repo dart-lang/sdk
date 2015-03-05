@@ -1683,7 +1683,7 @@ main() {
             /*severe:InvalidMethodOverride*/dynamic get f4 => null;
           }
        '''
-    });
+    }, inferFromOverrides: true);
   });
 
   test('setter/setter override', () {
@@ -1769,7 +1769,7 @@ main() {
             /*severe:InvalidMethodOverride*/dynamic m6(dynamic value) {}
           }
        '''
-    });
+    }, inferFromOverrides: true);
   });
 
   test('binary operators', () {
