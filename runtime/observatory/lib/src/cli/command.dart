@@ -50,7 +50,7 @@ abstract class _CommandBase {
     var matches = new List<Command>();
     for (var child in _children) {
       if (child.name.startsWith(arg)) {
-        if (preferExact && child.name == arg) {
+        if (preferExact && ((child.name == arg) || (child.alias == arg))) {
           return [child];
         }
         matches.add(child);
@@ -220,6 +220,8 @@ abstract class Command extends _CommandBase {
   Command(this.name, List<Command> children) : super(children);
 
   final String name;
+  String alias;
+
   String get fullName {
     if (_parent is RootCommand) {
       return name;

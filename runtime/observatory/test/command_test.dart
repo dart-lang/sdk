@@ -203,11 +203,25 @@ void testCommandRunAmbiguous() {
   }));
 }
 
+void testCommandRunAlias() {
+  // Run a simple command.
+  StringBuffer out = new StringBuffer();
+  var aliasCmd = new TestCommand(out, 'alpha', []);
+  aliasCmd.alias = 'a';
+  RootCommand cmd = new RootCommand([aliasCmd,
+                                     new TestCommand(out, 'ankle', [])]);
+
+  cmd.runCommand('a 55').then(expectAsync((_) {
+    expect(out.toString(), equals('executing alpha([55])\n'));
+  }));
+}
+
 main() {
   test('command completion test suite', testCommandComplete);
   test('run a simple command', testCommandRunSimple);
   test('run a subcommand', testCommandRunSubcommand);
   test('run a command which is not found', testCommandRunNotFound);
   test('run a command which is ambiguous', testCommandRunAmbiguous);
+  test('run a command using an alias', testCommandRunAlias);
 }
 

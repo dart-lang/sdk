@@ -28,6 +28,14 @@ abstract class DebuggerCommand extends Command {
 class HelpCommand extends DebuggerCommand {
   HelpCommand(Debugger debugger) : super(debugger, 'help', []);
 
+  String _nameAndAlias(Command cmd) {
+    if (cmd.alias == null) {
+      return cmd.name;
+    } else {
+      return '${cmd.name}, ${cmd.alias}';
+    }
+  }
+
   Future run(List<String> args) {
     var con = debugger.console;
     if (args.length == 0) {
@@ -36,14 +44,16 @@ class HelpCommand extends DebuggerCommand {
       commands.sort((a, b) => a.name.compareTo(b.name));
       con.print('List of commands:\n');
       for (var command in commands) {
-        con.print('${command.name.padRight(12)} - ${command.helpShort}');
+        con.print('${_nameAndAlias(command).padRight(12)} '
+                  '- ${command.helpShort}');
       }
       con.print(
           "\nFor more information on a specific command type 'help <command>'\n"
           "\n"
           "Command prefixes are accepted (e.g. 'h' for 'help')\n"
           "Hit [TAB] to complete a command (try 'i[TAB][TAB]')\n"
-          "Hit [ENTER] to repeat the last command\n");
+          "Hit [ENTER] to repeat the last command\n"
+          "Use up/down arrow for command history\n");
       return new Future.value(null);
     } else {
       // Print any matching commands.
@@ -56,7 +66,7 @@ class HelpCommand extends DebuggerCommand {
       }
       con.print('');
       for (var command in commands) {
-        con.printBold(command.fullName);
+        con.printBold(_nameAndAlias(command));
         con.print(command.helpLong);
 
         var newArgs = [];
@@ -115,7 +125,9 @@ class PauseCommand extends DebuggerCommand {
 }
 
 class ContinueCommand extends DebuggerCommand {
-  ContinueCommand(Debugger debugger) : super(debugger, 'continue', []);
+  ContinueCommand(Debugger debugger) : super(debugger, 'continue', []) {
+    alias = 'c';
+  }
 
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
@@ -190,7 +202,7 @@ class StepCommand extends DebuggerCommand {
   }
 
   String helpShort =
-      'Continue running the isolate until it reaches the  next source location';
+      'Continue running the isolate until it reaches the next source location';
 
   String helpLong =
       'Continue running the isolate until it reaches the next source '
@@ -1038,7 +1050,9 @@ class DebuggerConsoleElement extends ObservatoryElement {
     var span = new SpanElement();
     span.classes.add('bold');
     span.appendText(line);
-    span.appendText('\n');
+    if (newline) {
+      span.appendText('\n');
+    }
     $['consoleText'].children.add(span);
     span.scrollIntoView();
   }
