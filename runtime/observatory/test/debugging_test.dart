@@ -26,7 +26,7 @@ var tests = [
 (Isolate isolate) {
   Completer completer = new Completer();
   isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == 'IsolateInterrupted') {
+    if (event.eventType == ServiceEvent.kPauseInterrupted) {
       completer.complete();
     }
   });
@@ -37,7 +37,9 @@ var tests = [
 // Resume
 (Isolate isolate) {
   return isolate.resume().then((_) {
-      expect(isolate.pauseEvent == null, isTrue);
+      expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kResume));
+      expect(isolate.running, isTrue);
+      expect(isolate.paused, isFalse);
   });
 },
 
@@ -49,15 +51,10 @@ var tests = [
       List events = [];
       var subscription;
       subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-        if (event.eventType.startsWith('Breakpoint')) {
-          events.add(event);
-          if (events.length == 2) {
-            expect(events[0].eventType, equals('BreakpointResolved'));
-            expect(events[1].eventType, equals('BreakpointReached'));
-            print('Breakpoint reached');
-            subscription.cancel();
-            completer.complete();
-          }
+        if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+          print('Breakpoint reached');
+          subscription.cancel();
+          completer.complete();
         }
       });
 
@@ -91,7 +88,7 @@ var tests = [
   List events = [];
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType.startsWith('BreakpointReached')) {
+    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
       completer.complete();
@@ -114,17 +111,32 @@ var tests = [
 
 // Remove breakpoint
 (Isolate isolate) {
-  expect(isolate.breakpoints.length, equals(1));
-  var bpt = isolate.breakpoints[0];
-  return isolate.removeBreakpoint(bpt).then((_) {
+  // Set up a listener to wait for breakpoint events.
+  Completer completer = new Completer();
+  List events = [];
+  var subscription;
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+    if (event.eventType == ServiceEvent.kBreakpointRemoved) {
+      print('Breakpoint removed');
       expect(isolate.breakpoints.length, equals(0));
+      subscription.cancel();
+      completer.complete();
+    }
+  });
+
+  expect(isolate.breakpoints.length, equals(1));
+  var bpt = isolate.breakpoints.values.first;
+  return isolate.removeBreakpoint(bpt).then((_) {
+    return completer.future;
   });
 },
 
 // Resume
 (Isolate isolate) {
   return isolate.resume().then((_) {
-      expect(isolate.pauseEvent == null, isTrue);
+      expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kResume));
+      expect(isolate.running, isTrue);
+      expect(isolate.paused, isFalse);
   });
 },
 
@@ -135,7 +147,7 @@ var tests = [
   List events = [];
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType.startsWith('BreakpointReached')) {
+    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
       completer.complete();

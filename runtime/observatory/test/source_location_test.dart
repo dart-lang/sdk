@@ -54,7 +54,7 @@ var tests = [
       // Listen for breakpoint event.
       Completer completer = new Completer();
       isolate.vm.events.stream.listen((ServiceEvent event) {
-        if (event.eventType == 'BreakpointReached') {
+        if (event.eventType == ServiceEvent.kPauseBreakpoint) {
           completer.complete();
         }
       });

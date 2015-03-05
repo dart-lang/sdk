@@ -38,6 +38,7 @@ MessageHandler::MessageHandler()
       paused_(0),
       pause_on_start_(false),
       pause_on_exit_(false),
+      paused_on_start_(false),
       paused_on_exit_(false),
       pool_(NULL),
       task_(NULL),
@@ -225,11 +226,17 @@ void MessageHandler::TaskCallback() {
     // if we have one.  For an isolate, this will run the isolate's
     // main() function.
     if (pause_on_start()) {
+      if (!paused_on_start_) {
+        NotifyPauseOnStart();
+        paused_on_start_ = true;
+      }
       HandleMessages(false, false);
       if (pause_on_start()) {
         // Still paused.
         task_ = NULL;  // No task in queue.
         return;
+      } else {
+        paused_on_start_ = false;
       }
     }
 
@@ -251,11 +258,14 @@ void MessageHandler::TaskCallback() {
 
     if (!ok || !HasLivePorts()) {
       if (pause_on_exit()) {
-        if (FLAG_trace_service_pause_events && !paused_on_exit_) {
-          OS::PrintErr("Isolate %s paused before exiting. "
+        if (!paused_on_exit_) {
+          if (FLAG_trace_service_pause_events) {
+            OS::PrintErr("Isolate %s paused before exiting. "
                        "Use the Observatory to release it.\n", name());
+          }
+          NotifyPauseOnExit();
+          paused_on_exit_ = true;
         }
-        paused_on_exit_ = true;
       } else {
         if (FLAG_trace_isolates) {
         OS::Print("[-] Stopping message handler (%s):\n"

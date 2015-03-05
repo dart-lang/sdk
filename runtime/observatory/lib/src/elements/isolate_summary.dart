@@ -22,26 +22,6 @@ class IsolateRunStateElement extends ObservatoryElement {
   IsolateRunStateElement.created() : super.created();
 
   @published Isolate isolate;
-
-  Future pause(_) {
-    return isolate.pause();
-  }
-  Future resume(_) {
-    app.removePauseEvents(isolate);
-    return isolate.resume();
-  }
-  Future stepInto(_) {
-    app.removePauseEvents(isolate);
-    return isolate.stepInto();
-  }
-  Future stepOver(_) {
-    app.removePauseEvents(isolate);
-    return isolate.stepOver();
-  }
-  Future stepOut(_) {
-    app.removePauseEvents(isolate);
-    return isolate.stepOut();
-  }
 }
 
 @CustomTag('isolate-location')

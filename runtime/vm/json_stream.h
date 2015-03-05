@@ -11,17 +11,17 @@
 
 namespace dart {
 
-class DebuggerEvent;
-class Field;
 class Array;
+class Field;
 class GrowableObjectArray;
 class Instance;
 class JSONArray;
 class JSONObject;
+class Metric;
 class Object;
+class ServiceEvent;
 class SourceBreakpoint;
 class String;
-class Metric;
 class Zone;
 
 class JSONStream : ValueObject {
@@ -86,7 +86,7 @@ class JSONStream : ValueObject {
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(SourceBreakpoint* bpt);
-  void PrintValue(const DebuggerEvent* event);
+  void PrintValue(const ServiceEvent* event);
   void PrintValue(Metric* metric);
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t limit);
@@ -102,7 +102,7 @@ class JSONStream : ValueObject {
   PRINTF_ATTRIBUTE(3, 4);
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
-  void PrintProperty(const char* name, const DebuggerEvent* event);
+  void PrintProperty(const char* name, const ServiceEvent* event);
   void PrintProperty(const char* name, SourceBreakpoint* bpt);
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, Isolate* isolate);
@@ -170,7 +170,7 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, const Object& obj, bool ref = true) const {
     stream_->PrintProperty(name, obj, ref);
   }
-  void AddProperty(const char* name, const DebuggerEvent* event) const {
+  void AddProperty(const char* name, const ServiceEvent* event) const {
     stream_->PrintProperty(name, event);
   }
   void AddProperty(const char* name, SourceBreakpoint* bpt) const {
@@ -224,7 +224,7 @@ class JSONArray : public ValueObject {
   void AddValue(SourceBreakpoint* bpt) const {
     stream_->PrintValue(bpt);
   }
-  void AddValue(const DebuggerEvent* event) const {
+  void AddValue(const ServiceEvent* event) const {
     stream_->PrintValue(event);
   }
   void AddValue(Metric* metric) const {

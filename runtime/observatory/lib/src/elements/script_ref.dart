@@ -38,7 +38,8 @@ class ScriptRefElement extends ServiceRefElement {
       if (ref.loaded) {
         // Script is loaded, get the line number.
         Script script = ref;
-        return '${super.name}:${script.tokenToLine(pos)}';
+        return '${super.name}:${script.tokenToLine(pos)}:'
+            '${script.tokenToCol(pos)}';
       } else {
         ref.load().then(_updateProperties);
       }

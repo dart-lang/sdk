@@ -364,16 +364,16 @@ abstract class VM extends ServiceObjectOwner {
       new StreamController.broadcast();
 
   bool _isIsolateLifecycleEvent(String eventType) {
-    return _isIsolateShutdownEvent(eventType) ||
-           _isIsolateCreatedEvent(eventType);
+    return _isIsolateExitEvent(eventType) ||
+           _isIsolateStartEvent(eventType);
   }
 
-  bool _isIsolateShutdownEvent(String eventType) {
-    return (eventType == 'IsolateShutdown');
+  bool _isIsolateExitEvent(String eventType) {
+    return (eventType == ServiceEvent.kIsolateExit);
   }
 
-  bool _isIsolateCreatedEvent(String eventType) {
-    return (eventType == 'IsolateCreated');
+  bool _isIsolateStartEvent(String eventType) {
+    return (eventType == ServiceEvent.kIsolateStart);
   }
 
   void postServiceEvent(String response, ByteData data) {
@@ -399,17 +399,17 @@ abstract class VM extends ServiceObjectOwner {
     if (_isIsolateLifecycleEvent(eventType)) {
       String isolateId = map['isolate']['id'];
       var event;
-      if (_isIsolateCreatedEvent(eventType)) {
-        _onIsolateCreated(map['isolate']);
+      if (_isIsolateStartEvent(eventType)) {
+        _onIsolateStart(map['isolate']);
         // By constructing the event *after* adding the isolate to the
         // isolate cache, the call to getFromMap will use the cached Isolate.
         event = new ServiceObject._fromMap(this, map);
       } else {
-        assert(_isIsolateShutdownEvent(eventType));
+        assert(_isIsolateExitEvent(eventType));
         // By constructing the event *before* removing the isolate from the
         // isolate cache, the call to getFromMap will use the cached Isolate.
         event = new ServiceObject._fromMap(this, map);
-        _onIsolateShutdown(isolateId);
+        _onIsolateExit(isolateId);
       }
       assert(event != null);
       events.add(event);
@@ -426,11 +426,12 @@ abstract class VM extends ServiceObjectOwner {
           return;
         }
         var event = new ServiceObject._fromMap(owningIsolate, map);
+        owningIsolate._onEvent(event);
         events.add(event);
     });
   }
 
-  Isolate _onIsolateCreated(Map isolateMap) {
+  Isolate _onIsolateStart(Map isolateMap) {
     var isolateId = isolateMap['id'];
     assert(!_isolateCache.containsKey(isolateId));
     Isolate isolate = new ServiceObject._fromMap(this, isolateMap);
@@ -443,7 +444,7 @@ abstract class VM extends ServiceObjectOwner {
     return isolate;
   }
 
-  void _onIsolateShutdown(String isolateId) {
+  void _onIsolateExit(String isolateId) {
     assert(_isolateCache.containsKey(isolateId));
     _isolateCache.remove(isolateId);
     notifyPropertyChange(#isolates, true, false);
@@ -478,12 +479,12 @@ abstract class VM extends ServiceObjectOwner {
 
     // Process shutdown.
     for (var isolateId in shutdownIsolates) {
-      _onIsolateShutdown(isolateId);
+      _onIsolateExit(isolateId);
     }
 
     // Process creation.
     for (var isolateMap in createdIsolates) {
-      _onIsolateCreated(isolateMap);
+      _onIsolateStart(isolateMap);
     }
   }
 
@@ -504,6 +505,10 @@ abstract class VM extends ServiceObjectOwner {
     if (isolate == null) {
       // We should never see an unknown isolate here.
       throw new UnimplementedError();
+    }
+    var mapIsRef = _hasRef(map['type']);
+    if (!mapIsRef) {
+      isolate.update(map);
     }
     return isolate;
   }
@@ -774,11 +779,24 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable ObservableMap counters = new ObservableMap();
 
   @observable ServiceEvent pauseEvent = null;
-  bool get _isPaused => pauseEvent != null;
 
+  void _updateRunState() {
+    topFrame = (pauseEvent != null ? pauseEvent.topFrame : null);
+    paused = (pauseEvent != null &&
+              pauseEvent.eventType != ServiceEvent.kResume);
+    running = (!paused && topFrame != null);
+    idle = (!paused && topFrame == null);
+    notifyPropertyChange(#topFrame, 0, 1);
+    notifyPropertyChange(#paused, 0, 1);
+    notifyPropertyChange(#running, 0, 1);
+    notifyPropertyChange(#idle, 0, 1);
+  }
+
+  @observable bool paused = false;
   @observable bool running = false;
   @observable bool idle = false;
   @observable bool loading = true;
+
   @observable bool ioEnabled = false;
 
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
@@ -844,7 +862,10 @@ class Isolate extends ServiceObjectOwner with Coverage {
     String mapId = map['id'];
     var obj = (mapId != null) ? _cache[mapId] : null;
     if (obj != null) {
-      // Consider calling update when map is not a reference.
+      var mapIsRef = _hasRef(map['type']);
+      if (!mapIsRef) {
+        obj.update(map);
+      }
       return obj;
     }
     // Build the object from the map directly.
@@ -862,12 +883,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   Future<ServiceObject> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((ObservableMap response) {
-      var obj = new ServiceObject._fromMap(this, response);
-      if ((obj != null) && obj.canCache) {
-        String objId = obj.id;
-        _cache.putIfAbsent(objId, () => obj);
-      }
-      return obj;
+      return getFromMap(response);
     });
   }
 
@@ -912,9 +928,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable HeapSnapshot latestSnapshot;
   Completer<HeapSnapshot> _snapshotFetch;
 
-  void loadHeapSnapshot(ServiceEvent event) {
+  void _loadHeapSnapshot(ServiceEvent event) {
     latestSnapshot = new HeapSnapshot(this, event.data);
-    _snapshotFetch.complete(latestSnapshot);
+    if (_snapshotFetch != null) {
+      _snapshotFetch.complete(latestSnapshot);
+    }
   }
 
   Future<HeapSnapshot> fetchHeapSnapshot() {
@@ -940,7 +958,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
     _loaded = true;
     loading = false;
 
-    reloadBreakpoints();
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
@@ -951,11 +968,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
     rootLib = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];
-    }
-    if (map['topFrame'] != null) {
-      topFrame = map['topFrame'];
-    } else {
-      topFrame = null ;
     }
 
     var countersMap = map['tagCounters'];
@@ -994,6 +1006,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     timers['dart'] = timerMap['time_dart_execution'];
 
     updateHeapsFromMap(map['heaps']);
+    _updateBreakpoints(map['breakpoints']);
 
     List features = map['features'];
     if (features != null) {
@@ -1003,10 +1016,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
         }
       }
     }
-    // Isolate status
     pauseEvent = map['pauseEvent'];
-    running = (!_isPaused && map['topFrame'] != null);
-    idle = (!_isPaused && map['topFrame'] == null);
+    _updateRunState();
     error = map['error'];
 
     libraries.clear();
@@ -1023,71 +1034,74 @@ class Isolate extends ServiceObjectOwner with Coverage {
       });
   }
 
-  ObservableList<Breakpoint> breakpoints = new ObservableList();
+  ObservableMap<int, Breakpoint> breakpoints = new ObservableMap();
 
-  void _removeBreakpoint(Breakpoint bpt) {
-    var script = bpt.script;
-    var tokenPos = bpt.tokenPos;
-    assert(tokenPos != null);
-    if (script.loaded) {
-      var line = script.tokenToLine(tokenPos);
-      assert(line != null);
-      if (script.lines[line - 1] != null) {
-        assert(script.lines[line - 1].bpt == bpt);
-        script.lines[line - 1].bpt = null;
+  void _updateBreakpoints(List newBpts) {
+    // Build a map of new breakpoints.
+    var newBptMap = {};
+    newBpts.forEach((bpt) => (newBptMap[bpt.number] = bpt));
+
+    // Remove any old breakpoints which no longer exist.
+    List toRemove = [];
+    breakpoints.forEach((key, _) {
+      if (!newBptMap.containsKey(key)) {
+        toRemove.add(key);
       }
-    }
+    });
+    toRemove.forEach((key) => breakpoints.remove(key));
+
+    // Add all new breakpoints.
+    breakpoints.addAll(newBptMap);
   }
 
   void _addBreakpoint(Breakpoint bpt) {
-    var script = bpt.script;
-    var tokenPos = bpt.tokenPos;
-    assert(tokenPos != null);
-    if (script.loaded) {
-      var line = script.tokenToLine(tokenPos);
-      assert(line != null);
-      assert(script.lines[line - 1].bpt == null);
-      script.lines[line - 1].bpt = bpt;
-    } else {
-      // Load the script and then plop in the breakpoint.
-      script.load().then((_) {
-          _addBreakpoint(bpt);
-      });
-    }
+    breakpoints[bpt.number] = bpt;
   }
 
-  void _updateBreakpoints(ServiceMap newBreakpoints) {
-    // Remove all of the old breakpoints from the Script lines.
-    if (breakpoints != null) {
-      for (var bpt in breakpoints) {
-        _removeBreakpoint(bpt);
-      }
-    }
-    // Add all of the new breakpoints to the Script lines.
-    for (var bpt in newBreakpoints['breakpoints']) {
-      _addBreakpoint(bpt);
-    }
-    breakpoints.clear();
-    breakpoints.addAll(newBreakpoints['breakpoints']);
-
-    // Sort the breakpoints by breakpointNumber.
-    breakpoints.sort((a, b) => (a.number - b.number));
+  void _removeBreakpoint(Breakpoint bpt) {
+    breakpoints.remove(bpt.number);
+    bpt.remove();
   }
 
-  Future<ServiceObject> _inProgressReloadBpts;
+  void _onEvent(ServiceEvent event) {
+    assert(event.eventType != ServiceEvent.kIsolateStart &&
+           event.eventType != ServiceEvent.kIsolateExit);
+    switch(event.eventType) {
+      case ServiceEvent.kBreakpointAdded:
+        _addBreakpoint(event.breakpoint);
+        break;
 
-  Future reloadBreakpoints() {
-    // TODO(turnidge): Can reusing the Future here ever cause us to
-    // get stale breakpoints?
-    if (_inProgressReloadBpts == null) {
-      _inProgressReloadBpts =
-          invokeRpc('getBreakpoints', {}).then((newBpts) {
-              _updateBreakpoints(newBpts);
-          }).whenComplete(() {
-              _inProgressReloadBpts = null;
-          });
+      case ServiceEvent.kBreakpointResolved:
+        // Update occurs as side-effect of caching.
+        break;
+
+      case ServiceEvent.kBreakpointRemoved:
+        _removeBreakpoint(event.breakpoint);
+        break;
+
+      case ServiceEvent.kPauseStart:
+      case ServiceEvent.kPauseExit:
+      case ServiceEvent.kPauseBreakpoint:
+      case ServiceEvent.kPauseInterrupted:
+      case ServiceEvent.kPauseException:
+      case ServiceEvent.kResume:
+        pauseEvent = event;
+        _updateRunState();
+        break;
+
+      case ServiceEvent.kGraph:
+        _loadHeapSnapshot(event);
+        break;
+
+      case ServiceEvent.kGC:
+        // Ignore GC events for now.
+        break;
+
+      default:
+        // Log unrecognized events.
+        Logger.root.severe('Unrecognized event: $event');
+        break;
     }
-    return _inProgressReloadBpts;
   }
 
   Future<ServiceObject> addBreakpoint(Script script, int line) {
@@ -1107,41 +1121,18 @@ class Isolate extends ServiceObjectOwner with Coverage {
         // Unable to set a breakpoint at desired line.
         script.lines[line - 1].possibleBpt = false;
       }
-      // TODO(turnidge): Instead of reloading all of the breakpoints,
-      // rely on events to update the breakpoint list.
-      return reloadBreakpoints().then((_) {
-        return result;
-      });
+      return result;
     });
   }
 
   Future<ServiceObject> addBreakpointAtEntry(ServiceFunction function) {
     return invokeRpc('addBreakpointAtEntry',
-                     { 'functionId': function.id }).then((result) {
-        // TODO(turnidge): Instead of reloading all of the breakpoints,
-        // rely on events to update the breakpoint list.
-        return reloadBreakpoints().then((_) {
-            return result;
-        });
-      });
+                     { 'functionId': function.id });
   }
 
   Future removeBreakpoint(Breakpoint bpt) {
     return invokeRpc('removeBreakpoint',
-                     { 'breakpointId': bpt.id }).then((result) {
-        if (result is DartError) {
-          // TODO(turnidge): Handle this more gracefully.
-          Logger.root.severe(result.message);
-          return result;
-        }
-        if (pauseEvent != null &&
-            pauseEvent.breakpoint != null &&
-            (pauseEvent.breakpoint.id == bpt.id)) {
-          return isolate.reload();
-        } else {
-          return reloadBreakpoints();
-        }
-      });
+                     { 'breakpointId': bpt.id });
   }
 
   // TODO(turnidge): If the user invokes pause (or other rpcs) twice,
@@ -1319,14 +1310,10 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 
   ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
 
-  void _upgradeValues() {
-    assert(owner != null);
-    _upgradeCollection(_map, owner);
-  }
-
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = !mapIsRef;
 
+    _upgradeCollection(map, owner);
     // TODO(turnidge): Currently _map.clear() prevents us from
     // upgrading an already upgraded submap.  Is clearing really the
     // right thing to do here?
@@ -1335,7 +1322,6 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 
     name = _map['name'];
     vmName = (_map.containsKey('vmName') ? _map['vmName'] : name);
-    _upgradeValues();
   }
 
   // Forward Map interface calls.
@@ -1432,14 +1418,31 @@ class ServiceException extends ServiceObject {
 
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
+  /// The possible 'eventType' values.
+  static const kIsolateStart       = 'IsolateStart';
+  static const kIsolateExit        = 'IsolateExit';
+  static const kPauseStart         = 'PauseStart';
+  static const kPauseExit          = 'PauseExit';
+  static const kPauseBreakpoint    = 'PauseBreakpoint';
+  static const kPauseInterrupted   = 'PauseInterrupted';
+  static const kPauseException     = 'PauseException';
+  static const kResume             = 'Resume';
+  static const kBreakpointAdded    = 'BreakpointAdded';
+  static const kBreakpointResolved = 'BreakpointResolved';
+  static const kBreakpointRemoved  = 'BreakpointRemoved';
+  static const kGraph              = '_Graph';
+  static const kGC                 = 'GC';
+  static const kVMDisconnected     = 'VMDisconnected';
+
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   ServiceEvent.vmDisconencted() : super._empty(null) {
-    eventType = 'VMDisconnected';
+    eventType = kVMDisconnected;
   }
 
   @observable String eventType;
   @observable Breakpoint breakpoint;
+  @observable ServiceMap topFrame;
   @observable ServiceMap exception;
   @observable ByteData data;
   @observable int count;
@@ -1453,6 +1456,9 @@ class ServiceEvent extends ServiceObject {
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
     }
+    if (map['topFrame'] != null) {
+      topFrame = map['topFrame'];
+    }
     if (map['exception'] != null) {
       exception = map['exception'];
     }
@@ -1465,8 +1471,12 @@ class ServiceEvent extends ServiceObject {
   }
 
   String toString() {
-    return 'ServiceEvent of type $eventType with '
-        '${data == null ? 0 : data.lengthInBytes} bytes of binary data';
+    if (data == null) {
+      return "ServiceEvent(owner='${owner.id}', type='${eventType}')";
+    } else {
+      return "ServiceEvent(owner='${owner.id}', type='${eventType}', "
+          "data.lengthInBytes=${data.lengthInBytes})";
+    }
   }
 }
 
@@ -1488,19 +1498,44 @@ class Breakpoint extends ServiceObject {
   // The breakpoint has been assigned to a final source location.
   @observable bool resolved;
 
-  // The breakpoint is active.
-  @observable bool enabled;
-
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
 
+    var newNumber = map['breakpointNumber'];
+    var newScript = map['location']['script'];
+    var newTokenPos = map['location']['tokenPos'];
+
+    // number and script never change.
+    assert((number == null) || (number == newNumber));
+    assert((script == null) || (script == newScript));
+
     number = map['breakpointNumber'];
     script = map['location']['script'];
-    tokenPos = map['location']['tokenPos'];
-
     resolved = map['resolved'];
-    enabled = map['enabled'];
+    bool tokenPosChanged = tokenPos != newTokenPos;
+
+    if (script.loaded &&
+        (tokenPos != null) &&
+        tokenPosChanged) {
+      // The breakpoint has moved.  Remove it and add it later.
+      script._removeBreakpoint(this);
+    }
+
+    tokenPos = newTokenPos;
+    if (script.loaded && tokenPosChanged) {
+      script._addBreakpoint(this);
+    }
+  }
+
+  void remove() {
+    // Remove any references to this breakpoint.  It has been removed.
+    script._removeBreakpoint(this);
+    if ((isolate.pauseEvent != null) &&
+        (isolate.pauseEvent.breakpoint != null) &&
+        (isolate.pauseEvent.breakpoint.id == id)) {
+      isolate.pauseEvent.breakpoint = null;
+    }
   }
 
   String toString() {
@@ -1969,8 +2004,9 @@ class ScriptLine extends Observable {
   final int line;
   final String text;
   @observable int hits;
-  @observable Breakpoint bpt;
   @observable bool possibleBpt = true;
+  @observable bool breakpointResolved = false;
+  @observable Set<Breakpoint> breakpoints;
 
   bool get isBlank {
     // Compute isBlank on demand.
@@ -2015,13 +2051,22 @@ class ScriptLine extends Observable {
 
   ScriptLine(this.script, this.line, this.text) {
     possibleBpt = !_isTrivialLine(text);
+  }
 
-    // TODO(turnidge): This is not so efficient.  Consider improving.
-    for (var bpt in this.script.isolate.breakpoints) {
-      if (bpt.script == this.script &&
-          bpt.script.tokenToLine(bpt.tokenPos) == line) {
-        this.bpt = bpt;
-      }
+  void addBreakpoint(Breakpoint bpt) {
+    if (breakpoints == null) {
+      breakpoints = new Set<Breakpoint>();
+    }
+    breakpoints.add(bpt);
+    breakpointResolved = breakpointResolved || bpt.resolved;
+  }
+
+  void removeBreakpoint(Breakpoint bpt) {
+    assert(breakpoints != null && breakpoints.contains(bpt));
+    breakpoints.remove(bpt);
+    if (breakpoints.isEmpty) {
+      breakpoints = null;
+      breakpointResolved = false;
     }
   }
 }
@@ -2064,8 +2109,8 @@ class Script extends ServiceObject with Coverage {
     if (mapIsRef) {
       return;
     }
-    _processSource(map['source']);
     _parseTokenPosTable(map['tokenPosTable']);
+    _processSource(map['source']);
     owningLibrary = map['owningLibrary'];
   }
 
@@ -2145,6 +2190,12 @@ class Script extends ServiceObject with Coverage {
     for (var i = 0; i < sourceLines.length; i++) {
       lines.add(new ScriptLine(this, i + 1, sourceLines[i]));
     }
+    for (var bpt in isolate.breakpoints.values) {
+      if (bpt.script == this) {
+        _addBreakpoint(bpt);
+      }
+    }
+
     _applyHitsToLines();
     // Notify any Observers that this Script's state has changed.
     notifyChange(null);
@@ -2154,6 +2205,18 @@ class Script extends ServiceObject with Coverage {
     for (var line in lines) {
       var hits = _hits[line.line];
       line.hits = hits;
+    }
+  }
+
+  void _addBreakpoint(Breakpoint bpt) {
+    var line = tokenToLine(bpt.tokenPos);
+    getLine(line).addBreakpoint(bpt);
+  }
+
+  void _removeBreakpoint(Breakpoint bpt) {
+    var line = tokenToLine(bpt.tokenPos);
+    if (line != null) {
+      getLine(line).removeBreakpoint(bpt);
     }
   }
 }

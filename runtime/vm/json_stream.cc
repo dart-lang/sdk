@@ -10,6 +10,7 @@
 #include "vm/message.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
+#include "vm/service_event.h"
 #include "vm/unicode.h"
 
 
@@ -243,7 +244,7 @@ void JSONStream::PrintValue(SourceBreakpoint* bpt) {
 }
 
 
-void JSONStream::PrintValue(const DebuggerEvent* event) {
+void JSONStream::PrintValue(const ServiceEvent* event) {
   PrintCommaIfNeeded();
   event->PrintJSON(this);
 }
@@ -305,7 +306,7 @@ void JSONStream::PrintPropertyNoEscape(const char* name, const char* s) {
 }
 
 
-void JSONStream::PrintProperty(const char* name, const DebuggerEvent* event) {
+void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
   PrintPropertyName(name);
   PrintValue(event);
 }

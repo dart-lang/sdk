@@ -27,6 +27,7 @@
 #include "vm/port.h"
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
+#include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -501,13 +502,18 @@ bool Service::EventMaskHas(uint32_t mask) {
 }
 
 
+bool Service::NeedsEvents() {
+  return ServiceIsolate::IsRunning();
+}
+
+
 bool Service::NeedsDebuggerEvents() {
-  return ServiceIsolate::IsRunning() && EventMaskHas(kEventFamilyDebugMask);
+  return NeedsEvents() && EventMaskHas(kEventFamilyDebugMask);
 }
 
 
 bool Service::NeedsGCEvents() {
-  return ServiceIsolate::IsRunning() && EventMaskHas(kEventFamilyGCMask);
+  return NeedsEvents() && EventMaskHas(kEventFamilyGCMask);
 }
 
 
@@ -583,7 +589,7 @@ void Service::HandleGCEvent(GCEvent* event) {
 }
 
 
-void Service::HandleDebuggerEvent(DebuggerEvent* event) {
+void Service::HandleEvent(ServiceEvent* event) {
   JSONStream js;
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
@@ -2016,8 +2022,8 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     jsobj.AddProperty("type", "Success");
     jsobj.AddProperty("id", "");
     {
-      DebuggerEvent resumeEvent(isolate, DebuggerEvent::kIsolateResumed);
-      Service::HandleDebuggerEvent(&resumeEvent);
+      ServiceEvent event(isolate, ServiceEvent::kResume);
+      Service::HandleEvent(&event);
     }
     return true;
   }
@@ -2050,21 +2056,6 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
   }
 
   PrintError(js, "VM was not paused");
-  return true;
-}
-
-
-static const MethodParameter* get_breakpoints_params[] = {
-  ISOLATE_PARAMETER,
-  NULL,
-};
-
-
-static bool GetBreakpoints(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "BreakpointList");
-  JSONArray jsarr(&jsobj, "breakpoints");
-  isolate->debugger()->PrintBreakpointsToJSONArray(&jsarr);
   return true;
 }
 
@@ -2517,8 +2508,6 @@ static ServiceMethodDescriptor service_methods_[] = {
     eval_params },
   { "getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
-  { "getBreakpoints", GetBreakpoints,
-    get_breakpoints_params },
   { "getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
   { "getClassList", GetClassList,

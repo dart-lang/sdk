@@ -277,8 +277,6 @@ typedef void BreakpointHandler(Dart_Port isolate_id,
                                DebuggerStackTrace* stack);
 
 
-// TODO(turnidge): At some point we may want to turn this into a class
-// hierarchy.
 class DebuggerEvent {
  public:
   enum EventType {
@@ -288,7 +286,6 @@ class DebuggerEvent {
     kIsolateCreated = 4,
     kIsolateShutdown = 5,
     kIsolateInterrupted = 6,
-    kIsolateResumed = 7,
   };
 
   explicit DebuggerEvent(Isolate* isolate, EventType event_type)
@@ -302,12 +299,18 @@ class DebuggerEvent {
 
   EventType type() const { return type_; }
 
+  bool IsPauseEvent() const {
+    return (type_ == kBreakpointReached ||
+            type_ == kIsolateInterrupted ||
+            type_ == kExceptionThrown);
+  }
+
   ActivationFrame* top_frame() const {
-    ASSERT(type_ == kBreakpointReached);
+    ASSERT(IsPauseEvent());
     return top_frame_;
   }
   void set_top_frame(ActivationFrame* frame) {
-    ASSERT(type_ == kBreakpointReached);
+    ASSERT(IsPauseEvent());
     top_frame_ = frame;
   }
 
@@ -332,10 +335,6 @@ class DebuggerEvent {
   Dart_Port isolate_id() const {
     return isolate_->main_port();
   }
-
-  void PrintJSON(JSONStream* js) const;
-
-  static const char* EventTypeToCString(EventType type);
 
  private:
   Isolate* isolate_;

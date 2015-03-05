@@ -384,6 +384,8 @@
     'scopes_test.cc',
     'service.cc',
     'service.h',
+    'service_event.cc',
+    'service_event.h',
     'service_isolate.cc',
     'service_isolate.h',
     'service_test.cc',

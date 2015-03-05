@@ -142,11 +142,11 @@ class NextCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.eventType == 'IsolateCreated') {
+      if (event.eventType == ServiceEvent.kPauseStart) {
         debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
-      if (event.eventType == 'IsolateShutdown') {
+      if (event.eventType == ServiceEvent.kPauseExit) {
         debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
@@ -174,11 +174,11 @@ class StepCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.eventType == 'IsolateCreated') {
+      if (event.eventType == ServiceEvent.kPauseStart) {
         debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
-      if (event.eventType == 'IsolateShutdown') {
+      if (event.eventType == ServiceEvent.kPauseExit) {
         debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
@@ -258,13 +258,6 @@ class BreakCommand extends DebuggerCommand {
       // TODO(turnidge): Adding a duplicate breakpoint is
       // currently ignored.  May want to change the protocol to
       // inform us when this happens.
-
-      // The BreakpointResolved event prints resolved
-      // breakpoints already.  Just print the unresolved ones here.
-      Breakpoint bpt = result;
-      if (!bpt.resolved) {
-        return debugger._reportBreakpointAdded(bpt);
-      }
     }
     return new Future.value(null);
   }
@@ -330,7 +323,7 @@ class ClearCommand extends DebuggerCommand {
               'clearing breakpoint at a specific column not yet implemented');
         }
 
-        for (var bpt in debugger.isolate.breakpoints) {
+        for (var bpt in debugger.isolate.breakpoints.values) {
           var script = bpt.script;
           if (script.id == loc.script.id) {
             assert(script.loaded);
@@ -340,12 +333,6 @@ class ClearCommand extends DebuggerCommand {
                 if (result is DartError) {
                   debugger.console.print(
                       'Unable to clear breakpoint at ${loc}: ${result.message}');
-                  return;
-                } else {
-                  // TODO(turnidge): Add a BreakpointRemoved event to
-                  // the service instead of printing here.
-                  var bpId = bpt.number;
-                  debugger.console.print('Breakpoint ${bpId} removed at ${loc}');
                   return;
                 }
               });
@@ -408,7 +395,7 @@ class DeleteCommand extends DebuggerCommand {
     for (var arg in args) {
       int id = int.parse(arg);
       var bptToRemove = null;
-      for (var bpt in debugger.isolate.breakpoints) {
+      for (var bpt in debugger.isolate.breakpoints.values) {
         if (bpt.number == id) {
           bptToRemove = bpt;
           break;
@@ -422,10 +409,7 @@ class DeleteCommand extends DebuggerCommand {
     }
     List pending = [];
     for (var bpt in toRemove) {
-      pending.add(debugger.isolate.removeBreakpoint(bpt).then((_) {
-            var id = bpt.number;
-            debugger.console.print("Removed breakpoint $id");
-          }));
+      pending.add(debugger.isolate.removeBreakpoint(bpt));
     }
     return Future.wait(pending);
   }
@@ -444,27 +428,26 @@ class InfoBreakpointsCommand extends DebuggerCommand {
       : super(debugger, 'breakpoints', []);
 
   Future run(List<String> args) {
-    return debugger.isolate.reloadBreakpoints().then((_) {
-      if (debugger.isolate.breakpoints.isEmpty) {
-        debugger.console.print('No breakpoints');
-      }
-      for (var bpt in debugger.isolate.breakpoints) {
-        var bpId = bpt.number;
-        var script = bpt.script;
-        var tokenPos = bpt.tokenPos;
-        var line = script.tokenToLine(tokenPos);
-        var col = script.tokenToCol(tokenPos);
-        var extras = new StringBuffer();
-        if (!bpt.resolved) {
-          extras.write(' unresolved');
-        }
-        if (!bpt.enabled) {
-          extras.write(' disabled');
-        }
+    if (debugger.isolate.breakpoints.isEmpty) {
+      debugger.console.print('No breakpoints');
+    }
+    List bpts = debugger.isolate.breakpoints.values.toList();
+    bpts.sort((a, b) => a.number - b.number);
+    for (var bpt in bpts) {
+      var bpId = bpt.number;
+      var script = bpt.script;
+      var tokenPos = bpt.tokenPos;
+      var line = script.tokenToLine(tokenPos);
+      var col = script.tokenToCol(tokenPos);
+      if (!bpt.resolved) {
         debugger.console.print(
-            'Breakpoint ${bpId} at ${script.name}:${line}:${col}${extras}');
+            'Future breakpoint ${bpId} at ${script.name}:${line}:${col}');
+      } else {
+        debugger.console.print(
+            'Breakpoint ${bpId} at ${script.name}:${line}:${col}');
       }
-    });
+    }
+    return new Future.value(null);
   }
 
   String helpShort = 'List all breakpoints';
@@ -635,7 +618,8 @@ class ObservatoryDebugger extends Debugger {
     // TODO(turnidge): Stop relying on the isolate to track the last
     // pause event.  Since we listen to events directly in the
     // debugger, this could introduce a race.
-    return isolate.pauseEvent != null;
+    return (isolate.pauseEvent != null &&
+            isolate.pauseEvent.eventType != ServiceEvent.kResume);
   }
 
   void warnOutOfDate() {
@@ -669,10 +653,10 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _reportPause(ServiceEvent event) {
-    if (event.eventType == 'IsolateCreated') {
+    if (event.eventType == ServiceEvent.kPauseStart) {
       console.print(
           "Paused at isolate start (type 'continue' to start the isolate')");
-    } else if (event.eventType == 'IsolateShutdown') {
+    } else if (event.eventType == ServiceEvent.kPauseExit) {
       console.print(
           "Paused at isolate exit (type 'continue' to exit the isolate')");
     }
@@ -696,7 +680,22 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
-  Future _reportBreakpointAdded(Breakpoint bpt) {
+  Future _reportBreakpointEvent(ServiceEvent event) {
+    var bpt = event.breakpoint;
+    var verb = null;
+    switch (event.eventType) {
+      case ServiceEvent.kBreakpointAdded:
+        verb = 'added';
+        break;
+      case ServiceEvent.kBreakpointResolved:
+        verb = 'resolved';
+        break;
+      case ServiceEvent.kBreakpointRemoved:
+        verb = 'removed';
+        break;
+      default:
+        break;
+    }
     var script = bpt.script;
     return script.load().then((_) {
       var bpId = bpt.number;
@@ -704,14 +703,11 @@ class ObservatoryDebugger extends Debugger {
       var line = script.tokenToLine(tokenPos);
       var col = script.tokenToCol(tokenPos);
       if (bpt.resolved) {
-        // TODO(turnidge): If this was a future breakpoint before, we
-        // should change the message to say that the breakpoint was 'resolved',
-        // rather than 'added'.
         console.print(
-            'Breakpoint ${bpId} added at ${script.name}:${line}:${col}');
+            'Breakpoint ${bpId} ${verb} at ${script.name}:${line}:${col}');
       } else {
         console.print(
-            'Future breakpoint ${bpId} added at ${script.name}:${line}:${col}');
+            'Future breakpoint ${bpId} ${verb} at ${script.name}:${line}:${col}');
       }
     });
   }
@@ -721,30 +717,34 @@ class ObservatoryDebugger extends Debugger {
       return;
     }
     switch(event.eventType) {
-      case 'IsolateShutdown':
+      case ServiceEvent.kIsolateExit:
         console.print('Isolate shutdown');
         isolate = null;
         break;
 
-      case 'BreakpointReached':
-      case 'IsolateInterrupted':
-      case 'ExceptionThrown':
+      case ServiceEvent.kPauseStart:
+      case ServiceEvent.kPauseExit:
+      case ServiceEvent.kPauseBreakpoint:
+      case ServiceEvent.kPauseInterrupted:
+      case ServiceEvent.kPauseException:
         _refreshStack(event).then((_) {
           _reportPause(event);
         });
         break;
 
-      case 'IsolateResumed':
+      case ServiceEvent.kResume:
         console.print('Continuing...');
         break;
 
-      case 'BreakpointResolved':
-        _reportBreakpointAdded(event.breakpoint);
+      case ServiceEvent.kBreakpointAdded:
+      case ServiceEvent.kBreakpointResolved:
+      case ServiceEvent.kBreakpointRemoved:
+        _reportBreakpointEvent(event);
         break;
 
-      case '_Graph':
-      case 'IsolateCreated':
-      case 'GC':
+      case ServiceEvent.kIsolateStart:
+      case ServiceEvent.kGraph:
+      case ServiceEvent.kGC:
         // Ignore these events for now.
         break;
 
