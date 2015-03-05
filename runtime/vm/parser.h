@@ -223,7 +223,7 @@ class Parser : public ValueObject {
   friend class EffectGraphVisitor;  // For BuildNoSuchMethodArguments.
 
   struct Block;
-  class TryBlocks;
+  class TryStack;
 
   Parser(const Script& script, const Library& library, intptr_t token_pos);
   Parser(const Script& script, ParsedFunction* function, intptr_t token_pos);
@@ -620,10 +620,10 @@ class Parser : public ValueObject {
                                   LocalVariable* stack_trace_var,
                                   LocalVariable* rethrow_exception_var,
                                   LocalVariable* rethrow_stack_trace_var);
-  // Adds try block to the list of try blocks seen so far.
-  void PushTryBlock(Block* try_block);
-  // Pops the inner most try block from the list.
-  TryBlocks* PopTryBlock();
+  // Push try block onto the stack of try blocks in scope.
+  void PushTry(Block* try_block);
+  // Pop the inner most try block from the stack.
+  TryStack* PopTry();
   // Collect try block scopes and indices if await or yield is in try block.
   void CheckAsyncOpInTryBlock(LocalScope** try_scope,
                               int16_t* try_index,
@@ -840,10 +840,10 @@ class Parser : public ValueObject {
   // defined, or the library of a mixin class where the function originates.
   Library& library_;
 
-  // List of try blocks seen so far, this is used to generate inlined finally
+  // Stack of try blocks in scope, this is used to generate inlined finally
   // code at all points in the try block where an exit from the block is
   // done using 'return', 'break' or 'continue' statements.
-  TryBlocks* try_blocks_list_;
+  TryStack* try_stack_;
 
   // Each try in this function gets its own try index.
   int16_t AllocateTryIndex();
