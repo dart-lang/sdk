@@ -1416,9 +1416,13 @@ class StandardTestSuite extends TestSuite {
           new File.fromUri(copiedScript).writeAsStringSync(
               new File.fromUri(script).readAsStringSync());
         } else {
+          var destination = copiedScript.toFilePath();
+          if (compileToJS) {
+            destination = destination.replaceFirst(dartExtension, '.js');
+          }
           commands.add(_compileCommand(
               script.toFilePath(),
-              copiedScript.toFilePath().replaceFirst(dartExtension, '.js'),
+              destination,
               compiler,
               tempDir,
               info.optionsFromFile));
