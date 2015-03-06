@@ -82,7 +82,7 @@ function(a) {
     return 4;
   }""", """
 function(b) {
-  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __next, __helper;
+  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __next = [], __helper;
   function __body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -118,7 +118,7 @@ function(b) {
           case 13:
             // returning from await.
             __helper = __result;
-            __next = [12];
+            __next.push(12);
             // goto finally
             __goto = 11;
             break;
@@ -149,7 +149,7 @@ function(b) {
             // after while
           case 6:
             // break __outer
-            __next = [5];
+            __next.push(5);
             // goto finally
             __goto = 4;
             break;
@@ -708,7 +708,7 @@ function(c, i) async {
 }
 """, """
 function(c, i) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next, x, y, __error, __error1;
+  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], x, y, __error, __error1;
   function __body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -763,7 +763,7 @@ function(c, i) {
         case 15:
           // join
           x = __result;
-          __next = [13];
+          __next.push(13);
           // goto finally
           __goto = 12;
           break;
@@ -772,7 +772,7 @@ function(c, i) {
           __handler = 10;
           __error1 = __currentError;
           y.x = foo(__error1);
-          __next = [13];
+          __next.push(13);
           // goto finally
           __goto = 12;
           break;
