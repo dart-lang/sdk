@@ -9,6 +9,8 @@ part of dart2js.cps_ir.optimizers;
  * in 'Compiling with Continuations, Continued' by Andrew Kennedy.
  */
 class ShrinkingReducer extends PassMixin {
+  String get passName => 'Shrinking reductions';
+
   Set<_ReductionTask> _worklist;
 
   static final _DeletedNode _DELETED = new _DeletedNode();

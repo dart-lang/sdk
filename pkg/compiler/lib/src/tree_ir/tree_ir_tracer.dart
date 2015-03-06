@@ -184,6 +184,9 @@ class BlockCollector extends StatementVisitor {
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
+  // TODO(asgerf): Fix visitors so we don't have to use PassMixin here.
+  String get passName => null;
+
   final EventSink<String> output;
 
   TreeTracer(this.output);

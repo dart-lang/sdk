@@ -734,6 +734,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 
 abstract class ExecutableDefinition implements Node {
   RunnableBody get body;
+  Element get element;
 
   applyPass(Pass pass);
 }

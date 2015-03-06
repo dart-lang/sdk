@@ -93,6 +93,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
  * by Wegman, Zadeck.
  */
 class TypePropagator<T> extends PassMixin {
+  String get passName => 'Sparse constant propagation';
+
   final types.DartTypes _dartTypes;
 
   // The constant system is used for evaluation of expressions with constant

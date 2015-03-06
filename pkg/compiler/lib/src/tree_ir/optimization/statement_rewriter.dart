@@ -92,6 +92,8 @@ part of tree_ir.optimization;
  * separated two ifs.
  */
 class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
+  String get passName => 'Statement rewriter';
+
   // The binding environment.  The rightmost element of the list is the nearest
   // available enclosing binding.
   List<Assign> environment;

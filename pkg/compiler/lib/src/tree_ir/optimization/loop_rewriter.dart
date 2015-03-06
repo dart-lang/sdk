@@ -28,6 +28,7 @@ part of tree_ir.optimization;
 /// Note that the above pattern needs no iteration since nested ifs
 /// have been collapsed previously in the [StatementRewriter] phase.
 class LoopRewriter extends RecursiveVisitor with PassMixin {
+  String get passName => 'Loop rewriter';
 
   Set<Label> usedContinueLabels = new Set<Label>();
 

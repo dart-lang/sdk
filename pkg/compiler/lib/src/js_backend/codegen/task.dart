@@ -12,6 +12,8 @@ import 'unsugar.dart';
 import '../js_backend.dart';
 import '../../dart2jslib.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
+import '../../cps_ir/cps_ir_builder.dart';
+import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/cps_ir_builder_task.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
@@ -22,10 +24,13 @@ import '../../io/source_information.dart' show StartEndSourceInformation;
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../dart_backend/backend_ast_emitter.dart' as backend_ast_emitter;
 import '../../cps_ir/optimizers.dart';
+import '../../cps_ir/optimizers.dart' as cps_opt;
 import '../../tracer.dart';
 import '../../js_backend/codegen/codegen.dart';
 import '../../ssa/ssa.dart' as ssa;
 import '../../tree_ir/optimization/optimization.dart';
+import '../../tree_ir/optimization/optimization.dart' as tree_opt;
+import '../../tree_ir/tree_ir_integrity.dart';
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
 import 'js_tree_builder.dart';
 
@@ -135,31 +140,44 @@ class CpsFunctionCompiler implements FunctionCompiler {
     throw 'unsupported: $type';
   }
 
-  cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
-    // Transformations on the CPS IR.
-
-    TypePropagator typePropagator = new TypePropagator<TypeMask>(
-        compiler.types,
-        constantSystem,
-        new TypeMaskSystem(compiler),
-        compiler.internalError);
-    typePropagator.rewrite(cpsNode);
-    traceGraph("Sparse constant propagation", cpsNode);
-
+  void dumpTypedIR(cps.FunctionDefinition cpsNode,
+                   TypePropagator<TypeMask> typePropagator) {
     if (PRINT_TYPED_IR_FILTER != null &&
         PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
-      String printType(cps.Node node, String s) {
+      String printType(nodeOrRef, String s) {
+        cps.Node node = nodeOrRef is cps.Reference
+            ? nodeOrRef.definition
+            : nodeOrRef;
         var type = typePropagator.getType(node);
         return type == null ? s : "$s:${formatTypeMask(type.type)}";
       }
       DEBUG_MODE = true;
       print(new SExpressionStringifier(printType).visit(cpsNode));
     }
+  }
 
-    new RedundantPhiEliminator().rewrite(cpsNode);
-    traceGraph("Redundant phi elimination", cpsNode);
-    new ShrinkingReducer().rewrite(cpsNode);
-    traceGraph("Shrinking reductions", cpsNode);
+  static bool checkCpsIntegrity(cps.ExecutableDefinition node) {
+    new CheckCpsIntegrity().check(node);
+    return true; // So this can be used from assert().
+  }
+
+  cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
+    // Transformations on the CPS IR.
+    void applyCpsPass(cps_opt.Pass pass) {
+      pass.rewrite(cpsNode);
+      traceGraph(pass.passName, cpsNode);
+      assert(checkCpsIntegrity(cpsNode));
+    }
+
+    TypePropagator typePropagator = new TypePropagator<TypeMask>(
+        compiler.types,
+        constantSystem,
+        new TypeMaskSystem(compiler),
+        compiler.internalError);
+    applyCpsPass(typePropagator);
+    dumpTypedIR(cpsNode, typePropagator);
+    applyCpsPass(new RedundantPhiEliminator());
+    applyCpsPass(new ShrinkingReducer());
 
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
@@ -174,23 +192,28 @@ class CpsFunctionCompiler implements FunctionCompiler {
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
+    assert(checkTreeIntegrity(treeNode));
     return treeNode;
   }
 
-  tree_ir.FunctionDefinition optimizeTreeIR(
-      tree_ir.FunctionDefinition treeNode) {
-    // Transformations on the Tree IR.
-    new StatementRewriter().rewrite(treeNode);
-    traceGraph('Statement rewriter', treeNode);
-    new CopyPropagator().rewrite(treeNode);
-    traceGraph('Copy propagation', treeNode);
-    new LoopRewriter().rewrite(treeNode);
-    traceGraph('Loop rewriter', treeNode);
-    new LogicalRewriter().rewrite(treeNode);
-    traceGraph('Logical rewriter', treeNode);
-    new backend_ast_emitter.UnshadowParameters().unshadow(treeNode);
-    traceGraph('Unshadow parameters', treeNode);
-    return treeNode;
+  static bool checkTreeIntegrity(tree_ir.ExecutableDefinition node) {
+    new CheckTreeIntegrity().check(node);
+    return true; // So this can be used from assert().
+  }
+
+  tree_ir.FunctionDefinition optimizeTreeIR(tree_ir.FunctionDefinition node) {
+    void applyTreePass(tree_opt.Pass pass) {
+      pass.rewrite(node);
+      traceGraph(pass.passName, node);
+      assert(checkTreeIntegrity(node));
+    }
+
+    applyTreePass(new StatementRewriter());
+    applyTreePass(new CopyPropagator());
+    applyTreePass(new LoopRewriter());
+    applyTreePass(new LogicalRewriter());
+
+    return node;
   }
 
   js.Fun compileToJavaScript(CodegenWorkItem work,

@@ -11,6 +11,7 @@ part of tree_ir.optimization;
 /// variables with local temporaries that were left behind when translating
 /// out of CPS (where closure variables live in a separate space).
 class CopyPropagator extends RecursiveVisitor with PassMixin {
+  String get passName => 'Copy propagation';
 
   /// After visitStatement returns, [move] maps a variable v to an
   /// assignment A of form w := v, under the following conditions:

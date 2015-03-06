@@ -13,6 +13,8 @@ part of dart2js.cps_ir.optimizers;
 /// continuation signature, all invocations, and replaced within the
 /// continuation body.
 class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
+  String get passName => 'Redundant phi elimination';
+
   final Set<Continuation> workSet = new Set<Continuation>();
 
   @override

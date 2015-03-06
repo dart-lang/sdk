@@ -55,6 +55,7 @@ part of tree_ir.optimization;
 ///   x && y            (double negation removed by [putInBooleanContext])
 ///
 class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
+  String get passName => 'Logical rewriter';
 
   /// Statement to be executed next by natural fallthrough. Although fallthrough
   /// is not introduced in this phase, we need to reason about fallthrough when

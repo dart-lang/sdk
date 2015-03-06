@@ -125,6 +125,8 @@ class Variable extends Node {
   Variable(this.host, this.element) {
     assert(host != null);
   }
+
+  String toString() => element == null ? 'Variable' : element.toString();
 }
 
 /// Read the value of a variable.
@@ -889,9 +891,45 @@ abstract class Visitor1<S, E, A> implements ExpressionVisitor1<E, A>,
 }
 
 class RecursiveVisitor extends Visitor {
+  // TODO(asgerf): Clean up the tree visitor.
+  
+  visitExecutableDefinition(ExecutableDefinition node) {
+    if (node is ConstructorDefinition) return visitConstructorDefinition(node);
+    if (node is FunctionDefinition) return visitFunctionDefinition(node);
+    if (node is FieldDefinition) return visitFieldDefinition(node);
+    throw 'Unexpected ExecutableDefinition: $node';
+  }
+
   visitFunctionDefinition(FunctionDefinition node) {
     node.parameters.forEach(visitVariable);
+    if (node.body != null) visitStatement(node.body);
+  }
+
+  visitConstructorDefinition(ConstructorDefinition node) {
+    if (node.initializers != null) node.initializers.forEach(visitInitializer);
+    visitFunctionDefinition(node);
+  }
+
+  visitFieldDefinition(FieldDefinition node) {
+    if (node.body != null) {
+      visitStatement(node.body);
+    }
+  }
+
+  visitInitializer(Initializer node) {
+    if (node is FieldInitializer) {
+      return visitFieldInitializer(node);
+    } else {
+      return visitSuperInitializer(node);
+    }
+  }
+
+  visitFieldInitializer(FieldInitializer node) {
     visitStatement(node.body);
+  }
+
+  visitSuperInitializer(SuperInitializer node) {
+    node.arguments.forEach(visitStatement);
   }
 
   visitVariable(Variable node) {}
@@ -1010,14 +1048,6 @@ class RecursiveVisitor extends Visitor {
   visitTry(Try node) {
     visitStatement(node.tryBody);
     visitStatement(node.catchBody);
-  }
-
-  visitFieldInitializer(FieldInitializer node) {
-    visitStatement(node.body);
-  }
-
-  visitSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach(visitStatement);
   }
 
   visitGetField(GetField node) {

@@ -16,6 +16,8 @@ abstract class Pass {
   void rewriteFieldDefinition(FieldDefinition root);
   void rewriteFunctionDefinition(FunctionDefinition root);
   void rewriteConstructorDefinition(ConstructorDefinition root);
+
+  String get passName;
 }
 
 
