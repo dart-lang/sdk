@@ -223,10 +223,9 @@ class HtmlElement {}
     for (SdkLibrary library in LIBRARIES) {
       String libraryPath = library.path;
       if (filePath.replaceAll('\\', '/') == libraryPath) {
-        String path = library.shortName;
         try {
           resource.File file = provider.getResource(uri.path);
-          Uri dartUri = new Uri(scheme: 'dart', path: path);
+          Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
           return null;

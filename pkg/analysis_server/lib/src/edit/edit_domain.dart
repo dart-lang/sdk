@@ -58,12 +58,14 @@ class EditDomainHandler implements RequestHandler {
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
-    engine.AnalysisContext context = server.getAnalysisContext(file);
+    ContextSourcePair contextSource = server.getContextSourcePair(file);
+
+    engine.AnalysisContext context = contextSource.context;
     if (context == null) {
       return new Response.formatInvalidFile(request);
     }
 
-    Source source = server.getSource(file);
+    Source source = contextSource.source;
     engine.TimestampedData<String> contents;
     try {
       contents = context.getContents(source);
@@ -485,8 +487,9 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
-      engine.AnalysisContext context = server.getAnalysisContext(file);
-      Source source = server.getSource(file);
+      ContextSourcePair contextSource = server.getContextSourcePair(file);
+      engine.AnalysisContext context = contextSource.context;
+      Source source = contextSource.source;
       refactoring = new MoveFileRefactoring(
           server.resourceProvider.pathContext, searchEngine, context, source);
     }

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -34,6 +35,7 @@ class AnalysisServerTest {
   MockServerChannel channel;
   AnalysisServer server;
   MemoryResourceProvider resourceProvider;
+  MockPackageMapProvider packageMapProvider;
 
   /**
    * Verify that getAnalysisContextForSource returns the correct contexts even
@@ -112,10 +114,10 @@ import "../foo/foo.dart";
   void setUp() {
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(channel, resourceProvider,
-        new MockPackageMapProvider(), null, new AnalysisServerOptions(),
-        new MockSdk(), InstrumentationService.NULL_SERVICE,
-        rethrowExceptions: true);
+    packageMapProvider = new MockPackageMapProvider();
+    server = new AnalysisServer(channel, resourceProvider, packageMapProvider,
+        null, new AnalysisServerOptions(), new MockSdk(),
+        InstrumentationService.NULL_SERVICE, rethrowExceptions: true);
   }
 
   Future test_contextDisposed() {
@@ -189,34 +191,6 @@ import "../foo/foo.dart";
     });
   }
 
-  test_getAnalysisContext_nested() {
-    String dir1Path = '/dir1';
-    String dir2Path = dir1Path + '/dir2';
-    String filePath = dir2Path + '/file.dart';
-    Folder dir1 = resourceProvider.newFolder(dir1Path);
-    Folder dir2 = resourceProvider.newFolder(dir2Path);
-    resourceProvider.newFile(filePath, 'library lib;');
-
-    AnalysisContext context1 = AnalysisEngine.instance.createAnalysisContext();
-    AnalysisContext context2 = AnalysisEngine.instance.createAnalysisContext();
-    server.folderMap[dir1] = context1;
-    server.folderMap[dir2] = context2;
-
-    expect(server.getAnalysisContext(filePath), context2);
-  }
-
-  test_getAnalysisContext_simple() {
-    String dirPath = '/dir';
-    String filePath = dirPath + '/file.dart';
-    Folder dir = resourceProvider.newFolder(dirPath);
-    resourceProvider.newFile(filePath, 'library lib;');
-
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    server.folderMap[dir] = context;
-
-    expect(server.getAnalysisContext(filePath), context);
-  }
-
   Future test_getAnalysisContextForSource() {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = [ServerService.STATUS].toSet();
@@ -244,6 +218,69 @@ import "../foo/foo.dart";
       expect(barContext.getKindOf(fooSource), SourceKind.UNKNOWN);
       expect(barContext.getKindOf(barSource), SourceKind.LIBRARY);
     });
+  }
+
+  test_getContextSourcePair_nested() {
+    String dir1Path = '/dir1';
+    String dir2Path = dir1Path + '/dir2';
+    String filePath = dir2Path + '/file.dart';
+    Folder dir1 = resourceProvider.newFolder(dir1Path);
+    Folder dir2 = resourceProvider.newFolder(dir2Path);
+    resourceProvider.newFile(filePath, 'library lib;');
+
+    AnalysisContext context1 = AnalysisEngine.instance.createAnalysisContext();
+    AnalysisContext context2 = AnalysisEngine.instance.createAnalysisContext();
+    _configureSourceFactory(context1);
+    _configureSourceFactory(context2);
+    server.folderMap[dir1] = context1;
+    server.folderMap[dir2] = context2;
+
+    ContextSourcePair pair = server.getContextSourcePair(filePath);
+    Source source = pair.source;
+    expect(pair.context, same(context2));
+    expect(source, isNotNull);
+    expect(source.uri.scheme, 'file');
+    expect(source.fullName, filePath);
+  }
+
+  test_getContextSourcePair_package_inRoot() {
+    String rootPath = '/my_package';
+    String filePath = rootPath + '/lib/file.dart';
+    Folder rootFolder = resourceProvider.newFolder(rootPath);
+    resourceProvider.newFile(filePath, 'library lib;');
+
+    packageMapProvider.packageMap = <String, List<Folder>>{
+      'my_package': <Folder>[rootFolder]
+    };
+
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    _configureSourceFactory(context);
+    server.folderMap[rootFolder] = context;
+
+    ContextSourcePair pair = server.getContextSourcePair(filePath);
+    Source source = pair.source;
+    expect(pair.context, same(context));
+    expect(source, isNotNull);
+    expect(source.uri.scheme, 'package');
+    expect(source.fullName, filePath);
+  }
+
+  test_getContextSourcePair_simple() {
+    String dirPath = '/dir';
+    String filePath = dirPath + '/file.dart';
+    Folder dir = resourceProvider.newFolder(dirPath);
+    resourceProvider.newFile(filePath, 'library lib;');
+
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    _configureSourceFactory(context);
+    server.folderMap[dir] = context;
+
+    ContextSourcePair pair = server.getContextSourcePair(filePath);
+    Source source = pair.source;
+    expect(pair.context, same(context));
+    expect(source, isNotNull);
+    expect(source.uri.scheme, 'file');
+    expect(source.fullName, filePath);
   }
 
   /**
@@ -412,6 +449,14 @@ import "../foo/foo.dart";
       expect(response.id, equals('my22'));
       expect(response.error, isNotNull);
     });
+  }
+
+  void _configureSourceFactory(AnalysisContext context) {
+    var resourceUriResolver = new ResourceUriResolver(resourceProvider);
+    var packageUriResolver = new PackageMapUriResolver(
+        resourceProvider, packageMapProvider.packageMap);
+    context.sourceFactory =
+        new SourceFactory([packageUriResolver, resourceUriResolver]);
   }
 }
 

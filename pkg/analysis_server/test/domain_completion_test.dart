@@ -192,8 +192,9 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     sendRequest(testFile);
     return pumpEventQueue().then((_) {
       expect(completionDomain.manager, isNotNull);
+      ContextSourcePair contextSource = server.getContextSourcePair(testFile2);
       ChangeSet changeSet = new ChangeSet();
-      changeSet.changedSource(server.getSource(testFile2));
+      changeSet.changedSource(contextSource.source);
       completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
       expect(completionDomain.manager, isNull);
     });
@@ -617,8 +618,15 @@ class Test_AnalysisServer extends AnalysisServer {
       : super(channel, resourceProvider, packageMapProvider, index,
           analysisServerOptions, defaultSdk, instrumentationService);
 
+  @override
   AnalysisContext getAnalysisContext(String path) {
     return mockContext;
+  }
+
+  @override
+  ContextSourcePair getContextSourcePair(String path) {
+    ContextSourcePair pair = super.getContextSourcePair(path);
+    return new ContextSourcePair(mockContext, pair.source);
   }
 }
 

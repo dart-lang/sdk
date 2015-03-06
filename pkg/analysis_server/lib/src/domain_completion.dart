@@ -174,8 +174,9 @@ class CompletionDomainHandler implements RequestHandler {
         new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    AnalysisContext context = server.getAnalysisContext(params.file);
-    Source source = server.getSource(params.file);
+    ContextSourcePair contextSource = server.getContextSourcePair(params.file);
+    AnalysisContext context = contextSource.context;
+    Source source = contextSource.source;
     recordRequest(performance, context, source, params.offset);
     if (manager == null) {
       manager = completionManagerFor(context, source);

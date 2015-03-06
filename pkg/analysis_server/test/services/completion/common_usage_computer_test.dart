@@ -21,6 +21,7 @@ import 'package:unittest/unittest.dart';
 import '../../analysis_abstract.dart';
 import '../../mocks.dart';
 import '../../reflective_tests.dart';
+import 'package:analysis_server/src/analysis_server.dart' show ContextSourcePair;
 
 main() {
   groupSep = ' | ';
@@ -94,8 +95,9 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
     CompletionDomainHandler domainHandler = new CompletionDomainHandler(server);
     handler = domainHandler;
 
-    AnalysisContext context = server.getAnalysisContext(params.file);
-    Source source = server.getSource(params.file);
+    ContextSourcePair contextSource = server.getContextSourcePair(params.file);
+    AnalysisContext context = contextSource.context;
+    Source source = contextSource.source;
     DartCompletionManager completionManager = new DartCompletionManager(context,
         server.searchEngine, source, new DartCompletionCache(context, source),
         null, new CommonUsageComputer(selectorRelevance));
