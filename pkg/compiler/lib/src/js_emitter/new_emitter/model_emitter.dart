@@ -29,7 +29,8 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     LEAF_TAGS,
     MANGLED_GLOBAL_NAMES,
     METADATA,
-    TYPE_TO_INTERCEPTOR_MAP;
+    TYPE_TO_INTERCEPTOR_MAP,
+    TYPES;
 
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
@@ -290,7 +291,7 @@ class ModelEmitter {
 
     globals.add(emitGetTypeFromName());
 
-    globals.add(emitMetadata(program));
+    globals.addAll(emitMetadata(program));
 
     if (program.needsNativeSupport) {
       globals.add(new js.Property(js.string(INTERCEPTORS_BY_TAG),
@@ -401,12 +402,21 @@ class ModelEmitter {
     return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
   }
 
-  js.Property emitMetadata(Program program) {
-    String metadataList = "[${program.metadata.join(",")}]";
-    js.Expression metadata =
-        js.js.uncachedExpressionTemplate(metadataList).instantiate([]);
+  List<js.Property> emitMetadata(Program program) {
 
-    return new js.Property(js.string(METADATA), metadata);
+    List<js.Property> metadataGlobals = <js.Property>[];
+
+    js.Property createGlobal(List<String> list, String global) {
+      String listAsString = "[${list.join(",")}]";
+      js.Expression metadata =
+                js.js.uncachedExpressionTemplate(listAsString).instantiate([]);
+      return new js.Property(js.string(global), metadata);
+    }
+
+    metadataGlobals.add(createGlobal(program.metadata, METADATA));
+    metadataGlobals.add(createGlobal(program.metadataTypes, TYPES));
+
+    return metadataGlobals;
   }
 
   js.Expression emitDeferredFragment(DeferredFragment fragment,

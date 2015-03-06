@@ -851,21 +851,26 @@ class OldEmitter implements Emitter {
             code]);
   }
 
-  void emitMetadata(List<String> globalMetadata, CodeOutput output) {
-    String metadataAccess =
-        generateEmbeddedGlobalAccessString(embeddedNames.METADATA);
-    output.add('$metadataAccess$_=$_[');
-    for (String metadata in globalMetadata) {
-      if (metadata is String) {
-        if (metadata != 'null') {
-          output.add(metadata);
-        }
-      } else {
-        throw 'Unexpected value in metadata: ${Error.safeToString(metadata)}';
-      }
-      output.add(',$n');
-    }
-    output.add('];$n');
+  void emitMetadata(Program program, CodeOutput output) {
+
+   addMetadataGlobal(List<String> list, String global) {
+     String globalAccess = generateEmbeddedGlobalAccessString(global);
+     output.add('$globalAccess$_=$_[');
+     for (String data in list) {
+       if (data is String) {
+         if (data != 'null') {
+           output.add(data);
+         }
+       } else {
+         throw 'Unexpected value in ${global}: ${Error.safeToString(data)}';
+       }
+       output.add(',$n');
+     }
+     output.add('];$n');
+   }
+
+   addMetadataGlobal(program.metadata, embeddedNames.METADATA);
+   addMetadataGlobal(program.metadataTypes, embeddedNames.TYPES);
   }
 
   void emitCompileTimeConstants(CodeOutput output,
@@ -1489,7 +1494,7 @@ class OldEmitter implements Emitter {
 
     mainOutput.add('\n');
 
-    emitMetadata(task.metadataCollector.globalMetadata, mainOutput);
+    emitMetadata(program, mainOutput);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the

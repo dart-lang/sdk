@@ -7,19 +7,20 @@ library _js_helper;
 import 'dart:_async_await_error_codes' as async_error_codes;
 
 import 'dart:_js_embedded_names' show
-    JsGetName,
-    GET_TYPE_FROM_NAME,
-    GET_ISOLATE_TAG,
-    INTERCEPTED_NAMES,
-    INTERCEPTORS_BY_TAG,
-    LEAF_TAGS,
-    METADATA,
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
+    GET_TYPE_FROM_NAME,
+    GET_ISOLATE_TAG,
     INITIALIZE_LOADED_HUNK,
+    INTERCEPTED_NAMES,
+    INTERCEPTORS_BY_TAG,
     IS_HUNK_LOADED,
     IS_HUNK_INITIALIZED,
-    NATIVE_SUPERCLASS_TAG_NAME;
+    JsGetName,
+    LEAF_TAGS,
+    METADATA,
+    NATIVE_SUPERCLASS_TAG_NAME,
+    TYPES;
 
 import 'dart:collection';
 
@@ -30,9 +31,9 @@ import 'dart:_isolate_helper' show
     leaveJsAsync;
 
 import 'dart:async' show
-    Future,
-    DeferredLoadException,
     Completer,
+    DeferredLoadException,
+    Future,
     StreamController,
     Stream,
     StreamSubscription,
@@ -69,7 +70,7 @@ import 'dart:_foreign_helper' show
 
 import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
-import 'dart:_internal' show MappedIterable, EfficientLength;
+import 'dart:_internal' show EfficientLength, MappedIterable;
 
 import 'dart:_native_typed_data';
 
@@ -536,7 +537,7 @@ class ReflectionInfo {
   @NoInline()
   computeFunctionRti(jsConstructor) {
     if (JS('bool', 'typeof # == "number"', functionType)) {
-      return getMetadata(functionType);
+      return getType(functionType);
     } else if (JS('bool', 'typeof # == "function"', functionType)) {
       var fakeInstance = JS('', 'new #()', jsConstructor);
       setRuntimeTypeInfo(
@@ -554,6 +555,11 @@ class ReflectionInfo {
 getMetadata(int index) {
   var metadata = JS_EMBEDDED_GLOBAL('', METADATA);
   return JS('', '#[#]', metadata, index);
+}
+
+getType(int index) {
+  var types = JS_EMBEDDED_GLOBAL('', TYPES);
+  return JS('', '#[#]', types, index);
 }
 
 class Primitives {
@@ -2147,13 +2153,13 @@ abstract class Closure implements Function {
 
     var signatureFunction;
     if (JS('bool', 'typeof # == "number"', functionType)) {
-      var metadata = JS_EMBEDDED_GLOBAL('', METADATA);
+      var types = JS_EMBEDDED_GLOBAL('', TYPES);
       // It is ok, if the access is inlined into the JS. The access is safe in
       // and outside the function. In fact we prefer if there is a textual
       // inlining.
       signatureFunction =
           JS('', '(function(s){return function(){return #[s]}})(#)',
-              metadata,
+              types,
               functionType);
     } else if (!isStatic
                && JS('bool', 'typeof # == "function"', functionType)) {

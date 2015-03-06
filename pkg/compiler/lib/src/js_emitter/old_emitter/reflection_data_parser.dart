@@ -50,8 +50,8 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       emitter.generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
   jsAst.Expression librariesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.LIBRARIES);
-  jsAst.Expression metadataAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+  jsAst.Expression typesAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPES);
 
   jsAst.Statement processClassData = js.statement('''{
   function processClassData(cls, descriptor, processedClasses) {
@@ -115,7 +115,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       if (functionSignature)
         newDesc.${namer.operatorSignature} = function(s) {
           return function() {
-            return #metadata[s];
+            return #types[s];
           };
         }(functionSignature);
     }
@@ -130,7 +130,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   }
 }''', {'embeddedStatics': staticsAccess,
        'hasRetainedMetadata': backend.hasRetainedMetadata,
-       'metadata': metadataAccess,
+       'types': typesAccess,
        'notInCspMode': !compiler.useContentSecurityPolicy});
 
   // TODO(zarah): Remove empty else branches in output when if(#hole) is false.

@@ -46,6 +46,10 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 const PRECOMPILED = 'precompiled';
 
+/// A list of types used in the program e.g. for reflection or encoding of
+/// function types.
+const TYPES = 'types';
+
 /// Returns a function that creates a new Isolate (its static state).
 ///
 /// (floitsch): Note that this will probably go away, since one JS heap will

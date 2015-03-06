@@ -55,6 +55,7 @@ import 'dart:_js_helper' show
     createUnmangledInvocationMirror,
     getMangledTypeName,
     getMetadata,
+    getType,
     getRuntimeType,
     runtimeTypeToString,
     setRuntimeTypeInfo,
@@ -287,7 +288,7 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   TypeMirror get upperBound {
     if (_cachedUpperBound != null) return _cachedUpperBound;
     return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
-        owner, getMetadata(_typeVariable.bound));
+        owner, getType(_typeVariable.bound));
   }
 
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
@@ -649,7 +650,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     //  }
     //  The typedefType is the index into the metadata table.
     int index = JS('int', '#[#]', descriptor, TYPEDEF_TYPE_PROPERTY_NAME);
-    mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
+    mirror = new JsTypedefMirror(symbol, mangledName, getType(index));
   } else {
     fields = JS('', '#[#]', descriptor,
         JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY));
@@ -1510,7 +1511,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     List<int> typeInformation =
         JS('List|Null', '#[#]', typeInformationContainer, _class._mangledName);
     assert(typeInformation != null);
-    var type = getMetadata(typeInformation[0]);
+    var type = getType(typeInformation[0]);
     return _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
   }
 
@@ -1986,7 +1987,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       List<int> typeInformation =
           JS('List|Null', '#[#]', typeInformationContainer, _mangledName);
       if (typeInformation != null) {
-        var type = getMetadata(typeInformation[0]);
+        var type = getType(typeInformation[0]);
         _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
       } else {
         var superclassName = _fieldsDescriptor.split(';')[0];
@@ -2044,7 +2045,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     List<ClassMirror> result = const <ClassMirror>[];
     if (typeInformation != null) {
       ClassMirror lookupType(int i) {
-        var type = getMetadata(i);
+        var type = getType(i);
         return typeMirrorFromRuntimeTypeRepresentation(owner, type);
       }
 
@@ -2188,7 +2189,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   String get _prettyName => 'VariableMirror';
 
   TypeMirror get type {
-    return typeMirrorFromRuntimeTypeRepresentation(owner, getMetadata(_type));
+    return typeMirrorFromRuntimeTypeRepresentation(owner, getType(_type));
   }
 
   DeclarationMirror get owner => _owner;
