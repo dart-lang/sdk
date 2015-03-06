@@ -384,7 +384,7 @@ class JSString extends Interceptor implements String, JSIndexable {
       throw new RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
-      return JS('int', r'#.indexOf(#, #)', this, pattern, start);
+      return stringIndexOfStringUnchecked(this, pattern, start);
     }
     if (pattern is JSSyntaxRegExp) {
       JSSyntaxRegExp re = pattern;

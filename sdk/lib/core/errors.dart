@@ -307,12 +307,14 @@ class RangeError extends ArgumentError {
   static int checkValidRange(int start, int end, int length,
                               [String startName, String endName,
                                String message]) {
-    if (start < 0 || start > length) {
+    // Comparing with `0` as receiver produces better dart2js type inference.
+    // Ditto `start > end` below.
+    if (0 > start || start > length) {
       if (startName == null) startName = "start";
       throw new RangeError.range(start, 0, length, startName, message);
     }
     if (end != null) {
-      if (end < start || end > length) {
+      if (start > end || end > length) {
         if (endName == null) endName = "end";
         throw new RangeError.range(end, start, length, endName, message);
       }
