@@ -4649,6 +4649,13 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   to_string_func = to_string_func.Clone(cls);
   enum_members.AddFunction(to_string_func);
 
+  // Clone the hashCode getter function from the helper class.
+  Function& hash_code_func = Function::Handle(I,
+      helper_class.LookupDynamicFunctionAllowPrivate(Symbols::hashCode()));
+  ASSERT(!hash_code_func.IsNull());
+  hash_code_func = hash_code_func.Clone(cls);
+  enum_members.AddFunction(hash_code_func);
+
   cls.AddFields(enum_members.fields());
   const Array& functions =
       Array::Handle(Z, Array::MakeArray(enum_members.functions()));

@@ -24,6 +24,7 @@ class _EnumHelper {
   // below can access it because it uses the same name suffix.
   static const List<String> _enum_names = null;
   String toString() => _enum_names[index];
+  int get hashCode => _enum_names[index].hashCode;
 }
 
 
