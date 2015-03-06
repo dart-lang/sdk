@@ -77,7 +77,6 @@ issue_21398_parent_isolate1_test: RuntimeError # Issue 16549
 issue_21398_parent_isolate2_test: Skip # Not implemented yet
 function_send_test: Fail   # Not implemented yet
 function_send1_test: Fail   # Not implemented yet
-message3_test/fun: RuntimeError  # Issue 21585
 
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome || $runtime == chromeOnAndroid) ]
 isolate_stress_test: Pass, Slow # Issue 10697
