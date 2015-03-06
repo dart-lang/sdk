@@ -1229,6 +1229,7 @@ class ServerContextManager extends ContextManager {
     if (analysisServer.index != null) {
       analysisServer.index.removeContext(context);
     }
+    analysisServer.operationQueue.contextRemoved(context);
     _onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
     analysisServer.sendContextAnalysisDoneNotifications(

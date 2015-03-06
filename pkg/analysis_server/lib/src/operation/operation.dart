@@ -5,6 +5,7 @@
 library operation;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -12,6 +13,14 @@ import 'package:analyzer/src/generated/source.dart';
  * operations on a [AnalysisServer].
  */
 abstract class ServerOperation {
+  /**
+   * The context for this operation.  Operations will be automatically
+   * de-queued when their context is destroyed.
+   */
+  final AnalysisContext context;
+
+  ServerOperation(this.context);
+
   /**
    * Returns the priority of this operation.
    */
@@ -63,6 +72,8 @@ class ServerOperationPriority {
  * before a change is applied to a [Source].
  */
 abstract class SourceSensitiveOperation extends ServerOperation {
+  SourceSensitiveOperation(AnalysisContext context) : super(context);
+
   /**
    * The given [source] is about to be changed.
    * Check if this [SourceSensitiveOperation] should be discarded.
