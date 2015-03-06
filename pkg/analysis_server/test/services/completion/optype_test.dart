@@ -583,7 +583,7 @@ class OpTypeTest {
   test_InterpolationExpression() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \$^");}');
-    assertOpType(returnValue: true, typeNames: true);
+    assertOpType(returnValue: true);
   }
 
   test_InterpolationExpression_block() {
@@ -767,6 +767,12 @@ class OpTypeTest {
     // VariableDeclarationStatement  Block
     addTestSource('main() {var ^}');
     assertOpType();
+  }
+
+  test_VariableDeclarationList_final() {
+    // VariableDeclarationList  VariableDeclarationStatement  Block
+    addTestSource('main() {final ^}');
+    assertOpType(typeNames: true);
   }
 
   test_VariableDeclarationStatement_afterSemicolon() {

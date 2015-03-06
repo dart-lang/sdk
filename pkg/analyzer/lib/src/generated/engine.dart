@@ -959,8 +959,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
 
   /**
-   * A flag indicating whether errors related to sources in the SDK should be generated and
-   * reported.
+   * A flag indicating whether errors related to implicitly analyzed sources
+   * should be generated and reported.
+   */
+  bool _generateImplicitErrors = true;
+
+  /**
+   * A flag indicating whether errors related to sources in the SDK should be
+   * generated and reported.
    */
   bool _generateSdkErrors = true;
 
@@ -1115,6 +1121,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
+            this._options.generateImplicitErrors != options.generateImplicitErrors ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
@@ -1140,6 +1147,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
+        this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
@@ -1148,6 +1156,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
+    _generateImplicitErrors = options.generateImplicitErrors;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
       _invalidateAllLocalResolutionInformation(false);
@@ -2584,6 +2593,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               // These values are not currently being computed, so their state
               // is not interesting.
               continue;
+            } else if (!sourceEntry.explicitlyAdded &&
+                !_generateImplicitErrors &&
+                (descriptor == DartEntry.VERIFICATION_ERRORS ||
+                    descriptor == DartEntry.HINTS ||
+                    descriptor == DartEntry.LINTS)) {
+              continue;
             } else if (source.isInSystemLibrary &&
                 !_generateSdkErrors &&
                 (descriptor == DartEntry.VERIFICATION_ERRORS ||
@@ -2600,6 +2615,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
+    }
+  }
+
+  /**
+   * Return `true` if errors should be produced for the given [source]. The
+   * [dartEntry] associated with the source is passed in for efficiency.
+   */
+  bool _shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
+    if (source.isInSystemLibrary) {
+      return _generateSdkErrors;
+    } else if (!dartEntry.explicitlyAdded) {
+      return _generateImplicitErrors;
+    } else {
+      return true;
     }
   }
 
@@ -3846,7 +3875,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             return new AnalysisContextImpl_TaskData(
                 new ResolveDartLibraryTask(this, source, librarySource), false);
           }
-          if (_generateSdkErrors || !source.isInSystemLibrary) {
+          if (_shouldErrorsBeAnalyzed(source, dartEntry)) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
                 DartEntry.VERIFICATION_ERRORS, librarySource);
             if (verificationErrorsState == CacheState.INVALID ||
@@ -4062,7 +4091,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-          if (_generateSdkErrors || !source.isInSystemLibrary) {
+          if (_shouldErrorsBeAnalyzed(source, dartEntry)) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
                 DartEntry.VERIFICATION_ERRORS, librarySource);
             if (verificationErrorsState == CacheState.INVALID ||
@@ -6295,8 +6324,8 @@ abstract class AnalysisListener {
 class AnalysisNotScheduledError implements Exception {}
 
 /**
- * The interface `AnalysisOptions` defines the behavior of objects that provide access to a
- * set of analysis options used to control the behavior of an analysis context.
+ * A set of analysis options used to control the behavior of an analysis
+ * context.
  */
 abstract class AnalysisOptions {
   /**
@@ -6308,7 +6337,7 @@ abstract class AnalysisOptions {
    * This getter is deprecated; consider using [analyzeFunctionBodiesPredicate]
    * instead.
    */
-  @deprecated
+  @deprecated // Use this.analyzeFunctionBodiesPredicate
   bool get analyzeFunctionBodies;
 
   /**
@@ -6318,61 +6347,54 @@ abstract class AnalysisOptions {
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /**
-   * Return the maximum number of sources for which AST structures should be kept in the cache.
-   *
-   * @return the maximum number of sources for which AST structures should be kept in the cache
+   * Return the maximum number of sources for which AST structures should be
+   * kept in the cache.
    */
   int get cacheSize;
 
   /**
    * Return `true` if analysis is to generate dart2js related hint results.
-   *
-   * @return `true` if analysis is to generate dart2js related hint results
    */
   bool get dart2jsHint;
 
   /**
    * Return `true` if analysis is to include the new async support.
    */
-  @deprecated
+  @deprecated // Always true
   bool get enableAsync;
 
   /**
    * Return `true` if analysis is to include the new deferred loading support.
-   *
-   * @return `true` if analysis is to include the new deferred loading support
    */
-  @deprecated
+  @deprecated // Always true
   bool get enableDeferredLoading;
 
   /**
    * Return `true` if analysis is to include the new enum support.
-   *
-   * @return `true` if analysis is to include the new enum support
    */
-  @deprecated
+  @deprecated // Always true
   bool get enableEnum;
 
   /**
-   * Return `true` if errors, warnings and hints should be generated for sources in the SDK.
-   * The default value is `false`.
-   *
-   * @return `true` if errors, warnings and hints should be generated for the SDK
+   * Return `true` if errors, warnings and hints should be generated for sources
+   * that are implicitly being analyzed. The default value is `true`.
+   */
+  bool get generateImplicitErrors;
+
+  /**
+   * Return `true` if errors, warnings and hints should be generated for sources
+   * in the SDK. The default value is `false`.
    */
   bool get generateSdkErrors;
 
   /**
-   * Return `true` if analysis is to generate hint results (e.g. type inference based
-   * information and pub best practices).
-   *
-   * @return `true` if analysis is to generate hint results
+   * Return `true` if analysis is to generate hint results (e.g. type inference
+   * based information and pub best practices).
    */
   bool get hint;
 
   /**
    * Return `true` if incremental analysis should be used.
-   *
-   * @return `true` if incremental analysis should be used
    */
   bool get incremental;
 
@@ -6390,22 +6412,18 @@ abstract class AnalysisOptions {
 
   /**
    * Return `true` if analysis is to generate lint warnings.
-   *
-   * @return `true` if analysis is to generate lint warnings
    */
   bool get lint;
 
   /**
    * Return `true` if analysis is to parse comments.
-   *
-   * @return `true` if analysis is to parse comments
    */
   bool get preserveComments;
 }
 
 /**
- * Instances of the class `AnalysisOptions` represent a set of analysis options used to
- * control the behavior of an analysis context.
+ * A set of analysis options used to control the behavior of an analysis
+ * context.
  */
 class AnalysisOptionsImpl implements AnalysisOptions {
   /**
@@ -6433,24 +6451,32 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       _analyzeAllFunctionBodies;
 
   /**
-   * The maximum number of sources for which AST structures should be kept in the cache.
+   * The maximum number of sources for which AST structures should be kept in
+   * the cache.
    */
   int cacheSize = DEFAULT_CACHE_SIZE;
 
   /**
-   * A flag indicating whether analysis is to generate dart2js related hint results.
+   * A flag indicating whether analysis is to generate dart2js related hint
+   * results.
    */
   bool dart2jsHint = true;
 
   /**
-   * A flag indicating whether errors, warnings and hints should be generated for sources in the
-   * SDK.
+   * A flag indicating whether errors, warnings and hints should be generated
+   * for sources that are implicitly being analyzed.
    */
-  bool _generateSdkErrors = false;
+  bool generateImplicitErrors = true;
 
   /**
-   * A flag indicating whether analysis is to generate hint results (e.g. type inference based
-   * information and pub best practices).
+   * A flag indicating whether errors, warnings and hints should be generated
+   * for sources in the SDK.
+   */
+  bool generateSdkErrors = false;
+
+  /**
+   * A flag indicating whether analysis is to generate hint results (e.g. type
+   * inference based information and pub best practices).
    */
   bool hint = true;
 
@@ -6482,21 +6508,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool preserveComments = true;
 
   /**
-   * Initialize a newly created set of analysis options to have their default values.
+   * Initialize a newly created set of analysis options to have their default
+   * values.
    */
   AnalysisOptionsImpl();
 
   /**
-   * Initialize a newly created set of analysis options to have the same values as those in the
-   * given set of analysis options.
-   *
-   * @param options the analysis options whose values are being copied
+   * Initialize a newly created set of analysis options to have the same values
+   * as those in the given set of analysis [options].
    */
   AnalysisOptionsImpl.con1(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
-    _generateSdkErrors = options.generateSdkErrors;
+    generateImplicitErrors = options.generateImplicitErrors;
+    generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     incremental = options.incremental;
     incrementalApi = options.incrementalApi;
@@ -6560,20 +6586,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   void set enableEnum(bool enable) {
     // Enum support cannot be disabled
-  }
-
-  @override
-  bool get generateSdkErrors => _generateSdkErrors;
-
-  /**
-   * Set whether errors, warnings and hints should be generated for sources in the SDK to match the
-   * given value.
-   *
-   * @param generate `true` if errors, warnings and hints should be generated for sources in
-   *          the SDK
-   */
-  void set generateSdkErrors(bool generate) {
-    _generateSdkErrors = generate;
   }
 
   /**

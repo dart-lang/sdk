@@ -257,6 +257,7 @@ class AnalysisServer {
         analysisServerOptions.enableIncrementalResolutionApi;
     contextDirectoryManager.defaultOptions.incrementalValidation =
         analysisServerOptions.enableIncrementalResolutionValidation;
+    contextDirectoryManager.defaultOptions.generateImplicitErrors = false;
     _noErrorNotification = analysisServerOptions.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();

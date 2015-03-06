@@ -305,6 +305,8 @@ class DartCompletionCache extends CompletionCache {
       } else {
         otherImportedSuggestions.add(suggestion);
       }
+    } else if (element is FunctionTypeAliasElement) {
+      importedTypeSuggestions.add(suggestion);
     } else if (element is ClassElement) {
       importedTypeSuggestions.add(suggestion);
       _addConstructorSuggestions(element, relevance);

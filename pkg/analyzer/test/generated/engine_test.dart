@@ -2198,6 +2198,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
+      options.generateImplicitErrors = booleanValue;
       options.generateSdkErrors = booleanValue;
       options.hint = booleanValue;
       options.incremental = booleanValue;
@@ -2206,6 +2207,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
+      expect(copy.generateImplicitErrors, options.generateImplicitErrors);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
       expect(copy.hint, options.hint);
       expect(copy.incremental, options.incremental);
@@ -2213,14 +2215,14 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     }
   }
 
-  void test_getAnalyzeFunctionBodies() {
+  void test_analyzeFunctionBodies() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.analyzeFunctionBodies;
     options.analyzeFunctionBodies = value;
     expect(options.analyzeFunctionBodies, value);
   }
 
-  void test_getCacheSize() {
+  void test_cacheSize() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     expect(options.cacheSize, AnalysisOptionsImpl.DEFAULT_CACHE_SIZE);
     int value = options.cacheSize + 1;
@@ -2228,35 +2230,42 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     expect(options.cacheSize, value);
   }
 
-  void test_getDart2jsHint() {
+  void test_dart2jsHint() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
   }
 
-  void test_getGenerateSdkErrors() {
+  void test_generateImplicitErrors() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.generateImplicitErrors;
+    options.generateImplicitErrors = value;
+    expect(options.generateImplicitErrors, value);
+  }
+
+  void test_generateSdkErrors() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.generateSdkErrors;
     options.generateSdkErrors = value;
     expect(options.generateSdkErrors, value);
   }
 
-  void test_getHint() {
+  void test_hint() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.hint;
     options.hint = value;
     expect(options.hint, value);
   }
 
-  void test_getIncremental() {
+  void test_incremental() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.incremental;
     options.incremental = value;
     expect(options.incremental, value);
   }
 
-  void test_getPreserveComments() {
+  void test_preserveComments() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.preserveComments;
     options.preserveComments = value;

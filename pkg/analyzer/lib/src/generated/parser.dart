@@ -2692,8 +2692,8 @@ class Parser {
           !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
         Directive directive = _parseDirective(commentAndMetadata);
         if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
-          _reportErrorForCurrentToken(
-              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
+          _reportErrorForToken(
+              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, directive.beginToken);
           directiveFoundAfterDeclaration = true;
         }
         if (directive is LibraryDirective) {
