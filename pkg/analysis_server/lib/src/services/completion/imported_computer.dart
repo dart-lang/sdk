@@ -30,12 +30,11 @@ class ImportedComputer extends DartCompletionComputer {
   @override
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
-    if (optype.includeTopLevelSuggestions ||
+    if (optype.includeReturnValueSuggestions ||
+        optype.includeTypeNameSuggestions ||
+        optype.includeVoidReturnSuggestions ||
         optype.includeConstructorSuggestions) {
-      builder = new _ImportedSuggestionBuilder(request,
-          typesOnly: optype.includeOnlyTypeNameSuggestions,
-          excludeVoidReturn: !optype.includeVoidReturnSuggestions,
-          constructorsOnly: optype.includeConstructorSuggestions);
+      builder = new _ImportedSuggestionBuilder(request, optype);
       builder.shouldWaitForLowPrioritySuggestions =
           shouldWaitForLowPrioritySuggestions;
       // If target is an argument in an argument list
@@ -79,13 +78,10 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
     implements SuggestionBuilder {
   bool shouldWaitForLowPrioritySuggestions;
   final DartCompletionRequest request;
-  final bool typesOnly;
-  final bool excludeVoidReturn;
-  final bool constructorsOnly;
+  final OpType optype;
   DartCompletionCache cache;
 
-  _ImportedSuggestionBuilder(this.request, {this.typesOnly: false,
-      this.excludeVoidReturn: false, this.constructorsOnly: false}) {
+  _ImportedSuggestionBuilder(this.request, this.optype) {
     cache = request.cache;
   }
 
@@ -149,13 +145,13 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
       {int relevance: DART_RELEVANCE_DEFAULT}) {
     elements.forEach((Element elem) {
       if (elem is! ClassElement) {
-        if (typesOnly) {
+        if (optype.includeOnlyTypeNameSuggestions) {
           return;
         }
         if (elem is ExecutableElement) {
           DartType returnType = elem.returnType;
           if (returnType != null && returnType.isVoid) {
-            if (excludeVoidReturn) {
+            if (!optype.includeVoidReturnSuggestions) {
               return;
             }
           }
@@ -228,9 +224,12 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
    * Add suggested based upon imported elements.
    */
   void _addSuggestions(AstNode node) {
-    if (constructorsOnly) {
+    if (optype.includeConstructorSuggestions) {
       _addConstructorSuggestions();
-    } else {
+    }
+    if (optype.includeReturnValueSuggestions ||
+        optype.includeTypeNameSuggestions ||
+        optype.includeVoidReturnSuggestions) {
       _addInheritedSuggestions(node);
       _addTopLevelSuggestions();
     }
@@ -249,14 +248,15 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
       filterText = filterText.substring(0, 1);
     }
     DartCompletionCache cache = request.cache;
-    _addFilteredSuggestions(filterText, cache.importedTypeSuggestions);
-    _addFilteredSuggestions(filterText, cache.libraryPrefixSuggestions);
-    if (!typesOnly) {
+    if (optype.includeTypeNameSuggestions) {
+      _addFilteredSuggestions(filterText, cache.importedTypeSuggestions);
+      _addFilteredSuggestions(filterText, cache.libraryPrefixSuggestions);
+    }
+    if (optype.includeReturnValueSuggestions) {
       _addFilteredSuggestions(filterText, cache.otherImportedSuggestions);
-      if (!excludeVoidReturn) {
-        _addFilteredSuggestions(
-            filterText, cache.importedVoidReturnSuggestions);
-      }
+    }
+    if (optype.includeVoidReturnSuggestions) {
+      _addFilteredSuggestions(filterText, cache.importedVoidReturnSuggestions);
     }
   }
 }

@@ -583,7 +583,7 @@ class OpTypeTest {
   test_InterpolationExpression() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \$^");}');
-    assertOpType(returnValue: true, typeNames: true);
+    assertOpType(returnValue: true);
   }
 
   test_InterpolationExpression_block() {

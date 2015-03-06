@@ -2285,17 +2285,75 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_InterpolationExpression() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addTestSource('main() {String name; print("hello \$^");}');
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 { }
+      main() {String name; print("hello \$^");}''');
     computeFast();
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
+      assertNotSuggested('Object');
+      // TODO(danrubel) should return top level var rather than getter
+      if (computer is ImportedComputer) {
+        //assertSuggestImportedTopLevelVar('T1', 'int');
+        assertSuggestGetter('T1', 'int');
+      }
+      assertSuggestImportedFunction('F1', null);
+      assertNotSuggested('D1');
+      assertNotSuggested('C1');
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestLocalFunction('F2', null);
+      assertNotSuggested('D2');
+      assertNotSuggested('C2');
       assertSuggestLocalVariable('name', 'String');
-      assertSuggestImportedClass('Object');
     });
   }
 
   test_InterpolationExpression_block() {
+    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 { }
+      main() {String name; print("hello \${^}");}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestImportedClass('Object');
+      // TODO(danrubel) should return top level var rather than getter
+      if (computer is ImportedComputer) {
+        //assertSuggestImportedTopLevelVar('T1', 'int');
+        assertSuggestGetter('T1', 'int');
+      }
+      assertSuggestImportedFunction('F1', null);
+      assertSuggestImportedFunctionTypeAlias('D1', null);
+      assertSuggestImportedClass('C1');
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestLocalFunction('F2', null);
+      assertSuggestLocalFunctionTypeAlias('D2', null);
+      assertSuggestLocalClass('C2');
+      assertSuggestLocalVariable('name', 'String');
+    });
+  }
+
+  test_InterpolationExpression_block2() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \${n^}");}');
     computeFast();

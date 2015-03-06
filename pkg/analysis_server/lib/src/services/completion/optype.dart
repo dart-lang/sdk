@@ -72,13 +72,6 @@ class OpType {
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions &&
       !includeInvocationSuggestions;
-
-  /**
-   * Indicate whether top level elements should be suggested
-   */
-  bool get includeTopLevelSuggestions => includeReturnValueSuggestions ||
-      includeTypeNameSuggestions ||
-      includeVoidReturnSuggestions;
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
@@ -359,7 +352,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitInterpolationExpression(InterpolationExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
+      // Only include type names in a ${ } expression
+      optype.includeTypeNameSuggestions =
+          node.leftBracket != null && node.leftBracket.length > 1;
     }
   }
 
