@@ -917,6 +917,16 @@ class ErrorParserTest extends ParserTestCase {
     ], "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
   }
 
+  void test_enumInClass() {
+    ParserTestCase.parseCompilationUnit(r'''
+class Foo {
+  enum Bar {
+    Bar1, Bar2, Bar3
+  }
+}
+''', [ParserErrorCode.ENUM_IN_CLASS]);
+  }
+
   void test_equalityCannotBeEqualityOperand_eq_eq() {
     ParserTestCase.parseExpression(
         "1 == 2 == 3", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);

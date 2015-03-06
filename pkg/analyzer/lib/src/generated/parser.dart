@@ -2444,6 +2444,12 @@ class Parser {
         // class that was parsed.
         _parseClassDeclaration(commentAndMetadata, getAndAdvance());
         return null;
+      } else if (_matchesKeyword(Keyword.ENUM)) {
+        _reportErrorForToken(ParserErrorCode.ENUM_IN_CLASS, _peek());
+        // TODO(brianwilkerson) We don't currently have any way to capture the
+        // enum that was parsed.
+        _parseEnumDeclaration(commentAndMetadata);
+        return null;
       } else if (_isOperator(_currentToken)) {
         //
         // We appear to have found an operator declaration without the
@@ -9319,6 +9325,9 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode EMPTY_ENUM_BODY = const ParserErrorCode(
       'EMPTY_ENUM_BODY', "An enum must declare at least one constant name");
+
+  static const ParserErrorCode ENUM_IN_CLASS = const ParserErrorCode(
+      'ENUM_IN_CLASS', "Enums cannot be declared inside classes");
 
   static const ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND =
       const ParserErrorCode('EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
