@@ -22,86 +22,78 @@ import 'sdk.dart' show DartSdk;
 import 'source_io.dart' show FileBasedSource;
 
 /**
- * A function that is used to handle [ContentCache] entries.
+ * A function that is used to visit [ContentCache] entries.
  */
-typedef void ContentCacheVisitor(Source source, int stamp, String contents);
+typedef void ContentCacheVisitor(String fullPath, int stamp, String contents);
 
 /**
- * Instances of class `ContentCache` hold content used to override the default content of a
- * [Source].
+ * A cache used to override the default content of a [Source].
  */
 class ContentCache {
   /**
-   * A table mapping sources to the contents of those sources. This is used to override the default
-   * contents of a source.
+   * A table mapping the full path of sources to the contents of those sources.
+   * This is used to override the default contents of a source.
    */
-  HashMap<Source, String> _contentMap = new HashMap<Source, String>();
+  HashMap<String, String> _contentMap = new HashMap<String, String>();
 
   /**
-   * A table mapping sources to the modification stamps of those sources. This is used when the
-   * default contents of a source has been overridden.
+   * A table mapping the full path of sources to the modification stamps of
+   * those sources. This is used when the default contents of a source has been
+   * overridden.
    */
-  HashMap<Source, int> _stampMap = new HashMap<Source, int>();
+  HashMap<String, int> _stampMap = new HashMap<String, int>();
 
   /**
    * Visit all entries of this cache.
    */
   void accept(ContentCacheVisitor visitor) {
-    _contentMap.forEach((Source source, String contents) {
-      int stamp = _stampMap[source];
-      visitor(source, stamp, contents);
+    _contentMap.forEach((String fullPath, String contents) {
+      int stamp = _stampMap[fullPath];
+      visitor(fullPath, stamp, contents);
     });
   }
 
   /**
-   * Return the contents of the given source, or `null` if this cache does not override the
-   * contents of the source.
-   *
-   * <b>Note:</b> This method is not intended to be used except by
-   * [AnalysisContext.getContents].
-   *
-   * @param source the source whose content is to be returned
-   * @return the contents of the given source
-   */
-  String getContents(Source source) => _contentMap[source];
-
-  /**
-   * Return the modification stamp of the given source, or `null` if this cache does not
+   * Return the contents of the given [source], or `null` if this cache does not
    * override the contents of the source.
    *
    * <b>Note:</b> This method is not intended to be used except by
-   * [AnalysisContext.getModificationStamp].
-   *
-   * @param source the source whose modification stamp is to be returned
-   * @return the modification stamp of the given source
+   * [AnalysisContext.getContents].
    */
-  int getModificationStamp(Source source) => _stampMap[source];
+  String getContents(Source source) => _contentMap[source.fullName];
 
   /**
-   * Set the contents of the given source to the given contents. This has the effect of overriding
-   * the default contents of the source. If the contents are `null` the override is removed so
-   * that the default contents will be returned.
+   * Return the modification stamp of the given [source], or `null` if this
+   * cache does not override the contents of the source.
    *
-   * @param source the source whose contents are being overridden
-   * @param contents the new contents of the source
-   * @return the original cached contents or `null` if none
+   * <b>Note:</b> This method is not intended to be used except by
+   * [AnalysisContext.getModificationStamp].
+   */
+  int getModificationStamp(Source source) => _stampMap[source.fullName];
+
+  /**
+   * Set the contents of the given [source] to the given [contents]. This has
+   * the effect of overriding the default contents of the source. If the
+   * contents are `null` the override is removed so that the default contents
+   * will be returned.
    */
   String setContents(Source source, String contents) {
+    String fullName = source.fullName;
     if (contents == null) {
-      _stampMap.remove(source);
-      return _contentMap.remove(source);
+      _stampMap.remove(fullName);
+      return _contentMap.remove(fullName);
     } else {
       int newStamp = JavaSystem.currentTimeMillis();
-      int oldStamp = _stampMap[source];
-      _stampMap[source] = newStamp;
+      int oldStamp = _stampMap[fullName];
+      _stampMap[fullName] = newStamp;
       // Occasionally, if this method is called in rapid succession, the
       // timestamps are equal. Guard against this by artificially incrementing
       // the new timestamp.
       if (newStamp == oldStamp) {
-        _stampMap[source] = newStamp + 1;
+        _stampMap[fullName] = newStamp + 1;
       }
-      String oldContent = _contentMap[source];
-      _contentMap[source] = contents;
+      String oldContent = _contentMap[fullName];
+      _contentMap[fullName] = contents;
       return oldContent;
     }
   }

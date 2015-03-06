@@ -686,8 +686,8 @@ class GetHandler {
     implicitNames.sort();
 
     _overlayContents.clear();
-    context.visitContentCache((Source source, int stamp, String contents) {
-      _overlayContents[source.fullName] = contents;
+    context.visitContentCache((String fullName, int stamp, String contents) {
+      _overlayContents[fullName] = contents;
     });
 
     void _writeFiles(
@@ -887,14 +887,13 @@ class GetHandler {
         buffer.write('<table border="1">');
         _overlayContents.clear();
         ContentCache overlayState = analysisServer.overlayState;
-        overlayState.accept((Source source, int stamp, String contents) {
-          String fileName = source.fullName;
+        overlayState.accept((String fullName, int stamp, String contents) {
           buffer.write('<tr>');
           String link =
-              makeLink(OVERLAY_PATH, {PATH_PARAM: fileName}, fileName);
+              makeLink(OVERLAY_PATH, {PATH_PARAM: fullName}, fullName);
           DateTime time = new DateTime.fromMillisecondsSinceEpoch(stamp);
           _writeRow(buffer, [link, time]);
-          _overlayContents[fileName] = contents;
+          _overlayContents[fullName] = contents;
         });
         int count = _overlayContents.length;
         buffer.write('<tr><td colspan="2">Total: $count entries.</td></tr>');
