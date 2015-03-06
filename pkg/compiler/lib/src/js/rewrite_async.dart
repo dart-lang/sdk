@@ -659,7 +659,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         _makeVariableInitializer(handler, js.number(rethrowLabel)));
     variables.add(_makeVariableInitializer(currentError, null));
     if (analysis.hasFinally || (isAsyncStar && analysis.hasYield)) {
-      variables.add(_makeVariableInitializer(next, null));
+      variables.add(_makeVariableInitializer(next,
+          new js.ArrayInitializer(<js.Expression>[])));
     }
     if (analysis.hasThis && !isSyncStar) {
       // Sync* functions must remember `this` on the level of the outer
@@ -1416,7 +1417,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     } else {
       // The handler is reset as the first thing in the finally block.
       addStatement(
-          js.js.statement("# = [#];", [next, js.number(afterFinallyLabel)]));
+          js.js.statement("#.push(#);", [next, js.number(afterFinallyLabel)]));
       addGoto(finallyLabel);
     }
 
@@ -1440,8 +1441,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       if (node.finallyPart != null) {
         // The error has been caught, so after the finally, continue after the
         // try.
-        addStatement(js.js.statement("# = [#];",
-                                     [next, js.number(afterFinallyLabel)]));
+        addStatement(
+            js.js.statement("#.push(#);",
+                            [next, js.number(afterFinallyLabel)]));
         addGoto(finallyLabel);
       } else {
         addGoto(afterFinallyLabel);
