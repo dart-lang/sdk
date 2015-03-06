@@ -47,10 +47,6 @@ static bool IsWindowsHost() {
 }
 
 
-// Experimental flag that offloads all script loading I/O onto
-// the service isolate. Disabled for now.
-#define LOAD_VIA_SERVICE_ISOLATE
-
 const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
                                      const char* url_string) {
   ASSERT(url_mapping != NULL);
@@ -483,13 +479,11 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
   Dart_Handle uri = Dart_NewStringFromCString(script_uri);
 
-#if defined(LOAD_VIA_SERVICE_ISOLATE)
   Dart_Port load_port = Dart_ServiceWaitForLoadPort();
   if (load_port == ILLEGAL_PORT) {
     return NewDartUnsupportedError("Service did not return load port.");
   }
   Builtin::SetLoadPort(load_port);
-#endif
 
   return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null(), builtin_lib);
 }
@@ -615,6 +609,18 @@ void FUNCTION_NAME(Builtin_NativeLibraryExtension)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
+  char* current = Directory::Current();
+  if (current != NULL) {
+    Dart_SetReturnValue(args, DartUtils::NewString(current));
+    free(current);
+  } else {
+    Dart_Handle err = DartUtils::NewError("Failed to get current directory.");
+    Dart_PropagateError(err);
+  }
+}
+
+
 void DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                       Dart_Handle internal_lib,
                                       bool is_service_isolate,
@@ -633,12 +639,6 @@ void DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                       IsWindowsHost() ? Dart_True() : Dart_False());
     DART_CHECK_VALID(result);
   }
-
-#if defined(LOAD_VIA_SERVICE_ISOLATE)
-  result = Dart_SetField(builtin_lib, NewString("_load_via_service_isolate"),
-                         Dart_True());
-  DART_CHECK_VALID(result);
-#endif
 
   if (!is_service_isolate) {
     // Set current working directory.

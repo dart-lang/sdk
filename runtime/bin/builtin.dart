@@ -3,82 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
+// NOTE: Do not import 'dart:io' in builtin.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
-
-//////////////////////
-/* Support for loading within the isolate via dart:io */
-import 'dart:io';
-
-// Enable by setting the #define LOAD_VIA_SERVICE_ISOLATE (see dartutils.cc)
-bool _load_via_service_isolate = false;
-
-var _httpClient;
-void _httpGet(int tag,
-              Uri uri,
-              String libraryUri,
-              loadCallback(List<int> data)) {
-  if (_httpClient == null) {
-    _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
-  }
-  _httpClient.getUrl(uri)
-    .then((HttpClientRequest request) => request.close())
-    .then((HttpClientResponse response) {
-      var builder = new BytesBuilder(copy: false);
-      response.listen(
-          builder.add,
-          onDone: () {
-            if (response.statusCode != 200) {
-              var msg = 'Failure getting $uri: '
-                        '${response.statusCode} ${response.reasonPhrase}';
-              _asyncLoadError(tag, uri.toString(), libraryUri, msg);
-            }
-            loadCallback(builder.takeBytes());
-          },
-          onError: (error) {
-            _asyncLoadError(tag, uri.toString(), libraryUri, error);
-          });
-    })
-    .catchError((error) {
-      _asyncLoadError(tag, uri.toString(), libraryUri, error);
-    });
-  // TODO(floitsch): remove this line. It's just here to push an event on the
-  // event loop so that we invoke the scheduled microtasks. Also remove the
-  // import of dart:async when this line is not needed anymore.
-  Timer.run(() {});
-}
-
-
-void _cleanup() {
-  if (_httpClient != null) {
-    _httpClient.close();
-    _httpClient = null;
- }
-}
-
-_loadDataAsyncDartIO(int tag,
-                       String uri,
-                       String libraryUri,
-                       Uri resourceUri) {
-  _startingOneLoadRequest(uri);
-  if ((resourceUri.scheme == 'http') || (resourceUri.scheme == 'https')) {
-    _httpGet(tag, resourceUri, libraryUri, (data) {
-      _loadScript(tag, uri, libraryUri, data);
-    });
-  } else {
-    var sourceFile = new File(resourceUri.toFilePath());
-    sourceFile.readAsBytes().then((data) {
-      _loadScript(tag, uri, libraryUri, data);
-    },
-    onError: (e) {
-      _asyncLoadError(tag, uri, libraryUri, e);
-    });
-  }
-}
-
-//////////////////////
 
 /* See Dart_LibraryTag in dart_api.h */
 const Dart_kScriptTag = null;
@@ -112,7 +41,7 @@ class _Logger {
 
 _getPrintClosure() => _print;
 
-_getCurrentDirectoryPath() native "Directory_Current";
+_getCurrentDirectoryPath() native "Builtin_GetCurrentDirectory";
 
 // Corelib 'Uri.base' implementation.
 Uri _uriBase() {
@@ -120,10 +49,6 @@ Uri _uriBase() {
   // on dart:io. This code is the same as:
   //   return new Uri.file(Directory.current.path + "/");
   var result = _getCurrentDirectoryPath();
-  if (result is OSError) {
-    throw new FileSystemException(
-        "Getting current working directory failed", "", result);
-  }
   return new Uri.file(result + "/");
 }
 
@@ -316,7 +241,6 @@ void _finishedOneLoadRequest(String uri) {
   }
   if (_numOutstandingLoadRequests == 0) {
     _signalDoneLoading();
-    _cleanup();
   }
 }
 
@@ -400,12 +324,7 @@ _loadDataAsync(int tag, String uri, String libraryUri) {
 
   Uri resourceUri = _createUri(uri);
 
-  if (_load_via_service_isolate) {
-    _loadDataAsyncLoadPort(tag, uri, libraryUri, resourceUri);
-  } else {
-    _loadDataAsyncDartIO(tag, uri, libraryUri, resourceUri);
-  }
-
+  _loadDataAsyncLoadPort(tag, uri, libraryUri, resourceUri);
 }
 
 // Returns either a file path or a URI starting with http[s]:, as a String.
