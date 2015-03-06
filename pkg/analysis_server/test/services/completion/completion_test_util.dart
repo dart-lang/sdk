@@ -3202,6 +3202,17 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_VariableDeclarationList_final() {
+    // VariableDeclarationList  VariableDeclarationStatement  Block
+    addTestSource('main() {final ^} class C { }');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestImportedClass('Object');
+      assertSuggestLocalClass('C');
+      assertNotSuggested('==');
+    });
+  }
+
   test_VariableDeclarationStatement_RHS() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement

@@ -769,6 +769,12 @@ class OpTypeTest {
     assertOpType();
   }
 
+  test_VariableDeclarationList_final() {
+    // VariableDeclarationList  VariableDeclarationStatement  Block
+    addTestSource('main() {final ^}');
+    assertOpType(typeNames: true);
+  }
+
   test_VariableDeclarationStatement_afterSemicolon() {
     // VariableDeclarationStatement  Block  BlockFunctionBody
     addTestSource('class A {var a; x() {var b;^}}');
