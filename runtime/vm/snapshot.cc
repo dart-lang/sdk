@@ -237,6 +237,46 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
 }
 
 
+RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
+                                                     intptr_t class_header) {
+  ASSERT(kind_ == Snapshot::kMessage);
+
+  // First create a function object and associate it with the specified
+  // 'object_id'.
+  Function& func = Function::ZoneHandle(isolate(), Function::null());
+  AddBackRef(object_id, &func, kIsDeserialized);
+
+  // Read the library/class/function information and lookup the function.
+  str_ ^= ReadObjectImpl();
+  library_ = Library::LookupLibrary(str_);
+  if (library_.IsNull() || !library_.Loaded()) {
+    SetReadException("Invalid Library object found in message.");
+  }
+  str_ ^= ReadObjectImpl();
+  if (str_.Equals(Symbols::TopLevel())) {
+    str_ ^= ReadObjectImpl();
+    func = library_.LookupFunctionAllowPrivate(str_);
+  } else {
+    cls_ = library_.LookupClassAllowPrivate(str_);
+    if (cls_.IsNull()) {
+      OS::Print("Name of class not found %s\n", str_.ToCString());
+      SetReadException("Invalid Class object found in message.");
+    }
+    cls_.EnsureIsFinalized(isolate());
+    str_ ^= ReadObjectImpl();
+    func = cls_.LookupFunctionAllowPrivate(str_);
+  }
+  if (func.IsNull()) {
+    SetReadException("Invalid function object found in message.");
+  }
+  func = func.ImplicitClosureFunction();
+  ASSERT(!func.IsNull());
+
+  // Return the associated implicit static closure.
+  return func.ImplicitStaticClosure();
+}
+
+
 RawObject* SnapshotReader::ReadObjectImpl() {
   int64_t value = Read<int64_t>();
   if ((value & kSmiTagMask) == kSmiTag) {
@@ -312,7 +352,8 @@ RawObject* SnapshotReader::ReadObjectRef() {
   // Since we are only reading an object reference, If it is an instance kind
   // then we only need to figure out the class of the object and allocate an
   // instance of it. The individual fields will be read later.
-  if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
+  intptr_t header_id = SerializedHeaderData::decode(class_header);
+  if (header_id == kInstanceObjectId) {
     Instance& result = Instance::ZoneHandle(isolate(), Instance::null());
     AddBackRef(object_id, &result, kIsNotDeserialized);
 
@@ -326,6 +367,12 @@ RawObject* SnapshotReader::ReadObjectRef() {
       result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
     }
     return result.raw();
+  } else if (header_id == kStaticImplicitClosureObjectId) {
+    // We skip the tags that have been written as the implicit static
+    // closure is going to be created in this isolate or the canonical
+    // version already created in the isolate will be used.
+    ReadTags();
+    return ReadStaticImplicitClosure(object_id, class_header);
   }
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
 
@@ -937,7 +984,8 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = Read<int32_t>();
   intptr_t tags = ReadTags();
-  if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
+  intptr_t header_id = SerializedHeaderData::decode(class_header);
+  if (header_id == kInstanceObjectId) {
     // Object is regular dart instance.
     Instance* result = reinterpret_cast<Instance*>(GetBackRef(object_id));
     intptr_t instance_size = 0;
@@ -1002,6 +1050,11 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       ASSERT(!result->IsNull());
     }
     return result->raw();
+  } else if (header_id == kStaticImplicitClosureObjectId) {
+    // We do not use the tags as the implicit static closure
+    // is going to be created in this isolate or the canonical
+    // version already created in the isolate will be used.
+    return ReadStaticImplicitClosure(object_id, class_header);
   }
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
   intptr_t class_id = LookupInternalClass(class_header);
@@ -1215,10 +1268,10 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     WriteInstanceRef(raw, cls);
     return;
   }
-  // Object is being referenced, add it to the forward ref list and mark
-  // it so that future references to this object in the snapshot will use
-  // this object id. Mark it as not having been serialized yet so that we
-  // will serialize the object when we go through the forward list.
+  // Add object to the forward ref list and mark it so that future references
+  // to this object in the snapshot will use this object id. Mark it as having
+  // been serialized so that we do not serialize the object when we go through
+  // the forward list.
   forward_list_.MarkAndAddObject(raw, kIsSerialized);
   switch (class_id) {
 #define SNAPSHOT_WRITE(clazz)                                                  \
@@ -1592,6 +1645,29 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
 }
 
 
+void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
+                                                RawFunction* func,
+                                                intptr_t tags) {
+  // Write out the serialization header value for this object.
+  WriteInlinedObjectHeader(object_id);
+
+  // Indicate this is a static implicit closure object.
+  Write<int32_t>(SerializedHeaderData::encode(kStaticImplicitClosureObjectId));
+
+  // Write out the tags.
+  WriteTags(tags);
+
+  // Write out the library url, class name and signature function name.
+  RawClass* cls = GetFunctionOwner(func);
+  ASSERT(cls != Class::null());
+  RawLibrary* library = cls->ptr()->library_;
+  ASSERT(library != Library::null());
+  WriteObjectImpl(library->ptr()->url_);
+  WriteObjectImpl(cls->ptr()->name_);
+  WriteObjectImpl(func->ptr()->name_);
+}
+
+
 void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
                                   intptr_t array_kind,
                                   intptr_t tags,
@@ -1625,34 +1701,63 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 }
 
 
-void SnapshotWriter::CheckIfSerializable(RawClass* cls) {
+RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
+                                                   RawObject* obj) {
   if (Class::IsSignatureClass(cls)) {
-    // We do not allow closure objects in an isolate message.
-    Isolate* isolate = Isolate::Current();
-    HANDLESCOPE(isolate);
+    // 'obj' is a closure as its class is a signature class, extract
+    // the function object to check if this closure can be sent in an
+    // isolate message.
+    RawFunction* func = Closure::GetFunction(obj);
+    // We only allow closure of top level methods or static functions in a
+    // class to be sent in isolate messages.
+    if (can_send_any_object() &&
+        Function::IsImplicitStaticClosureFunction(func)) {
+      return func;
+    }
+    // Not a closure of a top level method or static function, throw an
+    // exception as we do not allow these objects to be serialized.
+    HANDLESCOPE(isolate());
+
+    const Class& clazz = Class::Handle(isolate(), cls);
+    const Function& errorFunc = Function::Handle(isolate(), func);
+    ASSERT(!errorFunc.IsNull());
+
+    // All other closures are errors.
     const char* format = "Illegal argument in isolate message"
-                         " : (object is a closure - %s %s)";
+        " : (object is a closure - %s %s)";
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
-    const Class& clazz = Class::Handle(isolate, cls);
-    const Function& func = Function::Handle(isolate,
-                                            clazz.signature_function());
-    ASSERT(!func.IsNull());
     intptr_t len = OS::SNPrint(NULL, 0, format,
-                               clazz.ToCString(), func.ToCString()) + 1;
-    char* chars = isolate->current_zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, clazz.ToCString(), func.ToCString());
+                               clazz.ToCString(), errorFunc.ToCString()) + 1;
+    char* chars = isolate()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, clazz.ToCString(), errorFunc.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
+  return Function::null();
+}
+
+
+RawClass* SnapshotWriter::GetFunctionOwner(RawFunction* func) {
+  RawObject* owner = func->ptr()->owner_;
+  uword tags = GetObjectTags(owner);
+  intptr_t class_id = RawObject::ClassIdTag::decode(tags);
+  if (class_id == kClassCid) {
+    return reinterpret_cast<RawClass*>(owner);
+  }
+  ASSERT(class_id == kPatchClassCid);
+  return reinterpret_cast<RawPatchClass*>(owner)->ptr()->patched_class_;
+}
+
+
+void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
   if (cls->ptr()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
-    Isolate* isolate = Isolate::Current();
-    HANDLESCOPE(Isolate::Current());
+    HANDLESCOPE(isolate());
     const char* format = "Illegal argument in isolate message"
                          " : (object extends NativeWrapper - %s)";
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
-    const Class& clazz = Class::Handle(isolate, cls);
+    const Class& clazz = Class::Handle(isolate(), cls);
     intptr_t len = OS::SNPrint(NULL, 0, format, clazz.ToCString()) + 1;
-    char* chars = isolate->current_zone()->Alloc<char>(len);
+    char* chars = isolate()->current_zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, clazz.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
@@ -1673,11 +1778,20 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
                                    RawObject* raw,
                                    RawClass* cls,
                                    intptr_t tags) {
-  // First check if object is a closure or has native fields.
-  CheckIfSerializable(cls);
+  // Check if the instance has native fields and throw an exception if it does.
+  CheckForNativeFields(cls);
+
+  // Check if object is a closure that is serializable, if the object is a
+  // closure that is not serializable this will throw an exception.
+  RawFunction* func = IsSerializableClosure(cls, raw);
+  if (func != Function::null()) {
+    WriteStaticImplicitClosure(object_id, func, tags);
+    return;
+  }
 
   // Object is regular dart instance.
-  intptr_t next_field_offset =
+  intptr_t next_field_offset = Class::IsSignatureClass(cls) ?
+      Closure::InstanceSize() :
       cls->ptr()->next_field_offset_in_words_ << kWordSizeLog2;
   ASSERT(next_field_offset > 0);
 
@@ -1713,8 +1827,25 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
 
 
 void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
-  // First check if object is a closure or has native fields.
-  CheckIfSerializable(cls);
+  // Check if the instance has native fields and throw an exception if it does.
+  CheckForNativeFields(cls);
+
+  // Check if object is a closure that is serializable, if the object is a
+  // closure that is not serializable this will throw an exception.
+  RawFunction* func = IsSerializableClosure(cls, raw);
+  if (func != Function::null()) {
+    // Add object to the forward ref list and mark it so that future references
+    // to this object in the snapshot will use this object id. Mark it as having
+    // been serialized so that we do not serialize the object when we go through
+    // the forward list.
+    forward_list_.MarkAndAddObject(raw, kIsSerialized);
+    uword tags = raw->ptr()->tags_;
+    ASSERT(SerializedHeaderTag::decode(tags) == kObjectId);
+    intptr_t object_id = SerializedHeaderData::decode(tags);
+    tags = forward_list_.NodeForObjectId(object_id)->tags();
+    WriteStaticImplicitClosure(object_id, func, tags);
+    return;
+  }
 
   // Object is being referenced, add it to the forward ref list and mark
   // it so that future references to this object in the snapshot will use

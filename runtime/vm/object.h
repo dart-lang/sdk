@@ -2135,6 +2135,7 @@ class Function : public Object {
   bool IsImplicitStaticClosureFunction() const {
     return is_static() && IsImplicitClosureFunction();
   }
+  bool static IsImplicitStaticClosureFunction(RawFunction* func);
 
   // Returns true if this function represents an implicit instance closure
   // function.
@@ -2377,6 +2378,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
+  friend class SnapshotWriter;
   friend class Parser;  // For set_eval_script.
   // RawFunction::VisitFunctionPointers accesses the private constructor of
   // Function.
@@ -7335,8 +7337,13 @@ class Closure : public AllStatic {
     // Indicates this class cannot be extended by dart code.
     return -kWordSize;
   }
+  static RawFunction* GetFunction(RawObject* obj) {
+    return *(reinterpret_cast<RawFunction**>(
+        reinterpret_cast<intptr_t>(obj->ptr()) + function_offset()));
+  }
 
   friend class Class;
+  friend class SnapshotWriter;
 };
 
 

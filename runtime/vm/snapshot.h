@@ -347,6 +347,7 @@ class SnapshotReader : public BaseReader {
   RawObject* AllocateUninitialized(intptr_t class_id, intptr_t size);
 
   RawClass* ReadClassId(intptr_t object_id);
+  RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
   RawObject* ReadObjectImpl();
   RawObject* ReadObjectImpl(intptr_t header);
   RawObject* ReadObjectRef();
@@ -611,6 +612,9 @@ class SnapshotWriter : public BaseWriter {
 
   void WriteObjectRef(RawObject* raw);
   void WriteClassId(RawClass* cls);
+  void WriteStaticImplicitClosure(intptr_t object_id,
+                                  RawFunction* func,
+                                  intptr_t tags);
   void WriteObjectImpl(RawObject* raw);
   void WriteInlinedObject(RawObject* raw);
   void WriteForwardedObjects();
@@ -620,7 +624,9 @@ class SnapshotWriter : public BaseWriter {
                     RawSmi* length,
                     RawTypeArguments* type_arguments,
                     RawObject* data[]);
-  void CheckIfSerializable(RawClass* cls);
+  RawFunction* IsSerializableClosure(RawClass* cls, RawObject* obj);
+  RawClass* GetFunctionOwner(RawFunction* func);
+  void CheckForNativeFields(RawClass* cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);
   void WriteInstance(intptr_t object_id,
                      RawObject* raw,

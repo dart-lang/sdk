@@ -6084,6 +6084,21 @@ bool Function::IsImplicitClosureFunction() const {
 }
 
 
+bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
+  NoGCScope no_gc;
+  uint32_t kind_tag = func->ptr()->kind_tag_;
+  if (KindBits::decode(kind_tag) != RawFunction::kClosureFunction) {
+    return false;
+  }
+  if (!StaticBit::decode(kind_tag)) {
+    return false;
+  }
+  RawClosureData* data = reinterpret_cast<RawClosureData*>(func->ptr()->data_);
+  RawFunction* parent_function = data->ptr()->parent_function_;
+  return (parent_function->ptr()->data_ == reinterpret_cast<RawObject*>(func));
+}
+
+
 RawFunction* Function::New() {
   ASSERT(Object::function_class() != Class::null());
   RawObject* raw = Object::Allocate(Function::kClassId,
@@ -6383,10 +6398,15 @@ void Function::BuildSignatureParameters(
 
 RawInstance* Function::ImplicitStaticClosure() const {
   if (implicit_static_closure() == Instance::null()) {
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    const Context& context = Context::Handle(object_store->empty_context());
-    const Instance& closure =
-        Instance::Handle(Closure::New(*this, context, Heap::kOld));
+    Isolate* isolate = Isolate::Current();
+    ObjectStore* object_store = isolate->object_store();
+    const Context& context = Context::Handle(isolate,
+                                             object_store->empty_context());
+    Instance& closure =
+        Instance::Handle(isolate, Closure::New(*this, context, Heap::kOld));
+    const char* error_str = NULL;
+    closure ^= closure.CheckAndCanonicalize(&error_str);
+    ASSERT(!closure.IsNull());
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
