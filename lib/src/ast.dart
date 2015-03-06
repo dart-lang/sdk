@@ -8,8 +8,7 @@ library linter.src.ast;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-
-final _identifier = new RegExp(r'^([_a-zA-Z]+([_a-zA-Z0-9])*)$');
+import 'package:linter/src/util.dart';
 
 /// Returns `true` if the given [id] is a Dart keyword.
 bool isKeyWord(String id) => Keyword.keywords.keys.contains(id);
@@ -82,8 +81,7 @@ bool isSimpleSetter(MethodDeclaration setter) {
 }
 
 /// Returns `true` if the given [id] is a valid Dart identifier.
-bool isValidDartIdentifier(String id) =>
-    !isKeyWord(id) && _identifier.hasMatch(id);
+bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
   if (expression is SimpleIdentifier) {

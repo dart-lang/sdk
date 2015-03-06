@@ -4,6 +4,8 @@
 
 library linter.src.util;
 
+final _identifier = new RegExp(r'^([_a-zA-Z]+([_a-zA-Z0-9])*)$');
+
 final _lowerCamelCase = new RegExp(r'^[_]?[a-z][a-z0-9]*([A-Z][a-z0-9]*)*$');
 
 final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
@@ -15,7 +17,9 @@ final _pubspec = new RegExp(r'^[_]?pubspec.yaml$');
 
 bool isDartFileName(String fileName) => fileName.endsWith('.dart');
 
-bool isLowerCamelCase(String id) => _lowerCamelCase.hasMatch(id) || id =='_';
+bool isIdentifier(String name) => _identifier.hasMatch(name);
+
+bool isLowerCamelCase(String id) => _lowerCamelCase.hasMatch(id) || id == '_';
 
 bool isLowerCaseUnderScore(String id) => _lowerCaseUnderScore.hasMatch(id);
 

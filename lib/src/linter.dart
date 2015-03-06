@@ -16,13 +16,6 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 
-final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
-
-final _camelCaseTester = new RegExp(r'^([_]*)([A-Z]+[a-z0-9]*)+$');
-
-String _humanize(String camelCase) =>
-    _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');
-
 void _registerLinters(Iterable<Linter> linters) {
   if (linters != null) {
     LintGenerator.LINTERS.clear();
@@ -37,6 +30,9 @@ typedef Iterable<LintRule> RuleSet();
 
 /// Describes a String in valid camel case format.
 class CamelCaseString {
+  static final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
+  static final _camelCaseTester = new RegExp(r'^([_]*)([A-Z]+[a-z0-9]*)+$');
+
   final String value;
   CamelCaseString(this.value) {
     if (!isCamelCase(value)) {
@@ -49,6 +45,9 @@ class CamelCaseString {
   String toString() => value;
 
   static bool isCamelCase(String name) => _camelCaseTester.hasMatch(name);
+
+  static String _humanize(String camelCase) =>
+      _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');
 }
 
 /// Dart source linter.
@@ -323,6 +322,7 @@ abstract class Reporter {
   void exception(LinterException exception);
   void warn(String message);
 }
+
 /// Linter implementation
 class SourceLinter implements DartLinter, AnalysisErrorListener {
   final errors = <AnalysisError>[];
