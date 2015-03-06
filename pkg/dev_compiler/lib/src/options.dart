@@ -25,7 +25,7 @@ class ResolverOptions {
 
   /// Whether to infer return types and field types from overriden members.
   final bool inferFromOverrides;
-  static const bool INFER_FROM_OVERRIDES_DEFAULT = false;
+  static const inferFromOverridesDefault = false;
 
   /// Whether to infer types for consts and static fields by looking at
   /// identifiers on the RHS. For example, in a constant declaration like:
@@ -37,6 +37,7 @@ class ResolverOptions {
   /// defined in a different library than `A`. Because this might be surprising
   /// to users, this is turned off by default.
   final bool inferStaticsFromIdentifiers;
+  static const inferStaticsFromIdentifiersDefault = false;
 
   /// Whether to ignore ordering issues and do a best effort in inference. When
   /// false, inference of top-levels and statics is limited to only consider
@@ -49,17 +50,19 @@ class ResolverOptions {
   /// implementation of inference in the future, which should handle all
   /// ordering concerns.
   final bool inferInNonStableOrder;
+  static const inferInNonStableOrderDefault = false;
 
   /// Restrict inference of fields and top-levels to those that are final and
   /// const.
   final bool onlyInferConstsAndFinalFields;
+  static const onlyInferConstAndFinalFieldsDefault = false;
 
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
       this.packagePaths: const <String>[],
-      this.inferFromOverrides: INFER_FROM_OVERRIDES_DEFAULT,
-      this.inferStaticsFromIdentifiers: false,
-      this.inferInNonStableOrder: false,
-      this.onlyInferConstsAndFinalFields: false});
+      this.inferFromOverrides: inferFromOverridesDefault,
+      this.inferStaticsFromIdentifiers: inferStaticsFromIdentifiersDefault,
+      this.inferInNonStableOrder: inferInNonStableOrderDefault,
+      this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault});
 }
 
 // TODO(vsm): Merge RulesOptions and TypeOptions
@@ -207,10 +210,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.covariantGenerics: true, this.relaxedCasts: true,
       this.useMultiPackage: false, this.packageRoot: 'packages/',
       this.packagePaths: const <String>[],
-      this.inferFromOverrides: ResolverOptions.INFER_FROM_OVERRIDES_DEFAULT,
-      this.inferStaticsFromIdentifiers: false,
-      this.inferInNonStableOrder: false,
-      this.onlyInferConstsAndFinalFields: false,
+      this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
+      this.inferStaticsFromIdentifiers: ResolverOptions.inferStaticsFromIdentifiersDefault,
+      this.inferInNonStableOrder: ResolverOptions.inferInNonStableOrderDefault,
+      this.onlyInferConstsAndFinalFields: ResolverOptions.onlyInferConstAndFinalFieldsDefault,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
       this.emitSourceMaps: true, this.entryPointFile: null,
@@ -281,16 +284,18 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('infer-from-overrides',
       help: 'Infer unspecified types of fields and return types from '
       'definitions in supertypes',
-      defaultsTo: ResolverOptions.INFER_FROM_OVERRIDES_DEFAULT)
+      defaultsTo: ResolverOptions.inferFromOverridesDefault)
   ..addFlag('infer-transitively',
       help: 'Infer consts/fields from definitions in other libraries',
-      defaultsTo: false)
+      defaultsTo: ResolverOptions.inferStaticsFromIdentifiersDefault)
   ..addFlag('infer-only-finals',
-      help: 'Do not infer non-const or non-final fields', defaultsTo: false)
+      help: 'Do not infer non-const or non-final fields',
+      defaultsTo: ResolverOptions.onlyInferConstAndFinalFieldsDefault)
   ..addFlag('infer-eagerly',
       help: 'experimental: allows a non-stable order of transitive inference on'
       ' consts and fields. This is used to test for possible inference with a '
-      'proper implementation in the future.', defaultsTo: false)
+      'proper implementation in the future.',
+      defaultsTo: ResolverOptions.inferInNonStableOrderDefault)
 
   // input/output options
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)

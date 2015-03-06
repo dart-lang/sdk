@@ -50,8 +50,9 @@ import 'package:dev_compiler/devc.dart' show Compiler;
 CheckerResults testChecker(Map<String, String> testFiles,
     {bool allowConstCasts: true, String sdkDir, CheckerReporter reporter,
     covariantGenerics: true, relaxedCasts: true,
-    inferFromOverrides: ResolverOptions.INFER_FROM_OVERRIDES_DEFAULT,
-    inferStaticsFromIdentifiers: false, inferInNonStableOrder: false,
+    inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
+    inferStaticsFromIdentifiers: ResolverOptions.inferStaticsFromIdentifiersDefault,
+    inferInNonStableOrder: ResolverOptions.inferInNonStableOrderDefault,
     nonnullableTypes: TypeOptions.NONNULLABLE_TYPES}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
