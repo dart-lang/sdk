@@ -68,11 +68,21 @@ abstract class _HashBase {
       !identical(_data, oldData) || (_checkSum != oldCheckSum);
 }
 
+class _OperatorEqualsAndHashCode {
+  int _hashCode(e) => e.hashCode;
+  bool _equals(e1, e2) => e1 == e2;
+}
+
+class _IdenticalAndIdentityHashCode {
+  int _hashCode(e) => identityHashCode(e);
+  bool _equals(e1, e2) => identical(e1, e2);
+}
+
 // Map with iteration in insertion order (hence "Linked"). New keys are simply
 // appended to _data.
 class _CompactLinkedHashMap<K, V>
-    extends MapBase<K, V> with _HashBase
-    implements HashMap<K, V>, LinkedHashMap<K, V> {
+    extends MapBase<K, V> with _HashBase, _OperatorEqualsAndHashCode
+    implements LinkedHashMap<K, V> {
 
   _CompactLinkedHashMap() {
     assert(_HashBase._UNUSED_PAIR == 0);
@@ -152,7 +162,7 @@ class _CompactLinkedHashMap<K, V>
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (key == _data[d]) {
+          if (_equals(key, _data[d])) {
             return d + 1;
           }
         }
@@ -166,7 +176,7 @@ class _CompactLinkedHashMap<K, V>
   void operator[]=(K key, V value) {
     final int size = _index.length;
     final int sizeMask = size - 1;
-    final int fullHash = key.hashCode;
+    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     final int d = _findValueOrInsertPoint(key, fullHash, hashPattern, size);
     if (d > 0) {
@@ -181,7 +191,7 @@ class _CompactLinkedHashMap<K, V>
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
-    final int fullHash = key.hashCode;
+    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     final int d = _findValueOrInsertPoint(key, fullHash, hashPattern, size);
     if (d > 0) {
@@ -204,7 +214,7 @@ class _CompactLinkedHashMap<K, V>
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
-    final int fullHash = key.hashCode;
+    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
@@ -213,7 +223,7 @@ class _CompactLinkedHashMap<K, V>
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (key == _data[d]) {
+          if (_equals(key, _data[d])) {
             _index[i] = _HashBase._DELETED_PAIR;
             _HashBase._setDeletedAt(_data, d);
             V value = _data[d + 1];
@@ -234,7 +244,7 @@ class _CompactLinkedHashMap<K, V>
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
-    final int fullHash = key.hashCode;
+    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
@@ -243,7 +253,7 @@ class _CompactLinkedHashMap<K, V>
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (key == _data[d]) {
+          if (_equals(key, _data[d])) {
             return _data[d + 1];
           }
         }
@@ -263,6 +273,7 @@ class _CompactLinkedHashMap<K, V>
   
   bool containsValue(Object value) {
     for (var v in values) {
+      // Spec. says this should always use "==", also for identity maps, etc.
       if (v == value) {
         return true;
       }
@@ -285,6 +296,28 @@ class _CompactLinkedHashMap<K, V>
       new _CompactIterable<V>(this, _data, _usedData, -1, 2);
 }
 
+class _CompactLinkedIdentityHashMap<K, V>
+    extends _CompactLinkedHashMap<K, V> with _IdenticalAndIdentityHashCode {
+}
+
+class _CompactLinkedCustomHashMap<K, V>
+    extends _CompactLinkedHashMap<K, V> {
+  final _equality;
+  final _hasher;
+  final _validKey;
+
+  // TODO(koda): Ask gbracha why I cannot have fields _equals/_hashCode.
+  int _hashCode(e) => _hasher(e);
+  bool _equals(e1, e2) => _equality(e1, e2);
+      
+  bool containsKey(Object o) => _validKey(o) ? super.containsKey(o) : false;
+  V operator[](Object o) => _validKey(o) ? super[o] : null;
+  V remove(Object o) => _validKey(o) ? super.remove(o) : null;
+
+  _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
+      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
+}
+      
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
 // and checks for concurrent modification.
 class _CompactIterable<E> extends IterableBase<E> {
@@ -335,9 +368,9 @@ class _CompactIterator<E> implements Iterator<E> {
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
-class _CompactLinkedHashSet<K>
-    extends SetBase<K> with _HashBase
-    implements LinkedHashSet<K> {
+class _CompactLinkedHashSet<E>
+    extends SetBase<E> with _HashBase, _OperatorEqualsAndHashCode
+    implements LinkedHashSet<E> {
 
   _CompactLinkedHashSet() {
     assert(_HashBase._UNUSED_PAIR == 0);
@@ -377,11 +410,11 @@ class _CompactLinkedHashSet<K>
     }
   }
 
-  bool add(K key) {
+  bool add(E key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
-    final int fullHash = key.hashCode;
+    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int firstDeleted = -1;
@@ -393,7 +426,7 @@ class _CompactLinkedHashSet<K>
         }
       } else {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && key == _data[d]) {
+        if (d < maxEntries && _equals(key, _data[d])) {
           return false;
         }
       }
@@ -418,14 +451,14 @@ class _CompactLinkedHashSet<K>
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
-    final int fullHash = key.hashCode;
+    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && key == _data[d]) {
+        if (d < maxEntries && _equals(key, _data[d])) {
           return _data[d];  // Note: Must return the existing key.
         }
       }
@@ -435,7 +468,7 @@ class _CompactLinkedHashSet<K>
     return _data;    
   }
 
-  K lookup(Object key) {
+  E lookup(Object key) {
     var k = _getKeyOrData(key);
     return identical(_data, k) ? null : k;
   }
@@ -446,14 +479,14 @@ class _CompactLinkedHashSet<K>
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
-    final int fullHash = key.hashCode;
+    final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && key == _data[d]) {
+        if (d < maxEntries && _equals(key, _data[d])) {
           _index[i] = _HashBase._DELETED_PAIR;
           _HashBase._setDeletedAt(_data, d);
           ++_deletedKeys;
@@ -466,8 +499,37 @@ class _CompactLinkedHashSet<K>
     return false;
   }
                                                 
-  Iterator<K> get iterator =>
-      new _CompactIterator<K>(this, _data, _usedData, -1, 1);
+  Iterator<E> get iterator =>
+      new _CompactIterator<E>(this, _data, _usedData, -1, 1);
 
-  Set<K> toSet() => new Set<K>()..addAll(this);  
+  // Returns a set of the same type, although this
+  // is not required by the spec. (For instance, always using an identity set
+  // would be technically correct, albeit surprising.)
+  Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
+}
+    
+class _CompactLinkedIdentityHashSet<E>
+    extends _CompactLinkedHashSet<E> with _IdenticalAndIdentityHashCode {
+  Set<E> toSet() => new _CompactLinkedIdentityHashSet<E>()..addAll(this);
+}
+    
+class _CompactLinkedCustomHashSet<E>
+    extends _CompactLinkedHashSet<E> {
+  final _equality;
+  final _hasher;
+  final _validKey;
+
+  int _hashCode(e) => _hasher(e);
+  bool _equals(e1, e2) => _equality(e1, e2);
+  
+  bool contains(Object o) => _validKey(o) ? super.contains(o) : false;
+  E lookup(Object o) => _validKey(o) ? super.lookup(o) : null;
+  bool remove(Object o) => _validKey(o) ? super.remove(o) : false;
+
+  _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
+      : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
+
+  Set<E> toSet() =>
+      new _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+          ..addAll(this);
 }
