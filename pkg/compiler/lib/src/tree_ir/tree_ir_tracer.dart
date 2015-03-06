@@ -265,7 +265,7 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
 
   visitAssign(Assign node) {
     String name = names.varName(node.variable);
-    String rhs = expr(node.definition);
+    String rhs = expr(node.value);
     Variable v = node.variable;
     String extra = "(r=${v.readCount}, w=${v.writeCount})";
     printStatement(null, "assign $name = $rhs $extra");

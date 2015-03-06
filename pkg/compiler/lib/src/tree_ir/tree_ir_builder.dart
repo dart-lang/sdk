@@ -82,9 +82,7 @@ class Builder implements cps_ir.Visitor<Node> {
   Variable phiTempVar;
 
   Variable addMutableVariable(cps_ir.MutableVariable irVariable) {
-    if (irVariable.host != currentElement) {
-      return parent.addMutableVariable(irVariable);
-    }
+    assert(irVariable.host == currentElement);
     assert(!local2mutable.containsKey(irVariable));
     Variable variable = new Variable(currentElement, irVariable.hint);
     local2mutable[irVariable] = variable;
@@ -93,7 +91,7 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Variable getMutableVariable(cps_ir.MutableVariable mutableVariable) {
     if (mutableVariable.host != currentElement) {
-      return parent.getMutableVariable(mutableVariable);
+      return parent.getMutableVariable(mutableVariable)..isCaptured = true;
     }
     return local2mutable[mutableVariable];
   }
@@ -480,7 +478,11 @@ class Builder implements cps_ir.Visitor<Node> {
   Statement visitLetMutable(cps_ir.LetMutable node) {
     Variable variable = addMutableVariable(node.variable);
     Expression value = getVariableUse(node.value);
-    return new Assign(variable, value, visit(node.body), isDeclaration: true);
+    Statement body = visit(node.body);
+    // If the variable was captured by an inner function in the body, this
+    // must be declared here so we assign to a fresh copy of the variable.
+    bool needsDeclaration = variable.isCaptured;
+    return new Assign(variable, value, body, isDeclaration: needsDeclaration);
   }
 
   Expression visitGetMutableVariable(cps_ir.GetMutableVariable node) {

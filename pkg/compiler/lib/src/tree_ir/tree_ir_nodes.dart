@@ -116,6 +116,12 @@ class Variable extends Node {
   /// - catch parameter in a [Try]
   int writeCount = 0;
 
+  /// True if a nested function reads or writes this variable.
+  ///
+  /// Always false in JS-mode because closure conversion eliminated nested
+  /// functions.
+  bool isCaptured = false;
+
   Variable(this.host, this.element) {
     assert(host != null);
   }
@@ -518,7 +524,7 @@ class Continue extends Jump {
 class Assign extends Statement {
   Statement next;
   Variable variable;
-  Expression definition;
+  Expression value;
 
   /// If true, this assignes to a fresh variable scoped to the [next]
   /// statement.
@@ -527,7 +533,7 @@ class Assign extends Statement {
   bool isDeclaration;
 
   /// Creates an assignment to [variable] and updates its `writeCount`.
-  Assign(this.variable, this.definition, this.next,
+  Assign(this.variable, this.value, this.next,
          { this.isDeclaration: false }) {
     variable.writeCount++;
   }
@@ -962,7 +968,7 @@ class RecursiveVisitor extends Visitor {
   }
 
   visitAssign(Assign node) {
-    visitExpression(node.definition);
+    visitExpression(node.value);
     visitVariable(node.variable);
     visitStatement(node.next);
   }

@@ -518,9 +518,9 @@ class ASTEmitter
     // Try to emit a local function declaration. This is useful for functions
     // that may occur in expression context, but could not be inlined anywhere.
     if (stmt.variable.element is FunctionElement &&
-        stmt.definition is tree.FunctionExpression &&
+        stmt.value is tree.FunctionExpression &&
         !context.declaredVariables.contains(stmt.variable)) {
-      tree.FunctionExpression functionExp = stmt.definition;
+      tree.FunctionExpression functionExp = stmt.value;
       FunctionExpression function =
           makeSubFunction(functionExp.definition, context);
       FunctionDeclaration decl = new FunctionDeclaration(function);
@@ -534,7 +534,7 @@ class ASTEmitter
     bool isFirstOccurrence = (context.variableNames[stmt.variable] == null);
     bool isDeclaredHere = stmt.variable.host == context.currentElement;
     String name = context.getVariableName(stmt.variable);
-    Expression definition = visitExpression(stmt.definition, context);
+    Expression definition = visitExpression(stmt.value, context);
 
     // Try to pull into initializer.
     if (context.firstStatement == stmt && isFirstOccurrence && isDeclaredHere) {

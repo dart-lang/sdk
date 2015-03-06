@@ -183,7 +183,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         environment.last.variable == node.variable &&
         node.variable.readCount == 1) {
       --node.variable.readCount;
-      return visitExpression(environment.removeLast().definition);
+      return visitExpression(environment.removeLast().value);
     }
 
     // If the definition could not be propagated, leave the variable use.
@@ -203,14 +203,14 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   }
 
   Statement visitAssign(Assign node) {
-    if (isEffectivelyConstant(node.definition) &&
+    if (isEffectivelyConstant(node.value) &&
         node.variable.writeCount == 1) {
       // Handle constant assignments specially.
       // They are always safe to propagate (though we should avoid duplication).
       // Moreover, they should not prevent other expressions from propagating.
       if (node.variable.readCount <= 1) {
         // A single-use constant should always be propagted to its use site.
-        constantEnvironment[node.variable] = visitExpression(node.definition);
+        constantEnvironment[node.variable] = visitExpression(node.value);
         --node.variable.writeCount;
         return visitStatement(node.next);
       } else {
@@ -218,7 +218,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         // Visit the following statement without polluting [environment] so
         // that any preceding non-constant assignments might still propagate.
         node.next = visitStatement(node.next);
-        node.definition = visitExpression(node.definition);
+        node.value = visitExpression(node.value);
         return node;
       }
     } else {
@@ -230,7 +230,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         // The definition could not be propagated. Residualize the let binding.
         node.next = next;
         environment.removeLast();
-        node.definition = visitExpression(node.definition);
+        node.value = visitExpression(node.value);
         return node;
       }
       assert(!environment.contains(node));
@@ -538,7 +538,7 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         --t.variable.writeCount;
         // The Assign constructor will increment the reference count again.
         return new Assign(s.variable,
-                          combine(s.definition, t.definition),
+                          combine(s.value, t.value),
                           next);
       }
     }

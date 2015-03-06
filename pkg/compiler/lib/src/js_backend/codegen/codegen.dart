@@ -401,7 +401,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   void visitAssign(tree_ir.Assign node) {
-    tree_ir.Expression value = node.definition;
+    tree_ir.Expression value = node.value;
     js.Expression definition = visitExpression(value);
 
     accumulator.add(new js.ExpressionStatement(new js.Assignment(

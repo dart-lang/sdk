@@ -23,6 +23,9 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
 
   ExecutableElement currentElement;
 
+  /// Number of try blocks enclosing the currently visited node.
+  int enclosingTrys = 0;
+
   void rewriteExecutableDefinition(ExecutableDefinition root) {
     currentElement = root.element;
     root.body = visitStatement(root.body);
@@ -111,8 +114,8 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
   void invalidateMovingAssignment(Variable w) {
     Assign movingAssignment = inverseMove.remove(w);
     if (movingAssignment != null) {
-      VariableUse def = movingAssignment.definition;
-      move.remove(def.variable);
+      VariableUse value = movingAssignment.value;
+      move.remove(value.variable);
     }
   }
 
@@ -144,7 +147,7 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
       // Make w := w.
       // We can't remove the statement from here because we don't have
       // parent pointers. So just make it a no-op so it can be removed later.
-      movingAssign.definition = new VariableUse(w);
+      movingAssign.value = new VariableUse(w);
 
       // The intermediate variable 'v' should now be orphaned, so don't bother
       // updating its read/write counters.
@@ -164,16 +167,22 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     // the moving assignment is no longer a candidate for copy propagation.
     invalidateMovingAssignment(node.variable);
 
-    visitExpression(node.definition);
+    visitExpression(node.value);
 
     // If this is a moving assignment w := v, with this being the only use of v,
-    // try to propagate it backwards.  Do not propagate assignments where w
-    // is from an outer function scope.
-    if (node.definition is VariableUse) {
-      VariableUse definition = node.definition;
-      if (definition.variable.readCount == 1 &&
-          node.variable.host == currentElement) {
-        move[definition.variable] = node;
+    // try to propagate it backwards.
+    // Do not propagate assignments where w is captured or if where are inside a
+    // try block, because then we can't isolate the uses of w to a single block.
+    // We currently do not support propagation if the assignment is a
+    // declaration. To support this we would need to ensure that the target
+    // assignment is turned into a declaration as well.
+    if (node.value is VariableUse &&
+        !node.variable.isCaptured &&
+        enclosingTrys == 0 &&
+        !node.isDeclaration) {
+      VariableUse value = node.value;
+      if (value.variable.readCount == 1) {
+        move[value.variable] = node;
         inverseMove[node.variable] = node;
       }
     }
@@ -217,7 +226,9 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
   }
 
   Statement visitTry(Try node) {
+    enclosingTrys++;
     node.tryBody = visitBasicBlock(node.tryBody);
+    enclosingTrys--;
     node.catchBody = visitBasicBlock(node.catchBody);
     return node;
   }
