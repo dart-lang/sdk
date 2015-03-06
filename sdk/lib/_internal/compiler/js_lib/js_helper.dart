@@ -756,12 +756,13 @@ class Primitives {
   static bool get isD8 {
     return JS('bool',
               'typeof version == "function"'
-              ' && typeof os == "object" && "system" in os');
+              ' && typeof os == "object" && "setenv" in os');
   }
 
   static bool get isJsshell {
     return JS('bool',
-              'typeof version == "function" && typeof system == "function"');
+              'typeof version == "function" '
+              ' && typeof os == "object" && "getenv" in os');
   }
 
   static String currentUri() {
