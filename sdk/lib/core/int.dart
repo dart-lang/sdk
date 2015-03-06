@@ -277,6 +277,13 @@ abstract class int extends num {
    * value is used instead. If no [onError] is provided, a [FormatException]
    * is thrown.
    *
+   * The [onError] handler can be chosen to return `null`.  This is preferable
+   * to to throwing and then immediately catching the [FormatException].
+   * Example:
+   *
+   *     var value = int.parse(text, onError: (source) => null);
+   *     if (value == null) ... handle the problem
+   *
    * The [onError] function is only invoked if [source] is a [String]. It is
    * not invoked if the [source] is, for example, `null`.
    */

@@ -94,7 +94,8 @@ void main() {
     Expect.equals(-999, int.parse(source, radix: radix, onError: (s) => -999));
   }
   for (int i = 2; i < 36; i++) {
-    testFails(i.toRadixString(36), i);
+    testFails(i.toRadixString(36).toLowerCase(), i);
+    testFails(i.toRadixString(36).toUpperCase(), i);
   }
   testFails("", 2);
   testFails("+ 1", 2);  // No space between sign and digits.
