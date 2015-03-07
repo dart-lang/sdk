@@ -4911,7 +4911,8 @@ RawTypeArguments* TypeArguments::CloneUnfinalized() const {
 
 
 RawTypeArguments* TypeArguments::CloneUninstantiated(
-    const Class& new_owner) const {
+    const Class& new_owner,
+    GrowableObjectArray* trail) const {
   ASSERT(!IsNull());
   ASSERT(IsFinalized());
   ASSERT(!IsInstantiated());
@@ -4922,7 +4923,7 @@ RawTypeArguments* TypeArguments::CloneUninstantiated(
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsInstantiated()) {
-      type = type.CloneUninstantiated(new_owner);
+      type = type.CloneUninstantiated(new_owner, trail);
     }
     clone.SetTypeAt(i, type);
   }
@@ -14199,7 +14200,8 @@ RawAbstractType* AbstractType::CloneUnfinalized() const {
 
 
 RawAbstractType* AbstractType::CloneUninstantiated(
-    const Class& new_owner) const {
+    const Class& new_owner,
+    GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -14911,16 +14913,29 @@ RawAbstractType* Type::CloneUnfinalized() const {
 }
 
 
-RawAbstractType* Type::CloneUninstantiated(const Class& new_owner) const {
+RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
+                                           GrowableObjectArray* trail) const {
   ASSERT(IsFinalized());
   ASSERT(!IsMalformed());
   if (IsInstantiated()) {
     return raw();
   }
-  TypeArguments& type_args = TypeArguments::Handle(arguments());
-  type_args = type_args.CloneUninstantiated(new_owner);
+  // We may recursively encounter a type already being cloned, because we clone
+  // the upper bounds of its uninstantiated type arguments in the same pass.
+  Type& clone = Type::Handle();
+  clone ^= OnlyBuddyInTrail(trail);
+  if (!clone.IsNull()) {
+    return clone.raw();
+  }
   const Class& type_cls = Class::Handle(type_class());
-  const Type& clone = Type::Handle(Type::New(type_cls, type_args, token_pos()));
+  clone = Type::New(type_cls, TypeArguments::Handle(), token_pos());
+  TypeArguments& type_args = TypeArguments::Handle(arguments());
+  // Upper bounds of uninstantiated type arguments may form a cycle.
+  if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
+    AddOnlyBuddyToTrail(&trail, clone);
+  }
+  type_args = type_args.CloneUninstantiated(new_owner, trail);
+  clone.set_arguments(type_args);
   clone.SetIsFinalized();
   return clone.raw();
 }
@@ -15199,11 +15214,29 @@ RawTypeRef* TypeRef::InstantiateFrom(
   ASSERT(!ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
-        instantiator_type_arguments, bound_error, trail);
+      instantiator_type_arguments, bound_error, trail);
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref = TypeRef::New(instantiated_ref_type);
   AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
   return instantiated_type_ref.raw();
+}
+
+
+RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
+                                         GrowableObjectArray* trail) const {
+  TypeRef& cloned_type_ref = TypeRef::Handle();
+  cloned_type_ref ^= OnlyBuddyInTrail(trail);
+  if (!cloned_type_ref.IsNull()) {
+    return cloned_type_ref.raw();
+  }
+  AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsTypeRef());
+  AbstractType& cloned_ref_type = AbstractType::Handle();
+  cloned_ref_type = ref_type.CloneUninstantiated(new_owner, trail);
+  ASSERT(!cloned_ref_type.IsTypeRef());
+  cloned_type_ref = TypeRef::New(cloned_ref_type);
+  AddOnlyBuddyToTrail(&trail, cloned_type_ref);
+  return cloned_type_ref.raw();
 }
 
 
@@ -15463,10 +15496,11 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 
 
 RawAbstractType* TypeParameter::CloneUninstantiated(
-    const Class& new_owner) const {
+    const Class& new_owner,
+    GrowableObjectArray* trail) const {
   ASSERT(IsFinalized());
   AbstractType& upper_bound = AbstractType::Handle(bound());
-  upper_bound = upper_bound.CloneUninstantiated(new_owner);
+  upper_bound = upper_bound.CloneUninstantiated(new_owner, trail);
   const Class& old_owner = Class::Handle(parameterized_class());
   const intptr_t new_index = index() +
       new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
@@ -15702,16 +15736,17 @@ RawAbstractType* BoundedType::CloneUnfinalized() const {
 
 
 RawAbstractType* BoundedType::CloneUninstantiated(
-    const Class& new_owner) const {
+    const Class& new_owner,
+    GrowableObjectArray* trail) const {
   if (IsInstantiated()) {
     return raw();
   }
   AbstractType& bounded_type = AbstractType::Handle(type());
-  bounded_type = bounded_type.CloneUninstantiated(new_owner);
+  bounded_type = bounded_type.CloneUninstantiated(new_owner, trail);
   AbstractType& upper_bound = AbstractType::Handle(bound());
-  upper_bound = upper_bound.CloneUninstantiated(new_owner);
+  upper_bound = upper_bound.CloneUninstantiated(new_owner, trail);
   TypeParameter& type_param =  TypeParameter::Handle(type_parameter());
-  type_param ^= type_param.CloneUninstantiated(new_owner);
+  type_param ^= type_param.CloneUninstantiated(new_owner, trail);
   return BoundedType::New(bounded_type, upper_bound, type_param);
 }
 

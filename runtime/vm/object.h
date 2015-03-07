@@ -1596,7 +1596,9 @@ class TypeArguments : public Object {
   // Clone this type argument vector and clone all uninstantiated type
   // arguments, changing the class owner of type parameters.
   // Instantiated type arguments are shared.
-  RawTypeArguments* CloneUninstantiated(const Class& new_owner) const;
+  RawTypeArguments* CloneUninstantiated(
+      const Class& new_owner,
+      GrowableObjectArray* trail = NULL) const;
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(GrowableObjectArray* trail = NULL) const;
@@ -4891,7 +4893,9 @@ class AbstractType : public Instance {
   // but belonging to the new owner class.
   // Apply recursively to type arguments, i.e. instantiated type arguments of
   // an uninstantiated type are not cloned, but shared.
-  virtual RawAbstractType* CloneUninstantiated(const Class& new_owner) const;
+  virtual RawAbstractType* CloneUninstantiated(
+      const Class& new_owner,
+      GrowableObjectArray* trail = NULL) const;
 
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     return Canonicalize();
@@ -5053,7 +5057,9 @@ class Type : public AbstractType {
       Error* malformed_error,
       GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* CloneUninstantiated(const Class& new_owner) const;
+  virtual RawAbstractType* CloneUninstantiated(
+      const Class& new_owner,
+      GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* Canonicalize(
       GrowableObjectArray* trail = NULL) const;
 
@@ -5172,6 +5178,9 @@ class TypeRef : public AbstractType {
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
+  virtual RawTypeRef* CloneUninstantiated(
+      const Class& new_owner,
+      GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* Canonicalize(
       GrowableObjectArray* trail = NULL) const;
 
@@ -5253,7 +5262,9 @@ class TypeParameter : public AbstractType {
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* CloneUninstantiated(const Class& new_owner) const;
+  virtual RawAbstractType* CloneUninstantiated(
+      const Class& new_owner,
+      GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* Canonicalize(
       GrowableObjectArray* trail = NULL) const {
     return raw();
@@ -5338,7 +5349,9 @@ class BoundedType : public AbstractType {
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* CloneUninstantiated(const Class& new_owner) const;
+  virtual RawAbstractType* CloneUninstantiated(
+      const Class& new_owner,
+      GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* Canonicalize(
       GrowableObjectArray* trail = NULL) const {
     return raw();
