@@ -24,7 +24,7 @@ class GetContentTask extends SourceBasedAnalysisTask {
    * Initialize a newly created task to access the content of the source
    * associated with the given [target] in the given [context].
    */
-  GetContentTask(InternalAnalysisContext context, AnalysisTarget target)
+  GetContentTask(AnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
   @override
