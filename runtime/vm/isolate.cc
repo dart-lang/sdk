@@ -126,13 +126,21 @@ class IsolateMessageHandler : public MessageHandler {
   virtual Isolate* isolate() const { return isolate_; }
 
  private:
-  // Keep in sync with isolate_patch.dart.
+  // Keep both these enums in sync with isolate_patch.dart.
+  // The different Isolate API message types.
   enum {
     kPauseMsg = 1,
     kResumeMsg = 2,
     kPingMsg = 3,
     kKillMsg = 4,
-
+    kAddExitMsg = 5,
+    kDelExitMsg = 6,
+    kAddErrorMsg = 7,
+    kDelErrorMsg = 8,
+    kErrorFatalMsg = 9,
+  };
+  // The different Isolate API message priorities for ping and kill messages.
+  enum {
     kImmediateAction = 0,
     kBeforeNextEventAction = 1,
     kAsEventAction = 2
@@ -167,8 +175,8 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
   if (message.Length() < 2) return true;
   const Object& type = Object::Handle(I, message.At(1));
   if (!type.IsSmi()) return true;
-  const Smi& msg_type = Smi::Cast(type);
-  switch (msg_type.Value()) {
+  const intptr_t msg_type = Smi::Cast(type).Value();
+  switch (msg_type) {
     case kPauseMsg: {
       // [ OOB, kPauseMsg, pause capability, resume capability ]
       if (message.Length() != 4) return true;
@@ -253,6 +261,45 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
                                       Message::kNormalPriority),
                           priority == kBeforeNextEventAction /* at_head */);
       }
+      break;
+    }
+    case kAddExitMsg:
+    case kDelExitMsg:
+    case kAddErrorMsg:
+    case kDelErrorMsg: {
+      // [ OOB, msg, listener port ]
+      if (message.Length() != 3) return true;
+      const Object& obj = Object::Handle(I, message.At(2));
+      if (!obj.IsSendPort()) return true;
+      const SendPort& listener = SendPort::Cast(obj);
+      switch (msg_type) {
+        case kAddExitMsg:
+          I->AddExitListener(listener);
+          break;
+        case kDelExitMsg:
+          I->RemoveExitListener(listener);
+          break;
+        case kAddErrorMsg:
+          I->AddErrorListener(listener);
+          break;
+        case kDelErrorMsg:
+          I->RemoveErrorListener(listener);
+          break;
+        default:
+          UNREACHABLE();
+      }
+      break;
+    }
+    case kErrorFatalMsg: {
+      // [ OOB, kErrorFatalMsg, terminate capability, val ]
+      if (message.Length() != 4) return true;
+      // Check that the terminate capability has been passed correctly.
+      Object& obj = Object::Handle(I, message.At(2));
+      if (!I->VerifyTerminateCapability(obj)) return true;
+      // Get the value to be set.
+      obj = message.At(3);
+      if (!obj.IsBool()) return true;
+      I->SetErrorsFatal(Bool::Cast(obj).value());
       break;
     }
 #if defined(DEBUG)
@@ -438,8 +485,35 @@ bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
     Dart_ExitScope();
   }
 
-  I->object_store()->set_sticky_error(result);
-  return false;
+  // Generate the error and stacktrace strings for the error message.
+  String& exc_str = String::Handle(I);
+  String& stacktrace_str = String::Handle(I);
+  if (result.IsUnhandledException()) {
+    const UnhandledException& uhe = UnhandledException::Cast(result);
+    const Instance& exception = Instance::Handle(I, uhe.exception());
+    Object& tmp = Object::Handle(I);
+    tmp = DartLibraryCalls::ToString(exception);
+    if (!tmp.IsString()) {
+      tmp = String::New(exception.ToCString());
+    }
+    exc_str ^= tmp.raw();
+
+    const Instance& stacktrace = Instance::Handle(I, uhe.stacktrace());
+    tmp = DartLibraryCalls::ToString(stacktrace);
+    if (!tmp.IsString()) {
+      tmp = String::New(stacktrace.ToCString());
+    }
+    stacktrace_str ^= tmp.raw();;
+  } else {
+    exc_str = String::New(result.ToErrorCString());
+  }
+  I->NotifyErrorListeners(exc_str, stacktrace_str);
+
+  if (I->ErrorsFatal()) {
+    I->object_store()->set_sticky_error(result);
+    return false;
+  }
+  return true;
 }
 
 
@@ -470,6 +544,7 @@ Isolate::Isolate()
       origin_id_(0),
       pause_capability_(0),
       terminate_capability_(0),
+      errors_fatal_(true),
       heap_(NULL),
       object_store_(NULL),
       top_exit_frame_info_(0),
@@ -535,6 +610,7 @@ Isolate::Isolate(Isolate* original)
       main_port_(0),
       pause_capability_(0),
       terminate_capability_(0),
+      errors_fatal_(true),
       heap_(NULL),
       object_store_(NULL),
       top_exit_frame_info_(0),
@@ -890,7 +966,7 @@ bool Isolate::VerifyTerminateCapability(const Object& capability) const {
 
 bool Isolate::AddResumeCapability(const Capability& capability) {
   // Ensure a limit for the number of resume capabilities remembered.
-  static const intptr_t kMaxResumeCapabilities = kSmiMax / (6*kWordSize);
+  static const intptr_t kMaxResumeCapabilities = kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
       this, object_store()->resume_capabilities());
@@ -935,6 +1011,148 @@ bool Isolate::RemoveResumeCapability(const Capability& capability) {
     }
   }
   return false;
+}
+
+
+// TODO(iposva): Remove duplicated code and start using some hash based
+// structure instead of these linear lookups.
+void Isolate::AddExitListener(const SendPort& listener) {
+  // Ensure a limit for the number of listeners remembered.
+  static const intptr_t kMaxListeners = kSmiMax / (6 * kWordSize);
+
+  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
+       this, object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle(this);
+  intptr_t insertion_index = -1;
+  for (intptr_t i = 0; i < listeners.Length(); i++) {
+    current ^= listeners.At(i);
+    if (current.IsNull()) {
+      if (insertion_index < 0) {
+        insertion_index = i;
+      }
+    } else if (current.Id() == listener.Id()) {
+      return;
+    }
+  }
+  if (insertion_index < 0) {
+    if (listeners.Length() >= kMaxListeners) {
+      // Cannot grow the array of listeners beyond its max. Additional
+      // listeners are ignored. In practice will never happen as we will
+      // run out of memory beforehand.
+      return;
+    }
+    listeners.Add(listener);
+  } else {
+    listeners.SetAt(insertion_index, listener);
+  }
+}
+
+
+void Isolate::RemoveExitListener(const SendPort& listener) {
+  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
+      this, object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle(this);
+  for (intptr_t i = 0; i < listeners.Length(); i++) {
+    current ^= listeners.At(i);
+    if (!current.IsNull() && (current.Id() == listener.Id())) {
+      // Remove the matching listener from the list.
+      current = SendPort::null();
+      listeners.SetAt(i, current);
+      return;
+    }
+  }
+}
+
+
+void Isolate::NotifyExitListeners() {
+  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
+      this, this->object_store()->exit_listeners());
+  if (listeners.IsNull()) return;
+
+  SendPort& listener = SendPort::Handle(this);
+  for (intptr_t i = 0; i < listeners.Length(); i++) {
+    listener ^= listeners.At(i);
+    if (!listener.IsNull()) {
+      Dart_Port port_id = listener.Id();
+      uint8_t* data = NULL;
+      intptr_t len = 0;
+      SerializeObject(Object::null_instance(), &data, &len, false);
+      Message* msg = new Message(port_id, data, len, Message::kNormalPriority);
+      PortMap::PostMessage(msg);
+    }
+  }
+}
+
+
+void Isolate::AddErrorListener(const SendPort& listener) {
+  // Ensure a limit for the number of listeners remembered.
+  static const intptr_t kMaxListeners = kSmiMax / (6 * kWordSize);
+
+  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
+      this, object_store()->error_listeners());
+  SendPort& current = SendPort::Handle(this);
+  intptr_t insertion_index = -1;
+  for (intptr_t i = 0; i < listeners.Length(); i++) {
+    current ^= listeners.At(i);
+    if (current.IsNull()) {
+      if (insertion_index < 0) {
+        insertion_index = i;
+      }
+    } else if (current.Id() == listener.Id()) {
+      return;
+    }
+  }
+  if (insertion_index < 0) {
+    if (listeners.Length() >= kMaxListeners) {
+      // Cannot grow the array of listeners beyond its max. Additional
+      // listeners are ignored. In practice will never happen as we will
+      // run out of memory beforehand.
+      return;
+    }
+    listeners.Add(listener);
+  } else {
+    listeners.SetAt(insertion_index, listener);
+  }
+}
+
+
+void Isolate::RemoveErrorListener(const SendPort& listener) {
+  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
+      this, object_store()->error_listeners());
+  SendPort& current = SendPort::Handle(this);
+  for (intptr_t i = 0; i < listeners.Length(); i++) {
+    current ^= listeners.At(i);
+    if (!current.IsNull() && (current.Id() == listener.Id())) {
+      // Remove the matching listener from the list.
+      current = SendPort::null();
+      listeners.SetAt(i, current);
+      return;
+    }
+  }
+}
+
+
+void Isolate::NotifyErrorListeners(const String& msg,
+                                   const String& stacktrace) {
+  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
+      this, this->object_store()->error_listeners());
+  if (listeners.IsNull()) return;
+
+  const Array& arr = Array::Handle(this, Array::New(2));
+  arr.SetAt(0, msg);
+  arr.SetAt(1, stacktrace);
+  SendPort& listener = SendPort::Handle(this);
+  for (intptr_t i = 0; i < listeners.Length(); i++) {
+    listener ^= listeners.At(i);
+    if (!listener.IsNull()) {
+      Dart_Port port_id = listener.Id();
+      uint8_t* data = NULL;
+      intptr_t len = 0;
+      SerializeObject(arr, &data, &len, false);
+      Message* msg = new Message(port_id, data, len, Message::kNormalPriority);
+      PortMap::PostMessage(msg);
+    }
+  }
 }
 
 
@@ -1169,6 +1387,11 @@ void Isolate::Shutdown() {
   {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
+
+    // Notify exit listeners that this isolate is shutting down.
+    if (object_store() != NULL) {
+      NotifyExitListeners();
+    }
 
     // Clean up debugger resources.
     debugger()->Shutdown();

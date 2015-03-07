@@ -74,6 +74,7 @@ class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
 class SampleBuffer;
+class SendPort;
 class Simulator;
 class StackResource;
 class StackZone;
@@ -410,6 +411,17 @@ class Isolate : public BaseIsolate {
   bool AddResumeCapability(const Capability& capability);
   bool RemoveResumeCapability(const Capability& capability);
 
+  void AddExitListener(const SendPort& listener);
+  void RemoveExitListener(const SendPort& listener);
+  void NotifyExitListeners();
+
+  void AddErrorListener(const SendPort& listener);
+  void RemoveErrorListener(const SendPort& listener);
+  void NotifyErrorListeners(const String& msg, const String& stacktrace);
+
+  bool ErrorsFatal() const { return errors_fatal_; }
+  void SetErrorsFatal(bool val) { errors_fatal_ = val; }
+
   Random* random() { return &random_; }
 
   Simulator* simulator() const { return simulator_; }
@@ -674,6 +686,7 @@ class Isolate : public BaseIsolate {
   Dart_Port origin_id_;  // Isolates created by spawnFunc have some origin id.
   uint64_t pause_capability_;
   uint64_t terminate_capability_;
+  bool errors_fatal_;
   Heap* heap_;
   ObjectStore* object_store_;
   uword top_exit_frame_info_;

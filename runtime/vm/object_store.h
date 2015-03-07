@@ -342,6 +342,14 @@ class ObjectStore {
     return resume_capabilities_;
   }
 
+  RawGrowableObjectArray* exit_listeners() const {
+    return exit_listeners_;
+  }
+
+  RawGrowableObjectArray* error_listeners() const {
+    return error_listeners_;
+  }
+
   RawError* sticky_error() const { return sticky_error_; }
   void set_sticky_error(const Error& value) {
     ASSERT(!value.IsNull());
@@ -488,6 +496,8 @@ class ObjectStore {
   RawGrowableObjectArray* pending_functions_;
   RawGrowableObjectArray* pending_deferred_loads_;
   RawGrowableObjectArray* resume_capabilities_;
+  RawGrowableObjectArray* exit_listeners_;
+  RawGrowableObjectArray* error_listeners_;
   RawError* sticky_error_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;

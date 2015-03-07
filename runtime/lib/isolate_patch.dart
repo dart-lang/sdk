@@ -335,6 +335,11 @@ patch class Isolate {
   static const _RESUME = 2;
   static const _PING = 3;
   static const _KILL = 4;
+  static const _ADD_EXIT = 5;
+  static const _DEL_EXIT = 6;
+  static const _ADD_ERROR = 7;
+  static const _DEL_ERROR = 8;
+  static const _ERROR_FATAL = 9;
 
 
   static void _spawnFunction(SendPort readyPort, Function topLevelFunction,
@@ -367,15 +372,28 @@ patch class Isolate {
   }
 
   /* patch */ void addOnExitListener(SendPort responsePort) {
-    throw new UnsupportedError("addOnExitListener");
+    var msg = new List(3)
+        ..[0] = 0  // Make room for OOB message type.
+        ..[1] = _ADD_EXIT
+        ..[2] = responsePort;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void removeOnExitListener(SendPort responsePort) {
-    throw new UnsupportedError("removeOnExitListener");
+    var msg = new List(3)
+        ..[0] = 0  // Make room for OOB message type.
+        ..[1] = _DEL_EXIT
+        ..[2] = responsePort;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void setErrorsFatal(bool errorsAreFatal) {
-    throw new UnsupportedError("setErrorsFatal");
+    var msg = new List(4)
+      ..[0] = 0  // Make room for OOB message type.
+      ..[1] = _ERROR_FATAL
+      ..[2] = terminateCapability
+      ..[3] = errorsAreFatal;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void kill([int priority = BEFORE_NEXT_EVENT]) {
@@ -397,11 +415,19 @@ patch class Isolate {
   }
 
   /* patch */ void addErrorListener(SendPort port) {
-    throw new UnsupportedError("addErrorListener");
+    var msg = new List(3)
+        ..[0] = 0  // Make room for OOB message type.
+        ..[1] = _ADD_ERROR
+        ..[2] = port;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void removeErrorListener(SendPort port) {
-    throw new UnsupportedError("removeErrorListener");
+    var msg = new List(3)
+        ..[0] = 0  // Make room for OOB message type.
+        ..[1] = _DEL_ERROR
+        ..[2] = port;
+    _sendOOB(controlPort, msg);
   }
 
   static Isolate _getCurrentIsolate() {
