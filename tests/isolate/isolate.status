@@ -106,6 +106,14 @@ spawn_uri_missing_from_isolate_test: RuntimeError # Issue 17649
 spawn_uri_missing_test: SkipSlow # Times out.
 isolate_current_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 function_send_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+ondone_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+kill_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+kill2_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+kill3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+kill_self_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+handle_error_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+handle_error2_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+handle_error3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
