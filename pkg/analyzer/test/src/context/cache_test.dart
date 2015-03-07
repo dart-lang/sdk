@@ -159,28 +159,22 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result = new ResultDescriptor('test', null);
     CaughtException exception = new CaughtException(null, null);
     CacheEntry entry = new CacheEntry();
-    entry.setState(result, CacheState.ERROR);
-    entry.exception = exception;
+    entry.setErrorState(exception, <ResultDescriptor>[result]);
     entry.fixExceptionState();
     expect(entry.getState(result), CacheState.ERROR);
     expect(entry.exception, exception);
   }
 
-  test_fixExceptionState_error_noException() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
-    entry.setState(result, CacheState.ERROR);
-    entry.fixExceptionState();
-    expect(entry.getState(result), CacheState.ERROR);
-    expect(entry.exception, isNotNull);
-  }
-
   test_fixExceptionState_noError_exception() {
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry();
-    entry.exception = new CaughtException(null, null);
+    // set one result to ERROR
+    CaughtException exception = new CaughtException(null, null);
+    entry.setErrorState(exception, <ResultDescriptor>[result]);
+    // set the same result to VALID
+    entry.setValue(result, 1);
+    // fix the exception state
     entry.fixExceptionState();
-    expect(entry.getState(result), CacheState.INVALID);
     expect(entry.exception, isNull);
   }
 
@@ -233,8 +227,9 @@ class CacheEntryTest extends EngineTestCase {
 
   test_hasErrorState_true() {
     ResultDescriptor result = new ResultDescriptor('test', null);
+    CaughtException exception = new CaughtException(null, null);
     CacheEntry entry = new CacheEntry();
-    entry.setState(result, CacheState.ERROR);
+    entry.setErrorState(exception, <ResultDescriptor>[result]);
     expect(entry.hasErrorState(), true);
   }
 
@@ -247,20 +242,102 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry.getValue(result), isNull);
   }
 
+  test_setErrorState() {
+    ResultDescriptor result1 = new ResultDescriptor('res1', 1);
+    ResultDescriptor result2 = new ResultDescriptor('res2', 2);
+    ResultDescriptor result3 = new ResultDescriptor('res3', 3);
+    // prepare some good state
+    CacheEntry entry = new CacheEntry();
+    entry.setValue(result1, 10);
+    entry.setValue(result2, 20);
+    entry.setValue(result3, 30);
+    // set error state
+    CaughtException exception = new CaughtException(null, null);
+    entry.setErrorState(exception, <ResultDescriptor>[result1, result2]);
+    // verify
+    expect(entry.exception, exception);
+    expect(entry.getState(result1), CacheState.ERROR);
+    expect(entry.getState(result2), CacheState.ERROR);
+    expect(entry.getState(result3), CacheState.VALID);
+    expect(entry.getValue(result1), 1);
+    expect(entry.getValue(result2), 2);
+    expect(entry.getValue(result3), 30);
+  }
+
+  test_setErrorState_noDescriptors() {
+    CaughtException exception = new CaughtException(null, null);
+    CacheEntry entry = new CacheEntry();
+    expect(() {
+      entry.setErrorState(exception, <ResultDescriptor>[]);
+    }, throwsArgumentError);
+  }
+
+  test_setErrorState_noException() {
+    ResultDescriptor result = new ResultDescriptor('test', null);
+    CacheEntry entry = new CacheEntry();
+    expect(() {
+      entry.setErrorState(null, <ResultDescriptor>[result]);
+    }, throwsArgumentError);
+  }
+
+  test_setErrorState_nullDescriptors() {
+    CaughtException exception = new CaughtException(null, null);
+    CacheEntry entry = new CacheEntry();
+    expect(() {
+      entry.setErrorState(exception, null);
+    }, throwsArgumentError);
+  }
+
   test_setState_error() {
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry();
-    entry.setState(result, CacheState.ERROR);
-    expect(entry.getState(result), CacheState.ERROR);
-    expect(entry.getValue(result), isNull);
+    entry.setValue(result, 42);
+    // an invalid state change
+    expect(() {
+      entry.setState(result, CacheState.ERROR);
+    }, throwsArgumentError);
+    // no changes
+    expect(entry.getState(result), CacheState.VALID);
+    expect(entry.getValue(result), 42);
+  }
+
+  test_setState_flushed() {
+    ResultDescriptor result = new ResultDescriptor('test', 1);
+    CacheEntry entry = new CacheEntry();
+    // set VALID
+    entry.setValue(result, 10);
+    expect(entry.getState(result), CacheState.VALID);
+    expect(entry.getValue(result), 10);
+    // set FLUSHED
+    entry.setState(result, CacheState.FLUSHED);
+    expect(entry.getState(result), CacheState.FLUSHED);
+    expect(entry.getValue(result), 1);
+  }
+
+  test_setState_inProcess() {
+    ResultDescriptor result = new ResultDescriptor('test', 1);
+    CacheEntry entry = new CacheEntry();
+    // set VALID
+    entry.setValue(result, 10);
+    expect(entry.getState(result), CacheState.VALID);
+    expect(entry.getValue(result), 10);
+    // set IN_PROCESS
+    entry.setState(result, CacheState.IN_PROCESS);
+    expect(entry.getState(result), CacheState.IN_PROCESS);
+    expect(entry.getValue(result), 10);
   }
 
   test_setState_invalid() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
+    ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry();
+    // set VALID
+    entry.setValue(result, 10);
+    expect(entry.getState(result), CacheState.VALID);
+    expect(entry.getValue(result), 10);
+    // set INVALID
     entry.setState(result, CacheState.INVALID);
     expect(entry.getState(result), CacheState.INVALID);
-    expect(entry.getValue(result), isNull);
+    expect(entry.getValue(result), 1);
   }
 
   test_setState_valid() {

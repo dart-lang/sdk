@@ -138,7 +138,10 @@ class AnalysisDriverTest extends EngineTestCase {
   test_createWorkOrderForResult_error() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
-    context.getCacheEntry(target).setState(result, CacheState.ERROR);
+    CaughtException exception = new CaughtException(null, null);
+    context
+        .getCacheEntry(target)
+        .setErrorState(exception, <ResultDescriptor>[result]);
 
     expect(driver.createWorkOrderForResult(target, result), isNull);
   }

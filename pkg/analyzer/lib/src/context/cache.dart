@@ -235,7 +235,7 @@ class CacheEntry {
    * The exception that caused one or more values to have a state of
    * [CacheState.ERROR].
    */
-  CaughtException exception;
+  CaughtException _exception;
 
   /**
    * A bit-encoding of boolean flags associated with this entry's target.
@@ -247,6 +247,12 @@ class CacheEntry {
    */
   Map<ResultDescriptor, ResultData> _resultMap =
       new HashMap<ResultDescriptor, ResultData>();
+
+  /**
+   * The exception that caused one or more values to have a state of
+   * [CacheState.ERROR].
+   */
+  CaughtException get exception => _exception;
 
   /**
    * Return `true` if the source was explicitly added to the context or `false`
@@ -280,18 +286,8 @@ class CacheEntry {
    * Fix the state of the [exception] to match the current state of the entry.
    */
   void fixExceptionState() {
-    if (hasErrorState()) {
-      if (exception == null) {
-        //
-        // This code should never be reached, but is a fail-safe in case an
-        // exception is not recorded when it should be.
-        //
-        // TODO(brianwilkerson) Log this?
-        String message = 'State set to ERROR without setting an exception';
-        exception = new CaughtException(new AnalysisException(message), null);
-      }
-    } else {
-      exception = null;
+    if (!hasErrorState()) {
+      _exception = null;
     }
   }
 
@@ -348,7 +344,28 @@ class CacheEntry {
    */
   void invalidateAllInformation() {
     _resultMap.clear();
-    exception = null;
+    _exception = null;
+  }
+
+  /**
+   * Set the [CacheState.ERROR] state for given [descriptors], their values to
+   * the corresponding default values, and remember the [exception] that caused
+   * this state.
+   */
+  void setErrorState(
+      CaughtException exception, List<ResultDescriptor> descriptors) {
+    if (descriptors == null || descriptors.isEmpty) {
+      throw new ArgumentError('at least one descriptor is expected');
+    }
+    if (exception == null) {
+      throw new ArgumentError('an exception is expected');
+    }
+    this._exception = exception;
+    for (ResultDescriptor descriptor in descriptors) {
+      ResultData data = _getResultData(descriptor);
+      data.state = CacheState.ERROR;
+      data.value = descriptor.defaultValue;
+    }
   }
 
   /**
@@ -356,10 +373,9 @@ class CacheEntry {
    * given [state].
    */
   void setState(ResultDescriptor descriptor, CacheState state) {
-    // TODO(brianwilkerson) Consider introducing a different method used to set
-    // the state of a list of descriptors to ERROR that could validate that an
-    // exception was also provided. (It would then be an error to use this
-    // method to set the state to ERROR.)
+    if (state == CacheState.ERROR) {
+      throw new ArgumentError('use setErrorState() to set the state to ERROR');
+    }
     if (state == CacheState.VALID) {
       throw new ArgumentError('use setValue() to set the state to VALID');
     }
@@ -367,8 +383,7 @@ class CacheEntry {
     if (state == CacheState.INVALID) {
       _resultMap.remove(descriptor);
     } else {
-      ResultData data =
-          _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
+      ResultData data = _getResultData(descriptor);
       data.state = state;
       if (state != CacheState.IN_PROCESS) {
         //
@@ -387,8 +402,7 @@ class CacheEntry {
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
       value) {
     _validateStateChange(descriptor, CacheState.VALID);
-    ResultData data =
-        _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
+    ResultData data = _getResultData(descriptor);
     data.state = CacheState.VALID;
     data.value = value == null ? descriptor.defaultValue : value;
   }
@@ -404,6 +418,14 @@ class CacheEntry {
    * Return the value of the flag with the given [index].
    */
   bool _getFlag(int index) => BooleanArray.get(_flags, index);
+
+  /**
+   * Look up the [ResultData] of [descriptor], or add a new one if it isn't
+   * there.
+   */
+  ResultData _getResultData(ResultDescriptor descriptor) {
+    return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
+  }
 
   /**
    * Set the value of the flag with the given [index] to the given [value].

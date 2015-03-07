@@ -191,10 +191,7 @@ class AnalysisDriver {
       // Mark all of the results that the task would have computed as being in
       // ERROR with the exception recorded on the work item.
       CacheEntry targetEntry = context.getCacheEntry(item.target);
-      targetEntry.exception = item.exception;
-      for (ResultDescriptor result in item.descriptor.results) {
-        targetEntry.setState(result, CacheState.ERROR);
-      }
+      targetEntry.setErrorState(item.exception, item.descriptor.results);
       return;
     }
     // Otherwise, perform the task.
@@ -210,10 +207,7 @@ class AnalysisDriver {
         entry.setValue(result, outputs[result]);
       }
     } else {
-      entry.exception = task.caughtException;
-      for (ResultDescriptor result in task.descriptor.results) {
-        entry.setState(result, CacheState.ERROR);
-      }
+      entry.setErrorState(task.caughtException, item.descriptor.results);
     }
     _onTaskCompletedController.add(task);
   }
