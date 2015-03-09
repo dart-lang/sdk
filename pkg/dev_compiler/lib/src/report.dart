@@ -110,7 +110,8 @@ class LogReporter implements CheckerReporter {
         : _file.span(message.begin, message.end);
     final level = message.level;
     final color = useColors ? colorOf(level.name) : null;
-    _checkerLogger.log(level, span.message(message.message, color: color));
+    final text = '[${message.runtimeType}] ${message.message}';
+    _checkerLogger.log(level, span.message(text, color: color));
   }
 
   void clearLibrary(Uri uri) {}

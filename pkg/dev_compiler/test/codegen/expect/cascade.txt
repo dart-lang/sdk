@@ -1,13 +1,13 @@
 // Messages from compiling cascade.dart
-warning: line 16, column 5 of test/codegen/cascade.dart: ..x() requires dynamic invoke
+warning: line 16, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x() requires dynamic invoke
     ..x()
     ^^^^^
-warning: line 17, column 5 of test/codegen/cascade.dart: ..x() requires dynamic invoke
+warning: line 17, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x() requires dynamic invoke
     ..x();
     ^^^^^
-warning: line 27, column 5 of test/codegen/cascade.dart: ..x() requires dynamic invoke
+warning: line 27, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x() requires dynamic invoke
     ..x()
     ^^^^^
-warning: line 28, column 5 of test/codegen/cascade.dart: ..x() requires dynamic invoke
+warning: line 28, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x() requires dynamic invoke
     ..x();
     ^^^^^

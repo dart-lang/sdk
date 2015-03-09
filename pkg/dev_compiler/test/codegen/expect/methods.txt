@@ -1,10 +1,10 @@
 // Messages from compiling methods.dart
-info: line 14, column 21 of test/codegen/methods.dart: b (num) will need runtime check to cast to type int
+info: line 14, column 21 of test/codegen/methods.dart: [DownCast] b (num) will need runtime check to cast to type int
   int z([num b]) => b;
                     ^
-info: line 19, column 12 of test/codegen/methods.dart: a + b (num) will need runtime check to cast to type int
+info: line 19, column 12 of test/codegen/methods.dart: [DownCast] a + b (num) will need runtime check to cast to type int
     return a + b;
            ^^^^^
-warning: line 49, column 3 of test/codegen/methods.dart: f.bar("Bar's call method!") requires dynamic invoke
+warning: line 49, column 3 of test/codegen/methods.dart: [DynamicInvoke] f.bar("Bar's call method!") requires dynamic invoke
   f.bar("Bar's call method!");
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
