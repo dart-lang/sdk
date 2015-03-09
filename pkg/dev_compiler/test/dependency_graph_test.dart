@@ -55,8 +55,7 @@ main() {
     '/a10.dart': 'library a10;',
   };
 
-  nodeOf(String filepath, [bool isPart = false]) =>
-      graph.nodeFromUri(new Uri.file(filepath), isPart);
+  nodeOf(String filepath) => graph.nodeFromUri(new Uri.file(filepath));
 
   setUp(() {
     /// We completely reset the TestUriResolver to avoid interference between
@@ -198,6 +197,101 @@ main() {
       expect(node.exports.contains(nodeOf('/a7.dart')), isTrue);
       expect(node.parts.contains(nodeOf('/a8.dart')), isTrue);
     });
+
+    test('change part to library', () {
+      var node = nodeOf('/a2.dart');
+      node.update(graph);
+      expect(node.imports.length, 2);
+      expect(node.exports.length, 1);
+      expect(node.parts.length, 1);
+      expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(node.imports.contains(nodeOf('/a4.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
+      expect(node.parts.contains(nodeOf('/a6.dart')), isTrue);
+
+      node.source.contents.modificationTime++;
+      node.source.contents.data = '''
+          library a2;
+          import 'a3.dart';
+          import 'a4.dart';
+          export 'a5.dart';
+          import 'a6.dart'; // changed from part
+        ''';
+      var a6 = nodeOf('/a6.dart');
+      a6.source.contents.modificationTime++;
+      a6.source.contents.data = '';
+      node.update(graph);
+
+      expect(node.imports.length, 3);
+      expect(node.exports.length, 1);
+      expect(node.parts.length, 0);
+      expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(node.imports.contains(nodeOf('/a4.dart')), isTrue);
+      expect(node.imports.contains(nodeOf('/a6.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
+
+      expect(a6.imports.length, 0);
+      expect(a6.exports.length, 0);
+      expect(a6.parts.length, 0);
+    });
+
+    test('change library to part', () {
+      var node = nodeOf('/a2.dart');
+      var a4 = nodeOf('/a4.dart');
+      node.update(graph);
+      expect(node.imports.length, 2);
+      expect(node.exports.length, 1);
+      expect(node.parts.length, 1);
+      expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(node.imports.contains(nodeOf('/a4.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
+      expect(node.parts.contains(nodeOf('/a6.dart')), isTrue);
+
+      a4.update(graph);
+      expect(a4.imports.length, 0);
+      expect(a4.exports.length, 1);
+      expect(a4.parts.length, 0);
+
+      node.source.contents.modificationTime++;
+      node.source.contents.data = '''
+          library a2;
+          import 'a3.dart';
+          part 'a4.dart'; // changed from export
+          export 'a5.dart';
+          part 'a6.dart';
+        ''';
+      node.update(graph);
+
+      expect(node.imports.length, 1);
+      expect(node.exports.length, 1);
+      expect(node.parts.length, 2);
+      expect(node.imports.contains(nodeOf('/a3.dart')), isTrue);
+      expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
+      expect(node.parts.contains(nodeOf('/a4.dart')), isTrue);
+      expect(node.parts.contains(nodeOf('/a6.dart')), isTrue);
+
+      // Note, technically we never modified the contents of a4 and it contains
+      // an export. This is invalid Dart, but we'll let the analyzer report that
+      // error instead of doing so ourselves.
+      expect(a4.imports.length, 0);
+      expect(a4.exports.length, 1);
+      expect(a4.parts.length, 0);
+
+      // And change it back.
+      node.source.contents.modificationTime++;
+      node.source.contents.data = '''
+          library a2;
+          import 'a3.dart';
+          import 'a4.dart'; // changed again
+          export 'a5.dart';
+          part 'a6.dart';
+        ''';
+      node.update(graph);
+      expect(node.imports.contains(a4), isTrue);
+      expect(a4.imports.length, 0);
+      expect(a4.exports.length, 1);
+      expect(a4.parts.length, 0);
+    });
   });
 
   group('local changes', () {
@@ -220,7 +314,7 @@ main() {
 
       test('main library in Dart', () {
         var node = nodeOf('/a2.dart');
-        var partNode = nodeOf('/a6.dart', true);
+        var partNode = nodeOf('/a6.dart');
         node.update(graph);
         expect(node.needsRebuild, isTrue);
         node.needsRebuild = false;
@@ -240,7 +334,7 @@ main() {
         var node = nodeOf('/a2.dart');
         var importNode = nodeOf('/a3.dart');
         var exportNode = nodeOf('/a5.dart');
-        var partNode = nodeOf('/a6.dart', true);
+        var partNode = nodeOf('/a6.dart');
         node.update(graph);
         expect(node.needsRebuild, isTrue);
         node.needsRebuild = false;
@@ -315,7 +409,7 @@ main() {
         var node = nodeOf('/a2.dart');
         var importNode = nodeOf('/a3.dart');
         var exportNode = nodeOf('/a5.dart');
-        var partNode = nodeOf('/a6.dart', true);
+        var partNode = nodeOf('/a6.dart');
         node.update(graph);
         expect(node.structureChanged, isTrue);
         node.structureChanged = false;
@@ -465,7 +559,7 @@ main() {
           |    |-- a4.dart [needs-rebuild] [structure-changed]
           |    |    |-- a10.dart [needs-rebuild]
           |    |-- a5.dart [needs-rebuild]
-          |    |-- a6.dart [needs-rebuild]
+          |    |-- a6.dart (part) [needs-rebuild]
           ''');
     });
 
@@ -479,7 +573,7 @@ main() {
           |    |-- a4.dart [needs-rebuild] [structure-changed]
           |    |    |-- a10.dart [needs-rebuild]
           |    |-- a5.dart [needs-rebuild]
-          |    |-- a6.dart [needs-rebuild]
+          |    |-- a6.dart (part) [needs-rebuild]
           ''');
       clearMarks(node);
       expectGraph(node, '''
@@ -489,7 +583,7 @@ main() {
           |    |-- a4.dart
           |    |    |-- a10.dart
           |    |-- a5.dart
-          |    |-- a6.dart
+          |    |-- a6.dart (part)
           ''');
 
       refreshStructureAndMarks(node, graph);
@@ -500,7 +594,7 @@ main() {
           |    |-- a4.dart
           |    |    |-- a10.dart
           |    |-- a5.dart
-          |    |-- a6.dart
+          |    |-- a6.dart (part)
           ''');
     });
 
@@ -519,7 +613,7 @@ main() {
           |    |-- a4.dart
           |    |    |-- a10.dart
           |    |-- a5.dart
-          |    |-- a6.dart
+          |    |-- a6.dart (part)
           ''');
     });
 
@@ -541,7 +635,7 @@ main() {
           |    |-- a5.dart [needs-rebuild] [structure-changed]
           |    |    |-- a8.dart [needs-rebuild] [structure-changed]
           |    |    |    |-- a8.dart...
-          |    |-- a6.dart
+          |    |-- a6.dart (part)
           ''');
     });
   });
@@ -585,7 +679,7 @@ main() {
           |    |-- a4.dart
           |    |    |-- a10.dart
           |    |-- a5.dart
-          |    |-- a6.dart
+          |    |-- a6.dart (part)
           ''');
     });
 
@@ -714,6 +808,227 @@ main() {
       rebuild(node, graph, buildNoTransitiveChange);
       expect(results, []);
     });
+
+    group('file upgrades', () {
+      // Normally upgrading involves two changes:
+      //  (a) change the affected file
+      //  (b) change directive from part to import (or viceversa)
+      // These could happen in any order and we should reach a consistent state
+      // in the end.
+
+      test('convert part to a library before updating the import', () {
+        var node = nodeOf('/index3.html');
+        var a2 = nodeOf('/a2.dart');
+        var a6 = nodeOf('/a6.dart');
+        rebuild(node, graph, buildNoTransitiveChange);
+
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart
+            |    |-- a6.dart (part)
+            ''');
+
+        // Modify the file first:
+        a6.source.contents.modificationTime++;
+        a6.source.contents.data = 'library a6; import "a5.dart";';
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+
+        // Looks to us like a change in a part, we'll report errors that the
+        // part is not really a part-file. Note that a6.dart is not included
+        // below, because we don't build it as a library.
+        expect(results, ['a2.dart']);
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart
+            |    |-- a6.dart (part)
+            ''');
+
+        a2.source.contents.modificationTime++;
+        a2.source.contents.data = '''
+            library a2;
+            import 'a3.dart';
+            import 'a4.dart';
+            import 'a6.dart'; // properly import it
+            export 'a5.dart';
+          ''';
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+        // Note that a6 is now included, because we haven't built it as a
+        // library until now:
+        expect(results, ['a6.dart', 'a2.dart', 'index3.html']);
+
+        a6.source.contents.modificationTime++;
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+        expect(results, ['a6.dart']);
+
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a6.dart
+            |    |    |-- a5.dart
+            |    |-- a5.dart...
+            ''');
+      });
+
+      test('convert part to a library after updating the import', () {
+        var node = nodeOf('/index3.html');
+        var a2 = nodeOf('/a2.dart');
+        var a6 = nodeOf('/a6.dart');
+        rebuild(node, graph, buildNoTransitiveChange);
+
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart
+            |    |-- a6.dart (part)
+            ''');
+
+        a2.source.contents.modificationTime++;
+        a2.source.contents.data = '''
+            library a2;
+            import 'a3.dart';
+            import 'a4.dart';
+            import 'a6.dart'; // properly import it
+            export 'a5.dart';
+          ''';
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+        expect(results, ['a6.dart', 'a2.dart', 'index3.html']);
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a6.dart
+            |    |-- a5.dart
+            ''');
+
+        a6.source.contents.modificationTime++;
+        a6.source.contents.data = 'library a6; import "a5.dart";';
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+        expect(results, ['a6.dart', 'index3.html']);
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a6.dart
+            |    |    |-- a5.dart
+            |    |-- a5.dart...
+            ''');
+      });
+
+      test('disconnect part making it a library', () {
+        var node = nodeOf('/index3.html');
+        var a2 = nodeOf('/a2.dart');
+        var a6 = nodeOf('/a6.dart');
+        rebuild(node, graph, buildNoTransitiveChange);
+
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart
+            |    |-- a6.dart (part)
+            ''');
+
+        a2.source.contents.modificationTime++;
+        a2.source.contents.data = '''
+            library a2;
+            import 'a3.dart';
+            import 'a4.dart';
+            export 'a5.dart';
+          ''';
+        a6.source.contents.modificationTime++;
+        a6.source.contents.data = 'library a6; import "a5.dart";';
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+        // a6 is not here, it's not reachable so we don't build it.
+        expect(results, ['a2.dart', 'index3.html']);
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart
+            ''');
+      });
+
+      test('convert a library to a part', () {
+        var node = nodeOf('/index3.html');
+        var a2 = nodeOf('/a2.dart');
+        var a5 = nodeOf('/a5.dart');
+        rebuild(node, graph, buildNoTransitiveChange);
+
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart
+            |    |-- a6.dart (part)
+            ''');
+
+        a2.source.contents.modificationTime++;
+        a2.source.contents.data = '''
+            library a2;
+            import 'a3.dart';
+            import 'a4.dart';
+            part 'a5.dart'; // make it a part
+            part 'a6.dart';
+          ''';
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+        expect(results, ['a2.dart', 'index3.html']);
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart (part)
+            |    |-- a6.dart (part)
+            ''');
+
+        a5.source.contents.modificationTime++;
+        a5.source.contents.data = 'part of a2;';
+        results = [];
+        rebuild(node, graph, buildNoTransitiveChange);
+        expect(results, ['a2.dart']);
+        expectGraph(node, '''
+            index3.html
+            |-- a2.dart
+            |    |-- a3.dart
+            |    |-- a4.dart
+            |    |    |-- a10.dart
+            |    |-- a5.dart (part)
+            |    |-- a6.dart (part)
+            ''');
+      });
+    });
   });
 }
 
@@ -742,7 +1057,19 @@ printReachable(SourceNode node) {
       ..write(n.needsRebuild ? '[needs-rebuild] ' : '')
       ..write(n.structureChanged ? '[structure-changed] ' : ' ')
       ..write('\n');
-    n.directDeps.forEach((e) => helper(e, indent: indent + 1));
+    n.depsWithoutParts.forEach((e) => helper(e, indent: indent + 1));
+    if (n is DartSourceNode) {
+      n.parts.forEach((e) {
+        sb
+          ..write("|   " * indent)
+          ..write("|--  ")
+          ..write(nameFor(e))
+          ..write(" (part) ")
+          ..write(e.needsRebuild ? '[needs-rebuild] ' : '')
+          ..write(e.structureChanged ? '[structure-changed] ' : ' ')
+          ..write('\n');
+      });
+    }
   }
   helper(node);
   return sb.toString();

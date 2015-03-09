@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/ast.dart'
         ImportDirective,
         ExportDirective,
         PartDirective,
+        PartOfDirective,
         CompilationUnit,
         Identifier;
 import 'package:analyzer/src/generated/engine.dart'
@@ -43,26 +44,15 @@ class SourceGraph {
   SourceGraph(this._context, this._options);
 
   /// Node associated with a resolved [uri].
-  SourceNode nodeFromUri(Uri uri, [bool isPart = false]) {
+  SourceNode nodeFromUri(Uri uri) {
     var uriString = Uri.encodeFull('$uri');
-    var kind = uriString.endsWith('.html')
-        ? SourceKind.HTML
-        : isPart ? SourceKind.PART : SourceKind.LIBRARY;
-    return nodeFor(uri, _context.sourceFactory.forUri(uriString), kind);
-  }
-
-  /// Construct the node of the given [kind] with the given [uri] and [source].
-  SourceNode nodeFor(Uri uri, Source source, SourceKind kind) {
-    // TODO(sigmund): validate canonicalization?
-    // TODO(sigmund): add support for changing a file from one kind to another
-    // (e.g.  converting a file from a part to a library).
     return nodes.putIfAbsent(uri, () {
-      if (kind == SourceKind.HTML) {
+      var source = _context.sourceFactory.forUri(uriString);
+      var extension = path.extension(uriString);
+      if (extension == '.html') {
         return new HtmlSourceNode(uri, source);
-      } else if (kind == SourceKind.LIBRARY) {
-        return new LibrarySourceNode(uri, source);
-      } else if (kind == SourceKind.PART) {
-        return new PartSourceNode(uri, source);
+      } else if (extension == '.dart' || uriString.startsWith('dart:')) {
+        return new DartSourceNode(uri, source);
       } else {
         assert(false); // unreachable
       }
@@ -89,9 +79,14 @@ abstract class SourceNode {
   /// exports, or parts) changed after we reparsed its contents.
   bool structureChanged = false;
 
-  /// Direct dependencies (script tags for HtmlSourceNodes; imports, exports and
-  /// parts for LibrarySourceNodes).
-  Iterable<SourceNode> get directDeps;
+  /// Direct dependencies in the [SourceGraph]. These include script tags for
+  /// [HtmlSourceNode]s; and imports, exports and parts for [DartSourceNode]s.
+  Iterable<SourceNode> get allDeps;
+
+  /// Like [allDeps] but excludes parts for [DartSourceNode]s. For many
+  /// operations we mainly care about dependencies at the library level, so
+  /// parts are excluded from this list.
+  Iterable<SourceNode> get depsWithoutParts;
 
   SourceNode(this.uri, this.source);
 
@@ -114,10 +109,13 @@ abstract class SourceNode {
 /// A node representing an entry HTML source file.
 class HtmlSourceNode extends SourceNode {
   /// Libraries referred to via script tags.
-  Set<LibrarySourceNode> scripts = new Set<LibrarySourceNode>();
+  Set<DartSourceNode> scripts = new Set<DartSourceNode>();
 
   @override
-  Iterable<SourceNode> get directDeps => scripts;
+  Iterable<SourceNode> get allDeps => scripts;
+
+  @override
+  Iterable<SourceNode> get depsWithoutParts => scripts;
 
   /// Parsed document, updated whenever [update] is invoked.
   Document document;
@@ -128,7 +126,7 @@ class HtmlSourceNode extends SourceNode {
     super.update(graph);
     if (needsRebuild) {
       document = html.parse(source.contents.data, generateSpans: true);
-      var newScripts = new Set<LibrarySourceNode>();
+      var newScripts = new Set<DartSourceNode>();
       var tags = document.querySelectorAll('script[type="application/dart"]');
       for (var script in tags) {
         var src = script.attributes['src'];
@@ -156,41 +154,51 @@ class HtmlSourceNode extends SourceNode {
   }
 }
 
-/// A node representing a Dart part.
-class PartSourceNode extends SourceNode {
-  final Iterable<SourceNode> directDeps = const [];
-  PartSourceNode(uri, source) : super(uri, source);
-}
+/// A node representing a Dart library or part.
+class DartSourceNode extends SourceNode {
+  /// Set of imported libraries (empty for part files).
+  Set<DartSourceNode> imports = new Set<DartSourceNode>();
 
-/// A node representing a Dart library.
-class LibrarySourceNode extends SourceNode {
-  LibrarySourceNode(uri, source) : super(uri, source);
+  /// Set of exported libraries (empty for part files).
+  Set<DartSourceNode> exports = new Set<DartSourceNode>();
 
-  Set<LibrarySourceNode> imports = new Set<LibrarySourceNode>();
-  Set<LibrarySourceNode> exports = new Set<LibrarySourceNode>();
-  Set<PartSourceNode> parts = new Set<PartSourceNode>();
+  /// Parts of this library (empty for part files).
+  Set<DartSourceNode> parts = new Set<DartSourceNode>();
 
-  Iterable<SourceNode> get directDeps =>
+  /// How many times this file is included as a part.
+  int includedAsPart = 0;
+
+  DartSourceNode(uri, source) : super(uri, source);
+
+  @override
+  Iterable<SourceNode> get allDeps =>
       [imports, exports, parts].expand((e) => e);
+
+  @override
+  Iterable<SourceNode> get depsWithoutParts =>
+      [imports, exports].expand((e) => e);
 
   LibraryInfo info;
 
   void update(SourceGraph graph) {
     super.update(graph);
+
     if (needsRebuild && source.contents.data != null) {
       // If the defining compilation-unit changed, the structure might have
       // changed.
       var unit = parseDirectives(source.contents.data, name: source.fullName);
-      var newImports = new Set<LibrarySourceNode>();
-      var newExports = new Set<LibrarySourceNode>();
-      var newParts = new Set<PartSourceNode>();
+      var newImports = new Set<DartSourceNode>();
+      var newExports = new Set<DartSourceNode>();
+      var newParts = new Set<DartSourceNode>();
       for (var d in unit.directives) {
+        // Nothing to do for parts.
+        if (d is PartOfDirective) return;
         if (d is LibraryDirective) continue;
         var target =
             ParseDartTask.resolveDirective(graph._context, source, d, null);
         var uri = target.uri;
-        var node = graph.nodeFor(uri, target,
-            d is PartDirective ? SourceKind.PART : SourceKind.LIBRARY);
+        var node =
+            graph.nodes.putIfAbsent(uri, () => new DartSourceNode(uri, target));
         if (!node.source.exists()) {
           _log.severe(spanForNode(unit, source, d).message(
               'File $uri not found',
@@ -218,6 +226,20 @@ class LibrarySourceNode extends SourceNode {
 
       if (!_same(newParts, parts)) {
         structureChanged = true;
+
+        // When parts are removed, it's possible they were updated to be
+        // imported as a library
+        for (var p in parts) {
+          if (newParts.contains(p)) continue;
+          if (--p.includedAsPart == 0) {
+            p.needsRebuild = true;
+          }
+        }
+
+        for (var p in newParts) {
+          if (parts.contains(p)) continue;
+          p.includedAsPart++;
+        }
         parts = newParts;
       }
     }
@@ -225,6 +247,10 @@ class LibrarySourceNode extends SourceNode {
     // The library should be marked as needing rebuild if a part changed
     // internally:
     for (var p in parts) {
+      // Technically for parts we don't need to look at the contents. If they
+      // contain imports, exports, or parts, we'll ignore them in our crawling.
+      // However we do a full update to make it easier to adjust when users
+      // switch a file from a part to a library.
       p.update(graph);
       if (p.needsRebuild) needsRebuild = true;
     }
@@ -243,13 +269,14 @@ class LibrarySourceNode extends SourceNode {
 /// changes (e.g. when the API of a dependency changed) are handled later in
 /// [rebuild].
 void refreshStructureAndMarks(SourceNode start, SourceGraph graph) {
-  visitInPreOrder(start, (n) => n.update(graph));
+  visitInPreOrder(start, (n) => n.update(graph), includeParts: false);
 }
 
 /// Clears all the `needsRebuild` and `structureChanged` marks in nodes
 /// reachable from [start].
 void clearMarks(SourceNode start) {
-  visitInPreOrder(start, (n) => n.needsRebuild = n.structureChanged = false);
+  visitInPreOrder(start, (n) => n.needsRebuild = n.structureChanged = false,
+      includeParts: true);
 }
 
 /// Traverses from [start] with the purpose of building any source that needs to
@@ -259,11 +286,11 @@ void clearMarks(SourceNode start) {
 /// reachable nodes. There are four rules used to decide when to rebuild a node
 /// (call [build] on a node):
 ///
-///   * Only rebuild Dart libraries ([LibrarySourceNode]) or HTML files
-///     ([HtmlSourceNode]), but never part files ([PartSourceNode]). That is
-///     because those are built as part of some library.
+///   * Only rebuild Dart libraries ([DartSourceNode]) or HTML files
+///     ([HtmlSourceNode]), but skip part files. That is because those are
+///     built as part of some library.
 ///
-///   * Always rebuild [LibrarySourceNode]s and [HtmlSourceNode]s with local
+///   * Always rebuild [DartSourceNode]s and [HtmlSourceNode]s with local
 ///     changes or changes in a part of the library. Internally this function
 ///     calls [refreshStructureAndMarks] to ensure that the graph structure is
 ///     up-to-date and that these nodes with local changes contain the
@@ -273,7 +300,7 @@ void clearMarks(SourceNode start) {
 ///     down its reachable subgraph. This is done because HTML files embed the
 ///     transitive closure of the import graph in their output.
 ///
-///   * Rebuild [LibrarySourceNode]s that depend on other [LibrarySourceNode]s
+///   * Rebuild [DartSourceNode]s that depend on other [DartSourceNode]s
 ///     whose API may have changed. The result of [build] is used to determine
 ///     whether other nodes need to be rebuilt. The function [build] is expected
 ///     to return `true` on a node `n` if it detemines other nodes that import
@@ -291,10 +318,9 @@ rebuild(SourceNode start, SourceGraph graph, bool build(SourceNode node)) {
   bool structureHasChanged = false;
 
   bool shouldBuildNode(SourceNode n) {
-    if (n is PartSourceNode) return false;
     if (n.needsRebuild) return true;
     if (n is HtmlSourceNode) return structureHasChanged;
-    return (n as LibrarySourceNode).imports
+    return (n as DartSourceNode).imports
         .any((i) => apiChangeDetected.contains(i));
   }
 
@@ -302,31 +328,48 @@ rebuild(SourceNode start, SourceGraph graph, bool build(SourceNode node)) {
     if (n.structureChanged) structureHasChanged = true;
     if (shouldBuildNode(n)) {
       if (build(n)) apiChangeDetected.add(n);
-    } else if (n is LibrarySourceNode &&
+    } else if (n is DartSourceNode &&
         n.exports.any((e) => apiChangeDetected.contains(e))) {
       apiChangeDetected.add(n);
     }
     n.needsRebuild = false;
     n.structureChanged = false;
-  });
+    if (n is DartSourceNode) {
+      // Note: clearing out flags in the parts could be a problem if someone
+      // tries to use a file both as a part and a library at the same time.
+      // In that case, we might not correctly propagate changes in the places
+      // where it is used as a library. Technically it's not allowed to have a
+      // file as a part and a library at once, and the analyzer should report an
+      // error in that case.
+      n.parts.forEach((p) => p.needsRebuild = p.structureChanged = false);
+    }
+  }, includeParts: false);
 }
 
-/// Helper that runs [action] on nodes reachable from [node] in pre-order.
-visitInPreOrder(SourceNode node, void action(SourceNode node),
-    {Set<SourceNode> seen}) {
-  if (seen == null) seen = new HashSet<SourceNode>();
-  if (!seen.add(node)) return;
-  action(node);
-  node.directDeps.forEach((d) => visitInPreOrder(d, action, seen: seen));
+/// Helper that runs [action] on nodes reachable from [start] in pre-order.
+visitInPreOrder(SourceNode start, void action(SourceNode node),
+    {bool includeParts: false}) {
+  var seen = new HashSet<SourceNode>();
+  helper(SourceNode node) {
+    if (!seen.add(node)) return;
+    action(node);
+    var deps = includeParts ? node.allDeps : node.depsWithoutParts;
+    deps.forEach(helper);
+  }
+  helper(start);
 }
 
-/// Helper that runs [action] on nodes reachable from [node] in post-order.
-visitInPostOrder(SourceNode node, void action(SourceNode node),
-    {Set<SourceNode> seen}) {
-  if (seen == null) seen = new HashSet<SourceNode>();
-  if (!seen.add(node)) return;
-  node.directDeps.forEach((d) => visitInPostOrder(d, action, seen: seen));
-  action(node);
+/// Helper that runs [action] on nodes reachable from [start] in post-order.
+visitInPostOrder(SourceNode start, void action(SourceNode node),
+    {bool includeParts: false}) {
+  var seen = new HashSet<SourceNode>();
+  helper(SourceNode node) {
+    if (!seen.add(node)) return;
+    var deps = includeParts ? node.allDeps : node.depsWithoutParts;
+    deps.forEach(helper);
+    action(node);
+  }
+  helper(start);
 }
 
 bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);

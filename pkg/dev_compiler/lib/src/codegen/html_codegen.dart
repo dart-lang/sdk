@@ -43,8 +43,8 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
 
   var libraries = [];
   visitInPostOrder(root, (n) {
-    if (n is LibrarySourceNode) libraries.add(n);
-  });
+    if (n is DartSourceNode) libraries.add(n);
+  }, includeParts: false);
 
   String mainLibraryName;
   var fragment = _loadRuntimeScripts();

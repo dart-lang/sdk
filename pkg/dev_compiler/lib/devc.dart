@@ -97,7 +97,7 @@ class Compiler {
   bool _buildSource(SourceNode node) {
     if (node is HtmlSourceNode) {
       _buildHtmlFile(node);
-    } else if (node is LibrarySourceNode) {
+    } else if (node is DartSourceNode) {
       _buildDartLibrary(node);
     } else {
       assert(false); // should not get a build request on PartSourceNode
@@ -134,12 +134,12 @@ class Compiler {
     _devCompilerRuntimeCopied = true;
   }
 
-  bool _isEntry(LibrarySourceNode node) {
-    if (_entryNode is LibrarySourceNode) return _entryNode == node;
+  bool _isEntry(DartSourceNode node) {
+    if (_entryNode is DartSourceNode) return _entryNode == node;
     return (_entryNode as HtmlSourceNode).scripts.contains(node);
   }
 
-  void _buildDartLibrary(LibrarySourceNode node) {
+  void _buildDartLibrary(DartSourceNode node) {
     var source = node.source;
     // TODO(sigmund): find out from analyzer team if there is a better way
     _resolver.context.applyChanges(new ChangeSet()..changedSource(source));
