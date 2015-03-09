@@ -540,37 +540,26 @@ void AwaitTransformer::VisitStaticSetterNode(StaticSetterNode* node) {
 
 
 void AwaitTransformer::VisitLoadLocalNode(LoadLocalNode* node) {
-  LocalVariable* result = AddToPreambleNewTempVar(
-      new(Z) LoadLocalNode(node->token_pos(), &node->local()));
-  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = node;
 }
 
 
 void AwaitTransformer::VisitStoreLocalNode(StoreLocalNode* node) {
   AstNode* new_value = Transform(node->value());
-  LocalVariable* result = AddToPreambleNewTempVar(
-      new(Z) StoreLocalNode(node->token_pos(),
-                            &node->local(),
-                            new_value));
-  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) StoreLocalNode(node->token_pos(), &node->local(), new_value);
 }
 
 
 void AwaitTransformer::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
-  LocalVariable* result = AddToPreambleNewTempVar(
-      new(Z) LoadStaticFieldNode(node->token_pos(),
-                                 node->field()));
-  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = node;
 }
 
 
 void AwaitTransformer::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   AstNode* new_value = Transform(node->value());
-  LocalVariable* result = AddToPreambleNewTempVar(
-      new(Z) StoreStaticFieldNode(node->token_pos(),
-                                  node->field(),
-                                  new_value));
-  result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
+  result_ = new(Z) StoreStaticFieldNode(node->token_pos(),
+                                        node->field(),
+                                        new_value);
 }
 
 
@@ -612,7 +601,18 @@ void AwaitTransformer::VisitAssignableNode(AssignableNode* node) {
 
 
 void AwaitTransformer::VisitLetNode(LetNode* node) {
-  // TODO(mlippautz): Check initializers and their temps.
+  // Add all the initializer nodes and their temporary variables
+  // to the preamble. The temporary variables will be captured
+  // as a side effect of being added to a scope, and the subsequent
+  // nodes that are added to the preample can access them.
+  for (intptr_t i = 0; i < node->num_temps(); i++) {
+    preamble_->scope()->AddVariable(node->TempAt(i));
+    AstNode* new_init_val = Transform(node->InitializerAt(i));
+    preamble_->Add(new(Z) StoreLocalNode(node->token_pos(),
+                   node->TempAt(i),
+                   new_init_val));
+  }
+  // The transformed LetNode does not have any temporary variables.
   LetNode* result = new(Z) LetNode(node->token_pos());
   for (intptr_t i = 0; i < node->nodes().length(); i++) {
     result->AddNode(Transform(node->nodes()[i]));
