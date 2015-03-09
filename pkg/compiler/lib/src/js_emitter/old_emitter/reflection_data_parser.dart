@@ -209,10 +209,11 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
         functions.push(f.\$stubName);
       }
     }
+    index++;
     for (var i = 0; i < funcs.length; index++, i++) {
-      funcs[i].\$callName = ${readString("array", "index + 1")};
+      funcs[i].\$callName = ${readString("array", "index")};
     }
-    var getterStubName = ${readString("array", "++index")};
+    var getterStubName = ${readString("array", "index")};
     array = array.slice(++index);
     var requiredParameterInfo = ${readInt("array", "0")};
     var requiredParameterCount = requiredParameterInfo >> 1;
