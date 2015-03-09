@@ -11,6 +11,15 @@ import 'dart:html';
 main() {
   useHtmlIndividualConfiguration();
 
+  check(String name, bool fn(), [bool supported = true]) {
+    test(name, () {
+      var expectation = supported ? returnsNormally : throws;
+      expect(() {
+        expect(fn(), isTrue);
+      }, expectation);
+    });
+  }
+
   group('ul', () {
     check('ul', () => new UListElement() is UListElement);
 
@@ -20,6 +29,8 @@ main() {
       ul.append(li);
     });
   });
-  check('video', () => new VideoElement() is VideoElement);
-  check('unknown', () => new Element.tag('someunknown') is UnknownElement);
+  group('constructors', () {
+    check('video', () => new VideoElement() is VideoElement);
+    check('unknown', () => new Element.tag('someunknown') is UnknownElement);
+  });
 }

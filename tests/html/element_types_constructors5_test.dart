@@ -20,18 +20,20 @@ main() {
     });
   }
 
-  check('table', () => new TableElement() is TableElement);
-  check('template', () => new TemplateElement() is TemplateElement,
-      TemplateElement.supported);
-  check('textarea', () => new TextAreaElement() is TextAreaElement);
-  check('title', () => new TitleElement() is TitleElement);
-  check('td', () => new TableCellElement() is TableCellElement);
-  check('col', () => new TableColElement() is TableColElement);
-  check('colgroup', () => new Element.tag('colgroup') is TableColElement);
-  check('tr', () => new TableRowElement() is TableRowElement);
-  check('tbody', () => new Element.tag('tbody') is TableSectionElement);
-  check('tfoot', () => new Element.tag('tfoot') is TableSectionElement);
-  check('thead', () => new Element.tag('thead') is TableSectionElement);
-  check('track', () => new TrackElement() is TrackElement,
-      TrackElement.supported);
+  group('constructors', () {
+    check('table', () => new TableElement() is TableElement);
+    check('template', () => new TemplateElement() is TemplateElement,
+        TemplateElement.supported);
+    check('textarea', () => new TextAreaElement() is TextAreaElement);
+    check('title', () => new TitleElement() is TitleElement);
+    check('td', () => new TableCellElement() is TableCellElement);
+    check('col', () => new TableColElement() is TableColElement);
+    check('colgroup', () => new Element.tag('colgroup') is TableColElement);
+    check('tr', () => new TableRowElement() is TableRowElement);
+    check('tbody', () => new Element.tag('tbody') is TableSectionElement);
+    check('tfoot', () => new Element.tag('tfoot') is TableSectionElement);
+    check('thead', () => new Element.tag('thead') is TableSectionElement);
+    check('track', () => new TrackElement() is TrackElement,
+        TrackElement.supported);
+  });
 }

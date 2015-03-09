@@ -20,22 +20,24 @@ main() {
     });
   }
 
-  check('li', () => new LIElement() is LIElement);
-  check('label', () => new LabelElement() is LabelElement);
-  check('legen', () => new LegendElement() is LegendElement);
-  check('link', () => new LinkElement() is LinkElement);
-  check('map', () => new MapElement() is MapElement);
-  check('menu', () => new MenuElement() is MenuElement);
-  check('meta', () => new MetaElement() is MetaElement);
-  check('meter',
-      () => new MeterElement() is MeterElement, MeterElement.supported);
-  check('del', () => new Element.tag('del') is ModElement);
-  check('ins', () => new Element.tag('ins') is ModElement);
-  check('object', () => new ObjectElement() is ObjectElement,
-      ObjectElement.supported);
-  check('ol', () => new OListElement() is OListElement);
-  check('optgroup', () => new OptGroupElement() is OptGroupElement);
-  check('option', () => new OptionElement() is OptionElement);
-  check('output',
-      () => new OutputElement() is OutputElement, OutputElement.supported);
+  group('constructors', () {
+    check('li', () => new LIElement() is LIElement);
+    check('label', () => new LabelElement() is LabelElement);
+    check('legen', () => new LegendElement() is LegendElement);
+    check('link', () => new LinkElement() is LinkElement);
+    check('map', () => new MapElement() is MapElement);
+    check('menu', () => new MenuElement() is MenuElement);
+    check('meta', () => new MetaElement() is MetaElement);
+    check('meter',
+        () => new MeterElement() is MeterElement, MeterElement.supported);
+    check('del', () => new Element.tag('del') is ModElement);
+    check('ins', () => new Element.tag('ins') is ModElement);
+    check('object', () => new ObjectElement() is ObjectElement,
+        ObjectElement.supported);
+    check('ol', () => new OListElement() is OListElement);
+    check('optgroup', () => new OptGroupElement() is OptGroupElement);
+    check('option', () => new OptionElement() is OptionElement);
+    check('output',
+        () => new OutputElement() is OutputElement, OutputElement.supported);
+  });
 }

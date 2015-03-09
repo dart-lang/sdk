@@ -20,20 +20,22 @@ main() {
     });
   }
 
-  check('fieldset', () => new FieldSetElement() is FieldSetElement);
-  check('form', () => new FormElement() is FormElement);
-  check('head', () => new HeadElement() is HeadElement);
-  check('hr', () => new HRElement() is HRElement);
-  check('html', () => new HtmlHtmlElement() is HtmlHtmlElement);
-  check('h1', () => new HeadingElement.h1() is HeadingElement);
-  check('h2', () => new HeadingElement.h2() is HeadingElement);
-  check('h3', () => new HeadingElement.h3() is HeadingElement);
-  check('h4', () => new HeadingElement.h4() is HeadingElement);
-  check('h5', () => new HeadingElement.h5() is HeadingElement);
-  check('h6', () => new HeadingElement.h6() is HeadingElement);
-  check('iframe', () => new IFrameElement() is IFrameElement);
-  check('img', () => new ImageElement() is ImageElement);
-  check('input', () => new InputElement() is InputElement);
-  check('keygen',
-      () => new KeygenElement() is KeygenElement, KeygenElement.supported);
+  group('constructors', () {
+    check('fieldset', () => new FieldSetElement() is FieldSetElement);
+    check('form', () => new FormElement() is FormElement);
+    check('head', () => new HeadElement() is HeadElement);
+    check('hr', () => new HRElement() is HRElement);
+    check('html', () => new HtmlHtmlElement() is HtmlHtmlElement);
+    check('h1', () => new HeadingElement.h1() is HeadingElement);
+    check('h2', () => new HeadingElement.h2() is HeadingElement);
+    check('h3', () => new HeadingElement.h3() is HeadingElement);
+    check('h4', () => new HeadingElement.h4() is HeadingElement);
+    check('h5', () => new HeadingElement.h5() is HeadingElement);
+    check('h6', () => new HeadingElement.h6() is HeadingElement);
+    check('iframe', () => new IFrameElement() is IFrameElement);
+    check('img', () => new ImageElement() is ImageElement);
+    check('input', () => new InputElement() is InputElement);
+    check('keygen',
+        () => new KeygenElement() is KeygenElement, KeygenElement.supported);
+  });
 }
