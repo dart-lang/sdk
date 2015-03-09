@@ -550,7 +550,11 @@ main() {
   group('refresh structure and marks', () {
     test('initial marks', () {
       var node = nodeOf('/index3.html');
-      expectGraph(node, 'index3.html');
+      expectGraph(node, '''
+          index3.html
+          |-- dart_runtime.js
+          |-- harmony_feature_check.js
+          ''');
       refreshStructureAndMarks(node, graph);
       expectGraph(node, '''
           index3.html [needs-rebuild] [structure-changed]
@@ -560,6 +564,8 @@ main() {
           |    |    |-- a10.dart [needs-rebuild]
           |    |-- a5.dart [needs-rebuild]
           |    |-- a6.dart (part) [needs-rebuild]
+          |-- dart_runtime.js [needs-rebuild]
+          |-- harmony_feature_check.js [needs-rebuild]
           ''');
     });
 
@@ -574,6 +580,8 @@ main() {
           |    |    |-- a10.dart [needs-rebuild]
           |    |-- a5.dart [needs-rebuild]
           |    |-- a6.dart (part) [needs-rebuild]
+          |-- dart_runtime.js [needs-rebuild]
+          |-- harmony_feature_check.js [needs-rebuild]
           ''');
       clearMarks(node);
       expectGraph(node, '''
@@ -584,6 +592,8 @@ main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
+          |-- dart_runtime.js
+          |-- harmony_feature_check.js
           ''');
 
       refreshStructureAndMarks(node, graph);
@@ -595,6 +605,8 @@ main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
+          |-- dart_runtime.js
+          |-- harmony_feature_check.js
           ''');
     });
 
@@ -614,6 +626,8 @@ main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
+          |-- dart_runtime.js
+          |-- harmony_feature_check.js
           ''');
     });
 
@@ -636,6 +650,8 @@ main() {
           |    |    |-- a8.dart [needs-rebuild] [structure-changed]
           |    |    |    |-- a8.dart...
           |    |-- a6.dart (part)
+          |-- dart_runtime.js
+          |-- harmony_feature_check.js
           ''');
     });
   });
@@ -668,7 +684,9 @@ main() {
         'a4.dart',
         'a5.dart',
         'a2.dart',
-        'index3.html'
+        'dart_runtime.js',
+        'harmony_feature_check.js',
+        'index3.html',
       ]);
 
       // Marks are removed automatically by rebuild
@@ -680,6 +698,8 @@ main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
+          |-- dart_runtime.js
+          |-- harmony_feature_check.js
           ''');
     });
 
@@ -830,6 +850,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
 
         // Modify the file first:
@@ -850,6 +872,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -880,6 +904,8 @@ main() {
             |    |-- a6.dart
             |    |    |-- a5.dart
             |    |-- a5.dart...
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
       });
 
@@ -897,6 +923,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -918,6 +946,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a6.dart
             |    |-- a5.dart
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
 
         a6.source.contents.modificationTime++;
@@ -934,6 +964,8 @@ main() {
             |    |-- a6.dart
             |    |    |-- a5.dart
             |    |-- a5.dart...
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
       });
 
@@ -951,6 +983,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -973,6 +1007,8 @@ main() {
             |    |-- a4.dart
             |    |    |-- a10.dart
             |    |-- a5.dart
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
       });
 
@@ -990,6 +1026,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -1011,6 +1049,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a5.dart (part)
             |    |-- a6.dart (part)
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
 
         a5.source.contents.modificationTime++;
@@ -1026,6 +1066,8 @@ main() {
             |    |    |-- a10.dart
             |    |-- a5.dart (part)
             |    |-- a6.dart (part)
+            |-- dart_runtime.js
+            |-- harmony_feature_check.js
             ''');
       });
     });

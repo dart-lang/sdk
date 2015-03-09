@@ -51,7 +51,6 @@ class Compiler {
   List<LibraryInfo> _libraries = <LibraryInfo>[];
   final List<CodeGenerator> _generators;
   bool _failure = false;
-  bool _devCompilerRuntimeCopied = false;
 
   factory Compiler(CompilerOptions options,
       [TypeResolver resolver, CheckerReporter reporter]) {
@@ -99,6 +98,8 @@ class Compiler {
       _buildHtmlFile(node);
     } else if (node is DartSourceNode) {
       _buildDartLibrary(node);
+    } else if (node is JavaScriptSourceNode) {
+      _buildJavaScriptFile(node);
     } else {
       assert(false); // should not get a build request on PartSourceNode
     }
@@ -119,19 +120,19 @@ class Compiler {
     String outputFile = path.join(_options.outputDir, filename);
     new File(outputFile).writeAsStringSync(output);
 
-    if (_options.outputDart || _devCompilerRuntimeCopied) return;
-    // Copy the dev_compiler runtime (implicit dependency for js codegen)
-    // TODO(sigmund): split this out as a separate node in our dependency graph
-    // (https://github.com/dart-lang/dev_compiler/issues/85).
-    var runtimeDir = path.join(
-        path.dirname(path.dirname(Platform.script.path)), 'lib/runtime/');
-    var runtimeOutput = path.join(_options.outputDir, 'dev_compiler/runtime/');
-    new Directory(runtimeOutput).createSync(recursive: true);
-    new File(path.join(runtimeDir, 'harmony_feature_check.js'))
-        .copy(path.join(runtimeOutput, 'harmony_feature_check.js'));
-    new File(path.join(runtimeDir, 'dart_runtime.js'))
-        .copy(path.join(runtimeOutput, 'dart_runtime.js'));
-    _devCompilerRuntimeCopied = true;
+    if (_options.outputDart) return;
+  }
+
+  void _buildJavaScriptFile(JavaScriptSourceNode node) {
+    // JavaScriptSourceNodes are runtime .js files that just need to be copied
+    // over to the output location. These can be external dependencies or pieces
+    // of the dev_compiler runtime.
+    if (_options.outputDir == null || _options.outputDart) return;
+    assert(node.uri.scheme == 'package');
+    var filepath = path.join(_options.outputDir, node.uri.path);
+    var dir = path.dirname(filepath);
+    new Directory(dir).createSync(recursive: true);
+    new File(filepath).writeAsStringSync(node.source.contents.data);
   }
 
   bool _isEntry(DartSourceNode node) {

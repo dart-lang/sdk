@@ -50,9 +50,11 @@ class SourceGraph {
       var source = _context.sourceFactory.forUri(uriString);
       var extension = path.extension(uriString);
       if (extension == '.html') {
-        return new HtmlSourceNode(uri, source);
+        return new HtmlSourceNode(uri, source, this);
       } else if (extension == '.dart' || uriString.startsWith('dart:')) {
         return new DartSourceNode(uri, source);
+      } else if (extension == '.js') {
+        return new JavaScriptSourceNode(uri, source);
       } else {
         assert(false); // unreachable
       }
@@ -81,12 +83,12 @@ abstract class SourceNode {
 
   /// Direct dependencies in the [SourceGraph]. These include script tags for
   /// [HtmlSourceNode]s; and imports, exports and parts for [DartSourceNode]s.
-  Iterable<SourceNode> get allDeps;
+  Iterable<SourceNode> get allDeps => const [];
 
   /// Like [allDeps] but excludes parts for [DartSourceNode]s. For many
   /// operations we mainly care about dependencies at the library level, so
   /// parts are excluded from this list.
-  Iterable<SourceNode> get depsWithoutParts;
+  Iterable<SourceNode> get depsWithoutParts => const [];
 
   SourceNode(this.uri, this.source);
 
@@ -108,19 +110,27 @@ abstract class SourceNode {
 
 /// A node representing an entry HTML source file.
 class HtmlSourceNode extends SourceNode {
+  /// Javascript dependencies, included by default on any application.
+  final runtimeDeps = new Set<JavaScriptSourceNode>();
+
   /// Libraries referred to via script tags.
   Set<DartSourceNode> scripts = new Set<DartSourceNode>();
 
   @override
-  Iterable<SourceNode> get allDeps => scripts;
+  Iterable<SourceNode> get allDeps => [scripts, runtimeDeps].expand((e) => e);
 
   @override
-  Iterable<SourceNode> get depsWithoutParts => scripts;
+  Iterable<SourceNode> get depsWithoutParts => allDeps;
 
   /// Parsed document, updated whenever [update] is invoked.
   Document document;
 
-  HtmlSourceNode(uri, source) : super(uri, source);
+  HtmlSourceNode(uri, source, graph) : super(uri, source) {
+    var prefix = 'package:dev_compiler/runtime';
+    runtimeDeps
+      ..add(graph.nodeFromUri(Uri.parse('$prefix/dart_runtime.js')))
+      ..add(graph.nodeFromUri(Uri.parse('$prefix/harmony_feature_check.js')));
+  }
 
   void update(SourceGraph graph) {
     super.update(graph);
@@ -257,6 +267,12 @@ class DartSourceNode extends SourceNode {
   }
 }
 
+/// Represents a Javascript runtime resource from our compiler that is needed to
+/// run an application.
+class JavaScriptSourceNode extends SourceNode {
+  JavaScriptSourceNode(uri, source) : super(uri, source);
+}
+
 /// Updates the structure and `needsRebuild` marks in nodes of [graph] reachable
 /// from [start].
 ///
@@ -320,6 +336,7 @@ rebuild(SourceNode start, SourceGraph graph, bool build(SourceNode node)) {
   bool shouldBuildNode(SourceNode n) {
     if (n.needsRebuild) return true;
     if (n is HtmlSourceNode) return structureHasChanged;
+    if (n is JavaScriptSourceNode) return false;
     return (n as DartSourceNode).imports
         .any((i) => apiChangeDetected.contains(i));
   }
