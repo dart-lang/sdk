@@ -1012,14 +1012,27 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       if (current.canThrow() || current.sideEffects.hasSideEffects()) {
         return false;
       }
-      if (current.next == null && current is HGoto) {
-        // We do not merge blocks in our SSA graph, so if this block
-        // just jumps to a single predecessor, visit this predecessor.
-        assert(current.block.successors.length == 1);
-        current = current.block.successors[0].first;
-      } else {
-        current = current.next;
+      HInstruction next = current.next;
+      if (next == null) {
+        // We do not merge blocks in our SSA graph, so if this block just jumps
+        // to a single successor, visit the successor, avoiding back-edges.
+        HBasicBlock successor;
+        if (current is HGoto) {
+          successor = current.block.successors.single;
+        } else if (current is HIf) {
+          // We also leave HIf nodes in place when one branch is dead.
+          HInstruction condition = current.inputs.first;
+          if (condition is HConstant) {
+            bool isTrue = condition.constant.isTrue;
+            successor = isTrue ? current.thenBlock : current.elseBlock;
+            assert(!analyzer.isDeadBlock(successor));
+          }
+        }
+        if (successor != null && successor.id > current.block.id) {
+          next = successor.first;
+        }
       }
+      current = next;
     } while (current != null);
     return false;
   }
