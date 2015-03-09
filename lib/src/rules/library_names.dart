@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library library_names;
+library linter.src.rules.library_names;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -31,12 +31,11 @@ supports symbolic imports.
 * `SliderMenu.dart`
 * `filesystem.dart`
 * `library peg-parser;`
-```
 ''';
 
 class LibraryNames extends LintRule {
   LibraryNames() : super(
-          name: 'LibraryNames',
+          name: 'library_names',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library non_constant_identifier_names;
+library linter.src.rules.non_constant_identifier_names;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -32,7 +32,7 @@ align(clearItems) {
 
 class NonConstantIdentifierNames extends LintRule {
   NonConstantIdentifierNames() : super(
-          name: 'NonConstantIdentifierNames',
+          name: 'non_constant_identifier_names',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

@@ -25,9 +25,6 @@ void _registerLinters(Iterable<Linter> linters) {
 
 typedef Printer(String msg);
 
-/// Describes a set of enabled rules.
-typedef Iterable<LintRule> RuleSet();
-
 /// Describes a String in valid camel case format.
 class CamelCaseString {
   static final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
@@ -206,16 +203,15 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// Lint maturity (STABLE|EXPERIMENTAL).
   final Maturity maturity;
   /// Lint name.
-  final CamelCaseString name;
+  final String name;
 
   /// Until pubspec analysis is pushed into the analyzer proper, we need to
   /// do some extra book-keeping to keep track of details that will help us
   /// constitute AnalysisErrorInfos.
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
-  LintRule({String name, this.group, this.kind, this.description, this.details,
-      this.maturity: Maturity.STABLE})
-      : name = new CamelCaseString(name);
+  LintRule({this.name, this.group, this.kind, this.description, this.details,
+      this.maturity: Maturity.STABLE});
 
   @override
   int compareTo(LintRule other) {
@@ -223,7 +219,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     if (k != 0) {
       return k;
     }
-    return name.value.compareTo(other.name.value);
+    return name.compareTo(other.name);
   }
 
   /// Return a visitor to be passed to pubspecs to perform lint
@@ -236,7 +232,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   void reportLint(AstNode node) {
     reporter.reportErrorForNode(
-        new _LintCode(name.value, description), node, []);
+        new _LintCode(name, description), node, []);
   }
 
   void reportPubLint(PSNode node) {
@@ -245,7 +241,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     // Cache error and location info for creating AnalysisErrorInfos
     // Note that error columns are 1-based
     var error = new AnalysisError.con2(source, node.span.start.column + 1,
-        node.span.length, new _LintCode(name.value, description));
+        node.span.length, new _LintCode(name, description));
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
 
@@ -387,7 +383,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           contents: sourceFile.readAsStringSync(), sourceUrl: sourceFile.path);
 
   static LinterOptions _defaultOptions() =>
-      new LinterOptions(() => ruleMap.values);
+      new LinterOptions(() => ruleRegistry);
 }
 
 class _LineInfo implements LineInfo {

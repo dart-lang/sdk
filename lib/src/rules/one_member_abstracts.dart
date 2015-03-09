@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library one_member_abstracts;
+library linter.src.rules.one_member_abstracts;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -36,7 +36,7 @@ abstract class Predicate {
 
 class OneMemberAbstracts extends LintRule {
   OneMemberAbstracts() : super(
-          name: 'OneMemberAbstracts',
+          name: 'one_member_abstracts',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

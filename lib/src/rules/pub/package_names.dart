@@ -28,7 +28,7 @@ bool isValidPackageName(String id) =>
 
 class PubPackageNames extends LintRule {
   PubPackageNames() : super(
-          name: 'PubPackageNames',
+          name: 'package_names',
           description: desc,
           details: details,
           group: Group.PUB,

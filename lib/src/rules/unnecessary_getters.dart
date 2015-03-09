@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unnecessary_getters;
+library linter.src.rules.unnecessary_getters;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/ast.dart';
@@ -41,7 +41,7 @@ class Box {
 
 class UnnecessaryGetters extends LintRule {
   UnnecessaryGetters() : super(
-          name: 'UnnecessaryGetters',
+          name: 'unnecessary_getters',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

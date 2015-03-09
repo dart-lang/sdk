@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library library_prefixes;
+library linter.src.rules.library_prefixes;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -34,7 +34,7 @@ import 'package:javascript_utils/javascript_utils.dart' as jsUtils;
 
 class LibraryPrefixes extends LintRule {
   LibraryPrefixes() : super(
-          name: 'LibraryPrefixes',
+          name: 'library_prefixes',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

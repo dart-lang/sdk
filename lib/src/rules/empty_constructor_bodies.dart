@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library empty_constructor_bodies;
+library linter.src.rules.empty_constructor_bodies;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -42,7 +42,7 @@ class EmptyConstructorBodies extends LintRule {
 
   EmptyConstructorBodies()
       : super(
-          name: 'EmptyConstructorBodies',
+          name: 'empty_constructor_bodies',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

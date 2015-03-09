@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library super_goes_last;
+library linter.src.rules.super_goes_last;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -47,7 +47,7 @@ View(Style style, List children)
 
 class SuperGoesLast extends LintRule {
   SuperGoesLast() : super(
-          name: 'SuperGoesLast',
+          name: 'super_goes_last',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

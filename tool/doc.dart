@@ -35,14 +35,46 @@ void main([args]) {
     }
   }
 
-  var rules = ruleMap.values;
-
   // Generate index
-  new Indexer(rules).generate(outDir);
+  new Indexer(ruleRegistry).generate(outDir);
 
   // Generate rule files
   rules.forEach((l) => new Generator(l).generate(outDir));
 }
+
+const ruleFootMatter = '''
+In addition, rules can be further distinguished by *maturity*.  Unqualified
+rules are considered stable, while others may be marked **EXPERIMENTAL** 
+to indicate that they are under review.
+
+These rules are under active development.  Feedback is 
+[welcome](https://github.com/dart-lang/linter/issues)!
+''';
+
+const ruleLeadMatter = '''
+Lint rules are grouped by imperatives inline with the Dart 
+[style guide] (https://www.dartlang.org/articles/style-guide/).
+
+In summary:
+''';
+
+/// Sorted list of contributed lint rules.
+final List<LintRule> rules =
+    new List<LintRule>.from(ruleRegistry, growable: false)..sort();
+
+String get enumerateKinds => Kind.supported
+    .map((Kind k) => '<li>${markdownToHtml(k.description)}</li>')
+    .join('\n');
+
+String get enumeratePubRules => rules
+    .where((r) => r.group == Group.PUB)
+    .map((r) => '${toDescription(r)}')
+    .join('\n\n');
+
+String get enumerateStyleGuideRules => rules
+    .where((r) => r.group == Group.STYLE_GUIDE)
+    .map((r) => '${toDescription(r)}')
+    .join('\n\n');
 
 void printUsage(ArgParser parser, [String error]) {
   var message = 'Generates lint docs.';
@@ -56,16 +88,22 @@ ${parser.usage}
 ''');
 }
 
+String qualify(LintRule r) => r.name.toString() +
+    (r.maturity == Maturity.STABLE ? '' : ' (${r.maturity.name})');
+
+String toDescription(LintRule r) =>
+    '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/>${markdownToHtml(r.description)}';
+
 class Generator {
   LintRule rule;
   Generator(this.rule);
 
   String get details => rule.details != null ? rule.details : '';
   String get group => rule.group.name;
-  String get humanReadableName => rule.name.humanized;
+  String get humanReadableName => rule.name;
   String get kind => rule.kind.name;
   String get maturity => rule.maturity.name;
-  String get name => rule.name.value;
+  String get name => rule.name;
 
   generate([String filePath]) {
     var generated = _generate();
@@ -121,38 +159,6 @@ class Generator {
 </html>
 ''';
 }
-
-const ruleLeadMatter = '''
-Lint rules are grouped by imperatives inline with the Dart 
-[style guide] (https://www.dartlang.org/articles/style-guide/).
-
-In summary:
-''';
-
-const ruleFootMatter = '''
-In addition, rules can be further distinguished by *maturity*.  Unqualified
-rules are considered stable, while others may be marked **EXPERIMENTAL** 
-to indicate that they are under review.
-
-These rules are under active development.  Feedback is 
-[welcome](https://github.com/dart-lang/linter/issues)!
-''';
-
-String get enumerateKinds => Kind.supported
-    .map((Kind k) => '<li>${markdownToHtml(k.description)}</li>')
-    .join('\n');
-
-String get enumeratePubRules =>
-rules.where((r) => r.group == Group.PUB).map((r) => '${toDescription(r)}').join('\n\n');
-
-String get enumerateStyleGuideRules =>
-  rules.where((r) => r.group == Group.STYLE_GUIDE).map((r) => '${toDescription(r)}').join('\n\n');
-
-String toDescription(LintRule r) =>
-    '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/>${markdownToHtml(r.description)}';
-
-String qualify(LintRule r) => r.name.toString() +
-    (r.maturity == Maturity.STABLE ? '' : ' (${r.maturity.name})');
 
 class Indexer {
   Iterable<LintRule> rules;

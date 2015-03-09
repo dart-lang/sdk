@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unnecessary_brace_in_string_interp;
+library linter.src.rules.unnecessary_brace_in_string_interp;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -34,7 +34,7 @@ bool isAlphaNumeric(Token token) =>
 
 class UnnecessaryBraceInStringInterp extends LintRule {
   UnnecessaryBraceInStringInterp() : super(
-          name: 'UnnecessaryBraceInStringInterp',
+          name: 'unnecessary_brace_in_string_interp',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,

@@ -446,7 +446,7 @@ void testRule(String ruleName, File file) {
     }
 
     DartLinter driver = new DartLinter.forRules(
-        () => [ruleMap[ruleName]].where((rule) => rule != null));
+        () => [ruleRegistry[ruleName]].where((rule) => rule != null));
 
     Iterable<AnalysisErrorInfo> lints = driver.lintFiles([file]);
 

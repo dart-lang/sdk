@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library type_init_formals;
+library linter.src.rules.type_init_formals;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -36,7 +36,7 @@ class Point {
 
 class TypeInitFormals extends LintRule {
   TypeInitFormals() : super(
-          name: 'TypeInitFormals',
+          name: 'type_init_formals',
           description: desc,
           details: details,
           group: Group.STYLE_GUIDE,
