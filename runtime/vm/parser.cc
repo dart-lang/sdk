@@ -6089,11 +6089,12 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   TryStack* try_statement = PopTry();
   ASSERT(try_stack_ == NULL);  // We popped the outermost try block.
 
-  // Finally block: closing the stream and returning. (Note: the return
-  // is necessary otherwise the back-end will append a rethrow of the
-  // current exception.)
+  // Finally block: closing the stream and returning. Instead of simply
+  // returning, create an await state and suspend. There may be outstanding
+  // calls to schedule the generator body. This suspension ensures that we
+  // do not repeat any code of the generator body.
   // :controller.close();
-  // return;
+  // suspend;
   // We need to inline this code in all recorded exit points.
   intptr_t node_index = 0;
   SequenceNode* finally_clause = NULL;
@@ -6107,8 +6108,13 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
             Symbols::Close(),
             no_args));
 
-    ReturnNode* return_node = new(Z) ReturnNode(Scanner::kNoSourcePos);
-    current_block_->statements->Add(return_node);
+    // Suspend after the close.
+    AwaitMarkerNode* await_marker = new(Z) AwaitMarkerNode();
+    await_marker->set_scope(current_block_->scope);
+    current_block_->statements->Add(await_marker);
+    ReturnNode* continuation_ret = new(Z) ReturnNode(try_end_pos);
+    continuation_ret->set_return_type(ReturnNode::kContinuationTarget);
+    current_block_->statements->Add(continuation_ret);
 
     finally_clause = CloseBlock();
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);

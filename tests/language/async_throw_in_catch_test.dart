@@ -439,7 +439,7 @@ foo18(Tracer tracer) async {
 }
 
 runTest(expectedTrace, fun, [expectedError]) async {
-  Tracer tracer = new Tracer(expectedTrace);
+  Tracer tracer = new Tracer(expectedTrace, expectedTrace);
   try {
     await fun(tracer);
   } catch (error) {
