@@ -84,6 +84,7 @@ AnalysisError newAnalysisError_fromEngine(
  */
 Element newElement_fromEngine(engine.Element element) {
   String name = element.displayName;
+  String elementTypeParameters = _getTypeParametersString(element);
   String elementParameters = _getParametersString(element);
   String elementReturnType = _getReturnTypeString(element);
   return new Element(newElementKind_fromEngine(element.kind), name, Element
@@ -95,6 +96,7 @@ Element newElement_fromEngine(engine.Element element) {
               isFinal: _isFinal(element),
               isStatic: _isStatic(element)),
       location: newLocation_fromElement(element),
+      typeParameters: elementTypeParameters,
       parameters: elementParameters,
       returnType: elementReturnType);
 }
@@ -349,6 +351,19 @@ String _getReturnTypeString(engine.Element element) {
   } else {
     return null;
   }
+}
+
+String _getTypeParametersString(engine.Element element) {
+  List<engine.TypeParameterElement> typeParameters;
+  if (element is engine.ClassElement) {
+    typeParameters = element.typeParameters;
+  } else if (element is engine.FunctionTypeAliasElement) {
+    typeParameters = element.typeParameters;
+  }
+  if (typeParameters == null || typeParameters.isEmpty) {
+    return null;
+  }
+  return '<${typeParameters.join(', ')}>';
 }
 
 bool _isAbstract(engine.Element element) {

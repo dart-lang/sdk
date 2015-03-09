@@ -6432,6 +6432,7 @@ class CompletionSuggestionKind implements Enum {
  *   "flags": int
  *   "parameters": optional String
  *   "returnType": optional String
+ *   "typeParameters": optional String
  * }
  */
 class Element implements HasToJson {
@@ -6497,7 +6498,13 @@ class Element implements HasToJson {
    */
   String returnType;
 
-  Element(this.kind, this.name, this.flags, {this.location, this.parameters, this.returnType});
+  /**
+   * The type parameter list for the element. If the element doesn't have type
+   * parameters, this field will not be defined.
+   */
+  String typeParameters;
+
+  Element(this.kind, this.name, this.flags, {this.location, this.parameters, this.returnType, this.typeParameters});
 
   factory Element.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -6534,7 +6541,11 @@ class Element implements HasToJson {
       if (json.containsKey("returnType")) {
         returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
       }
-      return new Element(kind, name, flags, location: location, parameters: parameters, returnType: returnType);
+      String typeParameters;
+      if (json.containsKey("typeParameters")) {
+        typeParameters = jsonDecoder._decodeString(jsonPath + ".typeParameters", json["typeParameters"]);
+      }
+      return new Element(kind, name, flags, location: location, parameters: parameters, returnType: returnType, typeParameters: typeParameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Element");
     }
@@ -6561,6 +6572,9 @@ class Element implements HasToJson {
     if (returnType != null) {
       result["returnType"] = returnType;
     }
+    if (typeParameters != null) {
+      result["typeParameters"] = typeParameters;
+    }
     return result;
   }
 
@@ -6575,7 +6589,8 @@ class Element implements HasToJson {
           location == other.location &&
           flags == other.flags &&
           parameters == other.parameters &&
-          returnType == other.returnType;
+          returnType == other.returnType &&
+          typeParameters == other.typeParameters;
     }
     return false;
   }
@@ -6589,6 +6604,7 @@ class Element implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, flags.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
     hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, typeParameters.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

@@ -157,30 +157,31 @@ class DartUnitOutlineComputer {
     return new _SourceRegion(prevSiblingEnd, endOffset - prevSiblingEnd);
   }
 
-  Outline _newClassOutline(
-      ClassDeclaration classDeclaration, List<Outline> classContents) {
-    SimpleIdentifier nameNode = classDeclaration.name;
+  Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
+    SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    _SourceRegion sourceRegion = _getSourceRegion(classDeclaration);
+    _SourceRegion sourceRegion = _getSourceRegion(node);
     Element element = new Element(ElementKind.CLASS, name, Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(classDeclaration),
-            isAbstract: classDeclaration.isAbstract),
-        location: _getLocationNode(nameNode));
+            isDeprecated: _isDeprecated(node),
+            isAbstract: node.isAbstract),
+        location: _getLocationNode(nameNode),
+        typeParameters: _getTypeParametersStr(node.typeParameters));
     return new Outline(element, sourceRegion.offset, sourceRegion.length,
         children: nullIfEmpty(classContents));
   }
 
-  Outline _newClassTypeAlias(ClassTypeAlias alias) {
-    SimpleIdentifier nameNode = alias.name;
+  Outline _newClassTypeAlias(ClassTypeAlias node) {
+    SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    _SourceRegion sourceRegion = _getSourceRegion(alias);
+    _SourceRegion sourceRegion = _getSourceRegion(node);
     Element element = new Element(ElementKind.CLASS_TYPE_ALIAS, name, Element
             .makeFlags(
                 isPrivate: Identifier.isPrivateName(name),
-                isDeprecated: _isDeprecated(alias),
-                isAbstract: alias.isAbstract),
-        location: _getLocationNode(nameNode));
+                isDeprecated: _isDeprecated(node),
+                isAbstract: node.isAbstract),
+        location: _getLocationNode(nameNode),
+        typeParameters: _getTypeParametersStr(node.typeParameters));
     return new Outline(element, sourceRegion.offset, sourceRegion.length);
   }
 
@@ -268,21 +269,22 @@ class DartUnitOutlineComputer {
     return outline;
   }
 
-  Outline _newFunctionTypeAliasOutline(FunctionTypeAlias alias) {
-    TypeName returnType = alias.returnType;
-    SimpleIdentifier nameNode = alias.name;
+  Outline _newFunctionTypeAliasOutline(FunctionTypeAlias node) {
+    TypeName returnType = node.returnType;
+    SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    _SourceRegion sourceRegion = _getSourceRegion(alias);
-    FormalParameterList parameters = alias.parameters;
+    _SourceRegion sourceRegion = _getSourceRegion(node);
+    FormalParameterList parameters = node.parameters;
     String parametersStr = parameters != null ? parameters.toSource() : '';
     String returnTypeStr = returnType != null ? returnType.toSource() : '';
     Element element = new Element(ElementKind.FUNCTION_TYPE_ALIAS, name, Element
             .makeFlags(
                 isPrivate: Identifier.isPrivateName(name),
-                isDeprecated: _isDeprecated(alias)),
+                isDeprecated: _isDeprecated(node)),
         location: _getLocationNode(nameNode),
         parameters: parametersStr,
-        returnType: returnTypeStr);
+        returnType: returnTypeStr,
+        typeParameters: _getTypeParametersStr(node.typeParameters));
     return new Outline(element, sourceRegion.offset, sourceRegion.length);
   }
 
@@ -323,6 +325,13 @@ class DartUnitOutlineComputer {
         location: _getLocationNode(unit));
     return new Outline(element, unit.offset, unit.length,
         children: nullIfEmpty(unitContents));
+  }
+
+  static String _getTypeParametersStr(TypeParameterList parameters) {
+    if (parameters == null) {
+      return null;
+    }
+    return parameters.toSource();
   }
 
   Outline _newVariableOutline(String typeName, ElementKind kind,
