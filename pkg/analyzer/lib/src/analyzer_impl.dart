@@ -152,6 +152,9 @@ class AnalyzerImpl {
     }
     source = new FileBasedSource.con2(sourceFile.toURI(), sourceFile);
     Uri uri = context.sourceFactory.restoreUri(source);
+    if (uri == null) {
+      return source;
+    }
     return new FileBasedSource.con2(uri, sourceFile);
   }
 
