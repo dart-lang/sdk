@@ -82,7 +82,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
             elem != null &&
             elem.constructor === Array &&
             property !== "<>") {
-          addStubs(newDesc, elem, property, false, descriptor, []);
+          addStubs(newDesc, elem, property, false, []);
         } else {
           newDesc[previousProperty = property] = elem;
         }
@@ -163,8 +163,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
           #globalFunctions[property] = element;
         } else if (element.constructor === Array) {
           if (#needsStructuredMemberInfo) {
-            addStubs(globalObject, element, property,
-                     true, descriptor, functions);
+            addStubs(globalObject, element, property, true, functions);
           }
         } else {
           // We will not enter this case if no classes are defined.
@@ -186,8 +185,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
    * [array].
    */
   jsAst.Statement addStubs = js.statement('''
-  function addStubs(descriptor, array, name, isStatic,
-                    originalDescriptor, functions) {
+  function addStubs(descriptor, array, name, isStatic, functions) {
     var index = $FUNCTION_INDEX, alias = array[index], f;
     if (typeof alias == "string") {
       f = array[++index];
@@ -195,8 +193,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       f = alias;
       alias = name;
     }
-    var funcs = [originalDescriptor[name] = descriptor[name] =
-        descriptor[alias] = f];
+    var funcs = [descriptor[name] = descriptor[alias] = f];
     f.\$stubName = name;
     functions.push(name);
     for (; index < array.length; index += 2) {
@@ -205,7 +202,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       f.\$stubName = ${readString("array", "index + 2")};
       funcs.push(f);
       if (f.\$stubName) {
-        originalDescriptor[f.\$stubName] = descriptor[f.\$stubName] = f;
+        descriptor[f.\$stubName] = f;
         functions.push(f.\$stubName);
       }
     }
@@ -234,7 +231,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       f.\$getterStub = true;
       // Used to create an isolate using spawnFunction.
       if (isStatic) #globalFunctions[name] = f;
-      originalDescriptor[getterStubName] = descriptor[getterStubName] = f;
+      descriptor[getterStubName] = f;
       funcs.push(f);
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
