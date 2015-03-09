@@ -5530,7 +5530,13 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     accessor_end_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
+    if (is_getter && ((func_modifier & RawFunction::kGeneratorBit) != 0)) {
+      ReportError(modifier_pos,
+                  "=> style getter may not be sync* or async* generator");
+    }
     ConsumeToken();
+    BoolScope allow_await(&this->await_is_keyword_,
+                          func_modifier != RawFunction::kNoModifier);
     SkipExpr();
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
