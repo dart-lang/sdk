@@ -14,7 +14,6 @@ indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
 worker_api_test: Fail # Issue 10223
-two_scripts_htmltest: Fail # Issue 16603
 media_stream_test/constructors: Pass, Crash # Issue 22267
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
@@ -101,9 +100,6 @@ audiocontext_test/functional: Skip # Renderer crash. Issue 22327
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
-
-[ ($compiler == none || $compiler == dart2dart) ]
-deferred_multi_app_htmltest: Fail # Issue 16603
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
