@@ -22,11 +22,12 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
 import 'package:html5lib/dom.dart' show Document;
 import 'package:html5lib/parser.dart' as html;
-import 'package:logging/logging.dart' show Logger;
+import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart' show SourceSpan;
 
 import 'info.dart';
-import 'options.dart';
+import 'report.dart';
 import 'utils.dart';
 
 /// Holds references to all source nodes in the import graph. This is mainly
@@ -39,9 +40,9 @@ class SourceGraph {
 
   /// Analyzer used to resolve source files.
   final AnalysisContext _context;
-  final CompilerOptions _options;
+  final CheckerReporter _reporter;
 
-  SourceGraph(this._context, this._options);
+  SourceGraph(this._context, this._reporter);
 
   /// Node associated with a resolved [uri].
   SourceNode nodeFromUri(Uri uri) {
@@ -53,8 +54,8 @@ class SourceGraph {
         return new HtmlSourceNode(uri, source, this);
       } else if (extension == '.dart' || uriString.startsWith('dart:')) {
         return new DartSourceNode(uri, source);
-      } else if (extension == '.js') {
-        return new JavaScriptSourceNode(uri, source);
+      } else if (extension == '.js' || extension == '.css') {
+        return new ResourceSourceNode(uri, source);
       } else {
         assert(false); // unreachable
       }
@@ -110,8 +111,8 @@ abstract class SourceNode {
 
 /// A node representing an entry HTML source file.
 class HtmlSourceNode extends SourceNode {
-  /// Javascript dependencies, included by default on any application.
-  final runtimeDeps = new Set<JavaScriptSourceNode>();
+  /// Resources included by default on any application.
+  final runtimeDeps = new Set<ResourceSourceNode>();
 
   /// Libraries referred to via script tags.
   Set<DartSourceNode> scripts = new Set<DartSourceNode>();
@@ -129,31 +130,37 @@ class HtmlSourceNode extends SourceNode {
     var prefix = 'package:dev_compiler/runtime';
     runtimeDeps
       ..add(graph.nodeFromUri(Uri.parse('$prefix/dart_runtime.js')))
-      ..add(graph.nodeFromUri(Uri.parse('$prefix/harmony_feature_check.js')));
+      ..add(graph.nodeFromUri(Uri.parse('$prefix/harmony_feature_check.js')))
+      ..add(graph.nodeFromUri(Uri.parse('$prefix/messages_widget.js')))
+      ..add(graph.nodeFromUri(Uri.parse('$prefix/messages.css')));
   }
 
   void update(SourceGraph graph) {
     super.update(graph);
     if (needsRebuild) {
+      graph._reporter.clearHtml(uri);
       document = html.parse(source.contents.data, generateSpans: true);
       var newScripts = new Set<DartSourceNode>();
       var tags = document.querySelectorAll('script[type="application/dart"]');
       for (var script in tags) {
         var src = script.attributes['src'];
         if (src == null) {
-          // TODO(sigmund): expose these as compile-time failures
-          _log.severe(script.sourceSpan.message(
+          graph._reporter.enterHtml(source.uri);
+          graph._reporter.log(new DependencyGraphError(
               'inlined script tags not supported at this time '
               '(see https://github.com/dart-lang/dart-dev-compiler/issues/54).',
-              color: graph._options.useColors ? colorOf('error') : false));
+              script.sourceSpan));
+          graph._reporter.leaveHtml();
           continue;
         }
         var node = graph.nodeFromUri(uri.resolve(src));
-        if (!node.source.exists()) {
-          _log.severe(script.sourceSpan.message('Script file $src not found',
-              color: graph._options.useColors ? colorOf('error') : false));
+        if (node == null || !node.source.exists()) {
+          graph._reporter.enterHtml(source.uri);
+          graph._reporter.log(new DependencyGraphError(
+              'Script file $src not found', script.sourceSpan));
+          graph._reporter.leaveHtml();
         }
-        newScripts.add(node);
+        if (node != null) newScripts.add(node);
       }
 
       if (!_same(newScripts, scripts)) {
@@ -194,6 +201,7 @@ class DartSourceNode extends SourceNode {
     super.update(graph);
 
     if (needsRebuild && source.contents.data != null) {
+      graph._reporter.clearLibrary(uri);
       // If the defining compilation-unit changed, the structure might have
       // changed.
       var unit = parseDirectives(source.contents.data, name: source.fullName);
@@ -210,9 +218,10 @@ class DartSourceNode extends SourceNode {
         var node =
             graph.nodes.putIfAbsent(uri, () => new DartSourceNode(uri, target));
         if (!node.source.exists()) {
-          _log.severe(spanForNode(unit, source, d).message(
-              'File $uri not found',
-              color: graph._options.useColors ? colorOf('error') : false));
+          graph._reporter.enterLibrary(source.uri);
+          graph._reporter.log(new DependencyGraphError(
+              'File $uri not found', spanForNode(unit, source, d)));
+          graph._reporter.leaveLibrary();
         }
 
         if (d is ImportDirective) {
@@ -267,10 +276,10 @@ class DartSourceNode extends SourceNode {
   }
 }
 
-/// Represents a Javascript runtime resource from our compiler that is needed to
-/// run an application.
-class JavaScriptSourceNode extends SourceNode {
-  JavaScriptSourceNode(uri, source) : super(uri, source);
+/// Represents a runtime resource from our compiler that is needed to run an
+/// application.
+class ResourceSourceNode extends SourceNode {
+  ResourceSourceNode(uri, source) : super(uri, source);
 }
 
 /// Updates the structure and `needsRebuild` marks in nodes of [graph] reachable
@@ -336,7 +345,7 @@ rebuild(SourceNode start, SourceGraph graph, bool build(SourceNode node)) {
   bool shouldBuildNode(SourceNode n) {
     if (n.needsRebuild) return true;
     if (n is HtmlSourceNode) return structureHasChanged;
-    if (n is JavaScriptSourceNode) return false;
+    if (n is ResourceSourceNode) return false;
     return (n as DartSourceNode).imports
         .any((i) => apiChangeDetected.contains(i));
   }
@@ -390,4 +399,9 @@ visitInPostOrder(SourceNode start, void action(SourceNode node),
 }
 
 bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);
-final _log = new Logger('dev_compiler.graph');
+
+/// An error message discovered while parsing the dependencies between files.
+class DependencyGraphError extends MessageWithSpan {
+  const DependencyGraphError(String message, SourceSpan span)
+      : super(message, Level.SEVERE, span);
+}

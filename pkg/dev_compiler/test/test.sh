@@ -10,8 +10,12 @@ function fail {
 #  - *.map files so they aren't compared, as the diff is not human readable.
 #  - runtime JS files that are just copied over from the sources and are not
 #    duplicated in the expected folder.
-DIFF_ARGS="-u -r -N --exclude=\*.map --exclude=dart_runtime.js \
-  --exclude=harmony_feature_check.js expect actual"
+DIFF_ARGS="-u -r -N --exclude=\*.map \
+  --exclude=dart_runtime.js \
+  --exclude=harmony_feature_check.js \
+  --exclude=messages_widget.js \
+  --exclude=messages.css \
+  expect actual"
 
 function show_diff {
   echo "Fail: actual output did not match expected"

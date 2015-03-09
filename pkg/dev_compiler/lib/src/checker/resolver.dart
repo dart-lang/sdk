@@ -10,7 +10,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/error.dart' as analyzer;
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
@@ -74,20 +74,31 @@ class TypeResolver {
   /// Log any errors encountered when resolving [source] and return whether any
   /// errors were found.
   bool logErrors(Source source, CheckerReporter reporter) {
-    List<AnalysisError> errors = context.getErrors(source).errors;
+    List<analyzer.AnalysisError> errors = context.getErrors(source).errors;
     bool failure = false;
     if (errors.isNotEmpty) {
       for (var error in errors) {
-        var severity = error.errorCode.errorSeverity;
-        var isError = severity == ErrorSeverity.ERROR;
-        if (isError) failure = true;
-        var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-        reporter.logAnalyzerError(
-            error.message, level, error.offset, error.offset + error.length);
+        var message = new AnalyzerError.from(error);
+        if (message.level == logger.Level.SEVERE) failure = true;
+        reporter.log(message);
       }
     }
     return failure;
   }
+}
+
+class AnalyzerError extends Message {
+  factory AnalyzerError.from(analyzer.AnalysisError error) {
+    var severity = error.errorCode.errorSeverity;
+    var isError = severity == analyzer.ErrorSeverity.ERROR;
+    var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
+    int begin = error.offset;
+    int end = begin + error.length;
+    return new AnalyzerError(error.message, level, begin, end);
+  }
+
+  const AnalyzerError(String message, logger.Level level, int begin, int end)
+      : super('[from analyzer]: $message', level, begin, end);
 }
 
 /// Creates an analysis context that contains our restricted typing rules.

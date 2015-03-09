@@ -47,7 +47,7 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
   }, includeParts: false);
 
   String mainLibraryName;
-  var fragment = _loadRuntimeScripts();
+  var fragment = _loadRuntimeScripts(options);
   if (!options.checkSdk) fragment.nodes.add(_miniMockSdk);
   for (var lib in libraries) {
     var info = lib.info;
@@ -62,18 +62,29 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
 
 /// A document fragment with scripts that check for harmony features and that
 /// inject our runtime.
-Node _loadRuntimeScripts() => parseFragment('''
-<script src="dev_compiler/runtime/harmony_feature_check.js"></script>
-<script src="dev_compiler/runtime/dart_runtime.js"></script>
-''');
+Node _loadRuntimeScripts(options) {
+  // TODO(sigmund): use dev_compiler to generate messages_widget in the future.
+  var widgetCode = options.serverMode
+      ? '<script src="dev_compiler/runtime/messages_widget.js"></script>\n'
+          '<link rel="stylesheet" href="dev_compiler/runtime/messages.css">'
+      : '';
+  return parseFragment(
+      '<script src="dev_compiler/runtime/harmony_feature_check.js"></script>\n'
+      '<script src="dev_compiler/runtime/dart_runtime.js"></script>\n'
+      '$widgetCode');
+}
 
 /// A script tag that loads the .js code for a compiled library.
 Node _libraryInclude(String jsUrl) =>
     parseFragment('<script src="$jsUrl"></script>\n');
 
 /// A script tag that invokes the main function on the entry point library.
-Node _invokeMain(String mainLibraryName) =>
-    parseFragment('<script>$mainLibraryName.main();</script>\n');
+Node _invokeMain(String mainLibraryName) {
+  var code = mainLibraryName == null
+      ? 'console.error("dev_compiler error: main was not generated");'
+      : '$mainLibraryName.main();';
+  return parseFragment('<script>$code</script>\n');
+}
 
 /// A script tag with a tiny mock of the core SDK. This is just used for testing
 /// some small samples.

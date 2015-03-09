@@ -10,6 +10,7 @@ import 'package:unittest/unittest.dart';
 
 import 'package:dev_compiler/src/testing.dart';
 import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/summary.dart';
 
 main() {
   useCompactVMConfiguration();

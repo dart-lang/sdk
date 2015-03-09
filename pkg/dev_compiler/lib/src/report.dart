@@ -7,30 +7,71 @@ library dev_compiler.src.report;
 
 import 'dart:math' show max;
 
-import 'package:path/path.dart' as path;
-import 'package:source_span/source_span.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart';
 
 import 'info.dart';
 import 'utils.dart';
+import 'summary.dart';
+
+/// A message (error or warning) produced by the dev_compiler and it's location
+/// information.
+///
+/// Currently the location information includes only the offsets within a file
+/// where the error occurs. This is used in the context of a [CheckerReporter],
+/// where the current file is being tracked.
+abstract class Message {
+  // Message description.
+  final String message;
+
+  /// Log level. This is a placeholder for severity.
+  final Level level;
+
+  /// Offset where the error message begins in the tracked source file.
+  final int begin;
+
+  /// Offset where the error message ends in the tracked source file.
+  final int end;
+
+  const Message(this.message, this.level, this.begin, this.end);
+}
+
+/// Like [Message], but with a precomputed source span.
+abstract class MessageWithSpan implements Message {
+  final String message;
+
+  final Level level;
+
+  final SourceSpan span;
+
+  int get begin => span.start.offset;
+  int get end => span.end.offset;
+
+  const MessageWithSpan(this.message, this.level, this.span);
+}
 
 // Interface used to report error messages from the checker.
 abstract class CheckerReporter {
   /// Called when starting to process a library.
-  void enterLibrary(LibraryInfo info);
+  void enterLibrary(Uri uri);
   void leaveLibrary();
+
+  /// Called when starting to process an HTML source file.
+  void enterHtml(Uri uri);
+  void leaveHtml();
 
   /// Called when starting to process a source. All subsequent log entries must
   /// belong to this source until the next call to enterSource.
   void enterSource(Source source);
   void leaveSource();
+  void log(Message message);
 
-  void log(StaticInfo info);
-
-  // TODO(sigmund): merge this and [log]
-  void logAnalyzerError(String message, Level level, int begin, int end);
+  // Called in server-mode.
+  void clearLibrary(Uri uri);
+  void clearHtml(Uri uri);
+  void clearAll();
 }
 
 final _checkerLogger = new Logger('dev_compiler.checker');
@@ -43,8 +84,11 @@ class LogReporter implements CheckerReporter {
 
   LogReporter([this.useColors = false]);
 
-  void enterLibrary(LibraryInfo info) {}
+  void enterLibrary(Uri uri) {}
   void leaveLibrary() {}
+
+  void enterHtml(Uri uri) {}
+  void leaveHtml() {}
 
   void enterSource(Source source) {
     _file = new SourceFile(source.contents.data, url: source.uri);
@@ -56,245 +100,92 @@ class LogReporter implements CheckerReporter {
     _current = null;
   }
 
-  void log(StaticInfo info) {
-    assert((info.node as dynamic).root.element.source == _current);
-    final span = _spanForNode(_file, info.node);
-    final color = useColors ? colorOf(info.level.name) : null;
-    _checkerLogger.log(info.level, span.message(info.message, color: color));
+  void log(Message message) {
+    if (message is StaticInfo) {
+      assert((message.node as dynamic).root.element.source == _current);
+    }
+    // TODO(sigmund): convert to use span information from AST (issue #73)
+    final span = message is MessageWithSpan
+        ? message.span
+        : _file.span(message.begin, message.end);
+    final level = message.level;
+    final color = useColors ? colorOf(level.name) : null;
+    _checkerLogger.log(level, span.message(message.message, color: color));
   }
 
-  void logAnalyzerError(String message, Level level, int begin, int end) {
-    var span = _file.span(begin, end);
-    final color = useColors ? colorOf(level.name) : null;
-    _checkerLogger.log(
-        level, span.message('[from analyzer]: ${message}', color: color));
-  }
+  void clearLibrary(Uri uri) {}
+  void clearHtml(Uri uri) {}
+  void clearAll() {}
 }
 
 /// A reporter that gathers all the information in a [GlobalSummary].
 class SummaryReporter implements CheckerReporter {
   GlobalSummary result = new GlobalSummary();
-  LibrarySummary _currentLibrary;
+  IndividualSummary _current;
   SourceFile _file;
 
-  clear() {
-    result = new GlobalSummary();
-  }
-
-  void enterLibrary(LibraryInfo lib) {
-    var libKey = '${lib.library.source.uri}';
-    var libSummary = _currentLibrary = new LibrarySummary(libKey);
-
-    var uri = lib.library.source.uri;
+  void enterLibrary(Uri uri) {
+    var container;
     if (uri.scheme == 'package') {
       var pname = path.split(uri.path)[0];
       result.packages.putIfAbsent(pname, () => new PackageSummary(pname));
-      if (result.packages[pname].libraries[libKey] != null) {
-        print('ERROR: duplicate ${libKey}');
-      }
-      result.packages[pname].libraries[libKey] = libSummary;
+      container = result.packages[pname].libraries;
     } else if (uri.scheme == 'dart') {
-      if (result.system[libKey] != null) {
-        print('ERROR: duplicate ${libKey}');
-      }
-      result.system[libKey] = libSummary;
+      container = result.system;
     } else {
-      if (result.loose[libKey] != null) {
-        print('ERROR: duplicate ${libKey}');
-      }
-      result.loose[libKey] = libSummary;
+      container = result.loose;
     }
+    _current = container.putIfAbsent('$uri', () => new LibrarySummary('$uri'));
   }
 
   void leaveLibrary() {
-    _currentLibrary = null;
+    _current = null;
+  }
+
+  void enterHtml(Uri uri) {
+    _current = result.loose.putIfAbsent('$uri', () => new HtmlSummary('$uri'));
+  }
+
+  void leaveHtml() {
+    _current = null;
   }
 
   void enterSource(Source source) {
     _file = new SourceFile(source.contents.data, url: source.uri);
-    _currentLibrary.lines += _file.lines;
+    if (_current is LibrarySummary) {
+      (_current as LibrarySummary).lines += _file.lines;
+    }
   }
 
   void leaveSource() {
     _file = null;
   }
 
-  void log(StaticInfo info) {
-    assert(_file != null);
-    var span = _spanForNode(_file, info.node);
-    _currentLibrary.messages.add(new MessageSummary('${info.runtimeType}',
-        info.level.name.toLowerCase(), span, info.message));
+  void log(Message message) {
+    assert(message is MessageWithSpan || _file != null);
+    // TODO(sigmund): convert to use span information from AST (issue #73)
+    final span = message is MessageWithSpan
+        ? message.span
+        : _file.span(message.begin, message.end);
+    _current.messages.add(new MessageSummary('${message.runtimeType}',
+        message.level.name.toLowerCase(), span, message.message));
   }
 
-  void logAnalyzerError(String message, Level level, int begin, int end) {
-    var span = _file.span(begin, end);
-    _currentLibrary.messages.add(new MessageSummary(
-        'AnalyzerError', level.name.toLowerCase(), span, message));
-  }
-}
-
-/// Summary information computed by the DDC checker.
-abstract class Summary {
-  Map toJsonMap();
-
-  void accept(SummaryVisitor visitor);
-}
-
-/// Summary for the entire program.
-class GlobalSummary implements Summary {
-  /// Summary from the system libaries.
-  final Map<String, LibrarySummary> system = <String, LibrarySummary>{};
-
-  /// Summary for libraries in packages.
-  final Map<String, PackageSummary> packages = <String, PackageSummary>{};
-
-  /// Summary for loose files
-  // TODO(sigmund): consider inferring the package from the pubspec instead?
-  final Map<String, LibrarySummary> loose = <String, LibrarySummary>{};
-
-  GlobalSummary();
-
-  Map toJsonMap() => {
-    'system': system.values.map((l) => l.toJsonMap()).toList(),
-    'packages': packages.values.map((p) => p.toJsonMap()).toList(),
-    'loose': loose.values.map((l) => l.toJsonMap()).toList(),
-  };
-
-  void accept(SummaryVisitor visitor) => visitor.visitGlobal(this);
-
-  static GlobalSummary parse(Map json) {
-    var res = new GlobalSummary();
-    json['system'].map(LibrarySummary.parse).forEach((l) {
-      res.system[l.name] = l;
-    });
-    json['packages'].map(PackageSummary.parse).forEach((p) {
-      res.packages[p.name] = p;
-    });
-    json['loose'].map(LibrarySummary.parse).forEach((l) {
-      res.loose[l.name] = l;
-    });
-    return res;
-  }
-}
-
-/// A summary of a package.
-class PackageSummary implements Summary {
-  final String name;
-  final Map<String, LibrarySummary> libraries = <String, LibrarySummary>{};
-
-  PackageSummary(this.name);
-
-  Map toJsonMap() => {
-    'package_name': name,
-    'libraries': libraries.values.map((l) => l.toJsonMap()).toList(),
-  };
-
-  void accept(SummaryVisitor visitor) => visitor.visitPackage(this);
-
-  static PackageSummary parse(Map json) {
-    var res = new PackageSummary(json['package_name']);
-    json['libraries'].map(LibrarySummary.parse).forEach((l) {
-      res.libraries[l.name] = l;
-    });
-    return res;
-  }
-}
-
-/// A summary at the level of a library.
-class LibrarySummary implements Summary {
-  /// Name of the library.
-  final String name;
-
-  /// All messages collected for the library.
-  final List<MessageSummary> messages;
-
-  /// Total lines of code (including all parts of the library).
-  int lines;
-
-  LibrarySummary(this.name, [List<MessageSummary> messages, this.lines = 0])
-      : messages = messages == null ? <MessageSummary>[] : messages;
-
-  Map toJsonMap() => {
-    'library_name': name,
-    'messages': messages.map((m) => m.toJsonMap()).toList(),
-    'lines': lines,
-  };
-
-  void accept(SummaryVisitor visitor) => visitor.visitLibrary(this);
-
-  static LibrarySummary parse(Map json) => new LibrarySummary(
-      json['library_name'], json['messages'].map(MessageSummary.parse).toList(),
-      json['lines']);
-}
-
-/// A single message produced by the checker.
-class MessageSummary implements Summary {
-  /// The kind of message, currently the name of the StaticInfo type.
-  final String kind;
-
-  /// Level (error, warning, etc).
-  final String level;
-
-  /// Location where the error is reported.
-  final SourceSpan span;
-  final String message;
-
-  MessageSummary(this.kind, this.level, this.span, this.message);
-
-  Map toJsonMap() => {
-    'kind': kind,
-    'level': level,
-    'message': message,
-    'url': '${span.sourceUrl}',
-    'start': span.start.offset,
-    'end': span.end.offset,
-    'text': span.text,
-  };
-
-  void accept(SummaryVisitor visitor) => visitor.visitMessage(this);
-
-  static MessageSummary parse(Map json) {
-    var start = new SourceLocation(json['start'], sourceUrl: json['url']);
-    var end = new SourceLocation(json['end'], sourceUrl: json['url']);
-    var span = new SourceSpanBase(start, end, json['text']);
-    return new MessageSummary(
-        json['kind'], json['level'], span, json['message']);
-  }
-}
-
-/// A visitor of the [Summary] hierarchy.
-abstract class SummaryVisitor {
-  void visitGlobal(GlobalSummary global);
-  void visitPackage(PackageSummary package);
-  void visitLibrary(LibrarySummary lib);
-  void visitMessage(MessageSummary message);
-}
-
-/// A recursive [SummaryVisitor] that visits summaries on a top-down fashion.
-class RecursiveSummaryVisitor implements SummaryVisitor {
-  void visitGlobal(GlobalSummary global) {
-    for (var lib in global.system.values) {
-      lib.accept(this);
-    }
-    for (var package in global.packages.values) {
-      package.accept(this);
-    }
-    for (var lib in global.loose.values) {
-      lib.accept(this);
-    }
+  void clearLibrary(Uri uri) {
+    enterLibrary(uri);
+    _current.messages.clear();
+    (_current as LibrarySummary).lines = 0;
+    leaveLibrary();
   }
 
-  void visitPackage(PackageSummary package) {
-    for (var lib in package.libraries.values) {
-      lib.accept(this);
-    }
+  void clearHtml(Uri uri) {
+    HtmlSummary htmlSummary = result.loose['$uri'];
+    if (htmlSummary != null) htmlSummary.messages.clear();
   }
-  void visitLibrary(LibrarySummary lib) {
-    for (var msg in lib.messages) {
-      msg.accept(this);
-    }
+
+  clearAll() {
+    result = new GlobalSummary();
   }
-  void visitMessage(MessageSummary message) {}
 }
 
 /// Produces a string representation of the summary.
@@ -490,13 +381,4 @@ class _Counter extends RecursiveSummaryVisitor {
     totals.putIfAbsent(kind, () => 0);
     totals[kind]++;
   }
-}
-
-/// Returns a [SourceSpan] in [file] for the offsets of [node].
-// TODO(sigmund): convert to use span information from AST (issue #73)
-SourceSpan _spanForNode(SourceFile file, AstNode node) {
-  final begin = node is AnnotatedNode
-      ? node.firstTokenAfterCommentAndMetadata.offset
-      : node.offset;
-  return file.span(begin, node.end);
 }

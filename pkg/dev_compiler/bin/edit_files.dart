@@ -19,7 +19,7 @@ import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
+import 'package:dev_compiler/src/summary.dart';
 import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()

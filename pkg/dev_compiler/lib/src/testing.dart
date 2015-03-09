@@ -98,7 +98,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
   var total = expectedErrors.values.fold(0, (p, l) => p + l.length);
   // Check that all errors we emit are included in the expected map.
   for (var lib in results.libraries) {
-    (reporter as TestReporter).infoMap[lib].forEach((node, actual) {
+    var uri = lib.library.source.uri;
+    (reporter as TestReporter).infoMap[uri].forEach((node, actual) {
       var expected = expectedErrors[node];
       var expectedTotal = expected == null ? 0 : expected.length;
       if (actual.length != expectedTotal) {
@@ -136,17 +137,18 @@ CheckerResults testChecker(Map<String, String> testFiles,
 }
 
 class TestReporter extends SummaryReporter {
-  Map<LibraryInfo, Map<AstNode, List<StaticInfo>>> infoMap = {};
-  LibraryInfo _current;
+  Map<Uri, Map<AstNode, List<StaticInfo>>> infoMap = {};
+  Uri _current;
 
-  void enterLibrary(LibraryInfo info) {
-    super.enterLibrary(info);
-    infoMap[info] = {};
-    _current = info;
+  void enterLibrary(Uri uri) {
+    super.enterLibrary(uri);
+    infoMap[uri] = {};
+    _current = uri;
   }
 
-  void log(StaticInfo info) {
+  void log(Message info) {
     super.log(info);
+    if (info is! StaticInfo) return;
     infoMap[_current].putIfAbsent(info.node, () => []).add(info);
   }
 }

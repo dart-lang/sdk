@@ -65,7 +65,7 @@ class Compiler {
           ? new SummaryReporter()
           : new LogReporter(options.useColors);
     }
-    var graph = new SourceGraph(resolver.context, options);
+    var graph = new SourceGraph(resolver.context, reporter);
     var rules = new RestrictedRules(resolver.context.typeProvider, reporter,
         options: options);
     var checker = new CodeChecker(rules, reporter, options);
@@ -98,8 +98,8 @@ class Compiler {
       _buildHtmlFile(node);
     } else if (node is DartSourceNode) {
       _buildDartLibrary(node);
-    } else if (node is JavaScriptSourceNode) {
-      _buildJavaScriptFile(node);
+    } else if (node is ResourceSourceNode) {
+      _buildResourceFile(node);
     } else {
       assert(false); // should not get a build request on PartSourceNode
     }
@@ -111,11 +111,14 @@ class Compiler {
 
   void _buildHtmlFile(HtmlSourceNode node) {
     if (_options.outputDir == null) return;
+    var uri = node.source.uri;
+    _reporter.enterHtml(uri);
     var output = generateEntryHtml(node, _options);
     if (output == null) {
       _failure = true;
       return;
     }
+    _reporter.leaveHtml();
     var filename = path.basename(node.uri.path);
     String outputFile = path.join(_options.outputDir, filename);
     new File(outputFile).writeAsStringSync(output);
@@ -123,10 +126,10 @@ class Compiler {
     if (_options.outputDart) return;
   }
 
-  void _buildJavaScriptFile(JavaScriptSourceNode node) {
-    // JavaScriptSourceNodes are runtime .js files that just need to be copied
-    // over to the output location. These can be external dependencies or pieces
-    // of the dev_compiler runtime.
+  void _buildResourceFile(ResourceSourceNode node) {
+    // ResourceSourceNodes files that just need to be copied over to the output
+    // location. These can be external dependencies or pieces of the
+    // dev_compiler runtime.
     if (_options.outputDir == null || _options.outputDart) return;
     assert(node.uri.scheme == 'package');
     var filepath = path.join(_options.outputDir, node.uri.path);
@@ -153,7 +156,7 @@ class Compiler {
     } else {
       node.info = current = new LibraryInfo(lib, _isEntry(node));
     }
-    _reporter.enterLibrary(current);
+    _reporter.enterLibrary(source.uri);
     _libraries.add(current);
     _rules.currentLibraryInfo = current;
 
@@ -189,14 +192,7 @@ class Compiler {
     // dependency_graph.dart). Such failures should be reported back
     // here so we can mark failure=true in the CheckerResutls.
     rebuild(_entryNode, _graph, _buildSource);
-    if (_options.dumpInfo && _reporter is SummaryReporter) {
-      var result = (_reporter as SummaryReporter).result;
-      print(summaryToString(result));
-      if (_options.dumpInfoFile != null) {
-        new File(_options.dumpInfoFile)
-            .writeAsStringSync(JSON.encode(result.toJsonMap()));
-      }
-    }
+    _dumpInfoIfRequested();
     clock.stop();
     if (_options.serverMode) {
       var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
@@ -208,7 +204,6 @@ class Compiler {
 
   void _runAgain() {
     var clock = new Stopwatch()..start();
-    if (_reporter is SummaryReporter) (_reporter as SummaryReporter).clear();
     _libraries = <LibraryInfo>[];
     int changed = 0;
 
@@ -217,12 +212,21 @@ class Compiler {
       changed++;
       return _buildSource(n);
     });
-    if (_reporter is SummaryReporter) {
-      print(summaryToString((_reporter as SummaryReporter).result));
-    }
     clock.stop();
+    if (changed > 0) _dumpInfoIfRequested();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
     print("Compiled ${changed} libraries in ${time} s\n");
+  }
+
+  _dumpInfoIfRequested() {
+    if (!_options.dumpInfo || _reporter is! SummaryReporter) return;
+    var result = (_reporter as SummaryReporter).result;
+    if (!_options.serverMode) print(summaryToString(result));
+    var filepath = _options.serverMode
+        ? path.join(_options.outputDir, 'messages.json')
+        : _options.dumpInfoFile;
+    if (filepath == null) return;
+    new File(filepath).writeAsStringSync(JSON.encode(result.toJsonMap()));
   }
 }
 

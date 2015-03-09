@@ -13,6 +13,7 @@ import 'package:dev_compiler/src/testing.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/checker/resolver.dart';
 import 'package:dev_compiler/src/dependency_graph.dart';
+import 'package:dev_compiler/src/report.dart';
 import 'package:path/path.dart' as path;
 
 main() {
@@ -63,7 +64,7 @@ main() {
     testUriResolver = new TestUriResolver(testFiles);
     context = new TypeResolver.fromMock(mockSdkSources, options,
         otherResolvers: [testUriResolver]).context;
-    graph = new SourceGraph(context, options);
+    graph = new SourceGraph(context, new LogReporter());
   });
 
   group('HTML deps', () {
@@ -554,6 +555,8 @@ main() {
           index3.html
           |-- dart_runtime.js
           |-- harmony_feature_check.js
+          |-- messages_widget.js
+          |-- messages.css
           ''');
       refreshStructureAndMarks(node, graph);
       expectGraph(node, '''
@@ -566,6 +569,8 @@ main() {
           |    |-- a6.dart (part) [needs-rebuild]
           |-- dart_runtime.js [needs-rebuild]
           |-- harmony_feature_check.js [needs-rebuild]
+          |-- messages_widget.js [needs-rebuild]
+          |-- messages.css [needs-rebuild]
           ''');
     });
 
@@ -582,6 +587,8 @@ main() {
           |    |-- a6.dart (part) [needs-rebuild]
           |-- dart_runtime.js [needs-rebuild]
           |-- harmony_feature_check.js [needs-rebuild]
+          |-- messages_widget.js [needs-rebuild]
+          |-- messages.css [needs-rebuild]
           ''');
       clearMarks(node);
       expectGraph(node, '''
@@ -594,6 +601,8 @@ main() {
           |    |-- a6.dart (part)
           |-- dart_runtime.js
           |-- harmony_feature_check.js
+          |-- messages_widget.js
+          |-- messages.css
           ''');
 
       refreshStructureAndMarks(node, graph);
@@ -607,6 +616,8 @@ main() {
           |    |-- a6.dart (part)
           |-- dart_runtime.js
           |-- harmony_feature_check.js
+          |-- messages_widget.js
+          |-- messages.css
           ''');
     });
 
@@ -628,6 +639,8 @@ main() {
           |    |-- a6.dart (part)
           |-- dart_runtime.js
           |-- harmony_feature_check.js
+          |-- messages_widget.js
+          |-- messages.css
           ''');
     });
 
@@ -652,6 +665,8 @@ main() {
           |    |-- a6.dart (part)
           |-- dart_runtime.js
           |-- harmony_feature_check.js
+          |-- messages_widget.js
+          |-- messages.css
           ''');
     });
   });
@@ -686,6 +701,8 @@ main() {
         'a2.dart',
         'dart_runtime.js',
         'harmony_feature_check.js',
+        'messages_widget.js',
+        'messages.css',
         'index3.html',
       ]);
 
@@ -700,6 +717,8 @@ main() {
           |    |-- a6.dart (part)
           |-- dart_runtime.js
           |-- harmony_feature_check.js
+          |-- messages_widget.js
+          |-- messages.css
           ''');
     });
 
@@ -852,6 +871,8 @@ main() {
             |    |-- a6.dart (part)
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
 
         // Modify the file first:
@@ -874,6 +895,8 @@ main() {
             |    |-- a6.dart (part)
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
 
         a2.source.contents.modificationTime++;
@@ -906,6 +929,8 @@ main() {
             |    |-- a5.dart...
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
       });
 
@@ -925,6 +950,8 @@ main() {
             |    |-- a6.dart (part)
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
 
         a2.source.contents.modificationTime++;
@@ -948,6 +975,8 @@ main() {
             |    |-- a5.dart
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
 
         a6.source.contents.modificationTime++;
@@ -966,6 +995,8 @@ main() {
             |    |-- a5.dart...
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
       });
 
@@ -985,6 +1016,8 @@ main() {
             |    |-- a6.dart (part)
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
 
         a2.source.contents.modificationTime++;
@@ -1009,6 +1042,8 @@ main() {
             |    |-- a5.dart
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
       });
 
@@ -1028,6 +1063,8 @@ main() {
             |    |-- a6.dart (part)
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
 
         a2.source.contents.modificationTime++;
@@ -1051,6 +1088,8 @@ main() {
             |    |-- a6.dart (part)
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
 
         a5.source.contents.modificationTime++;
@@ -1068,6 +1107,8 @@ main() {
             |    |-- a6.dart (part)
             |-- dart_runtime.js
             |-- harmony_feature_check.js
+            |-- messages_widget.js
+            |-- messages.css
             ''');
       });
     });

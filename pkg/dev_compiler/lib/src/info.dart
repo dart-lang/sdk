@@ -17,6 +17,8 @@ import 'package:logging/logging.dart' show Level;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
 
+import 'report.dart' show Message;
+
 /// Represents a summary of the results collected by running the program
 /// checker.
 class CheckerResults {
@@ -114,22 +116,23 @@ class CoercionError extends Coercion {
   CoercionError() : super(null, null);
 }
 
-abstract class StaticInfo {
+abstract class StaticInfo implements Message {
   /// AST Node this info is attached to.
   // TODO(jmesserly): this is somewhat redundant with SemanticNode.
   AstNode get node;
 
-  /// Log level for error messages.  This is a placeholder
-  /// for severity.
-  Level get level;
+  @override
+  int get begin => node is AnnotatedNode
+      ? (node as AnnotatedNode).firstTokenAfterCommentAndMetadata.offset
+      : node.offset;
 
-  /// Description / error message.
-  String get message;
+  @override
+  int get end => node.end;
 }
 
 /// Implicitly injected expression conversion.
 // TODO(jmesserly): rename to have Expression suffix?
-abstract class Conversion extends Expression implements StaticInfo {
+abstract class Conversion extends Expression with StaticInfo {
   final TypeRules rules;
 
   // TODO(jmesserly): should probably rename this "operand" for consistency with
