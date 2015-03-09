@@ -470,13 +470,6 @@ class OldEmitter implements Emitter {
         function() {
           function tmp() {}
           return function (constructor, superConstructor) {
-            if (superConstructor == null) {
-              // Fix up the the Dart Object class' prototype.
-              var prototype = constructor.prototype;
-              prototype.constructor = constructor;
-              prototype.#isObject = constructor;
-              return prototype;
-            }
             tmp.prototype = superConstructor.prototype;
             var object = new tmp();
             var properties = constructor.prototype;
@@ -493,8 +486,7 @@ class OldEmitter implements Emitter {
             return object;
           };
         }()
-      """, { 'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
-             'isObject' : namer.operatorIs(compiler.objectClass) });
+      """, { 'operatorIsPrefix' : js.string(namer.operatorIsPrefix)});
     if (compiler.hasIncrementalSupport) {
       result = js(
           r'#.inheritFrom = #', [namer.accessIncrementalHelper, result]);
@@ -558,7 +550,12 @@ class OldEmitter implements Emitter {
         // the Object.prototype object, and they show through here, so we check
         // that we have a string.
         if (!superclass || typeof superclass != "string") {
-          inheritFrom(allClasses[cls], null);
+          // Inlined special case of InheritFrom here for performance reasons.
+          // Fix up the the Dart Object class' prototype.
+          var constructor = allClasses[cls];
+          var prototype = constructor.prototype;
+          prototype.constructor = constructor;
+          prototype.#isObject = constructor;
           return;
         }
         finishClass(superclass);
@@ -577,7 +574,8 @@ class OldEmitter implements Emitter {
     }''', {'finishedClassesAccess': finishedClassesAccess,
            'needsMixinSupport': needsMixinSupport,
            'needsNativeSupport': needsNativeSupport,
-           'nativeInfoHandler': nativeInfoHandler});
+           'nativeInfoHandler': nativeInfoHandler,
+           'isObject' : namer.operatorIs(compiler.objectClass) });
   }
 
   void emitFinishIsolateConstructorInvocation(CodeOutput output) {
