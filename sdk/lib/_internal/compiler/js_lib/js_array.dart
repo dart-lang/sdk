@@ -554,7 +554,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   Set<E> toSet() => new Set<E>.from(this);
 
-  Iterator<E> get iterator => new ListIterator<E>(this);
+  Iterator<E> get iterator => new ArrayIterator<E>(this);
 
   int get hashCode => Primitives.objectHashCode(this);
 
@@ -589,7 +589,47 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
  * Dummy subclasses that allow the backend to track more precise
  * information about arrays through their type. The CPA type inference
  * relies on the fact that these classes do not override [] nor []=.
+ *
+ * These classes are really a fiction, and can have no methods, since
+ * getInterceptor always returns JSArray.  We should consider pushing the
+ * 'isGrowable' and 'isMutable' checks into the getInterceptor implementation so
+ * these classes can have specialized implementations. Doing so will challenge
+ * many assuptions in the JS backend.
  */
 class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable {}
 class JSFixedArray<E> extends JSMutableArray<E> {}
 class JSExtendableArray<E> extends JSMutableArray<E> {}
+
+
+/// An [Iterator] that iterates a JSArray.
+///
+class ArrayIterator<E> implements Iterator<E> {
+  final JSArray<E> _iterable;
+  final int _length;
+  int _index;
+  E _current;
+
+  ArrayIterator(JSArray<E> iterable)
+      : _iterable = iterable, _length = iterable.length, _index = 0;
+
+  E get current => _current;
+
+  bool moveNext() {
+    int length = _iterable.length;
+
+    // We have to do the length check even on fixed length Arrays.  If we can
+    // inline moveNext() we might be able to GVN the length and eliminate this
+    // check on known fixed length JSArray.
+    if (_length != length) {
+      throw new ConcurrentModificationError(_iterable);
+    }
+
+    if (_index >= length) {
+      _current = null;
+      return false;
+    }
+    _current = _iterable[_index];
+    _index++;
+    return true;
+  }
+}

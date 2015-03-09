@@ -2843,7 +2843,7 @@ main() {
 ''');
   }
 
-  void test_endOfLineComment_header_add() {
+  void test_endOfLineComment_outBody_add() {
     _resolveUnit(r'''
 main() {
   Object x;
@@ -2856,10 +2856,10 @@ main() {
   Object x;
   x.foo();
 }
-''');
+''', expectedSuccess: false);
   }
 
-  void test_endOfLineComment_header_remove() {
+  void test_endOfLineComment_outBody_remove() {
     _resolveUnit(r'''
 // 000
 main() {
@@ -2872,10 +2872,10 @@ main() {
   Object x;
   x.foo();
 }
-''');
+''', expectedSuccess: false);
   }
 
-  void test_endOfLineComment_header_update() {
+  void test_endOfLineComment_outBody_update() {
     _resolveUnit(r'''
 // 000
 main() {
@@ -2889,7 +2889,7 @@ main() {
   Object x;
   x.foo();
 }
-''');
+''', expectedSuccess: false);
   }
 
   void test_endOfLineComment_localFunction_inTopLevelVariable() {

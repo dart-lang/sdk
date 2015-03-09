@@ -404,6 +404,40 @@ foo16(Tracer tracer) async {
   tracer.trace("h");
 }
 
+foo17(Tracer tracer) async {
+  try {
+    tracer.trace("a");
+  } finally {
+    try {
+      tracer.trace("b");
+      throw "Error";
+    } catch (error) {
+      await new Future.value(3);  /// forceAwait: continued
+      Expect.equals("Error", error);
+      tracer.trace("c");
+    } finally {
+      tracer.trace("d");
+    }
+    tracer.trace("e");
+  }
+  tracer.trace("f");
+}
+
+foo18(Tracer tracer) async {
+  try {
+      tracer.trace("a");
+  } finally {
+    try {
+      tracer.trace("b");
+    } finally {
+      await new Future.value(3);  /// forceAwait: continued
+      tracer.trace("c");
+    }
+    tracer.trace("d");
+  }
+  tracer.trace("e");
+}
+
 runTest(expectedTrace, fun, [expectedError]) async {
   Tracer tracer = new Tracer(expectedTrace);
   try {
@@ -433,6 +467,8 @@ test() async {
   await runTest("abcdefgX", foo14, "Error3");
   await runTest("abcdefg", foo15);
   await runTest("abcdfg", foo16);
+  await runTest("abcdef", foo17);
+  await runTest("abcde", foo18);
 }
 
 void main() {

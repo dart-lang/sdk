@@ -542,7 +542,9 @@ class RawObject {
   friend class Array;
   friend class ByteBuffer;
   friend class Code;
+  friend class Closure;
   friend class FreeListElement;
+  friend class Function;
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class ForwardList;
@@ -566,6 +568,7 @@ class RawObject {
   friend class TypedData;
   friend class TypedDataView;
   friend class WeakProperty;  // StorePointer
+  friend class Instance;  // StorePointer
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -685,6 +688,8 @@ class RawPatchClass : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->source_class_);
   }
+
+  friend class Function;
 };
 
 
@@ -772,6 +777,8 @@ class RawClosureData : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_);
   }
+
+  friend class Function;
 };
 
 

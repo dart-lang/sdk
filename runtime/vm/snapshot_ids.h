@@ -22,7 +22,7 @@ enum {
   // Object id has been optimized away; reader should use next available id.
   kOmittedObjectId,
 
-  kClassIdsOffset = kDoubleObject,
+  kClassIdsOffset = kOmittedObjectId,
 
   // The class ids of predefined classes are included in this list
   // at an offset of kClassIdsOffset.
@@ -42,6 +42,7 @@ enum {
   kArrayType,
 
   kInstanceObjectId,
+  kStaticImplicitClosureObjectId,
   kMaxPredefinedObjectIds,
   kInvalidIndex = -1,
 };
