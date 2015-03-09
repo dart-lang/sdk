@@ -301,7 +301,14 @@ abstract class ContextManager {
     if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
       return;
     }
-    List<Resource> children = folder.getChildren();
+    List<Resource> children = null;
+    try {
+      children = folder.getChildren();
+    } on FileSystemException {
+      // The directory either doesn't exist or cannot be read. Either way, there
+      // are no children that need to be added.
+      return;
+    }
     for (Resource child in children) {
       String path = child.path;
       // ignore excluded files or folders
