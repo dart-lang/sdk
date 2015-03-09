@@ -876,8 +876,14 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   function setupStatic(name, holder, descriptor) {
     if (typeof descriptor == 'string') {
       holder[name] = function() {
+        if (descriptor == null) {
+          // Already compiled. This happens when we have calls to the static as
+          // arguments to the static: `foo(foo(499))`;
+          return holder[name].apply(this, arguments);
+        }
         var method = compile(name, descriptor);
         holder[name] = method;
+        descriptor = null;  // GC the descriptor.
         return method.apply(this, arguments);
       };
     } else {
@@ -912,7 +918,13 @@ function parseFunctionDescriptor(proto, name, descriptor) {
 
       function setupCompileAllAndDelegateStub(name) {
         holder[name] = function() {
-          compileAllStubs();
+          // The descriptor is null if we already compiled this function. This
+          // happens when we have calls to the static as arguments to the
+          // static: `foo(foo(499))`;
+          if (descriptor != null) {
+            compileAllStubs();
+            descriptor = null;  // GC the descriptor.
+          }
           return holder[name].apply(this, arguments);
         };
       }
@@ -953,10 +965,22 @@ function parseFunctionDescriptor(proto, name, descriptor) {
 
   function setupClass(name, holder, descriptor) {
     var patch = function() {
-      var constructor = compileConstructor(name, descriptor);
-      holder[name] = constructor;
-      constructor.ensureResolved = function() { return this; };
-      if (this === patch) return constructor;  // Was used as "ensureResolved".
+      if (patch.ensureResolved == patch) {
+        // We have not yet been compiled.
+        var constructor = compileConstructor(name, descriptor);
+        holder[name] = constructor;
+        name = holder = descriptor = null;  // GC the captured arguments.
+        // Make sure we can invoke 'ensureResolved' multiple times on the patch
+        // function.
+        patch.ensureResolved = function() { return constructor; };
+        constructor.ensureResolved = function() { return this; };
+      } else {
+        // This can happen when arguments to the constructor are of the same
+        // class, like in `new A(new A(null))`.
+        constructor = patch.ensureResolved();
+      }
+      // If the patch has been called as "ensureResolved" return.
+      if (this === patch) return constructor;
       var object = new constructor();
       constructor.apply(object, arguments);
       return object;
