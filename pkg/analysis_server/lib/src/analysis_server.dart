@@ -1025,29 +1025,32 @@ class AnalysisServer {
       overlayState.setContents(source, newContents);
       // Update all contexts.
       for (InternalAnalysisContext context in folderMap.values) {
-        if (context.handleContentsChanged(
-            source, oldContents, newContents, true)) {
-          schedulePerformAnalysisOperation(context);
-        } else {
-          // When the client sends any change for a source, we should resend
-          // subscribed notifications, even if there were no changes in the
-          // source contents.
-          // TODO(scheglov) consider checking if there are subscriptions.
-          if (AnalysisEngine.isDartFileName(file)) {
-            List<CompilationUnit> dartUnits =
-                context.ensureResolvedDartUnits(source);
-            if (dartUnits != null) {
-              AnalysisErrorInfo errorInfo = context.getErrors(source);
-              for (var dartUnit in dartUnits) {
-                scheduleNotificationOperations(this, file, errorInfo.lineInfo,
-                    context, null, dartUnit, errorInfo.errors);
-                scheduleIndexOperation(this, file, context, dartUnit);
+        List<Source> sources = context.getSourcesWithFullName(file);
+        sources.forEach((Source source) {
+          if (context.handleContentsChanged(
+              source, oldContents, newContents, true)) {
+            schedulePerformAnalysisOperation(context);
+          } else {
+            // When the client sends any change for a source, we should resend
+            // subscribed notifications, even if there were no changes in the
+            // source contents.
+            // TODO(scheglov) consider checking if there are subscriptions.
+            if (AnalysisEngine.isDartFileName(file)) {
+              List<CompilationUnit> dartUnits =
+                  context.ensureResolvedDartUnits(source);
+              if (dartUnits != null) {
+                AnalysisErrorInfo errorInfo = context.getErrors(source);
+                for (var dartUnit in dartUnits) {
+                  scheduleNotificationOperations(this, file, errorInfo.lineInfo,
+                      context, null, dartUnit, errorInfo.errors);
+                  scheduleIndexOperation(this, file, context, dartUnit);
+                }
+              } else {
+                schedulePerformAnalysisOperation(context);
               }
-            } else {
-              schedulePerformAnalysisOperation(context);
             }
           }
-        }
+        });
       }
     });
   }

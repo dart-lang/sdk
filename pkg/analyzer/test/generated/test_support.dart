@@ -615,3 +615,32 @@ class TestSource extends Source {
     _contents = value;
   }
 }
+
+class TestSourceWithUri extends TestSource {
+  final Uri uri;
+
+  TestSourceWithUri(String path, this.uri, [String content])
+      : super(path, content);
+
+  UriKind get uriKind {
+    if (uri == null) {
+      return UriKind.FILE_URI;
+    } else if (uri.scheme == 'dart') {
+      return UriKind.DART_URI;
+    } else if (uri.scheme == 'package') {
+      return UriKind.PACKAGE_URI;
+    }
+    return UriKind.FILE_URI;
+  }
+
+  bool operator ==(Object other) {
+    if (other is TestSource) {
+      return other.uri == uri;
+    }
+    return false;
+  }
+
+  Uri resolveRelativeUri(Uri uri) {
+    return this.uri.resolveUri(uri);
+  }
+}

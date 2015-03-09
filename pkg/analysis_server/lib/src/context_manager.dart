@@ -466,6 +466,10 @@ abstract class ContextManager {
   }
 
   void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
+    // TODO(brianwilkerson) If a file is explicitly included in one context
+    // but implicitly referenced in another context, we will only send a
+    // changeSet to the context that explicitly includes the file (because
+    // that's the only context that's watching the file).
     _instrumentationService.logWatchEvent(
         folder.path, event.path, event.type.toString());
     String path = event.path;
@@ -509,19 +513,23 @@ abstract class ContextManager {
           _mergeContext(info);
           return;
         }
-        Source source = info.sources[path];
-        if (source != null) {
+        List<Source> sources = info.context.getSourcesWithFullName(path);
+        if (!sources.isEmpty) {
           ChangeSet changeSet = new ChangeSet();
-          changeSet.removedSource(source);
+          sources.forEach((Source source) {
+            changeSet.removedSource(source);
+          });
           applyChangesToContext(folder, changeSet);
           info.sources.remove(path);
         }
         break;
       case ChangeType.MODIFY:
-        Source source = info.sources[path];
-        if (source != null) {
+        List<Source> sources = info.context.getSourcesWithFullName(path);
+        if (!sources.isEmpty) {
           ChangeSet changeSet = new ChangeSet();
-          changeSet.changedSource(source);
+          sources.forEach((Source source) {
+            changeSet.changedSource(source);
+          });
           applyChangesToContext(folder, changeSet);
         }
         break;

@@ -755,6 +755,11 @@ class _TestContext implements ExtendedAnalysisContext {
   }
 
   @override
+  List<Source> getSourcesWithFullName(String path) {
+    return baseContext.getSourcesWithFullName(path);
+  }
+
+  @override
   bool handleContentsChanged(
       Source source, String originalContents, String newContents, bool notify) {
     return baseContext.handleContentsChanged(
