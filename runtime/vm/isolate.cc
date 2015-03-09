@@ -1446,7 +1446,6 @@ Dart_FileReadCallback Isolate::file_read_callback_ = NULL;
 Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
-Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;

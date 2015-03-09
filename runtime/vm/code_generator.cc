@@ -1224,12 +1224,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       }
     }
   }
-  if ((interrupt_bits & Isolate::kVmStatusInterrupt) != 0) {
-    Dart_IsolateInterruptCallback callback = isolate->VmStatsCallback();
-    if (callback) {
-      (*callback)();
-    }
-  }
 
   if ((stack_overflow_flags & Isolate::kOsrRequest) != 0) {
     ASSERT(FLAG_use_osr);

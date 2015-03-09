@@ -304,13 +304,11 @@ class Isolate : public BaseIsolate {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
     kStoreBufferInterrupt = 0x4,  // An interrupt to process the store buffer.
-    kVmStatusInterrupt = 0x8,     // An interrupt to process a status request.
 
     kInterruptsMask =
         kApiInterrupt |
         kMessageInterrupt |
-        kStoreBufferInterrupt |
-        kVmStatusInterrupt,
+        kStoreBufferInterrupt,
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
@@ -455,13 +453,6 @@ class Isolate : public BaseIsolate {
   }
   static Dart_IsolateInterruptCallback InterruptCallback() {
     return interrupt_callback_;
-  }
-
-  static void SetVmStatsCallback(Dart_IsolateInterruptCallback cb) {
-    vmstats_callback_ = cb;
-  }
-  static Dart_IsolateInterruptCallback VmStatsCallback() {
-    return vmstats_callback_;
   }
 
   static void SetUnhandledExceptionCallback(
