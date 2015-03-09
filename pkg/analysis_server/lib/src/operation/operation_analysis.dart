@@ -24,7 +24,9 @@ import 'package:analyzer/src/generated/source.dart';
  */
 void scheduleIndexOperation(AnalysisServer server, String file,
     AnalysisContext context, CompilationUnit dartUnit) {
-  server.addOperation(new _DartIndexOperation(context, file, dartUnit));
+  if (server.index != null) {
+    server.addOperation(new _DartIndexOperation(context, file, dartUnit));
+  }
 }
 
 /**
@@ -236,8 +238,7 @@ class PerformAnalysisOperation extends ServerOperation {
   }
 
   void _updateIndex(AnalysisServer server, List<ChangeNotice> notices) {
-    Index index = server.index;
-    if (index == null) {
+    if (server.index == null) {
       return;
     }
     for (ChangeNotice notice in notices) {
