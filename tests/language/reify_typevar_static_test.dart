@@ -12,7 +12,7 @@ class C<T> {
     b ? T :                                /// 00: compile-time error
     null;
   factory C.factoryConstructor(bool b) => new C(
-    b ? T :                                /// 01: compile-time error
+    b ? T :                                /// 01: ok
     null);
   C.redirectingConstructor(bool b) : this(
     b ? T :                                /// 02: ok

@@ -11,6 +11,8 @@ sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+regress_22700_test: CompileTimeError # Issue 22700
+reify_typevar_static_test/01: CompileTimeError # Issue 22700
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
 constructor_duplicate_final_test/02: Fail # Issue 13363

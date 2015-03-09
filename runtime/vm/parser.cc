@@ -10710,7 +10710,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (primary_node->primary().IsFunction()) {
           left = LoadClosure(primary_node);
         } else if (primary_node->primary().IsTypeParameter()) {
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             const String& name = String::ZoneHandle(Z,
                 TypeParameter::Cast(primary_node->primary()).name());
             ReportError(primary_pos,
@@ -10796,7 +10796,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ASSERT(!type.IsMalformed());
           array = new(Z) TypeNode(primary_pos, type);
         } else if (primary_node->primary().IsTypeParameter()) {
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             const String& name = String::ZoneHandle(Z,
                 TypeParameter::Cast(primary_node->primary()).name());
             ReportError(primary_pos,
@@ -10864,7 +10864,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         } else if (primary_node->primary().IsTypeParameter()) {
           const String& name = String::ZoneHandle(Z,
               TypeParameter::Cast(primary_node->primary()).name());
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             // Treat as this.T(), because T is in scope.
             ReportError(primary_pos,
                         "cannot access type parameter '%s' "
@@ -10910,7 +10910,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ASSERT(!type.IsMalformed());
           left = new(Z) TypeNode(primary_pos, type);
         } else if (primary_node->primary().IsTypeParameter()) {
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             const String& name = String::ZoneHandle(Z,
                 TypeParameter::Cast(primary_node->primary()).name());
             ReportError(primary_pos,
