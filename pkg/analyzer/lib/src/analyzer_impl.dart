@@ -144,31 +144,45 @@ class AnalyzerImpl {
     return _analyzeSync(printMode);
   }
 
-  void prepareAnalysisContext(JavaFile sourceFile, Source source) {
+  Source computeLibrarySource() {
+    JavaFile sourceFile = new JavaFile(sourcePath);
+    Source source = sdk.fromFileUri(sourceFile.toURI());
+    if (source != null) {
+      return source;
+    }
+    source = new FileBasedSource.con2(sourceFile.toURI(), sourceFile);
+    Uri uri = context.sourceFactory.restoreUri(source);
+    return new FileBasedSource.con2(uri, sourceFile);
+  }
+
+  /**
+   * Create and return the source factory to be used by the analysis context.
+   */
+  SourceFactory createSourceFactory() {
     List<UriResolver> resolvers = [
       new CustomUriResolver(options.customUrlMappings),
-      new DartUriResolver(sdk),
-      new FileUriResolver()
+      new DartUriResolver(sdk)
     ];
-    // maybe add package resolver
-    {
-      JavaFile packageDirectory;
-      if (options.packageRootPath != null) {
-        packageDirectory = new JavaFile(options.packageRootPath);
-        resolvers.add(new PackageUriResolver([packageDirectory]));
-      } else {
-        PubPackageMapProvider pubPackageMapProvider =
-            new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
-        PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
-            PhysicalResourceProvider.INSTANCE.getResource('.'));
-        Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
-        if (packageMap != null) {
-          resolvers.add(new PackageMapUriResolver(
-              PhysicalResourceProvider.INSTANCE, packageMap));
-        }
+    if (options.packageRootPath != null) {
+      JavaFile packageDirectory = new JavaFile(options.packageRootPath);
+      resolvers.add(new PackageUriResolver([packageDirectory]));
+    } else {
+      PubPackageMapProvider pubPackageMapProvider =
+          new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
+      PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
+          PhysicalResourceProvider.INSTANCE.getResource('.'));
+      Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
+      if (packageMap != null) {
+        resolvers.add(new PackageMapUriResolver(
+            PhysicalResourceProvider.INSTANCE, packageMap));
       }
     }
-    sourceFactory = new SourceFactory(resolvers);
+    resolvers.add(new FileUriResolver());
+    return new SourceFactory(resolvers);
+  }
+
+  void prepareAnalysisContext() {
+    sourceFactory = createSourceFactory();
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = sourceFactory;
     Map<String, String> definedVariables = options.definedVariables;
@@ -191,9 +205,11 @@ class AnalyzerImpl {
     contextOptions.generateSdkErrors = options.showSdkWarnings;
     context.analysisOptions = contextOptions;
 
+    librarySource = computeLibrarySource();
+
     // Create and add a ChangeSet
     ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
+    changeSet.addedSource(librarySource);
     context.applyChanges(changeSet);
   }
 
@@ -222,12 +238,8 @@ class AnalyzerImpl {
     if (sourcePath == null) {
       throw new ArgumentError("sourcePath cannot be null");
     }
-    JavaFile sourceFile = new JavaFile(sourcePath);
-    Uri uri = getUri(sourceFile);
-    librarySource = new FileBasedSource.con2(uri, sourceFile);
-
     // prepare context
-    prepareAnalysisContext(sourceFile, librarySource);
+    prepareAnalysisContext();
   }
 
   /// The async version of the analysis
@@ -400,24 +412,6 @@ class AnalyzerImpl {
     }
     // not found
     return null;
-  }
-
-  /**
-   * Returns the [Uri] for the given input file.
-   *
-   * Usually it is a `file:` [Uri], but if [file] is located in the `lib`
-   * directory of the [sdk], then returns a `dart:` [Uri].
-   */
-  static Uri getUri(JavaFile file) {
-    // may be file in SDK
-    {
-      Source source = sdk.fromFileUri(file.toURI());
-      if (source != null) {
-        return source.uri;
-      }
-    }
-    // some generic file
-    return file.toURI();
   }
 
   /**
