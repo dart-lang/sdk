@@ -1194,8 +1194,7 @@ class OldEmitter implements Emitter {
           #constructorName.builtin$cls = #constructorNameString;
           if (!"name" in #constructorName)
               #constructorName.name = #constructorNameString;
-          $desc = $collectedClasses.#constructorName;
-          if ($desc instanceof Array) $desc = $desc[1];
+          $desc = $collectedClasses.#constructorName[1];
           #constructorName.prototype = $desc;
           ''' /* next string is not a raw string */ '''
           if (#hasIsolateSupport) {

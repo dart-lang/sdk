@@ -928,7 +928,7 @@ if (this.pendingStubs) {
 (new Function(
     "$collectedClasses", "$desc",
     this.defineClass(#name, #computeFields) +"\n;return " + #name))(
-        {#name: #descriptor})''',
+        {#name: [,#descriptor]})''',
         {'name': js.string(name),
          'computeFields': js.stringArray(computeFields(cls)),
          'descriptor': descriptor});
