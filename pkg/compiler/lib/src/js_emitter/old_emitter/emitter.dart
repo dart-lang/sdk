@@ -377,14 +377,13 @@ class OldEmitter implements Emitter {
 
             var field = generateAccessor(fields[i], accessors, name);
             if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
-            var parameter = "parameter_" + field;
+            var parameter = "p_" + field;
             str += parameter;
             body += ("this." + field + " = " + parameter + ";\n");
           }
           str += ") {\n" + body + "}\n";
           str += name + ".builtin$cls=\"" + name + "\";\n";
-          str += "$desc=$collectedClasses." + name + ";\n";
-          str += "if($desc instanceof Array) $desc = \$desc[1];\n";
+          str += "$desc=$collectedClasses." + name + "[1];\n";
           str += name + ".prototype = $desc;\n";
           if (typeof defineClass.name != "string") {
             str += name + ".name=\"" + name + "\";\n";
@@ -472,6 +471,7 @@ class OldEmitter implements Emitter {
           return function (constructor, superConstructor) {
             tmp.prototype = superConstructor.prototype;
             var object = new tmp();
+            object.x = 0; delete object.x; // Make object slow.
             var properties = constructor.prototype;
             var members = Object.keys(properties);
             for (var i = 0; i < members.length; i++) {

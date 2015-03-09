@@ -55,7 +55,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 
   jsAst.Statement processClassData = js.statement('''{
   function processClassData(cls, descriptor, processedClasses) {
-    var newDesc = {};
+    var newDesc = map(); // Use a slow object.
     var previousProperty;
     var properties = Object.keys(descriptor);
     for (var i = 0; i < properties.length; i++) {
@@ -299,9 +299,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   var mangledGlobalNames = #mangledGlobalNames;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
-  var processedClasses = Object.create(null);
-  processedClasses.collected = Object.create(null);
-  processedClasses.pending = Object.create(null);
+  var processedClasses = map();
+  processedClasses.collected = map();
+  processedClasses.pending = map();
   if (#notInCspMode) {
     processedClasses.constructorsList = [];
     // For every class processed [processedClasses.combinedConstructorFunction]
