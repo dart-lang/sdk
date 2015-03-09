@@ -102,6 +102,9 @@ class FixKind {
       const FixKind('REPLACE_IMPORT_URI', 50, "Replace with '{0}'");
   static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(
       'REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
+  static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
+      'REPLACE_RETURN_TYPE_FUTURE', 50,
+      "Return 'Future' from 'async' function");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
       'USE_EFFECTIVE_INTEGER_DIVISION', 50,

@@ -209,6 +209,9 @@ class FixProcessor {
         _addFix_createLocalVariable();
       }
     }
+    if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
+      _addFix_illegalAsyncReturnType();
+    }
     if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
       _addFix_useStaticAccess_method();
       _addFix_useStaticAccess_property();
@@ -1001,6 +1004,24 @@ class FixProcessor {
     exitPosition = new Position(file, insertOffset);
     // add proposal
     _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
+  }
+
+  void _addFix_illegalAsyncReturnType() {
+    InterfaceType futureType = context.typeProvider.futureType;
+    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
+    // prepare the existing type
+    TypeName typeName = node.getAncestor((n) => n is TypeName);
+    String nodeCode = utils.getNodeText(typeName);
+    // wrap the existing type with Future
+    String returnTypeCode;
+    if (nodeCode == 'void') {
+      returnTypeCode = futureTypeCode;
+    } else {
+      returnTypeCode = '$futureTypeCode<$nodeCode>';
+    }
+    _addReplaceEdit(rf.rangeNode(typeName), returnTypeCode);
+    // add proposal
+    _addFix(FixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
 
   void _addFix_importLibrary(FixKind kind, String importPath) {
@@ -1876,7 +1897,7 @@ class FixProcessor {
   }
 
   /**
-   * Returns the [Type] with given name from the `dart:core` library.
+   * Returns the [DartType] with given name from the `dart:core` library.
    */
   DartType _getCoreType(String name) {
     List<LibraryElement> libraries = unitLibraryElement.importedLibraries;

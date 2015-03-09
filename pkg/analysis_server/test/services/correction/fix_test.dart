@@ -1736,6 +1736,71 @@ main() {
 ''');
   }
 
+  void test_illegalAsyncReturnType_asyncLibrary_import() {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+    };
+    resolveTestUnit('''
+library main;
+int main() async {
+}
+''');
+    assertHasFix(FixKind.REPLACE_RETURN_TYPE_FUTURE, '''
+library main;
+import 'dart:async';
+Future<int> main() async {
+}
+''');
+  }
+
+  void test_illegalAsyncReturnType_asyncLibrary_usePrefix() {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+    };
+    resolveTestUnit('''
+import 'dart:async' as al;
+int main() async {
+}
+''');
+    assertHasFix(FixKind.REPLACE_RETURN_TYPE_FUTURE, '''
+import 'dart:async' as al;
+al.Future<int> main() async {
+}
+''');
+  }
+
+  void test_illegalAsyncReturnType_complexTypeName() {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+    };
+    resolveTestUnit('''
+import 'dart:async';
+List<int> main() async {
+}
+''');
+    assertHasFix(FixKind.REPLACE_RETURN_TYPE_FUTURE, '''
+import 'dart:async';
+Future<List<int>> main() async {
+}
+''');
+  }
+
+  void test_illegalAsyncReturnType_void() {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+    };
+    resolveTestUnit('''
+import 'dart:async';
+void main() async {
+}
+''');
+    assertHasFix(FixKind.REPLACE_RETURN_TYPE_FUTURE, '''
+import 'dart:async';
+Future main() async {
+}
+''');
+  }
+
   void test_importLibraryPackage_withClass() {
     _configureMyPkg('''
 library my_lib;
