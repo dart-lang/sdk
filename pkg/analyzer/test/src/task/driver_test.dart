@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
@@ -220,6 +221,44 @@ class AnalysisDriverTest extends EngineTestCase {
 
     expect(driver.performAnalysisTask(), true);
     expect(driver.performAnalysisTask(), true);
+    expect(driver.performAnalysisTask(), false);
+  }
+
+  test_performAnalysisTask_inputsFirst() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
+    ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
+    // configure tasks
+    TestAnalysisTask task1;
+    TestAnalysisTask task2;
+    TaskDescriptor descriptor1 = new TaskDescriptor(
+        'task1', (context, target) => task1, (target) => {}, [resultA]);
+    TaskDescriptor descriptor2 = new TaskDescriptor('task2',
+        (context, target) => task2,
+        (target) => {'inputA': new SimpleTaskInput<int>(target, resultA)}, [
+      resultB
+    ]);
+    task1 = new TestAnalysisTask(context, target,
+        descriptor: descriptor1, results: [resultA], value: 10);
+    task2 = new TestAnalysisTask(context, target,
+        descriptor: descriptor2, value: 20);
+    manager.addTaskDescriptor(descriptor1);
+    manager.addTaskDescriptor(descriptor2);
+    context.explicitTargets.add(target);
+    manager.addGeneralResult(resultB);
+    // prepare work order
+    expect(driver.performAnalysisTask(), true);
+    expect(context.getCacheEntry(target).getValue(resultA), -1);
+    expect(context.getCacheEntry(target).getValue(resultB), -2);
+    // compute resultA
+    expect(driver.performAnalysisTask(), true);
+    expect(context.getCacheEntry(target).getValue(resultA), 10);
+    expect(context.getCacheEntry(target).getValue(resultB), -2);
+    // compute resultB
+    expect(driver.performAnalysisTask(), true);
+    expect(context.getCacheEntry(target).getValue(resultA), 10);
+    expect(context.getCacheEntry(target).getValue(resultB), 20);
+    // done
     expect(driver.performAnalysisTask(), false);
   }
 
@@ -437,8 +476,12 @@ class WorkOrderTest extends EngineTestCase {
         'task', null, (_) => {}, [new ResultDescriptor('result', null)]);
     WorkItem workItem = new WorkItem(null, null, descriptor);
     WorkOrder order = new WorkOrder(manager, workItem);
-    expect(order.moveNext(), true);
+    // "item" has no child items
+    expect(order.moveNext(), isTrue);
     expect(order.current, workItem);
+    // done
+    expect(order.moveNext(), isFalse);
+    expect(order.current, isNull);
   }
 }
 
