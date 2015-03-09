@@ -763,6 +763,7 @@ class SocketException implements IOException {
   final int port;
 
   const SocketException(this.message, {this.osError, this.address, this.port});
+  const SocketException.closed() : message = 'Socket has been closed';
 
   String toString() {
     StringBuffer sb = new StringBuffer();

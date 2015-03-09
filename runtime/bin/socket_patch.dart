@@ -303,7 +303,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int localPort = 0;
 
   // Holds the address used to connect or bind the socket.
-  InternetAddress address;
+  InternetAddress localAddress;
 
   int available = 0;
 
@@ -417,7 +417,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             }
             var address = it.current;
             var socket = new _NativeSocket.normal();
-            socket.address = address;
+            socket.localAddress = address;
             var result;
             if (sourceAddress == null) {
               result = socket.nativeCreateConnect(address._in_addr, port);
@@ -490,7 +490,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         })
         .then((address) {
           var socket = new _NativeSocket.listen();
-          socket.address = address;
+          socket.localAddress = address;
 
           var result = socket.nativeCreateBindListen(address._in_addr,
                                                      port,
@@ -537,7 +537,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         });
   }
 
-  _NativeSocket.datagram(this.address)
+  _NativeSocket.datagram(this.localAddress)
     : typeFlags = TYPE_NORMAL_SOCKET | TYPE_UDP_SOCKET;
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
@@ -671,13 +671,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     var socket = new _NativeSocket.normal();
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
-    socket.address = address;
+    socket.localAddress = address;
     totalRead += 1;
     lastRead = timestamp;
     return socket;
   }
 
   int get port {
+    if (isClosing || isClosed) throw const SocketException.closed();
     if (localPort != 0) return localPort;
     var result = nativeGetPort();
     if (result is OSError) throw result;
@@ -685,13 +686,24 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   int get remotePort {
-    return nativeGetRemotePeer()[1];
+    if (isClosing || isClosed) throw const SocketException.closed();
+    var result = nativeGetRemotePeer();
+    if (result is OSError) throw result;
+    return result[1];
+  }
+
+  InternetAddress get address {
+    if (isClosing || isClosed) throw const SocketException.closed();
+    return localAddress;
   }
 
   InternetAddress get remoteAddress {
-    var result = nativeGetRemotePeer()[0];
-    var type = new InternetAddressType._from(result[0]);
-    return new _InternetAddress(result[1], null, result[2]);
+    if (isClosing || isClosed) throw const SocketException.closed();
+    var result = nativeGetRemotePeer();
+    if (result is OSError) throw result;
+    var addr = result[0];
+    var type = new InternetAddressType._from(addr[0]);
+    return new _InternetAddress(addr[1], null, addr[2]);
   }
 
   void issueReadEvent() {
@@ -1705,10 +1717,25 @@ class _Socket extends Stream<List<int>> implements Socket {
     return _raw.setOption(option, enabled);
   }
 
-  int get port => _raw.port;
-  InternetAddress get address => _raw.address;
-  int get remotePort => _raw.remotePort;
-  InternetAddress get remoteAddress => _raw.remoteAddress;
+  int get port {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.port;
+  }
+
+  InternetAddress get address {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.address;
+  }
+
+  int get remotePort {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.remotePort;
+  }
+
+  InternetAddress get remoteAddress {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.remoteAddress;
+  }
 
   Future _detachRaw() {
     _detachReady = new Completer();

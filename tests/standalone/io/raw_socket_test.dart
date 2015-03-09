@@ -442,6 +442,22 @@ void testSocketZoneError() {
   });
 }
 
+void testClosedError() {
+  asyncStart();
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+    server.listen((socket) { socket.close(); });
+    RawSocket.connect("127.0.0.1", server.port).then((socket) {
+      server.close();
+      socket.close();
+      Expect.throws(() => socket.port, (e) => e is SocketException);
+      Expect.throws(() => socket.remotePort, (e) => e is SocketException);
+      Expect.throws(() => socket.address, (e) => e is SocketException);
+      Expect.throws(() => socket.remoteAddress, (e) => e is SocketException);
+      asyncEnd();
+    });
+  });
+}
+
 main() {
   asyncStart();
   testArguments();
@@ -457,5 +473,6 @@ main() {
   testPauseSocket();
   testSocketZone();
   testSocketZoneError();
+  testClosedError();
   asyncEnd();
 }

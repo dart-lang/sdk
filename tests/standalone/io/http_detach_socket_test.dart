@@ -105,6 +105,7 @@ void testBadServerDetachSocket() {
 void testClientDetachSocket() {
   ServerSocket.bind("127.0.0.1", 0).then((server) {
     server.listen((socket) {
+      int port = server.port;
       socket.write("HTTP/1.1 200 OK\r\n"
                        "\r\n"
                        "Test!");
@@ -120,7 +121,7 @@ void testClientDetachSocket() {
           lines.sort();  // Lines 1-3 becomes 3-5 in a fixed order.
           Expect.equals("accept-encoding: gzip", lines[3]);
           Expect.equals("content-length: 0", lines[4]);
-          Expect.equals("host: 127.0.0.1:${server.port}", lines[5]);
+          Expect.equals("host: 127.0.0.1:${port}", lines[5]);
           socket.close();
         });
       server.close();
