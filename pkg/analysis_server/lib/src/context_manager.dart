@@ -424,11 +424,16 @@ abstract class ContextManager {
     }
     // try to find subfolders with pubspec files
     List<_ContextInfo> children = <_ContextInfo>[];
-    for (Resource child in folder.getChildren()) {
-      if (child is Folder) {
-        List<_ContextInfo> childContexts = _createContexts(child, true);
-        children.addAll(childContexts);
+    try {
+      for (Resource child in folder.getChildren()) {
+        if (child is Folder) {
+          List<_ContextInfo> childContexts = _createContexts(child, true);
+          children.addAll(childContexts);
+        }
       }
+    } on FileSystemException {
+      // The directory either doesn't exist or cannot be read. Either way, there
+      // are no subfolders that need to be added.
     }
     // no pubspec, done
     if (withPubspecOnly) {
