@@ -663,7 +663,12 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
       index++;
     }
     for (DartType type in types) {
-      elements.add(visit(type));
+      jsAst.Expression element = visit(type);
+      if (element is jsAst.LiteralNull) {
+        elements.add(new jsAst.ArrayHole());
+      } else {
+        elements.add(element);
+      }
     }
     return new jsAst.ArrayInitializer(elements);
   }

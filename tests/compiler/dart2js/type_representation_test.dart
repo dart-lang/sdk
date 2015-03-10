@@ -169,9 +169,9 @@ void testTypeRepresentations() {
           ' $typedefTag: $Typedef6_rep}]');
     expect(instantiate(List_, [Typedef7_]),
         '[$List_rep, {$func: "dynamic__int_String__List_dynamic", $args: '
-          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep], null]}]',
+          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,]}]',
         '[$List_rep, {$func: "dynamic__int_String__List_dynamic", $args: '
-          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep], null], '
+          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,], '
           '$typedefTag: $Typedef7_rep}]');
     expect(instantiate(List_, [Typedef8_]),
         '[$List_rep, {$func: "dynamic__int__String0", $args: [$int_rep],'
@@ -188,10 +188,10 @@ void testTypeRepresentations() {
     expect(instantiate(List_, [Typedef10_]),
         '[$List_rep, {$func: "dynamic__void__int__dynamic", '
           '$args: [{$func: "void__int__dynamic", $retvoid: true, '
-          '$args: [$int_rep], $opt: [null]}]}]',
+          '$args: [$int_rep], $opt: [,]}]}]',
         '[$List_rep, {$func: "dynamic__void__int__dynamic", '
           '$args: [{$func: "void__int__dynamic", $retvoid: true, '
-          '$args: [$int_rep], $opt: [null]}], $typedefTag: $Typedef10_rep}]');
+          '$args: [$int_rep], $opt: [,]}], $typedefTag: $Typedef10_rep}]');
 
     // Map<K,V>
     expect(Map_.computeType(env.compiler),
@@ -234,7 +234,7 @@ void testTypeRepresentations() {
     expect(env.getElement('m7').computeType(env.compiler),
            '{$func: "dynamic__int_String__List_dynamic",'
            ' $args: [$int_rep, $String_rep],'
-           ' $opt: [[$List_rep, $int_rep], null]}');
+           ' $opt: [[$List_rep, $int_rep],,]}');
 
     // m8(int a, {String b}) {}
     expect(env.getElement('m8').computeType(env.compiler),
@@ -251,6 +251,6 @@ void testTypeRepresentations() {
     expect(env.getElement('m10').computeType(env.compiler),
            '{$func: "dynamic__void__int__dynamic", $args:'
            ' [{$func: "void__int__dynamic",'
-           ' $retvoid: true, $args: [$int_rep], $opt: [null]}]}');
+           ' $retvoid: true, $args: [$int_rep], $opt: [,]}]}');
   }));
 }
