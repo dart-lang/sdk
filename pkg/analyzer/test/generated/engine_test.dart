@@ -5479,11 +5479,16 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  List<Source> get sources {
+    fail("Unexpected invocation of sources");
+    return null;
+  }
+
+  @override
   AnalysisContextStatistics get statistics {
     fail("Unexpected invocation of getStatistics");
     return null;
   }
-
   @override
   TypeProvider get typeProvider {
     fail("Unexpected invocation of getTypeProvider");
@@ -5734,6 +5739,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
       int oldLength, int newLength) {
     fail("Unexpected invocation of setChangedContents");
   }
+
   @override
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
