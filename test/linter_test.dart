@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:cli_util/cli_util.dart';
+import 'package:linter/src/analysis.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
@@ -68,6 +69,40 @@ void defineLinterEngineTests() {
         expect(const LinterException().toString(), equals('LinterException'));
         expect(const LinterException('foo').toString(),
             equals('LinterException: foo'));
+      });
+    });
+
+    group('analysis logger', () {
+      var currentErr = errorSink;
+      var currentOut = outSink;
+      var errCollector = new CollectingSink();
+      var outCollector = new CollectingSink();
+      var logger = new StdLogger();
+      setUp(() {
+        errorSink = errCollector;
+        outSink = outCollector;
+      });
+      tearDown(() {
+        errorSink = currentErr;
+        outSink = currentOut;
+        errCollector.buffer.clear();
+        outCollector.buffer.clear();
+      });
+      test('logError', () {
+        logger.logError('logError');
+        expect(errCollector.trim(), equals('logError'));
+      });
+      test('logError2', () {
+        logger.logError2('logError2', null);
+        expect(errCollector.trim(), equals('logError2'));
+      });
+      test('logInformation', () {
+        logger.logInformation('logInformation');
+        expect(outCollector.trim(), equals('logInformation'));
+      });
+      test('logInformation2', () {
+        logger.logInformation2('logInformation2', null);
+        expect(outCollector.trim(), equals('logInformation2'));
       });
     });
 

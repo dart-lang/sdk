@@ -72,7 +72,7 @@ class AnalysisDriver {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     context.analysisOptions = _buildAnalyzerOptions(options);
     context.sourceFactory = new SourceFactory(resolvers);
-    AnalysisEngine.instance.logger = new _Logger();
+    AnalysisEngine.instance.logger = new StdLogger();
 
     List<Source> sources = [];
     ChangeSet changeSet = new ChangeSet();
@@ -114,10 +114,17 @@ class DriverOptions {
   bool showSdkWarnings = false;
 }
 
-class _Logger extends Logger {
+/// Prints logging information comments to the [outSink] and error messages to
+/// [errorSink].
+class StdLogger extends Logger {
+  @override
   void logError(String message, [exception]) => errorSink.writeln(message);
+  @override
   void logError2(String message, dynamic exception) =>
       errorSink.writeln(message);
-  void logInformation(String message, [exception]) {}
-  void logInformation2(String message, dynamic exception) {}
+  @override
+  void logInformation(String message, [exception]) => outSink.writeln(message);
+  @override
+  void logInformation2(String message, dynamic exception) =>
+      outSink.writeln(message);
 }
