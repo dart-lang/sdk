@@ -147,8 +147,8 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
   Message::Priority min_priority = (allow_normal_messages && !paused()) ?
       Message::kNormalPriority : Message::kOOBPriority;
   Message* message = DequeueMessage(min_priority);
-  intptr_t message_len = message->len();
   while (message != NULL) {
+    intptr_t message_len = message->len();
     if (FLAG_trace_isolates) {
       OS::Print("[<] Handling message:\n"
                 "\tlen:        %" Pd "\n"
