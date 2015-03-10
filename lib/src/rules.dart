@@ -6,6 +6,7 @@ library linter.src.rules;
 
 import 'dart:collection';
 
+import 'package:linter/src/config.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
@@ -34,9 +35,6 @@ final Registry ruleRegistry = new Registry()
   ..register(new UnnecessaryGetters())
   ..register(new UnnecessaryGettersSetters());
 
-/// Describes a set of enabled rules.
-typedef Iterable<LintRule> RuleSet();
-
 /// Registry of contributed lint rules.
 class Registry extends Object with IterableMixin<LintRule> {
   Map<String, LintRule> _ruleMap = <String, LintRule>{};
@@ -47,6 +45,9 @@ class Registry extends Object with IterableMixin<LintRule> {
   Iterable<LintRule> get rules => _ruleMap.values;
 
   LintRule operator [](String key) => _ruleMap[key];
+
+  Iterable<LintRule> enabled(LintConfig config) => rules
+      .where((rule) => !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
 
   register(LintRule rule) => _ruleMap[rule.name] = rule;
 }

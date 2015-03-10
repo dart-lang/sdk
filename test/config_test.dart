@@ -62,6 +62,7 @@ rules:
         expect(ruleConfig.group, equals('style_guide'));
         expect(ruleConfig.name, equals('unnecessary_getters'));
         expect(ruleConfig.args, equals({'enabled': false}));
+        expect(ruleConfig.disables('unnecessary_getters'), isTrue);
       });
     });
   });

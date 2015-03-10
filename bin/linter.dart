@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/config.dart';
 
 void main(List<String> args) {
   var parser = new ArgParser(allowTrailingOptions: true);
@@ -16,6 +17,7 @@ void main(List<String> args) {
   parser
     ..addFlag("help",
         abbr: "h", negatable: false, help: "Shows usage information.")
+    ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addOption('package-root',
         abbr: 'p',
@@ -42,18 +44,37 @@ void main(List<String> args) {
     return;
   }
 
+  var lintOptions = new LinterOptions();
+
+  var configFile = options["config"];
+  if (configFile != null) {
+    var config = new LintConfig.parse(readFile(configFile));
+    lintOptions.configure(config);
+  }
+
+  var customSdk = options['dart-sdk'];
+  if (customSdk != null) {
+    lintOptions.dartSdkPath = customSdk;
+  }
+
+  var customPackageRoot = options['package-root'];
+  if (customPackageRoot != null) {
+    lintOptions.packageRootPath = customPackageRoot;
+  }
+
+  var linter = new DartLinter(lintOptions);
+
   List<File> filesToLint = [];
   for (var path in options.rest) {
     filesToLint.addAll(collectFiles(path));
   }
 
-  //TODO: set options
-  var linter = new DartLinter();
   try {
     List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
 
     var commonRoot = getRoot(options.rest);
-    ReportFormatter reporter = new ReportFormatter(errors, outSink,
+    ReportFormatter reporter = new ReportFormatter(
+        errors, lintOptions.filter, outSink,
         fileCount: filesToLint.length, fileRoot: commonRoot);
     reporter.write();
   } catch (err, stack) {

@@ -18,6 +18,9 @@ abstract class RuleConfig {
   Map<String, dynamic> args;
   String get group;
   String get name;
+  /// Provisional
+  bool disables(String ruleName) =>
+      ruleName == name && args['enabled'] == false;
 }
 
 class _LintConfig implements LintConfig {
@@ -95,7 +98,7 @@ class _LintConfig implements LintConfig {
   }
 }
 
-class _RuleConfig implements RuleConfig {
+class _RuleConfig extends RuleConfig {
   String group;
   String name;
   var args = <String, dynamic>{};

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:linter/src/linter.dart';
 
 String getLineContents(int lineNumber, AnalysisError error) {
   var path = error.source.fullName;
@@ -23,7 +24,8 @@ String getLineContents(int lineNumber, AnalysisError error) {
   return null;
 }
 
-String pluralize(String word, int count) => count == 1 ? '$word' : '${word}s';
+String pluralize(String word, int count) =>
+    "$count ${count == 1 ? '$word' : '${word}s'}";
 
 String shorten(String fileRoot, String fullName) {
   if (fileRoot == null || !fullName.startsWith(fileRoot)) {
@@ -33,9 +35,10 @@ String shorten(String fileRoot, String fullName) {
 }
 
 class DetailedReporter extends SimpleFormatter {
-  DetailedReporter(Iterable<AnalysisErrorInfo> errors, IOSink out,
+  DetailedReporter(
+      Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
       {int fileCount, String fileRoot})
-      : super(errors, out, fileCount: fileCount, fileRoot: fileRoot);
+      : super(errors, filter, out, fileCount: fileCount, fileRoot: fileRoot);
 
   @override
   writeLint(AnalysisError error, LineInfo lineInfo) {
@@ -53,9 +56,10 @@ class DetailedReporter extends SimpleFormatter {
 }
 
 abstract class ReportFormatter {
-  factory ReportFormatter(Iterable<AnalysisErrorInfo> errors, IOSink out,
-      {int fileCount, String fileRoot}) => new DetailedReporter(errors, out,
-      fileCount: fileCount, fileRoot: fileRoot);
+  factory ReportFormatter(
+      Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
+      {int fileCount, String fileRoot}) => new DetailedReporter(
+      errors, filter, out, fileCount: fileCount, fileRoot: fileRoot);
 
   write();
 }
@@ -64,12 +68,15 @@ abstract class ReportFormatter {
 class SimpleFormatter implements ReportFormatter {
   final IOSink out;
   final Iterable<AnalysisErrorInfo> errors;
+  final LintFilter filter;
 
   int errorCount = 0;
+  int filteredLintCount = 0;
   final int fileCount;
   final String fileRoot;
 
-  SimpleFormatter(this.errors, this.out, {this.fileCount, this.fileRoot});
+  SimpleFormatter(this.errors, this.filter, this.out,
+      {this.fileCount, this.fileRoot});
 
   /// Override to influence error sorting
   int compare(AnalysisError error1, AnalysisError error2) {
@@ -102,21 +109,26 @@ class SimpleFormatter implements ReportFormatter {
     out
       ..write('${shorten(fileRoot, error.source.fullName)} ')
       ..write('${location.lineNumber}:${location.columnNumber} ')
-      ..write('[${error.errorCode.type.displayName}] ${error.message}')
-      ..writeln();
+      ..writeln('[${error.errorCode.type.displayName}] ${error.message}');
   }
 
   void writeLints() {
     errors.forEach((info) => (info.errors.toList()..sort(compare)).forEach((e) {
-      ++errorCount;
-      writeLint(e, info.lineInfo);
+      if (filter != null && filter.filter(e)) {
+        filteredLintCount++;
+      } else {
+        ++errorCount;
+        writeLint(e, info.lineInfo);
+      }
     }));
     out.writeln();
   }
 
   void writeSummary() {
     out
-      ..write('$fileCount ${pluralize("file", fileCount)} analyzed, ')
-      ..writeln('$errorCount ${pluralize("issue", errorCount)} found.');
+      ..write('${pluralize("file", fileCount)} analyzed, ')
+      ..write('${pluralize("issue", errorCount)} found')
+      ..writeln(
+          "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}.");
   }
 }

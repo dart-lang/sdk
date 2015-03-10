@@ -1,0 +1,2 @@
+files:
+  exclude: test/_data/p2/src/ignored/**

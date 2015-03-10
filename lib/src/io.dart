@@ -6,8 +6,12 @@ library linter.src.io;
 
 import 'dart:io';
 
+import 'package:glob/glob.dart';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
+
+
+final dartMatcher = new Glob('**.dart');
 
 /// Shared IO sink for standard error reporting.
 /// Visible for testing
@@ -50,3 +54,5 @@ bool isLintable(FileSystemEntity file) =>
 
 bool isPubspecFile(FileSystemEntity entry) =>
     isPubspecFileName(p.basename(entry.path));
+
+String readFile(String path) => new File(path).readAsStringSync();

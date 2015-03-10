@@ -106,14 +106,14 @@ void defineLinterEngineTests() {
       test('pubspec', () {
         bool visited;
         var options =
-            new LinterOptions(() => [new MockLinter((n) => visited = true)]);
+            new LinterOptions([new MockLinter((n) => visited = true)]);
         new SourceLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });
       test('error collecting', () {
         var error = new AnalysisError.con1(new StringSource('foo', ''),
             new LintCode('MockLint', 'This is a test...'));
-        var linter = new SourceLinter(new LinterOptions(() => []));
+        var linter = new SourceLinter(new LinterOptions([]));
         linter.onError(error);
         expect(linter.errors.contains(error), isTrue);
       });
@@ -125,8 +125,8 @@ void defineLinterEngineTests() {
         when(rule.getPubspecVisitor()).thenReturn(visitor);
 
         var reporter = new MockReporter();
-        var linter = new SourceLinter(new LinterOptions(() => [rule]),
-            reporter: reporter);
+        var linter =
+            new SourceLinter(new LinterOptions([rule]), reporter: reporter);
         linter.lintPubspecSource(contents: 'author: foo');
         verify(reporter.exception(any)).called(1);
       });
@@ -235,7 +235,7 @@ void defineLinterEngineTests() {
 }
 
 /// Rule tests
-void defineRuleTests() {
+defineRuleTests() {
 
   //TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
@@ -322,7 +322,10 @@ defineRuleUnitTests() {
         'foo.bar',
         'foo_bar_baz',
         'foo',
-        'foo.bar_baz.bang'
+        'foo.bar_baz.bang',
+        'a.b',
+        'a.b.c',
+        'p2.src.acme'
       ];
       testEach(good, isLowerCaseUnderScoreWithDots, isTrue);
 
@@ -349,7 +352,7 @@ defineRuleUnitTests() {
 }
 
 /// Test framework sanity
-void defineSanityTests() {
+defineSanityTests() {
   group('test framework', () {
     group('annotation', () {
       test('extraction', () {
@@ -431,7 +434,7 @@ testEach(Iterable<String> values, dynamic f(String s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 
-void testRule(String ruleName, File file) {
+testRule(String ruleName, File file) {
   test('$ruleName', () {
     var expected = <AnnotationMatcher>[];
 
@@ -446,7 +449,7 @@ void testRule(String ruleName, File file) {
     }
 
     DartLinter driver = new DartLinter.forRules(
-        () => [ruleRegistry[ruleName]].where((rule) => rule != null));
+        [ruleRegistry[ruleName]].where((rule) => rule != null));
 
     Iterable<AnalysisErrorInfo> lints = driver.lintFiles([file]);
 

@@ -13,6 +13,27 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/pub.dart';
 import 'package:mockito/mockito.dart';
 
+class CollectingSink extends MockIOSink {
+  final StringBuffer buffer = new StringBuffer();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  write(obj) {
+    buffer.write(obj);
+  }
+
+  @override
+  writeln([Object obj = ""]) {
+    buffer.writeln(obj);
+  }
+  @override
+  String toString() => buffer.toString();
+
+  String trim() => toString().trim();
+}
+
 class MockAnalysisError extends Mock implements AnalysisError {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

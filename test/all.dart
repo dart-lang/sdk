@@ -7,6 +7,7 @@ import 'package:unittest/unittest.dart';
 
 import 'config_test.dart' as config_test;
 import 'formatter_test.dart' as formatter_test;
+import 'integration_test.dart' as integration_test;
 import 'io_test.dart' as io_test;
 import 'linter_test.dart' as linter_test;
 import 'mocks.dart';
@@ -26,4 +27,5 @@ main() {
   io_test.main();
   formatter_test.main();
   config_test.main();
+  integration_test.main();
 }

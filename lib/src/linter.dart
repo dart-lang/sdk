@@ -11,7 +11,9 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:glob/glob.dart';
 import 'package:linter/src/analysis.dart';
+import 'package:linter/src/config.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
@@ -53,7 +55,7 @@ abstract class DartLinter {
   /// Creates a new linter.
   factory DartLinter([LinterOptions options]) => new SourceLinter(options);
 
-  factory DartLinter.forRules(RuleSet ruleSet) =>
+  factory DartLinter.forRules(Iterable<LintRule> ruleSet) =>
       new DartLinter(new LinterOptions(ruleSet));
 
   LinterOptions get options;
@@ -61,6 +63,22 @@ abstract class DartLinter {
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files);
 
   Iterable<AnalysisErrorInfo> lintPubspecSource({String contents});
+}
+
+class FileGlobFilter extends LintFilter {
+  Iterable<Glob> includes;
+  Iterable<Glob> excludes;
+
+  FileGlobFilter([Iterable<String> includeGlobs, Iterable<String> excludeGlobs])
+      : includes = includeGlobs.map((glob) => new Glob(glob)),
+        excludes = excludeGlobs.map((glob) => new Glob(glob));
+
+  @override
+  bool filter(AnalysisError lint) {
+    // TODO specify order
+    return excludes.any((glob) => glob.matches(lint.source.fullName)) &&
+        !includes.any((glob) => glob.matches(lint.source.fullName));
+  }
 }
 
 class Group {
@@ -182,10 +200,23 @@ class LinterException implements Exception {
 
 /// Linter options.
 class LinterOptions extends DriverOptions {
-  final RuleSet _enabledLints;
+  Iterable<LintRule> enabledLints;
   final bool enableLints = true;
-  LinterOptions(this._enabledLints);
-  Iterable<Linter> get enabledLints => _enabledLints();
+  LintFilter filter;
+  LinterOptions([this.enabledLints]) {
+    if (enabledLints == null) {
+      enabledLints = ruleRegistry;
+    }
+  }
+  void configure(LintConfig config) {
+    enabledLints = ruleRegistry.enabled(config);
+    filter = new FileGlobFilter(config.fileIncludes, config.fileExcludes);
+  }
+}
+
+/// Filtered lints are ommitted from linter output.
+abstract class LintFilter {
+  bool filter(AnalysisError lint);
 }
 
 /// Describes a lint rule.
@@ -231,8 +262,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   AstVisitor getVisitor() => null;
 
   void reportLint(AstNode node) {
-    reporter.reportErrorForNode(
-        new _LintCode(name, description), node, []);
+    reporter.reportErrorForNode(new _LintCode(name, description), node, []);
   }
 
   void reportPubLint(PSNode node) {
@@ -382,8 +412,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       lintPubspecSource(
           contents: sourceFile.readAsStringSync(), sourceUrl: sourceFile.path);
 
-  static LinterOptions _defaultOptions() =>
-      new LinterOptions(() => ruleRegistry);
+  static LinterOptions _defaultOptions() => new LinterOptions(ruleRegistry);
 }
 
 class _LineInfo implements LineInfo {
