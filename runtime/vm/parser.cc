@@ -8632,7 +8632,7 @@ AstNode* Parser::ParseAssertStatement() {
     ExpectToken(Token::kRPAREN);
     return NULL;
   }
-  AstNode* condition = ParseExpr(kAllowConst, kConsumeCascades);
+  AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   const intptr_t condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
   condition = InsertClosureCallNodes(condition);
