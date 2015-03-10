@@ -1367,7 +1367,7 @@ class OldEmitter implements Emitter {
   #helper.addMethod = #addMethod;
   #helper.extractStubs = function(array, name, isStatic, originalDescriptor) {
     var descriptor = Object.create(null);
-    this.addStubs(descriptor, array, name, isStatic, originalDescriptor, []);
+    this.addStubs(descriptor, array, name, isStatic, []);
     return descriptor;
   };
 }""",
