@@ -35,7 +35,7 @@ import 'package:path/path.dart';
 /**
  * A predicate is a one-argument function that returns a boolean value.
  */
-typedef bool Predicate<E>(E argument);
+typedef bool ElementPredicate(Element argument);
 
 /**
  * The computer for Dart fixes.
@@ -201,6 +201,7 @@ class FixProcessor {
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
       bool isAsync = _addFix_addAsync();
       if (!isAsync) {
+        _addFix_undefinedClassAccessor_useSimilar();
         _addFix_createField();
         _addFix_createGetter();
         _addFix_createFunction_forFunctionType();
@@ -229,6 +230,7 @@ class FixProcessor {
       _addFix_undefinedFunction_create();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
       _addFix_createGetter();
       _addFix_createFunction_forFunctionType();
@@ -1370,6 +1372,62 @@ class FixProcessor {
     }
   }
 
+  void _addFix_undefinedClassAccessor_useSimilar() {
+    AstNode node = this.node;
+    if (node is SimpleIdentifier) {
+      // prepare target
+      Expression target = null;
+      if (node.parent is PrefixedIdentifier) {
+        PrefixedIdentifier invocation = node.parent as PrefixedIdentifier;
+        target = invocation.prefix;
+      }
+      // find getter
+      if (node.inGetterContext()) {
+        _addFix_undefinedClassMember_useSimilar(target, (Element element) {
+          return element is PropertyAccessorElement && element.isGetter ||
+              element is FieldElement && element.getter != null;
+        });
+      }
+      // find setter
+      if (node.inSetterContext()) {
+        _addFix_undefinedClassMember_useSimilar(target, (Element element) {
+          return element is PropertyAccessorElement && element.isSetter ||
+              element is FieldElement && element.setter != null;
+        });
+      }
+    }
+  }
+
+  void _addFix_undefinedClassMember_useSimilar(
+      Expression target, ElementPredicate predicate) {
+    if (node is SimpleIdentifier) {
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(name, predicate, MAX_LEVENSHTEIN_DISTANCE);
+      // unqualified invocation
+      if (target == null) {
+        ClassDeclaration clazz =
+            node.getAncestor((node) => node is ClassDeclaration);
+        if (clazz != null) {
+          ClassElement classElement = clazz.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      } else {
+        DartType type = target.bestType;
+        if (type is InterfaceType) {
+          ClassElement classElement = type.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      }
+      // if we have close enough element, suggest to use it
+      if (finder._element != null) {
+        String closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        _addFix(FixKind.CHANGE_TO, [closestName]);
+      }
+    }
+  }
+
   void _addFix_undefinedFunction_create() {
     // should be the name of the invocation
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {} else {
@@ -1560,34 +1618,10 @@ class FixProcessor {
   }
 
   void _addFix_undefinedMethod_useSimilar() {
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+    if (node.parent is MethodInvocation) {
       MethodInvocation invocation = node.parent as MethodInvocation;
-      String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder = new _ClosestElementFinder(name,
-          (Element element) => element is MethodElement && !element.isOperator,
-          MAX_LEVENSHTEIN_DISTANCE);
-      // unqualified invocation
-      Expression target = invocation.realTarget;
-      if (target == null) {
-        ClassDeclaration clazz =
-            invocation.getAncestor((node) => node is ClassDeclaration);
-        if (clazz != null) {
-          ClassElement classElement = clazz.element;
-          _updateFinderWithClassMembers(finder, classElement);
-        }
-      } else {
-        DartType type = target.bestType;
-        if (type is InterfaceType) {
-          ClassElement classElement = type.element;
-          _updateFinderWithClassMembers(finder, classElement);
-        }
-      }
-      // if we have close enough element, suggest to use it
-      if (finder._element != null) {
-        String closestName = finder._element.name;
-        _addReplaceEdit(rf.rangeNode(node), closestName);
-        _addFix(FixKind.CHANGE_TO, [closestName]);
-      }
+      _addFix_undefinedClassMember_useSimilar(invocation.realTarget,
+          (Element element) => element is MethodElement && !element.isOperator);
     }
   }
 
@@ -2245,7 +2279,7 @@ class FixProcessor {
  */
 class _ClosestElementFinder {
   final String _targetName;
-  final Predicate<Element> _predicate;
+  final ElementPredicate _predicate;
 
   Element _element = null;
   int _distance;

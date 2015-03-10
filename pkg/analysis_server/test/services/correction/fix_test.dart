@@ -2709,6 +2709,63 @@ main() {
 ''');
   }
 
+  void test_undefinedGetter_useSimilar_qualified() {
+    resolveTestUnit('''
+class A {
+  int myField;
+}
+main(A a) {
+  print(a.myFild);
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  int myField;
+}
+main(A a) {
+  print(a.myField);
+}
+''');
+  }
+
+  void test_undefinedGetter_useSimilar_qualified_static() {
+    resolveTestUnit('''
+class A {
+  static int MY_NAME = 1;
+}
+main() {
+  A.MY_NAM;
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  static int MY_NAME = 1;
+}
+main() {
+  A.MY_NAME;
+}
+''');
+  }
+
+  void test_undefinedGetter_useSimilar_unqualified() {
+    resolveTestUnit('''
+class A {
+  int myField;
+  main() {
+    print(myFild);
+  }
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  int myField;
+  main() {
+    print(myField);
+  }
+}
+''');
+  }
+
   void test_undefinedMethod_create_BAD_inSDK() {
     resolveTestUnit('''
 main() {
@@ -3070,6 +3127,25 @@ class A {
   myMethod() {}
   main() {
     myMethod();
+  }
+}
+''');
+  }
+
+  void test_undefinedSetter_useSimilar_unqualified() {
+    resolveTestUnit('''
+class A {
+  int myField;
+  main() {
+    myFild = 42;
+  }
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  int myField;
+  main() {
+    myField = 42;
   }
 }
 ''');
