@@ -312,27 +312,36 @@ main() {
         });
       });
 
-      test('getChildren', () {
-        // create 2 files and 1 folder
-        new io.File(join(path, 'a.txt')).createSync();
-        new io.Directory(join(path, 'bFolder')).createSync();
-        new io.File(join(path, 'c.txt')).createSync();
-        // prepare 3 children
-        List<Resource> children = folder.getChildren();
-        expect(children, hasLength(3));
-        children.sort((a, b) => a.shortName.compareTo(b.shortName));
-        // check that each child exists
-        children.forEach((child) {
-          expect(child.exists, true);
+      group('getChildren', () {
+        test('exists', () {
+          // create 2 files and 1 folder
+          new io.File(join(path, 'a.txt')).createSync();
+          new io.Directory(join(path, 'bFolder')).createSync();
+          new io.File(join(path, 'c.txt')).createSync();
+          // prepare 3 children
+          List<Resource> children = folder.getChildren();
+          expect(children, hasLength(3));
+          children.sort((a, b) => a.shortName.compareTo(b.shortName));
+          // check that each child exists
+          children.forEach((child) {
+            expect(child.exists, true);
+          });
+          // check names
+          expect(children[0].shortName, 'a.txt');
+          expect(children[1].shortName, 'bFolder');
+          expect(children[2].shortName, 'c.txt');
+          // check types
+          expect(children[0], _isFile);
+          expect(children[1], _isFolder);
+          expect(children[2], _isFile);
         });
-        // check names
-        expect(children[0].shortName, 'a.txt');
-        expect(children[1].shortName, 'bFolder');
-        expect(children[2].shortName, 'c.txt');
-        // check types
-        expect(children[0], _isFile);
-        expect(children[1], _isFolder);
-        expect(children[2], _isFile);
+
+        test('does not exist', () {
+          folder = folder.getChildAssumingFolder('no-such-folder');
+          expect(() {
+            folder.getChildren();
+          }, throwsA(_isFileSystemException));
+        });
       });
 
       test('parent', () {

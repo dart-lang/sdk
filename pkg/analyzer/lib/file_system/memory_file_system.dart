@@ -110,17 +110,6 @@ class MemoryResourceProvider implements ResourceProvider {
     return file;
   }
 
-  File updateFile(String path, String content, [int stamp]) {
-    path = posix.normalize(path);
-    newFolder(posix.dirname(path));
-    _MemoryFile file = new _MemoryFile(this, path);
-    _pathToResource[path] = file;
-    _pathToContent[path] = content;
-    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
-    _notifyWatchers(path, ChangeType.MODIFY);
-    return file;
-  }
-
   Folder newFolder(String path) {
     path = posix.normalize(path);
     if (!path.startsWith('/')) {
@@ -143,6 +132,17 @@ class MemoryResourceProvider implements ResourceProvider {
           'Folder expected at ' "'$path'" 'but ${resource.runtimeType} found';
       throw new ArgumentError(message);
     }
+  }
+
+  File updateFile(String path, String content, [int stamp]) {
+    path = posix.normalize(path);
+    newFolder(posix.dirname(path));
+    _MemoryFile file = new _MemoryFile(this, path);
+    _pathToResource[path] = file;
+    _pathToContent[path] = content;
+    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
+    _notifyWatchers(path, ChangeType.MODIFY);
+    return file;
   }
 
   void _checkFileAtPath(String path) {
@@ -398,6 +398,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   List<Resource> getChildren() {
+    if (!exists) {
+      throw new FileSystemException(path, 'Folder does not exist.');
+    }
     List<Resource> children = <Resource>[];
     _provider._pathToResource.forEach((resourcePath, resource) {
       if (posix.dirname(resourcePath) == path) {
