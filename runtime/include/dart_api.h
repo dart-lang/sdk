@@ -1108,6 +1108,9 @@ DART_EXPORT Dart_Handle Dart_HandleMessage();
  * This function may be used by an embedder at a breakpoint to avoid
  * pausing the vm service.
  *
+ * This function can indirectly cause the message notify callback to
+ * be called.
+ *
  * \return true if the vm service requests the program resume
  * execution, false otherwise
  */

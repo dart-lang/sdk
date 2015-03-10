@@ -94,34 +94,36 @@ void MessageHandler::Run(ThreadPool* pool,
 
 
 void MessageHandler::PostMessage(Message* message, bool before_events) {
-  MonitorLocker ml(&monitor_);
-  if (FLAG_trace_isolates) {
-    const char* source_name = "<native code>";
-    Isolate* source_isolate = Isolate::Current();
-    if (source_isolate) {
-      source_name = source_isolate->name();
+  Message::Priority saved_priority;
+  {
+    MonitorLocker ml(&monitor_);
+    if (FLAG_trace_isolates) {
+      const char* source_name = "<native code>";
+      Isolate* source_isolate = Isolate::Current();
+      if (source_isolate) {
+        source_name = source_isolate->name();
+      }
+      OS::Print("[>] Posting message:\n"
+                "\tlen:        %" Pd "\n"
+                "\tsource:     %s\n"
+                "\tdest:       %s\n"
+                "\tdest_port:  %" Pd64 "\n",
+                message->len(), source_name, name(), message->dest_port());
     }
-    OS::Print("[>] Posting message:\n"
-              "\tlen:        %" Pd "\n"
-              "\tsource:     %s\n"
-              "\tdest:       %s\n"
-              "\tdest_port:  %" Pd64 "\n",
-              message->len(), source_name, name(), message->dest_port());
-  }
 
-  Message::Priority saved_priority = message->priority();
-  if (message->IsOOB()) {
-    oob_queue_->Enqueue(message, before_events);
-  } else {
-    queue_->Enqueue(message, before_events);
-  }
-  message = NULL;  // Do not access message.  May have been deleted.
+    saved_priority = message->priority();
+    if (message->IsOOB()) {
+      oob_queue_->Enqueue(message, before_events);
+    } else {
+      queue_->Enqueue(message, before_events);
+    }
+    message = NULL;  // Do not access message.  May have been deleted.
 
-  if (pool_ != NULL && task_ == NULL) {
-    task_ = new MessageHandlerTask(this);
-    pool_->Run(task_);
+    if (pool_ != NULL && task_ == NULL) {
+      task_ = new MessageHandlerTask(this);
+      pool_->Run(task_);
+    }
   }
-
   // Invoke any custom message notification.
   MessageNotify(saved_priority);
 }

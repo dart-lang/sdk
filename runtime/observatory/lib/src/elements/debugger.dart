@@ -120,9 +120,8 @@ class PrintCommand extends DebuggerCommand {
           if (response is DartError) {
             debugger.console.print(response.message);
           } else {
-            ServiceMap instance = response;
             debugger.console.print('= ', newline:false);
-            debugger.console.printRef(instance);
+            debugger.console.printRef(response);
           }
       });
   }
@@ -1276,7 +1275,7 @@ class DebuggerConsoleElement extends ObservatoryElement {
     span.scrollIntoView();
   }
 
-  void printRef(ServiceMap ref, { bool newline:true }) {
+  void printRef(Instance ref, { bool newline:true }) {
     var refElement = new Element.tag('instance-ref');
     refElement.ref = ref;
     $['consoleText'].children.add(refElement);
