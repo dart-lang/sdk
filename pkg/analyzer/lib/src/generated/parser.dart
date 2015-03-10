@@ -427,8 +427,7 @@ Object invokeParserMethodImpl(
 }
 
 /**
- * Instances of the class `CommentAndMetadata` implement a simple data-holder for a method
- * that needs to return multiple values.
+ * A simple data-holder for a method that needs to return multiple values.
  */
 class CommentAndMetadata {
   /**
@@ -442,17 +441,13 @@ class CommentAndMetadata {
   final List<Annotation> metadata;
 
   /**
-   * Initialize a newly created holder with the given data.
-   *
-   * @param comment the documentation comment that was parsed
-   * @param metadata the metadata that was parsed
+   * Initialize a newly created holder with the given [comment] and [metadata].
    */
   CommentAndMetadata(this.comment, this.metadata);
 }
 
 /**
- * Instances of the class `FinalConstVarOrType` implement a simple data-holder for a method
- * that needs to return multiple values.
+ * A simple data-holder for a method that needs to return multiple values.
  */
 class FinalConstVarOrType {
   /**
@@ -466,20 +461,17 @@ class FinalConstVarOrType {
   final TypeName type;
 
   /**
-   * Initialize a newly created holder with the given data.
-   *
-   * @param keyword the 'final', 'const' or 'var' keyword
-   * @param type the type
+   * Initialize a newly created holder with the given [keyword] and [type].
    */
   FinalConstVarOrType(this.keyword, this.type);
 }
 
 /**
- * Instances of the class `IncrementalParseDispatcher` implement a dispatcher that will invoke
- * the right parse method when re-parsing a specified child of the visited node. All of the methods
- * in this class assume that the parser is positioned to parse the replacement for the node. All of
- * the methods will throw an [IncrementalParseException] if the node could not be parsed for
- * some reason.
+ * A dispatcher that will invoke the right parse method when re-parsing a
+ * specified child of the visited node. All of the methods in this class assume
+ * that the parser is positioned to parse the replacement for the node. All of
+ * the methods will throw an [IncrementalParseException] if the node could not
+ * be parsed for some reason.
  */
 class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   /**
@@ -493,10 +485,8 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   final AstNode _oldNode;
 
   /**
-   * Initialize a newly created dispatcher to parse a single node that will replace the given node.
-   *
-   * @param parser the parser used to parse the replacement for the node
-   * @param oldNode the node that is to be replaced
+   * Initialize a newly created dispatcher to parse a single node that will
+   * use the [_parser] to replace the [_oldNode].
    */
   IncrementalParseDispatcher(this._parser, this._oldNode);
 
@@ -1566,68 +1556,60 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   /**
-   * Return `true` if the given assignment expression can have a cascade expression on the
-   * right-hand side.
-   *
-   * @param node the assignment expression being tested
-   * @return `true` if the right-hand side can be a cascade expression
+   * Return `true` if the given assignment [expression] can have a cascade
+   * expression on the right-hand side.
    */
-  bool _isCascadeAllowedInAssignment(AssignmentExpression node) {
+  bool _isCascadeAllowedInAssignment(AssignmentExpression expression) {
     // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }
 
   /**
-   * Return `true` if the given throw expression can have a cascade expression.
-   *
-   * @param node the throw expression being tested
-   * @return `true` if the expression can be a cascade expression
+   * Return `true` if the given throw [expression] can have a cascade
+   * expression.
    */
-  bool _isCascadeAllowedInThrow(ThrowExpression node) {
+  bool _isCascadeAllowedInThrow(ThrowExpression expression) {
     // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }
 
   /**
-   * Throw an exception indicating that the visited node was not the parent of the node to be
-   * replaced.
-   *
-   * @param visitedNode the visited node that should have been the parent of the node to be replaced
+   * Throw an exception indicating that the visited [node] was not the parent of
+   * the node to be replaced.
    */
-  AstNode _notAChild(AstNode visitedNode) {
+  AstNode _notAChild(AstNode node) {
     throw new IncrementalParseException.con1(
-        "Internal error: the visited node (a ${visitedNode.runtimeType}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType})");
+        "Internal error: the visited node (a ${node.runtimeType}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType})");
   }
 }
 
 /**
- * Instances of the class `IncrementalParseException` represent an exception that occurred
- * while attempting to parse a replacement for a specified node in an existing AST structure.
+ * An exception that occurred while attempting to parse a replacement for a
+ * specified node in an existing AST structure.
  */
 class IncrementalParseException extends RuntimeException {
   /**
-   * Initialize a newly created exception to have no message and to be its own cause.
+   * Initialize a newly created exception to have no message and to be its own
+   * cause.
    */
   IncrementalParseException() : super();
 
   /**
-   * Initialize a newly created exception to have the given message and to be its own cause.
-   *
-   * @param message the message describing the reason for the exception
+   * Initialize a newly created exception to have the given [message] and to be
+   * its own cause.
    */
   IncrementalParseException.con1(String message) : super(message: message);
 
   /**
-   * Initialize a newly created exception to have no message and to have the given cause.
-   *
-   * @param cause the exception that caused this exception
+   * Initialize a newly created exception to have no message and to have the
+   * given [cause].
    */
   IncrementalParseException.con2(Exception cause) : super(cause: cause);
 }
 
 /**
- * Instances of the class `IncrementalParser` re-parse a single AST structure within a larger
- * AST structure.
+ * An object used to re-parse a single AST structure within a larger AST
+ * structure.
  */
 class IncrementalParser {
   /**
@@ -1641,7 +1623,8 @@ class IncrementalParser {
   final TokenMap _tokenMap;
 
   /**
-   * The error listener that will be informed of any errors that are found during the parse.
+   * The error listener that will be informed of any errors that are found
+   * during the parse.
    */
   final AnalysisErrorListener _errorListener;
 
@@ -1651,34 +1634,31 @@ class IncrementalParser {
   AstNode _updatedNode;
 
   /**
-   * Initialize a newly created incremental parser to parse a portion of the content of the given
-   * source.
-   *
-   * @param source the source being parsed
-   * @param tokenMap a map from old tokens to new tokens used during the cloning process
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during the parse
+   * Initialize a newly created incremental parser to parse a portion of the
+   * content of the given [_source]. The [_tokenMap] is a map from old tokens to
+   * new tokens that is used during the cloning process. The [_errorListener]
+   * will be informed of any errors that are found during the parse.
    */
   IncrementalParser(this._source, this._tokenMap, this._errorListener);
 
   /**
    * Return the node in the AST structure that contains the revised content.
-   *
-   * @return the updated node
    */
   AstNode get updatedNode => _updatedNode;
 
   /**
-   * Given a range of tokens that were re-scanned, re-parse the minimum number of tokens to produce
-   * a consistent AST structure. The range is represented by the first and last tokens in the range.
-   * The tokens are assumed to be contained in the same token stream.
+   * Given a range of tokens that were re-scanned, re-parse the minimum number
+   * of tokens to produce a consistent AST structure. The range is represented
+   * by the first and last tokens in the range.
    *
-   * @param leftToken the token in the new token stream immediately to the left of the range of
-   *          tokens that were inserted
-   * @param rightToken the token in the new token stream immediately to the right of the range of
-   *          tokens that were inserted
-   * @param originalStart the offset in the original source of the first character that was modified
-   * @param originalEnd the offset in the original source of the last character that was modified
+   * More specifically, the [leftToken] is the token in the new token stream
+   * immediately to the left of the range of tokens that were inserted and the
+   * [rightToken] is the token in the new token stream immediately to the right
+   * of the range of tokens that were inserted. The [originalStart] and
+   * [originalEnd] are the offsets in the original source of the first and last
+   * characters that were modified.
+   *
+   * The tokens are assumed to be contained in the same token stream.
    */
   AstNode reparse(AstNode originalStructure, Token leftToken, Token rightToken,
       int originalStart, int originalEnd) {
@@ -1773,10 +1753,8 @@ class IncrementalParser {
   }
 
   /**
-   * Return the first (non-EOF) token in the token stream containing the given token.
-   *
-   * @param firstToken the token from which the search is to begin
-   * @return the first token in the token stream containing the given token
+   * Return the first (non-EOF) token in the token stream containing the
+   * [firstToken].
    */
   Token _findFirstToken(Token firstToken) {
     while (firstToken.type != TokenType.EOF) {
@@ -1786,12 +1764,8 @@ class IncrementalParser {
   }
 
   /**
-   * Find the token at or before the given token with the given offset, or `null` if there is
-   * no such token.
-   *
-   * @param firstToken the token from which the search is to begin
-   * @param offset the offset of the token to be returned
-   * @return the token with the given offset
+   * Find the token at or before the [firstToken] with the given [offset], or
+   * `null` if there is no such token.
    */
   Token _findTokenAt(Token firstToken, int offset) {
     while (firstToken.offset > offset && firstToken.type != TokenType.EOF) {
@@ -1802,18 +1776,18 @@ class IncrementalParser {
 }
 
 /**
- * Visitor capable of inferring the correct parser state for incremental
+ * A visitor capable of inferring the correct parser state for incremental
  * parsing.  This visitor visits each parent/child relationship in the chain of
  * ancestors of the node to be replaced (starting with the root of the parse
  * tree), updating the parser to the correct state for parsing the child of the
  * given parent.  Once it has visited all of these relationships, the parser
  * will be in the correct state for reparsing the node to be replaced.
- *
- * TODO(paulberry): add support for other pieces of parser state (_inAsync,
- * _inGenerator, _inLoop, and _inSwitch).  Note that _inLoop and _inSwitch only
- * affect error message generation.
  */
 class IncrementalParseStateBuilder extends SimpleAstVisitor {
+  // TODO(paulberry): add support for other pieces of parser state (_inAsync,
+  // _inGenerator, _inLoop, and _inSwitch).  Note that _inLoop and _inSwitch
+  // only affect error message generation.
+
   /**
    * The parser whose state should be built.
    */
@@ -1896,33 +1870,33 @@ class IncrementalParseStateBuilder extends SimpleAstVisitor {
 }
 
 /**
- * Instances of the class `InsufficientContextException` represent a situation in which an AST
- * node cannot be re-parsed because there is not enough context to know how to re-parse the node.
- * Clients can attempt to re-parse the parent of the node.
+ * An exception indicating that an AST node cannot be re-parsed because there is
+ * not enough context to know how to re-parse the node. Clients can attempt to
+ * re-parse the parent of the node.
  */
 class InsufficientContextException extends IncrementalParseException {
   /**
-   * Initialize a newly created exception to have no message and to be its own cause.
+   * Initialize a newly created exception to have no message and to be its own
+   * cause.
    */
   InsufficientContextException() : super();
 
   /**
-   * Initialize a newly created exception to have the given message and to be its own cause.
-   *
-   * @param message the message describing the reason for the exception
+   * Initialize a newly created exception to have the given [message] and to be
+   * its own cause.
    */
   InsufficientContextException.con1(String message) : super.con1(message);
 
   /**
-   * Initialize a newly created exception to have no message and to have the given cause.
-   *
-   * @param cause the exception that caused this exception
+   * Initialize a newly created exception to have no message and to have the
+   * given [cause].
    */
   InsufficientContextException.con2(Exception cause) : super.con2(cause);
 }
 
 /**
- * Wrapper around [Function] which should be called with "target" and "arguments".
+ * Wrapper around [Function] which should be called with "target" and
+ * "arguments".
  */
 class MethodTrampoline {
   int parameterCount;
@@ -1952,42 +1926,48 @@ class MethodTrampoline {
 }
 
 /**
- * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
- * to return multiple values.
+ * A simple data-holder for a method that needs to return multiple values.
  */
 class Modifiers {
   /**
-   * The token representing the keyword 'abstract', or `null` if the keyword was not found.
+   * The token representing the keyword 'abstract', or `null` if the keyword was
+   * not found.
    */
   Token abstractKeyword;
 
   /**
-   * The token representing the keyword 'const', or `null` if the keyword was not found.
+   * The token representing the keyword 'const', or `null` if the keyword was
+   * not found.
    */
   Token constKeyword;
 
   /**
-   * The token representing the keyword 'external', or `null` if the keyword was not found.
+   * The token representing the keyword 'external', or `null` if the keyword was
+   * not found.
    */
   Token externalKeyword;
 
   /**
-   * The token representing the keyword 'factory', or `null` if the keyword was not found.
+   * The token representing the keyword 'factory', or `null` if the keyword was
+   * not found.
    */
   Token factoryKeyword;
 
   /**
-   * The token representing the keyword 'final', or `null` if the keyword was not found.
+   * The token representing the keyword 'final', or `null` if the keyword was
+   * not found.
    */
   Token finalKeyword;
 
   /**
-   * The token representing the keyword 'static', or `null` if the keyword was not found.
+   * The token representing the keyword 'static', or `null` if the keyword was
+   * not found.
    */
   Token staticKeyword;
 
   /**
-   * The token representing the keyword 'var', or `null` if the keyword was not found.
+   * The token representing the keyword 'var', or `null` if the keyword was not
+   * found.
    */
   Token varKeyword;
 
@@ -2005,13 +1985,9 @@ class Modifiers {
   }
 
   /**
-   * If the given keyword is not `null`, append it to the given builder, prefixing it with a
-   * space if needed.
-   *
-   * @param builder the builder to which the keyword will be appended
-   * @param needsSpace `true` if the keyword needs to be prefixed with a space
-   * @param keyword the keyword to be appended
-   * @return `true` if subsequent keywords need to be prefixed with a space
+   * If the given [keyword] is not `null`, append it to the given [builder],
+   * prefixing it with a space if [needsSpace] is `true`. Return `true` if
+   * subsequent keywords need to be prefixed with a space.
    */
   bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token keyword) {
     if (keyword != null) {
@@ -2026,7 +2002,7 @@ class Modifiers {
 }
 
 /**
- * Instances of the class `Parser` are used to parse tokens into an AST structure.
+ * A parser used to parse tokens into an AST structure.
  */
 class Parser {
   static String ASYNC = "async";
@@ -2053,7 +2029,8 @@ class Parser {
   final Source _source;
 
   /**
-   * The error listener that will be informed of any errors that are found during the parse.
+   * The error listener that will be informed of any errors that are found
+   * during the parse.
    */
   final AnalysisErrorListener _errorListener;
 
@@ -2073,12 +2050,14 @@ class Parser {
   Token _currentToken;
 
   /**
-   * A flag indicating whether the parser is currently in a function body marked as being 'async'.
+   * A flag indicating whether the parser is currently in a function body marked
+   * as being 'async'.
    */
   bool _inAsync = false;
 
   /**
-   * A flag indicating whether the parser is currently in a function body marked as being 'async'.
+   * A flag indicating whether the parser is currently in a function body marked
+   * as being 'async'.
    */
   bool _inGenerator = false;
 
@@ -2093,17 +2072,15 @@ class Parser {
   bool _inSwitch = false;
 
   /**
-   * A flag indicating whether the parser is currently in a constructor field initializer, with no
-   * intervening parens, braces, or brackets.
+   * A flag indicating whether the parser is currently in a constructor field
+   * initializer, with no intervening parens, braces, or brackets.
    */
   bool _inInitializer = false;
 
   /**
-   * Initialize a newly created parser.
-   *
-   * @param source the source being parsed
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during the parse
+   * Initialize a newly created parser to parse the content of the given
+   * [_source] and to report any errors that are found to the given
+   * [_errorListener].
    */
   Parser(this._source, this._errorListener);
 
@@ -2112,13 +2089,10 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token is the first token of a return type that is followed
-   * by an identifier, possibly followed by a list of type parameters, followed by a
-   * left-parenthesis. This is used by parseTypeAlias to determine whether or not to parse a return
-   * type.
-   *
-   * @return `true` if we can successfully parse the rest of a type alias if we first parse a
-   *         return type.
+   * Return `true` if the current token is the first token of a return type that
+   * is followed by an identifier, possibly followed by a list of type
+   * parameters, followed by a left-parenthesis. This is used by
+   * [_parseTypeAlias] to determine whether or not to parse a return type.
    */
   bool get hasReturnTypeInTypeAlias {
     Token next = _skipReturnType(_currentToken);
@@ -2130,35 +2104,30 @@ class Parser {
 
   /**
    * Set whether the parser is to parse the async support.
-   *
-   * @param parseAsync `true` if the parser is to parse the async support
    */
+  @deprecated
   void set parseAsync(bool parseAsync) {
     // Async support cannot be disabled
   }
 
   /**
    * Set whether the parser is to parse deferred libraries.
-   *
-   * @param parseDeferredLibraries `true` if the parser is to parse deferred libraries
    */
+  @deprecated
   void set parseDeferredLibraries(bool parseDeferredLibraries) {
     // Deferred libraries support cannot be disabled
   }
 
   /**
    * Set whether the parser is to parse enum declarations.
-   *
-   * @param parseEnum `true` if the parser is to parse enum declarations
    */
+  @deprecated
   void set parseEnum(bool parseEnum) {
     // Enum support cannot be disabled
   }
 
   /**
    * Set whether parser is to parse function bodies.
-   *
-   * @param parseFunctionBodies `true` if parser is to parse function bodies
    */
   void set parseFunctionBodies(bool parseFunctionBodies) {
     this._parseFunctionBodies = parseFunctionBodies;
@@ -2175,14 +2144,11 @@ class Parser {
   }
 
   /**
-   * Parse an annotation.
+   * Parse an annotation. Return the annotation that was parsed.
    *
-   * <pre>
-   * annotation ::=
-   *     '@' qualified ('.' identifier)? arguments?
-   * </pre>
+   *     annotation ::=
+   *         '@' qualified ('.' identifier)? arguments?
    *
-   * @return the annotation that was parsed
    */
   Annotation parseAnnotation() {
     Token atSign = _expect(TokenType.AT);
@@ -2201,18 +2167,14 @@ class Parser {
   }
 
   /**
-   * Parse an argument.
+   * Parse an argument. Return the argument that was parsed.
    *
-   * <pre>
-   * argument ::=
-   *     namedArgument
-   *   | expression
+   *     argument ::=
+   *         namedArgument
+   *       | expression
    *
-   * namedArgument ::=
-   *     label expression
-   * </pre>
-   *
-   * @return the argument that was parsed
+   *     namedArgument ::=
+   *         label expression
    */
   Expression parseArgument() {
     //
@@ -2227,18 +2189,14 @@ class Parser {
   }
 
   /**
-   * Parse a list of arguments.
+   * Parse a list of arguments. Return the argument list that was parsed.
    *
-   * <pre>
-   * arguments ::=
-   *     '(' argumentList? ')'
+   *     arguments ::=
+   *         '(' argumentList? ')'
    *
-   * argumentList ::=
-   *     namedArgument (',' namedArgument)*
-   *   | expressionList (',' namedArgument)*
-   * </pre>
-   *
-   * @return the argument list that was parsed
+   *     argumentList ::=
+   *         namedArgument (',' namedArgument)*
+   *       | expressionList (',' namedArgument)*
    */
   ArgumentList parseArgumentList() {
     Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
@@ -2286,15 +2244,12 @@ class Parser {
   }
 
   /**
-   * Parse a bitwise or expression.
+   * Parse a bitwise or expression. Return the bitwise or expression that was
+   * parsed.
    *
-   * <pre>
-   * bitwiseOrExpression ::=
-   *     bitwiseXorExpression ('|' bitwiseXorExpression)*
-   *   | 'super' ('|' bitwiseXorExpression)+
-   * </pre>
-   *
-   * @return the bitwise or expression that was parsed
+   *     bitwiseOrExpression ::=
+   *         bitwiseXorExpression ('|' bitwiseXorExpression)*
+   *       | 'super' ('|' bitwiseXorExpression)+
    */
   Expression parseBitwiseOrExpression() {
     Expression expression;
@@ -2313,14 +2268,10 @@ class Parser {
   }
 
   /**
-   * Parse a block.
+   * Parse a block. Return the block that was parsed.
    *
-   * <pre>
-   * block ::=
-   *     '{' statements '}'
-   * </pre>
-   *
-   * @return the block that was parsed
+   *     block ::=
+   *         '{' statements '}'
    */
   Block parseBlock() {
     Token leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
@@ -2345,17 +2296,13 @@ class Parser {
   }
 
   /**
-   * Parse a class member.
+   * Parse a class member. The [className] is the name of the class containing
+   * the member being parsed. Return the class member that was parsed, or `null`
+   * if what was found was not a valid class member.
    *
-   * <pre>
-   * classMemberDefinition ::=
-   *     declaration ';'
-   *   | methodSignature functionBody
-   * </pre>
-   *
-   * @param className the name of the class containing the member being parsed
-   * @return the class member that was parsed, or `null` if what was found was not a valid
-   *         class member
+   *     classMemberDefinition ::=
+   *         declaration ';'
+   *       | methodSignature functionBody
    */
   ClassMember parseClassMember(String className) {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
@@ -2613,14 +2560,12 @@ class Parser {
   }
 
   /**
-   * Parse a single import combinator.  If no combinator is found, return
-   * `null`.
+   * Parse a single combinator. Return the combinator that was parsed, or `null`
+   * if no combinator is found.
    *
-   * <pre>
-   * combinator ::=
-   *     'show' identifier (',' identifier)*
-   *   | 'hide' identifier (',' identifier)*
-   * </pre>
+   *     combinator ::=
+   *         'show' identifier (',' identifier)*
+   *       | 'hide' identifier (',' identifier)*
    */
   Combinator parseCombinator() {
     if (_matchesString(_SHOW) || _matchesString(_HIDE)) {
@@ -2636,10 +2581,8 @@ class Parser {
   }
 
   /**
-   * Parse a compilation unit, starting with the given token.
-   *
-   * @param token the first token of the compilation unit
-   * @return the compilation unit that was parsed
+   * Parse a compilation unit, starting with the given [token]. Return the
+   * compilation unit that was parsed.
    */
   CompilationUnit parseCompilationUnit(Token token) {
     _currentToken = token;
@@ -2647,26 +2590,21 @@ class Parser {
   }
 
   /**
-   * Parse a compilation unit.
+   * Parse a compilation unit. Return the compilation unit that was parsed.
    *
    * Specified:
    *
-   * <pre>
-   * compilationUnit ::=
-   *     scriptTag? directive* topLevelDeclaration*
-   * </pre>
+   *     compilationUnit ::=
+   *         scriptTag? directive* topLevelDeclaration*
+   *
    * Actual:
    *
-   * <pre>
-   * compilationUnit ::=
-   *     scriptTag? topLevelElement*
+   *     compilationUnit ::=
+   *         scriptTag? topLevelElement*
    *
-   * topLevelElement ::=
-   *     directive
-   *   | topLevelDeclaration
-   * </pre>
-   *
-   * @return the compilation unit that was parsed
+   *     topLevelElement ::=
+   *         directive
+   *       | topLevelDeclaration
    */
   CompilationUnit parseCompilationUnit2() {
     Token firstToken = _currentToken;
@@ -2698,8 +2636,8 @@ class Parser {
           !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
         Directive directive = _parseDirective(commentAndMetadata);
         if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
-          _reportErrorForToken(
-              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, directive.beginToken);
+          _reportErrorForToken(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
+              directive.beginToken);
           directiveFoundAfterDeclaration = true;
         }
         if (directive is LibraryDirective) {
@@ -2775,14 +2713,11 @@ class Parser {
   }
 
   /**
-   * Parse a conditional expression.
+   * Parse a conditional expression. Return the conditional expression that was
+   * parsed.
    *
-   * <pre>
-   * conditionalExpression ::=
-   *     logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
-   * </pre>
-   *
-   * @return the conditional expression that was parsed
+   *     conditionalExpression ::=
+   *         logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
    */
   Expression parseConditionalExpression() {
     Expression condition = parseLogicalOrExpression();
@@ -2798,14 +2733,11 @@ class Parser {
   }
 
   /**
-   * Parse the name of a constructor.
+   * Parse the name of a constructor. Return the constructor name that was
+   * parsed.
    *
-   * <pre>
-   * constructorName:
-   *     type ('.' identifier)?
-   * </pre>
-   *
-   * @return the constructor name that was parsed
+   *     constructorName:
+   *         type ('.' identifier)?
    */
   ConstructorName parseConstructorName() {
     TypeName type = parseTypeName();
@@ -2819,12 +2751,11 @@ class Parser {
   }
 
   /**
-   * Parse the script tag and directives in a compilation unit, starting with the given token, until
-   * the first non-directive is encountered. The remainder of the compilation unit will not be
-   * parsed. Specifically, if there are directives later in the file, they will not be parsed.
-   *
-   * @param token the first token of the compilation unit
-   * @return the compilation unit that was parsed
+   * Parse the script tag and directives in a compilation unit, starting with
+   * the given [token], until the first non-directive is encountered. The
+   * remainder of the compilation unit will not be parsed. Specifically, if
+   * there are directives later in the file, they will not be parsed. Return the
+   * compilation unit that was parsed.
    */
   CompilationUnit parseDirectives(Token token) {
     _currentToken = token;
@@ -2832,11 +2763,9 @@ class Parser {
   }
 
   /**
-   * Parse an expression, starting with the given token.
-   *
-   * @param token the first token of the expression
-   * @return the expression that was parsed, or `null` if the tokens do not represent a
-   *         recognizable expression
+   * Parse an expression, starting with the given [token]. Return the expression
+   * that was parsed, or `null` if the tokens do not represent a recognizable
+   * expression.
    */
   Expression parseExpression(Token token) {
     _currentToken = token;
@@ -2844,16 +2773,13 @@ class Parser {
   }
 
   /**
-   * Parse an expression that might contain a cascade.
+   * Parse an expression that might contain a cascade. Return the expression
+   * that was parsed.
    *
-   * <pre>
-   * expression ::=
-   *     assignableExpression assignmentOperator expression
-   *   | conditionalExpression cascadeSection*
-   *   | throwExpression
-   * </pre>
-   *
-   * @return the expression that was parsed
+   *     expression ::=
+   *         assignableExpression assignmentOperator expression
+   *       | conditionalExpression cascadeSection*
+   *       | throwExpression
    */
   Expression parseExpression2() {
     if (_matchesKeyword(Keyword.THROW)) {
@@ -2889,16 +2815,13 @@ class Parser {
   }
 
   /**
-   * Parse an expression that does not contain any cascades.
+   * Parse an expression that does not contain any cascades. Return the
+   * expression that was parsed.
    *
-   * <pre>
-   * expressionWithoutCascade ::=
-   *     assignableExpression assignmentOperator expressionWithoutCascade
-   *   | conditionalExpression
-   *   | throwExpressionWithoutCascade
-   * </pre>
-   *
-   * @return the expression that was parsed
+   *     expressionWithoutCascade ::=
+   *         assignableExpression assignmentOperator expressionWithoutCascade
+   *       | conditionalExpression
+   *       | throwExpressionWithoutCascade
    */
   Expression parseExpressionWithoutCascade() {
     if (_matchesKeyword(Keyword.THROW)) {
@@ -2923,14 +2846,11 @@ class Parser {
   }
 
   /**
-   * Parse a class extends clause.
+   * Parse a class extends clause. Return the class extends clause that was
+   * parsed.
    *
-   * <pre>
-   * classExtendsClause ::=
-   *     'extends' type
-   * </pre>
-   *
-   * @return the class extends clause that was parsed
+   *     classExtendsClause ::=
+   *         'extends' type
    */
   ExtendsClause parseExtendsClause() {
     Token keyword = _expectKeyword(Keyword.EXTENDS);
@@ -2939,29 +2859,26 @@ class Parser {
   }
 
   /**
-   * Parse a list of formal parameters.
+   * Parse a list of formal parameters. Return the formal parameters that were
+   * parsed.
    *
-   * <pre>
-   * formalParameterList ::=
-   *     '(' ')'
-   *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
-   *   | '(' optionalFormalParameters ')'
+   *     formalParameterList ::=
+   *         '(' ')'
+   *       | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+   *       | '(' optionalFormalParameters ')'
    *
-   * normalFormalParameters ::=
-   *     normalFormalParameter (',' normalFormalParameter)*
+   *     normalFormalParameters ::=
+   *         normalFormalParameter (',' normalFormalParameter)*
    *
-   * optionalFormalParameters ::=
-   *     optionalPositionalFormalParameters
-   *   | namedFormalParameters
+   *     optionalFormalParameters ::=
+   *         optionalPositionalFormalParameters
+   *       | namedFormalParameters
    *
-   * optionalPositionalFormalParameters ::=
-   *     '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   *     optionalPositionalFormalParameters ::=
+   *         '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
    *
-   * namedFormalParameters ::=
-   *     '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
-   * </pre>
-   *
-   * @return the formal parameters that were parsed
+   *     namedFormalParameters ::=
+   *         '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    */
   FormalParameterList parseFormalParameterList() {
     Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
@@ -3117,14 +3034,11 @@ class Parser {
   }
 
   /**
-   * Parse a function expression.
+   * Parse a function expression. Return the function expression that was
+   * parsed.
    *
-   * <pre>
-   * functionExpression ::=
-   *     formalParameterList functionExpressionBody
-   * </pre>
-   *
-   * @return the function expression that was parsed
+   *     functionExpression ::=
+   *         formalParameterList functionExpressionBody
    */
   FunctionExpression parseFunctionExpression() {
     FormalParameterList parameters = parseFormalParameterList();
@@ -3135,14 +3049,10 @@ class Parser {
   }
 
   /**
-   * Parse an implements clause.
+   * Parse an implements clause. Return the implements clause that was parsed.
    *
-   * <pre>
-   * implementsClause ::=
-   *     'implements' type (',' type)*
-   * </pre>
-   *
-   * @return the implements clause that was parsed
+   *     implementsClause ::=
+   *         'implements' type (',' type)*
    */
   ImplementsClause parseImplementsClause() {
     Token keyword = _expectKeyword(Keyword.IMPLEMENTS);
@@ -3155,14 +3065,10 @@ class Parser {
   }
 
   /**
-   * Parse a label.
+   * Parse a label. Return the label that was parsed.
    *
-   * <pre>
-   * label ::=
-   *     identifier ':'
-   * </pre>
-   *
-   * @return the label that was parsed
+   *     label ::=
+   *         identifier ':'
    */
   Label parseLabel() {
     SimpleIdentifier label = parseSimpleIdentifier();
@@ -3171,14 +3077,10 @@ class Parser {
   }
 
   /**
-   * Parse a library identifier.
+   * Parse a library identifier. Return the library identifier that was parsed.
    *
-   * <pre>
-   * libraryIdentifier ::=
-   *     identifier ('.' identifier)*
-   * </pre>
-   *
-   * @return the library identifier that was parsed
+   *     libraryIdentifier ::=
+   *         identifier ('.' identifier)*
    */
   LibraryIdentifier parseLibraryIdentifier() {
     List<SimpleIdentifier> components = new List<SimpleIdentifier>();
@@ -3191,14 +3093,11 @@ class Parser {
   }
 
   /**
-   * Parse a logical or expression.
+   * Parse a logical or expression. Return the logical or expression that was
+   * parsed.
    *
-   * <pre>
-   * logicalOrExpression ::=
-   *     logicalAndExpression ('||' logicalAndExpression)*
-   * </pre>
-   *
-   * @return the logical or expression that was parsed
+   *     logicalOrExpression ::=
+   *         logicalAndExpression ('||' logicalAndExpression)*
    */
   Expression parseLogicalOrExpression() {
     Expression expression = _parseLogicalAndExpression();
@@ -3211,14 +3110,10 @@ class Parser {
   }
 
   /**
-   * Parse a map literal entry.
+   * Parse a map literal entry. Return the map literal entry that was parsed.
    *
-   * <pre>
-   * mapLiteralEntry ::=
-   *     expression ':' expression
-   * </pre>
-   *
-   * @return the map literal entry that was parsed
+   *     mapLiteralEntry ::=
+   *         expression ':' expression
    */
   MapLiteralEntry parseMapLiteralEntry() {
     Expression key = parseExpression2();
@@ -3228,25 +3123,23 @@ class Parser {
   }
 
   /**
-   * Parse a normal formal parameter and return the normal formal parameter that
+   * Parse a normal formal parameter. Return the normal formal parameter that
    * was parsed.
    *
-   * <pre>
-   * normalFormalParameter ::=
-   *     functionSignature
-   *   | fieldFormalParameter
-   *   | simpleFormalParameter
+   *     normalFormalParameter ::=
+   *         functionSignature
+   *       | fieldFormalParameter
+   *       | simpleFormalParameter
    *
-   * functionSignature:
-   *     metadata returnType? identifier formalParameterList
+   *     functionSignature:
+   *         metadata returnType? identifier formalParameterList
    *
-   * fieldFormalParameter ::=
-   *     metadata finalConstVarOrType? 'this' '.' identifier
+   *     fieldFormalParameter ::=
+   *         metadata finalConstVarOrType? 'this' '.' identifier
    *
-   * simpleFormalParameter ::=
-   *     declaredIdentifier
-   *   | metadata identifier
-   * </pre>
+   *     simpleFormalParameter ::=
+   *         declaredIdentifier
+   *       | metadata identifier
    */
   NormalFormalParameter parseNormalFormalParameter() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
@@ -3293,14 +3186,11 @@ class Parser {
   }
 
   /**
-   * Parse a prefixed identifier.
+   * Parse a prefixed identifier. Return the prefixed identifier that was
+   * parsed.
    *
-   * <pre>
-   * prefixedIdentifier ::=
-   *     identifier ('.' identifier)?
-   * </pre>
-   *
-   * @return the prefixed identifier that was parsed
+   *     prefixedIdentifier ::=
+   *         identifier ('.' identifier)?
    */
   Identifier parsePrefixedIdentifier() {
     SimpleIdentifier qualifier = parseSimpleIdentifier();
@@ -3313,15 +3203,11 @@ class Parser {
   }
 
   /**
-   * Parse a return type.
+   * Parse a return type. Return the return type that was parsed.
    *
-   * <pre>
-   * returnType ::=
-   *     'void'
-   *   | type
-   * </pre>
-   *
-   * @return the return type that was parsed
+   *     returnType ::=
+   *         'void'
+   *       | type
    */
   TypeName parseReturnType() {
     if (_matchesKeyword(Keyword.VOID)) {
@@ -3332,14 +3218,10 @@ class Parser {
   }
 
   /**
-   * Parse a simple identifier.
+   * Parse a simple identifier. Return the simple identifier that was parsed.
    *
-   * <pre>
-   * identifier ::=
-   *     IDENTIFIER
-   * </pre>
-   *
-   * @return the simple identifier that was parsed
+   *     identifier ::=
+   *         IDENTIFIER
    */
   SimpleIdentifier parseSimpleIdentifier() {
     if (_matchesIdentifier()) {
@@ -3356,11 +3238,9 @@ class Parser {
   }
 
   /**
-   * Parse a statement, starting with the given token.
-   *
-   * @param token the first token of the statement
-   * @return the statement that was parsed, or `null` if the tokens do not represent a
-   *         recognizable statement
+   * Parse a statement, starting with the given [token]. Return the statement
+   * that was parsed, or `null` if the tokens do not represent a recognizable
+   * statement.
    */
   Statement parseStatement(Token token) {
     _currentToken = token;
@@ -3368,14 +3248,10 @@ class Parser {
   }
 
   /**
-   * Parse a statement.
+   * Parse a statement. Return the statement that was parsed.
    *
-   * <pre>
-   * statement ::=
-   *     label* nonLabeledStatement
-   * </pre>
-   *
-   * @return the statement that was parsed
+   *     statement ::=
+   *         label* nonLabeledStatement
    */
   Statement parseStatement2() {
     List<Label> labels = new List<Label>();
@@ -3390,11 +3266,9 @@ class Parser {
   }
 
   /**
-   * Parse a sequence of statements, starting with the given token.
-   *
-   * @param token the first token of the sequence of statement
-   * @return the statements that were parsed, or `null` if the tokens do not represent a
-   *         recognizable sequence of statements
+   * Parse a sequence of statements, starting with the given [token]. Return the
+   * statements that were parsed, or `null` if the tokens do not represent a
+   * recognizable sequence of statements.
    */
   List<Statement> parseStatements(Token token) {
     _currentToken = token;
@@ -3402,15 +3276,11 @@ class Parser {
   }
 
   /**
-   * Parse a string literal.
+   * Parse a string literal. Return the string literal that was parsed.
    *
-   * <pre>
-   * stringLiteral ::=
-   *     MULTI_LINE_STRING+
-   *   | SINGLE_LINE_STRING+
-   * </pre>
-   *
-   * @return the string literal that was parsed
+   *     stringLiteral ::=
+   *         MULTI_LINE_STRING+
+   *       | SINGLE_LINE_STRING+
    */
   StringLiteral parseStringLiteral() {
     List<StringLiteral> strings = new List<StringLiteral>();
@@ -3435,17 +3305,14 @@ class Parser {
   }
 
   /**
-   * Parse a list of type arguments.
+   * Parse a list of type arguments. Return the type argument list that was
+   * parsed.
    *
-   * <pre>
-   * typeArguments ::=
-   *     '<' typeList '>'
+   *     typeArguments ::=
+   *         '<' typeList '>'
    *
-   * typeList ::=
-   *     type (',' type)*
-   * </pre>
-   *
-   * @return the type argument list that was parsed
+   *     typeList ::=
+   *         type (',' type)*
    */
   TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = _expect(TokenType.LT);
@@ -3459,14 +3326,10 @@ class Parser {
   }
 
   /**
-   * Parse a type name.
+   * Parse a type name. Return the type name that was parsed.
    *
-   * <pre>
-   * type ::=
-   *     qualified typeArguments?
-   * </pre>
-   *
-   * @return the type name that was parsed
+   *     type ::=
+   *         qualified typeArguments?
    */
   TypeName parseTypeName() {
     Identifier typeName;
@@ -3487,14 +3350,10 @@ class Parser {
   }
 
   /**
-   * Parse a type parameter.
+   * Parse a type parameter. Return the type parameter that was parsed.
    *
-   * <pre>
-   * typeParameter ::=
-   *     metadata name ('extends' bound)?
-   * </pre>
-   *
-   * @return the type parameter that was parsed
+   *     typeParameter ::=
+   *         metadata name ('extends' bound)?
    */
   TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
@@ -3510,14 +3369,11 @@ class Parser {
   }
 
   /**
-   * Parse a list of type parameters.
+   * Parse a list of type parameters. Return the list of type parameters that
+   * were parsed.
    *
-   * <pre>
-   * typeParameterList ::=
-   *     '<' typeParameter (',' typeParameter)* '>'
-   * </pre>
-   *
-   * @return the list of type parameters that were parsed
+   *     typeParameterList ::=
+   *         '<' typeParameter (',' typeParameter)* '>'
    */
   TypeParameterList parseTypeParameterList() {
     Token leftBracket = _expect(TokenType.LT);
@@ -3531,14 +3387,10 @@ class Parser {
   }
 
   /**
-   * Parse a with clause.
+   * Parse a with clause. Return the with clause that was parsed.
    *
-   * <pre>
-   * withClause ::=
-   *     'with' typeName (',' typeName)*
-   * </pre>
-   *
-   * @return the with clause that was parsed
+   *     withClause ::=
+   *         'with' typeName (',' typeName)*
    */
   WithClause parseWithClause() {
     Token with2 = _expectKeyword(Keyword.WITH);
@@ -3558,15 +3410,11 @@ class Parser {
   }
 
   /**
-   * Append the character equivalent of the given scalar value to the given builder. Use the start
-   * and end indices to report an error, and don't append anything to the builder, if the scalar
-   * value is invalid.
-   *
-   * @param builder the builder to which the scalar value is to be appended
-   * @param escapeSequence the escape sequence that was parsed to produce the scalar value
-   * @param scalarValue the value to be appended
-   * @param startIndex the index of the first character representing the scalar value
-   * @param endIndex the index of the last character representing the scalar value
+   * Append the character equivalent of the given [scalarValue] to the given
+   * [builder]. Use the [startIndex] and [endIndex] to report an error, and
+   * don't append anything to the builder, if the scalar value is invalid. The
+   * [escapeSequence] is the escape sequence that was parsed to produce the
+   * scalar value (used for error reporting).
    */
   void _appendScalarValue(StringBuffer buffer, String escapeSequence,
       int scalarValue, int startIndex, int endIndex) {
@@ -3585,12 +3433,10 @@ class Parser {
   }
 
   /**
-   * Compute the content of a string with the given literal representation.
-   *
-   * @param lexeme the literal representation of the string
-   * @param first `true` if this is the first token in a string literal
-   * @param last `true` if this is the last token in a string literal
-   * @return the actual value of the string
+   * Return the content of a string with the given literal representation. The
+   * [lexeme] is the literal representation of the string. The flag [first] is
+   * `true` if this is the first token in a string literal. The flag [last] is
+   * `true` if this is the last token in a string literal.
    */
   String _computeStringValue(String lexeme, bool first, bool last) {
     bool isRaw = false;
@@ -3639,11 +3485,9 @@ class Parser {
   }
 
   /**
-   * Convert the given method declaration into the nearest valid top-level function declaration.
-   *
-   * @param method the method to be converted
-   * @return the function declaration that most closely captures the components of the given method
-   *         declaration
+   * Convert the given [method] declaration into the nearest valid top-level
+   * function declaration (that is, the function declaration that most closely
+   * captures the components of the given method declaration).
    */
   FunctionDeclaration _convertToFunctionDeclaration(MethodDeclaration method) =>
       new FunctionDeclaration(method.documentationComment, method.metadata,
@@ -3651,11 +3495,10 @@ class Parser {
           method.name, new FunctionExpression(method.parameters, method.body));
 
   /**
-   * Return `true` if the current token could be the start of a compilation unit member. This
-   * method is used for recovery purposes to decide when to stop skipping tokens after finding an
-   * error while parsing a compilation unit member.
-   *
-   * @return `true` if the current token could be the start of a compilation unit member
+   * Return `true` if the current token could be the start of a compilation unit
+   * member. This method is used for recovery purposes to decide when to stop
+   * skipping tokens after finding an error while parsing a compilation unit
+   * member.
    */
   bool _couldBeStartOfCompilationUnitMember() {
     if ((_matchesKeyword(Keyword.IMPORT) ||
@@ -3700,9 +3543,7 @@ class Parser {
   }
 
   /**
-   * Create a synthetic identifier.
-   *
-   * @return the synthetic identifier that was created
+   * Return a synthetic identifier.
    */
   SimpleIdentifier _createSyntheticIdentifier() {
     Token syntheticToken;
@@ -3721,25 +3562,19 @@ class Parser {
   }
 
   /**
-   * Create a synthetic token representing the given keyword.
-   *
-   * @return the synthetic token that was created
+   * Return a synthetic token representing the given [keyword].
    */
   Token _createSyntheticKeyword(Keyword keyword) => _injectToken(
       new Parser_SyntheticKeywordToken(keyword, _currentToken.offset));
 
   /**
-   * Create a synthetic string literal.
-   *
-   * @return the synthetic string literal that was created
+   * Return a synthetic string literal.
    */
   SimpleStringLiteral _createSyntheticStringLiteral() =>
       new SimpleStringLiteral(_createSyntheticToken(TokenType.STRING), "");
 
   /**
-   * Create a synthetic token with the given type.
-   *
-   * @return the synthetic token that was created
+   * Return a synthetic token with the given [type].
    */
   Token _createSyntheticToken(TokenType type) =>
       _injectToken(new StringToken(type, "", _currentToken.offset));
@@ -3763,20 +3598,17 @@ class Parser {
   }
 
   /**
-   * Check that the given expression is assignable and report an error if it isn't.
+   * Check that the given [expression] is assignable and report an error if it
+   * isn't.
    *
-   * <pre>
-   * assignableExpression ::=
-   *     primary (arguments* assignableSelector)+
-   *   | 'super' assignableSelector
-   *   | identifier
+   *     assignableExpression ::=
+   *         primary (arguments* assignableSelector)+
+   *       | 'super' assignableSelector
+   *       | identifier
    *
-   * assignableSelector ::=
-   *     '[' expression ']'
-   *   | '.' identifier
-   * </pre>
-   *
-   * @param expression the expression being checked
+   *     assignableSelector ::=
+   *         '[' expression ']'
+   *       | '.' identifier
    */
   void _ensureAssignable(Expression expression) {
     if (expression != null && !expression.isAssignable) {
@@ -3818,10 +3650,9 @@ class Parser {
   }
 
   /**
-   * If the current token has the type [TokenType.GT], return it after advancing to the next
-   * token. Otherwise report an error and return the current token without advancing.
-   *
-   * @return the token that matched the given type
+   * If the current token has the type [TokenType.GT], return it after advancing
+   * to the next token. Otherwise report an error and return the current token
+   * without advancing.
    */
   Token _expectGt() {
     if (_matchesGt()) {
@@ -3833,11 +3664,9 @@ class Parser {
   }
 
   /**
-   * If the current token is a keyword matching the given string, return it after advancing to the
-   * next token. Otherwise report an error and return the current token without advancing.
-   *
-   * @param keyword the keyword that is expected
-   * @return the token that matched the given type
+   * If the current token is a keyword matching the given [keyword], return it
+   * after advancing to the next token. Otherwise report an error and return the
+   * current token without advancing.
    */
   Token _expectKeyword(Keyword keyword) {
     if (_matchesKeyword(keyword)) {
@@ -3851,12 +3680,11 @@ class Parser {
   }
 
   /**
-   * If [currentToken] is a semicolon, returns it; otherwise reports error and creates a
-   * synthetic one.
-   *
-   * TODO(scheglov) consider pushing this into [expect]
+   * If the current token is a semicolon, return it after advancing to the next
+   * token. Otherwise report an error and create a synthetic semicolon.
    */
   Token _expectSemicolon() {
+    // TODO(scheglov) consider pushing this behavior into [_expect]
     if (_matches(TokenType.SEMICOLON)) {
       return getAndAdvance();
     } else {
@@ -3867,12 +3695,9 @@ class Parser {
   }
 
   /**
-   * Search the given list of ranges for a range that contains the given index. Return the range
-   * that was found, or `null` if none of the ranges contain the index.
-   *
-   * @param ranges the ranges to be searched
-   * @param index the index contained in the returned range
-   * @return the range that was found
+   * Search the given list of [ranges] for a range that contains the given
+   * [index]. Return the range that was found, or `null` if none of the ranges
+   * contain the index.
    */
   List<int> _findRange(List<List<int>> ranges, int index) {
     int rangeCount = ranges.length;
@@ -3888,11 +3713,8 @@ class Parser {
   }
 
   /**
-   * Return a list of the ranges of characters in the given comment string that should be treated as
-   * code blocks.
-   *
-   * @param comment the comment being processed
-   * @return the ranges of characters that should be treated as code blocks
+   * Return a list of the ranges of characters in the given [comment] that
+   * should be treated as code blocks.
    */
   List<List<int>> _getCodeBlockRanges(String comment) {
     List<List<int>> ranges = new List<List<int>>();
@@ -3946,11 +3768,9 @@ class Parser {
   }
 
   /**
-   * Return the end token associated with the given begin token, or `null` if either the given
-   * token is not a begin token or it does not have an end token associated with it.
-   *
-   * @param beginToken the token that is expected to have an end token associated with it
-   * @return the end token associated with the begin token
+   * Return the end token associated with the given [beginToken], or `null` if
+   * either the given token is not a begin token or it does not have an end
+   * token associated with it.
    */
   Token _getEndToken(Token beginToken) {
     if (beginToken is BeginToken) {
@@ -3960,10 +3780,8 @@ class Parser {
   }
 
   /**
-   * Inject the given token into the token stream immediately before the current token.
-   *
-   * @param token the token to be added to the token stream
-   * @return the token that was just added to the token stream
+   * Inject the given [token] into the token stream immediately before the
+   * current token.
    */
   Token _injectToken(Token token) {
     Token previous = _currentToken.previous;
@@ -4019,17 +3837,15 @@ class Parser {
   }
 
   /**
-   * Return `true` if the given token appears to be the beginning of a function expression.
-   *
-   * @param startToken the token that might be the start of a function expression
-   * @return `true` if the given token appears to be the beginning of a function expression
+   * Return `true` if the given [token] appears to be the beginning of a
+   * function expression.
    */
-  bool _isFunctionExpression(Token startToken) {
+  bool _isFunctionExpression(Token token) {
     // Function expressions aren't allowed in initializer lists.
     if (_inInitializer) {
       return false;
     }
-    Token afterParameters = _skipFormalParameterList(startToken);
+    Token afterParameters = _skipFormalParameterList(token);
     if (afterParameters == null) {
       return false;
     }
@@ -4042,42 +3858,35 @@ class Parser {
   }
 
   /**
-   * Return `true` if the given character is a valid hexadecimal digit.
-   *
-   * @param character the character being tested
-   * @return `true` if the character is a valid hexadecimal digit
+   * Return `true` if the given [character] is a valid hexadecimal digit.
    */
   bool _isHexDigit(int character) => (0x30 <= character && character <= 0x39) ||
       (0x41 <= character && character <= 0x46) ||
       (0x61 <= character && character <= 0x66);
 
   /**
-   * Return `true` if the current token is the first token in an initialized variable
-   * declaration rather than an expression. This method assumes that we have already skipped past
-   * any metadata that might be associated with the declaration.
+   * Return `true` if the current token is the first token in an initialized
+   * variable declaration rather than an expression. This method assumes that we
+   * have already skipped past any metadata that might be associated with the
+   * declaration.
    *
-   * <pre>
-   * initializedVariableDeclaration ::=
-   *     declaredIdentifier ('=' expression)? (',' initializedIdentifier)*
+   *     initializedVariableDeclaration ::=
+   *         declaredIdentifier ('=' expression)? (',' initializedIdentifier)*
    *
-   * declaredIdentifier ::=
-   *     metadata finalConstVarOrType identifier
+   *     declaredIdentifier ::=
+   *         metadata finalConstVarOrType identifier
    *
-   * finalConstVarOrType ::=
-   *     'final' type?
-   *   | 'const' type?
-   *   | 'var'
-   *   | type
+   *     finalConstVarOrType ::=
+   *         'final' type?
+   *       | 'const' type?
+   *       | 'var'
+   *       | type
    *
-   * type ::=
-   *     qualified typeArguments?
+   *     type ::=
+   *         qualified typeArguments?
    *
-   * initializedIdentifier ::=
-   *     identifier ('=' expression)?
-   * </pre>
-   *
-   * @return `true` if the current token is the first token in an initialized variable
-   *         declaration
+   *     initializedIdentifier ::=
+   *         identifier ('=' expression)?
    */
   bool _isInitializedVariableDeclaration() {
     if (_matchesKeyword(Keyword.FINAL) || _matchesKeyword(Keyword.VAR)) {
@@ -4114,16 +3923,15 @@ class Parser {
   }
 
   /**
-   * Given that we have just found bracketed text within a comment, look to see whether that text is
-   * (a) followed by a parenthesized link address, (b) followed by a colon, or (c) followed by
-   * optional whitespace and another square bracket.
+   * Given that we have just found bracketed text within the given [comment],
+   * look to see whether that text is (a) followed by a parenthesized link
+   * address, (b) followed by a colon, or (c) followed by optional whitespace
+   * and another square bracket. The [rightIndex] is the index of the right
+   * bracket. Return `true` if the bracketed text is followed by a link address.
    *
-   * This method uses the syntax described by the <a
-   * href="http://daringfireball.net/projects/markdown/syntax">markdown</a> project.
-   *
-   * @param comment the comment text in which the bracketed text was found
-   * @param rightIndex the index of the right bracket
-   * @return `true` if the bracketed text is followed by a link address
+   * This method uses the syntax described by the
+   * <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
+   * project.
    */
   bool _isLinkText(String comment, int rightIndex) {
     int length = comment.length;
@@ -4146,10 +3954,8 @@ class Parser {
   }
 
   /**
-   * Return `true` if the given token appears to be the beginning of an operator declaration.
-   *
-   * @param startToken the token that might be the start of an operator declaration
-   * @return `true` if the given token appears to be the beginning of an operator declaration
+   * Return `true` if the given [startToken] appears to be the beginning of an
+   * operator declaration.
    */
   bool _isOperator(Token startToken) {
     // Accept any operator here, even if it is not user definable.
@@ -4170,9 +3976,8 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token appears to be the beginning of a switch member.
-   *
-   * @return `true` if the current token appears to be the beginning of a switch member
+   * Return `true` if the current token appears to be the beginning of a switch
+   * member.
    */
   bool _isSwitchMember() {
     Token token = _currentToken;
@@ -4222,22 +4027,18 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token has the given type. Note that the method
-   * [_matchesGt] should be used if the argument to this method would be
+   * Return `true` if the current token has the given [type]. Note that the
+   * method [_matchesGt] should be used if the argument to this method would be
    * [TokenType.GT].
-   *
-   * @param type the type of token that can optionally appear in the current location
-   * @return `true` if the current token has the given type
    */
   bool _matches(TokenType type) => _currentToken.type == type;
 
   /**
-   * Return `true` if the current token has a type of [TokenType.GT]. Note that this
-   * method, unlike other variants, will modify the token stream if possible to match desired type.
-   * In particular, if the next token is either a '>>' or '>>>', the token stream will be re-written
-   * and `true` will be returned.
-   *
-   * @return `true` if the current token has a type of [TokenType.GT]
+   * Return `true` if the current token has a type of [TokenType.GT]. Note that
+   * this method, unlike other variants, will modify the token stream if
+   * possible to match desired type. In particular, if the next token is either
+   * a '>>' or '>>>', the token stream will be re-written and `true` will be
+   * returned.
    */
   bool _matchesGt() {
     TokenType currentType = _currentToken.type;
@@ -4275,39 +4076,28 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token is a valid identifier. Valid identifiers include
-   * built-in identifiers (pseudo-keywords).
-   *
-   * @return `true` if the current token is a valid identifier
+   * Return `true` if the current token is a valid identifier. Valid identifiers
+   * include built-in identifiers (pseudo-keywords).
    */
   bool _matchesIdentifier() => _tokenMatchesIdentifier(_currentToken);
 
   /**
-   * Return `true` if the current token matches the given keyword.
-   *
-   * @param keyword the keyword that can optionally appear in the current location
-   * @return `true` if the current token matches the given keyword
+   * Return `true` if the current token matches the given [keyword].
    */
   bool _matchesKeyword(Keyword keyword) =>
       _tokenMatchesKeyword(_currentToken, keyword);
 
   /**
-   * Return `true` if the current token matches the given identifier.
-   *
-   * @param identifier the identifier that can optionally appear in the current location
-   * @return `true` if the current token matches the given identifier
+   * Return `true` if the current token matches the given [identifier].
    */
   bool _matchesString(String identifier) =>
       _currentToken.type == TokenType.IDENTIFIER &&
           _currentToken.lexeme == identifier;
 
   /**
-   * If the current token has the given type, then advance to the next token and return `true`
-   * . Otherwise, return `false` without advancing. This method should not be invoked with an
-   * argument value of [TokenType.GT].
-   *
-   * @param type the type of token that can optionally appear in the current location
-   * @return `true` if the current token has the given type
+   * If the current token has the given [type], then advance to the next token
+   * and return `true`. Otherwise, return `false` without advancing. This method
+   * should not be invoked with an argument value of [TokenType.GT].
    */
   bool _optional(TokenType type) {
     if (_matches(type)) {
@@ -4318,15 +4108,12 @@ class Parser {
   }
 
   /**
-   * Parse an additive expression.
+   * Parse an additive expression. Return the additive expression that was
+   * parsed.
    *
-   * <pre>
-   * additiveExpression ::=
-   *     multiplicativeExpression (additiveOperator multiplicativeExpression)*
-   *   | 'super' (additiveOperator multiplicativeExpression)+
-   * </pre>
-   *
-   * @return the additive expression that was parsed
+   *     additiveExpression ::=
+   *         multiplicativeExpression (additiveOperator multiplicativeExpression)*
+   *       | 'super' (additiveOperator multiplicativeExpression)+
    */
   Expression _parseAdditiveExpression() {
     Expression expression;
@@ -4345,14 +4132,10 @@ class Parser {
   }
 
   /**
-   * Parse an assert statement.
+   * Parse an assert statement. Return the assert statement.
    *
-   * <pre>
-   * assertStatement ::=
-   *     'assert' '(' conditionalExpression ')' ';'
-   * </pre>
-   *
-   * @return the assert statement
+   *     assertStatement ::=
+   *         'assert' '(' conditionalExpression ')' ';'
    */
   AssertStatement _parseAssertStatement() {
     Token keyword = _expectKeyword(Keyword.ASSERT);
@@ -4378,18 +4161,14 @@ class Parser {
   }
 
   /**
-   * Parse an assignable expression.
+   * Parse an assignable expression. The [primaryAllowed] is `true` if the
+   * expression is allowed to be a primary without any assignable selector.
+   * Return the assignable expression that was parsed.
    *
-   * <pre>
-   * assignableExpression ::=
-   *     primary (arguments* assignableSelector)+
-   *   | 'super' assignableSelector
-   *   | identifier
-   * </pre>
-   *
-   * @param primaryAllowed `true` if the expression is allowed to be a primary without any
-   *          assignable selector
-   * @return the assignable expression that was parsed
+   *     assignableExpression ::=
+   *         primary (arguments* assignableSelector)+
+   *       | 'super' assignableSelector
+   *       | identifier
    */
   Expression _parseAssignableExpression(bool primaryAllowed) {
     if (_matchesKeyword(Keyword.SUPER)) {
@@ -4441,18 +4220,14 @@ class Parser {
   }
 
   /**
-   * Parse an assignable selector.
+   * Parse an assignable selector. The [prefix] is the expression preceding the
+   * selector. The [optional] is `true` if the selector is optional. Return the
+   * assignable selector that was parsed, or the original prefix if there was no
+   * assignable selector.
    *
-   * <pre>
-   * assignableSelector ::=
-   *     '[' expression ']'
-   *   | '.' identifier
-   * </pre>
-   *
-   * @param prefix the expression preceding the selector
-   * @param optional `true` if the selector is optional
-   * @return the assignable selector that was parsed, or the original prefix if there was no
-   *         assignable selector
+   *     assignableSelector ::=
+   *         '[' expression ']'
+   *       | '.' identifier
    */
   Expression _parseAssignableSelector(Expression prefix, bool optional) {
     if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
@@ -4481,14 +4256,10 @@ class Parser {
   }
 
   /**
-   * Parse a await expression.
+   * Parse a await expression. Return the await expression that was parsed.
    *
-   * <pre>
-   * awaitExpression ::=
-   *     'await' unaryExpression
-   * </pre>
-   *
-   * @return the await expression that was parsed
+   *     awaitExpression ::=
+   *         'await' unaryExpression
    */
   AwaitExpression _parseAwaitExpression() {
     Token awaitToken = getAndAdvance();
@@ -4497,15 +4268,12 @@ class Parser {
   }
 
   /**
-   * Parse a bitwise and expression.
+   * Parse a bitwise and expression. Return the bitwise and expression that was
+   * parsed.
    *
-   * <pre>
-   * bitwiseAndExpression ::=
-   *     shiftExpression ('&' shiftExpression)*
-   *   | 'super' ('&' shiftExpression)+
-   * </pre>
-   *
-   * @return the bitwise and expression that was parsed
+   *     bitwiseAndExpression ::=
+   *         shiftExpression ('&' shiftExpression)*
+   *       | 'super' ('&' shiftExpression)+
    */
   Expression _parseBitwiseAndExpression() {
     Expression expression;
@@ -4524,15 +4292,12 @@ class Parser {
   }
 
   /**
-   * Parse a bitwise exclusive-or expression.
+   * Parse a bitwise exclusive-or expression. Return the bitwise exclusive-or
+   * expression that was parsed.
    *
-   * <pre>
-   * bitwiseXorExpression ::=
-   *     bitwiseAndExpression ('^' bitwiseAndExpression)*
-   *   | 'super' ('^' bitwiseAndExpression)+
-   * </pre>
-   *
-   * @return the bitwise exclusive-or expression that was parsed
+   *     bitwiseXorExpression ::=
+   *         bitwiseAndExpression ('^' bitwiseAndExpression)*
+   *       | 'super' ('^' bitwiseAndExpression)+
    */
   Expression _parseBitwiseXorExpression() {
     Expression expression;
@@ -4551,14 +4316,10 @@ class Parser {
   }
 
   /**
-   * Parse a break statement.
+   * Parse a break statement. Return the break statement that was parsed.
    *
-   * <pre>
-   * breakStatement ::=
-   *     'break' identifier? ';'
-   * </pre>
-   *
-   * @return the break statement that was parsed
+   *     breakStatement ::=
+   *         'break' identifier? ';'
    */
   Statement _parseBreakStatement() {
     Token breakKeyword = _expectKeyword(Keyword.BREAK);
@@ -4574,21 +4335,18 @@ class Parser {
   }
 
   /**
-   * Parse a cascade section.
+   * Parse a cascade section. Return the expression representing the cascaded
+   * method invocation.
    *
-   * <pre>
-   * cascadeSection ::=
-   *     '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
+   *     cascadeSection ::=
+   *         '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
    *
-   * cascadeSelector ::=
-   *     '[' expression ']'
-   *   | identifier
+   *     cascadeSelector ::=
+   *         '[' expression ']'
+   *       | identifier
    *
-   * cascadeAssignment ::=
-   *     assignmentOperator expressionWithoutCascade
-   * </pre>
-   *
-   * @return the expression representing the cascaded method invocation
+   *     cascadeAssignment ::=
+   *         assignmentOperator expressionWithoutCascade
    */
   Expression _parseCascadeSection() {
     Token period = _expect(TokenType.PERIOD_PERIOD);
@@ -4668,18 +4426,14 @@ class Parser {
   }
 
   /**
-   * Parse a class declaration.
+   * Parse a class declaration. The [commentAndMetadata] is the metadata to be
+   * associated with the member. The [abstractKeyword] is the token for the
+   * keyword 'abstract', or `null` if the keyword was not given. Return the
+   * class declaration that was parsed.
    *
-   * <pre>
-   * classDeclaration ::=
-   *     metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}' |
-   *     metadata 'abstract'? 'class' mixinApplicationClass
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the member
-   * @param abstractKeyword the token for the keyword 'abstract', or `null` if the keyword was
-   *          not given
-   * @return the class declaration that was parsed
+   *     classDeclaration ::=
+   *         metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}' |
+   *         metadata 'abstract'? 'class' mixinApplicationClass
    */
   CompilationUnitMember _parseClassDeclaration(
       CommentAndMetadata commentAndMetadata, Token abstractKeyword) {
@@ -4791,17 +4545,13 @@ class Parser {
   }
 
   /**
-   * Parse a list of class members.
+   * Parse a list of class members. The [className] is the name of the class
+   * whose members are being parsed. The [closingBracket] is the closing bracket
+   * for the class, or `null` if the closing bracket is missing. Return the list
+   * of class members that were parsed.
    *
-   * <pre>
-   * classMembers ::=
-   *     (metadata memberDefinition)*
-   * </pre>
-   *
-   * @param className the name of the class whose members are being parsed
-   * @param closingBracket the closing bracket for the class, or `null` if the closing bracket
-   *          is missing
-   * @return the list of class members that were parsed
+   *     classMembers ::=
+   *         (metadata memberDefinition)*
    */
   List<ClassMember> _parseClassMembers(String className, Token closingBracket) {
     List<ClassMember> members = new List<ClassMember>();
@@ -4834,20 +4584,16 @@ class Parser {
   }
 
   /**
-   * Parse a class type alias.
+   * Parse a class type alias. The [commentAndMetadata] is the metadata to be
+   * associated with the member. The [abstractKeyword] is the token representing
+   * the 'abstract' keyword. The [classKeyword] is the token representing the
+   * 'class' keyword. Return the class type alias that was parsed.
    *
-   * <pre>
-   * classTypeAlias ::=
-   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   *     classTypeAlias ::=
+   *         identifier typeParameters? '=' 'abstract'? mixinApplication
    *
-   * mixinApplication ::=
-   *     type withClause implementsClause? ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the member
-   * @param abstractKeyword the token representing the 'abstract' keyword
-   * @param classKeyword the token representing the 'class' keyword
-   * @return the class type alias that was parsed
+   *     mixinApplication ::=
+   *         type withClause implementsClause? ';'
    */
   ClassTypeAlias _parseClassTypeAlias(CommentAndMetadata commentAndMetadata,
       Token abstractKeyword, Token classKeyword) {
@@ -4892,15 +4638,12 @@ class Parser {
   }
 
   /**
-   * Parse a list of combinators in a directive.
+   * Parse a list of combinators in a directive. Return the combinators that
+   * were parsed.
    *
-   * <pre>
-   * combinator ::=
-   *     'show' identifier (',' identifier)*
-   *   | 'hide' identifier (',' identifier)*
-   * </pre>
-   *
-   * @return the combinators that were parsed
+   *     combinator ::=
+   *         'show' identifier (',' identifier)*
+   *       | 'hide' identifier (',' identifier)*
    */
   List<Combinator> _parseCombinators() {
     List<Combinator> combinators = new List<Combinator>();
@@ -4915,16 +4658,14 @@ class Parser {
   }
 
   /**
-   * Parse the documentation comment and metadata preceding a declaration. This method allows any
-   * number of documentation comments to occur before, after or between the metadata, but only
-   * returns the last (right-most) documentation comment that is found.
+   * Parse the documentation comment and metadata preceding a declaration. This
+   * method allows any number of documentation comments to occur before, after
+   * or between the metadata, but only returns the last (right-most)
+   * documentation comment that is found. Return the documentation comment and
+   * metadata that were parsed.
    *
-   * <pre>
-   * metadata ::=
-   *     annotation*
-   * </pre>
-   *
-   * @return the documentation comment and metadata that were parsed
+   *     metadata ::=
+   *         annotation*
    */
   CommentAndMetadata _parseCommentAndMetadata() {
     Comment comment = _parseDocumentationComment();
@@ -4940,17 +4681,14 @@ class Parser {
   }
 
   /**
-   * Parse a comment reference from the source between square brackets.
+   * Parse a comment reference from the source between square brackets. The
+   * [referenceSource] is the source occurring between the square brackets
+   * within a documentation comment. The [sourceOffset] is the offset of the
+   * first character of the reference source. Return the comment reference that
+   * was parsed, or `null` if no reference could be found.
    *
-   * <pre>
-   * commentReference ::=
-   *     'new'? prefixedIdentifier
-   * </pre>
-   *
-   * @param referenceSource the source occurring between the square brackets within a documentation
-   *          comment
-   * @param sourceOffset the offset of the first character of the reference source
-   * @return the comment reference that was parsed, or `null` if no reference could be found
+   *     commentReference ::=
+   *         'new'? prefixedIdentifier
    */
   CommentReference _parseCommentReference(
       String referenceSource, int sourceOffset) {
@@ -5011,18 +4749,16 @@ class Parser {
   }
 
   /**
-   * Parse all of the comment references occurring in the given array of documentation comments.
+   * Parse all of the comment references occurring in the given array of
+   * documentation comments. The [tokens] are the comment tokens representing
+   * the documentation comments to be parsed. Return the comment references that
+   * were parsed.
    *
-   * <pre>
-   * commentReference ::=
-   *     '[' 'new'? qualified ']' libraryReference?
+   *     commentReference ::=
+   *         '[' 'new'? qualified ']' libraryReference?
    *
-   * libraryReference ::=
-   *      '(' stringLiteral ')'
-   * </pre>
-   *
-   * @param tokens the comment tokens representing the documentation comments to be parsed
-   * @return the comment references that were parsed
+   *     libraryReference ::=
+   *          '(' stringLiteral ')'
    */
   List<CommentReference> _parseCommentReferences(
       List<DocumentationCommentToken> tokens) {
@@ -5082,24 +4818,21 @@ class Parser {
   }
 
   /**
-   * Parse a compilation unit member.
+   * Parse a compilation unit member. The [commentAndMetadata] is the metadata
+   * to be associated with the member. Return the compilation unit member that
+   * was parsed, or `null` if what was parsed could not be represented as a
+   * compilation unit member.
    *
-   * <pre>
-   * compilationUnitMember ::=
-   *     classDefinition
-   *   | functionTypeAlias
-   *   | external functionSignature
-   *   | external getterSignature
-   *   | external setterSignature
-   *   | functionSignature functionBody
-   *   | returnType? getOrSet identifier formalParameterList functionBody
-   *   | (final | const) type? staticFinalDeclarationList ';'
-   *   | variableDeclaration ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the member
-   * @return the compilation unit member that was parsed, or `null` if what was parsed could
-   *         not be represented as a compilation unit member
+   *     compilationUnitMember ::=
+   *         classDefinition
+   *       | functionTypeAlias
+   *       | external functionSignature
+   *       | external getterSignature
+   *       | external setterSignature
+   *       | functionSignature functionBody
+   *       | returnType? getOrSet identifier formalParameterList functionBody
+   *       | (final | const) type? staticFinalDeclarationList ';'
+   *       | variableDeclaration ';'
    */
   CompilationUnitMember _parseCompilationUnitMember(
       CommentAndMetadata commentAndMetadata) {
@@ -5257,16 +4990,12 @@ class Parser {
   }
 
   /**
-   * Parse a const expression.
+   * Parse a const expression. Return the const expression that was parsed.
    *
-   * <pre>
-   * constExpression ::=
-   *     instanceCreationExpression
-   *   | listLiteral
-   *   | mapLiteral
-   * </pre>
-   *
-   * @return the const expression that was parsed
+   *     constExpression ::=
+   *         instanceCreationExpression
+   *       | listLiteral
+   *       | mapLiteral
    */
   Expression _parseConstExpression() {
     Token keyword = _expectKeyword(Keyword.CONST);
@@ -5356,14 +5085,11 @@ class Parser {
   }
 
   /**
-   * Parse a field initializer within a constructor.
+   * Parse a field initializer within a constructor. Return the field
+   * initializer that was parsed.
    *
-   * <pre>
-   * fieldInitializer:
-   *     ('this' '.')? identifier '=' conditionalExpression cascadeSection*
-   * </pre>
-   *
-   * @return the field initializer that was parsed
+   *     fieldInitializer:
+   *         ('this' '.')? identifier '=' conditionalExpression cascadeSection*
    */
   ConstructorFieldInitializer _parseConstructorFieldInitializer() {
     Token keyword = null;
@@ -5413,14 +5139,10 @@ class Parser {
   }
 
   /**
-   * Parse a continue statement.
+   * Parse a continue statement. Return the continue statement that was parsed.
    *
-   * <pre>
-   * continueStatement ::=
-   *     'continue' identifier? ';'
-   * </pre>
-   *
-   * @return the continue statement that was parsed
+   *     continueStatement ::=
+   *         'continue' identifier? ';'
    */
   Statement _parseContinueStatement() {
     Token continueKeyword = _expectKeyword(Keyword.CONTINUE);
@@ -5441,18 +5163,14 @@ class Parser {
   }
 
   /**
-   * Parse a directive.
+   * Parse a directive. The [commentAndMetadata] is the metadata to be
+   * associated with the directive. Return the directive that was parsed.
    *
-   * <pre>
-   * directive ::=
-   *     exportDirective
-   *   | libraryDirective
-   *   | importDirective
-   *   | partDirective
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the directive
-   * @return the directive that was parsed
+   *     directive ::=
+   *         exportDirective
+   *       | libraryDirective
+   *       | importDirective
+   *       | partDirective
    */
   Directive _parseDirective(CommentAndMetadata commentAndMetadata) {
     if (_matchesKeyword(Keyword.IMPORT)) {
@@ -5472,16 +5190,11 @@ class Parser {
   }
 
   /**
-   * Parse the script tag and directives in a compilation unit until the first non-directive is
-   * encountered.
+   * Parse the script tag and directives in a compilation unit until the first
+   * non-directive is encountered. Return the compilation unit that was parsed.
    *
-   *
-   * <pre>
-   * compilationUnit ::=
-   *     scriptTag? directive*
-   * </pre>
-   *
-   * @return the compilation unit that was parsed
+   *     compilationUnit ::=
+   *         scriptTag? directive*
    */
   CompilationUnit _parseDirectives() {
     Token firstToken = _currentToken;
@@ -5515,15 +5228,12 @@ class Parser {
   }
 
   /**
-   * Parse a documentation comment.
+   * Parse a documentation comment. Return the documentation comment that was
+   * parsed, or `null` if there was no comment.
    *
-   * <pre>
-   * documentationComment ::=
-   *     multiLineComment?
-   *   | singleLineComment*
-   * </pre>
-   *
-   * @return the documentation comment that was parsed, or `null` if there was no comment
+   *     documentationComment ::=
+   *         multiLineComment?
+   *       | singleLineComment*
    */
   Comment _parseDocumentationComment() {
     List<DocumentationCommentToken> documentationTokens =
@@ -5554,14 +5264,10 @@ class Parser {
   }
 
   /**
-   * Parse a do statement.
+   * Parse a do statement. Return the do statement that was parsed.
    *
-   * <pre>
-   * doStatement ::=
-   *     'do' statement 'while' '(' expression ')' ';'
-   * </pre>
-   *
-   * @return the do statement that was parsed
+   *     doStatement ::=
+   *         'do' statement 'while' '(' expression ')' ';'
    */
   Statement _parseDoStatement() {
     bool wasInLoop = _inLoop;
@@ -5582,14 +5288,10 @@ class Parser {
   }
 
   /**
-   * Parse an empty statement.
+   * Parse an empty statement. Return the empty statement that was parsed.
    *
-   * <pre>
-   * emptyStatement ::=
-   *     ';'
-   * </pre>
-   *
-   * @return the empty statement that was parsed
+   *     emptyStatement ::=
+   *         ';'
    */
   Statement _parseEmptyStatement() => new EmptyStatement(getAndAdvance());
 
@@ -5610,15 +5312,11 @@ class Parser {
   }
 
   /**
-   * Parse an enum declaration.
+   * Parse an enum declaration. The [commentAndMetadata] is the metadata to be
+   * associated with the member. Return the enum declaration that was parsed.
    *
-   * <pre>
-   * enumType ::=
-   *     metadata 'enum' id '{' id (',' id)* (',')? '}'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the member
-   * @return the enum declaration that was parsed
+   *     enumType ::=
+   *         metadata 'enum' id '{' id (',' id)* (',')? '}'
    */
   EnumDeclaration _parseEnumDeclaration(CommentAndMetadata commentAndMetadata) {
     Token keyword = _expectKeyword(Keyword.ENUM);
@@ -5657,15 +5355,12 @@ class Parser {
   }
 
   /**
-   * Parse an equality expression.
+   * Parse an equality expression. Return the equality expression that was
+   * parsed.
    *
-   * <pre>
-   * equalityExpression ::=
-   *     relationalExpression (equalityOperator relationalExpression)?
-   *   | 'super' equalityOperator relationalExpression
-   * </pre>
-   *
-   * @return the equality expression that was parsed
+   *     equalityExpression ::=
+   *         relationalExpression (equalityOperator relationalExpression)?
+   *       | 'super' equalityOperator relationalExpression
    */
   Expression _parseEqualityExpression() {
     Expression expression;
@@ -5690,15 +5385,11 @@ class Parser {
   }
 
   /**
-   * Parse an export directive.
+   * Parse an export directive. The [commentAndMetadata] is the metadata to be
+   * associated with the directive. Return the export directive that was parsed.
    *
-   * <pre>
-   * exportDirective ::=
-   *     metadata 'export' stringLiteral combinator*';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the directive
-   * @return the export directive that was parsed
+   *     exportDirective ::=
+   *         metadata 'export' stringLiteral combinator*';'
    */
   ExportDirective _parseExportDirective(CommentAndMetadata commentAndMetadata) {
     Token exportKeyword = _expectKeyword(Keyword.EXPORT);
@@ -5711,14 +5402,10 @@ class Parser {
   }
 
   /**
-   * Parse a list of expressions.
+   * Parse a list of expressions. Return the expression that was parsed.
    *
-   * <pre>
-   * expressionList ::=
-   *     expression (',' expression)*
-   * </pre>
-   *
-   * @return the expression that was parsed
+   *     expressionList ::=
+   *         expression (',' expression)*
    */
   List<Expression> _parseExpressionList() {
     List<Expression> expressions = new List<Expression>();
@@ -5731,17 +5418,14 @@ class Parser {
 
   /**
    * Parse the 'final', 'const', 'var' or type preceding a variable declaration.
+   * The [optional] is `true` if the keyword and type are optional. Return the
+   * 'final', 'const', 'var' or type that was parsed.
    *
-   * <pre>
-   * finalConstVarOrType ::=
-   *   | 'final' type?
-   *   | 'const' type?
-   *   | 'var'
-   *   | type
-   * </pre>
-   *
-   * @param optional `true` if the keyword and type are optional
-   * @return the 'final', 'const', 'var' or type that was parsed
+   *     finalConstVarOrType ::=
+   *         'final' type?
+   *       | 'const' type?
+   *       | 'var'
+   *       | type
    */
   FinalConstVarOrType _parseFinalConstVarOrType(bool optional) {
     Token keyword = null;
@@ -5766,19 +5450,15 @@ class Parser {
 
   /**
    * Parse a formal parameter. At most one of `isOptional` and `isNamed` can be
-   * `true`.
+   * `true`. The [kind] is the kind of parameter being expected based on the
+   * presence or absence of group delimiters. Return the formal parameter that
+   * was parsed.
    *
-   * <pre>
-   * defaultFormalParameter ::=
-   *     normalFormalParameter ('=' expression)?
+   *     defaultFormalParameter ::=
+   *         normalFormalParameter ('=' expression)?
    *
-   * defaultNamedParameter ::=
-   *     normalFormalParameter (':' expression)?
-   * </pre>
-   *
-   * @param kind the kind of parameter being expected based on the presence or absence of group
-   *          delimiters
-   * @return the formal parameter that was parsed
+   *     defaultNamedParameter ::=
+   *         normalFormalParameter (':' expression)?
    */
   FormalParameter _parseFormalParameter(ParameterKind kind) {
     NormalFormalParameter parameter = parseNormalFormalParameter();
@@ -5814,23 +5494,19 @@ class Parser {
   }
 
   /**
-   * Parse a for statement.
+   * Parse a for statement. Return the for statement that was parsed.
    *
-   * <pre>
-   * forStatement ::=
-   *     'for' '(' forLoopParts ')' statement
+   *     forStatement ::=
+   *         'for' '(' forLoopParts ')' statement
    *
-   * forLoopParts ::=
-   *     forInitializerStatement expression? ';' expressionList?
-   *   | declaredIdentifier 'in' expression
-   *   | identifier 'in' expression
+   *     forLoopParts ::=
+   *         forInitializerStatement expression? ';' expressionList?
+   *       | declaredIdentifier 'in' expression
+   *       | identifier 'in' expression
    *
-   * forInitializerStatement ::=
-   *     localVariableDeclaration ';'
-   *   | expression? ';'
-   * </pre>
-   *
-   * @return the for statement that was parsed
+   *     forInitializerStatement ::=
+   *         localVariableDeclaration ';'
+   *       | expression? ';'
    */
   Statement _parseForStatement() {
     bool wasInLoop = _inLoop;
@@ -5937,23 +5613,19 @@ class Parser {
   }
 
   /**
-   * Parse a function body.
+   * Parse a function body. The [mayBeEmpty] is `true` if the function body is
+   * allowed to be empty. The [emptyErrorCode] is the error code to report if
+   * function body expected, but not found. The [inExpression] is `true` if the
+   * function body is being parsed as part of an expression and therefore does
+   * not have a terminating semicolon. Return the function body that was parsed.
    *
-   * <pre>
-   * functionBody ::=
-   *     '=>' expression ';'
-   *   | block
+   *     functionBody ::=
+   *         '=>' expression ';'
+   *       | block
    *
-   * functionExpressionBody ::=
-   *     '=>' expression
-   *   | block
-   * </pre>
-   *
-   * @param mayBeEmpty `true` if the function body is allowed to be empty
-   * @param emptyErrorCode the error code to report if function body expected, but not found
-   * @param inExpression `true` if the function body is being parsed as part of an expression
-   *          and therefore does not have a terminating semicolon
-   * @return the function body that was parsed
+   *     functionExpressionBody ::=
+   *         '=>' expression
+   *       | block
    */
   FunctionBody _parseFunctionBody(
       bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
@@ -6050,20 +5722,17 @@ class Parser {
   }
 
   /**
-   * Parse a function declaration.
+   * Parse a function declaration. The [commentAndMetadata] is the documentation
+   * comment and metadata to be associated with the declaration. The
+   * [externalKeyword] is the 'external' keyword, or `null` if the function is
+   * not external. The [returnType] is the return type, or `null` if there is no
+   * return type. The [isStatement] is `true` if the function declaration is
+   * being parsed as a statement. Return the function declaration that was
+   * parsed.
    *
-   * <pre>
-   * functionDeclaration ::=
-   *     functionSignature functionBody
-   *   | returnType? getOrSet identifier formalParameterList functionBody
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param externalKeyword the 'external' keyword, or `null` if the function is not external
-   * @param returnType the return type, or `null` if there is no return type
-   * @param isStatement `true` if the function declaration is being parsed as a statement
-   * @return the function declaration that was parsed
+   *     functionDeclaration ::=
+   *         functionSignature functionBody
+   *       | returnType? getOrSet identifier formalParameterList functionBody
    */
   FunctionDeclaration _parseFunctionDeclaration(
       CommentAndMetadata commentAndMetadata, Token externalKeyword,
@@ -6110,14 +5779,11 @@ class Parser {
   }
 
   /**
-   * Parse a function declaration statement.
+   * Parse a function declaration statement. Return the function declaration
+   * statement that was parsed.
    *
-   * <pre>
-   * functionDeclarationStatement ::=
-   *     functionSignature functionBody
-   * </pre>
-   *
-   * @return the function declaration statement that was parsed
+   *     functionDeclarationStatement ::=
+   *         functionSignature functionBody
    */
   Statement _parseFunctionDeclarationStatement() {
     Modifiers modifiers = _parseModifiers();
@@ -6127,17 +5793,13 @@ class Parser {
   }
 
   /**
-   * Parse a function declaration statement.
+   * Parse a function declaration statement. The [commentAndMetadata] is the
+   * documentation comment and metadata to be associated with the declaration.
+   * The [returnType] is the return type, or `null` if there is no return type.
+   * Return the function declaration statement that was parsed.
    *
-   * <pre>
-   * functionDeclarationStatement ::=
-   *     functionSignature functionBody
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param returnType the return type, or `null` if there is no return type
-   * @return the function declaration statement that was parsed
+   *     functionDeclarationStatement ::=
+   *         functionSignature functionBody
    */
   Statement _parseFunctionDeclarationStatementAfterReturnType(
       CommentAndMetadata commentAndMetadata, TypeName returnType) {
@@ -6157,19 +5819,15 @@ class Parser {
   }
 
   /**
-   * Parse a function type alias.
+   * Parse a function type alias. The [commentAndMetadata] is the metadata to be
+   * associated with the member. The [keyword] is the token representing the
+   * 'typedef' keyword. Return the function type alias that was parsed.
    *
-   * <pre>
-   * functionTypeAlias ::=
-   *     functionPrefix typeParameterList? formalParameterList ';'
+   *     functionTypeAlias ::=
+   *         functionPrefix typeParameterList? formalParameterList ';'
    *
-   * functionPrefix ::=
-   *     returnType? name
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the member
-   * @param keyword the token representing the 'typedef' keyword
-   * @return the function type alias that was parsed
+   *     functionPrefix ::=
+   *         returnType? name
    */
   FunctionTypeAlias _parseFunctionTypeAlias(
       CommentAndMetadata commentAndMetadata, Token keyword) {
@@ -6213,23 +5871,18 @@ class Parser {
   }
 
   /**
-   * Parse a getter.
+   * Parse a getter. The [commentAndMetadata] is the documentation comment and
+   * metadata to be associated with the declaration. The externalKeyword] is the
+   * 'external' token. The staticKeyword] is the static keyword, or `null` if
+   * the getter is not static. The [returnType] the return type that has already
+   * been parsed, or `null` if there was no return type. Return the getter that
+   * was parsed.
    *
-   * <pre>
-   * getter ::=
-   *     getterSignature functionBody?
+   *     getter ::=
+   *         getterSignature functionBody?
    *
-   * getterSignature ::=
-   *     'external'? 'static'? returnType? 'get' identifier
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or `null` if the getter is not static
-   * @param the return type that has already been parsed, or `null` if there was no return
-   *          type
-   * @return the getter that was parsed
+   *     getterSignature ::=
+   *         'external'? 'static'? returnType? 'get' identifier
    */
   MethodDeclaration _parseGetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
@@ -6253,14 +5906,11 @@ class Parser {
   }
 
   /**
-   * Parse a list of identifiers.
+   * Parse a list of identifiers. Return the list of identifiers that were
+   * parsed.
    *
-   * <pre>
-   * identifierList ::=
-   *     identifier (',' identifier)*
-   * </pre>
-   *
-   * @return the list of identifiers that were parsed
+   *     identifierList ::=
+   *         identifier (',' identifier)*
    */
   List<SimpleIdentifier> _parseIdentifierList() {
     List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
@@ -6273,14 +5923,10 @@ class Parser {
   }
 
   /**
-   * Parse an if statement.
+   * Parse an if statement. Return the if statement that was parsed.
    *
-   * <pre>
-   * ifStatement ::=
-   *     'if' '(' expression ')' statement ('else' statement)?
-   * </pre>
-   *
-   * @return the if statement that was parsed
+   *     ifStatement ::=
+   *         'if' '(' expression ')' statement ('else' statement)?
    */
   Statement _parseIfStatement() {
     Token ifKeyword = _expectKeyword(Keyword.IF);
@@ -6299,15 +5945,11 @@ class Parser {
   }
 
   /**
-   * Parse an import directive.
+   * Parse an import directive. The [commentAndMetadata] is the metadata to be
+   * associated with the directive. Return the import directive that was parsed.
    *
-   * <pre>
-   * importDirective ::=
-   *     metadata 'import' stringLiteral ('as' identifier)? combinator*';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the directive
-   * @return the import directive that was parsed
+   *     importDirective ::=
+   *         metadata 'import' stringLiteral ('as' identifier)? combinator*';'
    */
   ImportDirective _parseImportDirective(CommentAndMetadata commentAndMetadata) {
     Token importKeyword = _expectKeyword(Keyword.IMPORT);
@@ -6333,27 +5975,23 @@ class Parser {
   }
 
   /**
-   * Parse a list of initialized identifiers.
+   * Parse a list of initialized identifiers. The [commentAndMetadata] is the
+   * documentation comment and metadata to be associated with the declaration.
+   * The [staticKeyword] is the static keyword, or `null` if the getter is not
+   * static. The [keyword] is the token representing the 'final', 'const' or
+   * 'var' keyword, or `null` if there is no keyword. The [type] is the type
+   * that has already been parsed, or `null` if 'var' was provided. Return the
+   * getter that was parsed.
    *
-   * <pre>
-   * ?? ::=
-   *     'static'? ('var' | type) initializedIdentifierList ';'
-   *   | 'final' type? initializedIdentifierList ';'
+   *     ?? ::=
+   *         'static'? ('var' | type) initializedIdentifierList ';'
+   *       | 'final' type? initializedIdentifierList ';'
    *
-   * initializedIdentifierList ::=
-   *     initializedIdentifier (',' initializedIdentifier)*
+   *     initializedIdentifierList ::=
+   *         initializedIdentifier (',' initializedIdentifier)*
    *
-   * initializedIdentifier ::=
-   *     identifier ('=' expression)?
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param staticKeyword the static keyword, or `null` if the getter is not static
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
-   *          there is no keyword
-   * @param type the type that has already been parsed, or `null` if 'var' was provided
-   * @return the getter that was parsed
+   *     initializedIdentifier ::=
+   *         identifier ('=' expression)?
    */
   FieldDeclaration _parseInitializedIdentifierList(
       CommentAndMetadata commentAndMetadata, Token staticKeyword, Token keyword,
@@ -6366,15 +6004,12 @@ class Parser {
   }
 
   /**
-   * Parse an instance creation expression.
+   * Parse an instance creation expression. The [keyword] is the 'new' or
+   * 'const' keyword that introduces the expression. Return the instance
+   * creation expression that was parsed.
    *
-   * <pre>
-   * instanceCreationExpression ::=
-   *     ('new' | 'const') type ('.' identifier)? argumentList
-   * </pre>
-   *
-   * @param keyword the 'new' or 'const' keyword that introduces the expression
-   * @return the instance creation expression that was parsed
+   *     instanceCreationExpression ::=
+   *         ('new' | 'const') type ('.' identifier)? argumentList
    */
   InstanceCreationExpression _parseInstanceCreationExpression(Token keyword) {
     ConstructorName constructorName = parseConstructorName();
@@ -6384,15 +6019,12 @@ class Parser {
   }
 
   /**
-   * Parse a library directive.
+   * Parse a library directive. The [commentAndMetadata] is the metadata to be
+   * associated with the directive. Return the library directive that was
+   * parsed.
    *
-   * <pre>
-   * libraryDirective ::=
-   *     metadata 'library' identifier ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the directive
-   * @return the library directive that was parsed
+   *     libraryDirective ::=
+   *         metadata 'library' identifier ';'
    */
   LibraryDirective _parseLibraryDirective(
       CommentAndMetadata commentAndMetadata) {
@@ -6405,17 +6037,13 @@ class Parser {
   }
 
   /**
-   * Parse a library name.
+   * Parse a library name. The [missingNameError] is the error code to be used
+   * if the library name is missing. The [missingNameToken] is the token
+   * associated with the error produced if the library name is missing. Return
+   * the library name that was parsed.
    *
-   * <pre>
-   * libraryName ::=
-   *     libraryIdentifier
-   * </pre>
-   *
-   * @param missingNameError the error code to be used if the library name is missing
-   * @param missingNameToken the token associated with the error produced if the library name is
-   *          missing
-   * @return the library name that was parsed
+   *     libraryName ::=
+   *         libraryIdentifier
    */
   LibraryIdentifier _parseLibraryName(
       ParserErrorCode missingNameError, Token missingNameToken) {
@@ -6436,18 +6064,13 @@ class Parser {
   }
 
   /**
-   * Parse a list literal.
+   * Parse a list literal. The [modifier] is the 'const' modifier appearing
+   * before the literal, or `null` if there is no modifier. The [typeArguments]
+   * is the type arguments appearing before the literal, or `null` if there are
+   * no type arguments. Return the list literal that was parsed.
    *
-   * <pre>
-   * listLiteral ::=
-   *     'const'? typeArguments? '[' (expressionList ','?)? ']'
-   * </pre>
-   *
-   * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
-   *          no modifier
-   * @param typeArguments the type arguments appearing before the literal, or `null` if there
-   *          are no type arguments
-   * @return the list literal that was parsed
+   *     listLiteral ::=
+   *         'const'? typeArguments? '[' (expressionList ','?)? ']'
    */
   ListLiteral _parseListLiteral(
       Token modifier, TypeArgumentList typeArguments) {
@@ -6492,17 +6115,13 @@ class Parser {
   }
 
   /**
-   * Parse a list or map literal.
+   * Parse a list or map literal. The [modifier] is the 'const' modifier
+   * appearing before the literal, or `null` if there is no modifier. Return the
+   * list or map literal that was parsed.
    *
-   * <pre>
-   * listOrMapLiteral ::=
-   *     listLiteral
-   *   | mapLiteral
-   * </pre>
-   *
-   * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
-   *          no modifier
-   * @return the list or map literal that was parsed
+   *     listOrMapLiteral ::=
+   *         listLiteral
+   *       | mapLiteral
    */
   TypedLiteral _parseListOrMapLiteral(Token modifier) {
     TypeArgumentList typeArguments = null;
@@ -6522,14 +6141,11 @@ class Parser {
   }
 
   /**
-   * Parse a logical and expression.
+   * Parse a logical and expression. Return the logical and expression that was
+   * parsed.
    *
-   * <pre>
-   * logicalAndExpression ::=
-   *     equalityExpression ('&&' equalityExpression)*
-   * </pre>
-   *
-   * @return the logical and expression that was parsed
+   *     logicalAndExpression ::=
+   *         equalityExpression ('&&' equalityExpression)*
    */
   Expression _parseLogicalAndExpression() {
     Expression expression = _parseEqualityExpression();
@@ -6542,18 +6158,13 @@ class Parser {
   }
 
   /**
-   * Parse a map literal.
+   * Parse a map literal. The [modifier] is the 'const' modifier appearing
+   * before the literal, or `null` if there is no modifier. The [typeArguments]
+   * is the type arguments that were declared, or `null` if there are no type
+   * arguments. Return the map literal that was parsed.
    *
-   * <pre>
-   * mapLiteral ::=
-   *     'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
-   * </pre>
-   *
-   * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
-   *          no modifier
-   * @param typeArguments the type arguments that were declared, or `null` if there are no
-   *          type arguments
-   * @return the map literal that was parsed
+   *     mapLiteral ::=
+   *         'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
    */
   MapLiteral _parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
     Token leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
@@ -6582,22 +6193,17 @@ class Parser {
   }
 
   /**
-   * Parse a method declaration.
+   * Parse a method declaration. The [commentAndMetadata] is the documentation
+   * comment and metadata to be associated with the declaration. The
+   * [externalKeyword] is the 'external' token. The [staticKeyword] is the
+   * static keyword, or `null` if the getter is not static. The [returnType] is
+   * the return type of the method. The [name] is the name of the method. The
+   * [parameters] is the parameters to the method. Return the method declaration
+   * that was parsed.
    *
-   * <pre>
-   * functionDeclaration ::=
-   *     ('external' 'static'?)? functionSignature functionBody
-   *   | 'external'? functionSignature ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or `null` if the getter is not static
-   * @param returnType the return type of the method
-   * @param name the name of the method
-   * @param parameters the parameters to the method
-   * @return the method declaration that was parsed
+   *     functionDeclaration ::=
+   *         ('external' 'static'?)? functionSignature functionBody
+   *       | 'external'? functionSignature ';'
    */
   MethodDeclaration _parseMethodDeclarationAfterParameters(
       CommentAndMetadata commentAndMetadata, Token externalKeyword,
@@ -6621,20 +6227,16 @@ class Parser {
   }
 
   /**
-   * Parse a method declaration.
+   * Parse a method declaration. The [commentAndMetadata] is the documentation
+   * comment and metadata to be associated with the declaration. The
+   * [externalKeyword] is the 'external' token. The [staticKeyword] is the
+   * static keyword, or `null` if the getter is not static. The [returnType] is
+   * the return type of the method. Return the method declaration that was
+   * parsed.
    *
-   * <pre>
-   * functionDeclaration ::=
-   *     'external'? 'static'? functionSignature functionBody
-   *   | 'external'? functionSignature ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or `null` if the getter is not static
-   * @param returnType the return type of the method
-   * @return the method declaration that was parsed
+   *     functionDeclaration ::=
+   *         'external'? 'static'? functionSignature functionBody
+   *       | 'external'? functionSignature ';'
    */
   MethodDeclaration _parseMethodDeclarationAfterReturnType(
       CommentAndMetadata commentAndMetadata, Token externalKeyword,
@@ -6658,17 +6260,15 @@ class Parser {
   }
 
   /**
-   * Parse the modifiers preceding a declaration. This method allows the modifiers to appear in any
-   * order but does generate errors for duplicated modifiers. Checks for other problems, such as
-   * having the modifiers appear in the wrong order or specifying both 'const' and 'final', are
-   * reported in one of the methods whose name is prefixed with `validateModifiersFor`.
+   * Parse the modifiers preceding a declaration. This method allows the
+   * modifiers to appear in any order but does generate errors for duplicated
+   * modifiers. Checks for other problems, such as having the modifiers appear
+   * in the wrong order or specifying both 'const' and 'final', are reported in
+   * one of the methods whose name is prefixed with `validateModifiersFor`.
+   * Return the modifiers that were parsed.
    *
-   * <pre>
-   * modifiers ::=
-   *     ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')*
-   * </pre>
-   *
-   * @return the modifiers that were parsed
+   *     modifiers ::=
+   *         ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')*
    */
   Modifiers _parseModifiers() {
     Modifiers modifiers = new Modifiers();
@@ -6749,15 +6349,12 @@ class Parser {
   }
 
   /**
-   * Parse a multiplicative expression.
+   * Parse a multiplicative expression. Return the multiplicative expression
+   * that was parsed.
    *
-   * <pre>
-   * multiplicativeExpression ::=
-   *     unaryExpression (multiplicativeOperator unaryExpression)*
-   *   | 'super' (multiplicativeOperator unaryExpression)+
-   * </pre>
-   *
-   * @return the multiplicative expression that was parsed
+   *     multiplicativeExpression ::=
+   *         unaryExpression (multiplicativeOperator unaryExpression)*
+   *       | 'super' (multiplicativeOperator unaryExpression)+
    */
   Expression _parseMultiplicativeExpression() {
     Expression expression;
@@ -6776,14 +6373,10 @@ class Parser {
   }
 
   /**
-   * Parse a class native clause.
+   * Parse a class native clause. Return the native clause that was parsed.
    *
-   * <pre>
-   * classNativeClause ::=
-   *     'native' name
-   * </pre>
-   *
-   * @return the class native clause that was parsed
+   *     classNativeClause ::=
+   *         'native' name
    */
   NativeClause _parseNativeClause() {
     Token keyword = getAndAdvance();
@@ -6792,40 +6385,33 @@ class Parser {
   }
 
   /**
-   * Parse a new expression.
+   * Parse a new expression. Return the new expression that was parsed.
    *
-   * <pre>
-   * newExpression ::=
-   *     instanceCreationExpression
-   * </pre>
-   *
-   * @return the new expression that was parsed
+   *     newExpression ::=
+   *         instanceCreationExpression
    */
   InstanceCreationExpression _parseNewExpression() =>
       _parseInstanceCreationExpression(_expectKeyword(Keyword.NEW));
 
   /**
-   * Parse a non-labeled statement.
+   * Parse a non-labeled statement. Return the non-labeled statement that was
+   * parsed.
    *
-   * <pre>
-   * nonLabeledStatement ::=
-   *     block
-   *   | assertStatement
-   *   | breakStatement
-   *   | continueStatement
-   *   | doStatement
-   *   | forStatement
-   *   | ifStatement
-   *   | returnStatement
-   *   | switchStatement
-   *   | tryStatement
-   *   | whileStatement
-   *   | variableDeclarationList ';'
-   *   | expressionStatement
-   *   | functionSignature functionBody
-   * </pre>
-   *
-   * @return the non-labeled statement that was parsed
+   *     nonLabeledStatement ::=
+   *         block
+   *       | assertStatement
+   *       | breakStatement
+   *       | continueStatement
+   *       | doStatement
+   *       | forStatement
+   *       | ifStatement
+   *       | returnStatement
+   *       | switchStatement
+   *       | tryStatement
+   *       | whileStatement
+   *       | variableDeclarationList ';'
+   *       | expressionStatement
+   *       | functionSignature functionBody
    */
   Statement _parseNonLabeledStatement() {
     // TODO(brianwilkerson) Pass the comment and metadata on where appropriate.
@@ -6981,22 +6567,17 @@ class Parser {
   }
 
   /**
-   * Parse an operator declaration.
+   * Parse an operator declaration. The [commentAndMetadata] is the
+   * documentation comment and metadata to be associated with the declaration.
+   * The [externalKeyword] is the 'external' token. The [returnType] is the
+   * return type that has already been parsed, or `null` if there was no return
+   * type. Return the operator declaration that was parsed.
    *
-   * <pre>
-   * operatorDeclaration ::=
-   *     operatorSignature (';' | functionBody)
+   *     operatorDeclaration ::=
+   *         operatorSignature (';' | functionBody)
    *
-   * operatorSignature ::=
-   *     'external'? returnType? 'operator' operator formalParameterList
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param externalKeyword the 'external' token
-   * @param the return type that has already been parsed, or `null` if there was no return
-   *          type
-   * @return the operator declaration that was parsed
+   *     operatorSignature ::=
+   *         'external'? returnType? 'operator' operator formalParameterList
    */
   MethodDeclaration _parseOperator(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, TypeName returnType) {
@@ -7037,9 +6618,8 @@ class Parser {
   }
 
   /**
-   * Parse a return type if one is given, otherwise return `null` without advancing.
-   *
-   * @return the return type that was parsed
+   * Parse a return type if one is given, otherwise return `null` without
+   * advancing. Return the return type that was parsed.
    */
   TypeName _parseOptionalReturnType() {
     if (_matchesKeyword(Keyword.VOID)) {
@@ -7062,18 +6642,15 @@ class Parser {
   }
 
   /**
-   * Parse a part or part-of directive.
+   * Parse a part or part-of directive. The [commentAndMetadata] is the metadata
+   * to be associated with the directive. Return the part or part-of directive
+   * that was parsed.
    *
-   * <pre>
-   * partDirective ::=
-   *     metadata 'part' stringLiteral ';'
+   *     partDirective ::=
+   *         metadata 'part' stringLiteral ';'
    *
-   * partOfDirective ::=
-   *     metadata 'part' 'of' identifier ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the directive
-   * @return the part or part-of directive that was parsed
+   *     partOfDirective ::=
+   *         metadata 'part' 'of' identifier ';'
    */
   Directive _parsePartDirective(CommentAndMetadata commentAndMetadata) {
     Token partKeyword = _expectKeyword(Keyword.PART);
@@ -7093,19 +6670,15 @@ class Parser {
   }
 
   /**
-   * Parse a postfix expression.
+   * Parse a postfix expression. Return the postfix expression that was parsed.
    *
-   * <pre>
-   * postfixExpression ::=
-   *     assignableExpression postfixOperator
-   *   | primary selector*
+   *     postfixExpression ::=
+   *         assignableExpression postfixOperator
+   *       | primary selector*
    *
-   * selector ::=
-   *     assignableSelector
-   *   | argumentList
-   * </pre>
-   *
-   * @return the postfix expression that was parsed
+   *     selector ::=
+   *         assignableSelector
+   *       | argumentList
    */
   Expression _parsePostfixExpression() {
     Expression operand = _parseAssignableExpression(true);
@@ -7139,31 +6712,27 @@ class Parser {
   }
 
   /**
-   * Parse a primary expression.
+   * Parse a primary expression. Return the primary expression that was parsed.
    *
-   * <pre>
-   * primary ::=
-   *     thisExpression
-   *   | 'super' assignableSelector
-   *   | functionExpression
-   *   | literal
-   *   | identifier
-   *   | newExpression
-   *   | constObjectExpression
-   *   | '(' expression ')'
-   *   | argumentDefinitionTest
+   *     primary ::=
+   *         thisExpression
+   *       | 'super' assignableSelector
+   *       | functionExpression
+   *       | literal
+   *       | identifier
+   *       | newExpression
+   *       | constObjectExpression
+   *       | '(' expression ')'
+   *       | argumentDefinitionTest
    *
-   * literal ::=
-   *     nullLiteral
-   *   | booleanLiteral
-   *   | numericLiteral
-   *   | stringLiteral
-   *   | symbolLiteral
-   *   | mapLiteral
-   *   | listLiteral
-   * </pre>
-   *
-   * @return the primary expression that was parsed
+   *     literal ::=
+   *         nullLiteral
+   *       | booleanLiteral
+   *       | numericLiteral
+   *       | stringLiteral
+   *       | symbolLiteral
+   *       | mapLiteral
+   *       | listLiteral
    */
   Expression _parsePrimaryExpression() {
     if (_matchesKeyword(Keyword.THIS)) {
@@ -7270,14 +6839,11 @@ class Parser {
   }
 
   /**
-   * Parse a redirecting constructor invocation.
+   * Parse a redirecting constructor invocation. Return the redirecting
+   * constructor invocation that was parsed.
    *
-   * <pre>
-   * redirectingConstructorInvocation ::=
-   *     'this' ('.' identifier)? arguments
-   * </pre>
-   *
-   * @return the redirecting constructor invocation that was parsed
+   *     redirectingConstructorInvocation ::=
+   *         'this' ('.' identifier)? arguments
    */
   RedirectingConstructorInvocation _parseRedirectingConstructorInvocation() {
     Token keyword = _expectKeyword(Keyword.THIS);
@@ -7293,15 +6859,12 @@ class Parser {
   }
 
   /**
-   * Parse a relational expression.
+   * Parse a relational expression. Return the relational expression that was
+   * parsed.
    *
-   * <pre>
-   * relationalExpression ::=
-   *     bitwiseOrExpression ('is' '!'? type | 'as' type | relationalOperator bitwiseOrExpression)?
-   *   | 'super' relationalOperator bitwiseOrExpression
-   * </pre>
-   *
-   * @return the relational expression that was parsed
+   *     relationalExpression ::=
+   *         bitwiseOrExpression ('is' '!'? type | 'as' type | relationalOperator bitwiseOrExpression)?
+   *       | 'super' relationalOperator bitwiseOrExpression
    */
   Expression _parseRelationalExpression() {
     if (_matchesKeyword(Keyword.SUPER) &&
@@ -7333,27 +6896,19 @@ class Parser {
   }
 
   /**
-   * Parse a rethrow expression.
+   * Parse a rethrow expression. Return the rethrow expression that was parsed.
    *
-   * <pre>
-   * rethrowExpression ::=
-   *     'rethrow'
-   * </pre>
-   *
-   * @return the rethrow expression that was parsed
+   *     rethrowExpression ::=
+   *         'rethrow'
    */
   Expression _parseRethrowExpression() =>
       new RethrowExpression(_expectKeyword(Keyword.RETHROW));
 
   /**
-   * Parse a return statement.
+   * Parse a return statement. Return the return statement that was parsed.
    *
-   * <pre>
-   * returnStatement ::=
-   *     'return' expression? ';'
-   * </pre>
-   *
-   * @return the return statement that was parsed
+   *     returnStatement ::=
+   *         'return' expression? ';'
    */
   Statement _parseReturnStatement() {
     Token returnKeyword = _expectKeyword(Keyword.RETURN);
@@ -7366,23 +6921,18 @@ class Parser {
   }
 
   /**
-   * Parse a setter.
+   * Parse a setter. The [commentAndMetadata] is the documentation comment and
+   * metadata to be associated with the declaration. The [externalKeyword] is
+   * the 'external' token. The [staticKeyword] is the static keyword, or `null`
+   * if the setter is not static. The [returnType] is the return type that has
+   * already been parsed, or `null` if there was no return type. Return the
+   * setter that was parsed.
    *
-   * <pre>
-   * setter ::=
-   *     setterSignature functionBody?
+   *     setter ::=
+   *         setterSignature functionBody?
    *
-   * setterSignature ::=
-   *     'external'? 'static'? returnType? 'set' identifier formalParameterList
-   * </pre>
-   *
-   * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   *          declaration
-   * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or `null` if the setter is not static
-   * @param the return type that has already been parsed, or `null` if there was no return
-   *          type
-   * @return the setter that was parsed
+   *     setterSignature ::=
+   *         'external'? 'static'? returnType? 'set' identifier formalParameterList
    */
   MethodDeclaration _parseSetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
@@ -7402,15 +6952,11 @@ class Parser {
   }
 
   /**
-   * Parse a shift expression.
+   * Parse a shift expression. Return the shift expression that was parsed.
    *
-   * <pre>
-   * shiftExpression ::=
-   *     additiveExpression (shiftOperator additiveExpression)*
-   *   | 'super' (shiftOperator additiveExpression)+
-   * </pre>
-   *
-   * @return the shift expression that was parsed
+   *     shiftExpression ::=
+   *         additiveExpression (shiftOperator additiveExpression)*
+   *       | 'super' (shiftOperator additiveExpression)+
    */
   Expression _parseShiftExpression() {
     Expression expression;
@@ -7429,14 +6975,11 @@ class Parser {
   }
 
   /**
-   * Parse a list of statements within a switch statement.
+   * Parse a list of statements within a switch statement. Return the statements
+   * that were parsed.
    *
-   * <pre>
-   * statements ::=
-   *     statement*
-   * </pre>
-   *
-   * @return the statements that were parsed
+   *     statements ::=
+   *         statement*
    */
   List<Statement> _parseStatementList() {
     List<Statement> statements = new List<Statement>();
@@ -7457,9 +7000,8 @@ class Parser {
   }
 
   /**
-   * Parse a string literal that contains interpolations.
-   *
-   * @return the string literal that was parsed
+   * Parse a string literal that contains interpolations. Return the string
+   * literal that was parsed.
    */
   StringInterpolation _parseStringInterpolation(Token string) {
     List<InterpolationElement> elements = new List<InterpolationElement>();
@@ -7504,14 +7046,11 @@ class Parser {
   }
 
   /**
-   * Parse a super constructor invocation.
+   * Parse a super constructor invocation. Return the super constructor
+   * invocation that was parsed.
    *
-   * <pre>
-   * superConstructorInvocation ::=
-   *     'super' ('.' identifier)? arguments
-   * </pre>
-   *
-   * @return the super constructor invocation that was parsed
+   *     superConstructorInvocation ::=
+   *         'super' ('.' identifier)? arguments
    */
   SuperConstructorInvocation _parseSuperConstructorInvocation() {
     Token keyword = _expectKeyword(Keyword.SUPER);
@@ -7527,20 +7066,16 @@ class Parser {
   }
 
   /**
-   * Parse a switch statement.
+   * Parse a switch statement. Return the switch statement that was parsed.
    *
-   * <pre>
-   * switchStatement ::=
-   *     'switch' '(' expression ')' '{' switchCase* defaultCase? '}'
+   *     switchStatement ::=
+   *         'switch' '(' expression ')' '{' switchCase* defaultCase? '}'
    *
-   * switchCase ::=
-   *     label* ('case' expression ':') statements
+   *     switchCase ::=
+   *         label* ('case' expression ':') statements
    *
-   * defaultCase ::=
-   *     label* 'default' ':' statements
-   * </pre>
-   *
-   * @return the switch statement that was parsed
+   *     defaultCase ::=
+   *         label* 'default' ':' statements
    */
   SwitchStatement _parseSwitchStatement() {
     bool wasInSwitch = _inSwitch;
@@ -7612,14 +7147,10 @@ class Parser {
   }
 
   /**
-   * Parse a symbol literal.
+   * Parse a symbol literal. Return the symbol literal that was parsed.
    *
-   * <pre>
-   * symbolLiteral ::=
-   *     '#' identifier ('.' identifier)*
-   * </pre>
-   *
-   * @return the symbol literal that was parsed
+   *     symbolLiteral ::=
+   *         '#' identifier ('.' identifier)*
    */
   SymbolLiteral _parseSymbolLiteral() {
     Token poundSign = getAndAdvance();
@@ -7648,14 +7179,10 @@ class Parser {
   }
 
   /**
-   * Parse a throw expression.
+   * Parse a throw expression. Return the throw expression that was parsed.
    *
-   * <pre>
-   * throwExpression ::=
-   *     'throw' expression
-   * </pre>
-   *
-   * @return the throw expression that was parsed
+   *     throwExpression ::=
+   *         'throw' expression
    */
   Expression _parseThrowExpression() {
     Token keyword = _expectKeyword(Keyword.THROW);
@@ -7669,14 +7196,10 @@ class Parser {
   }
 
   /**
-   * Parse a throw expression.
+   * Parse a throw expression. Return the throw expression that was parsed.
    *
-   * <pre>
-   * throwExpressionWithoutCascade ::=
-   *     'throw' expressionWithoutCascade
-   * </pre>
-   *
-   * @return the throw expression that was parsed
+   *     throwExpressionWithoutCascade ::=
+   *         'throw' expressionWithoutCascade
    */
   Expression _parseThrowExpressionWithoutCascade() {
     Token keyword = _expectKeyword(Keyword.THROW);
@@ -7690,24 +7213,20 @@ class Parser {
   }
 
   /**
-   * Parse a try statement.
+   * Parse a try statement. Return the try statement that was parsed.
    *
-   * <pre>
-   * tryStatement ::=
-   *     'try' block (onPart+ finallyPart? | finallyPart)
+   *     tryStatement ::=
+   *         'try' block (onPart+ finallyPart? | finallyPart)
    *
-   * onPart ::=
-   *     catchPart block
-   *   | 'on' type catchPart? block
+   *     onPart ::=
+   *         catchPart block
+   *       | 'on' type catchPart? block
    *
-   * catchPart ::=
-   *     'catch' '(' identifier (',' identifier)? ')'
+   *     catchPart ::=
+   *         'catch' '(' identifier (',' identifier)? ')'
    *
-   * finallyPart ::=
-   *     'finally' block
-   * </pre>
-   *
-   * @return the try statement that was parsed
+   *     finallyPart ::=
+   *         'finally' block
    */
   Statement _parseTryStatement() {
     Token tryKeyword = _expectKeyword(Keyword.TRY);
@@ -7756,31 +7275,27 @@ class Parser {
   }
 
   /**
-   * Parse a type alias.
+   * Parse a type alias. The [commentAndMetadata] is the metadata to be
+   * associated with the member. Return the type alias that was parsed.
    *
-   * <pre>
-   * typeAlias ::=
-   *     'typedef' typeAliasBody
+   *     typeAlias ::=
+   *         'typedef' typeAliasBody
    *
-   * typeAliasBody ::=
-   *     classTypeAlias
-   *   | functionTypeAlias
+   *     typeAliasBody ::=
+   *         classTypeAlias
+   *       | functionTypeAlias
    *
-   * classTypeAlias ::=
-   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   *     classTypeAlias ::=
+   *         identifier typeParameters? '=' 'abstract'? mixinApplication
    *
-   * mixinApplication ::=
-   *     qualified withClause implementsClause? ';'
+   *     mixinApplication ::=
+   *         qualified withClause implementsClause? ';'
    *
-   * functionTypeAlias ::=
-   *     functionPrefix typeParameterList? formalParameterList ';'
+   *     functionTypeAlias ::=
+   *         functionPrefix typeParameterList? formalParameterList ';'
    *
-   * functionPrefix ::=
-   *     returnType? name
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the member
-   * @return the type alias that was parsed
+   *     functionPrefix ::=
+   *         returnType? name
    */
   TypeAlias _parseTypeAlias(CommentAndMetadata commentAndMetadata) {
     Token keyword = _expectKeyword(Keyword.TYPEDEF);
@@ -7807,19 +7322,15 @@ class Parser {
   }
 
   /**
-   * Parse a unary expression.
+   * Parse a unary expression. Return the unary expression that was parsed.
    *
-   * <pre>
-   * unaryExpression ::=
-   *     prefixOperator unaryExpression
-   *   | awaitExpression
-   *   | postfixExpression
-   *   | unaryOperator 'super'
-   *   | '-' 'super'
-   *   | incrementOperator assignableExpression
-   * </pre>
-   *
-   * @return the unary expression that was parsed
+   *     unaryExpression ::=
+   *         prefixOperator unaryExpression
+   *       | awaitExpression
+   *       | postfixExpression
+   *       | unaryOperator 'super'
+   *       | '-' 'super'
+   *       | incrementOperator assignableExpression
    */
   Expression _parseUnaryExpression() {
     if (_matches(TokenType.MINUS) ||
@@ -7882,7 +7393,8 @@ class Parser {
   }
 
   /**
-   * Parse a string literal representing a URI.
+   * Parse a string literal representing a URI. Return the string literal that
+   * was parsed.
    */
   StringLiteral _parseUri() {
     bool iskeywordAfterUri(Token token) => token.lexeme == Keyword.AS.syntax ||
@@ -7932,14 +7444,11 @@ class Parser {
   }
 
   /**
-   * Parse a variable declaration.
+   * Parse a variable declaration. Return the variable declaration that was
+   * parsed.
    *
-   * <pre>
-   * variableDeclaration ::=
-   *     identifier ('=' expression)?
-   * </pre>
-   *
-   * @return the variable declaration that was parsed
+   *     variableDeclaration ::=
+   *         identifier ('=' expression)?
    */
   VariableDeclaration _parseVariableDeclaration() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
@@ -7955,15 +7464,12 @@ class Parser {
   }
 
   /**
-   * Parse a variable declaration list.
+   * Parse a variable declaration list. The [commentAndMetadata] is the metadata
+   * to be associated with the variable declaration list. Return the variable
+   * declaration list that was parsed.
    *
-   * <pre>
-   * variableDeclarationList ::=
-   *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the variable declaration list
-   * @return the variable declaration list that was parsed
+   *     variableDeclarationList ::=
+   *         finalConstVarOrType variableDeclaration (',' variableDeclaration)*
    */
   VariableDeclarationList _parseVariableDeclarationListAfterMetadata(
       CommentAndMetadata commentAndMetadata) {
@@ -7973,19 +7479,15 @@ class Parser {
   }
 
   /**
-   * Parse a variable declaration list.
+   * Parse a variable declaration list. The [commentAndMetadata] is the metadata
+   * to be associated with the variable declaration list, or `null` if there is
+   * no attempt at parsing the comment and metadata. The [keyword] is the token
+   * representing the 'final', 'const' or 'var' keyword, or `null` if there is
+   * no keyword. The [type] is the type of the variables in the list. Return the
+   * variable declaration list that was parsed.
    *
-   * <pre>
-   * variableDeclarationList ::=
-   *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or
-   *          `null` if there is no attempt at parsing the comment and metadata
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
-   *          there is no keyword
-   * @param type the type of the variables in the list
-   * @return the variable declaration list that was parsed
+   *     variableDeclarationList ::=
+   *         finalConstVarOrType variableDeclaration (',' variableDeclaration)*
    */
   VariableDeclarationList _parseVariableDeclarationListAfterType(
       CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
@@ -8007,16 +7509,13 @@ class Parser {
   }
 
   /**
-   * Parse a variable declaration statement.
+   * Parse a variable declaration statement. The [commentAndMetadata] is the
+   * metadata to be associated with the variable declaration statement, or
+   * `null` if there is no attempt at parsing the comment and metadata. Return
+   * the variable declaration statement that was parsed.
    *
-   * <pre>
-   * variableDeclarationStatement ::=
-   *     variableDeclarationList ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the variable declaration
-   *          statement, or `null` if there is no attempt at parsing the comment and metadata
-   * @return the variable declaration statement that was parsed
+   *     variableDeclarationStatement ::=
+   *         variableDeclarationList ';'
    */
   VariableDeclarationStatement _parseVariableDeclarationStatementAfterMetadata(
       CommentAndMetadata commentAndMetadata) {
@@ -8034,19 +7533,15 @@ class Parser {
   }
 
   /**
-   * Parse a variable declaration statement.
+   * Parse a variable declaration statement. The [commentAndMetadata] is the
+   * metadata to be associated with the variable declaration statement, or
+   * `null` if there is no attempt at parsing the comment and metadata. The
+   * [keyword] is the token representing the 'final', 'const' or 'var' keyword,
+   * or `null` if there is no keyword. The [type] is the type of the variables
+   * in the list. Return the variable declaration statement that was parsed.
    *
-   * <pre>
-   * variableDeclarationStatement ::=
-   *     variableDeclarationList ';'
-   * </pre>
-   *
-   * @param commentAndMetadata the metadata to be associated with the variable declaration
-   *          statement, or `null` if there is no attempt at parsing the comment and metadata
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
-   *          there is no keyword
-   * @param type the type of the variables in the list
-   * @return the variable declaration statement that was parsed
+   *     variableDeclarationStatement ::=
+   *         variableDeclarationList ';'
    */
   VariableDeclarationStatement _parseVariableDeclarationStatementAfterType(
       CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
@@ -8058,14 +7553,10 @@ class Parser {
   }
 
   /**
-   * Parse a while statement.
+   * Parse a while statement. Return the while statement that was parsed.
    *
-   * <pre>
-   * whileStatement ::=
-   *     'while' '(' expression ')' statement
-   * </pre>
-   *
-   * @return the while statement that was parsed
+   *     whileStatement ::=
+   *         'while' '(' expression ')' statement
    */
   Statement _parseWhileStatement() {
     bool wasInLoop = _inLoop;
@@ -8084,14 +7575,10 @@ class Parser {
   }
 
   /**
-   * Parse a yield statement.
+   * Parse a yield statement. Return the yield statement that was parsed.
    *
-   * <pre>
-   * yieldStatement ::=
-   *     'yield' '*'? expression ';'
-   * </pre>
-   *
-   * @return the yield statement that was parsed
+   *     yieldStatement ::=
+   *         'yield' '*'? expression ';'
    */
   YieldStatement _parseYieldStatement() {
     Token yieldToken = getAndAdvance();
@@ -8105,19 +7592,15 @@ class Parser {
   }
 
   /**
-   * Return the token that is immediately after the current token. This is equivalent to
-   * [peekAt].
-   *
-   * @return the token that is immediately after the current token
+   * Return the token that is immediately after the current token. This is
+   * equivalent to [_peekAt](1).
    */
   Token _peek() => _currentToken.next;
 
   /**
-   * Return the token that is the given distance after the current token.
-   *
-   * @param distance the number of tokens to look ahead, where `0` is the current token,
-   *          `1` is the next token, etc.
-   * @return the token that is the given distance after the current token
+   * Return the token that is the given [distance] after the current token,
+   * where the distance is the number of tokens to look ahead. A distance of `0`
+   * is the current token, `1` is the next token, etc.
    */
   Token _peekAt(int distance) {
     Token token = _currentToken;
@@ -8128,9 +7611,7 @@ class Parser {
   }
 
   /**
-   * Report the given [AnalysisError].
-   *
-   * @param error the error to be reported
+   * Report the given [error].
    */
   void _reportError(AnalysisError error) {
     if (_errorListenerLock != 0) {
@@ -8140,10 +7621,8 @@ class Parser {
   }
 
   /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param arguments the arguments to the error, used to compose the error message
+   * Report an error with the given [errorCode] and [arguments] associated with
+   * the current token.
    */
   void _reportErrorForCurrentToken(ParserErrorCode errorCode,
       [List<Object> arguments]) {
@@ -8151,11 +7630,8 @@ class Parser {
   }
 
   /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
+   * Report an error with the given [errorCode] and [arguments] associated with
+   * the given [node].
    */
   void _reportErrorForNode(ParserErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
@@ -8164,11 +7640,8 @@ class Parser {
   }
 
   /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param token the token specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
+   * Report an error with the given [errorCode] and [arguments] associated with
+   * the given [token].
    */
   void _reportErrorForToken(ErrorCode errorCode, Token token,
       [List<Object> arguments]) {
@@ -8198,21 +7671,18 @@ class Parser {
   }
 
   /**
-   * Parse the 'final', 'const', 'var' or type preceding a variable declaration, starting at the
-   * given token, without actually creating a type or changing the current token. Return the token
-   * following the type that was parsed, or `null` if the given token is not the first token
-   * in a valid type.
+   * Parse the 'final', 'const', 'var' or type preceding a variable declaration,
+   * starting at the given token, without actually creating a type or changing
+   * the current token. Return the token following the type that was parsed, or
+   * `null` if the given token is not the first token in a valid type. The
+   * [startToken] is the token at which parsing is to begin. Return the token
+   * following the type that was parsed.
    *
-   * <pre>
    * finalConstVarOrType ::=
    *   | 'final' type?
    *   | 'const' type?
    *   | 'var'
    *   | type
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the type that was parsed
    */
   Token _skipFinalConstVarOrType(Token startToken) {
     if (_tokenMatchesKeyword(startToken, Keyword.FINAL) ||
@@ -8248,41 +7718,38 @@ class Parser {
   }
 
   /**
-   * Parse a list of formal parameters, starting at the given token, without actually creating a
-   * formal parameter list or changing the current token. Return the token following the formal
-   * parameter list that was parsed, or `null` if the given token is not the first token in a
-   * valid list of formal parameter.
+   * Parse a list of formal parameters, starting at the [startToken], without
+   * actually creating a formal parameter list or changing the current token.
+   * Return the token following the formal parameter list that was parsed, or
+   * `null` if the given token is not the first token in a valid list of formal
+   * parameter.
    *
-   * Note that unlike other skip methods, this method uses a heuristic. In the worst case, the
-   * parameters could be prefixed by metadata, which would require us to be able to skip arbitrary
-   * expressions. Rather than duplicate the logic of most of the parse methods we simply look for
-   * something that is likely to be a list of parameters and then skip to returning the token after
-   * the closing parenthesis.
+   * Note that unlike other skip methods, this method uses a heuristic. In the
+   * worst case, the parameters could be prefixed by metadata, which would
+   * require us to be able to skip arbitrary expressions. Rather than duplicate
+   * the logic of most of the parse methods we simply look for something that is
+   * likely to be a list of parameters and then skip to returning the token
+   * after the closing parenthesis.
    *
    * This method must be kept in sync with [parseFormalParameterList].
    *
-   * <pre>
-   * formalParameterList ::=
-   *     '(' ')'
-   *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
-   *   | '(' optionalFormalParameters ')'
+   *     formalParameterList ::=
+   *         '(' ')'
+   *       | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+   *       | '(' optionalFormalParameters ')'
    *
-   * normalFormalParameters ::=
-   *     normalFormalParameter (',' normalFormalParameter)*
+   *     normalFormalParameters ::=
+   *         normalFormalParameter (',' normalFormalParameter)*
    *
-   * optionalFormalParameters ::=
-   *     optionalPositionalFormalParameters
-   *   | namedFormalParameters
+   *     optionalFormalParameters ::=
+   *         optionalPositionalFormalParameters
+   *       | namedFormalParameters
    *
-   * optionalPositionalFormalParameters ::=
-   *     '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   *     optionalPositionalFormalParameters ::=
+   *         '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
    *
-   * namedFormalParameters ::=
-   *     '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the formal parameter list that was parsed
+   *     namedFormalParameters ::=
+   *         '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    */
   Token _skipFormalParameterList(Token startToken) {
     if (!_tokenMatches(startToken, TokenType.OPEN_PAREN)) {
@@ -8334,11 +7801,8 @@ class Parser {
   }
 
   /**
-   * If the given token is a begin token with an associated end token, then return the token
-   * following the end token. Otherwise, return `null`.
-   *
-   * @param startToken the token that is assumed to be a being token
-   * @return the token following the matching end token
+   * If the [startToken] is a begin token with an associated end token, then
+   * return the token following the end token. Otherwise, return `null`.
    */
   Token _skipPastMatchingToken(Token startToken) {
     if (startToken is! BeginToken) {
@@ -8352,20 +7816,15 @@ class Parser {
   }
 
   /**
-   * Parse a prefixed identifier, starting at the given token, without actually creating a prefixed
-   * identifier or changing the current token. Return the token following the prefixed identifier
-   * that was parsed, or `null` if the given token is not the first token in a valid prefixed
-   * identifier.
+   * Parse a prefixed identifier, starting at the [startToken], without actually
+   * creating a prefixed identifier or changing the current token. Return the
+   * token following the prefixed identifier that was parsed, or `null` if the
+   * given token is not the first token in a valid prefixed identifier.
    *
    * This method must be kept in sync with [parsePrefixedIdentifier].
    *
-   * <pre>
-   * prefixedIdentifier ::=
-   *     identifier ('.' identifier)?
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the prefixed identifier that was parsed
+   *     prefixedIdentifier ::=
+   *         identifier ('.' identifier)?
    */
   Token _skipPrefixedIdentifier(Token startToken) {
     Token token = _skipSimpleIdentifier(startToken);
@@ -8378,20 +7837,16 @@ class Parser {
   }
 
   /**
-   * Parse a return type, starting at the given token, without actually creating a return type or
-   * changing the current token. Return the token following the return type that was parsed, or
-   * `null` if the given token is not the first token in a valid return type.
+   * Parse a return type, starting at the [startToken], without actually
+   * creating a return type or changing the current token. Return the token
+   * following the return type that was parsed, or `null` if the given token is
+   * not the first token in a valid return type.
    *
    * This method must be kept in sync with [parseReturnType].
    *
-   * <pre>
-   * returnType ::=
-   *     'void'
-   *   | type
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the return type that was parsed
+   *     returnType ::=
+   *         'void'
+   *       | type
    */
   Token _skipReturnType(Token startToken) {
     if (_tokenMatchesKeyword(startToken, Keyword.VOID)) {
@@ -8402,20 +7857,15 @@ class Parser {
   }
 
   /**
-   * Parse a simple identifier, starting at the given token, without actually creating a simple
-   * identifier or changing the current token. Return the token following the simple identifier that
-   * was parsed, or `null` if the given token is not the first token in a valid simple
-   * identifier.
+   * Parse a simple identifier, starting at the [startToken], without actually
+   * creating a simple identifier or changing the current token. Return the
+   * token following the simple identifier that was parsed, or `null` if the
+   * given token is not the first token in a valid simple identifier.
    *
    * This method must be kept in sync with [parseSimpleIdentifier].
    *
-   * <pre>
-   * identifier ::=
-   *     IDENTIFIER
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the simple identifier that was parsed
+   *     identifier ::=
+   *         IDENTIFIER
    */
   Token _skipSimpleIdentifier(Token startToken) {
     if (_tokenMatches(startToken, TokenType.IDENTIFIER) ||
@@ -8427,15 +7877,13 @@ class Parser {
   }
 
   /**
-   * Parse a string literal that contains interpolations, starting at the given token, without
-   * actually creating a string literal or changing the current token. Return the token following
-   * the string literal that was parsed, or `null` if the given token is not the first token
-   * in a valid string literal.
+   * Parse a string literal that contains interpolations, starting at the
+   * [startToken], without actually creating a string literal or changing the
+   * current token. Return the token following the string literal that was
+   * parsed, or `null` if the given token is not the first token in a valid
+   * string literal.
    *
    * This method must be kept in sync with [parseStringInterpolation].
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the string literal that was parsed
    */
   Token _skipStringInterpolation(Token startToken) {
     Token token = startToken;
@@ -8487,20 +7935,16 @@ class Parser {
   }
 
   /**
-   * Parse a string literal, starting at the given token, without actually creating a string literal
-   * or changing the current token. Return the token following the string literal that was parsed,
-   * or `null` if the given token is not the first token in a valid string literal.
+   * Parse a string literal, starting at the [startToken], without actually
+   * creating a string literal or changing the current token. Return the token
+   * following the string literal that was parsed, or `null` if the given token
+   * is not the first token in a valid string literal.
    *
    * This method must be kept in sync with [parseStringLiteral].
    *
-   * <pre>
-   * stringLiteral ::=
-   *     MULTI_LINE_STRING+
-   *   | SINGLE_LINE_STRING+
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the string literal that was parsed
+   *     stringLiteral ::=
+   *         MULTI_LINE_STRING+
+   *       | SINGLE_LINE_STRING+
    */
   Token _skipStringLiteral(Token startToken) {
     Token token = startToken;
@@ -8519,22 +7963,19 @@ class Parser {
   }
 
   /**
-   * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
-   * or changing the current token. Return the token following the type argument list that was parsed,
-   * or `null` if the given token is not the first token in a valid type argument list.
+   * Parse a list of type arguments, starting at the [startToken], without
+   * actually creating a type argument list or changing the current token.
+   * Return the token following the type argument list that was parsed, or
+   * `null` if the given token is not the first token in a valid type argument
+   * list.
    *
    * This method must be kept in sync with [parseTypeArgumentList].
    *
-   * <pre>
-   * typeArguments ::=
-   *     '<' typeList '>'
+   *     typeArguments ::=
+   *         '<' typeList '>'
    *
-   * typeList ::=
-   *     type (',' type)*
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the type argument list that was parsed
+   *     typeList ::=
+   *         type (',' type)*
    */
   Token _skipTypeArgumentList(Token startToken) {
     Token token = startToken;
@@ -8562,19 +8003,15 @@ class Parser {
   }
 
   /**
-   * Parse a type name, starting at the given token, without actually creating a type name or
-   * changing the current token. Return the token following the type name that was parsed, or
-   * `null` if the given token is not the first token in a valid type name.
+   * Parse a type name, starting at the [startToken], without actually creating
+   * a type name or changing the current token. Return the token following the
+   * type name that was parsed, or `null` if the given token is not the first
+   * token in a valid type name.
    *
    * This method must be kept in sync with [parseTypeName].
    *
-   * <pre>
-   * type ::=
-   *     qualified typeArguments?
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the type name that was parsed
+   *     type ::=
+   *         qualified typeArguments?
    */
   Token _skipTypeName(Token startToken) {
     Token token = _skipPrefixedIdentifier(startToken);
@@ -8588,20 +8025,16 @@ class Parser {
   }
 
   /**
-   * Parse a list of type parameters, starting at the given token, without actually creating a type
-   * parameter list or changing the current token. Return the token following the type parameter
-   * list that was parsed, or `null` if the given token is not the first token in a valid type
-   * parameter list.
+   * Parse a list of type parameters, starting at the [startToken], without
+   * actually creating a type parameter list or changing the current token.
+   * Return the token following the type parameter list that was parsed, or
+   * `null` if the given token is not the first token in a valid type parameter
+   * list.
    *
    * This method must be kept in sync with [parseTypeParameterList].
    *
-   * <pre>
-   * typeParameterList ::=
-   *     '<' typeParameter (',' typeParameter)* '>'
-   * </pre>
-   *
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the type parameter list that was parsed
+   *     typeParameterList ::=
+   *         '<' typeParameter (',' typeParameter)* '>'
    */
   Token _skipTypeParameterList(Token startToken) {
     if (!_tokenMatches(startToken, TokenType.LT)) {
@@ -8645,19 +8078,13 @@ class Parser {
   }
 
   /**
-   * Return `true` if the given token has the given type.
-   *
-   * @param token the token being tested
-   * @param type the type of token that is being tested for
-   * @return `true` if the given token has the given type
+   * Return `true` if the given [token] has the given [type].
    */
   bool _tokenMatches(Token token, TokenType type) => token.type == type;
 
   /**
-   * Return `true` if the given token is a valid identifier. Valid identifiers include
-   * built-in identifiers (pseudo-keywords).
-   *
-   * @return `true` if the given token is a valid identifier
+   * Return `true` if the given [token] is a valid identifier. Valid identifiers
+   * include built-in identifiers (pseudo-keywords).
    */
   bool _tokenMatchesIdentifier(Token token) =>
       _tokenMatches(token, TokenType.IDENTIFIER) ||
@@ -8665,22 +8092,14 @@ class Parser {
               (token as KeywordToken).keyword.isPseudoKeyword);
 
   /**
-   * Return `true` if the given token matches the given keyword.
-   *
-   * @param token the token being tested
-   * @param keyword the keyword that is being tested for
-   * @return `true` if the given token matches the given keyword
+   * Return `true` if the given [token] matches the given [keyword].
    */
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
       token.type == TokenType.KEYWORD &&
           (token as KeywordToken).keyword == keyword;
 
   /**
-   * Return `true` if the given token matches the given identifier.
-   *
-   * @param token the token being tested
-   * @param identifier the identifier that can optionally appear in the current location
-   * @return `true` if the current token matches the given identifier
+   * Return `true` if the given [token] matches the given [identifier].
    */
   bool _tokenMatchesString(Token token, String identifier) =>
       token.type == TokenType.IDENTIFIER && token.lexeme == identifier;
@@ -8838,9 +8257,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given parameter list does not contain any field initializers.
-   *
-   * @param parameterList the parameter list to be validated
+   * Validate that the given [parameterList] does not contain any field
+   * initializers.
    */
   void _validateFormalParameterList(FormalParameterList parameterList) {
     for (FormalParameter parameter in parameterList.parameters) {
@@ -8853,10 +8271,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
-   * keyword if there is one.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a class and
+   * return the 'abstract' keyword if there is one.
    */
   Token _validateModifiersForClass(Modifiers modifiers) {
     _validateModifiersForTopLevelDeclaration(modifiers);
@@ -8877,11 +8293,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a constructor and return the
-   * 'const' keyword if there is one.
-   *
-   * @param modifiers the modifiers being validated
-   * @return the 'const' or 'final' keyword associated with the constructor
+   * Validate that the given set of [modifiers] is appropriate for a constructor
+   * and return the 'const' keyword if there is one.
    */
   Token _validateModifiersForConstructor(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
@@ -8919,10 +8332,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
-   * keyword if there is one.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a class and
+   * return the 'abstract' keyword if there is one.
    */
   void _validateModifiersForEnum(Modifiers modifiers) {
     _validateModifiersForTopLevelDeclaration(modifiers);
@@ -8946,11 +8357,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a field and return the 'final',
-   * 'const' or 'var' keyword if there is one.
-   *
-   * @param modifiers the modifiers being validated
-   * @return the 'final', 'const' or 'var' keyword associated with the field
+   * Validate that the given set of [modifiers] is appropriate for a field and
+   * return the 'final', 'const' or 'var' keyword if there is one.
    */
   Token _validateModifiersForField(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
@@ -8994,9 +8402,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a local function.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a local
+   * function.
    */
   void _validateModifiersForFunctionDeclarationStatement(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null ||
@@ -9012,9 +8419,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a getter, setter, or method.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a getter,
+   * setter, or method.
    */
   void _validateModifiersForGetterOrSetterOrMethod(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
@@ -9047,9 +8453,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a getter, setter, or method.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a getter,
+   * setter, or method.
    */
   void _validateModifiersForOperator(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
@@ -9078,9 +8483,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a top-level declaration.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a top-level
+   * declaration.
    */
   void _validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
     if (modifiers.factoryKeyword != null) {
@@ -9094,9 +8498,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a top-level function.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a top-level
+   * function.
    */
   void _validateModifiersForTopLevelFunction(Modifiers modifiers) {
     _validateModifiersForTopLevelDeclaration(modifiers);
@@ -9116,11 +8519,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a field and return the 'final',
-   * 'const' or 'var' keyword if there is one.
-   *
-   * @param modifiers the modifiers being validated
-   * @return the 'final', 'const' or 'var' keyword associated with the field
+   * Validate that the given set of [modifiers] is appropriate for a field and
+   * return the 'final', 'const' or 'var' keyword if there is one.
    */
   Token _validateModifiersForTopLevelVariable(Modifiers modifiers) {
     _validateModifiersForTopLevelDeclaration(modifiers);
@@ -9150,10 +8550,8 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
-   * keyword if there is one.
-   *
-   * @param modifiers the modifiers being validated
+   * Validate that the given set of [modifiers] is appropriate for a class and
+   * return the 'abstract' keyword if there is one.
    */
   void _validateModifiersForTypedef(Modifiers modifiers) {
     _validateModifiersForTopLevelDeclaration(modifiers);
@@ -9179,14 +8577,12 @@ class Parser {
   }
 }
 /**
- * Instances of the class `SyntheticKeywordToken` implement a synthetic keyword token.
+ * A synthetic keyword token.
  */
 class Parser_SyntheticKeywordToken extends KeywordToken {
   /**
-   * Initialize a newly created token to represent the given keyword.
-   *
-   * @param keyword the keyword being represented by this token
-   * @param offset the offset from the beginning of the file to the first character in the token
+   * Initialize a newly created token to represent the given [keyword] at the
+   * given [offset].
    */
   Parser_SyntheticKeywordToken(Keyword keyword, int offset)
       : super(keyword, offset);
@@ -9199,11 +8595,10 @@ class Parser_SyntheticKeywordToken extends KeywordToken {
 }
 
 /**
- * The enumeration `ParserErrorCode` defines the error codes used for errors
- * detected by the parser. The convention for this class is for the name of the
- * error code to indicate the problem that caused the error to be generated and
- * for the error message to explain what is wrong and, when appropriate, how the
- * problem can be corrected.
+ * The error codes used for errors detected by the parser. The convention for
+ * this class is for the name of the error code to indicate the problem that
+ * caused the error to be generated and for the error message to explain what
+ * is wrong and, when appropriate, how the problem can be corrected.
  */
 class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -9820,14 +9215,15 @@ class ParserErrorCode extends ErrorCode {
 }
 
 /**
- * Instances of the class `ResolutionCopier` copies resolution information from one AST
- * structure to another as long as the structures of the corresponding children of a pair of nodes
- * are the same.
+ * An object that copies resolution information from one AST structure to
+ * another as long as the structures of the corresponding children of a pair of
+ * nodes are the same.
  */
 class ResolutionCopier implements AstVisitor<bool> {
   /**
-   * The AST node with which the node being visited is to be compared. This is only valid at the
-   * beginning of each visit method (until [isEqualNodes] is invoked).
+   * The AST node with which the node being visited is to be compared. This is
+   * only valid at the beginning of each visit method (until [isEqualNodes] is
+   * invoked).
    */
   AstNode _toNode;
 
@@ -11034,6 +10430,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool _and(bool b1, bool b2, [bool b3 = true, bool b4 = true, bool b5 = true,
       bool b6 = true, bool b7 = true, bool b8 = true, bool b9 = true,
       bool b10 = true, bool b11 = true, bool b12 = true, bool b13 = true]) {
+    // TODO(brianwilkerson) Inline this method.
     return b1 &&
         b2 &&
         b3 &&
@@ -11050,13 +10447,8 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   /**
-   * Return `true` if the given lists of AST nodes have the same size and corresponding
-   * elements are equal.
-   *
-   * @param first the first node being compared
-   * @param second the second node being compared
-   * @return `true` if the given AST nodes have the same size and corresponding elements are
-   *         equal
+   * Return `true` if the [first] and [second] lists of AST nodes have the same
+   * size and corresponding elements are equal.
    */
   bool _isEqualNodeLists(NodeList first, NodeList second) {
     if (first == null) {
@@ -11078,13 +10470,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   /**
-   * Return `true` if the given AST nodes have the same structure. As a side-effect, if the
-   * nodes do have the same structure, any resolution data from the first node will be copied to the
-   * second node.
-   *
-   * @param fromNode the node from which resolution information will be copied
-   * @param toNode the node to which resolution information will be copied
-   * @return `true` if the given AST nodes have the same structure
+   * Return `true` if the [fromNode] and [toNode] have the same structure. As a
+   * side-effect, if the nodes do have the same structure, any resolution data
+   * from the first node will be copied to the second node.
    */
   bool _isEqualNodes(AstNode fromNode, AstNode toNode) {
     if (fromNode == null) {
@@ -11115,13 +10503,8 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   /**
-   * Return `true` if the given arrays of tokens have the same length and corresponding
-   * elements are equal.
-   *
-   * @param first the first node being compared
-   * @param second the second node being compared
-   * @return `true` if the given arrays of tokens have the same length and corresponding
-   *         elements are equal
+   * Return `true` if the [first] and [second] arrays of tokens have the same
+   * length and corresponding elements are equal.
    */
   bool _isEqualTokenLists(List<Token> first, List<Token> second) {
     int length = first.length;
@@ -11137,11 +10520,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   /**
-   * Return `true` if the given tokens have the same structure.
-   *
-   * @param first the first node being compared
-   * @param second the second node being compared
-   * @return `true` if the given tokens have the same structure
+   * Return `true` if the [first] and [second] tokens have the same structure.
    */
   bool _isEqualTokens(Token first, Token second) {
     if (first == null) {
@@ -11153,10 +10532,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   /**
-   * Copy resolution data from one node to another.
-   *
-   * @param fromNode the node from which resolution information will be copied
-   * @param toNode the node to which resolution information will be copied
+   * Copy resolution data from the [fromNode] to the [toNode].
    */
   static void copyResolutionData(AstNode fromNode, AstNode toNode) {
     ResolutionCopier copier = new ResolutionCopier();
