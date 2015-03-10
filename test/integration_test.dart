@@ -4,16 +4,14 @@
 
 library linter.test.integration;
 
-import 'package:analyzer/src/generated/error.dart';
-import 'package:linter/src/formatter.dart';
-import 'package:linter/src/linter.dart';
-import 'package:mockito/mockito.dart';
+import 'dart:io';
+
+import 'package:linter/src/config.dart';
+import 'package:linter/src/io.dart';
 import 'package:unittest/unittest.dart';
 
 import '../bin/linter.dart' as dartlint;
 import 'mocks.dart';
-import 'package:linter/src/io.dart';
-import 'dart:io';
 
 main() {
   groupSep = ' | ';
@@ -44,6 +42,20 @@ defineTests() {
           expect(collectingOut.trim(),
               endsWith('4 files analyzed, 0 issues found.'));
         });
+      });
+    });
+    group('examples', () {
+      test('lintconfig.yaml', () {
+        var src = readFile('example/lintconfig.yaml');
+        var config = new LintConfig.parse(src);
+        expect(config.fileIncludes, unorderedEquals(['foo/**']));
+        expect(
+            config.fileExcludes, unorderedEquals(['**/_data.dart', 'test/**']));
+        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfig = config.ruleConfigs[0];
+        expect(ruleConfig.group, equals('style_guide'));
+        expect(ruleConfig.name, equals('unnecessary_getters'));
+        expect(ruleConfig.args, equals({'enabled': false}));
       });
     });
   });

@@ -1,0 +1,18 @@
+# Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Provisional lint config file format.  Ongoing discussion here
+# https://github.com/dart-lang/linter/issues/41
+#
+# Comments welcome!
+
+files:
+  include: foo/**     # un-quoted
+  exclude:
+    - test/**         # file globs can be scalars or lists
+    - '**/_data.dart' # unquoted stars treated by YAML as aliases :(
+
+rules:
+  style_guide:
+    unnecessary_getters: false # disable

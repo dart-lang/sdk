@@ -28,7 +28,7 @@ rules:
     package_names: false
 """;
 
-// In the future, options might be marshalled in maps and passed to rules.
+// In the future, options might be marshaled in maps and passed to rules.
 //  acme:
 //    some_rule:
 //      some_option: # Note this nesting might be arbitrarily complex?
