@@ -250,7 +250,7 @@ void testTypeRepresentations() {
     // m10(void f(int a, [b])) {}
     expect(env.getElement('m10').computeType(env.compiler),
            '{$func: "", $args:'
-           ' [{$func: "void__int__dynamic",'
+           ' [{$func: "",'
            ' $retvoid: true, $args: [$int_rep], $opt: [,]}]}');
   }));
 }
