@@ -88,6 +88,16 @@ void sendAnalysisNotificationErrors(AnalysisServer server, String file,
   });
 }
 
+void sendAnalysisNotificationFlushResults(
+    AnalysisServer server, List<String> files) {
+  _sendNotification(server, () {
+    if (files != null && files.isNotEmpty) {
+      var params = new protocol.AnalysisFlushResultsParams(files);
+      server.sendNotification(params.toNotification());
+    }
+  });
+}
+
 void sendAnalysisNotificationHighlights(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {

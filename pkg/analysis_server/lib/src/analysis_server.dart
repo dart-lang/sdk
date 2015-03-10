@@ -1242,6 +1242,11 @@ class ServerContextManager extends ContextManager {
     if (context != null) {
       context.applyChanges(changeSet);
       analysisServer.schedulePerformAnalysisOperation(context);
+      List<String> flushedFiles = new List<String>();
+      for (Source source in changeSet.removedSources) {
+        flushedFiles.add(source.fullName);
+      }
+      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     }
   }
 
@@ -1258,6 +1263,13 @@ class ServerContextManager extends ContextManager {
   @override
   void removeContext(Folder folder) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
+
+    // See dartbug.com/22689, the AnalysisContext is computed in
+    // computeFlushedFiles instead of using the referenced context above, this
+    // is an attempt to be careful concerning the referenced issue.
+    List<String> flushedFiles = computeFlushedFiles(folder);
+    sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
+
     if (analysisServer.index != null) {
       analysisServer.index.removeContext(context);
     }
