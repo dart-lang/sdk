@@ -25,8 +25,10 @@ var tests = [
 // Pause
 (Isolate isolate) {
   Completer completer = new Completer();
-  isolate.vm.events.stream.listen((ServiceEvent event) {
+  var subscription;
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
     if (event.eventType == ServiceEvent.kPauseInterrupted) {
+      subscription.cancel();
       completer.complete();
     }
   });
@@ -36,11 +38,16 @@ var tests = [
 
 // Resume
 (Isolate isolate) {
-  return isolate.resume().then((_) {
-      expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kResume));
-      expect(isolate.running, isTrue);
-      expect(isolate.paused, isFalse);
+  Completer completer = new Completer();
+  var subscription;
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+    if (event.eventType == ServiceEvent.kResume) {
+      subscription.cancel();
+      completer.complete();
+    }
   });
+  isolate.resume();
+  return completer.future;
 },
 
 // Add breakpoint
@@ -133,11 +140,16 @@ var tests = [
 
 // Resume
 (Isolate isolate) {
-  return isolate.resume().then((_) {
-      expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kResume));
-      expect(isolate.running, isTrue);
-      expect(isolate.paused, isFalse);
+  Completer completer = new Completer();
+  var subscription;
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+    if (event.eventType == ServiceEvent.kResume) {
+      subscription.cancel();
+      completer.complete();
+    }
   });
+  isolate.resume();
+  return completer.future;
 },
 
 // Add breakpoint at function entry

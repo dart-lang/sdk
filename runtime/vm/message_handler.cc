@@ -102,10 +102,11 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
       source_name = source_isolate->name();
     }
     OS::Print("[>] Posting message:\n"
+              "\tlen:        %" Pd "\n"
               "\tsource:     %s\n"
               "\tdest:       %s\n"
               "\tdest_port:  %" Pd64 "\n",
-              source_name, name(), message->dest_port());
+              message->len(), source_name, name(), message->dest_port());
   }
 
   Message::Priority saved_priority = message->priority();
@@ -146,12 +147,14 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
   Message::Priority min_priority = (allow_normal_messages && !paused()) ?
       Message::kNormalPriority : Message::kOOBPriority;
   Message* message = DequeueMessage(min_priority);
+  intptr_t message_len = message->len();
   while (message != NULL) {
     if (FLAG_trace_isolates) {
       OS::Print("[<] Handling message:\n"
+                "\tlen:        %" Pd "\n"
                 "\thandler:    %s\n"
                 "\tport:       %" Pd64 "\n",
-                name(), message->dest_port());
+                message_len, name(), message->dest_port());
     }
 
     // Release the monitor_ temporarily while we handle the message.
@@ -164,9 +167,10 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
     monitor_.Enter();
     if (FLAG_trace_isolates) {
       OS::Print("[.] Message handled:\n"
+                "\tlen:        %" Pd "\n"
                 "\thandler:    %s\n"
                 "\tport:       %" Pd64 "\n",
-                name(), saved_dest_port);
+                message_len, name(), saved_dest_port);
     }
     if (!result) {
       // If we hit an error, we're done processing messages.

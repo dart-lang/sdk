@@ -31,8 +31,7 @@ class WebSocketClient extends Client {
         return;
       }
       var serial = map['id'];
-
-      onMessage(serial, new Message.fromJsonRpc(map['method'], map['params']));
+      onMessage(serial, new Message.fromJsonRpc(map));
     } else {
       socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
     }

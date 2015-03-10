@@ -68,7 +68,9 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
 
-  static void SendEvent(intptr_t eventId, const Object& eventMessage);
+  static void SendEvent(intptr_t eventFamilyId,
+                        intptr_t eventType,
+                        const Object& eventMessage);
   // Does not take ownership of 'data'.
   static void SendEvent(intptr_t eventId,
                         const String& meta,

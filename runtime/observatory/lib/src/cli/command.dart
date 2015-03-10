@@ -4,11 +4,26 @@
 
 part of cli;
 
-// Splits a line into a list of string args.
+// Splits a line into a list of string args.  Each arg retains any
+// trailing whitespace so that we can reconstruct the original command
+// line from the pieces.
 List<String> _splitLine(String line) {
-  var args = line.split(' ').where((arg) {
-      return arg != ' ' && arg != '';
-    }).toList();
+  line = line.trimLeft();
+  var args = [];
+  var codes = line.codeUnits;
+
+  int pos = 0;
+  while (pos < line.length) {
+    int startPos = pos;
+
+    // Advance to end of word.
+    for (; pos < line.length && line[pos] != ' '; pos++);
+
+    // Advance to end of spaces.
+    for (; pos < line.length && line[pos] == ' '; pos++);
+
+    args.add(line.substring(startPos, pos));
+  }
   return args;
 }
 
@@ -17,7 +32,7 @@ String _concatArgs(List<String> args, int count) {
   if (count == 0) {
     return '';
   }
-  return '${args.sublist(0, count).join(" ")} ';
+  return '${args.sublist(0, count).join('')}';
 }
 
 // Shared functionality for RootCommand and Command.
@@ -46,8 +61,9 @@ abstract class _CommandBase {
   Future run(List<String> args);
 
   // Returns a list of local subcommands which match the args.
-  List<Command> _matchLocal(String arg, bool preferExact) {
+  List<Command> _matchLocal(String argWithSpace, bool preferExact) {
     var matches = new List<Command>();
+    var arg = argWithSpace.trimRight();
     for (var child in _children) {
       if (child.name.startsWith(arg)) {
         if (preferExact && ((child.name == arg) || (child.alias == arg))) {

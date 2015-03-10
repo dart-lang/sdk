@@ -1135,16 +1135,12 @@ class Isolate extends ServiceObjectOwner with Coverage {
                      { 'breakpointId': bpt.id });
   }
 
-  // TODO(turnidge): If the user invokes pause (or other rpcs) twice,
-  // they could get a race.  Consider returning an "in progress"
-  // future to avoid this.
   Future pause() {
     return invokeRpc('pause', {}).then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
-        return isolate.reload();
       });
   }
 
@@ -1154,7 +1150,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
-        return isolate.reload();
       });
   }
 
@@ -1164,7 +1159,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
-        return isolate.reload();
       });
   }
 
@@ -1174,7 +1168,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
-        return isolate.reload();
       });
   }
 
@@ -1184,7 +1177,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
-        return isolate.reload();
       });
   }
 
@@ -1205,6 +1197,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'expression': expression,
     };
     return invokeRpc('eval', params);
+  }
+
+  Future<ServiceObject> evalFrame(int framePos,
+                                  String expression) {
+    Map params = {
+      'frame': framePos,
+      'expression': expression,
+    };
+    return invokeRpc('evalFrame', params);
   }
 
   Future<ServiceObject> getRetainedSize(ServiceObject target) {
@@ -1935,6 +1936,7 @@ class ServiceFunction extends ServiceObject with Coverage {
       return;
     }
 
+    _loaded = true;
     isStatic = map['static'];
     isConst = map['const'];
     parent = map['parent'];

@@ -219,8 +219,10 @@ class ServiceIsolateNatives : public AllStatic {
     writer.WriteMessage(message);
 
     // TODO(turnidge): Throw an exception when the return value is false?
-    PortMap::PostMessage(new Message(sp.Id(), data, writer.BytesWritten(),
-                                     Message::kOOBPriority));
+    bool result = PortMap::PostMessage(
+        new Message(sp.Id(), data, writer.BytesWritten(),
+                    Message::kOOBPriority));
+    arguments->SetReturn(Bool::Get(result));
   }
 
   static void SendRootServiceMessage(Dart_NativeArguments args) {

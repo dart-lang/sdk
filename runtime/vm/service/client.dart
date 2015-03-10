@@ -25,12 +25,16 @@ abstract class Client {
 
   /// Call to process a message. Response will be posted with 'seq'.
   void onMessage(var seq, Message message) {
-    // Call post when the response arrives.
-    message.response.then((response) {
-      post(seq, response);
-    });
-    // Send message to service.
-    service.route(message);
+    try {
+      // Send message to service.
+      service.route(message).then((response) {
+        // Call post when the response arrives.
+        post(seq, response);
+      });
+    } catch (e, st) {
+      message.setErrorResponse('Internal error: $e');
+      post(seq, message.response);
+    }
   }
 
   /// When implementing, responsible for sending [response] to the client.

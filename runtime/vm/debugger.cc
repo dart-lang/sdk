@@ -728,7 +728,10 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(i < desc_indices_.length());
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
-  *name ^= var_descriptors_.GetName(desc_index);
+
+  const String& tmp = String::Handle(var_descriptors_.GetName(desc_index));
+  *name ^= String::IdentifierPrettyName(tmp);
+
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
   ASSERT(token_pos != NULL);

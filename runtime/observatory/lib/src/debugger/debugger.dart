@@ -8,4 +8,5 @@ part of debugger;
 abstract class Debugger {
   Isolate get isolate;
   ServiceMap get stack;
+  int get currentFrame;
 }

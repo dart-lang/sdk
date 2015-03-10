@@ -10,6 +10,9 @@ class Message {
   /// Future of response.
   Future<String> get response => _completer.future;
 
+  // Client-side identifier for this message.
+  final serial;
+
   // In new messages.
   final String method;
 
@@ -30,8 +33,8 @@ class Message {
     });
   }
 
-  Message.fromJsonRpc(this.method, Map rpcParams) {
-    params.addAll(rpcParams);
+  Message.fromJsonRpc(Map map) : serial = map['id'], method = map['method'] {
+    params.addAll(map['params']);
   }
 
   static String _methodNameFromUri(Uri uri) {
@@ -76,11 +79,8 @@ class Message {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      if (value is Exception) {
-        _completer.completeError(value);
-      } else {
-        _completer.complete(value);
-      }
+      assert(value is String);
+      _completer.complete(value);
     };
     var keys = _makeAllString(params.keys.toList(growable:false));
     var values = _makeAllString(params.values.toList(growable:false));
@@ -90,7 +90,14 @@ class Message {
         ..[2] = method
         ..[3] = keys
         ..[4] = values;
-    sendIsolateServiceMessage(sendPort, request);
+    if (!sendIsolateServiceMessage(sendPort, request)) {
+      _completer.complete(JSON.encode({
+          'type': 'ServiceError',
+          'id': '',
+          'kind': 'InternalError',
+          'message': 'could not send message [${serial}] to isolate',
+      }));
+    }
     return _completer.future;
   }
 
@@ -98,11 +105,8 @@ class Message {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      if (value is Exception) {
-        _completer.completeError(value);
-      } else {
-        _completer.complete(value);
-      }
+      assert(value is String);
+      _completer.complete(value);
     };
     var keys = _makeAllString(params.keys.toList(growable:false));
     var values = _makeAllString(params.values.toList(growable:false));
@@ -132,7 +136,7 @@ class Message {
   }
 }
 
-void sendIsolateServiceMessage(SendPort sp, List m)
+bool sendIsolateServiceMessage(SendPort sp, List m)
     native "VMService_SendIsolateServiceMessage";
 
 void sendRootServiceMessage(List m)

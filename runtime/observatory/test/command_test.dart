@@ -124,7 +124,7 @@ void testCommandComplete() {
   });
 
   // Locals + subcommands, single local match.
-  cmd.completeCommand('count th ').then((result) {
+  cmd.completeCommand('count th').then((result) {
     expect(result, equals(['count three ']));
   });
 
@@ -138,9 +138,9 @@ void testCommandComplete() {
     expect(result, equals(['co chocula ']));
   });
 
-  // We gobble spare spaces, even in the prefix.
+  // We gobble spare spaces in the prefix but not elsewhere.
   cmd.completeCommand('    game    chec').then((result) {
-    expect(result, equals(['game checkers ']));
+    expect(result, equals(['game    checkers ']));
   });
 }
 
@@ -155,7 +155,7 @@ void testCommandRunSimple() {
       out.clear();
       // Substring dispatch works.
       cmd.runCommand('al cat mouse').then(expectAsync((_) {
-          expect(out.toString(), contains('executing alpha([cat, mouse])\n'));
+          expect(out.toString(), contains('executing alpha([cat , mouse])\n'));
       }));
   }));
 }

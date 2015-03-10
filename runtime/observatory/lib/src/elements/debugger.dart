@@ -104,6 +104,139 @@ class HelpCommand extends DebuggerCommand {
       '        help <command>  - Help for a specific command\n';
 }
 
+class PrintCommand extends DebuggerCommand {
+  PrintCommand(Debugger debugger) : super(debugger, 'print', []) {
+    alias = 'p';
+  }
+
+  Future run(List<String> args) {
+    if (args.length < 1) {
+      debugger.console.print('print expects arguments');
+      return new Future.value(null);
+    }
+    var expr = args.join('');
+    return debugger.isolate.evalFrame(debugger.currentFrame, expr)
+      .then((response) {
+          if (response is DartError) {
+            debugger.console.print(response.message);
+          } else {
+            ServiceMap instance = response;
+            debugger.console.print('= ', newline:false);
+            debugger.console.printRef(instance);
+          }
+      });
+  }
+
+  String helpShort = 'Evaluate and print an expression in the current frame';
+
+  String helpLong =
+      'Evaluate and print an expression in the current frame.\n'
+      '\n'
+      'Syntax: print <expression>\n'
+      '        p <expression>\n';
+}
+
+class DownCommand extends DebuggerCommand {
+  DownCommand(Debugger debugger) : super(debugger, 'down', []);
+
+  Future run(List<String> args) {
+    int count = 1;
+    if (args.length == 1) {
+      count = int.parse(args[0]);
+    } else if (args.length > 1) {
+      debugger.console.print('down expects 0 or 1 argument');
+      return new Future.value(null);
+    }
+    if (debugger.currentFrame == null) {
+      debugger.console.print('No stack');
+      return new Future.value(null);
+    }
+    try {
+      debugger.currentFrame -= count;
+      debugger.console.print('frame = ${debugger.currentFrame}');
+    } catch (e) {
+      debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
+    }
+    return new Future.value(null);
+  }
+
+  String helpShort = 'Move down one or more frames';
+
+  String helpLong =
+      'Move down one or more frames.\n'
+      '\n'
+      'Syntax: down\n'
+      '        down <count>\n';
+}
+
+class UpCommand extends DebuggerCommand {
+  UpCommand(Debugger debugger) : super(debugger, 'up', []);
+
+  Future run(List<String> args) {
+    int count = 1;
+    if (args.length == 1) {
+      count = int.parse(args[0]);
+    } else if (args.length > 1) {
+      debugger.console.print('up expects 0 or 1 argument');
+      return new Future.value(null);
+    }
+    if (debugger.currentFrame == null) {
+      debugger.console.print('No stack');
+      return new Future.value(null);
+    }
+    try {
+      debugger.currentFrame += count;
+      debugger.console.print('frame = ${debugger.currentFrame}');
+    } on RangeError catch (e) {
+      debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
+    }
+    return new Future.value(null);
+  }
+
+  String helpShort = 'Move up one or more frames';
+
+  String helpLong =
+      'Move up one or more frames.\n'
+      '\n'
+      'Syntax: up\n'
+      '        up <count>\n';
+}
+
+class FrameCommand extends DebuggerCommand {
+  FrameCommand(Debugger debugger) : super(debugger, 'frame', []) {
+    alias = 'f';
+  }
+
+  Future run(List<String> args) {
+    int frame = 1;
+    if (args.length == 1) {
+      frame = int.parse(args[0]);
+    } else {
+      debugger.console.print('frame expects 1 argument');
+      return new Future.value(null);
+    }
+    if (debugger.currentFrame == null) {
+      debugger.console.print('No stack');
+      return new Future.value(null);
+    }
+    try {
+      debugger.currentFrame = frame;
+      debugger.console.print('frame = ${debugger.currentFrame}');
+    } on RangeError catch (e) {
+      debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
+    }
+    return new Future.value(null);
+  }
+
+  String helpShort = 'Set the current frame';
+
+  String helpLong =
+      'Set the current frame.\n'
+      '\n'
+      'Syntax: frame <number>\n'
+      '        f <count>\n';
+}
+
 class PauseCommand extends DebuggerCommand {
   PauseCommand(Debugger debugger) : super(debugger, 'pause', []);
 
@@ -145,7 +278,8 @@ class ContinueCommand extends DebuggerCommand {
   String helpLong =
       'Continue running the isolate.\n'
       '\n'
-      'Syntax: continue\n';
+      'Syntax: continue\n'
+      '        c\n';
 }
 
 class NextCommand extends DebuggerCommand {
@@ -490,10 +624,31 @@ class InfoIsolatesCommand extends DebuggerCommand {
       'Syntax: info isolates\n';
 }
 
+class InfoFrameCommand extends DebuggerCommand {
+  InfoFrameCommand(Debugger debugger) : super(debugger, 'frame', []);
+
+  Future run(List<String> args) {
+    if (args.length > 0) {
+      debugger.console.print('info frame expects 1 argument');
+      return new Future.value(null);
+    }
+    debugger.console.print('frame = ${debugger.currentFrame}');
+    return new Future.value(null);
+  }
+
+  String helpShort = 'Show current frame';
+
+  String helpLong =
+      'Show current frame.\n'
+      '\n'
+      'Syntax: info frame\n';
+}
+
 class InfoCommand extends DebuggerCommand {
   InfoCommand(Debugger debugger) : super(debugger, 'info', [
       new InfoBreakpointsCommand(debugger),
       new InfoIsolatesCommand(debugger),
+      new InfoFrameCommand(debugger),
   ]);
 
   Future run(List<String> args) {
@@ -573,11 +728,28 @@ class ObservatoryDebugger extends Debugger {
   DebuggerConsoleElement console;
   DebuggerStackElement stackElement;
   ServiceMap stack;
-  int currentFrame = 0;
+
+  int get currentFrame => _currentFrame;
+  void set currentFrame(int value) {
+    if (value != null && (value < 0 || value >= stackDepth)) {
+      throw new RangeError.range(value, 0, stackDepth);
+    }
+    _currentFrame = value;
+    if (stackElement != null) {
+      stackElement.setCurrentFrame(value);
+    }
+  }
+  int _currentFrame = null;
+
+  int get stackDepth => stack['frames'].length;
 
   ObservatoryDebugger() {
     cmd = new RootCommand([
         new HelpCommand(this),
+        new PrintCommand(this),
+        new DownCommand(this),
+        new UpCommand(this),
+        new FrameCommand(this),
         new PauseCommand(this),
         new ContinueCommand(this),
         new NextCommand(this),
@@ -630,7 +802,8 @@ class ObservatoryDebugger extends Debugger {
     // TODO(turnidge): Stop relying on the isolate to track the last
     // pause event.  Since we listen to events directly in the
     // debugger, this could introduce a race.
-    return (isolate.pauseEvent != null &&
+    return (isolate != null &&
+            isolate.pauseEvent != null &&
             isolate.pauseEvent.eventType != ServiceEvent.kResume);
   }
 
@@ -649,6 +822,11 @@ class ObservatoryDebugger extends Debugger {
       // TODO(turnidge): Replace only the changed part of the stack to
       // reduce flicker.
       stackElement.updateStack(stack, pauseEvent);
+      if (stack['frames'].length > 0) {
+        currentFrame = 0;
+      } else {
+        currentFrame = null;
+      }
     });
   }
 
@@ -878,12 +1056,18 @@ class DebuggerStackElement extends ObservatoryElement {
   @published Isolate isolate;
   @observable bool hasStack = false;
   @observable bool isSampled = false;
+  @observable int currentFrame;
   ObservatoryDebugger debugger;
 
-  _addFrame(List frameList, ObservableMap frameInfo, bool expand) {
+  _addFrame(List frameList, ObservableMap frameInfo) {
     DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
-    frameElement.expand = expand;
     frameElement.frame = frameInfo;
+
+    if (frameInfo['depth'] == currentFrame) {
+      frameElement.setCurrent(true);
+    } else {
+      frameElement.setCurrent(false);
+    }
 
     var li = new LIElement();
     li.classes.add('list-group-item');
@@ -928,13 +1112,12 @@ class DebuggerStackElement extends ObservatoryElement {
       // Add new frames to the top of stack.
       newCount = newFrames.length - frameElements.length;
       for (int i = newCount-1; i >= 0; i--) {
-        _addFrame(frameElements, newFrames[i], i == 0);
+        _addFrame(frameElements, newFrames[i]);
       }
     }
     assert(frameElements.length == newFrames.length);
 
     if (frameElements.isNotEmpty) {
-      frameElements[0].children[0].expand = true;
       for (int i = newCount; i < frameElements.length; i++) {
         frameElements[i].children[0].updateFrame(newFrames[i]);
       }
@@ -942,6 +1125,19 @@ class DebuggerStackElement extends ObservatoryElement {
 
     isSampled = pauseEvent == null;
     hasStack = frameElements.isNotEmpty;
+  }
+
+  void setCurrentFrame(int value) {
+    currentFrame = value;
+    List frameElements = $['frameList'].children;
+    for (var frameElement in frameElements) {
+      var dbgFrameElement = frameElement.children[0];
+      if (dbgFrameElement.frame['depth'] == currentFrame) {
+        dbgFrameElement.setCurrent(true);
+      } else {
+        dbgFrameElement.setCurrent(false);
+      }
+    }
   }
 
   Set<Script> activeScripts() {
@@ -976,8 +1172,35 @@ class DebuggerStackElement extends ObservatoryElement {
 class DebuggerFrameElement extends ObservatoryElement {
   @published ObservableMap frame;
 
-  // When true, the frame will start out expanded.
-  @published bool expand = false;
+  // Is this the current frame?
+  bool _current = false;
+
+  // Has this frame been pinned open?
+  bool _pinned = false;
+
+  void setCurrent(bool value) {
+    busy = true;
+    frame['function'].load().then((func) {
+      _current = value;
+      var frameOuter = $['frameOuter'];
+      if (_current) {
+        frameOuter.classes.add('current');
+        expanded = true;
+        frameOuter.classes.add('shadow');
+        scrollIntoView();
+      } else {
+        frameOuter.classes.remove('current');
+        if (_pinned) {
+          expanded = true;
+          frameOuter.classes.add('shadow');
+        } else {
+          expanded = false;
+          frameOuter.classes.remove('shadow');
+        }
+      }
+      busy = false;
+    });
+  }
 
   @observable String scriptHeight;
   @observable bool expanded = false;
@@ -1005,23 +1228,19 @@ class DebuggerFrameElement extends ObservatoryElement {
     scriptHeight = '${windowHeight ~/ 1.6}px';
   }
 
-  void expandChanged(oldValue) {
-    if (expand != expanded) {
-      toggleExpand(null, null, null);
-    }
-  }
-
   void toggleExpand(var a, var b, var c) {
     if (busy) {
       return;
     }
     busy = true;
     frame['function'].load().then((func) {
-        expanded = !expanded;
+        _pinned = !_pinned;
         var frameOuter = $['frameOuter'];
-        if (expanded) {
+        if (_pinned) {
+          expanded = true;
           frameOuter.classes.add('shadow');
         } else {
+          expanded = false;
           frameOuter.classes.remove('shadow');
         }
         busy = false;
@@ -1055,6 +1274,16 @@ class DebuggerConsoleElement extends ObservatoryElement {
     }
     $['consoleText'].children.add(span);
     span.scrollIntoView();
+  }
+
+  void printRef(ServiceMap ref, { bool newline:true }) {
+    var refElement = new Element.tag('instance-ref');
+    refElement.ref = ref;
+    $['consoleText'].children.add(refElement);
+    if (newline) {
+      this.newline();
+    }
+    refElement.scrollIntoView();
   }
 
   void newline() {

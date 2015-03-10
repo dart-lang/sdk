@@ -89,15 +89,20 @@ void JSONStream::PostReply() {
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(reply);
-  PortMap::PostMessage(new Message(port, data,
-                                   writer.BytesWritten(),
-                                   Message::kNormalPriority));
+  bool result = PortMap::PostMessage(new Message(port, data,
+                                                 writer.BytesWritten(),
+                                                 Message::kNormalPriority));
   if (FLAG_trace_service) {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    OS::Print("Isolate %s processed service request %s in %" Pd64" us.\n",
-              isolate_name, method_, process_delta_micros);
+    if (result) {
+      OS::Print("Isolate %s processed service request %s in %" Pd64" us.\n",
+                isolate_name, method_, process_delta_micros);
+    } else {
+      OS::Print("Isolate %s FAILED to post response for service request %s.\n",
+                isolate_name, method_);
+    }
   }
 }
 

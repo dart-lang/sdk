@@ -463,6 +463,10 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
       }
       if (method->entry(isolate, &js)) {
         js.PostReply();
+      } else {
+        // NOTE(turnidge): All message handlers currently return true,
+        // so this case shouldn't be reached, at present.
+        UNIMPLEMENTED();
       }
       return;
     }
@@ -522,7 +526,9 @@ void Service::SetEventMask(uint32_t mask) {
 }
 
 
-void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
+void Service::SendEvent(intptr_t eventFamilyId,
+                        intptr_t eventType,
+                        const Object& eventMessage) {
   if (!ServiceIsolate::IsRunning()) {
     return;
   }
@@ -530,10 +536,12 @@ void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
 
-  // Construct a list of the form [eventId, eventMessage].
+  // Construct a list of the form [eventFamilyId, eventMessage].
+  //
+  // TODO(turnidge): Revisit passing the eventFamilyId here at all.
   const Array& list = Array::Handle(Array::New(2));
   ASSERT(!list.IsNull());
-  list.SetAt(0, Integer::Handle(Integer::New(eventId)));
+  list.SetAt(0, Integer::Handle(Integer::New(eventFamilyId)));
   list.SetAt(1, eventMessage);
 
   // Push the event to port_.
@@ -543,7 +551,7 @@ void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print("vm-service: Pushing event of type %" Pd ", len %" Pd "\n",
-              eventId, len);
+              eventType, len);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -551,7 +559,7 @@ void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
 }
 
 
-void Service::SendEvent(intptr_t eventId,
+void Service::SendEvent(intptr_t eventFamilyId,
                         const String& meta,
                         const uint8_t* data,
                         intptr_t size) {
@@ -577,7 +585,8 @@ void Service::SendEvent(intptr_t eventId,
     offset += size;
   }
   ASSERT(offset == total_bytes);
-  SendEvent(eventId, message);
+  // TODO(turnidge): Pass the real eventType here.
+  SendEvent(eventFamilyId, 0, message);
 }
 
 
@@ -585,7 +594,8 @@ void Service::HandleGCEvent(GCEvent* event) {
   JSONStream js;
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyGC, message);
+  // TODO(turnidge): Pass the real eventType here.
+  SendEvent(kEventFamilyGC, 0, message);
 }
 
 
@@ -593,7 +603,7 @@ void Service::HandleEvent(ServiceEvent* event) {
   JSONStream js;
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyDebug, message);
+  SendEvent(kEventFamilyDebug, event->type(), message);
 }
 
 
@@ -1515,6 +1525,32 @@ static bool Eval(Isolate* isolate, JSONStream* js) {
   PrintError(js, "%s: Invalid 'targetId' parameter value: "
              "id '%s' does not correspond to a "
              "library, class, or instance", js->method(), target_id);
+  return true;
+}
+
+
+static const MethodParameter* eval_frame_params[] = {
+  ISOLATE_PARAMETER,
+  new UIntParameter("frame", true),
+  new MethodParameter("expression", true),
+  NULL,
+};
+
+
+static bool EvalFrame(Isolate* isolate, JSONStream* js) {
+  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frame"));
+  if (framePos > stack->Length()) {
+    PrintInvalidParamError(js, "frame");
+    return true;
+  }
+  ActivationFrame* frame = stack->FrameAt(framePos);
+
+  const char* expr = js->LookupParam("expression");
+  const String& expr_str = String::Handle(isolate, String::New(expr));
+
+  const Object& result = Object::Handle(frame->Evaluate(expr_str));
+  result.PrintJSON(js, true);
   return true;
 }
 
@@ -2506,6 +2542,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     clear_cpu_profile_params },
   { "eval", Eval,
     eval_params },
+  { "evalFrame", EvalFrame,
+    eval_frame_params },
   { "getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
   { "getCallSiteData", GetCallSiteData,

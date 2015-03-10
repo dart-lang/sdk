@@ -22,6 +22,7 @@ class TestDebugger extends Debugger {
 
   Isolate isolate;
   ServiceMap stack;
+  int currentFrame = 0;
 }
 
 void source_location_dummy_function() {
