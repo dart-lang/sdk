@@ -217,14 +217,14 @@ abstract class ClassElement implements Element {
   List<InterfaceType> get mixins;
 
   /**
-   * Return the resolved [ClassDeclaration] node that declares this
-   * [ClassElement].
+   * Return the resolved [ClassDeclaration] or [EnumDeclaration] node that
+   * declares this [ClassElement].
    *
    * This method is expensive, because resolved AST might be evicted from cache,
    * so parsing and resolving will be performed.
    */
   @override
-  ClassDeclaration get node;
+  AstNode get node;
 
   /**
    * Return the superclass of this class, or `null` if the class represents the
@@ -695,8 +695,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  ClassDeclaration get node =>
-      getNodeMatching((node) => node is ClassDeclaration);
+  AstNode get node {
+    if (isEnum) {
+      return getNodeMatching((node) => node is EnumDeclaration);
+    } else {
+      return getNodeMatching((node) => node is ClassDeclaration);
+    }
+  }
 
   /**
    * Set whether this class is defined by a typedef construct.
@@ -3683,6 +3688,16 @@ abstract class FieldElement
    * Return {@code true} if this element is an enum constant.
    */
   bool get isEnumConstant;
+
+  /**
+   * Return the resolved [VariableDeclaration] or [EnumConstantDeclaration]
+   * node that declares this [FieldElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache,
+   * so parsing and resolving will be performed.
+   */
+  @override
+  AstNode get node;
 }
 
 /**
@@ -3718,6 +3733,15 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.FIELD;
+
+  @override
+  AstNode get node {
+    if (isEnumConstant) {
+      return getNodeMatching((node) => node is EnumConstantDeclaration);
+    } else {
+      return getNodeMatching((node) => node is VariableDeclaration);
+    }
+  }
 
   /**
    * Set whether this field is static.
@@ -5588,8 +5612,7 @@ abstract class InterfaceType implements ParameterizedType {
    *   to <i>L</i>. Otherwise, we say that the lookup has failed.
    * </blockquote>
    */
-  PropertyAccessorElement lookUpGetter(
-      String name, LibraryElement library);
+  PropertyAccessorElement lookUpGetter(String name, LibraryElement library);
 
   /**
    * Return the element representing the getter that results from looking up the
@@ -5644,8 +5667,7 @@ abstract class InterfaceType implements ParameterizedType {
    * Otherwise, we say that the lookup has failed.
    * </blockquote>
    */
-  MethodElement lookUpMethodInSuperclass(
-      String name, LibraryElement library);
+  MethodElement lookUpMethodInSuperclass(String name, LibraryElement library);
 
   /**
    * Return the element representing the setter that results from looking up the
@@ -5663,8 +5685,7 @@ abstract class InterfaceType implements ParameterizedType {
    *   to <i>L</i>. Otherwise, we say that the lookup has failed.
    * </blockquote>
    */
-  PropertyAccessorElement lookUpSetter(
-      String name, LibraryElement library);
+  PropertyAccessorElement lookUpSetter(String name, LibraryElement library);
 
   /**
    * Return the element representing the setter that results from looking up the
@@ -6498,8 +6519,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       InterfaceType type, int depth, HashSet<ClassElement> visitedTypes) {
     ClassElement classElement = type.element;
     // Object case
-    if (classElement.supertype == null ||
-        visitedTypes.contains(classElement)) {
+    if (classElement.supertype == null || visitedTypes.contains(classElement)) {
       return depth;
     }
     int longestPath = 1;
@@ -7259,8 +7279,7 @@ class LocalVariableElementImpl extends VariableElementImpl
    * Initialize a newly created method element to have the given [name] and
    * [offset].
    */
-  LocalVariableElementImpl(String name, int offset)
-      : super(name, offset);
+  LocalVariableElementImpl(String name, int offset) : super(name, offset);
 
   /**
    * Initialize a newly created local variable element to have the given [name].
@@ -7655,8 +7674,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
    * method. Return the member that was created, or the base method if no member
    * was created.
    */
-  static MethodElement from(
-      MethodElement method, InterfaceType definingType) {
+  static MethodElement from(MethodElement method, InterfaceType definingType) {
     if (method == null || definingType.typeArguments.length == 0) {
       return method;
     }
@@ -8939,8 +8957,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
    * Initialize a newly created synthetic element to have the given [name] and
    * [offset].
    */
-  PropertyInducingElementImpl(String name, int offset)
-      : super(name, offset);
+  PropertyInducingElementImpl(String name, int offset) : super(name, offset);
 
   /**
    * Initialize a newly created element to have the given [name].
@@ -9247,8 +9264,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
    * Initialize a newly created synthetic top-level variable element to have the
    * given [name] and [offset].
    */
-  TopLevelVariableElementImpl(String name, int offset)
-      : super(name, offset);
+  TopLevelVariableElementImpl(String name, int offset) : super(name, offset);
 
   /**
    * Initialize a newly created top-level variable element to have the given
@@ -9612,8 +9628,7 @@ class TypeParameterElementImpl extends ElementImpl
    * Initialize a newly created method element to have the given [name] and
    * [offset].
    */
-  TypeParameterElementImpl(String name, int offset)
-      : super(name, offset);
+  TypeParameterElementImpl(String name, int offset) : super(name, offset);
 
   /**
    * Initialize a newly created type parameter element to have the given [name].

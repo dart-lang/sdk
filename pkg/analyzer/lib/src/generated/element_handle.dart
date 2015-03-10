@@ -81,9 +81,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   List<InterfaceType> get mixins => actualElement.mixins;
 
   @override
-  ClassDeclaration get node => actualElement.node;
-
-  @override
   InterfaceType get supertype => actualElement.supertype;
 
   @override

@@ -25,6 +25,7 @@ import 'test_support.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(ElementKindTest);
+  runReflectiveTests(FieldElementImplTest);
   runReflectiveTests(FunctionTypeImplTest);
   runReflectiveTests(InterfaceTypeImplTest);
   runReflectiveTests(TypeParameterTypeImplTest);
@@ -111,33 +112,6 @@ class ClassElementImplTest extends EngineTestCase {
     MethodElement method = ElementFactory.methodElement(methodName, null);
     classA.methods = <MethodElement>[method];
     expect(classA.getMethod("${methodName}x"), isNull);
-  }
-
-  void test_getNode() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-class A {}
-class B {}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    {
-      ClassElement elementA = unitElement.getType("A");
-      ClassDeclaration nodeA = elementA.node;
-      expect(nodeA, isNotNull);
-      expect(nodeA.name.name, "A");
-      expect(nodeA.element, same(elementA));
-    }
-    // B
-    {
-      ClassElement elementB = unitElement.getType("B");
-      ClassDeclaration nodeB = elementB.node;
-      expect(nodeB, isNotNull);
-      expect(nodeB.name.name, "B");
-      expect(nodeB.element, same(elementB));
-    }
   }
 
   void test_hasNonFinalField_false_const() {
@@ -883,7 +857,44 @@ class B {}''');
         <ClassElement>[classA, classB];
     expect(classA.lookUpSetter("s", library), isNull);
   }
+
+  void test_node() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+class A {}
+class B {}
+enum C {C1, C2, C3}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // A
+    {
+      ClassElement elementA = unitElement.getType("A");
+      ClassDeclaration nodeA = elementA.node;
+      expect(nodeA, isNotNull);
+      expect(nodeA.name.name, "A");
+      expect(nodeA.element, same(elementA));
+    }
+    // B
+    {
+      ClassElement elementB = unitElement.getType("B");
+      ClassDeclaration nodeB = elementB.node;
+      expect(nodeB, isNotNull);
+      expect(nodeB.name.name, "B");
+      expect(nodeB.element, same(elementB));
+    }
+    // C
+    {
+      ClassElement elementC = unitElement.getEnum("C");
+      EnumDeclaration nodeC = elementC.node;
+      expect(nodeC, isNotNull);
+      expect(nodeC.name.name, "C");
+      expect(nodeC.element, same(elementC));
+    }
+  }
 }
+
 
 @reflectiveTest
 class CompilationUnitElementImplTest extends EngineTestCase {
@@ -1098,6 +1109,38 @@ class ElementLocationImplTest extends EngineTestCase {
     ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
     ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
     expect(first.hashCode == second.hashCode, isTrue);
+  }
+}
+
+@reflectiveTest
+class FieldElementImplTest extends EngineTestCase {
+  void test_node() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+class A {
+  int a;
+}
+enum B {B1, B2, B3}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // A
+    {
+      FieldElement elementA = unitElement.getType("A").getField('a');
+      VariableDeclaration nodeA = elementA.node;
+      expect(nodeA, isNotNull);
+      expect(nodeA.name.name, "a");
+      expect(nodeA.element, same(elementA));
+    }
+    // B
+    {
+      FieldElement elementB = unitElement.getEnum("B").getField('B2');
+      EnumConstantDeclaration nodeB = elementB.node;
+      expect(nodeB, isNotNull);
+      expect(nodeB.name.name, "B2");
+      expect(nodeB.element, same(elementB));
+    }
   }
 }
 
