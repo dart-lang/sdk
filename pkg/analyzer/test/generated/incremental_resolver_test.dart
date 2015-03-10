@@ -589,6 +589,118 @@ class T {
 ''');
   }
 
+  void test_false_fieldFormalParameter_add() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A(field);
+}
+''', r'''
+class A {
+  final field;
+  A(this.field);
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_add_function() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A(field(a));
+}
+''', r'''
+class A {
+  final field;
+  A(this.field(a));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_parameters_add() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A(this.field(a));
+}
+''', r'''
+class A {
+  final field;
+  A(this.field(a, b));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_parameters_remove() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A(this.field(a, b));
+}
+''', r'''
+class A {
+  final field;
+  A(this.field(a));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_parameters_typeEdit() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A(this.field(int p));
+}
+''', r'''
+class A {
+  final field;
+  A(this.field(String p));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_remove_default() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A([this.field = 0]);
+}
+''', r'''
+class A {
+  final field;
+  A([field = 0]);
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_remove_function() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A(this.field(a));
+}
+''', r'''
+class A {
+  final field;
+  A(field(a));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_remove_normal() {
+    _assertDoesNotMatch(r'''
+class A {
+  final field;
+  A(this.field);
+}
+''', r'''
+class A {
+  final field;
+  A(field);
+}
+''');
+  }
+
   void test_false_fieldFormalParameterElement_wasSimple() {
     _assertDoesNotMatch(r'''
 class A {
@@ -1718,6 +1830,20 @@ class A {
 ''');
   }
 
+  void test_true_fieldFormalParameter_function() {
+    _assertMatches(r'''
+class A {
+  final field;
+  A(this.field(int a, String b));
+}
+''', r'''
+class A {
+  final field;
+  A(this.field(int a, String b));
+}
+''');
+  }
+
   void test_true_functionTypeAlias_list_reorder() {
     _assertMatches(r'''
 typedef A(int pa);
@@ -2843,6 +2969,23 @@ main() {
 ''');
   }
 
+  void test_endOfLineComment_localFunction_inTopLevelVariable() {
+    _resolveUnit(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some comment
+});
+''');
+    _updateAndValidate(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some  comment
+});
+''');
+  }
+
   void test_endOfLineComment_outBody_add() {
     _resolveUnit(r'''
 main() {
@@ -2890,23 +3033,6 @@ main() {
   x.foo();
 }
 ''', expectedSuccess: false);
-  }
-
-  void test_endOfLineComment_localFunction_inTopLevelVariable() {
-    _resolveUnit(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some comment
-});
-''');
-    _updateAndValidate(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some  comment
-});
-''');
   }
 
   void test_endOfLineComment_remove() {
