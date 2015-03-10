@@ -1241,6 +1241,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Expression _emitPrefixIncrement(Token op, Expression expr) {
     var one = AstBuilder.integerLiteral(1);
+    one.staticType = rules.provider.intType;
     var increment = AstBuilder.binaryExpression(expr, op.lexeme[0], one);
     return _emitAssignment(expr, increment);
   }
@@ -1516,7 +1517,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     var catchVarDecl = new JS.VariableDeclaration(_catchParameter);
-    var catchBody = _statement(_visitList(clauses));
+    var catchBody = new JS.Block(_visitList(clauses));
     _catchParameter = savedCatch;
 
     return new JS.Catch(catchVarDecl, catchBody);
