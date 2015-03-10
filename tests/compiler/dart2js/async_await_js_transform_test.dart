@@ -1015,4 +1015,52 @@ function(x, y, k) {
   }
   return thenHelper(null, __body, __completer, null);
 }""");
+  testTransform("""
+  function(l) async {
+    switch(await l) {
+      case 1:
+        print(1);
+        break;
+      case 2:
+        print(1);
+        // Fallthrough
+      default:
+        print(2);
+        break;
+    }
+  }""", """
+function(l) {
+  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
+  function __body(__errorCode, __result) {
+    if (__errorCode === 1) {
+      __currentError = __result;
+      __goto = __handler;
+    }
+    while (true)
+      switch (__goto) {
+        case 0:
+          // Function start
+          __goto = 2;
+          return thenHelper(l, __body, __completer);
+        case 2:
+          // returning from await.
+          switch (__result) {
+            case 1:
+              print(1);
+              break;
+            case 2:
+              print(1);
+            default:
+              print(2);
+              break;
+          }
+          // implicit return
+          return thenHelper(null, 0, __completer, null);
+        case 1:
+          // rethrow
+          return thenHelper(__currentError, 1, __completer);
+      }
+  }
+  return thenHelper(null, __body, __completer, null);
+}""");
 }
