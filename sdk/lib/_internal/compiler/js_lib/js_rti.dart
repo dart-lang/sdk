@@ -17,15 +17,13 @@
  * these:
  *  1) a JavaScript constructor for a class C: the represented type is the raw
  *     type C.
- *  2) a Dart object: this is the interceptor instance for a native type.
- *  3) a JavaScript object: this represents a class for which there is no
- *     JavaScript constructor, because it is only used in type arguments or it
- *     is native. The represented type is the raw type of this class.
- *  4) a JavaScript array: the first entry is of type 1, 2 or 3 and contains the
+ *  2) a JavaScript array: the first entry is of type 1 and contains the
  *     subtyping flags and the substitution of the type and the rest of the
  *     array are the type arguments.
- *  5) `null`: the dynamic type.
- *
+ *  3) `null`: the dynamic type.
+ *  4) a JavaScript object representing the function type. For instance, it has
+ *     the form  {ret: rti, args: [rti], opt: [rti], named: {name: rti}} for a
+ *     function with a return type, regular, optional and named arguments.
  *
  * To check subtype relations between generic classes we use a JavaScript
  * expression that describes the necessary substitution for type arguments.
