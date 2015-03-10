@@ -5533,6 +5533,8 @@ WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please tria
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ie10 ]
+LayoutTests/fast/forms/autofocus-input-css-style-change_t01: RuntimeError # Issue 22752. Please triage this failure
+
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A03_t02: Skip # Times out. Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
@@ -7567,6 +7569,8 @@ WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please tria
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ie11 ]
+LayoutTests/fast/forms/autofocus-input-css-style-change_t01: RuntimeError # Issue 22752. Please triage this failure
+
 Language/05_Variables/05_Variables_A14_t07: Skip # Times out. Please triage this failure
 Language/06_Functions/2_Formal_Parameters_A02_t01: Skip # Times out. Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
