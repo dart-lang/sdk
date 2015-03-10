@@ -48,13 +48,6 @@ async_throw_in_catch_test: Timeout, Fail # Issue 21404 or it could be a test err
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 
-async_await_test/03: Crash
-async_star_test/01: CompileTimeError
-async_star_test/02: RuntimeError
-async_star_test/03: RuntimeError
-async_star_test/04: RuntimeError
-async_star_test/05: Timeout
-
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
