@@ -433,7 +433,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               }
               connectNext();
             } else {
-              socket.port;  // Query the local port, for error messages.
+              // Query the local port, for error messages.
+              socket.port;
               // Set up timer for when we should retry the next address
               // (if any).
               var duration = address.isLoopback ?
@@ -678,8 +679,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   int get port {
-    if (isClosing || isClosed) throw const SocketException.closed();
     if (localPort != 0) return localPort;
+    if (isClosing || isClosed) throw const SocketException.closed();
     var result = nativeGetPort();
     if (result is OSError) throw result;
     return localPort = result;
@@ -692,10 +693,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     return result[1];
   }
 
-  InternetAddress get address {
-    if (isClosing || isClosed) throw const SocketException.closed();
-    return localAddress;
-  }
+  InternetAddress get address => localAddress;
 
   InternetAddress get remoteAddress {
     if (isClosing || isClosed) throw const SocketException.closed();
