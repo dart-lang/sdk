@@ -34,7 +34,7 @@ main() {
   });
 
   test("timer cancel test", () {
-    Timer timer = new Timer(const Duration(seconds: 1),
+    Timer timer = new Timer(const Duration(seconds: 15),
                             () => fail("Should not be reached."));
     Timer.run(expectAsync(() {
       expect(timer.isActive, equals(true));
