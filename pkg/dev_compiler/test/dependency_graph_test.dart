@@ -555,6 +555,7 @@ main() {
           index3.html
           |-- harmony_feature_check.js
           |-- dart_runtime.js
+          |-- dart_core.js
           ''');
       refreshStructureAndMarks(node, graph);
       expectGraph(node, '''
@@ -567,6 +568,7 @@ main() {
           |    |-- a6.dart (part) [needs-rebuild]
           |-- harmony_feature_check.js [needs-rebuild]
           |-- dart_runtime.js [needs-rebuild]
+          |-- dart_core.js [needs-rebuild]
           ''');
     });
 
@@ -583,6 +585,7 @@ main() {
           |    |-- a6.dart (part) [needs-rebuild]
           |-- harmony_feature_check.js [needs-rebuild]
           |-- dart_runtime.js [needs-rebuild]
+          |-- dart_core.js [needs-rebuild]
           ''');
       clearMarks(node);
       expectGraph(node, '''
@@ -595,6 +598,7 @@ main() {
           |    |-- a6.dart (part)
           |-- harmony_feature_check.js
           |-- dart_runtime.js
+          |-- dart_core.js
           ''');
 
       refreshStructureAndMarks(node, graph);
@@ -608,6 +612,7 @@ main() {
           |    |-- a6.dart (part)
           |-- harmony_feature_check.js
           |-- dart_runtime.js
+          |-- dart_core.js
           ''');
     });
 
@@ -629,6 +634,7 @@ main() {
           |    |-- a6.dart (part)
           |-- harmony_feature_check.js
           |-- dart_runtime.js
+          |-- dart_core.js
           ''');
     });
 
@@ -653,6 +659,7 @@ main() {
           |    |-- a6.dart (part)
           |-- harmony_feature_check.js
           |-- dart_runtime.js
+          |-- dart_core.js
           ''');
     });
   });
@@ -671,6 +678,7 @@ main() {
           index3.html
           |-- harmony_feature_check.js
           |-- dart_runtime.js
+          |-- dart_core.js
           |-- messages_widget.js
           |-- messages.css
           ''');
@@ -685,6 +693,7 @@ main() {
           |    |-- a6.dart (part) [needs-rebuild]
           |-- harmony_feature_check.js [needs-rebuild]
           |-- dart_runtime.js [needs-rebuild]
+          |-- dart_core.js [needs-rebuild]
           |-- messages_widget.js [needs-rebuild]
           |-- messages.css [needs-rebuild]
           ''');
@@ -721,6 +730,7 @@ main() {
         'a2.dart',
         'harmony_feature_check.js',
         'dart_runtime.js',
+        'dart_core.js',
         'index3.html',
       ]);
 
@@ -735,6 +745,7 @@ main() {
           |    |-- a6.dart (part)
           |-- harmony_feature_check.js
           |-- dart_runtime.js
+          |-- dart_core.js
           ''');
     });
 
@@ -887,6 +898,7 @@ main() {
             |    |-- a6.dart (part)
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
 
         // Modify the file first:
@@ -909,6 +921,7 @@ main() {
             |    |-- a6.dart (part)
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -941,6 +954,7 @@ main() {
             |    |-- a5.dart...
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
       });
 
@@ -960,6 +974,7 @@ main() {
             |    |-- a6.dart (part)
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -983,6 +998,7 @@ main() {
             |    |-- a5.dart
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
 
         a6.source.contents.modificationTime++;
@@ -1001,6 +1017,7 @@ main() {
             |    |-- a5.dart...
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
       });
 
@@ -1020,6 +1037,7 @@ main() {
             |    |-- a6.dart (part)
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -1044,6 +1062,7 @@ main() {
             |    |-- a5.dart
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
       });
 
@@ -1063,6 +1082,7 @@ main() {
             |    |-- a6.dart (part)
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
 
         a2.source.contents.modificationTime++;
@@ -1086,6 +1106,7 @@ main() {
             |    |-- a6.dart (part)
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
 
         a5.source.contents.modificationTime++;
@@ -1103,6 +1124,7 @@ main() {
             |    |-- a6.dart (part)
             |-- harmony_feature_check.js
             |-- dart_runtime.js
+            |-- dart_core.js
             ''');
       });
     });

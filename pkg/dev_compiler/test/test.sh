@@ -12,6 +12,7 @@ function fail {
 #    duplicated in the expected folder.
 DIFF_ARGS="-u -r -N --exclude=\*.map \
   --exclude=dart_runtime.js \
+  --exclude=dart_core.js \
   --exclude=harmony_feature_check.js \
   --exclude=messages_widget.js \
   --exclude=messages.css \

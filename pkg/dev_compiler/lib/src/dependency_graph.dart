@@ -134,7 +134,7 @@ class HtmlSourceNode extends SourceNode {
 
   HtmlSourceNode(uri, source, graph) : super(uri, source) {
     var prefix = 'package:dev_compiler/runtime';
-    var files = ['harmony_feature_check.js', 'dart_runtime.js'];
+    var files = ['harmony_feature_check.js', 'dart_runtime.js', 'dart_core.js'];
     if (graph._options.serverMode) {
       files.addAll(const ['messages_widget.js', 'messages.css']);
     }
