@@ -4,13 +4,24 @@
 
 library test.src.task.dart_test;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisTask, ParseDartTask, ScanDartTask;
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/resolver_test.dart';
@@ -20,6 +31,7 @@ import '../../reflective_tests.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
+  runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ScanDartTaskTest);
 }
@@ -109,6 +121,306 @@ class A {''');
     buildTask.perform();
 
     return buildTask;
+  }
+}
+
+@reflectiveTest
+class BuildLibraryElementTaskTest extends EngineTestCase {
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+  InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+
+  Source librarySource;
+  CompilationUnit libraryUnit;
+  CompilationUnitElement libraryUnitElement;
+  List<CompilationUnit> partUnits;
+
+  BuildLibraryElementTask task;
+  Map<ResultDescriptor<dynamic>, dynamic> outputs;
+  LibraryElement libraryElement;
+
+  void setUp() {
+    DartSdk sdk = context.sourceFactory.dartSdk;
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      new DartUriResolver(sdk),
+      new ResourceUriResolver(resourceProvider)
+    ]);
+  }
+
+  test_buildInputs() {
+    ExtendedAnalysisContext context = new _MockContext();
+    // prepare sources
+    File libraryFile = resourceProvider.newFile('/lib.dart', '');
+    File partFile1 = resourceProvider.newFile('/part1.dart', '');
+    File partFile2 = resourceProvider.newFile('/part2.dart', '');
+    Source librarySource = libraryFile.createSource();
+    Source partSource1 = partFile1.createSource();
+    Source partSource2 = partFile2.createSource();
+    // set INCLUDED_PARTS
+    context.getCacheEntry(librarySource).setValue(
+        INCLUDED_PARTS, <Source>[partSource1, partSource2]);
+    // set BUILT_UNIT
+    CompilationUnit libraryUnit = AstFactory.compilationUnit();
+    CompilationUnit partUnit1 = AstFactory.compilationUnit();
+    CompilationUnit partUnit2 = AstFactory.compilationUnit();
+    context.getCacheEntry(librarySource).setValue(BUILT_UNIT, libraryUnit);
+    context.getCacheEntry(partSource1).setValue(BUILT_UNIT, partUnit1);
+    context.getCacheEntry(partSource2).setValue(BUILT_UNIT, partUnit2);
+    // request inputs
+    WorkItem workItem = new WorkItem(
+        context, librarySource, BuildLibraryElementTask.DESCRIPTOR);
+    workItem.gatherInputs(null);
+    Map<String, dynamic> inputs = workItem.inputs;
+    expect(inputs, hasLength(2));
+    expect(inputs[BuildLibraryElementTask.DEFINING_BUILT_UNIT_INPUT_NAME],
+        libraryUnit);
+    expect(inputs[BuildLibraryElementTask.PART_BUILT_UNITS_INPUT_NAME],
+        unorderedEquals([partUnit1, partUnit2]));
+  }
+
+  test_constructor() {
+    AnalysisTarget target = new TestSource();
+    BuildLibraryElementTask task = new BuildLibraryElementTask(context, target);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, target);
+  }
+
+  test_createTask() {
+    AnalysisTarget target = new TestSource();
+    BuildLibraryElementTask task =
+        BuildLibraryElementTask.createTask(context, target);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, target);
+  }
+
+  test_description() {
+    AnalysisTarget target = new TestSource();
+    BuildLibraryElementTask task = new BuildLibraryElementTask(null, target);
+    expect(task.description, isNotNull);
+  }
+
+  test_descriptor() {
+    TaskDescriptor descriptor = BuildLibraryElementTask.DESCRIPTOR;
+    expect(descriptor, isNotNull);
+  }
+
+  test_perform() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+''',
+      '/part1.dart': '''
+part of lib;
+''',
+      '/part2.dart': '''
+part of lib;
+'''
+    });
+    expect(task.caughtException, isNull);
+    expect(outputs, hasLength(4));
+    // simple outputs
+    expect(outputs[BUILD_LIBRARY_ERRORS], isEmpty);
+    expect(outputs[IS_LAUNCHABLE], isFalse);
+    expect(outputs[HAS_HTML_IMPORT], isFalse);
+    // LibraryElement output
+    expect(libraryElement, isNotNull);
+    expect(libraryElement.entryPoint, isNull);
+    expect(libraryElement.source, same(librarySource));
+    expect(libraryElement.definingCompilationUnit, libraryUnitElement);
+    expect(libraryElement.parts,
+        unorderedEquals([partUnits[0].element, partUnits[1].element]));
+    // LibraryElement references
+    expect((libraryUnit.directives[0] as LibraryDirective).element,
+        same(libraryElement));
+    expect((partUnits[0].directives[0] as PartOfDirective).element,
+        same(libraryElement));
+    expect((partUnits[1].directives[0] as PartOfDirective).element,
+        same(libraryElement));
+    // CompilationUnitElement(s)
+    {
+      CompilationUnitElement unitElement = partUnits[0].element;
+      expect(unitElement.uri, 'part1.dart');
+      expect(unitElement.uriOffset, 18);
+      expect(unitElement.uriEnd, 30);
+      expect((libraryUnit.directives[1] as PartDirective).element,
+          same(unitElement));
+    }
+    {
+      CompilationUnitElement unitElement = partUnits[1].element;
+      expect(unitElement.uri, 'part2.dart');
+      expect(unitElement.uriOffset, 37);
+      expect(unitElement.uriEnd, 49);
+      expect((libraryUnit.directives[2] as PartDirective).element,
+          same(unitElement));
+    }
+  }
+
+  test_perform_error_missingLibraryDirectiveWithPart() {
+    _performBuildTask({
+      '/lib.dart': '''
+part 'part.dart';
+''',
+      '/part.dart': '''
+part of lib;
+'''
+    });
+    expect(task.caughtException, isNull);
+    _assertErrorsWithCodes(
+        [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
+  }
+
+  test_perform_error_partOfDifferentLibrary() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'part.dart';
+''',
+      '/part.dart': '''
+part of someOtherLib;
+'''
+    });
+    expect(task.caughtException, isNull);
+    _assertErrorsWithCodes([StaticWarningCode.PART_OF_DIFFERENT_LIBRARY]);
+  }
+
+  test_perform_error_partOfNonPart() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'part.dart';
+''',
+      '/part.dart': '''
+// no part of
+'''
+    });
+    expect(task.caughtException, isNull);
+    _assertErrorsWithCodes([CompileTimeErrorCode.PART_OF_NON_PART]);
+  }
+
+  test_perform_hasHtmlImport() {
+    _performBuildTask({
+      '/lib.dart': '''
+import 'dart:html';
+'''
+    });
+    expect(outputs[HAS_HTML_IMPORT], isTrue);
+  }
+
+  test_perform_isLaunchable_inDefiningUnit() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+main() {
+}
+'''
+    });
+    expect(outputs[IS_LAUNCHABLE], isTrue);
+    expect(libraryElement.entryPoint, isNotNull);
+  }
+
+  test_perform_isLaunchable_inPartUnit() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'part.dart';
+''',
+      '/part.dart': '''
+part of lib;
+main() {
+}
+'''
+    });
+    expect(outputs[IS_LAUNCHABLE], isTrue);
+    expect(libraryElement.entryPoint, isNotNull);
+  }
+
+  test_perform_patchTopLevelAccessors() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+''',
+      '/part1.dart': '''
+part of lib;
+int get test => 0;
+''',
+      '/part2.dart': '''
+part of lib;
+void set test(_) {}
+'''
+    });
+    CompilationUnitElement unitElement1 = partUnits[0].element;
+    CompilationUnitElement unitElement2 = partUnits[1].element;
+    PropertyAccessorElement getter = unitElement1.accessors[0];
+    PropertyAccessorElement setter = unitElement2.accessors[0];
+    PropertyInducingElement variable = getter.variable;
+    expect(getter.isGetter, isTrue);
+    expect(setter.isSetter, isTrue);
+    expect(variable, isNotNull);
+    expect(setter.variable, same(variable));
+    expect(unitElement1.topLevelVariables, [variable]);
+    expect(unitElement2.topLevelVariables, [variable]);
+  }
+
+  void _assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+    List<AnalysisError> errors = outputs[BUILD_LIBRARY_ERRORS];
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    errorListener.addAll(errors);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
+  }
+
+  CompilationUnit _buildCompilationUnit(
+      InternalAnalysisContext context, String path, String content) {
+    File file = resourceProvider.newFile(path, content);
+    Source source = file.createSource();
+
+    ScanDartTask scanTask = new ScanDartTask(context, source);
+    scanTask.inputs = {ScanDartTask.CONTENT_INPUT_NAME: content};
+    scanTask.perform();
+    Map<ResultDescriptor, dynamic> scanOutputs = scanTask.outputs;
+
+    ParseDartTask parseTask = new ParseDartTask(context, source);
+    parseTask.inputs = {
+      ParseDartTask.LINE_INFO_INPUT_NAME: scanOutputs[LINE_INFO],
+      ParseDartTask.TOKEN_STREAM_INPUT_NAME: scanOutputs[TOKEN_STREAM]
+    };
+    parseTask.perform();
+    Map<ResultDescriptor, dynamic> parseOutputs = parseTask.outputs;
+
+    BuildCompilationUnitElementTask buildTask =
+        new BuildCompilationUnitElementTask(context, source);
+    buildTask.inputs = {
+      BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME:
+          parseOutputs[PARSED_UNIT]
+    };
+    buildTask.perform();
+    return buildTask.outputs[BUILT_UNIT];
+  }
+
+  void _performBuildTask(Map<String, String> sourceMap) {
+    Map<String, CompilationUnit> unitMap = <String, CompilationUnit>{};
+    sourceMap.forEach((String path, String content) {
+      CompilationUnit unit = _buildCompilationUnit(context, path, content);
+      unitMap[path] = unit;
+    });
+
+    libraryUnit = unitMap.values.first;
+    libraryUnitElement = libraryUnit.element;
+    librarySource = libraryUnitElement.source;
+    partUnits = unitMap.values.skip(1).toList();
+
+    task = new BuildLibraryElementTask(context, librarySource);
+    task.inputs = {
+      BuildLibraryElementTask.DEFINING_BUILT_UNIT_INPUT_NAME: libraryUnit,
+      BuildLibraryElementTask.PART_BUILT_UNITS_INPUT_NAME: partUnits
+    };
+    task.perform();
+    outputs = task.outputs;
+    libraryElement = outputs[BUILT_LIBRARY_ELEMENT];
   }
 }
 
@@ -296,4 +608,15 @@ class ScanDartTaskTest extends EngineTestCase {
     scanTask.perform();
     return scanTask;
   }
+}
+
+class _MockContext extends TypedMock implements ExtendedAnalysisContext {
+  Map<AnalysisTarget, CacheEntry> entryMap = <AnalysisTarget, CacheEntry>{};
+
+  @override
+  CacheEntry getCacheEntry(AnalysisTarget target) {
+    return entryMap.putIfAbsent(target, () => new CacheEntry());
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

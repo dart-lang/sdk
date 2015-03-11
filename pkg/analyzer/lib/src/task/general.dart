@@ -71,8 +71,7 @@ abstract class SourceBasedAnalysisTask extends AnalysisTask {
   @override
   String get description {
     Source source = target.source;
-    String sourceName =
-        target.source == null ? '<unknown source>' : source.fullName;
+    String sourceName = source == null ? '<unknown source>' : source.fullName;
     return '${descriptor.name} for source $sourceName';
   }
 }

@@ -13,6 +13,29 @@ import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
+ * The errors produced while builing a library element.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS,
+        contributesTo: ANALYSIS_ERRORS);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * The [LibraryElement] and its [CompilationUnitElement]s are attached to each
+ * other. Directives 'library', 'part' and 'part of' are resolved.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<LibraryElement> BUILT_LIBRARY_ELEMENT =
+    new ResultDescriptor<LibraryElement>('BUILT_LIBRARY_ELEMENT', null);
+
+/**
  * The compilation unit associated with a [Source] after it has had all
  * declarations bound to the element defined by the declaration.
  *
@@ -43,6 +66,14 @@ final ResultDescriptor<List<Source>> EXPORTED_LIBRARIES =
         'EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
+ * A flag specifying whether a library imports 'dart:html'.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<bool> HAS_HTML_IMPORT =
+    new ResultDescriptor<bool>('HAS_HTML_IMPORT', false);
+
+/**
  * The sources of the libraries that are imported into a library.
  *
  * The list will be empty if there are no imported libraries, but will not be
@@ -64,6 +95,14 @@ final ResultDescriptor<List<Source>> IMPORTED_LIBRARIES =
  */
 final ResultDescriptor<List<Source>> INCLUDED_PARTS =
     new ResultDescriptor<List<Source>>('INCLUDED_PARTS', Source.EMPTY_ARRAY);
+
+/**
+ * A flag specifying whether a library is launchable.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<bool> IS_LAUNCHABLE =
+    new ResultDescriptor<bool>('IS_LAUNCHABLE', false);
 
 /**
  * The errors produced while parsing a compilation unit.
