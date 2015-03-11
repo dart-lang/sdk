@@ -14,369 +14,369 @@ import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
-var _isFile = new isInstanceOf<File>();
-var _isFolder = new isInstanceOf<Folder>();
-var _isFileSystemException = new isInstanceOf<FileSystemException>();
+import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(PhysicalResourceProviderTest);
+  runReflectiveTests(FileTest);
+  runReflectiveTests(FolderTest);
+}
 
-  group('PhysicalResourceProvider', () {
-    io.Directory tempDirectory;
-    String tempPath;
+var _isFile = new isInstanceOf<File>();
+var _isFileSystemException = new isInstanceOf<FileSystemException>();
+var _isFolder = new isInstanceOf<Folder>();
 
-    setUp(() {
-      tempDirectory = io.Directory.systemTemp.createTempSync('test_resource');
-      tempPath = tempDirectory.absolute.path;
+@reflectiveTest
+class FileTest extends _BaseTest {
+  String path;
+  File file;
+
+  setUp() {
+    super.setUp();
+    path = join(tempPath, 'file.txt');
+    file = PhysicalResourceProvider.INSTANCE.getResource(path);
+  }
+
+  void test_createSource() {
+    new io.File(path).writeAsStringSync('contents');
+    Source source = file.createSource();
+    expect(source.uriKind, UriKind.FILE_URI);
+    expect(source.exists(), isTrue);
+    expect(source.contents.data, 'contents');
+  }
+
+  void test_equals_differentPaths() {
+    String path2 = join(tempPath, 'file2.txt');
+    File file2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
+    expect(file == file2, isFalse);
+  }
+
+  void test_equals_samePath() {
+    new io.File(path).writeAsStringSync('contents');
+    File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(file == file2, isTrue);
+  }
+
+  void test_exists_false() {
+    expect(file.exists, isFalse);
+  }
+
+  void test_exists_true() {
+    new io.File(path).writeAsStringSync('contents');
+    expect(file.exists, isTrue);
+  }
+
+  void test_fullName() {
+    expect(file.path, path);
+  }
+
+  void test_hashCode() {
+    new io.File(path).writeAsStringSync('contents');
+    File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(file.hashCode, equals(file2.hashCode));
+  }
+
+  void test_isOrContains() {
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(file.isOrContains(path), isTrue);
+    expect(file.isOrContains('foo'), isFalse);
+  }
+
+  void test_modificationStamp_doesNotExist() {
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(() {
+      file.modificationStamp;
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_modificationStamp_exists() {
+    new io.File(path).writeAsStringSync('contents');
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(file.modificationStamp, isNonNegative);
+  }
+
+  void test_parent() {
+    Resource parent = file.parent;
+    expect(parent, new isInstanceOf<Folder>());
+    expect(parent.path, equals(tempPath));
+  }
+
+  void test_shortName() {
+    expect(file.shortName, 'file.txt');
+  }
+
+  void test_toString() {
+    expect(file.toString(), path);
+  }
+}
+
+@reflectiveTest
+class FolderTest extends _BaseTest {
+  String path;
+  Folder folder;
+
+  setUp() {
+    super.setUp();
+    path = join(tempPath, 'folder');
+    new io.Directory(path).createSync();
+    folder = PhysicalResourceProvider.INSTANCE.getResource(path);
+  }
+
+  void test_canonicalizePath() {
+    String path2 = join(tempPath, 'folder2');
+    String path3 = join(tempPath, 'folder3');
+    expect(folder.canonicalizePath('baz'), equals(join(path, 'baz')));
+    expect(folder.canonicalizePath(path2), equals(path2));
+    expect(folder.canonicalizePath(join('..', 'folder2')), equals(path2));
+    expect(
+        folder.canonicalizePath(join(path2, '..', 'folder3')), equals(path3));
+    expect(
+        folder.canonicalizePath(join('.', 'baz')), equals(join(path, 'baz')));
+    expect(folder.canonicalizePath(join(path2, '.', 'baz')),
+        equals(join(path2, 'baz')));
+  }
+
+  void test_contains() {
+    expect(folder.contains(join(path, 'aaa.txt')), isTrue);
+    expect(folder.contains(join(path, 'aaa', 'bbb.txt')), isTrue);
+    expect(folder.contains(join(tempPath, 'baz.txt')), isFalse);
+    expect(folder.contains(path), isFalse);
+  }
+
+  void test_equals_differentPaths() {
+    String path2 = join(tempPath, 'folder2');
+    new io.Directory(path2).createSync();
+    Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
+    expect(folder == folder2, isFalse);
+  }
+
+  void test_equals_samePath() {
+    Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(folder == folder2, isTrue);
+  }
+
+  void test_getChild_doesNotExist() {
+    var child = folder.getChild('no-such-resource');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChild_file() {
+    new io.File(join(path, 'myFile')).createSync();
+    var child = folder.getChild('myFile');
+    expect(child, _isFile);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChild_folder() {
+    new io.Directory(join(path, 'myFolder')).createSync();
+    var child = folder.getChild('myFolder');
+    expect(child, _isFolder);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFolder_doesNotExist() {
+    Folder child = folder.getChildAssumingFolder('no-such-resource');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChildAssumingFolder_file() {
+    new io.File(join(path, 'myFile')).createSync();
+    Folder child = folder.getChildAssumingFolder('myFile');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChildAssumingFolder_folder() {
+    new io.Directory(join(path, 'myFolder')).createSync();
+    Folder child = folder.getChildAssumingFolder('myFolder');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChildren_doesNotExist() {
+    folder = folder.getChildAssumingFolder('no-such-folder');
+    expect(() {
+      folder.getChildren();
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_getChildren_exists() {
+    // create 2 files and 1 folder
+    new io.File(join(path, 'a.txt')).createSync();
+    new io.Directory(join(path, 'bFolder')).createSync();
+    new io.File(join(path, 'c.txt')).createSync();
+    // prepare 3 children
+    List<Resource> children = folder.getChildren();
+    expect(children, hasLength(3));
+    children.sort((a, b) => a.shortName.compareTo(b.shortName));
+    // check that each child exists
+    children.forEach((child) {
+      expect(child.exists, true);
     });
+    // check names
+    expect(children[0].shortName, 'a.txt');
+    expect(children[1].shortName, 'bFolder');
+    expect(children[2].shortName, 'c.txt');
+    // check types
+    expect(children[0], _isFile);
+    expect(children[1], _isFolder);
+    expect(children[2], _isFile);
+  }
 
-    tearDown(() {
-      tempDirectory.deleteSync(recursive: true);
-    });
+  void test_hashCode() {
+    Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(folder.hashCode, equals(folder2.hashCode));
+  }
 
-    group('Watch', () {
-      Future delayed(computation()) {
-        // Give the tests 1 second to detect the changes. While it may only
-        // take up to a few hundred ms, a whole second gives a good margin
-        // for when running tests.
-        return new Future.delayed(new Duration(seconds: 1), computation);
+  void test_isOrContains() {
+    expect(folder.isOrContains(path), isTrue);
+    expect(folder.isOrContains(join(path, 'aaa.txt')), isTrue);
+    expect(folder.isOrContains(join(path, 'aaa', 'bbb.txt')), isTrue);
+    expect(folder.isOrContains(join(tempPath, 'baz.txt')), isFalse);
+  }
+
+  void test_parent() {
+    Resource parent = folder.parent;
+    expect(parent, new isInstanceOf<Folder>());
+    expect(parent.path, equals(tempPath));
+
+    // Since the OS is in control of where tempPath is, we don't know how
+    // far it should be from the root.  So just verify that each call to
+    // parent results in a a folder with a shorter path, and that we
+    // reach the root eventually.
+    while (true) {
+      Resource grandParent = parent.parent;
+      if (grandParent == null) {
+        break;
       }
+      expect(grandParent, new isInstanceOf<Folder>());
+      expect(grandParent.path.length, lessThan(parent.path.length));
+      parent = grandParent;
+    }
+  }
+}
 
-      watchingFolder(String path, test(List<WatchEvent> changesReceived)) {
-        // Delay before we start watching the folder.  This is necessary
-        // because on MacOS, file modifications that occur just before we
-        // start watching are sometimes misclassified as happening just after
-        // we start watching.
-        return delayed(() {
-          Folder folder = PhysicalResourceProvider.INSTANCE.getResource(path);
-          var changesReceived = <WatchEvent>[];
-          var subscription = folder.changes.listen(changesReceived.add);
-          // Delay running the rest of the test to allow folder.changes to
-          // take a snapshot of the current directory state.  Otherwise it
-          // won't be able to reliably distinguish new files from modified
-          // ones.
-          return delayed(() => test(changesReceived)).whenComplete(() {
-            subscription.cancel();
-          });
-        });
-      }
+@reflectiveTest
+class PhysicalResourceProviderTest extends _BaseTest {
+  void test_getStateLocation_uniqueness() {
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    String idOne = 'one';
+    Folder folderOne = provider.getStateLocation(idOne);
+    expect(folderOne, isNotNull);
+    String idTwo = 'two';
+    Folder folderTwo = provider.getStateLocation(idTwo);
+    expect(folderTwo, isNotNull);
+    expect(folderTwo, isNot(equals(folderOne)));
+    expect(provider.getStateLocation(idOne), equals(folderOne));
+  }
 
-      test('create file', () => watchingFolder(tempPath, (changesReceived) {
-        expect(changesReceived, hasLength(0));
-        var path = join(tempPath, 'foo');
-        new io.File(path).writeAsStringSync('contents');
-        return delayed(() {
-          // There should be an "add" event indicating that the file was added.
-          // Depending on how long it took to write the contents, it may be
-          // followed by "modify" events.
-          expect(changesReceived, isNotEmpty);
-          expect(changesReceived[0].type, equals(ChangeType.ADD));
-          expect(changesReceived[0].path, equals(path));
-          for (int i = 1; i < changesReceived.length; i++) {
-            expect(changesReceived[i].type, equals(ChangeType.MODIFY));
-            expect(changesReceived[i].path, equals(path));
-          }
-        });
-      }));
-
-      test('modify file', () {
-        var path = join(tempPath, 'foo');
-        var file = new io.File(path);
-        file.writeAsStringSync('contents 1');
-        return watchingFolder(tempPath, (changesReceived) {
-          expect(changesReceived, hasLength(0));
-          file.writeAsStringSync('contents 2');
-          return delayed(() {
-            expect(changesReceived, hasLength(1));
-            expect(changesReceived[0].type, equals(ChangeType.MODIFY));
-            expect(changesReceived[0].path, equals(path));
-          });
-        });
-      });
-
-      test('modify file in subdir', () {
-        var subdirPath = join(tempPath, 'foo');
-        new io.Directory(subdirPath).createSync();
-        var path = join(tempPath, 'bar');
-        var file = new io.File(path);
-        file.writeAsStringSync('contents 1');
-        return watchingFolder(tempPath, (changesReceived) {
-          expect(changesReceived, hasLength(0));
-          file.writeAsStringSync('contents 2');
-          return delayed(() {
-            expect(changesReceived, hasLength(1));
-            expect(changesReceived[0].type, equals(ChangeType.MODIFY));
-            expect(changesReceived[0].path, equals(path));
-          });
-        });
-      });
-
-      test('delete file', () {
-        var path = join(tempPath, 'foo');
-        var file = new io.File(path);
-        file.writeAsStringSync('contents 1');
-        return watchingFolder(tempPath, (changesReceived) {
-          expect(changesReceived, hasLength(0));
-          file.deleteSync();
-          return delayed(() {
-            expect(changesReceived, hasLength(1));
-            expect(changesReceived[0].type, equals(ChangeType.REMOVE));
-            expect(changesReceived[0].path, equals(path));
-          });
-        });
-      });
-    });
-
-    group('getStateLocation', () {
-      test('uniqueness', () {
-        PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
-        String idOne = 'one';
-        Folder folderOne = provider.getStateLocation(idOne);
-        expect(folderOne, isNotNull);
-        String idTwo = 'two';
-        Folder folderTwo = provider.getStateLocation(idTwo);
-        expect(folderTwo, isNotNull);
-        expect(folderTwo, isNot(equals(folderOne)));
-        expect(provider.getStateLocation(idOne), equals(folderOne));
-      });
-    });
-
-    group('File', () {
-      String path;
-      File file;
-
-      setUp(() {
-        path = join(tempPath, 'file.txt');
-        file = PhysicalResourceProvider.INSTANCE.getResource(path);
-      });
-
-      test('createSource', () {
-        new io.File(path).writeAsStringSync('contents');
-        Source source = file.createSource();
-        expect(source.uriKind, UriKind.FILE_URI);
-        expect(source.exists(), isTrue);
-        expect(source.contents.data, 'contents');
-      });
-
-      group('exists', () {
-        test('false', () {
-          expect(file.exists, isFalse);
-        });
-
-        test('true', () {
-          new io.File(path).writeAsStringSync('contents');
-          expect(file.exists, isTrue);
-        });
-      });
-
-      test('fullName', () {
-        expect(file.path, path);
-      });
-
-      test('hashCode', () {
-        new io.File(path).writeAsStringSync('contents');
-        File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
-        expect(file.hashCode, equals(file2.hashCode));
-      });
-
-      test('equality: same path', () {
-        new io.File(path).writeAsStringSync('contents');
-        File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
-        expect(file == file2, isTrue);
-      });
-
-      test('equality: different paths', () {
-        String path2 = join(tempPath, 'file2.txt');
-        File file2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
-        expect(file == file2, isFalse);
-      });
-
-      test('isOrContains', () {
-        File file = PhysicalResourceProvider.INSTANCE.getResource(path);
-        expect(file.isOrContains(path), isTrue);
-        expect(file.isOrContains('foo'), isFalse);
-      });
-
-      group('modificationStamp', () {
-        test('exists', () {
-          new io.File(path).writeAsStringSync('contents');
-          File file = PhysicalResourceProvider.INSTANCE.getResource(path);
-          expect(file.modificationStamp, isNonNegative);
-        });
-
-        test('does not exist', () {
-          File file = PhysicalResourceProvider.INSTANCE.getResource(path);
-          expect(() {
-            file.modificationStamp;
-          }, throwsA(_isFileSystemException));
-        });
-      });
-
-      test('shortName', () {
-        expect(file.shortName, 'file.txt');
-      });
-
-      test('toString', () {
-        expect(file.toString(), path);
-      });
-
-      test('parent', () {
-        Resource parent = file.parent;
-        expect(parent, new isInstanceOf<Folder>());
-        expect(parent.path, equals(tempPath));
-      });
-    });
-
-    group('Folder', () {
-      String path;
-      Folder folder;
-
-      setUp(() {
-        path = join(tempPath, 'folder');
-        new io.Directory(path).createSync();
-        folder = PhysicalResourceProvider.INSTANCE.getResource(path);
-      });
-
-      test('hashCode', () {
-        Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
-        expect(folder.hashCode, equals(folder2.hashCode));
-      });
-
-      test('equality: same path', () {
-        Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
-        expect(folder == folder2, isTrue);
-      });
-
-      test('equality: different paths', () {
-        String path2 = join(tempPath, 'folder2');
-        new io.Directory(path2).createSync();
-        Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
-        expect(folder == folder2, isFalse);
-      });
-
-      test('contains', () {
-        expect(folder.contains(join(path, 'aaa.txt')), isTrue);
-        expect(folder.contains(join(path, 'aaa', 'bbb.txt')), isTrue);
-        expect(folder.contains(join(tempPath, 'baz.txt')), isFalse);
-        expect(folder.contains(path), isFalse);
-      });
-
-      test('isOrContains', () {
-        expect(folder.isOrContains(path), isTrue);
-        expect(folder.isOrContains(join(path, 'aaa.txt')), isTrue);
-        expect(folder.isOrContains(join(path, 'aaa', 'bbb.txt')), isTrue);
-        expect(folder.isOrContains(join(tempPath, 'baz.txt')), isFalse);
-      });
-
-      group('getChild', () {
-        test('does not exist', () {
-          var child = folder.getChild('no-such-resource');
-          expect(child, isNotNull);
-          expect(child.exists, isFalse);
-        });
-
-        test('file', () {
-          new io.File(join(path, 'myFile')).createSync();
-          var child = folder.getChild('myFile');
-          expect(child, _isFile);
-          expect(child.exists, isTrue);
-        });
-
-        test('folder', () {
-          new io.Directory(join(path, 'myFolder')).createSync();
-          var child = folder.getChild('myFolder');
-          expect(child, _isFolder);
-          expect(child.exists, isTrue);
-        });
-      });
-
-      group('getChildAssumingFolder', () {
-        test('does not exist', () {
-          Folder child = folder.getChildAssumingFolder('no-such-resource');
-          expect(child, isNotNull);
-          expect(child.exists, isFalse);
-        });
-
-        test('file', () {
-          new io.File(join(path, 'myFile')).createSync();
-          Folder child = folder.getChildAssumingFolder('myFile');
-          expect(child, isNotNull);
-          expect(child.exists, isFalse);
-        });
-
-        test('folder', () {
-          new io.Directory(join(path, 'myFolder')).createSync();
-          Folder child = folder.getChildAssumingFolder('myFolder');
-          expect(child, isNotNull);
-          expect(child.exists, isTrue);
-        });
-      });
-
-      group('getChildren', () {
-        test('exists', () {
-          // create 2 files and 1 folder
-          new io.File(join(path, 'a.txt')).createSync();
-          new io.Directory(join(path, 'bFolder')).createSync();
-          new io.File(join(path, 'c.txt')).createSync();
-          // prepare 3 children
-          List<Resource> children = folder.getChildren();
-          expect(children, hasLength(3));
-          children.sort((a, b) => a.shortName.compareTo(b.shortName));
-          // check that each child exists
-          children.forEach((child) {
-            expect(child.exists, true);
-          });
-          // check names
-          expect(children[0].shortName, 'a.txt');
-          expect(children[1].shortName, 'bFolder');
-          expect(children[2].shortName, 'c.txt');
-          // check types
-          expect(children[0], _isFile);
-          expect(children[1], _isFolder);
-          expect(children[2], _isFile);
-        });
-
-        test('does not exist', () {
-          folder = folder.getChildAssumingFolder('no-such-folder');
-          expect(() {
-            folder.getChildren();
-          }, throwsA(_isFileSystemException));
-        });
-      });
-
-      test('parent', () {
-        Resource parent = folder.parent;
-        expect(parent, new isInstanceOf<Folder>());
-        expect(parent.path, equals(tempPath));
-
-        // Since the OS is in control of where tempPath is, we don't know how
-        // far it should be from the root.  So just verify that each call to
-        // parent results in a a folder with a shorter path, and that we
-        // reach the root eventually.
-        while (true) {
-          Resource grandParent = parent.parent;
-          if (grandParent == null) {
-            break;
-          }
-          expect(grandParent, new isInstanceOf<Folder>());
-          expect(grandParent.path.length, lessThan(parent.path.length));
-          parent = grandParent;
+  test_watch_createFile() {
+    return _watchingFolder(tempPath, (changesReceived) {
+      expect(changesReceived, hasLength(0));
+      var path = join(tempPath, 'foo');
+      new io.File(path).writeAsStringSync('contents');
+      return _delayed(() {
+        // There should be an "add" event indicating that the file was added.
+        // Depending on how long it took to write the contents, it may be
+        // followed by "modify" events.
+        expect(changesReceived, isNotEmpty);
+        expect(changesReceived[0].type, equals(ChangeType.ADD));
+        expect(changesReceived[0].path, equals(path));
+        for (int i = 1; i < changesReceived.length; i++) {
+          expect(changesReceived[i].type, equals(ChangeType.MODIFY));
+          expect(changesReceived[i].path, equals(path));
         }
       });
+    });
+  }
 
-      test('canonicalizePath', () {
-        String path2 = join(tempPath, 'folder2');
-        String path3 = join(tempPath, 'folder3');
-        expect(folder.canonicalizePath('baz'), equals(join(path, 'baz')));
-        expect(folder.canonicalizePath(path2), equals(path2));
-        expect(folder.canonicalizePath(join('..', 'folder2')), equals(path2));
-        expect(folder.canonicalizePath(join(path2, '..', 'folder3')),
-            equals(path3));
-        expect(folder.canonicalizePath(join('.', 'baz')),
-            equals(join(path, 'baz')));
-        expect(folder.canonicalizePath(join(path2, '.', 'baz')),
-            equals(join(path2, 'baz')));
+  test_watch_deleteFile() {
+    var path = join(tempPath, 'foo');
+    var file = new io.File(path);
+    file.writeAsStringSync('contents 1');
+    return _watchingFolder(tempPath, (changesReceived) {
+      expect(changesReceived, hasLength(0));
+      file.deleteSync();
+      return _delayed(() {
+        expect(changesReceived, hasLength(1));
+        expect(changesReceived[0].type, equals(ChangeType.REMOVE));
+        expect(changesReceived[0].path, equals(path));
       });
     });
-  });
+  }
+
+  test_watch_modifyFile() {
+    var path = join(tempPath, 'foo');
+    var file = new io.File(path);
+    file.writeAsStringSync('contents 1');
+    return _watchingFolder(tempPath, (changesReceived) {
+      expect(changesReceived, hasLength(0));
+      file.writeAsStringSync('contents 2');
+      return _delayed(() {
+        expect(changesReceived, hasLength(1));
+        expect(changesReceived[0].type, equals(ChangeType.MODIFY));
+        expect(changesReceived[0].path, equals(path));
+      });
+    });
+  }
+
+  test_watch_modifyFile_inSubDir() {
+    var subdirPath = join(tempPath, 'foo');
+    new io.Directory(subdirPath).createSync();
+    var path = join(tempPath, 'bar');
+    var file = new io.File(path);
+    file.writeAsStringSync('contents 1');
+    return _watchingFolder(tempPath, (changesReceived) {
+      expect(changesReceived, hasLength(0));
+      file.writeAsStringSync('contents 2');
+      return _delayed(() {
+        expect(changesReceived, hasLength(1));
+        expect(changesReceived[0].type, equals(ChangeType.MODIFY));
+        expect(changesReceived[0].path, equals(path));
+      });
+    });
+  }
+
+  Future _delayed(computation()) {
+    // Give the tests 1 second to detect the changes. While it may only
+    // take up to a few hundred ms, a whole second gives a good margin
+    // for when running tests.
+    return new Future.delayed(new Duration(seconds: 1), computation);
+  }
+
+  _watchingFolder(String path, test(List<WatchEvent> changesReceived)) {
+    // Delay before we start watching the folder.  This is necessary
+    // because on MacOS, file modifications that occur just before we
+    // start watching are sometimes misclassified as happening just after
+    // we start watching.
+    return _delayed(() {
+      Folder folder = PhysicalResourceProvider.INSTANCE.getResource(path);
+      var changesReceived = <WatchEvent>[];
+      var subscription = folder.changes.listen(changesReceived.add);
+      // Delay running the rest of the test to allow folder.changes to
+      // take a snapshot of the current directory state.  Otherwise it
+      // won't be able to reliably distinguish new files from modified
+      // ones.
+      return _delayed(() => test(changesReceived)).whenComplete(() {
+        subscription.cancel();
+      });
+    });
+  }
+}
+
+class _BaseTest {
+  io.Directory tempDirectory;
+  String tempPath;
+
+  setUp() {
+    tempDirectory = io.Directory.systemTemp.createTempSync('test_resource');
+    tempPath = tempDirectory.absolute.path;
+  }
+
+  tearDown() {
+    tempDirectory.deleteSync(recursive: true);
+  }
 }
