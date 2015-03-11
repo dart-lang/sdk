@@ -7012,11 +7012,6 @@ class Library {
  */
 class LibraryElementBuilder {
   /**
-   * The name of the function used as an entry point.
-   */
-  static String ENTRY_POINT_NAME = "main";
-
-  /**
    * The analysis context in which the element model will be built.
    */
   final InternalAnalysisContext _analysisContext;
@@ -7271,7 +7266,7 @@ class LibraryElementBuilder {
    */
   FunctionElement _findEntryPoint(CompilationUnitElementImpl element) {
     for (FunctionElement function in element.functions) {
-      if (function.name == ENTRY_POINT_NAME) {
+      if (function.isEntryPoint) {
         return function;
       }
     }
@@ -8018,7 +8013,7 @@ class LibraryResolver {
       if (libraryElement.entryPoint == null) {
         Namespace namespace = new NamespaceBuilder()
             .createExportNamespaceForLibrary(libraryElement);
-        Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
+        Element element = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
         if (element is FunctionElement) {
           libraryElement.entryPoint = element;
         }
@@ -8724,7 +8719,7 @@ class LibraryResolver2 {
       if (libraryElement.entryPoint == null) {
         Namespace namespace = new NamespaceBuilder()
             .createExportNamespaceForLibrary(libraryElement);
-        Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
+        Element element = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
         if (element is FunctionElement) {
           libraryElement.entryPoint = element;
         }

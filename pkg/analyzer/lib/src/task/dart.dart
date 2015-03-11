@@ -104,11 +104,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   static const String PART_BUILT_UNITS_INPUT_NAME = 'partBuiltUnits';
 
   /**
-   * The name of the function used as an entry point.
-   */
-  static const String ENTRY_POINT_NAME = "main";
-
-  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -266,7 +261,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    */
   FunctionElement _findEntryPoint(CompilationUnitElementImpl element) {
     for (FunctionElement function in element.functions) {
-      if (function.name == ENTRY_POINT_NAME) {
+      if (function.isEntryPoint) {
         return function;
       }
     }

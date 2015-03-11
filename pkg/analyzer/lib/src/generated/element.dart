@@ -3933,15 +3933,26 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   static final String CALL_METHOD_NAME = "call";
 
   /**
+   * The name of the synthetic function defined for libraries that are deferred.
+   */
+  static final String LOAD_LIBRARY_NAME = "loadLibrary";
+
+  /**
+   * The name of the function used as an entry point.
+   */
+  static const String MAIN_FUNCTION_NAME = "main";
+
+  /**
    * The name of the method that will be invoked if an attempt is made to invoke
    * an undefined method on an object.
    */
   static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
 
   /**
-   * The name of the synthetic function defined for libraries that are deferred.
+   * Return `true` if the function is an entry point, i.e. a top-level function
+   * and has the name `main`.
    */
-  static final String LOAD_LIBRARY_NAME = "loadLibrary";
+  bool get isEntryPoint;
 
   /**
    * Return the resolved function declaration node that declares this element.
@@ -3998,6 +4009,11 @@ class FunctionElementImpl extends ExecutableElementImpl
       identifier += "@$nameOffset";
     }
     return identifier;
+  }
+
+  @override
+  bool get isEntryPoint {
+    return isStatic && displayName == FunctionElement.MAIN_FUNCTION_NAME;
   }
 
   @override

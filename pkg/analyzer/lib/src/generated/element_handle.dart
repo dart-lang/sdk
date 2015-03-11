@@ -610,6 +610,9 @@ class FunctionElementHandle extends ExecutableElementHandle
   FunctionElement get actualElement => super.actualElement as FunctionElement;
 
   @override
+  bool get isEntryPoint => actualElement.isEntryPoint;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
