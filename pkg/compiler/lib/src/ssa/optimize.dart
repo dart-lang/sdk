@@ -1020,13 +1020,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         if (current is HGoto) {
           successor = current.block.successors.single;
         } else if (current is HIf) {
-          // TODO(paulberry): This variable works around dartbug.com/22732
-          HIf currentHIf = current;
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
             bool isTrue = condition.constant.isTrue;
-            successor = isTrue ? currentHIf.thenBlock : currentHIf.elseBlock;
+            successor = isTrue ? current.thenBlock : current.elseBlock;
             assert(!analyzer.isDeadBlock(successor));
           }
         }

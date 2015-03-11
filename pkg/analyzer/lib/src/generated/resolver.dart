@@ -14838,6 +14838,17 @@ class VariableResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    ExecutableElement outerFunction = _enclosingFunction;
+    try {
+      _enclosingFunction = node.element;
+      return super.visitMethodDeclaration(node);
+    } finally {
+      _enclosingFunction = outerFunction;
+    }
+  }
+
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       ExecutableElement outerFunction = _enclosingFunction;
