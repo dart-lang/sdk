@@ -11,8 +11,8 @@ import 'java_engine.dart';
 import 'source.dart';
 
 /**
- * A `BeginToken` is the opening half of a grouping pair of tokens. This is used
- * for curly brackets ('{'), parentheses ('('), and square brackets ('[').
+ * The opening half of a grouping pair of tokens. This is used for curly
+ * brackets ('{'), parentheses ('('), and square brackets ('[').
  */
 class BeginToken extends Token {
   /**
@@ -36,7 +36,7 @@ class BeginToken extends Token {
 }
 
 /**
- * A `BeginTokenWithComment` is a begin token that is preceded by comments.
+ * A begin token that is preceded by comments.
  */
 class BeginTokenWithComment extends BeginToken {
   /**
@@ -77,8 +77,8 @@ class BeginTokenWithComment extends BeginToken {
 }
 
 /**
- * A `CharacterRangeReader` is a [CharacterReader] that reads a range of
- * characters from another character reader.
+ * A [CharacterReader] that reads a range of characters from another character
+ * reader.
  */
 class CharacterRangeReader extends CharacterReader {
   /**
@@ -129,8 +129,7 @@ class CharacterRangeReader extends CharacterReader {
 }
 
 /**
- * A `CharacterReader` is used by the scanner to read the characters to be
- * scanned.
+ * An object used by the scanner to read the characters to be scanned.
  */
 abstract class CharacterReader {
   /**
@@ -171,8 +170,7 @@ abstract class CharacterReader {
 }
 
 /**
- * A `CharSequenceReader` is a [CharacterReader] that reads characters from a
- * character sequence.
+ * A [CharacterReader] that reads characters from a character sequence.
  */
 class CharSequenceReader implements CharacterReader {
   /**
@@ -229,7 +227,7 @@ class CharSequenceReader implements CharacterReader {
 }
 
 /**
- * A `CommentToken` is a token representing a comment.
+ * A token representing a comment.
  */
 class CommentToken extends StringToken {
   /**
@@ -271,8 +269,7 @@ class DocumentationCommentToken extends CommentToken {
 }
 
 /**
- * The enumeration `Keyword` defines the keywords in the Dart programming
- * language.
+ * The keywords in the Dart programming language.
  */
 class Keyword {
   static const Keyword ASSERT = const Keyword('ASSERT', "assert");
@@ -471,7 +468,7 @@ class Keyword {
 }
 
 /**
- * A `KeywordState` is a state in a state machine used to scan keywords.
+ * A state in a state machine used to scan keywords.
  */
 class KeywordState {
   /**
@@ -523,16 +520,6 @@ class KeywordState {
    * the subset of strings in the given array of [strings] starting at the given
    * [offset] and having the given [length]. All of these strings have a common
    * prefix and the next character is at the given [start] index.
-   *
-   * [start] the index of the character in the strings used to transition to a
-   * new state
-   * [strings] an array containing all of the strings that will be recognized by
-   * the state machine
-   * [offset] the offset of the first string in the array that has the prefix
-   * that is assumed to have been recognized by the time we reach the state
-   * being built
-   * [length] the number of strings in the array that pass through the state
-   * being built
    */
   static KeywordState _computeKeywordStateTable(
       int start, List<String> strings, int offset, int length) {
@@ -587,7 +574,7 @@ class KeywordState {
 }
 
 /**
- * A `KeywordToken` is a keyword in the language.
+ * A token representing a keyword in the language.
  */
 class KeywordToken extends Token {
   /**
@@ -612,7 +599,7 @@ class KeywordToken extends Token {
 }
 
 /**
- * A `KeywordTokenWithComment` is a keyword token that is preceded by comments.
+ * A keyword token that is preceded by comments.
  */
 class KeywordTokenWithComment extends KeywordToken {
   /**
@@ -939,17 +926,13 @@ class Scanner {
 
   /**
    * Record that the source begins on the given [line] and [column] at the
-   * current offset as given by the reader. The line starts for lines before the
-   * given line will not be correct.
+   * current offset as given by the reader. Both the line and the column are
+   * one-based indexes. The line starts for lines before the given line will not
+   * be correct.
    *
    * This method must be invoked at most one time and must be invoked before
    * scanning begins. The values provided must be sensible. The results are
    * undefined if these conditions are violated.
-   *
-   * [line] the one-based index of the line containing the first character of
-   * the source
-   * [column] the one-based index of the column in which the first character of
-   * the source occurs
    */
   void setSourceStart(int line, int column) {
     int offset = _reader.offset;
@@ -1130,10 +1113,9 @@ class Scanner {
   }
 
   /**
-   * Report an error at the current offset.
-   *
-   * [errorCode] the error code indicating the nature of the error
-   * [arguments] any arguments needed to complete the error message
+   * Report an error at the current offset. The [errorCode] is the error code
+   * indicating the nature of the error. The [arguments] are any arguments
+   * needed to complete the error message
    */
   void _reportError(ScannerErrorCode errorCode, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(
@@ -1777,8 +1759,7 @@ class Scanner {
 }
 
 /**
- * The enumeration `ScannerErrorCode` defines the error codes used for errors
- * detected by the scanner.
+ * The error codes used for errors detected by the scanner.
  */
 class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode ILLEGAL_CHARACTER =
@@ -1821,7 +1802,7 @@ class ScannerErrorCode extends ErrorCode {
 }
 
 /**
- * A `StringToken` is a token whose value is independent of it's type.
+ * A token whose value is independent of it's type.
  */
 class StringToken extends Token {
   /**
@@ -1848,7 +1829,7 @@ class StringToken extends Token {
 }
 
 /**
- * A `StringTokenWithComment` is a string token that is preceded by comments.
+ * A string token that is preceded by comments.
  */
 class StringTokenWithComment extends StringToken {
   /**
@@ -1890,10 +1871,9 @@ class StringTokenWithComment extends StringToken {
 }
 
 /**
- * A `SubSequenceReader` is a [CharacterReader] that reads characters from a
- * character sequence, but adds a delta when reporting the current character
- * offset so that the character sequence can be a subsequence from a larger
- * sequence.
+ * A [CharacterReader] that reads characters from a character sequence, but adds
+ * a delta when reporting the current character offset so that the character
+ * sequence can be a subsequence from a larger sequence.
  */
 class SubSequenceReader extends CharSequenceReader {
   /**
@@ -1923,7 +1903,7 @@ class SubSequenceReader extends CharSequenceReader {
 }
 
 /**
- * A `SyntheticStringToken` is a token whose value is independent of it's type.
+ * A token whose value is independent of it's type.
  */
 class SyntheticStringToken extends StringToken {
   /**
@@ -1938,9 +1918,8 @@ class SyntheticStringToken extends StringToken {
 }
 
 /**
- * Instances of the class `Token` represent a token that was scanned from the
- * input. Each token knows which tokens preceed and follow it, acting as a link
- * in a doubly linked list of tokens.
+ * A token that was scanned from the input. Each token knows which tokens
+ * precede and follow it, acting as a link in a doubly linked list of tokens.
  */
 class Token {
   /**
@@ -2127,8 +2106,7 @@ class Token {
 }
 
 /**
- * The enumeration `TokenClass` represents classes (or groups) of tokens with a
- * similar use.
+ * The classes (or groups) of tokens with a similar use.
  */
 class TokenClass {
   /**
@@ -2245,8 +2223,7 @@ class TokenClass {
 }
 
 /**
- * The enumeration `TokenType` defines the types of tokens that can be returned
- * by the scanner.
+ * The types of tokens that can be returned by the scanner.
  */
 class TokenType {
   /**
@@ -2587,7 +2564,7 @@ class TokenType_EOF extends TokenType {
 }
 
 /**
- * A `TokenWithComment` is a normal token that is preceded by comments.
+ * A normal token that is preceded by comments.
  */
 class TokenWithComment extends Token {
   /**
