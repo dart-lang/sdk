@@ -21,22 +21,23 @@ Since we are currently in such active development, running from source is the be
 
 Running it looks like this:
 
-    dart path_to_lint_clone/bin/linter.dart my_library.dart
+    dart path_to_lint_clone/bin/linter.dart my_project
 
 With example output looking like this:
 
-    lib/src/my_library.dart 13:8 [lint] DO name non-constant identifiers using lowerCamelCase.
+    my_project/my_library.dart 13:8 [lint] DO name non-constant identifiers using lowerCamelCase.
       IOSink std_err = stderr;
              ^^^^^^^
-    1 lint found.
+    12 files analyzed, 1 issue found.
 
 Supported options are
 
     -h, --help            Shows usage information.
+    -c, --config          Use configuration from this file.
         --dart-sdk        Custom path to a Dart SDK.
     -p, --package-root    Custom package root. (Discouraged.) Remove to use package information computed by pub.
 
-Note that you should not need to specify an `sdk` or `package-root`.  Other configuration options are on the way.  
+Note that you should not need to specify an `sdk` or `package-root`. Lint configuration file format is provisional and under [active discussion](https://github.com/dart-lang/linter/issues/41). Other configuration options are on the way.  
 
 
 ## Contributing
