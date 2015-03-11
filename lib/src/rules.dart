@@ -15,6 +15,7 @@ import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
+import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
@@ -29,6 +30,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new NonConstantIdentifierNames())
   ..register(new OneMemberAbstracts())
   ..register(new PubPackageNames())
+  ..register(new SlashForDocComments())
   ..register(new SuperGoesLast())
   ..register(new TypeInitFormals())
   ..register(new UnnecessaryBraceInStringInterp())
