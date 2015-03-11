@@ -32,6 +32,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
+  runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ScanDartTaskTest);
 }
@@ -43,9 +44,8 @@ class BuildCompilationUnitElementTaskTest extends EngineTestCase {
     Map<String, TaskInput> inputs =
         BuildCompilationUnitElementTask.buildInputs(target);
     expect(inputs, isNotNull);
-    expect(inputs, hasLength(1));
-    expect(inputs[BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME],
-        isNotNull);
+    expect(inputs.keys, unorderedEquals(
+        [BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME]));
   }
 
   test_constructor() {
@@ -125,26 +125,13 @@ class A {''');
 }
 
 @reflectiveTest
-class BuildLibraryElementTaskTest extends EngineTestCase {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-  InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-
+class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   Source librarySource;
   CompilationUnit libraryUnit;
   CompilationUnitElement libraryUnitElement;
   List<CompilationUnit> partUnits;
 
-  BuildLibraryElementTask task;
-  Map<ResultDescriptor<dynamic>, dynamic> outputs;
   LibraryElement libraryElement;
-
-  void setUp() {
-    DartSdk sdk = context.sourceFactory.dartSdk;
-    context.sourceFactory = new SourceFactory(<UriResolver>[
-      new DartUriResolver(sdk),
-      new ResourceUriResolver(resourceProvider)
-    ]);
-  }
 
   test_buildInputs() {
     ExtendedAnalysisContext context = new _MockContext();
@@ -373,54 +360,93 @@ void set test(_) {}
     errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
-  CompilationUnit _buildCompilationUnit(
-      InternalAnalysisContext context, String path, String content) {
-    File file = resourceProvider.newFile(path, content);
-    Source source = file.createSource();
-
-    ScanDartTask scanTask = new ScanDartTask(context, source);
-    scanTask.inputs = {ScanDartTask.CONTENT_INPUT_NAME: content};
-    scanTask.perform();
-    Map<ResultDescriptor, dynamic> scanOutputs = scanTask.outputs;
-
-    ParseDartTask parseTask = new ParseDartTask(context, source);
-    parseTask.inputs = {
-      ParseDartTask.LINE_INFO_INPUT_NAME: scanOutputs[LINE_INFO],
-      ParseDartTask.TOKEN_STREAM_INPUT_NAME: scanOutputs[TOKEN_STREAM]
-    };
-    parseTask.perform();
-    Map<ResultDescriptor, dynamic> parseOutputs = parseTask.outputs;
-
-    BuildCompilationUnitElementTask buildTask =
-        new BuildCompilationUnitElementTask(context, source);
-    buildTask.inputs = {
-      BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME:
-          parseOutputs[PARSED_UNIT]
-    };
-    buildTask.perform();
-    return buildTask.outputs[BUILT_UNIT];
-  }
-
   void _performBuildTask(Map<String, String> sourceMap) {
+    _BuildLibraryElementTaskResult result = _buildLibraryElement(sourceMap);
     Map<String, CompilationUnit> unitMap = <String, CompilationUnit>{};
     sourceMap.forEach((String path, String content) {
-      CompilationUnit unit = _buildCompilationUnit(context, path, content);
+      CompilationUnit unit = _buildCompilationUnit(path, content);
       unitMap[path] = unit;
     });
 
-    libraryUnit = unitMap.values.first;
-    libraryUnitElement = libraryUnit.element;
-    librarySource = libraryUnitElement.source;
-    partUnits = unitMap.values.skip(1).toList();
+    libraryUnit = result.libraryUnit;
+    libraryUnitElement = result.libraryUnitElement;
+    librarySource = result.librarySource;
+    partUnits = result.partUnits;
 
-    task = new BuildLibraryElementTask(context, librarySource);
+    task = result.task;
+    outputs = result.outputs;
+    libraryElement = result.libraryElement;
+  }
+}
+
+@reflectiveTest
+class BuildPublicNamespaceTaskTest extends _AbstractDartTaskTest {
+  test_buildInputs() {
+    AnalysisTarget target = new TestSource();
+    Map<String, TaskInput> inputs =
+        BuildPublicNamespaceTask.buildInputs(target);
+    expect(inputs, isNotNull);
+    expect(inputs.keys, unorderedEquals(
+        [BuildPublicNamespaceTask.BUILT_LIBRARY_ELEMENT_INPUT_NAME]));
+  }
+
+  test_constructor() {
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisTarget target = new TestSource();
+    BuildPublicNamespaceTask task =
+        new BuildPublicNamespaceTask(context, target);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, target);
+  }
+
+  test_createTask() {
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisTarget target = new TestSource();
+    BuildPublicNamespaceTask task =
+        BuildPublicNamespaceTask.createTask(context, target);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, target);
+  }
+
+  test_description() {
+    AnalysisTarget target = new TestSource();
+    BuildPublicNamespaceTask task = new BuildPublicNamespaceTask(null, target);
+    expect(task.description, isNotNull);
+  }
+
+  test_descriptor() {
+    TaskDescriptor descriptor = BuildPublicNamespaceTask.DESCRIPTOR;
+    expect(descriptor, isNotNull);
+  }
+
+  test_perform() {
+    var buildLibraryElementResult = _buildLibraryElement({
+      '/lib.dart': '''
+library lib;
+part 'part.dart';
+a() {}
+_b() {}
+''',
+      '/part.dart': '''
+part of lib;
+_c() {}
+d() {}
+'''
+    });
+    Source librarySource = buildLibraryElementResult.librarySource;
+    LibraryElement libraryElement = buildLibraryElementResult.libraryElement;
+    // perform task
+    BuildPublicNamespaceTask task =
+        new BuildPublicNamespaceTask(context, librarySource);
     task.inputs = {
-      BuildLibraryElementTask.DEFINING_BUILT_UNIT_INPUT_NAME: libraryUnit,
-      BuildLibraryElementTask.PART_BUILT_UNITS_INPUT_NAME: partUnits
+      BuildPublicNamespaceTask.BUILT_LIBRARY_ELEMENT_INPUT_NAME: libraryElement
     };
-    task.perform();
-    outputs = task.outputs;
-    libraryElement = outputs[BUILT_LIBRARY_ELEMENT];
+    Map<ResultDescriptor, dynamic> outputs = _performTask(task);
+    // validate
+    Namespace namespace = outputs[PUBLIC_NAMESPACE];
+    expect(namespace.definedNames.keys, unorderedEquals(['a', 'd']));
   }
 }
 
@@ -430,9 +456,10 @@ class ParseDartTaskTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     Map<String, TaskInput> inputs = ParseDartTask.buildInputs(target);
     expect(inputs, isNotNull);
-    expect(inputs, hasLength(2));
-    expect(inputs[ParseDartTask.LINE_INFO_INPUT_NAME], isNotNull);
-    expect(inputs[ParseDartTask.TOKEN_STREAM_INPUT_NAME], isNotNull);
+    expect(inputs.keys, unorderedEquals([
+      ParseDartTask.LINE_INFO_INPUT_NAME,
+      ParseDartTask.TOKEN_STREAM_INPUT_NAME
+    ]));
   }
 
   test_constructor() {
@@ -544,8 +571,7 @@ class ScanDartTaskTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     Map<String, TaskInput> inputs = ScanDartTask.buildInputs(target);
     expect(inputs, isNotNull);
-    expect(inputs, hasLength(1));
-    expect(inputs[ScanDartTask.CONTENT_INPUT_NAME], isNotNull);
+    expect(inputs.keys, unorderedEquals([ScanDartTask.CONTENT_INPUT_NAME]));
   }
 
   test_constructor() {
@@ -608,6 +634,109 @@ class ScanDartTaskTest extends EngineTestCase {
     scanTask.perform();
     return scanTask;
   }
+}
+
+class _AbstractDartTaskTest extends EngineTestCase {
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+
+  InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+  Map<AnalysisTarget, CacheEntry> entryMap = <AnalysisTarget, CacheEntry>{};
+
+  AnalysisTask task;
+  Map<ResultDescriptor<dynamic>, dynamic> outputs;
+
+  CacheEntry getCacheEntry(AnalysisTarget target) {
+    return entryMap.putIfAbsent(target, () => new CacheEntry());
+  }
+
+  void setUp() {
+    DartSdk sdk = context.sourceFactory.dartSdk;
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      new DartUriResolver(sdk),
+      new ResourceUriResolver(resourceProvider)
+    ]);
+  }
+
+  CompilationUnit _buildCompilationUnit(String path, String content) {
+    File file = resourceProvider.newFile(path, content);
+    Source source = file.createSource();
+    // scan
+    ScanDartTask scanTask = new ScanDartTask(context, source);
+    scanTask.inputs = {ScanDartTask.CONTENT_INPUT_NAME: content};
+    var scanOutputs = _performTask(scanTask);
+    // parse
+    ParseDartTask parseTask = new ParseDartTask(context, source);
+    parseTask.inputs = {
+      ParseDartTask.LINE_INFO_INPUT_NAME: scanOutputs[LINE_INFO],
+      ParseDartTask.TOKEN_STREAM_INPUT_NAME: scanOutputs[TOKEN_STREAM]
+    };
+    var parseOutputs = _performTask(parseTask);
+    // build CompilationUnit
+    BuildCompilationUnitElementTask buildTask =
+        new BuildCompilationUnitElementTask(context, source);
+    buildTask.inputs = {
+      BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME:
+          parseOutputs[PARSED_UNIT]
+    };
+    var buildUnitOutputs = _performTask(buildTask);
+    // done
+    return buildUnitOutputs[BUILT_UNIT];
+  }
+
+  _BuildLibraryElementTaskResult _buildLibraryElement(
+      Map<String, String> sourceMap) {
+    Map<String, CompilationUnit> unitMap = <String, CompilationUnit>{};
+    sourceMap.forEach((String path, String content) {
+      CompilationUnit unit = _buildCompilationUnit(path, content);
+      unitMap[path] = unit;
+    });
+
+    CompilationUnit libraryUnit = unitMap.values.first;
+    CompilationUnitElement libraryUnitElement = libraryUnit.element;
+    Source librarySource = libraryUnitElement.source;
+    List<CompilationUnit> partUnits = unitMap.values.skip(1).toList();
+
+    BuildLibraryElementTask task =
+        new BuildLibraryElementTask(context, librarySource);
+    task.inputs = {
+      BuildLibraryElementTask.DEFINING_BUILT_UNIT_INPUT_NAME: libraryUnit,
+      BuildLibraryElementTask.PART_BUILT_UNITS_INPUT_NAME: partUnits
+    };
+    Map<ResultDescriptor, dynamic> outputs = _performTask(task);
+
+    LibraryElement libraryElement = outputs[BUILT_LIBRARY_ELEMENT];
+    return new _BuildLibraryElementTaskResult(librarySource, libraryUnit,
+        libraryUnitElement, partUnits, task, outputs, libraryElement);
+  }
+
+  /**
+   * Perform the given [task], record and return its outputs.
+   */
+  Map<ResultDescriptor, dynamic> _performTask(AnalysisTask task) {
+    AnalysisTarget target = task.target;
+    // perform the task
+    task.perform();
+    Map<ResultDescriptor, dynamic> outputs = task.outputs;
+    // file the cache entry
+    CacheEntry cacheEntry = getCacheEntry(target);
+    outputs.forEach((result, value) {
+      cacheEntry.setValue(result, value);
+    });
+    return outputs;
+  }
+}
+
+class _BuildLibraryElementTaskResult {
+  final Source librarySource;
+  final CompilationUnit libraryUnit;
+  final CompilationUnitElement libraryUnitElement;
+  final List<CompilationUnit> partUnits;
+  final BuildLibraryElementTask task;
+  final Map<ResultDescriptor, dynamic> outputs;
+  final LibraryElement libraryElement;
+  _BuildLibraryElementTaskResult(this.librarySource, this.libraryUnit,
+      this.libraryUnitElement, this.partUnits, this.task, this.outputs,
+      this.libraryElement);
 }
 
 class _MockContext extends TypedMock implements ExtendedAnalysisContext {

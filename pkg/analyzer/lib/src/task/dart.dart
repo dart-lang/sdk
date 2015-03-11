@@ -340,6 +340,61 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * A task that builds [PUBLIC_NAMESPACE] for a library.
+ */
+class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [BUILT_LIBRARY_ELEMENT] input.
+   */
+  static const String BUILT_LIBRARY_ELEMENT_INPUT_NAME = "builtLibraryElement";
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BUILD_PUBLIC_NAMESPACE', createTask, buildInputs, <ResultDescriptor>[
+    PUBLIC_NAMESPACE
+  ]);
+
+  BuildPublicNamespaceTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibraryElement library = getRequiredInput(BUILT_LIBRARY_ELEMENT_INPUT_NAME);
+
+    NamespaceBuilder builder = new NamespaceBuilder();
+    Namespace namespace = builder.createPublicNamespaceForLibrary(library);
+
+    outputs[PUBLIC_NAMESPACE] = namespace;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    return <String, TaskInput>{
+      BUILT_LIBRARY_ELEMENT_INPUT_NAME: BUILT_LIBRARY_ELEMENT.inputFor(target)
+    };
+  }
+
+  /**
+   * Create a [BuildPublicNamespaceTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildPublicNamespaceTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildPublicNamespaceTask(context, target);
+  }
+}
+
+/**
  * A task that parses the content of a Dart file, producing an AST structure.
  */
 class ParseDartTask extends SourceBasedAnalysisTask {

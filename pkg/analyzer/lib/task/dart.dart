@@ -7,6 +7,7 @@ library analyzer.task.dart;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/general.dart';
@@ -125,6 +126,14 @@ final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
  */
 final ResultDescriptor<CompilationUnit> PARSED_UNIT =
     new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null);
+
+/**
+ * The public [Namespace] of a library.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<Namespace> PUBLIC_NAMESPACE =
+    new ResultDescriptor<Namespace>('PUBLIC_NAMESPACE', null);
 
 /**
  * The errors produced while scanning a compilation unit.
