@@ -1726,6 +1726,8 @@ main() {
       return expect42(f());
     });
 
+    if (!checkedMode) return;
+
     test("inside assert, true", () {                       /// 03: ok
       f() async {                                          /// 03: continued
         assert(await new Future.microtask(() => true));    /// 03: continued
