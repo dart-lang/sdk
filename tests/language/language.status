@@ -45,7 +45,7 @@ async_star_test/01: CompileTimeError, RuntimeError # drt only runtime-errs.
 async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
-async_star_test/05: Timeout
+async_star_test/05: Timeout, RuntimeError
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
 async_throw_in_catch_test: Timeout, Fail # Issue 21404 or it could be a test error
