@@ -252,15 +252,32 @@ class _MemoryFile extends _MemoryResource implements File {
  * An in-memory implementation of [Source].
  */
 class _MemoryFileSource extends Source {
-  final _MemoryFile _file;
+  /**
+   * Map from encoded URI/filepath pair to a unique integer identifier.  This
+   * identifier is used for equality tests and hash codes.
+   *
+   * The URI and filepath are joined into a pair by separating them with an '@'
+   * character.
+   */
+  static final Map<String, int> _idTable = new HashMap<String, int>();
+
+  final _MemoryFile file;
 
   final Uri uri;
 
-  _MemoryFileSource(this._file, this.uri);
+  /**
+   * The unique ID associated with this [_MemoryFileSource].
+   */
+  final int id;
+
+  _MemoryFileSource(_MemoryFile file, Uri uri)
+      : uri = uri,
+        file = file,
+        id = _idTable.putIfAbsent('$uri@${file.path}', () => _idTable.length);
 
   @override
   TimestampedData<String> get contents {
-    return new TimestampedData<String>(modificationStamp, _file._content);
+    return new TimestampedData<String>(modificationStamp, file._content);
   }
 
   @override
@@ -269,10 +286,10 @@ class _MemoryFileSource extends Source {
   }
 
   @override
-  String get fullName => _file.path;
+  String get fullName => file.path;
 
   @override
-  int get hashCode => _file.hashCode;
+  int get hashCode => id;
 
   @override
   bool get isInSystemLibrary => uriKind == UriKind.DART_URI;
@@ -280,14 +297,14 @@ class _MemoryFileSource extends Source {
   @override
   int get modificationStamp {
     try {
-      return _file.modificationStamp;
+      return file.modificationStamp;
     } on FileSystemException catch (e) {
       return -1;
     }
   }
 
   @override
-  String get shortName => _file.shortName;
+  String get shortName => file.shortName;
 
   @override
   UriKind get uriKind {
@@ -304,14 +321,11 @@ class _MemoryFileSource extends Source {
 
   @override
   bool operator ==(other) {
-    if (other is _MemoryFileSource) {
-      return other._file == _file;
-    }
-    return false;
+    return other is _MemoryFileSource && other.id == id;
   }
 
   @override
-  bool exists() => _file.exists;
+  bool exists() => file.exists;
 
   @override
   Uri resolveRelativeUri(Uri relativeUri) {
@@ -319,7 +333,7 @@ class _MemoryFileSource extends Source {
   }
 
   @override
-  String toString() => _file.toString();
+  String toString() => file.toString();
 }
 
 /**

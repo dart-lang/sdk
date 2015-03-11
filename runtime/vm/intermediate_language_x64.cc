@@ -5873,7 +5873,7 @@ CompileType UnaryUint32OpInstr::ComputeType() const {
 LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());

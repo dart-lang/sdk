@@ -58,6 +58,9 @@ get sync {}                                  /// a12a: ok
 get sync* {}                                 /// a12b: compile-time error
 get async {}                                 /// a12c: ok
 get async* {}                                /// a12d: compile-time error
+get a12e sync* => null;                      /// a12e: compile-time error
+get a12f async* => null;                     /// a12f: compile-time error
+get a12g async => null;                      /// a12g: ok
 
 int sync;                                    /// a13a: ok
 int sync*;                                   /// a13b: compile-time error
@@ -123,6 +126,9 @@ class C extends B {
   get sync* {}                                 /// b12b: compile-time error
   get async {}                                 /// b12c: ok
   get async* {}                                /// b12d: compile-time error
+  get b12e sync* => null;                      /// b12e: compile-time error
+  get b12f async* => null;                     /// b12f: compile-time error
+  get b12g async => null;                      /// b12g: ok
 
   int sync;                                    /// b13a: ok
   int sync*;                                   /// b13b: compile-time error
@@ -219,6 +225,9 @@ void main() {
   a = sync;   /// a12b: continued
   a = async;  /// a12c: continued
   a = async;  /// a12d: continued
+  a = a12e;   /// a12e: continued
+  a = a12f;   /// a12f: continued
+  a = a12g;   /// a12g: continued
   a = sync;   /// a13a: continued
   a = sync;   /// a13b: continued
   a = async;  /// a13c: continued
@@ -258,6 +267,9 @@ void main() {
   a = c.sync;   /// b12b: continued
   a = c.async;  /// b12c: continued
   a = c.async;  /// b12d: continued
+  a = c.b12e;   /// b12e: continued
+  a = c.b12f;   /// b12f: continued
+  a = c.b12g;   /// b12g: continued
   a = c.sync;   /// b13a: continued
   a = c.sync;   /// b13b: continued
   a = c.async;  /// b13c: continued

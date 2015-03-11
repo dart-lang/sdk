@@ -847,6 +847,11 @@ class TestContextManager extends ContextManager {
   int now = 0;
 
   /**
+   * The analysis context that was created.
+   */
+  AnalysisContextImpl currentContext;
+
+  /**
    * Map from context to the timestamp when the context was created.
    */
   Map<String, int> currentContextTimestamps = <String, int>{};
@@ -888,10 +893,10 @@ class TestContextManager extends ContextManager {
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
     currentContextPackageUriResolvers[path] = packageUriResolver;
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory(
+    currentContext = new AnalysisContextImpl();
+    currentContext.sourceFactory = new SourceFactory(
         packageUriResolver == null ? [] : [packageUriResolver]);
-    return context;
+    return currentContext;
   }
 
   @override
@@ -913,6 +918,8 @@ class TestContextManager extends ContextManager {
       expect(filePaths, contains(source.fullName));
       filePaths[source.fullName] = now;
     }
+
+    currentContext.applyChanges(changeSet);
   }
 
   void assertContextFiles(String contextPath, List<String> expectedFiles) {

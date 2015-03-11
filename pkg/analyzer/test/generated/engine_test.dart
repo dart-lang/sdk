@@ -1280,6 +1280,26 @@ main() {}''');
     expect(_context.sourceFactory, same(_sourceFactory));
   }
 
+  void test_getSourcesWithFullName() {
+    String filePath = '/foo/lib/file.dart';
+    List<Source> expected = <Source>[];
+    ChangeSet changeSet = new ChangeSet();
+
+    TestSourceWithUri source1 =
+        new TestSourceWithUri(filePath, Uri.parse('file://$filePath'));
+    expected.add(source1);
+    changeSet.addedSource(source1);
+
+    TestSourceWithUri source2 =
+        new TestSourceWithUri(filePath, Uri.parse('package:foo/file.dart'));
+    expected.add(source2);
+    changeSet.addedSource(source2);
+
+    _context.applyChanges(changeSet);
+    expect(
+        _context.getSourcesWithFullName(filePath), unorderedEquals(expected));
+  }
+
   void test_getStatistics() {
     AnalysisContextStatistics statistics = _context.statistics;
     expect(statistics, isNotNull);
@@ -5649,6 +5669,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  List<Source> getSourcesWithFullName(String path) {
+    fail("Unexpected invocation of getSourcesWithFullName");
+    return null;
+  }
+  @override
   bool handleContentsChanged(
       Source source, String originalContents, String newContents, bool notify) {
     fail("Unexpected invocation of handleContentsChanged");
@@ -5713,6 +5738,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
+
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {

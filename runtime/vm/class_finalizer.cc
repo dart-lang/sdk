@@ -2098,8 +2098,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   ASSERT(!mixin_type.IsNull());
   ASSERT(mixin_type.HasResolvedTypeClass());
   const Class& mixin_cls = Class::Handle(isolate, mixin_type.type_class());
-  const Error& error = Error::Handle(mixin_cls.EnsureIsFinalized(isolate));
-  ASSERT(error.IsNull());
+  FinalizeClass(mixin_cls);
   // If the mixin is a mixin application alias class, there are no members to
   // apply here. A new synthesized class representing the aliased mixin
   // application class was inserted in the super chain of this mixin application

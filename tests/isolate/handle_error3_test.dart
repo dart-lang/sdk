@@ -92,7 +92,7 @@ main(){
         case 2:
           Expect.equals(new RangeError.value(37).toString(), "$error");
           state2++;
-          reply.close();
+          reply2.close();
           isolate2.removeErrorListener(errorPort2.sendPort);
           errorPort2.close();
           asyncEnd();

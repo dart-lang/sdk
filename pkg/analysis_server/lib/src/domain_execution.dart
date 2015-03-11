@@ -114,7 +114,8 @@ class ExecutionDomainHandler implements RequestHandler {
         return new Response.invalidParameter(
             request, 'file', 'Must not refer to a directory');
       }
-      Source source = server.getSource(file);
+      ContextSourcePair contextSource = server.getContextSourcePair(file);
+      Source source = contextSource.source;
       uri = context.sourceFactory.restoreUri(source).toString();
       return new ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (uri != null) {
@@ -157,6 +158,9 @@ class ExecutionDomainHandler implements RequestHandler {
         return;
       }
       AnalysisContext context = server.getAnalysisContext(filePath);
+      if (context == null) {
+        return;
+      }
       if (AnalysisEngine.isDartFileName(filePath)) {
         ExecutableKind kind = ExecutableKind.NOT_EXECUTABLE;
         if (context.isClientLibrary(source)) {

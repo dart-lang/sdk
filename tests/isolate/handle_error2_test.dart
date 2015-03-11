@@ -47,7 +47,6 @@ Future spawn(entry) {
 main(){
   asyncStart();
   RawReceivePort reply = new RawReceivePort(null);
-  RawReceivePort reply2 = new RawReceivePort(null);
   // Create two isolates waiting for commands, with errors non-fatal.
   Future iso1 = spawn(isomain1);
   Future iso2 = spawn(isomain1);

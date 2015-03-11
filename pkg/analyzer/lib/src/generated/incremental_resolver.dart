@@ -472,14 +472,18 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       } else {
         _assertEquals(nodeDefault.toSource(), element.defaultValueCode);
       }
+      _assertCompatibleParameter(node.parameter, element);
     } else if (node is FieldFormalParameter) {
       _assertTrue(element.isInitializingFormal);
+      _assertCompatibleParameters(node.parameters, element.parameters);
     } else if (node is FunctionTypedFormalParameter) {
+      _assertFalse(element.isInitializingFormal);
       _assertTrue(element.type is FunctionType);
       FunctionType elementType = element.type;
       _assertCompatibleParameters(node.parameters, element.parameters);
       _assertSameType(node.returnType, elementType.returnType);
     } else if (node is SimpleFormalParameter) {
+      _assertFalse(element.isInitializingFormal);
       _assertSameType(node.type, element.type);
     }
   }
@@ -1250,7 +1254,8 @@ class PoorMansIncrementalResolver {
           }
           // fail if a comment change outside the bodies
           if (firstPair.kind == _TokenDifferenceKind.COMMENT) {
-            if (beginOffsetOld <= oldNode.offset || beginOffsetNew <= newNode.offset) {
+            if (beginOffsetOld <= oldNode.offset ||
+                beginOffsetNew <= newNode.offset) {
               logger.log('Failure: comment outside a function body.');
               return false;
             }

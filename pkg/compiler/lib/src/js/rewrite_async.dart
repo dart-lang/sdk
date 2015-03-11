@@ -2412,7 +2412,10 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitSwitch(js.Switch node) {
     loopsAndSwitches.add(node);
-    bool result = visit(node.key);
+    // If the key has an `await` expression, do not transform the
+    // body of the switch.
+    visit(node.key);
+    bool result = false;
     for (js.SwitchClause clause in node.cases) {
       if (visit(clause)) result = true;
     }

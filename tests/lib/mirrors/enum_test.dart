@@ -46,6 +46,7 @@ main() {
     'Variable(s(SPADES) in s(Suite), static, final)',
     'Variable(s(HEARTS) in s(Suite), static, final)',
     'Variable(s(values) in s(Suite), static, final)',
+    'Method(s(hashCode) in s(Suite), getter)',
     'Method(s(toString) in s(Suite))'],
    reflectClass(Suite).declarations.values
        .where((d) => !d.isPrivate).map(stringify));

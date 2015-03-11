@@ -24,7 +24,9 @@ import 'package:analyzer/src/generated/source.dart';
  */
 void scheduleIndexOperation(AnalysisServer server, String file,
     AnalysisContext context, CompilationUnit dartUnit) {
-  server.addOperation(new _DartIndexOperation(context, file, dartUnit));
+  if (server.index != null) {
+    server.addOperation(new _DartIndexOperation(context, file, dartUnit));
+  }
 }
 
 /**
@@ -34,16 +36,6 @@ void scheduleIndexOperation(AnalysisServer server, String file,
 void scheduleNotificationOperations(AnalysisServer server, String file,
     LineInfo lineInfo, AnalysisContext context, CompilationUnit parsedDartUnit,
     CompilationUnit resolvedDartUnit, List<AnalysisError> errors) {
-  // Only send notifications if the current context is the preferred
-  // context for the file.  This avoids redundant notification messages
-  // being sent to the client (see dartbug.com/22210).
-  // TODO(paulberry): note that there is a small risk that this will cause
-  // notifications to be lost if the preferred context for a file changes
-  // while analysis is in progress (e.g. because the client sent an
-  // analysis.setAnalysisRoots message).
-  if (server.getAnalysisContext(file) != context) {
-    return;
-  }
   // Dart
   CompilationUnit dartUnit =
       resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
@@ -246,8 +238,7 @@ class PerformAnalysisOperation extends ServerOperation {
   }
 
   void _updateIndex(AnalysisServer server, List<ChangeNotice> notices) {
-    Index index = server.index;
-    if (index == null) {
+    if (server.index == null) {
       return;
     }
     for (ChangeNotice notice in notices) {

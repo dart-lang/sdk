@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * The name of `packages` folders.
@@ -301,7 +302,14 @@ abstract class ContextManager {
     if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
       return;
     }
-    List<Resource> children = folder.getChildren();
+    List<Resource> children = null;
+    try {
+      children = folder.getChildren();
+    } on FileSystemException {
+      // The directory either doesn't exist or cannot be read. Either way, there
+      // are no children that need to be added.
+      return;
+    }
     for (Resource child in children) {
       String path = child.path;
       // ignore excluded files or folders
@@ -393,11 +401,16 @@ abstract class ContextManager {
     }
     // try to find subfolders with pubspec files
     List<_ContextInfo> children = <_ContextInfo>[];
-    for (Resource child in folder.getChildren()) {
-      if (child is Folder) {
-        List<_ContextInfo> childContexts = _createContexts(child, true);
-        children.addAll(childContexts);
+    try {
+      for (Resource child in folder.getChildren()) {
+        if (child is Folder) {
+          List<_ContextInfo> childContexts = _createContexts(child, true);
+          children.addAll(childContexts);
+        }
       }
+    } on FileSystemException {
+      // The directory either doesn't exist or cannot be read. Either way, there
+      // are no subfolders that need to be added.
     }
     // no pubspec, done
     if (withPubspecOnly) {
@@ -427,8 +440,8 @@ abstract class ContextManager {
    */
   void _destroyContext(Folder folder) {
     _contexts[folder].changeSubscription.cancel();
-    _contexts.remove(folder);
     removeContext(folder);
+    _contexts.remove(folder);
   }
 
   /**
@@ -466,6 +479,10 @@ abstract class ContextManager {
   }
 
   void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
+    // TODO(brianwilkerson) If a file is explicitly included in one context
+    // but implicitly referenced in another context, we will only send a
+    // changeSet to the context that explicitly includes the file (because
+    // that's the only context that's watching the file).
     _instrumentationService.logWatchEvent(
         folder.path, event.path, event.type.toString());
     String path = event.path;
@@ -509,19 +526,23 @@ abstract class ContextManager {
           _mergeContext(info);
           return;
         }
-        Source source = info.sources[path];
-        if (source != null) {
+        List<Source> sources = info.context.getSourcesWithFullName(path);
+        if (!sources.isEmpty) {
           ChangeSet changeSet = new ChangeSet();
-          changeSet.removedSource(source);
+          sources.forEach((Source source) {
+            changeSet.removedSource(source);
+          });
           applyChangesToContext(folder, changeSet);
           info.sources.remove(path);
         }
         break;
       case ChangeType.MODIFY:
-        Source source = info.sources[path];
-        if (source != null) {
+        List<Source> sources = info.context.getSourcesWithFullName(path);
+        if (!sources.isEmpty) {
           ChangeSet changeSet = new ChangeSet();
-          changeSet.changedSource(source);
+          sources.forEach((Source source) {
+            changeSet.changedSource(source);
+          });
           applyChangesToContext(folder, changeSet);
         }
         break;
@@ -611,6 +632,9 @@ abstract class ContextManager {
     Source source = file.createSource();
     if (context == null) {
       return source;
+    }
+    if (context.sourceFactory == null) {
+      return null;
     }
     Uri uri = context.sourceFactory.restoreUri(source);
     return file.createSource(uri);

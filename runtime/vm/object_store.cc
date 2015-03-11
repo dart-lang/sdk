@@ -75,6 +75,8 @@ ObjectStore::ObjectStore()
     pending_functions_(GrowableObjectArray::null()),
     pending_deferred_loads_(GrowableObjectArray::null()),
     resume_capabilities_(GrowableObjectArray::null()),
+    exit_listeners_(GrowableObjectArray::null()),
+    error_listeners_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
@@ -125,6 +127,8 @@ bool ObjectStore::PreallocateObjects() {
   this->pending_deferred_loads_ = GrowableObjectArray::New();
 
   this->resume_capabilities_ = GrowableObjectArray::New();
+  this->exit_listeners_ = GrowableObjectArray::New();
+  this->error_listeners_ = GrowableObjectArray::New();
 
   Object& result = Object::Handle();
   const Library& library = Library::Handle(Library::CoreLibrary());

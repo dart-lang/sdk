@@ -50,6 +50,20 @@ foo3(a) async {
   return k;
 }
 
+foo4(value) async {
+  int k = 0;
+  switch(await value) {
+    case 1:
+      k += 1;
+      break;
+    case 2:
+      k += 2;
+      return 2 + k;
+    default: k = 2; /// withDefault: ok
+  }
+  return k;
+}
+
 futureOf(a) async => await a;
 
 test() async {
@@ -65,6 +79,10 @@ test() async {
   Expect.equals(4, await foo3(2));
   Expect.equals(2, await foo3(3)); /// withDefault: ok
   Expect.equals(0, await foo3(3)); /// none: ok
+  Expect.equals(1, await foo4(futureOf(1)));
+  Expect.equals(4, await foo4(futureOf(2)));
+  Expect.equals(2, await foo4(futureOf(3))); /// withDefault: ok
+  Expect.equals(0, await foo4(futureOf(3))); /// none: ok
 }
 
 void main() {

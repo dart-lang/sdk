@@ -451,6 +451,12 @@ abstract class AnalysisContext {
   void set sourceFactory(SourceFactory factory);
 
   /**
+   * Returns a type provider for this context or throws [AnalysisException] if
+   * `dart:core` or `dart:async` cannot be resolved.
+   */
+  TypeProvider get typeProvider;
+
+  /**
    * Add the given listener to the list of objects that are to be notified when various analysis
    * results are produced in this context.
    *
@@ -779,6 +785,12 @@ abstract class AnalysisContext {
    * See [resolveHtmlUnit].
    */
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
+
+  /**
+   * Return a list of the sources being analyzed in this context whose full path
+   * is equal to the given [path].
+   */
+  List<Source> getSourcesWithFullName(String path);
 
   /**
    * Return `true` if the given source is known to be the defining compilation unit of a
@@ -1121,7 +1133,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
-            this._options.generateImplicitErrors != options.generateImplicitErrors ||
+        this._options.generateImplicitErrors !=
+            options.generateImplicitErrors ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
@@ -1147,7 +1160,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
-        this._options.generateImplicitErrors = options.generateImplicitErrors;
+    this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
@@ -2158,6 +2171,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  List<Source> getSourcesWithFullName(String path) {
+    List<Source> sources = <Source>[];
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      if (iterator.key.fullName == path) {
+        sources.add(iterator.key);
+      }
+    }
+    return sources;
+  }
+
+  @override
   bool handleContentsChanged(
       Source source, String originalContents, String newContents, bool notify) {
     SourceEntry sourceEntry = _cache.get(source);
@@ -2615,20 +2640,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
-    }
-  }
-
-  /**
-   * Return `true` if errors should be produced for the given [source]. The
-   * [dartEntry] associated with the source is passed in for efficiency.
-   */
-  bool _shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
-    if (source.isInSystemLibrary) {
-      return _generateSdkErrors;
-    } else if (!dartEntry.explicitlyAdded) {
-      return _generateImplicitErrors;
-    } else {
-      return true;
     }
   }
 
@@ -4323,6 +4334,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  /**
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
+   */
+  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
+    Source source = task.source;
+    Source library = task.library;
+    DartEntry dartEntry = _cache.get(source);
+    CaughtException thrownException = task.exception;
+    if (thrownException != null) {
+      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
+      throw new AnalysisException('<rethrow>', thrownException);
+    }
+    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
+    dartEntry.setValueInLibrary(
+        DartEntry.BUILT_ELEMENT, library, task.unitElement);
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(dartEntry.allErrors, lineInfo);
+    return dartEntry;
+  }
+
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4400,28 +4433,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
-
-  /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
-  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
-    Source source = task.source;
-    Source library = task.library;
-    DartEntry dartEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
-    dartEntry.setValueInLibrary(
-        DartEntry.BUILT_ELEMENT, library, task.unitElement);
-    ChangeNoticeImpl notice = _getNotice(source);
-    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(dartEntry.allErrors, lineInfo);
-    return dartEntry;
-  }
 
   /**
    * Given a cache entry and a library element, record the library element and other information
@@ -4815,6 +4826,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (newOrder.length < count) {
       analysisPriorityOrder = newOrder;
+    }
+  }
+
+  /**
+   * Return `true` if errors should be produced for the given [source]. The
+   * [dartEntry] associated with the source is passed in for efficiency.
+   */
+  bool _shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
+    if (source.isInSystemLibrary) {
+      return _generateSdkErrors;
+    } else if (!dartEntry.explicitlyAdded) {
+      return _generateImplicitErrors;
+    } else {
+      return true;
     }
   }
 

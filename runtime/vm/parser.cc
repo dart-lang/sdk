@@ -4649,6 +4649,13 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   to_string_func = to_string_func.Clone(cls);
   enum_members.AddFunction(to_string_func);
 
+  // Clone the hashCode getter function from the helper class.
+  Function& hash_code_func = Function::Handle(I,
+      helper_class.LookupDynamicFunctionAllowPrivate(Symbols::hashCode()));
+  ASSERT(!hash_code_func.IsNull());
+  hash_code_func = hash_code_func.Clone(cls);
+  enum_members.AddFunction(hash_code_func);
+
   cls.AddFields(enum_members.fields());
   const Array& functions =
       Array::Handle(Z, Array::MakeArray(enum_members.functions()));
@@ -5523,7 +5530,13 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     accessor_end_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
+    if (is_getter && ((func_modifier & RawFunction::kGeneratorBit) != 0)) {
+      ReportError(modifier_pos,
+                  "=> style getter may not be sync* or async* generator");
+    }
     ConsumeToken();
+    BoolScope allow_await(&this->await_is_keyword_,
+                          func_modifier != RawFunction::kNoModifier);
     SkipExpr();
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
@@ -6076,11 +6089,12 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   TryStack* try_statement = PopTry();
   ASSERT(try_stack_ == NULL);  // We popped the outermost try block.
 
-  // Finally block: closing the stream and returning. (Note: the return
-  // is necessary otherwise the back-end will append a rethrow of the
-  // current exception.)
+  // Finally block: closing the stream and returning. Instead of simply
+  // returning, create an await state and suspend. There may be outstanding
+  // calls to schedule the generator body. This suspension ensures that we
+  // do not repeat any code of the generator body.
   // :controller.close();
-  // return;
+  // suspend;
   // We need to inline this code in all recorded exit points.
   intptr_t node_index = 0;
   SequenceNode* finally_clause = NULL;
@@ -6094,8 +6108,13 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
             Symbols::Close(),
             no_args));
 
-    ReturnNode* return_node = new(Z) ReturnNode(Scanner::kNoSourcePos);
-    current_block_->statements->Add(return_node);
+    // Suspend after the close.
+    AwaitMarkerNode* await_marker = new(Z) AwaitMarkerNode();
+    await_marker->set_scope(current_block_->scope);
+    current_block_->statements->Add(await_marker);
+    ReturnNode* continuation_ret = new(Z) ReturnNode(try_end_pos);
+    continuation_ret->set_return_type(ReturnNode::kContinuationTarget);
+    current_block_->statements->Add(continuation_ret);
 
     finally_clause = CloseBlock();
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
@@ -8613,7 +8632,7 @@ AstNode* Parser::ParseAssertStatement() {
     ExpectToken(Token::kRPAREN);
     return NULL;
   }
-  AstNode* condition = ParseExpr(kAllowConst, kConsumeCascades);
+  AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   const intptr_t condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
   condition = InsertClosureCallNodes(condition);
@@ -10703,7 +10722,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (primary_node->primary().IsFunction()) {
           left = LoadClosure(primary_node);
         } else if (primary_node->primary().IsTypeParameter()) {
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             const String& name = String::ZoneHandle(Z,
                 TypeParameter::Cast(primary_node->primary()).name());
             ReportError(primary_pos,
@@ -10789,7 +10808,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ASSERT(!type.IsMalformed());
           array = new(Z) TypeNode(primary_pos, type);
         } else if (primary_node->primary().IsTypeParameter()) {
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             const String& name = String::ZoneHandle(Z,
                 TypeParameter::Cast(primary_node->primary()).name());
             ReportError(primary_pos,
@@ -10857,7 +10876,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         } else if (primary_node->primary().IsTypeParameter()) {
           const String& name = String::ZoneHandle(Z,
               TypeParameter::Cast(primary_node->primary()).name());
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             // Treat as this.T(), because T is in scope.
             ReportError(primary_pos,
                         "cannot access type parameter '%s' "
@@ -10903,7 +10922,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ASSERT(!type.IsMalformed());
           left = new(Z) TypeNode(primary_pos, type);
         } else if (primary_node->primary().IsTypeParameter()) {
-          if (current_function().is_static()) {
+          if (ParsingStaticMember()) {
             const String& name = String::ZoneHandle(Z,
                 TypeParameter::Cast(primary_node->primary()).name());
             ReportError(primary_pos,

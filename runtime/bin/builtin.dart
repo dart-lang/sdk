@@ -116,7 +116,15 @@ _getCurrentDirectoryPath() native "Directory_Current";
 
 // Corelib 'Uri.base' implementation.
 Uri _uriBase() {
-  return new Uri.file(_getCurrentDirectoryPath() + "/");
+  // We are not using Dircetory.current here to limit the dependency
+  // on dart:io. This code is the same as:
+  //   return new Uri.file(Directory.current.path + "/");
+  var result = _getCurrentDirectoryPath();
+  if (result is OSError) {
+    throw new FileSystemException(
+        "Getting current working directory failed", "", result);
+  }
+  return new Uri.file(result + "/");
 }
 
 _getUriBaseClosure() => _uriBase;
