@@ -14,11 +14,9 @@ function __load(path) {
 var args = process.argv.slice(2);
 var argc = args.length;
 
-for(var i = 0; i < argc-1; ++i) {
+for (var i = 0; i < argc-1; ++i) {
   __load(args[i]);
 }
 
-var main = vm.createScript(args[argc-1]+'.main()', 'main');
+var main = vm.createScript(args[argc-1] + '.main()', 'main');
 main.runInThisContext();
-
-

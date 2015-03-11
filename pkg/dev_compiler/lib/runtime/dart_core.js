@@ -47,7 +47,7 @@ var dart_core;
     function UnimplementedError(message) {
       this.message = (message != void 0) ? message : null;
     }
-    return NoSuchMethodError;
+    return UnimplementedError;
   })();
   dart_core.UnimplementedError = UnimplementedError;
 })(dart_core || (dart_core = {}));

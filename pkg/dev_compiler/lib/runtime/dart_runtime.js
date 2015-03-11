@@ -21,7 +21,7 @@ var dart;
     argDecl = fnText.match(FN_ARGS);
 
     var r = argDecl[1].split(FN_ARG_SPLIT);
-    for(var a in r){
+    for(var a in r) {
       var arg = r[a];
       arg.replace(FN_ARG, function(all, underscore, name){
         args.push(name);
