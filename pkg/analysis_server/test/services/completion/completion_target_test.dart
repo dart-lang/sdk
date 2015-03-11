@@ -137,6 +137,151 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget('}', '{}');
   }
 
+  test_FunctionDeclaration_inLineComment() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal comment ^
+      zoo(z) { } String name;''');
+    assertTarget('// normal comment ', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_inLineComment2() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal ^comment
+      zoo(z) { } String name;''');
+    assertTarget('// normal comment', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_inLineComment3() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal comment ^
+      // normal comment 2
+      zoo(z) { } String name;''');
+    assertTarget('// normal comment ', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_inLineComment4() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal comment 
+      // normal comment 2^
+      zoo(z) { } String name;''');
+    assertTarget('// normal comment 2', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_inLineDocComment() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      /// some dartdoc ^
+      zoo(z) { } String name;''');
+    assertTarget('/// some dartdoc ', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_FunctionDeclaration_inLineDocComment2() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      /// some ^dartdoc
+      zoo(z) { } String name;''');
+    assertTarget('/// some dartdoc', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_FunctionDeclaration_inStarComment() {
+    // Comment  CompilationUnit
+    addTestSource('/* ^ */ zoo(z) {} String name;');
+    assertTarget('/*  */', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_inStarComment2() {
+    // Comment  CompilationUnit
+    addTestSource('/*  *^/ zoo(z) {} String name;');
+    assertTarget('/*  */', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_inStarDocComment() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('/** ^ */ zoo(z) { } String name;');
+    assertTarget('/**  */', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_FunctionDeclaration_inStarDocComment2() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('/**  *^/ zoo(z) { } String name;');
+    assertTarget('/**  */', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_FunctionDeclaration_returnType() {
+    // CompilationUnit
+    addTestSource('^ zoo(z) { } String name;');
+    assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_returnType_afterLineComment() {
+    // FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      // normal comment
+      ^ zoo(z) {} String name;''');
+    assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_returnType_afterLineComment2() {
+    // FunctionDeclaration  CompilationUnit
+    // TOD(danrubel) left align all test source
+    addTestSource('''
+// normal comment
+^ zoo(z) {} String name;''');
+    assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_returnType_afterLineDocComment() {
+    // SimpleIdentifier  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      /// some dartdoc
+      ^ zoo(z) { } String name; ''');
+    assertTarget('zoo', 'zoo(z) {}');
+  }
+
+  test_FunctionDeclaration_returnType_afterLineDocComment2() {
+    // SimpleIdentifier  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+/// some dartdoc
+^ zoo(z) { } String name;''');
+    assertTarget('zoo', 'zoo(z) {}');
+  }
+
+  test_FunctionDeclaration_returnType_afterStarComment() {
+    // CompilationUnit
+    addTestSource('/* */ ^ zoo(z) { } String name;');
+    assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_returnType_afterStarComment2() {
+    // CompilationUnit
+    addTestSource('/* */^ zoo(z) { } String name;');
+    assertTarget('zoo(z) {}', 'zoo(z) {} String name;');
+  }
+
+  test_FunctionDeclaration_returnType_afterStarDocComment() {
+    // FunctionDeclaration  CompilationUnit
+    addTestSource('/** */ ^ zoo(z) { } String name;');
+    assertTarget('zoo', 'zoo(z) {}');
+  }
+
+  test_FunctionDeclaration_returnType_afterStarDocComment2() {
+    // FunctionDeclaration  CompilationUnit
+    addTestSource('/** */^ zoo(z) { } String name;');
+    assertTarget('zoo', 'zoo(z) {}');
+  }
+
   test_InstanceCreationExpression_identifier() {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new ^C();}}');

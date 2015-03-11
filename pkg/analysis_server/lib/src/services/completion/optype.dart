@@ -184,7 +184,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   void visitCompilationUnit(CompilationUnit node) {
-    optype.includeTypeNameSuggestions = true;
+    if (entity is! CommentToken) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override
@@ -307,6 +309,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     // TODO (danrubel) void return suggestions only belong after
     // the 2nd semicolon.  Return value suggestions only belong after the
     // e1st or second semicolon.
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (identical(entity, node.returnType) ||
+        identical(entity, node.name) && node.returnType == null) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override

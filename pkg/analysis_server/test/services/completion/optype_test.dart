@@ -502,6 +502,155 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true);
   }
 
+  test_FunctionDeclaration1() {
+    // SimpleIdentifier  FunctionDeclaration  CompilationUnit
+    addTestSource('const ^Fara();');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration2() {
+    // SimpleIdentifier  FunctionDeclaration  CompilationUnit
+    addTestSource('const F^ara();');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_inLineComment() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal comment ^
+      zoo(z) { } String name;''');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inLineComment2() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal ^comment
+      zoo(z) { } String name;''');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inLineComment3() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal comment ^
+      // normal comment 2
+      zoo(z) { } String name;''');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inLineComment4() {
+    // Comment  CompilationUnit
+    addTestSource('''
+      // normal comment 
+      // normal comment 2^
+      zoo(z) { } String name;''');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inLineDocComment() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      /// some dartdoc ^
+      zoo(z) { } String name;''');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inLineDocComment2() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      /// some ^dartdoc
+      zoo(z) { } String name;''');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inStarComment() {
+    // Comment  CompilationUnit
+    addTestSource('/* ^ */ zoo(z) {} String name;');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inStarComment2() {
+    // Comment  CompilationUnit
+    addTestSource('/*  *^/ zoo(z) {} String name;');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inStarDocComment() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('/** ^ */ zoo(z) { } String name; ');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_inStarDocComment2() {
+    // Comment  FunctionDeclaration  CompilationUnit
+    addTestSource('/**  *^/ zoo(z) { } String name;');
+    assertOpType();
+  }
+
+  test_FunctionDeclaration_returnType() {
+    // CompilationUnit
+    addTestSource('^ zoo(z) { } String name;');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterLineComment() {
+    // FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      // normal comment
+      ^ zoo(z) {} String name;''');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterLineComment2() {
+    // FunctionDeclaration  CompilationUnit
+    // TOD(danrubel) left align all test source
+    addTestSource('''
+// normal comment
+^ zoo(z) {} String name;''');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterLineDocComment() {
+    // SimpleIdentifier  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+      /// some dartdoc
+      ^ zoo(z) { } String name;''');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterLineDocComment2() {
+    // SimpleIdentifier  FunctionDeclaration  CompilationUnit
+    addTestSource('''
+/// some dartdoc
+^ zoo(z) { } String name;''');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterStarComment() {
+    // CompilationUnit
+    addTestSource('/* */ ^ zoo(z) { } String name;');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterStarComment2() {
+    // CompilationUnit
+    addTestSource('/* */^ zoo(z) { } String name;');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterStarDocComment() {
+    // FunctionDeclaration  CompilationUnit
+    addTestSource('/** */ ^ zoo(z) { } String name;');
+    assertOpType(typeNames: true);
+  }
+
+  test_FunctionDeclaration_returnType_afterStarDocComment2() {
+    // FunctionDeclaration  CompilationUnit
+    addTestSource('/** */^ zoo(z) { } String name;');
+    assertOpType(typeNames: true);
+  }
+
   test_FunctionTypeAlias() {
     // SimpleIdentifier  FunctionTypeAlias  CompilationUnit
     addTestSource('typedef n^ ;');
