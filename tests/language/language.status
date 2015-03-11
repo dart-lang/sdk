@@ -33,6 +33,8 @@ enum_mirror_test: Skip # Issue 11511.
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 
+async_await_test/03: RuntimeError
+
 [ $compiler == none || $compiler == dart2dart ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
@@ -54,9 +56,16 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 [ $compiler == none ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 
-[ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
+
+[ $runtime == vm || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid ]
+async_star_test/01: CompileTimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: Timeout
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assertion_test: Fail # Issue 13719: Please triage this failure.

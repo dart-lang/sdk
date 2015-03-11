@@ -177,7 +177,7 @@ class _SyncIterator implements Iterator {
         yieldEachIterator = (current as Iterable).iterator;
         continue;
       }
-      return true;    
+      return true;
     }
   }
 }

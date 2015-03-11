@@ -7,6 +7,8 @@ sync_generator2_test/07: MissingCompileTimeError # Issue 22324
 sync_generator2_test/08: MissingCompileTimeError # Issue 22324
 sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 
+async_star_test/05: RuntimeError
+
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 
