@@ -55,7 +55,11 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 
   jsAst.Statement processClassData = js.statement('''{
   function processClassData(cls, descriptor, processedClasses) {
-    var newDesc = map(); // Use a slow object.
+    // Create a proper JavaScript object (as opposed to a map without
+    // prototype) here so that it can be reused as a prototype for instances
+    // of the corresponding class later on.
+    var newDesc = {};
+    newDesc.x = 0; delete newDesc.x; // Make object slow.
     var previousProperty;
     var properties = Object.keys(descriptor);
     for (var i = 0; i < properties.length; i++) {
