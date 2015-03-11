@@ -1003,6 +1003,8 @@ It is a compile-time error to declare an optional parameter in an operator.
 \LMHash{}
 It is a static warning if the return type of the user-declared operator \code{[]=} is explicitly declared and not \VOID{}.
 
+% add rationale: return in []= methods will have no effect, a the expression always returns its second argument (the RHS of the assignment, for consistency with assignment in general). So it's best to enforce this by declaring the method to be void, even though the expression that uses it returns an object with the type of the RHS, as described in \ref{assignment}.
+
 
 \subsection{Getters} 
 \LMLabel{getters}
@@ -3090,7 +3092,12 @@ $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow T
 The static type of a function literal of the form 
 
 $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k])$ \ASYNC{} $=> e$
-is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Future<T_0>$, where $T_0$ is the static type of $e$. 
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Future<flatten(T_0)>$, where $T_0$ is the static type of $e$ and  $flatten(T) = flatten(S)$ if $T = Future<S>$, and $T$ otherwise. 
+
+\rationale{
+We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an async function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}. 
+}
+
 
 \LMHash{}
 The static type of a function literal of the form 
@@ -3105,7 +3112,7 @@ The static type of a function literal of the form
 
 $(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ \ASYNC{}  $=> e$
 
-is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow Future<T_0>$, where $T_0$ is the static type of $e$. 
+is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow Future<flatten(T_0)>$, where $T_0$ is the static type of $e$. 
 
 \LMHash{}
 The static type of a function literal of the form  
@@ -3779,7 +3786,7 @@ If the method lookup succeeded, the body of $f$ is executed with respect to the 
 
 \LMHash{}
 If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $v_o$ with respect to $L$. 
-f $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $g$ is a getter that forwards to a static getter, getter lookup fails.
+If $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $g$ is a getter that forwards to a static getter, getter lookup fails.
 If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $o.m$. Then the value of $i$ is the result of invoking 
 the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
 
@@ -4596,12 +4603,7 @@ It is not a static warning if the type of $e$ is not a subtype of \code{Future}.
 }
 
 \LMHash{}
-Let $flatten(T) = flatten(S)$ if $T = Future<S>$, and $T$ otherwise. The static type of $a$ is $flatten(T)$ where $T$ is the static type of $e$.
-
-\rationale{
-We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an async function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}. 
-}
-
+The static type of $a$ is $flatten(T)$ (the $flatten$ function is defined in section \ref{functionExpressions}) where $T$ is the static type of $e$.
 
 
      
@@ -5739,7 +5741,7 @@ The enclosing function cannot be marked as generator (i.e, \ASYNC* or \SYNC*), s
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  
 
 \LMHash{}
-It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future$<$flatten(T)$>$} (\ref{awaitExpressions}) may not be assigned to the declared return type of $f$.   Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$. 
+It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future$<$flatten(T)$>$} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$. 
 
 \LMHash{}
 Let $S$ be the runtime type of $o$. In checked mode:
