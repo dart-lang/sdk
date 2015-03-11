@@ -257,15 +257,27 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
     checkStaticTargetIsValid(node, node.target);
-
-    if (node.target is! FunctionElement) {
-      giveup(node, 'static getters and setters are not supported.');
-    }
     Selector selector = node.selector;
-    FunctionElement target = node.target;
-    List<js.Expression> arguments = visitArguments(node.arguments);
-    return buildStaticInvoke(selector, target, arguments,
-        sourceInformation: node.sourceInformation);
+    if (node.target is FunctionElement) {
+      assert(selector.isGetter || selector.isSetter || selector.isCall);
+      FunctionElement target = node.target;
+      List<js.Expression> arguments = visitArguments(node.arguments);
+      return buildStaticInvoke(selector, target, arguments,
+          sourceInformation: node.sourceInformation);
+    } else {
+      assert(selector.isGetter || selector.isSetter);
+      FieldElement target = node.target;
+      registry.registerStaticUse(target);
+      js.Expression field = glue.staticFieldAccess(target);
+      if (selector.isGetter) {
+        assert(node.arguments.isEmpty);
+        return field;
+      } else {
+        assert(node.arguments.length == 1);
+        js.Expression value = visitExpression(node.arguments.first);
+        return new js.Assignment(field, value);
+      }
+    }
   }
 
   @override

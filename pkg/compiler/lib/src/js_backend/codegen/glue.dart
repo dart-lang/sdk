@@ -43,8 +43,12 @@ class Glue {
     return _backend.constants.getConstantForVariable(variable);
   }
 
-  js.Expression staticFunctionAccess(Element element) {
+  js.Expression staticFunctionAccess(FunctionElement element) {
     return _backend.emitter.staticFunctionAccess(element);
+  }
+
+  js.Expression staticFieldAccess(FieldElement element) {
+    return _backend.emitter.staticFieldAccess(element);
   }
 
   String safeVariableName(String name) {
