@@ -4,6 +4,7 @@
 
 library engine.static_type_warning_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
@@ -433,6 +434,36 @@ class A {
 }''');
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+  }
+
+  void test_invocationOfNonFunction_localGenericFunction() {
+    // Objects having a specific function type may be invoked, but objects
+    // having type Function may not, because type Function lacks a call method
+    // (this is because it is impossible to know what signature the call should
+    // have).
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableStrictCallChecks = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+f(Function f) {
+  return f();
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    verify([source]);
+  }
+
+  void test_invocationOfNonFunction_localObject() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableStrictCallChecks = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+f(Object o) {
+  return o();
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    verify([source]);
   }
 
   void test_invocationOfNonFunction_localVariable() {
@@ -1289,6 +1320,35 @@ f(T e) { return e.m; }''');
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedGetter_generic_function_call() {
+    // Objects having a specific function type have a call() method, but
+    // objects having type Function do not (this is because it is impossible to
+    // know what signature the call should have).
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableStrictCallChecks = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+f(Function f) {
+  return f.call;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
+  void test_undefinedGetter_object_call() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableStrictCallChecks = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+f(Object o) {
+  return o.call;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   void test_undefinedGetter_proxy_annotation_fakeProxy() {
     Source source = addSource(r'''
 library L;
@@ -1387,6 +1447,22 @@ class B {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  void test_undefinedMethod_generic_function_call() {
+    // Objects having a specific function type have a call() method, but
+    // objects having type Function do not (this is because it is impossible to
+    // know what signature the call should have).
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableStrictCallChecks = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+f(Function f) {
+  f.call();
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   void test_undefinedMethod_ignoreTypePropagation() {
     Source source = addSource(r'''
 class A {}
@@ -1399,6 +1475,19 @@ class C {
     a.m();
   }
 }''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  void test_undefinedMethod_object_call() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableStrictCallChecks = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+f(Object o) {
+  o.call();
+}
+''');
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }

@@ -1145,7 +1145,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
-        this._options.preserveComments != options.preserveComments;
+        this._options.preserveComments != options.preserveComments ||
+        this._options.enableStrictCallChecks != options.enableStrictCallChecks;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -1170,6 +1171,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
+    this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
@@ -6418,6 +6420,12 @@ abstract class AnalysisOptions {
   bool get enableEnum;
 
   /**
+   * Return `true` to strictly follow the specification when generating
+   * warnings on "call" methods (fixes dartbug.com/21938).
+   */
+  bool get enableStrictCallChecks;
+
+  /**
    * Return `true` if errors, warnings and hints should be generated for sources
    * that are implicitly being analyzed. The default value is `true`.
    */
@@ -6505,6 +6513,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool dart2jsHint = true;
 
   /**
+   * A flag indicating whether analysis is to strictly follow the specification
+   * when generating warnings on "call" methods (fixes dartbug.com/21938).
+   */
+  bool enableStrictCallChecks = false;
+
+  /**
    * A flag indicating whether errors, warnings and hints should be generated
    * for sources that are implicitly being analyzed.
    */
@@ -6563,6 +6577,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableStrictCallChecks = options.enableStrictCallChecks;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;

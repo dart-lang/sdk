@@ -211,6 +211,7 @@ class AnalyzerImpl {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.cacheSize = _MAX_CACHE_SIZE;
     contextOptions.hint = !options.disableHints;
+    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.analyzeFunctionBodiesPredicate =
         _analyzeFunctionBodiesPredicate;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;

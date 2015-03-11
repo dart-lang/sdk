@@ -19,6 +19,7 @@ main() {
       expect(options.dartSdkPath, isNotNull);
       expect(options.disableHints, isFalse);
       expect(options.displayVersion, isFalse);
+      expect(options.enableStrictCallChecks, isFalse);
       expect(options.enableTypeChecks, isFalse);
       expect(options.ignoreUnrecognizedFlags, isFalse);
       expect(options.log, isFalse);
@@ -46,6 +47,12 @@ main() {
           .parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
       expect(options.definedVariables['foo'], equals('bar'));
       expect(options.definedVariables['bar'], isNull);
+    });
+
+    test('enable strict call checks', () {
+      CommandLineOptions options = CommandLineOptions.parse(
+          ['--dart-sdk', '.', '--enable-strict-call-checks', 'foo.dart']);
+      expect(options.enableStrictCallChecks, isTrue);
     });
 
     test('enable type checks', () {

@@ -81,6 +81,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   bool _enableHints = false;
 
   /**
+   * A flag indicating whether we should strictly follow the specification when
+   * generating warnings on "call" methods (fixes dartbug.com/21938).
+   */
+  bool _enableStrictCallChecks = false;
+
+  /**
    * The type representing the type 'dynamic'.
    */
   DartType _dynamicType;
@@ -109,6 +115,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     this._definingLibrary = _resolver.definingLibrary;
     AnalysisOptions options = _definingLibrary.context.analysisOptions;
     _enableHints = options.hint;
+    _enableStrictCallChecks = options.enableStrictCallChecks;
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
     _subtypeManager = new SubtypeManager();
@@ -695,7 +702,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             targetType = _getStaticType(target);
           }
         }
-        if (targetType != null &&
+        if (!_enableStrictCallChecks &&
+            targetType != null &&
             targetType.isDartCoreFunction &&
             methodName.name == FunctionElement.CALL_METHOD_NAME) {
           // TODO(brianwilkerson) Can we ever resolve the function being
@@ -1472,10 +1480,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * @return `true` if the given type represents an object that could be invoked
    */
   bool _isExecutableType(DartType type) {
-    if (type.isDynamic ||
-        (type is FunctionType) ||
-        type.isDartCoreFunction ||
-        type.isObject) {
+    if (type.isDynamic || type is FunctionType) {
+      return true;
+    } else if (!_enableStrictCallChecks &&
+        (type.isDartCoreFunction || type.isObject)) {
       return true;
     } else if (type is InterfaceType) {
       ClassElement classElement = type.element;
@@ -2579,7 +2587,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             staticOrPropagatedEnclosingElt is ClassElement) {
           ClassElement classElement = staticOrPropagatedEnclosingElt;
           InterfaceType targetType = classElement.type;
-          if (targetType != null &&
+          if (!_enableStrictCallChecks &&
+              targetType != null &&
               targetType.isDartCoreFunction &&
               propertyName.name == FunctionElement.CALL_METHOD_NAME) {
             // TODO(brianwilkerson) Can we ever resolve the function being
