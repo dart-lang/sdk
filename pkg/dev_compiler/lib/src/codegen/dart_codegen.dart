@@ -452,13 +452,14 @@ class DartGenerator extends codegenerator.CodeGenerator {
     libs.forEach(doOne);
   }
 
-  void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
+  String generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
     _vm = new reifier.VariableManager();
     _extraImports = new Set<LibraryElement>();
     _generateLibrary(units, info, reporter);
     _extraImports = null;
     _vm = null;
+    return null;
   }
 }
 
@@ -485,7 +486,7 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
   EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
-  void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
+  String generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
     for (var unit in units) {
       var outputDir = makeOutputDirectory(info, unit);
@@ -493,6 +494,7 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
       generateUnit(unit, info, outputDir);
       reporter.leaveSource();
     }
+    return null;
   }
 
   void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {

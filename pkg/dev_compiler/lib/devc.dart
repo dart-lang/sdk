@@ -28,6 +28,7 @@ import 'src/dependency_graph.dart';
 import 'src/info.dart' show LibraryInfo, CheckerResults;
 import 'src/options.dart';
 import 'src/report.dart';
+import 'src/utils.dart';
 
 /// Sets up the type checker logger to print a span that highlights error
 /// messages.
@@ -50,6 +51,7 @@ class Compiler {
   final SourceNode _entryNode;
   List<LibraryInfo> _libraries = <LibraryInfo>[];
   final List<CodeGenerator> _generators;
+  final bool _hashing;
   bool _failure = false;
 
   factory Compiler(CompilerOptions options,
@@ -65,7 +67,7 @@ class Compiler {
           ? new SummaryReporter()
           : new LogReporter(options.useColors);
     }
-    var graph = new SourceGraph(resolver.context, reporter);
+    var graph = new SourceGraph(resolver.context, reporter, options);
     var rules = new RestrictedRules(resolver.context.typeProvider, reporter,
         options: options);
     var checker = new CodeChecker(rules, reporter, options);
@@ -87,11 +89,14 @@ class Compiler {
           : new JSGenerator(outputDir, entryNode.uri, rules, options));
     }
     return new Compiler._(options, resolver, reporter, rules, checker, graph,
-        entryNode, generators);
+        entryNode, generators,
+        // TODO(sigmund): refactor to support hashing of the dart output?
+        options.serverMode && generators.length == 1 && !options.outputDart);
   }
 
   Compiler._(this._options, this._resolver, this._reporter, this._rules,
-      this._checker, this._graph, this._entryNode, this._generators);
+      this._checker, this._graph, this._entryNode, this._generators,
+      this._hashing);
 
   bool _buildSource(SourceNode node) {
     if (node is HtmlSourceNode) {
@@ -132,10 +137,12 @@ class Compiler {
     // dev_compiler runtime.
     if (_options.outputDir == null || _options.outputDart) return;
     assert(node.uri.scheme == 'package');
-    var filepath = path.join(_options.outputDir, node.uri.path);
+    var filepath = path.join(_options.outputDir, resourceOutputPath(node.uri));
     var dir = path.dirname(filepath);
     new Directory(dir).createSync(recursive: true);
-    new File(filepath).writeAsStringSync(node.source.contents.data);
+    var text = node.source.contents.data;
+    new File(filepath).writeAsStringSync(text);
+    if (_hashing) node.cachingHash = computeHash(text);
   }
 
   bool _isEntry(DartSourceNode node) {
@@ -177,8 +184,10 @@ class Compiler {
       _failure = true;
       if (!_options.forceCompile) return;
     }
+
     for (var cg in _generators) {
-      cg.generateLibrary(units, current, _reporter);
+      var hash = cg.generateLibrary(units, current, _reporter);
+      if (_hashing) node.cachingHash = hash;
     }
     _reporter.leaveLibrary();
   }
@@ -194,10 +203,8 @@ class Compiler {
     rebuild(_entryNode, _graph, _buildSource);
     _dumpInfoIfRequested();
     clock.stop();
-    if (_options.serverMode) {
-      var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
-      print('Compiled ${_libraries.length} libraries in ${time} s\n');
-    }
+    var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
+    _log.fine('Compiled ${_libraries.length} libraries in ${time} s\n');
     return new CheckerResults(
         _libraries, _rules, _failure || _options.forceCompile);
   }
@@ -215,7 +222,7 @@ class Compiler {
     clock.stop();
     if (changed > 0) _dumpInfoIfRequested();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
-    print("Compiled ${changed} libraries in ${time} s\n");
+    _log.fine("Compiled ${changed} libraries in ${time} s\n");
   }
 
   _dumpInfoIfRequested() {
@@ -251,7 +258,7 @@ class CompilerServer {
       exit(1);
     }
     var port = options.port;
-    print('[dev_compiler]: Serving $entryPath at http://0.0.0.0:$port/');
+    _log.fine('Serving $entryPath at http://0.0.0.0:$port/');
     var compiler = new Compiler(options);
     return new CompilerServer._(compiler, outDir, port, entryPath);
   }
@@ -260,17 +267,40 @@ class CompilerServer {
 
   Future start() async {
     var handler = const shelf.Pipeline()
-        .addMiddleware(shelf.createMiddleware(requestHandler: rebuildIfNeeded))
+        .addMiddleware(rebuildAndCache)
         .addHandler(shelf_static.createStaticHandler(outDir,
             defaultDocument: _entryPath));
     await shelf.serve(handler, '0.0.0.0', port);
     compiler.run();
   }
 
-  rebuildIfNeeded(shelf.Request request) {
-    var filepath = request.url.path;
-    if (filepath == '/$_entryPath' || filepath == '/') compiler._runAgain();
-  }
+  shelf.Handler rebuildAndCache(shelf.Handler handler) => (request) {
+    _log.fine('requested $GREEN_COLOR${request.url}$NO_COLOR');
+    // Trigger recompile only when requesting the HTML page.
+    var segments = request.url.pathSegments;
+    bool isEntryPage = segments.length == 0 || segments[0] == _entryPath;
+    if (isEntryPage) compiler._runAgain();
+
+    // To help browsers cache resources that don't change, we serve these
+    // resources under a path containing their hash:
+    //    /cached/{hash}/{path-to-file.js}
+    bool isCached = segments.length > 1 && segments[0] == 'cached';
+    if (isCached) {
+      // Changing the request lets us record that the hash prefix is handled
+      // here, and that the underlying handler should use the rest of the url to
+      // determine where to find the resource in the file system.
+      request = request.change(path: path.join('cached', segments[1]));
+    }
+    var response = handler(request);
+    var policy = isCached ? 'max-age=${24 * 60 * 60}' : 'no-cache';
+    var headers = {'cache-control': policy};
+    if (isCached) {
+      // Note: the cache-control header should be enough, but this doesn't hurt
+      // and can help renew the policy after it expires.
+      headers['ETag'] = segments[1];
+    }
+    return response.change(headers: headers);
+  };
 }
 
 final _log = new Logger('dev_compiler');

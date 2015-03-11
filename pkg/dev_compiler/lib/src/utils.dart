@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/analyzer.dart' show parseDirectives;
+import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
 
 bool isDartPrivateLibrary(LibraryElement library) {
@@ -183,6 +184,8 @@ String colorOf(String levelName) {
 const String _RED_COLOR = '\u001b[31m';
 const String _MAGENTA_COLOR = '\u001b[35m';
 const String _CYAN_COLOR = '\u001b[36m';
+const String GREEN_COLOR = '\u001b[32m';
+const String NO_COLOR = '\u001b[0m';
 
 class OutWriter {
   final String _path;
@@ -256,3 +259,11 @@ SourceSpan spanForNode(CompilationUnit unit, Source source, AstNode node) {
   return new SourceSpan(locationForOffset(unit, uri, begin),
       locationForOffset(unit, uri, end), '$text');
 }
+
+/// Computes a hash for the given contents.
+String computeHash(String contents) {
+  if (contents == null || contents == '') return null;
+  return CryptoUtils.bytesToHex((new MD5()..add(contents.codeUnits)).close());
+}
+
+String resourceOutputPath(Uri resourceUri) => resourceUri.path;

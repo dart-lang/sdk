@@ -960,9 +960,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           new JS.VariableDeclaration(last.name.name),
           _visit(lastInitializer.target)));
 
-      var result = <JS.Expression>[
-        new JS.VariableDeclarationList('let', variables)
-      ];
+      var result =
+          <JS.Expression>[new JS.VariableDeclarationList('let', variables)];
       result.addAll(_visitList(lastInitializer.cascadeSections));
       _cascadeTarget = savedCascadeTemp;
       return _statement(result.map((e) => new JS.ExpressionStatement(e)));
@@ -1017,9 +1016,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   void _flushLibraryProperties(List<JS.Statement> body) {
     if (_properties.isEmpty) return;
-    body.add(js.statement('dart.copyProperties($_EXPORTS, { # });', [
-      _properties.map(_emitTopLevelProperty)
-    ]));
+    body.add(js.statement('dart.copyProperties($_EXPORTS, { # });',
+        [_properties.map(_emitTopLevelProperty)]));
     _properties.clear();
   }
 
@@ -1609,9 +1607,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitListLiteral(ListLiteral node) {
     // TODO(jmesserly): make this faster. We're wasting an array.
-    var list = js.call('new List.from(#)', [
-      new JS.ArrayInitializer(_visitList(node.elements))
-    ]);
+    var list = js.call('new List.from(#)',
+        [new JS.ArrayInitializer(_visitList(node.elements))]);
     if (node.constKeyword != null) {
       list = js.commentExpression('Unimplemented const', list);
     }
@@ -1926,7 +1923,7 @@ class JSGenerator extends CodeGenerator {
   JSGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
-  void generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
+  String generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
       CheckerReporter reporter) {
     JS.Program jsTree =
         new JSCodegenVisitor(info, rules).generateLibrary(units, reporter);
@@ -1937,14 +1934,19 @@ class JSGenerator extends CodeGenerator {
     if (options.emitSourceMaps) {
       var outFilename = path.basename(outputPath);
       var printer = new srcmaps.Printer(outFilename);
-      _writeNode(new SourceMapPrintingContext(
-          printer, path.dirname(outputPath)), jsTree);
+      _writeNode(
+          new SourceMapPrintingContext(printer, path.dirname(outputPath)),
+          jsTree);
       printer.add('//# sourceMappingURL=$outFilename.map');
       // Write output file and source map
-      new File(outputPath).writeAsStringSync(printer.text);
+      var text = printer.text;
+      new File(outputPath).writeAsStringSync(text);
       new File('$outputPath.map').writeAsStringSync(printer.map);
+      return computeHash(text);
     } else {
-      new File(outputPath).writeAsStringSync(jsNodeToString(jsTree));
+      var text = jsNodeToString(jsTree);
+      new File(outputPath).writeAsStringSync(text);
+      return computeHash(text);
     }
   }
 }

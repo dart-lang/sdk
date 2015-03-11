@@ -21,8 +21,8 @@ import 'package:unittest/unittest.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-  ..addFlag(
-      'dart-gen', abbr: 'd', help: 'Generate dart output', defaultsTo: false);
+  ..addFlag('dart-gen',
+      abbr: 'd', help: 'Generate dart output', defaultsTo: false);
 
 main(arguments) {
   if (arguments == null) arguments = [];
@@ -56,9 +56,10 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  compile(String entryPoint, String sdkPath, [bool checkSdk = false]) {
+  compile(String entryPoint, String sdkPath,
+      {bool checkSdk: false, bool serverMode: false}) {
     var options = new CompilerOptions(
-        outputDir: actualDir,
+        outputDir: serverMode ? path.join(actualDir, 'server_mode') : actualDir,
         useColors: false,
         outputDart: dartGen,
         formatOutput: dartGen,
@@ -67,7 +68,8 @@ main(arguments) {
         cheapTestFormat: checkSdk,
         checkSdk: checkSdk,
         entryPointFile: entryPoint,
-        dartSdkPath: sdkPath);
+        dartSdkPath: sdkPath,
+        serverMode: serverMode);
     return new Compiler(options).run();
   }
   var realSdk = getSdkDir(arguments).path;
@@ -127,7 +129,7 @@ main(arguments) {
       var testSdk = dartGen
           ? path.join(testDir, '..', 'tool', 'input_sdk')
           : path.join(testDir, 'generated_sdk');
-      var result = compile('dart:core', testSdk, true);
+      var result = compile('dart:core', testSdk, checkSdk: true);
       var outputDir = new Directory(path.join(actualDir, 'core'));
       var outFile = dartGen
           ? new File(path.join(actualDir, 'core/core'))
@@ -150,6 +152,23 @@ main(arguments) {
           .writeAsStringSync(compilerMessages.toString());
 
       var outFile = new File(path.join(actualDir, 'html_input.html'));
+      expect(outFile.existsSync(), success,
+          reason: '${outFile.path} was created iff compilation succeeds');
+    });
+
+    test('devc jscodegen html_input.html server mode', () {
+      var filePath = path.join(inputDir, 'html_input.html');
+      compilerMessages.writeln('// Messages from compiling html_input.html');
+
+      var result = compile(filePath, realSdk, serverMode: true);
+      var success = !result.failure;
+
+      // Write compiler messages to disk.
+      new File(path.join(actualDir, 'server_mode', 'html_input.txt'))
+          .writeAsStringSync(compilerMessages.toString());
+
+      var outFile =
+          new File(path.join(actualDir, 'server_mode', 'html_input.html'));
       expect(outFile.existsSync(), success,
           reason: '${outFile.path} was created iff compilation succeeds');
     });

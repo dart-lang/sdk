@@ -27,6 +27,7 @@ import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart' show SourceSpan;
 
 import 'info.dart';
+import 'options.dart';
 import 'report.dart';
 import 'utils.dart';
 
@@ -41,8 +42,9 @@ class SourceGraph {
   /// Analyzer used to resolve source files.
   final AnalysisContext _context;
   final CheckerReporter _reporter;
+  final CompilerOptions _options;
 
-  SourceGraph(this._context, this._reporter);
+  SourceGraph(this._context, this._reporter, this._options);
 
   /// Node associated with a resolved [uri].
   SourceNode nodeFromUri(Uri uri) {
@@ -74,6 +76,10 @@ abstract class SourceNode {
 
   /// Last stamp read from `source.modificationStamp`.
   int _lastStamp = 0;
+
+  /// A hash used to help browsers cache the output that would be produced from
+  /// building this node.
+  String cachingHash;
 
   /// Whether we need to rebuild this source file.
   bool needsRebuild = false;
@@ -128,11 +134,13 @@ class HtmlSourceNode extends SourceNode {
 
   HtmlSourceNode(uri, source, graph) : super(uri, source) {
     var prefix = 'package:dev_compiler/runtime';
-    runtimeDeps
-      ..add(graph.nodeFromUri(Uri.parse('$prefix/dart_runtime.js')))
-      ..add(graph.nodeFromUri(Uri.parse('$prefix/harmony_feature_check.js')))
-      ..add(graph.nodeFromUri(Uri.parse('$prefix/messages_widget.js')))
-      ..add(graph.nodeFromUri(Uri.parse('$prefix/messages.css')));
+    var files = ['harmony_feature_check.js', 'dart_runtime.js'];
+    if (graph._options.serverMode) {
+      files.addAll(const ['messages_widget.js', 'messages.css']);
+    }
+    files.forEach((file) {
+      runtimeDeps.add(graph.nodeFromUri(Uri.parse('$prefix/$file')));
+    });
   }
 
   void update(SourceGraph graph) {
@@ -340,20 +348,22 @@ rebuild(SourceNode start, SourceGraph graph, bool build(SourceNode node)) {
   // of those transitive cases, but is not sufficient. See
   // https://github.com/dart-lang/dev_compiler/issues/76
   var apiChangeDetected = new HashSet<SourceNode>();
-  bool structureHasChanged = false;
+  bool htmlNeedsRebuild = false;
 
   bool shouldBuildNode(SourceNode n) {
     if (n.needsRebuild) return true;
-    if (n is HtmlSourceNode) return structureHasChanged;
+    if (n is HtmlSourceNode) return htmlNeedsRebuild;
     if (n is ResourceSourceNode) return false;
     return (n as DartSourceNode).imports
         .any((i) => apiChangeDetected.contains(i));
   }
 
   visitInPostOrder(start, (n) {
-    if (n.structureChanged) structureHasChanged = true;
+    if (n.structureChanged) htmlNeedsRebuild = true;
     if (shouldBuildNode(n)) {
+      var oldHash = n.cachingHash;
       if (build(n)) apiChangeDetected.add(n);
+      if (oldHash != n.cachingHash) htmlNeedsRebuild = true;
     } else if (n is DartSourceNode &&
         n.exports.any((e) => apiChangeDetected.contains(e))) {
       apiChangeDetected.add(n);

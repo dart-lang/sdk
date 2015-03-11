@@ -34,7 +34,7 @@ void main(List<String> args) {
     _showUsageAndExit();
   }
 
-  if (!options.dumpInfo) setupLogger(options.logLevel, print);
+  setupLogger(options.logLevel, print);
 
   if (options.serverMode) {
     new CompilerServer(options).start();

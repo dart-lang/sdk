@@ -7,10 +7,11 @@ library dev_compiler.src.codegen.html_codegen;
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart' show parseFragment;
 import 'package:logging/logging.dart' show Logger;
+import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/dependency_graph.dart';
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/utils.dart' show colorOf;
+import 'package:dev_compiler/src/utils.dart' show colorOf, resourceOutputPath;
 
 import 'js_codegen.dart' show jsLibraryName, jsOutputPath;
 
@@ -42,41 +43,48 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
   if (options.outputDart) return '${document.outerHtml}\n';
 
   var libraries = [];
+  var resources = [];
   visitInPostOrder(root, (n) {
     if (n is DartSourceNode) libraries.add(n);
+    if (n is ResourceSourceNode) resources.add(n);
   }, includeParts: false);
 
   String mainLibraryName;
-  var fragment = _loadRuntimeScripts(options);
+  var fragment = new DocumentFragment();
+  for (var resource in resources) {
+    var resourcePath = resourceOutputPath(resource.uri);
+    if (resource.cachingHash != null) {
+      resourcePath = _addHash(resourcePath, resource.cachingHash);
+    }
+    if (path.extension(resourcePath) == '.css') {
+      fragment.nodes.add(_cssInclude(resourcePath));
+    } else {
+      fragment.nodes.add(_libraryInclude(resourcePath));
+    }
+  }
   if (!options.checkSdk) fragment.nodes.add(_miniMockSdk);
   for (var lib in libraries) {
     var info = lib.info;
     if (info == null) continue;
     if (info.isEntry) mainLibraryName = jsLibraryName(info.library);
-    fragment.nodes.add(_libraryInclude(jsOutputPath(info, root.uri)));
+    var jsPath = jsOutputPath(info, root.uri);
+    if (lib.cachingHash != null) {
+      jsPath = _addHash(jsPath, lib.cachingHash);
+    }
+    fragment.nodes.add(_libraryInclude(jsPath));
   }
   fragment.nodes.add(_invokeMain(mainLibraryName));
   scripts[0].replaceWith(fragment);
   return '${document.outerHtml}\n';
 }
 
-/// A document fragment with scripts that check for harmony features and that
-/// inject our runtime.
-Node _loadRuntimeScripts(options) {
-  // TODO(sigmund): use dev_compiler to generate messages_widget in the future.
-  var widgetCode = options.serverMode
-      ? '<script src="dev_compiler/runtime/messages_widget.js"></script>\n'
-          '<link rel="stylesheet" href="dev_compiler/runtime/messages.css">'
-      : '';
-  return parseFragment(
-      '<script src="dev_compiler/runtime/harmony_feature_check.js"></script>\n'
-      '<script src="dev_compiler/runtime/dart_runtime.js"></script>\n'
-      '$widgetCode');
-}
-
 /// A script tag that loads the .js code for a compiled library.
 Node _libraryInclude(String jsUrl) =>
     parseFragment('<script src="$jsUrl"></script>\n');
+
+/// A tag that loads the .css code.
+Node _cssInclude(String cssUrl) =>
+    parseFragment('<link rel="stylesheet" href="$cssUrl">\n');
 
 /// A script tag that invokes the main function on the entry point library.
 Node _invokeMain(String mainLibraryName) {
@@ -84,6 +92,13 @@ Node _invokeMain(String mainLibraryName) {
       ? 'console.error("dev_compiler error: main was not generated");'
       : '$mainLibraryName.main();';
   return parseFragment('<script>$code</script>\n');
+}
+
+/// Convert the outputPath to include the hash in it. This function is the
+/// reverse of what the server does to determine whether a request needs to have
+/// cache headers added to it.
+_addHash(String outPath, String hash) {
+  return path.join('cached', hash, outPath);
 }
 
 /// A script tag with a tiny mock of the core SDK. This is just used for testing
