@@ -59,6 +59,12 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget(')', '()', argIndex: 0);
   }
 
+  test_ArgumentList_InstanceCreationExpression_functionArg2() {
+    // ArgumentList  InstanceCreationExpression  Block
+    addTestSource('main() {new B(^)} class B{B(f()){}}');
+    assertTarget(')', '()', argIndex: 0, isFunctionalArgument: true);
+  }
+
   test_ArgumentList_MethodInvocation() {
     // ArgumentList  MethodInvocation  Block
     addTestSource('main() {foo(^)}');
@@ -92,12 +98,6 @@ class CompletionTargetTest extends AbstractContextTest {
   test_ArgumentList_MethodInvocation_functionArg2() {
     // ArgumentList  MethodInvocation  Block
     addTestSource('main() {new B().boo(^)} class B{boo(f()){}}');
-    assertTarget(')', '()', argIndex: 0, isFunctionalArgument: true);
-  }
-
-  test_ArgumentList_InstanceCreationExpression_functionArg2() {
-    // ArgumentList  InstanceCreationExpression  Block
-    addTestSource('main() {new B(^)} class B{B(f()){}}');
     assertTarget(')', '()', argIndex: 0, isFunctionalArgument: true);
   }
 
@@ -153,6 +153,161 @@ class CompletionTargetTest extends AbstractContextTest {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ C();}}');
     assertTarget('new C();', '{var f; {var x;} new C();}');
+  }
+
+  test_MethodDeclaration_inLineComment() {
+    // Comment  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        // normal comment ^
+        zoo(z) { } String name; }''');
+    assertTarget('// normal comment ', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_inLineComment2() {
+    // Comment  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        // normal ^comment
+        zoo(z) { } String name; }''');
+    assertTarget('// normal comment', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_inLineComment3() {
+    // Comment  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        // normal comment ^
+        // normal comment 2
+        zoo(z) { } String name; }''');
+    assertTarget('// normal comment ', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_inLineComment4() {
+    // Comment  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        // normal comment 
+        // normal comment 2^
+        zoo(z) { } String name; }''');
+    assertTarget('// normal comment 2', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_inLineDocComment() {
+    // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        /// some dartdoc ^
+        zoo(z) { } String name; }''');
+    assertTarget('/// some dartdoc ', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_MethodDeclaration_inLineDocComment2() {
+    // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        /// some ^dartdoc
+        zoo(z) { } String name; }''');
+    assertTarget('/// some dartdoc', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_MethodDeclaration_inStarComment() {
+    // Comment  ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/* ^ */ zoo(z) {} String name;}');
+    assertTarget('/*  */', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_inStarComment2() {
+    // Comment  ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/*  *^/ zoo(z) {} String name;}');
+    assertTarget('/*  */', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_inStarDocComment() {
+    // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/** ^ */ zoo(z) { } String name; }');
+    assertTarget('/**  */', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_MethodDeclaration_inStarDocComment2() {
+    // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/**  *^/ zoo(z) { } String name; }');
+    assertTarget('/**  */', '');
+    expect(target.containingNode is Comment, isTrue);
+    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+  }
+
+  test_MethodDeclaration_returnType() {
+    // ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {^ zoo(z) { } String name; }');
+    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_returnType_afterLineComment() {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        // normal comment
+        ^ zoo(z) {} String name;}''');
+    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_returnType_afterLineComment2() {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    // TOD(danrubel) left align all test source
+    addTestSource('''
+class C2 {
+  // normal comment
+^ zoo(z) {} String name;}''');
+    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_returnType_afterLineDocComment() {
+    // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('''
+      class C2 {
+        /// some dartdoc
+        ^ zoo(z) { } String name; }''');
+    assertTarget('zoo', 'zoo(z) {}');
+  }
+
+  test_MethodDeclaration_returnType_afterLineDocComment2() {
+    // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('''
+class C2 {
+  /// some dartdoc
+^ zoo(z) { } String name; }''');
+    assertTarget('zoo', 'zoo(z) {}');
+  }
+
+  test_MethodDeclaration_returnType_afterStarComment() {
+    // ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/* */ ^ zoo(z) { } String name; }');
+    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_returnType_afterStarComment2() {
+    // ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/* */^ zoo(z) { } String name; }');
+    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+  }
+
+  test_MethodDeclaration_returnType_afterStarDocComment() {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/** */ ^ zoo(z) { } String name; }');
+    assertTarget('zoo', 'zoo(z) {}');
+  }
+
+  test_MethodDeclaration_returnType_afterStarDocComment2() {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('class C2 {/** */^ zoo(z) { } String name; }');
+    assertTarget('zoo', 'zoo(z) {}');
   }
 
   test_VariableDeclaration_lhs_identifier_after() {
