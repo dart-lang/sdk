@@ -10,6 +10,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/linter.dart';
+import 'package:source_span/source_span.dart';
 
 String getLineContents(int lineNumber, AnalysisError error) {
   var path = error.source.fullName;
@@ -22,6 +23,21 @@ String getLineContents(int lineNumber, AnalysisError error) {
     }
   }
   return null;
+}
+
+int getLineNumber(AnalysisError error, LineInfo lineInfo) {
+  var path = error.source.fullName;
+  var file = new File(path);
+  if (file.existsSync()) {
+    // Addresses raw mutiline string offset issues
+    // https://github.com/dart-lang/linter/issues/47
+    // Remove when fixed in analyzer
+    var contents = file.readAsStringSync();
+    var sourceFile = new SourceFile(contents);
+    return sourceFile.getLine(error.offset) + 1;
+  }
+  // Fallback
+  return lineInfo.getLocation(error.offset).lineNumber;
 }
 
 String pluralize(String word, int count) =>
@@ -41,15 +57,14 @@ class DetailedReporter extends SimpleFormatter {
       : super(errors, filter, out, fileCount: fileCount, fileRoot: fileRoot);
 
   @override
-  writeLint(AnalysisError error, LineInfo lineInfo) {
-    super.writeLint(error, lineInfo);
+  writeLint(AnalysisError error, {int offset, int line, int column}) {
+    super.writeLint(error, offset: offset, column: column, line: line);
 
-    var location = lineInfo.getLocation(error.offset);
-    var contents = getLineContents(location.lineNumber, error);
+    var contents = getLineContents(line, error);
     out.writeln(contents);
 
     var arrows = '^' * error.length;
-    var spaces = location.columnNumber - 1;
+    var spaces = column - 1;
     var result = '${" " * spaces}$arrows';
     out.writeln(result);
   }
@@ -102,13 +117,11 @@ class SimpleFormatter implements ReportFormatter {
     writeSummary();
   }
 
-  void writeLint(AnalysisError error, LineInfo lineInfo) {
-    LineInfo_Location location = lineInfo.getLocation(error.offset);
-
+  void writeLint(AnalysisError error, {int offset, int line, int column}) {
     // test/linter_test.dart 452:9 [lint] DO name types using UpperCamelCase.
     out
       ..write('${shorten(fileRoot, error.source.fullName)} ')
-      ..write('${location.lineNumber}:${location.columnNumber} ')
+      ..write('$line:$column ')
       ..writeln('[${error.errorCode.type.displayName}] ${error.message}');
   }
 
@@ -118,7 +131,7 @@ class SimpleFormatter implements ReportFormatter {
         filteredLintCount++;
       } else {
         ++errorCount;
-        writeLint(e, info.lineInfo);
+        _writeLint(e, info.lineInfo);
       }
     }));
     out.writeln();
@@ -130,5 +143,14 @@ class SimpleFormatter implements ReportFormatter {
       ..write('${pluralize("issue", errorCount)} found')
       ..writeln(
           "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}.");
+  }
+
+  void _writeLint(AnalysisError error, LineInfo lineInfo) {
+    var offset = error.offset;
+    // Gnarly work-around for offsets confused by multi-line raw strings
+    var line = getLineNumber(error, lineInfo);
+    var column = lineInfo.getLocation(offset).columnNumber;
+
+    writeLint(error, offset: offset, column: column, line: line);
   }
 }
