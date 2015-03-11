@@ -266,6 +266,10 @@ class CompilerServer {
   CompilerServer._(this.compiler, this.outDir, this.port, this._entryPath);
 
   Future start() async {
+    // Create output directory if needed. shelf_static will fail otherwise.
+    var out = new Directory(outDir);
+    if (!await out.exists()) await out.create(recursive: true);
+
     var handler = const shelf.Pipeline()
         .addMiddleware(rebuildAndCache)
         .addHandler(shelf_static.createStaticHandler(outDir,
