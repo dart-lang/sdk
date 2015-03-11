@@ -2626,6 +2626,128 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_MethodDeclaration_returnType() {
+    // ClassDeclaration  CompilationUnit
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 {^ zoo(z) { } String name; }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('T1');
+      assertNotSuggested('F1');
+      assertSuggestImportedFunctionTypeAlias('D1', null);
+      assertSuggestImportedClass('C1');
+      assertNotSuggested('T2');
+      assertNotSuggested('F2');
+      assertSuggestLocalFunctionTypeAlias('D2', null);
+      assertSuggestLocalClass('C2');
+      assertNotSuggested('name');
+    });
+  }
+
+  test_MethodDeclaration_returnType_afterComment() {
+    // ClassDeclaration  CompilationUnit
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 {/* */ ^ zoo(z) { } String name; }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('T1');
+      assertNotSuggested('F1');
+      assertSuggestImportedFunctionTypeAlias('D1', null);
+      assertSuggestImportedClass('C1');
+      assertNotSuggested('T2');
+      assertNotSuggested('F2');
+      assertSuggestLocalFunctionTypeAlias('D2', null);
+      assertSuggestLocalClass('C2');
+      assertNotSuggested('name');
+    });
+  }
+
+  test_MethodDeclaration_returnType_afterComment2() {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 {/** */ ^ zoo(z) { } String name; }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('T1');
+      assertNotSuggested('F1');
+      assertSuggestImportedFunctionTypeAlias('D1', null);
+      assertSuggestImportedClass('C1');
+      assertNotSuggested('T2');
+      assertNotSuggested('F2');
+      assertSuggestLocalFunctionTypeAlias('D2', null);
+      assertSuggestLocalClass('C2');
+      assertNotSuggested('name');
+    });
+  }
+
+  test_MethodDeclaration_returnType_afterComment3() {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 {
+        /// some dartdoc
+        ^ zoo(z) { } String name; }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('T1');
+      assertNotSuggested('F1');
+      assertSuggestImportedFunctionTypeAlias('D1', null);
+      assertSuggestImportedClass('C1');
+      assertNotSuggested('T2');
+      assertNotSuggested('F2');
+      assertSuggestLocalFunctionTypeAlias('D2', null);
+      assertSuggestLocalClass('C2');
+      assertNotSuggested('name');
+    });
+  }
+
   test_MethodInvocation_no_semicolon() {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''

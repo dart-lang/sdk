@@ -380,7 +380,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {}
+  void visitMethodDeclaration(MethodDeclaration node) {
+    optype.includeTypeNameSuggestions = true;
+  }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
