@@ -19,6 +19,8 @@ abstract class A {
 
   static Foo() => null; //LINT
 
+  bool operator >(other); //OK
+  bool operator <(other); //OK
 }
 
 Main() => null; //LINT

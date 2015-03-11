@@ -66,7 +66,9 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
-    checkIdentifier(node.name);
+    if (!node.isOperator) {
+      checkIdentifier(node.name);
+    }
   }
 
   @override
