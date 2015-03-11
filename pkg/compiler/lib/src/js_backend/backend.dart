@@ -48,7 +48,15 @@ class FunctionInlineCache {
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
-      decision = _unknown;
+      // These synthetic elements are not yet present when we initially compute
+      // this cache from metadata annotations, so look for their parent.
+      if (element is ConstructorBodyElement) {
+        ConstructorBodyElement body = element;
+        decision = _cachedDecisions[body.constructor];
+      }
+      if (decision == null) {
+        decision = _unknown;
+      }
     }
 
     if (insideLoop) {
@@ -2433,7 +2441,8 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
-    if (element.isFunction && annotations.noInline(element)) {
+    if ((element.isFunction || element.isGenerativeConstructor) &&
+        annotations.noInline(element)) {
       inlineCache.markAsNonInlinable(element);
     }
 

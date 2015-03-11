@@ -2016,6 +2016,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
 
   FunctionExpression get node => constructor.node;
 
+  Link<MetadataAnnotation> get metadata => constructor.metadata;
+
   bool get isInstanceMember => true;
 
   FunctionType computeType(Compiler compiler) {

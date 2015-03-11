@@ -14,6 +14,11 @@ const MEMORY_SOURCE_FILES = const {
         foo(y) => 49912344 + y;
 
         class A {
+          var field;
+
+          @NoInline()
+          A([this.field = 4711]);
+
           @NoInline()
           static bar(x) => x + 123455;
 
@@ -25,6 +30,7 @@ const MEMORY_SOURCE_FILES = const {
           print(foo(23412));
           print(A.bar(87654));
           print(new A().gee(1337, 919182));
+          print(new A().field + 1);
         }'''};
 
 void main() {
@@ -41,5 +47,6 @@ void main() {
     Expect.isFalse(jsOutput.contains('49935756'));
     Expect.isFalse(jsOutput.contains('211109'));
     Expect.isFalse(jsOutput.contains('82155031'));
+    Expect.isFalse(jsOutput.contains('4712'));
   }));
 }

@@ -12,7 +12,6 @@ class A {
   @NoInline()
   A({this.x: "foo"}) {
     Expect.equals("foo", x.toString());
-    try {} catch (_) {}; // Make sure it really does not get inlined.
   }
 }
 
