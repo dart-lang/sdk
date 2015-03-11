@@ -114,6 +114,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
   bool analyzeAll = false;
+  bool dumpInfo = false;
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
   bool trustPrimitives = false;
@@ -204,6 +205,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
   implyCompilation(String argument) {
     optionsImplyCompilation.add(argument);
     passThrough(argument);
+  }
+
+  setDumpInfo(String argument) {
+    implyCompilation(argument);
+    dumpInfo = true;
   }
 
   setTrustTypeAnnotations(String argument) {
@@ -328,7 +334,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--disable-type-inference', implyCompilation),
     new OptionHandler('--terse', passThrough),
     new OptionHandler('--deferred-map=.+', implyCompilation),
-    new OptionHandler('--dump-info', implyCompilation),
+    new OptionHandler('--dump-info', setDumpInfo),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
     new OptionHandler('--show-package-warnings', passThrough),
@@ -413,6 +419,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
       helpAndFail("Option '--allow-native-extensions' is only supported in "
                   "combination with the '--analyze-only' option.");
     }
+  }
+  if (dumpInfo && outputLanguage == OUTPUT_LANGUAGE_DART) {
+    helpAndFail("Option '--dump-info' is not supported in "
+                "combination with the '--output-type=dart' option.");
   }
 
   diagnosticHandler.info('Package root is $packageRoot');
@@ -605,7 +615,9 @@ be removed in a future version:
   --dump-info
     Generates an out.info.json file with information about the generated code.
     You can inspect the generated file with the viewer at:
-    https://dart-lang.github.io/dump-info-visualizer/
+        https://dart-lang.github.io/dump-info-visualizer/
+    This feature is currently not supported in combination with the 
+    '--output-type=dart' option.
 
   --generate-code-with-compile-time-errors
     Generates output even if the program contains compile-time errors. Use the

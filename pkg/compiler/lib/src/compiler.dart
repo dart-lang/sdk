@@ -1059,6 +1059,9 @@ abstract class Compiler implements DiagnosticListener {
       closureNamer = new closureMapping.ClosureNamer();
       backend = new dart_backend.DartBackend(this, strips,
                                              multiFile: dart2dartMultiFile);
+      if (dumpInfo) {
+        throw new ArgumentError('--dump-info is not supported for dart2dart.');
+      }
     }
 
     tasks = [
