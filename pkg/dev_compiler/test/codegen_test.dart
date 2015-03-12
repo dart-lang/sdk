@@ -151,9 +151,32 @@ main(arguments) {
       new File(path.join(actualDir, 'html_input.txt'))
           .writeAsStringSync(compilerMessages.toString());
 
-      var outFile = new File(path.join(actualDir, 'html_input.html'));
-      expect(outFile.existsSync(), success,
-          reason: '${outFile.path} was created iff compilation succeeds');
+      var expectedFiles = [
+        'html_input.html',
+        'dir/html_input_a.js',
+        'dir/html_input_b.js',
+        'dir/html_input_c.js',
+        'dir/html_input_d.js',
+        'dir/html_input_e.js',
+        'dev_compiler/runtime/dart_core.js',
+        'dev_compiler/runtime/dart_runtime.js',
+        'dev_compiler/runtime/harmony_feature_check.js',
+      ];
+      for (var filepath in expectedFiles) {
+        var outFile = new File(path.join(actualDir, filepath));
+        expect(outFile.existsSync(), success,
+            reason: '${outFile.path} was created iff compilation succeeds');
+      }
+
+      var notExpectedFiles = [
+        'dev_compiler/runtime/messages_widget.js',
+        'dev_compiler/runtime/messages.css'
+      ];
+      for (var filepath in notExpectedFiles) {
+        var outFile = new File(path.join(actualDir, filepath));
+        expect(outFile.existsSync(), isFalse,
+            reason: '${outFile.path} should only be generated in server mode');
+      }
     });
 
     test('devc jscodegen html_input.html server mode', () {
@@ -167,10 +190,24 @@ main(arguments) {
       new File(path.join(actualDir, 'server_mode', 'html_input.txt'))
           .writeAsStringSync(compilerMessages.toString());
 
-      var outFile =
-          new File(path.join(actualDir, 'server_mode', 'html_input.html'));
-      expect(outFile.existsSync(), success,
-          reason: '${outFile.path} was created iff compilation succeeds');
+      var expectedFiles = [
+        'html_input.html',
+        'dir/html_input_a.js',
+        'dir/html_input_b.js',
+        'dir/html_input_c.js',
+        'dir/html_input_d.js',
+        'dir/html_input_e.js',
+        'dev_compiler/runtime/dart_core.js',
+        'dev_compiler/runtime/dart_runtime.js',
+        'dev_compiler/runtime/harmony_feature_check.js',
+        'dev_compiler/runtime/messages_widget.js',
+        'dev_compiler/runtime/messages.css'
+      ];
+      for (var filepath in expectedFiles) {
+        var outFile = new File(path.join(actualDir, 'server_mode', filepath));
+        expect(outFile.existsSync(), success,
+            reason: '${outFile.path} was created iff compilation succeeds');
+      }
     });
   }
 }

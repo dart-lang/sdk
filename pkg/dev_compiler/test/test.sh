@@ -10,13 +10,7 @@ function fail {
 #  - *.map files so they aren't compared, as the diff is not human readable.
 #  - runtime JS files that are just copied over from the sources and are not
 #    duplicated in the expected folder.
-DIFF_ARGS="-u -r -N --exclude=\*.map \
-  --exclude=dart_runtime.js \
-  --exclude=dart_core.js \
-  --exclude=harmony_feature_check.js \
-  --exclude=messages_widget.js \
-  --exclude=messages.css \
-  expect actual"
+DIFF_ARGS="-u -r -N --exclude=\*.map expect actual"
 
 function show_diff {
   echo "Fail: actual output did not match expected"
@@ -48,6 +42,7 @@ dart -c test/all_tests.dart || fail
 
 # validate codegen_test output
 pushd test/codegen/ &> /dev/null
+rm -r actual/dev_compiler/ actual/server_mode/dev_compiler/
 diff $DIFF_ARGS > /dev/null || show_diff
 popd &> /dev/null
 

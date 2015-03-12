@@ -14,8 +14,6 @@ packages
 
 # Or our test output folder
 test/codegen/actual/
-test/codegen/expect/dev_compiler/
-test/codegen/expect/server_mode/dev_compiler/
 test/dart_codegen/actual/
 
 # Include when developing application packages.
