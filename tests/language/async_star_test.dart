@@ -704,44 +704,6 @@ main() {
       });
     });
 
-    test("multiple pauses, cancel while paused", () {
-      var list = [];
-      f() async* {
-        int i = 0;
-        while (true) {
-          yield i;
-          list.add(i);
-          i++;
-          await null;  // extra pause for good measure.
-        }
-      }
-      int expected = 0;
-      var done = new Completer();
-      var sub;
-      sub = f().listen((v) {
-        expect(v, equals(expected++));
-        if (v == 5) {
-          scheduleMicrotask(() {
-            sub.pause();
-            sub.resume();
-            sub.pause();
-            sub.resume();
-            sub.pause();
-            sub.resume();
-          });
-        } else if (v == 6) {
-          sub.pause();
-          new Timer(MS * 300, () {
-            expect(list.length, lessThan(8));
-            sub.cancel();
-            done.complete();
-          });
-        }
-      }, onDone: () {
-        fail("Unexpected done");
-      });
-    });
-
     test("canceling while paused at yield", () {                  /// 02: ok
       var list = [];                                              /// 02: continued
       var sync = new Sync();                                      /// 02: continued
