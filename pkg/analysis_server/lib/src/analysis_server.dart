@@ -393,6 +393,25 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [AnalysisContext] that contains the given [path].
+   * Return `null` if no context contains the [path].
+   */
+  AnalysisContext getContainingContext(String path) {
+    Folder containingFolder = null;
+    AnalysisContext containingContext = null;
+    folderMap.forEach((Folder folder, AnalysisContext context) {
+      if (folder.isOrContains(path)) {
+        if (containingFolder == null ||
+            containingFolder.path.length < folder.path.length) {
+          containingFolder = folder;
+          containingContext = context;
+        }
+      }
+    });
+    return containingContext;
+  }
+
+  /**
    * Return the primary [ContextSourcePair] representing the given [path].
    *
    * The [AnalysisContext] of this pair will be the context that explicitly
@@ -420,17 +439,7 @@ class AnalysisServer {
     Resource resource = resourceProvider.getResource(path);
     File file = resource is File ? resource : null;
     {
-      Folder containingFolder = null;
-      AnalysisContext containingContext = null;
-      folderMap.forEach((Folder folder, AnalysisContext context) {
-        if (folder.isOrContains(path)) {
-          if (containingFolder == null ||
-              containingFolder.path.length < folder.path.length) {
-            containingFolder = folder;
-            containingContext = context;
-          }
-        }
-      });
+      AnalysisContext containingContext = getContainingContext(path);
       if (containingContext != null) {
         Source source = file != null
             ? ContextManager.createSourceInContext(containingContext, file)

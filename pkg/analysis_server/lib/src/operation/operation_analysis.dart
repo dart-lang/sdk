@@ -36,6 +36,11 @@ void scheduleIndexOperation(AnalysisServer server, String file,
 void scheduleNotificationOperations(AnalysisServer server, String file,
     LineInfo lineInfo, AnalysisContext context, CompilationUnit parsedDartUnit,
     CompilationUnit resolvedDartUnit, List<AnalysisError> errors) {
+  // If the file belongs to any analysis root, check whether we're in it now.
+  AnalysisContext containingContext = server.getContainingContext(file);
+  if (containingContext != null && context != containingContext) {
+    return;
+  }
   // Dart
   CompilationUnit dartUnit =
       resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
