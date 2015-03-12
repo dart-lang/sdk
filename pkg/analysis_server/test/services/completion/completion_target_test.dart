@@ -65,6 +65,18 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget(')', '()', argIndex: 0, isFunctionalArgument: true);
   }
 
+  test_TypeArgumentList() {
+    // SimpleIdentifier  BinaryExpression  ExpressionStatement
+    addTestSource('main() { C<^> c; }');
+    assertTarget('', 'C < ');
+  }
+
+  test_TypeArgumentList2() {
+    // TypeName  TypeArgumentList  TypeName
+    addTestSource('main() { C<C^> c; }');
+    assertTarget('C', '<C>');
+  }
+
   test_ArgumentList_MethodInvocation() {
     // ArgumentList  MethodInvocation  Block
     addTestSource('main() {foo(^)}');

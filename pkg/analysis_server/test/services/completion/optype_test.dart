@@ -178,6 +178,12 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true);
   }
 
+  test_BinaryExpression_RHS2() {
+    // SimpleIdentifier  BinaryExpression
+    addTestSource('main() {if (c < ^)}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_Block() {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('''
@@ -1044,6 +1050,18 @@ class C2 {
     // TopLevelVariableDeclaration
     addTestSource('class A {} var ^');
     assertOpType();
+  }
+
+  test_TypeArgumentList() {
+    // SimpleIdentifier  BinaryExpression  ExpressionStatement
+    addTestSource('main() { C<^> c; }');
+    assertOpType(typeNames: true);
+  }
+
+  test_TypeArgumentList2() {
+    // TypeName  TypeArgumentList  TypeName
+    addTestSource('main() { C<C^> c; }');
+    assertOpType(typeNames: true);
   }
 
   test_TypeParameter() {

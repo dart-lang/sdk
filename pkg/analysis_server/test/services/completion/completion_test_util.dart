@@ -3400,6 +3400,55 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_TypeArgumentList() {
+    // SimpleIdentifier  BinaryExpression  ExpressionStatement
+    addSource('/testA.dart', '''
+      class C1 {int x;}
+      F1() => 0;
+      typedef String T1(int blat);''');
+    addTestSource('''
+      import "/testA.dart";'
+      class C2 {int x;}
+      F2() => 0;
+      typedef int T2(int blat);
+      class C<E> {}
+      main() { C<^> c; }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestImportedClass('Object');
+      assertSuggestImportedClass('C1');
+      assertSuggestImportedFunctionTypeAlias('T1', 'String');
+      assertSuggestLocalClass('C2');
+      assertSuggestLocalFunctionTypeAlias('T2', 'int');
+      assertNotSuggested('F1');
+      assertNotSuggested('F2');
+    });
+  }
+
+  test_TypeArgumentList2() {
+    // TypeName  TypeArgumentList  TypeName
+    addSource('/testA.dart', '''
+      class C1 {int x;}
+      F1() => 0;
+      typedef String T1(int blat);''');
+    addTestSource('''
+      import "/testA.dart";'
+      class C2 {int x;}
+      F2() => 0;
+      typedef int T2(int blat);
+      class C<E> {}
+      main() { C<C^> c; }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      assertSuggestImportedClass('C1');
+      assertSuggestLocalClass('C2');
+    });
+  }
+
   test_VariableDeclaration_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
