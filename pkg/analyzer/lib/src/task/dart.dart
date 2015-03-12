@@ -347,19 +347,21 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       RESOLVED_UNIT2_INPUT_NAME: RESOLVED_UNIT2.inputFor(target),
       IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
-          new MapBasedTaskInput<Source, LibraryElement>(
+          new ListToMapTaskInput<Source, LibraryElement>(
               IMPORTED_LIBRARIES.inputFor(target),
               (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
       EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
-          new MapBasedTaskInput<Source, LibraryElement>(
+          new ListToMapTaskInput<Source, LibraryElement>(
               EXPORTED_LIBRARIES.inputFor(target),
               (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
-      IMPORTS_SOURCE_KIND_INPUT_NAME: new MapBasedTaskInput<Source, SourceKind>(
-          IMPORTED_LIBRARIES.inputFor(target),
-          (Source source) => SOURCE_KIND.inputFor(source)),
-      EXPORTS_SOURCE_KIND_INPUT_NAME: new MapBasedTaskInput<Source, SourceKind>(
-          EXPORTED_LIBRARIES.inputFor(target),
-          (Source source) => SOURCE_KIND.inputFor(source))
+      IMPORTS_SOURCE_KIND_INPUT_NAME:
+          new ListToMapTaskInput<Source, SourceKind>(
+              IMPORTED_LIBRARIES.inputFor(target),
+              (Source source) => SOURCE_KIND.inputFor(source)),
+      EXPORTS_SOURCE_KIND_INPUT_NAME:
+          new ListToMapTaskInput<Source, SourceKind>(
+              EXPORTED_LIBRARIES.inputFor(target),
+              (Source source) => SOURCE_KIND.inputFor(source))
     };
   }
 
@@ -641,7 +643,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       DEFINING_RESOLVER_UNIT1_INPUT_NAME:
           new SimpleTaskInput(target, RESOLVED_UNIT1),
       PARTS_RESOLVED_UNIT1_INPUT_NAME:
-          new ListBasedTaskInput<Source, CompilationUnit>(
+          new ListToListTaskInput<Source, CompilationUnit>(
               INCLUDED_PARTS.inputFor(target),
               (Source source) => RESOLVED_UNIT1.inputFor(source))
     };

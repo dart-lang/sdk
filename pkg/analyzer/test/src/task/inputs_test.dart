@@ -14,33 +14,33 @@ import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ListBasedTaskInputTest);
-  runReflectiveTests(ListBasedTaskInputBuilderTest);
-  runReflectiveTests(MapBasedTaskInputBuilderTest);
-  runReflectiveTests(MapBasedTaskInputTest);
+  runReflectiveTests(ListToListTaskInputTest);
+  runReflectiveTests(ListToListTaskInputBuilderTest);
+  runReflectiveTests(ListToMapTaskInputBuilderTest);
+  runReflectiveTests(ListToMapTaskInputTest);
   runReflectiveTests(SimpleTaskInputTest);
   runReflectiveTests(SimpleTaskInputBuilderTest);
   runReflectiveTests(TopLevelTaskInputBuilderTest);
 }
 
 @reflectiveTest
-class ListBasedTaskInputBuilderTest extends EngineTestCase {
+class ListToListTaskInputBuilderTest extends EngineTestCase {
   static final AnalysisTarget target1 = new TestSource();
   static final ResultDescriptorImpl result1 =
       new ResultDescriptorImpl('result1', null);
   static final ResultDescriptorImpl result2 =
       new ResultDescriptorImpl('result2', null);
-  static final ListBasedTaskInput input = new ListBasedTaskInput(
+  static final ListToListTaskInput input = new ListToListTaskInput(
       result1.inputFor(target1), (element) => result2.inputFor(element));
 
   test_create() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     expect(builder, isNotNull);
     expect(builder.input, input);
   }
 
   test_currentResult_afterComplete() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
     builder.moveNext();
@@ -48,18 +48,18 @@ class ListBasedTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentResult_afterOneMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
     expect(builder.currentResult, result1);
   }
 
   test_currentResult_beforeMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     expect(builder.currentResult, null);
   }
 
   test_currentTarget_afterComplete() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
     builder.moveNext();
@@ -67,24 +67,24 @@ class ListBasedTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentTarget_afterOneMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
     expect(builder.currentTarget, target1);
   }
 
   test_currentTarget_beforeMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     expect(builder.currentTarget, null);
   }
 
   test_currentValue_afterOneMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
   }
 
   test_currentValue_beforeMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     expect(() {
       builder.currentValue = [];
     }, throwsStateError);
@@ -95,7 +95,7 @@ class ListBasedTaskInputBuilderTest extends EngineTestCase {
     AnalysisTarget target3 = new TestSource();
     String value2 = 'value2';
     String value3 = 'value3';
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext(); // Advance to requesting the list
     builder.currentValue = [target2, target3];
     builder.moveNext(); // Advance to requesting result2 for target2
@@ -112,24 +112,24 @@ class ListBasedTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_inputValue_afterOneMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
     expect(() => builder.inputValue, throwsStateError);
   }
 
   test_inputValue_beforeMoveNext() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     expect(() => builder.inputValue, throwsStateError);
   }
 
   test_moveNext_withoutSet() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     expect(builder.moveNext(), true);
     expect(() => builder.moveNext(), throwsStateError);
   }
 
   test_moveNext_withSet() {
-    ListBasedTaskInputBuilder builder = new ListBasedTaskInputBuilder(input);
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     expect(builder.moveNext(), true);
     builder.currentValue = [];
     expect(builder.moveNext(), false);
@@ -138,7 +138,7 @@ class ListBasedTaskInputBuilderTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class ListBasedTaskInputTest extends EngineTestCase {
+class ListToListTaskInputTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
@@ -146,7 +146,7 @@ class ListBasedTaskInputTest extends EngineTestCase {
   test_create() {
     SimpleTaskInput baseAccessor = result.inputFor(target);
     GenerateTaskInputs generate = (object) {};
-    ListBasedTaskInput input = new ListBasedTaskInput(baseAccessor, generate);
+    ListToListTaskInput input = new ListToListTaskInput(baseAccessor, generate);
     expect(input, isNotNull);
     expect(input.baseAccessor, baseAccessor);
     expect(input.generateTaskInputs, equals(generate));
@@ -155,29 +155,29 @@ class ListBasedTaskInputTest extends EngineTestCase {
   test_createBuilder() {
     SimpleTaskInput baseAccessor = result.inputFor(target);
     GenerateTaskInputs generate = (object) {};
-    ListBasedTaskInput input = new ListBasedTaskInput(baseAccessor, generate);
+    ListToListTaskInput input = new ListToListTaskInput(baseAccessor, generate);
     expect(input.createBuilder(), isNotNull);
   }
 }
 
 @reflectiveTest
-class MapBasedTaskInputBuilderTest extends EngineTestCase {
+class ListToMapTaskInputBuilderTest extends EngineTestCase {
   static final AnalysisTarget target1 = new TestSource('target1');
   static final ResultDescriptorImpl result1 =
       new ResultDescriptorImpl('result1', null);
   static final ResultDescriptorImpl result2 =
       new ResultDescriptorImpl('result2', null);
-  static final MapBasedTaskInput input = new MapBasedTaskInput(
+  static final ListToMapTaskInput input = new ListToMapTaskInput(
       result1.inputFor(target1), (element) => result2.inputFor(element));
 
   test_create() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     expect(builder, isNotNull);
     expect(builder.input, input);
   }
 
   test_currentResult_afterComplete() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
     builder.moveNext();
@@ -185,18 +185,18 @@ class MapBasedTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentResult_afterOneMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
     expect(builder.currentResult, result1);
   }
 
   test_currentResult_beforeMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     expect(builder.currentResult, null);
   }
 
   test_currentTarget_afterComplete() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
     builder.moveNext();
@@ -204,24 +204,24 @@ class MapBasedTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentTarget_afterOneMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
     expect(builder.currentTarget, target1);
   }
 
   test_currentTarget_beforeMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     expect(builder.currentTarget, null);
   }
 
   test_currentValue_afterOneMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
   }
 
   test_currentValue_beforeMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     expect(() {
       builder.currentValue = [];
     }, throwsStateError);
@@ -232,7 +232,7 @@ class MapBasedTaskInputBuilderTest extends EngineTestCase {
     AnalysisTarget target3 = new TestSource('target3');
     String value2 = 'value2';
     String value3 = 'value3';
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext(); // Advance to requesting the list
     builder.currentValue = [target2, target3];
     builder.moveNext(); // Advance to requesting result2 for target2
@@ -248,24 +248,24 @@ class MapBasedTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_inputValue_afterOneMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
     expect(() => builder.inputValue, throwsStateError);
   }
 
   test_inputValue_beforeMoveNext() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     expect(() => builder.inputValue, throwsStateError);
   }
 
   test_moveNext_withoutSet() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     expect(builder.moveNext(), true);
     expect(() => builder.moveNext(), throwsStateError);
   }
 
   test_moveNext_withSet() {
-    MapBasedTaskInputBuilder builder = new MapBasedTaskInputBuilder(input);
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     expect(builder.moveNext(), true);
     builder.currentValue = [];
     expect(builder.moveNext(), false);
@@ -274,7 +274,7 @@ class MapBasedTaskInputBuilderTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class MapBasedTaskInputTest extends EngineTestCase {
+class ListToMapTaskInputTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
@@ -282,7 +282,7 @@ class MapBasedTaskInputTest extends EngineTestCase {
   test_create() {
     SimpleTaskInput baseAccessor = result.inputFor(target);
     GenerateTaskInputs generate = (object) {};
-    MapBasedTaskInput input = new MapBasedTaskInput(baseAccessor, generate);
+    ListToMapTaskInput input = new ListToMapTaskInput(baseAccessor, generate);
     expect(input, isNotNull);
     expect(input.baseAccessor, baseAccessor);
     expect(input.generateTaskInputs, equals(generate));
@@ -291,7 +291,7 @@ class MapBasedTaskInputTest extends EngineTestCase {
   test_createBuilder() {
     SimpleTaskInput baseAccessor = result.inputFor(target);
     GenerateTaskInputs generate = (object) {};
-    MapBasedTaskInput input = new MapBasedTaskInput(baseAccessor, generate);
+    ListToMapTaskInput input = new ListToMapTaskInput(baseAccessor, generate);
     expect(input.createBuilder(), isNotNull);
   }
 }

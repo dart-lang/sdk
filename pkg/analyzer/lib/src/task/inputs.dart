@@ -9,11 +9,11 @@ import 'dart:collection';
 import 'package:analyzer/task/model.dart';
 
 /**
- * A function that converts an arbitrary object into a [TaskInput]. This is
- * used, for example, by a [ListBasedTaskInput] to create task inputs for each
- * value in a list of values.
+ * A function that converts an object of the type [B] into a [TaskInput].
+ * This is used, for example, by a [ListToListTaskInput] to create task inputs
+ * for each value in a list of values.
  */
-typedef TaskInput<E> GenerateTaskInputs<E>(Object object);
+typedef TaskInput<E> GenerateTaskInputs<B, E>(B object);
 
 /**
  * An input to an [AnalysisTask] that is computed by the following steps. First
@@ -22,28 +22,28 @@ typedef TaskInput<E> GenerateTaskInputs<E>(Object object);
  * input. Finally, each of the task inputs are used to access analysis results,
  * and the list of the analysis results is used as the input to the task.
  */
-class ListBasedTaskInput<B, E>
-    extends _CollectionBasedTaskInput<B, E, List<E>> {
+class ListToListTaskInput<B, E>
+    extends _ListToCollectionTaskInput<B, E, List<E>> {
   /**
    * Initialize a result accessor to use the given [baseAccessor] to access a
    * list of values that can be passed to the given [generateTaskInputs] to
    * generate a list of task inputs that can be used to access the elements of
    * the input being accessed.
    */
-  ListBasedTaskInput(
-      TaskInput<List<B>> baseAccessor, GenerateTaskInputs<E> generateTaskInputs)
+  ListToListTaskInput(TaskInput<List<B>> baseAccessor,
+      GenerateTaskInputs<B, E> generateTaskInputs)
       : super(baseAccessor, generateTaskInputs);
 
   @override
   TaskInputBuilder<List<E>> createBuilder() =>
-      new ListBasedTaskInputBuilder<B, E>(this);
+      new ListToListTaskInputBuilder<B, E>(this);
 }
 
 /**
- * A [TaskInputBuilder] used to build an input based on a [ListBasedTaskInput].
+ * A [TaskInputBuilder] used to build an input based on a [ListToListTaskInput].
  */
-class ListBasedTaskInputBuilder<B, E>
-    extends _CollectionBasedTaskInputBuilder<B, E, List<E>> {
+class ListToListTaskInputBuilder<B, E>
+    extends _ListToCollectionTaskInputBuilder<B, E, List<E>> {
   /**
    * The list of values being built.
    */
@@ -53,7 +53,7 @@ class ListBasedTaskInputBuilder<B, E>
    * Initialize a newly created task input builder that computes the result
    * specified by the given [input].
    */
-  ListBasedTaskInputBuilder(ListBasedTaskInput<B, E> input) : super(input);
+  ListToListTaskInputBuilder(ListToListTaskInput<B, E> input) : super(input);
 
   @override
   void _addResultElement(B baseElement, E resultElement) {
@@ -74,28 +74,28 @@ class ListBasedTaskInputBuilder<B, E>
  * and the map of the base elements to the analysis results is used as the
  * input to the task.
  */
-class MapBasedTaskInput<B, E>
-    extends _CollectionBasedTaskInput<B, E, Map<B, E>> {
+class ListToMapTaskInput<B, E>
+    extends _ListToCollectionTaskInput<B, E, Map<B, E>> {
   /**
    * Initialize a result accessor to use the given [baseAccessor] to access a
    * list of values that can be passed to the given [generateTaskInputs] to
    * generate a list of task inputs that can be used to access the elements of
    * the input being accessed.
    */
-  MapBasedTaskInput(
-      TaskInput<List<B>> baseAccessor, GenerateTaskInputs<E> generateTaskInputs)
+  ListToMapTaskInput(TaskInput<List<B>> baseAccessor,
+      GenerateTaskInputs<B, E> generateTaskInputs)
       : super(baseAccessor, generateTaskInputs);
 
   @override
   TaskInputBuilder<Map<B, E>> createBuilder() =>
-      new MapBasedTaskInputBuilder<B, E>(this);
+      new ListToMapTaskInputBuilder<B, E>(this);
 }
 
 /**
- * A [TaskInputBuilder] used to build an input based on a [MapBasedTaskInput].
+ * A [TaskInputBuilder] used to build an input based on a [ListToMapTaskInput].
  */
-class MapBasedTaskInputBuilder<B, E>
-    extends _CollectionBasedTaskInputBuilder<B, E, Map<B, E>> {
+class ListToMapTaskInputBuilder<B, E>
+    extends _ListToCollectionTaskInputBuilder<B, E, Map<B, E>> {
   /**
    * The map being built.
    */
@@ -105,7 +105,7 @@ class MapBasedTaskInputBuilder<B, E>
    * Initialize a newly created task input builder that computes the result
    * specified by the given [input].
    */
-  MapBasedTaskInputBuilder(MapBasedTaskInput<B, E> input) : super(input);
+  ListToMapTaskInputBuilder(ListToMapTaskInput<B, E> input) : super(input);
 
   @override
   void _addResultElement(B baseElement, E resultElement) {
@@ -350,7 +350,7 @@ class TopLevelTaskInputBuilder
  * input. Finally, each of the task inputs are used to access analysis results,
  * and a collection of the analysis results is used as the input to the task.
  */
-abstract class _CollectionBasedTaskInput<B, E, C> implements TaskInput<C> {
+abstract class _ListToCollectionTaskInput<B, E, C> implements TaskInput<C> {
   /**
    * The accessor used to access the list of elements being mapped.
    */
@@ -360,7 +360,7 @@ abstract class _CollectionBasedTaskInput<B, E, C> implements TaskInput<C> {
    * The function used to convert an element in the list returned by the
    * [baseAccessor] to a task input.
    */
-  final GenerateTaskInputs<E> generateTaskInputs;
+  final GenerateTaskInputs<B, E> generateTaskInputs;
 
   /**
    * Initialize a result accessor to use the given [baseAccessor] to access a
@@ -368,18 +368,18 @@ abstract class _CollectionBasedTaskInput<B, E, C> implements TaskInput<C> {
    * generate a list of task inputs that can be used to access the elements of
    * the input being accessed.
    */
-  _CollectionBasedTaskInput(this.baseAccessor, this.generateTaskInputs);
+  _ListToCollectionTaskInput(this.baseAccessor, this.generateTaskInputs);
 }
 
 /**
- * A [TaskInputBuilder] used to build an [_CollectionBasedTaskInput].
+ * A [TaskInputBuilder] used to build an [_ListToCollectionTaskInput].
  */
-abstract class _CollectionBasedTaskInputBuilder<B, E, C>
+abstract class _ListToCollectionTaskInputBuilder<B, E, C>
     implements TaskInputBuilder<C> {
   /**
    * The input being built.
    */
-  final _CollectionBasedTaskInput<B, E, C> input;
+  final _ListToCollectionTaskInput<B, E, C> input;
 
   /**
    * The builder used to build the current result.
@@ -406,7 +406,7 @@ abstract class _CollectionBasedTaskInputBuilder<B, E, C>
    * Initialize a newly created task input builder that computes the result
    * specified by the given [input].
    */
-  _CollectionBasedTaskInputBuilder(this.input);
+  _ListToCollectionTaskInputBuilder(this.input);
 
   @override
   ResultDescriptor get currentResult {
