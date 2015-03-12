@@ -156,6 +156,18 @@ class CompletionTarget {
 
           // If the node is a candidate target, then we are done.
           if (_isCandidateNode(entity, offset)) {
+            // Check to see if the offset is in a preceeding comment
+            Token commentToken = _getContainingCommentToken(entity, offset);
+            if (commentToken != null) {
+              entity = commentToken;
+              // If the preceeding comment is dartdoc token then update
+              // the containing node to be the dartdoc comment
+              Comment docComment =
+                  _getContainingDocComment(containingNode, commentToken);
+              if (docComment != null) {
+                containingNode = docComment;
+              }
+            }
             return new CompletionTarget._(containingNode, entity);
           }
 
@@ -231,6 +243,46 @@ class CompletionTarget {
       }
     }
     return false;
+  }
+
+  /**
+   * Determine if the offset is contained in a preceeding comment token
+   * and return that token, otherwise return `null`.
+   */
+  static Token _getContainingCommentToken(AstNode node, int offset) {
+    if (offset >= node.offset) {
+      return null;
+    }
+    Token token = node.beginToken;
+    if (token == null) {
+      return null;
+    }
+    token = token.precedingComments;
+    while (token != null) {
+      if (offset <= token.offset) {
+        return null;
+      }
+      if (offset <= token.end) {
+        if (token.type == TokenType.SINGLE_LINE_COMMENT || offset < token.end) {
+          return token;
+        }
+      }
+      token = token.next;
+    }
+    return null;
+  }
+
+  /**
+   * Determine if the given token is part of the given node's dart doc.
+   */
+  static Comment _getContainingDocComment(AstNode node, Token token) {
+    if (node is AnnotatedNode) {
+      Comment docComment = node.documentationComment;
+      if (docComment != null && docComment.tokens.contains(token)) {
+        return docComment;
+      }
+    }
+    return null;
   }
 
   /**

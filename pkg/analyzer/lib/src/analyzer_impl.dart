@@ -61,6 +61,15 @@ class AnalyzerImpl {
   final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap =
       new HashMap<Source, AnalysisErrorInfo>();
 
+  /**
+   * If the file specified on the command line is part of a package, the name
+   * of that package.  Otherwise `null`.  This allows us to analyze the file
+   * specified on the command line as though it is reached via a "package:"
+   * URI, but avoid suppressing its output in the event that the user has not
+   * specified the "--package-warnings" option.
+   */
+  String _selfPackageName;
+
   AnalyzerImpl(String sourcePath, this.options, this.startTime, this.isBatch)
       : sourcePath = _normalizeSourcePath(sourcePath) {
     if (sdk == null) {
@@ -101,7 +110,7 @@ class AnalyzerImpl {
     {
       UriKind uriKind = library.source.uriKind;
       // Optionally skip package: libraries.
-      if (!options.showPackageWarnings && uriKind == UriKind.PACKAGE_URI) {
+      if (!options.showPackageWarnings && _isOtherPackage(library.source.uri)) {
         return;
       }
       // Optionally skip SDK libraries.
@@ -210,6 +219,11 @@ class AnalyzerImpl {
 
     librarySource = computeLibrarySource();
 
+    Uri libraryUri = librarySource.uri;
+    if (libraryUri.scheme == 'package' && libraryUri.pathSegments.length > 0) {
+      _selfPackageName = libraryUri.pathSegments[0];
+    }
+
     // Create and add a ChangeSet
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(librarySource);
@@ -295,7 +309,7 @@ class AnalyzerImpl {
       }
       return options.showSdkWarnings;
     }
-    if (source.uri.scheme == 'package') {
+    if (_isOtherPackage(source.uri)) {
       return options.showPackageWarnings;
     }
     return true;
@@ -337,6 +351,22 @@ class AnalyzerImpl {
     if (computeSeverity(error, options.enableTypeChecks) ==
             ErrorSeverity.INFO &&
         options.disableHints) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determine whether the given URI refers to a package other than the package
+   * being analyzed.
+   */
+  bool _isOtherPackage(Uri uri) {
+    if (uri.scheme != 'package') {
+      return false;
+    }
+    if (_selfPackageName != null &&
+        uri.pathSegments.length > 0 &&
+        uri.pathSegments[0] == _selfPackageName) {
       return false;
     }
     return true;

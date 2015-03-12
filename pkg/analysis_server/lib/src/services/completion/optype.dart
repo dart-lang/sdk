@@ -184,7 +184,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   void visitCompilationUnit(CompilationUnit node) {
-    optype.includeTypeNameSuggestions = true;
+    if (entity is! CommentToken) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override
@@ -310,6 +312,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (identical(entity, node.returnType) ||
+        identical(entity, node.name) && node.returnType == null) {
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(entity, node.returnType) ||
         identical(entity, node.name) && node.returnType == null) {
@@ -380,7 +390,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {}
+  void visitMethodDeclaration(MethodDeclaration node) {
+    optype.includeTypeNameSuggestions = true;
+  }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

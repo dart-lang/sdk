@@ -558,8 +558,15 @@ class SimpleTypeInferrerVisitor<T>
             && !seenSuperConstructorCall
             && !cls.isObject) {
           FunctionElement target = cls.superclass.lookupDefaultConstructor();
-          analyzeSuperConstructorCall(target, new ArgumentsTypes([], {}));
-          synthesizeForwardingCall(analyzedElement, target);
+          ArgumentsTypes arguments = new ArgumentsTypes([], {});
+          analyzeSuperConstructorCall(target, arguments);
+          inferrer.registerCalledElement(node,
+                                         null,
+                                         outermostElement,
+                                         target.implementation,
+                                         arguments,
+                                         sideEffects,
+                                         inLoop);
         }
         visit(node.body);
         inferrer.recordExposesThis(analyzedElement, isThisExposed);
@@ -1291,6 +1298,7 @@ class SimpleTypeInferrerVisitor<T>
                                           sideEffects,
                                           inLoop);
   }
+
   T visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
     Element element = elements.getRedirectingTargetConstructor(node);
     if (Elements.isErroneous(element)) {
