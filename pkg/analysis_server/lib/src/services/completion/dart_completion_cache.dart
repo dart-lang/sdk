@@ -198,6 +198,11 @@ class DartCompletionCache extends CompletionCache {
   void _addDartCoreSuggestions() {
     Source coreUri = context.sourceFactory.forUri('dart:core');
     LibraryElement coreLib = context.getLibraryElement(coreUri);
+    if (coreLib == null) {
+      // If the core library has not been analyzed yet, then we cannot add any
+      // suggestions from it.
+      return;
+    }
     Namespace coreNamespace =
         new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
     coreNamespace.definedNames.forEach((String name, Element elem) {
