@@ -3301,8 +3301,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   /**
    * An empty list of executable elements.
    */
-  static const List<ExecutableElement> EMPTY_ARRAY = const <ExecutableElement>[
-  ];
+  static const List<ExecutableElement> EMPTY_ARRAY =
+      const <ExecutableElement>[];
 
   /**
    * A list containing all of the functions defined within this executable
@@ -5358,8 +5358,8 @@ abstract class HtmlScriptElementImpl extends ElementImpl
   /**
    * An empty list of HTML script elements.
    */
-  static const List<HtmlScriptElement> EMPTY_ARRAY = const <HtmlScriptElement>[
-  ];
+  static const List<HtmlScriptElement> EMPTY_ARRAY =
+      const <HtmlScriptElement>[];
 
   /**
    * Initialize a newly created script element corresponding to the given
@@ -6487,7 +6487,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       return true;
-    } else if (typeS.isDartCoreFunction && elementT.getMethod("call") != null) {
+    } else if (typeS.isDartCoreFunction && _hasCallMethod(elementT)) {
       return true;
     }
     InterfaceType supertype = superclass;
@@ -6512,6 +6512,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the given element has an instance method named 'call'.
+   */
+  bool _hasCallMethod(ClassElement elementT) {
+    MethodElement method = elementT.lookUpMethod(
+        FunctionElement.CALL_METHOD_NAME, elementT.library);
+    return method != null && !method.isStatic;
   }
 
   /**
@@ -9690,8 +9699,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /**
    * An empty list of type parameter types.
    */
-  static const List<TypeParameterType> EMPTY_ARRAY = const <TypeParameterType>[
-  ];
+  static const List<TypeParameterType> EMPTY_ARRAY =
+      const <TypeParameterType>[];
 
   /**
    * Initialize a newly created type parameter type to be declared by the given

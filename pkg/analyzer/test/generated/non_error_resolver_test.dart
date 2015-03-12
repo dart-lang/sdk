@@ -971,9 +971,8 @@ class B extends A {
   const B(): super();
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -1663,6 +1662,18 @@ class D extends C {
 
   void test_functionWithoutCall_doesNotImplementFunction() {
     Source source = addSource("class A {}");
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_functionWithoutCall_staticCallMethod() {
+    Source source = addSource(r'''
+class A { }
+class B extends A {
+  static call() { }
+}
+''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);

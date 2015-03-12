@@ -1105,9 +1105,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // report problem
     _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, typeArguments, [
-      num
-    ]);
+        StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, typeArguments,
+        [num]);
     return true;
   }
 
@@ -1207,15 +1206,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (state == INIT_STATE.NOT_INIT) {
         if (fieldElement.isConst) {
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_NOT_INITIALIZED, node.returnType, [
-            fieldElement.name
-          ]);
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED, node.returnType,
+              [fieldElement.name]);
           foundError = true;
         } else if (fieldElement.isFinal) {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.FINAL_NOT_INITIALIZED, node.returnType, [
-            fieldElement.name
-          ]);
+              StaticWarningCode.FINAL_NOT_INITIALIZED, node.returnType,
+              [fieldElement.name]);
           foundError = true;
         }
       }
@@ -1681,8 +1678,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         ErrorCode errorCode = (node.constKeyword != null
             ? CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR
             : StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
-        _errorReporter.reportErrorForNode(errorCode, redirectedConstructor,
-            [constructorStrName, redirectedType.displayName]);
+        _errorReporter.reportErrorForNode(errorCode, redirectedConstructor, [
+          constructorStrName,
+          redirectedType.displayName
+        ]);
         return true;
       }
       return false;
@@ -1756,13 +1755,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return false;
       }
       _hasReturnWithoutValue = true;
-      _errorReporter
-          .reportErrorForNode(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.RETURN_WITHOUT_VALUE, node);
       return true;
     } else if (_inGenerator) {
       // RETURN_IN_GENERATOR
-      _errorReporter
-          .reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATOR, node);
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.RETURN_IN_GENERATOR, node);
     }
     // RETURN_OF_INVALID_TYPE
     return _checkForReturnOfInvalidType(returnExpression, expectedReturnType);
@@ -2166,9 +2165,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       FieldElement field = classElement.getField(name);
       if (field != null) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, node, [
-          name
-        ]);
+            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, node,
+            [name]);
         return true;
       }
       // methods
@@ -2386,8 +2384,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               !conflictingMethod.isGetter) {
             // report problem
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2, name,
-                [_enclosingClass.displayName, name.name]);
+                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2, name, [
+              _enclosingClass.displayName,
+              name.name
+            ]);
             foundError = true;
             addThisMemberToTheMap = false;
           }
@@ -2629,9 +2629,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       ConstructorName constructorName, TypeName typeName) {
     if (typeName.isDeferred) {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_DEFERRED_CLASS, constructorName, [
-        typeName.name.name
-      ]);
+          CompileTimeErrorCode.CONST_DEFERRED_CLASS, constructorName,
+          [typeName.name.name]);
       return true;
     }
     return false;
@@ -2993,9 +2992,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // report problem
     _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, typeArguments, [
-      num
-    ]);
+        StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, typeArguments,
+        [num]);
     return true;
   }
 
@@ -3340,14 +3338,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (variable.initializer == null) {
           if (node.isConst) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_NOT_INITIALIZED, variable.name, [
-              variable.name.name
-            ]);
+                CompileTimeErrorCode.CONST_NOT_INITIALIZED, variable.name,
+                [variable.name.name]);
           } else if (node.isFinal) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.FINAL_NOT_INITIALIZED, variable.name, [
-              variable.name.name
-            ]);
+                StaticWarningCode.FINAL_NOT_INITIALIZED, variable.name,
+                [variable.name.name]);
           }
           foundError = true;
         }
@@ -3668,9 +3664,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // report problem
     _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, name, [
-      name.name
-    ]);
+        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, name,
+        [name.name]);
     return true;
   }
 
@@ -3866,20 +3861,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       FieldElement fieldElement = staticElement;
       if (fieldElement.isSynthetic) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, node, [
-          fieldName
-        ]);
+            CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, node,
+            [fieldName]);
       } else if (fieldElement.isStatic) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node, [
-          fieldName
-        ]);
+            CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node,
+            [fieldName]);
       }
     } else {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, node, [
-        fieldName
-      ]);
+          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, node,
+          [fieldName]);
       return;
     }
   }
@@ -4204,9 +4196,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     for (int i = 0; i < nameCount; i++) {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH, statement, [
-        constantNames[i]
-      ]);
+          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH, statement,
+          [constantNames[i]]);
     }
     return true;
   }
@@ -4252,9 +4243,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     for (ConstructorElement constructor in mixinElement.constructors) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, mixinName, [
-          mixinElement.name
-        ]);
+            CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, mixinName,
+            [mixinElement.name]);
         return true;
       }
     }
@@ -4276,9 +4266,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (!mixinSupertype.isObject ||
           !mixinElement.isTypedef && mixinElement.mixins.length != 0) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, mixinName, [
-          mixinElement.name
-        ]);
+            CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, mixinName,
+            [mixinElement.name]);
         return true;
       }
     }
@@ -4297,9 +4286,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       TypeName mixinName, ClassElement mixinElement) {
     if (mixinElement.hasReferenceToSuper) {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, mixinName, [
-        mixinElement.name
-      ]);
+          CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, mixinName,
+          [mixinElement.name]);
     }
     return false;
   }
@@ -4415,9 +4403,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node.name, [
-          superUnnamedConstructor
-        ]);
+            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node.name,
+            [superUnnamedConstructor]);
         return true;
       }
       if (superUnnamedConstructor.isDefaultConstructor &&
@@ -4428,9 +4415,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // report problem
     _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, node.name, [
-      superType.displayName
-    ]);
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, node.name,
+        [superType.displayName]);
     return true;
   }
 
@@ -5313,9 +5299,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // report problem
     _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, node, [
-      element.displayName
-    ]);
+        StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, node,
+        [element.displayName]);
     return true;
   }
 
@@ -5370,9 +5355,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node.returnType, [
-          superUnnamedConstructor
-        ]);
+            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node.returnType,
+            [superUnnamedConstructor]);
         return true;
       }
       if (!superUnnamedConstructor.isDefaultConstructor ||
@@ -5665,8 +5649,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         null) {
       return false;
     }
-    ExecutableElement callMethod =
-        _inheritanceManager.lookupMember(classElement, "call");
+    ExecutableElement callMethod = _inheritanceManager.lookupMember(
+        classElement, FunctionElement.CALL_METHOD_NAME);
     if (callMethod == null ||
         callMethod is! MethodElement ||
         (callMethod as MethodElement).isAbstract) {
@@ -6056,9 +6040,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
         _errorReporter.reportErrorForOffset(_getBaseCaseErrorCode(classElt),
-            _enclosingClass.nameOffset, enclosingClassName.length, [
-          enclosingClassName
-        ]);
+            _enclosingClass.nameOffset, enclosingClassName.length,
+            [enclosingClassName]);
         return true;
       }
     }
