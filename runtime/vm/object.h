@@ -3490,6 +3490,8 @@ class Stackmap : public Object {
 
 class ExceptionHandlers : public Object {
  public:
+  static const intptr_t kInvalidPcOffset = 0;
+
   intptr_t num_entries() const;
 
   void GetHandlerInfo(intptr_t try_index,

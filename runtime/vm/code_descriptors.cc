@@ -99,8 +99,9 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
       // Unreachable handler, entry not computed.
       // Initialize it to some meaningful value.
       const bool has_catch_all = false;
+      // Check it is uninitialized.
       ASSERT((list_[i].outer_try_index == -1) &&
-             (list_[i].pc_offset == -1));  // It is uninitialized.
+             (list_[i].pc_offset == ExceptionHandlers::kInvalidPcOffset));
       handlers.SetHandlerInfo(i,
                               list_[i].outer_try_index,
                               list_[i].pc_offset,

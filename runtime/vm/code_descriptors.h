@@ -116,7 +116,7 @@ class ExceptionHandlerList : public ZoneAllocated {
   void AddPlaceHolder() {
     struct HandlerDesc data;
     data.outer_try_index = -1;
-    data.pc_offset = -1;
+    data.pc_offset = ExceptionHandlers::kInvalidPcOffset;
     data.handler_types = NULL;
     data.needs_stacktrace = false;
     list_.Add(data);
