@@ -433,8 +433,8 @@ class ConstantValueComputer {
       referenceGraph.addNode(declaration);
       declaration.initializer.accept(referenceFinder);
     });
-    constructorDeclarationMap.forEach(
-        (ConstructorElement element, ConstructorDeclaration declaration) {
+    constructorDeclarationMap.forEach((ConstructorElement element,
+        ConstructorDeclaration declaration) {
       ReferenceFinder referenceFinder = new ReferenceFinder(declaration,
           referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
       referenceGraph.addNode(declaration);
@@ -862,8 +862,7 @@ class ConstantValueComputer {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
         beforeGetParameterDefault(baseParameter);
-        EvaluationResultImpl evaluationResult =
-            (baseParameter as ParameterElementImpl).evaluationResult;
+        EvaluationResultImpl evaluationResult = baseParameter.evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
           argumentValue = constantVisitor.null2;
@@ -4934,10 +4933,9 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element is VariableElement) {
-      VariableElement variable = element as VariableElement;
-      if (variable.isConst) {
+      if (element.isConst) {
         VariableDeclaration variableDeclaration =
-            _variableDeclarationMap[variable];
+            _variableDeclarationMap[element];
         // The declaration will be null when the variable is not defined in the
         // compilation units that were used to produce the
         // variableDeclarationMap.  In such cases, the variable should already

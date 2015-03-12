@@ -1088,8 +1088,10 @@ class FixProcessor {
       if (prefix != null) {
         SourceRange range = rf.rangeStartLength(node, 0);
         _addReplaceEdit(range, '${prefix.displayName}.');
-        _addFix(FixKind.IMPORT_LIBRARY_PREFIX,
-            [libraryElement.displayName, prefix.displayName]);
+        _addFix(FixKind.IMPORT_LIBRARY_PREFIX, [
+          libraryElement.displayName,
+          prefix.displayName
+        ]);
         continue;
       }
       // may be update "show" directive
@@ -1630,8 +1632,7 @@ class FixProcessor {
       if (n is MethodInvocation &&
           n.offset == errorOffset &&
           n.length == errorLength) {
-        MethodInvocation invocation = n as MethodInvocation;
-        Expression target = invocation.target;
+        Expression target = n.target;
         while (target is ParenthesizedExpression) {
           target = (target as ParenthesizedExpression).expression;
         }
@@ -1639,8 +1640,8 @@ class FixProcessor {
         BinaryExpression binary = target as BinaryExpression;
         _addReplaceEdit(rf.rangeToken(binary.operator), '~/');
         // remove everything before and after
-        _addRemoveEdit(rf.rangeStartStart(invocation, binary.leftOperand));
-        _addRemoveEdit(rf.rangeEndEnd(binary.rightOperand, invocation));
+        _addRemoveEdit(rf.rangeStartStart(n, binary.leftOperand));
+        _addRemoveEdit(rf.rangeEndEnd(binary.rightOperand, n));
         // add proposal
         _addFix(FixKind.USE_EFFECTIVE_INTEGER_DIVISION, []);
         // done

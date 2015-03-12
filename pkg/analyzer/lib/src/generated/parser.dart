@@ -2219,8 +2219,8 @@ class Parser {
         argument = parseArgument();
         arguments.add(argument);
         if (foundNamedArgument) {
-          bool blankArgument = argument is SimpleIdentifier &&
-              (argument as SimpleIdentifier).name.isEmpty;
+          bool blankArgument =
+              argument is SimpleIdentifier && argument.name.isEmpty;
           if (!generatedError &&
               !(argument is NamedExpression && !blankArgument)) {
             // Report the error, once, but allow the arguments to be in any
@@ -2685,9 +2685,8 @@ class Parser {
         }
         directives.add(directive);
       } else if (_matches(TokenType.SEMICOLON)) {
-        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [
-          _currentToken.lexeme
-        ]);
+        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
+            [_currentToken.lexeme]);
         _advance();
       } else {
         CompilationUnitMember member =
@@ -2697,9 +2696,8 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [
-          _currentToken.lexeme
-        ]);
+        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
+            [_currentToken.lexeme]);
         _advance();
         while (!_matches(TokenType.EOF) &&
             !_couldBeStartOfCompilationUnitMember()) {
@@ -2982,9 +2980,8 @@ class Parser {
             rightSquareBracket = null;
           } else {
             _reportErrorForCurrentToken(
-                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, [
-              "["
-            ]);
+                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
+                ["["]);
           }
         }
         kind = ParameterKind.REQUIRED;
@@ -2999,9 +2996,8 @@ class Parser {
             rightCurlyBracket = null;
           } else {
             _reportErrorForCurrentToken(
-                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, [
-              "{"
-            ]);
+                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
+                ["{"]);
           }
         }
         kind = ParameterKind.REQUIRED;
@@ -4368,9 +4364,8 @@ class Parser {
         _inInitializer = wasInInitializer;
       }
     } else {
-      _reportErrorForToken(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [
-        _currentToken.lexeme
-      ]);
+      _reportErrorForToken(ParserErrorCode.MISSING_IDENTIFIER, _currentToken,
+          [_currentToken.lexeme]);
       functionName = _createSyntheticIdentifier();
     }
     assert((expression == null && functionName != null) ||
@@ -4562,9 +4557,8 @@ class Parser {
             (!_matchesKeyword(Keyword.CLASS) &&
                 !_matchesKeyword(Keyword.TYPEDEF)))) {
       if (_matches(TokenType.SEMICOLON)) {
-        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [
-          _currentToken.lexeme
-        ]);
+        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
+            [_currentToken.lexeme]);
         _advance();
       } else {
         ClassMember member = parseClassMember(className);
@@ -4573,9 +4567,8 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [
-          _currentToken.lexeme
-        ]);
+        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
+            [_currentToken.lexeme]);
         _advance();
       }
       memberStart = _currentToken;
@@ -5551,9 +5544,8 @@ class Parser {
             NodeList<VariableDeclaration> variables = variableList.variables;
             if (variables.length > 1) {
               _reportErrorForCurrentToken(
-                  ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [
-                variables.length.toString()
-              ]);
+                  ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH,
+                  [variables.length.toString()]);
             }
             VariableDeclaration variable = variables[0];
             if (variable.initializer != null) {
@@ -6599,9 +6591,8 @@ class Parser {
       if ((_tokenMatches(previous, TokenType.EQ_EQ) ||
               _tokenMatches(previous, TokenType.BANG_EQ)) &&
           _currentToken.offset == previous.offset + 2) {
-        _reportErrorForCurrentToken(ParserErrorCode.INVALID_OPERATOR, [
-          "${previous.lexeme}${_currentToken.lexeme}"
-        ]);
+        _reportErrorForCurrentToken(ParserErrorCode.INVALID_OPERATOR,
+            ["${previous.lexeme}${_currentToken.lexeme}"]);
         _advance();
       }
     }
@@ -6989,9 +6980,8 @@ class Parser {
         !_isSwitchMember()) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
-        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [
-          _currentToken.lexeme
-        ]);
+        _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
+            [_currentToken.lexeme]);
         _advance();
       }
       statementStart = _currentToken;
@@ -8228,13 +8218,22 @@ class Parser {
           // Illegal escape sequence: invalid hex digits
           _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE);
         } else {
-          _appendScalarValue(buffer, lexeme.substring(index, currentIndex + 1),
+          _appendScalarValue(
+              buffer,
+              lexeme
+                  .substring(
+                      index,
+                      currentIndex + 1),
               (((((Character.digit(firstDigit, 16) << 4) +
                                   Character.digit(secondDigit, 16)) <<
                               4) +
                           Character.digit(thirdDigit, 16)) <<
                       4) +
-                  Character.digit(fourthDigit, 16), index, currentIndex + 3);
+                  Character
+                      .digit(fourthDigit, 16),
+              index,
+              currentIndex +
+                  3);
         }
         return currentIndex + 4;
       }

@@ -138,11 +138,10 @@ class DartUnitOutlineComputer {
     // unit or class member
     if (parent is CompilationUnit) {
       firstOffset = 0;
-      siblings = (parent as CompilationUnit).declarations;
+      siblings = parent.declarations;
     } else if (parent is ClassDeclaration) {
-      ClassDeclaration classDeclaration = parent as ClassDeclaration;
-      firstOffset = classDeclaration.leftBracket.end;
-      siblings = classDeclaration.members;
+      firstOffset = parent.leftBracket.end;
+      siblings = parent.members;
     } else {
       int offset = node.offset;
       return new _SourceRegion(offset, endOffset - offset);

@@ -892,25 +892,25 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     if (propagatedElement is ClassElement) {
       if (_isNotTypeLiteral(node)) {
-        propagatedType = (propagatedElement as ClassElement).type;
+        propagatedType = propagatedElement.type;
       } else {
         propagatedType = _typeProvider.typeType;
       }
     } else if (propagatedElement is FunctionTypeAliasElement) {
-      propagatedType = (propagatedElement as FunctionTypeAliasElement).type;
+      propagatedType = propagatedElement.type;
     } else if (propagatedElement is MethodElement) {
-      propagatedType = (propagatedElement as MethodElement).type;
+      propagatedType = propagatedElement.type;
     } else if (propagatedElement is PropertyAccessorElement) {
-      propagatedType = _getTypeOfProperty(
-          propagatedElement as PropertyAccessorElement, node.prefix.staticType);
+      propagatedType =
+          _getTypeOfProperty(propagatedElement, node.prefix.staticType);
       propagatedType =
           _getPropertyPropagatedType(propagatedElement, propagatedType);
     } else if (propagatedElement is ExecutableElement) {
-      propagatedType = (propagatedElement as ExecutableElement).type;
+      propagatedType = propagatedElement.type;
     } else if (propagatedElement is TypeParameterElement) {
-      propagatedType = (propagatedElement as TypeParameterElement).type;
+      propagatedType = propagatedElement.type;
     } else if (propagatedElement is VariableElement) {
-      propagatedType = (propagatedElement as VariableElement).type;
+      propagatedType = propagatedElement.type;
     }
     DartType overriddenType = _overrideManager.getType(propagatedElement);
     if (propagatedType == null ||

@@ -1961,23 +1961,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       element = accessor.variable;
     }
     if (element is VariableElement) {
-      VariableElement variable = element as VariableElement;
-      if (variable.isConst) {
+      if (element.isConst) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.ASSIGNMENT_TO_CONST, expression);
         return true;
       }
-      if (variable.isFinal) {
-        if (variable is FieldElementImpl &&
-            variable.setter == null &&
-            variable.isSynthetic) {
+      if (element.isFinal) {
+        if (element is FieldElementImpl &&
+            element.setter == null &&
+            element.isSynthetic) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, highlightedNode,
-              [variable.name, variable.enclosingElement.displayName]);
+              [element.name, element.enclosingElement.displayName]);
           return true;
         }
         _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FINAL,
-            highlightedNode, [variable.name]);
+            highlightedNode, [element.name]);
         return true;
       }
       return false;
@@ -5947,15 +5946,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return false;
       }
       if (n is ConstructorDeclaration) {
-        ConstructorDeclaration constructor = n as ConstructorDeclaration;
-        return constructor.factoryKeyword == null;
+        return n.factoryKeyword == null;
       }
       if (n is ConstructorInitializer) {
         return false;
       }
       if (n is MethodDeclaration) {
-        MethodDeclaration method = n as MethodDeclaration;
-        return !method.isStatic;
+        return !n.isStatic;
       }
     }
     return false;

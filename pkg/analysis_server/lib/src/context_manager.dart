@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * The name of `packages` folders.
@@ -134,7 +133,7 @@ abstract class ContextManager {
         }
       }
     }
-    return flushedFiles.toList(growable:false);
+    return flushedFiles.toList(growable: false);
   }
 
   /**

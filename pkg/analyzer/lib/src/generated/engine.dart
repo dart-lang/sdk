@@ -1491,8 +1491,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     WorkManager_WorkIterator iterator = _workManager.iterator();
     while (iterator.hasNext) {
       Source source = iterator.next();
-      _getSourcesNeedingProcessing(source,
-          _cache.get(source), false, hintsEnabled, lintsEnabled, sources);
+      _getSourcesNeedingProcessing(source, _cache.get(source), false,
+          hintsEnabled, lintsEnabled, sources);
     }
     return new List<Source>.from(sources);
   }
@@ -1596,8 +1596,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     changeSet.changedContents.forEach((Source key, String value) {
       _contentsChanged(key, value, false);
     });
-    changeSet.changedRanges.forEach(
-        (Source source, ChangeSet_ContentChange change) {
+    changeSet.changedRanges
+        .forEach((Source source, ChangeSet_ContentChange change) {
       _contentRangeChanged(source, change.contents, change.offset,
           change.oldLength, change.newLength);
     });
@@ -1627,7 +1627,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AstNode nameNode = locator.searchWithin(unit);
     while (nameNode != null) {
       if (nameNode is AnnotatedNode) {
-        Comment comment = (nameNode as AnnotatedNode).documentationComment;
+        Comment comment = nameNode.documentationComment;
         if (comment == null) {
           return null;
         }
@@ -2397,8 +2397,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
         dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
         dartEntry.setState(DartEntry.TOKEN_STREAM, CacheState.FLUSHED);
-        dartEntry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS,
-            librarySource, AnalysisError.NO_ERRORS);
+        dartEntry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource,
+            AnalysisError.NO_ERRORS);
         dartEntry.setStateInLibrary(
             DartEntry.RESOLVED_UNIT, librarySource, CacheState.FLUSHED);
         dartEntry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS,
@@ -3985,7 +3985,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       sourceEntry = _createSourceEntry(source, false);
     }
     if (sourceEntry is DartEntry) {
-      return sourceEntry as DartEntry;
+      return sourceEntry;
     }
     return null;
   }
@@ -4003,7 +4003,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       sourceEntry = _createSourceEntry(source, false);
     }
     if (sourceEntry is HtmlEntry) {
-      return sourceEntry as HtmlEntry;
+      return sourceEntry;
     }
     return null;
   }
@@ -4880,7 +4880,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is HtmlEntry) {
       _workManager.add(source, SourcePriority.HTML);
     } else if (sourceEntry is DartEntry) {
-      _workManager.add(source, _computePriority(sourceEntry as DartEntry));
+      _workManager.add(source, _computePriority(sourceEntry));
     }
   }
 
@@ -8994,8 +8994,8 @@ class GetContentTask extends AnalysisTask {
       TimestampedData<String> data = context.getContents(source);
       _content = data.data;
       _modificationTime = data.modificationTime;
-      AnalysisEngine.instance.instrumentationService
-          .logFileRead(source.fullName, _modificationTime, _content);
+      AnalysisEngine.instance.instrumentationService.logFileRead(
+          source.fullName, _modificationTime, _content);
     } catch (exception, stackTrace) {
       errors.add(new AnalysisError.con1(
           source, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
@@ -9489,8 +9489,8 @@ class IncrementalAnalysisTask extends AnalysisTask {
     BooleanErrorListener errorListener = new BooleanErrorListener();
     IncrementalScanner scanner =
         new IncrementalScanner(cache.source, reader, errorListener);
-    scanner.rescan(cache.resolvedUnit.beginToken, cache.offset,
-        cache.oldLength, cache.newLength);
+    scanner.rescan(cache.resolvedUnit.beginToken, cache.offset, cache.oldLength,
+        cache.newLength);
     if (errorListener.errorReported) {
       return;
     }

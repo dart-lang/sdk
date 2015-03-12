@@ -230,8 +230,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         simpleIdentifier.staticElement = element;
         if (node.newKeyword != null) {
           if (element is ClassElement) {
-            ConstructorElement constructor =
-                (element as ClassElement).unnamedConstructor;
+            ConstructorElement constructor = element.unnamedConstructor;
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
@@ -269,14 +268,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         name.staticElement = element;
         if (node.newKeyword == null) {
           if (element is ClassElement) {
-            Element memberElement = _lookupGetterOrMethod(
-                (element as ClassElement).type, name.name);
+            Element memberElement =
+                _lookupGetterOrMethod(element.type, name.name);
             if (memberElement == null) {
-              memberElement =
-                  (element as ClassElement).getNamedConstructor(name.name);
+              memberElement = element.getNamedConstructor(name.name);
               if (memberElement == null) {
-                memberElement = _lookUpSetter(
-                    prefix, (element as ClassElement).type, name.name);
+                memberElement = _lookUpSetter(prefix, element.type, name.name);
               }
             }
             if (memberElement == null) {
@@ -290,7 +287,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else {
           if (element is ClassElement) {
             ConstructorElement constructor =
-                (element as ClassElement).getNamedConstructor(name.name);
+                element.getNamedConstructor(name.name);
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
@@ -634,8 +631,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         // TODO(collinsn): an improvement here is to make the propagated type
         // of the method call the union of the propagated types of all possible
         // calls.
-        if (_lookupMethods(
-                target, propagatedType as UnionType, methodName.name).length >
+        if (_lookupMethods(target, propagatedType, methodName.name).length >
             1) {
           return null;
         }
@@ -672,9 +668,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (identical(
         errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION)) {
       _resolver.reportErrorForNode(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, methodName, [
-        methodName.name
-      ]);
+          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, methodName,
+          [methodName.name]);
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
       _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_FUNCTION,
           methodName, [methodName.name]);
@@ -715,8 +710,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ErrorCode proxyErrorCode = (generatedWithTypePropagation
             ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD);
-        _recordUndefinedNode(targetType.element, proxyErrorCode,
-            methodName, [methodName.name, targetTypeName]);
+        _recordUndefinedNode(targetType.element, proxyErrorCode, methodName, [
+          methodName.name,
+          targetTypeName
+        ]);
       }
     } else if (identical(
         errorCode, StaticTypeWarningCode.UNDEFINED_SUPER_METHOD)) {
@@ -1247,8 +1244,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       } else {
         int offset = leftBracket.offset;
         int length = rightBracket.offset - offset + 1;
-        _recordUndefinedOffset(type.element, errorCode,
-            offset, length, [methodName, type.displayName]);
+        _recordUndefinedOffset(type.element, errorCode, offset, length, [
+          methodName,
+          type.displayName
+        ]);
       }
       return true;
     }
@@ -2137,14 +2136,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element2 is PropertyAccessorElement) {
         nameNode2.staticElement = element2;
         annotation.element = element2;
-        _resolveAnnotationElementGetter(
-            annotation, element2 as PropertyAccessorElement);
+        _resolveAnnotationElementGetter(annotation, element2);
         return;
       }
       // prefix.Class()
       if (element2 is ClassElement) {
-        ClassElement classElement = element2 as ClassElement;
-        constructor = classElement.unnamedConstructor;
+        constructor = element2.unnamedConstructor;
       }
       // Class.constructor(args)
       if (element1 is ClassElement) {
@@ -2301,15 +2298,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       ErrorCode errorCode = (reportError
           ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
           : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [requiredParameters.length, positionalArgumentCount]);
+      _resolver.reportErrorForNode(errorCode, argumentList, [
+        requiredParameters.length,
+        positionalArgumentCount
+      ]);
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
       ErrorCode errorCode = (reportError
           ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
           : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [unnamedParameterCount, positionalArgumentCount]);
+      _resolver.reportErrorForNode(errorCode, argumentList, [
+        unnamedParameterCount,
+        positionalArgumentCount
+      ]);
     }
     return resolvedParameters;
   }
@@ -2597,9 +2598,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             return;
           } else if (classElement.isEnum && propertyName.name == "_name") {
             _resolver.reportErrorForNode(
-                CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD, propertyName, [
-              propertyName.name
-            ]);
+                CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD, propertyName,
+                [propertyName.name]);
             return;
           }
         }
@@ -2654,9 +2654,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ]);
       } else {
         _recordUndefinedNode(declaringElement,
-            StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [
-          propertyName.name
-        ]);
+            StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName,
+            [propertyName.name]);
       }
     }
   }
@@ -2931,15 +2930,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return false;
       }
       if (n is ConstructorDeclaration) {
-        ConstructorDeclaration constructor = n as ConstructorDeclaration;
-        return constructor.factoryKeyword == null;
+        return n.factoryKeyword == null;
       }
       if (n is ConstructorFieldInitializer) {
         return false;
       }
       if (n is MethodDeclaration) {
-        MethodDeclaration method = n as MethodDeclaration;
-        return !method.isStatic;
+        return !n.isStatic;
       }
     }
     return false;

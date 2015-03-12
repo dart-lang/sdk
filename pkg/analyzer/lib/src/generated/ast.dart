@@ -16325,15 +16325,13 @@ class SimpleIdentifier extends Identifier {
     }
     // analyze usage
     if (parent is AssignmentExpression) {
-      AssignmentExpression expr = parent as AssignmentExpression;
-      if (identical(expr.leftHandSide, target) &&
-          expr.operator.type == TokenType.EQ) {
+      if (identical(parent.leftHandSide, target) &&
+          parent.operator.type == TokenType.EQ) {
         return false;
       }
     }
     if (parent is ForEachStatement) {
-      ForEachStatement stmt = parent as ForEachStatement;
-      if (identical(stmt.identifier, target)) {
+      if (identical(parent.identifier, target)) {
         return false;
       }
     }
@@ -16370,13 +16368,13 @@ class SimpleIdentifier extends Identifier {
     }
     // analyze usage
     if (parent is PrefixExpression) {
-      return (parent as PrefixExpression).operator.type.isIncrementOperator;
+      return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
       return true;
     } else if (parent is AssignmentExpression) {
-      return identical((parent as AssignmentExpression).leftHandSide, target);
+      return identical(parent.leftHandSide, target);
     } else if (parent is ForEachStatement) {
-      return identical((parent as ForEachStatement).identifier, target);
+      return identical(parent.identifier, target);
     }
     return false;
   }

@@ -637,19 +637,19 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         element is CompilationUnitElement ? element : element.enclosingElement;
     while (parent != null) {
       if (parent is CompilationUnitElement) {
-        _enclosingUnit = parent as CompilationUnitElement;
+        _enclosingUnit = parent;
         _enclosingLibrary = element.library;
       } else if (parent is ClassElement) {
         if (_enclosingClass == null) {
-          _enclosingClass = parent as ClassElement;
+          _enclosingClass = parent;
         }
       } else if (parent is FunctionTypeAliasElement) {
         if (_enclosingAlias == null) {
-          _enclosingAlias = parent as FunctionTypeAliasElement;
+          _enclosingAlias = parent;
         }
       } else if (parent is ParameterElement) {
         if (_enclosingParameter == null) {
-          _enclosingParameter = parent as ParameterElement;
+          _enclosingParameter = parent;
         }
       }
       parent = parent.enclosingElement;
