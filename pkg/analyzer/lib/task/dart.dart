@@ -14,38 +14,6 @@ import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
- * The errors produced while builing a library element.
- *
- * The list will be empty if there were no errors, but will not be `null`.
- *
- * The result is only available for targets representing a Dart library.
- */
-final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
-        'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS,
-        contributesTo: ANALYSIS_ERRORS);
-
-/**
- * The partial [LibraryElement] associated with a library.
- *
- * The [LibraryElement] and its [CompilationUnitElement]s are attached to each
- * other. Directives 'library', 'part' and 'part of' are resolved.
- *
- * The result is only available for targets representing a Dart library.
- */
-final ResultDescriptor<LibraryElement> BUILT_LIBRARY_ELEMENT =
-    new ResultDescriptor<LibraryElement>('BUILT_LIBRARY_ELEMENT', null);
-
-/**
- * The compilation unit associated with a [Source] after it has had all
- * declarations bound to the element defined by the declaration.
- *
- * The result is only available for targets representing a Dart compilation unit.
- */
-final ResultDescriptor<CompilationUnit> BUILT_UNIT =
-    new ResultDescriptor<CompilationUnit>('BUILT_UNIT', null);
-
-/**
  * The element model associated with a single compilation unit.
  *
  * The result is only available for targets representing a Dart compilation unit.
@@ -77,8 +45,9 @@ final ResultDescriptor<bool> HAS_HTML_IMPORT =
 /**
  * The sources of the libraries that are imported into a library.
  *
- * The list will be empty if there are no imported libraries, but will not be
- * `null`.
+ * Not `null`.
+ * The default value is empty.
+ * When computed, this list will always contain at least `dart:core` source.
  *
  * The result is only available for targets representing a Dart library.
  */

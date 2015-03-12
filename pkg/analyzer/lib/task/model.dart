@@ -247,6 +247,11 @@ abstract class ResultDescriptor<V> {
   V get defaultValue;
 
   /**
+   * Return the name of this descriptor.
+   */
+  String get name;
+
+  /**
    * Return a task input that can be used to compute this result for the given
    * [target].
    */

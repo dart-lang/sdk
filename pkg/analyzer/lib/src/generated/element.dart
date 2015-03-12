@@ -3632,9 +3632,9 @@ class ExportElementImpl extends UriReferencedElementImpl
   List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY;
 
   /**
-   * Initialize a newly created export element.
+   * Initialize a newly created export element at the given [offset].
    */
-  ExportElementImpl() : super(null, -1);
+  ExportElementImpl(int offset) : super(null, offset);
 
   @override
   String get identifier => exportedLibrary.name;
@@ -5438,8 +5438,8 @@ class ImportElementImpl extends UriReferencedElementImpl
   PrefixElement prefix;
 
   /**
-   * Initialize a newly created import element at the given [offset]. The offset
-   * may be `-1` if the import is synthetic.
+   * Initialize a newly created import element at the given [offset].
+   * The offset may be `-1` if the import is synthetic.
    */
   ImportElementImpl(int offset) : super(null, offset);
 

@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
@@ -31,6 +32,7 @@ import '../../reflective_tests.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
+  runReflectiveTests(BuildDirectiveElementsTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(ParseDartTaskTest);
@@ -88,11 +90,10 @@ export 'lib3.dart';
 part 'part.dart';
 class A {''');
 
-    expect(task.caughtException, isNull);
     Map<ResultDescriptor<dynamic>, dynamic> outputs = task.outputs;
     expect(outputs, hasLength(2));
     expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
-    expect(outputs[BUILT_UNIT], isNotNull);
+    expect(outputs[RESOLVED_UNIT1], isNotNull);
   }
 
   BuildCompilationUnitElementTask _performBuildTask(String content) {
@@ -125,6 +126,354 @@ class A {''');
 }
 
 @reflectiveTest
+class BuildDirectiveElementsTaskTest extends _AbstractDartTaskTest {
+  test_buildInputs() {
+    ExtendedAnalysisContext context = new _MockContext();
+    // prepare sources
+    File fileA = resourceProvider.newFile('/libA.dart', '');
+    File fileB = resourceProvider.newFile('/libB.dart', '');
+    File fileC = resourceProvider.newFile('/libC.dart', '');
+    Source sourceA = fileA.createSource();
+    Source sourceB = fileB.createSource();
+    Source sourceC = fileC.createSource();
+    // configure "sourceA"
+    CompilationUnit unitA = AstFactory.compilationUnit();
+    context.getCacheEntry(sourceA).setValue(
+        IMPORTED_LIBRARIES, <Source>[sourceB]);
+    context.getCacheEntry(sourceA).setValue(
+        EXPORTED_LIBRARIES, <Source>[sourceC]);
+    context.getCacheEntry(sourceA).setValue(RESOLVED_UNIT2, unitA);
+    // configure "sourceB"
+    LibraryElement libraryElementB = ElementFactory.library(context, 'libB');
+    context.getCacheEntry(sourceB).setValue(LIBRARY_ELEMENT1, libraryElementB);
+    context.getCacheEntry(sourceB).setValue(SOURCE_KIND, SourceKind.LIBRARY);
+    // configure "sourceC"
+    LibraryElement libraryElementC = ElementFactory.library(context, 'libC');
+    context.getCacheEntry(sourceC).setValue(LIBRARY_ELEMENT1, libraryElementC);
+    context.getCacheEntry(sourceC).setValue(SOURCE_KIND, SourceKind.LIBRARY);
+    // request inputs
+    WorkItem workItem =
+        new WorkItem(context, sourceA, BuildDirectiveElementsTask.DESCRIPTOR);
+    workItem.gatherInputs(null);
+    Map<String, dynamic> inputs = workItem.inputs;
+    expect(inputs, hasLength(5));
+    expect(inputs[BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME], unitA);
+    expect(
+        inputs[BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME],
+        containsPair(sourceB, libraryElementB));
+    expect(
+        inputs[BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME],
+        containsPair(sourceC, libraryElementC));
+    expect(inputs[BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME],
+        containsPair(sourceB, SourceKind.LIBRARY));
+    expect(inputs[BuildDirectiveElementsTask.EXPORTS_SOURCE_KIND_INPUT_NAME],
+        containsPair(sourceC, SourceKind.LIBRARY));
+  }
+
+  test_constructor() {
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisTarget target = new TestSource();
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(context, target);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, target);
+  }
+
+  test_createTask() {
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    AnalysisTarget target = new TestSource();
+    BuildDirectiveElementsTask task =
+        BuildDirectiveElementsTask.createTask(context, target);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, target);
+  }
+
+  test_description() {
+    AnalysisTarget target = new TestSource();
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(null, target);
+    expect(task.description, isNotNull);
+  }
+
+  test_descriptor() {
+    TaskDescriptor descriptor = BuildDirectiveElementsTask.DESCRIPTOR;
+    expect(descriptor, isNotNull);
+  }
+
+  test_perform() {
+    // TODO
+    var libraryResultA = _buildLibraryElement({
+      '/libA.dart': '''
+library libA;
+import 'libB.dart';
+export 'libC.dart';
+'''
+    });
+    var libraryResultB = _buildLibraryElement({
+      '/libB.dart': '''
+library libB;
+'''
+    });
+    var libraryResultC = _buildLibraryElement({
+      '/libC.dart': '''
+library libC;
+'''
+    });
+    // perform task
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(context, libraryResultA.librarySource);
+    task.inputs = {
+      BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME:
+          libraryResultA.libraryUnit,
+      BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {
+        libraryResultB.librarySource: libraryResultB.libraryElement
+      },
+      BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {
+        libraryResultC.librarySource: libraryResultC.libraryElement
+      },
+      BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME: {
+        libraryResultB.librarySource: SourceKind.LIBRARY
+      },
+      BuildDirectiveElementsTask.EXPORTS_SOURCE_KIND_INPUT_NAME: {
+        libraryResultC.librarySource: SourceKind.LIBRARY
+      }
+    };
+    Map<ResultDescriptor, dynamic> outputs = _performTask(task);
+    // prepare outputs
+    CompilationUnit libraryUnitA = outputs[RESOLVED_UNIT3];
+    LibraryElement libraryElementA = libraryUnitA.element.library;
+    // no errors
+    _assertErrorsWithCodes([]);
+    // validate directives
+    {
+      ImportDirective importNode = libraryUnitA.directives[1];
+      ImportElement importElement = importNode.element;
+      expect(importElement, isNotNull);
+      expect(importElement.importedLibrary, libraryResultB.libraryElement);
+      expect(importElement.prefix, isNull);
+      expect(importElement.nameOffset, 14);
+      expect(importElement.uriOffset, 21);
+      expect(importElement.uriEnd, 32);
+    }
+    {
+      ExportDirective exportNode = libraryUnitA.directives[2];
+      ExportElement exportElement = exportNode.element;
+      expect(exportElement, isNotNull);
+      expect(exportElement.exportedLibrary, libraryResultC.libraryElement);
+      expect(exportElement.nameOffset, 34);
+      expect(exportElement.uriOffset, 41);
+      expect(exportElement.uriEnd, 52);
+    }
+    // validate LibraryElement
+    expect(libraryElementA.hasExtUri, isFalse);
+    // has an artificial "dart:core" import
+    {
+      List<ImportElement> imports = libraryElementA.imports;
+      expect(imports, hasLength(2));
+      // TODO(scheglov) use FS-based MockDartSdk
+//      expect(imports[1].importedLibrary.isDartCore, isTrue);
+    }
+  }
+
+  test_perform_combinators() {
+    var libraryResultA = _buildLibraryElement({
+      '/libA.dart': '''
+library libA;
+import 'libB.dart' show A, B hide C, D;
+'''
+    });
+    Source sourceB = _newSource('/libB.dart');
+    // perform task
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(context, libraryResultA.librarySource);
+    task.inputs = {
+      BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME:
+          libraryResultA.libraryUnit,
+      BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {
+        sourceB: ElementFactory.library(context, 'libB')
+      },
+      BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {},
+      BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME: {
+        sourceB: SourceKind.LIBRARY
+      },
+      BuildDirectiveElementsTask.EXPORTS_SOURCE_KIND_INPUT_NAME: {}
+    };
+    Map<ResultDescriptor, dynamic> outputs = _performTask(task);
+    // prepare outputs
+    CompilationUnit libraryUnitA = outputs[RESOLVED_UNIT3];
+    // no errors
+    _assertErrorsWithCodes([]);
+    // validate directives
+    ImportDirective importNode = libraryUnitA.directives[1];
+    ImportElement importElement = importNode.element;
+    List<NamespaceCombinator> combinators = importElement.combinators;
+    expect(combinators, hasLength(2));
+    {
+      ShowElementCombinator combinator = combinators[0];
+      expect(combinator.offset, 33);
+      expect(combinator.end, 42);
+      expect(combinator.shownNames, ['A', 'B']);
+    }
+    {
+      HideElementCombinator combinator = combinators[1];
+      expect(combinator.hiddenNames, ['C', 'D']);
+    }
+  }
+
+  test_perform_error_exportOfNonLibrary() {
+    var libraryResultA = _buildLibraryElement({
+      '/libA.dart': '''
+library libA;
+export 'part.dart';
+'''
+    });
+    Source sourceB = _newSource('/part.dart');
+    // perform task
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(context, libraryResultA.librarySource);
+    task.inputs = {
+      BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME:
+          libraryResultA.libraryUnit,
+      BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {},
+      BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {
+        sourceB: ElementFactory.library(context, 'notLib')
+      },
+      BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME: {},
+      BuildDirectiveElementsTask.EXPORTS_SOURCE_KIND_INPUT_NAME: {
+        sourceB: SourceKind.PART
+      }
+    };
+    _performTask(task);
+    // validate errors
+    _assertErrorsWithCodes([CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY]);
+  }
+
+  test_perform_error_importOfNonLibrary() {
+    var libraryResultA = _buildLibraryElement({
+      '/libA.dart': '''
+library libA;
+import 'part.dart';
+'''
+    });
+    Source sourceB = _newSource('/part.dart');
+    // perform task
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(context, libraryResultA.librarySource);
+    task.inputs = {
+      BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME:
+          libraryResultA.libraryUnit,
+      BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {
+        sourceB: ElementFactory.library(context, 'notLib')
+      },
+      BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {},
+      BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME: {
+        sourceB: SourceKind.PART
+      },
+      BuildDirectiveElementsTask.EXPORTS_SOURCE_KIND_INPUT_NAME: {}
+    };
+    _performTask(task);
+    // validate errors
+    _assertErrorsWithCodes([CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY]);
+  }
+
+  test_perform_hasExtUri() {
+    var libraryResult = _buildLibraryElement({
+      '/lib.dart': '''
+library lib;
+import 'dart-ext:doesNotExist.dart';
+'''
+    });
+    // perform task
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(context, libraryResult.librarySource);
+    task.inputs = {
+      BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME:
+          libraryResult.libraryUnit,
+      BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {},
+      BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {},
+      BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME: {},
+      BuildDirectiveElementsTask.EXPORTS_SOURCE_KIND_INPUT_NAME: {}
+    };
+    Map<ResultDescriptor, dynamic> outputs = _performTask(task);
+    // prepare outputs
+    CompilationUnit libraryUnit = outputs[RESOLVED_UNIT3];
+    LibraryElement libraryElement = libraryUnit.element.library;
+    expect(libraryElement.hasExtUri, isTrue);
+  }
+
+  test_perform_importPrefix() {
+    var libraryResultA = _buildLibraryElement({
+      '/libA.dart': '''
+library libA;
+import 'libB.dart' as pref;
+import 'libC.dart' as pref;
+'''
+    });
+    var libraryResultB = _buildLibraryElement({
+      '/libB.dart': '''
+library libB;
+'''
+    });
+    var libraryResultC = _buildLibraryElement({
+      '/libC.dart': '''
+library libC;
+'''
+    });
+    // perform task
+    BuildDirectiveElementsTask task =
+        new BuildDirectiveElementsTask(context, libraryResultA.librarySource);
+    task.inputs = {
+      BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME:
+          libraryResultA.libraryUnit,
+      BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {
+        libraryResultB.librarySource: libraryResultB.libraryElement,
+        libraryResultC.librarySource: libraryResultC.libraryElement
+      },
+      BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME: {},
+      BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME: {
+        libraryResultB.librarySource: SourceKind.LIBRARY,
+        libraryResultC.librarySource: SourceKind.LIBRARY
+      },
+      BuildDirectiveElementsTask.EXPORTS_SOURCE_KIND_INPUT_NAME: {}
+    };
+    Map<ResultDescriptor, dynamic> outputs = _performTask(task);
+    // prepare outputs
+    CompilationUnit libraryUnitA = outputs[RESOLVED_UNIT3];
+    // validate directives
+    {
+      ImportDirective importNodeB = libraryUnitA.directives[1];
+      SimpleIdentifier prefixNodeB = importNodeB.prefix;
+      ImportElement importElementB = importNodeB.element;
+      PrefixElement prefixElement = importElementB.prefix;
+      expect(importElementB, isNotNull);
+      expect(importElementB.importedLibrary, libraryResultB.libraryElement);
+      expect(prefixElement, isNotNull);
+      // TODO(scheglov) remove "prefixOffset"
+      expect(importElementB.prefixOffset, prefixElement.nameOffset);
+      expect(prefixNodeB.staticElement, prefixElement);
+      // PrefixElement "pref" is shared
+      ImportDirective importNodeC = libraryUnitA.directives[2];
+      SimpleIdentifier prefixNodeC = importNodeC.prefix;
+      ImportElement importElementC = importNodeC.element;
+      expect(prefixNodeC.staticElement, prefixElement);
+      expect(importElementC.prefix, prefixElement);
+    }
+  }
+
+  void _assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+    _fillErrorListener(BUILD_DIRECTIVES_ERRORS);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
+  }
+
+  Source _newSource(String path, [String content = '']) {
+    File file = resourceProvider.newFile(path, content);
+    return file.createSource();
+  }
+}
+
+@reflectiveTest
 class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   Source librarySource;
   CompilationUnit libraryUnit;
@@ -149,18 +498,18 @@ class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
     CompilationUnit libraryUnit = AstFactory.compilationUnit();
     CompilationUnit partUnit1 = AstFactory.compilationUnit();
     CompilationUnit partUnit2 = AstFactory.compilationUnit();
-    context.getCacheEntry(librarySource).setValue(BUILT_UNIT, libraryUnit);
-    context.getCacheEntry(partSource1).setValue(BUILT_UNIT, partUnit1);
-    context.getCacheEntry(partSource2).setValue(BUILT_UNIT, partUnit2);
+    context.getCacheEntry(librarySource).setValue(RESOLVED_UNIT1, libraryUnit);
+    context.getCacheEntry(partSource1).setValue(RESOLVED_UNIT1, partUnit1);
+    context.getCacheEntry(partSource2).setValue(RESOLVED_UNIT1, partUnit2);
     // request inputs
     WorkItem workItem = new WorkItem(
         context, librarySource, BuildLibraryElementTask.DESCRIPTOR);
     workItem.gatherInputs(null);
     Map<String, dynamic> inputs = workItem.inputs;
     expect(inputs, hasLength(2));
-    expect(inputs[BuildLibraryElementTask.DEFINING_BUILT_UNIT_INPUT_NAME],
+    expect(inputs[BuildLibraryElementTask.DEFINING_RESOLVER_UNIT1_INPUT_NAME],
         libraryUnit);
-    expect(inputs[BuildLibraryElementTask.PART_BUILT_UNITS_INPUT_NAME],
+    expect(inputs[BuildLibraryElementTask.PARTS_RESOLVED_UNIT1_INPUT_NAME],
         unorderedEquals([partUnit1, partUnit2]));
   }
 
@@ -206,10 +555,10 @@ part of lib;
 part of lib;
 '''
     });
-    expect(task.caughtException, isNull);
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(5));
     // simple outputs
     expect(outputs[BUILD_LIBRARY_ERRORS], isEmpty);
+    expect(outputs[RESOLVED_UNIT2], same(libraryUnit));
     expect(outputs[IS_LAUNCHABLE], isFalse);
     expect(outputs[HAS_HTML_IMPORT], isFalse);
     // LibraryElement output
@@ -254,7 +603,6 @@ part 'part.dart';
 part of lib;
 '''
     });
-    expect(task.caughtException, isNull);
     _assertErrorsWithCodes(
         [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
   }
@@ -269,7 +617,6 @@ part 'part.dart';
 part of someOtherLib;
 '''
     });
-    expect(task.caughtException, isNull);
     _assertErrorsWithCodes([StaticWarningCode.PART_OF_DIFFERENT_LIBRARY]);
   }
 
@@ -283,7 +630,6 @@ part 'part.dart';
 // no part of
 '''
     });
-    expect(task.caughtException, isNull);
     _assertErrorsWithCodes([CompileTimeErrorCode.PART_OF_NON_PART]);
   }
 
@@ -354,9 +700,7 @@ void set test(_) {}
   }
 
   void _assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    List<AnalysisError> errors = outputs[BUILD_LIBRARY_ERRORS];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    errorListener.addAll(errors);
+    _fillErrorListener(BUILD_LIBRARY_ERRORS);
     errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
@@ -496,11 +840,10 @@ class ParseDartTaskTest extends EngineTestCase {
 part of lib;
 class B {}''');
 
-    expect(task.caughtException, isNull);
     Map<ResultDescriptor<dynamic>, dynamic> outputs = task.outputs;
     expect(outputs, hasLength(6));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    expect(outputs[IMPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
     expect(outputs[INCLUDED_PARTS], hasLength(0));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
@@ -516,11 +859,10 @@ export '${a}lib3.dart';
 part 'part.dart';
 class A {}''');
 
-    expect(task.caughtException, isNull);
     Map<ResultDescriptor<dynamic>, dynamic> outputs = task.outputs;
     expect(outputs, hasLength(6));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    expect(outputs[IMPORTED_LIBRARIES], hasLength(1));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
     expect(outputs[INCLUDED_PARTS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(2));
     expect(outputs[PARSED_UNIT], isNotNull);
@@ -534,12 +876,10 @@ import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
 class A {''');
-
-    expect(task.caughtException, isNull);
     Map<ResultDescriptor<dynamic>, dynamic> outputs = task.outputs;
     expect(outputs, hasLength(6));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(1));
-    expect(outputs[IMPORTED_LIBRARIES], hasLength(1));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
     expect(outputs[INCLUDED_PARTS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(1));
     expect(outputs[PARSED_UNIT], isNotNull);
@@ -562,6 +902,13 @@ class A {''');
     };
     parseTask.perform();
     return parseTask;
+  }
+
+  static void _assertHasCore(List<Source> sources, int lenght) {
+    expect(sources, hasLength(lenght));
+    expect(sources, contains(predicate((Source s) {
+      return s.fullName.endsWith('core.dart');
+    })));
   }
 }
 
@@ -644,6 +991,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
 
   AnalysisTask task;
   Map<ResultDescriptor<dynamic>, dynamic> outputs;
+  GatheringErrorListener errorListener = new GatheringErrorListener();
 
   CacheEntry getCacheEntry(AnalysisTarget target) {
     return entryMap.putIfAbsent(target, () => new CacheEntry());
@@ -680,7 +1028,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     };
     var buildUnitOutputs = _performTask(buildTask);
     // done
-    return buildUnitOutputs[BUILT_UNIT];
+    return buildUnitOutputs[RESOLVED_UNIT1];
   }
 
   _BuildLibraryElementTaskResult _buildLibraryElement(
@@ -699,24 +1047,36 @@ class _AbstractDartTaskTest extends EngineTestCase {
     BuildLibraryElementTask task =
         new BuildLibraryElementTask(context, librarySource);
     task.inputs = {
-      BuildLibraryElementTask.DEFINING_BUILT_UNIT_INPUT_NAME: libraryUnit,
-      BuildLibraryElementTask.PART_BUILT_UNITS_INPUT_NAME: partUnits
+      BuildLibraryElementTask.DEFINING_RESOLVER_UNIT1_INPUT_NAME: libraryUnit,
+      BuildLibraryElementTask.PARTS_RESOLVED_UNIT1_INPUT_NAME: partUnits
     };
     Map<ResultDescriptor, dynamic> outputs = _performTask(task);
 
-    LibraryElement libraryElement = outputs[BUILT_LIBRARY_ELEMENT];
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT1];
     return new _BuildLibraryElementTaskResult(librarySource, libraryUnit,
         libraryUnitElement, partUnits, task, outputs, libraryElement);
+  }
+
+  /**
+   * Fill [errorListener] with [result] errors in the current [task].
+   */
+  void _fillErrorListener(ResultDescriptor<List<AnalysisError>> result) {
+    List<AnalysisError> errors = task.outputs[result];
+    expect(errors, isNotNull, reason: result.name);
+    errorListener = new GatheringErrorListener();
+    errorListener.addAll(errors);
   }
 
   /**
    * Perform the given [task], record and return its outputs.
    */
   Map<ResultDescriptor, dynamic> _performTask(AnalysisTask task) {
+    this.task = task;
     AnalysisTarget target = task.target;
     // perform the task
     task.perform();
-    Map<ResultDescriptor, dynamic> outputs = task.outputs;
+    expect(task.caughtException, isNull);
+    outputs = task.outputs;
     // file the cache entry
     CacheEntry cacheEntry = getCacheEntry(target);
     outputs.forEach((result, value) {

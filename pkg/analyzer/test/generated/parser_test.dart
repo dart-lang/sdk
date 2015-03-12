@@ -4041,7 +4041,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitExportDirective() {
     ExportDirective fromNode = AstFactory.exportDirective2("dart:uri");
-    ExportElement element = new ExportElementImpl();
+    ExportElement element = new ExportElementImpl(-1);
     fromNode.element = element;
     ExportDirective toNode = AstFactory.exportDirective2("dart:uri");
     ResolutionCopier.copyResolutionData(fromNode, toNode);

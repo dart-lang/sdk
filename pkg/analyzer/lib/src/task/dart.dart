@@ -23,6 +23,71 @@ import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
+ * The errors produced while resolving a library directives.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<List<AnalysisError>> BUILD_DIRECTIVES_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'BUILD_DIRECTIVES_ERRORS', AnalysisError.NO_ERRORS,
+        contributesTo: ANALYSIS_ERRORS);
+
+/**
+ * The errors produced while builing a library element.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS,
+        contributesTo: ANALYSIS_ERRORS);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * The [LibraryElement] and its [CompilationUnitElement]s are attached to each
+ * other. Directives 'library', 'part' and 'part of' are resolved.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT1', null);
+
+/**
+ * The partially resolved [CompilationUnit] associated with a unit.
+ *
+ * All declarations bound to the element defined by the declaration.
+ *
+ * The result is only available for targets representing a unit.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT1', null);
+
+/**
+ * The partially resolved [CompilationUnit] associated with a unit.
+ *
+ * Directives 'library', 'part' and 'part of' are resolved.
+ *
+ * The result is only available for targets representing a library.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null);
+
+/**
+ * The partially resolved [CompilationUnit] associated with a library.
+ *
+ * All the directives are resolved.
+ *
+ * The result is only available for targets representing a library.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null);
+
+/**
  * A task that builds a compilation unit element for a single compilation unit.
  */
 class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
@@ -30,19 +95,19 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
    * The name of the input whose value is the line information for the
    * compilation unit.
    */
-  static const String LINE_INFO_INPUT_NAME = "lineInfo";
+  static const String LINE_INFO_INPUT_NAME = 'LINE_INFO_INPUT_NAME';
 
   /**
    * The name of the input whose value is the AST for the compilation unit.
    */
-  static const String PARSED_UNIT_INPUT_NAME = "parsedUnit";
+  static const String PARSED_UNIT_INPUT_NAME = 'PARSED_UNIT_INPUT_NAME';
 
   /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BUILD_COMPILATION_UNIT_ELEMENT', createTask, buildInputs,
-      <ResultDescriptor>[COMPILATION_UNIT_ELEMENT, BUILT_UNIT]);
+      <ResultDescriptor>[COMPILATION_UNIT_ELEMENT, RESOLVED_UNIT1]);
 
   /**
    * Initialize a newly created task to build a compilation unit element for
@@ -64,7 +129,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     CompilationUnitElement element = builder.buildCompilationUnit(source, unit);
 
     outputs[COMPILATION_UNIT_ELEMENT] = element;
-    outputs[BUILT_UNIT] = unit;
+    outputs[RESOLVED_UNIT1] = unit;
   }
 
   /**
@@ -88,20 +153,272 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * A task that builds [RESOLVED_UNIT3] for a library.
+ */
+class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input for [RESOLVED_UNIT2] of a library unit.
+   */
+  static const String RESOLVED_UNIT2_INPUT_NAME = 'RESOLVED_UNIT2_INPUT_NAME';
+
+  /**
+   * The input with a list of [LIBRARY_ELEMENT1]s of imported libraries.
+   */
+  static const String IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME =
+      'IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME';
+
+  /**
+   * The input with a list of [LIBRARY_ELEMENT1]s of exported libraries.
+   */
+  static const String EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME =
+      'EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME';
+
+  /**
+   * The input with a list of [SOURCE_KIND]s of imported libraries.
+   */
+  static const String IMPORTS_SOURCE_KIND_INPUT_NAME =
+      'IMPORTS_SOURCE_KIND_INPUT_NAME';
+
+  /**
+   * The input with a list of [SOURCE_KIND]s of exported libraries.
+   */
+  static const String EXPORTS_SOURCE_KIND_INPUT_NAME =
+      'EXPORTS_SOURCE_KIND_INPUT_NAME';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BUILD_RESOLVED_UNIT3', createTask, buildInputs, <ResultDescriptor>[
+    RESOLVED_UNIT3,
+    BUILD_DIRECTIVES_ERRORS
+  ]);
+
+  BuildDirectiveElementsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    List<AnalysisError> errors = <AnalysisError>[];
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit libraryUnit = getRequiredInput(RESOLVED_UNIT2_INPUT_NAME);
+    Map<Source, LibraryElement> importLibraryMap =
+        getRequiredInput(IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME);
+    Map<Source, LibraryElement> exportLibraryMap =
+        getRequiredInput(EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME);
+    Map<Source, SourceKind> importSourceKindMap =
+        getRequiredInput(IMPORTS_SOURCE_KIND_INPUT_NAME);
+    Map<Source, SourceKind> exportSourceKindMap =
+        getRequiredInput(EXPORTS_SOURCE_KIND_INPUT_NAME);
+    //
+    // Process inputs.
+    //
+    LibraryElementImpl libraryElement = libraryUnit.element.library;
+    Source librarySource = libraryElement.source;
+    //
+    // Resolve directives.
+    //
+    HashMap<String, PrefixElementImpl> nameToPrefixMap =
+        new HashMap<String, PrefixElementImpl>();
+    List<ImportElement> imports = <ImportElement>[];
+    List<ExportElement> exports = <ExportElement>[];
+    bool explicitlyImportsCore = false;
+    for (Directive directive in libraryUnit.directives) {
+      if (directive is ImportDirective) {
+        ImportDirective importDirective = directive;
+        String uriContent = importDirective.uriContent;
+        if (DartUriResolver.isDartExtUri(uriContent)) {
+          libraryElement.hasExtUri = true;
+        }
+        Source importedSource = importDirective.source;
+        if (importedSource != null && context.exists(importedSource)) {
+          // The imported source will be null if the URI in the import
+          // directive was invalid.
+          LibraryElement importedLibrary = importLibraryMap[importedSource];
+          if (importedLibrary != null) {
+            ImportElementImpl importElement =
+                new ImportElementImpl(directive.offset);
+            StringLiteral uriLiteral = importDirective.uri;
+            if (uriLiteral != null) {
+              importElement.uriOffset = uriLiteral.offset;
+              importElement.uriEnd = uriLiteral.end;
+            }
+            importElement.uri = uriContent;
+            importElement.deferred = importDirective.deferredKeyword != null;
+            importElement.combinators = _buildCombinators(importDirective);
+            importElement.importedLibrary = importedLibrary;
+            SimpleIdentifier prefixNode = directive.prefix;
+            if (prefixNode != null) {
+              importElement.prefixOffset = prefixNode.offset;
+              String prefixName = prefixNode.name;
+              PrefixElementImpl prefix = nameToPrefixMap[prefixName];
+              if (prefix == null) {
+                prefix = new PrefixElementImpl.forNode(prefixNode);
+                nameToPrefixMap[prefixName] = prefix;
+              }
+              importElement.prefix = prefix;
+              prefixNode.staticElement = prefix;
+            }
+            directive.element = importElement;
+            imports.add(importElement);
+            if (importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+              ErrorCode errorCode = (importElement.isDeferred
+                  ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+                  : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
+              errors.add(new AnalysisError.con2(importedSource,
+                  uriLiteral.offset, uriLiteral.length, errorCode,
+                  [uriLiteral.toSource()]));
+            }
+          }
+        }
+      } else if (directive is ExportDirective) {
+        ExportDirective exportDirective = directive;
+        Source exportedSource = exportDirective.source;
+        if (exportedSource != null && context.exists(exportedSource)) {
+          // The exported source will be null if the URI in the export
+          // directive was invalid.
+          LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
+          if (exportedLibrary != null) {
+            ExportElementImpl exportElement =
+                new ExportElementImpl(directive.offset);
+            StringLiteral uriLiteral = exportDirective.uri;
+            if (uriLiteral != null) {
+              exportElement.uriOffset = uriLiteral.offset;
+              exportElement.uriEnd = uriLiteral.end;
+            }
+            exportElement.uri = exportDirective.uriContent;
+            exportElement.combinators = _buildCombinators(exportDirective);
+            exportElement.exportedLibrary = exportedLibrary;
+            directive.element = exportElement;
+            exports.add(exportElement);
+            if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+              errors.add(new AnalysisError.con2(exportedSource,
+                  uriLiteral.offset, uriLiteral.length,
+                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                  [uriLiteral.toSource()]));
+            }
+          }
+        }
+      }
+    }
+    //
+    // Ensure "dart:core" import.
+    //
+    Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
+    if (!explicitlyImportsCore && coreLibrarySource != librarySource) {
+      ImportElementImpl importElement = new ImportElementImpl(-1);
+      importElement.importedLibrary = importLibraryMap[coreLibrarySource];
+      importElement.synthetic = true;
+      imports.add(importElement);
+    }
+    //
+    // Populate the library element.
+    //
+    libraryElement.imports = imports;
+    libraryElement.exports = exports;
+    // TODO(scheglov) move after EXPORT_NAMESPACE or just this task
+//    if (libraryElement.entryPoint == null) {
+//      Namespace namespace = new NamespaceBuilder()
+//          .createExportNamespaceForLibrary(libraryElement);
+//      Element element = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
+//      if (element is FunctionElement) {
+//        libraryElement.entryPoint = element;
+//      }
+//    }
+    //
+    // Record outputs.
+    //
+    outputs[RESOLVED_UNIT3] = libraryUnit;
+    outputs[BUILD_DIRECTIVES_ERRORS] = errors;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    return <String, TaskInput>{
+      RESOLVED_UNIT2_INPUT_NAME: RESOLVED_UNIT2.inputFor(target),
+      IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
+          new MapBasedTaskInput<Source, LibraryElement>(
+              IMPORTED_LIBRARIES.inputFor(target),
+              (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
+      EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
+          new MapBasedTaskInput<Source, LibraryElement>(
+              EXPORTED_LIBRARIES.inputFor(target),
+              (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
+      IMPORTS_SOURCE_KIND_INPUT_NAME: new MapBasedTaskInput<Source, SourceKind>(
+          IMPORTED_LIBRARIES.inputFor(target),
+          (Source source) => SOURCE_KIND.inputFor(source)),
+      EXPORTS_SOURCE_KIND_INPUT_NAME: new MapBasedTaskInput<Source, SourceKind>(
+          EXPORTED_LIBRARIES.inputFor(target),
+          (Source source) => SOURCE_KIND.inputFor(source))
+    };
+  }
+
+  /**
+   * Create a [BuildDirectiveElementsTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildDirectiveElementsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildDirectiveElementsTask(context, target);
+  }
+
+  /**
+   * Build the element model representing the combinators declared by
+   * the given [directive].
+   */
+  static List<NamespaceCombinator> _buildCombinators(
+      NamespaceDirective directive) {
+    List<NamespaceCombinator> combinators = <NamespaceCombinator>[];
+    for (Combinator combinator in directive.combinators) {
+      if (combinator is ShowCombinator) {
+        ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
+        show.offset = combinator.offset;
+        show.end = combinator.end;
+        show.shownNames = _getIdentifiers(combinator.shownNames);
+        combinators.add(show);
+      } else if (combinator is HideCombinator) {
+        HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
+        hide.hiddenNames = _getIdentifiers(combinator.hiddenNames);
+        combinators.add(hide);
+      }
+    }
+    return combinators;
+  }
+
+  /**
+   * Return the lexical identifiers associated with the given [identifiers].
+   */
+  static List<String> _getIdentifiers(NodeList<SimpleIdentifier> identifiers) {
+    return identifiers.map((identifier) => identifier.name).toList();
+  }
+}
+
+/**
  * A task that builds a library element for a Dart library.
  */
 class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input whose value is the built compilation unit of the
-   * defining compilation unit of a library.
+   * The name of the input whose value is the defining [RESOLVED_UNIT1].
    */
-  static const String DEFINING_BUILT_UNIT_INPUT_NAME = 'definingBuiltUnit';
+  static const String DEFINING_RESOLVER_UNIT1_INPUT_NAME =
+      'DEFINING_RESOLVER_UNIT1_INPUT_NAME';
 
   /**
-   * The name of the input whose value is a list of built compilation units
+   * The name of the input whose value is a list of built [RESOLVED_UNIT1]s
    * of the parts sourced by a library.
    */
-  static const String PART_BUILT_UNITS_INPUT_NAME = 'partBuiltUnits';
+  static const String PARTS_RESOLVED_UNIT1_INPUT_NAME =
+      'PARTS_RESOLVED_UNIT1_INPUT_NAME';
 
   /**
    * The task descriptor describing this kind of task.
@@ -109,7 +426,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BUILD_LIBRARY_ELEMENT', createTask, buildInputs, <ResultDescriptor>[
     BUILD_LIBRARY_ERRORS,
-    BUILT_LIBRARY_ELEMENT,
+    RESOLVED_UNIT2,
+    LIBRARY_ELEMENT1,
     IS_LAUNCHABLE,
     HAS_HTML_IMPORT
   ]);
@@ -133,9 +451,9 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     Source librarySource = getRequiredSource();
     CompilationUnit definingCompilationUnit =
-        getRequiredInput(DEFINING_BUILT_UNIT_INPUT_NAME);
+        getRequiredInput(DEFINING_RESOLVER_UNIT1_INPUT_NAME);
     List<CompilationUnit> partUnits =
-        getRequiredInput(PART_BUILT_UNITS_INPUT_NAME);
+        getRequiredInput(PARTS_RESOLVED_UNIT1_INPUT_NAME);
     //
     // Process inputs.
     //
@@ -186,9 +504,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
               _getPartLibraryName(partSource, partUnit, directivesToResolve);
           if (partLibraryName == null) {
             errors.add(new AnalysisError.con2(librarySource, partUri.offset,
-                partUri.length, CompileTimeErrorCode.PART_OF_NON_PART, [
-              partUri.toSource()
-            ]));
+                partUri.length, CompileTimeErrorCode.PART_OF_NON_PART,
+                [partUri.toSource()]));
           } else if (libraryNameNode == null) {
             // TODO(brianwilkerson) Collect the names declared by the part.
             // If they are all the same then we can use that name as the
@@ -231,7 +548,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[BUILD_LIBRARY_ERRORS] = errors;
-    outputs[BUILT_LIBRARY_ELEMENT] = libraryElement;
+    outputs[RESOLVED_UNIT2] = definingCompilationUnit;
+    outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
     outputs[HAS_HTML_IMPORT] = hasHtmlImport;
   }
@@ -320,12 +638,12 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     return <String, TaskInput>{
-      DEFINING_BUILT_UNIT_INPUT_NAME: new SimpleTaskInput(target, BUILT_UNIT),
-      PART_BUILT_UNITS_INPUT_NAME:
+      DEFINING_RESOLVER_UNIT1_INPUT_NAME:
+          new SimpleTaskInput(target, RESOLVED_UNIT1),
+      PARTS_RESOLVED_UNIT1_INPUT_NAME:
           new ListBasedTaskInput<Source, CompilationUnit>(
-              new SimpleTaskInput<List<Source>>(target, INCLUDED_PARTS),
-              (Source includedSource) => new SimpleTaskInput<CompilationUnit>(
-                  includedSource, BUILT_UNIT))
+              INCLUDED_PARTS.inputFor(target),
+              (Source source) => RESOLVED_UNIT1.inputFor(source))
     };
   }
 
@@ -344,17 +662,17 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
  */
 class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [BUILT_LIBRARY_ELEMENT] input.
+   * The name of the input for [LIBRARY_ELEMENT1] of a library.
    */
-  static const String BUILT_LIBRARY_ELEMENT_INPUT_NAME = "builtLibraryElement";
+  static const String BUILT_LIBRARY_ELEMENT_INPUT_NAME =
+      'BUILT_LIBRARY_ELEMENT_INPUT_NAME';
 
   /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BUILD_PUBLIC_NAMESPACE', createTask, buildInputs, <ResultDescriptor>[
-    PUBLIC_NAMESPACE
-  ]);
+      'BUILD_PUBLIC_NAMESPACE', createTask, buildInputs,
+      <ResultDescriptor>[PUBLIC_NAMESPACE]);
 
   BuildPublicNamespaceTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -380,7 +698,7 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     return <String, TaskInput>{
-      BUILT_LIBRARY_ELEMENT_INPUT_NAME: BUILT_LIBRARY_ELEMENT.inputFor(target)
+      BUILT_LIBRARY_ELEMENT_INPUT_NAME: LIBRARY_ELEMENT1.inputFor(target)
     };
   }
 
@@ -402,12 +720,12 @@ class ParseDartTask extends SourceBasedAnalysisTask {
    * The name of the input whose value is the line information produced for the
    * file.
    */
-  static const String LINE_INFO_INPUT_NAME = "lineInfo";
+  static const String LINE_INFO_INPUT_NAME = 'LINE_INFO_INPUT_NAME';
 
   /**
    * The name of the input whose value is the token stream produced for the file.
    */
-  static const String TOKEN_STREAM_INPUT_NAME = "tokenStream";
+  static const String TOKEN_STREAM_INPUT_NAME = 'TOKEN_STREAM_INPUT_NAME';
 
   /**
    * The task descriptor describing this kind of task.
@@ -475,11 +793,21 @@ class ParseDartTask extends SourceBasedAnalysisTask {
         }
       }
     }
+    //
+    // Always include "dart:core" source.
+    //
+    Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
+    importedSources.add(coreLibrarySource);
+    //
+    // Compute kind.
+    //
     SourceKind sourceKind = SourceKind.LIBRARY;
     if (!hasNonPartOfDirective && hasPartOfDirective) {
       sourceKind = SourceKind.PART;
     }
-
+    //
+    // Record outputs.
+    //
     outputs[EXPORTED_LIBRARIES] = exportedSources.toList();
     outputs[IMPORTED_LIBRARIES] = importedSources.toList();
     outputs[INCLUDED_PARTS] = includedSources.toList();
@@ -557,7 +885,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   /**
    * The name of the input whose value is the content of the file.
    */
-  static const String CONTENT_INPUT_NAME = "content";
+  static const String CONTENT_INPUT_NAME = 'CONTENT_INPUT_NAME';
 
   /**
    * The task descriptor describing this kind of task.

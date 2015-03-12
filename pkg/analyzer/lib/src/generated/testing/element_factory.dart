@@ -174,7 +174,7 @@ class ElementFactory {
 
   static ExportElementImpl exportFor(LibraryElement exportedLibrary,
       [List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY]) {
-    ExportElementImpl spec = new ExportElementImpl();
+    ExportElementImpl spec = new ExportElementImpl(-1);
     spec.exportedLibrary = exportedLibrary;
     spec.combinators = combinators;
     return spec;

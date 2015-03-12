@@ -7967,7 +7967,8 @@ class LibraryResolver {
             // directive was invalid.
             Library exportedLibrary = _libraryMap[exportedSource];
             if (exportedLibrary != null) {
-              ExportElementImpl exportElement = new ExportElementImpl();
+              ExportElementImpl exportElement =
+                  new ExportElementImpl(directive.offset);
               StringLiteral uriLiteral = exportDirective.uri;
               exportElement.uriOffset = uriLiteral.offset;
               exportElement.uriEnd = uriLiteral.end;
@@ -8671,7 +8672,8 @@ class LibraryResolver2 {
             // directive was invalid.
             ResolvableLibrary exportedLibrary = _libraryMap[exportedSource];
             if (exportedLibrary != null) {
-              ExportElementImpl exportElement = new ExportElementImpl();
+              ExportElementImpl exportElement =
+                  new ExportElementImpl(directive.offset);
               StringLiteral uriLiteral = exportDirective.uri;
               if (uriLiteral != null) {
                 exportElement.uriOffset = uriLiteral.offset;
