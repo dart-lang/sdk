@@ -5,6 +5,7 @@
 library services.completion.computer.dart.local;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/protocol.dart' as protocol
     show Element, ElementKind;
@@ -428,6 +429,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
 class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
+  HashSet<String> completions = new HashSet();
 
   _LocalVisitor(this.request, int offset, this.optype) : super(offset);
 
@@ -666,7 +668,10 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       bool isDeprecated, int defaultRelevance, {ClassDeclaration classDecl}) {
     if (id != null) {
       String completion = id.name;
-      if (completion != null && completion.length > 0 && completion != '_') {
+      if (completion != null &&
+          completion.length > 0 &&
+          completion != '_' &&
+          completions.add(completion)) {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.INVOCATION,
             isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance, completion,

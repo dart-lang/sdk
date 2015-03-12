@@ -71,7 +71,7 @@ class Date { static Date JUN, JUL;}class X { m() { return Da!1te.JU!2L; }}''',
 
     buildTests('testCommentSnippets007', '''
 class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}class int{}class Arrays{}''',
-        <String>["1+bool", "2+bool", "3+int", "4+Arrays"], failingTests: '3');
+        <String>["1+bool", "2+bool", "3+int", "4+Arrays"]);
 
     buildTests('testCommentSnippets008', '''
 class Date{}final num M = Dat!1''', <String>["1+Date"]);
@@ -118,14 +118,8 @@ class F {m() { m(); !1}}''', <String>["1+m"]);
 class F {var x = !1false;}''', <String>["1+true"], failingTests: '1');
 
     buildTests('testCommentSnippets018', '''
-class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''', <String>[
-      "1+Map",
-      "1-void",
-      "1-null",
-      "2+Arrays",
-      "2-void",
-      "2-null"
-    ], failingTests: '1');
+class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
+        <String>["1+Map", "1-void", "1-null", "2+Arrays", "2-void", "2-null"]);
 
     buildTests('testCommentSnippets019', '''
 class A{m(){Object x;x.!1/**/clear()''', <String>["1+toString"]);
@@ -136,13 +130,13 @@ classMap{}class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}''',
 
     buildTests('testCommentSnippets021', '''
 class Map{}class tst {var newt;void newf(){}test() {var newz;new !1/**/;}}''',
-        <String>["1+Map", "1-newt"], failingTests: '1');
+        <String>["1+Map", "1-newt"]);
 
     buildTests('testCommentSnippets022', '''
-class Map{}class F{m(){new !1;}}''', <String>["1+Map"], failingTests: '1');
+class Map{}class F{m(){new !1;}}''', <String>["1+Map"]);
 
     buildTests('testCommentSnippets022a', '''
-class Map{}class F{m(){new !1''', <String>["1+Map"], failingTests: '1');
+class Map{}class F{m(){new !1''', <String>["1+Map"]);
 
     buildTests('testCommentSnippets022b', '''
 class Map{factory Map.qq(){return null;}}class F{m(){new Map.!1qq();}}''',
@@ -150,25 +144,25 @@ class Map{factory Map.qq(){return null;}}class F{m(){new Map.!1qq();}}''',
 
     buildTests('testCommentSnippets023', '''
 class X {X c; X(this.!1c!3) : super() {c.!2}}''',
-        <String>["1+c", "2+c", "3+c"], failingTests: '13');
+        <String>["1+c", "2+c", "3+c"]);
 
     buildTests('testCommentSnippets024', '''
 class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''', <String>["1+x", "2+x"]);
 
     buildTests('testCommentSnippets025', '''
 class q {num m() {var q; num x=!1 q!3 + !2/**/;}}''',
-        <String>["1+q", "2+q", "3+q"], failingTests: '123');
+        <String>["1+q", "2+q", "3+q"]);
 
     buildTests('testCommentSnippets026', '''
-class List{}class a implements !1{}''', <String>["1+List"], failingTests: '1');
+class List{}class a implements !1{}''', <String>["1+List"]);
 
     buildTests('testCommentSnippets027', '''
 class String{}class List{}class test <X extends !1String!2> {}''',
-        <String>["1+List", "2+String", "2-List"], failingTests: '12');
+        <String>["1+List", "2+String", "2-List"]);
 
     buildTests('testCommentSnippets028', '''
 class String{}class List{}class DateTime{}typedef T Y<T extends !1>(List input);''',
-        <String>["1+DateTime", "1+String"], failingTests: '1');
+        <String>["1+DateTime", "1+String"]);
 
     buildTests('testCommentSnippets029', '''
 interface A<X> default B<X extends !1List!2> {}''',
@@ -198,7 +192,7 @@ class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear(
         <String>["1+length", "2+clear"]);
 
     buildTests('testCommentSnippets036', '''
-class List{}t3() {var x=new List!1}''', <String>["1+List"], failingTests: '1');
+class List{}t3() {var x=new List!1}''', <String>["1+List"]);
 
     buildTests('testCommentSnippets037', '''
 class List{factory List.from(){}}t3() {var x=new List.!1}''',
@@ -233,7 +227,7 @@ class L{var k;void.!1}''', <String>["1-k"]);
 
     buildTests('testCommentSnippets044', '''
 class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
-        <String>["1+List", "1+XXX.fisk"], failingTests: '1');
+        <String>["1+List", "1+XXX.fisk"]);
 
     buildTests('testCommentSnippets047', '''
 f(){int x;int y=!1;}''', <String>["1+x"]);
@@ -599,11 +593,11 @@ p(x)=>0;var E;f(q)=>!1p(!2E);''', <String>["1+p", "2+E"]);
 
     buildTests('testCommentSnippets076', '''
 class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3int>>();}''',
-        <String>["1+List", "2+int", "3+int"], failingTests: '123');
+        <String>["1+List", "2+int", "3+int"]);
 
     buildTests('testCommentSnippets076a', '''
 class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3>>();}''',
-        <String>["1+List", "2+int", "3+int"], failingTests: '123');
+        <String>["1+List", "2+int", "3+int"]);
 
     buildTests('testCommentSnippets077', '''
 class FileMode {
@@ -1027,7 +1021,7 @@ class A {}''', <String>["1+'dart:!';", "1+'package:!';"], failingTests: '1');
 
     buildTests('testCompletion_forStmt_vars', '''
 class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}''',
-        <String>["1+int", "2+i", "3+i"], failingTests: '1');
+        <String>["1+int", "2+i", "3+i"]);
 
     buildTests('testCompletion_function', '''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}''',
@@ -1291,15 +1285,15 @@ main() { func(fo!1); }''', <String>["1-foo"]);
 
     buildTests('testCompletion_newMemberType1', '''
 class Collection{}class List extends Collection{}class Foo { !1 }''',
-        <String>["1+Collection", "1+List"], failingTests: '1');
+        <String>["1+Collection", "1+List"]);
 
     buildTests('testCompletion_newMemberType2', '''
 class Collection{}class List extends Collection{}class Foo {!1}''',
-        <String>["1+Collection", "1+List"], failingTests: '1');
+        <String>["1+Collection", "1+List"]);
 
     buildTests('testCompletion_newMemberType3', '''
 class Collection{}class List extends Collection{}class Foo {L!1}''',
-        <String>["1-Collection", "1+List"], failingTests: '1');
+        <String>["1-Collection", "1+List"]);
 
     buildTests('testCompletion_newMemberType4', '''
 class Collection{}class List extends Collection{}class Foo {C!1}''',
@@ -1415,7 +1409,7 @@ f() { var vvv = 42; return !1 }''', <String>["1+vvv"]);
     buildTests('testCompletion_staticField1', '''
 class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}''',
         <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"],
-        failingTests: '23');
+        failingTests: '2');
 
     buildTests('testCompletion_super_superType', '''
 class A {
@@ -1500,7 +1494,7 @@ class B extends A {
 
     buildTests('testCompletion_topLevelField_init2', '''
 class DateTime{static var JUN;}final num M = Dat!1eTime.JUN;''',
-        <String>["1+DateTime", "1-void"], failingTests: '1');
+        <String>["1+DateTime", "1-void"]);
 
     buildTests('testCompletion_while', '''
 class Foo { int boo = 7; mth() { while (b!1) {} }}''', <String>["1+boo"]);

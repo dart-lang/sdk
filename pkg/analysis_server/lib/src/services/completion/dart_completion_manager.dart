@@ -78,11 +78,13 @@ class DartCompletionManager extends CompletionManager {
       : super(context, source) {
     if (computers == null) {
       computers = [
-        new KeywordComputer(),
+        // LocalComputer before ImportedComputer
+        // because local suggestions take precedence
         new LocalComputer(),
+        new ImportedComputer(),
+        new KeywordComputer(),
         new ArgListComputer(),
         new CombinatorComputer(),
-        new ImportedComputer(),
         new InvocationComputer()
       ];
     }

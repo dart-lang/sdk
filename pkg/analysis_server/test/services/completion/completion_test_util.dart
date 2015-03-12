@@ -1280,7 +1280,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       //    'num',
       //    false,
       //    COMPLETION_RELEVANCE_LOW);
-      assertSuggestTopLevelVarGetterSetter('T1', 'String');
+      if (computer is ImportedComputer) {
+        // TODO(danrubel) should be top level var suggestion
+        assertSuggestGetter('T1', 'String');
+      }
       assertNotSuggested('_T2');
       //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
       assertNotSuggested('_T4');
@@ -2589,7 +2592,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedFunction('nowIsIt', null);
       assertNotSuggested('T1');
       // TODO (danrubel) this really should be TopLevelVar not getter/setter
-      assertSuggestTopLevelVarGetterSetter('newT1', 'int');
+      if (computer is ImportedComputer) {
+        assertSuggestGetter('newT1', 'int');
+      }
       assertNotSuggested('z');
       assertSuggestLocalTopLevelVar('m', 'dynamic');
       assertSuggestLocalFunction('newer', 'String');

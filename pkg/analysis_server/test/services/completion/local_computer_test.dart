@@ -733,4 +733,10 @@ class B extends A {
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
   }
+
+  test_shadowed_name() {
+    addTestSource('var a; class A { var a; m() { ^ } }');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalField('a', null);
+  }
 }

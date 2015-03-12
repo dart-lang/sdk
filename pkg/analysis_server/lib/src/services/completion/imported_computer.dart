@@ -80,9 +80,14 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
   final DartCompletionRequest request;
   final OpType optype;
   DartCompletionCache cache;
+  HashSet<String> completions;
 
   _ImportedSuggestionBuilder(this.request, this.optype) {
     cache = request.cache;
+    completions = new HashSet<String>();
+    for (CompletionSuggestion suggestion in request.suggestions) {
+      completions.add(suggestion.completion);
+    }
   }
 
   @override
@@ -170,11 +175,11 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
     unfiltered.forEach((CompletionSuggestion suggestion) {
       if (filterText.length > 0) {
         if (suggestion.completion.startsWith(filterText)) {
-          request.suggestions.add(suggestion);
+          _addSuggestion(suggestion);
         }
       } else {
         if (suggestion.relevance != DART_RELEVANCE_LOW) {
-          request.suggestions.add(suggestion);
+          _addSuggestion(suggestion);
         }
       }
     });
@@ -217,6 +222,16 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
           });
         }
       }
+    }
+  }
+
+  /**
+   * Add suggestion if an identically named suggestion
+   * has not already been added.
+   */
+  void _addSuggestion(CompletionSuggestion suggestion) {
+    if (completions.add(suggestion.completion)) {
+      request.suggestions.add(suggestion);
     }
   }
 
