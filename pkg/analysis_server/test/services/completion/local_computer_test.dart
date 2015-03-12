@@ -225,6 +225,41 @@ void main() {
     assertSuggestLabel('bar');
   }
 
+  test_constructor_parameters_mixed_required_and_named() {
+    addTestSource('class A {A(x, {int y}) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_mixed_required_and_positional() {
+    addTestSource('class A {A(x, [int y]) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_named() {
+    addTestSource('class A {A({x, int y}) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_positional() {
+    addTestSource('class A {A([x, int y]) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_required() {
+    addTestSource('class A {A(x, int y) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
   test_continue_from_loop_to_switch() {
     addTestSource('''
 void main() {

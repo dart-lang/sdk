@@ -150,7 +150,7 @@ class Map{factory Map.qq(){return null;}}class F{m(){new Map.!1qq();}}''',
 
     buildTests('testCommentSnippets023', '''
 class X {X c; X(this.!1c!3) : super() {c.!2}}''',
-        <String>["1+c", "2+c", "3+c"]);
+        <String>["1+c", "2+c", "3+c"], failingTests: '13');
 
     buildTests('testCommentSnippets024', '''
 class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''', <String>["1+x", "2+x"]);
@@ -903,8 +903,7 @@ class A {
    */
   A.named(aaa, bbb) {}
   methodA() {}
-}''', <String>["1+aaa", "1-bbb", "2+int", "2-double", "3+methodA"],
-        failingTests: '1');
+}''', <String>["1+aaa", "1-bbb", "2+int", "2-double", "3+methodA"]);
 
     buildTests('testCompletion_dartDoc_reference_forFunction', '''
 /**
