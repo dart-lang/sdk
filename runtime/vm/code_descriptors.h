@@ -162,27 +162,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     return false;
   }
 
-
-  RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) {
-    intptr_t num_handlers = Length();
-    if (num_handlers == 0) {
-      return Object::empty_exception_handlers().raw();
-    }
-    const ExceptionHandlers& handlers =
-        ExceptionHandlers::Handle(ExceptionHandlers::New(num_handlers));
-    for (intptr_t i = 0; i < num_handlers; i++) {
-      // Assert that every element in the array has been initialized.
-      ASSERT(list_[i].handler_types != NULL);
-      bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
-      handlers.SetHandlerInfo(i,
-                              list_[i].outer_try_index,
-                              list_[i].pc_offset,
-                              list_[i].needs_stacktrace,
-                              has_catch_all);
-      handlers.SetHandledTypes(i, *list_[i].handler_types);
-    }
-    return handlers.raw();
-  }
+  RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) const;
 
  private:
   GrowableArray<struct HandlerDesc> list_;

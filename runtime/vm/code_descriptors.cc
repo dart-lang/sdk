@@ -84,4 +84,41 @@ RawStackmap* StackmapTableBuilder::MapAt(intptr_t index) const {
   return map.raw();
 }
 
+
+RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
+    uword entry_point) const {
+  intptr_t num_handlers = Length();
+  if (num_handlers == 0) {
+    return Object::empty_exception_handlers().raw();
+  }
+  const ExceptionHandlers& handlers =
+      ExceptionHandlers::Handle(ExceptionHandlers::New(num_handlers));
+  for (intptr_t i = 0; i < num_handlers; i++) {
+    // Assert that every element in the array has been initialized.
+    if (list_[i].handler_types == NULL) {
+      // Unreachable handler, entry not computed.
+      // Initialize it to some meaningful value.
+      const bool has_catch_all = false;
+      ASSERT((list_[i].outer_try_index == -1) &&
+             (list_[i].pc_offset == -1));  // It is uninitialized.
+      handlers.SetHandlerInfo(i,
+                              list_[i].outer_try_index,
+                              list_[i].pc_offset,
+                              list_[i].needs_stacktrace,
+                              has_catch_all);
+      handlers.SetHandledTypes(i, Array::null_array());
+    } else {
+      const bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
+      handlers.SetHandlerInfo(i,
+                              list_[i].outer_try_index,
+                              list_[i].pc_offset,
+                              list_[i].needs_stacktrace,
+                              has_catch_all);
+      handlers.SetHandledTypes(i, *list_[i].handler_types);
+    }
+  }
+  return handlers.raw();
+}
+
+
 }  // namespace dart
