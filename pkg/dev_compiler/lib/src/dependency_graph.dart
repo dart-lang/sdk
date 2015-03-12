@@ -10,17 +10,18 @@ import 'dart:collection' show HashSet;
 import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:analyzer/src/generated/ast.dart'
     show
-        LibraryDirective,
-        ImportDirective,
-        ExportDirective,
-        PartDirective,
-        PartOfDirective,
+        AstNode,
         CompilationUnit,
-        Identifier;
+        ExportDirective,
+        Identifier,
+        ImportDirective,
+        LibraryDirective,
+        PartDirective,
+        PartOfDirective;
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
-import 'package:html5lib/dom.dart' show Document;
+import 'package:html5lib/dom.dart' show Document, Node;
 import 'package:html5lib/parser.dart' as html;
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
@@ -72,7 +73,8 @@ abstract class SourceNode {
 
   /// Resolved source from the analyzer. We let the analyzer internally track
   /// for modifications to the source files.
-  final Source source;
+  Source _source;
+  Source get source => _source;
 
   /// Last stamp read from `source.modificationStamp`.
   int _lastStamp = 0;
@@ -97,12 +99,16 @@ abstract class SourceNode {
   /// parts are excluded from this list.
   Iterable<SourceNode> get depsWithoutParts => const [];
 
-  SourceNode(this.uri, this.source);
+  SourceNode(this.uri, this._source);
 
   /// Check for whether the file has changed and, if so, mark [needsRebuild] and
   /// [structureChanged] as necessary.
   void update(SourceGraph graph) {
-    int newStamp = source.modificationStamp;
+    if (_source == null) {
+      _source = graph._context.sourceFactory.forUri(Uri.encodeFull('$uri'));
+      if (_source == null) return;
+    }
+    int newStamp = _source.modificationStamp;
     if (newStamp > _lastStamp) {
       _lastStamp = newStamp;
       needsRebuild = true;
@@ -153,20 +159,14 @@ class HtmlSourceNode extends SourceNode {
       for (var script in tags) {
         var src = script.attributes['src'];
         if (src == null) {
-          graph._reporter.enterHtml(source.uri);
-          graph._reporter.log(new DependencyGraphError(
-              'inlined script tags not supported at this time '
+          _reportError(graph, 'inlined script tags not supported at this time '
               '(see https://github.com/dart-lang/dart-dev-compiler/issues/54).',
-              script.sourceSpan));
-          graph._reporter.leaveHtml();
+              script);
           continue;
         }
         var node = graph.nodeFromUri(uri.resolve(src));
         if (node == null || !node.source.exists()) {
-          graph._reporter.enterHtml(source.uri);
-          graph._reporter.log(new DependencyGraphError(
-              'Script file $src not found', script.sourceSpan));
-          graph._reporter.leaveHtml();
+          _reportError(graph, 'Script file $src not found', script);
         }
         if (node != null) newScripts.add(node);
       }
@@ -176,6 +176,12 @@ class HtmlSourceNode extends SourceNode {
         scripts = newScripts;
       }
     }
+  }
+
+  void _reportError(SourceGraph graph, String message, Node node) {
+    graph._reporter.enterHtml(source.uri);
+    graph._reporter.log(new DependencyGraphError(message, node.sourceSpan));
+    graph._reporter.leaveHtml();
   }
 }
 
@@ -220,16 +226,22 @@ class DartSourceNode extends SourceNode {
         // Nothing to do for parts.
         if (d is PartOfDirective) return;
         if (d is LibraryDirective) continue;
+
+        // `dart:core` and other similar URLs only contain a name, but it is
+        // meant to be a folder when resolving relative paths from it.
+        var targetUri = uri.scheme == 'dart' && uri.pathSegments.length == 1
+            ? Uri.parse('$uri/').resolve(d.uri.stringValue)
+            : uri.resolve(d.uri.stringValue);
         var target =
             ParseDartTask.resolveDirective(graph._context, source, d, null);
-        var uri = target.uri;
-        var node =
-            graph.nodes.putIfAbsent(uri, () => new DartSourceNode(uri, target));
-        if (!node.source.exists()) {
-          graph._reporter.enterLibrary(source.uri);
-          graph._reporter.log(new DependencyGraphError(
-              'File $uri not found', spanForNode(unit, source, d)));
-          graph._reporter.leaveLibrary();
+        if (target != null) {
+          if (targetUri != target.uri) print(">> ${target.uri} $targetUri");
+        }
+        var node = graph.nodes.putIfAbsent(
+            targetUri, () => new DartSourceNode(targetUri, target));
+        //var node = graph.nodeFromUri(targetUri);
+        if (node.source == null || !node.source.exists()) {
+          _reportError(graph, 'File $targetUri not found', unit, d);
         }
 
         if (d is ImportDirective) {
@@ -281,6 +293,14 @@ class DartSourceNode extends SourceNode {
       p.update(graph);
       if (p.needsRebuild) needsRebuild = true;
     }
+  }
+
+  void _reportError(
+      SourceGraph graph, String message, CompilationUnit unit, AstNode node) {
+    graph._reporter.enterLibrary(source.uri);
+    graph._reporter.log(
+        new DependencyGraphError(message, spanForNode(unit, source, node)));
+    graph._reporter.leaveLibrary();
   }
 }
 

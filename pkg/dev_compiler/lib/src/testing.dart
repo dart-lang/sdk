@@ -269,7 +269,13 @@ class _ErrorExpectation {
 class TestUriResolver extends UriResolver {
   final Map<Uri, TestSource> files = <Uri, TestSource>{};
 
-  TestUriResolver(Map<String, String> allFiles) {
+  /// Whether to represent a non-existing file with a [TestSource] (default
+  /// behavior from analyzer), or to use null (possible when overriding the
+  /// package-url-resolvers.)
+  final bool representNonExistingFiles;
+
+  TestUriResolver(Map<String, String> allFiles,
+      {this.representNonExistingFiles: true}) {
     allFiles.forEach((key, value) {
       var uri = key.startsWith('package:') ? Uri.parse(key) : new Uri.file(key);
       files[uri] = new TestSource(uri, value);
@@ -278,6 +284,7 @@ class TestUriResolver extends UriResolver {
 
   Source resolveAbsolute(Uri uri) {
     if (uri.scheme != 'file' && uri.scheme != 'package') return null;
+    if (!representNonExistingFiles) return files[uri];
     return files.putIfAbsent(uri, () => new TestSource(uri, null));
   }
 }
@@ -295,16 +302,14 @@ class TestSource implements Source {
   TestContents contents;
   final SourceFile _file;
   final UriKind uriKind;
-  bool _exists;
 
   TestSource(uri, contents)
       : uri = uri,
-        _exists = contents != null,
         contents = new TestContents(1, contents),
         _file = contents != null ? new SourceFile(contents, url: uri) : null,
         uriKind = uri.scheme == 'file' ? UriKind.FILE_URI : UriKind.PACKAGE_URI;
 
-  bool exists() => _exists;
+  bool exists() => contents.data != null;
 
   Source get source => this;
 

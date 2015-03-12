@@ -1128,6 +1128,72 @@ main() {
             ''');
       });
     });
+
+    group('represented non-existing files', () {
+      test('recognize locally change between existing and not-existing', () {
+        var n = nodeOf('/foo.dart');
+        expect(n.source, isNotNull);
+        expect(n.source.exists(), isFalse);
+        var source = testUriResolver.files[new Uri.file('/foo.dart')];
+        expect(n.source, source);
+        source.contents.data = "hi";
+        source.contents.modificationTime++;
+        expect(n.source.exists(), isTrue);
+      });
+
+      test('non-existing files are tracked in dependencies', () {
+        var node = nodeOf('/foo.dart');
+        node.source.contents.data = "import 'bar.dart';";
+        rebuild(node, graph, buildNoTransitiveChange);
+        expect(node.allDeps.contains(nodeOf('/bar.dart')), isTrue);
+
+        var source = nodeOf('/bar.dart').source;
+        source.contents.data = "hi";
+        source.contents.modificationTime++;
+        results = [];
+        rebuild(node, graph, buildWithTransitiveChange);
+        expect(results, ['bar.dart', 'foo.dart']);
+      });
+    });
+
+    group('null for non-existing files', () {
+      setUp(() {
+        testUriResolver =
+            new TestUriResolver(testFiles, representNonExistingFiles: false);
+        context = new TypeResolver.fromMock(mockSdkSources, options,
+            otherResolvers: [testUriResolver]).context;
+        graph = new SourceGraph(context, new LogReporter(), options);
+      });
+
+      test('recognize locally change between existing and not-existing', () {
+        var n = nodeOf('/foo.dart');
+        expect(n.source, isNull);
+        var source = new TestSource(new Uri.file('/foo.dart'), "hi");
+        testUriResolver.files[source.uri] = source;
+        expect(n.source, isNull);
+        n.update(graph);
+        expect(n.source, source);
+        expect(n.source.exists(), isTrue);
+        expect(n.needsRebuild, isTrue);
+      });
+
+      test('non-existing files are tracked in dependencies', () {
+        var s1 =
+            new TestSource(new Uri.file('/foo.dart'), "import 'bar.dart';");
+        testUriResolver.files[s1.uri] = s1;
+        var node = nodeOf('/foo.dart');
+        rebuild(node, graph, buildNoTransitiveChange);
+        expect(node.allDeps.length, 1);
+        expect(node.allDeps.contains(nodeOf('/bar.dart')), isTrue);
+        expect(nodeOf('/bar.dart').source, isNull);
+
+        var s2 = new TestSource(new Uri.file('/bar.dart'), "hi");
+        testUriResolver.files[s2.uri] = s2;
+        results = [];
+        rebuild(node, graph, buildWithTransitiveChange);
+        expect(results, ['bar.dart', 'foo.dart']);
+      });
+    });
   });
 }
 
