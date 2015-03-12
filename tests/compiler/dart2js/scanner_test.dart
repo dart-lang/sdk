@@ -7,13 +7,19 @@ import 'package:compiler/src/scanner/scannerlib.dart';
 import 'package:compiler/src/util/characters.dart';
 import 'dart:typed_data';
 
-Token scan(List<int> bytes) => new Utf8BytesScanner.fromBytes(bytes).tokenize();
+Token scan(List<int> bytes) {
+  List<int> zeroTerminated = new Uint8List(bytes.length + 1);
+  zeroTerminated.setRange(0, bytes.length, bytes);
+  zeroTerminated[bytes.length] = 0;
+  return new Utf8BytesScanner.fromBytes(zeroTerminated).tokenize();
+}
 
 Token scanUTF8(List<int> bytes) {
   int l = bytes.length;
   List<int> stringLiteral = new Uint8List(l + 3);
   stringLiteral[0] = 0x27; // single quote
   stringLiteral[l+1] = 0x27; // single quote
+  // The bytes given to the scanner must be 0-terminated.
   stringLiteral[l+2] = $EOF;
   for (int i = 0; i < l; i++) {
     stringLiteral[i+1] = bytes[i];
