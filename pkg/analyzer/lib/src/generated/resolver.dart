@@ -9361,23 +9361,10 @@ class NamespaceBuilder {
    * @param definedNames the mapping table to which the names in the given namespace are to be added
    * @param namespace the namespace containing the names to be added to this namespace
    */
-  void _addAllFromMap(
-      Map<String, Element> definedNames, Map<String, Element> newNames) {
-    newNames.forEach((String name, Element element) {
-      definedNames[name] = element;
-    });
-  }
-
-  /**
-   * Add all of the names in the given namespace to the given mapping table.
-   *
-   * @param definedNames the mapping table to which the names in the given namespace are to be added
-   * @param namespace the namespace containing the names to be added to this namespace
-   */
   void _addAllFromNamespace(
       Map<String, Element> definedNames, Namespace namespace) {
     if (namespace != null) {
-      _addAllFromMap(definedNames, namespace.definedNames);
+      definedNames.addAll(namespace.definedNames);
     }
   }
 
@@ -9490,7 +9477,7 @@ class NamespaceBuilder {
           HashMap<String, Element> exportedNames =
               _createExportMapping(exportedLibrary, visitedElements);
           exportedNames = _applyCombinators(exportedNames, element.combinators);
-          _addAllFromMap(definedNames, exportedNames);
+          definedNames.addAll(exportedNames);
         }
       }
       _addAllFromNamespace(definedNames,
@@ -12901,9 +12888,7 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param overrides the overrides to be applied
    */
   void applyOverrides(Map<VariableElement, DartType> overrides) {
-    overrides.forEach((VariableElement element, DartType type) {
-      _overridenTypes[element] = type;
-    });
+    _overridenTypes.addAll(overrides);
   }
 
   /**
