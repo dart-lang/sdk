@@ -1537,7 +1537,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (node.catchKeyword != null) {
       var name = node.exceptionParameter;
       if (name != null && name.name != _catchParameter) {
-        body.add(js.statement('let # = #;', [_visit(name), _catchParameter]));
+        var decl = new JS.VariableDeclaration(name.name);
+        decl.sourceInformation = name;
+        body.add(js.statement('let # = #;', [decl, _catchParameter]));
         _catchParameter = name.name;
       }
       if (node.stackTraceParameter != null) {

@@ -25,6 +25,8 @@ import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
 
+import 'js/keywords.dart';
+
 bool isDartPrivateLibrary(LibraryElement library) {
   var uri = library.source.uri;
   if (uri.scheme != "dart") return false;
@@ -37,8 +39,38 @@ bool isDartPrivateLibrary(LibraryElement library) {
 /// meaningful rules enforced.
 String canonicalLibraryName(LibraryElement library) {
   var uri = library.source.uri;
-  return path.basenameWithoutExtension(uri.pathSegments.last);
+  var name = path.basenameWithoutExtension(uri.pathSegments.last);
+  return _toIdentifier(name);
 }
+
+/// Escape [name] to make it into a valid identifier.
+String _toIdentifier(String name) {
+  if (name.length == 0) return r'$';
+
+  // Escape any invalid characters
+  StringBuffer buffer = null;
+  for (int i = 0; i < name.length; i++) {
+    var ch = name[i];
+    var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
+    if (needsEscape && buffer == null) {
+      buffer = new StringBuffer(name.substring(0, i));
+    }
+    if (buffer != null) {
+      buffer.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
+    }
+  }
+
+  var result = buffer != null ? '$buffer' : name;
+  // Ensure the idenifier first character is not numeric and that the whole
+  // identifier is not a keyword.
+  if (result.startsWith(new RegExp('[0-9]')) || isJsKeyword(result)) {
+    return '\$$result';
+  }
+  return result;
+}
+
+// Invalid characters for identifiers, which would need to be escaped.
+final _invalidCharInIdentifier = new RegExp(r'[^A-Za-z_$0-9]');
 
 /// Returns all libraries transitively imported or exported from [start].
 Iterable<LibraryElement> reachableLibraries(LibraryElement start) {

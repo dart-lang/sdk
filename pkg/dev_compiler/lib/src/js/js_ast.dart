@@ -6,6 +6,7 @@ library js_ast;
 
 import 'precedence.dart';
 import 'characters.dart' as charCodes;
+import 'keywords.dart';
 
 part 'nodes.dart';
 part 'builder.dart';
