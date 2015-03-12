@@ -39,9 +39,10 @@ class CompletionTargetTest extends AbstractContextTest {
   void assertTarget(entityText, nodeText,
       {int argIndex: null, bool isFunctionalArgument: false}) {
     void assertCommon() {
-      expect(target.entity.toString(), entityText);
-      expect(target.containingNode.toString(), nodeText);
-      expect(target.argIndex, argIndex);
+      expect(target.entity.toString(), entityText, reason: 'entity');
+      expect(target.containingNode.toString(), nodeText,
+          reason: 'containingNode');
+      expect(target.argIndex, argIndex, reason: 'argIndex');
     }
     // Assert with parsed unit
     assertCommon();
@@ -63,18 +64,6 @@ class CompletionTargetTest extends AbstractContextTest {
     // ArgumentList  InstanceCreationExpression  Block
     addTestSource('main() {new B(^)} class B{B(f()){}}');
     assertTarget(')', '()', argIndex: 0, isFunctionalArgument: true);
-  }
-
-  test_TypeArgumentList() {
-    // SimpleIdentifier  BinaryExpression  ExpressionStatement
-    addTestSource('main() { C<^> c; }');
-    assertTarget('', 'C < ');
-  }
-
-  test_TypeArgumentList2() {
-    // TypeName  TypeArgumentList  TypeName
-    addTestSource('main() { C<C^> c; }');
-    assertTarget('C', '<C>');
   }
 
   test_ArgumentList_MethodInvocation() {
@@ -312,6 +301,24 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget('new C();', '{var f; {var x;} new C();}');
   }
 
+  test_MapLiteralEntry() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {^');
+    assertTarget(' : ', '{ : }');
+  }
+
+  test_MapLiteralEntry1() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {T^');
+    assertTarget('T : ', '{T : }');
+  }
+
+  test_MapLiteralEntry2() {
+    // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {7:T^};');
+    assertTarget('T', '7 : T');
+  }
+
   test_MethodDeclaration_inLineComment() {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
@@ -465,6 +472,18 @@ class C2 {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */^ zoo(z) { } String name; }');
     assertTarget('zoo', 'zoo(z) {}');
+  }
+
+  test_TypeArgumentList() {
+    // SimpleIdentifier  BinaryExpression  ExpressionStatement
+    addTestSource('main() { C<^> c; }');
+    assertTarget('', 'C < ');
+  }
+
+  test_TypeArgumentList2() {
+    // TypeName  TypeArgumentList  TypeName
+    addTestSource('main() { C<C^> c; }');
+    assertTarget('C', '<C>');
   }
 
   test_VariableDeclaration_lhs_identifier_after() {

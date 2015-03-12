@@ -2625,6 +2625,94 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_MapLiteralEntry() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 { }
+      foo = {^''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestImportedClass('Object');
+      // TODO(danrubel) Should be top level variable
+      if (computer is ImportedComputer) {
+        assertSuggestGetter('T1', 'int');
+        // assertSuggestImportedTopLevelVar('T1', 'int');
+      }
+      assertSuggestImportedFunction('F1', null);
+      assertSuggestImportedFunctionTypeAlias('D1', null);
+      assertSuggestImportedClass('C1');
+      assertSuggestLocalTopLevelVar('T2', 'int');
+      assertSuggestLocalFunction('F2', null);
+      assertSuggestLocalFunctionTypeAlias('D2', null);
+      assertSuggestLocalClass('C2');
+    });
+  }
+
+  test_MapLiteralEntry1() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 { }
+      foo = {T^''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      // TODO(danrubel) Should be top level variable
+      if (computer is ImportedComputer) {
+        assertSuggestGetter('T1', 'int');
+        // assertSuggestImportedTopLevelVar('T1', 'int');
+      }
+      assertSuggestLocalTopLevelVar('T2', 'int');
+    });
+  }
+
+  test_MapLiteralEntry2() {
+    // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      typedef D1();
+      class C1 {C1(this.x) { } int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      typedef D2();
+      class C2 { }
+      foo = {7:T^};''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      // TODO(danrubel) Should be top level variable
+      if (computer is ImportedComputer) {
+        assertSuggestGetter('T1', 'int');
+        // assertSuggestImportedTopLevelVar('T1', 'int');
+      }
+      assertSuggestLocalTopLevelVar('T2', 'int');
+    });
+  }
+
   test_MethodDeclaration_body_getters() {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');

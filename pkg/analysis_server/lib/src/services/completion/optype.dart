@@ -400,7 +400,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitListLiteral(ListLiteral node) {
+  void visitMapLiteralEntry(MapLiteralEntry node) {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
@@ -512,7 +512,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitTypeArgumentList(TypeArgumentList node) {
+  void visitTypeArgumentList(TypeArgumentList node) {
     NodeList<TypeName> arguments = node.arguments;
     for (TypeName typeName in arguments) {
       if (identical(entity, typeName)) {
@@ -520,6 +520,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         break;
       }
     }
+  }
+
+  @override
+  void visitTypedLiteral(TypedLiteral node) {
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override

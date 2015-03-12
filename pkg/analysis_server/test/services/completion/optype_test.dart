@@ -795,6 +795,24 @@ class OpTypeTest {
     assertOpType();
   }
 
+  test_MapLiteralEntry() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {^');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_MapLiteralEntry1() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {T^');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_MapLiteralEntry2() {
+    // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {7:T^};');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_MethodDeclaration1() {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('class Bar {const ^Fara();}');
