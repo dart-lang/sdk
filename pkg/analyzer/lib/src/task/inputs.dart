@@ -22,25 +22,17 @@ typedef TaskInput<E> GenerateTaskInputs<E>(Object object);
  * input. Finally, each of the task inputs are used to access analysis results,
  * and the list of the analysis results is used as the input to the task.
  */
-class ListBasedTaskInput<B, E> implements TaskInput<List<E>> {
-  /**
-   * The accessor used to access the list of elements being mapped.
-   */
-  final TaskInput<B> baseAccessor;
-
-  /**
-   * The function used to convert an element in the list returned by the
-   * [baseAccessor] to a task input.
-   */
-  GenerateTaskInputs<E> generateTaskInputs;
-
+class ListBasedTaskInput<B, E>
+    extends _CollectionBasedTaskInput<B, E, List<E>> {
   /**
    * Initialize a result accessor to use the given [baseAccessor] to access a
-   * list of values that can be passed to the given [generateTaskInputs] to generate
-   * a list of task inputs that can be used to access the elements of the input
-   * being accessed.
+   * list of values that can be passed to the given [generateTaskInputs] to
+   * generate a list of task inputs that can be used to access the elements of
+   * the input being accessed.
    */
-  ListBasedTaskInput(this.baseAccessor, this.generateTaskInputs);
+  ListBasedTaskInput(
+      TaskInput<List<B>> baseAccessor, GenerateTaskInputs<E> generateTaskInputs)
+      : super(baseAccessor, generateTaskInputs);
 
   @override
   TaskInputBuilder<List<E>> createBuilder() =>
@@ -50,106 +42,79 @@ class ListBasedTaskInput<B, E> implements TaskInput<List<E>> {
 /**
  * A [TaskInputBuilder] used to build an input based on a [ListBasedTaskInput].
  */
-class ListBasedTaskInputBuilder<B, E> implements TaskInputBuilder<List<E>> {
-  /**
-   * The input being built.
-   */
-  final ListBasedTaskInput<B, E> input;
-
-  /**
-   * The builder used to build the current result.
-   */
-  TaskInputBuilder currentBuilder;
-
-  /**
-   * The list of values computed by the [input]'s base accessor.
-   */
-  List _baseList = null;
-
-  /**
-   * The index in the [_baseList] of the value for which a value is currently
-   * being built.
-   */
-  int _baseListIndex = -1;
-
+class ListBasedTaskInputBuilder<B, E>
+    extends _CollectionBasedTaskInputBuilder<B, E, List<E>> {
   /**
    * The list of values being built.
    */
-  List<E> _resultValue = null;
+  List<E> _resultValue;
 
   /**
    * Initialize a newly created task input builder that computes the result
    * specified by the given [input].
    */
-  ListBasedTaskInputBuilder(this.input);
+  ListBasedTaskInputBuilder(ListBasedTaskInput<B, E> input) : super(input);
 
   @override
-  ResultDescriptor get currentResult {
-    if (currentBuilder == null) {
-      return null;
-    }
-    return currentBuilder.currentResult;
+  void _addResultElement(B baseElement, E resultElement) {
+    _resultValue.add(resultElement);
   }
 
   @override
-  AnalysisTarget get currentTarget {
-    if (currentBuilder == null) {
-      return null;
-    }
-    return currentBuilder.currentTarget;
+  void _initResultValue() {
+    _resultValue = <E>[];
+  }
+}
+
+/**
+ * An input to an [AnalysisTask] that is computed by the following steps. First
+ * another (base) task input is used to compute a [List]-valued result. An input
+ * generator function is then used to map each element of that list to a task
+ * input. Finally, each of the task inputs are used to access analysis results,
+ * and the map of the base elements to the analysis results is used as the
+ * input to the task.
+ */
+class MapBasedTaskInput<B, E>
+    extends _CollectionBasedTaskInput<B, E, Map<B, E>> {
+  /**
+   * Initialize a result accessor to use the given [baseAccessor] to access a
+   * list of values that can be passed to the given [generateTaskInputs] to
+   * generate a list of task inputs that can be used to access the elements of
+   * the input being accessed.
+   */
+  MapBasedTaskInput(
+      TaskInput<List<B>> baseAccessor, GenerateTaskInputs<E> generateTaskInputs)
+      : super(baseAccessor, generateTaskInputs);
+
+  @override
+  TaskInputBuilder<Map<B, E>> createBuilder() =>
+      new MapBasedTaskInputBuilder<B, E>(this);
+}
+
+/**
+ * A [TaskInputBuilder] used to build an input based on a [MapBasedTaskInput].
+ */
+class MapBasedTaskInputBuilder<B, E>
+    extends _CollectionBasedTaskInputBuilder<B, E, Map<B, E>> {
+  /**
+   * The map being built.
+   */
+  Map<B, E> _resultValue;
+
+  /**
+   * Initialize a newly created task input builder that computes the result
+   * specified by the given [input].
+   */
+  MapBasedTaskInputBuilder(MapBasedTaskInput<B, E> input) : super(input);
+
+  @override
+  void _addResultElement(B baseElement, E resultElement) {
+    _resultValue[baseElement] = resultElement;
   }
 
   @override
-  void set currentValue(Object value) {
-    if (currentBuilder == null) {
-      throw new StateError(
-          'Cannot set the result value when there is no current result');
-    }
-    currentBuilder.currentValue = value;
-  }
-
-  @override
-  List<E> get inputValue {
-    if (currentBuilder != null || _resultValue == null) {
-      throw new StateError('Result value has not been created');
-    }
-    return _resultValue;
-  }
-
-  @override
-  bool moveNext() {
-    if (currentBuilder == null) {
-      if (_resultValue == null) {
-        // This is the first time moveNext has been invoked, so start by
-        // computing the list of values from which the results will be derived.
-        currentBuilder = input.baseAccessor.createBuilder();
-        return currentBuilder.moveNext();
-      } else {
-        // We have already computed all of the results, so just return false.
-        return false;
-      }
-    }
-    if (currentBuilder.moveNext()) {
-      return true;
-    }
-    if (_resultValue == null) {
-      // We have finished computing the list of values from which the results
-      // will be derived.
-      _baseList = currentBuilder.inputValue;
-      _baseListIndex = 0;
-      _resultValue = <E>[];
-    } else {
-      // We have finished computing one of the elements in the result list.
-      _resultValue.add(currentBuilder.inputValue);
-      _baseListIndex++;
-    }
-    if (_baseListIndex >= _baseList.length) {
-      currentBuilder = null;
-      return false;
-    }
-    currentBuilder =
-        input.generateTaskInputs(_baseList[_baseListIndex]).createBuilder();
-    return currentBuilder.moveNext();
+  void _initResultValue() {
+    _resultValue = new HashMap<B, E>();
   }
 }
 
@@ -376,4 +341,147 @@ class TopLevelTaskInputBuilder
     // a result to be computed (or run out of builders).
     return currentBuilder.moveNext();
   }
+}
+
+/**
+ * An input to an [AnalysisTask] that is computed by the following steps. First
+ * another (base) task input is used to compute a [List]-valued result. An input
+ * generator function is then used to map each element of that list to a task
+ * input. Finally, each of the task inputs are used to access analysis results,
+ * and a collection of the analysis results is used as the input to the task.
+ */
+abstract class _CollectionBasedTaskInput<B, E, C> implements TaskInput<C> {
+  /**
+   * The accessor used to access the list of elements being mapped.
+   */
+  final TaskInput<List<B>> baseAccessor;
+
+  /**
+   * The function used to convert an element in the list returned by the
+   * [baseAccessor] to a task input.
+   */
+  final GenerateTaskInputs<E> generateTaskInputs;
+
+  /**
+   * Initialize a result accessor to use the given [baseAccessor] to access a
+   * list of values that can be passed to the given [generateTaskInputs] to
+   * generate a list of task inputs that can be used to access the elements of
+   * the input being accessed.
+   */
+  _CollectionBasedTaskInput(this.baseAccessor, this.generateTaskInputs);
+}
+
+/**
+ * A [TaskInputBuilder] used to build an [_CollectionBasedTaskInput].
+ */
+abstract class _CollectionBasedTaskInputBuilder<B, E, C>
+    implements TaskInputBuilder<C> {
+  /**
+   * The input being built.
+   */
+  final _CollectionBasedTaskInput<B, E, C> input;
+
+  /**
+   * The builder used to build the current result.
+   */
+  TaskInputBuilder currentBuilder;
+
+  /**
+   * The list of values computed by the [input]'s base accessor.
+   */
+  List<B> _baseList = null;
+
+  /**
+   * The index in the [_baseList] of the value for which a value is currently
+   * being built.
+   */
+  int _baseListIndex = -1;
+
+  /**
+   * The element of the [_baseList] for which a value is currently being built.
+   */
+  B _baseListElement;
+
+  /**
+   * Initialize a newly created task input builder that computes the result
+   * specified by the given [input].
+   */
+  _CollectionBasedTaskInputBuilder(this.input);
+
+  @override
+  ResultDescriptor get currentResult {
+    if (currentBuilder == null) {
+      return null;
+    }
+    return currentBuilder.currentResult;
+  }
+
+  @override
+  AnalysisTarget get currentTarget {
+    if (currentBuilder == null) {
+      return null;
+    }
+    return currentBuilder.currentTarget;
+  }
+
+  @override
+  void set currentValue(Object value) {
+    if (currentBuilder == null) {
+      throw new StateError(
+          'Cannot set the result value when there is no current result');
+    }
+    currentBuilder.currentValue = value;
+  }
+
+  @override
+  C get inputValue {
+    if (currentBuilder != null || _resultValue == null) {
+      throw new StateError('Result value has not been created');
+    }
+    return _resultValue;
+  }
+
+  /**
+   * The list of values being built.
+   */
+  C get _resultValue;
+
+  @override
+  bool moveNext() {
+    if (currentBuilder == null) {
+      if (_resultValue == null) {
+        // This is the first time moveNext has been invoked, so start by
+        // computing the list of values from which the results will be derived.
+        currentBuilder = input.baseAccessor.createBuilder();
+        return currentBuilder.moveNext();
+      } else {
+        // We have already computed all of the results, so just return false.
+        return false;
+      }
+    }
+    if (currentBuilder.moveNext()) {
+      return true;
+    }
+    if (_resultValue == null) {
+      // We have finished computing the list of values from which the results
+      // will be derived.
+      _baseList = currentBuilder.inputValue;
+      _baseListIndex = 0;
+      _initResultValue();
+    } else {
+      // We have finished computing one of the elements in the result list.
+      _addResultElement(_baseListElement, currentBuilder.inputValue);
+      _baseListIndex++;
+    }
+    if (_baseListIndex >= _baseList.length) {
+      currentBuilder = null;
+      return false;
+    }
+    _baseListElement = _baseList[_baseListIndex];
+    currentBuilder = input.generateTaskInputs(_baseListElement).createBuilder();
+    return currentBuilder.moveNext();
+  }
+
+  void _addResultElement(B baseElement, E resultElement);
+  void _initResultValue();
 }

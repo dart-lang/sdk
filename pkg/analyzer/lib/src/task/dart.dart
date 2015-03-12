@@ -322,7 +322,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       DEFINING_BUILT_UNIT_INPUT_NAME: new SimpleTaskInput(target, BUILT_UNIT),
       PART_BUILT_UNITS_INPUT_NAME:
-          new ListBasedTaskInput<List<Source>, CompilationUnit>(
+          new ListBasedTaskInput<Source, CompilationUnit>(
               new SimpleTaskInput<List<Source>>(target, INCLUDED_PARTS),
               (Source includedSource) => new SimpleTaskInput<CompilationUnit>(
                   includedSource, BUILT_UNIT))
