@@ -5532,6 +5532,12 @@ WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # Please triage t
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
+# This test is not flaky: IE10 on Windows 7 is different from IE10 on Windows 8.
+# The test fails on Windows 7's version, but it is currently not possible to test
+# for the OS version (see https://code.google.com/p/dart/issues/detail?id=22806).
+[ $compiler == dart2js && $runtime == ie10 ]
+LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: RuntimeError, Pass # Issue 22752. Please triage this failure.
+
 [ $compiler == dart2js && $runtime == ie10 ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A03_t02: Skip # Times out. Please triage this failure
