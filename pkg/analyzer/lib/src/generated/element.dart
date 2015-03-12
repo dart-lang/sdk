@@ -7093,10 +7093,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units =
-        new List<CompilationUnitElement>(1 + _parts.length);
-    units[0] = _definingCompilationUnit;
-    JavaSystem.arraycopy(_parts, 0, units, 1, _parts.length);
+    List<CompilationUnitElement> units = new List<CompilationUnitElement>();
+    units.add(_definingCompilationUnit);
+    units.addAll(_parts);
     return units;
   }
 

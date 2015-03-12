@@ -7488,31 +7488,25 @@ class LibraryImportScope extends Scope {
   }
 
   /**
-   * Given a collection of elements that a single name could all be mapped to, remove from the list
-   * all of the names defined in the SDK. Return the element(s) that remain.
-   *
-   * @param identifier the identifier node to lookup element for, used to report correct kind of a
-   *          problem and associate problem with
-   * @param name the name associated with the element
-   * @param foundElement the element encapsulating the collection of elements
-   * @return all of the elements that are not defined in the SDK
+   * Given a collection of elements (captured by the [foundElement]) that the
+   * [identifier] (with the given [name]) resolved to, remove from the list all
+   * of the names defined in the SDK and return the element(s) that remain.
    */
   Element _removeSdkElements(Identifier identifier, String name,
       MultiplyDefinedElementImpl foundElement) {
-    List<Element> conflictingMembers = foundElement.conflictingElements;
-    int length = conflictingMembers.length;
-    int to = 0;
+    List<Element> conflictingElements = foundElement.conflictingElements;
+    List<Element> nonSdkElements = new List<Element>();
     Element sdkElement = null;
-    for (Element member in conflictingMembers) {
+    for (Element member in conflictingElements) {
       if (member.library.isInSdk) {
         sdkElement = member;
       } else {
-        conflictingMembers[to++] = member;
+        nonSdkElements.add(member);
       }
     }
-    if (sdkElement != null && to > 0) {
+    if (sdkElement != null && nonSdkElements.length > 0) {
       String sdkLibName = _getLibraryName(sdkElement);
-      String otherLibName = _getLibraryName(conflictingMembers[0]);
+      String otherLibName = _getLibraryName(nonSdkElements[0]);
       errorListener.onError(new AnalysisError.con2(getSource(identifier),
           identifier.offset, identifier.length,
           StaticWarningCode.CONFLICTING_DART_IMPORT, [
@@ -7521,21 +7515,20 @@ class LibraryImportScope extends Scope {
         otherLibName
       ]));
     }
-    if (to == length) {
+    if (nonSdkElements.length == conflictingElements.length) {
       // None of the members were removed
       return foundElement;
-    } else if (to == 1) {
+    } else if (nonSdkElements.length == 1) {
       // All but one member was removed
-      return conflictingMembers[0];
-    } else if (to == 0) {
+      return nonSdkElements[0];
+    } else if (nonSdkElements.length == 0) {
       // All members were removed
       AnalysisEngine.instance.logger
           .logInformation("Multiply defined SDK element: $foundElement");
       return foundElement;
     }
-    List<Element> remaining = new List<Element>(to);
-    JavaSystem.arraycopy(conflictingMembers, 0, remaining, 0, to);
-    return new MultiplyDefinedElementImpl(_definingLibrary.context, remaining);
+    return new MultiplyDefinedElementImpl(
+        _definingLibrary.context, nonSdkElements);
   }
 }
 

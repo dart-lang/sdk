@@ -1158,12 +1158,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // performAnalysisTask() because re-caching one AST structure
       // can cause another priority source's AST structure to be flushed.
       //
+      // TODO(brianwilkerson) Remove this constraint when the new task model is
+      // implemented.
+      //
       int maxPriorityOrderSize = cacheSize - _PRIORITY_ORDER_SIZE_DELTA;
       if (_priorityOrder.length > maxPriorityOrderSize) {
-        List<Source> newPriorityOrder = new List<Source>(maxPriorityOrderSize);
-        JavaSystem.arraycopy(
-            _priorityOrder, 0, newPriorityOrder, 0, maxPriorityOrderSize);
-        _priorityOrder = newPriorityOrder;
+        _priorityOrder = _priorityOrder.sublist(0, maxPriorityOrderSize);
       }
     }
     this._options.analyzeFunctionBodiesPredicate =
