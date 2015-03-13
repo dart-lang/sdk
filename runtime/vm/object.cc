@@ -10602,7 +10602,7 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  OS::Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
+  ISL_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
             addr_width, "pc");
 }
 
@@ -11122,8 +11122,8 @@ const char* ExceptionHandlers::ToCString() const {
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
-    ASSERT(!handled_types.IsNull());
-    const intptr_t num_types = handled_types.Length();
+    const intptr_t num_types =
+        handled_types.IsNull() ? 0 : handled_types.Length();
     len += OS::SNPrint(NULL, 0, kFormat,
                        i,
                        info.handler_pc_offset,
@@ -11142,7 +11142,8 @@ const char* ExceptionHandlers::ToCString() const {
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
-    const intptr_t num_types = handled_types.Length();
+    const intptr_t num_types =
+        handled_types.IsNull() ? 0 : handled_types.Length();
     num_chars += OS::SNPrint((buffer + num_chars),
                              (len - num_chars),
                              kFormat,
