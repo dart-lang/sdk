@@ -55,29 +55,25 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 
   jsAst.Statement processClassData = js.statement('''{
   function processClassData(cls, descriptor, processedClasses) {
-    // Create a proper JavaScript object (as opposed to a map without
-    // prototype) here so that it can be reused as a prototype for instances
-    // of the corresponding class later on.
-    var newDesc = {};
-    newDesc.x = 0; delete newDesc.x; // Make object slow.
+    descriptor = convertToSlowObject(descriptor); // Use a slow object.
     var previousProperty;
     var properties = Object.keys(descriptor);
     for (var i = 0; i < properties.length; i++) {
       var property = properties[i];
-      var firstChar = property.substring(0, 1);
+      var firstChar = property.charCodeAt(0);
       if (property === "static") {
-        processStatics(#embeddedStatics[cls] = descriptor[property],
+        processStatics(#embeddedStatics[cls] = descriptor.static,
                        processedClasses);
-      } else if (firstChar === "+") {
+      } else if (firstChar === 43) { // 43 is "+".
         mangledNames[previousProperty] = property.substring(1);
         var flag = descriptor[property];
         if (flag > 0)
           descriptor[previousProperty].$reflectableField = flag;
-      } else if (firstChar === "*") {
-        newDesc[previousProperty].$defaultValuesField = descriptor[property];
-        var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
+      } else if (firstChar === 42) { // 42 is "*"
+        descriptor[previousProperty].$defaultValuesField = descriptor[property];
+        var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
         if (!optionalMethods) {
-          newDesc.$methodsWithOptionalArgumentsField = optionalMethods={}
+          descriptor.$methodsWithOptionalArgumentsField = optionalMethods={}
         }
         optionalMethods[property] = previousProperty;
       } else {
@@ -86,9 +82,9 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
             elem != null &&
             elem.constructor === Array &&
             property !== "<>") {
-          addStubs(newDesc, elem, property, false, []);
+          addStubs(descriptor, elem, property, false, []);
         } else {
-          newDesc[previousProperty = property] = elem;
+          previousProperty = property;
         }
       }
     }
@@ -99,7 +95,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
      *   'Super;field1,field2'
      * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
      */
-    var classData = newDesc["${namer.classDescriptorProperty}"],
+    var classData = descriptor["${namer.classDescriptorProperty}"],
         split, supr, fields = classData;
 
     if (#hasRetainedMetadata)
@@ -117,7 +113,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       supr = split[0];
       var functionSignature = split[1];
       if (functionSignature)
-        newDesc.${namer.operatorSignature} = function(s) {
+        descriptor.${namer.operatorSignature} = function(s) {
           return function() {
             return #types[s];
           };
@@ -129,7 +125,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       processedClasses.combinedConstructorFunction += defineClass(cls, fields);
       processedClasses.constructorsList.push(cls);
     }
-    processedClasses.collected[cls] = [globalObject, newDesc];
+    processedClasses.collected[cls] = [globalObject, descriptor];
     classes.push(cls);
   }
 }''', {'embeddedStatics': staticsAccess,
@@ -145,16 +141,16 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
         var property = properties[i];
         if (property === "${namer.classDescriptorProperty}") continue;
         var element = descriptor[property];
-        var firstChar = property.substring(0, 1);
+        var firstChar = property.charCodeAt(0);
         var previousProperty;
-        if (firstChar === "+") {
+        if (firstChar === 43) { // 43 is "+".
           mangledGlobalNames[previousProperty] = property.substring(1);
           var flag = descriptor[property];
           if (flag > 0)
             descriptor[previousProperty].$reflectableField = flag;
           if (element && element.length)
             #typeInformation[previousProperty] = element;
-        } else if (firstChar === "*") {
+        } else if (firstChar === 42) { // 42 is "*"
           globalObject[previousProperty].$defaultValuesField = element;
           var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
           if (!optionalMethods) {

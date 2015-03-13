@@ -466,12 +466,31 @@ class OldEmitter implements Emitter {
   /** Needs defineClass to be defined. */
   jsAst.Expression buildInheritFrom() {
     jsAst.Expression result = js(r"""
+    // If the browser supports changing the prototype via __proto__, we make
+    // use of that feature. Otherwise, we copy the properties into a new
+    // constructor.
+    (function () {
+      var cls = function () {};
+      cls.prototype = {'p': {}};
+      var object = new cls();
+      return object.__proto__ &&
+             object.__proto__.p === cls.prototype.p;
+     })() ?
+        function(constructor, superConstructor) {
+          var prototype = constructor.prototype;
+          prototype.__proto__ = superConstructor.prototype;
+          // Use a function for `true` here, as functions are stored in the
+          // hidden class and not as properties in the object.
+          prototype.constructor = constructor;
+          prototype[#operatorIsPrefix + constructor.name] = constructor;
+          return convertToFastObject(prototype);
+        } :
         function() {
           function tmp() {}
           return function (constructor, superConstructor) {
             tmp.prototype = superConstructor.prototype;
             var object = new tmp();
-            object.x = 0; delete object.x; // Make object slow.
+            convertToSlowObject(object);
             var properties = constructor.prototype;
             var members = Object.keys(properties);
             for (var i = 0; i < members.length; i++) {
@@ -1129,6 +1148,20 @@ class OldEmitter implements Emitter {
     output.add(N);
   }
 
+  void emitConvertToSlowObjectFunction(CodeOutput output) {
+    jsAst.Statement convertToSlowObject = js.statement(r'''
+    function convertToSlowObject(properties) {
+      // Add and remove a property to make the object transition into hashmap
+      // mode.
+      properties.__MAGIC_SLOW_PROPERTY = 1;
+      delete properties.__MAGIC_SLOW_PROPERTY;
+      return properties;
+    }''');
+
+    output.addBuffer(jsAst.prettyPrint(convertToSlowObject, compiler));
+    output.add(N);
+  }
+
   void writeLibraryDescriptor(CodeOutput output, LibraryElement library) {
     var uri = "";
     if (!compiler.enableMinification || backend.mustPreserveUris) {
@@ -1521,6 +1554,8 @@ class OldEmitter implements Emitter {
         '${namer.currentIsolate}$_=${_}new ${namer.isolateName}()$N');
 
     emitConvertToFastObjectFunction(mainOutput);
+    emitConvertToSlowObjectFunction(mainOutput);
+
     for (String globalObject in Namer.reservedGlobalObjectNames) {
       mainOutput.add('$globalObject = convertToFastObject($globalObject)$N');
     }
