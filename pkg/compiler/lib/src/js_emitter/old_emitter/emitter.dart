@@ -1476,6 +1476,7 @@ class OldEmitter implements Emitter {
               compiler,
               monitor: compiler.dumpInfoTask,
               allowVariableMinification: false));
+      mainOutput.add(N);
     }
 
     mainOutput.add('$parseReflectionDataName(dart)$N');
@@ -1934,6 +1935,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
                   precompiledFunctionAst, compiler,
                   monitor: compiler.dumpInfoTask,
                   allowVariableMinification: false));
+          output.add(N);
         }
         output.add('$parseReflectionDataName(dart)$N');
       }
