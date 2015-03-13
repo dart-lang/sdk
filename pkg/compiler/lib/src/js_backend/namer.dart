@@ -332,6 +332,7 @@ class Namer implements ClosureNamer {
   final String defaultValuesField = r'$defaultValues';
   final String methodsWithOptionalArgumentsField =
       r'$methodsWithOptionalArguments';
+  final String deferredAction = r'$deferredAction';
 
   final String classDescriptorProperty = r'^';
   final String requiredParameterField = r'$requiredArgCount';
@@ -425,6 +426,7 @@ class Namer implements ClosureNamer {
         return requiredParameterField;
       case JsGetName.DEFAULT_VALUES_PROPERTY: return defaultValuesField;
       case JsGetName.CALL_NAME_PROPERTY: return callNameField;
+      case JsGetName.DEFERRED_ACTION_PROPERTY: return deferredAction;
       default:
         compiler.reportError(
           node, MessageKind.GENERIC,

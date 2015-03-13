@@ -17,9 +17,9 @@ const bool VALIDATE_DATA = false;
 // TODO(zarah): Rename this when renaming this file.
 String get parseReflectionDataName => 'parseReflectionData';
 
-jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
-                                         JavaScriptBackend backend,
-                                         bool needsNativeSupport) {
+jsAst.Statement getReflectionDataParser(OldEmitter oldEmitter,
+                                        JavaScriptBackend backend,
+                                        bool needsNativeSupport) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   CodeEmitterTask emitter = backend.emitter;
@@ -53,17 +53,55 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
   jsAst.Expression typesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPES);
 
+
   jsAst.Statement processClassData = js.statement('''{
+  // For convenience, this method can be called with a prototype as argument
+  // or, if it was bound to an object, by invoking it as a method. Therefore, 
+  // if prototype is undefined, this is used as prototype.
+  function finishAddStubsHelper(prototype) {
+    var prototype = prototype || this;
+    var object;
+    while (prototype.#deferredAction != #markerFun) {
+      if (prototype.hasOwnProperty(#deferredActionString)) {
+        delete prototype.#deferredAction; // Intended to make it slow, too.
+        var properties = Object.keys(prototype);
+        for (var index = 0; index < properties.length; index++) {
+          var property = properties[index];
+          var firstChar = property.charCodeAt(0);
+          var elem;
+          // We have to filter out some special properties that are used for
+          // metadata in descriptors. Currently, we filter everything that 
+          // starts with + or *. This has to stay in sync with the special
+          // properties that are used by processClassData below.
+          if (property !== "${namer.classDescriptorProperty}" &&
+              property !== "$reflectableField" &&
+              firstChar !== 43 && // 43 is aka "+".
+              firstChar !== 42 && // 42 is aka "*"
+              (elem = prototype[property]) != null &&
+              elem.constructor === Array &&
+              property !== "<>") {
+            addStubs(prototype, elem, property, false, []);
+          }
+        }
+        convertToFastObject(prototype);
+      }
+      prototype = prototype.__proto__;
+    }
+  }
+
   function processClassData(cls, descriptor, processedClasses) {
     descriptor = convertToSlowObject(descriptor); // Use a slow object.
     var previousProperty;
     var properties = Object.keys(descriptor);
+    var hasDeferredWork = false;
+    var shouldDeferWork = supportsDirectProtoAccess && cls != #objectClassName;
     for (var i = 0; i < properties.length; i++) {
       var property = properties[i];
       var firstChar = property.charCodeAt(0);
       if (property === "static") {
         processStatics(#embeddedStatics[cls] = descriptor.static,
                        processedClasses);
+        delete descriptor.static;
       } else if (firstChar === 43) { // 43 is "+".
         mangledNames[previousProperty] = property.substring(1);
         var flag = descriptor[property];
@@ -82,12 +120,19 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
             elem != null &&
             elem.constructor === Array &&
             property !== "<>") {
-          addStubs(descriptor, elem, property, false, []);
+          if (shouldDeferWork) {
+            hasDeferredWork = true;
+          } else {
+            addStubs(descriptor, elem, property, false, []);
+          }
         } else {
           previousProperty = property;
         }
       }
     }
+    
+    if (hasDeferredWork)
+      descriptor.#deferredAction = finishAddStubsHelper;
 
     /* The 'fields' are either a constructor function or a
      * string encoding fields, constructor and superclass. Gets the
@@ -128,10 +173,15 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
     processedClasses.collected[cls] = [globalObject, descriptor];
     classes.push(cls);
   }
-}''', {'embeddedStatics': staticsAccess,
+}''', {'deferredAction': namer.deferredAction,
+       'deferredActionString': js.string(namer.deferredAction),
+       'embeddedStatics': staticsAccess,
        'hasRetainedMetadata': backend.hasRetainedMetadata,
+       'markerFun': oldEmitter.markerFun,
        'types': typesAccess,
-       'notInCspMode': !compiler.useContentSecurityPolicy});
+       'notInCspMode': !compiler.useContentSecurityPolicy,
+       'objectClassName':
+         js.string(namer.runtimeTypeName(compiler.objectClass))});
 
   // TODO(zarah): Remove empty else branches in output when if(#hole) is false.
   jsAst.Statement processStatics = js.statement('''
@@ -185,7 +235,16 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
    * [array].
    */
   jsAst.Statement addStubs = js.statement('''
-  function addStubs(descriptor, array, name, isStatic, functions) {
+  // Processes the stub declaration given by [array] and stores the results
+  // in the corresponding [prototype]. [name] is the property name in
+  // [prototype] that the stub declaration belongs to.
+  // If [isStatic] is true, the property being processed belongs to a static 
+  // function and thus is stored as a global. In that case we also add all
+  // generated functions to the [functions] array, which is used by the mirrors
+  // system to enumerate all static functions of a library. For non-static
+  // functions we might still add some functions to [functions] but the
+  // information is thrown away at the call site. This is to avoid conditionals. 
+  function addStubs(prototype, array, name, isStatic, functions) {
     var index = $FUNCTION_INDEX, alias = array[index], f;
     if (typeof alias == "string") {
       f = array[++index];
@@ -193,7 +252,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       f = alias;
       alias = name;
     }
-    var funcs = [descriptor[name] = descriptor[alias] = f];
+    var funcs = [prototype[name] = prototype[alias] = f];
     f.\$stubName = name;
     functions.push(name);
     for (; index < array.length; index += 2) {
@@ -202,7 +261,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
       f.\$stubName = ${readString("array", "index + 2")};
       funcs.push(f);
       if (f.\$stubName) {
-        descriptor[f.\$stubName] = f;
+        prototype[f.\$stubName] = f;
         functions.push(f.\$stubName);
       }
     }
@@ -227,13 +286,15 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
 
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
-      descriptor[name].\$getter = f;
+      prototype[name].\$getter = f;
       f.\$getterStub = true;
       // Used to create an isolate using spawnFunction.
-      if (isStatic) #globalFunctions[name] = f;
-      descriptor[getterStubName] = f;
+      if (isStatic) {
+        #globalFunctions[name] = f;
+        functions.push(getterStubName);
+      }
+      prototype[getterStubName] = f;
       funcs.push(f);
-      if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
       // Update the interceptedNames map (which only exists if `invokeOn` was
@@ -265,7 +326,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
         mangledNames[name] = reflectionName;
         funcs[0].$reflectionNameField = reflectionName;
         funcs[0].$metadataIndexField = unmangledNameIndex + 1;
-        if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
+        if (optionalParameterCount) prototype[unmangledName + "*"] = funcs[0];
       }
     }
   }
@@ -427,7 +488,7 @@ jsAst.Expression getReflectionDataParser(OldEmitter oldEmitter,
             '#.addStubs = addStubs;', [namer.accessIncrementalHelper]));
   }
 
-  return js('''
+  return js.statement('''
 function $parseReflectionDataName(reflectionData) {
   "use strict";
   if (#needsClassSupport) {

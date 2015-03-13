@@ -27,55 +27,118 @@ preserveNames() {}
 /// A map from mangled names to "reflective" names, that is, unmangled names
 /// with some additional information, such as, number of required arguments.
 /// This map is for mangled names used as instance members.
-final Map<String, String> mangledNames =
-    computeMangledNames(
-        JS_EMBEDDED_GLOBAL('=Object', MANGLED_NAMES),
-        false);
+final _LazyMangledNamesMap mangledNames = new _LazyMangledInstanceNamesMap(
+    JS_EMBEDDED_GLOBAL('=Object', MANGLED_NAMES));
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledNames]).
-final Map<String, String> reflectiveNames =
-    computeReflectiveNames(mangledNames);
+final _LazyReflectiveNamesMap reflectiveNames =
+    new _LazyReflectiveNamesMap(JS_EMBEDDED_GLOBAL('=Object', MANGLED_NAMES),
+        true);
 
 /// A map from mangled names to "reflective" names (see [mangledNames]).  This
 /// map is for globals, that is, static and top-level members.
-final Map<String, String> mangledGlobalNames = computeMangledNames(
-        JS_EMBEDDED_GLOBAL('=Object', MANGLED_GLOBAL_NAMES),
-        true);
+final _LazyMangledNamesMap mangledGlobalNames = new _LazyMangledNamesMap(
+    JS_EMBEDDED_GLOBAL('=Object', MANGLED_GLOBAL_NAMES));
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledGlobalNames]).
-final Map<String, String> reflectiveGlobalNames =
-    computeReflectiveNames(mangledGlobalNames);
+final _LazyReflectiveNamesMap reflectiveGlobalNames =
+    new _LazyReflectiveNamesMap(
+        JS_EMBEDDED_GLOBAL('=Object', MANGLED_GLOBAL_NAMES), false);
 
-/// [jsMangledNames] is a JavaScript object literal.  The keys are the mangled
-/// names, and the values are the "reflective" names.
-Map<String, String> computeMangledNames(jsMangledNames, bool isGlobal) {
-  preserveNames();
-  var keys = extractKeys(jsMangledNames);
-  var result = <String, String>{};
-  String getterPrefix = JS_GET_NAME(JsGetName.GETTER_PREFIX);
-  int getterPrefixLength = getterPrefix.length;
-  String setterPrefix = JS_GET_NAME(JsGetName.SETTER_PREFIX);
-  for (String key in keys) {
-    String value = JS('String', '#[#]', jsMangledNames, key);
-    result[key] = value;
-    if (!isGlobal) {
-      if (key.startsWith(getterPrefix)) {
-        result['$setterPrefix${key.substring(getterPrefixLength)}'] = '$value=';
-      }
-    }
+/// Implements a mapping from mangled names to their reflective counterparts.
+/// The propertiy names of [_jsMangledNames] are the mangled names, and the
+/// values are the "reflective" names.
+class _LazyMangledNamesMap {
+  /// [_jsMangledNames] is a JavaScript object literal.
+  var _jsMangledNames;
+
+  _LazyMangledNamesMap(this._jsMangledNames);
+
+  String operator[](String key) {
+    String result = JS('var', '#[#]', _jsMangledNames, key);
+    // Filter out all non-string values to protect against polution from
+    // anciliary fields in [_jsMangledNames].
+    bool filter =
+        JS('bool', 'typeof # !== "string"', result);
+    // To ensure that the inferrer sees that result is a String, we explicitly
+    // give it a better type here.
+    return filter ? null : JS('String', '#', result);
   }
-  return result;
 }
 
-Map<String, String> computeReflectiveNames(Map<String, String> map) {
-  preserveNames();
-  var result = <String, String>{};
-  map.forEach((String mangledName, String reflectiveName) {
-    result[reflectiveName] = mangledName;
-  });
-  return result;
+/// Extends [_LazyMangledNamesMap] with additional support for adding mappings
+/// from mangled setter names to their reflective counterpart by rewriting a
+/// corresponding entry for a getter name, if it exists.
+class _LazyMangledInstanceNamesMap extends _LazyMangledNamesMap {
+  _LazyMangledInstanceNamesMap(_jsMangledNames) : super(_jsMangledNames);
+
+  String operator[](String key) {
+    String result = super[key];
+    String setterPrefix = JS_GET_NAME(JsGetName.SETTER_PREFIX);
+    if (result == null && key.startsWith(setterPrefix)) {
+      String getterPrefix = JS_GET_NAME(JsGetName.GETTER_PREFIX);
+      int setterPrefixLength = setterPrefix.length;
+
+      // Generate the setter name from the getter name.
+      key = '$getterPrefix${key.substring(setterPrefixLength)}';
+      result = super[key];
+      return (result != null) ? "${result}=" : null;
+    }
+    return result;
+  }
+}
+
+/// Implements the inverse of [_LazyMangledNamesMap]. As it would be too
+/// expensive to seach the mangled names map for a value that corresponds to
+/// the lookup key on each invocation, we compute the full mapping in demand
+/// and cache it. The cache is invalidated when the underlying [_jsMangledNames]
+/// object changes its length. This condition is sufficient as the name mapping
+/// can only grow over time.
+/// When [_isInstance] is true, we also apply the inverse of the setter/getter
+/// name conversion implemented by [_LazyMangledInstanceNamesMap].
+class _LazyReflectiveNamesMap {
+  /// [_jsMangledNames] is a JavaScript object literal.
+  final _jsMangledNames;
+  final bool _isInstance;
+  int _cacheLength = 0;
+  Map<String, String> _cache;
+
+  _LazyReflectiveNamesMap(this._jsMangledNames, this._isInstance);
+
+  Map<String, String> _updateReflectiveNames() {
+    preserveNames();
+    Map<String, String> result = <String, String>{};
+    List keys = JS('List', 'Object.keys(#)', _jsMangledNames);
+    for (String key in keys) {
+      var reflectiveName = JS('var', '#[#]', _jsMangledNames, key);
+      // Filter out all non-string values to protect against polution from
+      // anciliary fields in [_jsMangledNames].
+      bool filter = JS('bool', 'typeof # !== "string"', reflectiveName);
+      if (filter) continue;
+      result[reflectiveName] = JS('String', '#', key);
+
+      String getterPrefix = JS_GET_NAME(JsGetName.GETTER_PREFIX);
+      if (_isInstance && key.startsWith(getterPrefix)) {
+        int getterPrefixLength = getterPrefix.length;
+        String setterPrefix = JS_GET_NAME(JsGetName.SETTER_PREFIX);
+        result['$reflectiveName='] =
+            '$setterPrefix${key.substring(getterPrefixLength)}';
+      }
+    }
+    return result;
+  }
+
+  int get _jsMangledNamesLength => JS('int', '#.length', _jsMangledNames);
+
+  String operator[](String key) {
+    if (_cache == null || _jsMangledNamesLength != _cacheLength) {
+      _cache = _updateReflectiveNames();
+      _cacheLength = _jsMangledNamesLength;
+    }
+    return _cache[key];
+  }
 }
 
 @NoInline()

@@ -381,6 +381,9 @@ class OldEmitter implements Emitter {
             str += parameter;
             body += ("this." + field + " = " + parameter + ";\n");
           }
+          if (supportsDirectProtoAccess) {
+            body += "this." + #deferredAction + "();";
+          } 
           str += ") {\n" + body + "}\n";
           str += name + ".builtin$cls=\"" + name + "\";\n";
           str += "$desc=$collectedClasses." + name + "[1];\n";
@@ -395,7 +398,8 @@ class OldEmitter implements Emitter {
           str += accessors.join("");
 
           return str;
-        }''', { 'hasIsolateSupport': hasIsolateSupport,
+        }''', { 'deferredAction': js.string(namer.deferredAction),
+                'hasIsolateSupport': hasIsolateSupport,
                 'fieldNamesProperty': js.string(fieldNamesProperty)});
 
     // Declare a function called "generateAccessor".  This is used in
@@ -469,13 +473,7 @@ class OldEmitter implements Emitter {
     // If the browser supports changing the prototype via __proto__, we make
     // use of that feature. Otherwise, we copy the properties into a new
     // constructor.
-    (function () {
-      var cls = function () {};
-      cls.prototype = {'p': {}};
-      var object = new cls();
-      return object.__proto__ &&
-             object.__proto__.p === cls.prototype.p;
-     })() ?
+     supportsDirectProtoAccess ?
         function(constructor, superConstructor) {
           var prototype = constructor.prototype;
           prototype.__proto__ = superConstructor.prototype;
@@ -575,25 +573,43 @@ class OldEmitter implements Emitter {
           var prototype = constructor.prototype;
           prototype.constructor = constructor;
           prototype.#isObject = constructor;
+          prototype.#deferredAction = #markerFun;
           return;
         }
         finishClass(superclass);
         var superConstructor = allClasses[superclass];
 
-        if (!superConstructor)
+        if (!superConstructor) {
           superConstructor = existingIsolateProperties[superclass];
+        }
 
         var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
-        if (#needsNativeSupport)
-          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty))
-            #nativeInfoHandler
+        if (#needsNativeSupport) {
+          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty)) {
+            #nativeInfoHandler;
+            // As native classes can come into existence without a constructor
+            // call, we have to ensure that the class has been fully
+            // initialized. 
+            if (constructor.prototype.#deferredAction) 
+              finishAddStubsHelper(constructor.prototype);
+          }
+        }
+        // Interceptors (or rather their prototypes) are also used without
+        // first instantiating them first.
+        if (prototype.#isInterceptorClass && 
+            constructor.prototype.#deferredAction) {
+          finishAddStubsHelper(constructor.prototype);
+        }
       }
-    }''', {'finishedClassesAccess': finishedClassesAccess,
+    }''', {'deferredAction': namer.deferredAction,
+           'finishedClassesAccess': finishedClassesAccess,
+           'markerFun': markerFun,
            'needsMixinSupport': needsMixinSupport,
            'needsNativeSupport': needsNativeSupport,
            'nativeInfoHandler': nativeInfoHandler,
+           'isInterceptorClass': namer.operatorIs(backend.jsInterceptorClass),
            'isObject' : namer.operatorIs(compiler.objectClass) });
   }
 
@@ -1117,6 +1133,20 @@ class OldEmitter implements Emitter {
     }
   }
 
+  String get markerFun => backend.namer.internalGlobal('markerFun');
+
+  void emitMarkerFun(CodeOutput output) {
+    jsAst.Statement markerFunStmt = js.statement('''
+      // This function is used to mark the end of the inheritance chain so that
+      // finishAddStubsHelper knows where to stop searching for deferred work.
+      // We have to put it at the top level so that we only get one instance of
+      // it even if we call parseReflectionData multiple times, e.g., due to 
+      // deferred loading.
+      function #() {}''', markerFun);
+    output.addBuffer(jsAst.prettyPrint(markerFunStmt, compiler));
+    output.add(N);
+  }
+
   void emitConvertToFastObjectFunction(CodeOutput output) {
     List<jsAst.Statement> debugCode = <jsAst.Statement>[];
     if (DEBUG_FAST_OBJECTS) {
@@ -1159,6 +1189,21 @@ class OldEmitter implements Emitter {
     }''');
 
     output.addBuffer(jsAst.prettyPrint(convertToSlowObject, compiler));
+    output.add(N);
+  }
+
+  void emitSupportsDirectProtoAccess(CodeOutput output) {
+    jsAst.Statement supportsDirectProtoAccess = js.statement(r'''
+      var supportsDirectProtoAccess = (function () {
+        var cls = function () {};
+        cls.prototype = {'p': {}};
+        var object = new cls();
+        return object.__proto__ &&
+               object.__proto__.p === cls.prototype.p;
+       })();
+    ''');
+
+    output.addBuffer(jsAst.prettyPrint(supportsDirectProtoAccess, compiler));
     output.add(N);
   }
 
@@ -1390,6 +1435,7 @@ class OldEmitter implements Emitter {
     // Using a named function here produces easier to read stack traces in
     // Chrome/V8.
     mainOutput.add('(function(${namer.currentIsolate})$_{\n');
+    emitSupportsDirectProtoAccess(mainOutput);
     if (compiler.hasIncrementalSupport) {
       mainOutput.addBuffer(jsAst.prettyPrint(js.statement(
           """
@@ -1487,12 +1533,10 @@ class OldEmitter implements Emitter {
     }
 
     bool needsNativeSupport = program.needsNativeSupport;
-    mainOutput
-        ..addBuffer(
-            jsAst.prettyPrint(
-                getReflectionDataParser(this, backend, needsNativeSupport),
-                compiler))
-        ..add(n);
+    mainOutput.addBuffer(
+        jsAst.prettyPrint(
+            getReflectionDataParser(this, backend, needsNativeSupport),
+            compiler));
 
     // The argument to reflectionDataParser is assigned to a temporary 'dart'
     // so that 'dart.' will appear as the prefix to dart methods in stack
@@ -1555,6 +1599,7 @@ class OldEmitter implements Emitter {
 
     emitConvertToFastObjectFunction(mainOutput);
     emitConvertToSlowObjectFunction(mainOutput);
+    emitMarkerFun(mainOutput);
 
     for (String globalObject in Namer.reservedGlobalObjectNames) {
       mainOutput.add('$globalObject = convertToFastObject($globalObject)$N');

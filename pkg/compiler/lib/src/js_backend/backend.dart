@@ -702,7 +702,7 @@ class JavaScriptBackend extends Backend {
    * Record that [method] is called from a subclass via `super`.
    */
   bool maybeRegisterAliasedSuperMember(Element member, Selector selector) {
-    if (selector.isGetter || compiler.hasIncrementalSupport) {
+    if (!canUseAliasedSuperMember(member, selector)) {
       // Invoking a super getter isn't supported, this would require changes to
       // compact field descriptors in the emitter.
       // We also turn off this optimization in incremental compilation, to
@@ -712,6 +712,10 @@ class JavaScriptBackend extends Backend {
     }
     aliasedSuperMembers.add(member);
     return true;
+  }
+
+  bool canUseAliasedSuperMember(Element member, Selector selector) {
+    return !selector.isGetter && !compiler.hasIncrementalSupport;
   }
 
   /**

@@ -1680,6 +1680,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   List<JsMethodMirror> _getMethodsWithOwner(DeclarationMirror methodOwner) {
     var prototype = JS('', '#.prototype', _jsConstructor);
+    // The prototype might not have been processed yet, so do that now.
+    JS('', '#[#]()', prototype,
+                     JS_GET_NAME(JsGetName.DEFERRED_ACTION_PROPERTY));
     List<String> keys = extractKeys(prototype);
     var result = <JsMethodMirror>[];
     for (String key in keys) {
