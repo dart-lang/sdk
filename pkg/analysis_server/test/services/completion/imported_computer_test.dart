@@ -117,8 +117,9 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
-  CompletionSuggestion assertSuggestImportedConstructor(String name) {
-    return assertSuggestConstructor(name);
+  CompletionSuggestion assertSuggestImportedConstructor(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
+    return assertSuggestConstructor(name, relevance: relevance);
   }
 
   @override

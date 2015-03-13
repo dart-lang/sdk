@@ -107,6 +107,7 @@ library dart.async;
 import 'dart:math';
 
 class Future<T> {
+  factory Future(computation()) => null;
   factory Future.delayed(Duration duration, [T computation()]) => null;
   factory Future.value([value]) => null;
   static Future wait(List<Future> futures) => null;

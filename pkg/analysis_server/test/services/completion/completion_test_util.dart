@@ -201,8 +201,9 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestConstructor(String name) {
-    CompletionSuggestion cs = assertSuggest(name);
+  CompletionSuggestion assertSuggestConstructor(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
+    CompletionSuggestion cs = assertSuggest(name, relevance: relevance);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
@@ -570,7 +571,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestImportedConstructor(String name) {
+  CompletionSuggestion assertSuggestImportedConstructor(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
     return assertNotSuggested(name);
   }
 
@@ -826,8 +828,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
-      assertSuggestLocalFunction(
-          'bar', 'String', kind: CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestLocalFunction('bar', 'String',
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestImportedFunction('hasLength', 'bool',
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestImportedFunction('identical', 'bool',
@@ -862,8 +864,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
-      assertSuggestLocalFunction(
-          'bar', 'String', kind: CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestLocalFunction('bar', 'String',
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestImportedFunction('hasLength', 'bool',
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestImportedFunction('identical', 'bool',
@@ -953,8 +955,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
-      assertSuggestLocalFunction(
-          'bar', 'String', kind: CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestLocalFunction('bar', 'String',
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestImportedFunction('hasLength', 'bool',
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestImportedFunction('identical', 'bool',
@@ -987,8 +989,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
-      assertSuggestImportedFunction(
-          'hasLength', 'bool', kind: CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestImportedFunction('hasLength', 'bool',
+          kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestImportedFunction('identical', 'bool',
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestLocalClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
@@ -1316,6 +1318,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addSource('/testG.dart', 'class G { }');
     addSource('/testH.dart', '''
       class H { }
+      class D3 { }
       int T3;
       var _T4;'''); // not imported
     addTestSource('''
@@ -1348,9 +1351,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       //assertSuggestImportedClass('C');
       // hidden element suggested as low relevance
       assertSuggestImportedClass('D', relevance: DART_RELEVANCE_LOW);
-      assertSuggestImportedFunction(
-          'D1', null, deprecated: true, relevance: DART_RELEVANCE_LOW);
+      assertSuggestImportedFunction('D1', null,
+          deprecated: true, relevance: DART_RELEVANCE_LOW);
       assertSuggestLocalFunction('D2', 'Z');
+      // unimported elements suggested with low relevance
+      assertSuggestImportedClass('D3', relevance: DART_RELEVANCE_LOW);
       //assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
@@ -1430,6 +1435,18 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalMethod('f2', 'F', null);
       assertSuggestLocalMethod('i2', 'I', null);
       assertSuggestLocalMethod('m2', 'M', 'int');
+    });
+  }
+
+  test_Block_unimported() {
+    addSource('/testAB.dart', 'class Foo { }');
+    addTestSource('class C {foo(){F^}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      assertSuggestImportedClass('Foo', relevance: DART_RELEVANCE_LOW);
+      assertSuggestImportedClass('Future', relevance: DART_RELEVANCE_LOW);
     });
   }
 
@@ -2358,6 +2375,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {A(this.x) { } int x;}''');
     addTestSource('''
       import "/testA.dart";
+      import "dart:async";
       int T2;
       F2() { }
       class B {B(this.x, [String boo]) { } int x;}
@@ -2367,6 +2385,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
       assertSuggestImportedConstructor('Object');
+      assertSuggestImportedConstructor('Future');
       assertSuggestImportedConstructor('A');
       assertSuggestLocalConstructor('B');
       assertSuggestLocalConstructor('C');
@@ -2377,6 +2396,19 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('F2');
       assertNotSuggested('T1');
       assertNotSuggested('T2');
+    });
+  }
+
+  test_InstanceCreationExpression_unimported() {
+    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    addSource('/testAB.dart', 'class Foo { }');
+    addTestSource('class C {foo(){new F^}}');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      assertSuggestImportedConstructor('Foo', relevance: DART_RELEVANCE_LOW);
+      assertSuggestImportedConstructor('Future', relevance: DART_RELEVANCE_LOW);
     });
   }
 
