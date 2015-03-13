@@ -7408,6 +7408,7 @@ class HighlightRegionType implements Enum {
  *   "length": int
  *   "containingLibraryPath": optional String
  *   "containingLibraryName": optional String
+ *   "containingClassDescription": optional String
  *   "dartdoc": optional String
  *   "elementDescription": optional String
  *   "elementKind": optional String
@@ -7442,6 +7443,13 @@ class HoverInformation implements HasToJson {
    * declared inside an HTML file.
    */
   String containingLibraryName;
+
+  /**
+   * A human-readable description of the class declaring the element being
+   * referenced. This data is omitted if there is no referenced element, or if
+   * the element is not a class member.
+   */
+  String containingClassDescription;
 
   /**
    * The dartdoc associated with the referenced element. Other than the removal
@@ -7484,7 +7492,7 @@ class HoverInformation implements HasToJson {
    */
   String staticType;
 
-  HoverInformation(this.offset, this.length, {this.containingLibraryPath, this.containingLibraryName, this.dartdoc, this.elementDescription, this.elementKind, this.parameter, this.propagatedType, this.staticType});
+  HoverInformation(this.offset, this.length, {this.containingLibraryPath, this.containingLibraryName, this.containingClassDescription, this.dartdoc, this.elementDescription, this.elementKind, this.parameter, this.propagatedType, this.staticType});
 
   factory HoverInformation.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7511,6 +7519,10 @@ class HoverInformation implements HasToJson {
       if (json.containsKey("containingLibraryName")) {
         containingLibraryName = jsonDecoder._decodeString(jsonPath + ".containingLibraryName", json["containingLibraryName"]);
       }
+      String containingClassDescription;
+      if (json.containsKey("containingClassDescription")) {
+        containingClassDescription = jsonDecoder._decodeString(jsonPath + ".containingClassDescription", json["containingClassDescription"]);
+      }
       String dartdoc;
       if (json.containsKey("dartdoc")) {
         dartdoc = jsonDecoder._decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
@@ -7535,7 +7547,7 @@ class HoverInformation implements HasToJson {
       if (json.containsKey("staticType")) {
         staticType = jsonDecoder._decodeString(jsonPath + ".staticType", json["staticType"]);
       }
-      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
+      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "HoverInformation");
     }
@@ -7550,6 +7562,9 @@ class HoverInformation implements HasToJson {
     }
     if (containingLibraryName != null) {
       result["containingLibraryName"] = containingLibraryName;
+    }
+    if (containingClassDescription != null) {
+      result["containingClassDescription"] = containingClassDescription;
     }
     if (dartdoc != null) {
       result["dartdoc"] = dartdoc;
@@ -7582,6 +7597,7 @@ class HoverInformation implements HasToJson {
           length == other.length &&
           containingLibraryPath == other.containingLibraryPath &&
           containingLibraryName == other.containingLibraryName &&
+          containingClassDescription == other.containingClassDescription &&
           dartdoc == other.dartdoc &&
           elementDescription == other.elementDescription &&
           elementKind == other.elementKind &&
@@ -7599,6 +7615,7 @@ class HoverInformation implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, length.hashCode);
     hash = _JenkinsSmiHash.combine(hash, containingLibraryPath.hashCode);
     hash = _JenkinsSmiHash.combine(hash, containingLibraryName.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, containingClassDescription.hashCode);
     hash = _JenkinsSmiHash.combine(hash, dartdoc.hashCode);
     hash = _JenkinsSmiHash.combine(hash, elementDescription.hashCode);
     hash = _JenkinsSmiHash.combine(hash, elementKind.hashCode);
