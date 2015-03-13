@@ -66,15 +66,17 @@ class AnalysisDriver {
 
   /**
    * Perform work until the given [result] has been computed for the given
-   * [target].
+   * [target]. Return the last [AnalysisTask] that was performed.
    */
-  void computeResult(AnalysisTarget target, ResultDescriptor result) {
+  AnalysisTask computeResult(AnalysisTarget target, ResultDescriptor result) {
+    AnalysisTask task;
     WorkOrder workOrder = createWorkOrderForResult(target, result);
     if (workOrder != null) {
       while (workOrder.moveNext()) {
-        performWorkItem(workOrder.current);
+        task = performWorkItem(workOrder.current);
       }
     }
+    return task;
   }
 
   /**
@@ -185,14 +187,15 @@ class AnalysisDriver {
 
   /**
    * Perform the given work item.
+   * Return the performed [AnalysisTask].
    */
-  void performWorkItem(WorkItem item) {
+  AnalysisTask performWorkItem(WorkItem item) {
     if (item.exception != null) {
       // Mark all of the results that the task would have computed as being in
       // ERROR with the exception recorded on the work item.
       CacheEntry targetEntry = context.getCacheEntry(item.target);
       targetEntry.setErrorState(item.exception, item.descriptor.results);
-      return;
+      return null;
     }
     // Otherwise, perform the task.
     AnalysisTask task = item.buildTask();
@@ -210,6 +213,7 @@ class AnalysisDriver {
       entry.setErrorState(task.caughtException, item.descriptor.results);
     }
     _onTaskCompletedController.add(task);
+    return task;
   }
 
   /**
