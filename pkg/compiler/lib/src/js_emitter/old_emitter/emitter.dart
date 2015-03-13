@@ -1133,7 +1133,7 @@ class OldEmitter implements Emitter {
     }
   }
 
-  String get markerFun => backend.namer.internalGlobal('markerFun');
+  String get markerFun => 'markerFun';
 
   void emitMarkerFun(CodeOutput output) {
     jsAst.Statement markerFunStmt = js.statement('''
