@@ -1193,15 +1193,23 @@ class OldEmitter implements Emitter {
   }
 
   void emitSupportsDirectProtoAccess(CodeOutput output) {
-    jsAst.Statement supportsDirectProtoAccess = js.statement(r'''
-      var supportsDirectProtoAccess = (function () {
-        var cls = function () {};
-        cls.prototype = {'p': {}};
-        var object = new cls();
-        return object.__proto__ &&
-               object.__proto__.p === cls.prototype.p;
-       })();
-    ''');
+    jsAst.Statement supportsDirectProtoAccess;
+
+    if (compiler.hasIncrementalSupport) {
+      supportsDirectProtoAccess = js.statement(r'''
+        var supportsDirectProtoAccess = false;
+      ''');
+    } else {
+      supportsDirectProtoAccess = js.statement(r'''
+        var supportsDirectProtoAccess = (function () {
+          var cls = function () {};
+          cls.prototype = {'p': {}};
+          var object = new cls();
+          return object.__proto__ &&
+                 object.__proto__.p === cls.prototype.p;
+         })();
+      ''');
+    }
 
     output.addBuffer(jsAst.prettyPrint(supportsDirectProtoAccess, compiler));
     output.add(N);
