@@ -25,8 +25,7 @@ analysis_server/test/analysis_server_test: SkipSlow  # Times out
 analysis_server/test/completion_test: SkipSlow  # Times out
 analysis_server/test/domain_context_test: SkipSlow  # Times out
 analysis_server/test/domain_server_test: SkipSlow  # Times out
-analysis_server/test/integration/analysis/reanalyze_concurrent_test: SkipSlow # Times out
-analysis_server/test/integration/analysis/update_content_test: SkipSlow # Times out
+analysis_server/test/integration/*: SkipSlow # Times out
 analysis_server/tool/spec/check_all_test: SkipSlow # Times out
 analyzer/test/generated/element_test: SkipSlow  # Times out
 analyzer/test/generated/parser_test: SkipSlow  # Times out
