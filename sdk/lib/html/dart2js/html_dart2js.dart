@@ -19995,6 +19995,8 @@ class MediaQueryListEvent extends Event {
 
 @DocsEditable()
 @DomName('MediaSource')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '11')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource
 @Experimental()
 @Native("MediaSource")
@@ -20008,6 +20010,9 @@ class MediaSource extends EventTarget {
     return MediaSource._create_1();
   }
   static MediaSource _create_1() => JS('MediaSource', 'new MediaSource()');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.MediaSource)');
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable()

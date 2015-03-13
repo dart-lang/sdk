@@ -22046,6 +22046,8 @@ class MediaQueryListEvent extends Event {
 
 @DocsEditable()
 @DomName('MediaSource')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '11')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource
 @Experimental()
 class MediaSource extends EventTarget {
@@ -22057,6 +22059,9 @@ class MediaSource extends EventTarget {
   factory MediaSource() {
     return _blink.BlinkMediaSource.instance.constructorCallback_0_();
   }
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable()

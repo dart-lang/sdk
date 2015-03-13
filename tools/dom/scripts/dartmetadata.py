@@ -519,6 +519,13 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'MediaStreamEvent': _rtc_annotations,
   'MediaStreamTrack': _rtc_annotations,
   'MediaStreamTrackEvent': _rtc_annotations,
+  'MediaSource': [
+    # TODO(alanknight): This works on Firefox 33 behind a flag and in Safari
+    # desktop, but not mobile. On theory that static false positives are worse
+    # than negatives, leave those out for now. Update once they're available.
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.IE, '11')",
+  ],
   'MutationObserver': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",

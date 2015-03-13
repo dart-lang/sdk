@@ -155,6 +155,7 @@ input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
+mediasource_test/supported: Fail
 mutationobserver_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
@@ -211,6 +212,7 @@ input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
+mediasource_test/supported: Pass, Fail # Should pass on Windows 8
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -337,6 +339,7 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
+mediasource_test/supported: Fail # Behind a flag as of FF 36
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail

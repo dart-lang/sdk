@@ -421,6 +421,7 @@ js_support_checks = dict({
     'HTMLTemplateElement': ElemSupportStr('template'),
     'MediaStreamEvent': "Device.isEventTypeSupported('MediaStreamEvent')",
     'MediaStreamTrackEvent': "Device.isEventTypeSupported('MediaStreamTrackEvent')",
+    'MediaSource': "JS('bool', '!!(window.MediaSource)')",
     'Notification': "JS('bool', '!!(window.Notification)')",
     'Performance': "JS('bool', '!!(window.performance)')",
     'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
