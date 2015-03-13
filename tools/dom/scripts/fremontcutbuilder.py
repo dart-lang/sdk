@@ -36,7 +36,7 @@ FEATURE_DEFINES = [
 ]
 
 def build_database(idl_files, database_dir, feature_defines=None,
-                   logging_level=logging.WARNING):
+                   logging_level=logging.WARNING, examine_idls=False):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
   current_dir = os.path.dirname(__file__)
@@ -98,6 +98,11 @@ def build_database(idl_files, database_dir, feature_defines=None,
   # Map any IDL defined dictionaries to Dictionary.
   builder.map_dictionaries()
 
+  # Examine all IDL and produce a diagnoses of areas (e.g., list dictionaries
+  # declared and usage, etc.)
+  if examine_idls:
+    builder.examine_database()
+
   conditionals_met = set(
       'ENABLE_' + conditional for conditional in builder.conditionals_met)
   known_conditionals = set(FEATURE_DEFINES + FEATURE_DISABLED)
@@ -116,12 +121,9 @@ def build_database(idl_files, database_dir, feature_defines=None,
 
   print 'Merging interfaces %s seconds' % round(time.time() - start_time, 2)
 
-# TODO(terry): Don't generate the database cache.
-#  db.Save()
-
   return db
 
-def main(parallel=False, logging_level=logging.WARNING):
+def main(parallel=False, logging_level=logging.WARNING, examine_idls=False):
   current_dir = os.path.dirname(__file__)
 
   idl_files = []
@@ -167,7 +169,7 @@ def main(parallel=False, logging_level=logging.WARNING):
 
   database_dir = os.path.join(current_dir, '..', 'database')
 
-  return build_database(idl_files, database_dir, logging_level=logging_level)
+  return build_database(idl_files, database_dir, logging_level=logging_level, examine_idls=examine_idls)
 
 if __name__ == '__main__':
   sys.exit(main())
