@@ -399,11 +399,14 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // Note that RegExes, js.ArrayInitializer and js.ObjectInitializer are not
     // [js.Literal]s.
     if (result is js.Literal) return result;
+
     js.Expression tempVar = useTempVar(allocateTempVar());
     addStatement(js.js.statement('# = #;', [tempVar, result]));
     return tempVar;
   }
 
+  // TODO(sigurdm): This is obsolete - all calls use store: false. Replace with
+  // visitExpression(node);
   withExpression(js.Expression node, fn(js.Expression result), {bool store}) {
     int oldTempVarIndex = currentTempVarIndex;
     js.Expression visited = visitExpression(node);
@@ -414,6 +417,46 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     currentTempVarIndex = oldTempVarIndex;
     return result;
   }
+
+  /// Calls [fn] with the result of evaluating [node]. Taking special care of
+  /// property accesses.
+  ///
+  /// If [store] is true the result of evaluating [node] is stored in a
+  /// temporary.
+  ///
+  /// We cannot rewrite `<receiver>.m()` to:
+  ///     temp = <receiver>.m;
+  ///     temp();
+  /// Because this leaves `this` unbound in the call. But because of dart
+  /// evaluation order we can write:
+  ///     temp = <receiver>;
+  ///     temp.m();
+  withCallTargetExpression(js.Expression node,
+                           fn(js.Expression result), {bool store}) {
+    int oldTempVarIndex = currentTempVarIndex;
+    js.Expression visited = visitExpression(node);
+    js.Expression selector;
+    js.Expression storedIfNeeded;
+    if (store) {
+      if (visited is js.PropertyAccess) {
+        js.PropertyAccess propertyAccess = visited;
+        selector = propertyAccess.selector;
+        visited = propertyAccess.receiver;
+      }
+      storedIfNeeded = _storeIfNecessary(visited);
+    } else {
+      storedIfNeeded = visited;
+    }
+    js.Expression result;
+    if (selector == null) {
+      result = fn(storedIfNeeded);
+    } else {
+      result = fn(new js.PropertyAccess(storedIfNeeded, selector));
+    }
+    currentTempVarIndex = oldTempVarIndex;
+    return result;
+  }
+
 
   /// Calls [fn] with the value of evaluating [node1] and [node2].
   ///
@@ -805,7 +848,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   @override
   js.Expression visitCall(js.Call node) {
     bool storeTarget = node.arguments.any(shouldTransform);
-    return withExpression(node.target, (target) {
+    return withCallTargetExpression(node.target, (target) {
       return withExpressions(node.arguments, (List<js.Expression> arguments) {
         return new js.Call(target, arguments);
       });
@@ -920,7 +963,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       bool oldInsideUntranslatedBreakable = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
       withExpression(node.condition, (js.Expression condition) {
-        addStatement(js.js.statement('do {#} while (#)', [node.body, condition]));
+        addStatement(js.js.statement('do {#} while (#)',
+                                     [node.body, condition]));
       }, store: false);
       insideUntranslatedBreakable = oldInsideUntranslatedBreakable;
       return;
@@ -1148,7 +1192,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   @override
   js.Expression visitNew(js.New node) {
     bool storeTarget = node.arguments.any(shouldTransform);
-    return withExpression(node.target, (target) {
+    return withCallTargetExpression(node.target, (target) {
       return withExpressions(node.arguments, (List<js.Expression> arguments) {
         return new js.New(target, arguments);
       });
@@ -1777,7 +1821,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
                         js.VariableDeclarationList variableDeclarations) {
     // Each iterator invocation on the iterable should work on its own copy of
     // the parameters.
-    // TODO(sigurdm): We only need to do this copying for parameters that are mutated.
+    // TODO(sigurdm): We only need to do this copying for parameters that are
+    // mutated.
     List<js.VariableInitialization> declarations =
         new List<js.VariableInitialization>();
     List<js.Parameter> renamedParameters = new List<js.Parameter>();

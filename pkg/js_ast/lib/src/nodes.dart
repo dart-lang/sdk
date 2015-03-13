@@ -243,7 +243,9 @@ class Block extends Statement {
 
 class ExpressionStatement extends Statement {
   final Expression expression;
-  ExpressionStatement(this.expression);
+  ExpressionStatement(this.expression) {
+    assert(this.expression != null);
+  }
 
   accept(NodeVisitor visitor) => visitor.visitExpressionStatement(this);
   void visitChildren(NodeVisitor visitor) { expression.accept(visitor); }
