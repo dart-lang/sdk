@@ -99,6 +99,9 @@ xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
 audiocontext_test/functional: Skip # Renderer crash. Issue 22327
 
+[ $runtime == chrome && $checked ]
+notification_test/constructors: Fail # Issue 22842
+
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
 
