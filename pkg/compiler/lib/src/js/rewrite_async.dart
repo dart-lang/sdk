@@ -804,11 +804,11 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         js.Statement assignLeft = isResult(left)
             ? new js.Block.empty()
             : js.js.statement('# = #;', [result, left]);
-        if (node.op == "||") {
+        if (node.op == "&&") {
           addStatement(js.js.statement('if (#) {#} else #',
               [left, gotoAndBreak(thenLabel), assignLeft]));
         } else {
-          assert(node.op == "&&");
+          assert(node.op == "||");
           addStatement(js.js.statement('if (#) {#} else #',
               [left, assignLeft, gotoAndBreak(thenLabel)]));
         }
