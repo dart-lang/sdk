@@ -1129,7 +1129,7 @@ class OldEmitter implements Emitter {
     output.add(N);
   }
 
-  void writeLibraryDescriptors(CodeOutput output, LibraryElement library) {
+  void writeLibraryDescriptor(CodeOutput output, LibraryElement library) {
     var uri = "";
     if (!compiler.enableMinification || backend.mustPreserveUris) {
       uri = library.canonicalUri;
@@ -1432,8 +1432,25 @@ class OldEmitter implements Emitter {
 
     CodeBuffer libraryBuffer = new CodeBuffer();
     for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-      writeLibraryDescriptors(libraryBuffer, library);
+      writeLibraryDescriptor(libraryBuffer, library);
       elementDescriptors.remove(library);
+    }
+
+    if (elementDescriptors.isNotEmpty) {
+      List<Element> remainingLibraries = elementDescriptors.keys
+          .where((Element e) => e is LibraryElement)
+          .toList();
+
+      // The remaining descriptors are only accessible through reflection.
+      // The program builder does not collect libraries that only
+      // contain typedefs that are used for reflection.
+      for (LibraryElement element in remainingLibraries) {
+        assert(element is LibraryElement || compiler.hasIncrementalSupport);
+        if (element is LibraryElement) {
+          writeLibraryDescriptor(libraryBuffer, element);
+          elementDescriptors.remove(element);
+        }
+      }
     }
 
     bool needsNativeSupport = program.needsNativeSupport;
@@ -1705,7 +1722,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         CodeBuffer buffer = new CodeBuffer();
         outputBuffers[outputUnit] = buffer;
         for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-          writeLibraryDescriptors(buffer, library);
+          writeLibraryDescriptor(buffer, library);
           elementDescriptors.remove(library);
         }
       }
