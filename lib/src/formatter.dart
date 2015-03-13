@@ -5,6 +5,7 @@
 library linter.src.formatter;
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -53,8 +54,11 @@ String shorten(String fileRoot, String fullName) {
 class DetailedReporter extends SimpleFormatter {
   DetailedReporter(
       Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
-      {int fileCount, String fileRoot})
-      : super(errors, filter, out, fileCount: fileCount, fileRoot: fileRoot);
+      {int fileCount, String fileRoot, bool showStatistics: false})
+      : super(errors, filter, out,
+          fileCount: fileCount,
+          fileRoot: fileRoot,
+          showStatistics: showStatistics);
 
   @override
   writeLint(AnalysisError error, {int offset, int line, int column}) {
@@ -72,9 +76,12 @@ class DetailedReporter extends SimpleFormatter {
 
 abstract class ReportFormatter {
   factory ReportFormatter(
-      Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
-      {int fileCount, String fileRoot}) => new DetailedReporter(
-      errors, filter, out, fileCount: fileCount, fileRoot: fileRoot);
+          Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
+          {int fileCount, String fileRoot, bool showStatistics: false}) =>
+      new DetailedReporter(errors, filter, out,
+          fileCount: fileCount,
+          fileRoot: fileRoot,
+          showStatistics: showStatistics);
 
   write();
 }
@@ -87,11 +94,18 @@ class SimpleFormatter implements ReportFormatter {
 
   int errorCount = 0;
   int filteredLintCount = 0;
+
   final int fileCount;
   final String fileRoot;
+  final bool showStatistics;
+
+  /// Cached for the purposes of statistics report formatting.
+  int _summaryLength = 0;
+
+  Map<String, int> stats = <String, int>{};
 
   SimpleFormatter(this.errors, this.filter, this.out,
-      {this.fileCount, this.fileRoot});
+      {this.fileCount, this.fileRoot, this.showStatistics: false});
 
   /// Override to influence error sorting
   int compare(AnalysisError error1, AnalysisError error2) {
@@ -115,6 +129,9 @@ class SimpleFormatter implements ReportFormatter {
   write() {
     writeLints();
     writeSummary();
+    if (showStatistics) {
+      writeStatistics();
+    }
   }
 
   void writeLint(AnalysisError error, {int offset, int line, int column}) {
@@ -137,12 +154,36 @@ class SimpleFormatter implements ReportFormatter {
     out.writeln();
   }
 
+  void writeStatistics() {
+    var codes = stats.keys.toList()..sort();
+    var longest = 0;
+    var largestCountGuess = 8;
+    codes.forEach((c) => longest = max(longest, c.length));
+    var tableWidth = max(_summaryLength, longest + largestCountGuess);
+    var pad = tableWidth - longest;
+    var line = ''.padLeft(tableWidth, '-');
+    out.writeln(line);
+    codes.forEach((c) {
+      out
+        ..write('${c.padRight(longest)}')
+        ..writeln('${stats[c].toString().padLeft(pad)}');
+    });
+    out.writeln(line);
+  }
+
   void writeSummary() {
-    out
-      ..write('${pluralize("file", fileCount)} analyzed, ')
-      ..write('${pluralize("issue", errorCount)} found')
-      ..writeln(
-          "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}.");
+    var summary = '${pluralize("file", fileCount)} analyzed, '
+        '${pluralize("issue", errorCount)} found'
+        "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}.";
+    out.writeln(summary);
+    // Cache for output table sizing
+    _summaryLength = summary.length;
+  }
+
+  void _recordStats(AnalysisError error) {
+    var codeName = error.errorCode.name;
+    stats.putIfAbsent(codeName, () => 0);
+    stats[codeName]++;
   }
 
   void _writeLint(AnalysisError error, LineInfo lineInfo) {
@@ -152,5 +193,6 @@ class SimpleFormatter implements ReportFormatter {
     var column = lineInfo.getLocation(offset).columnNumber;
 
     writeLint(error, offset: offset, column: column, line: line);
+    _recordStats(error);
   }
 }

@@ -17,6 +17,8 @@ void main(List<String> args) {
   parser
     ..addFlag("help",
         abbr: "h", negatable: false, help: "Shows usage information.")
+    ..addFlag("stats",
+        abbr: "s", negatable: false, help: "Show lint statistics.")
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addOption('package-root',
@@ -73,9 +75,10 @@ void main(List<String> args) {
     List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
 
     var commonRoot = getRoot(options.rest);
+    var stats = options['stats'];
     ReportFormatter reporter = new ReportFormatter(
         errors, lintOptions.filter, outSink,
-        fileCount: filesToLint.length, fileRoot: commonRoot);
+        fileCount: filesToLint.length, fileRoot: commonRoot, showStatistics: stats);
     reporter.write();
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting

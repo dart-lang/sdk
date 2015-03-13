@@ -40,6 +40,7 @@ defineTests() {
 
       when(lineInfo.getLocation(any)).thenReturn(location);
       var code = new MockErrorCode();
+      when(code.name).thenReturn('mock_code');
       when(error.errorCode).thenReturn(code);
       var type = new MockErrorType();
       when(type.displayName).thenReturn('test');
@@ -65,6 +66,20 @@ defineTests() {
         expect(out.buffer.toString(), equals('''/foo/bar/baz.dart 3:3 [test] MSG
 
 1 file analyzed, 1 issue found.
+'''));
+      });
+
+      test('stats', () {
+        out.buffer.clear();
+        var reporter = new SimpleFormatter([info], null, out,
+            fileCount: 1, showStatistics: true);
+        reporter.write();
+        expect(out.buffer.toString(), equals('''/foo/bar/baz.dart 3:3 [test] MSG
+
+1 file analyzed, 1 issue found.
+-------------------------------
+mock_code                     1
+-------------------------------
 '''));
       });
     });
