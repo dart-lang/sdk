@@ -1474,7 +1474,6 @@ class Scanner {
     int next = _reader.advance();
     outer: while (next != -1) {
       while (next != quoteChar) {
-        next = _reader.advance();
         if (next == -1) {
           break outer;
         } else if (next == 0xD) {
@@ -1484,7 +1483,9 @@ class Scanner {
           }
           recordStartOfLine();
         } else if (next == 0xA) {
+          next = _reader.advance();
           recordStartOfLine();
+        } else {
           next = _reader.advance();
         }
       }
