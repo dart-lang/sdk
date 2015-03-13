@@ -388,9 +388,9 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
   }
 
   void forEachEntry(void f(DoubleLinkedQueueEntry<E> element)) {
-    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
+    _DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
+      _DoubleLinkedQueueEntry<E> nextEntry = entry._next;
       f(entry);
       entry = nextEntry;
     }
