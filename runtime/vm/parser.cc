@@ -10549,16 +10549,17 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                    arguments->NodeAt(1));
     }
   }
-  return new(Z) StaticCallNode(call_pos, func, arguments);
+  return new(Z) StaticCallNode(ident_pos, func, arguments);
 }
 
 
-AstNode* Parser::ParseInstanceCall(AstNode* receiver, const String& func_name) {
+AstNode* Parser::ParseInstanceCall(AstNode* receiver,
+                                   const String& func_name,
+                                   intptr_t ident_pos) {
   TRACE_PARSER("ParseInstanceCall");
-  const intptr_t call_pos = TokenPos();
   CheckToken(Token::kLPAREN);
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
-  return new(Z) InstanceCallNode(call_pos, receiver, func_name, arguments);
+  return new(Z) InstanceCallNode(ident_pos, receiver, func_name, arguments);
 }
 
 
@@ -10758,7 +10759,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           const Class& cls = Class::Cast(left->AsPrimaryNode()->primary());
           selector = ParseStaticCall(cls, *ident, ident_pos);
         } else {
-          selector = ParseInstanceCall(left, *ident);
+          selector = ParseInstanceCall(left, *ident, ident_pos);
         }
       } else {
         // Field access.
@@ -10852,7 +10853,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                           "from static function",
                           func_name.ToCString());
             }
-            selector = ParseInstanceCall(LoadReceiver(primary_pos), func_name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos),
+                                         func_name,
+                                         primary_pos);
           }
         } else if (primary_node->primary().IsString()) {
           // Primary is an unresolved name.
@@ -10871,7 +10874,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                               NULL);  // No existing function.
           } else {
             // Treat as call to unresolved (instance) method.
-            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos),
+                                         name,
+                                         primary_pos);
           }
         } else if (primary_node->primary().IsTypeParameter()) {
           const String& name = String::ZoneHandle(Z,
@@ -10884,7 +10889,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                         name.ToCString());
           } else {
             // Treat as call to unresolved (instance) method.
-            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos),
+                                         name,
+                                         primary_pos);
           }
         } else if (primary_node->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary_node->primary());

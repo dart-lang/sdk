@@ -20,5 +20,6 @@ class FunctionViewElement extends ObservatoryElement {
 
   void refreshCoverage(var done) {
     function.refreshCoverage().whenComplete(done);
+    function.refreshCallSiteData().whenComplete(done);
   }
 }

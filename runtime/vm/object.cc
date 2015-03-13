@@ -6858,7 +6858,6 @@ RawGrowableObjectArray* Function::CollectICsWithSourcePositions() const {
   const intptr_t begin_pos = token_pos();
   const intptr_t end_pos = end_token_pos();
 
-  const Script& script = Script::Handle(this->script());
   const GrowableObjectArray& result =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
 
@@ -6873,13 +6872,8 @@ RawGrowableObjectArray* Function::CollectICsWithSourcePositions() const {
         continue;
       }
 
-      intptr_t line = -1;
-      intptr_t column = -1;
-      script.GetTokenLocation(token_pos, &line, &column);
-
       result.Add(*ic_data);
-      result.Add(Smi::Handle(Smi::New(line)));
-      result.Add(Smi::Handle(Smi::New(column)));
+      result.Add(Smi::Handle(Smi::New(token_pos)));
     }
   }
 
@@ -11904,25 +11898,34 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void ICData::PrintToJSONArray(JSONArray* jsarray,
-                              intptr_t line,
-                              intptr_t column) const {
+                              intptr_t token_pos) const {
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle();
+  Function& func = Function::Handle();
 
   JSONObject jsobj(jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  jsobj.AddProperty("line", line);
-  jsobj.AddProperty("column", column);
+  jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
 
   JSONArray cache_entries(&jsobj, "cacheEntries");
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    intptr_t cid = GetReceiverClassIdAt(i);
-    cls ^= isolate->class_table()->At(cid);
+    func = GetTargetAt(i);
+    if (func.is_static() || (func.kind() == RawFunction::kConstructor)) {
+      cls ^= func.Owner();
+    } else {
+      intptr_t cid = GetReceiverClassIdAt(i);
+      cls ^= isolate->class_table()->At(cid);
+    }
     intptr_t count = GetCountAt(i);
     JSONObject cache_entry(&cache_entries);
-    cache_entry.AddProperty("receiverClass", cls);
+    if (cls.IsTopLevel()) {
+      cache_entry.AddProperty("receiverContainer",
+                              Library::Handle(cls.library()));
+    } else {
+      cache_entry.AddProperty("receiverContainer", cls);
+    }
     cache_entry.AddProperty("count", count);
   }
 }

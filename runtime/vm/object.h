@@ -3896,9 +3896,7 @@ class ICData : public Object {
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
 
-  void PrintToJSONArray(JSONArray* jsarray,
-                        intptr_t line,
-                        intptr_t column) const;
+  void PrintToJSONArray(JSONArray* jsarray, intptr_t token_pos) const;
 
  private:
   RawArray* ic_data() const {

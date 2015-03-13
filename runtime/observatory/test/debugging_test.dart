@@ -72,7 +72,7 @@ var tests = [
           Breakpoint bpt = result;
           expect(bpt.type, equals('Breakpoint'));
           expect(bpt.script.id, equals(script.id));
-          expect(bpt.tokenPos, equals(67));
+          expect(bpt.tokenPos, equals(66));
           expect(isolate.breakpoints.length, equals(1));
           return completer.future;  // Wait for breakpoint events.
       });
@@ -177,7 +177,7 @@ var tests = [
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.script.name, equals('debugging_test.dart'));
-    expect(bpt.tokenPos, equals(29));
+    expect(bpt.tokenPos, equals(28));
     expect(isolate.breakpoints.length, equals(1));
     return completer.future;  // Wait for breakpoint events.
   });

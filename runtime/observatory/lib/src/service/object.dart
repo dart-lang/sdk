@@ -1950,6 +1950,31 @@ class ServiceFunction extends ServiceObject with Coverage {
     deoptimizations = map['deoptimizations'];
     usageCounter = map['usageCounter'];
   }
+
+  // TODO(rmacnak): Generalize and move to Coverage.
+  void processCallSiteData(List callSiteMaps) {
+    var callSites = new List();
+    for (var callSiteMap in callSiteMaps) {
+      callSites.add(new CallSite.fromMap(callSiteMap, script));
+    }
+    script._processCallSites(callSites);
+  }
+
+  Future refreshCallSiteData() {
+    Map params = {};
+    if (this is! Isolate) {
+      params['targetId'] = id;
+    }
+    return isolate.invokeRpcNoUpgrade('getCallSiteData', params).then(
+        (ObservableMap map) {
+          var data = new ServiceObject._fromMap(isolate, map);
+          assert(data.type == '_CallSiteData');
+          var callSites = data['callSites'];
+          assert(callSites != null);
+          processCallSiteData(callSites);
+          return this;
+        });
+  }
 }
 
 
@@ -2073,7 +2098,52 @@ class ScriptLine extends Observable {
   }
 }
 
+class CallSite {
+  final String name;
+  final Script script;
+  final int tokenPos;
+  final List<CallSiteEntry> entries;
+
+  CallSite(this.name, this.script, this.tokenPos, this.entries);
+
+  int get line => script.tokenToLine(tokenPos);
+  int get column => script.tokenToCol(tokenPos);
+
+
+  factory CallSite.fromMap(Map siteMap, Script script) {
+    var name = siteMap['name'];
+    var tokenPos = siteMap['tokenPos'];
+    var entries = new List<CallSiteEntry>();
+    for (var entryMap in siteMap['cacheEntries']) {
+      entries.add(new CallSiteEntry.fromMap(entryMap));
+    }
+    return new CallSite(name, script, tokenPos, entries);
+  }
+
+  operator ==(other) {
+    return (script == other.script) && (tokenPos == other.tokenPos);
+  }
+  int get hashCode => (script.hashCode << 8) | tokenPos;
+
+  String toString() => "CallSite($name, $tokenPos)";
+}
+
+class CallSiteEntry {
+  final /* Class | Library */ receiverContainer;
+  final int count;
+
+  CallSiteEntry(this.receiverContainer, this.count);
+
+  factory CallSiteEntry.fromMap(Map entryMap) {
+    return new CallSiteEntry(entryMap['receiverContainer'],
+                             entryMap['count']);
+  }
+
+  String toString() => "CallSiteEntry(${receiverContainer.name}, $count)";
+}
+
 class Script extends ServiceObject with Coverage {
+  Set<CallSite> callSites = new Set<CallSite>();
   final lines = new ObservableList<ScriptLine>();
   final _hits = new Map<int, int>();
   @observable String kind;
@@ -2156,6 +2226,15 @@ class Script extends ServiceObject with Coverage {
         line.possibleBpt = false;
       }
     }
+  }
+
+  void _processCallSites(List newCallSites) {
+    var mergedCallSites = new Set();
+    mergedCallSites.addAll(newCallSites);
+    mergedCallSites.addAll(callSites);
+    callSites = mergedCallSites;
+    // Notify any Observers that this Script's state has changed.
+    notifyChange(null);
   }
 
   void _processHits(List scriptHits) {

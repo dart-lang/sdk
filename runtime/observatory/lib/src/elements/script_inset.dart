@@ -12,15 +12,47 @@ import 'package:polymer/polymer.dart';
 
 const nbsp = "\u00A0";
 
-class Annotation {
+abstract class Annotation {
   int line;
   int columnStart;
   int columnStop;
-  String title;
+
+  void applyStyleTo(element);
+}
+
+class CurrentExecutionAnnotation extends Annotation {
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.classes.add("currentCol");
+    element.title = "Current execution";
+  }
+}
+
+class CallSiteAnnotation extends Annotation {
+  CallSite callSite;
 
   void applyStyleTo(element) {
-    element.classes.add("currentCol");
-    element.title = title;
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.textDecoration = "underline";
+    element.style.color = "blue";
+
+    StringBuffer sb = new StringBuffer();
+    sb.write("Call site: ");
+    sb.write(callSite.name);
+    sb.write("\n");
+    for (var entry in callSite.entries) {
+      sb.write("Class: ");
+      // TODO(rmacnak): Make this a link.
+      sb.write(entry.receiverContainer.name);
+      sb.write(" Count: ");
+      sb.write(entry.count);
+      sb.write("\n");
+    }
+    element.title = sb.toString();
   }
 }
 
@@ -150,15 +182,29 @@ class ScriptInsetElement extends ObservatoryElement {
 
     annotations.clear();
     if (currentLine != null) {
-      var a = new Annotation();
+      var a = new CurrentExecutionAnnotation();
       a.line = currentLine;
       a.columnStart = currentCol;
       a.columnStop = currentCol + 1;
-      a.title = "Point of interest";
       annotations.add(a);
     }
 
-    // TODO(rmacnak): Call site data.
+    for (var callSite in script.callSites) {
+      var a = new CallSiteAnnotation();
+      a.line = callSite.line;
+      a.columnStart = callSite.column - 1;  // Call site is 1-origin.
+      var tokenLength = callSite.name.length;  // Approximate.
+      a.columnStop = a.columnStart + tokenLength;
+      a.callSite = callSite;
+      annotations.add(a);
+    }
+
+    annotations.sort((a, b) {
+      if (a.line == b.line) {
+        return a.columnStart.compareTo(b.columnStart);
+      }
+      return a.line.compareTo(b.line);
+    });
   }
 
   Element linesTable() {
@@ -250,8 +296,13 @@ class ScriptInsetElement extends ObservatoryElement {
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return;  // Empty gap between annotations/boundries.
+          return null;  // Empty gap between annotations/boundries.
         }
+        if (stop > line.text.length) {
+          // Approximated token length can run past the end of the line.
+          stop = line.text.length;
+        }
+
         var chunk = line.text.substring(position, stop);
         var chunkNode = span(chunk);
         e.append(chunkNode);

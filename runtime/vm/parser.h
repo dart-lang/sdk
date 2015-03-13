@@ -699,7 +699,9 @@ class Parser : public ValueObject {
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
                            intptr_t ident_pos);
-  AstNode* ParseInstanceCall(AstNode* receiver, const String& method_name);
+  AstNode* ParseInstanceCall(AstNode* receiver,
+                             const String& method_name,
+                             intptr_t ident_pos);
   AstNode* ParseClosureCall(AstNode* closure);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      intptr_t ident_pos);

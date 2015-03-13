@@ -1577,14 +1577,12 @@ static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
     jsobj.AddProperty("type", "_CallSiteData");
     jsobj.AddProperty("function", func);
     JSONArray elements(&jsobj, "callSites");
-    Smi& line = Smi::Handle();
-    Smi& column = Smi::Handle();
     ICData& ic_data = ICData::Handle();
+    Smi& token_pos = Smi::Handle();
     for (intptr_t i = 0; i < ics.Length();) {
       ic_data ^= ics.At(i++);
-      line ^= ics.At(i++);
-      column ^= ics.At(i++);
-      ic_data.PrintToJSONArray(&elements, line.Value(), column.Value());
+      token_pos ^= ics.At(i++);
+      ic_data.PrintToJSONArray(&elements, token_pos.Value());
     }
     return true;
   }
