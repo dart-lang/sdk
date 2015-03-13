@@ -6337,18 +6337,21 @@ class EnumMemberBuilderTest extends EngineTestCase {
     expect(constant, isNotNull);
     expect(constant.name, firstName);
     expect(constant.isStatic, isTrue);
+    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
     _assertGetter(constant);
 
     constant = fields[3];
     expect(constant, isNotNull);
     expect(constant.name, secondName);
     expect(constant.isStatic, isTrue);
+    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
     _assertGetter(constant);
 
     constant = fields[4];
     expect(constant, isNotNull);
     expect(constant.name, thirdName);
     expect(constant.isStatic, isTrue);
+    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
     _assertGetter(constant);
   }
 
@@ -6373,12 +6376,14 @@ class EnumMemberBuilderTest extends EngineTestCase {
     expect(field.name, "values");
     expect(field.isStatic, isTrue);
     expect(field.isSynthetic, isTrue);
+    expect((field as FieldElementImpl).evaluationResult, isNotNull);
     _assertGetter(field);
 
     FieldElement constant = fields[2];
     expect(constant, isNotNull);
     expect(constant.name, firstName);
     expect(constant.isStatic, isTrue);
+    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
     _assertGetter(constant);
   }
 
