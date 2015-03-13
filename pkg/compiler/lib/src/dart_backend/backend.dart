@@ -159,10 +159,12 @@ class DartBackend extends Backend {
 
     // TODO(karlklose): enable type propagation for dart2dart when constant
     // types are correctly marked as instantiated (Issue 21880).
-    applyCpsPass(new TypePropagator(context.dartTypes,
-                           context.constantSystem,
-                           new UnitTypeSystem(),
-                           context.internalError));
+    TypePropagator typePropagator = new TypePropagator(
+        context.dartTypes,
+        context.constantSystem,
+        new UnitTypeSystem(),
+        context.internalError);
+    applyCpsPass(typePropagator);
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
 

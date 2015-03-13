@@ -1225,11 +1225,11 @@ abstract class IrBuilder {
     //
     // let cont continue(x, ...) =
     //     let prim cond = [[condition]] in
-    //     let cont break() = [[successor]] in
-    //     let cont exit() = break(v, ...) in
-    //     let cont body() = [[body]]; continue(v, ...) in
-    //     branch cond (body, exit) in
-    // continue(v, ...)
+    //     let cont break(x, ...) = [[successor]] in
+    //     let cont exit() = break(v, ...)
+    //          and body() = [[body]]; continue(v, ...)
+    //     in branch cond (body, exit)
+    // in continue(v, ...)
     //
     // If there are no breaks in the body, the break continuation is inlined
     // in the exit continuation (i.e., the translation of the successor
@@ -1295,6 +1295,125 @@ abstract class IrBuilder {
       _current = condBuilder._current;
       environment = condBuilder.environment;
     }
+  }
+
+
+  /// Creates a do-while loop.
+  ///
+  /// The body and condition are created by [buildBody] and [buildCondition].
+  /// The jump target [target] is the target of `break` and `continue`
+  /// statements in the body that have the loop as their target.
+  /// [closureScope] contains all the variables declared in the loop (but not
+  /// declared in some inner closure scope).
+  void buildDoWhile({SubbuildFunction buildBody,
+                     SubbuildFunction buildCondition,
+                     JumpTarget target,
+                     ClosureScope closureScope}) {
+    assert(isOpen);
+    // The CPS translation of [[do body; while (condition); successor]] is:
+    //
+    // let cont break(x, ...) = [[successor]] in
+    // let cont rec loop(x, ...) =
+    //   let cont continue(x, ...) =
+    //     let prim cond = [[condition]] in
+    //       let cont exit() = break(v, ...)
+    //            and repeat() = loop(v, ...)
+    //       in branch cond (repeat, exit)
+    //   in [[body]]; continue(v, ...)
+    // in loop(v, ...)
+    IrBuilder bodyBuilder = makeRecursiveBuilder();
+    IrBuilder continueBuilder = bodyBuilder.makeRecursiveBuilder();
+
+    // Construct the continue continuation (i.e., the condition).
+    // <Continue> =
+    // let prim cond = [[condition]] in
+    //   let cont exit() = break(v, ...)
+    //        and repeat() = loop(v, ...)
+    //   in branch cond (repeat, exit)
+    ir.Primitive condition = buildCondition(continueBuilder);
+    // Use a delimited IrBuilder for the exit continuation's body so that
+    // we can capture the break with the body's break collector.
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    IrBuilder exitBuilder = continueBuilder.makeDelimitedBuilder();
+    ir.Continuation repeatContinuation = new ir.Continuation([]);
+    ir.InvokeContinuation invokeLoop =
+        new ir.InvokeContinuation.uninitialized(recursive: true);
+    invokeLoop.arguments =
+        continueBuilder.environment.index2value.map(
+            (ir.Primitive value) => new ir.Reference(value)).toList();
+    repeatContinuation.body = invokeLoop;
+    continueBuilder.add(
+        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
+                                              repeatContinuation],
+            new ir.Branch(new ir.IsTrue(condition),
+                          repeatContinuation,
+                          exitContinuation)));
+    ir.Continuation continueContinuation =
+        new ir.Continuation(continueBuilder._parameters);
+    continueContinuation.body = continueBuilder._root;
+
+    // Construct the loop continuation (i.e., the body and condition).
+    // <Loop> =
+    // let cont continue(x, ...) =
+    //   <Continue>
+    // in [[body]]; continue(v, ...)
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
+    state.breakCollectors.add(breakCollector);
+    state.continueCollectors.add(continueCollector);
+    bodyBuilder._enterScope(closureScope);
+    buildBody(bodyBuilder);
+    assert(state.breakCollectors.last == breakCollector);
+    assert(state.continueCollectors.last == continueCollector);
+    state.breakCollectors.removeLast();
+    state.continueCollectors.removeLast();
+    // Add the jump from the loop's exit to the break condition.  It is only
+    // here where the exitBuilder's root is non-null and we can set the
+    // exitContinuation's body.
+    breakCollector.addJump(exitBuilder);
+    exitContinuation.body = exitBuilder._root;
+    if (bodyBuilder.isOpen) {
+      continueCollector.addJump(bodyBuilder);
+    }
+    invokeFullJoin(continueContinuation, continueCollector, recursive: false);
+    ir.Continuation loopContinuation =
+        new ir.Continuation(bodyBuilder._parameters);
+    loopContinuation.isRecursive = true;
+    loopContinuation.body =
+        new ir.LetCont(continueContinuation, bodyBuilder._root);
+    invokeLoop.continuation =
+        new ir.Reference<ir.Continuation>(loopContinuation);
+    ir.LetCont letLoop =
+        new ir.LetCont(loopContinuation,
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value));
+
+    // Add the break condition.
+    ir.Continuation breakContinuation;
+    if (breakCollector.length == 1) {
+      // createJoin only works when there is more than one jump to a join-point
+      // continuation.  This is to potentially catch errors in the case that
+      // a join was intended and at least one jump is missing.  Unfortunately
+      // we have the explicit code below for the (common?) case that the
+      // only break from the do-while is the implicit one when the condition
+      // is false.
+      List<ir.Parameter> parameters = <ir.Parameter>[];
+      List<ir.Reference> arguments = <ir.Reference>[];
+      for (int i = 0; i < environment.length; ++i) {
+        ir.Parameter parameter =
+            new ir.Parameter(environment.index2variable[i]);
+        parameters.add(parameter);
+        environment.index2value[i] = parameter;
+        arguments.add(new ir.Reference(breakCollector.environments.first[i]));
+      }
+      breakContinuation = new ir.Continuation(parameters);
+      breakCollector.invocations.first.arguments = arguments;
+      breakCollector.invocations.first.continuation =
+          new ir.Reference(breakContinuation);
+    } else {
+      breakContinuation = createJoin(environment.length, breakCollector);
+    }
+    add(new ir.LetCont(breakContinuation, letLoop));
   }
 
   /// Creates a try-statement.

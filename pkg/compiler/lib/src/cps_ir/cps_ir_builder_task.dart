@@ -374,6 +374,14 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
   }
 
+  visitDoWhile(ast.DoWhile node) {
+    irBuilder.buildDoWhile(
+        buildBody: subbuild(node.body),
+        buildCondition: subbuild(node.condition),
+        target: elements.getTargetDefinition(node),
+        closureScope: getClosureScopeForNode(node));
+  }
+
   visitWhile(ast.While node) {
     irBuilder.buildWhile(
         buildCondition: subbuild(node.condition),
