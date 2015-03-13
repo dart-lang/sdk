@@ -57,7 +57,7 @@ class _LazyMangledNamesMap {
   _LazyMangledNamesMap(this._jsMangledNames);
 
   String operator[](String key) {
-    String result = JS('var', '#[#]', _jsMangledNames, key);
+    var result = JS('var', '#[#]', _jsMangledNames, key);
     // Filter out all non-string values to protect against polution from
     // anciliary fields in [_jsMangledNames].
     bool filter =
