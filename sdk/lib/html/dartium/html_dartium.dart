@@ -24835,17 +24835,18 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
 @Experimental() // experimental
 class Notification extends EventTarget {
 
-  factory Notification(String title, {String titleDir: null, String body: null,
-      String bodyDir: null, String tag: null, String iconUrl: null}) {
+  factory Notification(String title, {String dir: null, String body: null,
+      String lang: null, String tag: null, String icon: null}) {
 
     var parsedOptions = {};
-    if (titleDir != null) parsedOptions['titleDir'] = titleDir;
+    if (dir != null) parsedOptions['dir'] = dir;
     if (body != null) parsedOptions['body'] = body;
-    if (bodyDir != null) parsedOptions['bodyDir'] = bodyDir;
+    if (lang != null) parsedOptions['lang'] = lang;
     if (tag != null) parsedOptions['tag'] = tag;
-    if (iconUrl != null) parsedOptions['iconUrl'] = iconUrl;
-
-    return Notification._factoryNotification(title, parsedOptions);
+    if (icon != null) parsedOptions['icon'] = icon;
+    var nativeOptions;
+    nativeOptions = parsedOptions;
+    return Notification._factoryNotification(title, nativeOptions);
   }
   // To suppress missing implicit constructor warnings.
   factory Notification._() { throw new UnsupportedError("Not supported"); }
@@ -24898,6 +24899,9 @@ class Notification extends EventTarget {
     }
     return _blink.BlinkNotification.instance.constructorCallback_1_(title);
   }
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('Notification.body')
   @DocsEditable()

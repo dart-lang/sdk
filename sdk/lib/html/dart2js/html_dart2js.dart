@@ -22684,17 +22684,18 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
 @Native("Notification")
 class Notification extends EventTarget {
 
-  factory Notification(String title, {String titleDir: null, String body: null,
-      String bodyDir: null, String tag: null, String iconUrl: null}) {
+  factory Notification(String title, {String dir: null, String body: null,
+      String lang: null, String tag: null, String icon: null}) {
 
     var parsedOptions = {};
-    if (titleDir != null) parsedOptions['titleDir'] = titleDir;
+    if (dir != null) parsedOptions['dir'] = dir;
     if (body != null) parsedOptions['body'] = body;
-    if (bodyDir != null) parsedOptions['bodyDir'] = bodyDir;
+    if (lang != null) parsedOptions['lang'] = lang;
     if (tag != null) parsedOptions['tag'] = tag;
-    if (iconUrl != null) parsedOptions['iconUrl'] = iconUrl;
-
-    return Notification._factoryNotification(title, parsedOptions);
+    if (icon != null) parsedOptions['icon'] = icon;
+    var nativeOptions;
+    nativeOptions = convertDartToNative_Dictionary(parsedOptions);
+    return Notification._factoryNotification(title, nativeOptions);
   }
   // To suppress missing implicit constructor warnings.
   factory Notification._() { throw new UnsupportedError("Not supported"); }
@@ -22749,6 +22750,9 @@ class Notification extends EventTarget {
   }
   static Notification _create_1(title, options) => JS('Notification', 'new Notification(#,#)', title, options);
   static Notification _create_2(title) => JS('Notification', 'new Notification(#)', title);
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.Notification)');
 
   @DomName('Notification.body')
   @DocsEditable()

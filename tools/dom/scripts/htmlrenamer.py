@@ -98,7 +98,6 @@ _removed_html_interfaces = [
   'IDBAny',
   'MutationEvent',
   'Notation',
-  'NotificationCenter',
   'PagePopupController',
   'RGBColor',
   'RadioNodeList',  # Folded onto NodeList in dart2js.
@@ -163,7 +162,6 @@ convert_to_future_members = monitored.Set(
   'FontLoader.notifyWhenFontsReady',
   'MediaStreamTrack.getSources',
   'Notification.requestPermission',
-  'NotificationCenter.requestPermission',
   'RTCPeerConnection.setLocalDescription',
   'RTCPeerConnection.setRemoteDescription',
   'StorageInfo.requestQuota',

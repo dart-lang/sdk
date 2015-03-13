@@ -123,6 +123,7 @@ deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 localstorage_test: Pass, RuntimeError # Issue 22166
 storage_test: Pass, RuntimeError # Issue 22166
 postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
+notification_test: Fail # Notification not supported on IE
 
 [$runtime == ie10 || $runtime == ie11 || ($runtime == chrome && $system == macos)]
 transition_event_test/functional: Skip # Times out. Issue 22167

@@ -525,7 +525,6 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
     "@Experimental()",
   ],
-  'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
   'PopStateEvent': _history_annotations,
   'RTCIceCandidate': _rtc_annotations,
