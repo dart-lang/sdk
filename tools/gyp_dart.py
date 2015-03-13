@@ -26,7 +26,7 @@ def main():
     'all' : 'dart/dart.gyp',
     'runtime' : 'dart/runtime/dart-runtime.gyp',
   }
-  args = ['python', 'dart/third_party/gyp/gyp_main.py',
+  args = ['python', '-S', 'dart/third_party/gyp/gyp_main.py',
           '--depth=dart', '-Idart/tools/gyp/all.gypi',
           component_gyp_files[component]]
 
