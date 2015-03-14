@@ -436,6 +436,20 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_overrides() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {m() {^}}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
+          DART_RELEVANCE_LOCAL_METHOD);
+    });
+  }
+
   test_partFile() {
     addFile('/project/bin/testA.dart', '''
       library libA;

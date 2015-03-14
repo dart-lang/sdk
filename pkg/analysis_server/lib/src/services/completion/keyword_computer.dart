@@ -219,7 +219,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   void _addSuggestion(Keyword keyword,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
     String completion = keyword.syntax;
-    request.suggestions.add(new CompletionSuggestion(
+    request.addSuggestion(new CompletionSuggestion(
         CompletionSuggestionKind.KEYWORD,
         relevance, completion, completion.length, 0, false, false));
   }

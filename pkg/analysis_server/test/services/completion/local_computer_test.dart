@@ -194,6 +194,15 @@ void main() {
     assertNotSuggested('x');
   }
 
+  test_overrides() {
+    addTestSource('''
+class A {m() {}}
+class B extends A {m() {^}}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
+  }
+
   test_break_ignores_unrelated_statements() {
     addTestSource('''
 void main() {
