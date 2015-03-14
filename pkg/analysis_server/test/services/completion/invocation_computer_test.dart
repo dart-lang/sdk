@@ -137,6 +137,22 @@ void f(C<int> c) {
     });
   }
 
+  test_libraryPrefix() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {bar.^}');
+    return computeFull((bool result) {
+      assertSuggestClass('Future');
+    });
+  }
+
+  test_libraryPrefix2() {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {bar.^ print("f")}');
+    return computeFull((bool result) {
+      assertSuggestClass('Future');
+    });
+  }
+
   test_local() {
     addTestSource('foo() {String x = "bar"; x.^}');
     return computeFull((bool result) {
