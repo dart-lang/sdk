@@ -27,6 +27,20 @@ typedef AnalysisTask BuildTask(AnalysisContext context, AnalysisTarget target);
 typedef Map<String, TaskInput> CreateTaskInputs(AnalysisTarget target);
 
 /**
+ * An [AnalysisTarget] wrapper for an [AnalysisContext].
+ */
+class AnalysisContextTarget implements AnalysisTarget {
+  static final AnalysisContextTarget request = new AnalysisContextTarget(null);
+
+  final AnalysisContext context;
+
+  AnalysisContextTarget(this.context);
+
+  @override
+  Source get source => null;
+}
+
+/**
  * An object with which an analysis result can be associated.
  *
  * Clients are allowed to subtype this class when creating new kinds of targets.

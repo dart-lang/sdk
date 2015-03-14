@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
@@ -233,6 +234,7 @@ class AnalysisDriver {
 abstract class ExtendedAnalysisContext implements InternalAnalysisContext {
   List<AnalysisTarget> get explicitTargets;
   List<AnalysisTarget> get priorityTargets;
+  void set typeProvider(TypeProvider typeProvider);
   CacheEntry getCacheEntry(AnalysisTarget target);
 }
 
@@ -281,8 +283,12 @@ class WorkItem {
    * described by the given descriptor.
    */
   WorkItem(this.context, this.target, this.descriptor) {
+    AnalysisTarget actualTarget = identical(
+            target, AnalysisContextTarget.request)
+        ? new AnalysisContextTarget(context)
+        : target;
     Map<String, TaskInput> inputDescriptors =
-        descriptor.createTaskInputs(target);
+        descriptor.createTaskInputs(actualTarget);
     builder = new TopLevelTaskInputBuilder(inputDescriptors);
     if (!builder.moveNext()) {
       builder = null;

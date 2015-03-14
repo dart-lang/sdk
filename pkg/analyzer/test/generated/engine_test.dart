@@ -205,8 +205,9 @@ class AnalysisContextImplTest extends EngineTestCase {
     _analyzeAll_assertFinished();
     expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull,
         reason: "htmlUnit resolved 1");
-    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource),
-        isNotNull, reason: "libB resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull,
+        reason: "libB resolved 1");
     expect(!_hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)),
         isTrue, reason: "htmlSource doesn't have errors");
     // remove libB.dart content and analyze
@@ -690,8 +691,9 @@ main() {}''');
     DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
     dartEntry.flushAstStructures();
     bool completed = false;
-    _context.computeResolvedCompilationUnitAsync(source, source).then(
-        (CompilationUnit unit) {
+    _context
+        .computeResolvedCompilationUnitAsync(source, source)
+        .then((CompilationUnit unit) {
       expect(unit, isNotNull);
       completed = true;
     });
@@ -1684,8 +1686,9 @@ void g() { f(null); }''');
     _analyzeAll_assertFinished();
     expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull,
         reason: "htmlUnit resolved 1");
-    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource),
-        isNotNull, reason: "libB resolved 2");
+    expect(
+        _context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull,
+        reason: "libB resolved 2");
     // TODO (danrubel) commented out to fix red bots
 //    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
 //    expect(
@@ -2351,9 +2354,8 @@ class DartEntryTest extends EngineTestCase {
       new AnalysisError.con1(
           source, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)
     ]);
-    entry.setValueInLibrary(DartEntry.HINTS, source, <AnalysisError>[
-      new AnalysisError.con1(source, HintCode.DEAD_CODE)
-    ]);
+    entry.setValueInLibrary(DartEntry.HINTS, source,
+        <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE)]);
     expect(entry.allErrors, hasLength(6));
   }
 
@@ -3393,9 +3395,8 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_setValue_hints() {
-    _setValueInLibrary(DartEntry.HINTS, <AnalysisError>[
-      new AnalysisError.con1(null, HintCode.DEAD_CODE)
-    ]);
+    _setValueInLibrary(DartEntry.HINTS,
+        <AnalysisError>[new AnalysisError.con1(null, HintCode.DEAD_CODE)]);
   }
 
   void test_setValue_importedLibraries() {
@@ -3953,9 +3954,8 @@ class HtmlEntryTest extends EngineTestCase {
     entry.setValue(HtmlEntry.RESOLUTION_ERRORS, <AnalysisError>[
       new AnalysisError.con1(source, HtmlWarningCode.INVALID_URI, ["-"])
     ]);
-    entry.setValue(HtmlEntry.HINTS, <AnalysisError>[
-      new AnalysisError.con1(source, HintCode.DEAD_CODE)
-    ]);
+    entry.setValue(HtmlEntry.HINTS,
+        <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE)]);
     expect(entry.allErrors, hasLength(3));
   }
 
@@ -4020,9 +4020,8 @@ class HtmlEntryTest extends EngineTestCase {
   }
 
   void test_setValue_hints() {
-    _setValue(HtmlEntry.HINTS, <AnalysisError>[
-      new AnalysisError.con1(null, HintCode.DEAD_CODE)
-    ]);
+    _setValue(HtmlEntry.HINTS,
+        <AnalysisError>[new AnalysisError.con1(null, HintCode.DEAD_CODE)]);
   }
 
   void test_setValue_illegal() {
@@ -5497,6 +5496,10 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  void set typeProvider(TypeProvider typeProvider) {
+    fail("Unexpected invocation of set typeProvider");
+  }
+  @override
   TypeResolverVisitorFactory get typeResolverVisitorFactory {
     fail("Unexpected invocation of getTypeResolverVisitorFactory");
     return null;
@@ -5736,6 +5739,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of resolveHtmlUnit");
     return null;
   }
+
   @override
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {

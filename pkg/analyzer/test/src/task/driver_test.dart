@@ -140,9 +140,8 @@ class AnalysisDriverTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
     CaughtException exception = new CaughtException(null, null);
-    context
-        .getCacheEntry(target)
-        .setErrorState(exception, <ResultDescriptor>[result]);
+    context.getCacheEntry(target).setErrorState(
+        exception, <ResultDescriptor>[result]);
 
     expect(driver.createWorkOrderForResult(target, result), isNull);
   }
@@ -234,10 +233,9 @@ class AnalysisDriverTest extends EngineTestCase {
     TaskDescriptor descriptor1 = new TaskDescriptor(
         'task1', (context, target) => task1, (target) => {}, [resultA]);
     TaskDescriptor descriptor2 = new TaskDescriptor('task2',
-        (context, target) => task2,
-        (target) => {'inputA': new SimpleTaskInput<int>(target, resultA)}, [
-      resultB
-    ]);
+        (context, target) => task2, (target) => {
+      'inputA': new SimpleTaskInput<int>(target, resultA)
+    }, [resultB]);
     task1 = new TestAnalysisTask(context, target,
         descriptor: descriptor1, results: [resultA], value: 10);
     task2 = new TestAnalysisTask(context, target,
@@ -316,9 +314,8 @@ class AnalysisDriverTest extends EngineTestCase {
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': inputResult.inputFor(target)}, [
-      new ResultDescriptor('output', null)
-    ]);
+        (target) => {'one': inputResult.inputFor(target)},
+        [new ResultDescriptor('output', null)]);
     driver.currentWorkOrder =
         new WorkOrder(manager, new WorkItem(null, null, descriptor));
 
@@ -386,9 +383,8 @@ class WorkItemTest extends EngineTestCase {
     AnalysisContext context = new _TestContext();
     AnalysisTarget target = new TestSource();
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
-    List<ResultDescriptor> outputResults = <ResultDescriptor>[
-      new ResultDescriptor('output', null)
-    ];
+    List<ResultDescriptor> outputResults =
+        <ResultDescriptor>[new ResultDescriptor('output', null)];
     TaskDescriptor descriptor = new TaskDescriptor('task', (context, target) =>
             new TestAnalysisTask(context, target, results: outputResults),
         (target) => {'one': inputResult.inputFor(target)}, outputResults);
@@ -446,9 +442,8 @@ class WorkItemTest extends EngineTestCase {
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': inputResult.inputFor(target)}, [
-      new ResultDescriptor('output', null)
-    ]);
+        (target) => {'one': inputResult.inputFor(target)},
+        [new ResultDescriptor('output', null)]);
     WorkItem item = new WorkItem(context, target, descriptor);
     WorkItem result = item.gatherInputs(manager);
     expect(result, isNull);
@@ -567,6 +562,11 @@ class _TestContext implements ExtendedAnalysisContext {
 
   @override
   TypeProvider get typeProvider => baseContext.typeProvider;
+
+  @override
+  void set typeProvider(TypeProvider typeProvider) {
+    baseContext.typeProvider = typeProvider;
+  }
 
   @override
   TypeResolverVisitorFactory get typeResolverVisitorFactory =>

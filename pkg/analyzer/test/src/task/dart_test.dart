@@ -37,6 +37,7 @@ main() {
   runReflectiveTests(BuildDirectiveElementsTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
+  runReflectiveTests(BuildTypeProviderTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ScanDartTaskTest);
 }
@@ -673,6 +674,20 @@ d() {}
 }
 
 @reflectiveTest
+class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    _computeResult(AnalysisContextTarget.request, TYPE_PROVIDER);
+    expect(task, new isInstanceOf<BuildTypeProviderTask>());
+    // validate
+    TypeProvider typeProvider = outputs[TYPE_PROVIDER];
+    expect(typeProvider, isNotNull);
+    expect(typeProvider.boolType, isNotNull);
+    expect(typeProvider.intType, isNotNull);
+    expect(typeProvider.futureType, isNotNull);
+  }
+}
+
+@reflectiveTest
 class ParseDartTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
     Map<String, TaskInput> inputs = ParseDartTask.buildInputs(emptySource);
@@ -855,6 +870,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
@@ -862,6 +878,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
 
   void _computeResult(AnalysisTarget target, ResultDescriptor result) {
     task = analysisDriver.computeResult(target, result);
+    expect(task.caughtException, isNull);
     outputs = task.outputs;
   }
 
@@ -894,6 +911,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
 class _MockContext extends TypedMock implements ExtendedAnalysisContext {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   SourceFactory sourceFactory;
+  TypeProvider typeProvider;
 
   Map<AnalysisTarget, CacheEntry> entryMap = <AnalysisTarget, CacheEntry>{};
 

@@ -1074,6 +1074,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   IncrementalAnalysisCache _incrementalAnalysisCache;
 
   /**
+   * The [TypeProvider] for this context, `null` if not yet created.
+   */
+  TypeProvider _typeProvider;
+
+  /**
    * The object used to manage the list of sources that need to be analyzed.
    */
   WorkManager _workManager = new WorkManager();
@@ -1518,6 +1523,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   TypeProvider get typeProvider {
+    if (_typeProvider != null) {
+      return _typeProvider;
+    }
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     if (coreSource == null) {
       throw new AnalysisException("Could not create a source for dart:core");
@@ -1534,7 +1542,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (asyncElement == null) {
       throw new AnalysisException("Could not create an element for dart:async");
     }
-    return new TypeProviderImpl(coreElement, asyncElement);
+    _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
+    return _typeProvider;
+  }
+
+  /**
+   * Sets the [TypeProvider] for this context.
+   */
+  void set typeProvider(TypeProvider typeProvider) {
+    _typeProvider = typeProvider;
   }
 
   @override
@@ -9542,6 +9558,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * Returns a statistics about this context.
    */
   AnalysisContextStatistics get statistics;
+
+  /**
+   * Sets the [TypeProvider] for this context.
+   */
+  void set typeProvider(TypeProvider typeProvider);
 
   /** A factory to override how [TypeResolverVisitor] is created. */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;

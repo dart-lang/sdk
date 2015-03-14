@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/task/dart.dart';
@@ -86,6 +87,12 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null);
+
+/**
+ * The [TypeProvider] of the context.
+ */
+final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
+    new ResultDescriptor<TypeProvider>('TYPE_PROVIDER', null);
 
 /**
  * A task that builds a compilation unit element for a single compilation unit.
@@ -711,6 +718,67 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
   static BuildPublicNamespaceTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new BuildPublicNamespaceTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [TYPE_PROVIDER] for a context.
+ */
+class BuildTypeProviderTask extends SourceBasedAnalysisTask {
+  /**
+   * The [RESOLVED_UNIT3] input of the `dart:core` library.
+   */
+  static const String CORE_INPUT = 'CORE_INPUT';
+
+  /**
+   * The [RESOLVED_UNIT3] input of the `dart:async` library.
+   */
+  static const String ASYNC_INPUT = 'ASYNC_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildTypeProviderTask', createTask, buildInputs,
+      <ResultDescriptor>[TYPE_PROVIDER]);
+
+  BuildTypeProviderTask(
+      InternalAnalysisContext context, AnalysisContextTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    CompilationUnit coreUnit = getRequiredInput(CORE_INPUT);
+    CompilationUnit asyncUnit = getRequiredInput(ASYNC_INPUT);
+    LibraryElement coreLibrary = coreUnit.element.library;
+    LibraryElement asyncLibrary = asyncUnit.element.library;
+    //
+    // Record outputs.
+    //
+    TypeProvider typeProvider = new TypeProviderImpl(coreLibrary, asyncLibrary);
+    (context as ExtendedAnalysisContext).typeProvider = typeProvider;
+    outputs[TYPE_PROVIDER] = typeProvider;
+  }
+
+  static Map<String, TaskInput> buildInputs(AnalysisContextTarget target) {
+    SourceFactory sourceFactory = target.context.sourceFactory;
+    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
+    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+    return <String, TaskInput>{
+      CORE_INPUT: RESOLVED_UNIT3.inputFor(coreSource),
+      ASYNC_INPUT: RESOLVED_UNIT3.inputFor(asyncSource)
+    };
+  }
+
+  /**
+   * Create a [BuildTypeProviderTask] based on the given [context].
+   */
+  static BuildTypeProviderTask createTask(
+      AnalysisContext context, AnalysisContextTarget target) {
+    return new BuildTypeProviderTask(context, target);
   }
 }
 
