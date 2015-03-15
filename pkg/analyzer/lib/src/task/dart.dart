@@ -519,6 +519,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   ]);
 
   /**
+   * The constant used as an unknown common library name in parts.
+   */
+  static const String _UNKNOWN_LIBRARY_NAME = 'unknown-library-name';
+
+  /**
    * Initialize a newly created task to build a library element for the given
    * [target] in the given [context].
    */
@@ -556,6 +561,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     // Update "part" directives.
     //
     LibraryIdentifier libraryNameNode = null;
+    String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
     bool hasHtmlImport = false;
     bool hasPartDirective = false;
     FunctionElement entryPoint =
@@ -593,10 +599,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
                 partUri.length, CompileTimeErrorCode.PART_OF_NON_PART,
                 [partUri.toSource()]));
           } else if (libraryNameNode == null) {
-            // TODO(brianwilkerson) Collect the names declared by the part.
-            // If they are all the same then we can use that name as the
-            // inferred name of the library and present it in a quick-fix.
-            // partLibraryNames.add(partLibraryName);
+            if (partsLibraryName == _UNKNOWN_LIBRARY_NAME) {
+              partsLibraryName = partLibraryName;
+            } else if (partsLibraryName != partLibraryName) {
+              partsLibraryName = null;
+            }
           } else if (libraryNameNode.name != partLibraryName) {
             errors.add(new AnalysisError.con2(librarySource, partUri.offset,
                 partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
@@ -613,8 +620,17 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
-      errors.add(new AnalysisError.con1(librarySource,
-          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
+      AnalysisError error;
+      if (partsLibraryName != _UNKNOWN_LIBRARY_NAME &&
+          partsLibraryName != null) {
+        error = new AnalysisErrorWithProperties.con1(librarySource,
+            ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART)
+          ..setProperty(ErrorProperty.PARTS_LIBRARY_NAME, partsLibraryName);
+      } else {
+        error = new AnalysisError.con1(librarySource,
+            ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+      }
+      errors.add(error);
     }
     //
     // Create and populate the library element.

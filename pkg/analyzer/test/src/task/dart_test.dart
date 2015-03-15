@@ -385,7 +385,6 @@ enum MyEnum {
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
     // validate Element
     ClassElement enumElement = unit.element.getEnum('MyEnum');
-    print(enumElement.fields);
     List<FieldElement> fields = enumElement.fields;
     expect(fields, hasLength(4));
     {
@@ -555,17 +554,42 @@ part of lib;
     }
   }
 
-  test_perform_error_missingLibraryDirectiveWithPart() {
+  test_perform_error_missingLibraryDirectiveWithPart_hasCommon() {
     _performBuildTask({
       '/lib.dart': '''
-part 'part.dart';
+part 'partA.dart';
+part 'partB.dart';
 ''',
-      '/part.dart': '''
-part of lib;
+      '/partA.dart': '''
+part of my_lib;
+        ''',
+      '/partB.dart': '''
+part of my_lib;
 '''
     });
     _assertErrorsWithCodes(
         [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
+    AnalysisError error = errorListener.errors[0];
+    expect(error.getProperty(ErrorProperty.PARTS_LIBRARY_NAME), 'my_lib');
+  }
+
+  test_perform_error_missingLibraryDirectiveWithPart_noCommon() {
+    _performBuildTask({
+      '/lib.dart': '''
+part 'partA.dart';
+part 'partB.dart';
+''',
+      '/partA.dart': '''
+part of libA;
+        ''',
+      '/partB.dart': '''
+part of libB;
+'''
+    });
+    _assertErrorsWithCodes(
+        [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
+    AnalysisError error = errorListener.errors[0];
+    expect(error.getProperty(ErrorProperty.PARTS_LIBRARY_NAME), isNull);
   }
 
   test_perform_error_partOfDifferentLibrary() {

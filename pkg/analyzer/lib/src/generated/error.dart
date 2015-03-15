@@ -237,7 +237,7 @@ class AnalysisErrorWithProperties extends AnalysisError {
    * used to complete the message. The error has no location information.
    */
   AnalysisErrorWithProperties.con1(
-      Source source, ErrorCode errorCode, List<Object> arguments)
+      Source source, ErrorCode errorCode, [List<Object> arguments])
       : super.con1(source, errorCode, arguments);
 
   /**
@@ -247,7 +247,7 @@ class AnalysisErrorWithProperties extends AnalysisError {
    * message.
    */
   AnalysisErrorWithProperties.con2(Source source, int offset, int length,
-      ErrorCode errorCode, List<Object> arguments)
+      ErrorCode errorCode, [List<Object> arguments])
       : super.con2(source, offset, length, errorCode, arguments);
 
   @override
@@ -2377,13 +2377,24 @@ abstract class ErrorCode {
  */
 class ErrorProperty extends Enum<ErrorProperty> {
   /**
-   * A property whose value is an array of [ExecutableElement] that should
+   * A property whose value is the name of the library that is used by all
+   * of the "part of" directives, so should be used in the "library" directive.
+   * Is `null` if there is no a single name used by all of the parts.
+   */
+  static const ErrorProperty PARTS_LIBRARY_NAME =
+      const ErrorProperty('PARTS_LIBRARY_NAME', 0);
+
+  /**
+   * A property whose value is a list of [ExecutableElement] that should
    * be but are not implemented by a concrete class.
    */
   static const ErrorProperty UNIMPLEMENTED_METHODS =
-      const ErrorProperty('UNIMPLEMENTED_METHODS', 0);
+      const ErrorProperty('UNIMPLEMENTED_METHODS', 1);
 
-  static const List<ErrorProperty> values = const [UNIMPLEMENTED_METHODS];
+  static const List<ErrorProperty> values = const [
+    PARTS_LIBRARY_NAME,
+    UNIMPLEMENTED_METHODS
+  ];
 
   const ErrorProperty(String name, int ordinal) : super(name, ordinal);
 }
