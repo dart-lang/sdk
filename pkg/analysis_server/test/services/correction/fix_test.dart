@@ -859,6 +859,24 @@ import 'my_file.dart';
     expect(fileEdit.edits[0].replacement, contains('library my.file;'));
   }
 
+  void test_createFile_forPart() {
+    testFile = '/my/project/bin/test.dart';
+    resolveTestUnit('''
+library my.lib;
+part 'my_part.dart';
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(FixKind.CREATE_FILE, error);
+    change = fix.change;
+    // validate change
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/my/project/bin/my_part.dart');
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
+  }
+
   void test_createGetter_BAD_inSDK() {
     resolveTestUnit('''
 main(List p) {

@@ -134,6 +134,7 @@ class FixProcessor {
     }
     if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
       _addFix_createImportUri();
+      _addFix_createPartUri();
       _addFix_replaceImportUri();
     }
     if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
@@ -1006,6 +1007,21 @@ class FixProcessor {
     exitPosition = new Position(file, insertOffset);
     // add proposal
     _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
+  }
+
+  void _addFix_createPartUri() {
+    if (node is SimpleStringLiteral && node.parent is PartDirective) {
+      PartDirective partDirective = node.parent;
+      Source source = partDirective.source;
+      if (source != null) {
+        String file = source.fullName;
+        String libName = unitLibraryElement.name;
+        SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
+        change.addEdit(file, -1, edit);
+        doSourceChange_addSourceEdit(change, context, source, edit);
+        _addFix(FixKind.CREATE_FILE, [file]);
+      }
+    }
   }
 
   void _addFix_illegalAsyncReturnType() {
