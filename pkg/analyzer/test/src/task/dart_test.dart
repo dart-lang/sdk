@@ -35,6 +35,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
   runReflectiveTests(BuildDirectiveElementsTaskTest);
+  runReflectiveTests(BuildEnumMemberElementsTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
@@ -368,6 +369,69 @@ library libC;
   _getImportLibraryInput(Source source) {
     var key = BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME;
     return task.inputs[key][source];
+  }
+}
+
+@reflectiveTest
+class BuildEnumMemberElementsTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = _newSource('/test.dart', '''
+enum MyEnum {
+  A, B
+}
+''');
+    _computeResult(source, RESOLVED_UNIT4);
+    expect(task, new isInstanceOf<BuildEnumMemberElementsTask>());
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
+    // validate Element
+    ClassElement enumElement = unit.element.getEnum('MyEnum');
+    print(enumElement.fields);
+    List<FieldElement> fields = enumElement.fields;
+    expect(fields, hasLength(4));
+    {
+      FieldElementImpl index = fields[0];
+      expect(index, isNotNull);
+      expect(index.name, 'index');
+      expect(index.isStatic, isFalse);
+      expect(index.evaluationResult, isNull);
+      _assertGetter(index);
+    }
+    {
+      ConstFieldElementImpl values = fields[1];
+      expect(values, isNotNull);
+      expect(values.name, 'values');
+      expect(values.isStatic, isTrue);
+      expect(values.evaluationResult, isNotNull);
+      _assertGetter(values);
+    }
+    {
+      ConstFieldElementImpl constant = fields[2];
+      expect(constant, isNotNull);
+      expect(constant.name, 'A');
+      expect(constant.isStatic, isTrue);
+      expect(constant.evaluationResult, isNotNull);
+      _assertGetter(constant);
+    }
+    {
+      ConstFieldElementImpl constant = fields[3];
+      expect(constant, isNotNull);
+      expect(constant.name, 'B');
+      expect(constant.isStatic, isTrue);
+      expect(constant.evaluationResult, isNotNull);
+      _assertGetter(constant);
+    }
+    // validate nodes
+    EnumDeclaration enumNode = unit.declarations[0];
+    expect(enumNode.name.staticElement, same(enumElement));
+    expect(enumNode.constants[0].element, same(enumElement.getField('A')));
+    expect(enumNode.constants[1].element, same(enumElement.getField('B')));
+  }
+
+  static void _assertGetter(FieldElement field) {
+    PropertyAccessorElement getter = field.getter;
+    expect(getter, isNotNull);
+    expect(getter.variable, same(field));
+    expect(getter.type, isNotNull);
   }
 }
 
@@ -870,8 +934,9 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
   }

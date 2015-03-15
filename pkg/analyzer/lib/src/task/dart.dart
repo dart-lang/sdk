@@ -89,6 +89,16 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null);
 
 /**
+ * The partially resolved [CompilationUnit] associated with a unit.
+ *
+ * All the enum member elements are built.
+ *
+ * The result is only available for targets representing a unit.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT4', null);
+
+/**
  * The [TypeProvider] of the context.
  */
 final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
@@ -409,6 +419,73 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
    */
   static List<String> _getIdentifiers(NodeList<SimpleIdentifier> identifiers) {
     return identifiers.map((identifier) => identifier.name).toList();
+  }
+}
+
+/**
+ * A task that builds the elements representing the members of enum
+ * declarations.
+ */
+class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The name of the [RESOLVED_UNIT3] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildEnumMemberElementsTask', createTask, buildInputs,
+      <ResultDescriptor>[RESOLVED_UNIT4]);
+
+  BuildEnumMemberElementsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    //
+    // Record outputs.
+    //
+    EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
+    unit.accept(builder);
+    outputs[RESOLVED_UNIT4] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    return <String, TaskInput>{
+      TYPE_PROVIDER_INPUT:
+          TYPE_PROVIDER.inputFor(AnalysisContextTarget.request),
+      UNIT_INPUT: RESOLVED_UNIT3.inputFor(target)
+    };
+  }
+
+  /**
+   * Create a [BuildEnumMemberElementsTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildEnumMemberElementsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildEnumMemberElementsTask(context, target);
   }
 }
 
