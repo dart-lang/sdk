@@ -846,6 +846,153 @@ fff() {
     assertNoAssistAt('fff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
+  void test_convertToForIndex_BAD_bodyNotBlock() {
+    resolveTestUnit('''
+main(List<String> items) {
+  for (String item in items) print(item);
+}
+''');
+    assertNoAssistAt('for (String', AssistKind.CONVERT_INTO_FOR_INDEX);
+  }
+
+  void test_convertToForIndex_BAD_doesNotDeclareVariable() {
+    resolveTestUnit('''
+main(List<String> items) {
+  String item;
+  for (item in items) {
+    print(item);
+  }
+}
+''');
+    assertNoAssistAt('for (item', AssistKind.CONVERT_INTO_FOR_INDEX);
+  }
+
+  void test_convertToForIndex_BAD_iterableIsNotVariable() {
+    resolveTestUnit('''
+main() {
+  for (String item in ['a', 'b', 'c']) {
+    print(item);
+  }
+}
+''');
+    assertNoAssistAt('for (String', AssistKind.CONVERT_INTO_FOR_INDEX);
+  }
+
+  void test_convertToForIndex_BAD_iterableNotList() {
+    resolveTestUnit('''
+main(Iterable<String> items) {
+  for (String item in items) {
+    print(item);
+  }
+}
+''');
+    assertNoAssistAt('for (String', AssistKind.CONVERT_INTO_FOR_INDEX);
+  }
+
+  void test_convertToForIndex_BAD_usesIJK() {
+    resolveTestUnit('''
+main(List<String> items) {
+  for (String item in items) {
+    print(item);
+    int i, j, k;
+  }
+}
+''');
+    assertNoAssistAt('for (String', AssistKind.CONVERT_INTO_FOR_INDEX);
+  }
+
+  void test_convertToForIndex_OK_onDeclaredIdentifier_name() {
+    resolveTestUnit('''
+main(List<String> items) {
+  for (String item in items) {
+    print(item);
+  }
+}
+''');
+    assertHasAssistAt('item in', AssistKind.CONVERT_INTO_FOR_INDEX, '''
+main(List<String> items) {
+  for (int i = 0; i < items.length; i++) {
+    String item = items[i];
+    print(item);
+  }
+}
+''');
+  }
+
+  void test_convertToForIndex_OK_onDeclaredIdentifier_type() {
+    resolveTestUnit('''
+main(List<String> items) {
+  for (String item in items) {
+    print(item);
+  }
+}
+''');
+    assertHasAssistAt('tring item', AssistKind.CONVERT_INTO_FOR_INDEX, '''
+main(List<String> items) {
+  for (int i = 0; i < items.length; i++) {
+    String item = items[i];
+    print(item);
+  }
+}
+''');
+  }
+
+  void test_convertToForIndex_OK_onFor() {
+    resolveTestUnit('''
+main(List<String> items) {
+  for (String item in items) {
+    print(item);
+  }
+}
+''');
+    assertHasAssistAt('for (String', AssistKind.CONVERT_INTO_FOR_INDEX, '''
+main(List<String> items) {
+  for (int i = 0; i < items.length; i++) {
+    String item = items[i];
+    print(item);
+  }
+}
+''');
+  }
+
+  void test_convertToForIndex_OK_usesI() {
+    resolveTestUnit('''
+main(List<String> items) {
+  for (String item in items) {
+    int i = 0;
+  }
+}
+''');
+    assertHasAssistAt('for (String', AssistKind.CONVERT_INTO_FOR_INDEX, '''
+main(List<String> items) {
+  for (int j = 0; j < items.length; j++) {
+    String item = items[j];
+    int i = 0;
+  }
+}
+''');
+  }
+
+  void test_convertToForIndex_OK_usesIJ() {
+    resolveTestUnit('''
+main(List<String> items) {
+  for (String item in items) {
+    print(item);
+    int i = 0, j = 1;
+  }
+}
+''');
+    assertHasAssistAt('for (String', AssistKind.CONVERT_INTO_FOR_INDEX, '''
+main(List<String> items) {
+  for (int k = 0; k < items.length; k++) {
+    String item = items[k];
+    print(item);
+    int i = 0, j = 1;
+  }
+}
+''');
+  }
+
   void test_convertToIsNot_OK_childOfIs_left() {
     resolveTestUnit('''
 main(p) {

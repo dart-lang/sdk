@@ -12,6 +12,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -594,6 +595,33 @@ class CorrectionUtils {
    */
   AstNode findNode(int offset) =>
       new NodeLocator.con1(offset).searchWithin(unit);
+
+  /**
+   * Returns names of elements that might conflict with a new local variable
+   * declared at [offset].
+   */
+  Set<String> findPossibleLocalVariableConflicts(int offset) {
+    Set<String> conflicts = new Set<String>();
+    AstNode enclosingNode = findNode(offset);
+    Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
+    if (enclosingBlock != null) {
+      SourceRange newRange = rangeStartEnd(offset, enclosingBlock.end);
+      ExecutableElement enclosingExecutable =
+          getEnclosingExecutableElement(enclosingNode);
+      if (enclosingExecutable != null) {
+        visitChildren(enclosingExecutable, (Element element) {
+          if (element is LocalElement) {
+            SourceRange elementRange = element.visibleRange;
+            if (elementRange != null && elementRange.intersects(newRange)) {
+              conflicts.add(element.displayName);
+            }
+          }
+          return true;
+        });
+      }
+    }
+    return conflicts;
+  }
 
   /**
    * Returns the actual type source of the given [Expression], may be `null`
