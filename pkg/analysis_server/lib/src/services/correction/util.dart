@@ -1001,6 +1001,11 @@ class CorrectionUtils {
     // check if imported
     LibraryElement library = element.library;
     if (library != null && library != _library) {
+      // no source, if private
+      if (element.isPrivate) {
+        return null;
+      }
+      // ensure import
       ImportElement importElement = _getImportElement(element);
       if (importElement != null) {
         if (importElement.prefix != null) {
@@ -1033,7 +1038,11 @@ class CorrectionUtils {
             sb.write(", ");
           }
           String argumentSrc = getTypeSource(argument, librariesToImport);
-          sb.write(argumentSrc);
+          if (argumentSrc != null) {
+            sb.write(argumentSrc);
+          } else {
+            return null;
+          }
         }
         sb.write(">");
       }

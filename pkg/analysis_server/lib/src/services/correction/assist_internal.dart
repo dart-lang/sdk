@@ -204,6 +204,11 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    // type source might be null, if the type is private
+    if (typeSource == null) {
+      _coverageMarker();
+      return;
+    }
     // add edit
     Token keyword = declaredIdentifier.keyword;
     if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
@@ -247,6 +252,11 @@ class AssistProcessor {
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
+    }
+    // type source might be null, if the type is private
+    if (typeSource == null) {
+      _coverageMarker();
+      return;
     }
     // add edit
     _addInsertEdit(name.offset, '$typeSource ');
@@ -294,6 +304,11 @@ class AssistProcessor {
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
+      _coverageMarker();
+      return;
+    }
+    // type source might be null, if the type is private
+    if (typeSource == null) {
       _coverageMarker();
       return;
     }

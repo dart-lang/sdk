@@ -97,6 +97,73 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     length = 0;
   }
 
+  void test_addTypeAnnotation_BAD_privateType_closureParameter() {
+    addSource('/my_lib.dart', '''
+library my_lib;
+class A {}
+class _B extends A {}
+foo(f(_B p)) {}
+''');
+    resolveTestUnit('''
+import 'my_lib.dart';
+main() {
+  foo((test) {});
+}
+ ''');
+    assertNoAssistAt('test)', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_BAD_privateType_declaredIdentifier() {
+    addSource('/my_lib.dart', '''
+library my_lib;
+class A {}
+class _B extends A {}
+List<_B> getValues() => [];
+''');
+    resolveTestUnit('''
+import 'my_lib.dart';
+class A<T> {
+  main() {
+    for (var item in getValues()) {
+    }
+  }
+}
+''');
+    assertNoAssistAt('var item', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_BAD_privateType_list() {
+    addSource('/my_lib.dart', '''
+library my_lib;
+class A {}
+class _B extends A {}
+List<_B> getValues() => [];
+''');
+    resolveTestUnit('''
+import 'my_lib.dart';
+main() {
+  var v = getValues();
+}
+''');
+    assertNoAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_BAD_privateType_variable() {
+    addSource('/my_lib.dart', '''
+library my_lib;
+class A {}
+class _B extends A {}
+_B getValue() => new _B();
+''');
+    resolveTestUnit('''
+import 'my_lib.dart';
+main() {
+  var v = getValue();
+}
+''');
+    assertNoAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
   void test_addTypeAnnotation_classField_OK_final() {
     resolveTestUnit('''
 class A {
@@ -518,6 +585,23 @@ main() {
 }
 ''');
     assertNoAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_OK_privateType_sameLibrary() {
+    resolveTestUnit('''
+class _A {}
+_A getValue() => new _A();
+main() {
+  var v = getValue();
+}
+''');
+    assertHasAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION, '''
+class _A {}
+_A getValue() => new _A();
+main() {
+  _A v = getValue();
+}
+''');
   }
 
   void test_addTypeAnnotation_parameter_BAD_hasExplicitType() {
