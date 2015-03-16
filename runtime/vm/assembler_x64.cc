@@ -722,21 +722,21 @@ void Assembler::divsd(XmmRegister dst, XmmRegister src) {
 
 void Assembler::addpl(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitREX_RB(dst, src);
   EmitUint8(0x66);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0xFE);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::subpl(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitREX_RB(dst, src);
   EmitUint8(0x66);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0xFA);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 

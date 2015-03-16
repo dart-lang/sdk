@@ -2298,6 +2298,36 @@ ASSEMBLER_TEST_RUN(PackedIntOperations, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(PackedIntOperations2, assembler) {
+  // Note: on Windows 64 XMM6-XMM15 are callee save.
+  const intptr_t cpu_register_set = 0;
+  const intptr_t fpu_register_set =
+      ((1 << XMM10) | (1 << XMM11)) & CallingConventions::kVolatileXmmRegisters;
+  __ PushRegisters(cpu_register_set, fpu_register_set);
+  __ movl(RAX, Immediate(0x2));
+  __ movd(XMM10, RAX);
+  __ shufps(XMM10, XMM10, Immediate(0x0));
+  __ movl(RAX, Immediate(0x1));
+  __ movd(XMM11, RAX);
+  __ shufps(XMM11, XMM11, Immediate(0x0));
+  __ addpl(XMM10, XMM11);  // 0x3
+  __ addpl(XMM10, XMM10);  // 0x6
+  __ subpl(XMM10, XMM11);  // 0x5
+  __ pushq(RAX);
+  __ movss(Address(RSP, 0), XMM10);
+  __ popq(RAX);
+  __ PopRegisters(cpu_register_set, fpu_register_set);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedIntOperations2, test) {
+  typedef uint32_t (*PackedIntOperationsCode)();
+  uint32_t res = reinterpret_cast<PackedIntOperationsCode>(test->entry())();
+  EXPECT_EQ(static_cast<uword>(0x5), res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(PackedFPOperations2, assembler) {
   __ movq(RAX, Immediate(bit_cast<int32_t, float>(4.0f)));
   __ movd(XMM0, RAX);
