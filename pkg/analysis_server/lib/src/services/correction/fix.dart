@@ -56,6 +56,9 @@ class FixKind {
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
       const FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '{0}'");
+  static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS = const FixKind(
+      'CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS', 50,
+      "Create constructor for final fields");
   static const CREATE_CONSTRUCTOR_SUPER = const FixKind(
       'CREATE_CONSTRUCTOR_SUPER', 50, "Create constructor to call {0}");
   static const CREATE_FIELD =

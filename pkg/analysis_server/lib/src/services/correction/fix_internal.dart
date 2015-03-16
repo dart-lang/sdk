@@ -199,6 +199,9 @@ class FixProcessor {
       _addFix_createClass();
       _addFix_undefinedClass_useSimilar();
     }
+    if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED) {
+      _addFix_createConstructor_forUninitializedFinalFields();
+    }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
       bool isAsync = _addFix_addAsync();
       if (!isAsync) {
@@ -339,6 +342,49 @@ class FixProcessor {
       // add proposal
       _addFix(FixKind.CREATE_CLASS, [name]);
     }
+  }
+
+  /**
+   * Here we handle cases when there are no constructors in a class, and the
+   * class has uninitialized final fields.
+   */
+  void _addFix_createConstructor_forUninitializedFinalFields() {
+    if (node is! SimpleIdentifier || node.parent is! VariableDeclaration) {
+      return;
+    }
+    ClassDeclaration classDeclaration =
+        node.getAncestor((node) => node is ClassDeclaration);
+    // prepare names of uninitialized final fields
+    List<String> fieldNames = <String>[];
+    for (ClassMember member in classDeclaration.members) {
+      if (member is FieldDeclaration) {
+        VariableDeclarationList variableList = member.fields;
+        if (variableList.isFinal) {
+          fieldNames.addAll(variableList.variables
+              .where((v) => v.initializer == null)
+              .map((v) => v.name.name));
+        }
+      }
+    }
+    // prepare location for a new constructor
+    _ConstructorLocation targetLocation =
+        _prepareNewConstructorLocation(classDeclaration);
+    // build constructor source
+    SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
+    {
+      String indent = '  ';
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
+      sb.append(classDeclaration.name.name);
+      sb.append('(');
+      sb.append(fieldNames.map((name) => 'this.$name').join(', '));
+      sb.append(');');
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    _insertBuilder(sb, unitElement);
+    // add proposal
+    _addFix(FixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, []);
   }
 
   void _addFix_createConstructor_insteadOfSyntheticDefault() {

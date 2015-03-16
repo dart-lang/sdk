@@ -287,6 +287,28 @@ class Test {
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
+  void test_createConstructor_forFinalFields() {
+    errorFilter = (AnalysisError error) {
+      return error.message.contains("'a'");
+    };
+    resolveTestUnit('''
+class Test {
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, '''
+class Test {
+  final int a;
+  final int b = 2;
+  final int c;
+
+  Test(this.a, this.c);
+}
+''');
+  }
+
   void test_createConstructor_insteadOfSyntheticDefault() {
     resolveTestUnit('''
 class A {
@@ -2974,26 +2996,26 @@ class A {
     int index = 0;
     _assertLinkedGroup(
         change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
-    _assertLinkedGroup(change.linkedEditGroups[index++],
-        ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
+    _assertLinkedGroup(change.linkedEditGroups[index++], [
+      'myUndefinedMethod(0',
+      'myUndefinedMethod(int'
+    ]);
     _assertLinkedGroup(change.linkedEditGroups[index++], [
       'int i'
     ], expectedSuggestions(
         LinkedEditSuggestionKind.TYPE, ['int', 'num', 'Object', 'Comparable']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
-    _assertLinkedGroup(change.linkedEditGroups[index++], [
-      'double d'
-    ], expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+    _assertLinkedGroup(change.linkedEditGroups[index++], ['double d'],
+        expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
       'double',
       'num',
       'Object',
       'Comparable'
     ]));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['d,']);
-    _assertLinkedGroup(change.linkedEditGroups[index++], [
-      'String s'
-    ], expectedSuggestions(
-        LinkedEditSuggestionKind.TYPE, ['String', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], ['String s'],
+        expectedSuggestions(
+            LinkedEditSuggestionKind.TYPE, ['String', 'Object', 'Comparable']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
@@ -3017,8 +3039,10 @@ class A {
 ''');
     // linked positions
     _assertLinkedGroup(change.linkedEditGroups[0], ['int myUndefinedMethod(']);
-    _assertLinkedGroup(change.linkedEditGroups[1],
-        ['myUndefinedMethod();', 'myUndefinedMethod() {']);
+    _assertLinkedGroup(change.linkedEditGroups[1], [
+      'myUndefinedMethod();',
+      'myUndefinedMethod() {'
+    ]);
   }
 
   void test_undefinedMethod_createUnqualified_staticFromField() {
