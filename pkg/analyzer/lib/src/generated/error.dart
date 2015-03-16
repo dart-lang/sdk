@@ -2400,6 +2400,7 @@ class ErrorProperty extends Enum<ErrorProperty> {
       const ErrorProperty('UNIMPLEMENTED_METHODS', 2);
 
   static const List<ErrorProperty> values = const [
+    NOT_INITIALIZED_FIELDS,
     PARTS_LIBRARY_NAME,
     UNIMPLEMENTED_METHODS
   ];
