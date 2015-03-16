@@ -109,7 +109,7 @@ RangeError.checkValidIndex(index, this);
 }
  class ListMapView<E> implements Map<int, E> {List<E> _values;
  ListMapView(this._values);
- E operator [](int key) => ((__x22) => DEVC$RT.cast(__x22, dynamic, E, "CastGeneral", """line 251, column 29 of dart:_internal/list.dart: """, __x22 is E, false))(containsKey(key) ? _values[key] : null);
+ E operator [](int key) => containsKey(key) ? _values[key] : null;
  int get length => _values.length;
  Iterable<E> get values => new SubListIterable<E>(_values, 0, null);
  Iterable<int> get keys => new _ListIndicesIterable(_values);

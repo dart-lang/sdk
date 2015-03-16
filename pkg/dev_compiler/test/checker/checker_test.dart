@@ -1548,6 +1548,20 @@ main() {
     testChecker({'/main.dart': mk("info:DownCast")}, allowConstCasts: true);
   });
 
+  test('casts in conditionals', () {
+    testChecker({
+      '/main.dart': '''
+          main() {
+            bool b = true;
+            num x = b ? 1 : 2.3;
+            int y = /*info:DownCast*/b ? 1 : 2.3;
+            String z = !b ? "hello" : null;
+            z = b ? null : "hello";
+          }
+      '''
+    });
+  });
+
   test('redirecting constructor', () {
     testChecker({
       '/main.dart': '''

@@ -76,7 +76,7 @@ var _native_typed_data;
         offsetInBytes = 0;
       if (length === void 0)
         length = null;
-      let storage = dart.as(this.asInt32List(offsetInBytes, dart.as(length !== null ? dart.notNull(length) * 4 : null, core.int)), NativeInt32List);
+      let storage = dart.as(this.asInt32List(offsetInBytes, length !== null ? dart.notNull(length) * 4 : null), NativeInt32List);
       return new NativeInt32x4List._externalStorage(storage);
     }
     asFloat32List(offsetInBytes, length) {
@@ -98,7 +98,7 @@ var _native_typed_data;
         offsetInBytes = 0;
       if (length === void 0)
         length = null;
-      let storage = dart.as(this.asFloat32List(offsetInBytes, dart.as(length !== null ? dart.notNull(length) * 4 : null, core.int)), NativeFloat32List);
+      let storage = dart.as(this.asFloat32List(offsetInBytes, length !== null ? dart.notNull(length) * 4 : null), NativeFloat32List);
       return new NativeFloat32x4List._externalStorage(storage);
     }
     asFloat64x2List(offsetInBytes, length) {
@@ -106,7 +106,7 @@ var _native_typed_data;
         offsetInBytes = 0;
       if (length === void 0)
         length = null;
-      let storage = dart.as(this.asFloat64List(offsetInBytes, dart.as(length !== null ? dart.notNull(length) * 2 : null, core.int)), NativeFloat64List);
+      let storage = dart.as(this.asFloat64List(offsetInBytes, length !== null ? dart.notNull(length) * 2 : null), NativeFloat64List);
       return new NativeFloat64x2List._externalStorage(storage);
     }
     asByteData(offsetInBytes, length) {

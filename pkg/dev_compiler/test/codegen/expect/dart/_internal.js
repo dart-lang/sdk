@@ -1370,7 +1370,7 @@ var _internal;
         this[_values] = $_values;
       }
       get(key) {
-        return dart.as(this.containsKey(key) ? this[_values].get(key) : null, E);
+        return this.containsKey(key) ? this[_values].get(key) : null;
       }
       get length() {
         return this[_values].length;

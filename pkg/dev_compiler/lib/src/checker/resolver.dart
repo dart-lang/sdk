@@ -396,10 +396,28 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     }
   }
 
+  @override
+  visitConditionalExpression(ConditionalExpression node) {
+    // TODO(vsm): The static type of a conditional should be the LUB of the
+    // then and else expressions.  The analyzer appears to compute dynamic when
+    // one or the other is the null literal.  Remove this fix once the
+    // corresponding analyzer bug is fixed:
+    // https://code.google.com/p/dart/issues/detail?id=22854
+    super.visitConditionalExpression(node);
+    if (node.staticType.isDynamic) {
+      var thenExpr = node.thenExpression;
+      var elseExpr = node.elseExpression;
+      if (thenExpr.staticType.isBottom) {
+        node.staticType = elseExpr.staticType;
+      } else if (elseExpr.staticType.isBottom) {
+        node.staticType = thenExpr.staticType;
+      }
+    }
+  }
+
   // Review note: no longer need to override visitFunctionExpression, this is
   // handled by the analyzer internally.
   // TODO(vsm): in visitbinaryExpression: check computeStaticReturnType result?
-  // TODO(vsm): in visitConditionalExpression: check... LUB in rules?
   // TODO(vsm): in visitFunctionDeclaration: Should we ever use the expression
   // type in a (...) => expr or just the written type?
 

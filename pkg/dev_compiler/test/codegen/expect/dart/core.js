@@ -261,7 +261,7 @@ var core;
       return new Duration({milliseconds: dart.notNull(ms) - dart.notNull(otherMs)});
     }
     DateTime$_internal(year, month, day, hour, minute, second, millisecond, isUtc) {
-      this.isUtc = dart.as(typeof isUtc == boolean ? isUtc : dart.throw_(new ArgumentError(isUtc)), bool);
+      this.isUtc = typeof isUtc == boolean ? isUtc : dart.throw_(new ArgumentError(isUtc));
       this.millisecondsSinceEpoch = dart.as(_js_helper.checkInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc)), int);
     }
     DateTime$_now() {
@@ -978,7 +978,7 @@ var core;
     static apply(function, positionalArguments, namedArguments) {
       if (namedArguments === void 0)
         namedArguments = null;
-      return _js_helper.Primitives.applyFunction(function, positionalArguments, dart.as(namedArguments === null ? null : _toMangledNames(namedArguments), Map$(String, dynamic)));
+      return _js_helper.Primitives.applyFunction(function, positionalArguments, namedArguments === null ? null : _toMangledNames(namedArguments));
     }
     static [_toMangledNames](namedArguments) {
       let result = dart.as(dart.map(), Map$(String, dynamic));
@@ -1497,7 +1497,7 @@ var core;
       }
     }
     get rawIndex() {
-      return dart.as(this[_position] !== this[_nextPosition] ? this[_position] : null, int);
+      return this[_position] !== this[_nextPosition] ? this[_position] : null;
     }
     set rawIndex(rawIndex) {
       RangeError.checkValidIndex(rawIndex, this.string, "rawIndex");
@@ -2528,7 +2528,7 @@ var core;
         if (reference.hasAuthority) {
           targetUserInfo = reference.userInfo;
           targetHost = reference.host;
-          targetPort = dart.as(reference.hasPort ? reference.port : null, int);
+          targetPort = reference.hasPort ? reference.port : null;
         }
         targetPath = this[_removeDotSegments](reference.path);
         if (reference.hasQuery) {
@@ -2539,7 +2539,7 @@ var core;
         if (reference.hasAuthority) {
           targetUserInfo = reference.userInfo;
           targetHost = reference.host;
-          targetPort = _makePort(dart.as(reference.hasPort ? reference.port : null, int), targetScheme);
+          targetPort = _makePort(reference.hasPort ? reference.port : null, targetScheme);
           targetPath = this[_removeDotSegments](reference.path);
           if (reference.hasQuery)
             targetQuery = reference.query;
@@ -2565,7 +2565,7 @@ var core;
           targetPort = this[_port];
         }
       }
-      let fragment = dart.as(reference.hasFragment ? reference.fragment : null, String);
+      let fragment = reference.hasFragment ? reference.fragment : null;
       return new Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
     }
     get hasAuthority() {

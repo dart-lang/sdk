@@ -808,7 +808,7 @@ var convert;
           result.write(ch);
         }
       }
-      return dart.as(result !== null ? result.toString() : null, core.String);
+      return result !== null ? result.toString() : null;
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {

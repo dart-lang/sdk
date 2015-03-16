@@ -45,7 +45,7 @@ StringBuffer result = null;
   result.write(ch);
   }
 }
- return ((__x6) => DEVC$RT.cast(__x6, dynamic, String, "CastGeneral", """line 72, column 12 of dart:convert/html_escape.dart: """, __x6 is String, true))(result != null ? result.toString() : null);
+ return result != null ? result.toString() : null;
 }
  StringConversionSink startChunkedConversion(Sink<String> sink) {
 if (sink is! StringConversionSink) {
