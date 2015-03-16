@@ -2,14 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $host_checked ]
-async_star_test: Crash # Issue 22808
-
 [ $compiler == dart2js ]
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
 sync_generator2_test/08: MissingCompileTimeError # Issue 22324
 sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 
+async_star_test/02: RuntimeError # 22853
 async_star_test/05: RuntimeError, Timeout
 
 [ $compiler == dart2js && $runtime == jsshell ]
