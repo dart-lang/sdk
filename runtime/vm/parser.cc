@@ -8157,12 +8157,15 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
   ExpectToken(Token::kWHILE);
   ExpectToken(Token::kLPAREN);
   SequenceNode* await_preamble = NULL;
-  AstNode* cond_expr = ParseAwaitableExpr(
-      kAllowConst, kConsumeCascades, &await_preamble);
-  // No need for special handling of the await preamble as we can just append o
-  // it to the loop body.
+  intptr_t expr_pos = TokenPos();
+  AstNode* cond_expr =
+      ParseAwaitableExpr(kAllowConst, kConsumeCascades, &await_preamble);
   if (await_preamble != NULL) {
-    dowhile_body->Add(await_preamble);
+    // Prepend the preamble to the condition.
+    LetNode* await_cond = new(Z) LetNode(expr_pos);
+    await_cond->AddNode(await_preamble);
+    await_cond->AddNode(cond_expr);
+    cond_expr = await_cond;
   }
   ExpectToken(Token::kRPAREN);
   ExpectSemicolon();
