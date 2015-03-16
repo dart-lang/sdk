@@ -33,6 +33,7 @@ class Visit {
   final getter;
   final setter;
   final constant;
+  final selector;
 
   const Visit(this.method,
               {this.element,
@@ -48,7 +49,8 @@ class Visit {
                this.index,
                this.getter,
                this.setter,
-               this.constant});
+               this.constant,
+               this.selector});
 
   int get hashCode => toString().hashCode;
 
@@ -99,6 +101,9 @@ class Visit {
     if (constant != null) {
       sb.write(',constant=$constant');
     }
+    if (selector != null) {
+      sb.write(',selector=$selector');
+    }
     return sb.toString();
   }
 }
@@ -142,7 +147,8 @@ const List<Test> TESTS = const [
     const Test('m(o) { o(null, 42); }',
         const Visit(VisitKind.VISIT_PARAMETER_INVOKE,
                     element: 'parameter(m#o)',
-                    arguments: '(null,42)')),
+                    arguments: '(null,42)',
+                    selector: 'Selector(call, call, arity=2)')),
 
     // Local variables
     const Test('m() { var o; return o; }',
@@ -155,7 +161,8 @@ const List<Test> TESTS = const [
     const Test('m() { var o; o(null, 42); }',
         const Visit(VisitKind.VISIT_LOCAL_VARIABLE_INVOKE,
                     element: 'variable(m#o)',
-                    arguments: '(null,42)')),
+                    arguments: '(null,42)',
+                    selector: 'Selector(call, call, arity=2)')),
 
     // Local functions
     const Test('m() { o(a, b) {}; return o; }',
@@ -164,7 +171,8 @@ const List<Test> TESTS = const [
     const Test('m() { o(a, b) {}; o(null, 42); }',
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
                     element: 'function(m#o)',
-                    arguments: '(null,42)')),
+                    arguments: '(null,42)',
+                    selector: 'Selector(call, call, arity=2)')),
 
     // Static fields
     const Test(
@@ -2277,7 +2285,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
       Selector selector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
-        element: function, arguments: arguments));
+        element: function, arguments: arguments, selector: selector));
     apply(arguments, arg);
   }
 
@@ -2298,7 +2306,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
       Selector selector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_VARIABLE_INVOKE,
-        element: variable, arguments: arguments));
+        element: variable, arguments: arguments, selector: selector));
     apply(arguments, arg);
   }
 
@@ -2329,7 +2337,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
       Selector selector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_PARAMETER_INVOKE,
-        element: parameter, arguments: arguments));
+        element: parameter, arguments: arguments, selector: selector));
     apply(arguments, arg);
   }
 

@@ -144,21 +144,27 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            // TODO(johnniwinther): Store the call selector instead of the
+            // selector using the name of the function.
+            new Selector.callClosureFrom(selector),
             arg);
       case AccessKind.LOCAL_VARIABLE:
         return visitor.visitLocalVariableInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            // TODO(johnniwinther): Store the call selector instead of the
+            // selector using the name of the variable.
+            new Selector.callClosureFrom(selector),
             arg);
       case AccessKind.PARAMETER:
         return visitor.visitParameterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            // TODO(johnniwinther): Store the call selector instead of the
+            // selector using the name of the parameter.
+            new Selector.callClosureFrom(selector),
             arg);
       case AccessKind.STATIC_FIELD:
         return visitor.visitStaticFieldInvoke(
