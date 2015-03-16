@@ -42,6 +42,8 @@ class AstPrinter : public AstNodeVisitor {
   void VisitGenericLocalNode(AstNode* node, const LocalVariable& local);
   void VisitGenericFieldNode(AstNode* node, const Field& field);
 
+  intptr_t indent_;
+
   DISALLOW_COPY_AND_ASSIGN(AstPrinter);
 };
 

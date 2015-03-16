@@ -12,7 +12,7 @@
 
 namespace dart {
 
-AstPrinter::AstPrinter() { }
+AstPrinter::AstPrinter() : indent_(0) { }
 
 
 AstPrinter::~AstPrinter() { }
@@ -26,12 +26,17 @@ void AstPrinter::VisitGenericAstNode(AstNode* node) {
 
 
 void AstPrinter::VisitSequenceNode(SequenceNode* node) {
+  indent_++;
   ISL_Print("(%s (scope \"%p\")", node->PrettyName(), node->scope());
   for (int i = 0; i < node->length(); ++i) {
     ISL_Print("\n");
+    for (intptr_t i = 0; i < indent_; i++) {
+      ISL_Print("  ");
+    }
     node->NodeAt(i)->Visit(this);
   }
   ISL_Print(")");
+  indent_--;
 }
 
 
