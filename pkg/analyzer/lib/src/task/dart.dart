@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/inputs.dart';
@@ -139,23 +140,32 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    //
+    // Prepare inputs.
+    //
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
-
+    //
+    // Process inputs.
+    //
+    unit = AstCloner.clone(unit);
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
     CompilationUnitElement element = builder.buildCompilationUnit(source, unit);
-
+    //
+    // Record outputs.
+    //
     outputs[COMPILATION_UNIT_ELEMENT] = element;
     outputs[RESOLVED_UNIT1] = unit;
   }
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the given [target].
+   * input descriptors describing those inputs for a task with the given
+   * [target].
    */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
     return <String, TaskInput>{
-      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.inputFor(target)
+      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.inputFor(target.unit)
     };
   }
 
@@ -358,26 +368,26 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the
-   * given [target].
+   * given library [source].
    */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+  static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
-      RESOLVED_UNIT2_INPUT_NAME: RESOLVED_UNIT2.inputFor(target),
+      RESOLVED_UNIT2_INPUT_NAME: RESOLVED_UNIT2.inputFor(source),
       IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
           new ListToMapTaskInput<Source, LibraryElement>(
-              IMPORTED_LIBRARIES.inputFor(target),
+              IMPORTED_LIBRARIES.inputFor(source),
               (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
       EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
           new ListToMapTaskInput<Source, LibraryElement>(
-              EXPORTED_LIBRARIES.inputFor(target),
+              EXPORTED_LIBRARIES.inputFor(source),
               (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
       IMPORTS_SOURCE_KIND_INPUT_NAME:
           new ListToMapTaskInput<Source, SourceKind>(
-              IMPORTED_LIBRARIES.inputFor(target),
+              IMPORTED_LIBRARIES.inputFor(source),
               (Source source) => SOURCE_KIND.inputFor(source)),
       EXPORTS_SOURCE_KIND_INPUT_NAME:
           new ListToMapTaskInput<Source, SourceKind>(
-              EXPORTED_LIBRARIES.inputFor(target),
+              EXPORTED_LIBRARIES.inputFor(source),
               (Source source) => SOURCE_KIND.inputFor(source))
     };
   }
@@ -736,16 +746,17 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the given
-   * [target].
+   * [librarySource].
    */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+  static Map<String, TaskInput> buildInputs(Source librarySource) {
     return <String, TaskInput>{
-      DEFINING_RESOLVER_UNIT1_INPUT_NAME:
-          new SimpleTaskInput(target, RESOLVED_UNIT1),
+      DEFINING_RESOLVER_UNIT1_INPUT_NAME: RESOLVED_UNIT1
+          .inputFor(new LibraryUnitTarget(librarySource, librarySource)),
       PARTS_RESOLVED_UNIT1_INPUT_NAME:
           new ListToListTaskInput<Source, CompilationUnit>(
-              INCLUDED_PARTS.inputFor(target),
-              (Source source) => RESOLVED_UNIT1.inputFor(source))
+              INCLUDED_PARTS.inputFor(librarySource),
+              (Source source) => RESOLVED_UNIT1
+                  .inputFor(new LibraryUnitTarget(librarySource, source)))
     };
   }
 
@@ -796,11 +807,11 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the
-   * given [target].
+   * given library [source].
    */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+  static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
-      BUILT_LIBRARY_ELEMENT_INPUT_NAME: LIBRARY_ELEMENT1.inputFor(target)
+      BUILT_LIBRARY_ELEMENT_INPUT_NAME: LIBRARY_ELEMENT1.inputFor(source)
     };
   }
 
@@ -872,6 +883,30 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
   static BuildTypeProviderTask createTask(
       AnalysisContext context, AnalysisContextTarget target) {
     return new BuildTypeProviderTask(context, target);
+  }
+}
+
+/**
+ * A pair of a library [Source] and a unit [Source] in this library.
+ */
+class LibraryUnitTarget implements AnalysisTarget {
+  final Source library;
+  final Source unit;
+  LibraryUnitTarget(this.library, this.unit);
+
+  @override
+  int get hashCode {
+    return JenkinsSmiHash.combine(library.hashCode, unit.hashCode);
+  }
+
+  @override
+  Source get source => unit;
+
+  @override
+  bool operator ==(other) {
+    return other is LibraryUnitTarget &&
+        other.library == library &&
+        other.unit == unit;
   }
 }
 
@@ -981,12 +1016,13 @@ class ParseDartTask extends SourceBasedAnalysisTask {
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the given [target].
+   * input descriptors describing those inputs for a task with the given
+   * [source].
    */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+  static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
-      LINE_INFO_INPUT_NAME: LINE_INFO.inputFor(target),
-      TOKEN_STREAM_INPUT_NAME: TOKEN_STREAM.inputFor(target)
+      LINE_INFO_INPUT_NAME: LINE_INFO.inputFor(source),
+      TOKEN_STREAM_INPUT_NAME: TOKEN_STREAM.inputFor(source)
     };
   }
 
@@ -1086,10 +1122,11 @@ class ScanDartTask extends SourceBasedAnalysisTask {
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the given [target].
+   * input descriptors describing those inputs for a task with the given
+   * [source].
    */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.inputFor(target)};
+  static Map<String, TaskInput> buildInputs(Source source) {
+    return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.inputFor(source)};
   }
 
   /**

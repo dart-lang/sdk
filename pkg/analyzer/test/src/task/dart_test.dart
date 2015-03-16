@@ -46,8 +46,9 @@ main() {
 @reflectiveTest
 class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
+    LibraryUnitTarget target = new LibraryUnitTarget(emptySource, emptySource);
     Map<String, TaskInput> inputs =
-        BuildCompilationUnitElementTask.buildInputs(emptySource);
+        BuildCompilationUnitElementTask.buildInputs(target);
     expect(inputs, isNotNull);
     expect(inputs.keys, unorderedEquals(
         [BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME]));
@@ -93,7 +94,8 @@ class A {''');
   }
 
   void _performBuildTask(String content) {
-    AnalysisTarget target = _newSource('/test.dart', content);
+    Source source = _newSource('/test.dart', content);
+    AnalysisTarget target = new LibraryUnitTarget(source, source);
     _computeResult(target, RESOLVED_UNIT1);
     expect(task, new isInstanceOf<BuildCompilationUnitElementTask>());
   }
@@ -442,37 +444,6 @@ class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   List<CompilationUnit> partUnits;
 
   LibraryElement libraryElement;
-
-  test_buildInputs() {
-    ExtendedAnalysisContext context = new _MockContext();
-    // prepare sources
-    File libraryFile = resourceProvider.newFile('/lib.dart', '');
-    File partFile1 = resourceProvider.newFile('/part1.dart', '');
-    File partFile2 = resourceProvider.newFile('/part2.dart', '');
-    Source librarySource = libraryFile.createSource();
-    Source partSource1 = partFile1.createSource();
-    Source partSource2 = partFile2.createSource();
-    // set INCLUDED_PARTS
-    context.getCacheEntry(librarySource).setValue(
-        INCLUDED_PARTS, <Source>[partSource1, partSource2]);
-    // set BUILT_UNIT
-    CompilationUnit libraryUnit = AstFactory.compilationUnit();
-    CompilationUnit partUnit1 = AstFactory.compilationUnit();
-    CompilationUnit partUnit2 = AstFactory.compilationUnit();
-    context.getCacheEntry(librarySource).setValue(RESOLVED_UNIT1, libraryUnit);
-    context.getCacheEntry(partSource1).setValue(RESOLVED_UNIT1, partUnit1);
-    context.getCacheEntry(partSource2).setValue(RESOLVED_UNIT1, partUnit2);
-    // request inputs
-    WorkItem workItem = new WorkItem(
-        context, librarySource, BuildLibraryElementTask.DESCRIPTOR);
-    workItem.gatherInputs(null);
-    Map<String, dynamic> inputs = workItem.inputs;
-    expect(inputs, hasLength(2));
-    expect(inputs[BuildLibraryElementTask.DEFINING_RESOLVER_UNIT1_INPUT_NAME],
-        libraryUnit);
-    expect(inputs[BuildLibraryElementTask.PARTS_RESOLVED_UNIT1_INPUT_NAME],
-        unorderedEquals([partUnit1, partUnit2]));
-  }
 
   test_constructor() {
     BuildLibraryElementTask task =

@@ -1641,6 +1641,13 @@ class AstCloner implements AstVisitor<AstNode> {
   YieldStatement visitYieldStatement(YieldStatement node) => new YieldStatement(
       cloneToken(node.yieldKeyword), cloneToken(node.star),
       cloneNode(node.expression), cloneToken(node.semicolon));
+
+  /**
+   * Return a clone of the given [node].
+   */
+  static AstNode clone(AstNode node) {
+    return node.accept(new AstCloner());
+  }
 }
 
 /**
