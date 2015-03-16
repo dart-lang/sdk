@@ -97,6 +97,63 @@ bool test() {
     verifyNoTestUnitErrors = false;
   }
 
+  void test_addFieldFormalParameters_hasRequiredParameter() {
+    resolveTestUnit('''
+class Test {
+  final int a;
+  final int b;
+  final int c;
+  Test(this.a);
+}
+''');
+    assertHasFix(FixKind.ADD_FIELD_FORMAL_PARAMETERS, '''
+class Test {
+  final int a;
+  final int b;
+  final int c;
+  Test(this.a, this.b, this.c);
+}
+''');
+  }
+
+  void test_addFieldFormalParameters_noParameters() {
+    resolveTestUnit('''
+class Test {
+  final int a;
+  final int b;
+  final int c;
+  Test();
+}
+''');
+    assertHasFix(FixKind.ADD_FIELD_FORMAL_PARAMETERS, '''
+class Test {
+  final int a;
+  final int b;
+  final int c;
+  Test(this.a, this.b, this.c);
+}
+''');
+  }
+
+  void test_addFieldFormalParameters_noRequiredParameter() {
+    resolveTestUnit('''
+class Test {
+  final int a;
+  final int b;
+  final int c;
+  Test([this.c]);
+}
+''');
+    assertHasFix(FixKind.ADD_FIELD_FORMAL_PARAMETERS, '''
+class Test {
+  final int a;
+  final int b;
+  final int c;
+  Test(this.a, this.b, [this.c]);
+}
+''');
+  }
+
   void test_addSync_blockFunctionBody() {
     resolveTestUnit('''
 foo() {}
