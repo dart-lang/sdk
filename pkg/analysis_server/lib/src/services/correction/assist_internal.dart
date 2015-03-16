@@ -802,10 +802,19 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    // prepare location
+    int offset;
+    String statementPrefix;
+    if (isExpression.notOperator == null) {
+      offset = targetBlock.leftBracket.end;
+      statementPrefix = indent;
+    } else {
+      offset = targetBlock.rightBracket.end;
+      statementPrefix = '';
+    }
     // prepare source
-    int offset = targetBlock.leftBracket.end;
     SourceBuilder builder = new SourceBuilder(file, offset);
-    builder.append(eol + prefix + indent);
+    builder.append(eol + prefix + statementPrefix);
     builder.append(castTypeCode);
     // prepare excluded names
     Set<String> excluded = new Set<String>();

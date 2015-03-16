@@ -1576,7 +1576,7 @@ main(p) {
     assertNoAssistAt('if (p', AssistKind.INTRODUCE_LOCAL_CAST_TYPE);
   }
 
-  void test_introduceLocalTestedType_OK_if() {
+  void test_introduceLocalTestedType_OK_if_is() {
     resolveTestUnit('''
 class MyTypeName {}
 main(p) {
@@ -1596,6 +1596,34 @@ main(p) {
 ''';
     assertHasAssistAt(
         'is MyType', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
+    _assertLinkedGroup(change.linkedEditGroups[0], [
+      'myTypeName = '
+    ], expectedSuggestions(
+        LinkedEditSuggestionKind.VARIABLE, ['myTypeName', 'typeName', 'name']));
+    // another good location
+    assertHasAssistAt('if (p', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
+  }
+
+  void test_introduceLocalTestedType_OK_if_isNot() {
+    resolveTestUnit('''
+class MyTypeName {}
+main(p) {
+  if (p is! MyTypeName) {
+    return;
+  }
+}
+''');
+    String expected = '''
+class MyTypeName {}
+main(p) {
+  if (p is! MyTypeName) {
+    return;
+  }
+  MyTypeName myTypeName = p;
+}
+''';
+    assertHasAssistAt(
+        'is! MyType', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
     _assertLinkedGroup(change.linkedEditGroups[0], [
       'myTypeName = '
     ], expectedSuggestions(
