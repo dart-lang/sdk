@@ -19,11 +19,12 @@ import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
-import 'package:linter/src/rules/unnecessary_getters.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
+import 'package:linter/src/rules/constant_identifier_names.dart';
 
 final Registry ruleRegistry = new Registry()
   ..register(new CamelCaseTypes())
+  ..register(new ConstantIdentifierNames())
   ..register(new EmptyConstructorBodies())
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())
