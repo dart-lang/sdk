@@ -133,21 +133,54 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   Future<SourceChange> _createProjectChange(
       Folder project, File pubspecFile) async {
-    // prepare "name" field value location
-    SourceSpan nameSpan;
-    {
-      String pubspecString = pubspecFile.readAsStringSync();
-      YamlMap pubspecNode = loadYamlNode(pubspecString);
-      YamlNode nameNode = pubspecNode.nodes['name'];
-      nameSpan = nameNode.span;
-    }
-    int nameOffset = nameSpan.start.offset;
-    int nameLength = nameSpan.length;
-    // create Change
     change = new SourceChange('Rename project');
+    String oldPackageName = pathContext.basename(oldFile);
     String newPackageName = pathContext.basename(newFile);
-    change.addEdit(pubspecFile.path, pubspecFile.modificationStamp,
-        new SourceEdit(nameOffset, nameLength, newPackageName));
+    // add pubspec.yaml change
+    {
+      // prepare "name" field value location
+      SourceSpan nameSpan;
+      {
+        String pubspecString = pubspecFile.readAsStringSync();
+        YamlMap pubspecNode = loadYamlNode(pubspecString);
+        YamlNode nameNode = pubspecNode.nodes['name'];
+        nameSpan = nameNode.span;
+      }
+      int nameOffset = nameSpan.start.offset;
+      int nameLength = nameSpan.length;
+      // add edit
+      change.addEdit(pubspecFile.path, pubspecFile.modificationStamp,
+          new SourceEdit(nameOffset, nameLength, newPackageName));
+    }
+    // check all local libraries
+    for (Source librarySource in context.librarySources) {
+      // should be a local library
+      if (!project.contains(librarySource.fullName)) {
+        continue;
+      }
+      // we need LibraryElement
+      LibraryElement library = context.getLibraryElement(librarySource);
+      if (library == null) {
+        continue;
+      }
+      // update all imports
+      updateUriElements(List<UriReferencedElement> uriElements) {
+        for (UriReferencedElement element in uriElements) {
+          String uri = element.uri;
+          if (uri != null) {
+            String oldPrefix = 'package:$oldPackageName/';
+            if (uri.startsWith(oldPrefix)) {
+              doSourceChange_addElementEdit(change, library, new SourceEdit(
+                  element.uriOffset + 1, oldPrefix.length,
+                  'package:$newPackageName/'));
+            }
+          }
+        }
+      }
+      updateUriElements(library.imports);
+      updateUriElements(library.exports);
+    }
+    // done
     return change;
   }
 

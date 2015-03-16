@@ -193,24 +193,32 @@ description: My pubspec file.
     addSource('/testName/lib/myLib.dart', '');
     addSource(appPath, '''
 import 'package:testName/myLib.dart';
+export 'package:testName/myLib.dart';
 ''');
-    addTestSource('');
+    // configure Uri resolves
+    context.sourceFactory = new SourceFactory([
+      AbstractContextTest.SDK_RESOLVER,
+      new PackageMapUriResolver(provider, <String, List<Folder>>{
+        'testName': [provider.getResource('/testName/lib')]
+      }),
+      resourceResolver,
+    ]);
+    // analyze
     _performAnalysis();
     // perform refactoring
     refactoring = new MoveFileRefactoring(
         provider, searchEngine, context, null, '/testName');
     refactoring.newFile = '/newName';
     await _assertSuccessfulRefactoring();
-//    print(refactoringChange);
     assertFileChangeResult(pubspecPath, '''
 name: newName
 version: 0.0.1
 description: My pubspec file.
 ''');
-    // TODO(scheglov) update self references
-//    assertFileChangeResult(appPath, '''
-//import 'package:newName/myLib.dart';
-//''');
+    assertFileChangeResult(appPath, '''
+import 'package:newName/myLib.dart';
+export 'package:newName/myLib.dart';
+''');
   }
 
   /**
