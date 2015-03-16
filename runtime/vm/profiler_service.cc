@@ -174,7 +174,9 @@ class ProfileFunction : public ZoneAllocated {
   intptr_t inclusive_ticks() const {
     return inclusive_ticks_;
   }
-
+  void inc_inclusive_ticks() {
+    inclusive_ticks_++;
+  }
   intptr_t exclusive_ticks() const {
     return exclusive_ticks_;
   }
@@ -435,6 +437,9 @@ class CodeRegion : public ZoneAllocated {
   intptr_t inclusive_ticks() const { return inclusive_ticks_; }
   void set_inclusive_ticks(intptr_t inclusive_ticks) {
     inclusive_ticks_ = inclusive_ticks;
+  }
+  void inc_inclusive_ticks() {
+    inclusive_ticks_++;
   }
 
   intptr_t exclusive_ticks() const { return exclusive_ticks_; }
@@ -1412,7 +1417,7 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
         dead_code_table_(dead_code_table),
         tag_code_table_(tag_code_table),
         function_table_(function_table),
-        inclusive_(false),
+        inclusive_tree_(false),
         trace_(false),
         trace_code_filter_(NULL) {
     ASSERT(live_code_table_ != NULL);
@@ -1439,9 +1444,9 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
   }
 
   void VisitSample(Sample* sample) {
-    inclusive_ = false;
+    inclusive_tree_ = false;
     ProcessSampleExclusive(sample);
-    inclusive_ = true;
+    inclusive_tree_ = true;
     ProcessSampleInclusive(sample);
   }
 
@@ -1457,6 +1462,12 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     return tag_order_;
   }
 
+  bool vm_tags_emitted() const {
+    return (tag_order_ == ProfilerService::kUserVM) ||
+           (tag_order_ == ProfilerService::kVMUser) ||
+           (tag_order_ == ProfilerService::kVM);
+  }
+
   void set_tag_order(ProfilerService::TagOrder tag_order) {
     tag_order_ = tag_order;
   }
@@ -1468,6 +1479,7 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     ProfileFunctionTrieNode* current = inclusive_root_;
     current = AppendTags(sample, current);
     if (sample->truncated_trace()) {
+      InclusiveTickTruncatedTag();
       current = AppendTruncatedTag(current);
     }
     // Walk the sampled PCs.
@@ -1475,11 +1487,12 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
       if (sample->At(i) == 0) {
         continue;
       }
-      // If we aren't sampled out of an exit frame and this is the top
-      // frame.
-      bool exclusive_tick = (i == 0) && !sample->exit_frame_sample();
-      current = ProcessPC(sample->At(i), sample->timestamp(), current,
-                          visited(), exclusive_tick,
+      current = ProcessPC(sample->At(i),
+                          sample->timestamp(),
+                          current,
+                          visited(),
+                          (i == 0),
+                          sample->exit_frame_sample() && (i == 0),
                           sample->missing_frame_inserted());
     }
   }
@@ -1494,11 +1507,12 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
       if (sample->At(i) == 0) {
         break;
       }
-      // If we aren't sampled out of an exit frame and this is the top
-      // frame.
-      bool exclusive_tick = (i == 0) && !sample->exit_frame_sample();
-      current = ProcessPC(sample->At(i), sample->timestamp(), current,
-                          visited(), exclusive_tick,
+      current = ProcessPC(sample->At(i),
+                          sample->timestamp(),
+                          current,
+                          visited(),
+                          (i == 0),
+                          sample->exit_frame_sample() && (i == 0),
                           sample->missing_frame_inserted());
     }
     if (sample->truncated_trace()) {
@@ -1527,6 +1541,12 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     return current;
   }
 
+  void InclusiveTickTruncatedTag() {
+    intptr_t index = tag_code_table_->FindIndex(VMTag::kTruncatedTagId);
+    CodeRegion* region = tag_code_table_->At(index);
+    ProfileFunction* function = region->function();
+    function->inc_inclusive_ticks();
+  }
 
   ProfileFunctionTrieNode* AppendVMTag(Sample* sample,
                                        ProfileFunctionTrieNode* current) {
@@ -1624,10 +1644,12 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
     OS::Print("\n");
   }
 
-  ProfileFunctionTrieNode* ProcessPC(uword pc, int64_t timestamp,
+  ProfileFunctionTrieNode* ProcessPC(uword pc,
+                                     int64_t timestamp,
                                      ProfileFunctionTrieNode* current,
                                      intptr_t inclusive_serial,
-                                     bool exclusive,
+                                     bool top_frame,
+                                     bool exit_frame,
                                      bool missing_frame_inserted) {
     CodeRegion* region = FindCodeObject(pc, timestamp);
     if (region == NULL) {
@@ -1652,12 +1674,12 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
         OS::Print("[%" Px "] X - %s (%s)\n",
                   pc, function->name(), region_name);
       }
-      if (!inclusive_) {
-        function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
-      }
-      current = current->GetChild(function->index());
-      current->AddCodeObjectIndex(code_index);
-      current->Tick();
+      current = ProcessFunction(function,
+                                current,
+                                inclusive_serial,
+                                top_frame,
+                                exit_frame,
+                                code_index);
       if ((trace_code_filter_ != NULL) &&
           (strstr(region_name, trace_code_filter_) != NULL)) {
         trace_ = true;
@@ -1668,14 +1690,18 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
       return current;
     }
 
-    if (inclusive_) {
+    if (inclusive_tree_) {
       for (intptr_t i = inlined_functions.length() - 1; i >= 0; i--) {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
-        current = ProcessInlinedFunction(
-            inlined_function, current, inclusive_serial, exclusive, code_index);
-        exclusive = false;
+        current = ProcessInlinedFunction(inlined_function,
+                                         current,
+                                         inclusive_serial,
+                                         top_frame,
+                                         exit_frame,
+                                         code_index);
+        top_frame = false;
       }
     } else {
       for (intptr_t i = 0; i < inlined_functions.length(); i++) {
@@ -1687,9 +1713,13 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
           OS::Print("[%" Px "] %" Pd " - %s (%s)\n",
                   pc, i, inline_name, region_name);
         }
-        current = ProcessInlinedFunction(
-            inlined_function, current, inclusive_serial, exclusive, code_index);
-        exclusive = false;
+        current = ProcessInlinedFunction(inlined_function,
+                                         current,
+                                         inclusive_serial,
+                                         top_frame,
+                                         exit_frame,
+                                         code_index);
+        top_frame = false;
         if ((trace_code_filter_ != NULL) &&
             (strstr(region_name, trace_code_filter_) != NULL)) {
           trace_ = true;
@@ -1707,16 +1737,44 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
       Function* inlined_function,
       ProfileFunctionTrieNode* current,
       intptr_t inclusive_serial,
-      bool exclusive,
+      bool top_frame,
+      bool exit_frame,
       intptr_t code_index) {
     ProfileFunction* function =
         function_table_->LookupOrAdd(*inlined_function);
     ASSERT(function != NULL);
+    return ProcessFunction(function,
+                           current,
+                           inclusive_serial,
+                           top_frame,
+                           exit_frame,
+                           code_index);
+  }
+
+  ProfileFunctionTrieNode* ProcessFunction(ProfileFunction* function,
+                                           ProfileFunctionTrieNode* current,
+                                           intptr_t inclusive_serial,
+                                           bool top_frame,
+                                           bool exit_frame,
+                                           intptr_t code_index) {
+    const bool exclusive = top_frame && !exit_frame;
+    if (!inclusive_tree_) {
+      // We process functions for the inclusive and exclusive trees.
+      // Only tick the function for the exclusive tree.
+      function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
+    }
     function->AddCodeObjectIndex(code_index);
-    function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
+
     current = current->GetChild(function->index());
     current->AddCodeObjectIndex(code_index);
-    current->Tick();
+    if (top_frame) {
+      if (!exit_frame || vm_tags_emitted()) {
+        // Only tick if this isn't an exit frame or VM tags are emitted.
+        current->Tick();
+      }
+    } else {
+      current->Tick();
+    }
     return current;
   }
 
@@ -1749,7 +1807,7 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
   CodeRegionTable* dead_code_table_;
   CodeRegionTable* tag_code_table_;
   ProfileFunctionTable* function_table_;
-  bool inclusive_;
+  bool inclusive_tree_;
   bool trace_;
   const char* trace_code_filter_;
 };
@@ -1892,6 +1950,12 @@ class CodeRegionTrieBuilder : public SampleVisitor {
     return tag_order_;
   }
 
+  bool vm_tags_emitted() const {
+    return (tag_order_ == ProfilerService::kUserVM) ||
+           (tag_order_ == ProfilerService::kVMUser) ||
+           (tag_order_ == ProfilerService::kVM);
+  }
+
   void set_tag_order(ProfilerService::TagOrder tag_order) {
     tag_order_ = tag_order;
   }
@@ -1934,7 +1998,16 @@ class CodeRegionTrieBuilder : public SampleVisitor {
         continue;
       }
       current = current->GetChild(index);
-      current->Tick();
+      if (i == 0) {
+        // Executing PC.
+        if (!sample->exit_frame_sample() || vm_tags_emitted()) {
+          // Only tick if this isn't an exit frame or VM tags are emitted.
+          current->Tick();
+        }
+      } else {
+        // Caller PCs.
+        current->Tick();
+      }
     }
     if (sample->truncated_trace()) {
       current = AppendTruncatedTag(current);
@@ -2136,7 +2209,8 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
         intptr_t total_live_code_objects = live_code_table.Length();
         intptr_t total_dead_code_objects = dead_code_table.Length();
         intptr_t total_tag_code_objects = tag_code_table.Length();
-        OS::Print("Processed %" Pd " frames\n", frames);
+        OS::Print(
+            "Processed %" Pd " samples with %" Pd " frames\n", samples, frames);
         OS::Print("CodeTables: live=%" Pd " dead=%" Pd " tag=%" Pd "\n",
                   total_live_code_objects,
                   total_dead_code_objects,
@@ -2174,6 +2248,11 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
         code_trie_builder.exclusive_root()->SortByCount();
         code_trie_builder.inclusive_root()->SortByCount();
       }
+      if (FLAG_trace_profiler) {
+        OS::Print("Code Trie Root Count: E: %" Pd " I: %" Pd "\n",
+                  code_trie_builder.exclusive_root()->count(),
+                  code_trie_builder.inclusive_root()->count());
+      }
       ProfileFunctionTrieBuilder function_trie_builder(isolate,
                                                        &live_code_table,
                                                        &dead_code_table,
@@ -2187,6 +2266,11 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
         sample_buffer->VisitSamples(&function_trie_builder);
         function_trie_builder.exclusive_root()->SortByCount();
         function_trie_builder.inclusive_root()->SortByCount();
+      }
+      if (FLAG_trace_profiler) {
+        OS::Print("Function Trie Root Count: E: %" Pd " I: %" Pd "\n",
+                  function_trie_builder.exclusive_root()->count(),
+                  function_trie_builder.inclusive_root()->count());
       }
       {
         ScopeTimer sw("CpuProfileJSONStream", FLAG_trace_profiler);

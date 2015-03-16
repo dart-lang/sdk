@@ -153,15 +153,17 @@
               </select>
             </div>
           </div>
+          <!--- Experimental
           <div class="memberItem">
             <div class="memberName">Call Tree Direction</div>
             <div class="memberValue">
               <select value="{{directionSelector}}">
-                <!--- Experimental <option value="Down">Top down</option> --->
+                <option value="Down">Top down</option>
                 <option value="Up">Bottom up</option>
               </select>
             </div>
           </div>
+           --->
         </div>
       </template>
       <template if="{{ state == 'Loaded' && directionSelector == 'Down' }}">
