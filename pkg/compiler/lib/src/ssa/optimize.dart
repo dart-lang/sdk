@@ -12,30 +12,23 @@ abstract class OptimizationPhase {
 class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend backend;
   SsaOptimizerTask(JavaScriptBackend backend)
-    : this.backend = backend,
-      super(backend.compiler);
+      : this.backend = backend,
+        super(backend.compiler);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
-  void runPhases(HGraph graph, List<OptimizationPhase> phases) {
-    for (OptimizationPhase phase in phases) {
-      runPhase(graph, phase);
-    }
-  }
-
-  void runPhase(HGraph graph, OptimizationPhase phase) {
-    phase.visitGraph(graph);
-    compiler.tracer.traceGraph(phase.name, graph);
-    assert(graph.isValid());
-  }
-
   void optimize(CodegenWorkItem work, HGraph graph) {
+    void runPhase(OptimizationPhase phase) {
+      phase.visitGraph(graph);
+      compiler.tracer.traceGraph(phase.name, graph);
+      assert(graph.isValid());
+    }
+
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     bool trustPrimitives = compiler.trustPrimitives;
     measure(() {
-      SsaDeadCodeEliminator dce;
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial instruction simplification first to optimize
           // some patterns useful for type conversion.
@@ -70,12 +63,19 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(constantSystem, backend, this, work),
           new SsaCheckInserter(
               trustPrimitives, backend, work, context.boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          dce = new SsaDeadCodeEliminator(compiler, this),
-          new SsaTypePropagator(compiler)];
-      runPhases(graph, phases);
+      ];
+      phases.forEach(runPhase);
+
+      // Simplifying interceptors is not strictly just an optimization, it is
+      // required for implementation correctness because the code generator
+      // assumes it is always performed.
+      runPhase(new SsaSimplifyInterceptors(compiler, constantSystem, work));
+
+      SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
+      runPhase(dce);
       if (dce.eliminatedSideEffects) {
         phases = <OptimizationPhase>[
+            new SsaTypePropagator(compiler),
             new SsaGlobalValueNumberer(compiler),
             new SsaCodeMotion(),
             new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
@@ -83,14 +83,17 @@ class SsaOptimizerTask extends CompilerTask {
             new SsaCheckInserter(
                 trustPrimitives, backend, work, context.boundsChecked),
             new SsaSimplifyInterceptors(compiler, constantSystem, work),
-            new SsaDeadCodeEliminator(compiler, this)];
+            new SsaDeadCodeEliminator(compiler, this),
+        ];
       } else {
         phases = <OptimizationPhase>[
-            // Run the simplifier to remove unneeded type checks inserted
-            // by type propagation.
-            new SsaInstructionSimplifier(constantSystem, backend, this, work)];
+            new SsaTypePropagator(compiler),
+            // Run the simplifier to remove unneeded type checks inserted by
+            // type propagation.
+            new SsaInstructionSimplifier(constantSystem, backend, this, work),
+        ];
       }
-      runPhases(graph, phases);
+      phases.forEach(runPhase);
     });
   }
 }
