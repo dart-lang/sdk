@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library test.rules.unecessary_getters;
+
 class BoxBad {
   var _contents;
-  get contents => _contents; //LINT [7:8]
+  get contents => _contents; //__LINT [9:8]
 }
 
 class BoxGood {
@@ -13,7 +15,7 @@ class BoxGood {
 
 class Bad {
   var _x;
-  get x //LINT
+  get x //__LINT
   {
     return _x;
   }
@@ -38,6 +40,16 @@ class OkToo {
 class _SuperClass {
   int _field = 0;
 }
+
 class PublicClass extends _SuperClass {
   int get field => _field; //OK
+}
+
+class Q {
+  int _q; //OK
+  int get q => _q;
+}
+
+q() {
+  print(new Q()._q);
 }

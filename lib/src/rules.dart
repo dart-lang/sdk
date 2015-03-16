@@ -34,7 +34,8 @@ final Registry ruleRegistry = new Registry()
   ..register(new SuperGoesLast())
   ..register(new TypeInitFormals())
   ..register(new UnnecessaryBraceInStringInterp())
-  ..register(new UnnecessaryGetters())
+  // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
+  //..register(new UnnecessaryGetters())
   ..register(new UnnecessaryGettersSetters());
 
 /// Registry of contributed lint rules.
