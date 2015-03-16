@@ -67,16 +67,6 @@ class DirectoryBasedDartSdk implements DartSdk {
   static String _DART2JS_EXECUTABLE_NAME_WIN = "dart2js.bat";
 
   /**
-   * The name of the dart formatter executable on non-windows operating systems.
-   */
-  static String _DARTFMT_EXECUTABLE_NAME = "dartfmt";
-
-  /**
-   * The name of the dart formatter executable on windows operating systems.
-   */
-  static String _DARTFMT_EXECUTABLE_NAME_WIN = "dartfmt.bat";
-
-  /**
    * The name of the file containing the Dartium executable on Linux.
    */
   static String _DARTIUM_EXECUTABLE_NAME_LINUX = "chrome";
@@ -273,21 +263,6 @@ class DirectoryBasedDartSdk implements DartSdk {
               : _DART2JS_EXECUTABLE_NAME));
     }
     return _dart2jsExecutable;
-  }
-
-  /**
-   * Return the file containing the dart formatter executable, or `null` if it
-   * does not exist.
-   */
-  JavaFile get dartFmtExecutable {
-    if (_dartFmtExecutable == null) {
-      _dartFmtExecutable = _verifyExecutable(new JavaFile.relative(
-          new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
-          OSUtilities.isWindows()
-              ? _DARTFMT_EXECUTABLE_NAME_WIN
-              : _DARTFMT_EXECUTABLE_NAME));
-    }
-    return _dartFmtExecutable;
   }
 
   /**

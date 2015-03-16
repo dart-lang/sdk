@@ -4684,14 +4684,6 @@ class DirectoryBasedDartSdkTest {
     expect(executable.isExecutable(), isTrue);
   }
 
-  void test_getDartFmtExecutable() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile executable = sdk.dartFmtExecutable;
-    expect(executable, isNotNull);
-    expect(executable.exists(), isTrue);
-    expect(executable.isExecutable(), isTrue);
-  }
-
   void test_getDirectory() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile directory = sdk.directory;
