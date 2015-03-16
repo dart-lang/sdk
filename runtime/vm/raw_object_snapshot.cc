@@ -1366,23 +1366,26 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
 
   // Allocate context object.
   int32_t num_vars = reader->Read<int32_t>();
-  Context& context = Context::ZoneHandle(
-      reader->isolate(), NEW_OBJECT_WITH_LEN(Context, num_vars));
+  Context& context = Context::ZoneHandle(reader->isolate());
   reader->AddBackRef(object_id, &context, kIsDeserialized);
+  if (num_vars == 0) {
+    context ^= reader->object_store()->empty_context();
+  } else {
+    context ^= NEW_OBJECT_WITH_LEN(Context, num_vars);
 
-  // Set the object tags.
-  context.set_tags(tags);
+    // Set the object tags.
+    context.set_tags(tags);
 
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (context.raw()->to(num_vars) - context.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
-    context.StorePointer((context.raw()->from() + i),
-                         reader->PassiveObjectHandle()->raw());
+    // Set all the object fields.
+    // TODO(5411462): Need to assert No GC can happen here, even though
+    // allocations may happen.
+    intptr_t num_flds = (context.raw()->to(num_vars) - context.raw()->from());
+    for (intptr_t i = 0; i <= num_flds; i++) {
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+      context.StorePointer((context.raw()->from() + i),
+                           reader->PassiveObjectHandle()->raw());
+    }
   }
-
   return context.raw();
 }
 
@@ -1400,11 +1403,13 @@ void RawContext::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out num of variables in the context.
-  writer->Write<int32_t>(ptr()->num_variables_);
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to(ptr()->num_variables_));
+  int32_t num_variables = ptr()->num_variables_;
+  writer->Write<int32_t>(num_variables);
+  if (num_variables != 0) {
+    // Write out all the object pointer fields.
+    SnapshotWriterVisitor visitor(writer);
+    visitor.VisitPointers(from(), to(num_variables));
+  }
 }
 
 

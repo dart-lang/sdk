@@ -1542,6 +1542,10 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<MirrorReference>();
   cls = Class::New<UserTag>();
 
+  const Context& context = Context::Handle(isolate,
+                                           Context::New(0, Heap::kOld));
+  object_store->set_empty_context(context);
+
   StubCode::InitBootstrapStubs(isolate);
 }
 
