@@ -198,6 +198,11 @@ class DartCompletionCache extends CompletionCache {
   void _addDartCoreSuggestions() {
     Source coreUri = context.sourceFactory.forUri('dart:core');
     LibraryElement coreLib = context.getLibraryElement(coreUri);
+    if (coreLib == null) {
+      // If the core library has not been analyzed yet, then we cannot add any
+      // suggestions from it.
+      return;
+    }
     Namespace coreNamespace =
         new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
     coreNamespace.definedNames.forEach((String name, Element elem) {
@@ -272,10 +277,11 @@ class DartCompletionCache extends CompletionCache {
    */
   void _addNonImportedElementSuggestions(
       List<SearchMatch> matches, Set<LibraryElement> excludedLibs) {
+    AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
     matches.forEach((SearchMatch match) {
       if (match.kind == MatchKind.DECLARATION) {
         Element element = match.element;
-        if (element.context == context &&
+        if ((element.context == context || element.context == sdkContext) &&
             element.isPublic &&
             !excludedLibs.contains(element.library) &&
             !_importedCompletions.contains(element.displayName)) {

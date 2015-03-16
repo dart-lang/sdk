@@ -117,8 +117,9 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
-  CompletionSuggestion assertSuggestImportedConstructor(String name) {
-    return assertSuggestConstructor(name);
+  CompletionSuggestion assertSuggestImportedConstructor(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
+    return assertSuggestConstructor(name, relevance: relevance);
   }
 
   @override
@@ -592,9 +593,6 @@ class B extends A {
   }
 
   test_mixin_ordering() {
-    // TODO(paulberry): The mixins are visited in the correct order, so we see
-    // M2.m() before M1.m(), as we should.  But the second (shadowed) result
-    // isn't being thrown out as it should.
     addSource('/libA.dart', '''
 class B {}
 class M1 {

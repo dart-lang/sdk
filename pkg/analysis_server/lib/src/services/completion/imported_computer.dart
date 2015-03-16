@@ -170,11 +170,11 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
     unfiltered.forEach((CompletionSuggestion suggestion) {
       if (filterText.length > 0) {
         if (suggestion.completion.startsWith(filterText)) {
-          request.suggestions.add(suggestion);
+          request.addSuggestion(suggestion);
         }
       } else {
         if (suggestion.relevance != DART_RELEVANCE_LOW) {
-          request.suggestions.add(suggestion);
+          request.addSuggestion(suggestion);
         }
       }
     });

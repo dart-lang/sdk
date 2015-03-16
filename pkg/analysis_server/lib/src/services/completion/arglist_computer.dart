@@ -179,7 +179,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
         completion.toString(), completion.length, 0, false, false);
     suggestion.parameterNames = paramNames;
     suggestion.parameterTypes = paramTypes;
-    request.suggestions.add(suggestion);
+    request.addSuggestion(suggestion);
   }
 
   String _getParamType(FormalParameter param) {

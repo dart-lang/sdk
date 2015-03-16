@@ -78,11 +78,13 @@ class DartCompletionManager extends CompletionManager {
       : super(context, source) {
     if (computers == null) {
       computers = [
-        new KeywordComputer(),
+        // LocalComputer before ImportedComputer
+        // because local suggestions take precedence
         new LocalComputer(),
+        new ImportedComputer(),
+        new KeywordComputer(),
         new ArgListComputer(),
         new CombinatorComputer(),
-        new ImportedComputer(),
         new InvocationComputer()
       ];
     }
@@ -315,7 +317,12 @@ class DartCompletionRequest extends CompletionRequest {
   /**
    * The list of suggestions to be sent to the client.
    */
-  final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+  final List<CompletionSuggestion> _suggestions = <CompletionSuggestion>[];
+
+  /**
+   * The set of completions used to prevent duplicates
+   */
+  final Set<String> _completions = new Set<String>();
 
   DartCompletionRequest(this.context, this.searchEngine, this.source,
       int offset, this.cache, CompletionPerformance performance)
@@ -342,17 +349,32 @@ class DartCompletionRequest extends CompletionRequest {
   }
 
   /**
+   * The list of suggestions to be sent to the client.
+   */
+  Iterable<CompletionSuggestion> get suggestions => _suggestions;
+
+  /**
+   * Add the given suggestion to the list that is returned to the client as long
+   * as a suggestion with an identical completion has not already been added.
+   */
+  void addSuggestion(CompletionSuggestion suggestion) {
+    if (_completions.add(suggestion.completion)) {
+      _suggestions.add(suggestion);
+    }
+  }
+
+  /**
    * Convert all [CompletionSuggestionKind.INVOCATION] suggestions
    * to [CompletionSuggestionKind.IDENTIFIER] suggestions.
    */
   void convertInvocationsToIdentifiers() {
-    for (int index = suggestions.length - 1; index >= 0; --index) {
-      CompletionSuggestion suggestion = suggestions[index];
+    for (int index = _suggestions.length - 1; index >= 0; --index) {
+      CompletionSuggestion suggestion = _suggestions[index];
       if (suggestion.kind == CompletionSuggestionKind.INVOCATION) {
         // Create a copy rather than just modifying the existing suggestion
         // because [DartCompletionCache] may be caching that suggestion
         // for future completion requests
-        suggestions[index] = new CompletionSuggestion(
+        _suggestions[index] = new CompletionSuggestion(
             CompletionSuggestionKind.IDENTIFIER, suggestion.relevance,
             suggestion.completion, suggestion.selectionOffset,
             suggestion.selectionLength, suggestion.isDeprecated,

@@ -272,7 +272,7 @@ class _ConstructorVisitor extends LocalDeclarationVisitor {
         parameterTypes: parameterTypes,
         requiredParameterCount: requiredParameterCount,
         hasNamedParameters: hasNamedParameters);
-    request.suggestions.add(suggestion);
+    request.addSuggestion(suggestion);
     return suggestion;
   }
 
@@ -402,7 +402,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.IDENTIFIER, DART_RELEVANCE_DEFAULT,
             completion, completion.length, 0, false, false);
-        request.suggestions.add(suggestion);
+        request.addSuggestion(suggestion);
         return suggestion;
       }
     }
@@ -681,7 +681,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             }
           }
         }
-        request.suggestions.add(suggestion);
+        request.addSuggestion(suggestion);
         return suggestion;
       }
     }

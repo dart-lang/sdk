@@ -61,6 +61,30 @@ class ServerOperationQueueTest {
     expect(queue.isEmpty, true);
   }
 
+  void test_contextRemoved() {
+    var contextA = new AnalysisContextMock();
+    var contextB = new AnalysisContextMock();
+    var opA1 = new _ServerOperationMock(contextA);
+    var opA2 = new _ServerOperationMock(contextA);
+    var opB1 = new _ServerOperationMock(contextB);
+    var opB2 = new _ServerOperationMock(contextB);
+    when(opA1.priority)
+        .thenReturn(ServerOperationPriority.ANALYSIS_NOTIFICATION);
+    when(opA2.priority)
+        .thenReturn(ServerOperationPriority.ANALYSIS_NOTIFICATION);
+    when(opB1.priority)
+        .thenReturn(ServerOperationPriority.ANALYSIS_NOTIFICATION);
+    when(opB2.priority)
+        .thenReturn(ServerOperationPriority.ANALYSIS_NOTIFICATION);
+    queue.add(opA1);
+    queue.add(opB1);
+    queue.add(opA2);
+    queue.add(opB2);
+    queue.contextRemoved(contextA);
+    expect(queue.take(), same(opB1));
+    expect(queue.take(), same(opB2));
+  }
+
   void test_isEmpty_false() {
     var operation = mockOperation(ServerOperationPriority.ANALYSIS);
     queue.add(operation);
@@ -148,6 +172,10 @@ class ServerOperationQueueTest {
 }
 
 class _ServerOperationMock extends TypedMock implements ServerOperation {
+  final AnalysisContext context;
+
+  _ServerOperationMock([this.context]);
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

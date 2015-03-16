@@ -178,6 +178,12 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true);
   }
 
+  test_BinaryExpression_RHS2() {
+    // SimpleIdentifier  BinaryExpression
+    addTestSource('main() {if (c < ^)}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_Block() {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('''
@@ -789,6 +795,24 @@ class OpTypeTest {
     assertOpType();
   }
 
+  test_MapLiteralEntry() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {^');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_MapLiteralEntry1() {
+    // MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {T^');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_MapLiteralEntry2() {
+    // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
+    addTestSource('foo = {7:T^};');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_MethodDeclaration1() {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('class Bar {const ^Fara();}');
@@ -1044,6 +1068,18 @@ class C2 {
     // TopLevelVariableDeclaration
     addTestSource('class A {} var ^');
     assertOpType();
+  }
+
+  test_TypeArgumentList() {
+    // SimpleIdentifier  BinaryExpression  ExpressionStatement
+    addTestSource('main() { C<^> c; }');
+    assertOpType(typeNames: true);
+  }
+
+  test_TypeArgumentList2() {
+    // TypeName  TypeArgumentList  TypeName
+    addTestSource('main() { C<C^> c; }');
+    assertOpType(typeNames: true);
   }
 
   test_TypeParameter() {

@@ -393,6 +393,25 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [AnalysisContext] that contains the given [path].
+   * Return `null` if no context contains the [path].
+   */
+  AnalysisContext getContainingContext(String path) {
+    Folder containingFolder = null;
+    AnalysisContext containingContext = null;
+    folderMap.forEach((Folder folder, AnalysisContext context) {
+      if (folder.isOrContains(path)) {
+        if (containingFolder == null ||
+            containingFolder.path.length < folder.path.length) {
+          containingFolder = folder;
+          containingContext = context;
+        }
+      }
+    });
+    return containingContext;
+  }
+
+  /**
    * Return the primary [ContextSourcePair] representing the given [path].
    *
    * The [AnalysisContext] of this pair will be the context that explicitly
@@ -420,17 +439,7 @@ class AnalysisServer {
     Resource resource = resourceProvider.getResource(path);
     File file = resource is File ? resource : null;
     {
-      Folder containingFolder = null;
-      AnalysisContext containingContext = null;
-      folderMap.forEach((Folder folder, AnalysisContext context) {
-        if (folder.isOrContains(path)) {
-          if (containingFolder == null ||
-              containingFolder.path.length < folder.path.length) {
-            containingFolder = folder;
-            containingContext = context;
-          }
-        }
-      });
+      AnalysisContext containingContext = getContainingContext(path);
       if (containingContext != null) {
         Source source = file != null
             ? ContextManager.createSourceInContext(containingContext, file)
@@ -1242,6 +1251,11 @@ class ServerContextManager extends ContextManager {
     if (context != null) {
       context.applyChanges(changeSet);
       analysisServer.schedulePerformAnalysisOperation(context);
+      List<String> flushedFiles = new List<String>();
+      for (Source source in changeSet.removedSources) {
+        flushedFiles.add(source.fullName);
+      }
+      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     }
   }
 
@@ -1258,9 +1272,17 @@ class ServerContextManager extends ContextManager {
   @override
   void removeContext(Folder folder) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
+
+    // See dartbug.com/22689, the AnalysisContext is computed in
+    // computeFlushedFiles instead of using the referenced context above, this
+    // is an attempt to be careful concerning the referenced issue.
+    List<String> flushedFiles = computeFlushedFiles(folder);
+    sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
+
     if (analysisServer.index != null) {
       analysisServer.index.removeContext(context);
     }
+    analysisServer.operationQueue.contextRemoved(context);
     _onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
     analysisServer.sendContextAnalysisDoneNotifications(

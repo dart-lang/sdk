@@ -421,7 +421,7 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   test_locals() {
-    addTestFile('class A {var a; x() {var b;^}}');
+    addTestFile('class A {var a; x() {var b;^}} class DateTime { }');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
@@ -431,6 +431,21 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
           DART_RELEVANCE_LOCAL_VARIABLE);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x',
+          DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime');
+    });
+  }
+
+  test_overrides() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {m() {^}}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
           DART_RELEVANCE_LOCAL_METHOD);
     });
   }

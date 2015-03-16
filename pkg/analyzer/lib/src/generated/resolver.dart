@@ -3737,7 +3737,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     indexField.type = intType;
     fields.add(indexField);
     getters.add(_createGetter(indexField));
-    FieldElementImpl valuesField = new FieldElementImpl("values", -1);
+    ConstFieldElementImpl valuesField = new ConstFieldElementImpl.con2("values", -1);
     valuesField.static = true;
     valuesField.const3 = true;
     valuesField.synthetic = true;
@@ -3748,6 +3748,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     // Build the enum constants.
     //
     NodeList<EnumConstantDeclaration> constants = node.constants;
+    List<DartObjectImpl> constantValues = new List<DartObjectImpl>();
     int constantCount = constants.length;
     for (int i = 0; i < constantCount; i++) {
       SimpleIdentifier constantName = constants[i].name;
@@ -3764,11 +3765,16 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
       fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
       DartObjectImpl value =
           new DartObjectImpl(enumType, new GenericState(fieldMap));
+      constantValues.add(value);
       constantField.evaluationResult = new EvaluationResultImpl.con1(value);
       fields.add(constantField);
       getters.add(_createGetter(constantField));
       constantName.staticElement = constantField;
     }
+    //
+    // Build the value of the 'values' field.
+    //
+    valuesField.evaluationResult = new EvaluationResultImpl.con1(new DartObjectImpl(valuesField.type, new ListState(constantValues)));
     //
     // Finish building the enum.
     //
@@ -14837,6 +14843,17 @@ class VariableResolverVisitor extends ScopedVisitor {
     try {
       _enclosingFunction = node.element;
       return super.visitFunctionDeclaration(node);
+    } finally {
+      _enclosingFunction = outerFunction;
+    }
+  }
+
+  @override
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    ExecutableElement outerFunction = _enclosingFunction;
+    try {
+      _enclosingFunction = node.element;
+      return super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
     }

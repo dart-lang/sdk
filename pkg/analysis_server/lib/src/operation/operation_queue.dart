@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -47,6 +48,16 @@ class ServerOperationQueue {
   void clear() {
     for (Queue<ServerOperation> queue in _queues) {
       queue.clear();
+    }
+  }
+
+  /**
+   * The given [context] has been removed, so all pending operations that refer
+   * to it should be removed from the queue.
+   */
+  void contextRemoved(AnalysisContext context) {
+    for (Queue<ServerOperation> queue in _queues) {
+      queue.removeWhere((operation) => operation.context == context);
     }
   }
 

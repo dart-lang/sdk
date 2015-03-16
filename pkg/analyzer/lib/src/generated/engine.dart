@@ -451,6 +451,13 @@ abstract class AnalysisContext {
   void set sourceFactory(SourceFactory factory);
 
   /**
+   * Return an array containing all of the sources known to this context.
+   *
+   * @return all of the sources known to this context
+   */
+  List<Source> get sources;
+
+  /**
    * Returns a type provider for this context or throws [AnalysisException] if
    * `dart:core` or `dart:async` cannot be resolved.
    */
@@ -1445,6 +1452,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _asyncLibrarySource = _sourceFactory.forUri(DartSdk.DART_ASYNC);
     _cache = createCacheFromSourceFactory(factory);
     _invalidateAllLocalResolutionInformation(true);
+  }
+
+  @override
+  List<Source> get sources {
+    List<Source> sources = new List<Source>();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      sources.add(iterator.key);
+    }
+    return sources;
   }
 
   /**

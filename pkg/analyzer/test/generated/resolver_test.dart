@@ -12600,6 +12600,37 @@ f() {
     expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
 
+  void test_mutatedOutsideScope() {
+    // https://code.google.com/p/dart/issues/detail?id=22732
+    Source source = addSource(r'''
+class Base {
+}
+
+class Derived extends Base {
+  get y => null;
+}
+
+class C {
+  void f() {
+    Base x = null;
+    if (x is Derived) {
+      print(x.y); // BAD
+    }
+    x = null;
+  }
+}
+
+void g() {
+  Base x = null;
+  if (x is Derived) {
+    print(x.y); // GOOD
+  }
+  x = null;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   void test_objectMethodOnDynamicExpression_doubleEquals() {
     // https://code.google.com/p/dart/issues/detail?id=20342
     //

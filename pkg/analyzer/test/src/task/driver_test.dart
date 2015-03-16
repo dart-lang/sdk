@@ -514,6 +514,9 @@ class _TestContext implements ExtendedAnalysisContext {
   }
 
   @override
+  List<Source> get sources => baseContext.sources;
+
+  @override
   AnalysisContextStatistics get statistics => baseContext.statistics;
 
   @override

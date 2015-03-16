@@ -262,12 +262,13 @@ function(d2) {
         case 0:
           // Function start
           __temp1 = foo1();
-          if (__temp1) {
+          if (__temp1)
+            __result = __temp1;
+          else {
             // goto then
             __goto = 2;
             break;
-          } else
-            __result = __temp1;
+          }
           // goto join
           __goto = 3;
           break;
@@ -290,12 +291,13 @@ function(d2) {
         case 8:
           // returning from await.
           __temp1 = __result;
-          if (__temp1) {
+          if (__temp1)
+            __result = __temp1;
+          else {
             // goto then
             __goto = 6;
             break;
-          } else
-            __result = __temp1;
+          }
           // goto join
           __goto = 7;
           break;
@@ -312,13 +314,12 @@ function(d2) {
           c = __result;
           d = foo1() || foo2();
           __temp1 = foo1();
-          if (__temp1)
-            __result = __temp1;
-          else {
+          if (__temp1) {
             // goto then
             __goto = 10;
             break;
-          }
+          } else
+            __result = __temp1;
           // goto join
           __goto = 11;
           break;
@@ -341,13 +342,12 @@ function(d2) {
         case 16:
           // returning from await.
           __temp1 = __result;
-          if (__temp1)
-            __result = __temp1;
-          else {
+          if (__temp1) {
             // goto then
             __goto = 14;
             break;
-          }
+          } else
+            __result = __temp1;
           // goto join
           __goto = 15;
           break;

@@ -181,7 +181,7 @@ class MockCompletionComputer extends DartCompletionComputer {
     this.request = request;
     fastCount++;
     if (fastSuggestion != null) {
-      request.suggestions.add(fastSuggestion);
+      request.addSuggestion(fastSuggestion);
     }
     return fastSuggestion != null;
   }
@@ -191,7 +191,7 @@ class MockCompletionComputer extends DartCompletionComputer {
     this.request = request;
     fullCount++;
     if (fullSuggestion != null) {
-      request.suggestions.add(fullSuggestion);
+      request.addSuggestion(fullSuggestion);
     }
     return new Future.value(fullSuggestion != null);
   }

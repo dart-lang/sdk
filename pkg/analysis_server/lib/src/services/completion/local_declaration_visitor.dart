@@ -144,6 +144,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    _visitParamList(node.parameters);
+    visitNode(node);
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     SimpleIdentifier id;
     TypeName type;

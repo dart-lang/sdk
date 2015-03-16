@@ -64,10 +64,12 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
     } else if (node is PropertyAccess) {
       node = (node as PropertyAccess).realTarget;
     }
-    if (node is Identifier && node.bestElement is ClassElement) {
-      node.bestElement
-          .accept(new _PrefixedIdentifierSuggestionBuilder(request));
-      return new Future.value(true);
+    if (node is Identifier) {
+      Element elem = node.bestElement;
+      if (elem is ClassElement || elem is PrefixElement) {
+        elem.accept(new _PrefixedIdentifierSuggestionBuilder(request));
+        return new Future.value(true);
+      }
     }
     if (node is Expression) {
       InterfaceTypeSuggestionBuilder.suggestionsFor(request, node.bestType);
@@ -328,7 +330,6 @@ class _PrefixedIdentifierSuggestionBuilder
         }
       }
     }
-    ;
     return new Future.value(modified);
   }
 

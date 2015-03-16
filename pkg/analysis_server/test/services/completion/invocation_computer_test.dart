@@ -137,6 +137,22 @@ void f(C<int> c) {
     });
   }
 
+  test_libraryPrefix() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {bar.^}');
+    return computeFull((bool result) {
+      assertSuggestClass('Future');
+    });
+  }
+
+  test_libraryPrefix2() {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {bar.^ print("f")}');
+    return computeFull((bool result) {
+      assertSuggestClass('Future');
+    });
+  }
+
   test_local() {
     addTestSource('foo() {String x = "bar"; x.^}');
     return computeFull((bool result) {
@@ -399,7 +415,7 @@ void main() {C.^ print("something");}''');
       check_shadowing('int x;', 'set x(int value) {}', true);
 
   test_shadowing_getter_over_field() =>
-      check_shadowing('int get x => null;', 'int x;', false);
+      check_shadowing('int get x => null;', 'int x;', true);
 
   test_shadowing_getter_over_getter() =>
       check_shadowing('int get x => null;', 'int get x => null;', true);
@@ -408,7 +424,7 @@ void main() {C.^ print("something");}''');
       check_shadowing('int get x => null;', 'void x() {}', true);
 
   test_shadowing_getter_over_setter() =>
-      check_shadowing('int get x => null;', 'set x(int value) {}', false);
+      check_shadowing('int get x => null;', 'set x(int value) {}', true);
 
   test_shadowing_method_over_field() =>
       check_shadowing('void x() {}', 'int x;', true);
@@ -468,10 +484,10 @@ void test(Derived d) {
   }
 
   test_shadowing_setter_over_field() =>
-      check_shadowing('set x(int value) {}', 'int x;', false);
+      check_shadowing('set x(int value) {}', 'int x;', true);
 
   test_shadowing_setter_over_getter() =>
-      check_shadowing('set x(int value) {}', 'int get x => null;', false);
+      check_shadowing('set x(int value) {}', 'int get x => null;', true);
 
   test_shadowing_setter_over_method() =>
       check_shadowing('set x(int value) {}', 'void x() {}', true);

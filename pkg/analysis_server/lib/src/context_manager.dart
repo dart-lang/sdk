@@ -115,6 +115,29 @@ abstract class ContextManager {
   }
 
   /**
+   * Compute the set of files that are being flushed, this is defined as
+   * the set of sources in the removed context (context.sources), that are
+   * orphaned by this context being removed (no other context includes this
+   * file.)
+   */
+  List<String> computeFlushedFiles(Folder folder) {
+    AnalysisContext context = _contexts[folder].context;
+    HashSet<String> flushedFiles = new HashSet<String>();
+    for (Source source in context.sources) {
+      flushedFiles.add(source.fullName);
+    }
+    for (_ContextInfo contextInfo in _contexts.values) {
+      AnalysisContext contextN = contextInfo.context;
+      if (context != contextN) {
+        for (Source source in contextN.sources) {
+          flushedFiles.remove(source.fullName);
+        }
+      }
+    }
+    return flushedFiles.toList(growable:false);
+  }
+
+  /**
    * We have finished computing the package map.
    */
   void endComputePackageMap() {

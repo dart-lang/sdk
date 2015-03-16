@@ -194,6 +194,15 @@ void main() {
     assertNotSuggested('x');
   }
 
+  test_overrides() {
+    addTestSource('''
+class A {m() {}}
+class B extends A {m() {^}}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
+  }
+
   test_break_ignores_unrelated_statements() {
     addTestSource('''
 void main() {
@@ -223,6 +232,41 @@ void main() {
     expect(computeFast(), isTrue);
     assertSuggestLabel('foo');
     assertSuggestLabel('bar');
+  }
+
+  test_constructor_parameters_mixed_required_and_named() {
+    addTestSource('class A {A(x, {int y}) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_mixed_required_and_positional() {
+    addTestSource('class A {A(x, [int y]) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_named() {
+    addTestSource('class A {A({x, int y}) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_positional() {
+    addTestSource('class A {A([x, int y]) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_required() {
+    addTestSource('class A {A(x, int y) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
   }
 
   test_continue_from_loop_to_switch() {
@@ -697,5 +741,11 @@ class B extends A {
     expect(suggestion.parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_shadowed_name() {
+    addTestSource('var a; class A { var a; m() { ^ } }');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalField('a', null);
   }
 }

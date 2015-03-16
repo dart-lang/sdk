@@ -20,54 +20,6 @@ main() {
   runReflectiveTests(TokenTypeTest);
 }
 
-@reflectiveTest
-class CharSequenceReaderTest {
-  void test_advance() {
-    CharSequenceReader reader = new CharSequenceReader("x");
-    expect(reader.advance(), 0x78);
-    expect(reader.advance(), -1);
-    expect(reader.advance(), -1);
-  }
-
-  void test_creation() {
-    expect(new CharSequenceReader("x"), isNotNull);
-  }
-
-  void test_getOffset() {
-    CharSequenceReader reader = new CharSequenceReader("x");
-    expect(reader.offset, -1);
-    reader.advance();
-    expect(reader.offset, 0);
-    reader.advance();
-    expect(reader.offset, 0);
-  }
-
-  void test_getString() {
-    CharSequenceReader reader = new CharSequenceReader("xyzzy");
-    reader.offset = 3;
-    expect(reader.getString(1, 0), "yzz");
-    expect(reader.getString(2, 1), "zzy");
-  }
-
-  void test_peek() {
-    CharSequenceReader reader = new CharSequenceReader("xy");
-    expect(reader.peek(), 0x78);
-    expect(reader.peek(), 0x78);
-    reader.advance();
-    expect(reader.peek(), 0x79);
-    expect(reader.peek(), 0x79);
-    reader.advance();
-    expect(reader.peek(), -1);
-    expect(reader.peek(), -1);
-  }
-
-  void test_setOffset() {
-    CharSequenceReader reader = new CharSequenceReader("xyz");
-    reader.offset = 2;
-    expect(reader.offset, 2);
-  }
-}
-
 class CharacterRangeReaderTest extends EngineTestCase {
   void test_advance() {
     CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
@@ -119,6 +71,54 @@ class CharacterRangeReaderTest extends EngineTestCase {
   void test_setOffset() {
     CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
     CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    reader.offset = 2;
+    expect(reader.offset, 2);
+  }
+}
+
+@reflectiveTest
+class CharSequenceReaderTest {
+  void test_advance() {
+    CharSequenceReader reader = new CharSequenceReader("x");
+    expect(reader.advance(), 0x78);
+    expect(reader.advance(), -1);
+    expect(reader.advance(), -1);
+  }
+
+  void test_creation() {
+    expect(new CharSequenceReader("x"), isNotNull);
+  }
+
+  void test_getOffset() {
+    CharSequenceReader reader = new CharSequenceReader("x");
+    expect(reader.offset, -1);
+    reader.advance();
+    expect(reader.offset, 0);
+    reader.advance();
+    expect(reader.offset, 0);
+  }
+
+  void test_getString() {
+    CharSequenceReader reader = new CharSequenceReader("xyzzy");
+    reader.offset = 3;
+    expect(reader.getString(1, 0), "yzz");
+    expect(reader.getString(2, 1), "zzy");
+  }
+
+  void test_peek() {
+    CharSequenceReader reader = new CharSequenceReader("xy");
+    expect(reader.peek(), 0x78);
+    expect(reader.peek(), 0x78);
+    reader.advance();
+    expect(reader.peek(), 0x79);
+    expect(reader.peek(), 0x79);
+    reader.advance();
+    expect(reader.peek(), -1);
+    expect(reader.peek(), -1);
+  }
+
+  void test_setOffset() {
+    CharSequenceReader reader = new CharSequenceReader("xyz");
     reader.offset = 2;
     expect(reader.offset, 2);
   }
@@ -593,6 +593,15 @@ class ScannerTest {
     ]);
   }
 
+  void test_lineInfo_multilineString_raw() {
+    String source = "var a = r'''\nblah\n''';\n\nfoo";
+    _assertLineInfo(source, [
+      new ScannerTest_ExpectedLocation(0, 1, 1),
+      new ScannerTest_ExpectedLocation(14, 2, 2),
+      new ScannerTest_ExpectedLocation(source.length - 2, 5, 2)
+    ]);
+  }
+
   void test_lineInfo_simpleClass() {
     String source =
         "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
@@ -639,10 +648,6 @@ class ScannerTest {
     _assertToken(TokenType.MINUS_MINUS, "--");
   }
 
-  void test_openSquareBracket() {
-    _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
-  }
-
   void test_open_curly_bracket() {
     _assertToken(TokenType.OPEN_CURLY_BRACKET, "{");
   }
@@ -652,6 +657,10 @@ class ScannerTest {
   }
 
   void test_open_square_bracket() {
+    _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
+  }
+
+  void test_openSquareBracket() {
     _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
@@ -665,6 +674,14 @@ class ScannerTest {
 
   void test_period() {
     _assertToken(TokenType.PERIOD, ".");
+  }
+
+  void test_period_period() {
+    _assertToken(TokenType.PERIOD_PERIOD, "..");
+  }
+
+  void test_period_period_period() {
+    _assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
   }
 
   void test_periodAfterNumberNotIncluded_identifier() {
@@ -687,14 +704,6 @@ class ScannerTest {
     ]);
   }
 
-  void test_period_period() {
-    _assertToken(TokenType.PERIOD_PERIOD, "..");
-  }
-
-  void test_period_period_period() {
-    _assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
-  }
-
   void test_plus() {
     _assertToken(TokenType.PLUS, "+");
   }
@@ -715,12 +724,12 @@ class ScannerTest {
     _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart -debug");
   }
 
-  void test_scriptTag_withSpace() {
-    _assertToken(TokenType.SCRIPT_TAG, "#! /bin/dart");
-  }
-
   void test_scriptTag_withoutSpace() {
     _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart");
+  }
+
+  void test_scriptTag_withSpace() {
+    _assertToken(TokenType.SCRIPT_TAG, "#! /bin/dart");
   }
 
   void test_semicolon() {
@@ -840,8 +849,8 @@ class ScannerTest {
 
   void test_string_raw_multi_unterminated() {
     String source = "r'''string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        9, source, [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9,
+        source, [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_raw_simple_double() {
@@ -854,14 +863,14 @@ class ScannerTest {
 
   void test_string_raw_simple_unterminated_eof() {
     String source = "r'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        7, source, [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
+        source, [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_raw_simple_unterminated_eol() {
     String source = "r'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        8, "$source\n", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8,
+        "$source\n", [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_double() {
@@ -957,14 +966,14 @@ class ScannerTest {
 
   void test_string_simple_unterminated_eof() {
     String source = "'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        6, source, [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6,
+        source, [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_unterminated_eol() {
     String source = "'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        7, "$source\r", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
+        "$source\r", [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_unterminated_interpolation_block() {
@@ -1044,9 +1053,8 @@ class ScannerTest {
     GatheringErrorListener listener = new GatheringErrorListener();
     _scanWithListener(source, listener);
     listener.assertErrors([
-      new AnalysisError.con2(null, expectedOffset, 1, expectedError, [
-        source.codeUnitAt(expectedOffset)
-      ])
+      new AnalysisError.con2(null, expectedOffset, 1, expectedError,
+          [source.codeUnitAt(expectedOffset)])
     ]);
   }
 
@@ -1064,9 +1072,8 @@ class ScannerTest {
     GatheringErrorListener listener = new GatheringErrorListener();
     Token token = _scanWithListener(source, listener);
     listener.assertErrors([
-      new AnalysisError.con2(null, expectedOffset, 1, expectedError, [
-        source.codeUnitAt(expectedOffset)
-      ])
+      new AnalysisError.con2(null, expectedOffset, 1, expectedError,
+          [source.codeUnitAt(expectedOffset)])
     ]);
     _checkTokens(token, expectedTokens);
   }
@@ -1104,10 +1111,14 @@ class ScannerTest {
     listener.assertNoErrors();
     LineInfo info = listener.getLineInfo(new TestSource());
     expect(info, isNotNull);
-    for (ScannerTest_ExpectedLocation expectedLocation in expectedLocations) {
+    int count = expectedLocations.length;
+    for (int i = 0; i < count; i++) {
+      ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
       LineInfo_Location location = info.getLocation(expectedLocation._offset);
-      expect(location.lineNumber, expectedLocation._lineNumber);
-      expect(location.columnNumber, expectedLocation._columnNumber);
+      expect(location.lineNumber, expectedLocation._lineNumber,
+          reason: 'Line number in location $i');
+      expect(location.columnNumber, expectedLocation._columnNumber,
+          reason: 'Column number in location $i');
     }
   }
 

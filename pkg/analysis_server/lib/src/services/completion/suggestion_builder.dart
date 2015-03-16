@@ -165,11 +165,6 @@ void visitInheritedTypes(ClassDeclaration node,
 abstract class ElementSuggestionBuilder {
 
   /**
-   * Internal collection of completions to prevent duplicate completions.
-   */
-  final Set<String> _completions = new Set<String>();
-
-  /**
    * Return the kind of suggestions that should be built.
    */
   CompletionSuggestionKind get kind;
@@ -196,15 +191,13 @@ abstract class ElementSuggestionBuilder {
       }
     }
     String completion = element.displayName;
-    if (completion == null ||
-        completion.length <= 0 ||
-        !_completions.add(completion)) {
+    if (completion == null || completion.length <= 0) {
       return;
     }
     CompletionSuggestion suggestion =
         createSuggestion(element, kind: kind, relevance: relevance);
     if (suggestion != null) {
-      request.suggestions.add(suggestion);
+      request.addSuggestion(suggestion);
     }
   }
 }
@@ -307,7 +300,7 @@ class InterfaceTypeSuggestionBuilder {
     }
     CompletionSuggestion suggestion = createSuggestion(element, kind: kind);
     if (suggestion != null) {
-      request.suggestions.add(suggestion);
+      request.addSuggestion(suggestion);
     }
   }
 
