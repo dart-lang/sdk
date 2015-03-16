@@ -236,8 +236,8 @@ class AnalysisErrorWithProperties extends AnalysisError {
    * error will have the given [errorCode] and the list of [arguments] will be
    * used to complete the message. The error has no location information.
    */
-  AnalysisErrorWithProperties.con1(
-      Source source, ErrorCode errorCode, [List<Object> arguments])
+  AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode,
+      [List<Object> arguments])
       : super.con1(source, errorCode, arguments);
 
   /**
@@ -246,8 +246,9 @@ class AnalysisErrorWithProperties extends AnalysisError {
    * [errorCode] and the list of [arguments] will be used to complete the
    * message.
    */
-  AnalysisErrorWithProperties.con2(Source source, int offset, int length,
-      ErrorCode errorCode, [List<Object> arguments])
+  AnalysisErrorWithProperties.con2(
+      Source source, int offset, int length, ErrorCode errorCode,
+      [List<Object> arguments])
       : super.con2(source, offset, length, errorCode, arguments);
 
   @override
@@ -2377,19 +2378,26 @@ abstract class ErrorCode {
  */
 class ErrorProperty extends Enum<ErrorProperty> {
   /**
+   * A property whose value is a list of [FieldElement]s that are final, but
+   * not initialized by a constructor.
+   */
+  static const ErrorProperty NOT_INITIALIZED_FIELDS =
+      const ErrorProperty('NOT_INITIALIZED_FIELDS', 0);
+
+  /**
    * A property whose value is the name of the library that is used by all
    * of the "part of" directives, so should be used in the "library" directive.
    * Is `null` if there is no a single name used by all of the parts.
    */
   static const ErrorProperty PARTS_LIBRARY_NAME =
-      const ErrorProperty('PARTS_LIBRARY_NAME', 0);
+      const ErrorProperty('PARTS_LIBRARY_NAME', 1);
 
   /**
    * A property whose value is a list of [ExecutableElement] that should
    * be but are not implemented by a concrete class.
    */
   static const ErrorProperty UNIMPLEMENTED_METHODS =
-      const ErrorProperty('UNIMPLEMENTED_METHODS', 1);
+      const ErrorProperty('UNIMPLEMENTED_METHODS', 2);
 
   static const List<ErrorProperty> values = const [
     PARTS_LIBRARY_NAME,
@@ -2470,8 +2478,8 @@ class ErrorReporter {
   }
 
   /**
-   * Report an error with the given [errorCode] and [arguments]. The [node] is
-   * used to compute the location of the error.
+   * Report an error with the given [errorCode] and [arguments].
+   * The [node] is used to compute the location of the error.
    *
    * If the arguments contain the names of two or more types, the method
    * [reportTypeErrorForNode] should be used and the types
@@ -3928,6 +3936,14 @@ class StaticWarningCode extends ErrorCode {
    * <i>v</i> is final and <i>v</i> is not initialized at its point of
    * declaration.
    *
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   */
+  static const StaticWarningCode FINAL_NOT_INITIALIZED =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED',
+          "The final variable '{0}' must be initialized");
+
+  /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
    * declared in the immediately enclosing class must have an initializer in
    * <i>k</i>'s initializer list unless it has already been initialized by one
@@ -3939,9 +3955,44 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the name of the uninitialized final variable
    */
-  static const StaticWarningCode FINAL_NOT_INITIALIZED =
-      const StaticWarningCode('FINAL_NOT_INITIALIZED',
+  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "The final variable '{0}' must be initialized");
+
+  /**
+   * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
+   * declared in the immediately enclosing class must have an initializer in
+   * <i>k</i>'s initializer list unless it has already been initialized by one
+   * of the following means:
+   * * Initialization at the declaration of <i>f</i>.
+   * * Initialization by means of an initializing formal of <i>k</i>.
+   * or a static warning occurs.
+   *
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   * 1: the name of the uninitialized final variable
+   */
+  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+          "The final variables '{0}' and '{1}' must be initialized");
+
+  /**
+   * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
+   * declared in the immediately enclosing class must have an initializer in
+   * <i>k</i>'s initializer list unless it has already been initialized by one
+   * of the following means:
+   * * Initialization at the declaration of <i>f</i>.
+   * * Initialization by means of an initializing formal of <i>k</i>.
+   * or a static warning occurs.
+   *
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   * 1: the name of the uninitialized final variable
+   * 2: the number of additional not initialized variables that aren't listed
+   */
+  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          "The final variables '{0}', '{1}' and '{2}' more must be initialized");
 
   /**
    * 15.5 Function Types: It is a static warning if a concrete class implements

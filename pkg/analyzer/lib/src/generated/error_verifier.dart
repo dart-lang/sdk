@@ -1200,6 +1200,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
+    // Prepare a list of not initialized fields.
+    List<FieldElement> notInitFinalFields = <FieldElement>[];
+    fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
+      if (state == INIT_STATE.NOT_INIT) {
+        if (fieldElement.isFinal) {
+          notInitFinalFields.add(fieldElement);
+        }
+      }
+    });
     // Visit all of the states in the map to ensure that none were never
     // initialized.
     fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
@@ -1209,14 +1218,36 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               CompileTimeErrorCode.CONST_NOT_INITIALIZED, node.returnType,
               [fieldElement.name]);
           foundError = true;
-        } else if (fieldElement.isFinal) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.FINAL_NOT_INITIALIZED, node.returnType,
-              [fieldElement.name]);
-          foundError = true;
         }
       }
     });
+    if (notInitFinalFields.isNotEmpty) {
+      foundError = true;
+      AnalysisErrorWithProperties analysisError;
+      if (notInitFinalFields.length == 1) {
+        analysisError = _errorReporter.newErrorWithProperties(
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+            node.returnType, [notInitFinalFields[0].name]);
+      } else if (notInitFinalFields.length == 2) {
+        analysisError = _errorReporter.newErrorWithProperties(
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
+            node.returnType, [
+          notInitFinalFields[0].name,
+          notInitFinalFields[1].name
+        ]);
+      } else {
+        analysisError = _errorReporter.newErrorWithProperties(
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+            node.returnType, [
+          notInitFinalFields[0].name,
+          notInitFinalFields[1].name,
+          notInitFinalFields.length - 2
+        ]);
+      }
+      analysisError.setProperty(
+          ErrorProperty.NOT_INITIALIZED_FIELDS, notInitFinalFields);
+      _errorReporter.reportError(analysisError);
+    }
     return foundError;
   }
 
