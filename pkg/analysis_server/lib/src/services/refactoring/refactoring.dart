@@ -24,11 +24,11 @@ import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart' as pathos;
 
 /**
  * [Refactoring] to convert getters into normal [MethodDeclaration]s.
@@ -278,10 +278,11 @@ abstract class MoveFileRefactoring implements Refactoring {
   /**
    * Returns a new [MoveFileRefactoring] instance.
    */
-  factory MoveFileRefactoring(pathos.Context pathContext,
-      SearchEngine searchEngine, AnalysisContext context, Source source) {
+  factory MoveFileRefactoring(ResourceProvider resourceProvider,
+      SearchEngine searchEngine, AnalysisContext context, Source source,
+      String oldFile) {
     return new MoveFileRefactoringImpl(
-        pathContext, searchEngine, context, source);
+        resourceProvider, searchEngine, context, source, oldFile);
   }
 
   /**
