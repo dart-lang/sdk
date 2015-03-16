@@ -206,6 +206,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   bool isOrContains(String path) {
     return path == this.path;
   }
+
+  @override
+  String readAsStringSync() {
+    throw new FileSystemException(path, 'File could not be read');
+  }
 }
 
 /**
@@ -221,7 +226,7 @@ class _MemoryFile extends _MemoryResource implements File {
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
-      throw new FileSystemException(path, 'File does not exist.');
+      throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return stamp;
   }
@@ -229,7 +234,7 @@ class _MemoryFile extends _MemoryResource implements File {
   String get _content {
     String content = _provider._pathToContent[path];
     if (content == null) {
-      throw new FileSystemException(path, "File does not exist");
+      throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return content;
   }
@@ -245,6 +250,15 @@ class _MemoryFile extends _MemoryResource implements File {
   @override
   bool isOrContains(String path) {
     return path == this.path;
+  }
+
+  @override
+  String readAsStringSync() {
+    String content = _provider._pathToContent[path];
+    if (content == null) {
+      throw new FileSystemException(path, 'File "$path" does not exist.');
+    }
+    return content;
   }
 }
 

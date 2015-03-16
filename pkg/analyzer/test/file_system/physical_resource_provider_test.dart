@@ -102,6 +102,19 @@ class FileTest extends _BaseTest {
     expect(parent.path, equals(tempPath));
   }
 
+  void test_readAsStringSync_doesNotExist() {
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(() {
+      file.readAsStringSync();
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_readAsStringSync_exists() {
+    new io.File(path).writeAsStringSync('abc');
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(file.readAsStringSync(), 'abc');
+  }
+
   void test_shortName() {
     expect(file.shortName, 'file.txt');
   }

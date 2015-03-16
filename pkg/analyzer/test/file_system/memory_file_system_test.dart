@@ -121,6 +121,18 @@ class FileTest {
     expect(parent.path, equals('/foo/bar'));
   }
 
+  void test_readAsStringSync_doesNotExist() {
+    File file = provider.getResource('/test.txt');
+    expect(() {
+      file.readAsStringSync();
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_readAsStringSync_exists() {
+    File file = provider.newFile('/file.txt', 'abc');
+    expect(file.readAsStringSync(), 'abc');
+  }
+
   void test_shortName() {
     File file = provider.getResource('/foo/bar/file.txt');
     expect(file.shortName, 'file.txt');

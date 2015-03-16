@@ -24,6 +24,12 @@ abstract class File extends Resource {
    * Create a new [Source] instance that serves this file.
    */
   Source createSource([Uri uri]);
+
+  /**
+   * Synchronously read the entire file contents as a [String].
+   * Throws [FileSystemException] if the file does not exist.
+   */
+  String readAsStringSync();
 }
 
 /**
@@ -70,18 +76,18 @@ abstract class Folder extends Resource {
   Resource getChild(String relPath);
 
   /**
-   * Return a list of existing direct children [Resource]s (folders and files)
-   * in this folder, in no particular order.
-   */
-  List<Resource> getChildren();
-
-  /**
    * Return a [Folder] representing a child [Resource] with the given
    * [relPath].  This call does not check whether a folder with the given name
    * exists on the filesystem--client must call the [Folder]'s `exists` getter
    * to determine whether the folder actually exists.
    */
   Folder getChildAssumingFolder(String relPath);
+
+  /**
+   * Return a list of existing direct children [Resource]s (folders and files)
+   * in this folder, in no particular order.
+   */
+  List<Resource> getChildren();
 }
 
 /**

@@ -98,6 +98,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   bool isOrContains(String path) {
     return path == this.path;
   }
+
+  @override
+  String readAsStringSync() {
+    try {
+      io.File file = _entry as io.File;
+      return file.readAsStringSync();
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
 }
 
 /**
