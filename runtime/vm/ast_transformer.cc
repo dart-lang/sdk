@@ -66,10 +66,10 @@ LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
       Z, String::NewFormatted("%s%d", await_temp_prefix, temp_cnt_));
   const String& symbol = String::ZoneHandle(Z, Symbols::New(cnt_str));
   ASSERT(!symbol.IsNull());
-  // Look up the variable through the preamble scope.
-  LocalVariable* await_tmp = preamble_->scope()->LookupVariable(symbol, false);
+  // Look up the variable in the scope used for async temp variables.
+  LocalVariable* await_tmp = function_top_->LocalLookupVariable(symbol);
   if (await_tmp == NULL) {
-    // If we need a new temp variable, we add it to the function's top scope.
+    // We need a new temp variable; add it to the function's top scope.
     await_tmp = new (Z) LocalVariable(
         Scanner::kNoSourcePos, symbol, Type::ZoneHandle(Type::DynamicType()));
     function_top_->AddVariable(await_tmp);
