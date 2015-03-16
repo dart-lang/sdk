@@ -30,7 +30,7 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   ISL_Print("(%s (scope \"%p\")", node->PrettyName(), node->scope());
   for (int i = 0; i < node->length(); ++i) {
     ISL_Print("\n");
-    for (intptr_t i = 0; i < indent_; i++) {
+    for (intptr_t p = 0; p < indent_; p++) {
       ISL_Print("  ");
     }
     node->NodeAt(i)->Visit(this);
