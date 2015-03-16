@@ -247,7 +247,6 @@ canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not su
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 element_test: Pass, Fail # Issue 21434
 mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
-notification_test/constructors: Fail # Safari doesn't let us access the Notification fields to verify them
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -268,6 +267,7 @@ speechrecognition_test/supported: Fail
 indexeddb_1_test/supported: Fail
 element_types_test/supported_template: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type
+notification_test/constructors: Pass # Safari mobile will pass this test on the basis that notifications aren't supported at all.
 
 [ $runtime == safari ]
 input_element_test/supported_month: RuntimeError
@@ -276,6 +276,7 @@ input_element_test/supported_week: RuntimeError
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 touchevent_test/supported: Fail
+notification_test/constructors: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 
 [ $runtime == safari ]
 indexeddb_1_test/functional: Skip # Times out. Issue 21433
