@@ -889,10 +889,7 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     LibraryElement library = getRequiredInput(BUILT_LIBRARY_ELEMENT_INPUT_NAME);
-
-    NamespaceBuilder builder = new NamespaceBuilder();
-    Namespace namespace = builder.createPublicNamespaceForLibrary(library);
-
+    Namespace namespace = new PublicNamespaceBuilder().build(library);
     outputs[PUBLIC_NAMESPACE] = namespace;
   }
 
@@ -1165,6 +1162,45 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       return null;
     }
     throw new AnalysisException('Failed to handle validation code: $code');
+  }
+}
+
+/**
+ * The helper for building the public [Namespace] of a [LibraryElement].
+ */
+class PublicNamespaceBuilder {
+  final HashMap<String, Element> definedNames = new HashMap<String, Element>();
+
+  /**
+   * Build a public [Namespace] of the given [library].
+   */
+  Namespace build(LibraryElement library) {
+    definedNames.clear();
+    _addPublicNames(library.definingCompilationUnit);
+    library.parts.forEach(_addPublicNames);
+    return new Namespace(definedNames);
+  }
+
+  /**
+   * Add the given [element] if it has a publicly visible name.
+   */
+  void _addIfPublic(Element element) {
+    String name = element.name;
+    if (name != null && !Scope.isPrivateName(name)) {
+      definedNames[name] = element;
+    }
+  }
+
+  /**
+   * Add all of the public top-level names that are defined in the given
+   * [compilationUnit].
+   */
+  void _addPublicNames(CompilationUnitElement compilationUnit) {
+    compilationUnit.accessors.forEach(_addIfPublic);
+    compilationUnit.enums.forEach(_addIfPublic);
+    compilationUnit.functions.forEach(_addIfPublic);
+    compilationUnit.functionTypeAliases.forEach(_addIfPublic);
+    compilationUnit.types.forEach(_addIfPublic);
   }
 }
 
