@@ -268,6 +268,7 @@ indexeddb_1_test/supported: Fail
 element_types_test/supported_template: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type
 notification_test/constructors: Pass # Safari mobile will pass this test on the basis that notifications aren't supported at all.
+notification_test/supported_notification: RuntimeError # Issue 22869
 
 [ $runtime == safari ]
 input_element_test/supported_month: RuntimeError
