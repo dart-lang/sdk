@@ -699,7 +699,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     if (isEnum) {
       return getNodeMatching((node) => node is EnumDeclaration);
     } else {
-      return getNodeMatching((node) => node is ClassDeclaration);
+      return getNodeMatching((node) => node is ClassDeclaration || node is ClassTypeAlias);
     }
   }
 
