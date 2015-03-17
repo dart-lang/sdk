@@ -4,6 +4,7 @@
 
 library analysis;
 
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart' show Folder;
@@ -11,6 +12,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -34,6 +36,7 @@ AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
 
 class AnalysisDriver {
   final DriverOptions options;
+
   AnalysisDriver(this.options);
 
   List<UriResolver> get resolvers {
@@ -86,12 +89,43 @@ class AnalysisDriver {
 
     List<AnalysisErrorInfo> errors = [];
 
+    Set<Source> sourcesAnalyzed = new HashSet<Source>();
+
     for (Source source in sources) {
       context.computeErrors(source);
       errors.add(context.getErrors(source));
+      sourcesAnalyzed.add(source);
+    }
+
+    if (options.visitTransitiveClosure) {
+      // In the process of computing errors for all the sources in [sources],
+      // the analyzer has visited the transitive closure of all libraries
+      // referenced by those sources.  So now we simply need to visit all
+      // library sources known to the analysis context, and all parts they
+      // refer to.
+      for (Source librarySource in context.librarySources) {
+        for (Source source in _getAllUnitSources(context, librarySource)) {
+          if (!sourcesAnalyzed.contains(source)) {
+            context.computeErrors(source);
+            errors.add(context.getErrors(source));
+            sourcesAnalyzed.add(source);
+          }
+        }
+      }
     }
 
     return errors;
+  }
+
+  /**
+   * Yield the sources for all the compilation units constituting
+   * [librarySource] (including the defining compilation unit).
+   */
+  Iterable<Source> _getAllUnitSources(
+      AnalysisContext context, Source librarySource) sync* {
+    yield librarySource;
+    yield* context.getLibraryElement(librarySource).parts
+        .map((CompilationUnitElement e) => e.source);
   }
 }
 
@@ -112,6 +146,10 @@ class DriverOptions {
 
   /// Whether to show SDK warnings.
   bool showSdkWarnings = false;
+
+  /// Whether to show lints for the transitive closure of imported and exported
+  /// libraries.
+  bool visitTransitiveClosure = false;
 }
 
 /// Prints logging information comments to the [outSink] and error messages to
