@@ -136,7 +136,9 @@ void FlowGraph::InsertAfter(Instruction* prev,
   }
   instr->InsertAfter(prev);
   ASSERT(instr->env() == NULL);
-  if (env != NULL) env->DeepCopyTo(isolate(), instr);
+  if (env != NULL) {
+    env->DeepCopyTo(zone(), instr);
+  }
 }
 
 
@@ -149,7 +151,9 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
     AllocateSSAIndexes(instr->AsDefinition());
   }
   ASSERT(instr->env() == NULL);
-  if (env != NULL) env->DeepCopyTo(isolate(), instr);
+  if (env != NULL) {
+    env->DeepCopyTo(zone(), instr);
+  }
   return prev->AppendInstruction(instr);
 }
 
@@ -884,12 +888,12 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
-      Environment::From(isolate(),
+      Environment::From(zone(),
                         *env,
                         num_non_copied_params_,
                         parsed_function_);
   if (instr->IsClosureCall()) {
-    deopt_env = deopt_env->DeepCopy(isolate(),
+    deopt_env = deopt_env->DeepCopy(zone(),
                                     deopt_env->Length() - instr->InputCount());
   }
   instr->SetEnvironment(deopt_env);

@@ -39,6 +39,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 
 #define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
   static RawObject* DN_Helper##name(Isolate* isolate,                          \
+                                    Thread* thread,                            \
+                                    Zone* zone,                                \
                                     NativeArguments* arguments);               \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
     CHECK_STACK_ALIGNMENT;                                                     \
@@ -49,14 +51,22 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     TRACE_NATIVE_CALL("%s", ""#name);                                          \
     {                                                                          \
-      StackZone zone(arguments->isolate());                                    \
+      Isolate* isolate = arguments->isolate();                                 \
+      /* TODO(koda): Pivot from Isolate to Thread in NativeArguments. */       \
+      Thread* thread = Thread::CurrentFromCurrentIsolate(isolate);             \
+      StackZone zone(isolate);                                                 \
       SET_NATIVE_RETVAL(arguments,                                             \
-                        DN_Helper##name(arguments->isolate(), arguments));     \
+                        DN_Helper##name(isolate,                               \
+                                        thread,                                \
+                                        zone.GetZone(),                        \
+                                        arguments));                           \
       DEOPTIMIZE_ALOT;                                                         \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
   static RawObject* DN_Helper##name(Isolate* isolate,                          \
+                                    Thread* thread,                            \
+                                    Zone* zone,                                \
                                     NativeArguments* arguments)
 
 

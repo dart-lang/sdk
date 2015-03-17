@@ -73,17 +73,18 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
   // Only generative constructors can have initializing formals.
   if (!func.IsGenerativeConstructor()) return;
 
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, func.Owner());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, func.Owner());
   const Error& error = Error::Handle(
-      isolate, cls.EnsureIsFinalized(Isolate::Current()));
+      zone, cls.EnsureIsFinalized(thread->isolate()));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
   if (!func.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(isolate, func));
+        zone, Compiler::CompileFunction(thread, func));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
       UNREACHABLE();

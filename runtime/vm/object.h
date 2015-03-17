@@ -374,11 +374,15 @@ class Object {
     return Handle(Isolate::Current(), raw_ptr);
   }
 
-  static Object& ZoneHandle(Isolate* isolate, RawObject* raw_ptr) {
+  static Object& ZoneHandle(Zone* zone, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(
-        VMHandles::AllocateZoneHandle(isolate->current_zone()));
+        VMHandles::AllocateZoneHandle(zone));
     initializeHandle(obj, raw_ptr);
     return *obj;
+  }
+  // DEPRECATED: Use Zone version.
+  static Object& ZoneHandle(Isolate* isolate, RawObject* raw_ptr) {
+    return ZoneHandle(isolate->current_zone(), raw_ptr);
   }
 
   static Object& ZoneHandle() {
@@ -833,12 +837,17 @@ class PassiveObject : public Object {
   void operator^=(RawObject* value) {
     raw_ = value;
   }
-  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
+
+  static PassiveObject& Handle(Zone* zone, RawObject* raw_ptr) {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
-        VMHandles::AllocateHandle(I->current_zone()));
+        VMHandles::AllocateHandle(zone));
     obj->raw_ = raw_ptr;
     obj->set_vtable(0);
     return *obj;
+  }
+  // DEPRECATED - use Zone version.
+  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
+    return Handle(I->current_zone(), raw_ptr);
   }
   static PassiveObject& Handle(RawObject* raw_ptr) {
     return Handle(Isolate::Current(), raw_ptr);
@@ -846,19 +855,23 @@ class PassiveObject : public Object {
   static PassiveObject& Handle() {
     return Handle(Isolate::Current(), Object::null());
   }
-  // DEPRECATED
-  // TODO(koda): Add Zone version.
+  static PassiveObject& Handle(Zone* zone) {
+    return Handle(zone, Object::null());
+  }
+  // DEPRECATED - use Zone version.
   static PassiveObject& Handle(Isolate* I) {
     return Handle(I, Object::null());
   }
-  // DEPRECATED
-  // TODO(koda): Add Zone version.
-  static PassiveObject& ZoneHandle(Isolate* I, RawObject* raw_ptr) {
+  static PassiveObject& ZoneHandle(Zone* zone, RawObject* raw_ptr) {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
-        VMHandles::AllocateZoneHandle(I->current_zone()));
+        VMHandles::AllocateZoneHandle(zone));
     obj->raw_ = raw_ptr;
     obj->set_vtable(0);
     return *obj;
+  }
+  // DEPRECATED - use Zone version.
+  static PassiveObject& ZoneHandle(Isolate* I, RawObject* raw_ptr) {
+    return ZoneHandle(I->current_zone(), raw_ptr);
   }
   static PassiveObject& ZoneHandle(RawObject* raw_ptr) {
     return ZoneHandle(Isolate::Current(), raw_ptr);
@@ -866,10 +879,12 @@ class PassiveObject : public Object {
   static PassiveObject& ZoneHandle() {
     return ZoneHandle(Isolate::Current(), Object::null());
   }
-  // DEPRECATED
-  // TODO(koda): Add Zone version.
+  static PassiveObject& ZoneHandle(Zone* zone) {
+    return ZoneHandle(zone, Object::null());
+  }
+  // DEPRECATED - use Zone version.
   static PassiveObject& ZoneHandle(Isolate* I) {
-    return ZoneHandle(I, Object::null());
+    return ZoneHandle(I->current_zone(), Object::null());
   }
 
  private:

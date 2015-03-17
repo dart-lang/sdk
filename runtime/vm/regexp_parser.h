@@ -32,9 +32,9 @@ class RegExpBuilder: public ZoneAllocated {
   void FlushText();
   void FlushTerms();
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
-  Isolate* isolate_;
+  Zone* zone_;
   bool pending_empty_;
   ZoneGrowableArray<uint16_t>* characters_;
   GrowableArray<RegExpTree*> terms_;
@@ -118,9 +118,9 @@ class RegExpParser : public ValueObject {
     RegExpParserState(RegExpParserState* previous_state,
                       SubexpressionType group_type,
                       intptr_t disjunction_capture_index,
-                      Isolate *isolate)
+                      Zone *zone)
         : previous_state_(previous_state),
-          builder_(new(isolate) RegExpBuilder()),
+          builder_(new(zone) RegExpBuilder()),
           group_type_(group_type),
           disjunction_capture_index_(disjunction_capture_index) {}
     // Parser state of containing expression, if any.
@@ -146,7 +146,7 @@ class RegExpParser : public ValueObject {
     intptr_t disjunction_capture_index_;
   };
 
-  Isolate* isolate() { return isolate_; }
+  Zone* zone() { return zone_; }
 
   uint32_t current() { return current_; }
   bool has_more() { return has_more_; }
@@ -155,7 +155,7 @@ class RegExpParser : public ValueObject {
   const String& in() { return in_; }
   void ScanForCaptures();
 
-  Isolate* isolate_;
+  Zone* zone_;
   String* error_;
   ZoneGrowableArray<RegExpCapture*>* captures_;
   const String& in_;

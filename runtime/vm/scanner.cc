@@ -18,8 +18,8 @@ namespace dart {
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
 
 
-// Quick access to the locally defined isolate() method.
-#define I (isolate())
+// Quick access to the locally defined zone() method.
+#define Z (zone())
 
 
 class ScanContext : public ZoneAllocated {
@@ -83,7 +83,7 @@ Scanner::Scanner(const String& src, const String& private_key)
       saved_context_(NULL),
       private_key_(String::ZoneHandle(private_key.raw())),
       char_at_func_(src.CharAtFunc()),
-      isolate_(Isolate::Current()) {
+      zone_(Thread::Current()->zone()) {
   Reset();
 }
 
@@ -93,7 +93,7 @@ Scanner::~Scanner() {}
 
 void Scanner::ErrorMsg(const char* msg) {
   current_token_.kind = Token::kERROR;
-  current_token_.literal = &String::ZoneHandle(I, Symbols::New(msg));
+  current_token_.literal = &String::ZoneHandle(Z, Symbols::New(msg));
   current_token_.position = c0_pos_;
   token_start_ = lookahead_pos_;
   current_token_.offset = lookahead_pos_;
@@ -101,7 +101,7 @@ void Scanner::ErrorMsg(const char* msg) {
 
 
 void Scanner::PushContext() {
-  ScanContext* ctx = new(I) ScanContext(this);
+  ScanContext* ctx = new(Z) ScanContext(this);
   saved_context_ = ctx;
   string_delimiter_ = '\0';
   string_is_multiline_ = false;
@@ -328,7 +328,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   // We did not read a keyword.
   current_token_.kind = Token::kIDENT;
   String& literal =
-      String::ZoneHandle(I, Symbols::New(source_, ident_pos, ident_length));
+      String::ZoneHandle(Z, Symbols::New(source_, ident_pos, ident_length));
   if (ident_char0 == Library::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
     literal = String::Concat(literal, private_key_);
@@ -386,7 +386,7 @@ void Scanner::ScanNumber(bool dec_point_seen) {
   }
   if (current_token_.kind != Token::kILLEGAL) {
     intptr_t len = lookahead_pos_ - token_start_;
-    String& str = String::ZoneHandle(I,
+    String& str = String::ZoneHandle(Z,
         String::SubString(source_, token_start_, len, Heap::kOld));
     str = Symbols::New(str);
     current_token_.literal = &str;
@@ -541,7 +541,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw, bool remove_whitespace) {
       // Scanned a string piece.
       ASSERT(string_chars.data() != NULL);
       // Strings are canonicalized: Allocate a symbol.
-      current_token_.literal = &String::ZoneHandle(I,
+      current_token_.literal = &String::ZoneHandle(Z,
           Symbols::FromUTF32(string_chars.data(), string_chars.length()));
       // Preserve error tokens.
       if (current_token_.kind != Token::kERROR) {
@@ -564,7 +564,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw, bool remove_whitespace) {
           Recognize(Token::kSTRING);
           ASSERT(string_chars.data() != NULL);
           // Strings are canonicalized: Allocate a symbol.
-          current_token_.literal = &String::ZoneHandle(I,
+          current_token_.literal = &String::ZoneHandle(Z,
               Symbols::FromUTF32(string_chars.data(), string_chars.length()));
         }
         EndStringLiteral();
@@ -929,7 +929,7 @@ void Scanner::ScanTo(intptr_t token_index) {
 
 
 const Scanner::GrowableTokenStream& Scanner::GetStream() {
-  GrowableTokenStream* ts = new(I) GrowableTokenStream(128);
+  GrowableTokenStream* ts = new(Z) GrowableTokenStream(128);
   ScanAll(ts);
   if (FLAG_print_tokens) {
     Scanner::PrintTokens(*ts);

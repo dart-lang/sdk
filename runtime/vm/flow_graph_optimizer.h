@@ -324,7 +324,7 @@ class BranchSimplifier : public AllStatic {
   // Replace a target entry instruction with a join entry instruction.  Does
   // not update the original target's predecessors to point to the new block
   // and does not replace the target in already computed block order lists.
-  static JoinEntryInstr* ToJoinEntry(Isolate* isolate,
+  static JoinEntryInstr* ToJoinEntry(Zone* zone,
                                      TargetEntryInstr* target);
 
  private:
@@ -334,7 +334,7 @@ class BranchSimplifier : public AllStatic {
 
   // Duplicate a branch while replacing its comparison's left and right
   // inputs.
-  static BranchInstr* CloneBranch(Isolate* isolate,
+  static BranchInstr* CloneBranch(Zone* zone,
                                   BranchInstr* branch,
                                   Value* new_left,
                                   Value* new_right);

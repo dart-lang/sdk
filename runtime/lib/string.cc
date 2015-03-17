@@ -57,8 +57,6 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
     Exceptions::ThrowArgumentError(end_obj);
   }
 
-  Zone* zone = isolate->current_zone();
-
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
   intptr_t array_len = end - start;

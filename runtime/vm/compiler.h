@@ -39,13 +39,13 @@ class Compiler : public AllStatic {
   // Generates code for given function and sets its code field.
   //
   // Returns Error::null() if there is no compilation error.
-  static RawError* CompileFunction(Isolate* isolate, const Function& function);
+  static RawError* CompileFunction(Thread* thread, const Function& function);
 
   // Generates optimized code for function.
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileOptimizedFunction(
-      Isolate* isolate,
+      Thread* thread,
       const Function& function,
       intptr_t osr_id = Isolate::kNoDeoptId);
 

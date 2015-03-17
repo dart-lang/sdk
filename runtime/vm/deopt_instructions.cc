@@ -10,6 +10,7 @@
 #include "vm/locations.h"
 #include "vm/parser.h"
 #include "vm/stack_frame.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -38,7 +39,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       num_args_(0),
       deopt_reason_(ICData::kDeoptUnknown),
       deopt_flags_(0),
-      isolate_(Isolate::Current()),
+      thread_(Thread::Current()),
       deferred_slots_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL) {
@@ -338,8 +339,8 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
 RawArray* DeoptContext::DestFrameAsArray() {
   ASSERT(dest_frame_ != NULL && dest_frame_is_allocated_);
   const Array& dest_array =
-      Array::Handle(isolate(), Array::New(dest_frame_size_));
-  PassiveObject& obj = PassiveObject::Handle(isolate());
+      Array::Handle(zone(), Array::New(dest_frame_size_));
+  PassiveObject& obj = PassiveObject::Handle(zone());
   for (intptr_t i = 0; i < dest_frame_size_; i++) {
     obj = reinterpret_cast<RawObject*>(dest_frame_[i]);
     dest_array.SetAt(i, obj);
@@ -371,12 +372,12 @@ class DeoptRetAddressInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kRetAddress; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "%" Pd ", %" Pd "", object_table_index_, deopt_id_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Code& code = Code::Handle(deopt_context->isolate());
+    Code& code = Code::Handle(deopt_context->zone());
     code ^= deopt_context->ObjectAt(object_table_index_);
     ASSERT(!code.IsNull());
     uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
@@ -433,13 +434,13 @@ class DeoptConstantInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kConstant; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     const PassiveObject& obj = PassiveObject::Handle(
-        deopt_context->isolate(), deopt_context->ObjectAt(object_table_index_));
+        deopt_context->zone(), deopt_context->ObjectAt(object_table_index_));
     *reinterpret_cast<RawObject**>(dest_addr) = obj.raw();
   }
 
@@ -522,7 +523,7 @@ class DeoptMintPairInstr: public DeoptIntegerInstrBase {
   virtual DeoptInstr::Kind kind() const { return kMintPair; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "%s,%s",
         lo_.ToCString(),
         hi_.ToCString());
@@ -635,12 +636,12 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kPcMarker; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Code& code = Code::Handle(deopt_context->isolate());
+    Code& code = Code::Handle(deopt_context->zone());
     code ^= deopt_context->ObjectAt(object_table_index_);
     if (code.IsNull()) {
       // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
@@ -648,7 +649,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
       return;
     }
     const Function& function =
-        Function::Handle(deopt_context->isolate(), code.function());
+        Function::Handle(deopt_context->zone(), code.function());
     ASSERT(function.HasCode());
     const intptr_t pc_marker =
         code.EntryPoint() + Assembler::EntryPointToPcMarkerOffset();
@@ -689,12 +690,12 @@ class DeoptPpInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kPp; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Code& code = Code::Handle(deopt_context->isolate());
+    Code& code = Code::Handle(deopt_context->zone());
     code ^= deopt_context->ObjectAt(object_table_index_);
     ASSERT(!code.IsNull());
     const intptr_t pp = reinterpret_cast<intptr_t>(code.ObjectPool());
@@ -786,7 +787,7 @@ class DeoptSuffixInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kSuffix; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "%" Pd ":%" Pd, info_number_, suffix_length_);
   }
 
@@ -825,7 +826,7 @@ class DeoptMaterializedObjectRefInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kMaterializedObjectRef; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "#%" Pd "", index_);
   }
 
@@ -856,7 +857,7 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kMaterializeObject; }
 
   virtual const char* ArgumentsToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
+    return Thread::Current()->zone()->PrintToString(
         "%" Pd "", field_count_);
   }
 
@@ -1023,13 +1024,13 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
 };
 
 
-DeoptInfoBuilder::DeoptInfoBuilder(Isolate* isolate, const intptr_t num_args)
-    : isolate_(isolate),
+DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone, const intptr_t num_args)
+    : zone_(zone),
       instructions_(),
       object_table_(GrowableObjectArray::Handle(
           GrowableObjectArray::New(Heap::kOld))),
       num_args_(num_args),
-      trie_root_(new(isolate) TrieNode()),
+      trie_root_(new(zone) TrieNode()),
       current_info_number_(0),
       frame_start_(-1),
       materializations_() {
@@ -1094,7 +1095,7 @@ void DeoptInfoBuilder::AddReturnAddress(const Code& code,
   const intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(
-      new(isolate()) DeoptRetAddressInstr(object_table_index, deopt_id));
+      new(zone()) DeoptRetAddressInstr(object_table_index, deopt_id));
 }
 
 
@@ -1102,7 +1103,7 @@ void DeoptInfoBuilder::AddPcMarker(const Code& code,
                                    intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new(isolate()) DeoptPcMarkerInstr(object_table_index));
+  instructions_.Add(new(zone()) DeoptPcMarkerInstr(object_table_index));
 }
 
 
@@ -1110,7 +1111,7 @@ void DeoptInfoBuilder::AddPp(const Code& code,
                              intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new(isolate()) DeoptPpInstr(object_table_index));
+  instructions_.Add(new(zone()) DeoptPpInstr(object_table_index));
 }
 
 
@@ -1120,55 +1121,55 @@ void DeoptInfoBuilder::AddCopy(Value* value,
   DeoptInstr* deopt_instr = NULL;
   if (source_loc.IsConstant()) {
     intptr_t object_table_index = FindOrAddObjectInTable(source_loc.constant());
-    deopt_instr = new(isolate()) DeoptConstantInstr(object_table_index);
+    deopt_instr = new(zone()) DeoptConstantInstr(object_table_index);
   } else if (source_loc.IsInvalid() &&
              value->definition()->IsMaterializeObject()) {
     const intptr_t index = FindMaterialization(
         value->definition()->AsMaterializeObject());
     ASSERT(index >= 0);
-    deopt_instr = new(isolate()) DeoptMaterializedObjectRefInstr(index);
+    deopt_instr = new(zone()) DeoptMaterializedObjectRefInstr(index);
   } else {
     ASSERT(!source_loc.IsInvalid());
     switch (value->definition()->representation()) {
       case kTagged:
-        deopt_instr = new(isolate()) DeoptWordInstr(
+        deopt_instr = new(zone()) DeoptWordInstr(
           ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedMint: {
         if (source_loc.IsPairLocation()) {
           PairLocation* pair = source_loc.AsPairLocation();
-          deopt_instr = new(isolate()) DeoptMintPairInstr(
+          deopt_instr = new(zone()) DeoptMintPairInstr(
               ToCpuRegisterSource(pair->At(0)),
               ToCpuRegisterSource(pair->At(1)));
         } else {
           ASSERT(!source_loc.IsPairLocation());
-          deopt_instr = new(isolate()) DeoptMintInstr(
+          deopt_instr = new(zone()) DeoptMintInstr(
               ToCpuRegisterSource(source_loc));
         }
         break;
       }
       case kUnboxedInt32:
-        deopt_instr = new(isolate()) DeoptInt32Instr(
+        deopt_instr = new(zone()) DeoptInt32Instr(
             ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedUint32:
-        deopt_instr = new(isolate()) DeoptUint32Instr(
+        deopt_instr = new(zone()) DeoptUint32Instr(
             ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedDouble:
-        deopt_instr = new(isolate()) DeoptDoubleInstr(
+        deopt_instr = new(zone()) DeoptDoubleInstr(
             ToFpuRegisterSource(source_loc, Location::kDoubleStackSlot));
         break;
       case kUnboxedFloat32x4:
-        deopt_instr = new(isolate()) DeoptFloat32x4Instr(
+        deopt_instr = new(zone()) DeoptFloat32x4Instr(
             ToFpuRegisterSource(source_loc, Location::kQuadStackSlot));
         break;
       case kUnboxedFloat64x2:
-        deopt_instr = new(isolate()) DeoptFloat64x2Instr(
+        deopt_instr = new(zone()) DeoptFloat64x2Instr(
             ToFpuRegisterSource(source_loc, Location::kQuadStackSlot));
         break;
       case kUnboxedInt32x4:
-        deopt_instr = new(isolate()) DeoptInt32x4Instr(
+        deopt_instr = new(zone()) DeoptInt32x4Instr(
             ToFpuRegisterSource(source_loc, Location::kQuadStackSlot));
         break;
       default:
@@ -1184,26 +1185,26 @@ void DeoptInfoBuilder::AddCopy(Value* value,
 
 void DeoptInfoBuilder::AddCallerFp(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new(isolate()) DeoptCallerFpInstr());
+  instructions_.Add(new(zone()) DeoptCallerFpInstr());
 }
 
 
 void DeoptInfoBuilder::AddCallerPp(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new(isolate()) DeoptCallerPpInstr());
+  instructions_.Add(new(zone()) DeoptCallerPpInstr());
 }
 
 
 void DeoptInfoBuilder::AddCallerPc(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new(isolate()) DeoptCallerPcInstr());
+  instructions_.Add(new(zone()) DeoptCallerPcInstr());
 }
 
 
 void DeoptInfoBuilder::AddConstant(const Object& obj, intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
   intptr_t object_table_index = FindOrAddObjectInTable(obj);
-  instructions_.Add(new(isolate()) DeoptConstantInstr(object_table_index));
+  instructions_.Add(new(zone()) DeoptConstantInstr(object_table_index));
 }
 
 
@@ -1225,7 +1226,7 @@ void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
   }
 
   instructions_.Add(
-      new(isolate()) DeoptMaterializeObjectInstr(non_null_fields));
+      new(zone()) DeoptMaterializeObjectInstr(non_null_fields));
 
   for (intptr_t i = 0; i < mat->InputCount(); i++) {
     MaterializeObjectInstr* nested_mat = mat->InputAt(i)->definition()->
@@ -1293,7 +1294,7 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   // than one instruction, we replace it with a single suffix instruction.
   if (suffix_length > 1) length -= (suffix_length - 1);
   const DeoptInfo& deopt_info =
-      DeoptInfo::Handle(isolate(), DeoptInfo::New(length));
+      DeoptInfo::Handle(zone(), DeoptInfo::New(length));
 
   // Write the unshared instructions and build their sub-tree.
   TrieNode* node = NULL;
@@ -1302,14 +1303,14 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
     DeoptInstr* instr = instructions_[i];
     deopt_info.SetAt(i, instr->kind(), instr->source_index());
     TrieNode* child = node;
-    node = new(isolate()) TrieNode(instr, current_info_number_);
+    node = new(zone()) TrieNode(instr, current_info_number_);
     node->AddChild(child);
   }
 
   if (suffix_length > 1) {
     suffix->AddChild(node);
     DeoptInstr* instr =
-        new(isolate()) DeoptSuffixInstr(suffix->info_number(), suffix_length);
+        new(zone()) DeoptSuffixInstr(suffix->info_number(), suffix_length);
     deopt_info.SetAt(length - 1, instr->kind(), instr->source_index());
   } else {
     trie_root_->AddChild(node);

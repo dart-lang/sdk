@@ -55,7 +55,9 @@ static void ComputeTokenPosToLineNumberMap(const Script& script,
 void CodeCoverage::CompileAndAdd(const Function& function,
                                  const JSONArray& hits_arr,
                                  const GrowableArray<intptr_t>& pos_to_line) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   if (!function.HasCode()) {
     // If the function should not be compiled or if the compilation failed,
     // then just skip this method.
@@ -71,7 +73,7 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       return;
     }
     const Error& err = Error::Handle(
-        isolate, Compiler::CompileFunction(isolate, function));
+        zone, Compiler::CompileFunction(thread, function));
     if (!err.IsNull()) {
       return;
     }
@@ -80,7 +82,7 @@ void CodeCoverage::CompileAndAdd(const Function& function,
 
   // Print the hit counts for all IC datas.
   ZoneGrowableArray<const ICData*>* ic_data_array =
-      new(isolate) ZoneGrowableArray<const ICData*>();
+      new(zone) ZoneGrowableArray<const ICData*>();
   function.RestoreICDataMap(ic_data_array);
   const Code& code = Code::Handle(function.unoptimized_code());
   const PcDescriptors& descriptors = PcDescriptors::Handle(

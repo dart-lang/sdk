@@ -1331,7 +1331,7 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
         inlined_entries_[i]->AsGraphEntry()->UnuseAllInputs();
 
         JoinEntryInstr* new_join =
-            BranchSimplifier::ToJoinEntry(isolate(), old_target);
+            BranchSimplifier::ToJoinEntry(zone(), old_target);
         old_target->ReplaceAsPredecessorWith(new_join);
         for (intptr_t j = 0; j < old_target->dominated_blocks().length(); ++j) {
           BlockEntryInstr* block = old_target->dominated_blocks()[j];
@@ -1341,9 +1341,9 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
         TargetEntryInstr* new_target =
             new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
                                  old_target->try_index());
-        new_target->InheritDeoptTarget(isolate(), new_join);
+        new_target->InheritDeoptTarget(zone(), new_join);
         GotoInstr* new_goto = new(Z) GotoInstr(new_join);
-        new_goto->InheritDeoptTarget(isolate(), new_join);
+        new_goto->InheritDeoptTarget(zone(), new_join);
         new_target->LinkTo(new_goto);
         new_target->set_last_instruction(new_goto);
         new_join->predecessors_.Add(new_target);
@@ -1407,7 +1407,7 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
   ASSERT(arguments.length() > 0);
   Value* actual = arguments[0];
   RedefinitionInstr* redefinition = new(Z)
-      RedefinitionInstr(actual->Copy(isolate()));
+      RedefinitionInstr(actual->Copy(Z));
   redefinition->set_ssa_temp_index(
       owner_->caller_graph()->alloc_ssa_temp_index());
   redefinition->UpdateType(CompileType::FromCid(receiver_cid));
@@ -1522,7 +1522,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       new(Z) TargetEntryInstr(
           owner_->caller_graph()->allocate_block_id(),
           call_->GetBlock()->try_index());
-  entry->InheritDeoptTarget(isolate(), call_);
+  entry->InheritDeoptTarget(zone(), call_);
 
   // This function uses a cursor (a pointer to the 'current' instruction) to
   // build the graph.  The next instruction will be inserted after the
@@ -1552,7 +1552,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
           new(Z) Value(cid_redefinition),
           inlined_variants_[i].cid,
           call_->deopt_id());
-      check_class_id->InheritDeoptTarget(isolate(), call_);
+      check_class_id->InheritDeoptTarget(zone(), call_);
       cursor = AppendInstruction(cursor, check_class_id);
 
       // The next instruction is the first instruction of the inlined body.
@@ -1585,7 +1585,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         JoinEntryInstr* join = callee_entry->AsJoinEntry();
         ASSERT(join->dominator() != NULL);
         GotoInstr* goto_join = new GotoInstr(join);
-        goto_join->InheritDeoptTarget(isolate(), join);
+        goto_join->InheritDeoptTarget(zone(), join);
         cursor->LinkTo(goto_join);
         current_block->set_last_instruction(goto_join);
       } else {
@@ -1608,7 +1608,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                  new Value(cid_constant),
                                  false);  // No number check.
       BranchInstr* branch = new BranchInstr(compare);
-      branch->InheritDeoptTarget(isolate(), call_);
+      branch->InheritDeoptTarget(zone(), call_);
       AppendInstruction(AppendInstruction(cursor, cid_constant), branch);
       current_block->set_last_instruction(branch);
       cursor = NULL;
@@ -1640,9 +1640,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         true_target =
             new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
                                  call_->GetBlock()->try_index());
-        true_target->InheritDeoptTarget(isolate(), join);
+        true_target->InheritDeoptTarget(zone(), join);
         GotoInstr* goto_join = new GotoInstr(join);
-        goto_join->InheritDeoptTarget(isolate(), join);
+        goto_join->InheritDeoptTarget(zone(), join);
         true_target->LinkTo(goto_join);
         true_target->set_last_instruction(goto_join);
       }
@@ -1654,7 +1654,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       TargetEntryInstr* false_target =
           new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
                                call_->GetBlock()->try_index());
-      false_target->InheritDeoptTarget(isolate(), call_);
+      false_target->InheritDeoptTarget(zone(), call_);
       *branch->false_successor_address() = false_target;
       current_block->AddDominatedBlock(false_target);
       cursor = current_block = false_target;
@@ -1689,7 +1689,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                          true);  // With checks.
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
-    fallback_call->InheritDeoptTarget(isolate(), call_);
+    fallback_call->InheritDeoptTarget(zone(), call_);
     ReturnInstr* fallback_return =
         new ReturnInstr(call_->instance_call()->token_pos(),
                         new Value(fallback_call));

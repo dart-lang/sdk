@@ -14,14 +14,14 @@ namespace dart {
 DECLARE_FLAG(bool, use_jscre);
 
 static RawArray* Match(const String& pat, const String& str) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = Thread::Current()->zone();
   const JSRegExp& regexp = JSRegExp::Handle(
-      RegExpEngine::CreateJSRegExp(isolate, pat, false, false));
+      RegExpEngine::CreateJSRegExp(zone, pat, false, false));
   const intptr_t cid = str.GetClassId();
   const Function& fn = Function::Handle(regexp.function(cid));
   EXPECT(!fn.IsNull());
   const Smi& idx = Smi::Handle(Smi::New(0));
-  return IRRegExpMacroAssembler::Execute(fn, str, idx, Isolate::Current());
+  return IRRegExpMacroAssembler::Execute(fn, str, idx, zone);
 }
 
 TEST_CASE(RegExp_OneByteString) {

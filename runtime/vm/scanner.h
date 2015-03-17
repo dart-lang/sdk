@@ -182,7 +182,7 @@ class Scanner : ValueObject {
 
   CharAtFunc CallCharAt() const { return char_at_func_; }
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
   static void PrintTokens(const GrowableTokenStream& ts);
 
@@ -211,7 +211,7 @@ class Scanner : ValueObject {
 
   const CharAtFunc char_at_func_;
 
-  Isolate* isolate_;
+  Zone* zone_;
 
   static KeywordTable keywords_[Token::kNumKeywords];
   static int keywords_char_offset_[kNumLowercaseChars];

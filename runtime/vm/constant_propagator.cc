@@ -1475,8 +1475,8 @@ void ConstantPropagator::EliminateRedundantBranches() {
         // Drop the comparison, which does not have side effects
         JoinEntryInstr* join = if_true->AsJoinEntry();
         if (join->phis() == NULL) {
-          GotoInstr* jump = new(I) GotoInstr(if_true->AsJoinEntry());
-          jump->InheritDeoptTarget(I, branch);
+          GotoInstr* jump = new(Z) GotoInstr(if_true->AsJoinEntry());
+          jump->InheritDeoptTarget(Z, branch);
 
           Instruction* previous = branch->previous();
           branch->set_previous(NULL);
@@ -1619,17 +1619,17 @@ void ConstantPropagator::Transform() {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
-        join = new(I) JoinEntryInstr(if_false->block_id(),
+        join = new(Z) JoinEntryInstr(if_false->block_id(),
                                      if_false->try_index());
-        join->InheritDeoptTarget(I, if_false);
+        join->InheritDeoptTarget(Z, if_false);
         if_false->UnuseAllInputs();
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
-        join = new(I) JoinEntryInstr(if_true->block_id(),
+        join = new(Z) JoinEntryInstr(if_true->block_id(),
                                      if_true->try_index());
-        join->InheritDeoptTarget(I, if_true);
+        join->InheritDeoptTarget(Z, if_true);
         if_true->UnuseAllInputs();
         next = if_true->next();
       }
@@ -1639,8 +1639,8 @@ void ConstantPropagator::Transform() {
         // Drop the comparison, which does not have side effects as long
         // as it is a strict compare (the only one we can determine is
         // constant with the current analysis).
-        GotoInstr* jump = new(I) GotoInstr(join);
-        jump->InheritDeoptTarget(I, branch);
+        GotoInstr* jump = new(Z) GotoInstr(join);
+        jump->InheritDeoptTarget(Z, branch);
 
         Instruction* previous = branch->previous();
         branch->set_previous(NULL);

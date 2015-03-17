@@ -658,7 +658,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
       caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
   if (!target_function.HasCode()) {
     const Error& error =
-        Error::Handle(Compiler::CompileFunction(isolate, target_function));
+        Error::Handle(Compiler::CompileFunction(thread, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -930,7 +930,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   ASSERT(ic_data.NumberOfChecks() == 1);
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+    const Error& error = Error::Handle(Compiler::CompileFunction(thread,
                                                                  target));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
@@ -963,7 +963,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   ASSERT(ic_data.NumberOfChecks() > 0);
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+    const Error& error = Error::Handle(Compiler::CompileFunction(thread,
                                                                  target));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
@@ -1256,7 +1256,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // it cannot have been removed from the function.
     ASSERT(!original_code.IsNull());
     const Error& error = Error::Handle(Compiler::CompileOptimizedFunction(
-        isolate, function, osr_id));
+        thread, function, osr_id));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1307,7 +1307,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileOptimizedFunction(isolate, function));
+        isolate, Compiler::CompileOptimizedFunction(thread, function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1343,7 +1343,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(!target_code.IsNull());
   if (!target_function.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(isolate, target_function));
+        isolate, Compiler::CompileFunction(thread, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }

@@ -55,9 +55,6 @@ DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
-// Quick access to the locally defined isolate() method.
-#define I (isolate())
-
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
 // environment.
@@ -96,6 +93,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<intptr_t>& caller_inline_id)
       : isolate_(Isolate::Current()),
+        zone_(Thread::Current()->zone()),
         assembler_(assembler),
         parsed_function_(parsed_function),
         flow_graph_(*flow_graph),
@@ -137,17 +135,17 @@ FlowGraphCompiler::FlowGraphCompiler(
          parsed_function.function().raw());
   if (!is_optimizing) {
     const intptr_t len = isolate()->deopt_id();
-    deopt_id_to_ic_data_ = new(isolate()) ZoneGrowableArray<const ICData*>(len);
+    deopt_id_to_ic_data_ = new(zone()) ZoneGrowableArray<const ICData*>(len);
     deopt_id_to_ic_data_->SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
       (*deopt_id_to_ic_data_)[i] = NULL;
     }
-    const Array& old_saved_icdata = Array::Handle(isolate(),
+    const Array& old_saved_icdata = Array::Handle(zone(),
         flow_graph->function().ic_data_array());
     const intptr_t saved_len =
         old_saved_icdata.IsNull() ? 0 : old_saved_icdata.Length();
     for (intptr_t i = 0; i < saved_len; i++) {
-      ICData& icd = ICData::ZoneHandle(isolate());
+      ICData& icd = ICData::ZoneHandle(zone());
       icd ^= old_saved_icdata.At(i);
       (*deopt_id_to_ic_data_)[icd.deopt_id()] = &icd;
     }
@@ -766,7 +764,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
     return NULL;
   }
 
-  Environment* env = instruction->env()->DeepCopy(isolate());
+  Environment* env = instruction->env()->DeepCopy(zone());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
   intptr_t next_slot = StackSize() + env->CountArgsPushed();
@@ -854,7 +852,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   const Function& function = parsed_function().function();
   const intptr_t incoming_arg_count =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  DeoptInfoBuilder builder(isolate(), incoming_arg_count);
+  DeoptInfoBuilder builder(zone(), incoming_arg_count);
 
   intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());
   if (deopt_info_table_size == 0) {
@@ -928,7 +926,7 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 void FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
-  if (FLAG_intrinsify && !I->TypeChecksEnabled()) {
+  if (FLAG_intrinsify && !isolate()->TypeChecksEnabled()) {
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
@@ -1155,7 +1153,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
-  instr->InitializeLocationSummary(I->current_zone(),
+  instr->InitializeLocationSummary(zone(),
                                    false);  // Not optimizing.
   LocationSummary* locs = instr->locs();
 
@@ -1536,7 +1534,7 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->NumArgsTested() == num_args_tested);
     return res;
   }
-  const ICData& ic_data = ICData::ZoneHandle(isolate(), ICData::New(
+  const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), target_name,
       arguments_descriptor, deopt_id, num_args_tested));
   (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
@@ -1557,8 +1555,8 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     ASSERT(res->NumArgsTested() == num_args_tested);
     return res;
   }
-  const ICData& ic_data = ICData::ZoneHandle(isolate(), ICData::New(
-      parsed_function().function(), String::Handle(isolate(), target.name()),
+  const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
+      parsed_function().function(), String::Handle(zone(), target.name()),
       arguments_descriptor, deopt_id, num_args_tested));
   ic_data.AddTarget(target);
   (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;

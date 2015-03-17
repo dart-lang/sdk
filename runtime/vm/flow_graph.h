@@ -230,7 +230,7 @@ class FlowGraph : public ZoneAllocated {
   // have to keep deoptimization environment at gotos for LICM purposes.
   void CopyDeoptTarget(Instruction* to, Instruction* from) {
     if (is_licm_allowed()) {
-      to->InheritDeoptTarget(isolate(), from);
+      to->InheritDeoptTarget(zone(), from);
     }
   }
 

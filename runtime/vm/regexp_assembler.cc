@@ -16,14 +16,14 @@
 #include "vm/unibrow-inl.h"
 #include "vm/unicode.h"
 
-#define I isolate()
+#define Z zone()
 
 // Debugging output macros. TAG() is called at the head of each interesting
 // function and prints its name during execution if irregexp tracing is enabled.
 #define TAG() if (FLAG_trace_irregexp) { TAG_(); }
 #define TAG_() \
   Print(PushArgument( \
-    Bind(new(I) ConstantInstr(String::ZoneHandle(I, String::Concat( \
+    Bind(new(Z) ConstantInstr(String::ZoneHandle(Z, String::Concat( \
         String::Handle(String::New("TAG: ")), \
         String::Handle(String::New(__FUNCTION__)), Heap::kOld))))));
 
@@ -68,10 +68,10 @@ void PrintUtf16(uint16_t c) {
  * to matches_param_ on successful match.
  */
 
-RegExpMacroAssembler::RegExpMacroAssembler(Isolate* isolate)
+RegExpMacroAssembler::RegExpMacroAssembler(Zone* zone)
   : slow_safe_compiler_(false),
     global_mode_(NOT_GLOBAL),
-    isolate_(isolate) {
+    zone_(zone) {
 }
 
 
@@ -84,8 +84,8 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
     intptr_t capture_count,
     const ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
-    Isolate* isolate)
-    : RegExpMacroAssembler(isolate),
+    Zone* zone)
+    : RegExpMacroAssembler(zone),
       specialization_cid_(specialization_cid),
       parsed_function_(parsed_function),
       ic_data_array_(ic_data_array),
@@ -99,9 +99,9 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       start_index_param_(NULL),
       registers_count_(0),
       saved_registers_count_((capture_count + 1) * 2),
-      stack_array_cell_(Array::ZoneHandle(isolate, Array::New(1, Heap::kOld))),
+      stack_array_cell_(Array::ZoneHandle(zone, Array::New(1, Heap::kOld))),
       // The registers array is allocated at a fixed size after assembly.
-      registers_array_(TypedData::ZoneHandle(isolate, TypedData::null())) {
+      registers_array_(TypedData::ZoneHandle(zone, TypedData::null())) {
   switch (specialization_cid) {
     case kOneByteStringCid:
     case kExternalOneByteStringCid: mode_ = ASCII; break;
@@ -115,23 +115,23 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
   // Allocate an initial stack backing of the minimum stack size. The stack
   // backing is indirectly referred to so we can reuse it on subsequent matches
   // even in the case where the backing has been enlarged and thus reallocated.
-  stack_array_cell_.SetAt(0, TypedData::Handle(isolate,
+  stack_array_cell_.SetAt(0, TypedData::Handle(zone,
     TypedData::New(kTypedDataInt32ArrayCid, kMinStackSize / 4, Heap::kOld)));
 
   // Create and generate all preset blocks.
   entry_block_ =
-      new(isolate) GraphEntryInstr(
+      new(zone) GraphEntryInstr(
         *parsed_function_,
-        new(isolate) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
+        new(zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
         Isolate::kNoDeoptId);
   start_block_ =
-      new(isolate) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   success_block_ =
-      new(isolate) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   backtrack_block_ =
-      new(isolate) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   exit_block_ =
-      new(isolate) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
 
   GenerateEntryBlock();
   GenerateSuccessBlock();
@@ -201,12 +201,12 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
 
   // Generate a local list variable to represent "registers" and
   // initialize capture registers (others remain garbage).
-  StoreLocal(registers_, Bind(new(I) ConstantInstr(registers_array_)));
+  StoreLocal(registers_, Bind(new(Z) ConstantInstr(registers_array_)));
   ClearRegisters(0, saved_registers_count_ - 1);
 
   // Generate a local list variable to represent the backtracking stack.
   PushArgumentInstr* stack_cell_push =
-      PushArgument(Bind(new(I) ConstantInstr(stack_array_cell_)));
+      PushArgument(Bind(new(Z) ConstantInstr(stack_array_cell_)));
   StoreLocal(stack_, Bind(InstanceCall(
       InstanceCallDescriptor::FromToken(Token::kINDEX),
       stack_cell_push,
@@ -225,11 +225,11 @@ void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
 
   const intptr_t entries_count = entry_block_->indirect_entries().length();
 
-  TypedData& offsets = TypedData::ZoneHandle(I,
+  TypedData& offsets = TypedData::ZoneHandle(Z,
       TypedData::New(kTypedDataInt32ArrayCid, entries_count, Heap::kOld));
 
   PushArgumentInstr* block_offsets_push =
-      PushArgument(Bind(new(I) ConstantInstr(offsets)));
+      PushArgument(Bind(new(Z) ConstantInstr(offsets)));
   PushArgumentInstr* block_id_push = PushArgument(Bind(PopStack()));
 
   Value* offset_value =
@@ -237,7 +237,7 @@ void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
                         block_offsets_push,
                         block_id_push));
 
-  backtrack_goto_ = new(I) IndirectGotoInstr(&offsets, offset_value);
+  backtrack_goto_ = new(Z) IndirectGotoInstr(&offsets, offset_value);
   CloseBlockWith(backtrack_goto_);
 
   // Add an edge from the "indirect" goto to each of the targets.
@@ -252,10 +252,10 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   set_current_instruction(success_block_);
   TAG();
 
-  Value* type = Bind(new(I) ConstantInstr(
-      TypeArguments::ZoneHandle(I, TypeArguments::null())));
+  Value* type = Bind(new(Z) ConstantInstr(
+      TypeArguments::ZoneHandle(Z, TypeArguments::null())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
-  Value* array = Bind(new(I) CreateArrayInstr(kNoSourcePos, type, length));
+  Value* array = Bind(new(Z) CreateArrayInstr(kNoSourcePos, type, length));
   StoreLocal(result_, array);
 
   // Store captured offsets in the `matches` parameter.
@@ -280,7 +280,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   PRINT(PushLocal(result_));
 
   // Return true on success.
-  AppendInstruction(new(I) ReturnInstr(kNoSourcePos, Bind(LoadLocal(result_))));
+  AppendInstruction(new(Z) ReturnInstr(kNoSourcePos, Bind(LoadLocal(result_))));
 }
 
 
@@ -289,7 +289,7 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
   TAG();
 
   // Return false on failure.
-  AppendInstruction(new(I) ReturnInstr(kNoSourcePos, Bind(LoadLocal(result_))));
+  AppendInstruction(new(Z) ReturnInstr(kNoSourcePos, Bind(LoadLocal(result_))));
 }
 
 
@@ -321,7 +321,7 @@ RawArray* IRRegExpMacroAssembler::Execute(
     const Function& function,
     const String& input,
     const Smi& start_offset,
-    Isolate* isolate) {
+    Zone* zone) {
   // Create the argument list.
   const Array& args = Array::Handle(Array::New(2));
   args.SetAt(0, input);
@@ -330,7 +330,7 @@ RawArray* IRRegExpMacroAssembler::Execute(
   // And finally call the generated code.
 
   const Object& retval =
-      Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   if (retval.IsError()) {
     const Error& error = Error::Cast(retval);
     OS::Print("%s\n", error.ToErrorCString());
@@ -382,9 +382,9 @@ RawBool* IRRegExpMacroAssembler::CaseInsensitiveCompareUC16(
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
                                                  intptr_t index) const {
-  const Type& local_type = Type::ZoneHandle(I, Type::DynamicType());
+  const Type& local_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* local =
-      new(I) LocalVariable(kNoSourcePos, name, local_type);
+      new(Z) LocalVariable(kNoSourcePos, name, local_type);
 
   intptr_t param_frame_index = kParamEndSlotFromFp + kParamCount - index;
   local->set_index(param_frame_index);
@@ -394,9 +394,9 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
 
 
 LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
-  const Type& local_type = Type::ZoneHandle(I, Type::DynamicType());
+  const Type& local_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* local =
-      new(I) LocalVariable(kNoSourcePos, name, local_type);
+      new(Z) LocalVariable(kNoSourcePos, name, local_type);
   local->set_index(GetNextLocalIndex());
 
   return local;
@@ -404,33 +404,33 @@ LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
 
 
 ConstantInstr* IRRegExpMacroAssembler::Int64Constant(int64_t value) const {
-  return new(I) ConstantInstr(
-        Integer::ZoneHandle(I, Integer::New(value, Heap::kOld)));
+  return new(Z) ConstantInstr(
+        Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::Uint64Constant(uint64_t value) const {
-  return new(I) ConstantInstr(
-        Integer::ZoneHandle(I, Integer::NewFromUint64(value, Heap::kOld)));
+  return new(Z) ConstantInstr(
+        Integer::ZoneHandle(Z, Integer::NewFromUint64(value, Heap::kOld)));
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::BoolConstant(bool value) const {
-  return new(I) ConstantInstr(value ? Bool::True() : Bool::False());
+  return new(Z) ConstantInstr(value ? Bool::True() : Bool::False());
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::StringConstant(const char* value) const {
-  return new(I) ConstantInstr(
-        String::ZoneHandle(I, String::New(value, Heap::kOld)));
+  return new(Z) ConstantInstr(
+        String::ZoneHandle(Z, String::New(value, Heap::kOld)));
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
-  const Library& lib = Library::Handle(I, Library::CoreLibrary());
-  const Class& regexp_class = Class::Handle(I,
+  const Library& lib = Library::Handle(Z, Library::CoreLibrary());
+  const Class& regexp_class = Class::Handle(Z,
         lib.LookupClassAllowPrivate(Symbols::JSSyntaxRegExp()));
-  const Field& word_character_field = Field::ZoneHandle(I,
+  const Field& word_character_field = Field::ZoneHandle(Z,
       regexp_class.LookupStaticField(Symbols::_wordCharacterMap()));
   ASSERT(!word_character_field.IsNull());
 
@@ -439,8 +439,8 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   }
   ASSERT(!word_character_field.IsUninitialized());
 
-  return new(I) ConstantInstr(
-        Instance::ZoneHandle(I, word_character_field.value()));
+  return new(Z) ConstantInstr(
+        Instance::ZoneHandle(Z, word_character_field.value()));
 }
 
 
@@ -481,7 +481,7 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(
              rhs));
   Value* rhs_value = Bind(BoolConstant(true));
 
-  return new(I) StrictCompareInstr(
+  return new(Z) StrictCompareInstr(
       kNoSourcePos, strict_comparison, lhs_value, rhs_value, true);
 }
 
@@ -496,7 +496,7 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(I) ZoneGrowableArray<PushArgumentInstr*>(0);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(0);
   return StaticCall(function, arguments);
 }
 
@@ -505,7 +505,7 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     PushArgumentInstr* arg1) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(I) ZoneGrowableArray<PushArgumentInstr*>(1);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(arg1);
 
   return StaticCall(function, arguments);
@@ -517,7 +517,7 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     PushArgumentInstr* arg1,
     PushArgumentInstr* arg2) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(I) ZoneGrowableArray<PushArgumentInstr*>(2);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(arg1);
   arguments->Add(arg2);
 
@@ -528,7 +528,7 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
-  return new(I) StaticCallInstr(kNoSourcePos,
+  return new(Z) StaticCallInstr(kNoSourcePos,
                                 function,
                                 Object::null_array(),
                                 arguments,
@@ -540,7 +540,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     PushArgumentInstr* arg1) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(I) ZoneGrowableArray<PushArgumentInstr*>(1);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(arg1);
 
   return InstanceCall(desc, arguments);
@@ -552,7 +552,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     PushArgumentInstr* arg1,
     PushArgumentInstr* arg2) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(I) ZoneGrowableArray<PushArgumentInstr*>(2);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(arg1);
   arguments->Add(arg2);
 
@@ -566,7 +566,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     PushArgumentInstr* arg2,
     PushArgumentInstr* arg3) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(I) ZoneGrowableArray<PushArgumentInstr*>(3);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(3);
   arguments->Add(arg1);
   arguments->Add(arg2);
   arguments->Add(arg3);
@@ -579,7 +579,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     ZoneGrowableArray<PushArgumentInstr*> *arguments) const {
   return
-    new(I) InstanceCallInstr(kNoSourcePos,
+    new(Z) InstanceCallInstr(kNoSourcePos,
                              desc.name,
                              desc.token_kind,
                              arguments,
@@ -590,13 +590,13 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
 
 
 LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
-  return new(I) LoadLocalInstr(*local);
+  return new(Z) LoadLocalInstr(*local);
 }
 
 
 void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local,
                                         Value* value) {
-  Do(new(I) StoreLocalInstr(*local, value));
+  Do(new(Z) StoreLocalInstr(*local, value));
 }
 
 
@@ -609,7 +609,7 @@ Value* IRRegExpMacroAssembler::Bind(Definition* definition) {
   AppendInstruction(definition);
   definition->set_temp_index(temp_id_.Alloc());
 
-  return new(I) Value(definition);
+  return new(Z) Value(definition);
 }
 
 
@@ -620,10 +620,10 @@ void IRRegExpMacroAssembler::Do(Definition* definition) {
 
 Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
   if (local.IsConst()) {
-    return Bind(new(I) ConstantInstr(*local.ConstValue()));
+    return Bind(new(Z) ConstantInstr(*local.ConstValue()));
   }
   ASSERT(!local.is_captured());
-  return Bind(new(I) LoadLocalInstr(local));
+  return Bind(new(Z) LoadLocalInstr(local));
 }
 
 
@@ -694,7 +694,7 @@ void IRRegExpMacroAssembler::GoTo(JoinEntryInstr* to) {
 
 PushArgumentInstr* IRRegExpMacroAssembler::PushArgument(Value* value) {
   arg_id_.Alloc();
-  PushArgumentInstr* push = new(I) PushArgumentInstr(value);
+  PushArgumentInstr* push = new(Z) PushArgumentInstr(value);
   // Do *not* use Do() for push argument instructions.
   AppendInstruction(push);
   return push;
@@ -708,15 +708,15 @@ PushArgumentInstr* IRRegExpMacroAssembler::PushLocal(LocalVariable* local) {
 
 void IRRegExpMacroAssembler::Print(const char* str) {
   Print(PushArgument(
-    Bind(new(I) ConstantInstr(
-           String::ZoneHandle(I, String::New(str, Heap::kOld))))));
+    Bind(new(Z) ConstantInstr(
+           String::ZoneHandle(Z, String::New(str, Heap::kOld))))));
 }
 
 
 void IRRegExpMacroAssembler::Print(PushArgumentInstr* argument) {
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Function& print_fn = Function::ZoneHandle(
-        I, lib.LookupFunctionAllowPrivate(Symbols::print()));
+        Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
   Do(StaticCall(print_fn, argument));
 }
 
@@ -1064,7 +1064,7 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     Value* length_value = Bind(LoadLocal(capture_length_));
 
     Definition* is_match_def =
-        new(I) CaseInsensitiveCompareUC16Instr(
+        new(Z) CaseInsensitiveCompareUC16Instr(
                             string_value,
                             lhs_index_value,
                             rhs_index_value,
@@ -1294,7 +1294,7 @@ void IRRegExpMacroAssembler::CheckBitInTable(
   TAG();
 
   PushArgumentInstr* table_push =
-      PushArgument(Bind(new(I) ConstantInstr(table)));
+      PushArgument(Bind(new(Z) ConstantInstr(table)));
   PushArgumentInstr* index_push = PushLocal(current_character_);
 
   if (mode_ != ASCII || kTableMask != Symbols::kMaxOneCharCodeSymbol) {
@@ -1638,7 +1638,7 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
       length_push,
       PushArgument(Bind(Uint64Constant(stack_limit_slack()))))));
   PushArgumentInstr* stack_pointer_push = PushLocal(stack_pointer_);
-  BranchInstr* branch = new(I) BranchInstr(
+  BranchInstr* branch = new(Z) BranchInstr(
       Comparison(kGT, capacity_push, stack_pointer_push));
   CloseBlockWith(branch);
 
@@ -1658,8 +1658,8 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
 
 void IRRegExpMacroAssembler::GrowStack() {
   TAG();
-  Value* cell = Bind(new(I) ConstantInstr(stack_array_cell_));
-  StoreLocal(stack_, Bind(new(I) GrowRegExpStackInstr(cell)));
+  Value* cell = Bind(new(Z) ConstantInstr(stack_array_cell_));
+  StoreLocal(stack_, Bind(new(Z) GrowRegExpStackInstr(cell)));
 }
 
 
@@ -1799,7 +1799,7 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(
   // If the condition is not true, fall through to a new block.
   BlockLabel fallthrough;
 
-  BranchInstr* branch = new(I) BranchInstr(comparison);
+  BranchInstr* branch = new(Z) BranchInstr(comparison);
   *branch->true_successor_address() =
       TargetWithJoinGoto(true_successor_block);
   *branch->false_successor_address() =
@@ -1812,11 +1812,11 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(
 
 TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
     JoinEntryInstr* dst) {
-  TargetEntryInstr* target = new(I) TargetEntryInstr(
+  TargetEntryInstr* target = new(Z) TargetEntryInstr(
           block_id_.Alloc(), kInvalidTryIndex);
   blocks_.Add(target);
 
-  target->AppendInstruction(new(I) GotoInstr(dst));
+  target->AppendInstruction(new(Z) GotoInstr(dst));
 
   return target;
 }
@@ -1824,11 +1824,11 @@ TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
 
 IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
     JoinEntryInstr* dst) {
-  IndirectEntryInstr* target = new(I) IndirectEntryInstr(
+  IndirectEntryInstr* target = new(Z) IndirectEntryInstr(
           block_id_.Alloc(), indirect_id_.Alloc(), kInvalidTryIndex);
   blocks_.Add(target);
 
-  target->AppendInstruction(new(I) GotoInstr(dst));
+  target->AppendInstruction(new(Z) GotoInstr(dst));
 
   return target;
 }
@@ -1836,7 +1836,7 @@ IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
 
 void IRRegExpMacroAssembler::CheckPreemption() {
   TAG();
-  AppendInstruction(new(I) CheckStackOverflowInstr(kNoSourcePos, 0));
+  AppendInstruction(new(Z) CheckStackOverflowInstr(kNoSourcePos, 0));
 }
 
 
@@ -1913,15 +1913,15 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
     // the first value is consumed to obtain the second value which is consumed
     // by LoadCodeUnitsAtInstr below.
     Value* external_val =
-        Bind(new(I) LoadUntaggedInstr(pattern_val, external_offset));
+        Bind(new(Z) LoadUntaggedInstr(pattern_val, external_offset));
     pattern_val =
-        Bind(new(I) LoadUntaggedInstr(external_val, data_offset));
+        Bind(new(Z) LoadUntaggedInstr(external_val, data_offset));
   }
 
   // Here pattern_val might be untagged so this must not trigger a GC.
   Value* index_val = BindLoadLocal(*index);
 
-  return Bind(new(I) LoadCodeUnitsInstr(
+  return Bind(new(Z) LoadCodeUnitsInstr(
       pattern_val,
       index_val,
       characters,

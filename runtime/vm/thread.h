@@ -20,6 +20,11 @@ class Thread {
     // own thread-local storage key.
     return reinterpret_cast<Thread*>(Isolate::Current());
   }
+  // TODO(koda): Remove after pivoting to Thread* in native/runtime entries.
+  static Thread* CurrentFromCurrentIsolate(BaseIsolate* isolate) {
+    ASSERT(Isolate::Current() == isolate);
+    return reinterpret_cast<Thread*>(isolate);
+  }
 
   // The topmost zone used for allocation in this thread.
   Zone* zone() {
