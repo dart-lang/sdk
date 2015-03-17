@@ -27,30 +27,24 @@ class ResolverOptions {
   final bool inferFromOverrides;
   static const inferFromOverridesDefault = false;
 
-  /// Whether to infer types for consts and static fields by looking at
-  /// identifiers on the RHS. For example, in a constant declaration like:
+  /// Whether to infer types for consts and fields by looking at initializers on
+  /// the RHS. For example, in a constant declaration like:
   ///
   ///      const A = B;
   ///
   /// We can infer the type of `A` based on the type of `B`. The current
-  /// implementation of this inference is limited and will only work if `B` is
-  /// defined in a different library than `A`. Because this might be surprising
-  /// to users, this is turned off by default.
+  /// implementation of this inference is limited to ensure the answer is
+  /// deterministic when applying inference on library cycles. In the example
+  /// above, `A` is inferred to have `B`'s declared type if they are both in the
+  /// same library cycle. However, if `B`'s definition is not in the same
+  /// connected component as `A`, we use `B`'s inferred type instead.
+  ///
+  /// Because this might be surprising to users, this is turned off by default.
+  /// In the future, inference might track dependencies between variables in
+  /// more detail so that, in the example above, we can use `B`'s inferred type
+  /// always.
   final bool inferStaticsFromIdentifiers;
   static const inferStaticsFromIdentifiersDefault = false;
-
-  /// Whether to ignore ordering issues and do a best effort in inference. When
-  /// false, inference of top-levels and statics is limited to only consider
-  /// expressions in the RHS for which the type is known precisely without
-  /// regard of the ordering in which we apply inference. Turning this flag on
-  /// will consider more expressions, including expressions where the RHS is
-  /// another identifier (which [inferStaticsFromIdentifiers]).
-  ///
-  /// Note: this option is experimental will be removed once we have a proper
-  /// implementation of inference in the future, which should handle all
-  /// ordering concerns.
-  final bool inferInNonStableOrder;
-  static const inferInNonStableOrderDefault = false;
 
   /// Restrict inference of fields and top-levels to those that are final and
   /// const.
@@ -61,7 +55,6 @@ class ResolverOptions {
       this.packagePaths: const <String>[],
       this.inferFromOverrides: inferFromOverridesDefault,
       this.inferStaticsFromIdentifiers: inferStaticsFromIdentifiersDefault,
-      this.inferInNonStableOrder: inferInNonStableOrderDefault,
       this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault});
 }
 
@@ -181,10 +174,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final bool inferStaticsFromIdentifiers;
 
-  /// Whether to ignore ordering issue, and do a best effort in inference.
-  @override
-  final bool inferInNonStableOrder;
-
   /// Restrict inference of fields and top-levels to those that are final and
   /// const.
   @override
@@ -212,7 +201,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.packagePaths: const <String>[],
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
       this.inferStaticsFromIdentifiers: ResolverOptions.inferStaticsFromIdentifiersDefault,
-      this.inferInNonStableOrder: ResolverOptions.inferInNonStableOrderDefault,
       this.onlyInferConstsAndFinalFields: ResolverOptions.onlyInferConstAndFinalFieldsDefault,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
@@ -248,7 +236,6 @@ CompilerOptions parseOptions(List<String> argv) {
       packagePaths: args['package-paths'].split(','),
       inferFromOverrides: args['infer-from-overrides'],
       inferStaticsFromIdentifiers: args['infer-transitively'],
-      inferInNonStableOrder: args['infer-eagerly'],
       onlyInferConstsAndFinalFields: args['infer-only-finals'],
       nonnullableTypes: optionsToList(args['nonnullable'],
           defaultValue: TypeOptions.NONNULLABLE_TYPES),
@@ -291,11 +278,6 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('infer-only-finals',
       help: 'Do not infer non-const or non-final fields',
       defaultsTo: ResolverOptions.onlyInferConstAndFinalFieldsDefault)
-  ..addFlag('infer-eagerly',
-      help: 'experimental: allows a non-stable order of transitive inference on'
-      ' consts and fields. This is used to test for possible inference with a '
-      'proper implementation in the future.',
-      defaultsTo: ResolverOptions.inferInNonStableOrderDefault)
 
   // input/output options
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)

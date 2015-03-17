@@ -137,6 +137,31 @@ void main() {
     });
   });
 
+  test('do not infer field type when initializer is null', () {
+    testChecker({
+      '/main.dart': '''
+      var x = null;
+      var y = 3;
+      class A {
+        static var x = null;
+        static var y = 3;
+
+        var x2 = null;
+        var y2 = 3;
+      }
+
+      test() {
+        x = "hi";
+        y = /*severe:StaticTypeError*/"hi";
+        A.x = "hi";
+        A.y = /*severe:StaticTypeError*/"hi";
+        new A().x2 = "hi";
+        new A().y2 = /*severe:StaticTypeError*/"hi";
+      }
+    '''
+    });
+  });
+
   test('do not infer from variables in same lib (order independence)', () {
     testChecker({
       '/main.dart': '''
@@ -163,35 +188,6 @@ void main() {
           }
     '''
     });
-
-    // Allowed with special flag. Note, while the flag is generally not stable,
-    // we can use it in this test because it is stable within a library (order
-    // matches program order).
-    testChecker({
-      '/main.dart': '''
-          var x = 2;
-          var y = x;
-
-          test1() {
-            x = /*severe:StaticTypeError*/"hi";
-            y = /*severe:StaticTypeError*/"hi";
-          }
-    '''
-    }, inferInNonStableOrder: true);
-
-    testChecker({
-      '/main.dart': '''
-          class A {
-            static var x = 2;
-            static var y = A.x;
-          }
-
-          test1() {
-            A.x = /*severe:StaticTypeError*/"hi";
-            A.y = /*severe:StaticTypeError*/"hi";
-          }
-    '''
-    }, inferInNonStableOrder: true);
   });
 
   test('not ok to infer from variables in non-cycle libs', () {
@@ -262,15 +258,15 @@ void main() {
     testChecker({
       '/a.dart': '''
           import 'main.dart';
-          var x = 2;
+          var x = 2; // ok to infer
       ''',
       '/main.dart': '''
           import 'a.dart';
-          var y = x;
+          var y = x; // not ok to infer yet
 
           test1() {
             int t = 3;
-            t = /*info:DownCast*/x;
+            t = x;
             t = /*info:DownCast*/y;
           }
     '''
@@ -287,7 +283,7 @@ void main() {
 
           test1() {
             int t = 3;
-            t = /*info:DownCast*/A.x;
+            t = A.x;
             t = /*info:DownCast*/A.y;
           }
     '''
@@ -350,7 +346,27 @@ void main() {
     }, inferStaticsFromIdentifiers: true);
   });
 
-  test('don\'t infer on cycles', () {
+  test('inference uses declared types', () {
+    testChecker({
+      '/main.dart': '''
+          int w = 0;
+          var x = 0;
+
+          var y = w; // y can be inferred because w is typed int.
+          var z = x; // z cannot, because x would be inferred.
+
+          test1() {
+            int a;
+            a = w;
+            a = x;
+            a = y;
+            a = /*info:DownCast*/z;
+          }
+    '''
+    }, inferStaticsFromIdentifiers: true);
+  });
+
+  test('inference in cycles is deterministic', () {
     testChecker({
       '/a.dart': '''
           import 'b.dart';
@@ -374,15 +390,20 @@ void main() {
           }
       ''',
       '/e.dart': '''
-          part "e2.dart";
+          import 'a.dart';
+          part 'e2.dart';
 
           class E {
             static final e1 = 1;
-            final e2 = 1;
+            static final e2 = F.f1;
+            static final e3 = A.a1;
+            final e4 = 1;
+            final e5 = new F().f2;
+            final e6 = new A().a2;
           }
       ''',
       '/f.dart': '''
-          part "f2.dart";
+          part 'f2.dart';
       ''',
       '/e2.dart': '''
           class F {
@@ -408,21 +429,25 @@ void main() {
             x = A.a1;
             x = new A().a2;
 
-            // inference here or in c.dart is disabled because of the cycle
-            x = /*info:DownCast*/C.c1;
-            x = /*info:DownCast*/D.d1;
+            // Within a cycle we allow inference when the RHS is well known, but
+            // not when it depends on other fields within the cycle
+            x = C.c1;
+            x = D.d1;
             x = /*info:DownCast*/D.d2;
-            x = /*info:DownCast*/new C().c2;
-            x = /*info:DownCast*/new D().d3;
+            x = new C().c2;
+            x = new D().d3;
             x = /*info:DownCast*/new D().d4;
 
 
-            // inference in e.dart and f.dart is disabled because they contains
-            // parts
-            x = /*info:DownCast*/E.e1;
-            x = /*info:DownCast*/new E().e2;
-            x = /*info:DownCast*/F.f1;
-            x = /*info:DownCast*/new F().f2;
+            // Similarly if the library contains parts.
+            x = E.e1;
+            x = /*info:DownCast*/E.e2;
+            x = E.e3;
+            x = new E().e4;
+            x = /*info:DownCast*/new E().e5;
+            x = new E().e6;
+            x = F.f1;
+            x = new F().f2;
           }
     '''
     }, inferStaticsFromIdentifiers: true);
@@ -446,6 +471,7 @@ void main() {
         var g = -3;
         var h = new A() + 3;
         var i = - new A();
+        var j = null as B;
 
         test1() {
           a = /*severe:StaticTypeError*/"hi";
@@ -467,6 +493,9 @@ void main() {
           h = /*severe:StaticTypeError*/false;
           h = new B();
           i = false;
+          j = new B();
+          j = /*severe:StaticTypeError*/false;
+          j = /*severe:StaticTypeError*/[];
         }
     '''
     });
@@ -814,8 +843,33 @@ void main() {
     }, inferFromOverrides: true);
   });
 
-  // TODO(sigmund): enable this test, it's currently flaky (see issue #48).
-  skip_test('infer types on generic instantiations in library cycle', () {
+  test('infer type regardless of declaration order or cycles', () {
+    testChecker({
+      '/b.dart': '''
+        import 'main.dart';
+
+        class B extends A { }
+      ''',
+      '/main.dart': '''
+        import 'b.dart';
+        class C extends B {
+          get x;
+        }
+        class A {
+          int get x;
+        }
+        foo () {
+          int y = new C().x;
+          String y = /*severe:StaticTypeError*/new C().x;
+        }
+    '''
+    }, inferFromOverrides: true);
+  });
+
+  // Note: this is a regression test for a non-deterministic behavior we used to
+  // have with inference in library cycles. If you see this test flake out,
+  // change `test` to `skip_test` and reopen bug #48.
+  test('infer types on generic instantiations in library cycle', () {
     testChecker({
       '/a.dart': '''
           import 'main.dart';
@@ -929,6 +983,71 @@ void main() {
 
         class C2 extends A implements B {
           /*severe:InvalidMethodOverride*/get a => null;
+        }
+    '''
+    }, inferFromOverrides: true);
+  });
+
+  test('infer from RHS only if it wont conflict with overridden fields', () {
+    testChecker({
+      '/main.dart': '''
+        class A {
+          var x;
+        }
+
+        class B extends A {
+          var x = 2;
+        }
+
+        foo() {
+          String y = /*info:DownCast*/new B().x;
+          int z = /*info:DownCast*/new B().x;
+        }
+    '''
+    }, inferFromOverrides: true);
+
+    testChecker({
+      '/main.dart': '''
+        class A {
+          final x;
+        }
+
+        class B extends A {
+          final x = 2;
+        }
+
+        foo() {
+          String y = /*severe:StaticTypeError*/new B().x;
+          int z = new B().x;
+        }
+    '''
+    }, inferFromOverrides: true);
+  });
+
+  test('infer correctly on multiple variables declared together', () {
+    testChecker({
+      '/main.dart': '''
+        class A {
+          var x, y = 2, z = "hi";
+        }
+
+        class B extends A {
+          var x = 2, y = 3, z, w = 2;
+        }
+
+        foo() {
+          String s;
+          int i;
+
+          s = /*info:DownCast*/new B().x;
+          s = /*severe:StaticTypeError*/new B().y;
+          s = new B().z;
+          s = /*severe:StaticTypeError*/new B().w;
+
+          i = /*info:DownCast*/new B().x;
+          i = new B().y;
+          i = /*severe:StaticTypeError*/new B().z;
+          i = new B().w;
         }
     '''
     }, inferFromOverrides: true);
