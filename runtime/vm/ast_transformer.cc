@@ -601,12 +601,13 @@ void AwaitTransformer::VisitAssignableNode(AssignableNode* node) {
 
 
 void AwaitTransformer::VisitLetNode(LetNode* node) {
-  // Add all the initializer nodes and their temporary variables
-  // to the preamble. The temporary variables will be captured
-  // as a side effect of being added to a scope, and the subsequent
-  // nodes that are added to the preample can access them.
+  // Add all the initializer nodes to the preamble and the
+  // temporary variables to the scope for async temporary variables.
+  // The temporary variables will be captured as a side effect of being
+  // added to a scope, and the subsequent nodes that are added to the
+  // preample can access them.
   for (intptr_t i = 0; i < node->num_temps(); i++) {
-    preamble_->scope()->AddVariable(node->TempAt(i));
+    function_top_->AddVariable(node->TempAt(i));
     AstNode* new_init_val = Transform(node->InitializerAt(i));
     preamble_->Add(new(Z) StoreLocalNode(node->token_pos(),
                    node->TempAt(i),

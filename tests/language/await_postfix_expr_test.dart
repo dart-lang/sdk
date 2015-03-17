@@ -31,12 +31,24 @@ sum(a) async {
   return s;
 }
 
+// Adapted from repro case for issue 22875.
+sum2(n) async {
+  int i, s = 0;
+  for (i = 1; i <= n; await i++) {
+    // The loop-local variable j was necessary for the crash in 22785.
+    var j = await i;
+    s += j;
+  }
+  return s;
+}
+
 test() async {
   Expect.equals(10, await post0(10));
   Expect.equals(21, await post1(10));
   Expect.equals(11, await pref0(10));
   Expect.equals(23, await pref1(10));
   Expect.equals(10, await sum([1, 2, 3, 4]));
+  Expect.equals(10, await sum2(4));
 }
 
 main() {
