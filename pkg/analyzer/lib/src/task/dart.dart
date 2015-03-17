@@ -49,6 +49,14 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
         contributesTo: DART_ERRORS);
 
 /**
+ * The sources representing the export closure of a library.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<List<Source>> EXPORT_SOURCE_CLOSURE =
+    new ResultDescriptor<List<Source>>('EXPORT_SOURCE_CLOSURE', null);
+
+/**
  * The partial [LibraryElement] associated with a library.
  *
  * The [LibraryElement] and its [CompilationUnitElement]s are attached to each
@@ -58,6 +66,17 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT1', null);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * In addition to [LIBRARY_ELEMENT1] `imports` and `exports` of the
+ * [LibraryElement] are set.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT2 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT2', null);
 
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
@@ -180,7 +199,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [RESOLVED_UNIT3] for a library.
+ * A task that builds imports and export directive elements for a library.
  */
 class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   /**
@@ -217,6 +236,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BUILD_RESOLVED_UNIT3', createTask, buildInputs, <ResultDescriptor>[
+    LIBRARY_ELEMENT2,
     RESOLVED_UNIT3,
     BUILD_DIRECTIVES_ERRORS
   ]);
@@ -361,6 +381,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
+    outputs[LIBRARY_ELEMENT2] = libraryElement;
     outputs[RESOLVED_UNIT3] = libraryUnit;
     outputs[BUILD_DIRECTIVES_ERRORS] = errors;
   }
@@ -496,6 +517,77 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
   static BuildEnumMemberElementsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new BuildEnumMemberElementsTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [EXPORT_SOURCE_CLOSURE] of a library.
+ */
+class BuildExportSourceClosureTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input for [LIBRARY_ELEMENT2] of a library.
+   */
+  static const String LIBRARY2_ELEMENT_INPUT = 'LIBRARY2_ELEMENT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildExportSourceClosureTask', createTask, buildInputs,
+      <ResultDescriptor>[EXPORT_SOURCE_CLOSURE]);
+
+  BuildExportSourceClosureTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibraryElement library = getRequiredInput(LIBRARY2_ELEMENT_INPUT);
+    //
+    // Compute export closure.
+    //
+    Set<LibraryElement> libraries = new Set<LibraryElement>();
+    _buildExportClosure(libraries, library);
+    List<Source> sources = libraries.map((lib) => lib.source).toList();
+    //
+    // Record outputs.
+    //
+    outputs[EXPORT_SOURCE_CLOSURE] = sources;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given library [source].
+   */
+  static Map<String, TaskInput> buildInputs(Source source) {
+    return <String, TaskInput>{
+      LIBRARY2_ELEMENT_INPUT: LIBRARY_ELEMENT2.inputFor(source)
+    };
+  }
+
+  /**
+   * Create a [BuildExportSourceClosureTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildExportSourceClosureTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildExportSourceClosureTask(context, target);
+  }
+
+  /**
+   * Create a set representing the export closure of the given [library].
+   */
+  static void _buildExportClosure(
+      Set<LibraryElement> libraries, LibraryElement library) {
+    if (library != null && libraries.add(library)) {
+      for (ExportElement exportElement in library.exports) {
+        _buildExportClosure(libraries, exportElement.exportedLibrary);
+      }
+    }
   }
 }
 

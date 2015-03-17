@@ -36,6 +36,7 @@ main() {
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
   runReflectiveTests(BuildDirectiveElementsTaskTest);
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
+  runReflectiveTests(BuildExportSourceClosureTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
@@ -433,6 +434,48 @@ enum MyEnum {
     expect(getter, isNotNull);
     expect(getter.variable, same(field));
     expect(getter.type, isNotNull);
+  }
+}
+
+@reflectiveTest
+class BuildExportSourceClosureTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+export 'b.dart';
+''');
+    Source sourceB = _newSource('/b.dart', '''
+library lib_b;
+export 'b.dart';
+''');
+    Source sourceC = _newSource('/c.dart', '''
+library lib_c;
+export 'a.dart';
+''');
+    Source sourceD = _newSource('/d.dart', '''
+library lib_d;
+''');
+    // a.dart
+    {
+      _computeResult(sourceA, EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildExportSourceClosureTask>());
+      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      expect(closure, unorderedEquals([sourceA, sourceB]));
+    }
+    // c.dart
+    {
+      _computeResult(sourceC, EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildExportSourceClosureTask>());
+      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
+    }
+    // d.dart
+    {
+      _computeResult(sourceD, EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildExportSourceClosureTask>());
+      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      expect(closure, unorderedEquals([sourceD]));
+    }
   }
 }
 
@@ -934,6 +977,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildExportSourceClosureTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     // prepare AnalysisDriver
@@ -989,6 +1033,14 @@ class _MockContext extends TypedMock implements ExtendedAnalysisContext {
   }
 
   TimestampedData<String> getContents(Source source) => source.contents;
+
+  @override
+  Namespace getPublicNamespace(LibraryElement library) {
+    // TODO(scheglov) Should be be replaced with an explicit input?
+    // TODO(scheglov) Based on... LibraryElement's closure?
+    var cacheEntry = getCacheEntry(library.source);
+    return cacheEntry.getValue(PUBLIC_NAMESPACE);
+  }
 
   noSuchMethod(Invocation invocation) {
     print('noSuchMethod: ${invocation.memberName}');
