@@ -3,7 +3,7 @@ description: Dart dev checker / compiler
 dependencies:
   analyzer:
     git:
-      url: git@github.com:dart-lang/ddc_analyzer.git
+      url: https://github.com/dart-lang/ddc_analyzer.git
       ref: master
   args: ^0.12.1
   cli_util: ^0.0.1
@@ -26,7 +26,7 @@ dev_dependencies:
 dependency_overrides:
   analyzer:
     git:
-      url: git@github.com:dart-lang/ddc_analyzer.git
+      url: https://github.com/dart-lang/ddc_analyzer.git
       ref: master
 executables:
   # Similar to "analyzer.dart" and its command line "dartanalyzer", we use

@@ -5,7 +5,6 @@
 /// Meta-test that runs all tests we have written.
 library dev_compiler.test.all_tests;
 
-import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'checker/checker_test.dart' as checker_test;
@@ -16,9 +15,11 @@ import 'report_test.dart' as report_test;
 import 'runtime/dart_runtime_test.dart' as runtime_test;
 import 'dependency_graph_test.dart' as dependency_graph_test;
 
-main(args) {
-  groupSep = " > ";
-  useCompactVMConfiguration();
+import 'test_util.dart';
+
+void main(args) {
+  configureTest();
+
   group('end-to-end', e2e.main);
   group('inferred types', inferred_type_test.main);
   group('checker', checker_test.main);

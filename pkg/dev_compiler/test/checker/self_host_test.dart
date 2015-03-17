@@ -10,11 +10,13 @@ import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:dev_compiler/devc.dart' show Compiler;
 import 'package:dev_compiler/src/options.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
-main(args) {
-  useCompactVMConfiguration();
+import '../test_util.dart';
+
+void main(args) {
+  configureTest();
+
   var testDir = path.absolute(path.dirname(Platform.script.path));
 
   test('checker can run on itself ', () {

@@ -5,13 +5,15 @@
 /// Tests for type inference.
 library dev_compiler.test.inferred_type_test;
 
-import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'package:dev_compiler/src/testing.dart';
 
-main() {
-  useCompactVMConfiguration();
+import '../test_util.dart';
+
+void main() {
+  configureTest();
+
   test('infer type on var', () {
     // Error also expected when declared type is `int`.
     testChecker({

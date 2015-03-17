@@ -5,13 +5,14 @@
 /// General type checking tests
 library dev_compiler.test.checker_test;
 
-import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'package:dev_compiler/src/testing.dart';
 
-main() {
-  useCompactVMConfiguration();
+import '../test_util.dart';
+
+void main() {
+  configureTest();
 
   test('conversion and dynamic invoke', () {
     testChecker({

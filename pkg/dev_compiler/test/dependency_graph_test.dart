@@ -4,7 +4,6 @@
 
 library dev_compiler.test.dependency_graph_test;
 
-import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'package:dev_compiler/src/checker/dart_sdk.dart'
@@ -16,9 +15,10 @@ import 'package:dev_compiler/src/dependency_graph.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:path/path.dart' as path;
 
-main() {
-  groupSep = " > ";
-  useCompactVMConfiguration();
+import 'test_util.dart';
+
+void main() {
+  configureTest();
 
   var options = new CompilerOptions();
   var testUriResolver;
