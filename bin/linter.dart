@@ -6,10 +6,10 @@ import 'dart:io';
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
+import 'package:linter/src/config.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
-import 'package:linter/src/config.dart';
 
 void main(List<String> args) {
   var parser = new ArgParser(allowTrailingOptions: true);
@@ -21,6 +21,7 @@ void main(List<String> args) {
         abbr: "s", negatable: false, help: "Show lint statistics.")
     ..addFlag('visit-transitive-closure',
         help: 'Visit the transitive closure of imported/exported libraries.')
+    ..addFlag('quiet', abbr: 'q', help: "Don't show individual lint errors.")
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addOption('package-root',
@@ -84,7 +85,8 @@ void main(List<String> args) {
         errors, lintOptions.filter, outSink,
         fileCount: filesToLint.length,
         fileRoot: commonRoot,
-        showStatistics: stats);
+        showStatistics: stats,
+        quiet: options['quiet']);
     reporter.write();
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting
