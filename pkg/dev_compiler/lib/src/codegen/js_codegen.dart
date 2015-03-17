@@ -1674,14 +1674,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   visitBooleanLiteral(BooleanLiteral node) => js.boolean(node.value);
 
   @override
-  JS.Statement visitDeclaration(Declaration node) =>
-      js.comment('Unimplemented ${node.runtimeType}: $node');
-
-  @override
-  JS.Statement visitStatement(Statement node) =>
-      js.comment('Unimplemented ${node.runtimeType}: $node');
-
-  @override
   JS.Expression visitExpression(Expression node) =>
       _unimplementedCall('Unimplemented ${node.runtimeType}: $node');
 
