@@ -95,42 +95,40 @@ function(b) {
             // Function start
             __handler = 3;
           case 7:
-            // continue __outer
-          case 8:
             // while condition
-            __handler = 10;
+            __handler = 9;
             inner:
               while (true) {
                 __next = [6];
                 // goto finally
-                __goto = 11;
+                __goto = 10;
                 break __outer1;
                 break;
               }
             while (true) {
               __next = [1, 4];
               // goto finally
-              __goto = 11;
+              __goto = 10;
               break __outer1;
             }
-            __goto = 13;
+            __goto = 12;
             return thenHelper(foo(), __body, __completer);
-          case 13:
+          case 12:
             // returning from await.
             __helper = __result;
-            __next.push(12);
+            __next.push(11);
             // goto finally
-            __goto = 11;
+            __goto = 10;
             break;
-          case 10:
+          case 9:
             // uncaught
             __next = [3];
-          case 11:
+          case 10:
             // finally
             __handler = 3;
             foo();
             // goto while condition
-            __goto = 8;
+            __goto = 7;
             break;
             __returnValue = 2;
             __next = [1];
@@ -140,12 +138,12 @@ function(b) {
             // goto the next finally handler
             __goto = __next.pop();
             break;
-          case 12:
+          case 11:
             // after finally
             // goto while condition
-            __goto = 8;
+            __goto = 7;
             break;
-          case 9:
+          case 8:
             // after while
           case 6:
             // break __outer
@@ -923,45 +921,55 @@ function(x, y, k) {
             break;
           }
         case 7:
-          // continue lab
-        case 8:
           // switch
           __temp1 = y;
+          if (__temp1 === 0) {
+            // goto case
+            __goto = 9;
+            break;
+          }
           if (__temp1 === 0) {
             // goto case
             __goto = 10;
             break;
           }
-          if (__temp1 === 0) {
+          __goto = 12;
+          return thenHelper(bar(), __body, __completer);
+        case 12:
+          // returning from await.
+          if (__temp1 === __result) {
             // goto case
             __goto = 11;
             break;
           }
-          __goto = 13;
-          return thenHelper(bar(), __body, __completer);
-        case 13:
-          // returning from await.
-          if (__temp1 === __result) {
-            // goto case
-            __goto = 12;
-            break;
-          }
           if (__temp1 === x) {
             // goto case
-            __goto = 14;
+            __goto = 13;
             break;
           }
           // goto default
-          __goto = 15;
+          __goto = 14;
           break;
-        case 10:
+        case 9:
           // case
           foo();
+        case 10:
+          // case
+          __temp1 = print;
+          __goto = 15;
+          return thenHelper(foo1(x), __body, __completer);
+        case 15:
+          // returning from await.
+          __temp1(__result);
+          __returnValue = y;
+          // goto return
+          __goto = 1;
+          break;
         case 11:
           // case
           __temp1 = print;
           __goto = 16;
-          return thenHelper(foo1(x), __body, __completer);
+          return thenHelper(foobar(x), __body, __completer);
         case 16:
           // returning from await.
           __temp1(__result);
@@ -969,19 +977,7 @@ function(x, y, k) {
           // goto return
           __goto = 1;
           break;
-        case 12:
-          // case
-          __temp1 = print;
-          __goto = 17;
-          return thenHelper(foobar(x), __body, __completer);
-        case 17:
-          // returning from await.
-          __temp1(__result);
-          __returnValue = y;
-          // goto return
-          __goto = 1;
-          break;
-        case 14:
+        case 13:
           // case
           if (a)
             throw new Error();
@@ -990,12 +986,12 @@ function(x, y, k) {
             __goto = 3;
             break;
           }
-        case 15:
+        case 14:
           // default
           // goto break lab
           __goto = 6;
           break;
-        case 9:
+        case 8:
           // after switch
           foo();
         case 6:

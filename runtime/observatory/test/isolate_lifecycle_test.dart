@@ -44,7 +44,7 @@ var tests = [
     var pausedCount = 0;
     var runningCount = 0;
     for (var isolate in vm.isolates) {
-      if (isolate.pauseEvent != null) {
+      if (isolate.paused) {
         pausedCount++;
       } else {
         runningCount++;
@@ -56,7 +56,7 @@ var tests = [
   (VM vm) async {
     var resumedReceived = 0;
     var eventsDone = processServiceEvents(vm, (event, sub, completer) {
-      if (event.eventType.startsWith('IsolateShutdown')) {
+      if (event.eventType == ServiceEvent.kIsolateExit) {
         resumedReceived++;
         if (resumedReceived == resumeCount) {
           sub.cancel();
@@ -84,7 +84,7 @@ var tests = [
     var pausedCount = 0;
     var runningCount = 0;
     for (var isolate in vm.isolates) {
-      if (isolate.pauseEvent != null) {
+      if (isolate.paused) {
         pausedCount++;
       } else {
         runningCount++;

@@ -48,7 +48,7 @@ class SourceLocation {
       return new Future.value(new SourceLocation.error(
           'A script must be provided when the stack is empty'));
     }
-    var frame = stack['frames'][0];
+    var frame = stack['frames'][debugger.currentFrame];
     Script script = frame['script'];
     return script.load().then((_) {
       var line = script.tokenToLine(frame['tokenPos']);

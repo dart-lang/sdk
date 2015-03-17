@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of debugger;
-
-// TODO(turnidge): Move more of ObservatoryDebugger to this class.
-abstract class Debugger {
-  Isolate get isolate;
-  ServiceMap get stack;
-  int get currentFrame;
+main() {
+  f() => "Oh, the joy of ${f()}"; print(f()); /// 01: runtime error
 }

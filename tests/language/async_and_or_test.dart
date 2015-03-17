@@ -4,8 +4,8 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-@NoInline
-@AssumeDynamic
+@NoInline()
+@AssumeDynamic()
 confuse(x) {
   return x;
 }

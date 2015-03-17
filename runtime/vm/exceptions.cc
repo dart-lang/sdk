@@ -231,7 +231,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
       StubCode::JumpToExceptionHandlerEntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
-  uword current_sp = reinterpret_cast<uword>(&program_counter) - 1024;
+  uword current_sp = Isolate::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
 

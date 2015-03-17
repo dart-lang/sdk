@@ -1542,6 +1542,10 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<MirrorReference>();
   cls = Class::New<UserTag>();
 
+  const Context& context = Context::Handle(isolate,
+                                           Context::New(0, Heap::kOld));
+  object_store->set_empty_context(context);
+
   StubCode::InitBootstrapStubs(isolate);
 }
 
@@ -13461,20 +13465,21 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 
 const char* UnhandledException::ToErrorCString() const {
   Isolate* isolate = Isolate::Current();
-  if (exception() == isolate->object_store()->out_of_memory()) {
-    return "Unhandled exception:\nOut of memory";
-  }
-  if (exception() == isolate->object_store()->stack_overflow()) {
-    return "Unhandled exception:\nStack overflow";
-  }
   HANDLESCOPE(isolate);
   Object& strtmp = Object::Handle();
-  const Instance& exc = Instance::Handle(exception());
-  strtmp = DartLibraryCalls::ToString(exc);
-  const char* exc_str =
-      "<Received error while converting exception to string>";
-  if (!strtmp.IsError()) {
-    exc_str = strtmp.ToCString();
+  const char* exc_str;
+  if (exception() == isolate->object_store()->out_of_memory()) {
+    exc_str = "Out of Memory";
+  } else if (exception() == isolate->object_store()->stack_overflow()) {
+    exc_str = "Stack Overflow";
+  } else {
+    const Instance& exc = Instance::Handle(exception());
+    strtmp = DartLibraryCalls::ToString(exc);
+    if (!strtmp.IsError()) {
+      exc_str = strtmp.ToCString();
+    } else {
+      exc_str = "<Received error while converting exception to string>";
+    }
   }
   const Instance& stack = Instance::Handle(stacktrace());
   strtmp = DartLibraryCalls::ToString(stack);
@@ -13483,11 +13488,8 @@ const char* UnhandledException::ToErrorCString() const {
   if (!strtmp.IsError()) {
     stack_str = strtmp.ToCString();
   }
-
   const char* format = "Unhandled exception:\n%s\n%s";
-  int len = (strlen(exc_str) + strlen(stack_str) + strlen(format)
-             - 4    // Two '%s'
-             + 1);  // '\0'
+  intptr_t len = OS::SNPrint(NULL, 0, format, exc_str, stack_str);
   char* chars = isolate->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, exc_str, stack_str);
   return chars;

@@ -81,7 +81,7 @@ class MessageHandler {
   bool paused_on_start() const {
     // If pause_on_start_ is still set, tell the user we are paused,
     // even if we haven't hit the pause point yet.
-    return pause_on_start_;
+    return paused_on_start_;
   }
 
   bool pause_on_exit() const {
@@ -144,6 +144,9 @@ class MessageHandler {
   // Returns true on success.
   virtual bool HandleMessage(Message* message) = 0;
 
+  virtual void NotifyPauseOnStart() {}
+  virtual void NotifyPauseOnExit() {}
+
  private:
   friend class PortMap;
   friend class MessageHandlerTestPeer;
@@ -167,6 +170,7 @@ class MessageHandler {
   intptr_t paused_;  // The number of pause messages received.
   bool pause_on_start_;
   bool pause_on_exit_;
+  bool paused_on_start_;
   bool paused_on_exit_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;

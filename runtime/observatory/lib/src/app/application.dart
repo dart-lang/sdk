@@ -51,9 +51,11 @@ class ObservatoryApplication extends Observable {
 
   void removePauseEvents(Isolate isolate) {
     bool isPauseEvent(var event) {
-      return (event.eventType == 'IsolateInterrupted' ||
-              event.eventType == 'BreakpointReached' ||
-              event.eventType == 'ExceptionThrown');
+      return (event.eventType == ServiceEvent.kPauseStart ||
+              event.eventType == ServiceEvent.kPauseExit ||
+              event.eventType == ServiceEvent.kPauseBreakpoint ||
+              event.eventType == ServiceEvent.kPauseInterrupted ||
+              event.eventType == ServiceEvent.kPauseException);
     }
 
     notifications.removeWhere((oldEvent) {
@@ -64,44 +66,27 @@ class ObservatoryApplication extends Observable {
 
   void _onEvent(ServiceEvent event) {
     switch(event.eventType) {
-      case 'IsolateCreated':
+      case ServiceEvent.kIsolateStart:
+      case ServiceEvent.kGraph:
+      case ServiceEvent.kBreakpointAdded:
+      case ServiceEvent.kBreakpointResolved:
+      case ServiceEvent.kBreakpointRemoved:
+      case ServiceEvent.kGC:
         // Ignore for now.
         break;
 
-      case 'IsolateResumed':
-        event.isolate.pauseEvent = null;
-        break;
-
-      case 'IsolateShutdown':
-        // TODO(turnidge): Should we show the user isolate shutdown events?
-        // What if there are hundreds of them?  Coalesce multiple
-        // shutdown events into one notification?
+      case ServiceEvent.kIsolateExit:
+      case ServiceEvent.kResume:
         removePauseEvents(event.isolate);
-
-        // TODO(turnidge): Reload the isolate for now in case it is
-        // paused.  We may need to distinguish an IsolateShutdown
-        // event from a "paused at isolate shutdown" event.
-        event.isolate.reload();
         break;
 
-      case 'BreakpointResolved':
-        event.isolate.reloadBreakpoints();
-        break;
-
-      case 'BreakpointReached':
-      case 'IsolateInterrupted':
-      case 'ExceptionThrown':
-        event.isolate.pauseEvent = event;
+      case ServiceEvent.kPauseStart:
+      case ServiceEvent.kPauseExit:
+      case ServiceEvent.kPauseBreakpoint:
+      case ServiceEvent.kPauseInterrupted:
+      case ServiceEvent.kPauseException:
         removePauseEvents(event.isolate);
         notifications.add(event);
-        break;
-
-      case '_Graph':
-        event.isolate.loadHeapSnapshot(event);
-        break;
-
-      case 'GC':
-        // Ignore GC events for now.
         break;
 
       default:
@@ -217,7 +202,7 @@ class ObservatoryApplication extends Observable {
 
   void _removeDisconnectEvents() {
     notifications.removeWhere((oldEvent) {
-        return (oldEvent.eventType == 'VMDisconnected');
+        return (oldEvent.eventType == ServiceEvent.kVMDisconnected);
       });
   }
 

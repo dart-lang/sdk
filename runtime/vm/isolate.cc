@@ -27,6 +27,7 @@
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
@@ -114,6 +115,8 @@ class IsolateMessageHandler : public MessageHandler {
   const char* name() const;
   void MessageNotify(Message::Priority priority);
   bool HandleMessage(Message* message);
+  void NotifyPauseOnStart();
+  void NotifyPauseOnExit();
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
@@ -428,6 +431,24 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   }
   delete message;
   return success;
+}
+
+
+void IsolateMessageHandler::NotifyPauseOnStart() {
+  StartIsolateScope start_isolate(isolate());
+  StackZone zone(I);
+  HandleScope handle_scope(I);
+  ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
+  Service::HandleEvent(&pause_event);
+}
+
+
+void IsolateMessageHandler::NotifyPauseOnExit() {
+  StartIsolateScope start_isolate(isolate());
+  StackZone zone(I);
+  HandleScope handle_scope(I);
+  ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
+  Service::HandleEvent(&pause_event);
 }
 
 
@@ -1541,32 +1562,29 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     heap()->PrintToJSONObject(Heap::kOld, &jsheap);
   }
 
-  // TODO(turnidge): Don't compute a full stack trace every time we
-  // request an isolate's info.
-  DebuggerStackTrace* stack = debugger()->StackTrace();
-  if (stack->Length() > 0) {
-    JSONObject jsframe(&jsobj, "topFrame");
-
-    ActivationFrame* frame = stack->FrameAt(0);
-    frame->PrintToJSONObject(&jsobj);
-    // TODO(turnidge): Implement depth differently -- differentiate
-    // inlined frames.
-    jsobj.AddProperty("depth", (intptr_t)0);
-  }
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->pause_on_exit());
 
-  // TODO(turnidge): Make the debugger support paused_on_start/exit.
   if (message_handler()->paused_on_start()) {
     ASSERT(debugger()->PauseEvent() == NULL);
-    DebuggerEvent pauseEvent(this, DebuggerEvent::kIsolateCreated);
-    jsobj.AddProperty("pauseEvent", &pauseEvent);
+    ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
+    jsobj.AddProperty("pauseEvent", &pause_event);
   } else if (message_handler()->paused_on_exit()) {
     ASSERT(debugger()->PauseEvent() == NULL);
-    DebuggerEvent pauseEvent(this, DebuggerEvent::kIsolateShutdown);
-    jsobj.AddProperty("pauseEvent", &pauseEvent);
+    ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
+    jsobj.AddProperty("pauseEvent", &pause_event);
   } else if (debugger()->PauseEvent() != NULL) {
-    jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
+    ServiceEvent pause_event(debugger()->PauseEvent());
+    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else {
+    ServiceEvent pause_event(this, ServiceEvent::kResume);
+
+    // TODO(turnidge): Don't compute a full stack trace.
+    DebuggerStackTrace* stack = debugger()->StackTrace();
+    if (stack->Length() > 0) {
+      pause_event.set_top_frame(stack->FrameAt(0));
+    }
+    jsobj.AddProperty("pauseEvent", &pause_event);
   }
 
   const Library& lib =
@@ -1608,6 +1626,10 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       ASSERT(!lib.IsNull());
       lib_array.AddValue(lib);
     }
+  }
+  {
+    JSONArray breakpoints(&jsobj, "breakpoints");
+    debugger()->PrintBreakpointsToJSONArray(&breakpoints);
   }
   {
     JSONArray features_array(&jsobj, "features");

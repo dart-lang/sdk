@@ -2,11 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of debugger;
+import "dart:isolate";
+import "package:expect/expect.dart";
 
-// TODO(turnidge): Move more of ObservatoryDebugger to this class.
-abstract class Debugger {
-  Isolate get isolate;
-  ServiceMap get stack;
-  int get currentFrame;
+func(){}
+
+main() {
+  var r = new RawReceivePort();
+  r.handler = (v) {
+    Expect.isTrue(v[0] == v[1]);
+    r.close();
+  };
+  r.sendPort.send([func, func]);
 }

@@ -14,9 +14,6 @@ interface Service {
   // The response is a subtype of Object or ObjectRef.
   getObjectByAddress(address string, ref bool) Response
 
-  // Returns the list of breakpoints for an isolate.
-  getBreakpoints(isolateId string) BreakpointList
-
   // Adds a breakpoint at the specified line.
   //
   // TODO(turnidge): Make line an int instead of a string.
@@ -177,7 +174,6 @@ struct Instance extends Object {
 // A <code>Breakpoint</code> describes a debugger breakpoint.
 struct Breakpoint extends Object {
   breakpointNumber int
-  enabled          bool
   resolved         bool
   location         Location
 }
@@ -305,12 +301,6 @@ struct _CallSiteData extends Response {
 struct TagProfile extends Response {
   names    []string
   counters []int
-}
-
-
-// A list of <code>Breakpoint</code>
-struct BreakpointList extends Response {
-  breakpoints []Breakpoint
 }
 
 

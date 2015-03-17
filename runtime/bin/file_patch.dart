@@ -193,6 +193,10 @@ patch class _FileSystemWatcher {
             if (event == null) continue;
             eventCount++;
             int pathId = event[4];
+            if (!_idMap.containsKey(pathId)) {
+              // Path is no longer being wathed.
+              continue;
+            }
             bool isDir = getIsDir(event);
             var path = getPath(event);
             if ((event[0] & FileSystemEvent.CREATE) != 0) {

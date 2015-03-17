@@ -4292,7 +4292,10 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
     intptr_t outer_try_index = node->try_index();
     owner()->set_try_index(outer_try_index);
   }
-  BuildRestoreContext(node->context_var());
+
+  // Note: do not restore the saved_try_context here since the inlined
+  // code is running at he context level of the return or jump instruction
+  // that follows the inlined code. See issue 22822.
 
   JoinEntryInstr* finally_entry =
       new(I) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());

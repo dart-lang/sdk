@@ -996,18 +996,10 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     addStatement(node);
   }
 
-  void visitExpressionInStatementContext(js.Expression node) {
-    if (node is js.VariableDeclarationList) {
-      // Treat js.VariableDeclarationList as a statement.
-      visitVariableDeclarationList(node);
-    } else {
-      visitExpressionIgnoreResult(node);
-    }
-  }
 
   @override
   void visitExpressionStatement(js.ExpressionStatement node) {
-    visitExpressionInStatementContext(node.expression);
+    visitExpressionIgnoreResult(node.expression);
   }
 
   @override
@@ -1030,7 +1022,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     }
 
     if (node.init != null) {
-      visitExpressionInStatementContext(node.init);
+      addExpressionStatement(visitExpression(node.init));
     }
     int startLabel = newLabel("for condition");
     // If there is no update, continuing the loop is the same as going to the
@@ -1154,12 +1146,12 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
           new js.LabeledStatement(node.label, translateInBlock(node.body)));
       return;
     }
+    // `continue label` is really continuing the nested loop.
+    // This is set up in [PreTranslationAnalysis.visitContinue].
+    // Here we only need a breakLabel:
     int breakLabel = newLabel("break ${node.label}");
-    int continueLabel = newLabel("continue ${node.label}");
     breakLabels[node] = breakLabel;
-    continueLabels[node] = continueLabel;
 
-    beginLabel(continueLabel);
     jumpTargets.add(node);
     visitStatement(node.body);
     jumpTargets.removeLast();
@@ -1535,7 +1527,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   @override
-  void visitVariableDeclarationList(js.VariableDeclarationList node) {
+  js.Expression visitVariableDeclarationList(js.VariableDeclarationList node) {
+    List<js.Assignment> initializations = new List<js.Assignment>();
+
     // Declaration of local variables is hoisted outside the helper but the
     // initialization is done here.
     for (js.VariableInitialization initialization in node.declarations) {
@@ -1543,10 +1537,19 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       localVariables.add(declaration);
       if (initialization.value != null) {
         withExpression(initialization.value, (js.Expression value) {
-          addStatement(new js.ExpressionStatement(
-              new js.Assignment(new js.VariableUse(declaration.name), value)));
+          initializations.add(
+              new js.Assignment(new js.VariableUse(declaration.name), value));
         }, store: false);
       }
+    }
+    if (initializations.isEmpty) {
+      // Dummy expression. Will be dropped by [visitExpressionIgnoreResult].
+      return js.number(0);
+    } else {
+      return initializations.reduce(
+          (js.Expression first, js.Expression second) {
+        return new js.Binary(",", first, second);
+      });
     }
   }
 
@@ -2251,8 +2254,10 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitContinue(js.Continue node) {
     if (node.targetLabel != null) {
-      targets[node] = labelledStatements.lastWhere(
+      js.LabeledStatement targetLabel = labelledStatements.lastWhere(
           (js.LabeledStatement stm) => stm.label == node.targetLabel);
+      js.Loop targetStatement = targetLabel.body;
+      targets[node] = targetStatement;
     } else {
       targets[node] =
           loopsAndSwitches.lastWhere((js.Node node) => node is! js.Switch);

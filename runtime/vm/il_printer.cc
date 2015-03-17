@@ -485,12 +485,12 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", local().name().ToCString());
+  f->Print("%s @%d", local().name().ToCString(), local().index());
 }
 
 
 void StoreLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", local().name().ToCString());
+  f->Print("%s @%d, ", local().name().ToCString(), local().index());
   value()->PrintTo(f);
 }
 
@@ -1146,9 +1146,9 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" ");
   }
   if (GetDeoptId() != Isolate::kNoDeoptId) {
-    f->Print("goto:%" Pd " %" Pd "", GetDeoptId(), successor()->block_id());
+    f->Print("goto:%" Pd " B%" Pd "", GetDeoptId(), successor()->block_id());
   } else {
-    f->Print("goto: %" Pd "", successor()->block_id());
+    f->Print("goto: B%" Pd "", successor()->block_id());
   }
 }
 

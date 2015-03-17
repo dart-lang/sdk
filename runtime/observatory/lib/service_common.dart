@@ -203,6 +203,12 @@ abstract class CommonWebSocketVM extends VM {
       Logger.root.severe('Received unexpected message: ${map}');
       return;
     }
+    if (request.method != 'getTagProfile' &&
+        request.method != 'getIsolateMetric' &&
+        request.method != 'getVMMetric') {
+      Logger.root.info(
+          'RESPONSE [${serial}] ${request.method}');
+    }
     request.completer.complete(response);
   }
 
@@ -260,11 +266,6 @@ abstract class CommonWebSocketVM extends VM {
   /// Send the request over WebSocket.
   void _sendRequest(String serial, _WebSocketRequest request) {
     assert (_webSocket.isOpen);
-    if (request.method != 'getTagProfile' &&
-        request.method != 'getIsolateMetric' &&
-        request.method != 'getVMMetric') {
-      Logger.root.info('GET ${request.method} from ${target.networkAddress}');
-    }
     // Mark request as pending.
     assert(_pendingRequests.containsKey(serial) == false);
     _pendingRequests[serial] = request;
@@ -283,6 +284,12 @@ abstract class CommonWebSocketVM extends VM {
       message = JSON.encode({'id': serial,
                              'method': request.method,
                              'params': request.params});
+    }
+    if (request.method != 'getTagProfile' &&
+        request.method != 'getIsolateMetric' &&
+        request.method != 'getVMMetric') {
+      Logger.root.info(
+          'GET [${serial}] ${request.method} from ${target.networkAddress}');
     }
     // Send message.
     _webSocket.send(message);

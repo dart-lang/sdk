@@ -243,8 +243,9 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
 
   // First create a function object and associate it with the specified
   // 'object_id'.
-  Function& func = Function::ZoneHandle(isolate(), Function::null());
-  AddBackRef(object_id, &func, kIsDeserialized);
+  Function& func = Function::Handle(isolate(), Function::null());
+  Instance& obj = Instance::ZoneHandle(isolate(), Instance::null());
+  AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Read the library/class/function information and lookup the function.
   str_ ^= ReadObjectImpl();
@@ -273,7 +274,8 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   ASSERT(!func.IsNull());
 
   // Return the associated implicit static closure.
-  return func.ImplicitStaticClosure();
+  obj = func.ImplicitStaticClosure();
+  return obj.raw();
 }
 
 

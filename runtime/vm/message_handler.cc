@@ -38,6 +38,7 @@ MessageHandler::MessageHandler()
       paused_(0),
       pause_on_start_(false),
       pause_on_exit_(false),
+      paused_on_start_(false),
       paused_on_exit_(false),
       pool_(NULL),
       task_(NULL),
@@ -93,33 +94,36 @@ void MessageHandler::Run(ThreadPool* pool,
 
 
 void MessageHandler::PostMessage(Message* message, bool before_events) {
-  MonitorLocker ml(&monitor_);
-  if (FLAG_trace_isolates) {
-    const char* source_name = "<native code>";
-    Isolate* source_isolate = Isolate::Current();
-    if (source_isolate) {
-      source_name = source_isolate->name();
+  Message::Priority saved_priority;
+  {
+    MonitorLocker ml(&monitor_);
+    if (FLAG_trace_isolates) {
+      const char* source_name = "<native code>";
+      Isolate* source_isolate = Isolate::Current();
+      if (source_isolate) {
+        source_name = source_isolate->name();
+      }
+      OS::Print("[>] Posting message:\n"
+                "\tlen:        %" Pd "\n"
+                "\tsource:     %s\n"
+                "\tdest:       %s\n"
+                "\tdest_port:  %" Pd64 "\n",
+                message->len(), source_name, name(), message->dest_port());
     }
-    OS::Print("[>] Posting message:\n"
-              "\tsource:     %s\n"
-              "\tdest:       %s\n"
-              "\tdest_port:  %" Pd64 "\n",
-              source_name, name(), message->dest_port());
-  }
 
-  Message::Priority saved_priority = message->priority();
-  if (message->IsOOB()) {
-    oob_queue_->Enqueue(message, before_events);
-  } else {
-    queue_->Enqueue(message, before_events);
-  }
-  message = NULL;  // Do not access message.  May have been deleted.
+    saved_priority = message->priority();
+    if (message->IsOOB()) {
+      oob_queue_->Enqueue(message, before_events);
+    } else {
+      queue_->Enqueue(message, before_events);
+    }
+    message = NULL;  // Do not access message.  May have been deleted.
 
-  if (pool_ != NULL && task_ == NULL) {
-    task_ = new MessageHandlerTask(this);
-    pool_->Run(task_);
+    if (pool_ != NULL && task_ == NULL) {
+      task_ = new MessageHandlerTask(this);
+      pool_->Run(task_);
+    }
   }
-
   // Invoke any custom message notification.
   MessageNotify(saved_priority);
 }
@@ -146,11 +150,13 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
       Message::kNormalPriority : Message::kOOBPriority;
   Message* message = DequeueMessage(min_priority);
   while (message != NULL) {
+    intptr_t message_len = message->len();
     if (FLAG_trace_isolates) {
       OS::Print("[<] Handling message:\n"
+                "\tlen:        %" Pd "\n"
                 "\thandler:    %s\n"
                 "\tport:       %" Pd64 "\n",
-                name(), message->dest_port());
+                message_len, name(), message->dest_port());
     }
 
     // Release the monitor_ temporarily while we handle the message.
@@ -163,9 +169,10 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
     monitor_.Enter();
     if (FLAG_trace_isolates) {
       OS::Print("[.] Message handled:\n"
+                "\tlen:        %" Pd "\n"
                 "\thandler:    %s\n"
                 "\tport:       %" Pd64 "\n",
-                name(), saved_dest_port);
+                message_len, name(), saved_dest_port);
     }
     if (!result) {
       // If we hit an error, we're done processing messages.
@@ -225,11 +232,17 @@ void MessageHandler::TaskCallback() {
     // if we have one.  For an isolate, this will run the isolate's
     // main() function.
     if (pause_on_start()) {
+      if (!paused_on_start_) {
+        NotifyPauseOnStart();
+        paused_on_start_ = true;
+      }
       HandleMessages(false, false);
       if (pause_on_start()) {
         // Still paused.
         task_ = NULL;  // No task in queue.
         return;
+      } else {
+        paused_on_start_ = false;
       }
     }
 
@@ -251,11 +264,14 @@ void MessageHandler::TaskCallback() {
 
     if (!ok || !HasLivePorts()) {
       if (pause_on_exit()) {
-        if (FLAG_trace_service_pause_events && !paused_on_exit_) {
-          OS::PrintErr("Isolate %s paused before exiting. "
+        if (!paused_on_exit_) {
+          if (FLAG_trace_service_pause_events) {
+            OS::PrintErr("Isolate %s paused before exiting. "
                        "Use the Observatory to release it.\n", name());
+          }
+          NotifyPauseOnExit();
+          paused_on_exit_ = true;
         }
-        paused_on_exit_ = true;
       } else {
         if (FLAG_trace_isolates) {
         OS::Print("[-] Stopping message handler (%s):\n"

@@ -13,7 +13,6 @@
 namespace dart {
 
 class Array;
-class DebuggerEvent;
 class EmbedderServiceHandler;
 class GCEvent;
 class Instance;
@@ -21,6 +20,7 @@ class Isolate;
 class JSONStream;
 class Object;
 class RawInstance;
+class ServiceEvent;
 class String;
 
 class Service : public AllStatic {
@@ -33,10 +33,11 @@ class Service : public AllStatic {
 
   static bool EventMaskHas(uint32_t mask);
   static void SetEventMask(uint32_t mask);
+  static bool NeedsEvents();
   static bool NeedsDebuggerEvents();
   static bool NeedsGCEvents();
 
-  static void HandleDebuggerEvent(DebuggerEvent* event);
+  static void HandleEvent(ServiceEvent* event);
   static void HandleGCEvent(GCEvent* event);
 
   static void RegisterIsolateEmbedderCallback(
@@ -67,7 +68,9 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
 
-  static void SendEvent(intptr_t eventId, const Object& eventMessage);
+  static void SendEvent(intptr_t eventFamilyId,
+                        intptr_t eventType,
+                        const Object& eventMessage);
   // Does not take ownership of 'data'.
   static void SendEvent(intptr_t eventId,
                         const String& meta,

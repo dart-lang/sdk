@@ -19,6 +19,7 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/port.h"
+#include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/service.h"
 #include "vm/stack_frame.h"
@@ -116,7 +117,7 @@ void SourceBreakpoint::SetResolved(const Function& func, intptr_t token_pos) {
   function_ = func.raw();
   token_pos_ = token_pos;
   end_token_pos_ = token_pos;
-  line_number_ = -1;  // Recalcualte lazily.
+  line_number_ = -1;  // Recalculate lazily.
   is_resolved_ = true;
 }
 
@@ -173,7 +174,6 @@ void SourceBreakpoint::PrintJSON(JSONStream* stream) {
 
   jsobj.AddPropertyF("id", "breakpoints/%" Pd "", id());
   jsobj.AddProperty("breakpointNumber", id());
-  jsobj.AddProperty("enabled", IsEnabled());
   jsobj.AddProperty("resolved", IsResolved());
 
   Library& library = Library::Handle(isolate);
@@ -230,12 +230,24 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 
   // Give the event to the Service first, as the debugger event handler
   // may go into a message loop and the Service will not.
-  if (Service::NeedsDebuggerEvents()) {
-    Service::HandleDebuggerEvent(event);
+  //
+  // kBreakpointResolved events are handled differently in the vm
+  // service, so suppress them here.
+  if (Service::NeedsDebuggerEvents() &&
+      (event->type() != DebuggerEvent::kBreakpointResolved)) {
+    ServiceEvent service_event(event);
+    Service::HandleEvent(&service_event);
   }
 
   if (event_handler_ != NULL) {
     (*event_handler_)(event);
+  }
+
+  if (Service::NeedsDebuggerEvents() && event->IsPauseEvent()) {
+    // If we were paused, notify the service that we have resumed.
+    ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
+    service_event.set_top_frame(event->top_frame());
+    Service::HandleEvent(&service_event);
   }
 }
 
@@ -247,6 +259,7 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
     if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
       ASSERT(trace->Length() > 0);
+      event.set_top_frame(trace->FrameAt(0));
       ASSERT(stack_trace_ == NULL);
       stack_trace_ = trace;
       resume_action_ = kContinue;
@@ -265,6 +278,18 @@ void Debugger::SignalIsolateInterrupted() {
     Debugger* debugger = Isolate::Current()->debugger();
     ASSERT(debugger != NULL);
     debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
+  }
+}
+
+
+// The vm service handles breakpoint notifications in a different way
+// than the regular debugger breakpoint notifications.
+static void SendServiceBreakpointEvent(ServiceEvent::EventType type,
+                                       SourceBreakpoint* bpt) {
+  if (Service::NeedsDebuggerEvents() /*&& !bpt->IsOneShot()*/) {
+    ServiceEvent service_event(Isolate::Current(), type);
+    service_event.set_breakpoint(bpt);
+    Service::HandleEvent(&service_event);
   }
 }
 
@@ -509,47 +534,6 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
 }
 
 
-const char* DebuggerEvent::EventTypeToCString(EventType type) {
-  switch (type) {
-    case kBreakpointReached:
-      return "BreakpointReached";
-    case kBreakpointResolved:
-      return "BreakpointResolved";
-    case kExceptionThrown:
-      return "ExceptionThrown";
-    case kIsolateCreated:
-      return "IsolateCreated";
-    case kIsolateShutdown:
-      return "IsolateShutdown";
-    case kIsolateInterrupted:
-      return "IsolateInterrupted";
-    case kIsolateResumed:
-      return "IsolateResumed";
-    default:
-      UNREACHABLE();
-      return "Unknown";
-  }
-}
-
-
-void DebuggerEvent::PrintJSON(JSONStream* js) const {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "ServiceEvent");
-  // TODO(turnidge): Drop the 'id' for things like DebuggerEvent.
-  jsobj.AddProperty("id", "");
-  jsobj.AddProperty("eventType", EventTypeToCString(type()));
-  jsobj.AddProperty("isolate", isolate());
-  if ((type() == kBreakpointResolved || type() == kBreakpointReached) &&
-      breakpoint() != NULL) {
-    // TODO(turnidge): Make this a breakpoint ref.
-    jsobj.AddProperty("breakpoint", breakpoint());
-  }
-  if (type() == kExceptionThrown) {
-    jsobj.AddProperty("exception", *(exception()));
-  }
-}
-
-
 ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     const Instance& exc_obj) const {
   ExceptionHandlers& handlers = ExceptionHandlers::Handle();
@@ -744,7 +728,10 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(i < desc_indices_.length());
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
-  *name ^= var_descriptors_.GetName(desc_index);
+
+  const String& tmp = String::Handle(var_descriptors_.GetName(desc_index));
+  *name ^= String::IdentifierPrettyName(tmp);
+
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
   ASSERT(token_pos != NULL);
@@ -888,6 +875,7 @@ const char* ActivationFrame::ToCString() {
 
 void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
   const Script& script = Script::Handle(SourceScript());
+  jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("script", script);
   jsobj->AddProperty("tokenPos", TokenPos());
   jsobj->AddProperty("function", function());
@@ -1411,6 +1399,8 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   }
   DebuggerEvent event(isolate_, DebuggerEvent::kExceptionThrown);
   event.set_exception(&exc);
+  ASSERT(stack_trace->Length() > 0);
+  event.set_top_frame(stack_trace->FrameAt(0));
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   Pause(&event);
@@ -1732,6 +1722,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
                   line_number);
       }
       SignalBpResolved(bpt);
+      SendServiceBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
       return bpt;
     }
   }
@@ -1749,6 +1740,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
   if (bpt == NULL) {
     bpt = new SourceBreakpoint(nextId(), script, token_pos, last_token_pos);
     RegisterSourceBreakpoint(bpt);
+    SendServiceBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
   }
   bpt->Enable();
   return bpt;
@@ -2373,6 +2365,7 @@ void Debugger::NotifyCompilation(const Function& func) {
                     requested_end_pos);
         }
         SignalBpResolved(bpt);
+        SendServiceBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
       }
       ASSERT(bpt->IsResolved());
       if (FLAG_verbose_debug) {
@@ -2530,6 +2523,7 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
+      SendServiceBreakpointEvent(ServiceEvent::kBreakpointRemoved, curr_bpt);
 
       // Remove references from code breakpoints to this source breakpoint,
       // and disable the code breakpoints.

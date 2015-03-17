@@ -6034,6 +6034,7 @@ class SsaBuilder extends ResolvedVisitor {
     // body-block will be used, but for loops we will add (unnecessary) phis
     // that will reference the body variables. This makes it look as if the
     // variables were used in a non-dominated block.
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
     close(tryInstruction);
@@ -6056,6 +6057,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     SubGraph finallyGraph = null;
 
+    localsHandler = new LocalsHandler.from(savedLocals);
     startFinallyBlock = graph.addNewBlock();
     open(startFinallyBlock);
     buildFinally();
@@ -6099,6 +6101,11 @@ class SsaBuilder extends ResolvedVisitor {
     // block and the finally block.
     addExitTrySuccessor(startFinallyBlock);
 
+    // Use the locals handler not altered by the catch and finally
+    // blocks.
+    // TODO(sigurdm): We can probably do this, because try-variables are boxed.
+    // Need to verify.
+    localsHandler = savedLocals;
     open(exitBlock);
     enterBlock.setBlockFlow(
         new HTryBlockInformation(

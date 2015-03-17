@@ -30,6 +30,7 @@
 #include "vm/profiler.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/service.h"
 #include "vm/stack_frame.h"
@@ -1566,12 +1567,7 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
 
   ASSERT(isolate->GetAndClearResumeRequest() == false);
   isolate->message_handler()->HandleOOBMessages();
-  bool resume = isolate->GetAndClearResumeRequest();
-  if (resume && Service::NeedsDebuggerEvents()) {
-    DebuggerEvent resumeEvent(isolate, DebuggerEvent::kIsolateResumed);
-    Service::HandleDebuggerEvent(&resumeEvent);
-  }
-  return resume;
+  return isolate->GetAndClearResumeRequest();
 }
 
 

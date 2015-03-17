@@ -45,7 +45,6 @@ least_upper_bound_expansive_test/*: Fail, OK
 async_throw_in_catch_test: Crash, RuntimeError # Issue 21404 or it could be a test error
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
-async_throw_in_catch_test: Timeout, Fail # Issue 21404 or it could be a test error
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627

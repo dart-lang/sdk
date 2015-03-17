@@ -3734,7 +3734,7 @@ class AsyncStarStreamController {
   Stream get stream => controller.stream;
   bool stopRunning = false;
   bool isAdding = false;
-  bool get isPaused => controller.isPaused;
+  bool isPaused = false;
   add(event) => controller.add(event);
   addStream(Stream stream) {
     return controller.addStream(stream, cancelOnError: false);
@@ -3751,12 +3751,16 @@ class AsyncStarStreamController {
           wrapped(null);
         });
       },
-      onResume: () {
+      onPause: () {
+        isPaused = true;
+      }, onResume: () {
+        isPaused = false;
         if (!isAdding) {
           asyncStarHelper(null, body, this);
         }
       }, onCancel: () {
         stopRunning = true;
+        if (isPaused) asyncStarHelper(null, body, this);
       });
   }
 }
