@@ -435,28 +435,18 @@ class DartGenerator extends codegenerator.CodeGenerator {
     out.finalize();
   }
 
-  void _generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
-      CheckerReporter reporter) {
-    doOne(unit) {
+  String generateLibrary(
+      LibraryUnit library, LibraryInfo info, CheckerReporter reporter) {
+    _vm = new reifier.VariableManager();
+    _extraImports = new Set<LibraryElement>();
+
+    for (var unit in library.partsThenLibrary) {
       var outputDir = makeOutputDirectory(info, unit);
       reporter.enterSource(unit.element.source);
       generateUnit(unit, info, outputDir);
       reporter.leaveSource();
     }
-    isLib(unit) => unit.directives.any((d) => d is LibraryDirective);
-    isNotLib(unit) => !isLib(unit);
-    var libs = units.where(isLib);
-    var parts = units.where(isNotLib);
-    assert(libs.length == 1 || (libs.length == 0 && parts.length == 1));
-    parts.forEach(doOne);
-    libs.forEach(doOne);
-  }
 
-  String generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
-      CheckerReporter reporter) {
-    _vm = new reifier.VariableManager();
-    _extraImports = new Set<LibraryElement>();
-    _generateLibrary(units, info, reporter);
     _extraImports = null;
     _vm = null;
     return null;
@@ -486,9 +476,9 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
   EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
-  String generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
-      CheckerReporter reporter) {
-    for (var unit in units) {
+  String generateLibrary(
+      LibraryUnit library, LibraryInfo info, CheckerReporter reporter) {
+    for (var unit in library.partsThenLibrary) {
       var outputDir = makeOutputDirectory(info, unit);
       reporter.enterSource(unit.element.source);
       generateUnit(unit, info, outputDir);

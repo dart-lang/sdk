@@ -979,8 +979,8 @@ class Printer implements NodeVisitor {
     if (node.heritage != null) {
       out(' extends ');
       visit(node.heritage);
-      spaceOut();
     }
+    spaceOut();
     out('{');
     lineOut();
     indentMore();

@@ -1,7 +1,7 @@
 var BenchmarkBase;
 (function(exports) {
   'use strict';
-  class Expect extends dart.Object {
+  class Expect extends core.Object {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {
         throw `Values not equal: ${expected} vs ${actual}`;
@@ -19,7 +19,7 @@ var BenchmarkBase;
       throw message;
     }
   }
-  class BenchmarkBase extends dart.Object {
+  class BenchmarkBase extends core.Object {
     BenchmarkBase(name) {
       this.name = name;
     }

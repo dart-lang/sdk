@@ -38,6 +38,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
 
+  // TODO(jmesserly): this is needed because RestrictedTypeRules can send
+  // messages to CheckerReporter, for things like missing types.
+  // We should probably refactor so this can't happen, as codegen would be too
+  // late to be issuing these messages.
+  final CheckerReporter _checkerReporter;
+
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
   /// The variable for the current catch clause
@@ -52,25 +58,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _privateNames = new HashSet<String>();
   final _pendingPrivateNames = <String>[];
 
-  JSCodegenVisitor(LibraryInfo libraryInfo, TypeRules rules)
-      : libraryInfo = libraryInfo,
-        rules = rules;
+  JSCodegenVisitor(this.libraryInfo, this.rules, this._checkerReporter);
 
   Element get currentLibrary => libraryInfo.library;
 
-  JS.Program generateLibrary(
-      Iterable<CompilationUnit> units, CheckerReporter reporter) {
+  JS.Program emitLibrary(LibraryUnit library) {
     var body = <JS.Statement>[];
-    for (var unit in units) {
-      // TODO(jmesserly): this is needed because RestrictedTypeRules can send
-      // messages to CheckerReporter, for things like missing types.
-      // We should probably refactor so this can't happen.
-      var source = unit.element.source;
-      _constEvaluator = new ConstantEvaluator(source, rules.provider);
-      reporter.enterSource(source);
+
+    // Visit parts first, since the "part" declarations come before code
+    // in the main library's compilation unit.
+    for (var unit in library.parts) {
       body.add(_visit(unit));
-      reporter.leaveSource();
     }
+
+    // Visit main library
+    body.add(_visit(library.library));
 
     if (_exports.isNotEmpty) body.add(js.comment('Exports:'));
 
@@ -92,6 +94,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Statement visitCompilationUnit(CompilationUnit node) {
+    var source = node.element.source;
+
+    _constEvaluator = new ConstantEvaluator(source, rules.provider);
+    _checkerReporter.enterSource(source);
+
     // TODO(jmesserly): scriptTag, directives.
     var body = <JS.Statement>[];
     for (var child in node.declarations) {
@@ -113,6 +120,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Flush any unwritten fields/properties.
     _flushLazyFields(body);
     _flushLibraryProperties(body);
+
+    _checkerReporter.leaveSource();
 
     assert(_pendingPrivateNames.isEmpty);
     return _statement(body);
@@ -219,7 +228,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // TODO(jmesserly): we may not want this to be `dynamic` if the generic
     // has a lower bound, e.g. `<T extends SomeType>`.
     // https://github.com/dart-lang/dart-dev-compiler/issues/38
-    var typeArgs = new List.filled(node.typeParameters.length, 'dynamic');
+    var typeArgs =
+        new List.filled(node.typeParameters.length, js.call('dart.dynamic'));
 
     var dynInst = js.statement('let # = #(#);', [name, genericName, typeArgs]);
 
@@ -232,6 +242,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     currentClass = node;
+
+    // dart:core Object is a bit special.
+    var isObject = node.element.type.isObject;
 
     var body = <JS.Statement>[];
 
@@ -250,13 +263,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var jsMethods = <JS.Method>[];
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
-    if (ctors.isEmpty && !node.element.type.isObject) {
+    if (ctors.isEmpty && !isObject) {
       jsMethods.add(_emitImplicitConstructor(node, name, fields));
     }
 
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
-        jsMethods.add(_emitConstructor(member, name, fields));
+        jsMethods.add(_emitConstructor(member, name, fields, isObject));
       } else if (member is MethodDeclaration) {
         jsMethods.add(_visit(member));
       }
@@ -278,11 +291,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       jsMethods.add(new JS.Method(js.call('Symbol.iterator'), body));
     }
 
-    JS.Expression heritage;
+    JS.Expression heritage = null;
     if (node.extendsClause != null) {
       heritage = _visit(node.extendsClause.superclass);
-    } else {
-      heritage = js.call('dart.Object');
+    } else if (!isObject) {
+      heritage = _emitTypeName(rules.provider.objectType);
     }
     if (node.withClause != null) {
       var mixins = _visitList(node.withClause.mixinTypes);
@@ -341,16 +354,44 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   JS.Method _emitConstructor(ConstructorDeclaration node, String className,
-      List<FieldDeclaration> fields) {
+      List<FieldDeclaration> fields, bool isObject) {
     if (_externalOrNative(node)) return null;
 
     var name = _constructorName(className, node.name);
 
+    // Code generation for Object's constructor.
+    JS.Block body;
+    if (isObject &&
+        node.body is EmptyFunctionBody &&
+        node.constKeyword != null &&
+        node.name == null) {
+      // Implements Dart constructor behavior. Because of V8 `super`
+      // [constructor restrictions]
+      // (https://code.google.com/p/v8/issues/detail?id=3330#c65)
+      // we cannot currently emit actual ES6 constructors with super calls.
+      // Instead we use the same trick as named constructors, and do them as
+      // instance methods that perform initialization.
+      // TODO(jmesserly): we'll need to rethink this once the ES6 spec and V8
+      // settles. See <https://github.com/dart-lang/dev_compiler/issues/51>.
+      // Performance of this pattern is likely to be bad.
+      body = js.statement('''{
+        // Get the class name for this instance.
+        var name = this.constructor.name;
+        // Call the default constructor.
+        var init = this[name];
+        var result = void 0;
+        if (init) result = init.apply(this, arguments);
+        return result === void 0 ? this : result;
+      }''');
+    } else {
+      body = _emitConstructorBody(node, fields);
+    }
+
     // We generate constructors as initializer methods in the class;
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
-    return new JS.Method(new JS.PropertyName(name),
-        new JS.Fun(_visit(node.parameters), _emitConstructorBody(node, fields)))
+    return new JS.Method(
+        new JS.PropertyName(name), new JS.Fun(_visit(node.parameters), body))
       ..sourceInformation = node;
   }
 
@@ -654,12 +695,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.commentExpression(
           'Unimplemented unknown name', new JS.VariableUse(node.name));
     }
+
     var name = node.name;
+    var variable = e is PropertyAccessorElement ? e.variable : e;
+
     if (e.enclosingElement is CompilationUnitElement &&
-        (e.library != libraryInfo.library || _needsModuleGetter(e))) {
+        (e.library != libraryInfo.library ||
+            variable is TopLevelVariableElement && !variable.isConst)) {
       return js.call('#.#', [_libraryName(e.library), name]);
     } else if (currentClass != null && _needsImplicitThis(e)) {
       return js.call('this.#', _jsMemberName(name));
+    } else if (variable is ConstFieldElementImpl) {
+      var className = (variable.enclosingElement as ClassElement).name;
+      return js.call('#.#', [className, name]);
     } else if (e is ParameterElement && e.isInitializingFormal) {
       name = _fieldParameterName(name);
     }
@@ -1710,15 +1758,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return _constEvaluator.evaluate(initializer);
   }
 
-  /// Returns true if [element] is a getter in JS, therefore needs
-  /// `lib.topLevel` syntax instead of just `topLevel`.
-  bool _needsModuleGetter(Element element) {
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
-    return element is TopLevelVariableElement && !element.isConst;
-  }
-
   _visit(AstNode node) {
     if (node == null) return null;
     var result = node.accept(this);
@@ -1917,10 +1956,9 @@ class JSGenerator extends CodeGenerator {
   JSGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
-  String generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
-      CheckerReporter reporter) {
-    JS.Program jsTree =
-        new JSCodegenVisitor(info, rules).generateLibrary(units, reporter);
+  String generateLibrary(
+      LibraryUnit unit, LibraryInfo info, CheckerReporter reporter) {
+    var jsTree = new JSCodegenVisitor(info, rules, reporter).emitLibrary(unit);
 
     var outputPath = path.join(outDir, jsOutputPath(info, root));
     new Directory(path.dirname(outputPath)).createSync(recursive: true);

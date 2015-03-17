@@ -27,14 +27,14 @@ var sunflower;
       return dart.as(dart.as(querySelector("#canvas"), dom.CanvasElement).getContext('2d'), dom.CanvasRenderingContext2D);
     }
   });
-  class Circle extends dart.Object {
+  class Circle extends core.Object {
     Circle(x, y, radius) {
       this.x = x;
       this.y = y;
       this.radius = radius;
     }
   }
-  class CirclePainter extends dart.Object {
+  class CirclePainter extends core.Object {
     CirclePainter() {
       this.color = ORANGE;
     }

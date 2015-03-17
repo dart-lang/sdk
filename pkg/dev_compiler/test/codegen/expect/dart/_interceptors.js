@@ -1,213 +1,6 @@
 var _interceptors;
 (function(exports) {
   'use strict';
-  // Function _symbolToString: (Symbol) → String
-  function _symbolToString(symbol) {
-    return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
-  }
-  // Function _symbolMapToStringMap: (Map<Symbol, dynamic>) → dynamic
-  function _symbolMapToStringMap(map) {
-    if (map === null)
-      return null;
-    let result = new core.Map();
-    map.forEach((key, value) => {
-      result.set(_symbolToString(key), value);
-    });
-    return result;
-  }
-  // Function getInterceptor: (dynamic) → dynamic
-  function getInterceptor(object) {
-    return void 0;
-  }
-  // Function getDispatchProperty: (dynamic) → dynamic
-  function getDispatchProperty(object) {
-    return object[_foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String))];
-  }
-  // Function setDispatchProperty: (dynamic, dynamic) → dynamic
-  function setDispatchProperty(object, value) {
-    _js_helper.defineProperty(object, dart.as(_foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String)), core.String), value);
-  }
-  // Function makeDispatchRecord: (dynamic, dynamic, dynamic, dynamic) → dynamic
-  function makeDispatchRecord(interceptor, proto, extension, indexability) {
-    return {i: interceptor, p: proto, e: extension, x: indexability};
-  }
-  // Function dispatchRecordInterceptor: (dynamic) → dynamic
-  function dispatchRecordInterceptor(record) {
-    return record.i;
-  }
-  // Function dispatchRecordProto: (dynamic) → dynamic
-  function dispatchRecordProto(record) {
-    return record.p;
-  }
-  // Function dispatchRecordExtension: (dynamic) → dynamic
-  function dispatchRecordExtension(record) {
-    return record.e;
-  }
-  // Function dispatchRecordIndexability: (dynamic) → dynamic
-  function dispatchRecordIndexability(record) {
-    return record.x;
-  }
-  // Function getNativeInterceptor: (dynamic) → dynamic
-  function getNativeInterceptor(object) {
-    let record = getDispatchProperty(object);
-    if (record === null) {
-      if (_js_helper.initNativeDispatchFlag === null) {
-        _js_helper.initNativeDispatch();
-        record = getDispatchProperty(object);
-      }
-    }
-    if (record !== null) {
-      let proto = dispatchRecordProto(record);
-      if (false === proto)
-        return dispatchRecordInterceptor(record);
-      if (true === proto)
-        return object;
-      let objectProto = Object.getPrototypeOf(object);
-      if (proto === objectProto) {
-        return dispatchRecordInterceptor(record);
-      }
-      let extension = dispatchRecordExtension(record);
-      if (extension === objectProto) {
-        let discriminatedTag = proto(object, record);
-        throw new core.UnimplementedError(`Return interceptor for ${discriminatedTag}`);
-      }
-    }
-    let interceptor = _js_helper.lookupAndCacheInterceptor(object);
-    if (interceptor === null) {
-      let proto = Object.getPrototypeOf(object);
-      if (proto == null || proto === Object.prototype) {
-        return _foreign_helper.JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
-      } else {
-        return _foreign_helper.JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
-      }
-    }
-    return interceptor;
-  }
-  dart.copyProperties(exports, {
-    get mapTypeToInterceptor() {
-      return _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.MAP_TYPE_TO_INTERCEPTOR, core.String));
-    }
-  });
-  // Function findIndexForNativeSubclassType: (Type) → int
-  function findIndexForNativeSubclassType(type) {
-    if (exports.mapTypeToInterceptor == null)
-      return null;
-    let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map.length); i = 3) {
-      if (dart.equals(type, map.get(i))) {
-        return i;
-      }
-    }
-    return null;
-  }
-  // Function findInterceptorConstructorForType: (Type) → dynamic
-  function findInterceptorConstructorForType(type) {
-    let index = findIndexForNativeSubclassType(type);
-    if (index === null)
-      return null;
-    let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    return map.get(dart.notNull(index) + 1);
-  }
-  // Function findConstructorForNativeSubclassType: (Type, String) → dynamic
-  function findConstructorForNativeSubclassType(type, name) {
-    let index = findIndexForNativeSubclassType(type);
-    if (index === null)
-      return null;
-    let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    let constructorMap = map.get(dart.notNull(index) + 2);
-    let constructorFn = constructorMap[name];
-    return constructorFn;
-  }
-  // Function findInterceptorForType: (Type) → dynamic
-  function findInterceptorForType(type) {
-    let constructor = findInterceptorConstructorForType(type);
-    if (constructor === null)
-      return null;
-    return constructor.prototype;
-  }
-  class Interceptor extends dart.Object {
-    Interceptor() {
-    }
-    ['=='](other) {
-      return core.identical(this, other);
-    }
-    get hashCode() {
-      return _js_helper.Primitives.objectHashCode(this);
-    }
-    toString() {
-      return _js_helper.Primitives.objectToString(this);
-    }
-    noSuchMethod(invocation) {
-      throw new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
-    }
-    get runtimeType() {
-      return _js_helper.getRuntimeType(this);
-    }
-  }
-  class JSBool extends Interceptor {
-    JSBool() {
-      super.Interceptor();
-    }
-    toString() {
-      return String(this);
-    }
-    get hashCode() {
-      return this ? 2 * 3 * 23 * 3761 : 269 * 811;
-    }
-    get runtimeType() {
-      return core.bool;
-    }
-  }
-  class JSNull extends Interceptor {
-    JSNull() {
-      super.Interceptor();
-    }
-    ['=='](other) {
-      return core.identical(null, other);
-    }
-    toString() {
-      return 'null';
-    }
-    get hashCode() {
-      return 0;
-    }
-    get runtimeType() {
-      return core.Null;
-    }
-    noSuchMethod(invocation) {
-      return super.noSuchMethod(invocation);
-    }
-  }
-  class JSIndexable extends dart.Object {
-  }
-  class JSMutableIndexable extends JSIndexable {
-  }
-  class JSObject extends dart.Object {
-  }
-  class JavaScriptObject extends Interceptor {
-    JavaScriptObject() {
-      super.Interceptor();
-    }
-    get hashCode() {
-      return 0;
-    }
-    get runtimeType() {
-      return JSObject;
-    }
-  }
-  class PlainJavaScriptObject extends JavaScriptObject {
-    PlainJavaScriptObject() {
-      super.JavaScriptObject();
-    }
-  }
-  class UnknownJavaScriptObject extends JavaScriptObject {
-    UnknownJavaScriptObject() {
-      super.JavaScriptObject();
-    }
-    toString() {
-      return String(this);
-    }
-  }
   let JSArray$ = dart.generic(function(E) {
     class JSArray extends Interceptor {
       JSArray() {
@@ -541,25 +334,25 @@ var _interceptors;
     dart.defineNamedConstructor(JSArray, 'markGrowable');
     return JSArray;
   });
-  let JSArray = JSArray$(dynamic);
+  let JSArray = JSArray$(dart.dynamic);
   let JSMutableArray$ = dart.generic(function(E) {
     class JSMutableArray extends JSArray$(E) {
     }
     return JSMutableArray;
   });
-  let JSMutableArray = JSMutableArray$(dynamic);
+  let JSMutableArray = JSMutableArray$(dart.dynamic);
   let JSFixedArray$ = dart.generic(function(E) {
     class JSFixedArray extends JSMutableArray$(E) {
     }
     return JSFixedArray;
   });
-  let JSFixedArray = JSFixedArray$(dynamic);
+  let JSFixedArray = JSFixedArray$(dart.dynamic);
   let JSExtendableArray$ = dart.generic(function(E) {
     class JSExtendableArray extends JSMutableArray$(E) {
     }
     return JSExtendableArray;
   });
-  let JSExtendableArray = JSExtendableArray$(dynamic);
+  let JSExtendableArray = JSExtendableArray$(dart.dynamic);
   let _handleIEtoString = Symbol('_handleIEtoString');
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
@@ -623,7 +416,7 @@ var _interceptors;
       return this['>'](0) ? 1 : this['<'](0) ? -1 : this;
     }
     toInt() {
-      if (dart.notNull(this['>='](_MIN_INT32)) && dart.notNull(this['<='](_MAX_INT32))) {
+      if (dart.notNull(this['>='](JSNumber._MIN_INT32)) && dart.notNull(this['<='](JSNumber._MAX_INT32))) {
         return this | 0;
       }
       if (isFinite(this)) {
@@ -1377,7 +1170,229 @@ var _interceptors;
       return this[_string].codeUnitAt(i);
     }
   }
+  // Function _symbolToString: (Symbol) → String
+  function _symbolToString(symbol) {
+    return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
+  }
+  // Function _symbolMapToStringMap: (Map<Symbol, dynamic>) → dynamic
+  function _symbolMapToStringMap(map) {
+    if (map === null)
+      return null;
+    let result = new core.Map();
+    map.forEach((key, value) => {
+      result.set(_symbolToString(key), value);
+    });
+    return result;
+  }
+  // Function getInterceptor: (dynamic) → dynamic
+  function getInterceptor(object) {
+    return void 0;
+  }
+  // Function getDispatchProperty: (dynamic) → dynamic
+  function getDispatchProperty(object) {
+    return object[_foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String))];
+  }
+  // Function setDispatchProperty: (dynamic, dynamic) → dynamic
+  function setDispatchProperty(object, value) {
+    _js_helper.defineProperty(object, dart.as(_foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String)), core.String), value);
+  }
+  // Function makeDispatchRecord: (dynamic, dynamic, dynamic, dynamic) → dynamic
+  function makeDispatchRecord(interceptor, proto, extension, indexability) {
+    return {i: interceptor, p: proto, e: extension, x: indexability};
+  }
+  // Function dispatchRecordInterceptor: (dynamic) → dynamic
+  function dispatchRecordInterceptor(record) {
+    return record.i;
+  }
+  // Function dispatchRecordProto: (dynamic) → dynamic
+  function dispatchRecordProto(record) {
+    return record.p;
+  }
+  // Function dispatchRecordExtension: (dynamic) → dynamic
+  function dispatchRecordExtension(record) {
+    return record.e;
+  }
+  // Function dispatchRecordIndexability: (dynamic) → dynamic
+  function dispatchRecordIndexability(record) {
+    return record.x;
+  }
+  // Function getNativeInterceptor: (dynamic) → dynamic
+  function getNativeInterceptor(object) {
+    let record = getDispatchProperty(object);
+    if (record === null) {
+      if (_js_helper.initNativeDispatchFlag === null) {
+        _js_helper.initNativeDispatch();
+        record = getDispatchProperty(object);
+      }
+    }
+    if (record !== null) {
+      let proto = dispatchRecordProto(record);
+      if (false === proto)
+        return dispatchRecordInterceptor(record);
+      if (true === proto)
+        return object;
+      let objectProto = Object.getPrototypeOf(object);
+      if (proto === objectProto) {
+        return dispatchRecordInterceptor(record);
+      }
+      let extension = dispatchRecordExtension(record);
+      if (extension === objectProto) {
+        let discriminatedTag = proto(object, record);
+        throw new core.UnimplementedError(`Return interceptor for ${discriminatedTag}`);
+      }
+    }
+    let interceptor = _js_helper.lookupAndCacheInterceptor(object);
+    if (interceptor === null) {
+      let proto = Object.getPrototypeOf(object);
+      if (proto == null || proto === Object.prototype) {
+        return _foreign_helper.JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
+      } else {
+        return _foreign_helper.JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
+      }
+    }
+    return interceptor;
+  }
+  dart.copyProperties(exports, {
+    get mapTypeToInterceptor() {
+      return _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.MAP_TYPE_TO_INTERCEPTOR, core.String));
+    }
+  });
+  // Function findIndexForNativeSubclassType: (Type) → int
+  function findIndexForNativeSubclassType(type) {
+    if (exports.mapTypeToInterceptor == null)
+      return null;
+    let map = dart.as(exports.mapTypeToInterceptor, core.List);
+    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map.length); i = 3) {
+      if (dart.equals(type, map.get(i))) {
+        return i;
+      }
+    }
+    return null;
+  }
+  // Function findInterceptorConstructorForType: (Type) → dynamic
+  function findInterceptorConstructorForType(type) {
+    let index = findIndexForNativeSubclassType(type);
+    if (index === null)
+      return null;
+    let map = dart.as(exports.mapTypeToInterceptor, core.List);
+    return map.get(dart.notNull(index) + 1);
+  }
+  // Function findConstructorForNativeSubclassType: (Type, String) → dynamic
+  function findConstructorForNativeSubclassType(type, name) {
+    let index = findIndexForNativeSubclassType(type);
+    if (index === null)
+      return null;
+    let map = dart.as(exports.mapTypeToInterceptor, core.List);
+    let constructorMap = map.get(dart.notNull(index) + 2);
+    let constructorFn = constructorMap[name];
+    return constructorFn;
+  }
+  // Function findInterceptorForType: (Type) → dynamic
+  function findInterceptorForType(type) {
+    let constructor = findInterceptorConstructorForType(type);
+    if (constructor === null)
+      return null;
+    return constructor.prototype;
+  }
+  class Interceptor extends core.Object {
+    Interceptor() {
+    }
+    ['=='](other) {
+      return core.identical(this, other);
+    }
+    get hashCode() {
+      return _js_helper.Primitives.objectHashCode(this);
+    }
+    toString() {
+      return _js_helper.Primitives.objectToString(this);
+    }
+    noSuchMethod(invocation) {
+      throw new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
+    }
+    get runtimeType() {
+      return _js_helper.getRuntimeType(this);
+    }
+  }
+  class JSBool extends Interceptor {
+    JSBool() {
+      super.Interceptor();
+    }
+    toString() {
+      return String(this);
+    }
+    get hashCode() {
+      return this ? 2 * 3 * 23 * 3761 : 269 * 811;
+    }
+    get runtimeType() {
+      return core.bool;
+    }
+  }
+  class JSNull extends Interceptor {
+    JSNull() {
+      super.Interceptor();
+    }
+    ['=='](other) {
+      return core.identical(null, other);
+    }
+    toString() {
+      return 'null';
+    }
+    get hashCode() {
+      return 0;
+    }
+    get runtimeType() {
+      return core.Null;
+    }
+    noSuchMethod(invocation) {
+      return super.noSuchMethod(invocation);
+    }
+  }
+  class JSIndexable extends core.Object {
+  }
+  class JSMutableIndexable extends JSIndexable {
+  }
+  class JSObject extends core.Object {
+  }
+  class JavaScriptObject extends Interceptor {
+    JavaScriptObject() {
+      super.Interceptor();
+    }
+    get hashCode() {
+      return 0;
+    }
+    get runtimeType() {
+      return JSObject;
+    }
+  }
+  class PlainJavaScriptObject extends JavaScriptObject {
+    PlainJavaScriptObject() {
+      super.JavaScriptObject();
+    }
+  }
+  class UnknownJavaScriptObject extends JavaScriptObject {
+    UnknownJavaScriptObject() {
+      super.JavaScriptObject();
+    }
+    toString() {
+      return String(this);
+    }
+  }
   // Exports:
+  exports.JSArray = JSArray;
+  exports.JSArray$ = JSArray$;
+  exports.JSMutableArray = JSMutableArray;
+  exports.JSMutableArray$ = JSMutableArray$;
+  exports.JSFixedArray = JSFixedArray;
+  exports.JSFixedArray$ = JSFixedArray$;
+  exports.JSExtendableArray = JSExtendableArray;
+  exports.JSExtendableArray$ = JSExtendableArray$;
+  exports.JSNumber = JSNumber;
+  exports.JSInt = JSInt;
+  exports.JSDouble = JSDouble;
+  exports.JSPositiveInt = JSPositiveInt;
+  exports.JSUInt32 = JSUInt32;
+  exports.JSUInt31 = JSUInt31;
+  exports.JSString = JSString;
   exports.getInterceptor = getInterceptor;
   exports.getDispatchProperty = getDispatchProperty;
   exports.setDispatchProperty = setDispatchProperty;
@@ -1401,19 +1416,4 @@ var _interceptors;
   exports.JavaScriptObject = JavaScriptObject;
   exports.PlainJavaScriptObject = PlainJavaScriptObject;
   exports.UnknownJavaScriptObject = UnknownJavaScriptObject;
-  exports.JSArray = JSArray;
-  exports.JSArray$ = JSArray$;
-  exports.JSMutableArray = JSMutableArray;
-  exports.JSMutableArray$ = JSMutableArray$;
-  exports.JSFixedArray = JSFixedArray;
-  exports.JSFixedArray$ = JSFixedArray$;
-  exports.JSExtendableArray = JSExtendableArray;
-  exports.JSExtendableArray$ = JSExtendableArray$;
-  exports.JSNumber = JSNumber;
-  exports.JSInt = JSInt;
-  exports.JSDouble = JSDouble;
-  exports.JSPositiveInt = JSPositiveInt;
-  exports.JSUInt32 = JSUInt32;
-  exports.JSUInt31 = JSUInt31;
-  exports.JSString = JSString;
 })(_interceptors || (_interceptors = {}));

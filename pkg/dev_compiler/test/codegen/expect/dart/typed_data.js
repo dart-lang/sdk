@@ -1,12 +1,12 @@
 var typed_data;
 (function(exports) {
   'use strict';
-  class ByteBuffer extends dart.Object {
+  class ByteBuffer extends core.Object {
   }
-  class TypedData extends dart.Object {
+  class TypedData extends core.Object {
   }
   let _littleEndian = Symbol('_littleEndian');
-  class Endianness extends dart.Object {
+  class Endianness extends core.Object {
     Endianness$_($_littleEndian) {
       this[_littleEndian] = $_littleEndian;
     }
@@ -16,10 +16,10 @@ var typed_data;
   Endianness.LITTLE_ENDIAN = new Endianness._(true);
   dart.defineLazyProperties(Endianness, {
     get HOST_ENDIAN() {
-      return new ByteData.view(new Uint16List.fromList(dart.as(new List.from([1]), core.List$(core.int))).buffer).getInt8(0) === 1 ? LITTLE_ENDIAN : BIG_ENDIAN;
+      return new ByteData.view(new Uint16List.fromList(dart.as(new List.from([1]), core.List$(core.int))).buffer).getInt8(0) === 1 ? Endianness.LITTLE_ENDIAN : Endianness.BIG_ENDIAN;
     }
   });
-  class ByteData extends dart.Object {
+  class ByteData extends core.Object {
     ByteData(length) {
       return new _native_typed_data.NativeByteData(length);
     }
@@ -32,7 +32,7 @@ var typed_data;
     }
   }
   dart.defineNamedConstructor(ByteData, 'view');
-  class Int8List extends dart.Object {
+  class Int8List extends core.Object {
     Int8List(length) {
       return new _native_typed_data.NativeInt8List(length);
     }
@@ -50,7 +50,7 @@ var typed_data;
   dart.defineNamedConstructor(Int8List, 'fromList');
   dart.defineNamedConstructor(Int8List, 'view');
   Int8List.BYTES_PER_ELEMENT = 1;
-  class Uint8List extends dart.Object {
+  class Uint8List extends core.Object {
     Uint8List(length) {
       return new _native_typed_data.NativeUint8List(length);
     }
@@ -68,7 +68,7 @@ var typed_data;
   dart.defineNamedConstructor(Uint8List, 'fromList');
   dart.defineNamedConstructor(Uint8List, 'view');
   Uint8List.BYTES_PER_ELEMENT = 1;
-  class Uint8ClampedList extends dart.Object {
+  class Uint8ClampedList extends core.Object {
     Uint8ClampedList(length) {
       return new _native_typed_data.NativeUint8ClampedList(length);
     }
@@ -86,7 +86,7 @@ var typed_data;
   dart.defineNamedConstructor(Uint8ClampedList, 'fromList');
   dart.defineNamedConstructor(Uint8ClampedList, 'view');
   Uint8ClampedList.BYTES_PER_ELEMENT = 1;
-  class Int16List extends dart.Object {
+  class Int16List extends core.Object {
     Int16List(length) {
       return new _native_typed_data.NativeInt16List(length);
     }
@@ -104,7 +104,7 @@ var typed_data;
   dart.defineNamedConstructor(Int16List, 'fromList');
   dart.defineNamedConstructor(Int16List, 'view');
   Int16List.BYTES_PER_ELEMENT = 2;
-  class Uint16List extends dart.Object {
+  class Uint16List extends core.Object {
     Uint16List(length) {
       return new _native_typed_data.NativeUint16List(length);
     }
@@ -122,7 +122,7 @@ var typed_data;
   dart.defineNamedConstructor(Uint16List, 'fromList');
   dart.defineNamedConstructor(Uint16List, 'view');
   Uint16List.BYTES_PER_ELEMENT = 2;
-  class Int32List extends dart.Object {
+  class Int32List extends core.Object {
     Int32List(length) {
       return new _native_typed_data.NativeInt32List(length);
     }
@@ -140,7 +140,7 @@ var typed_data;
   dart.defineNamedConstructor(Int32List, 'fromList');
   dart.defineNamedConstructor(Int32List, 'view');
   Int32List.BYTES_PER_ELEMENT = 4;
-  class Uint32List extends dart.Object {
+  class Uint32List extends core.Object {
     Uint32List(length) {
       return new _native_typed_data.NativeUint32List(length);
     }
@@ -158,7 +158,7 @@ var typed_data;
   dart.defineNamedConstructor(Uint32List, 'fromList');
   dart.defineNamedConstructor(Uint32List, 'view');
   Uint32List.BYTES_PER_ELEMENT = 4;
-  class Int64List extends dart.Object {
+  class Int64List extends core.Object {
     Int64List(length) {
       throw new core.UnsupportedError("Int64List not supported by dart2js.");
     }
@@ -176,7 +176,7 @@ var typed_data;
   dart.defineNamedConstructor(Int64List, 'fromList');
   dart.defineNamedConstructor(Int64List, 'view');
   Int64List.BYTES_PER_ELEMENT = 8;
-  class Uint64List extends dart.Object {
+  class Uint64List extends core.Object {
     Uint64List(length) {
       throw new core.UnsupportedError("Uint64List not supported by dart2js.");
     }
@@ -194,7 +194,7 @@ var typed_data;
   dart.defineNamedConstructor(Uint64List, 'fromList');
   dart.defineNamedConstructor(Uint64List, 'view');
   Uint64List.BYTES_PER_ELEMENT = 8;
-  class Float32List extends dart.Object {
+  class Float32List extends core.Object {
     Float32List(length) {
       return new _native_typed_data.NativeFloat32List(length);
     }
@@ -212,7 +212,7 @@ var typed_data;
   dart.defineNamedConstructor(Float32List, 'fromList');
   dart.defineNamedConstructor(Float32List, 'view');
   Float32List.BYTES_PER_ELEMENT = 4;
-  class Float64List extends dart.Object {
+  class Float64List extends core.Object {
     Float64List(length) {
       return new _native_typed_data.NativeFloat64List(length);
     }
@@ -230,7 +230,7 @@ var typed_data;
   dart.defineNamedConstructor(Float64List, 'fromList');
   dart.defineNamedConstructor(Float64List, 'view');
   Float64List.BYTES_PER_ELEMENT = 8;
-  class Float32x4List extends dart.Object {
+  class Float32x4List extends core.Object {
     Float32x4List(length) {
       return new _native_typed_data.NativeFloat32x4List(length);
     }
@@ -248,7 +248,7 @@ var typed_data;
   dart.defineNamedConstructor(Float32x4List, 'fromList');
   dart.defineNamedConstructor(Float32x4List, 'view');
   Float32x4List.BYTES_PER_ELEMENT = 16;
-  class Int32x4List extends dart.Object {
+  class Int32x4List extends core.Object {
     Int32x4List(length) {
       return new _native_typed_data.NativeInt32x4List(length);
     }
@@ -266,7 +266,7 @@ var typed_data;
   dart.defineNamedConstructor(Int32x4List, 'fromList');
   dart.defineNamedConstructor(Int32x4List, 'view');
   Int32x4List.BYTES_PER_ELEMENT = 16;
-  class Float64x2List extends dart.Object {
+  class Float64x2List extends core.Object {
     Float64x2List(length) {
       return new _native_typed_data.NativeFloat64x2List(length);
     }
@@ -284,7 +284,7 @@ var typed_data;
   dart.defineNamedConstructor(Float64x2List, 'fromList');
   dart.defineNamedConstructor(Float64x2List, 'view');
   Float64x2List.BYTES_PER_ELEMENT = 16;
-  class Float32x4 extends dart.Object {
+  class Float32x4 extends core.Object {
     Float32x4(x, y, z, w) {
       return new _native_typed_data.NativeFloat32x4(x, y, z, w);
     }
@@ -561,7 +561,7 @@ var typed_data;
   Float32x4.WWWY = 127;
   Float32x4.WWWZ = 191;
   Float32x4.WWWW = 255;
-  class Int32x4 extends dart.Object {
+  class Int32x4 extends core.Object {
     Int32x4(x, y, z, w) {
       return new _native_typed_data.NativeInt32x4(x, y, z, w);
     }
@@ -830,7 +830,7 @@ var typed_data;
   Int32x4.WWWY = 127;
   Int32x4.WWWZ = 191;
   Int32x4.WWWW = 255;
-  class Float64x2 extends dart.Object {
+  class Float64x2 extends core.Object {
     Float64x2(x, y) {
       return new _native_typed_data.NativeFloat64x2(x, y);
     }

@@ -200,8 +200,8 @@ var dart;
     // Conceptually this is: `class Mixin extends base {}`
     function Mixin() {
       // TODO(jmesserly): since we're using initializers and not constructors,
-      // we can just skip directly to dart.Object.
-      dart.Object.apply(this, arguments);
+      // we can just skip directly to core.Object.
+      core.Object.apply(this, arguments);
     }
     Mixin.__proto__ = base;
     Mixin.prototype = Object.create(base.prototype);
@@ -341,7 +341,7 @@ var dart;
   // TODO(jmesserly): we'll need to rethink this once the ES6 spec and V8
   // settles. See <https://github.com/dart-lang/dart-dev-compiler/issues/51>.
   // Performance of this pattern is likely to be bad.
-  dart.Object = function Object() {
+  core.Object = function Object() {
     // Get the class name for this instance.
     var name = this.constructor.name;
     // Call the default constructor.
@@ -350,8 +350,8 @@ var dart;
     if (init) result = init.apply(this, arguments);
     return result === void 0 ? this : result;
   };
-  // The initializer for dart.Object
-  dart.Object.prototype.Object = function() {};
-  dart.Object.prototype.constructor = dart.Object;
+  // The initializer for Object
+  core.Object.prototype.Object = function() {};
+  core.Object.prototype.constructor = core.Object;
 
 })(dart || (dart = {}));

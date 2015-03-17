@@ -132,6 +132,6 @@ abstract class CodeGenerator {
   /// Return a hash, if any, that can be used for caching purposes. When two
   /// invocations to this function return the same hash, the underlying
   /// code-generator generated the same code.
-  String generateLibrary(Iterable<CompilationUnit> units, LibraryInfo info,
-      CheckerReporter reporter);
+  String generateLibrary(
+      LibraryUnit unit, LibraryInfo info, CheckerReporter reporter);
 }

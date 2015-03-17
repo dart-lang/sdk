@@ -1,7 +1,12 @@
 var isolate;
 (function(exports) {
   'use strict';
-  class IsolateSpawnException extends dart.Object {
+  class Capability extends core.Object {
+    Capability() {
+      return new _isolate_helper.CapabilityImpl();
+    }
+  }
+  class IsolateSpawnException extends core.Object {
     IsolateSpawnException(message) {
       this.message = message;
     }
@@ -10,7 +15,7 @@ var isolate;
     }
   }
   let _pause = Symbol('_pause');
-  class Isolate extends dart.Object {
+  class Isolate extends core.Object {
     Isolate(controlPort, opt$) {
       let pauseCapability = opt$.pauseCapability === void 0 ? null : opt$.pauseCapability;
       let terminateCapability = opt$.terminateCapability === void 0 ? null : opt$.terminateCapability;
@@ -95,12 +100,12 @@ var isolate;
     }
     kill(priority) {
       if (priority === void 0)
-        priority = BEFORE_NEXT_EVENT;
+        priority = Isolate.BEFORE_NEXT_EVENT;
       this.controlPort.send(new List.from(["kill", this.terminateCapability, priority]));
     }
     ping(responsePort, pingType) {
       if (pingType === void 0)
-        pingType = IMMEDIATE;
+        pingType = Isolate.IMMEDIATE;
       let message = new core.List(3);
       dart.dsetindex(message, 0, "ping");
       dart.dsetindex(message, 1, responsePort);
@@ -148,9 +153,9 @@ var isolate;
       return _isolate_helper.IsolateNatives.currentIsolate;
     }
   });
-  class SendPort extends dart.Object {
+  class SendPort extends core.Object {
   }
-  class ReceivePort extends dart.Object {
+  class ReceivePort extends core.Object {
     ReceivePort() {
       return new _isolate_helper.ReceivePortImpl();
     }
@@ -159,14 +164,14 @@ var isolate;
     }
   }
   dart.defineNamedConstructor(ReceivePort, 'fromRawReceivePort');
-  class RawReceivePort extends dart.Object {
+  class RawReceivePort extends core.Object {
     RawReceivePort(handler) {
       if (handler === void 0)
         handler = null;
       return new _isolate_helper.RawReceivePortImpl(handler);
     }
   }
-  class _IsolateUnhandledException extends dart.Object {
+  class _IsolateUnhandledException extends core.Object {
     _IsolateUnhandledException(message, source, stackTrace) {
       this.message = message;
       this.source = source;
@@ -177,7 +182,7 @@ var isolate;
     }
   }
   let _description = Symbol('_description');
-  class RemoteError extends dart.Object {
+  class RemoteError extends core.Object {
     RemoteError(description, stackDescription) {
       this[_description] = description;
       this.stackTrace = new _RemoteStackTrace(stackDescription);
@@ -187,7 +192,7 @@ var isolate;
     }
   }
   let _trace = Symbol('_trace');
-  class _RemoteStackTrace extends dart.Object {
+  class _RemoteStackTrace extends core.Object {
     _RemoteStackTrace($_trace) {
       this[_trace] = $_trace;
     }
@@ -195,17 +200,12 @@ var isolate;
       return this[_trace];
     }
   }
-  class Capability extends dart.Object {
-    Capability() {
-      return new _isolate_helper.CapabilityImpl();
-    }
-  }
   // Exports:
+  exports.Capability = Capability;
   exports.IsolateSpawnException = IsolateSpawnException;
   exports.Isolate = Isolate;
   exports.SendPort = SendPort;
   exports.ReceivePort = ReceivePort;
   exports.RawReceivePort = RawReceivePort;
   exports.RemoteError = RemoteError;
-  exports.Capability = Capability;
 })(isolate || (isolate = {}));

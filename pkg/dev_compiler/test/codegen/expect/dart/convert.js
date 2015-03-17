@@ -1,278 +1,6 @@
 var convert;
 (function(exports) {
   'use strict';
-  let _processed = Symbol('_processed');
-  let _original = Symbol('_original');
-  // Function _convertJsonToDart: (dynamic, (dynamic, dynamic) → dynamic) → dynamic
-  function _convertJsonToDart(json, reviver) {
-    dart.assert(reviver !== null);
-    // Function walk: (dynamic) → dynamic
-    function walk(e) {
-      if (e == null || typeof e != "object") {
-        return e;
-      }
-      if (Object.getPrototypeOf(e) === Array.prototype) {
-        for (let i = 0; dart.notNull(i) < e.length; i = dart.notNull(i) + 1) {
-          let item = e[i];
-          e[i] = reviver(i, walk(item));
-        }
-        return e;
-      }
-      let map = new _JsonMap(e);
-      let processed = map[_processed];
-      let keys = map._computeKeys();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-        let key = keys.get(i);
-        let revived = reviver(key, walk(e[key]));
-        processed[key] = revived;
-      }
-      map[_original] = processed;
-      return map;
-    }
-    return reviver(null, walk(json));
-  }
-  // Function _convertJsonToDartLazy: (dynamic) → dynamic
-  function _convertJsonToDartLazy(object) {
-    if (object === null)
-      return null;
-    if (typeof object != "object") {
-      return object;
-    }
-    if (Object.getPrototypeOf(object) !== Array.prototype) {
-      return new _JsonMap(object);
-    }
-    for (let i = 0; dart.notNull(i) < object.length; i = dart.notNull(i) + 1) {
-      let item = object[i];
-      object[i] = _convertJsonToDartLazy(item);
-    }
-    return object;
-  }
-  let _data = Symbol('_data');
-  let _isUpgraded = Symbol('_isUpgraded');
-  let _upgradedMap = Symbol('_upgradedMap');
-  let _process = Symbol('_process');
-  let _computeKeys = Symbol('_computeKeys');
-  let _upgrade = Symbol('_upgrade');
-  let _hasProperty = Symbol('_hasProperty');
-  let _getProperty = Symbol('_getProperty');
-  let _setProperty = Symbol('_setProperty');
-  let _getPropertyNames = Symbol('_getPropertyNames');
-  let _isUnprocessed = Symbol('_isUnprocessed');
-  let _newJavaScriptObject = Symbol('_newJavaScriptObject');
-  class _JsonMap extends dart.Object {
-    _JsonMap($_original) {
-      this[_processed] = _newJavaScriptObject();
-      this[_original] = $_original;
-      this[_data] = null;
-    }
-    get(key) {
-      if (this[_isUpgraded]) {
-        return this[_upgradedMap].get(key);
-      } else if (!(typeof key == string)) {
-        return null;
-      } else {
-        let result = _getProperty(this[_processed], dart.as(key, core.String));
-        if (_isUnprocessed(result))
-          result = this[_process](dart.as(key, core.String));
-        return result;
-      }
-    }
-    get length() {
-      return this[_isUpgraded] ? this[_upgradedMap].length : this[_computeKeys]().length;
-    }
-    get isEmpty() {
-      return this.length === 0;
-    }
-    get isNotEmpty() {
-      return dart.notNull(this.length) > 0;
-    }
-    get keys() {
-      if (this[_isUpgraded])
-        return this[_upgradedMap].keys;
-      return new _JsonMapKeyIterable(this);
-    }
-    get values() {
-      if (this[_isUpgraded])
-        return this[_upgradedMap].values;
-      return new _internal.MappedIterable(this[_computeKeys](), ((each) => this.get(each)).bind(this));
-    }
-    set(key, value) {
-      if (this[_isUpgraded]) {
-        this[_upgradedMap].set(key, value);
-      } else if (this.containsKey(key)) {
-        let processed = this[_processed];
-        _setProperty(processed, dart.as(key, core.String), value);
-        let original = this[_original];
-        if (!dart.notNull(core.identical(original, processed))) {
-          _setProperty(original, dart.as(key, core.String), null);
-        }
-      } else {
-        this[_upgrade]().set(key, value);
-      }
-    }
-    addAll(other) {
-      other.forEach(((key, value) => {
-        this.set(key, value);
-      }).bind(this));
-    }
-    containsValue(value) {
-      if (this[_isUpgraded])
-        return this[_upgradedMap].containsValue(value);
-      let keys = this[_computeKeys]();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-        let key = keys.get(i);
-        if (dart.equals(this.get(key), value))
-          return true;
-      }
-      return false;
-    }
-    containsKey(key) {
-      if (this[_isUpgraded])
-        return this[_upgradedMap].containsKey(key);
-      if (!(typeof key == string))
-        return false;
-      return _hasProperty(this[_original], dart.as(key, core.String));
-    }
-    putIfAbsent(key, ifAbsent) {
-      if (this.containsKey(key))
-        return this.get(key);
-      let value = ifAbsent();
-      this.set(key, value);
-      return value;
-    }
-    remove(key) {
-      if (!dart.notNull(this[_isUpgraded]) && !dart.notNull(this.containsKey(key)))
-        return null;
-      return this[_upgrade]().remove(key);
-    }
-    clear() {
-      if (this[_isUpgraded]) {
-        this[_upgradedMap].clear();
-      } else {
-        if (this[_data] !== null) {
-          dart.dinvoke(this[_data], 'clear');
-        }
-        this[_original] = this[_processed] = null;
-        this[_data] = dart.map();
-      }
-    }
-    forEach(f) {
-      if (this[_isUpgraded])
-        return this[_upgradedMap].forEach(f);
-      let keys = this[_computeKeys]();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-        let key = keys.get(i);
-        let value = _getProperty(this[_processed], key);
-        if (_isUnprocessed(value)) {
-          value = _convertJsonToDartLazy(_getProperty(this[_original], key));
-          _setProperty(this[_processed], key, value);
-        }
-        f(key, value);
-        if (!dart.notNull(core.identical(keys, this[_data]))) {
-          throw new core.ConcurrentModificationError(this);
-        }
-      }
-    }
-    toString() {
-      return collection.Maps.mapToString(this);
-    }
-    get [_isUpgraded]() {
-      return this[_processed] === null;
-    }
-    get [_upgradedMap]() {
-      dart.assert(this[_isUpgraded]);
-      return dart.as(this[_data], core.Map);
-    }
-    [_computeKeys]() {
-      dart.assert(!dart.notNull(this[_isUpgraded]));
-      let keys = dart.as(this[_data], core.List);
-      if (keys === null) {
-        keys = this[_data] = _getPropertyNames(this[_original]);
-      }
-      return dart.as(keys, core.List$(core.String));
-    }
-    [_upgrade]() {
-      if (this[_isUpgraded])
-        return this[_upgradedMap];
-      let result = dart.map();
-      let keys = this[_computeKeys]();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-        let key = keys.get(i);
-        result.set(key, this.get(key));
-      }
-      if (keys.isEmpty) {
-        keys.add(null);
-      } else {
-        keys.clear();
-      }
-      this[_original] = this[_processed] = null;
-      this[_data] = result;
-      dart.assert(this[_isUpgraded]);
-      return result;
-    }
-    [_process](key) {
-      if (!dart.notNull(_hasProperty(this[_original], key)))
-        return null;
-      let result = _convertJsonToDartLazy(_getProperty(this[_original], key));
-      return _setProperty(this[_processed], key, result);
-    }
-    static [_hasProperty](object, key) {
-      return Object.prototype.hasOwnProperty.call(object, key);
-    }
-    static [_getProperty](object, key) {
-      return object[key];
-    }
-    static [_setProperty](object, key, value) {
-      return object[key] = value;
-    }
-    static [_getPropertyNames](object) {
-      return dart.as(Object.keys(object), core.List);
-    }
-    static [_isUnprocessed](object) {
-      return typeof object == "undefined";
-    }
-    static [_newJavaScriptObject]() {
-      return Object.create(null);
-    }
-  }
-  let _parent = Symbol('_parent');
-  class _JsonMapKeyIterable extends _internal.ListIterable {
-    _JsonMapKeyIterable($_parent) {
-      this[_parent] = $_parent;
-      super.ListIterable();
-    }
-    get length() {
-      return this[_parent].length;
-    }
-    elementAt(index) {
-      return dart.as(this[_parent][_isUpgraded] ? this[_parent].keys.elementAt(index) : this[_parent]._computeKeys().get(index), core.String);
-    }
-    get iterator() {
-      return dart.as(this[_parent][_isUpgraded] ? this[_parent].keys.iterator : this[_parent]._computeKeys().iterator, core.Iterator);
-    }
-    contains(key) {
-      return this[_parent].containsKey(key);
-    }
-  }
-  let _reviver = Symbol('_reviver');
-  let _sink = Symbol('_sink');
-  let _stringSink = Symbol('_stringSink');
-  class _JsonDecoderSink extends _StringSinkConversionSink {
-    _JsonDecoderSink($_reviver, $_sink) {
-      this[_reviver] = $_reviver;
-      this[_sink] = $_sink;
-      super._StringSinkConversionSink(new core.StringBuffer());
-    }
-    close() {
-      super.close();
-      let buffer = dart.as(this[_stringSink], core.StringBuffer);
-      let accumulated = buffer.toString();
-      buffer.clear();
-      let decoded = _parseJson(accumulated, this[_reviver]);
-      this[_sink].add(decoded);
-      this[_sink].close();
-    }
-  }
   let ASCII = new AsciiCodec();
   let _ASCII_MASK = 127;
   let _allowInvalid = Symbol('_allowInvalid');
@@ -343,6 +71,7 @@ var convert;
       super._UnicodeSubsetEncoder(_ASCII_MASK);
     }
   }
+  let _sink = Symbol('_sink');
   class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
     _UnicodeSubsetEncoderSink($_subsetMask, $_sink) {
       this[_subsetMask] = $_subsetMask;
@@ -523,7 +252,7 @@ var convert;
   let _roundToPowerOf2 = Symbol('_roundToPowerOf2');
   class _ByteCallbackSink extends ByteConversionSinkBase {
     _ByteCallbackSink(callback) {
-      this[_buffer] = new typed_data.Uint8List(dart.as(_INITIAL_BUFFER_SIZE, core.int));
+      this[_buffer] = new typed_data.Uint8List(dart.as(_ByteCallbackSink._INITIAL_BUFFER_SIZE, core.int));
       this[_callback] = callback;
       this[_bufferIndex] = 0;
       super.ByteConversionSinkBase();
@@ -557,7 +286,7 @@ var convert;
   }
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
   let ChunkedConversionSink$ = dart.generic(function(T) {
-    class ChunkedConversionSink extends dart.Object {
+    class ChunkedConversionSink extends core.Object {
       ChunkedConversionSink() {
       }
       ChunkedConversionSink$withCallback(callback) {
@@ -567,7 +296,7 @@ var convert;
     dart.defineNamedConstructor(ChunkedConversionSink, 'withCallback');
     return ChunkedConversionSink;
   });
-  let ChunkedConversionSink = ChunkedConversionSink$(dynamic);
+  let ChunkedConversionSink = ChunkedConversionSink$(dart.dynamic);
   let _accumulated = Symbol('_accumulated');
   let _SimpleCallbackSink$ = dart.generic(function(T) {
     class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
@@ -585,9 +314,9 @@ var convert;
     }
     return _SimpleCallbackSink;
   });
-  let _SimpleCallbackSink = _SimpleCallbackSink$(dynamic);
+  let _SimpleCallbackSink = _SimpleCallbackSink$(dart.dynamic);
   let _EventSinkAdapter$ = dart.generic(function(T) {
-    class _EventSinkAdapter extends dart.Object {
+    class _EventSinkAdapter extends core.Object {
       _EventSinkAdapter($_sink) {
         this[_sink] = $_sink;
       }
@@ -600,11 +329,11 @@ var convert;
     }
     return _EventSinkAdapter;
   });
-  let _EventSinkAdapter = _EventSinkAdapter$(dynamic);
+  let _EventSinkAdapter = _EventSinkAdapter$(dart.dynamic);
   let _eventSink = Symbol('_eventSink');
   let _chunkedSink = Symbol('_chunkedSink');
   let _ConverterStreamEventSink$ = dart.generic(function(S, T) {
-    class _ConverterStreamEventSink extends dart.Object {
+    class _ConverterStreamEventSink extends core.Object {
       _ConverterStreamEventSink(converter, sink) {
         this[_eventSink] = sink;
         this[_chunkedSink] = converter.startChunkedConversion(sink);
@@ -623,9 +352,9 @@ var convert;
     }
     return _ConverterStreamEventSink;
   });
-  let _ConverterStreamEventSink = _ConverterStreamEventSink$(dynamic, dynamic);
+  let _ConverterStreamEventSink = _ConverterStreamEventSink$(dart.dynamic, dart.dynamic);
   let Codec$ = dart.generic(function(S, T) {
-    class Codec extends dart.Object {
+    class Codec extends core.Object {
       Codec() {
       }
       encode(input) {
@@ -643,7 +372,7 @@ var convert;
     }
     return Codec;
   });
-  let Codec = Codec$(dynamic, dynamic);
+  let Codec = Codec$(dart.dynamic, dart.dynamic);
   let _first = Symbol('_first');
   let _second = Symbol('_second');
   let _FusedCodec$ = dart.generic(function(S, M, T) {
@@ -662,7 +391,7 @@ var convert;
     }
     return _FusedCodec;
   });
-  let _FusedCodec = _FusedCodec$(dynamic, dynamic, dynamic);
+  let _FusedCodec = _FusedCodec$(dart.dynamic, dart.dynamic, dart.dynamic);
   let _codec = Symbol('_codec');
   let _InvertedCodec$ = dart.generic(function(T, S) {
     class _InvertedCodec extends Codec$(T, S) {
@@ -682,9 +411,9 @@ var convert;
     }
     return _InvertedCodec;
   });
-  let _InvertedCodec = _InvertedCodec$(dynamic, dynamic);
+  let _InvertedCodec = _InvertedCodec$(dart.dynamic, dart.dynamic);
   let Converter$ = dart.generic(function(S, T) {
-    class Converter extends dart.Object {
+    class Converter extends core.Object {
       Converter() {
       }
       fuse(other) {
@@ -699,7 +428,7 @@ var convert;
     }
     return Converter;
   });
-  let Converter = Converter$(dynamic, dynamic);
+  let Converter = Converter$(dart.dynamic, dart.dynamic);
   let _FusedConverter$ = dart.generic(function(S, M, T) {
     class _FusedConverter extends Converter$(S, T) {
       _FusedConverter($_first, $_second) {
@@ -716,7 +445,7 @@ var convert;
     }
     return _FusedConverter;
   });
-  let _FusedConverter = _FusedConverter$(dynamic, dynamic, dynamic);
+  let _FusedConverter = _FusedConverter$(dart.dynamic, dart.dynamic, dart.dynamic);
   class Encoding extends Codec$(core.String, core.List$(core.int)) {
     Encoding() {
       super.Codec();
@@ -739,7 +468,7 @@ var convert;
   });
   let HTML_ESCAPE = new HtmlEscape();
   let _name = Symbol('_name');
-  class HtmlEscapeMode extends dart.Object {
+  class HtmlEscapeMode extends core.Object {
     HtmlEscapeMode$_($_name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
       this[_name] = $_name;
       this.escapeLtGt = escapeLtGt;
@@ -862,6 +591,7 @@ var convert;
     }
   }
   let JSON = new JsonCodec();
+  let _reviver = Symbol('_reviver');
   let _toEncodable = Symbol('_toEncodable');
   class JsonCodec extends Codec$(core.Object, core.String) {
     JsonCodec(opt$) {
@@ -949,7 +679,7 @@ var convert;
       if (toEncodable === void 0)
         toEncodable = null;
       if (bufferSize === void 0)
-        bufferSize = DEFAULT_BUFFER_SIZE;
+        bufferSize = JsonUtf8Encoder.DEFAULT_BUFFER_SIZE;
       this[_indent] = _utf8Encode(indent);
       this[_toEncodable] = toEncodable;
       this[_bufferSize] = bufferSize;
@@ -1101,7 +831,7 @@ var convert;
   let _seen = Symbol('_seen');
   let _checkCycle = Symbol('_checkCycle');
   let _removeSeen = Symbol('_removeSeen');
-  class _JsonStringifier extends dart.Object {
+  class _JsonStringifier extends core.Object {
     _JsonStringifier(_toEncodable) {
       this[_seen] = new core.List();
       this[_toEncodable] = dart.as(_toEncodable !== null ? _toEncodable : _defaultToEncodable, core.Function);
@@ -1114,42 +844,42 @@ var convert;
       let length = s.length;
       for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
         let charCode = s.codeUnitAt(i);
-        if (dart.notNull(charCode) > dart.notNull(BACKSLASH))
+        if (dart.notNull(charCode) > dart.notNull(_JsonStringifier.BACKSLASH))
           continue;
         if (dart.notNull(charCode) < 32) {
           if (dart.notNull(i) > dart.notNull(offset))
             this.writeStringSlice(s, offset, i);
           offset = dart.notNull(i) + 1;
-          this.writeCharCode(BACKSLASH);
+          this.writeCharCode(_JsonStringifier.BACKSLASH);
           switch (charCode) {
-            case BACKSPACE:
-              this.writeCharCode(CHAR_b);
+            case _JsonStringifier.BACKSPACE:
+              this.writeCharCode(_JsonStringifier.CHAR_b);
               break;
-            case TAB:
-              this.writeCharCode(CHAR_t);
+            case _JsonStringifier.TAB:
+              this.writeCharCode(_JsonStringifier.CHAR_t);
               break;
-            case NEWLINE:
-              this.writeCharCode(CHAR_n);
+            case _JsonStringifier.NEWLINE:
+              this.writeCharCode(_JsonStringifier.CHAR_n);
               break;
-            case FORM_FEED:
-              this.writeCharCode(CHAR_f);
+            case _JsonStringifier.FORM_FEED:
+              this.writeCharCode(_JsonStringifier.CHAR_f);
               break;
-            case CARRIAGE_RETURN:
-              this.writeCharCode(CHAR_r);
+            case _JsonStringifier.CARRIAGE_RETURN:
+              this.writeCharCode(_JsonStringifier.CHAR_r);
               break;
             default:
-              this.writeCharCode(CHAR_u);
-              this.writeCharCode(CHAR_0);
-              this.writeCharCode(CHAR_0);
+              this.writeCharCode(_JsonStringifier.CHAR_u);
+              this.writeCharCode(_JsonStringifier.CHAR_0);
+              this.writeCharCode(_JsonStringifier.CHAR_0);
               this.writeCharCode(hexDigit(dart.notNull(charCode) >> 4 & 15));
               this.writeCharCode(hexDigit(dart.notNull(charCode) & 15));
               break;
           }
-        } else if (charCode === QUOTE || charCode === BACKSLASH) {
+        } else if (charCode === _JsonStringifier.QUOTE || charCode === _JsonStringifier.BACKSLASH) {
           if (dart.notNull(i) > dart.notNull(offset))
             this.writeStringSlice(s, offset, i);
           offset = dart.notNull(i) + 1;
-          this.writeCharCode(BACKSLASH);
+          this.writeCharCode(_JsonStringifier.BACKSLASH);
           this.writeCharCode(charCode);
         }
       }
@@ -1260,7 +990,7 @@ var convert;
   _JsonStringifier.CHAR_t = 116;
   _JsonStringifier.CHAR_u = 117;
   let _indentLevel = Symbol('_indentLevel');
-  class _JsonPrettyPrintMixin extends dart.Object {
+  class _JsonPrettyPrintMixin extends core.Object {
     _JsonPrettyPrintMixin() {
       this[_indentLevel] = 0;
     }
@@ -1624,12 +1354,12 @@ var convert;
       while (dart.notNull(pos) < dart.notNull(end)) {
         let skip = 0;
         let char = chunk.codeUnitAt(pos);
-        if (char === _LF) {
+        if (char === _LineSplitterSink._LF) {
           skip = 1;
-        } else if (char === _CR) {
+        } else if (char === _LineSplitterSink._CR) {
           skip = 1;
           if (dart.notNull(pos) + 1 < dart.notNull(end)) {
-            if (chunk.codeUnitAt(dart.notNull(pos) + 1) === _LF) {
+            if (chunk.codeUnitAt(dart.notNull(pos) + 1) === _LineSplitterSink._LF) {
               skip = 2;
             }
           } else if (!dart.notNull(isLast)) {
@@ -1679,7 +1409,7 @@ var convert;
     }
   }
   dart.defineNamedConstructor(ClosableStringSink, 'fromStringSink');
-  class _ClosableStringSink extends dart.Object {
+  class _ClosableStringSink extends core.Object {
     _ClosableStringSink($_sink, $_callback) {
       this[_sink] = $_sink;
       this[_callback] = $_callback;
@@ -1705,7 +1435,7 @@ var convert;
     }
   }
   let _flush = Symbol('_flush');
-  class _StringConversionSinkAsStringSinkAdapter extends dart.Object {
+  class _StringConversionSinkAsStringSinkAdapter extends core.Object {
     _StringConversionSinkAsStringSinkAdapter($_chunkedSink) {
       this[_chunkedSink] = $_chunkedSink;
       this[_buffer] = new core.StringBuffer();
@@ -1717,7 +1447,7 @@ var convert;
     }
     writeCharCode(charCode) {
       this[_buffer].writeCharCode(charCode);
-      if (this[_buffer].length['>'](_MIN_STRING_SIZE))
+      if (this[_buffer].length['>'](_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
         this[_flush]();
     }
     write(o) {
@@ -1730,7 +1460,7 @@ var convert;
       if (o === void 0)
         o = "";
       this[_buffer].writeln(o);
-      if (this[_buffer].length['>'](_MIN_STRING_SIZE))
+      if (this[_buffer].length['>'](_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
         this[_flush]();
     }
     writeAll(objects, separator) {
@@ -1762,7 +1492,7 @@ var convert;
   _StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE = 16;
   class StringConversionSinkBase extends StringConversionSinkMixin {
   }
-  class StringConversionSinkMixin extends dart.Object {
+  class StringConversionSinkMixin extends core.Object {
     add(str) {
       return this.addSlice(str, 0, str.length, false);
     }
@@ -1773,6 +1503,7 @@ var convert;
       return new _StringConversionSinkAsStringSinkAdapter(this);
     }
   }
+  let _stringSink = Symbol('_stringSink');
   class _StringSinkConversionSink extends StringConversionSinkBase {
     _StringSinkConversionSink($_stringSink) {
       this[_stringSink] = $_stringSink;
@@ -1961,9 +1692,9 @@ var convert;
   let _createBuffer = Symbol('_createBuffer');
   let _writeSurrogate = Symbol('_writeSurrogate');
   let _fillBuffer = Symbol('_fillBuffer');
-  class _Utf8Encoder extends dart.Object {
+  class _Utf8Encoder extends core.Object {
     _Utf8Encoder() {
-      this[_Utf8Encoder$withBufferSize](dart.as(_DEFAULT_BYTE_BUFFER_SIZE, core.int));
+      this[_Utf8Encoder$withBufferSize](dart.as(_Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE, core.int));
     }
     _Utf8Encoder$withBufferSize(bufferSize) {
       this[_buffer] = _createBuffer(bufferSize);
@@ -2145,7 +1876,7 @@ var convert;
   let _value = Symbol('_value');
   let _expectedUnits = Symbol('_expectedUnits');
   let _extraUnits = Symbol('_extraUnits');
-  class _Utf8Decoder extends dart.Object {
+  class _Utf8Decoder extends core.Object {
     _Utf8Decoder($_stringSink, $_allowMalformed) {
       this[_stringSink] = $_stringSink;
       this[_allowMalformed] = $_allowMalformed;
@@ -2219,7 +1950,7 @@ var convert;
                   i = dart.notNull(i) + 1;
                 }
               } while (dart.notNull(expectedUnits) > 0);
-              if (dart.notNull(value) <= dart.notNull(_LIMITS.get(dart.notNull(extraUnits) - 1))) {
+              if (dart.notNull(value) <= dart.notNull(_Utf8Decoder._LIMITS.get(dart.notNull(extraUnits) - 1))) {
                 if (!dart.notNull(this[_allowMalformed])) {
                   throw new core.FormatException(`Overlong encoding of 0x${value.toRadixString(16)}`);
                 }
@@ -2288,6 +2019,275 @@ var convert;
     }
   }
   _Utf8Decoder._LIMITS = /* Unimplemented const */new List.from([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT]);
+  let _processed = Symbol('_processed');
+  let _original = Symbol('_original');
+  // Function _convertJsonToDart: (dynamic, (dynamic, dynamic) → dynamic) → dynamic
+  function _convertJsonToDart(json, reviver) {
+    dart.assert(reviver !== null);
+    // Function walk: (dynamic) → dynamic
+    function walk(e) {
+      if (e == null || typeof e != "object") {
+        return e;
+      }
+      if (Object.getPrototypeOf(e) === Array.prototype) {
+        for (let i = 0; dart.notNull(i) < e.length; i = dart.notNull(i) + 1) {
+          let item = e[i];
+          e[i] = reviver(i, walk(item));
+        }
+        return e;
+      }
+      let map = new _JsonMap(e);
+      let processed = map[_processed];
+      let keys = map._computeKeys();
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+        let key = keys.get(i);
+        let revived = reviver(key, walk(e[key]));
+        processed[key] = revived;
+      }
+      map[_original] = processed;
+      return map;
+    }
+    return reviver(null, walk(json));
+  }
+  // Function _convertJsonToDartLazy: (dynamic) → dynamic
+  function _convertJsonToDartLazy(object) {
+    if (object === null)
+      return null;
+    if (typeof object != "object") {
+      return object;
+    }
+    if (Object.getPrototypeOf(object) !== Array.prototype) {
+      return new _JsonMap(object);
+    }
+    for (let i = 0; dart.notNull(i) < object.length; i = dart.notNull(i) + 1) {
+      let item = object[i];
+      object[i] = _convertJsonToDartLazy(item);
+    }
+    return object;
+  }
+  let _data = Symbol('_data');
+  let _isUpgraded = Symbol('_isUpgraded');
+  let _upgradedMap = Symbol('_upgradedMap');
+  let _process = Symbol('_process');
+  let _computeKeys = Symbol('_computeKeys');
+  let _upgrade = Symbol('_upgrade');
+  let _hasProperty = Symbol('_hasProperty');
+  let _getProperty = Symbol('_getProperty');
+  let _setProperty = Symbol('_setProperty');
+  let _getPropertyNames = Symbol('_getPropertyNames');
+  let _isUnprocessed = Symbol('_isUnprocessed');
+  let _newJavaScriptObject = Symbol('_newJavaScriptObject');
+  class _JsonMap extends core.Object {
+    _JsonMap($_original) {
+      this[_processed] = _newJavaScriptObject();
+      this[_original] = $_original;
+      this[_data] = null;
+    }
+    get(key) {
+      if (this[_isUpgraded]) {
+        return this[_upgradedMap].get(key);
+      } else if (!(typeof key == string)) {
+        return null;
+      } else {
+        let result = _getProperty(this[_processed], dart.as(key, core.String));
+        if (_isUnprocessed(result))
+          result = this[_process](dart.as(key, core.String));
+        return result;
+      }
+    }
+    get length() {
+      return this[_isUpgraded] ? this[_upgradedMap].length : this[_computeKeys]().length;
+    }
+    get isEmpty() {
+      return this.length === 0;
+    }
+    get isNotEmpty() {
+      return dart.notNull(this.length) > 0;
+    }
+    get keys() {
+      if (this[_isUpgraded])
+        return this[_upgradedMap].keys;
+      return new _JsonMapKeyIterable(this);
+    }
+    get values() {
+      if (this[_isUpgraded])
+        return this[_upgradedMap].values;
+      return new _internal.MappedIterable(this[_computeKeys](), ((each) => this.get(each)).bind(this));
+    }
+    set(key, value) {
+      if (this[_isUpgraded]) {
+        this[_upgradedMap].set(key, value);
+      } else if (this.containsKey(key)) {
+        let processed = this[_processed];
+        _setProperty(processed, dart.as(key, core.String), value);
+        let original = this[_original];
+        if (!dart.notNull(core.identical(original, processed))) {
+          _setProperty(original, dart.as(key, core.String), null);
+        }
+      } else {
+        this[_upgrade]().set(key, value);
+      }
+    }
+    addAll(other) {
+      other.forEach(((key, value) => {
+        this.set(key, value);
+      }).bind(this));
+    }
+    containsValue(value) {
+      if (this[_isUpgraded])
+        return this[_upgradedMap].containsValue(value);
+      let keys = this[_computeKeys]();
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+        let key = keys.get(i);
+        if (dart.equals(this.get(key), value))
+          return true;
+      }
+      return false;
+    }
+    containsKey(key) {
+      if (this[_isUpgraded])
+        return this[_upgradedMap].containsKey(key);
+      if (!(typeof key == string))
+        return false;
+      return _hasProperty(this[_original], dart.as(key, core.String));
+    }
+    putIfAbsent(key, ifAbsent) {
+      if (this.containsKey(key))
+        return this.get(key);
+      let value = ifAbsent();
+      this.set(key, value);
+      return value;
+    }
+    remove(key) {
+      if (!dart.notNull(this[_isUpgraded]) && !dart.notNull(this.containsKey(key)))
+        return null;
+      return this[_upgrade]().remove(key);
+    }
+    clear() {
+      if (this[_isUpgraded]) {
+        this[_upgradedMap].clear();
+      } else {
+        if (this[_data] !== null) {
+          dart.dinvoke(this[_data], 'clear');
+        }
+        this[_original] = this[_processed] = null;
+        this[_data] = dart.map();
+      }
+    }
+    forEach(f) {
+      if (this[_isUpgraded])
+        return this[_upgradedMap].forEach(f);
+      let keys = this[_computeKeys]();
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+        let key = keys.get(i);
+        let value = _getProperty(this[_processed], key);
+        if (_isUnprocessed(value)) {
+          value = _convertJsonToDartLazy(_getProperty(this[_original], key));
+          _setProperty(this[_processed], key, value);
+        }
+        f(key, value);
+        if (!dart.notNull(core.identical(keys, this[_data]))) {
+          throw new core.ConcurrentModificationError(this);
+        }
+      }
+    }
+    toString() {
+      return collection.Maps.mapToString(this);
+    }
+    get [_isUpgraded]() {
+      return this[_processed] === null;
+    }
+    get [_upgradedMap]() {
+      dart.assert(this[_isUpgraded]);
+      return dart.as(this[_data], core.Map);
+    }
+    [_computeKeys]() {
+      dart.assert(!dart.notNull(this[_isUpgraded]));
+      let keys = dart.as(this[_data], core.List);
+      if (keys === null) {
+        keys = this[_data] = _getPropertyNames(this[_original]);
+      }
+      return dart.as(keys, core.List$(core.String));
+    }
+    [_upgrade]() {
+      if (this[_isUpgraded])
+        return this[_upgradedMap];
+      let result = dart.map();
+      let keys = this[_computeKeys]();
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+        let key = keys.get(i);
+        result.set(key, this.get(key));
+      }
+      if (keys.isEmpty) {
+        keys.add(null);
+      } else {
+        keys.clear();
+      }
+      this[_original] = this[_processed] = null;
+      this[_data] = result;
+      dart.assert(this[_isUpgraded]);
+      return result;
+    }
+    [_process](key) {
+      if (!dart.notNull(_hasProperty(this[_original], key)))
+        return null;
+      let result = _convertJsonToDartLazy(_getProperty(this[_original], key));
+      return _setProperty(this[_processed], key, result);
+    }
+    static [_hasProperty](object, key) {
+      return Object.prototype.hasOwnProperty.call(object, key);
+    }
+    static [_getProperty](object, key) {
+      return object[key];
+    }
+    static [_setProperty](object, key, value) {
+      return object[key] = value;
+    }
+    static [_getPropertyNames](object) {
+      return dart.as(Object.keys(object), core.List);
+    }
+    static [_isUnprocessed](object) {
+      return typeof object == "undefined";
+    }
+    static [_newJavaScriptObject]() {
+      return Object.create(null);
+    }
+  }
+  let _parent = Symbol('_parent');
+  class _JsonMapKeyIterable extends _internal.ListIterable {
+    _JsonMapKeyIterable($_parent) {
+      this[_parent] = $_parent;
+      super.ListIterable();
+    }
+    get length() {
+      return this[_parent].length;
+    }
+    elementAt(index) {
+      return dart.as(this[_parent][_isUpgraded] ? this[_parent].keys.elementAt(index) : this[_parent]._computeKeys().get(index), core.String);
+    }
+    get iterator() {
+      return dart.as(this[_parent][_isUpgraded] ? this[_parent].keys.iterator : this[_parent]._computeKeys().iterator, core.Iterator);
+    }
+    contains(key) {
+      return this[_parent].containsKey(key);
+    }
+  }
+  class _JsonDecoderSink extends _StringSinkConversionSink {
+    _JsonDecoderSink($_reviver, $_sink) {
+      this[_reviver] = $_reviver;
+      this[_sink] = $_sink;
+      super._StringSinkConversionSink(new core.StringBuffer());
+    }
+    close() {
+      super.close();
+      let buffer = dart.as(this[_stringSink], core.StringBuffer);
+      let accumulated = buffer.toString();
+      buffer.clear();
+      let decoded = _parseJson(accumulated, this[_reviver]);
+      this[_sink].add(decoded);
+      this[_sink].close();
+    }
+  }
   // Exports:
   exports.ASCII = ASCII;
   exports.AsciiCodec = AsciiCodec;

@@ -1,30 +1,30 @@
 var dom;
 (function(exports) {
   'use strict';
-  class JsType extends dart.Object {
+  class JsType extends core.Object {
     JsType(opt$) {
       let name = opt$.name === void 0 ? null : opt$.name;
       this.name = name;
     }
   }
-  class JsGlobal extends dart.Object {
+  class JsGlobal extends core.Object {
     JsGlobal() {
     }
   }
-  class Overload extends dart.Object {
+  class Overload extends core.Object {
     Overload() {
     }
   }
   let overload = new Overload();
   exports.document = null;
-  class Document extends dart.Object {
+  class Document extends core.Object {
   }
-  class Element extends dart.Object {
+  class Element extends core.Object {
     Element() {
       this.textContent = null;
     }
   }
-  class Event extends dart.Object {
+  class Event extends core.Object {
   }
   class InputElement extends Element {
     InputElement() {
@@ -34,9 +34,9 @@ var dom;
   }
   class CanvasElement extends Element {
   }
-  class RenderingContext extends dart.Object {
+  class RenderingContext extends core.Object {
   }
-  class CanvasRenderingContext2D extends dart.Object {
+  class CanvasRenderingContext2D extends core.Object {
     CanvasRenderingContext2D() {
       this.globalAlpha = null;
       this.globalCompositeOperation = null;
@@ -48,7 +48,7 @@ var dom;
       this.shadowColor = null;
     }
   }
-  class CanvasDrawingStyles extends dart.Object {
+  class CanvasDrawingStyles extends core.Object {
     CanvasDrawingStyles() {
       this.lineWidth = null;
       this.lineCap = null;
@@ -60,15 +60,15 @@ var dom;
       this.textBaseline = null;
     }
   }
-  class CanvasPathMethods extends dart.Object {
+  class CanvasPathMethods extends core.Object {
   }
-  class CanvasGradient extends dart.Object {
+  class CanvasGradient extends core.Object {
   }
-  class CanvasPattern extends dart.Object {
+  class CanvasPattern extends core.Object {
   }
-  class TextMetrics extends dart.Object {
+  class TextMetrics extends core.Object {
   }
-  class ImageData extends dart.Object {
+  class ImageData extends core.Object {
   }
   // Exports:
   exports.JsType = JsType;

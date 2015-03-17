@@ -2,7 +2,7 @@ var methods;
 (function(exports) {
   'use strict';
   let _c = Symbol('_c');
-  class A extends dart.Object {
+  class A extends core.Object {
     A() {
       this[_c] = 3;
     }
@@ -41,12 +41,12 @@ var methods;
       this[_c] = c;
     }
   }
-  class Bar extends dart.Object {
+  class Bar extends core.Object {
     call(x) {
       return core.print(`hello from ${x}`);
     }
   }
-  class Foo extends dart.Object {
+  class Foo extends core.Object {
     Foo() {
       this.bar = new Bar();
     }

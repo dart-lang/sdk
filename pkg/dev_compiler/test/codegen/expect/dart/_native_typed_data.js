@@ -1,7 +1,7 @@
 var _native_typed_data;
 (function(exports) {
   'use strict';
-  class NativeByteBuffer extends dart.Object {
+  class NativeByteBuffer extends core.Object {
     NativeByteBuffer() {
       this.lengthInBytes = null;
     }
@@ -388,7 +388,7 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeFloat64x2List, '_externalStorage');
   dart.defineNamedConstructor(NativeFloat64x2List, '_slowFromList');
   dart.defineNamedConstructor(NativeFloat64x2List, 'fromList');
-  class NativeTypedData extends dart.Object {
+  class NativeTypedData extends core.Object {
     NativeTypedData() {
       this.buffer = null;
       this.lengthInBytes = null;
@@ -961,7 +961,7 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeUint8List, 'fromList');
   dart.defineNamedConstructor(NativeUint8List, 'view');
   let _truncate = Symbol('_truncate');
-  class NativeFloat32x4 extends dart.Object {
+  class NativeFloat32x4 extends core.Object {
     static [_truncate](x) {
       _list.set(0, dart.as(x, core.num));
       return _list.get(0);
@@ -1230,7 +1230,7 @@ var _native_typed_data;
   });
   let _list = Symbol('_list');
   let _uint32view = Symbol('_uint32view');
-  class NativeInt32x4 extends dart.Object {
+  class NativeInt32x4 extends core.Object {
     static [_truncate](x) {
       dart.dsetindex(_list, 0, x);
       return dart.dindex(_list, 0);
@@ -1412,7 +1412,7 @@ var _native_typed_data;
       return new NativeInt32List(4);
     }
   });
-  class NativeFloat64x2 extends dart.Object {
+  class NativeFloat64x2 extends core.Object {
     NativeFloat64x2(x, y) {
       this.x = x;
       this.y = y;

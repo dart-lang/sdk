@@ -31,7 +31,7 @@ var _foreign_helper;
   // Function JS_CURRENT_ISOLATE_CONTEXT: () → IsolateContext
   function JS_CURRENT_ISOLATE_CONTEXT() {
   }
-  class IsolateContext extends dart.Object {
+  class IsolateContext extends core.Object {
   }
   // Function JS_CALL_IN_ISOLATE: (dynamic, Function) → dynamic
   function JS_CALL_IN_ISOLATE(isolate, function) {
@@ -112,7 +112,7 @@ var _foreign_helper;
   function JS_EFFECT(code) {
     dart.dinvokef(code, null);
   }
-  class JS_CONST extends dart.Object {
+  class JS_CONST extends core.Object {
     JS_CONST(code) {
       this.code = code;
     }

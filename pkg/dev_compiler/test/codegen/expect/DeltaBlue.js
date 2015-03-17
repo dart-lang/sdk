@@ -14,7 +14,7 @@ var DeltaBlue;
       projectionTest(100);
     }
   }
-  class Strength extends dart.Object {
+  class Strength extends core.Object {
     Strength(value, name) {
       this.value = value;
       this.name = name;
@@ -42,7 +42,7 @@ var DeltaBlue;
   let NORMAL = new Strength(4, "normal");
   let WEAK_DEFAULT = new Strength(5, "weakDefault");
   let WEAKEST = new Strength(6, "weakest");
-  class Constraint extends dart.Object {
+  class Constraint extends core.Object {
     Constraint(strength) {
       this.strength = strength;
     }
@@ -240,7 +240,7 @@ var DeltaBlue;
       this.output().value = this.input().value;
     }
   }
-  class Variable extends dart.Object {
+  class Variable extends core.Object {
     Variable(name, value) {
       this.constraints = new List.from([]);
       this.name = name;
@@ -259,7 +259,7 @@ var DeltaBlue;
         this.determinedBy = null;
     }
   }
-  class Planner extends dart.Object {
+  class Planner extends core.Object {
     Planner() {
       this.currentMark = 0;
     }
@@ -355,7 +355,7 @@ var DeltaBlue;
       }
     }
   }
-  class Plan extends dart.Object {
+  class Plan extends core.Object {
     Plan() {
       this.list = new List.from([]);
     }

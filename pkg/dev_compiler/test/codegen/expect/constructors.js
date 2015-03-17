@@ -1,13 +1,13 @@
 var constructors;
 (function(exports) {
   'use strict';
-  class A extends dart.Object {
+  class A extends core.Object {
   }
-  class B extends dart.Object {
+  class B extends core.Object {
     B() {
     }
   }
-  class C extends dart.Object {
+  class C extends core.Object {
     C$named() {
     }
   }
@@ -18,14 +18,14 @@ var constructors;
     }
   }
   dart.defineNamedConstructor(C2, 'named');
-  class D extends dart.Object {
+  class D extends core.Object {
     D() {
     }
     D$named() {
     }
   }
   dart.defineNamedConstructor(D, 'named');
-  class E extends dart.Object {
+  class E extends core.Object {
     E(name) {
       this.name = name;
     }
@@ -35,18 +35,18 @@ var constructors;
       super.E(name);
     }
   }
-  class G extends dart.Object {
+  class G extends core.Object {
     G(p1) {
       if (p1 === void 0)
         p1 = null;
     }
   }
-  class H extends dart.Object {
+  class H extends core.Object {
     H(opt$) {
       let p1 = opt$.p1 === void 0 ? null : opt$.p1;
     }
   }
-  class I extends dart.Object {
+  class I extends core.Object {
     I() {
       this.name = 'default';
     }
@@ -55,13 +55,13 @@ var constructors;
     }
   }
   dart.defineNamedConstructor(I, 'named');
-  class J extends dart.Object {
+  class J extends core.Object {
     J() {
       this.initialized = true;
       this.nonInitialized = null;
     }
   }
-  class K extends dart.Object {
+  class K extends core.Object {
     K() {
       this.s = 'a';
     }
@@ -70,7 +70,7 @@ var constructors;
     }
   }
   dart.defineNamedConstructor(K, 'withS');
-  class L extends dart.Object {
+  class L extends core.Object {
     L(foo) {
       this.foo = foo;
     }

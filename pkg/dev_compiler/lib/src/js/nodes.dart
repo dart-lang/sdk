@@ -1185,7 +1185,7 @@ class ClassExpression extends Expression {
 
   void visitChildren(NodeVisitor visitor) {
     name.accept(visitor);
-    heritage.accept(visitor);
+    if (heritage != null) heritage.accept(visitor);
     for (Method element in methods) element.accept(visitor);
   }
 

@@ -25,7 +25,7 @@ import 'src/codegen/dart_codegen.dart';
 import 'src/codegen/html_codegen.dart';
 import 'src/codegen/js_codegen.dart';
 import 'src/dependency_graph.dart';
-import 'src/info.dart' show LibraryInfo, CheckerResults;
+import 'src/info.dart' show LibraryInfo, CheckerResults, LibraryUnit;
 import 'src/options.dart';
 import 'src/report.dart';
 import 'src/utils.dart';
@@ -167,11 +167,12 @@ class Compiler {
     _libraries.add(current);
     _rules.currentLibraryInfo = current;
 
-    var units = [entryUnit]
-      ..addAll(node.parts.map(
-          (p) => _resolver.context.resolveCompilationUnit2(p.source, source)));
+    var resolvedParts = node.parts
+        .map((p) => _resolver.context.resolveCompilationUnit2(p.source, source))
+        .toList(growable: false);
+    var libraryUnit = new LibraryUnit(entryUnit, resolvedParts);
     bool failureInLib = false;
-    for (var unit in units) {
+    for (var unit in libraryUnit.libraryThenParts) {
       var unitSource = unit.element.source;
       _reporter.enterSource(unitSource);
       // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
@@ -186,7 +187,7 @@ class Compiler {
     }
 
     for (var cg in _generators) {
-      var hash = cg.generateLibrary(units, current, _reporter);
+      var hash = cg.generateLibrary(libraryUnit, current, _reporter);
       if (_hashing) node.cachingHash = hash;
     }
     _reporter.leaveLibrary();
@@ -196,7 +197,7 @@ class Compiler {
     var clock = new Stopwatch()..start();
 
     // TODO(sigmund): we are missing a couple failures here. The
-    // dependendency_graph now detects broken imports or unsupported features
+    // dependency_graph now detects broken imports or unsupported features
     // like more than one script tag (see .severe messages in
     // dependency_graph.dart). Such failures should be reported back
     // here so we can mark failure=true in the CheckerResutls.

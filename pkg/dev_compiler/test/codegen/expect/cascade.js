@@ -1,7 +1,7 @@
 var cascade;
 (function(exports) {
   'use strict';
-  class A extends dart.Object {
+  class A extends core.Object {
     A() {
       this.x = null;
     }

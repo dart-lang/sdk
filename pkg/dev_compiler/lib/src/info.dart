@@ -47,6 +47,23 @@ class LibraryInfo {
         name = utils.canonicalLibraryName(library);
 }
 
+class LibraryUnit {
+  final CompilationUnit library;
+  final List<CompilationUnit> parts;
+
+  LibraryUnit(this.library, this.parts);
+
+  Iterable<CompilationUnit> get libraryThenParts sync* {
+    yield library;
+    yield* parts;
+  }
+
+  Iterable<CompilationUnit> get partsThenLibrary sync* {
+    yield* parts;
+    yield library;
+  }
+}
+
 // The abstract type of coercions mapping one type to another.
 // This class also exposes static builder functions which
 // check for errors and reduce redundant coercions to the identity.

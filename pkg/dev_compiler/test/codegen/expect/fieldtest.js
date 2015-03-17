@@ -1,13 +1,13 @@
 var fieldtest;
 (function(exports) {
   'use strict';
-  class A extends dart.Object {
+  class A extends core.Object {
     A() {
       this.x = 42;
     }
   }
   let B$ = dart.generic(function(T) {
-    class B extends dart.Object {
+    class B extends core.Object {
       B() {
         this.x = null;
         this.y = null;
@@ -16,7 +16,7 @@ var fieldtest;
     }
     return B;
   });
-  let B = B$(dynamic);
+  let B = B$(dart.dynamic);
   // Function foo: (A) → int
   function foo(a) {
     core.print(a.x);
