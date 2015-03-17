@@ -120,10 +120,11 @@ class AnalysisDriver {
   /// Yield the sources for all the compilation units constituting
   /// [librarySource] (including the defining compilation unit).
   Iterable<Source> _getAllUnitSources(
-      AnalysisContext context, Source librarySource) sync* {
-    yield librarySource;
-    yield* context.getLibraryElement(librarySource).parts
-        .map((CompilationUnitElement e) => e.source);
+      AnalysisContext context, Source librarySource) {
+    List<Source> result = <Source>[librarySource];
+    result.addAll(context.getLibraryElement(librarySource).parts
+        .map((CompilationUnitElement e) => e.source));
+    return result;
   }
 }
 
