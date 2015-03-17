@@ -2,33 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@JsName(name: 'window')
 library dom;
 
-class JsType {
-  /// The JavaScript constructor function name.
-  /// Used for construction and instanceof checks.
+
+class JsName {
+  /// The JavaScript name.
+  /// Used for classes and libraries.
   /// Note that this could be an expression, e.g. `lib.TypeName` in JS, but it
   /// should be kept simple, as it will be generated directly into the code.
   final String name;
-  const JsType({this.name});
-}
-class JsGlobal {
-  const JsGlobal();
+  const JsName({this.name});
 }
 class Overload {
   const Overload();
 }
 const overload = const Overload();
 
-@JsGlobal()
-final Document document = null;
+external Document get document;
 
-@JsType(name: 'Document')
+@JsName(name: 'Document')
 abstract class Document {
   Element querySelector(String selector);
 }
 
-@JsType(name: 'Element')
+@JsName(name: 'Element')
 abstract class Element {
   void addEventListener(String type, EventListener callback, [bool capture]);
   String textContent;
@@ -38,12 +36,12 @@ typedef void EventListener(Event e);
 
 abstract class Event {}
 
-@JsType(name: 'HTMLInputElement')
+@JsName(name: 'HTMLInputElement')
 abstract class InputElement extends Element {
   String value;
 }
 
-@JsType(name: 'HTMLCanvasElement')
+@JsName(name: 'HTMLCanvasElement')
 abstract class CanvasElement extends Element {
   RenderingContext getContext(String contextId);
 }
@@ -53,7 +51,7 @@ abstract class CanvasElement extends Element {
 abstract class RenderingContext {}
 
 // http://www.w3.org/html/wg/drafts/2dcontext/html5_canvas_CR/
-@JsType()
+@JsName()
 abstract class CanvasRenderingContext2D
     implements CanvasDrawingStyles, CanvasPathMethods, RenderingContext {
 
@@ -169,23 +167,23 @@ abstract class CanvasPathMethods {
       [bool anticlockwise]);
 }
 
-@JsType()
+@JsName()
 abstract class CanvasGradient {
   // opaque object
   void addColorStop(num offset, String color);
 }
 
-@JsType()
+@JsName()
 abstract class CanvasPattern {
   // opaque object
 }
 
-@JsType()
+@JsName()
 abstract class TextMetrics {
   num get width;
 }
 
-@JsType()
+@JsName()
 abstract class ImageData {
   int get width;
   int get height;

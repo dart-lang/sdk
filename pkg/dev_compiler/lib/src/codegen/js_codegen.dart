@@ -34,6 +34,15 @@ import 'code_generator.dart';
 // This must match the optional parameter name used in runtime.js
 const String _jsNamedParameterName = r'opt$';
 
+bool _isAnnotationType(Annotation m, String name) => m.name.name == name;
+
+Annotation _getAnnotation(AnnotatedNode node, String name) => node.metadata
+    .firstWhere((annotation) => _isAnnotationType(annotation, name),
+        orElse: () => null);
+
+Annotation _getJsNameAnnotation(AnnotatedNode node) =>
+    _getAnnotation(node, "JsName");
+
 class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
@@ -63,6 +72,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   Element get currentLibrary => libraryInfo.library;
 
   JS.Program emitLibrary(LibraryUnit library) {
+    var jsDefaultValue = '{}';
+    var unit = library.library;
+    if (unit.directives.isNotEmpty) {
+      var annotation = _getJsNameAnnotation(unit.directives.first);
+      if (annotation != null) {
+        var arguments = annotation.arguments.arguments;
+        if (!arguments.isEmpty) {
+          var namedExpression = arguments.first as NamedExpression;
+          var literal = namedExpression.expression as SimpleStringLiteral;
+          jsDefaultValue = literal.stringValue;
+        }
+      }
+    }
     var body = <JS.Statement>[];
 
     // Visit parts first, since the "part" declarations come before code
@@ -82,10 +104,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     var name = jsLibraryName(libraryInfo.library);
+
+    var defaultValue = js.call(jsDefaultValue);
     return new JS.Program([
       js.statement('var #;', name),
-      js.statement("(function($_EXPORTS) { 'use strict'; #; })(# || (# = {}));",
-          [body, name, name])
+      js.statement("(function($_EXPORTS) { 'use strict'; #; })(# || (# = #));",
+          [body, name, name, defaultValue])
     ]);
   }
 
@@ -241,6 +265,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
+    if (_getJsNameAnnotation(node) != null) return null;
+
     currentClass = node;
 
     // dart:core Object is a bit special.

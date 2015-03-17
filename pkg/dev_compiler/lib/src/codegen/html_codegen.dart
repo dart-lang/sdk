@@ -109,6 +109,5 @@ Node get _miniMockSdk => parseFragment('''
   /* placehorder for unimplemented code libraries */
   var math = Math;
   var core = { int: { parse: Number }, print: e => console.log(e) };
-  var dom = { document: document };
 </script>''');
 final _log = new Logger('dev_compiler.src.codegen.html_codegen');
