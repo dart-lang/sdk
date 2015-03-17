@@ -321,7 +321,6 @@ class Parser : public ValueObject {
   void UnexpectedToken();
   String* ExpectUserDefinedTypeIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
-  bool IsLiteral(const char* literal);
   bool IsAwaitKeyword();
   bool IsYieldKeyword();
 
@@ -651,6 +650,7 @@ class Parser : public ValueObject {
                                      SourceLabel* label);
   void ParseStatementSequence();
   bool IsIdentifier();
+  bool IsSymbol(const String& symbol);
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
   bool IsMixinAppAlias();
