@@ -383,6 +383,31 @@ defineRuleUnitTests() {
       var bad = ['Foo', 'foo_', 'foo_bar'];
       testEach(bad, isLowerCamelCase, isFalse);
     });
+    group('libary_name_prefixes', () {
+      testEach(
+          Iterable<List<String>> values, dynamic f(List<String> s), Matcher m) {
+        values.forEach((s) => test('${s[3]}', () => expect(f(s), m)));
+      }
+
+      bool isGoodPrefx(List<String> v) => v[3].startsWith(
+          '${createLibraryNamePrefix(libraryPath: v[0], projectRoot: v[1], packageName: v[2])}.');
+
+      var good = [
+        ['/u/b/c/lib/src/a.dart', '/u/b/c', 'acme', 'acme.src.a'],
+        ['/u/b/c/lib/a.dart', '/u/b/c', 'acme', 'acme.a'],
+        ['/u/b/c/test/a.dart', '/u/b/c', 'acme', 'acme.test.a'],
+        ['/u/b/c/test/data/a.dart', '/u/b/c', 'acme', 'acme.test.data.a']
+      ];
+      testEach(good, isGoodPrefx, isTrue);
+
+      var bad = [
+        ['/u/b/c/lib/src/a.dart', '/u/b/c', 'acme', 'acme.a'],
+        ['/u/b/c/lib/a.dart', '/u/b/c', 'acme', 'wrk.acme.a'],
+        ['/u/b/c/test/a.dart', '/u/b/c', 'acme', 'acme.a'],
+        ['/u/b/c/test/data/a.dart', '/u/b/c', 'acme', 'acme.test.a']
+      ];
+      testEach(bad, isGoodPrefx, isFalse);
+    });
   });
 }
 
