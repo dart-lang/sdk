@@ -19,6 +19,7 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
+import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/util.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
@@ -389,14 +390,16 @@ defineRuleUnitTests() {
         values.forEach((s) => test('${s[3]}', () => expect(f(s), m)));
       }
 
-      bool isGoodPrefx(List<String> v) => v[3].startsWith(
-          '${createLibraryNamePrefix(libraryPath: v[0], projectRoot: v[1], packageName: v[2])}.');
+      bool isGoodPrefx(List<String> v) => matchesOrIsPrefixedBy(v[3],
+          createLibraryNamePrefix(
+              libraryPath: v[0], projectRoot: v[1], packageName: v[2]));
 
       var good = [
         ['/u/b/c/lib/src/a.dart', '/u/b/c', 'acme', 'acme.src.a'],
         ['/u/b/c/lib/a.dart', '/u/b/c', 'acme', 'acme.a'],
         ['/u/b/c/test/a.dart', '/u/b/c', 'acme', 'acme.test.a'],
-        ['/u/b/c/test/data/a.dart', '/u/b/c', 'acme', 'acme.test.data.a']
+        ['/u/b/c/test/data/a.dart', '/u/b/c', 'acme', 'acme.test.data.a'],
+        ['/u/b/c/lib/acme.dart', '/u/b/c', 'acme', 'acme']
       ];
       testEach(good, isGoodPrefx, isTrue);
 
