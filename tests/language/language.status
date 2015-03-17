@@ -41,11 +41,6 @@ cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
-[ $compiler == none || ($compiler == dart2dart && $builder_tag != new_backend) ]
-async_throw_in_catch_test: Crash, RuntimeError # Issue 21404 or it could be a test error
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
-
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067

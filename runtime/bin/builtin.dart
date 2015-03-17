@@ -350,7 +350,7 @@ void _loadScript(int tag, String uri, String libraryUri, List<int> data) {
   _finishedOneLoadRequest(uri);
 }
 
-void _asyncLoadError(int tag, String uri, String libraryUri, LoadError error) {
+void _asyncLoadError(tag, uri, libraryUri, error) {
   if (_logBuiltin) {
     _print("_asyncLoadError($uri), error: $error");
   }
@@ -359,7 +359,7 @@ void _asyncLoadError(int tag, String uri, String libraryUri, LoadError error) {
     // uri.
     libraryUri = uri;
   }
-  _asyncLoadErrorCallback(uri, libraryUri, error);
+  _asyncLoadErrorCallback(uri, libraryUri, new LoadError(error.toString()));
   _finishedOneLoadRequest(uri);
 }
 
@@ -373,15 +373,10 @@ _loadDataAsyncLoadPort(int tag,
     if (dataOrError is List<int>) {
       _loadScript(tag, uri, libraryUri, dataOrError);
     } else {
-      assert(dataOrError is String);
-      var error = new LoadError(dataOrError.toString());
-      _asyncLoadError(tag, uri, libraryUri, error);
+      _asyncLoadError(tag, uri, libraryUri, dataOrError);
     }
   }).catchError((e) {
-    // Wrap inside a LoadError unless we are already propagating a previously
-    // seen LoadError.
-    var error = (e is LoadError) ? e : new LoadError(e.toString);
-    _asyncLoadError(tag, uri, libraryUri, error);
+    _asyncLoadError(tag, uri, libraryUri, e.toString());
   });
 
   try {
@@ -392,10 +387,7 @@ _loadDataAsyncLoadPort(int tag,
     if (_logBuiltin) {
       _print("Exception when communicating with service isolate: $e");
     }
-    // Wrap inside a LoadError unless we are already propagating a previously
-    // seen LoadError.
-    var error = (e is LoadError) ? e : new LoadError(e.toString);
-    _asyncLoadError(tag, uri, libraryUri, error);
+    _asyncLoadError(tag, uri, libraryUri, e.toString());
     receivePort.close();
   }
 }
