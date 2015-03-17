@@ -3731,7 +3731,8 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     indexField.type = intType;
     fields.add(indexField);
     getters.add(_createGetter(indexField));
-    ConstFieldElementImpl valuesField = new ConstFieldElementImpl.con2("values", -1);
+    ConstFieldElementImpl valuesField =
+        new ConstFieldElementImpl.con2("values", -1);
     valuesField.static = true;
     valuesField.const3 = true;
     valuesField.synthetic = true;
@@ -3768,7 +3769,8 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     //
     // Build the value of the 'values' field.
     //
-    valuesField.evaluationResult = new EvaluationResultImpl.con1(new DartObjectImpl(valuesField.type, new ListState(constantValues)));
+    valuesField.evaluationResult = new EvaluationResultImpl.con1(
+        new DartObjectImpl(valuesField.type, new ListState(constantValues)));
     //
     // Finish building the enum.
     //
@@ -13396,12 +13398,24 @@ class TypeProviderImpl implements TypeProvider {
   DartType _undefinedType;
 
   /**
-   * Initialize a newly created type provider to provide the types defined in the given library.
-   *
-   * @param coreLibrary the element representing the core library (dart:core).
+   * Initialize a newly created type provider to provide the types defined in
+   * the given [coreLibrary] and [asyncLibrary].
    */
   TypeProviderImpl(LibraryElement coreLibrary, LibraryElement asyncLibrary) {
-    _initializeFrom(coreLibrary, asyncLibrary);
+    Namespace coreNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLibrary);
+    Namespace asyncNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(asyncLibrary);
+    _initializeFrom(coreNamespace, asyncNamespace);
+  }
+
+  /**
+   * Initialize a newly created type provider to provide the types defined in
+   * the given [Namespace]s.
+   */
+  TypeProviderImpl.forNamespaces(
+      Namespace coreNamespace, Namespace asyncNamespace) {
+    _initializeFrom(coreNamespace, asyncNamespace);
   }
 
   @override
@@ -13495,16 +13509,10 @@ class TypeProviderImpl implements TypeProvider {
   }
 
   /**
-   * Initialize the types provided by this type provider from the given library.
-   *
-   * @param library the library containing the definitions of the core types
+   * Initialize the types provided by this type provider from the given
+   * [Namespace]s.
    */
-  void _initializeFrom(
-      LibraryElement coreLibrary, LibraryElement asyncLibrary) {
-    Namespace coreNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLibrary);
-    Namespace asyncNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(asyncLibrary);
+  void _initializeFrom(Namespace coreNamespace, Namespace asyncNamespace) {
     _boolType = _getType(coreNamespace, "bool");
     _bottomType = BottomTypeImpl.instance;
     _deprecatedType = _getType(coreNamespace, "Deprecated");

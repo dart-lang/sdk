@@ -830,12 +830,12 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
  */
 class BuildTypeProviderTask extends SourceBasedAnalysisTask {
   /**
-   * The [RESOLVED_UNIT3] input of the `dart:core` library.
+   * The [PUBLIC_NAMESPACE] input of the `dart:core` library.
    */
   static const String CORE_INPUT = 'CORE_INPUT';
 
   /**
-   * The [RESOLVED_UNIT3] input of the `dart:async` library.
+   * The [PUBLIC_NAMESPACE] input of the `dart:async` library.
    */
   static const String ASYNC_INPUT = 'ASYNC_INPUT';
 
@@ -855,14 +855,13 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    CompilationUnit coreUnit = getRequiredInput(CORE_INPUT);
-    CompilationUnit asyncUnit = getRequiredInput(ASYNC_INPUT);
-    LibraryElement coreLibrary = coreUnit.element.library;
-    LibraryElement asyncLibrary = asyncUnit.element.library;
+    Namespace coreNamespace = getRequiredInput(CORE_INPUT);
+    Namespace asyncNamespace = getRequiredInput(ASYNC_INPUT);
     //
     // Record outputs.
     //
-    TypeProvider typeProvider = new TypeProviderImpl(coreLibrary, asyncLibrary);
+    TypeProvider typeProvider =
+        new TypeProviderImpl.forNamespaces(coreNamespace, asyncNamespace);
     (context as ExtendedAnalysisContext).typeProvider = typeProvider;
     outputs[TYPE_PROVIDER] = typeProvider;
   }
@@ -872,8 +871,8 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     return <String, TaskInput>{
-      CORE_INPUT: RESOLVED_UNIT3.inputFor(coreSource),
-      ASYNC_INPUT: RESOLVED_UNIT3.inputFor(asyncSource)
+      CORE_INPUT: PUBLIC_NAMESPACE.inputFor(coreSource),
+      ASYNC_INPUT: PUBLIC_NAMESPACE.inputFor(asyncSource)
     };
   }
 
