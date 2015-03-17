@@ -49,6 +49,14 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
         contributesTo: DART_ERRORS);
 
 /**
+ * The export [Namespace] of a library.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<Namespace> EXPORT_NAMESPACE =
+    new ResultDescriptor<Namespace>('EXPORT_NAMESPACE', null);
+
+/**
  * The sources representing the export closure of a library.
  *
  * The result is only available for targets representing a Dart library.
@@ -77,6 +85,17 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT2 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT2', null);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * In addition to [LIBRARY_ELEMENT2] `entryPoint` is set, if the library does
+ * not declare one already and one of the exported libraries exports one.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT3 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT3', null);
 
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
@@ -369,15 +388,6 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     libraryElement.imports = imports;
     libraryElement.exports = exports;
-    // TODO(scheglov) move after EXPORT_NAMESPACE or just this task
-//    if (libraryElement.entryPoint == null) {
-//      Namespace namespace = new NamespaceBuilder()
-//          .createExportNamespaceForLibrary(libraryElement);
-//      Element element = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
-//      if (element is FunctionElement) {
-//        libraryElement.entryPoint = element;
-//      }
-//    }
     //
     // Record outputs.
     //
@@ -517,6 +527,87 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
   static BuildEnumMemberElementsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new BuildEnumMemberElementsTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [EXPORT_NAMESPACE] and [LIBRARY_ELEMENT3] for a library.
+ */
+class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input for [LIBRARY_ELEMENT2] of a library.
+   */
+  static const String LIBRARY2_ELEMENT_INPUT = 'LIBRARY2_ELEMENT_INPUT';
+
+  /**
+   * The a [Source] to [PUBLIC_NAMESPACE] map input.
+   */
+  static const String PUBLIC_NAMESPACES_INPUT = 'PUBLIC_NAMESPACES_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildExportNamespaceTask', createTask, buildInputs, <ResultDescriptor>[
+    EXPORT_NAMESPACE,
+    LIBRARY_ELEMENT3
+  ]);
+
+  BuildExportNamespaceTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibraryElementImpl library = getRequiredInput(LIBRARY2_ELEMENT_INPUT);
+    Map<Source, Namespace> publicNamespaces =
+        getRequiredInput(PUBLIC_NAMESPACES_INPUT);
+    //
+    // Compute export namespace.
+    //
+    ExportNamespaceBuilder builder =
+        new ExportNamespaceBuilder(publicNamespaces);
+    Namespace namespace = builder.build(library);
+    //
+    // Update entry point.
+    //
+    if (library.entryPoint == null) {
+      Iterable<Element> exportedElements = namespace.definedNames.values;
+      library.entryPoint = exportedElements.firstWhere(
+          (element) => element is FunctionElement && element.isEntryPoint,
+          orElse: () => null);
+    }
+    //
+    // Record outputs.
+    //
+    outputs[EXPORT_NAMESPACE] = namespace;
+    outputs[LIBRARY_ELEMENT3] = library;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given library [source].
+   */
+  static Map<String, TaskInput> buildInputs(Source source) {
+    return <String, TaskInput>{
+      LIBRARY2_ELEMENT_INPUT: LIBRARY_ELEMENT2.inputFor(source),
+      PUBLIC_NAMESPACES_INPUT: new ListToMapTaskInput<Source, Namespace>(
+          EXPORT_SOURCE_CLOSURE.inputFor(source),
+          (Source source) => PUBLIC_NAMESPACE.inputFor(source))
+    };
+  }
+
+  /**
+   * Create a [BuildExportNamespaceTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildExportNamespaceTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildExportNamespaceTask(context, target);
   }
 }
 
@@ -975,6 +1066,113 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * The helper for building the export [Namespace] of a [LibraryElement].
+ */
+class ExportNamespaceBuilder {
+  final Map<Source, Namespace> _publicNamespaces;
+
+  ExportNamespaceBuilder(this._publicNamespaces);
+
+  /**
+   * Build the export [Namespace] of the given [LibraryElement].
+   */
+  Namespace build(LibraryElement library) {
+    return new Namespace(
+        _createExportMapping(library, new HashSet<LibraryElement>()));
+  }
+
+  /**
+   * Create a mapping table representing the export namespace of the given
+   * [library].
+   *
+   * The given [visitedElements] a set of libraries that do not need to be
+   * visited when processing the export directives of the given library because
+   * all of the names defined by them will be added by another library.
+   */
+  HashMap<String, Element> _createExportMapping(
+      LibraryElement library, HashSet<LibraryElement> visitedElements) {
+    visitedElements.add(library);
+    try {
+      HashMap<String, Element> definedNames = new HashMap<String, Element>();
+      // Add names of the export directives.
+      for (ExportElement element in library.exports) {
+        LibraryElement exportedLibrary = element.exportedLibrary;
+        if (exportedLibrary != null &&
+            !visitedElements.contains(exportedLibrary)) {
+          //
+          // The exported library will be null if the URI does not reference a
+          // valid library.
+          //
+          HashMap<String, Element> exportedNames =
+              _createExportMapping(exportedLibrary, visitedElements);
+          exportedNames = _applyCombinators(exportedNames, element.combinators);
+          definedNames.addAll(exportedNames);
+        }
+      }
+      // Add names of the public namespace.
+      {
+        Namespace publicNamespace = _publicNamespaces[library.source];
+        if (publicNamespace != null) {
+          definedNames.addAll(publicNamespace.definedNames);
+        }
+      }
+      return definedNames;
+    } finally {
+      visitedElements.remove(library);
+    }
+  }
+
+  /**
+   * Apply the given [combinators] to all of the names in [definedNames].
+   */
+  static HashMap<String, Element> _applyCombinators(
+      HashMap<String, Element> definedNames,
+      List<NamespaceCombinator> combinators) {
+    for (NamespaceCombinator combinator in combinators) {
+      if (combinator is HideElementCombinator) {
+        _hide(definedNames, combinator.hiddenNames);
+      } else if (combinator is ShowElementCombinator) {
+        definedNames = _show(definedNames, combinator.shownNames);
+      }
+    }
+    return definedNames;
+  }
+
+  /**
+   * Hide all of the [hiddenNames] by removing them from the given
+   * [definedNames].
+   */
+  static void _hide(
+      HashMap<String, Element> definedNames, List<String> hiddenNames) {
+    for (String name in hiddenNames) {
+      definedNames.remove(name);
+      definedNames.remove('$name=');
+    }
+  }
+
+  /**
+   * Show only the given [shownNames] by removing all other names from the given
+   * [definedNames].
+   */
+  static HashMap<String, Element> _show(
+      HashMap<String, Element> definedNames, List<String> shownNames) {
+    HashMap<String, Element> newNames = new HashMap<String, Element>();
+    for (String name in shownNames) {
+      Element element = definedNames[name];
+      if (element != null) {
+        newNames[name] = element;
+      }
+      String setterName = '$name=';
+      element = definedNames[setterName];
+      if (element != null) {
+        newNames[setterName] = element;
+      }
+    }
+    return newNames;
+  }
+}
+
+/**
  * A pair of a library [Source] and a unit [Source] in this library.
  */
 class LibraryUnitTarget implements AnalysisTarget {
@@ -1073,7 +1271,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
               }
             } else {
               throw new AnalysisException(
-                  "$runtimeType failed to handle a ${directive.runtimeType}");
+                  '$runtimeType failed to handle a ${directive.runtimeType}');
             }
           }
         }

@@ -37,6 +37,7 @@ main() {
   runReflectiveTests(BuildDirectiveElementsTaskTest);
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
   runReflectiveTests(BuildExportSourceClosureTaskTest);
+  runReflectiveTests(BuildExportNamespaceTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
@@ -434,6 +435,104 @@ enum MyEnum {
     expect(getter, isNotNull);
     expect(getter.variable, same(field));
     expect(getter.type, isNotNull);
+  }
+}
+
+@reflectiveTest
+class BuildExportNamespaceTaskTest extends _AbstractDartTaskTest {
+  test_perform_entyrPoint() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+export 'b.dart';
+''');
+    Source sourceB = _newSource('/b.dart', '''
+library lib_b;
+main() {}
+''');
+    _computeResult(sourceA, LIBRARY_ELEMENT3);
+    expect(task, new isInstanceOf<BuildExportNamespaceTask>());
+    // validate
+    {
+      LibraryElement library = outputs[LIBRARY_ELEMENT3];
+      FunctionElement entryPoint = library.entryPoint;
+      expect(entryPoint, isNotNull);
+      expect(entryPoint.source, sourceB);
+    }
+  }
+
+  test_perform_hideCombinator() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+export 'b.dart' hide B1;
+class A1 {}
+class A2 {}
+class _A3 {}
+''');
+    _newSource('/b.dart', '''
+library lib_b;
+class B1 {}
+class B2 {}
+class B3 {}
+class _B4 {}
+''');
+    _newSource('/c.dart', '''
+library lib_c;
+class C1 {}
+class C2 {}
+class C3 {}
+''');
+    _computeResult(sourceA, EXPORT_NAMESPACE);
+    expect(task, new isInstanceOf<BuildExportNamespaceTask>());
+    // validate
+    {
+      Namespace namespace = outputs[EXPORT_NAMESPACE];
+      Iterable<String> definedKeys = namespace.definedNames.keys;
+      expect(definedKeys, unorderedEquals(['A1', 'A2', 'B2', 'B3']));
+    }
+  }
+
+  test_perform_showCombinator() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+export 'b.dart' show B1;
+class A1 {}
+class A2 {}
+class _A3 {}
+''');
+    _newSource('/b.dart', '''
+library lib_b;
+class B1 {}
+class B2 {}
+class _B3 {}
+''');
+    _computeResult(sourceA, EXPORT_NAMESPACE);
+    expect(task, new isInstanceOf<BuildExportNamespaceTask>());
+    // validate
+    {
+      Namespace namespace = outputs[EXPORT_NAMESPACE];
+      Iterable<String> definedKeys = namespace.definedNames.keys;
+      expect(definedKeys, unorderedEquals(['A1', 'A2', 'B1']));
+    }
+  }
+
+  test_perform_showCombinator_setter() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+export 'b.dart' show topLevelB;
+class A {}
+''');
+    _newSource('/b.dart', '''
+library lib_b;
+int topLevelB;
+''');
+    _computeResult(sourceA, EXPORT_NAMESPACE);
+    expect(task, new isInstanceOf<BuildExportNamespaceTask>());
+    // validate
+    {
+      Namespace namespace = outputs[EXPORT_NAMESPACE];
+      Iterable<String> definedKeys = namespace.definedNames.keys;
+      expect(definedKeys, unorderedEquals(['A', 'topLevelB', 'topLevelB=']));
+    }
   }
 }
 
@@ -978,6 +1077,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildExportSourceClosureTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     // prepare AnalysisDriver
@@ -1033,14 +1133,6 @@ class _MockContext extends TypedMock implements ExtendedAnalysisContext {
   }
 
   TimestampedData<String> getContents(Source source) => source.contents;
-
-  @override
-  Namespace getPublicNamespace(LibraryElement library) {
-    // TODO(scheglov) Should be be replaced with an explicit input?
-    // TODO(scheglov) Based on... LibraryElement's closure?
-    var cacheEntry = getCacheEntry(library.source);
-    return cacheEntry.getValue(PUBLIC_NAMESPACE);
-  }
 
   noSuchMethod(Invocation invocation) {
     print('noSuchMethod: ${invocation.memberName}');
