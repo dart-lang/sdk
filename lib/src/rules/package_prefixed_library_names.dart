@@ -47,9 +47,8 @@ library my_package.src.private;
 ```
 ''';
 
-String extractLibraryPrefix(String path) {
-  return path;
-}
+bool matchesOrIsPrefixedBy(String name, String prefix) =>
+    name == prefix || name.startsWith('$prefix.');
 
 class PackagePrefixedLibraryNames extends LintRule {
   PackagePrefixedLibraryNames() : super(
@@ -76,7 +75,7 @@ class Visitor extends SimpleAstVisitor {
         packageName: getProjectPackageName(source.fullName));
 
     var libraryName = node.element.name;
-    if (!libraryName.startsWith('$prefix.')) {
+    if (!matchesOrIsPrefixedBy(libraryName, prefix)) {
       rule.reportLint(node.name);
     }
   }
