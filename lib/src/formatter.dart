@@ -54,11 +54,13 @@ String shorten(String fileRoot, String fullName) {
 class DetailedReporter extends SimpleFormatter {
   DetailedReporter(
       Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
-      {int fileCount, String fileRoot, bool showStatistics: false})
+      {int fileCount, String fileRoot, bool showStatistics: false,
+      quiet: false})
       : super(errors, filter, out,
           fileCount: fileCount,
           fileRoot: fileRoot,
-          showStatistics: showStatistics);
+          showStatistics: showStatistics,
+          quiet: quiet);
 
   @override
   writeLint(AnalysisError error, {int offset, int line, int column}) {
@@ -76,12 +78,13 @@ class DetailedReporter extends SimpleFormatter {
 
 abstract class ReportFormatter {
   factory ReportFormatter(
-          Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
-          {int fileCount, String fileRoot, bool showStatistics: false}) =>
-      new DetailedReporter(errors, filter, out,
-          fileCount: fileCount,
-          fileRoot: fileRoot,
-          showStatistics: showStatistics);
+      Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
+      {int fileCount, String fileRoot, bool showStatistics: false,
+      bool quiet: false}) => new DetailedReporter(errors, filter, out,
+      fileCount: fileCount,
+      fileRoot: fileRoot,
+      showStatistics: showStatistics,
+      quiet: quiet);
 
   write();
 }
@@ -98,14 +101,15 @@ class SimpleFormatter implements ReportFormatter {
   final int fileCount;
   final String fileRoot;
   final bool showStatistics;
+  final bool quiet;
 
   /// Cached for the purposes of statistics report formatting.
   int _summaryLength = 0;
 
   Map<String, int> stats = <String, int>{};
 
-  SimpleFormatter(this.errors, this.filter, this.out,
-      {this.fileCount, this.fileRoot, this.showStatistics: false});
+  SimpleFormatter(this.errors, this.filter, this.out, {this.fileCount,
+      this.fileRoot, this.showStatistics: false, this.quiet: false});
 
   /// Override to influence error sorting
   int compare(AnalysisError error1, AnalysisError error2) {
@@ -148,10 +152,15 @@ class SimpleFormatter implements ReportFormatter {
         filteredLintCount++;
       } else {
         ++errorCount;
-        _writeLint(e, info.lineInfo);
+        if (!quiet) {
+          _writeLint(e, info.lineInfo);
+        }
+        _recordStats(e);
       }
     }));
-    out.writeln();
+    if (!quiet) {
+      out.writeln();
+    }
   }
 
   void writeStatistics() {
@@ -193,6 +202,5 @@ class SimpleFormatter implements ReportFormatter {
     var column = lineInfo.getLocation(offset).columnNumber;
 
     writeLint(error, offset: offset, column: column, line: line);
-    _recordStats(error);
   }
 }
