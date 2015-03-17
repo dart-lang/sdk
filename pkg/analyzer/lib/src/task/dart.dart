@@ -34,7 +34,7 @@ import 'package:analyzer/task/model.dart';
 final ResultDescriptor<List<AnalysisError>> BUILD_DIRECTIVES_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
         'BUILD_DIRECTIVES_ERRORS', AnalysisError.NO_ERRORS,
-        contributesTo: ANALYSIS_ERRORS);
+        contributesTo: DART_ERRORS);
 
 /**
  * The errors produced while builing a library element.
@@ -46,7 +46,7 @@ final ResultDescriptor<List<AnalysisError>> BUILD_DIRECTIVES_ERRORS =
 final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
         'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS,
-        contributesTo: ANALYSIS_ERRORS);
+        contributesTo: DART_ERRORS);
 
 /**
  * The partial [LibraryElement] associated with a library.

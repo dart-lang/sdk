@@ -227,15 +227,16 @@ abstract class AnalysisTask {
  *
  * Clients are not expected to subtype this class.
  */
-abstract class ContributionPoint<V> extends ResultDescriptor<V> {
+abstract class CompositeResultDescriptor<V> extends ResultDescriptor<V> {
   /**
-   * Initialize a newly created contribution point to have the given [name].
+   * Initialize a newly created composite result to have the given [name].
    */
-  factory ContributionPoint(String name) = ContributionPointImpl;
+  factory CompositeResultDescriptor(
+      String name) = CompositeResultDescriptorImpl;
 
   /**
    * Return a list containing the descriptors of the results that are unioned
-   * together to comprise the value of this result.
+   * together to compose the value of this result.
    *
    * Clients must not modify the returned list.
    */
@@ -250,10 +251,10 @@ abstract class ContributionPoint<V> extends ResultDescriptor<V> {
 abstract class ResultDescriptor<V> {
   /**
    * Initialize a newly created analysis result to have the given [name]. If a
-   * contribution point is specified, then this result will contribute to it.
+   * composite result is specified, then this result will contribute to it.
    */
   factory ResultDescriptor(String name, V defaultValue,
-      {ContributionPoint<V> contributesTo}) = ResultDescriptorImpl;
+      {CompositeResultDescriptor<V> contributesTo}) = ResultDescriptorImpl;
 
   /**
    * Return the default value for results described by this descriptor.

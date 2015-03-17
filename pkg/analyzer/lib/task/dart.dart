@@ -10,7 +10,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -21,6 +20,17 @@ import 'package:analyzer/task/model.dart';
 final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
     new ResultDescriptor<CompilationUnitElement>(
         'COMPILATION_UNIT_ELEMENT', null);
+
+/**
+ * The analysis errors associated with a target.
+ *
+ * The value combines errors represented by multiple other results.
+ */
+// TODO(brianwilkerson) If we want to associate errors with targets smaller than
+// a file, we will need other contribution points to collect them. In which case
+// we might want to rename this and/or document that it applies to files.
+final CompositeResultDescriptor<List<AnalysisError>> DART_ERRORS =
+    new CompositeResultDescriptor<List<AnalysisError>>('DART_ERRORS');
 
 /**
  * The sources of the libraries that are exported from a library.
@@ -83,8 +93,7 @@ final ResultDescriptor<bool> IS_LAUNCHABLE =
  */
 final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
-        'PARSE_ERRORS', AnalysisError.NO_ERRORS,
-        contributesTo: ANALYSIS_ERRORS);
+        'PARSE_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
 
 /**
  * The compilation unit AST produced while parsing a compilation unit.
@@ -113,7 +122,7 @@ final ResultDescriptor<Namespace> PUBLIC_NAMESPACE =
  */
 final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
-        'SCAN_ERRORS', AnalysisError.NO_ERRORS, contributesTo: ANALYSIS_ERRORS);
+        'SCAN_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
 
 /**
  * The token stream produced while scanning a compilation unit.

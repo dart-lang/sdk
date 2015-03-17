@@ -4,23 +4,8 @@
 
 library analyzer.task.general;
 
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
-
-/**
- * The analysis errors associated with a target.
- *
- * The value combines errors represented by multiple other results.
- */
-// TODO(brianwilkerson) If we want to associate errors with targets smaller than
-// a file, we will need other contribution points to collect them. In which case
-// we might want to rename this and/or document that it applies to files. For
-// that matter, we might also want to have one that applies to Dart files and a
-// different one that applies to HTML files, because the list of errors being
-// combined is likely to be different.
-final ContributionPoint<List<AnalysisError>> ANALYSIS_ERRORS =
-    new ContributionPoint<List<AnalysisError>>('ANALYSIS_ERRORS');
 
 /**
  * The contents of a single file.

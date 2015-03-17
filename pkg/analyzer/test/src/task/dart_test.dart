@@ -507,22 +507,26 @@ part of lib;
     expect((partUnits[1].directives[0] as PartOfDirective).element,
         same(libraryElement));
     // CompilationUnitElement(s)
-    {
-      CompilationUnitElement unitElement = partUnits[0].element;
-      expect(unitElement.uri, 'part1.dart');
-      expect(unitElement.uriOffset, 18);
-      expect(unitElement.uriEnd, 30);
-      expect((libraryUnit.directives[1] as PartDirective).element,
-          same(unitElement));
+    CompilationUnitElement firstPart;
+    CompilationUnitElement secondPart;
+    if (partUnits[0].element.uri == 'part1.dart') {
+      firstPart = partUnits[0].element;
+      secondPart = partUnits[1].element;
+    } else {
+      firstPart = partUnits[1].element;
+      secondPart = partUnits[0].element;
     }
-    {
-      CompilationUnitElement unitElement = partUnits[1].element;
-      expect(unitElement.uri, 'part2.dart');
-      expect(unitElement.uriOffset, 37);
-      expect(unitElement.uriEnd, 49);
-      expect((libraryUnit.directives[2] as PartDirective).element,
-          same(unitElement));
-    }
+    expect(firstPart.uri, 'part1.dart');
+    expect(firstPart.uriOffset, 18);
+    expect(firstPart.uriEnd, 30);
+    expect(
+        (libraryUnit.directives[1] as PartDirective).element, same(firstPart));
+
+    expect(secondPart.uri, 'part2.dart');
+    expect(secondPart.uriOffset, 37);
+    expect(secondPart.uriEnd, 49);
+    expect(
+        (libraryUnit.directives[2] as PartDirective).element, same(secondPart));
   }
 
   test_perform_error_missingLibraryDirectiveWithPart_hasCommon() {
