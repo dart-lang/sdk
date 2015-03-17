@@ -117,10 +117,8 @@ class AnalysisDriver {
     return errors;
   }
 
-  /**
-   * Yield the sources for all the compilation units constituting
-   * [librarySource] (including the defining compilation unit).
-   */
+  /// Yield the sources for all the compilation units constituting
+  /// [librarySource] (including the defining compilation unit).
   Iterable<Source> _getAllUnitSources(
       AnalysisContext context, Source librarySource) sync* {
     yield librarySource;
