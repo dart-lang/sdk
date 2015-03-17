@@ -236,7 +236,7 @@ void main() {
             y = /*severe:StaticTypeError*/"hi";
           }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
 
     testChecker({
       '/a.dart': '''
@@ -251,7 +251,7 @@ void main() {
             B.y = /*severe:StaticTypeError*/"hi";
           }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
   });
 
   test('do not infer from variables in cycle libs', () {
@@ -270,7 +270,7 @@ void main() {
             t = /*info:DownCast*/y;
           }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
 
     testChecker({
       '/a.dart': '''
@@ -287,7 +287,7 @@ void main() {
             t = /*info:DownCast*/A.y;
           }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
   });
 
   test('do not infer from static and instance fields', () {
@@ -343,7 +343,7 @@ void main() {
             x = new A().a2;
           }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
   });
 
   test('inference uses declared types', () {
@@ -363,7 +363,7 @@ void main() {
             a = /*info:DownCast*/z;
           }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
   });
 
   test('inference in cycles is deterministic', () {
@@ -450,7 +450,7 @@ void main() {
             x = new F().f2;
           }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
   });
 
   test('infer from complex expressions if the outer-most value is precise', () {
@@ -559,7 +559,7 @@ void main() {
           i = new B().y; // B.y was inferred though
         }
     '''
-    }, inferStaticsFromIdentifiers: true);
+    }, inferTransitively: true);
   });
 
   test('infer types on loop indices', () {

@@ -324,11 +324,11 @@ class LibraryResolverWithInference extends LibraryResolver {
       return _canInferFrom(expression.target);
     }
     if (expression is SimpleIdentifier || expression is PropertyAccess) {
-      return _options.inferStaticsFromIdentifiers;
+      return _options.inferTransitively;
     }
     if (expression is PrefixedIdentifier) {
       if (expression.staticElement is PropertyAccessorElement) {
-        return _options.inferStaticsFromIdentifiers;
+        return _options.inferTransitively;
       }
       return _canInferFrom(expression.identifier);
     }

@@ -25,7 +25,7 @@ class ResolverOptions {
 
   /// Whether to infer return types and field types from overriden members.
   final bool inferFromOverrides;
-  static const inferFromOverridesDefault = false;
+  static const inferFromOverridesDefault = true;
 
   /// Whether to infer types for consts and fields by looking at initializers on
   /// the RHS. For example, in a constant declaration like:
@@ -43,8 +43,8 @@ class ResolverOptions {
   /// In the future, inference might track dependencies between variables in
   /// more detail so that, in the example above, we can use `B`'s inferred type
   /// always.
-  final bool inferStaticsFromIdentifiers;
-  static const inferStaticsFromIdentifiersDefault = false;
+  final bool inferTransitively;
+  static const inferTransitivelyDefault = false;
 
   /// Restrict inference of fields and top-levels to those that are final and
   /// const.
@@ -54,7 +54,7 @@ class ResolverOptions {
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
       this.packagePaths: const <String>[],
       this.inferFromOverrides: inferFromOverridesDefault,
-      this.inferStaticsFromIdentifiers: inferStaticsFromIdentifiersDefault,
+      this.inferTransitively: inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault});
 }
 
@@ -172,7 +172,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Whether to infer types for consts and static fields by looking at
   /// identifiers on the RHS.
   @override
-  final bool inferStaticsFromIdentifiers;
+  final bool inferTransitively;
 
   /// Restrict inference of fields and top-levels to those that are final and
   /// const.
@@ -200,7 +200,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.useMultiPackage: false, this.packageRoot: 'packages/',
       this.packagePaths: const <String>[],
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
-      this.inferStaticsFromIdentifiers: ResolverOptions.inferStaticsFromIdentifiersDefault,
+      this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: ResolverOptions.onlyInferConstAndFinalFieldsDefault,
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
@@ -235,7 +235,7 @@ CompilerOptions parseOptions(List<String> argv) {
       packageRoot: args['package-root'],
       packagePaths: args['package-paths'].split(','),
       inferFromOverrides: args['infer-from-overrides'],
-      inferStaticsFromIdentifiers: args['infer-transitively'],
+      inferTransitively: args['infer-transitively'],
       onlyInferConstsAndFinalFields: args['infer-only-finals'],
       nonnullableTypes: optionsToList(args['nonnullable'],
           defaultValue: TypeOptions.NONNULLABLE_TYPES),
@@ -274,7 +274,7 @@ final ArgParser argParser = new ArgParser()
       defaultsTo: ResolverOptions.inferFromOverridesDefault)
   ..addFlag('infer-transitively',
       help: 'Infer consts/fields from definitions in other libraries',
-      defaultsTo: ResolverOptions.inferStaticsFromIdentifiersDefault)
+      defaultsTo: ResolverOptions.inferTransitivelyDefault)
   ..addFlag('infer-only-finals',
       help: 'Do not infer non-const or non-final fields',
       defaultsTo: ResolverOptions.onlyInferConstAndFinalFieldsDefault)
