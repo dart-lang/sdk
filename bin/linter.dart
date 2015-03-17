@@ -19,6 +19,8 @@ void main(List<String> args) {
         abbr: "h", negatable: false, help: "Shows usage information.")
     ..addFlag("stats",
         abbr: "s", negatable: false, help: "Show lint statistics.")
+    ..addFlag('visit-transitive-closure',
+        help: 'Visit the transitive closure of imported/exported libraries.')
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addOption('package-root',
@@ -64,6 +66,8 @@ void main(List<String> args) {
     lintOptions.packageRootPath = customPackageRoot;
   }
 
+  lintOptions.visitTransitiveClosure = options['visit-transitive-closure'];
+
   var linter = new DartLinter(lintOptions);
 
   List<File> filesToLint = [];
@@ -78,7 +82,9 @@ void main(List<String> args) {
     var stats = options['stats'];
     ReportFormatter reporter = new ReportFormatter(
         errors, lintOptions.filter, outSink,
-        fileCount: filesToLint.length, fileRoot: commonRoot, showStatistics: stats);
+        fileCount: filesToLint.length,
+        fileRoot: commonRoot,
+        showStatistics: stats);
     reporter.write();
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting
