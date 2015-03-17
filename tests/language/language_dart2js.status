@@ -10,6 +10,9 @@ sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 async_star_test/02: RuntimeError # 22853
 async_star_test/05: RuntimeError, Timeout
 
+try_catch_on_syntax_test/10: Fail # Issue 19823
+try_catch_on_syntax_test/11: Fail # Issue 19823
+
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
