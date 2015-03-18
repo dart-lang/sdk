@@ -137,10 +137,10 @@ class BuildDirectiveElementsTaskTest extends _AbstractDartTaskTest {
     expect(inputs, hasLength(5));
     expect(inputs[BuildDirectiveElementsTask.RESOLVED_UNIT2_INPUT_NAME], unitA);
     expect(
-        inputs[BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME],
+        inputs[BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT_INPUT_NAME],
         containsPair(sourceB, libraryElementB));
     expect(
-        inputs[BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME],
+        inputs[BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT_INPUT_NAME],
         containsPair(sourceC, libraryElementC));
     expect(inputs[BuildDirectiveElementsTask.IMPORTS_SOURCE_KIND_INPUT_NAME],
         containsPair(sourceB, SourceKind.LIBRARY));
@@ -366,12 +366,12 @@ library libC;
   }
 
   _getExportLibraryInput(Source source) {
-    var key = BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME;
+    var key = BuildDirectiveElementsTask.EXPORTS_LIBRARY_ELEMENT_INPUT_NAME;
     return task.inputs[key][source];
   }
 
   _getImportLibraryInput(Source source) {
-    var key = BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME;
+    var key = BuildDirectiveElementsTask.IMPORTS_LIBRARY_ELEMENT_INPUT_NAME;
     return task.inputs[key][source];
   }
 }
@@ -449,11 +449,11 @@ export 'b.dart';
 library lib_b;
 main() {}
 ''');
-    _computeResult(sourceA, LIBRARY_ELEMENT3);
+    _computeResult(sourceA, LIBRARY_ELEMENT4);
     expect(task, new isInstanceOf<BuildExportNamespaceTask>());
     // validate
     {
-      LibraryElement library = outputs[LIBRARY_ELEMENT3];
+      LibraryElement library = outputs[LIBRARY_ELEMENT4];
       FunctionElement entryPoint = library.entryPoint;
       expect(entryPoint, isNotNull);
       expect(entryPoint.source, sourceB);
@@ -481,11 +481,12 @@ class C1 {}
 class C2 {}
 class C3 {}
 ''');
-    _computeResult(sourceA, EXPORT_NAMESPACE);
+    _computeResult(sourceA, LIBRARY_ELEMENT4);
     expect(task, new isInstanceOf<BuildExportNamespaceTask>());
     // validate
     {
-      Namespace namespace = outputs[EXPORT_NAMESPACE];
+      LibraryElement library = outputs[LIBRARY_ELEMENT4];
+      Namespace namespace = library.exportNamespace;
       Iterable<String> definedKeys = namespace.definedNames.keys;
       expect(definedKeys, unorderedEquals(['A1', 'A2', 'B2', 'B3']));
     }
@@ -505,11 +506,12 @@ class B1 {}
 class B2 {}
 class _B3 {}
 ''');
-    _computeResult(sourceA, EXPORT_NAMESPACE);
+    _computeResult(sourceA, LIBRARY_ELEMENT4);
     expect(task, new isInstanceOf<BuildExportNamespaceTask>());
     // validate
     {
-      Namespace namespace = outputs[EXPORT_NAMESPACE];
+      LibraryElement library = outputs[LIBRARY_ELEMENT4];
+      Namespace namespace = library.exportNamespace;
       Iterable<String> definedKeys = namespace.definedNames.keys;
       expect(definedKeys, unorderedEquals(['A1', 'A2', 'B1']));
     }
@@ -525,11 +527,12 @@ class A {}
 library lib_b;
 int topLevelB;
 ''');
-    _computeResult(sourceA, EXPORT_NAMESPACE);
+    _computeResult(sourceA, LIBRARY_ELEMENT4);
     expect(task, new isInstanceOf<BuildExportNamespaceTask>());
     // validate
     {
-      Namespace namespace = outputs[EXPORT_NAMESPACE];
+      LibraryElement library = outputs[LIBRARY_ELEMENT4];
+      Namespace namespace = library.exportNamespace;
       Iterable<String> definedKeys = namespace.definedNames.keys;
       expect(definedKeys, unorderedEquals(['A', 'topLevelB', 'topLevelB=']));
     }
@@ -825,8 +828,8 @@ class BuildPublicNamespaceTaskTest extends _AbstractDartTaskTest {
     Map<String, TaskInput> inputs =
         BuildPublicNamespaceTask.buildInputs(emptySource);
     expect(inputs, isNotNull);
-    expect(inputs.keys, unorderedEquals(
-        [BuildPublicNamespaceTask.BUILT_LIBRARY_ELEMENT_INPUT_NAME]));
+    expect(
+        inputs.keys, unorderedEquals([BuildPublicNamespaceTask.LIBRARY_INPUT]));
   }
 
   test_constructor() {
@@ -870,10 +873,11 @@ _c() {}
 d() {}
 '''
     });
-    _computeResult(sources.first, PUBLIC_NAMESPACE);
+    _computeResult(sources.first, LIBRARY_ELEMENT3);
     expect(task, new isInstanceOf<BuildPublicNamespaceTask>());
     // validate
-    Namespace namespace = outputs[PUBLIC_NAMESPACE];
+    LibraryElement library = outputs[LIBRARY_ELEMENT3];
+    Namespace namespace = library.publicNamespace;
     expect(namespace.definedNames.keys, unorderedEquals(['a', 'd']));
   }
 }

@@ -12,6 +12,7 @@ import 'element.dart';
 import 'engine.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
+import 'resolver.dart';
 import 'source.dart';
 import 'utilities_dart.dart';
 
@@ -751,6 +752,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   List<LibraryElement> get exportedLibraries => actualElement.exportedLibraries;
 
   @override
+  Namespace get exportNamespace => actualElement.exportNamespace;
+
+  @override
   List<ExportElement> get exports => actualElement.exports;
 
   @override
@@ -785,6 +789,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   List<PrefixElement> get prefixes => actualElement.prefixes;
+
+  @override
+  Namespace get publicNamespace => actualElement.publicNamespace;
 
   @override
   List<CompilationUnitElement> get units => actualElement.units;

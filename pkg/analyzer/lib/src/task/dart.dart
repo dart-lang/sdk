@@ -49,14 +49,6 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
         contributesTo: DART_ERRORS);
 
 /**
- * The export [Namespace] of a library.
- *
- * The result is only available for targets representing a Dart library.
- */
-final ResultDescriptor<Namespace> EXPORT_NAMESPACE =
-    new ResultDescriptor<Namespace>('EXPORT_NAMESPACE', null);
-
-/**
  * The sources representing the export closure of a library.
  *
  * The result is only available for targets representing a Dart library.
@@ -78,8 +70,8 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * In addition to [LIBRARY_ELEMENT1] `imports` and `exports` of the
- * [LibraryElement] are set.
+ * In addition to [LIBRARY_ELEMENT1] [LibraryElement.imports] and
+ * [LibraryElement.exports] are set.
  *
  * The result is only available for targets representing a Dart library.
  */
@@ -89,13 +81,26 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT2 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * In addition to [LIBRARY_ELEMENT2] `entryPoint` is set, if the library does
- * not declare one already and one of the exported libraries exports one.
+ * In addition to [LIBRARY_ELEMENT2] the [LibraryElement.publicNamespace] is set.
  *
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT3 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT3', null);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * In addition to [LIBRARY_ELEMENT3] the [LibraryElement.entryPoint] is set,
+ * if the library does not declare one already and one of the exported
+ * libraries exports one.
+ *
+ * Also [LibraryElement.exportNamespace] is set.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT4', null);
 
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
@@ -227,16 +232,16 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   static const String RESOLVED_UNIT2_INPUT_NAME = 'RESOLVED_UNIT2_INPUT_NAME';
 
   /**
-   * The input with a list of [LIBRARY_ELEMENT1]s of imported libraries.
+   * The input with a list of [LIBRARY_ELEMENT3]s of imported libraries.
    */
-  static const String IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME =
+  static const String IMPORTS_LIBRARY_ELEMENT_INPUT_NAME =
       'IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME';
 
   /**
-   * The input with a list of [LIBRARY_ELEMENT1]s of exported libraries.
+   * The input with a list of [LIBRARY_ELEMENT3]s of exported libraries.
    */
-  static const String EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME =
-      'EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME';
+  static const String EXPORTS_LIBRARY_ELEMENT_INPUT_NAME =
+      'EXPORTS_LIBRARY_ELEMENT_INPUT_NAME';
 
   /**
    * The input with a list of [SOURCE_KIND]s of imported libraries.
@@ -275,9 +280,9 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     CompilationUnit libraryUnit = getRequiredInput(RESOLVED_UNIT2_INPUT_NAME);
     Map<Source, LibraryElement> importLibraryMap =
-        getRequiredInput(IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME);
+        getRequiredInput(IMPORTS_LIBRARY_ELEMENT_INPUT_NAME);
     Map<Source, LibraryElement> exportLibraryMap =
-        getRequiredInput(EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME);
+        getRequiredInput(EXPORTS_LIBRARY_ELEMENT_INPUT_NAME);
     Map<Source, SourceKind> importSourceKindMap =
         getRequiredInput(IMPORTS_SOURCE_KIND_INPUT_NAME);
     Map<Source, SourceKind> exportSourceKindMap =
@@ -404,11 +409,11 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
       RESOLVED_UNIT2_INPUT_NAME: RESOLVED_UNIT2.inputFor(source),
-      IMPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
+      IMPORTS_LIBRARY_ELEMENT_INPUT_NAME:
           new ListToMapTaskInput<Source, LibraryElement>(
               IMPORTED_LIBRARIES.inputFor(source),
               (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
-      EXPORTS_LIBRARY_ELEMENT1_INPUT_NAME:
+      EXPORTS_LIBRARY_ELEMENT_INPUT_NAME:
           new ListToMapTaskInput<Source, LibraryElement>(
               EXPORTED_LIBRARIES.inputFor(source),
               (Source source) => LIBRARY_ELEMENT1.inputFor(source)),
@@ -531,27 +536,20 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [EXPORT_NAMESPACE] and [LIBRARY_ELEMENT3] for a library.
+ * A task that builds [EXPORT_NAMESPACE] and [LIBRARY_ELEMENT4] for a library.
  */
 class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input for [LIBRARY_ELEMENT2] of a library.
+   * The name of the input for [LIBRARY_ELEMENT3] of a library.
    */
-  static const String LIBRARY2_ELEMENT_INPUT = 'LIBRARY2_ELEMENT_INPUT';
-
-  /**
-   * The a [Source] to [PUBLIC_NAMESPACE] map input.
-   */
-  static const String PUBLIC_NAMESPACES_INPUT = 'PUBLIC_NAMESPACES_INPUT';
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildExportNamespaceTask', createTask, buildInputs, <ResultDescriptor>[
-    EXPORT_NAMESPACE,
-    LIBRARY_ELEMENT3
-  ]);
+      'BuildExportNamespaceTask', createTask, buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT4]);
 
   BuildExportNamespaceTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -562,15 +560,13 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    LibraryElementImpl library = getRequiredInput(LIBRARY2_ELEMENT_INPUT);
-    Map<Source, Namespace> publicNamespaces =
-        getRequiredInput(PUBLIC_NAMESPACES_INPUT);
+    LibraryElementImpl library = getRequiredInput(LIBRARY_INPUT);
     //
     // Compute export namespace.
     //
-    ExportNamespaceBuilder builder =
-        new ExportNamespaceBuilder(publicNamespaces);
+    ExportNamespaceBuilder builder = new ExportNamespaceBuilder();
     Namespace namespace = builder.build(library);
+    library.exportNamespace = namespace;
     //
     // Update entry point.
     //
@@ -583,8 +579,7 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[EXPORT_NAMESPACE] = namespace;
-    outputs[LIBRARY_ELEMENT3] = library;
+    outputs[LIBRARY_ELEMENT4] = library;
   }
 
   /**
@@ -594,10 +589,11 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
-      LIBRARY2_ELEMENT_INPUT: LIBRARY_ELEMENT2.inputFor(source),
-      PUBLIC_NAMESPACES_INPUT: new ListToMapTaskInput<Source, Namespace>(
-          EXPORT_SOURCE_CLOSURE.inputFor(source),
-          (Source source) => PUBLIC_NAMESPACE.inputFor(source))
+      LIBRARY_INPUT: LIBRARY_ELEMENT3.inputFor(source),
+      'exportsLibraryPublicNamespace':
+          new ListToMapTaskInput<Source, LibraryElement>(
+              EXPORT_SOURCE_CLOSURE.inputFor(source),
+              (Source source) => LIBRARY_ELEMENT3.inputFor(source))
     };
   }
 
@@ -616,7 +612,7 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
  */
 class BuildExportSourceClosureTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input for [LIBRARY_ELEMENT2] of a library.
+   * The name of the input for [LIBRARY_ELEMENT3] of a library.
    */
   static const String LIBRARY2_ELEMENT_INPUT = 'LIBRARY2_ELEMENT_INPUT';
 
@@ -958,17 +954,16 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
  */
 class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input for [LIBRARY_ELEMENT1] of a library.
+   * The name of the input for [LIBRARY_ELEMENT2] of a library.
    */
-  static const String BUILT_LIBRARY_ELEMENT_INPUT_NAME =
-      'BUILT_LIBRARY_ELEMENT_INPUT_NAME';
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BUILD_PUBLIC_NAMESPACE', createTask, buildInputs,
-      <ResultDescriptor>[PUBLIC_NAMESPACE]);
+      'BuildPublicNamespaceTask', createTask, buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT3]);
 
   BuildPublicNamespaceTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -979,9 +974,9 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    LibraryElement library = getRequiredInput(BUILT_LIBRARY_ELEMENT_INPUT_NAME);
-    Namespace namespace = new PublicNamespaceBuilder().build(library);
-    outputs[PUBLIC_NAMESPACE] = namespace;
+    LibraryElementImpl library = getRequiredInput(LIBRARY_INPUT);
+    library.publicNamespace = new PublicNamespaceBuilder().build(library);
+    outputs[LIBRARY_ELEMENT3] = library;
   }
 
   /**
@@ -991,7 +986,7 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
-      BUILT_LIBRARY_ELEMENT_INPUT_NAME: LIBRARY_ELEMENT1.inputFor(source)
+      LIBRARY_INPUT: LIBRARY_ELEMENT2.inputFor(source)
     };
   }
 
@@ -1035,8 +1030,10 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    Namespace coreNamespace = getRequiredInput(CORE_INPUT);
-    Namespace asyncNamespace = getRequiredInput(ASYNC_INPUT);
+    LibraryElement coreLibrary = getRequiredInput(CORE_INPUT);
+    LibraryElement asyncLibrary = getRequiredInput(ASYNC_INPUT);
+    Namespace coreNamespace = coreLibrary.publicNamespace;
+    Namespace asyncNamespace = asyncLibrary.publicNamespace;
     //
     // Record outputs.
     //
@@ -1051,8 +1048,8 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     return <String, TaskInput>{
-      CORE_INPUT: PUBLIC_NAMESPACE.inputFor(coreSource),
-      ASYNC_INPUT: PUBLIC_NAMESPACE.inputFor(asyncSource)
+      CORE_INPUT: LIBRARY_ELEMENT3.inputFor(coreSource),
+      ASYNC_INPUT: LIBRARY_ELEMENT3.inputFor(asyncSource)
     };
   }
 
@@ -1069,10 +1066,6 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
  * The helper for building the export [Namespace] of a [LibraryElement].
  */
 class ExportNamespaceBuilder {
-  final Map<Source, Namespace> _publicNamespaces;
-
-  ExportNamespaceBuilder(this._publicNamespaces);
-
   /**
    * Build the export [Namespace] of the given [LibraryElement].
    */
@@ -1111,7 +1104,7 @@ class ExportNamespaceBuilder {
       }
       // Add names of the public namespace.
       {
-        Namespace publicNamespace = _publicNamespaces[library.source];
+        Namespace publicNamespace = library.publicNamespace;
         if (publicNamespace != null) {
           definedNames.addAll(publicNamespace.definedNames);
         }

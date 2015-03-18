@@ -6384,6 +6384,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl substitute4(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
 
+  /**
+   * Return `true` if the given element has an instance method named 'call'.
+   */
+  bool _hasCallMethod(ClassElement elementT) {
+    MethodElement method = elementT.lookUpMethod(
+        FunctionElement.CALL_METHOD_NAME, elementT.library);
+    return method != null && !method.isStatic;
+  }
+
   bool _isMoreSpecificThan(InterfaceType s,
       HashSet<ClassElement> visitedClasses, bool withDynamic,
       Set<TypeImpl_TypePair> visitedTypePairs) {
@@ -6512,15 +6521,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
     }
     return false;
-  }
-
-  /**
-   * Return `true` if the given element has an instance method named 'call'.
-   */
-  bool _hasCallMethod(ClassElement elementT) {
-    MethodElement method = elementT.lookUpMethod(
-        FunctionElement.CALL_METHOD_NAME, elementT.library);
-    return method != null && !method.isStatic;
   }
 
   /**
@@ -6714,6 +6714,12 @@ abstract class LibraryElement implements Element {
   List<LibraryElement> get exportedLibraries;
 
   /**
+   * The export [Namespace] of this library, `null` if it has not been
+   * computed yet.
+   */
+  Namespace get exportNamespace;
+
+  /**
    * Return a list containing all of the exports defined in this library.
    */
   List<ExportElement> get exports;
@@ -6779,6 +6785,12 @@ abstract class LibraryElement implements Element {
    * `import` directive.
    */
   List<PrefixElement> get prefixes;
+
+  /**
+   * The public [Namespace] of this library, `null` if it has not been
+   * computed yet.
+   */
+  Namespace get publicNamespace;
 
   /**
    * Return a list containing all of the compilation units this library consists
@@ -6860,6 +6872,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * defined for this library, or `null` if the element has not yet been created.
    */
   FunctionElement _loadLibraryFunction;
+
+  /**
+   * The export [Namespace] of this library, `null` if it has not been
+   * computed yet.
+   */
+  @override
+  Namespace exportNamespace;
+
+  /**
+   * The public [Namespace] of this library, `null` if it has not been
+   * computed yet.
+   */
+  @override
+  Namespace publicNamespace;
 
   /**
    * Initialize a newly created library element in the given [context] to have
