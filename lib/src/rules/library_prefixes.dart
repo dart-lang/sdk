@@ -8,7 +8,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 
-const desc = r'DO use `lowercase_with_underscores` when specifying a library prefix.';
+const desc = r'Use `lowercase_with_underscores` when specifying a library prefix.';
 
 const details = r'''
 **DO** use `lowercase_with_underscores` when specifying a library prefix.

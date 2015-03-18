@@ -11,7 +11,7 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 
 const desc =
-    r'DO prefix library names with the package name and a dot-separated path.';
+    r'Prefix library names with the package name and a dot-separated path.';
 
 const details = r'''
 **DO** prefix library names with the package name and a dot-separated path.

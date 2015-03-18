@@ -7,7 +7,7 @@ library linter.src.rules.camel_case_types;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
 
-const desc = 'DO name types using UpperCamelCase.';
+const desc = 'Name types using UpperCamelCase.';
 
 const details = '''
 From the [style guide] (https://www.dartlang.org/articles/style-guide/):

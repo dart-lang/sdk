@@ -7,7 +7,7 @@ library linter.src.rules.type_init_formals;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
 
-const desc = "DON'T type annotate initializing formals";
+const desc = "Don't type annotate initializing formals.";
 
 const details = r'''
 From the [style guide] (https://www.dartlang.org/articles/style-guide/):

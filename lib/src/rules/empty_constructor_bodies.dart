@@ -7,7 +7,7 @@ library linter.src.rules.empty_constructor_bodies;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
 
-const desc = 'DO use ; instead of {} for empty constructor bodies.';
+const desc = 'Use `;` instead of `{}` for empty constructor bodies.';
 
 const details =
 '''
