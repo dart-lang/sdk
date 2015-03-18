@@ -83,7 +83,7 @@ void main(List<String> args) {
     var stats = options['stats'];
     ReportFormatter reporter = new ReportFormatter(
         errors, lintOptions.filter, outSink,
-        fileCount: filesToLint.length,
+        fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,
         showStatistics: stats,
         quiet: options['quiet']);

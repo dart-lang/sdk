@@ -58,6 +58,10 @@ abstract class DartLinter {
   factory DartLinter.forRules(Iterable<LintRule> ruleSet) =>
       new DartLinter(new LinterOptions(ruleSet));
 
+  /// The total number of sources that were analyzed.  Only valid after
+  /// [lintFiles] has been called.
+  int get numSourcesAnalyzed;
+
   LinterOptions get options;
 
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files);
@@ -354,6 +358,10 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   final errors = <AnalysisError>[];
   final LinterOptions options;
   final Reporter reporter;
+
+  @override
+  int numSourcesAnalyzed;
+
   SourceLinter(LinterOptions options, {this.reporter: const PrintingReporter()})
       : this.options = options != null ? options : _defaultOptions();
 
@@ -361,11 +369,13 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
     List<AnalysisErrorInfo> errors = [];
     _registerLinters(options.enabledLints);
-    errors.addAll(
-        new AnalysisDriver(options).analyze(files.where((f) => isDartFile(f))));
-    files
-        .where((f) => isPubspecFile(f))
-        .forEach((p) => errors.addAll(_lintPubspecFile(p)));
+    var analysisDriver = new AnalysisDriver(options);
+    errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
+    numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
+    files.where((f) => isPubspecFile(f)).forEach((p) {
+      numSourcesAnalyzed++;
+      return errors.addAll(_lintPubspecFile(p));
+    });
     return errors;
   }
 

@@ -37,7 +37,15 @@ AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
 class AnalysisDriver {
   final DriverOptions options;
 
+  /// The sources which have been analyzed so far.  This is used to avoid
+  /// analyzing a source more than once, and to compute the total number of
+  /// sources analyzed for statistics.
+  Set<Source> _sourcesAnalyzed = new HashSet<Source>();
+
   AnalysisDriver(this.options);
+
+  /// Return the number of sources that have been analyzed so far.
+  int get numSourcesAnalyzed => _sourcesAnalyzed.length;
 
   List<UriResolver> get resolvers {
     DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDir));
@@ -89,12 +97,10 @@ class AnalysisDriver {
 
     List<AnalysisErrorInfo> errors = [];
 
-    Set<Source> sourcesAnalyzed = new HashSet<Source>();
-
     for (Source source in sources) {
       context.computeErrors(source);
       errors.add(context.getErrors(source));
-      sourcesAnalyzed.add(source);
+      _sourcesAnalyzed.add(source);
     }
 
     if (options.visitTransitiveClosure) {
@@ -105,10 +111,10 @@ class AnalysisDriver {
       // refer to.
       for (Source librarySource in context.librarySources) {
         for (Source source in _getAllUnitSources(context, librarySource)) {
-          if (!sourcesAnalyzed.contains(source)) {
+          if (!_sourcesAnalyzed.contains(source)) {
             context.computeErrors(source);
             errors.add(context.getErrors(source));
-            sourcesAnalyzed.add(source);
+            _sourcesAnalyzed.add(source);
           }
         }
       }
