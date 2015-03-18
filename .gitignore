@@ -44,6 +44,9 @@ client/tests/drt
 # Compiled python binaries
 *.pyc
 
+# pydev project file.
+.pydevproject
+
 # From the Mac OS X Finder
 .DS_Store
 
