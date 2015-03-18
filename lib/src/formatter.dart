@@ -11,7 +11,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/linter.dart';
-import 'package:source_span/source_span.dart';
 
 String getLineContents(int lineNumber, AnalysisError error) {
   var path = error.source.fullName;
@@ -24,21 +23,6 @@ String getLineContents(int lineNumber, AnalysisError error) {
     }
   }
   return null;
-}
-
-int getLineNumber(AnalysisError error, LineInfo lineInfo) {
-  var path = error.source.fullName;
-  var file = new File(path);
-  if (file.existsSync()) {
-    // Addresses raw mutiline string offset issues
-    // https://github.com/dart-lang/linter/issues/47
-    // Remove when fixed in analyzer
-    var contents = file.readAsStringSync();
-    var sourceFile = new SourceFile(contents);
-    return sourceFile.getLine(error.offset) + 1;
-  }
-  // Fallback
-  return lineInfo.getLocation(error.offset).lineNumber;
 }
 
 String pluralize(String word, int count) =>
@@ -198,9 +182,9 @@ class SimpleFormatter implements ReportFormatter {
 
   void _writeLint(AnalysisError error, LineInfo lineInfo) {
     var offset = error.offset;
-    // Gnarly work-around for offsets confused by multi-line raw strings
-    var line = getLineNumber(error, lineInfo);
-    var column = lineInfo.getLocation(offset).columnNumber;
+    var location = lineInfo.getLocation(offset);
+    var line = location.lineNumber;
+    var column = location.columnNumber;
 
     writeLint(error, offset: offset, column: column, line: line);
   }
