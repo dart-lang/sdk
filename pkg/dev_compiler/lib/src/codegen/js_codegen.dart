@@ -1698,12 +1698,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (entries.isEmpty) return js.call('dart.map()');
 
     // Use JS object literal notation if possible, otherwise use an array.
-    if (entries.every((e) => e.key is SimpleStringLiteral)) {
+    // We could do this any time all keys are non-nullable String type.
+    // For now, support StringLiteral as the common non-nullable String case.
+    if (entries.every((e) => e.key is StringLiteral)) {
       var props = [];
       for (var e in entries) {
-        var key = (e.key as SimpleStringLiteral).value;
-        var value = _visit(e.value);
-        props.add(new JS.Property(js.escapedString(key), value));
+        props.add(new JS.Property(_visit(e.key), _visit(e.value)));
       }
       mapArguments = new JS.ObjectInitializer(props);
     } else {

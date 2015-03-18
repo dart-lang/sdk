@@ -7,7 +7,6 @@ packages
 *.dart.precompiled.js
 *.js_
 *.js.deps
-*.js.map
 *.sw?
 .idea/
 .pub/

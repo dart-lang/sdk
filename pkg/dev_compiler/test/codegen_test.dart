@@ -57,7 +57,9 @@ main(arguments) {
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
   compile(String entryPoint, String sdkPath,
-      {bool checkSdk: false, bool serverMode: false}) {
+      {bool checkSdk: false, bool serverMode: false, bool sourceMaps: false}) {
+    // TODO(jmesserly): add a way to specify flags in the test file, so
+    // they're more self-contained.
     var runtimeDir = path.join(
         path.dirname(path.dirname(Platform.script.path)), 'lib', 'runtime');
     var options = new CompilerOptions(
@@ -65,7 +67,7 @@ main(arguments) {
         useColors: false,
         outputDart: dartGen,
         formatOutput: dartGen,
-        emitSourceMaps: false,
+        emitSourceMaps: sourceMaps,
         forceCompile: checkSdk,
         cheapTestFormat: checkSdk,
         checkSdk: checkSdk,
@@ -91,7 +93,10 @@ main(arguments) {
     test('devc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      var result = compile(filePath, realSdk);
+      // TODO(jmesserly): this was added to get some coverage of source maps
+      // We need a more comprehensive strategy to test them.
+      var sourceMaps = filename == 'map_keys';
+      var result = compile(filePath, realSdk, sourceMaps: sourceMaps);
       var success = !result.failure;
 
       // Write compiler messages to disk.
