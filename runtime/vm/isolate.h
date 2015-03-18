@@ -154,9 +154,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, class_table_);
   }
 
-  CHA* cha() const { return cha_; }
-  void set_cha(CHA* value) { cha_ = value; }
-
   MegamorphicCacheTable* megamorphic_cache_table() {
     return &megamorphic_cache_table_;
   }
@@ -661,6 +658,8 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
+  CHA* cha() const { return cha_; }
+  void set_cha(CHA* value) { cha_ = value; }
 
   template<class T> T* AllocateReusableHandle();
 
@@ -792,6 +791,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ServiceIsolate;
+  friend class Thread;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

@@ -2272,8 +2272,8 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
     const String& name = (kind == RawFunction::kMethodExtractor)
         ? String::Handle(Z, Field::NameFromGetter(call->function_name()))
         : call->function_name();
-    return isolate()->cha()->HasOverride(Class::Handle(Z, function.Owner()),
-                                         name);
+    return thread()->cha()->HasOverride(Class::Handle(Z, function.Owner()),
+                                        name);
   }
   return true;
 }
@@ -3939,9 +3939,9 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Signature classes have different type checking rules.
   if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
-  if (isolate()->cha()->IsImplemented(type_class)) return false;
+  if (thread()->cha()->IsImplemented(type_class)) return false;
   // Check if there are subclasses.
-  if (isolate()->cha()->HasSubclasses(type_class)) return false;
+  if (thread()->cha()->HasSubclasses(type_class)) return false;
   const intptr_t num_type_args = type_class.NumTypeArguments();
   if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type

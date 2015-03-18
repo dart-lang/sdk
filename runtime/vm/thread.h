@@ -10,14 +10,14 @@
 namespace dart {
 
 // A VM thread; may be executing Dart code or performing helper tasks like
-// garbage collection.
+// garbage collection or compilation.
 class Thread {
  public:
   static Thread* Current() {
     // For now, there is still just one thread per isolate, and the Thread
     // class just aliases the Isolate*. Once all interfaces and uses have been
     // updated to distinguish between isolates and threads, Thread will get its
-    // own thread-local storage key.
+    // own thread-local storage key and fields.
     return reinterpret_cast<Thread*>(Isolate::Current());
   }
   // TODO(koda): Remove after pivoting to Thread* in native/runtime entries.
@@ -32,14 +32,19 @@ class Thread {
   }
 
   // The isolate that this thread is operating on.
-  Isolate* isolate() {
-    return reinterpret_cast<Isolate*>(this);
+  Isolate* isolate() { return reinterpret_cast<Isolate*>(this); }
+  const Isolate* isolate() const {
+    return reinterpret_cast<const Isolate*>(this);
   }
 
   // The log for this thread.
   class Log* Log() {
     return reinterpret_cast<Isolate*>(this)->Log();
   }
+
+  // The (topmost) CHA for the compilation in this thread.
+  CHA* cha() const { return isolate()->cha(); }
+  void set_cha(CHA* value) { isolate()->set_cha(value); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Thread);

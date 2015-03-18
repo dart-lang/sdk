@@ -80,7 +80,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
       Function::Handle(class_d.LookupDynamicFunction(function_bar_name));
   EXPECT(!class_d_bar.IsNull());
 
-  CHA cha(Isolate::Current());
+  CHA cha(Thread::Current());
 
   EXPECT(cha.HasSubclasses(kInstanceCid));
   EXPECT(!cha.HasSubclasses(kSmiCid));

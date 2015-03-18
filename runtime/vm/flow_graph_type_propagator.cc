@@ -538,7 +538,7 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->HasResolvedTypeClass()) {
       if (FLAG_use_cha) {
         const Class& type_class = Class::Handle(type_->type_class());
-        CHA* cha = Isolate::Current()->cha();
+        CHA* cha = Thread::Current()->cha();
         // Don't infer a cid from an abstract type for signature classes since
         // there can be multiple compatible classes with different cids.
         if (!type_class.IsSignatureClass() &&
@@ -772,7 +772,7 @@ CompileType ParameterInstr::ComputeType() const {
     intptr_t cid = kDynamicCid;
     if (FLAG_use_cha && type.HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type.type_class());
-      if (!Isolate::Current()->cha()->HasSubclasses(type_class.id())) {
+      if (!Thread::Current()->cha()->HasSubclasses(type_class.id())) {
         cid = type_class.id();
       }
     }

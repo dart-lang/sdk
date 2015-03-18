@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -17,17 +18,17 @@ class String;
 
 class CHA : public StackResource {
  public:
-  explicit CHA(Isolate* isolate)
-      : StackResource(isolate),
-        isolate_(isolate),
-        leaf_classes_(isolate, 1),
-        previous_(isolate->cha()) {
-    isolate->set_cha(this);
+  explicit CHA(Thread* thread)
+      : StackResource(thread->isolate()),
+        thread_(thread),
+        leaf_classes_(thread->zone(), 1),
+        previous_(thread->cha()) {
+    thread->set_cha(this);
   }
 
   ~CHA() {
-    ASSERT(isolate_->cha() == this);
-    isolate_->set_cha(previous_);
+    ASSERT(thread_->cha() == this);
+    thread_->set_cha(previous_);
   }
 
   // Returns true if the class has subclasses.
@@ -53,7 +54,7 @@ class CHA : public StackResource {
  private:
   void AddToLeafClasses(const Class& cls);
 
-  Isolate* isolate_;
+  Thread* thread_;
   GrowableArray<Class*> leaf_classes_;
   CHA* previous_;
 };

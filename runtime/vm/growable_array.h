@@ -146,9 +146,9 @@ void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
 template<typename T>
 class GrowableArray : public BaseGrowableArray<T, ValueObject> {
  public:
-  GrowableArray(Isolate* isolate, intptr_t initial_capacity)
+  GrowableArray(Zone* zone, intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
-          initial_capacity, ASSERT_NOTNULL(isolate->current_zone())) {}
+          initial_capacity, ASSERT_NOTNULL(zone)) {}
   explicit GrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
           initial_capacity,
@@ -162,9 +162,9 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject> {
 template<typename T>
 class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
  public:
-  ZoneGrowableArray(Isolate* isolate, intptr_t initial_capacity)
+  ZoneGrowableArray(Zone* zone, intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
-          initial_capacity, ASSERT_NOTNULL(isolate->current_zone())) {}
+          initial_capacity, ASSERT_NOTNULL(zone)) {}
   explicit ZoneGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
           initial_capacity,

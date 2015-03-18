@@ -397,7 +397,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
       // Class hierarchy analysis is registered with the isolate in the
       // constructor and unregisters itself upon destruction.
-      CHA cha(isolate);
+      CHA cha(thread);
 
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
@@ -745,9 +745,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
           // Register code with the classes it depends on because of CHA.
           for (intptr_t i = 0;
-               i < isolate->cha()->leaf_classes().length();
+               i < thread->cha()->leaf_classes().length();
                ++i) {
-            isolate->cha()->leaf_classes()[i]->RegisterCHACode(code);
+            thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
           }
 
           for (intptr_t i = 0;
