@@ -749,7 +749,12 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     js.Expression leftHandSide = node.leftHandSide;
     if (leftHandSide is js.VariableUse) {
       return withExpression(node.value, (js.Expression value) {
-        return new js.Assignment(leftHandSide, value);
+        // A non-compound [js.Assignment] has `op==null`. So it works out to
+        // use [js.Assignment.compound] for all cases.
+        // Visit the [js.VariableUse] to ensure renaming is done correctly.
+        return new js.Assignment.compound(visitExpression(leftHandSide),
+                                          node.op,
+                                          value);
       }, store: false);
     } else if (leftHandSide is js.PropertyAccess) {
       return withExpressions([
@@ -1211,7 +1216,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     if (node.op == "++" || node.op == "--") {
       js.Expression argument = node.argument;
       if (argument is js.VariableUse) {
-        return new js.Postfix(node.op, argument);
+        return new js.Postfix(node.op, visitExpression(argument));
       } else if (argument is js.PropertyAccess) {
         return withExpression2(argument.receiver, argument.selector,
             (receiver, selector) {
@@ -1233,7 +1238,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     if (node.op == "++" || node.op == "--") {
       js.Expression argument = node.argument;
       if (argument is js.VariableUse) {
-        return new js.Prefix(node.op, argument);
+        return new js.Prefix(node.op, visitExpression(argument));
       } else if (argument is js.PropertyAccess) {
         return withExpression2(argument.receiver, argument.selector,
             (receiver, selector) {
@@ -1528,7 +1533,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   js.Expression visitVariableDeclarationList(js.VariableDeclarationList node) {
-    List<js.Assignment> initializations = new List<js.Assignment>();
+    List<js.Expression> initializations = new List<js.Expression>();
 
     // Declaration of local variables is hoisted outside the helper but the
     // initialization is done here.
