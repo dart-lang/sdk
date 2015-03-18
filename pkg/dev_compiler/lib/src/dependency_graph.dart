@@ -73,10 +73,8 @@ class SourceGraph {
         return new HtmlSourceNode(uri, source, this);
       } else if (extension == '.dart' || uriString.startsWith('dart:')) {
         return new DartSourceNode(uri, source);
-      } else if (extension == '.js' || extension == '.css') {
-        return new ResourceSourceNode(uri, source);
       } else {
-        assert(false); // unreachable
+        return new ResourceSourceNode(uri, source);
       }
     });
   }
@@ -145,8 +143,12 @@ class HtmlSourceNode extends SourceNode {
   /// Libraries referred to via script tags.
   Set<DartSourceNode> scripts = new Set<DartSourceNode>();
 
+  /// Link-rel stylesheets and images.
+  Set<ResourceSourceNode> resources = new Set<ResourceSourceNode>();
+
   @override
-  Iterable<SourceNode> get allDeps => [scripts, runtimeDeps].expand((e) => e);
+  Iterable<SourceNode> get allDeps =>
+      [scripts, resources, runtimeDeps].expand((e) => e);
 
   @override
   Iterable<SourceNode> get depsWithoutParts => allDeps;
@@ -183,6 +185,19 @@ class HtmlSourceNode extends SourceNode {
       if (!_same(newScripts, scripts)) {
         structureChanged = true;
         scripts = newScripts;
+      }
+
+      var newResources = new Set<ResourceSourceNode>();
+      for (var tag in document.querySelectorAll('link[rel="stylesheet"]')) {
+        newResources
+            .add(graph.nodeFromUri(uri.resolve(tag.attributes['href'])));
+      }
+      for (var tag in document.querySelectorAll('img')) {
+        newResources.add(graph.nodeFromUri(uri.resolve(tag.attributes['src'])));
+      }
+      if (!_same(newResources, resources)) {
+        structureChanged = true;
+        resources = newResources;
       }
     }
   }

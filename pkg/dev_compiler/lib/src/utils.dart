@@ -298,11 +298,24 @@ String computeHash(String contents) {
   return CryptoUtils.bytesToHex((new MD5()..add(contents.codeUnits)).close());
 }
 
-String resourceOutputPath(Uri resourceUri) {
+/// Computes a hash for the given file path (reads the contents in binary form).
+String computeHashFromFile(String filepath) {
+  var bytes = new File(filepath).readAsBytesSync();
+  return CryptoUtils.bytesToHex((new MD5()..add(bytes)).close());
+}
+
+String resourceOutputPath(Uri resourceUri, Uri entryUri) {
   if (resourceUri.scheme == 'package') return resourceUri.path;
 
-  // Only support file:/// urls for resources in the dev_compiler package
   if (resourceUri.scheme != 'file') return null;
+  var filepath = resourceUri.path;
+  var relativePath = path.relative(filepath, from: path.dirname(entryUri.path));
+
+  // File:/// urls can be for resources in the same project or resources from
+  // the dev_compiler package. For now we only support relative paths going
+  // further inside the folder where the entrypoint is located, otherwise we
+  // assume this is a runtime resource from the dev_compiler.
+  if (!relativePath.startsWith('..')) return relativePath;
   var segments = resourceUri.pathSegments;
   var len = segments.length;
   if (segments.length < 4 ||

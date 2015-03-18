@@ -136,14 +136,13 @@ class Compiler {
     // location. These can be external dependencies or pieces of the
     // dev_compiler runtime.
     if (_options.outputDir == null || _options.outputDart) return;
-    var filepath = resourceOutputPath(node.uri);
+    var filepath = resourceOutputPath(node.uri, _entryNode.uri);
     assert(filepath != null);
     filepath = path.join(_options.outputDir, filepath);
     var dir = path.dirname(filepath);
     new Directory(dir).createSync(recursive: true);
-    var text = node.source.contents.data;
-    new File(filepath).writeAsStringSync(text);
-    if (_hashing) node.cachingHash = computeHash(text);
+    new File.fromUri(node.source.uri).copySync(filepath);
+    if (_hashing) node.cachingHash = computeHashFromFile(filepath);
   }
 
   bool _isEntry(DartSourceNode node) {

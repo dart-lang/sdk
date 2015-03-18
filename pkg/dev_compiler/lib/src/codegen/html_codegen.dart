@@ -52,7 +52,7 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
   String mainLibraryName;
   var fragment = new DocumentFragment();
   for (var resource in resources) {
-    var resourcePath = resourceOutputPath(resource.uri);
+    var resourcePath = resourceOutputPath(resource.uri, root.uri);
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
     }
