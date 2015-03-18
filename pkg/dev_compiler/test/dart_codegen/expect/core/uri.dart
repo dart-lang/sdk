@@ -569,9 +569,11 @@ part of dart.core;
   }
  static String _makeUserInfo(String userInfo, int start, int end) {
   if (userInfo == null) return "";
-   return _normalize(userInfo, start, end, DEVC$RT.cast(_userinfoTable, dynamic, DEVC$RT.type((List<int> _) {
+   return _normalize(userInfo, start, end, DEVC$RT.cast(_userinfoTable, DEVC$RT.type((List<dynamic> _) {
     }
-  ), "CastGeneral", """line 1126, column 45 of dart:core/uri.dart: """, _userinfoTable is List<int>, false));
+  ), DEVC$RT.type((List<int> _) {
+    }
+  ), "CastDynamic", """line 1126, column 45 of dart:core/uri.dart: """, _userinfoTable is List<int>, false));
   }
  static String _makePath(String path, int start, int end, Iterable<String> pathSegments, bool ensureLeadingSlash, bool isFile) {
   if (path == null && pathSegments == null) return isFile ? "/" : "";
@@ -580,14 +582,18 @@ part of dart.core;
     }
    var result;
    if (path != null) {
-    result = _normalize(path, start, end, DEVC$RT.cast(_pathCharOrSlashTable, dynamic, DEVC$RT.type((List<int> _) {
+    result = _normalize(path, start, end, DEVC$RT.cast(_pathCharOrSlashTable, DEVC$RT.type((List<dynamic> _) {
       }
-    ), "CastGeneral", """line 1139, column 45 of dart:core/uri.dart: """, _pathCharOrSlashTable is List<int>, false));
+    ), DEVC$RT.type((List<int> _) {
+      }
+    ), "CastDynamic", """line 1139, column 45 of dart:core/uri.dart: """, _pathCharOrSlashTable is List<int>, false));
     }
    else {
-    result = pathSegments.map((s) => _uriEncode(DEVC$RT.cast(_pathCharTable, dynamic, DEVC$RT.type((List<int> _) {
+    result = pathSegments.map((s) => _uriEncode(DEVC$RT.cast(_pathCharTable, DEVC$RT.type((List<dynamic> _) {
       }
-    ), "CastGeneral", """line 1141, column 51 of dart:core/uri.dart: """, _pathCharTable is List<int>, false), DEVC$RT.cast(s, dynamic, String, "CastGeneral", """line 1141, column 67 of dart:core/uri.dart: """, s is String, true))).join("/");
+    ), DEVC$RT.type((List<int> _) {
+      }
+    ), "CastDynamic", """line 1141, column 51 of dart:core/uri.dart: """, _pathCharTable is List<int>, false), DEVC$RT.cast(s, dynamic, String, "CastGeneral", """line 1141, column 67 of dart:core/uri.dart: """, s is String, true))).join("/");
     }
    if (result.isEmpty) {
     if (isFile) return "/";
@@ -602,9 +608,11 @@ part of dart.core;
    if (query != null && queryParameters != null) {
     throw new ArgumentError('Both query and queryParameters specified');
     }
-   if (query != null) return _normalize(query, start, end, DEVC$RT.cast(_queryCharTable, dynamic, DEVC$RT.type((List<int> _) {
+   if (query != null) return _normalize(query, start, end, DEVC$RT.cast(_queryCharTable, DEVC$RT.type((List<dynamic> _) {
     }
-  ), "CastGeneral", """line 1158, column 61 of dart:core/uri.dart: """, _queryCharTable is List<int>, false));
+  ), DEVC$RT.type((List<int> _) {
+    }
+  ), "CastDynamic", """line 1158, column 61 of dart:core/uri.dart: """, _queryCharTable is List<int>, false));
    var result = new StringBuffer();
    var first = true;
    queryParameters.forEach((key, value) {
@@ -623,9 +631,11 @@ part of dart.core;
   }
  static String _makeFragment(String fragment, int start, int end) {
   if (fragment == null) return null;
-   return _normalize(fragment, start, end, DEVC$RT.cast(_queryCharTable, dynamic, DEVC$RT.type((List<int> _) {
+   return _normalize(fragment, start, end, DEVC$RT.cast(_queryCharTable, DEVC$RT.type((List<dynamic> _) {
     }
-  ), "CastGeneral", """line 1178, column 45 of dart:core/uri.dart: """, _queryCharTable is List<int>, false));
+  ), DEVC$RT.type((List<int> _) {
+    }
+  ), "CastDynamic", """line 1178, column 45 of dart:core/uri.dart: """, _queryCharTable is List<int>, false));
   }
  static int _stringOrNullLength(String s) => (s == null) ? 0 : s.length;
  static bool _isHexDigit(int char) {
@@ -983,16 +993,20 @@ part of dart.core;
     }
   }
  static String encodeComponent(String component) {
-  return _uriEncode(DEVC$RT.cast(_unreserved2396Table, dynamic, DEVC$RT.type((List<int> _) {
+  return _uriEncode(DEVC$RT.cast(_unreserved2396Table, DEVC$RT.type((List<dynamic> _) {
     }
-  ), "CastGeneral", """line 1749, column 23 of dart:core/uri.dart: """, _unreserved2396Table is List<int>, false), component);
+  ), DEVC$RT.type((List<int> _) {
+    }
+  ), "CastDynamic", """line 1749, column 23 of dart:core/uri.dart: """, _unreserved2396Table is List<int>, false), component);
   }
  static String encodeQueryComponent(String component, {
   Encoding encoding : UTF8}
 ) {
-  return _uriEncode(DEVC$RT.cast(_unreservedTable, dynamic, DEVC$RT.type((List<int> _) {
+  return _uriEncode(DEVC$RT.cast(_unreservedTable, DEVC$RT.type((List<dynamic> _) {
     }
-  ), "CastGeneral", """line 1788, column 9 of dart:core/uri.dart: """, _unreservedTable is List<int>, false), component, encoding: encoding, spaceToPlus: true);
+  ), DEVC$RT.type((List<int> _) {
+    }
+  ), "CastDynamic", """line 1788, column 9 of dart:core/uri.dart: """, _unreservedTable is List<int>, false), component, encoding: encoding, spaceToPlus: true);
   }
  static String decodeComponent(String encodedComponent) {
   return _uriDecode(encodedComponent);
@@ -1003,9 +1017,11 @@ part of dart.core;
   return _uriDecode(encodedComponent, plusToSpace: true, encoding: encoding);
   }
  static String encodeFull(String uri) {
-  return _uriEncode(DEVC$RT.cast(_encodeFullTable, dynamic, DEVC$RT.type((List<int> _) {
+  return _uriEncode(DEVC$RT.cast(_encodeFullTable, DEVC$RT.type((List<dynamic> _) {
     }
-  ), "CastGeneral", """line 1832, column 23 of dart:core/uri.dart: """, _encodeFullTable is List<int>, false), uri);
+  ), DEVC$RT.type((List<int> _) {
+    }
+  ), "CastDynamic", """line 1832, column 23 of dart:core/uri.dart: """, _encodeFullTable is List<int>, false), uri);
   }
  static String decodeFull(String uri) {
   return _uriDecode(uri);

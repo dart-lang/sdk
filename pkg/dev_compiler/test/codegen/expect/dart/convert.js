@@ -252,7 +252,7 @@ var convert;
   let _roundToPowerOf2 = Symbol('_roundToPowerOf2');
   class _ByteCallbackSink extends ByteConversionSinkBase {
     _ByteCallbackSink(callback) {
-      this[_buffer] = new typed_data.Uint8List(dart.as(_ByteCallbackSink._INITIAL_BUFFER_SIZE, core.int));
+      this[_buffer] = new typed_data.Uint8List(_ByteCallbackSink._INITIAL_BUFFER_SIZE);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
       super.ByteConversionSinkBase();
@@ -1447,7 +1447,7 @@ var convert;
     }
     writeCharCode(charCode) {
       this[_buffer].writeCharCode(charCode);
-      if (this[_buffer].length['>'](_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
+      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
         this[_flush]();
     }
     write(o) {
@@ -1460,7 +1460,7 @@ var convert;
       if (o === void 0)
         o = "";
       this[_buffer].writeln(o);
-      if (this[_buffer].length['>'](_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
+      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
         this[_flush]();
     }
     writeAll(objects, separator) {
@@ -1694,7 +1694,7 @@ var convert;
   let _fillBuffer = Symbol('_fillBuffer');
   class _Utf8Encoder extends core.Object {
     _Utf8Encoder() {
-      this[_Utf8Encoder$withBufferSize](dart.as(_Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE, core.int));
+      this[_Utf8Encoder$withBufferSize](_Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE);
     }
     _Utf8Encoder$withBufferSize(bufferSize) {
       this[_buffer] = _createBuffer(bufferSize);

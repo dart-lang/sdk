@@ -148,8 +148,8 @@ var _isolate_helper;
       return new List.from(['function', name]);
     }
     serializeDartObject(x) {
-      let classExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.CLASS_ID_EXTRACTOR, core.String));
-      let fieldsExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.CLASS_FIELDS_EXTRACTOR, core.String));
+      let classExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CLASS_ID_EXTRACTOR);
+      let fieldsExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CLASS_FIELDS_EXTRACTOR);
       let classId = classExtractor(x);
       let fields = dart.as(fieldsExtractor(x), core.List);
       return new List.from(['dart', classId, this.serializeArrayInPlace(dart.as(fields, _interceptors.JSArray))]);
@@ -311,8 +311,8 @@ var _isolate_helper;
       dart.assert(dart.equals(dart.dindex(x, 0), 'dart'));
       let classId = dart.as(dart.dindex(x, 1), core.String);
       let fields = dart.as(dart.dindex(x, 2), core.List);
-      let instanceFromClassId = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INSTANCE_FROM_CLASS_ID, core.String));
-      let initializeObject = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INITIALIZE_EMPTY_INSTANCE, core.String));
+      let instanceFromClassId = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INSTANCE_FROM_CLASS_ID);
+      let initializeObject = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_EMPTY_INSTANCE);
       let emptyInstance = instanceFromClassId(classId);
       this.deserializedObjects.add(emptyInstance);
       this.deserializeArrayInPlace(dart.as(fields, _interceptors.JSArray));
@@ -790,7 +790,7 @@ var _isolate_helper;
   let _spawnWorker = Symbol('_spawnWorker');
   class IsolateNatives extends core.Object {
     static computeThisScript() {
-      let currentScript = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.CURRENT_SCRIPT, core.String));
+      let currentScript = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CURRENT_SCRIPT);
       if (currentScript !== null) {
         return String(currentScript.src);
       }
@@ -913,7 +913,7 @@ var _isolate_helper;
       self.console.log(msg);
     }
     static [_getJSFunctionFromName](functionName) {
-      let globalFunctionsContainer = _foreign_helper.JS_EMBEDDED_GLOBAL("", dart.as(_js_embedded_names.GLOBAL_FUNCTIONS, core.String));
+      let globalFunctionsContainer = _foreign_helper.JS_EMBEDDED_GLOBAL("", _js_embedded_names.GLOBAL_FUNCTIONS);
       return globalFunctionsContainer[functionName]();
     }
     static [_getJSFunctionName](f) {

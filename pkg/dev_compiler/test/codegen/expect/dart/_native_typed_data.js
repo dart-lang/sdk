@@ -1232,8 +1232,8 @@ var _native_typed_data;
   let _uint32view = Symbol('_uint32view');
   class NativeInt32x4 extends core.Object {
     static [_truncate](x) {
-      dart.dsetindex(_list, 0, x);
-      return dart.dindex(_list, 0);
+      _list.set(0, dart.as(x, core.int));
+      return _list.get(0);
     }
     NativeInt32x4(x, y, z, w) {
       this.x = dart.as(_truncate(x), core.int);
@@ -1302,32 +1302,32 @@ var _native_typed_data;
       if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
         throw new core.RangeError(`mask ${mask} must be in the range [0..256)`);
       }
-      dart.dsetindex(_list, 0, this.x);
-      dart.dsetindex(_list, 1, this.y);
-      dart.dsetindex(_list, 2, this.z);
-      dart.dsetindex(_list, 3, this.w);
-      let _x = dart.as(dart.dindex(_list, dart.notNull(mask) & 3), core.int);
-      let _y = dart.as(dart.dindex(_list, dart.notNull(mask) >> 2 & 3), core.int);
-      let _z = dart.as(dart.dindex(_list, dart.notNull(mask) >> 4 & 3), core.int);
-      let _w = dart.as(dart.dindex(_list, dart.notNull(mask) >> 6 & 3), core.int);
+      _list.set(0, this.x);
+      _list.set(1, this.y);
+      _list.set(2, this.z);
+      _list.set(3, this.w);
+      let _x = _list.get(dart.notNull(mask) & 3);
+      let _y = _list.get(dart.notNull(mask) >> 2 & 3);
+      let _z = _list.get(dart.notNull(mask) >> 4 & 3);
+      let _w = _list.get(dart.notNull(mask) >> 6 & 3);
       return new NativeInt32x4._truncated(_x, _y, _z, _w);
     }
     shuffleMix(other, mask) {
       if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
         throw new core.RangeError(`mask ${mask} must be in the range [0..256)`);
       }
-      dart.dsetindex(_list, 0, this.x);
-      dart.dsetindex(_list, 1, this.y);
-      dart.dsetindex(_list, 2, this.z);
-      dart.dsetindex(_list, 3, this.w);
-      let _x = dart.as(dart.dindex(_list, dart.notNull(mask) & 3), core.int);
-      let _y = dart.as(dart.dindex(_list, dart.notNull(mask) >> 2 & 3), core.int);
-      dart.dsetindex(_list, 0, other.x);
-      dart.dsetindex(_list, 1, other.y);
-      dart.dsetindex(_list, 2, other.z);
-      dart.dsetindex(_list, 3, other.w);
-      let _z = dart.as(dart.dindex(_list, dart.notNull(mask) >> 4 & 3), core.int);
-      let _w = dart.as(dart.dindex(_list, dart.notNull(mask) >> 6 & 3), core.int);
+      _list.set(0, this.x);
+      _list.set(1, this.y);
+      _list.set(2, this.z);
+      _list.set(3, this.w);
+      let _x = _list.get(dart.notNull(mask) & 3);
+      let _y = _list.get(dart.notNull(mask) >> 2 & 3);
+      _list.set(0, other.x);
+      _list.set(1, other.y);
+      _list.set(2, other.z);
+      _list.set(3, other.w);
+      let _z = _list.get(dart.notNull(mask) >> 4 & 3);
+      let _w = _list.get(dart.notNull(mask) >> 6 & 3);
       return new NativeInt32x4._truncated(_x, _y, _z, _w);
     }
     withX(x) {

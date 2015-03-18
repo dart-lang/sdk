@@ -62,7 +62,7 @@ _AsyncCallbackEntry entry = new _AsyncCallbackEntry(DEVC$RT.cast(callback, dynam
 }
  void scheduleMicrotask(void callback()) {
 if (identical(_ROOT_ZONE, Zone.current)) {
-  _rootScheduleMicrotask(null, null, DEVC$RT.cast(_ROOT_ZONE, dynamic, Zone, "CastGeneral", """line 130, column 40 of dart:async/schedule_microtask.dart: """, _ROOT_ZONE is Zone, true), callback);
+  _rootScheduleMicrotask(null, null, _ROOT_ZONE, callback);
    return;}
  Zone.current.scheduleMicrotask(Zone.current.bindCallback(callback, runGuarded: true));
 }

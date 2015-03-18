@@ -1386,7 +1386,7 @@ var async;
   // Function scheduleMicrotask: (() → void) → void
   function scheduleMicrotask(callback) {
     if (core.identical(_ROOT_ZONE, Zone.current)) {
-      _rootScheduleMicrotask(null, null, dart.as(_ROOT_ZONE, Zone), callback);
+      _rootScheduleMicrotask(null, null, _ROOT_ZONE, callback);
       return;
     }
     Zone.current.scheduleMicrotask(Zone.current.bindCallback(callback, {runGuarded: true}));
@@ -4257,8 +4257,8 @@ var async;
     }
   }
   dart.defineNamedConstructor(Zone, '_');
-  Zone.ROOT = dart.as(_ROOT_ZONE, Zone);
-  Zone._current = dart.as(_ROOT_ZONE, Zone);
+  Zone.ROOT = _ROOT_ZONE;
+  Zone._current = _ROOT_ZONE;
   let _delegate = Symbol('_delegate');
   // Function _parentDelegate: (_Zone) → ZoneDelegate
   function _parentDelegate(zone) {
@@ -4611,7 +4611,7 @@ var async;
   // Function _rootScheduleMicrotask: (Zone, ZoneDelegate, Zone, () → dynamic) → void
   function _rootScheduleMicrotask(self, parent, zone, f) {
     if (!dart.notNull(core.identical(_ROOT_ZONE, zone))) {
-      let hasErrorHandler = dart.dunary('!', dart.dinvoke(_ROOT_ZONE, 'inSameErrorZone', zone));
+      let hasErrorHandler = !dart.notNull(_ROOT_ZONE.inSameErrorZone(zone));
       f = zone.bindCallback(f, {runGuarded: hasErrorHandler});
     }
     _scheduleAsyncCallback(f);
@@ -4704,43 +4704,43 @@ var async;
       super._Zone();
     }
     get [_run]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRun);
+      return new _ZoneFunction(_ROOT_ZONE, _rootRun);
     }
     get [_runUnary]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRunUnary);
+      return new _ZoneFunction(_ROOT_ZONE, _rootRunUnary);
     }
     get [_runBinary]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRunBinary);
+      return new _ZoneFunction(_ROOT_ZONE, _rootRunBinary);
     }
     get [_registerCallback]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRegisterCallback);
+      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterCallback);
     }
     get [_registerUnaryCallback]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRegisterUnaryCallback);
+      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterUnaryCallback);
     }
     get [_registerBinaryCallback]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootRegisterBinaryCallback);
+      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterBinaryCallback);
     }
     get [_errorCallback]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootErrorCallback);
+      return new _ZoneFunction(_ROOT_ZONE, _rootErrorCallback);
     }
     get [_scheduleMicrotask]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootScheduleMicrotask);
+      return new _ZoneFunction(_ROOT_ZONE, _rootScheduleMicrotask);
     }
     get [_createTimer]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootCreateTimer);
+      return new _ZoneFunction(_ROOT_ZONE, _rootCreateTimer);
     }
     get [_createPeriodicTimer]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootCreatePeriodicTimer);
+      return new _ZoneFunction(_ROOT_ZONE, _rootCreatePeriodicTimer);
     }
     get [_print]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootPrint);
+      return new _ZoneFunction(_ROOT_ZONE, _rootPrint);
     }
     get [_fork]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootFork);
+      return new _ZoneFunction(_ROOT_ZONE, _rootFork);
     }
     get [_handleUncaughtError]() {
-      return new _ZoneFunction(dart.as(_ROOT_ZONE, _Zone), _rootHandleUncaughtError);
+      return new _ZoneFunction(_ROOT_ZONE, _rootHandleUncaughtError);
     }
     get parent() {
       return null;

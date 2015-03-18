@@ -1190,11 +1190,11 @@ var _interceptors;
   }
   // Function getDispatchProperty: (dynamic) → dynamic
   function getDispatchProperty(object) {
-    return object[_foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String))];
+    return object[_foreign_helper.JS_EMBEDDED_GLOBAL('String', _js_embedded_names.DISPATCH_PROPERTY_NAME)];
   }
   // Function setDispatchProperty: (dynamic, dynamic) → dynamic
   function setDispatchProperty(object, value) {
-    _js_helper.defineProperty(object, dart.as(_foreign_helper.JS_EMBEDDED_GLOBAL('String', dart.as(_js_embedded_names.DISPATCH_PROPERTY_NAME, core.String)), core.String), value);
+    _js_helper.defineProperty(object, dart.as(_foreign_helper.JS_EMBEDDED_GLOBAL('String', _js_embedded_names.DISPATCH_PROPERTY_NAME), core.String), value);
   }
   // Function makeDispatchRecord: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function makeDispatchRecord(interceptor, proto, extension, indexability) {
@@ -1254,7 +1254,7 @@ var _interceptors;
   }
   dart.copyProperties(exports, {
     get mapTypeToInterceptor() {
-      return _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.MAP_TYPE_TO_INTERCEPTOR, core.String));
+      return _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.MAP_TYPE_TO_INTERCEPTOR);
     }
   });
   // Function findIndexForNativeSubclassType: (Type) → int

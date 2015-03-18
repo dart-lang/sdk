@@ -240,10 +240,10 @@ var _js_helper;
   }
   dart.copyProperties(exports, {
     get interceptorsByTag() {
-      return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', dart.as(_js_embedded_names.INTERCEPTORS_BY_TAG, core.String));
+      return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.INTERCEPTORS_BY_TAG);
     },
     get leafTags() {
-      return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', dart.as(_js_embedded_names.LEAF_TAGS, core.String));
+      return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.LEAF_TAGS);
     }
   });
   // Function findDispatchTagForInterceptorClass: (dynamic) → String
@@ -391,11 +391,11 @@ var _js_helper;
       let tag = tags[i];
       if (/^[A-Za-z_]/.test(tag)) {
         let interceptorClass = propertyGet(map, tag);
-        propertySet(map, dart.as(dart.dbinary(INSTANCE_CACHED_MARK, '+', tag), core.String), interceptorClass);
-        propertySet(map, dart.as(dart.dbinary(UNCACHED_MARK, '+', tag), core.String), interceptorClass);
-        propertySet(map, dart.as(dart.dbinary(LEAF_MARK, '+', tag), core.String), interceptorClass);
-        propertySet(map, dart.as(dart.dbinary(INTERIOR_MARK, '+', tag), core.String), interceptorClass);
-        propertySet(map, dart.as(dart.dbinary(DISCRIMINATED_MARK, '+', tag), core.String), interceptorClass);
+        propertySet(map, core.String['+'](INSTANCE_CACHED_MARK, tag), interceptorClass);
+        propertySet(map, core.String['+'](UNCACHED_MARK, tag), interceptorClass);
+        propertySet(map, core.String['+'](LEAF_MARK, tag), interceptorClass);
+        propertySet(map, core.String['+'](INTERIOR_MARK, tag), interceptorClass);
+        propertySet(map, core.String['+'](DISCRIMINATED_MARK, tag), interceptorClass);
       }
     }
   }
@@ -1460,7 +1460,7 @@ var _js_helper;
       let receiver = object;
       let name = this[_internalName];
       let arguments = this[_arguments];
-      let interceptedNames = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INTERCEPTED_NAMES, core.String));
+      let interceptedNames = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INTERCEPTED_NAMES);
       let isIntercepted = Object.prototype.hasOwnProperty.call(interceptedNames, name);
       if (isIntercepted) {
         receiver = interceptor;
@@ -1628,7 +1628,7 @@ var _js_helper;
       } else {
         metadataIndex = this.data[parameter + this.optionalParameterCount + ReflectionInfo.FIRST_DEFAULT_ARGUMENT];
       }
-      let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.METADATA, core.String));
+      let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.METADATA);
       return metadata[metadataIndex];
     }
     parameterMetadataAnnotations(parameter) {
@@ -1701,7 +1701,7 @@ var _js_helper;
   ReflectionInfo.FIRST_DEFAULT_ARGUMENT = 3;
   // Function getMetadata: (int) → dynamic
   function getMetadata(index) {
-    let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.METADATA, core.String));
+    let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.METADATA);
     return metadata[index];
   }
   let _throwFormatException = Symbol('_throwFormatException');
@@ -2591,7 +2591,7 @@ var _js_helper;
       }
       let signatureFunction = null;
       if (typeof functionType == "number") {
-        let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.METADATA, core.String));
+        let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.METADATA);
         signatureFunction = function(s) {
           return function() {
             return metadata[s];
@@ -3436,7 +3436,7 @@ var _js_helper;
       super.RuntimeType();
     }
     toRti() {
-      let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.ALL_CLASSES, core.String));
+      let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.ALL_CLASSES);
       let rti = allClasses[this.name];
       if (rti === null)
         throw `no type for '${this.name}'`;
@@ -3456,7 +3456,7 @@ var _js_helper;
     toRti() {
       if (this.rti !== null)
         return this.rti;
-      let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.ALL_CLASSES, core.String));
+      let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.ALL_CLASSES);
       let result = [allClasses[this.name]];
       if (dart.dindex(result, 0) === null) {
         throw `no type for '${this.name}<...>'`;
@@ -3591,7 +3591,7 @@ var _js_helper;
   }
   // Function getIsolateAffinityTag: (String) → String
   function getIsolateAffinityTag(name) {
-    let isolateTagGetter = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.GET_ISOLATE_TAG, core.String));
+    let isolateTagGetter = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.GET_ISOLATE_TAG);
     return isolateTagGetter(name);
   }
   // Function _loadLibraryWrapper: (String) → () → Future<Null>
@@ -3609,20 +3609,20 @@ var _js_helper;
   exports.deferredLoadHook = null;
   // Function loadDeferredLibrary: (String) → Future<Null>
   function loadDeferredLibrary(loadId) {
-    let urisMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.DEFERRED_LIBRARY_URIS, core.String));
+    let urisMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.DEFERRED_LIBRARY_URIS);
     let uris = dart.as(urisMap[loadId], core.List$(core.String));
-    let hashesMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.DEFERRED_LIBRARY_HASHES, core.String));
+    let hashesMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.DEFERRED_LIBRARY_HASHES);
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris === null)
       return dart.as(new async.Future.value(null), async.Future$(core.Null));
     let indices = dart.as(new core.List.generate(uris.length, (i) => i), core.List$(core.int));
-    let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.IS_HUNK_LOADED, core.String));
-    let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.IS_HUNK_INITIALIZED, core.String));
+    let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
+    let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
     let indicesToLoad = indices.where((i) => !isHunkLoaded(hashes.get(i))).toList();
     return dart.as(async.Future.wait(dart.as(indicesToLoad.map((i) => _loadHunk(uris.get(i))), core.Iterable$(async.Future))).then((_) => {
       let indicesToInitialize = indices.where((i) => !isHunkInitialized(hashes.get(i))).toList();
       for (let i of indicesToInitialize) {
-        let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', dart.as(_js_embedded_names.INITIALIZE_LOADED_HUNK, core.String));
+        let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_LOADED_HUNK);
         initializer(hashes.get(i));
       }
       let updated = exports._loadedLibraries.add(loadId);

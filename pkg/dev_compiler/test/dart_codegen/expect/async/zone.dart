@@ -79,7 +79,7 @@ this.handleUncaughtError : null, this.run : null, this.runUnary : null, this.run
 }
  abstract class Zone {Zone._();
  static const Zone ROOT = _ROOT_ZONE;
- static Zone _current = DEVC$RT.cast(_ROOT_ZONE, dynamic, Zone, "CastGeneral", """line 262, column 26 of dart:async/zone.dart: """, _ROOT_ZONE is Zone, true);
+ static Zone _current = _ROOT_ZONE;
  static Zone get current => _current;
  dynamic handleUncaughtError(error, StackTrace stackTrace);
  Zone get parent;

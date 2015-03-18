@@ -51,7 +51,7 @@ if (sink is! ByteConversionSink) {
  int _bufferIndex = 0;
  final List<int> _buffer;
  static const _DEFAULT_BYTE_BUFFER_SIZE = 1024;
- _Utf8Encoder() : this.withBufferSize(DEVC$RT.cast(_DEFAULT_BYTE_BUFFER_SIZE, dynamic, int, "CastGeneral", """line 143, column 40 of dart:convert/utf.dart: """, _DEFAULT_BYTE_BUFFER_SIZE is int, true));
+ _Utf8Encoder() : this.withBufferSize(_DEFAULT_BYTE_BUFFER_SIZE);
  _Utf8Encoder.withBufferSize(int bufferSize) : _buffer = _createBuffer(bufferSize);
  static List<int> _createBuffer(int size) => new Uint8List(size);
  bool _writeSurrogate(int leadingSurrogate, int nextCodeUnit) {

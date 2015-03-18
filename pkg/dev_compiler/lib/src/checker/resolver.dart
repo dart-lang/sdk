@@ -123,13 +123,6 @@ class LibraryResolverWithInference extends LibraryResolver {
   void resolveReferencesAndTypes() {
     _resolveVariableReferences();
 
-    // Skip inference in the core libraries (note: resolvedLibraries are the
-    // libraries in the current strongly connected component).
-    if (resolvedLibraries.any((l) => l.librarySource.isInSystemLibrary)) {
-      _resolveReferencesAndTypes(false);
-      return;
-    }
-
     // Run resolution in two stages, skipping method bodies first, so we can run
     // type-inference before we fully analyze methods.
     _resolveReferencesAndTypes(true);
