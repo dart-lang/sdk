@@ -6798,7 +6798,7 @@ LayoutTests/fast/storage/disallowed-storage_t01: RuntimeError # Please triage th
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/shadows-computed-style_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/sub-pixel/table-cells-have-stable-width_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/sub-pixel/table-cells-have-stable-width_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/table-rows-have-stable-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/svg/getbbox_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/svg/tabindex-focus_t01: RuntimeError # Please triage this failure
@@ -7837,7 +7837,7 @@ LayoutTests/fast/css/border-width-large_t01: RuntimeError # Please triage this f
 LayoutTests/fast/css/box-sizing-backwards-compat-prefix_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/child-selector-implicit-tbody_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/comment-before-charset-external_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/comment-before-charset-external_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/computed-offset-with-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content-language-case-insensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content-language-dynamically-added_t01: RuntimeError # Please triage this failure

@@ -180,6 +180,9 @@ third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+third_party/di_tests/di_test: Pass, Slow # Issue 22896
+
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: SkipByDesign # Requires checked mode.
 third_party/angular_tests/browser_test/core/scope: SkipByDesign # Requires checked mode.
