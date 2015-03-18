@@ -115,6 +115,18 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT4', null);
 
 /**
+ * The errors produced while resolving type names.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<List<AnalysisError>> RESOLVE_TYPE_NAMES_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'RESOLVE_TYPE_NAMES_ERRORS', AnalysisError.NO_ERRORS,
+        contributesTo: DART_ERRORS);
+
+/**
  * The partially resolved [CompilationUnit] associated with a unit.
  *
  * All declarations bound to the element defined by the declaration.
@@ -163,6 +175,16 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT5', null);
+
+/**
+ * The partially resolved [CompilationUnit] associated with a unit.
+ *
+ * [RESOLVED_UNIT5] with resolved type names.
+ *
+ * The result is only available for targets representing a unit.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT6 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT6', null);
 
 /**
  * The [TypeProvider] of the context.
@@ -701,7 +723,7 @@ class BuildExportSourceClosureTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [RESOLVED_UNIT5] for a library.
+ * A task that builds [RESOLVED_UNIT5] for a unit.
  */
 class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
   /**
@@ -1496,6 +1518,71 @@ class PublicNamespaceBuilder {
     compilationUnit.functions.forEach(_addIfPublic);
     compilationUnit.functionTypeAliases.forEach(_addIfPublic);
     compilationUnit.types.forEach(_addIfPublic);
+  }
+}
+
+/**
+ * A task that builds [RESOLVED_UNIT6] for a unit.
+ */
+class ResolveTypeNamesTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT5] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveTypeNamesTask', createTask, buildInputs, <ResultDescriptor>[
+    RESOLVE_TYPE_NAMES_ERRORS,
+    RESOLVED_UNIT6
+  ]);
+
+  ResolveTypeNamesTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    CompilationUnitElement unitElement = unit.element;
+    //
+    // Resolve TypeName nodes.
+    //
+    TypeResolverVisitor visitor = new TypeResolverVisitor.con2(
+        unitElement.library, unitElement.source, context.typeProvider,
+        errorListener);
+    unit.accept(visitor);
+    //
+    // Record outputs.
+    //
+    outputs[RESOLVE_TYPE_NAMES_ERRORS] = errorListener.errors;
+    outputs[RESOLVED_UNIT6] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT5.inputFor(target)};
+  }
+
+  /**
+   * Create a [ResolveTypeNamesTask] based on the given [target] in
+   * the given [context].
+   */
+  static ResolveTypeNamesTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveTypeNamesTask(context, target);
   }
 }
 

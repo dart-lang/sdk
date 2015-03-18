@@ -43,6 +43,7 @@ main() {
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
   runReflectiveTests(ParseDartTaskTest);
+  runReflectiveTests(ResolveTypeNamesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
 }
 
@@ -1036,6 +1037,49 @@ class A {''');
 }
 
 @reflectiveTest
+class ResolveTypeNamesTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = _newSource('/test.dart', '''
+class A {}
+class B extends A {}
+int f(String p) => p.length;
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, RESOLVED_UNIT6);
+    expect(task, new isInstanceOf<ResolveTypeNamesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    {
+      ClassDeclaration nodeA = unit.declarations[0];
+      ClassDeclaration nodeB = unit.declarations[1];
+      DartType extendsType = nodeB.extendsClause.superclass.type;
+      expect(extendsType, nodeA.element.type);
+    }
+    {
+      FunctionDeclaration functionNode = unit.declarations[2];
+      DartType returnType = functionNode.returnType.type;
+      List<FormalParameter> parameters =
+          functionNode.functionExpression.parameters.parameters;
+      expect(returnType.displayName, 'int');
+      expect(parameters[0].element.type.displayName, 'String');
+    }
+  }
+
+  test_perform_errors() {
+    Source source = _newSource('/test.dart', '''
+NoSuchClass f() => null;
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, RESOLVE_TYPE_NAMES_ERRORS);
+    expect(task, new isInstanceOf<ResolveTypeNamesTask>());
+    // validate
+    _fillErrorListener(RESOLVE_TYPE_NAMES_ERRORS);
+    errorListener
+        .assertErrorsWithCodes(<ErrorCode>[StaticWarningCode.UNDEFINED_CLASS]);
+  }
+}
+
+@reflectiveTest
 class ScanDartTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
     Map<String, TaskInput> inputs = ScanDartTask.buildInputs(emptySource);
@@ -1129,6 +1173,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(ResolveTypeNamesTask.DESCRIPTOR);
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
   }
