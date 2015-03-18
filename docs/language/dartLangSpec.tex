@@ -8,7 +8,6 @@
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
 {\large Version 1.9}}
-%\author{The Dart Team}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -39,8 +38,6 @@ A conforming  implementation of the Dart programming language must provide and s
 
 \LMHash{}
 A conforming implementation is permitted to provide additional APIs, but not additional syntax.
-
-% A claim of conformance with this Ecma Standard shall specify?
 
 \section{Normative References}
 \LMLabel{ecmaNormativeReferences}
@@ -3092,10 +3089,31 @@ $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow T
 The static type of a function literal of the form 
 
 $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k])$ \ASYNC{} $=> e$
-is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Future<flatten(T_0)>$, where $T_0$ is the static type of $e$ and  $flatten(T) = flatten(S)$ if $T = Future<S>$, and $T$ otherwise. 
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Future<flatten(T_0)>$, where $T_0$ is the static type of $e$ and  $flatten(T)$ is defined as follows:
+
+ If $T = Future<S>$ then $flatten(T) = flatten(S)$. 
+ 
+ Otherwise if $T <: Future$ then let $S$ be a type such that $T << Future<S>$ and for all $R$, if $T << Future<R>$ then $S << R$.  
+
+\rationale{
+This ensures that $Future<S>$ is the most specific instantiation of \cd{Future} that is a super type of $T$.
+}
+
+Then $flatten(T) =  S$.  
+
+In any other circumstance, $flatten(T) = T$.
+
+
 
 \rationale{
 We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an async function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}. 
+
+The  exception to that would be a type $X$ that extended or implemented \code{Future}. In that case, only one unwrapping takes place. As an example of why this is done, consider
+
+\cd{\CLASS{} C$<$T$>$  \IMPLEMENTS{}  Future$<$C$<$C$<$T$>>>$ \ldots }
+
+Here, a naive definition of $flatten$ diverges; there is not even a fixed point. A more sophisticated definition of $flatten$ is possible, but the existing rule deals with most realistic examples while remaining relatively simple to understand.
+
 }
 
 
@@ -3528,7 +3546,7 @@ The contract explicitly mentions a number of situations where certain iterables 
 }
 
 \LMHash{}
-When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()} on it, execution of the body of $f$ will begin. When $f$ terminates, $j$ is positioned after its last element, so that its current value is \NULL{} and the current call to \code{moveNext()} on $j$ returns false, as will all further calls.
+When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()}, execution of the body of $f$ will begin. When $f$ terminates, $j$ is positioned after its last element, so that its current value is \NULL{} and the current call to \code{moveNext()} on $j$ returns false, as will all further calls.
 
 Each iterator starts a separate computation. If the \SYNC* function is impure, the sequence of values yielded by each iterator may differ. 
 
@@ -5913,10 +5931,18 @@ The stream associated with an asynchronous generator could be canceled by any co
 }
 
 \LMHash{}
+Otherwise, if the enclosing function $m$ is marked \ASYNC* (\ref{functions}) then the enclosing function may suspend.
+
+\rationale {
+If a \YIELD{} occurred inside an infinite loop and the enclosing function never suspended, there might not be an opportunity for consumers of the  enclosing stream to run and access the data in the stream.  The stream might then accumulate an unbounded number of elements. Such a situation is untenable. Therefore, we allow the enclosing function to be suspended when a new value is added to its associated stream. However, it is not essential (and in fact, can be quite costly) to suspend the function on every \YIELD{}. The implementation is free to decide how often to suspend the enclosing function. The only requirement is that consumers are not blocked indefinitely.
+}
+
+
+\LMHash{}
 If the enclosing function $m$ is marked \SYNC* (\ref{functions}) then:
 \begin{itemize}
 \item
-Execution of the function $m$ immediately enclosing $s$ is suspended until the method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$. 
+Execution of the function $m$ immediately enclosing $s$ is suspended until the nullary method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$. 
 \item
 The current call to \code{moveNext()} returns \TRUE.
 \end{itemize}
@@ -5947,27 +5973,39 @@ Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing funct
 \end{grammar}
 
 \LMHash{}
-Execution of a statement s of the form \code{\YIELD* $e$;}  proceeds as follows:
+Execution of a statement $s$ of the form \code{\YIELD* $e$;}  proceeds as follows:
 
 \LMHash{}
-First, the expression $e$ is evaluated to an object $o$. If the immediately enclosing function $m$ is synchronous, then it is a dynamic error if the class of $o$ does not implement \code{Iterable}.  If $m$ asynchronous, then it is a dynamic error if the class of $o$ does not implement \code{Stream}. Next, for each element $x$ of $o$:
-\begin{itemize}
-\item
-If $m$ is marked \ASYNC* (\ref{functions}) and the stream $u$ associated with $m$ has been paused,  then execution of $m$ is suspended until $u$ is resumed or canceled.
-\item
- $x$ is added to the iterable or stream associated with $m$ in the order it appears in $o$.  
- \item
-If $m$ is marked \ASYNC* and the stream $u$ associated with $m$ has been canceled, then let $c$ be the \FINALLY{} clause (\ref{try}) of the innermost enclosing try-finally statement, if any. If $c$ is defined,  let $h$ be the handler induced by $c$. If $h$ is defined, control is transferred to $h$. If $h$ is undefined, the immediately enclosing function terminates.
-\end{itemize}
+First, the expression $e$ is evaluated to an object $o$. 
 
 \LMHash{}
-If the enclosing function is marked \SYNC* (\ref{functions}) then:
-\begin{itemize}
-\item
-Execution of the function $m$ immediately enclosing $s$ is suspended until the method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$. 
+If the immediately enclosing function $m$ is marked \SYNC* (\ref{functions}), then:
+\begin{enumerate}
+\item It is a dynamic error if the class of $o$ does not implement \code{Iterable}.  Otherwise
+\item The method \cd{iterator} is invoked upon $o$ returning an object $i$. 
+\item \label{moveNext} The \cd{moveNext} method of $i$ is invoked on it with no arguments. If \cd{moveNext} returns \FALSE{} execution of $s$ is complete. Otherwise
+\item The getter \cd{current} is invoked on $i$. If the invocation raises an exception $ex$, execution of $s$ throws $ex$. Otherwise, the result $x$ of the getter invocation is added to the iterable associated with $m$.
+Execution of the function $m$ immediately enclosing $s$ is suspended until the nullary method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$, at which point execution of $s$ continues at \ref{moveNext}. 
 \item
 The current call to \code{moveNext()} returns \TRUE.
+\end{enumerate}
+
+\LMHash{}
+If $m$ is marked \ASYNC* (\ref{functions}), then:
+\begin{itemize}
+\item  It is a dynamic error if the class of $o$ does not implement \code{Stream}. Otherwise
+\item For each element $x$ of $o$:
+\begin{itemize}
+\item
+If the stream $u$ associated with $m$ has been paused,  then execution of $m$ is suspended until $u$ is resumed or canceled.
+ \item
+If the stream $u$ associated with $m$ has been canceled, then let $c$ be the \FINALLY{} clause (\ref{try}) of the innermost enclosing try-finally statement, if any. If $c$ is defined,  let $h$ be the handler induced by $c$. If $h$ is defined, control is transferred to $h$. If $h$ is undefined, the immediately enclosing function terminates.
+\item
+Otherwise,  $x$ is added to the stream associated with $m$ in the order it appears in $o$.  The function $m$ may suspend.
 \end{itemize}
+\item If the stream $o$ is done, execution of $s$ is complete. 
+\end{itemize}
+
 
 \LMHash{}
 It is a compile-time error if a yield-each statement appears in a function that is not a generator function.
