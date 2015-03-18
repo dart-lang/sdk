@@ -23,6 +23,8 @@ import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/config.dart';
 import 'package:dev_compiler/devc.dart' show Compiler;
 
+import 'dependency_graph.dart' show runtimeFilesForServerMode;
+
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].
 ///
@@ -67,6 +69,7 @@ CheckerResults testChecker(Map<String, String> testFiles,
       nonnullableTypes: nonnullableTypes,
       useMockSdk: sdkDir == null,
       dartSdkPath: sdkDir,
+      runtimeDir: '/dev_compiler_runtime/',
       entryPointFile: '/main.dart');
   var resolver = sdkDir == null
       ? new TypeResolver.fromMock(mockSdkSources, options,
@@ -277,6 +280,11 @@ class TestUriResolver extends UriResolver {
     allFiles.forEach((key, value) {
       var uri = key.startsWith('package:') ? Uri.parse(key) : new Uri.file(key);
       files[uri] = new TestSource(uri, value);
+    });
+
+    runtimeFilesForServerMode.forEach((filepath) {
+      var uri = Uri.parse('/dev_compiler_runtime/$filepath');
+      files[uri] = new TestSource(uri, '/* test contents of $filepath */');
     });
   }
 

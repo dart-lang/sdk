@@ -20,6 +20,7 @@ dependencies:
   source_maps: ^0.10.0
   source_span: ^1.0.0
   stack_trace: ^1.1.1
+  yaml: ^2.1.2
 dev_dependencies:
   pub_semver: ^1.1.0
   unittest: ^0.11.0

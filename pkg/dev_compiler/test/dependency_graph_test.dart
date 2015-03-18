@@ -20,7 +20,7 @@ import 'test_util.dart';
 void main() {
   configureTest();
 
-  var options = new CompilerOptions();
+  var options = new CompilerOptions(runtimeDir: '/dev_compiler_runtime/');
   var testUriResolver;
   var context;
   var graph;
@@ -666,7 +666,8 @@ void main() {
 
   group('server-mode', () {
     setUp(() {
-      var options2 = new CompilerOptions(serverMode: true);
+      var options2 = new CompilerOptions(
+          runtimeDir: '/dev_compiler_runtime/', serverMode: true);
       context = new TypeResolver.fromMock(mockSdkSources, options2,
           otherResolvers: [testUriResolver]).context;
       graph = new SourceGraph(context, new LogReporter(), options2);

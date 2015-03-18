@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
 import 'package:html5lib/dom.dart' show Document, Node;
 import 'package:html5lib/parser.dart' as html;
-import 'package:logging/logging.dart' show Level;
+import 'package:logging/logging.dart' show Logger, Level;
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart' show SourceSpan;
 
@@ -40,12 +40,28 @@ class SourceGraph {
   /// any node.
   final Map<Uri, SourceNode> nodes = {};
 
+  /// Resources included by default on any application.
+  final runtimeDeps = new Set<ResourceSourceNode>();
+
   /// Analyzer used to resolve source files.
   final AnalysisContext _context;
   final CheckerReporter _reporter;
   final CompilerOptions _options;
 
-  SourceGraph(this._context, this._reporter, this._options);
+  SourceGraph(this._context, this._reporter, this._options) {
+    var dir = _options.runtimeDir;
+    if (dir == null) {
+      _log.severe('Runtime dir could not be determined automatically, '
+          'please specify the --runtime-dir flag on the command line.');
+      return;
+    }
+    var prefix = path.absolute(dir);
+    var files =
+        _options.serverMode ? runtimeFilesForServerMode : defaultRuntimeFiles;
+    for (var file in files) {
+      runtimeDeps.add(nodeFromUri(path.toUri(path.join(prefix, file))));
+    }
+  }
 
   /// Node associated with a resolved [uri].
   SourceNode nodeFromUri(Uri uri) {
@@ -124,7 +140,7 @@ abstract class SourceNode {
 /// A node representing an entry HTML source file.
 class HtmlSourceNode extends SourceNode {
   /// Resources included by default on any application.
-  final runtimeDeps = new Set<ResourceSourceNode>();
+  final runtimeDeps;
 
   /// Libraries referred to via script tags.
   Set<DartSourceNode> scripts = new Set<DartSourceNode>();
@@ -138,16 +154,9 @@ class HtmlSourceNode extends SourceNode {
   /// Parsed document, updated whenever [update] is invoked.
   Document document;
 
-  HtmlSourceNode(uri, source, graph) : super(uri, source) {
-    var prefix = 'package:dev_compiler/runtime';
-    var files = ['harmony_feature_check.js', 'dart_runtime.js', 'dart_core.js'];
-    if (graph._options.serverMode) {
-      files.addAll(const ['messages_widget.js', 'messages.css']);
-    }
-    files.forEach((file) {
-      runtimeDeps.add(graph.nodeFromUri(Uri.parse('$prefix/$file')));
-    });
-  }
+  HtmlSourceNode(Uri uri, Source source, SourceGraph graph)
+      : runtimeDeps = graph.runtimeDeps,
+        super(uri, source);
 
   void update(SourceGraph graph) {
     super.update(graph);
@@ -435,3 +444,17 @@ class DependencyGraphError extends MessageWithSpan {
   const DependencyGraphError(String message, SourceSpan span)
       : super(message, Level.SEVERE, span);
 }
+
+/// Runtime files added to all applications when running the compiler in the
+/// command line.
+const defaultRuntimeFiles = const [
+  'harmony_feature_check.js',
+  'dart_runtime.js',
+  'dart_core.js'
+];
+
+/// Runtime files added to applications when running in server mode.
+final runtimeFilesForServerMode = new List<String>.from(defaultRuntimeFiles)
+  ..addAll(const ['messages_widget.js', 'messages.css']);
+
+final _log = new Logger('dev_compiler.dependency_graph');

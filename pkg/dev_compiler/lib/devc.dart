@@ -136,8 +136,9 @@ class Compiler {
     // location. These can be external dependencies or pieces of the
     // dev_compiler runtime.
     if (_options.outputDir == null || _options.outputDart) return;
-    assert(node.uri.scheme == 'package');
-    var filepath = path.join(_options.outputDir, resourceOutputPath(node.uri));
+    var filepath = resourceOutputPath(node.uri);
+    assert(filepath != null);
+    filepath = path.join(_options.outputDir, filepath);
     var dir = path.dirname(filepath);
     new Directory(dir).createSync(recursive: true);
     var text = node.source.contents.data;

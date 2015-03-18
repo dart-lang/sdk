@@ -58,6 +58,8 @@ main(arguments) {
 
   compile(String entryPoint, String sdkPath,
       {bool checkSdk: false, bool serverMode: false}) {
+    var runtimeDir = path.join(
+        path.dirname(path.dirname(Platform.script.path)), 'lib', 'runtime');
     var options = new CompilerOptions(
         outputDir: serverMode ? path.join(actualDir, 'server_mode') : actualDir,
         useColors: false,
@@ -69,6 +71,7 @@ main(arguments) {
         checkSdk: checkSdk,
         entryPointFile: entryPoint,
         dartSdkPath: sdkPath,
+        runtimeDir: runtimeDir,
         serverMode: serverMode);
     return new Compiler(options).run();
   }

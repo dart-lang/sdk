@@ -298,4 +298,20 @@ String computeHash(String contents) {
   return CryptoUtils.bytesToHex((new MD5()..add(contents.codeUnits)).close());
 }
 
-String resourceOutputPath(Uri resourceUri) => resourceUri.path;
+String resourceOutputPath(Uri resourceUri) {
+  if (resourceUri.scheme == 'package') return resourceUri.path;
+
+  // Only support file:/// urls for resources in the dev_compiler package
+  if (resourceUri.scheme != 'file') return null;
+  var segments = resourceUri.pathSegments;
+  var len = segments.length;
+  if (segments.length < 4 ||
+      segments[len - 2] != 'runtime' ||
+      segments[len - 3] != 'lib' ||
+      // If loaded from sources this will be exactly dev_compiler, otherwise it
+      // can be the name in the pub cache (typically dev_compiler-version).
+      !segments[len - 4].startsWith('dev_compiler')) {
+    return null;
+  }
+  return path.joinAll(['dev_compiler']..addAll(segments.skip(len - 2)));
+}
