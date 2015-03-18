@@ -70,7 +70,7 @@ class DetailedReporter extends SimpleFormatter {
     out.writeln(contents);
 
     var spaces = column - 1;
-    var arrows = min(error.length, contents.length - spaces);
+    var arrows = max(1, min(error.length, contents.length - spaces));
 
     var result = '${" " * spaces}${"^" * arrows}';
     out.writeln(result);
