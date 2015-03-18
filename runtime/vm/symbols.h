@@ -95,6 +95,11 @@ class ObjectPointerVisitor;
   V(Library, "library")                                                        \
   V(LoadLibrary, "loadLibrary")                                                \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
+  V(On, "on")                                                                  \
+  V(Of, "of")                                                                  \
+  V(Deferred, "deferred")                                                      \
+  V(Show, "show")                                                              \
+  V(Hide, "hide")                                                              \
   V(Async, "async")                                                            \
   V(Sync, "sync")                                                              \
   V(YieldKw, "yield")                                                          \
@@ -132,6 +137,7 @@ class ObjectPointerVisitor;
   V(BoundedType, "_BoundedType")                                               \
   V(MixinAppType, "_MixinAppType")                                             \
   V(TypeArguments, "TypeArguments")                                            \
+  V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(FunctionImpl, "_FunctionImpl")                                             \

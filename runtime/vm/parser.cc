@@ -1830,7 +1830,7 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
 
 String& Parser::ParseNativeDeclaration() {
   TRACE_PARSER("ParseNativeDeclaration");
-  ASSERT(IsLiteral("native"));
+  ASSERT(IsSymbol(Symbols::Native()));
   ConsumeToken();
   CheckToken(Token::kSTRING, "string literal expected");
   String& native_name = *CurrentLiteral();
@@ -2980,7 +2980,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ReportError("constructors may not return a value");
-  } else if (IsLiteral("native")) {
+  } else if (IsSymbol(Symbols::Native())) {
     ReportError("native constructors not supported");
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Some constructors have no function body.
@@ -3239,7 +3239,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
     end_token_pos = TokenPos();
-  } else if (IsLiteral("native")) {
+  } else if (IsSymbol(Symbols::Native())) {
     if (String::Handle(Z, func.name()).Equals(
         Symbols::EqualOperator())) {
       const Class& owner = Class::Handle(Z, func.Owner());
@@ -3654,7 +3654,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       method_end_pos = TokenPos();
       ExpectSemicolon();
     }
-  } else if (IsLiteral("native")) {
+  } else if (IsSymbol(Symbols::Native())) {
     if (method->has_abstract) {
       ReportError(method->name_pos,
                   "abstract method '%s' may not have a function body",
@@ -5288,7 +5288,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 
 
 RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
-  if (CurrentLiteral()->raw() == Symbols::Async().raw()) {
+  if (IsSymbol(Symbols::Async())) {
     ConsumeToken();
     if (CurrentToken() == Token::kMUL) {
       const bool enableAsyncStar = true;
@@ -5300,7 +5300,7 @@ RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
     } else {
       return RawFunction::kAsync;
     }
-  } else if ((CurrentLiteral()->raw() == Symbols::Sync().raw()) &&
+  } else if (IsSymbol(Symbols::Sync()) &&
       (LookaheadToken(1) == Token::kMUL)) {
     const bool enableSyncStar = true;
     if (!enableSyncStar) {
@@ -5390,7 +5390,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     SkipExpr();
     function_end_pos = TokenPos();
     ExpectSemicolon();
-  } else if (IsLiteral("native")) {
+  } else if (IsSymbol(Symbols::Native())) {
     ParseNativeDeclaration();
     function_end_pos = TokenPos();
     ExpectSemicolon();
@@ -5540,7 +5540,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     SkipExpr();
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
-  } else if (IsLiteral("native")) {
+  } else if (IsSymbol(Symbols::Native())) {
     ParseNativeDeclaration();
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
@@ -5666,7 +5666,7 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
     ReportError("library url expected");
   }
   bool is_deferred_import = false;
-  if (is_import && (IsLiteral("deferred"))) {
+  if (is_import && (IsSymbol(Symbols::Deferred()))) {
     is_deferred_import = true;
     ConsumeToken();
     CheckToken(Token::kAS, "'as' expected");
@@ -5681,7 +5681,9 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
 
   Array& show_names = Array::Handle(Z);
   Array& hide_names = Array::Handle(Z);
-  if (is_deferred_import || IsLiteral("show") || IsLiteral("hide")) {
+  if (is_deferred_import ||
+      IsSymbol(Symbols::Show()) ||
+      IsSymbol(Symbols::Hide())) {
     GrowableObjectArray& show_list =
         GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
     GrowableObjectArray& hide_list =
@@ -5692,10 +5694,10 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
       hide_list.Add(Symbols::LoadLibrary());
     }
     for (;;) {
-      if (IsLiteral("show")) {
+      if (IsSymbol(Symbols::Show())) {
         ConsumeToken();
         ParseIdentList(&show_list);
-      } else if (IsLiteral("hide")) {
+      } else if (IsSymbol(Symbols::Hide())) {
         ConsumeToken();
         ParseIdentList(&hide_list);
       } else {
@@ -5846,7 +5848,7 @@ void Parser::ParsePartHeader() {
   SkipMetadata();
   CheckToken(Token::kPART, "'part of' expected");
   ConsumeToken();
-  if (!IsLiteral("of")) {
+  if (!IsSymbol(Symbols::Of())) {
     ReportError("'part of' expected");
   }
   ConsumeToken();
@@ -5898,7 +5900,7 @@ void Parser::ParseTopLevel() {
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
-    } else if (is_patch_source() && IsLiteral("patch") &&
+    } else if (is_patch_source() && IsSymbol(Symbols::Patch()) &&
                (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else {
@@ -7543,6 +7545,12 @@ bool Parser::IsIdentifier() {
 }
 
 
+bool Parser::IsSymbol(const String& symbol) {
+  return (CurrentLiteral()->raw() == symbol.raw()) &&
+      (CurrentToken() == Token::kIDENT);
+}
+
+
 // Returns true if the next tokens can be parsed as a an optionally
 // qualified identifier: [ident '.'] ident.
 // Current token position is not restored.
@@ -7686,10 +7694,10 @@ bool Parser::IsFunctionDeclaration() {
     SkipToMatchingParenthesis();
     if ((CurrentToken() == Token::kLBRACE) ||
         (CurrentToken() == Token::kARROW) ||
-        (is_top_level_ && IsLiteral("native")) ||
+        (is_top_level_ && IsSymbol(Symbols::Native())) ||
         is_external ||
-        (CurrentLiteral()->raw() == Symbols::Async().raw()) ||
-        (CurrentLiteral()->raw() == Symbols::Sync().raw())) {
+        IsSymbol(Symbols::Async()) ||
+        IsSymbol(Symbols::Sync())) {
       SetPosition(saved_pos);
       return true;
     }
@@ -7701,9 +7709,7 @@ bool Parser::IsFunctionDeclaration() {
 
 bool Parser::IsTopLevelAccessor() {
   const intptr_t saved_pos = TokenPos();
-  if (is_patch_source() &&
-      (CurrentToken() == Token::kIDENT) &&
-      (CurrentLiteral()->Equals("patch"))) {
+  if (is_patch_source() && IsSymbol(Symbols::Patch())) {
     ConsumeToken();
   } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
@@ -8826,14 +8832,14 @@ SequenceNode* Parser::ParseCatchClauses(
   bool generic_catch_seen = false;
   GrowableArray<AstNode*> type_tests;
   GrowableArray<SequenceNode*> catch_blocks;
-  while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
+  while ((CurrentToken() == Token::kCATCH) || IsSymbol(Symbols::On())) {
     // Open a block that contains the if or an unconditional body.  It's
     // closed in the loop that builds the if-then-else nest.
     OpenBlock();
     const intptr_t catch_pos = TokenPos();
     CatchParamDesc exception_param;
     CatchParamDesc stack_trace_param;
-    if (IsLiteral("on")) {
+    if (IsSymbol(Symbols::On())) {
       ConsumeToken();
       exception_param.type = &AbstractType::ZoneHandle(Z,
           ParseType(ClassFinalizer::kCanonicalize));
@@ -9156,7 +9162,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   ExpectToken(Token::kRBRACE);
   SequenceNode* try_block = CloseBlock();
 
-  if ((CurrentToken() != Token::kCATCH) && !IsLiteral("on") &&
+  if ((CurrentToken() != Token::kCATCH) && !IsSymbol(Symbols::On()) &&
       (CurrentToken() != Token::kFINALLY)) {
     ReportError("catch or finally clause expected");
   }
@@ -9698,20 +9704,13 @@ String* Parser::ExpectIdentifier(const char* msg) {
 }
 
 
-bool Parser::IsLiteral(const char* literal) {
-  return IsIdentifier() && CurrentLiteral()->Equals(literal);
-}
-
-
 bool Parser::IsAwaitKeyword() {
-  return await_is_keyword_ &&
-         (CurrentLiteral()->raw() == Symbols::Await().raw());
+  return await_is_keyword_ && IsSymbol(Symbols::Await());
 }
 
 
 bool Parser::IsYieldKeyword() {
-  return await_is_keyword_ &&
-         (CurrentLiteral()->raw() == Symbols::YieldKw().raw());
+  return await_is_keyword_ && IsSymbol(Symbols::YieldKw());
 }
 
 

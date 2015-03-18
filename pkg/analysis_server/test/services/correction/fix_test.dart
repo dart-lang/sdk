@@ -521,6 +521,18 @@ class B extends A {
     assertNoFix(FixKind.CREATE_CONSTRUCTOR_SUPER);
   }
 
+  void test_createField_BAD_inEnum() {
+    resolveTestUnit('''
+enum MyEnum {
+  AAA, BBB
+}
+main() {
+  MyEnum.foo;
+}
+''');
+    assertNoFix(FixKind.CREATE_FIELD);
+  }
+
   void test_createField_BAD_inSDK() {
     resolveTestUnit('''
 main(List p) {

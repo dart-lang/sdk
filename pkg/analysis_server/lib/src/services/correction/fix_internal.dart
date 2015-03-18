@@ -638,8 +638,13 @@ class FixProcessor {
       staticModifier = _inStaticContext();
     }
     utils.targetClassElement = targetClassElement;
+    // prepare target ClassDeclaration
+    AstNode targetTypeNode = targetClassElement.node;
+    if (targetTypeNode is! ClassDeclaration) {
+      return;
+    }
+    ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    ClassDeclaration targetClassNode = targetClassElement.node;
     _FieldLocation targetLocation = _prepareNewFieldLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;
@@ -763,8 +768,13 @@ class FixProcessor {
       staticModifier = _inStaticContext();
     }
     utils.targetClassElement = targetClassElement;
+    // prepare target ClassDeclaration
+    AstNode targetTypeNode = targetClassElement.node;
+    if (targetTypeNode is! ClassDeclaration) {
+      return;
+    }
+    ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    ClassDeclaration targetClassNode = targetClassElement.node;
     _FieldLocation targetLocation = _prepareNewGetterLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;

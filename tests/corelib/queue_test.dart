@@ -399,7 +399,7 @@ class DoubleLinkedQueueTest extends QueueTest {
   }
 
   void testQueueElements() {
-    DoubleLinkedQueue<int> queue1 = new DoubleLinkedQueue<int>.from([1, 2, 4]);
+    DoubleLinkedQueue<int> queue1 = new DoubleLinkedQueue<int>.from([1, 2, 3]);
     DoubleLinkedQueue<int> queue2 = new DoubleLinkedQueue<int>();
     queue2.addAll(queue1);
 
@@ -412,11 +412,67 @@ class DoubleLinkedQueueTest extends QueueTest {
       entry2 = entry2.nextEntry();
     }
     Expect.equals(null, entry2);
+
+    var firstEntry = queue1.firstEntry();
+    var secondEntry = queue1.firstEntry().nextEntry();
+    var thirdEntry = queue1.lastEntry();
+    firstEntry.prepend(4);
+    firstEntry.append(5);
+    secondEntry.prepend(6);
+    secondEntry.append(7);
+    thirdEntry.prepend(8);
+    thirdEntry.append(9);
+    Expect.equals(9, queue1.length);
+    Expect.listEquals(queue1.toList(), [4, 1, 5, 6, 2, 7, 8, 3, 9]);
+    Expect.equals(1, firstEntry.remove());
+    Expect.equals(2, secondEntry.remove());
+    Expect.equals(3, thirdEntry.remove());
+    Expect.equals(6, queue1.length);
+    Expect.listEquals(queue1.toList(), [4, 5, 6, 7, 8, 9]);
   }
+}
+
+void linkEntryTest() {
+  var entry = new DoubleLinkedQueueEntry(42);
+  Expect.equals(null, entry.previousEntry());
+  Expect.equals(null, entry.nextEntry());
+
+  entry.append(37);
+  entry.prepend(87);
+  var prev = entry.previousEntry();
+  var next = entry.nextEntry();
+  Expect.equals(42, entry.element);
+  Expect.equals(37, next.element);
+  Expect.equals(87, prev.element);
+  Expect.identical(entry, prev.nextEntry());
+  Expect.identical(entry, next.previousEntry());
+  Expect.equals(null, next.nextEntry());
+  Expect.equals(null, prev.previousEntry());
+
+  entry.element = 117;
+  Expect.equals(117, entry.element);
+  Expect.identical(next, entry.nextEntry());
+  Expect.identical(prev, entry.previousEntry());
+
+  Expect.equals(117, entry.remove());
+  Expect.identical(next, prev.nextEntry());
+  Expect.identical(prev, next.previousEntry());
+  Expect.equals(null, next.nextEntry());
+  Expect.equals(null, prev.previousEntry());
+  Expect.equals(37, next.element);
+  Expect.equals(87, prev.element);
+
+  Expect.equals(37, next.remove());
+  Expect.equals(87, prev.element);
+  Expect.equals(null, prev.nextEntry());
+  Expect.equals(null, prev.previousEntry());
+
+  Expect.equals(87, prev.remove());
 }
 
 
 main() {
   new DoubleLinkedQueueTest().testMain();
   new ListQueueTest().testMain();
+  linkEntryTest();
 }
