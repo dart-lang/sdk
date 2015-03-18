@@ -28,15 +28,6 @@
       <p id="notes"> </p>
     </footer>
 
-    <script src="../../lib/runtime/harmony_feature_check.js"></script>
-    <script>
-      // TODO(jmesserly): some hacks here to get the output running
-      var math = Math;
-      var core = { int: { parse: Number } };
-      var dom = { document: document };
-    </script>
-    <script src="../../lib/runtime/dart_runtime.js"></script>
-    <script src="../codegen/expect/sunflower.js"></script>
-    <script>sunflower.main();</script>
+    <script type="application/dart" src="sunflower.dart"></script>
   </body>
 </html>

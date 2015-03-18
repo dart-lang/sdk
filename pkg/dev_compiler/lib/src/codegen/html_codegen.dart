@@ -56,13 +56,13 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
     }
-    if (path.extension(resourcePath) == '.css') {
+    var ext = path.extension(resourcePath);
+    if (ext == '.css') {
       fragment.nodes.add(_cssInclude(resourcePath));
-    } else {
+    } else if (ext == '.js') {
       fragment.nodes.add(_libraryInclude(resourcePath));
     }
   }
-  if (!options.checkSdk) fragment.nodes.add(_miniMockSdk);
   for (var lib in libraries) {
     var info = lib.info;
     if (info == null) continue;
@@ -101,13 +101,4 @@ _addHash(String outPath, String hash) {
   return path.join('cached', hash, outPath);
 }
 
-/// A script tag with a tiny mock of the core SDK. This is just used for testing
-/// some small samples.
-// TODO(sigmund,jmesserly): remove.
-Node get _miniMockSdk => parseFragment('''
-<script>
-  /* placehorder for unimplemented code libraries */
-  var math = Math;
-  var core = { int: { parse: Number }, print: e => console.log(e) };
-</script>''');
 final _log = new Logger('dev_compiler.src.codegen.html_codegen');

@@ -56,14 +56,14 @@ main(arguments) {
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-  compile(String entryPoint, String sdkPath,
-      {bool checkSdk: false, bool serverMode: false, bool sourceMaps: false}) {
+  compile(String entryPoint, String sdkPath, {bool checkSdk: false,
+      bool serverMode: false, bool sourceMaps: false, String subDir}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
     var runtimeDir = path.join(
         path.dirname(path.dirname(Platform.script.path)), 'lib', 'runtime');
     var options = new CompilerOptions(
-        outputDir: serverMode ? path.join(actualDir, 'server_mode') : actualDir,
+        outputDir: subDir == null ? actualDir : path.join(actualDir, subDir),
         useColors: false,
         outputDart: dartGen,
         formatOutput: dartGen,
@@ -148,6 +148,33 @@ main(arguments) {
   });
 
   if (!dartGen) {
+    test('devc jscodegen sunflower.html', () {
+      var filePath = path.join(inputDir, 'sunflower', 'sunflower.html');
+      compilerMessages.writeln('// Messages from compiling sunflower.html');
+
+      var result = compile(filePath, realSdk, subDir: 'sunflower');
+      var success = !result.failure;
+
+      // Write compiler messages to disk.
+      new File(path.join(actualDir, 'sunflower', 'sunflower.txt'))
+          .writeAsStringSync(compilerMessages.toString());
+
+      var expectedFiles = [
+        'sunflower.html',
+        'sunflower.js',
+        'sunflower.css',
+        'math.png',
+        'dev_compiler/runtime/dart_core.js',
+        'dev_compiler/runtime/dart_runtime.js',
+        'dev_compiler/runtime/harmony_feature_check.js',
+      ];
+      for (var filepath in expectedFiles) {
+        var outFile = new File(path.join(actualDir, 'sunflower', filepath));
+        expect(outFile.existsSync(), success,
+            reason: '${outFile.path} was created iff compilation succeeds');
+      }
+    });
+
     test('devc jscodegen html_input.html', () {
       var filePath = path.join(inputDir, 'html_input.html');
       compilerMessages.writeln('// Messages from compiling html_input.html');
@@ -191,7 +218,8 @@ main(arguments) {
       var filePath = path.join(inputDir, 'html_input.html');
       compilerMessages.writeln('// Messages from compiling html_input.html');
 
-      var result = compile(filePath, realSdk, serverMode: true);
+      var result =
+          compile(filePath, realSdk, serverMode: true, subDir: 'server_mode');
       var success = !result.failure;
 
       // Write compiler messages to disk.
