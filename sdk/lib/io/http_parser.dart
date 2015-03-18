@@ -321,7 +321,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     // how the _HttpIncoming signals the parser.
     _socketSubscription = stream.listen(
         _onData,
-        onError: _onError,
+        onError: _controller.addError,
         onDone: _onDone);
   }
 
@@ -843,10 +843,6 @@ class _HttpParser extends Stream<_HttpIncoming> {
                   "Connection closed before full body was received"));
     }
     _controller.close();
-  }
-
-  void _onError(e, [StackTrace stackTrace]) {
-    _controller.addError(e, stackTrace);
   }
 
   String get version {

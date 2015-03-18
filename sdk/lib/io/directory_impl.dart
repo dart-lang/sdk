@@ -286,8 +286,8 @@ class _AsyncDirectoryLister {
           if (response is int) {
             id = response;
             next();
-	  } else if (response is Error) {
-            controller.addError(response);
+          } else if (response is Error) {
+            controller.addError(response, response.stackTrace);
             close();
           } else {
             error(response);
@@ -379,8 +379,8 @@ class _AsyncDirectoryLister {
       if (errorPath == null) errorPath = path;
       controller.addError(
           new FileSystemException("Directory listing failed",
-                                 errorPath,
-                                 err));
+                                  errorPath,
+                                  err));
     } else {
       controller.addError(
           new FileSystemException("Internal error"));
