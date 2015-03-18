@@ -37,16 +37,19 @@ class CodeCoverage : public AllStatic {
   static void Write(Isolate* isolate);
   static void PrintJSON(Isolate* isolate,
                         JSONStream* stream,
-                        CoverageFilter* filter);
+                        CoverageFilter* filter,
+                        bool as_call_sites);
 
  private:
   static void PrintClass(const Library& lib,
                          const Class& cls,
                          const JSONArray& arr,
-                         CoverageFilter* filter);
+                         CoverageFilter* filter,
+                         bool as_call_sites);
   static void CompileAndAdd(const Function& function,
-                            const JSONArray& hits_arr,
-                            const GrowableArray<intptr_t>& pos_to_line);
+                            const JSONArray& hits_or_sites,
+                            const GrowableArray<intptr_t>& pos_to_line,
+                            bool as_call_sites);
 };
 
 }  // namespace dart

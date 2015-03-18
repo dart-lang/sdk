@@ -7,10 +7,31 @@ library script_inset_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'service_ref.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 const nbsp = "\u00A0";
+
+void addInfoBox(content, infoBox) {
+  infoBox.style.position = 'absolute';
+  infoBox.style.padding = '1em';
+  infoBox.style.border = 'solid black 2px';
+  infoBox.style.zIndex = '10';
+  infoBox.style.backgroundColor = 'white';
+
+  infoBox.style.display = 'none';  // Initially hidden.
+
+  var show = false;
+  content.onClick.listen((event) {
+    show = !show;
+    infoBox.style.display = show ? 'block' : 'none';
+  });
+
+  // Causes infoBox to be positioned relative to the bottom-left of content.
+  content.style.display = 'inline-block';
+  content.append(infoBox);
+}
 
 abstract class Annotation {
   int line;
@@ -33,26 +54,58 @@ class CurrentExecutionAnnotation extends Annotation {
 class CallSiteAnnotation extends Annotation {
   CallSite callSite;
 
+  Element row() {
+    var e = new DivElement();
+    e.style.display = "table-row";
+    return e;
+  }
+
+  Element cell(content) {
+    var e = new DivElement();
+    e.style.display = "table-cell";
+    e.style.padding = "3px";
+    if (content is String) e.text = content;
+    if (content is Element) e.children.add(content);
+    return e;
+  }
+
+  Element serviceRef(object) {
+    AnyServiceRefElement e = new Element.tag("any-service-ref");
+    e.ref = object;
+    return e;
+  }
+
+  Element entriesTable() {
+    var e = new DivElement();
+    e.style.display = "table";
+    e.style.color = "#333";
+    e.style.font = "400 14px 'Montserrat', sans-serif";
+
+    var r = row();
+    r.append(cell("Container"));
+    r.append(cell("Count"));
+    r.append(cell("Target"));
+    e.append(r);
+
+    for (var entry in callSite.entries) {
+      var r = row();
+      r.append(cell(serviceRef(entry.receiverContainer)));
+      r.append(cell(entry.count.toString()));
+      r.append(cell(serviceRef(entry.target)));
+      e.append(r);
+    }
+
+    return e;
+  }
+
   void applyStyleTo(element) {
     if (element == null) {
       return;  // TODO(rmacnak): Handling overlapping annotations.
     }
-    element.style.textDecoration = "underline";
-    element.style.color = "blue";
+    element.style.fontWeight = "bold";
+    element.title = "Call site: ${callSite.name}";
 
-    StringBuffer sb = new StringBuffer();
-    sb.write("Call site: ");
-    sb.write(callSite.name);
-    sb.write("\n");
-    for (var entry in callSite.entries) {
-      sb.write("Class: ");
-      // TODO(rmacnak): Make this a link.
-      sb.write(entry.receiverContainer.name);
-      sb.write(" Count: ");
-      sb.write(entry.count);
-      sb.write("\n");
-    }
-    element.title = sb.toString();
+    addInfoBox(element, entriesTable());
   }
 }
 

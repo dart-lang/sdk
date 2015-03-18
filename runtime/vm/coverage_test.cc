@@ -45,7 +45,7 @@ TEST_CASE(Coverage_Empty) {
   ASSERT(!lib.IsNull());
 
   JSONStream js;
-  CodeCoverage::PrintJSON(isolate, &js, NULL);
+  CodeCoverage::PrintJSON(isolate, &js, NULL, false);
 
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
@@ -78,7 +78,7 @@ TEST_CASE(Coverage_MainWithClass) {
   ASSERT(!lib.IsNull());
 
   JSONStream js;
-  CodeCoverage::PrintJSON(isolate, &js, NULL);
+  CodeCoverage::PrintJSON(isolate, &js, NULL, false);
 
   char buf[1024];
   // Coverage data is printed per class, i.e., there should be two sections
@@ -128,7 +128,7 @@ TEST_CASE(Coverage_FilterFunction) {
 
   JSONStream js;
   FunctionCoverageFilter filter(func);
-  CodeCoverage::PrintJSON(isolate, &js, &filter);
+  CodeCoverage::PrintJSON(isolate, &js, &filter, false);
   // Only expect coverage data for Foo.yetAnother() on line 6.
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),

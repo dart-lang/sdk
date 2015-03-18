@@ -53,8 +53,9 @@ static void ComputeTokenPosToLineNumberMap(const Script& script,
 
 
 void CodeCoverage::CompileAndAdd(const Function& function,
-                                 const JSONArray& hits_arr,
-                                 const GrowableArray<intptr_t>& pos_to_line) {
+                                 const JSONArray& hits_or_sites,
+                                 const GrowableArray<intptr_t>& pos_to_line,
+                                 bool as_call_sites) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -115,19 +116,23 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       if (last_line == line) {
         last_count += ic_data->AggregateCount();
       } else {
-        if (last_line != -1) {
-          hits_arr.AddValue(last_line);
-          hits_arr.AddValue(last_count);
+        if ((last_line != -1) && !as_call_sites) {
+          hits_or_sites.AddValue(last_line);
+          hits_or_sites.AddValue(last_count);
         }
         last_count = ic_data->AggregateCount();
         last_line = line;
       }
+      if (as_call_sites) {
+        bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
+        ic_data->PrintToJSONArray(hits_or_sites, token_pos, is_static_call);
+      }
     }
   }
   // Write last hit value if needed.
-  if (last_line != -1) {
-    hits_arr.AddValue(last_line);
-    hits_arr.AddValue(last_count);
+  if ((last_line != -1) && !as_call_sites) {
+    hits_or_sites.AddValue(last_line);
+    hits_or_sites.AddValue(last_count);
   }
 }
 
@@ -135,7 +140,8 @@ void CodeCoverage::CompileAndAdd(const Function& function,
 void CodeCoverage::PrintClass(const Library& lib,
                               const Class& cls,
                               const JSONArray& jsarr,
-                              CoverageFilter* filter) {
+                              CoverageFilter* filter,
+                              bool as_call_sites) {
   Isolate* isolate = Isolate::Current();
   if (cls.EnsureIsFinalized(isolate) != Error::null()) {
     // Only classes that have been finalized do have a meaningful list of
@@ -163,7 +169,7 @@ void CodeCoverage::PrintClass(const Library& lib,
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("source", saved_url.ToCString());
     jsobj.AddProperty("script", script);
-    JSONArray hits_arr(&jsobj, "hits");
+    JSONArray hits_or_sites(&jsobj, as_call_sites ? "callSites" : "hits");
 
     // We stay within this loop while we are seeing functions from the same
     // source URI.
@@ -179,10 +185,10 @@ void CodeCoverage::PrintClass(const Library& lib,
         i++;
         continue;
       }
-      CompileAndAdd(function, hits_arr, pos_to_line);
+      CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
       if (function.HasImplicitClosureFunction()) {
         function = function.ImplicitClosureFunction();
-        CompileAndAdd(function, hits_arr, pos_to_line);
+        CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
       }
       i++;
     }
@@ -208,7 +214,7 @@ void CodeCoverage::PrintClass(const Library& lib,
       JSONObject jsobj(&jsarr);
       jsobj.AddProperty("source", saved_url.ToCString());
       jsobj.AddProperty("script", script);
-      JSONArray hits_arr(&jsobj, "hits");
+      JSONArray hits_or_sites(&jsobj, as_call_sites ? "callSites" : "hits");
 
       // We stay within this loop while we are seeing functions from the same
       // source URI.
@@ -220,7 +226,7 @@ void CodeCoverage::PrintClass(const Library& lib,
           pos_to_line.Clear();
           break;
         }
-        CompileAndAdd(function, hits_arr, pos_to_line);
+        CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
         i++;
       }
     }
@@ -241,7 +247,7 @@ void CodeCoverage::Write(Isolate* isolate) {
   }
 
   JSONStream stream;
-  PrintJSON(isolate, &stream, NULL);
+  PrintJSON(isolate, &stream, NULL, false);
 
   const char* format = "%s/dart-cov-%" Pd "-%" Pd ".json";
   intptr_t pid = OS::ProcessId();
@@ -262,7 +268,8 @@ void CodeCoverage::Write(Isolate* isolate) {
 
 void CodeCoverage::PrintJSON(Isolate* isolate,
                              JSONStream* stream,
-                             CoverageFilter* filter) {
+                             CoverageFilter* filter,
+                             bool as_call_sites) {
   CoverageFilterAll default_filter;
   if (filter == NULL) {
     filter = &default_filter;
@@ -281,7 +288,7 @@ void CodeCoverage::PrintJSON(Isolate* isolate,
       while (it.HasNext()) {
         cls = it.GetNextClass();
         ASSERT(!cls.IsNull());
-        PrintClass(lib, cls, jsarr, filter);
+        PrintClass(lib, cls, jsarr, filter, as_call_sites);
       }
     }
   }

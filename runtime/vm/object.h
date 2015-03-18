@@ -1826,8 +1826,6 @@ class Function : public Object {
   }
   bool HasCode() const;
 
-  RawGrowableObjectArray* CollectICsWithSourcePositions() const;
-
   static intptr_t instructions_offset() {
     return OFFSET_OF(RawFunction, instructions_);
   }
@@ -3911,7 +3909,9 @@ class ICData : public Object {
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
 
-  void PrintToJSONArray(JSONArray* jsarray, intptr_t token_pos) const;
+  void PrintToJSONArray(const JSONArray& jsarray,
+                        intptr_t token_pos,
+                        bool is_static_call) const;
 
  private:
   RawArray* ic_data() const {

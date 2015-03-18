@@ -6851,40 +6851,6 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawGrowableObjectArray* Function::CollectICsWithSourcePositions() const {
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new ZoneGrowableArray<const ICData*>();
-  RestoreICDataMap(ic_data_array);
-  const Code& code = Code::Handle(unoptimized_code());
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      code.pc_descriptors());
-
-  const intptr_t begin_pos = token_pos();
-  const intptr_t end_pos = end_token_pos();
-
-  const GrowableObjectArray& result =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-
-  PcDescriptors::Iterator iter(descriptors,
-      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
-  while (iter.MoveNext()) {
-    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (!ic_data->IsNull()) {
-      const intptr_t token_pos = iter.TokenPos();
-      // Filter out descriptors that do not map to tokens in the source code.
-      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
-        continue;
-      }
-
-      result.Add(*ic_data);
-      result.Add(Smi::Handle(Smi::New(token_pos)));
-    }
-  }
-
-  return result.raw();
-}
-
-
 void ClosureData::set_context_scope(const ContextScope& value) const {
   StorePointer(&raw_ptr()->context_scope_, value.raw());
 }
@@ -11901,13 +11867,14 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void ICData::PrintToJSONArray(JSONArray* jsarray,
-                              intptr_t token_pos) const {
+void ICData::PrintToJSONArray(const JSONArray& jsarray,
+                              intptr_t token_pos,
+                              bool is_static_call) const {
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
 
-  JSONObject jsobj(jsarray);
+  JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
   jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
@@ -11916,7 +11883,7 @@ void ICData::PrintToJSONArray(JSONArray* jsarray,
   JSONArray cache_entries(&jsobj, "cacheEntries");
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
     func = GetTargetAt(i);
-    if (func.is_static() || (func.kind() == RawFunction::kConstructor)) {
+    if (is_static_call) {
       cls ^= func.Owner();
     } else {
       intptr_t cid = GetReceiverClassIdAt(i);
@@ -11931,6 +11898,7 @@ void ICData::PrintToJSONArray(JSONArray* jsarray,
       cache_entry.AddProperty("receiverContainer", cls);
     }
     cache_entry.AddProperty("count", count);
+    cache_entry.AddProperty("target", func);
   }
 }
 

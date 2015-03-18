@@ -48,6 +48,9 @@ topLevelCall() {
   return null;
 }
 
+class Super { bar() => "Super"; }
+class Sub extends Super { bar() => super.bar(); }
+
 script() {
   for (int i = 0; i < 10; i++) monomorphic(new A());
 
@@ -69,6 +72,8 @@ script() {
   for (int i = 0; i < 10; i++) constructorCall();
 
   for (int i = 0; i < 10; i++) topLevelCall();
+
+  for (int i = 0; i < 15; i++) new Sub().bar();
 }
 
 
@@ -78,109 +83,106 @@ Set<String> stringifyCacheEntries(Map callSite) {
   }).toSet();
 }
 
+
+testMonomorphic(Isolate isolate) async {
+  Library lib = await isolate.rootLib.load();
+  ServiceFunction func =
+     lib.functions.singleWhere((f) => f.name == 'monomorphic');
+  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+                                                  { 'targetId': func.id });
+  expect(response['type'], equals('CodeCoverage'));
+  Map callSite = response['coverage'].single['callSites'].single;
+  expect(callSite['name'], equals('foo'));
+  expect(stringifyCacheEntries(callSite),
+         equals(['A:10'].toSet()));
+}
+
+testPolymorphic(Isolate isolate) async {
+  Library lib = await isolate.rootLib.load();
+  ServiceFunction func =
+     lib.functions.singleWhere((f) => f.name == 'polymorphic');
+  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+                                                  { 'targetId': func.id });
+  expect(response['type'], equals('CodeCoverage'));
+  Map callSite = response['coverage'].single['callSites'].single;
+  expect(callSite['name'], equals('foo'));
+  expect(stringifyCacheEntries(callSite),
+         equals(['A:10', 'B:20', 'C:30'].toSet()));
+}
+
+testMegamorphic(Isolate isolate) async {
+  Library lib = await isolate.rootLib.load();
+  ServiceFunction func =
+     lib.functions.singleWhere((f) => f.name == 'megamorphic');
+  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+                                                  { 'targetId': func.id });
+  expect(response['type'], equals('CodeCoverage'));
+  Map callSite = response['coverage'].single['callSites'].single;
+  expect(callSite['name'], equals('foo'));
+  expect(stringifyCacheEntries(callSite),
+         equals(['A:10', 'B:20', 'C:30', 'D:40',
+                 'E:50', 'F:60', 'G:70', 'H:80'].toSet()));
+}
+
+testStaticCall(Isolate isolate) async {
+  Library lib = await isolate.rootLib.load();
+  ServiceFunction func =
+     lib.functions.singleWhere((f) => f.name == 'staticCall');
+  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+                                                  { 'targetId': func.id });
+  expect(response['type'], equals('CodeCoverage'));
+  Map callSite = response['coverage'].single['callSites'].single;
+  expect(callSite['name'], equals('staticMethod'));
+  expect(stringifyCacheEntries(callSite),
+         equals(['Static:10'].toSet()));
+}
+
+testConstructorCall(Isolate isolate) async {
+  Library lib = await isolate.rootLib.load();
+  ServiceFunction func =
+     lib.functions.singleWhere((f) => f.name == 'constructorCall');
+  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+                                                  { 'targetId': func.id });
+  expect(response['type'], equals('CodeCoverage'));
+  Map callSite = response['coverage'].single['callSites'].single;
+  expect(callSite['name'], equals('Static.'));
+  expect(stringifyCacheEntries(callSite),
+         equals(['Static:10'].toSet()));
+}
+
+testTopLevelCall(Isolate isolate) async {
+  Library lib = await isolate.rootLib.load();
+  ServiceFunction func =
+     lib.functions.singleWhere((f) => f.name == 'topLevelCall');
+  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+                                                  { 'targetId': func.id });
+  expect(response['type'], equals('CodeCoverage'));
+  Map callSite = response['coverage'].single['callSites'].single;
+  expect(callSite['name'], equals('topLevelMethod'));
+  expect(stringifyCacheEntries(callSite),
+         equals(['call_site_data_test:10'].toSet()));
+}
+
+testSuperCall(Isolate isolate) async {
+  Library lib = await isolate.rootLib.load();
+  Class cls = await lib.classes.singleWhere((f) => f.name == 'Sub').load();
+  ServiceFunction func = cls.functions.singleWhere((f) => f.name == 'bar');
+  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+                                                  { 'targetId': func.id });
+  expect(response['type'], equals('CodeCoverage'));
+  Map callSite = response['coverage'].single['callSites'].single;
+  expect(callSite['name'], equals('bar'));
+  expect(stringifyCacheEntries(callSite),
+         equals(['Super:15'].toSet()));
+}
+
 var tests = [
-(Isolate isolate) {
-  return isolate.rootLib.load().then((Library lib) {
-    var monomorphic = lib.functions.singleWhere((f) => f.name == 'monomorphic');
-    var polymorphic = lib.functions.singleWhere((f) => f.name == 'polymorphic');
-    var megamorphic = lib.functions.singleWhere((f) => f.name == 'megamorphic');
-    var staticCall = lib.functions.singleWhere((f) => f.name == 'staticCall');
-    var constructorCall = lib.functions.singleWhere((f) => f.name == 'constructorCall');
-    var topLevelCall = lib.functions.singleWhere((f) => f.name == 'topLevelCall');
-
-    List tests = [];
-    tests.add(isolate.invokeRpcNoUpgrade('getCallSiteData',
-                                         { 'targetId': monomorphic.id })
-                .then((Map response) {
-                    print("Monomorphic: $response");
-                    expect(response['type'], equals('_CallSiteData'));
-                    expect(response['function']['id'], equals(monomorphic.id));
-                    expect(response['callSites'], isList);
-                    expect(response['callSites'], hasLength(1));
-                    Map callSite = response['callSites'].single;
-                    expect(callSite['name'], equals('foo'));
-                    // expect(callSite['deoptReasons'], equals(''));
-                    expect(stringifyCacheEntries(callSite),
-                           equals(['A:10'].toSet()));
-                }));
-
-    tests.add(isolate.invokeRpcNoUpgrade('getCallSiteData',
-                                         { 'targetId': polymorphic.id })
-                .then((Map response) {
-                    print("Polymorphic: $response");
-                    expect(response['type'], equals('_CallSiteData'));
-                    expect(response['function']['id'], equals(polymorphic.id));
-                    expect(response['callSites'], isList);
-                    expect(response['callSites'], hasLength(1));
-                    Map callSite = response['callSites'].single;
-                    expect(callSite['name'], equals('foo'));
-                    // expect(callSite['deoptReasons'], equals(''));
-                    expect(stringifyCacheEntries(callSite),
-                           equals(['A:10', 'B:20', 'C:30'].toSet()));
-                }));
-
-    tests.add(isolate.invokeRpcNoUpgrade('getCallSiteData',
-                                         { 'targetId': megamorphic.id })
-                .then((Map response) {
-                    print("Megamorphic: $response");
-                    expect(response['type'], equals('_CallSiteData'));
-                    expect(response['function']['id'], equals(megamorphic.id));
-                    expect(response['callSites'], isList);
-                    expect(response['callSites'], hasLength(1));
-                    Map callSite = response['callSites'].single;
-                    expect(callSite['name'], equals('foo'));
-                    // expect(callSite['deoptReasons'], equals(''));
-                    expect(stringifyCacheEntries(callSite),
-                           equals(['A:10', 'B:20', 'C:30', 'D:40',
-                                   'E:50', 'F:60', 'G:70', 'H:80'].toSet()));
-                }));
-
-    tests.add(isolate.invokeRpcNoUpgrade('getCallSiteData',
-                                         { 'targetId': staticCall.id })
-                .then((Map response) {
-                    expect(response['type'], equals('_CallSiteData'));
-                    expect(response['function']['id'], equals(staticCall.id));
-                    expect(response['callSites'], isList);
-                    expect(response['callSites'], hasLength(1));
-                    Map callSite = response['callSites'].single;
-                    expect(callSite['name'], equals('staticMethod'));
-                    // expect(callSite['deoptReasons'], equals(''));
-                    expect(stringifyCacheEntries(callSite),
-                           equals(['Static:10'].toSet()));
-                }));
-
-    tests.add(isolate.invokeRpcNoUpgrade('getCallSiteData',
-                                         { 'targetId': constructorCall.id })
-                .then((Map response) {
-                    expect(response['type'], equals('_CallSiteData'));
-                    expect(response['function']['id'], equals(constructorCall.id));
-                    expect(response['callSites'], isList);
-                    expect(response['callSites'], hasLength(1));
-                    Map callSite = response['callSites'].single;
-                    expect(callSite['name'], equals('Static.'));
-                    // expect(callSite['deoptReasons'], equals(''));
-                    expect(stringifyCacheEntries(callSite),
-                           equals(['Static:10'].toSet()));
-                }));
-
-    tests.add(isolate.invokeRpcNoUpgrade('getCallSiteData',
-                                         { 'targetId': topLevelCall.id })
-                .then((Map response) {
-                    expect(response['type'], equals('_CallSiteData'));
-                    expect(response['function']['id'], equals(topLevelCall.id));
-                    expect(response['callSites'], isList);
-                    expect(response['callSites'], hasLength(1));
-                    Map callSite = response['callSites'].single;
-                    expect(callSite['name'], equals('topLevelMethod'));
-                    // expect(callSite['deoptReasons'], equals(''));
-                    expect(stringifyCacheEntries(callSite),
-                           equals(['call_site_data_test:10'].toSet()));
-                }));
-
-    return Future.wait(tests);
-  });
-},
-
-];
+    testMonomorphic,
+    testPolymorphic,
+    testMegamorphic,
+    testStaticCall,
+    testConstructorCall,
+    testTopLevelCall,
+    testSuperCall ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);
