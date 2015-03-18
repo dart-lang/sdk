@@ -69,9 +69,10 @@ class DetailedReporter extends SimpleFormatter {
     var contents = getLineContents(line, error);
     out.writeln(contents);
 
-    var arrows = '^' * error.length;
     var spaces = column - 1;
-    var result = '${" " * spaces}$arrows';
+    var arrows = min(error.length, contents.length - spaces);
+
+    var result = '${" " * spaces}${"^" * arrows}';
     out.writeln(result);
   }
 }
