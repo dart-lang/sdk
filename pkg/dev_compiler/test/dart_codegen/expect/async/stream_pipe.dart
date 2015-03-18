@@ -126,17 +126,11 @@ sink._add(inputEvent);
 }
  typedef T _Transformation<S, T>(S value);
  class _MapStream<S, T> extends _ForwardingStream<S, T> {final _Transformation _transform;
- _MapStream(Stream<S> source, T transform(S event)) : this._transform = DEVC$RT.wrap((T f(S __u138)) {
-T c(S x0) => f(DEVC$RT.cast(x0, dynamic, S, "CastParam", """line 230, column 27 of dart:async/stream_pipe.dart: """, x0 is S, false));
- return f == null ? null : c;
-}
-, transform, DEVC$RT.type((__t141<S, T> _) {
-}
-), __t139, "Wrap", """line 230, column 27 of dart:async/stream_pipe.dart: """, transform is __t139), super(source);
+ _MapStream(Stream<S> source, T transform(S event)) : this._transform = transform, super(source);
  void _handleData(S inputEvent, _EventSink<T> sink) {
 T outputEvent;
  try {
-outputEvent = ((__x143) => DEVC$RT.cast(__x143, dynamic, T, "CastGeneral", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x143 is T, false))(_transform(inputEvent));
+outputEvent = ((__x104) => DEVC$RT.cast(__x104, dynamic, T, "CastGeneral", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x104 is T, false))(_transform(inputEvent));
 }
  catch (e, s) {
 _addErrorWithReplacement(sink, e, s);
@@ -285,5 +279,3 @@ sink._add(inputEvent);
 }
 }
 }
- typedef dynamic __t139(dynamic __u140);
- typedef T __t141<S, T>(S __u142);

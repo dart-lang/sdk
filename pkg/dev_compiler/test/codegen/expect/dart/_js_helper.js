@@ -100,7 +100,7 @@ var _js_helper;
         return new _ConstantMapKeyIterable(this);
       }
       get values() {
-        return new _internal.MappedIterable(this[_keys], dart.as(((key) => this[_fetch](key)).bind(this), dart.throw_("Unimplemented type (K) → V")));
+        return new _internal.MappedIterable(this[_keys], dart.closureWrap(((key) => this[_fetch](key)).bind(this), "(K) → V"));
       }
     }
     dart.defineNamedConstructor(ConstantStringMap, '_');
@@ -1725,7 +1725,7 @@ var _js_helper;
     }
     static parseInt(source, radix, handleError) {
       if (handleError === null)
-        handleError = dart.as(_throwFormatException, dart.throw_("Unimplemented type (String) → int"));
+        handleError = dart.closureWrap(_throwFormatException, "(String) → int");
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -1777,7 +1777,7 @@ var _js_helper;
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError === null)
-        handleError = dart.as(_throwFormatException, dart.throw_("Unimplemented type (String) → double"));
+        handleError = dart.closureWrap(_throwFormatException, "(String) → double");
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -3615,11 +3615,11 @@ var _js_helper;
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris === null)
       return dart.as(new async.Future.value(null), async.Future$(core.Null));
-    let indices = dart.as(new core.List.generate(uris.length, (i) => i), core.List$(core.int));
+    let indices = dart.as(new core.List.generate(uris.length, dart.closureWrap((i) => i, "(int) → dynamic")), core.List$(core.int));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
     let indicesToLoad = indices.where((i) => !isHunkLoaded(hashes.get(i))).toList();
-    return dart.as(async.Future.wait(dart.as(indicesToLoad.map((i) => _loadHunk(uris.get(i))), core.Iterable$(async.Future))).then((_) => {
+    return dart.as(async.Future.wait(dart.as(indicesToLoad.map((i) => _loadHunk(uris.get(i))), core.Iterable$(async.Future))).then(dart.closureWrap((_) => {
       let indicesToInitialize = indices.where((i) => !isHunkInitialized(hashes.get(i))).toList();
       for (let i of indicesToInitialize) {
         let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_LOADED_HUNK);
@@ -3629,13 +3629,13 @@ var _js_helper;
       if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook !== null)) {
         exports.deferredLoadHook();
       }
-    }), async.Future$(core.Null));
+    }, "(List<dynamic>) → dynamic")), async.Future$(core.Null));
   }
   // Function _loadHunk: (String) → Future<Null>
   function _loadHunk(hunkName) {
     let future = exports._loadingLibraries.get(hunkName);
     if (future !== null) {
-      return dart.as(future.then((_) => null), async.Future$(core.Null));
+      return dart.as(future.then(dart.closureWrap((_) => null, "(Null) → dynamic")), async.Future$(core.Null));
     }
     let uri = _isolate_helper.IsolateNatives.thisScript;
     let index = uri.lastIndexOf('/');

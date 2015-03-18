@@ -618,12 +618,12 @@ var convert;
         toEncodable = this[_toEncodable];
       if (toEncodable === null)
         return this.encoder.convert(value);
-      return new JsonEncoder(dart.as(toEncodable, dart.throw_("Unimplemented type (Object) → Object"))).convert(value);
+      return new JsonEncoder(dart.closureWrap(toEncodable, "(Object) → Object")).convert(value);
     }
     get encoder() {
       if (this[_toEncodable] === null)
         return new JsonEncoder();
-      return new JsonEncoder(dart.as(this[_toEncodable], dart.throw_("Unimplemented type (Object) → Object")));
+      return new JsonEncoder(dart.closureWrap(this[_toEncodable], "(Object) → Object"));
     }
     get decoder() {
       if (this[_reviver] === null)
@@ -965,13 +965,13 @@ var convert;
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach(((key, value) => {
+      map.forEach(dart.closureWrap(((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this));
+      }).bind(this), "(String, Object) → void"));
       this.writeString('}');
     }
   }
@@ -1020,7 +1020,7 @@ var convert;
         this.writeString('{\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) + 1;
         let first = true;
-        map.forEach(dart.as(((key, value) => {
+        map.forEach(((key, value) => {
           if (!dart.notNull(first)) {
             this.writeString(",\n");
           }
@@ -1030,7 +1030,7 @@ var convert;
           this.writeString('": ');
           this.writeObject(value);
           first = false;
-        }).bind(this), dart.throw_("Unimplemented type (dynamic, dynamic) → void")));
+        }).bind(this));
         this.writeString('\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
         this.writeIndentation(this[_indentLevel]);
@@ -2032,7 +2032,7 @@ var convert;
       if (Object.getPrototypeOf(e) === Array.prototype) {
         for (let i = 0; dart.notNull(i) < e.length; i = dart.notNull(i) + 1) {
           let item = e[i];
-          e[i] = reviver(i, walk(item));
+          e[i] = dart.dinvokef(reviver, i, walk(item));
         }
         return e;
       }
@@ -2041,13 +2041,13 @@ var convert;
       let keys = map._computeKeys();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
         let key = keys.get(i);
-        let revived = reviver(key, walk(e[key]));
+        let revived = dart.dinvokef(reviver, key, walk(e[key]));
         processed[key] = revived;
       }
       map[_original] = processed;
       return map;
     }
-    return reviver(null, walk(json));
+    return dart.dinvokef(reviver, null, walk(json));
   }
   // Function _convertJsonToDartLazy: (dynamic) → dynamic
   function _convertJsonToDartLazy(object) {
@@ -2185,7 +2185,7 @@ var convert;
           value = _convertJsonToDartLazy(_getProperty(this[_original], key));
           _setProperty(this[_processed], key, value);
         }
-        f(key, value);
+        dart.dinvokef(f, key, value);
         if (!dart.notNull(core.identical(keys, this[_data]))) {
           throw new core.ConcurrentModificationError(this);
         }

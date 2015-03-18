@@ -17,15 +17,7 @@ void foo() {
   }, f4, __t5, __t3, "Wrap",
       """line 11, column 14 of test/dart_codegen/types/d.dart: """,
       f4 is __t3));
-  var z = f2(DEVC$RT.wrap((DDC$a$.A f(DDC$a$.A __u7)) {
-    DDC$a$.A c(DDC$a$.A x0) => f(DEVC$RT.cast(x0, dynamic, DDC$a$.A,
-        "CastParam",
-        """line 12, column 14 of test/dart_codegen/types/d.dart: """,
-        x0 is DDC$a$.A, true));
-    return f == null ? null : c;
-  }, f3, __t3, __t5, "Wrap",
-      """line 12, column 14 of test/dart_codegen/types/d.dart: """,
-      f3 is __t5));
+  var z = f2(f3);
 }
 typedef DDC$a$.A __t3(DDC$a$.A __u4);
 typedef dynamic __t5(dynamic __u6);

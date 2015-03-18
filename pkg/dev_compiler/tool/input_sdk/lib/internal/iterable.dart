@@ -418,7 +418,7 @@ typedef bool _ElementPredicate<E>(E element);
 
 class WhereIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   WhereIterable(this._iterable, bool this._f(E element));
 
@@ -427,7 +427,7 @@ class WhereIterable<E> extends IterableBase<E> {
 
 class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   WhereIterator(this._iterator, bool this._f(E element));
 

@@ -162,7 +162,7 @@ class RestrictedRules extends TypeRules {
   /// checker to determine whether f1 would be a subtype of f2 if the return
   /// type of f1 is set to match f2's return type.
   bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2,
-      {bool ignoreReturn: false}) {
+      {bool dynamicIsBottom: false, bool ignoreReturn: false}) {
     final r1s = f1.normalParameterTypes;
     final o1s = f1.optionalParameterTypes;
     final n1s = f1.namedParameterTypes;
@@ -185,7 +185,7 @@ class RestrictedRules extends TypeRules {
       // Check that every named parameter in f2 has a match in f1
       for (String k2 in n2s.keys) {
         if (!n1s.containsKey(k2)) return false;
-        if (!isSubTypeOf(n2s[k2], n1s[k2])) return false;
+        if (!isSubTypeOf(n2s[k2], n1s[k2], dynamicIsBottom: true)) return false;
       }
     }
     // If we get here, we either have no named parameters,
@@ -207,13 +207,13 @@ class RestrictedRules extends TypeRules {
     int oo = o2s.length; // optional in both
 
     for (int i = 0; i < rr; ++i) {
-      if (!isSubTypeOf(r2s[i], r1s[i])) return false;
+      if (!isSubTypeOf(r2s[i], r1s[i], dynamicIsBottom: true)) return false;
     }
     for (int i = 0, j = rr; i < or; ++i, ++j) {
-      if (!isSubTypeOf(r2s[j], o1s[i])) return false;
+      if (!isSubTypeOf(r2s[j], o1s[i], dynamicIsBottom: true)) return false;
     }
     for (int i = or, j = 0; i < oo; ++i, ++j) {
-      if (!isSubTypeOf(o2s[j], o1s[i])) return false;
+      if (!isSubTypeOf(o2s[j], o1s[i], dynamicIsBottom: true)) return false;
     }
     return true;
   }
@@ -260,8 +260,11 @@ class RestrictedRules extends TypeRules {
     return false;
   }
 
-  bool isSubTypeOf(DartType t1, DartType t2) {
+  bool isSubTypeOf(DartType t1, DartType t2, {bool dynamicIsBottom: false}) {
     if (t1 == t2) return true;
+
+    if (t2.isDynamic) return !dynamicIsBottom;
+    if (t1.isDynamic) return dynamicIsBottom;
 
     // Null can be assigned to anything non-primitive.
     // FIXME: Can this be anything besides null?
@@ -270,9 +273,6 @@ class RestrictedRules extends TypeRules {
       return !maybeNonNullableType(t2);
     }
     if (t2.isBottom) return false;
-
-    if (t2.isDynamic) return true;
-    if (t1.isDynamic) return false;
 
     // Trivially true for non-primitives.
     if (t2 == provider.objectType) return true;
@@ -496,6 +496,30 @@ class RestrictedRules extends TypeRules {
     var t = getStaticType(call);
     // TODO(jmesserly): fix handling of types with `call` methods. These are not
     // FunctionType, but they also aren't dynamic calls.
-    return t.isDynamic || t.isDartCoreFunction || t is! FunctionType;
+    if (t.isDynamic || t.isDartCoreFunction || t is! FunctionType) {
+      return true;
+    }
+    // Dynamic as the parameter type is treated as bottom.  A function with
+    // a dynamic parameter type requires a dynamic call in general.
+    // However, as an optimization, if we have an original definition, we know
+    // dynamic is reified as Object - in this case a regular call is fine.
+    if (call is SimpleIdentifier) {
+      var element = call.staticElement;
+      if (element is FunctionElement || element is MethodElement) {
+        // An original declaration.
+        return false;
+      }
+    }
+    var ft = t as FunctionType;
+    for (var parameterType in ft.normalParameterTypes) {
+      if (parameterType.isDynamic) return true;
+    }
+    for (var parameterType in ft.optionalParameterTypes) {
+      if (parameterType.isDynamic) return true;
+    }
+    for (var parameterType in ft.namedParameterTypes.values) {
+      if (parameterType.isDynamic) return true;
+    }
+    return false;
   }
 }

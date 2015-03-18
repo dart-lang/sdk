@@ -60,7 +60,7 @@ var sunflower;
   }
   // Function main: () → void
   function main() {
-    exports.slider.addEventListener('change', (e) => draw());
+    exports.slider.addEventListener('change', dart.closureWrap((e) => draw(), "(Event) → void"));
     draw();
   }
   // Function draw: () → void

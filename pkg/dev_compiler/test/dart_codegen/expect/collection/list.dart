@@ -111,13 +111,7 @@ if (length == 0) return "";
  return buffer.toString();
 }
  Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
- Iterable map(f(E element)) => new MappedListIterable(this, DEVC$RT.wrap((dynamic f(E __u5)) {
-dynamic c(E x0) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 178, column 62 of dart:collection/list.dart: """, x0 is E, false));
- return f == null ? null : c;
-}
-, f, DEVC$RT.type((__t8<E> _) {
-}
-), __t6, "Wrap", """line 178, column 62 of dart:collection/list.dart: """, f is __t6));
+ Iterable map(f(E element)) => new MappedListIterable(this, f);
  Iterable expand(Iterable f(E element)) => new ExpandIterable<E, dynamic>(this, f);
  E reduce(E combine(E previousValue, E element)) {
 int length = this.length;
@@ -191,22 +185,10 @@ for (int i = 0; i < this.length; i++) {
  return false;
 }
  void removeWhere(bool test(E element)) {
-_filter(this, DEVC$RT.wrap((bool f(E __u10)) {
-  bool c(E x0) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 264, column 19 of dart:collection/list.dart: """, x0 is E, false));
-   return f == null ? null : c;
-  }
-, test, DEVC$RT.type((__t13<E> _) {
-  }
-), __t11, "Wrap", """line 264, column 19 of dart:collection/list.dart: """, test is __t11), false);
+_filter(this, test, false);
 }
  void retainWhere(bool test(E element)) {
-_filter(this, DEVC$RT.wrap((bool f(E __u15)) {
-  bool c(E x0) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 268, column 19 of dart:collection/list.dart: """, x0 is E, false));
-   return f == null ? null : c;
-  }
-, test, DEVC$RT.type((__t13<E> _) {
-  }
-), __t11, "Wrap", """line 268, column 19 of dart:collection/list.dart: """, test is __t11), true);
+_filter(this, test, true);
 }
  static void _filter(List source, bool test(var element), bool retainMatching) {
 List retained = [];
@@ -241,13 +223,7 @@ if (compare == null) {
   var defaultCompare = Comparable.compare;
    compare = defaultCompare;
   }
- Sort.sort(this, DEVC$RT.wrap((int f(E __u16, E __u17)) {
-  int c(E x0, E x1) => f(DEVC$RT.cast(x0, dynamic, E, "CastParam", """line 309, column 21 of dart:collection/list.dart: """, x0 is E, false), DEVC$RT.cast(x1, dynamic, E, "CastParam", """line 309, column 21 of dart:collection/list.dart: """, x1 is E, false));
-   return f == null ? null : c;
-  }
-, compare, DEVC$RT.type((__t21<E> _) {
-  }
-), __t18, "Wrap", """line 309, column 21 of dart:collection/list.dart: """, compare is __t18));
+ Sort.sort(this, compare);
 }
  void shuffle([Random random]) {
 if (random == null) random = new Random();
@@ -313,12 +289,12 @@ RangeError.checkValidRange(start, end, this.length);
   }
  if (otherStart < start) {
   for (int i = length - 1; i >= 0; i--) {
-    this[start + i] = ((__x24) => DEVC$RT.cast(__x24, dynamic, E, "CastGeneral", """line 381, column 27 of dart:collection/list.dart: """, __x24 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x11) => DEVC$RT.cast(__x11, dynamic, E, "CastGeneral", """line 381, column 27 of dart:collection/list.dart: """, __x11 is E, false))(otherList[otherStart + i]);
     }
   }
  else {
   for (int i = 0; i < length; i++) {
-    this[start + i] = ((__x25) => DEVC$RT.cast(__x25, dynamic, E, "CastGeneral", """line 385, column 27 of dart:collection/list.dart: """, __x25 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x12) => DEVC$RT.cast(__x12, dynamic, E, "CastGeneral", """line 385, column 27 of dart:collection/list.dart: """, __x12 is E, false))(otherList[otherStart + i]);
     }
   }
 }
@@ -420,9 +396,3 @@ if (iterable is List) {
  Iterable<E> get reversed => new ReversedListIterable<E>(this);
  String toString() => IterableBase.iterableToFullString(this, '[', ']');
 }
- typedef dynamic __t6(dynamic __u7);
- typedef dynamic __t8<E>(E __u9);
- typedef bool __t11(dynamic __u12);
- typedef bool __t13<E>(E __u14);
- typedef int __t18(dynamic __u19, dynamic __u20);
- typedef int __t21<E>(E __u22, E __u23);

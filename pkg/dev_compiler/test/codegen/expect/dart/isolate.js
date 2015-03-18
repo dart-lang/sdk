@@ -29,7 +29,7 @@ var isolate;
     static spawn(entryPoint, message, opt$) {
       let paused = opt$.paused === void 0 ? false : opt$.paused;
       try {
-        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)})), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.closureWrap((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), "(List<dynamic>) → dynamic")), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new async.Future.error(e, st);
@@ -51,7 +51,7 @@ var isolate;
         } else if (args !== null) {
           throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
         }
-        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)})), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.closureWrap((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), "(List<dynamic>) → dynamic")), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new async.Future.error(e, st);

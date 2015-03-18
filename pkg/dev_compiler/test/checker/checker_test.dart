@@ -19,6 +19,9 @@ void main() {
       '/main.dart': '''
       class A {
         String x = "hello world";
+
+        void baz1(y) => x + y;
+        static baz2(y) => y + y;
       }
 
       void foo(String str) {
@@ -29,7 +32,32 @@ void main() {
         foo(/*info:DownCast,warning:DynamicInvoke*/a.x);
       }
 
-      void main() => bar(new A());
+      typedef DynFun(x);
+      typedef StrFun(String x);
+
+      var bar1 = bar;
+
+      void main() {
+        var a = new A();
+        bar(a);
+        (/*warning:DynamicInvoke*/bar1(a));
+        var b = bar;
+        (/*warning:DynamicInvoke*/b(a));
+        var f1 = foo;
+        f1("hello");
+        dynamic f2 = foo;
+        (/*warning:DynamicInvoke*/f2("hello"));
+        DynFun f3 = foo;
+        (/*warning:DynamicInvoke*/f3("hello"));
+        (/*warning:DynamicInvoke*/f3(42));
+        StrFun f4 = foo;
+        f4("hello");
+        a.baz1("hello");
+        var b1 = a.baz1;
+        (/*warning:DynamicInvoke*/b1("hello"));
+        A.baz2("hello");
+        var b2 = A.baz2;
+        (/*warning:DynamicInvoke*/b2("hello"));
     '''
     });
   });
@@ -457,15 +485,15 @@ void main() {
 
       class A {}
 
-      typedef dynamic Top(A x);         // Top of the lattice
-      typedef A Left(A x);              // Left branch
-      typedef dynamic Right(dynamic x); // Right branch
-      typedef A Bot(dynamic x);         // Bottom of the lattice
+      typedef dynamic Top(dynamic x);     // Top of the lattice
+      typedef dynamic Left(A x);          // Left branch
+      typedef A Right(dynamic x);         // Right branch
+      typedef A Bottom(A x);              // Bottom of the lattice
 
-      dynamic top(A x) => x;
-      A left(A x) => x;
-      dynamic right(dynamic x) => x;
-      A bot(dynamic x) => /*info:DownCast*/x;
+      dynamic left(A x) => x;
+      A bot(A x) => x;
+      dynamic top(dynamic x) => x;
+      A right(dynamic x) => /*info:DownCast*/x;
 
       void main() {
         {
@@ -490,7 +518,7 @@ void main() {
           f = bot;
         }
         {
-          Bot f;
+          Bottom f;
           f = /*warning:ClosureWrap*/top;
           f = /*warning:ClosureWrap*/left;
           f = /*warning:ClosureWrap*/right;
@@ -906,7 +934,7 @@ void main() {
         D f3 = (x, y) => x + y;
         Function f4 = (x, y) => x + y;
         f2 = /*warning:ClosureWrap*/f1;
-        f1 = /*warning:ClosureWrapLiteral*/(int x, int y) => x + y;
+        f1 = (int x, int y) => x + y;
         f2 = /*severe:StaticTypeError*/(int x) => -x;
       }
    '''
@@ -1603,7 +1631,7 @@ void main() {
             /*severe:InvalidMethodOverride*/A f1; // invalid for getter
             /*severe:InvalidMethodOverride*/C f2; // invalid for setter
             var f3;
-            /*severe:InvalidMethodOverride*/dynamic f4;
+            /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
           }
        '''
     }, inferFromOverrides: true);
@@ -1624,8 +1652,8 @@ void main() {
           class Child extends Base {
             /*severe:InvalidMethodOverride*/A f1; // invalid for getter
             /*severe:InvalidMethodOverride*/C f2; // invalid for setter
-            /*severe:InferableOverride*/var f3;
-            /*severe:InvalidMethodOverride*/dynamic f4;
+            /*severe:InferableOverride,severe:InvalidMethodOverride*/var f3;
+            /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
           }
        '''
     }, inferFromOverrides: false);
@@ -1719,8 +1747,8 @@ void main() {
           class Child extends Base {
             void set f1(A value) {}
             /*severe:InvalidMethodOverride*/void set f2(C value) {}
-            void set f3(value) {}
-            void set f4(dynamic value) {}
+            /*severe:InvalidMethodOverride*/void set f3(value) {}
+            /*severe:InvalidMethodOverride*/void set f4(dynamic value) {}
             set f5(B value) {}
           }
        '''
@@ -1751,8 +1779,8 @@ void main() {
 
             void set f1(A value) {}
             /*severe:InvalidMethodOverride*/void set f2(C value) {}
-            void set f3(value) {}
-            void set f4(dynamic value) {}
+            /*severe:InvalidMethodOverride*/void set f3(value) {}
+            /*severe:InvalidMethodOverride*/void set f4(dynamic value) {}
             set f5(B value) {}
           }
        '''
@@ -1780,7 +1808,7 @@ void main() {
             /*severe:InvalidMethodOverride*/C m2(C value) {}
             /*severe:InvalidMethodOverride*/A m3(C value) {}
             C m4(A value) {}
-            m5(value) {}
+            /*severe:InvalidMethodOverride*/m5(value) {}
             /*severe:InvalidMethodOverride*/dynamic m6(dynamic value) {}
           }
        '''
@@ -2214,14 +2242,14 @@ void main() {
                 implements I1 {}
 
             class T2 extends Base implements I1 {
-                m(a) {}
+                /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/m(a) {}
             }
 
             class T3 extends Object with /*severe:InvalidMethodOverride*/Base
                 implements I1 {}
 
             class T4 extends Object with Base implements I1 {
-                m(a) {}
+                /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/m(a) {}
             }
          '''
       });

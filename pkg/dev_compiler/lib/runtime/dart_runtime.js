@@ -111,6 +111,11 @@ var dart;
   }
   dart.is = is;
 
+  function closureWrap(obj, type) {
+    // TODO(vsm): Remove this once we handle in the checker.
+    return obj;
+  }
+
   function isGroundType(type) {
     // TODO(vsm): Implement.
     throw new core.UnimplementedError();

@@ -279,7 +279,11 @@ part of dart.core;
  external static Uri get base;
  external static bool get _isWindows;
  static _checkNonWindowsPathReservedCharacters(List<String> segments, bool argumentError) {
-  segments.forEach((segment) {
+  segments.forEach(((__x18) => DEVC$RT.wrap((dynamic f(dynamic __u13)) {
+    dynamic c(dynamic x0) => f(x0);
+     return f == null ? null : c;
+    }
+  , __x18, __t16, __t14, "WrapLiteral", """line 716, column 22 of dart:core/uri.dart: """, __x18 is __t14))((segment) {
     if (segment.contains("/")) {
       if (argumentError) {
         throw new ArgumentError("Illegal path character $segment");
@@ -289,10 +293,14 @@ part of dart.core;
         }
       }
     }
-  );
+  ));
   }
  static _checkWindowsPathReservedCharacters(List<String> segments, bool argumentError, [int firstSegment = 0]) {
-  segments.skip(firstSegment).forEach((segment) {
+  segments.skip(firstSegment).forEach(((__x20) => DEVC$RT.wrap((dynamic f(dynamic __u19)) {
+    dynamic c(dynamic x0) => f(x0);
+     return f == null ? null : c;
+    }
+  , __x20, __t16, __t14, "WrapLiteral", """line 730, column 41 of dart:core/uri.dart: """, __x20 is __t14))((segment) {
     if (segment.contains(new RegExp(r'["*/:<>?\\|]'))) {
       if (argumentError) {
         throw new ArgumentError("Illegal character in path");
@@ -302,7 +310,7 @@ part of dart.core;
         }
       }
     }
-  );
+  ));
   }
  static _checkWindowsDriveLetter(int charCode, bool argumentError) {
   if ((_UPPER_CASE_A <= charCode && charCode <= _UPPER_CASE_Z) || (_LOWER_CASE_A <= charCode && charCode <= _LOWER_CASE_Z)) {
@@ -391,7 +399,7 @@ part of dart.core;
     port = _makePort(port, scheme);
     }
    else {
-    port = ((__x13) => DEVC$RT.cast(__x13, num, int, "CastGeneral", """line 889, column 14 of dart:core/uri.dart: """, __x13 is int, true))(this._port);
+    port = ((__x21) => DEVC$RT.cast(__x21, num, int, "CastGeneral", """line 889, column 14 of dart:core/uri.dart: """, __x21 is int, true))(this._port);
      if (schemeChanged) {
       port = _makePort(port, scheme);
       }
@@ -432,21 +440,21 @@ part of dart.core;
  List<String> get pathSegments {
   if (_pathSegments == null) {
     var pathToSplit = !path.isEmpty && path.codeUnitAt(0) == _SLASH ? path.substring(1) : path;
-     _pathSegments = ((__x14) => DEVC$RT.cast(__x14, DEVC$RT.type((DDC$collection$.UnmodifiableListView<dynamic> _) {
+     _pathSegments = ((__x22) => DEVC$RT.cast(__x22, DEVC$RT.type((DDC$collection$.UnmodifiableListView<dynamic> _) {
       }
     ), DEVC$RT.type((List<String> _) {
       }
-    ), "CastExact", """line 945, column 23 of dart:core/uri.dart: """, __x14 is List<String>, false))(new UnmodifiableListView(pathToSplit == "" ? const <String> [] : pathToSplit.split("/").map(Uri.decodeComponent).toList(growable: false)));
+    ), "CastExact", """line 945, column 23 of dart:core/uri.dart: """, __x22 is List<String>, false))(new UnmodifiableListView(pathToSplit == "" ? const <String> [] : pathToSplit.split("/").map(Uri.decodeComponent).toList(growable: false)));
     }
    return _pathSegments;
   }
  Map<String, String> get queryParameters {
   if (_queryParameters == null) {
-    _queryParameters = ((__x15) => DEVC$RT.cast(__x15, DEVC$RT.type((DDC$collection$.UnmodifiableMapView<dynamic, dynamic> _) {
+    _queryParameters = ((__x23) => DEVC$RT.cast(__x23, DEVC$RT.type((DDC$collection$.UnmodifiableMapView<dynamic, dynamic> _) {
       }
     ), DEVC$RT.type((Map<String, String> _) {
       }
-    ), "CastExact", """line 969, column 26 of dart:core/uri.dart: """, __x15 is Map<String, String>, false))(new UnmodifiableMapView(splitQueryString(query)));
+    ), "CastExact", """line 969, column 26 of dart:core/uri.dart: """, __x23 is Map<String, String>, false))(new UnmodifiableMapView(splitQueryString(query)));
     }
    return _queryParameters;
   }
@@ -589,11 +597,15 @@ part of dart.core;
     ), "CastDynamic", """line 1139, column 45 of dart:core/uri.dart: """, _pathCharOrSlashTable is List<int>, false));
     }
    else {
-    result = pathSegments.map((s) => _uriEncode(DEVC$RT.cast(_pathCharTable, DEVC$RT.type((List<dynamic> _) {
+    result = pathSegments.map(((__x29) => DEVC$RT.wrap((String f(dynamic __u24)) {
+      String c(dynamic x0) => f(x0);
+       return f == null ? null : c;
+      }
+    , __x29, __t27, __t25, "WrapLiteral", """line 1141, column 33 of dart:core/uri.dart: """, __x29 is __t25))((s) => _uriEncode(DEVC$RT.cast(_pathCharTable, DEVC$RT.type((List<dynamic> _) {
       }
     ), DEVC$RT.type((List<int> _) {
       }
-    ), "CastDynamic", """line 1141, column 51 of dart:core/uri.dart: """, _pathCharTable is List<int>, false), DEVC$RT.cast(s, dynamic, String, "CastGeneral", """line 1141, column 67 of dart:core/uri.dart: """, s is String, true))).join("/");
+    ), "CastDynamic", """line 1141, column 51 of dart:core/uri.dart: """, _pathCharTable is List<int>, false), DEVC$RT.cast(s, dynamic, String, "CastGeneral", """line 1141, column 67 of dart:core/uri.dart: """, s is String, true)))).join("/");
     }
    if (result.isEmpty) {
     if (isFile) return "/";
@@ -615,7 +627,11 @@ part of dart.core;
   ), "CastDynamic", """line 1158, column 61 of dart:core/uri.dart: """, _queryCharTable is List<int>, false));
    var result = new StringBuffer();
    var first = true;
-   queryParameters.forEach((key, value) {
+   queryParameters.forEach(((__x38) => DEVC$RT.wrap((dynamic f(dynamic __u30, dynamic __u31)) {
+    dynamic c(dynamic x0, dynamic x1) => f(x0, x1);
+     return f == null ? null : c;
+    }
+  , __x38, __t35, __t32, "WrapLiteral", """line 1162, column 29 of dart:core/uri.dart: """, __x38 is __t32))((key, value) {
     if (!first) {
       result.write("&");
       }
@@ -626,7 +642,7 @@ part of dart.core;
        result.write(Uri.encodeQueryComponent(DEVC$RT.cast(value, dynamic, String, "CastGeneral", """line 1170, column 47 of dart:core/uri.dart: """, value is String, true)));
       }
     }
-  );
+  ));
    return result.toString();
   }
  static String _makeFragment(String fragment, int start, int end) {
@@ -678,8 +694,8 @@ part of dart.core;
    if (char < 0x80) {
     codeUnits = new List(3);
      codeUnits[0] = _PERCENT;
-     codeUnits[1] = hexDigits.codeUnitAt(((__x16) => DEVC$RT.cast(__x16, dynamic, int, "CastGeneral", """line 1248, column 43 of dart:core/uri.dart: """, __x16 is int, true))(char >> 4));
-     codeUnits[2] = hexDigits.codeUnitAt(((__x17) => DEVC$RT.cast(__x17, dynamic, int, "CastGeneral", """line 1249, column 43 of dart:core/uri.dart: """, __x17 is int, true))(char & 0xf));
+     codeUnits[1] = hexDigits.codeUnitAt(((__x39) => DEVC$RT.cast(__x39, dynamic, int, "CastGeneral", """line 1248, column 43 of dart:core/uri.dart: """, __x39 is int, true))(char >> 4));
+     codeUnits[2] = hexDigits.codeUnitAt(((__x40) => DEVC$RT.cast(__x40, dynamic, int, "CastGeneral", """line 1249, column 43 of dart:core/uri.dart: """, __x40 is int, true))(char & 0xf));
     }
    else {
     int flag = 0xc0;
@@ -695,7 +711,7 @@ part of dart.core;
      codeUnits = new List(3 * encodedBytes);
      int index = 0;
      while (--encodedBytes >= 0) {
-      int byte = ((__x18) => DEVC$RT.cast(__x18, dynamic, int, "CastGeneral", """line 1265, column 20 of dart:core/uri.dart: """, __x18 is int, true))(((char >> (6 * encodedBytes)) & 0x3f) | flag);
+      int byte = ((__x41) => DEVC$RT.cast(__x41, dynamic, int, "CastGeneral", """line 1265, column 20 of dart:core/uri.dart: """, __x41 is int, true))(((char >> (6 * encodedBytes)) & 0x3f) | flag);
        codeUnits[index] = _PERCENT;
        codeUnits[index + 1] = hexDigits.codeUnitAt(byte >> 4);
        codeUnits[index + 2] = hexDigits.codeUnitAt(byte & 0xf);
@@ -803,11 +819,11 @@ part of dart.core;
   }
  String _removeDotSegments(String path) {
   if (!_hasDotSegments(path)) return path;
-   List<String> output = ((__x19) => DEVC$RT.cast(__x19, DEVC$RT.type((List<dynamic> _) {
+   List<String> output = ((__x42) => DEVC$RT.cast(__x42, DEVC$RT.type((List<dynamic> _) {
     }
   ), DEVC$RT.type((List<String> _) {
     }
-  ), "CastLiteral", """line 1402, column 27 of dart:core/uri.dart: """, __x19 is List<String>, false))([]);
+  ), "CastLiteral", """line 1402, column 27 of dart:core/uri.dart: """, __x42 is List<String>, false))([]);
    bool appendSlash = false;
    for (String segment in path.split("/")) {
     appendSlash = false;
@@ -877,7 +893,7 @@ part of dart.core;
         }
        targetUserInfo = this._userInfo;
        targetHost = this._host;
-       targetPort = ((__x20) => DEVC$RT.cast(__x20, num, int, "CastGeneral", """line 1489, column 22 of dart:core/uri.dart: """, __x20 is int, true))(this._port);
+       targetPort = ((__x43) => DEVC$RT.cast(__x43, num, int, "CastGeneral", """line 1489, column 22 of dart:core/uri.dart: """, __x43 is int, true))(this._port);
       }
     }
    String fragment = reference.hasFragment ? reference.fragment : null;
@@ -982,7 +998,7 @@ part of dart.core;
   }
  int get hashCode {
   int combine(part, current) {
-    return ((__x21) => DEVC$RT.cast(__x21, dynamic, int, "CastGeneral", """line 1714, column 14 of dart:core/uri.dart: """, __x21 is int, true))((current * 31 + part.hashCode) & 0x3FFFFFFF);
+    return ((__x44) => DEVC$RT.cast(__x44, dynamic, int, "CastGeneral", """line 1714, column 14 of dart:core/uri.dart: """, __x44 is int, true))((current * 31 + part.hashCode) & 0x3FFFFFFF);
     }
    return combine(scheme, combine(userInfo, combine(host, combine(port, combine(path, combine(query, combine(fragment, 1)))))));
   }
@@ -1029,12 +1045,16 @@ part of dart.core;
  static Map<String, String> splitQueryString(String query, {
   Encoding encoding : UTF8}
 ) {
-  return ((__x22) => DEVC$RT.cast(__x22, dynamic, DEVC$RT.type((Map<String, String> _) {
+  return ((__x45) => DEVC$RT.cast(__x45, dynamic, DEVC$RT.type((Map<String, String> _) {
     }
-  ), "CastGeneral", """line 1864, column 12 of dart:core/uri.dart: """, __x22 is Map<String, String>, false))(query.split("&").fold({
+  ), "CastGeneral", """line 1864, column 12 of dart:core/uri.dart: """, __x45 is Map<String, String>, false))(query.split("&").fold({
     }
-  , (map, element) {
-    int index = ((__x23) => DEVC$RT.cast(__x23, dynamic, int, "CastGeneral", """line 1865, column 19 of dart:core/uri.dart: """, __x23 is int, true))(element.indexOf("="));
+  , ((__x51) => DEVC$RT.wrap((dynamic f(dynamic __u46, dynamic __u47)) {
+    dynamic c(dynamic x0, dynamic x1) => f(x0, x1);
+     return f == null ? null : c;
+    }
+  , __x51, __t35, __t48, "WrapLiteral", """line 1864, column 38 of dart:core/uri.dart: """, __x51 is __t48))((map, element) {
+    int index = ((__x52) => DEVC$RT.cast(__x52, dynamic, int, "CastGeneral", """line 1865, column 19 of dart:core/uri.dart: """, __x52 is int, true))(element.indexOf("="));
      if (index == -1) {
       if (element != "") {
         map[decodeQueryComponent(DEVC$RT.cast(element, dynamic, String, "CastGeneral", """line 1868, column 36 of dart:core/uri.dart: """, element is String, true), encoding: encoding)] = "";
@@ -1047,7 +1067,7 @@ part of dart.core;
       }
      return map;
     }
-  ));
+  )));
   }
  static List<int> parseIPv4Address(String host) {
   void error(String msg) {
@@ -1057,18 +1077,22 @@ part of dart.core;
    if (bytes.length != 4) {
     error('IPv4 address should contain exactly 4 parts');
     }
-   return ((__x24) => DEVC$RT.cast(__x24, DEVC$RT.type((List<dynamic> _) {
+   return ((__x53) => DEVC$RT.cast(__x53, DEVC$RT.type((List<dynamic> _) {
     }
   ), DEVC$RT.type((List<int> _) {
     }
-  ), "CastDynamic", """line 1896, column 12 of dart:core/uri.dart: """, __x24 is List<int>, false))(bytes.map((byteString) {
+  ), "CastDynamic", """line 1896, column 12 of dart:core/uri.dart: """, __x53 is List<int>, false))(bytes.map(((__x55) => DEVC$RT.wrap((dynamic f(dynamic __u54)) {
+    dynamic c(dynamic x0) => f(x0);
+     return f == null ? null : c;
+    }
+  , __x55, __t16, __t25, "WrapLiteral", """line 1897, column 14 of dart:core/uri.dart: """, __x55 is __t25))((byteString) {
     int byte = int.parse(DEVC$RT.cast(byteString, dynamic, String, "CastGeneral", """line 1898, column 32 of dart:core/uri.dart: """, byteString is String, true));
      if (byte < 0 || byte > 255) {
       error('each part must be in the range of `0..255`');
       }
      return byte;
     }
-  ).toList());
+  )).toList());
   }
  static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
   if (end == null) end = host.length;
@@ -1086,11 +1110,11 @@ part of dart.core;
      return value;
     }
    if (host.length < 2) error('address is too short');
-   List<int> parts = ((__x25) => DEVC$RT.cast(__x25, DEVC$RT.type((List<dynamic> _) {
+   List<int> parts = ((__x56) => DEVC$RT.cast(__x56, DEVC$RT.type((List<dynamic> _) {
     }
   ), DEVC$RT.type((List<int> _) {
     }
-  ), "CastLiteral", """line 1946, column 23 of dart:core/uri.dart: """, __x25 is List<int>, false))([]);
+  ), "CastLiteral", """line 1946, column 23 of dart:core/uri.dart: """, __x56 is List<int>, false))([]);
    bool wildcardSeen = false;
    int partStart = start;
    for (int i = start; i < end; i++) {
@@ -1197,8 +1221,8 @@ part of dart.core;
 ) {
   byteToHex(byte, buffer) {
     const String hex = '0123456789ABCDEF';
-     buffer.writeCharCode(hex.codeUnitAt(((__x26) => DEVC$RT.cast(__x26, dynamic, int, "CastGeneral", """line 2059, column 43 of dart:core/uri.dart: """, __x26 is int, true))(byte >> 4)));
-     buffer.writeCharCode(hex.codeUnitAt(((__x27) => DEVC$RT.cast(__x27, dynamic, int, "CastGeneral", """line 2060, column 43 of dart:core/uri.dart: """, __x27 is int, true))(byte & 0x0f)));
+     buffer.writeCharCode(hex.codeUnitAt(((__x57) => DEVC$RT.cast(__x57, dynamic, int, "CastGeneral", """line 2059, column 43 of dart:core/uri.dart: """, __x57 is int, true))(byte >> 4)));
+     buffer.writeCharCode(hex.codeUnitAt(((__x58) => DEVC$RT.cast(__x58, dynamic, int, "CastGeneral", """line 2060, column 43 of dart:core/uri.dart: """, __x58 is int, true))(byte & 0x0f)));
     }
    StringBuffer result = new StringBuffer();
    var bytes = encoding.encode(text);
@@ -1254,11 +1278,11 @@ part of dart.core;
       }
     }
    else {
-    bytes = ((__x28) => DEVC$RT.cast(__x28, DEVC$RT.type((List<dynamic> _) {
+    bytes = ((__x59) => DEVC$RT.cast(__x59, DEVC$RT.type((List<dynamic> _) {
       }
     ), DEVC$RT.type((List<int> _) {
       }
-    ), "CastExact", """line 2134, column 15 of dart:core/uri.dart: """, __x28 is List<int>, false))(new List());
+    ), "CastExact", """line 2134, column 15 of dart:core/uri.dart: """, __x59 is List<int>, false))(new List());
      for (int i = 0; i < text.length; i++) {
       var codeUnit = text.codeUnitAt(i);
        if (codeUnit > 127) {
@@ -1295,3 +1319,10 @@ part of dart.core;
  static const _pathCharOrSlashTable = const [0x0000, 0x0000, 0xffd2, 0x2fff, 0xffff, 0x87ff, 0xfffe, 0x47ff];
  static const _queryCharTable = const [0x0000, 0x0000, 0xffd2, 0xafff, 0xffff, 0x87ff, 0xfffe, 0x47ff];
 }
+ typedef void __t14(String __u15);
+ typedef dynamic __t16(dynamic __u17);
+ typedef dynamic __t25(String __u26);
+ typedef String __t27(dynamic __u28);
+ typedef void __t32(String __u33, String __u34);
+ typedef dynamic __t35(dynamic __u36, dynamic __u37);
+ typedef dynamic __t48(dynamic __u49, String __u50);

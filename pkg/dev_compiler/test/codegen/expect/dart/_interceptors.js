@@ -91,16 +91,16 @@ var _interceptors;
         return false;
       }
       removeWhere(test) {
-        _internal.IterableMixinWorkaround.removeWhereList(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool")));
+        _internal.IterableMixinWorkaround.removeWhereList(this, test);
       }
       retainWhere(test) {
-        _internal.IterableMixinWorkaround.removeWhereList(this, dart.as((element) => !dart.notNull(test(element)), dart.throw_("Unimplemented type (dynamic) → bool")));
+        _internal.IterableMixinWorkaround.removeWhereList(this, (element) => !dart.notNull(test(element)));
       }
       where(f) {
-        return new _internal.IterableMixinWorkaround().where(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → bool")));
+        return new _internal.IterableMixinWorkaround().where(this, f);
       }
       expand(f) {
-        return _internal.IterableMixinWorkaround.expand(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → Iterable<dynamic>")));
+        return _internal.IterableMixinWorkaround.expand(this, f);
       }
       addAll(collection) {
         for (let e of collection) {
@@ -120,7 +120,7 @@ var _interceptors;
         }
       }
       map(f) {
-        return _internal.IterableMixinWorkaround.mapList(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → dynamic")));
+        return _internal.IterableMixinWorkaround.mapList(this, f);
       }
       join(separator) {
         if (separator === void 0)
@@ -135,30 +135,30 @@ var _interceptors;
         return new _internal.IterableMixinWorkaround().takeList(this, n);
       }
       takeWhile(test) {
-        return new _internal.IterableMixinWorkaround().takeWhile(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool")));
+        return new _internal.IterableMixinWorkaround().takeWhile(this, test);
       }
       skip(n) {
         return new _internal.IterableMixinWorkaround().skipList(this, n);
       }
       skipWhile(test) {
-        return new _internal.IterableMixinWorkaround().skipWhile(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool")));
+        return new _internal.IterableMixinWorkaround().skipWhile(this, test);
       }
       reduce(combine) {
-        return dart.as(_internal.IterableMixinWorkaround.reduce(this, dart.as(combine, dart.throw_("Unimplemented type (dynamic, dynamic) → dynamic"))), E);
+        return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
       }
       fold(initialValue, combine) {
-        return _internal.IterableMixinWorkaround.fold(this, initialValue, dart.as(combine, dart.throw_("Unimplemented type (dynamic, dynamic) → dynamic")));
+        return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
       }
       firstWhere(test, opt$) {
         let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
-        return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool")), orElse), E);
+        return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
       }
       lastWhere(test, opt$) {
         let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
-        return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool")), orElse), E);
+        return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
       }
       singleWhere(test) {
-        return dart.as(_internal.IterableMixinWorkaround.singleWhere(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool"))), E);
+        return dart.as(_internal.IterableMixinWorkaround.singleWhere(this, test), E);
       }
       elementAt(index) {
         return this.get(index);
@@ -234,10 +234,10 @@ var _interceptors;
         _internal.IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
       }
       any(f) {
-        return _internal.IterableMixinWorkaround.any(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → bool")));
+        return _internal.IterableMixinWorkaround.any(this, f);
       }
       every(f) {
-        return _internal.IterableMixinWorkaround.every(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → bool")));
+        return _internal.IterableMixinWorkaround.every(this, f);
       }
       get reversed() {
         return new _internal.IterableMixinWorkaround().reversedList(this);
@@ -246,7 +246,7 @@ var _interceptors;
         if (compare === void 0)
           compare = null;
         this.checkMutable('sort');
-        _internal.IterableMixinWorkaround.sortList(this, dart.as(compare, dart.throw_("Unimplemented type (dynamic, dynamic) → int")));
+        _internal.IterableMixinWorkaround.sortList(this, compare);
       }
       shuffle(random) {
         if (random === void 0)

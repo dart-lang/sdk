@@ -159,7 +159,7 @@ var _internal;
         return super.where(test);
       }
       map(f) {
-        return new MappedListIterable(this, dart.as(f, dart.throw_("Unimplemented type (dynamic) → dynamic")));
+        return new MappedListIterable(this, f);
       }
       reduce(combine) {
         let length = this.length;
@@ -167,7 +167,7 @@ var _internal;
           throw IterableElementError.noElement();
         let value = this.elementAt(0);
         for (let i = 1; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          value = combine(value, this.elementAt(i));
+          value = dart.dinvokef(combine, value, this.elementAt(i));
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
           }
@@ -178,7 +178,7 @@ var _internal;
         let value = initialValue;
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          value = combine(value, this.elementAt(i));
+          value = dart.dinvokef(combine, value, this.elementAt(i));
           if (length !== this.length) {
             throw new core.ConcurrentModificationError(this);
           }
@@ -481,7 +481,7 @@ var _internal;
         super.IterableBase();
       }
       get iterator() {
-        return new ExpandIterator(this[_iterable].iterator, dart.as(this[_f], dart.throw_("Unimplemented type (S) → Iterable<T>")));
+        return new ExpandIterator(this[_iterable].iterator, dart.closureWrap(this[_f], "(S) → Iterable<T>"));
       }
     }
     return ExpandIterable;
@@ -508,7 +508,7 @@ var _internal;
           this[_current] = null;
           if (this[_iterator].moveNext()) {
             this[_currentExpansion] = null;
-            this[_currentExpansion] = dart.as(this[_f](this[_iterator].current).iterator, core.Iterator$(T));
+            this[_currentExpansion] = dart.as(dart.dinvokef(this[_f], this[_iterator].current).iterator, core.Iterator$(T));
           } else {
             return false;
           }
@@ -594,7 +594,7 @@ var _internal;
         super.IterableBase();
       }
       get iterator() {
-        return new TakeWhileIterator(this[_iterable].iterator, this[_f]);
+        return new TakeWhileIterator(this[_iterable].iterator, dart.closureWrap(this[_f], "(E) → bool"));
       }
     }
     return TakeWhileIterable;
@@ -612,7 +612,7 @@ var _internal;
       moveNext() {
         if (this[_isFinished])
           return false;
-        if (!dart.notNull(this[_iterator].moveNext()) || !dart.notNull(this[_f](this[_iterator].current))) {
+        if (!dart.notNull(this[_iterator].moveNext()) || !dart.notNull(dart.dinvokef(this[_f], this[_iterator].current))) {
           this[_isFinished] = true;
           return false;
         }
@@ -704,7 +704,7 @@ var _internal;
         super.IterableBase();
       }
       get iterator() {
-        return new SkipWhileIterator(this[_iterable].iterator, this[_f]);
+        return new SkipWhileIterator(this[_iterable].iterator, dart.closureWrap(this[_f], "(E) → bool"));
       }
     }
     return SkipWhileIterable;
@@ -723,7 +723,7 @@ var _internal;
         if (!dart.notNull(this[_hasSkipped])) {
           this[_hasSkipped] = true;
           while (this[_iterator].moveNext()) {
-            if (!dart.notNull(this[_f](this[_iterator].current)))
+            if (!dart.notNull(dart.dinvokef(this[_f], this[_iterator].current)))
               return true;
           }
         }
@@ -864,19 +864,19 @@ var _internal;
       }
       static forEach(iterable, f) {
         for (let e of iterable) {
-          f(e);
+          dart.dinvokef(f, e);
         }
       }
       static any(iterable, f) {
         for (let e of iterable) {
-          if (f(e))
+          if (dart.dinvokef(f, e))
             return true;
         }
         return false;
       }
       static every(iterable, f) {
         for (let e of iterable) {
-          if (!dart.notNull(f(e)))
+          if (!dart.notNull(dart.dinvokef(f, e)))
             return false;
         }
         return true;
@@ -887,13 +887,13 @@ var _internal;
           throw IterableElementError.noElement();
         let value = iterator.current;
         while (iterator.moveNext()) {
-          value = combine(value, iterator.current);
+          value = dart.dinvokef(combine, value, iterator.current);
         }
         return value;
       }
       static fold(iterable, initialValue, combine) {
         for (let element of iterable) {
-          initialValue = combine(initialValue, element);
+          initialValue = dart.dinvokef(combine, initialValue, element);
         }
         return initialValue;
       }
@@ -902,7 +902,7 @@ var _internal;
         let length = list.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = list.get(i);
-          if (!dart.notNull(test(element))) {
+          if (!dart.notNull(dart.dinvokef(test, element))) {
             retained.add(element);
           }
           if (length !== list.length) {
@@ -948,7 +948,7 @@ var _internal;
       }
       static firstWhere(iterable, test, orElse) {
         for (let element of iterable) {
-          if (test(element))
+          if (dart.dinvokef(test, element))
             return element;
         }
         if (orElse !== null)
@@ -959,7 +959,7 @@ var _internal;
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
-          if (test(element)) {
+          if (dart.dinvokef(test, element)) {
             result = element;
             foundMatching = true;
           }
@@ -973,7 +973,7 @@ var _internal;
       static lastWhereList(list, test, orElse) {
         for (let i = dart.notNull(list.length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = list.get(i);
-          if (test(element))
+          if (dart.dinvokef(test, element))
             return element;
         }
         if (orElse !== null)
@@ -984,7 +984,7 @@ var _internal;
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
-          if (test(element)) {
+          if (dart.dinvokef(test, element)) {
             if (foundMatching) {
               throw IterableElementError.tooMany();
             }
@@ -1037,7 +1037,7 @@ var _internal;
         return buffer.toString();
       }
       where(iterable, f) {
-        return new WhereIterable(dart.as(iterable, core.Iterable$(T)), f);
+        return new WhereIterable(dart.as(iterable, core.Iterable$(T)), dart.closureWrap(f, "(T) → bool"));
       }
       static map(iterable, f) {
         return new MappedIterable(iterable, f);
@@ -1052,20 +1052,20 @@ var _internal;
         return new SubListIterable(dart.as(list, core.Iterable$(T)), 0, n);
       }
       takeWhile(iterable, test) {
-        return new TakeWhileIterable(dart.as(iterable, core.Iterable$(T)), test);
+        return new TakeWhileIterable(dart.as(iterable, core.Iterable$(T)), dart.closureWrap(test, "(T) → bool"));
       }
       skipList(list, n) {
         return new SubListIterable(dart.as(list, core.Iterable$(T)), n, null);
       }
       skipWhile(iterable, test) {
-        return new SkipWhileIterable(dart.as(iterable, core.Iterable$(T)), test);
+        return new SkipWhileIterable(dart.as(iterable, core.Iterable$(T)), dart.closureWrap(test, "(T) → bool"));
       }
       reversedList(list) {
         return new ReversedListIterable(dart.as(list, core.Iterable$(T)));
       }
       static sortList(list, compare) {
         if (compare === null)
-          compare = dart.as(core.Comparable.compare, dart.throw_("Unimplemented type (dynamic, dynamic) → int"));
+          compare = core.Comparable.compare;
         Sort.sort(list, compare);
       }
       static shuffleList(list, random) {
@@ -1564,7 +1564,7 @@ var _internal;
       for (let i = dart.notNull(left) + 1; dart.notNull(i) <= dart.notNull(right); i = dart.notNull(i) + 1) {
         let el = a.get(i);
         let j = i;
-        while (dart.notNull(j) > dart.notNull(left) && dart.notNull(compare(a.get(dart.notNull(j) - 1), el)) > 0) {
+        while (dart.notNull(j) > dart.notNull(left) && dart.notNull(dart.dinvokef(compare, a.get(dart.notNull(j) - 1), el)) > 0) {
           a.set(j, a.get(dart.notNull(j) - 1));
           j = dart.notNull(j) - 1;
         }
@@ -1584,47 +1584,47 @@ var _internal;
       let el3 = a.get(index3);
       let el4 = a.get(index4);
       let el5 = a.get(index5);
-      if (dart.notNull(compare(el1, el2)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el1, el2)) > 0) {
         let t = el1;
         el1 = el2;
         el2 = t;
       }
-      if (dart.notNull(compare(el4, el5)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el4, el5)) > 0) {
         let t = el4;
         el4 = el5;
         el5 = t;
       }
-      if (dart.notNull(compare(el1, el3)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el1, el3)) > 0) {
         let t = el1;
         el1 = el3;
         el3 = t;
       }
-      if (dart.notNull(compare(el2, el3)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el2, el3)) > 0) {
         let t = el2;
         el2 = el3;
         el3 = t;
       }
-      if (dart.notNull(compare(el1, el4)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el1, el4)) > 0) {
         let t = el1;
         el1 = el4;
         el4 = t;
       }
-      if (dart.notNull(compare(el3, el4)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el3, el4)) > 0) {
         let t = el3;
         el3 = el4;
         el4 = t;
       }
-      if (dart.notNull(compare(el2, el5)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el2, el5)) > 0) {
         let t = el2;
         el2 = el5;
         el5 = t;
       }
-      if (dart.notNull(compare(el2, el3)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el2, el3)) > 0) {
         let t = el2;
         el2 = el3;
         el3 = t;
       }
-      if (dart.notNull(compare(el4, el5)) > 0) {
+      if (dart.notNull(dart.dinvokef(compare, el4, el5)) > 0) {
         let t = el4;
         el4 = el5;
         el5 = t;
@@ -1638,12 +1638,12 @@ var _internal;
       a.set(index4, a.get(right));
       let less = dart.notNull(left) + 1;
       let great = dart.notNull(right) - 1;
-      let pivots_are_equal = compare(pivot1, pivot2) === 0;
+      let pivots_are_equal = dart.dinvokef(compare, pivot1, pivot2) === 0;
       if (pivots_are_equal) {
         let pivot = pivot1;
         for (let k = less; dart.notNull(k) <= dart.notNull(great); k = dart.notNull(k) + 1) {
           let ak = a.get(k);
-          let comp = compare(ak, pivot);
+          let comp = dart.dinvokef(compare, ak, pivot);
           if (comp === 0)
             continue;
           if (dart.notNull(comp) < 0) {
@@ -1654,7 +1654,7 @@ var _internal;
             less = dart.notNull(less) + 1;
           } else {
             while (true) {
-              comp = compare(a.get(great), pivot);
+              comp = dart.dinvokef(compare, a.get(great), pivot);
               if (dart.notNull(comp) > 0) {
                 great = dart.notNull(great) - 1;
                 continue;
@@ -1674,7 +1674,7 @@ var _internal;
       } else {
         for (let k = less; dart.notNull(k) <= dart.notNull(great); k = dart.notNull(k) + 1) {
           let ak = a.get(k);
-          let comp_pivot1 = compare(ak, pivot1);
+          let comp_pivot1 = dart.dinvokef(compare, ak, pivot1);
           if (dart.notNull(comp_pivot1) < 0) {
             if (k !== less) {
               a.set(k, a.get(less));
@@ -1682,17 +1682,17 @@ var _internal;
             }
             less = dart.notNull(less) + 1;
           } else {
-            let comp_pivot2 = compare(ak, pivot2);
+            let comp_pivot2 = dart.dinvokef(compare, ak, pivot2);
             if (dart.notNull(comp_pivot2) > 0) {
               while (true) {
-                let comp = compare(a.get(great), pivot2);
+                let comp = dart.dinvokef(compare, a.get(great), pivot2);
                 if (dart.notNull(comp) > 0) {
                   great = dart.notNull(great) - 1;
                   if (dart.notNull(great) < dart.notNull(k))
                     break;
                   continue;
                 } else {
-                  comp = compare(a.get(great), pivot1);
+                  comp = dart.dinvokef(compare, a.get(great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a.set(k, a.get(less));
                     a.set((($tmp) => less = dart.notNull($tmp) + 1, $tmp)(less), a.get(great));
@@ -1718,15 +1718,15 @@ var _internal;
         return;
       }
       if (dart.notNull(less) < dart.notNull(index1) && dart.notNull(great) > dart.notNull(index5)) {
-        while (compare(a.get(less), pivot1) === 0) {
+        while (dart.dinvokef(compare, a.get(less), pivot1) === 0) {
           less = dart.notNull(less) + 1;
         }
-        while (compare(a.get(great), pivot2) === 0) {
+        while (dart.dinvokef(compare, a.get(great), pivot2) === 0) {
           great = dart.notNull(great) - 1;
         }
         for (let k = less; dart.notNull(k) <= dart.notNull(great); k = dart.notNull(k) + 1) {
           let ak = a.get(k);
-          let comp_pivot1 = compare(ak, pivot1);
+          let comp_pivot1 = dart.dinvokef(compare, ak, pivot1);
           if (comp_pivot1 === 0) {
             if (k !== less) {
               a.set(k, a.get(less));
@@ -1734,17 +1734,17 @@ var _internal;
             }
             less = dart.notNull(less) + 1;
           } else {
-            let comp_pivot2 = compare(ak, pivot2);
+            let comp_pivot2 = dart.dinvokef(compare, ak, pivot2);
             if (comp_pivot2 === 0) {
               while (true) {
-                let comp = compare(a.get(great), pivot2);
+                let comp = dart.dinvokef(compare, a.get(great), pivot2);
                 if (comp === 0) {
                   great = dart.notNull(great) - 1;
                   if (dart.notNull(great) < dart.notNull(k))
                     break;
                   continue;
                 } else {
-                  comp = compare(a.get(great), pivot1);
+                  comp = dart.dinvokef(compare, a.get(great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a.set(k, a.get(less));
                     a.set((($tmp) => less = dart.notNull($tmp) + 1, $tmp)(less), a.get(great));

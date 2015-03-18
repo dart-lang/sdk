@@ -363,9 +363,9 @@ var async;
       }
       [_sendDone]() {
         if (!dart.notNull(this[_isEmpty])) {
-          this[_forEachListener](dart.as(((subscription) => {
+          this[_forEachListener](dart.closureWrap(((subscription) => {
             subscription._close();
-          }).bind(this), dart.throw_("Unimplemented type (_BufferingStreamSubscription<T>) → void")));
+          }).bind(this), "(_BufferingStreamSubscription<T>) → void"));
         } else {
           dart.assert(this[_doneFuture] !== null);
           dart.assert(this[_doneFuture][_mayComplete]);
@@ -619,7 +619,7 @@ var async;
               for (let value of values) {
                 if (value !== null) {
                   new Future.sync(() => {
-                    cleanUp(value);
+                    dart.dinvokef(cleanUp, value);
                   });
                 }
               }
@@ -637,7 +637,7 @@ var async;
         }
         for (let future of futures) {
           let pos = (($tmp) => remaining = dart.notNull($tmp) + 1, $tmp)(remaining);
-          future.then(dart.as(((value) => {
+          future.then(((value) => {
             remaining = dart.notNull(remaining) - 1;
             if (values !== null) {
               values.set(pos, value);
@@ -647,14 +647,14 @@ var async;
             } else {
               if (dart.notNull(cleanUp !== null) && dart.notNull(value !== null)) {
                 new Future.sync(() => {
-                  cleanUp(value);
+                  dart.dinvokef(cleanUp, value);
                 });
               }
               if (remaining === 0 && !dart.notNull(eagerError)) {
                 result._completeError(error, stackTrace);
               }
             }
-          }).bind(this), dart.throw_("Unimplemented type (dynamic) → dynamic")), {onError: handleError});
+          }).bind(this), {onError: handleError});
         }
         if (remaining === 0) {
           return dart.as(new Future.value(/* Unimplemented const */new List.from([])), Future$(core.List));
@@ -667,19 +667,19 @@ var async;
         return doWhile((() => {
           if (!dart.notNull(iterator.moveNext()))
             return false;
-          return new Future.sync((() => f(iterator.current)).bind(this)).then((_) => true);
+          return new Future.sync((() => dart.dinvokef(f, iterator.current)).bind(this)).then((_) => true);
         }).bind(this));
       }
       static doWhile(f) {
         let doneSignal = new _Future();
         let nextIteration = null;
-        nextIteration = Zone.current.bindUnaryCallback(dart.as(((keepGoing) => {
+        nextIteration = Zone.current.bindUnaryCallback(((keepGoing) => {
           if (keepGoing) {
             new Future.sync(f).then(dart.as(nextIteration, dart.throw_("Unimplemented type (dynamic) → dynamic")), {onError: doneSignal[_completeError]});
           } else {
             doneSignal._complete(null);
           }
-        }).bind(this), dart.throw_("Unimplemented type (dynamic) → dynamic")), {runGuarded: true});
+        }).bind(this), {runGuarded: true});
         dart.dinvokef(nextIteration, true);
         return doneSignal;
       }
@@ -944,12 +944,12 @@ var async;
         let onError = opt$.onError === void 0 ? null : opt$.onError;
         let result = new _Future();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
-          f = result[_zone].registerUnaryCallback(dart.as(f, dart.throw_("Unimplemented type (dynamic) → dynamic")));
+          f = dart.closureWrap(result[_zone].registerUnaryCallback(f), "(T) → dynamic");
           if (onError !== null) {
             onError = _registerErrorHandler(onError, result[_zone]);
           }
         }
-        this[_addListener](new _FutureListener.then(result, dart.as(f, _FutureOnValue), onError));
+        this[_addListener](new _FutureListener.then(result, f, onError));
         return result;
       }
       catchError(onError, opt$) {
@@ -958,7 +958,7 @@ var async;
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           onError = _registerErrorHandler(onError, result[_zone]);
           if (test !== null)
-            test = dart.as(result[_zone].registerUnaryCallback(test), dart.throw_("Unimplemented type (dynamic) → bool"));
+            test = dart.closureWrap(result[_zone].registerUnaryCallback(test), "(dynamic) → bool");
         }
         this[_addListener](new _FutureListener.catchError(result, onError, test));
         return result;
@@ -1466,10 +1466,10 @@ var async;
       }
       Stream$fromFuture(future) {
         let controller = dart.as(new StreamController({sync: true}), _StreamController$(T));
-        future.then(((value) => {
+        future.then(dart.closureWrap(((value) => {
           controller._add(dart.as(value, T));
           controller._closeUnchecked();
-        }).bind(this), {onError: ((error, stackTrace) => {
+        }).bind(this), "(T) → dynamic"), {onError: ((error, stackTrace) => {
             controller._addError(error, dart.as(stackTrace, core.StackTrace));
             controller._closeUnchecked();
           }).bind(this)});
@@ -1482,7 +1482,7 @@ var async;
         if (computation === void 0)
           computation = null;
         if (computation === null)
-          computation = (i) => null;
+          computation = dart.closureWrap((i) => null, "(int) → T");
         let timer = null;
         let computationCount = 0;
         let controller = null;
@@ -1524,7 +1524,7 @@ var async;
         return controller.stream;
       }
       Stream$eventTransformed(source, mapSink) {
-        return dart.as(new _BoundSinkStream(source, dart.as(mapSink, _SinkMapper)), Stream$(T));
+        return dart.as(new _BoundSinkStream(source, dart.closureWrap(mapSink, "(EventSink<dynamic>) → EventSink")), Stream$(T));
       }
       get isBroadcast() {
         return false;
@@ -1532,7 +1532,7 @@ var async;
       asBroadcastStream(opt$) {
         let onListen = opt$.onListen === void 0 ? null : opt$.onListen;
         let onCancel = opt$.onCancel === void 0 ? null : opt$.onCancel;
-        return new _AsBroadcastStream(this, dart.as(onListen, dart.throw_("Unimplemented type (StreamSubscription<dynamic>) → void")), dart.as(onCancel, dart.throw_("Unimplemented type (StreamSubscription<dynamic>) → void")));
+        return new _AsBroadcastStream(this, dart.closureWrap(onListen, "(StreamSubscription<dynamic>) → void"), dart.closureWrap(onCancel, "(StreamSubscription<dynamic>) → void"));
       }
       where(test) {
         return new _WhereStream(this, test);
@@ -1640,9 +1640,9 @@ var async;
         let subscription = null;
         subscription = this.listen((element) => {
           if (seenFirst) {
-            _runUserCode(() => combine(value, element), dart.as((newValue) => {
+            _runUserCode(() => combine(value, element), (newValue) => {
               value = newValue;
-            }, dart.throw_("Unimplemented type (dynamic) → dynamic")), dart.as(_cancelAndErrorClosure(subscription, result), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
+            }, dart.as(_cancelAndErrorClosure(subscription, result), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
           } else {
             value = element;
             seenFirst = true;
@@ -1667,7 +1667,7 @@ var async;
         let value = initialValue;
         let subscription = null;
         subscription = this.listen((element) => {
-          _runUserCode(() => combine(value, element), (newValue) => {
+          _runUserCode(() => dart.dinvokef(combine, value, element), (newValue) => {
             value = newValue;
           }, dart.as(_cancelAndErrorClosure(subscription, result), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
         }, {onError: ((e, st) => {
@@ -1707,11 +1707,11 @@ var async;
         let future = new _Future();
         let subscription = null;
         subscription = this.listen((element) => {
-          _runUserCode(() => dart.equals(element, needle), dart.as((isMatch) => {
+          _runUserCode(() => dart.equals(element, needle), (isMatch) => {
             if (isMatch) {
               _cancelAndValue(subscription, future, true);
             }
-          }, dart.throw_("Unimplemented type (dynamic) → dynamic")), dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
+          }, dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
         }, {onError: future[_completeError], onDone: (() => {
             future._complete(false);
           }).bind(this), cancelOnError: true});
@@ -1732,11 +1732,11 @@ var async;
         let future = new _Future();
         let subscription = null;
         subscription = this.listen((element) => {
-          _runUserCode(() => test(element), dart.as((isMatch) => {
+          _runUserCode(() => test(element), (isMatch) => {
             if (!dart.notNull(isMatch)) {
               _cancelAndValue(subscription, future, false);
             }
-          }, dart.throw_("Unimplemented type (dynamic) → dynamic")), dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
+          }, dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
         }, {onError: future[_completeError], onDone: (() => {
             future._complete(true);
           }).bind(this), cancelOnError: true});
@@ -1746,11 +1746,11 @@ var async;
         let future = new _Future();
         let subscription = null;
         subscription = this.listen((element) => {
-          _runUserCode(() => test(element), dart.as((isMatch) => {
+          _runUserCode(() => test(element), (isMatch) => {
             if (isMatch) {
               _cancelAndValue(subscription, future, true);
             }
-          }, dart.throw_("Unimplemented type (dynamic) → dynamic")), dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
+          }, dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
         }, {onError: future[_completeError], onDone: (() => {
             future._complete(false);
           }).bind(this), cancelOnError: true});
@@ -1759,9 +1759,9 @@ var async;
       get length() {
         let future = new _Future();
         let count = 0;
-        this.listen((_) => {
+        this.listen(dart.closureWrap((_) => {
           count = dart.notNull(count) + 1;
-        }, {onError: future[_completeError], onDone: (() => {
+        }, "(T) → void"), {onError: future[_completeError], onDone: (() => {
             future._complete(count);
           }).bind(this), cancelOnError: true});
         return future;
@@ -1769,9 +1769,9 @@ var async;
       get isEmpty() {
         let future = new _Future();
         let subscription = null;
-        subscription = this.listen((_) => {
+        subscription = this.listen(dart.closureWrap((_) => {
           _cancelAndValue(subscription, future, false);
-        }, {onError: future[_completeError], onDone: (() => {
+        }, "(T) → void"), {onError: future[_completeError], onDone: (() => {
             future._complete(true);
           }).bind(this), cancelOnError: true});
         return future;
@@ -1805,18 +1805,18 @@ var async;
         return dart.as(new _TakeStream(this, count), Stream$(T));
       }
       takeWhile(test) {
-        return dart.as(new _TakeWhileStream(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool"))), Stream$(T));
+        return dart.as(new _TakeWhileStream(this, test), Stream$(T));
       }
       skip(count) {
         return dart.as(new _SkipStream(this, count), Stream$(T));
       }
       skipWhile(test) {
-        return dart.as(new _SkipWhileStream(this, dart.as(test, dart.throw_("Unimplemented type (dynamic) → bool"))), Stream$(T));
+        return dart.as(new _SkipWhileStream(this, test), Stream$(T));
       }
       distinct(equals) {
         if (equals === void 0)
           equals = null;
-        return dart.as(new _DistinctStream(this, dart.as(equals, dart.throw_("Unimplemented type (dynamic, dynamic) → bool"))), Stream$(T));
+        return dart.as(new _DistinctStream(this, equals), Stream$(T));
       }
       get first() {
         let future = new _Future();
@@ -1899,11 +1899,11 @@ var async;
         let future = new _Future();
         let subscription = null;
         subscription = this.listen((value) => {
-          _runUserCode(() => test(value), dart.as((isMatch) => {
+          _runUserCode(() => test(value), (isMatch) => {
             if (isMatch) {
               _cancelAndValue(subscription, future, value);
             }
-          }, dart.throw_("Unimplemented type (dynamic) → dynamic")), dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
+          }, dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
         }, {onError: future[_completeError], onDone: (() => {
             if (defaultValue !== null) {
               _runUserCode(defaultValue, future[_complete], future[_completeError]);
@@ -1926,12 +1926,12 @@ var async;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen((value) => {
-          _runUserCode(() => true === test(value), dart.as((isMatch) => {
+          _runUserCode(() => true === test(value), (isMatch) => {
             if (isMatch) {
               foundResult = true;
               result = value;
             }
-          }, dart.throw_("Unimplemented type (dynamic) → dynamic")), dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
+          }, dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
         }, {onError: future[_completeError], onDone: (() => {
             if (foundResult) {
               future._complete(result);
@@ -1957,7 +1957,7 @@ var async;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen((value) => {
-          _runUserCode(() => true === test(value), dart.as((isMatch) => {
+          _runUserCode(() => true === test(value), (isMatch) => {
             if (isMatch) {
               if (foundResult) {
                 try {
@@ -1972,7 +1972,7 @@ var async;
               foundResult = true;
               result = value;
             }
-          }, dart.throw_("Unimplemented type (dynamic) → dynamic")), dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
+          }, dart.as(_cancelAndErrorClosure(subscription, future), dart.throw_("Unimplemented type (dynamic, StackTrace) → dynamic")));
         }, {onError: future[_completeError], onDone: (() => {
             if (foundResult) {
               future._complete(result);
@@ -2039,11 +2039,11 @@ var async;
               controller.addError(new TimeoutException("No stream event", timeLimit), null);
             }).bind(this);
           } else {
-            onTimeout = zone.registerUnaryCallback(dart.as(onTimeout, dart.throw_("Unimplemented type (dynamic) → dynamic")));
+            onTimeout = dart.closureWrap(zone.registerUnaryCallback(onTimeout), "(EventSink<dynamic>) → void");
             let wrapper = new _ControllerEventSinkWrapper(null);
             timeout = (() => {
               wrapper[_sink] = controller;
-              zone.runUnaryGuarded(dart.as(onTimeout, dart.throw_("Unimplemented type (dynamic) → dynamic")), wrapper);
+              zone.runUnaryGuarded(onTimeout, wrapper);
               wrapper[_sink] = null;
             }).bind(this);
           }
@@ -2359,7 +2359,7 @@ var async;
         if (!dart.notNull(this[_isInitialState])) {
           throw new core.StateError("Stream has already been listened to.");
         }
-        let subscription = new _ControllerSubscription(this, dart.as(onData, dart.throw_("Unimplemented type (dynamic) → void")), onError, onDone, cancelOnError);
+        let subscription = new _ControllerSubscription(this, onData, onError, onDone, cancelOnError);
         let pendingEvents = this[_pendingEvents];
         this[_state] = _StreamController._STATE_SUBSCRIBED;
         if (this[_isAddingStream]) {
@@ -2601,7 +2601,7 @@ var async;
     class _AddStreamState extends core.Object {
       _AddStreamState(controller, source, cancelOnError) {
         this.addStreamFuture = new _Future();
-        this.addSubscription = source.listen(dart.as(controller[_add], dart.throw_("Unimplemented type (dynamic) → void")), {onError: dart.as(cancelOnError ? makeErrorHandler(controller) : controller[_addError], core.Function), onDone: controller[_close], cancelOnError: cancelOnError});
+        this.addSubscription = source.listen(controller[_add], {onError: dart.as(cancelOnError ? makeErrorHandler(controller) : controller[_addError], core.Function), onDone: controller[_close], cancelOnError: cancelOnError});
       }
       static makeErrorHandler(controller) {
         return ((e, s) => {
@@ -2707,8 +2707,8 @@ var async;
       }
       onData(handleData) {
         if (handleData === null)
-          handleData = _nullDataHandler;
-        this[_onData] = this[_zone].registerUnaryCallback(dart.as(handleData, dart.throw_("Unimplemented type (dynamic) → dynamic")));
+          handleData = dart.closureWrap(_nullDataHandler, "(T) → void");
+        this[_onData] = dart.closureWrap(this[_zone].registerUnaryCallback(handleData), "(T) → void");
       }
       onError(handleError) {
         if (handleError === null)
@@ -2879,7 +2879,7 @@ var async;
         dart.assert(!dart.notNull(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
         this[_state] = _BufferingStreamSubscription._STATE_IN_CALLBACK;
-        this[_zone].runUnaryGuarded(dart.as(this[_onData], dart.throw_("Unimplemented type (dynamic) → dynamic")), data);
+        this[_zone].runUnaryGuarded(this[_onData], data);
         this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
         this[_checkState](wasInputPaused);
       }
@@ -3017,7 +3017,7 @@ var async;
         return ((_) => {
           _._setPendingEvents(this[_pending]());
           return _;
-        }).bind(this)(new _BufferingStreamSubscription(dart.as(onData, dart.throw_("Unimplemented type (dynamic) → void")), onError, onDone, cancelOnError));
+        }).bind(this)(new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError));
       }
     }
     return _GeneratedStreamImpl;
@@ -3288,8 +3288,8 @@ var async;
     class _AsBroadcastStream extends Stream$(T) {
       _AsBroadcastStream($_source, onListenHandler, onCancelHandler) {
         this[_source] = $_source;
-        this[_onListenHandler] = Zone.current.registerUnaryCallback(dart.as(onListenHandler, dart.throw_("Unimplemented type (dynamic) → dynamic")));
-        this[_onCancelHandler] = Zone.current.registerUnaryCallback(dart.as(onCancelHandler, dart.throw_("Unimplemented type (dynamic) → dynamic")));
+        this[_onListenHandler] = dart.closureWrap(Zone.current.registerUnaryCallback(onListenHandler), "(StreamSubscription<dynamic>) → void");
+        this[_onCancelHandler] = dart.closureWrap(Zone.current.registerUnaryCallback(onCancelHandler), "(StreamSubscription<dynamic>) → void");
         this[_zone] = Zone.current;
         this[_controller] = null;
         this[_subscription] = null;
@@ -3315,7 +3315,7 @@ var async;
       [_onCancel]() {
         let shutdown = dart.notNull(this[_controller] === null) || dart.notNull(this[_controller].isClosed);
         if (this[_onCancelHandler] !== null) {
-          this[_zone].runUnary(dart.as(this[_onCancelHandler], dart.throw_("Unimplemented type (dynamic) → dynamic")), new _BroadcastSubscriptionWrapper(this));
+          this[_zone].runUnary(this[_onCancelHandler], new _BroadcastSubscriptionWrapper(this));
         }
         if (shutdown) {
           if (this[_subscription] !== null) {
@@ -3326,7 +3326,7 @@ var async;
       }
       [_onListen]() {
         if (this[_onListenHandler] !== null) {
-          this[_zone].runUnary(dart.as(this[_onListenHandler], dart.throw_("Unimplemented type (dynamic) → dynamic")), new _BroadcastSubscriptionWrapper(this));
+          this[_zone].runUnary(this[_onListenHandler], new _BroadcastSubscriptionWrapper(this));
         }
       }
       [_cancelSubscription]() {
@@ -3509,16 +3509,16 @@ var async;
   // Function _runUserCode: (() → dynamic, (dynamic) → dynamic, (dynamic, StackTrace) → dynamic) → dynamic
   function _runUserCode(userCode, onSuccess, onError) {
     try {
-      onSuccess(userCode());
+      dart.dinvokef(onSuccess, userCode());
     } catch (e) {
       let s = dart.stackTrace(e);
       let replacement = Zone.current.errorCallback(e, s);
       if (replacement === null) {
-        onError(e, s);
+        dart.dinvokef(onError, e, s);
       } else {
         let error = _nonNullError(replacement.error);
         let stackTrace = replacement.stackTrace;
-        onError(error, stackTrace);
+        dart.dinvokef(onError, error, stackTrace);
       }
     }
 
@@ -3677,13 +3677,13 @@ var async;
   let _MapStream$ = dart.generic(function(S, T) {
     class _MapStream extends _ForwardingStream$(S, T) {
       _MapStream(source, transform) {
-        this[_transform] = dart.as(transform, _Transformation);
+        this[_transform] = transform;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
         let outputEvent = null;
         try {
-          outputEvent = dart.as(this[_transform](inputEvent), T);
+          outputEvent = dart.as(dart.dinvokef(this[_transform], inputEvent), T);
         } catch (e) {
           let s = dart.stackTrace(e);
           _addErrorWithReplacement(sink, e, s);
@@ -3729,7 +3729,7 @@ var async;
         let matches = true;
         if (this[_test] !== null) {
           try {
-            matches = this[_test](error);
+            matches = dart.dinvokef(this[_test], error);
           } catch (e) {
             let s = dart.stackTrace(e);
             _addErrorWithReplacement(sink, e, s);
@@ -4035,7 +4035,7 @@ var async;
         let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
         let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
         cancelOnError = core.identical(true, cancelOnError);
-        let subscription = dart.as(new _SinkTransformerStreamSubscription(this[_stream], dart.as(this[_sinkMapper], _SinkMapper), dart.as(onData, dart.throw_("Unimplemented type (dynamic) → void")), onError, onDone, cancelOnError), StreamSubscription$(T));
+        let subscription = dart.as(new _SinkTransformerStreamSubscription(this[_stream], dart.closureWrap(this[_sinkMapper], "(EventSink<dynamic>) → EventSink"), onData, onError, onDone, cancelOnError), StreamSubscription$(T));
         return subscription;
       }
     }
@@ -4074,15 +4074,15 @@ var async;
         let handleData = opt$.handleData === void 0 ? null : opt$.handleData;
         let handleError = opt$.handleError === void 0 ? null : opt$.handleError;
         let handleDone = opt$.handleDone === void 0 ? null : opt$.handleDone;
-        super._StreamSinkTransformer(dart.as((outputSink) => {
+        super._StreamSinkTransformer(dart.closureWrap((outputSink) => {
           if (handleData === null)
-            handleData = _defaultHandleData;
+            handleData = dart.closureWrap(_defaultHandleData, "(S, EventSink<T>) → void");
           if (handleError === null)
-            handleError = _defaultHandleError;
+            handleError = dart.closureWrap(_defaultHandleError, "(Object, StackTrace, EventSink<T>) → void");
           if (handleDone === null)
             handleDone = _defaultHandleDone;
           return new _HandlerEventSink(handleData, handleError, handleDone, outputSink);
-        }, _SinkMapper));
+        }, "(EventSink<T>) → EventSink<S>"));
       }
       bind(stream) {
         return super.bind(stream);
@@ -4148,7 +4148,7 @@ var async;
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createPeriodicTimer(duration, callback);
       }
-      return Zone.current.createPeriodicTimer(duration, Zone.current.bindUnaryCallback(dart.as(callback, dart.throw_("Unimplemented type (dynamic) → dynamic")), {runGuarded: true}));
+      return Zone.current.createPeriodicTimer(duration, dart.closureWrap(Zone.current.bindUnaryCallback(callback, {runGuarded: true}), "(Timer) → void"));
     }
     static run(callback) {
       new Timer(core.Duration.ZERO, callback);
@@ -4573,10 +4573,10 @@ var async;
   // Function _rootRunUnary: (Zone, ZoneDelegate, Zone, (dynamic) → dynamic, dynamic) → dynamic
   function _rootRunUnary(self, parent, zone, f, arg) {
     if (dart.equals(Zone[_current], zone))
-      return f(arg);
+      return dart.dinvokef(f, arg);
     let old = Zone._enter(zone);
     try {
-      return f(arg);
+      return dart.dinvokef(f, arg);
     } finally {
       Zone._leave(old);
     }
@@ -4584,10 +4584,10 @@ var async;
   // Function _rootRunBinary: (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic, dynamic, dynamic) → dynamic
   function _rootRunBinary(self, parent, zone, f, arg1, arg2) {
     if (dart.equals(Zone[_current], zone))
-      return f(arg1, arg2);
+      return dart.dinvokef(f, arg1, arg2);
     let old = Zone._enter(zone);
     try {
-      return f(arg1, arg2);
+      return dart.dinvokef(f, arg1, arg2);
     } finally {
       Zone._leave(old);
     }
@@ -4626,7 +4626,7 @@ var async;
   // Function _rootCreatePeriodicTimer: (Zone, ZoneDelegate, Zone, Duration, (Timer) → void) → Timer
   function _rootCreatePeriodicTimer(self, parent, zone, duration, callback) {
     if (!dart.notNull(core.identical(_ROOT_ZONE, zone))) {
-      callback = zone.bindUnaryCallback(dart.as(callback, dart.throw_("Unimplemented type (dynamic) → dynamic")));
+      callback = dart.closureWrap(zone.bindUnaryCallback(callback), "(Timer) → void");
     }
     return Timer._createPeriodicTimer(duration, callback);
   }
@@ -4771,7 +4771,7 @@ var async;
     runUnaryGuarded(f, arg) {
       try {
         if (core.identical(_ROOT_ZONE, Zone[_current])) {
-          return f(arg);
+          return dart.dinvokef(f, arg);
         }
         return _rootRunUnary(null, null, this, f, arg);
       } catch (e) {
@@ -4783,7 +4783,7 @@ var async;
     runBinaryGuarded(f, arg1, arg2) {
       try {
         if (core.identical(_ROOT_ZONE, Zone[_current])) {
-          return f(arg1, arg2);
+          return dart.dinvokef(f, arg1, arg2);
         }
         return _rootRunBinary(null, null, this, f, arg1, arg2);
       } catch (e) {
@@ -4834,12 +4834,12 @@ var async;
     }
     runUnary(f, arg) {
       if (core.identical(Zone[_current], _ROOT_ZONE))
-        return f(arg);
+        return dart.dinvokef(f, arg);
       return _rootRunUnary(null, null, this, f, arg);
     }
     runBinary(f, arg1, arg2) {
       if (core.identical(Zone[_current], _ROOT_ZONE))
-        return f(arg1, arg2);
+        return dart.dinvokef(f, arg1, arg2);
       return _rootRunBinary(null, null, this, f, arg1, arg2);
     }
     registerCallback(f) {

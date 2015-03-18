@@ -72,11 +72,11 @@ throw IterableElementError.noElement();
 _sentinel = new _DoubleLinkedQueueEntrySentinel<E>();
 }
  factory DoubleLinkedQueue.from(Iterable elements) {
-Queue<E> list = ((__x30) => DEVC$RT.cast(__x30, DEVC$RT.type((DoubleLinkedQueue<dynamic> _) {
+Queue<E> list = ((__x17) => DEVC$RT.cast(__x17, DEVC$RT.type((DoubleLinkedQueue<dynamic> _) {
 }
 ), DEVC$RT.type((Queue<E> _) {
 }
-), "CastExact", """line 207, column 21 of dart:collection/queue.dart: """, __x30 is Queue<E>, false))(new DoubleLinkedQueue());
+), "CastExact", """line 207, column 21 of dart:collection/queue.dart: """, __x17 is Queue<E>, false))(new DoubleLinkedQueue());
  for (final E e in elements) {
 list.addLast(e);
 }
@@ -216,11 +216,11 @@ initialCapacity = _nextPowerOf2(initialCapacity);
  factory ListQueue.from(Iterable elements) {
 if (elements is List) {
 int length = elements.length;
- ListQueue<E> queue = ((__x31) => DEVC$RT.cast(__x31, DEVC$RT.type((ListQueue<dynamic> _) {
+ ListQueue<E> queue = ((__x18) => DEVC$RT.cast(__x18, DEVC$RT.type((ListQueue<dynamic> _) {
 }
 ), DEVC$RT.type((ListQueue<E> _) {
 }
-), "CastExact", """line 399, column 28 of dart:collection/queue.dart: """, __x31 is ListQueue<E>, false))(new ListQueue(length + 1));
+), "CastExact", """line 399, column 28 of dart:collection/queue.dart: """, __x18 is ListQueue<E>, false))(new ListQueue(length + 1));
  assert (queue._table.length > length); List sourceList = elements;
  queue._table.setRange(0, length, DEVC$RT.cast(sourceList, DEVC$RT.type((List<dynamic> _) {
 }
@@ -494,7 +494,7 @@ _queue._checkModification(_modificationCount);
 _current = null;
  return false;
 }
- _current = ((__x32) => DEVC$RT.cast(__x32, dynamic, E, "CastGeneral", """line 738, column 16 of dart:collection/queue.dart: """, __x32 is E, false))(_queue._table[_position]);
+ _current = ((__x19) => DEVC$RT.cast(__x19, dynamic, E, "CastGeneral", """line 738, column 16 of dart:collection/queue.dart: """, __x19 is E, false))(_queue._table[_position]);
  _position = (_position + 1) & (_queue._table.length - 1);
  return true;
 }

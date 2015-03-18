@@ -149,8 +149,9 @@ class TestReporter extends SummaryReporter {
 
   void log(Message info) {
     super.log(info);
-    if (info is! StaticInfo) return;
-    infoMap[_current].putIfAbsent(info.node, () => []).add(info);
+    if (info is StaticInfo) {
+      infoMap[_current].putIfAbsent(info.node, () => []).add(info);
+    }
   }
 }
 

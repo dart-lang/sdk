@@ -58,14 +58,14 @@ future._completeError(error, stackTrace);
  bool get hasErrorTest => (state == STATE_CATCHERROR_TEST);
  bool get handlesComplete => (state == STATE_WHENCOMPLETE);
  _FutureOnValue get _onValue {
-assert (handlesValue); return DEVC$RT.cast(callback, Function, __t22, "CastGeneral", """line 112, column 12 of dart:async/future_impl.dart: """, callback is __t22, false);
+assert (handlesValue); return DEVC$RT.cast(callback, Function, __t14, "CastGeneral", """line 112, column 12 of dart:async/future_impl.dart: """, callback is __t14, false);
 }
  Function get _onError => errorCallback;
  _FutureErrorTest get _errorTest {
-assert (hasErrorTest); return DEVC$RT.cast(callback, Function, __t24, "CastGeneral", """line 117, column 12 of dart:async/future_impl.dart: """, callback is __t24, false);
+assert (hasErrorTest); return DEVC$RT.cast(callback, Function, __t16, "CastGeneral", """line 117, column 12 of dart:async/future_impl.dart: """, callback is __t16, false);
 }
  _FutureAction get _whenCompleteAction {
-assert (handlesComplete); return DEVC$RT.cast(callback, Function, __t26, "CastGeneral", """line 121, column 12 of dart:async/future_impl.dart: """, callback is __t26, false);
+assert (handlesComplete); return DEVC$RT.cast(callback, Function, __t18, "CastGeneral", """line 121, column 12 of dart:async/future_impl.dart: """, callback is __t18, false);
 }
 }
  class _Future<T> implements Future<T> {static const int _INCOMPLETE = 0;
@@ -101,24 +101,18 @@ Function onError}
 ) {
 _Future result = new _Future();
  if (!identical(result._zone, _ROOT_ZONE)) {
-f = result._zone.registerUnaryCallback(DEVC$RT.wrap((dynamic f(T __u27)) {
-dynamic c(T x0) => f(DEVC$RT.cast(x0, dynamic, T, "CastParam", """line 208, column 46 of dart:async/future_impl.dart: """, x0 is T, false));
+f = ((__x22) => DEVC$RT.wrap((dynamic f(dynamic __u19)) {
+dynamic c(dynamic x0) => f(x0);
  return f == null ? null : c;
 }
-, f, DEVC$RT.type((__t28<T> _) {
+, __x22, __t14, DEVC$RT.type((__t20<T> _) {
 }
-), __t22, "Wrap", """line 208, column 46 of dart:async/future_impl.dart: """, f is __t22));
+), "Wrap", """line 208, column 11 of dart:async/future_impl.dart: """, __x22 is __t20<T>))(result._zone.registerUnaryCallback(f));
  if (onError != null) {
 onError = _registerErrorHandler(onError, result._zone);
 }
 }
- _addListener(new _FutureListener.then(result, DEVC$RT.wrap((dynamic f(T __u30)) {
-dynamic c(T x0) => f(DEVC$RT.cast(x0, dynamic, T, "CastParam", """line 213, column 51 of dart:async/future_impl.dart: """, x0 is T, false));
- return f == null ? null : c;
-}
-, f, DEVC$RT.type((__t28<T> _) {
-}
-), __t22, "Wrap", """line 213, column 51 of dart:async/future_impl.dart: """, f is __t22), onError));
+ _addListener(new _FutureListener.then(result, f, onError));
  return result;
 }
  Future catchError(Function onError, {
@@ -127,11 +121,11 @@ bool test(error)}
 _Future result = new _Future();
  if (!identical(result._zone, _ROOT_ZONE)) {
 onError = _registerErrorHandler(onError, result._zone);
- if (test != null) test = ((__x33) => DEVC$RT.wrap((dynamic f(dynamic __u32)) {
-dynamic c(dynamic x0) => ((__x31) => DEVC$RT.cast(__x31, dynamic, bool, "CastResult", """line 221, column 32 of dart:async/future_impl.dart: """, __x31 is bool, true))(f(x0));
+ if (test != null) test = ((__x25) => DEVC$RT.wrap((dynamic f(dynamic __u24)) {
+dynamic c(dynamic x0) => ((__x23) => DEVC$RT.cast(__x23, dynamic, bool, "CastResult", """line 221, column 32 of dart:async/future_impl.dart: """, __x23 is bool, true))(f(x0));
  return f == null ? null : c;
 }
-, __x33, __t22, __t24, "Wrap", """line 221, column 32 of dart:async/future_impl.dart: """, __x33 is __t24))(result._zone.registerUnaryCallback(test));
+, __x25, __t14, __t16, "Wrap", """line 221, column 32 of dart:async/future_impl.dart: """, __x25 is __t16))(result._zone.registerUnaryCallback(test));
 }
  _addListener(new _FutureListener.catchError(result, onError, test));
  return result;
@@ -148,11 +142,11 @@ action = result._zone.registerCallback(action);
 }
 ), "CastDynamic", """line 233, column 12 of dart:async/future_impl.dart: """, result is Future<T>, false);
 }
- Stream<T> asStream() => ((__x34) => DEVC$RT.cast(__x34, DEVC$RT.type((Stream<dynamic> _) {
+ Stream<T> asStream() => ((__x26) => DEVC$RT.cast(__x26, DEVC$RT.type((Stream<dynamic> _) {
 }
 ), DEVC$RT.type((Stream<T> _) {
 }
-), "CastExact", """line 236, column 27 of dart:async/future_impl.dart: """, __x34 is Stream<T>, false))(new Stream.fromFuture(this));
+), "CastExact", """line 236, column 27 of dart:async/future_impl.dart: """, __x26 is Stream<T>, false))(new Stream.fromFuture(this));
  void _markPendingCompletion() {
 if (!_mayComplete) throw new StateError("Future already completed");
  _state = _PENDING_COMPLETE;
@@ -337,7 +331,7 @@ AsyncError asyncError = source._error;
  if (listener.hasErrorTest) {
   _FutureErrorTest test = listener._errorTest;
    try {
-    matchesTest = ((__x35) => DEVC$RT.cast(__x35, dynamic, bool, "CastGeneral", """line 499, column 29 of dart:async/future_impl.dart: """, __x35 is bool, true))(zone.runUnary(test, asyncError.error));
+    matchesTest = ((__x27) => DEVC$RT.cast(__x27, dynamic, bool, "CastGeneral", """line 499, column 29 of dart:async/future_impl.dart: """, __x27 is bool, true))(zone.runUnary(test, asyncError.error));
     }
    catch (e, s) {
     listenerValueOrError = identical(asyncError.error, e) ? asyncError : new AsyncError(e, s);
@@ -351,7 +345,7 @@ AsyncError asyncError = source._error;
       listenerValueOrError = zone.runBinary(errorCallback, asyncError.error, asyncError.stackTrace);
       }
      else {
-      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t22, "CastGeneral", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t22, false), asyncError.error);
+      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t14, "CastGeneral", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t14, false), asyncError.error);
       }
     }
    catch (e, s) {
@@ -484,7 +478,7 @@ timer.cancel();
  return result;
 }
 }
- typedef dynamic __t22(dynamic __u23);
- typedef bool __t24(dynamic __u25);
- typedef dynamic __t26();
- typedef dynamic __t28<T>(T __u29);
+ typedef dynamic __t14(dynamic __u15);
+ typedef bool __t16(dynamic __u17);
+ typedef dynamic __t18();
+ typedef dynamic __t20<T>(T __u21);

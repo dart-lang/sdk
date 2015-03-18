@@ -114,11 +114,7 @@ part of dart.async;
     }
    for (Future future in futures) {
     int pos = remaining++;
-     future.then(((__x16) => DEVC$RT.wrap((dynamic f(Object __u11)) {
-      dynamic c(Object x0) => f(x0);
-       return f == null ? null : c;
-      }
-    , __x16, __t14, __t12, "WrapLiteral", """line 294, column 19 of dart:async/future.dart: """, __x16 is __t12))((Object value) {
+     future.then((Object value) {
       remaining--;
        if (values != null) {
         values[pos] = value;
@@ -138,14 +134,14 @@ part of dart.async;
           }
         }
       }
-    ), onError: handleError);
+    , onError: handleError);
     }
    if (remaining == 0) {
-    return ((__x17) => DEVC$RT.cast(__x17, DEVC$RT.type((Future<dynamic> _) {
+    return ((__x11) => DEVC$RT.cast(__x11, DEVC$RT.type((Future<dynamic> _) {
       }
     ), DEVC$RT.type((Future<List<dynamic>> _) {
       }
-    ), "CastExact", """line 313, column 14 of dart:async/future.dart: """, __x17 is Future<List<dynamic>>, false))(new Future.value(const []));
+    ), "CastExact", """line 313, column 14 of dart:async/future.dart: """, __x11 is Future<List<dynamic>>, false))(new Future.value(const []));
     }
    values = new List(remaining);
    return result;
@@ -161,11 +157,7 @@ part of dart.async;
  static Future doWhile(f()) {
   _Future doneSignal = new _Future();
    var nextIteration;
-   nextIteration = Zone.current.bindUnaryCallback(((__x21) => DEVC$RT.wrap((dynamic f(bool __u18)) {
-    dynamic c(bool x0) => f(DEVC$RT.cast(x0, dynamic, bool, "CastParam", """line 359, column 52 of dart:async/future.dart: """, x0 is bool, true));
-     return f == null ? null : c;
-    }
-  , __x21, __t19, __t12, "WrapLiteral", """line 359, column 52 of dart:async/future.dart: """, __x21 is __t12))((bool keepGoing) {
+   nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
     if (keepGoing) {
       new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __t12, "CastGeneral", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t12, false), onError: doneSignal._completeError);
       }
@@ -173,7 +165,7 @@ part of dart.async;
       doneSignal._complete(null);
       }
     }
-  ), runGuarded: true);
+  , runGuarded: true);
    nextIteration(true);
    return doneSignal;
   }
@@ -216,5 +208,3 @@ error = _nonNullError(replacement.error);
 }
  Object _nonNullError(Object error) => (error != null) ? error : new NullThrownError();
  typedef dynamic __t12(dynamic __u13);
- typedef dynamic __t14(Object __u15);
- typedef dynamic __t19(bool __u20);

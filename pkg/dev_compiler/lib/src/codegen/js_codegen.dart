@@ -179,6 +179,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return _emitCast(node.expression, to);
   }
 
+  // TODO(vsm): This should go away in the future.  I'm passing in the type
+  // as a String for now to avoid breaking any existing code.  In most cases,
+  // we currently throw for function types.
+  @override
+  visitClosureWrapBase(ClosureWrapBase node) {
+    var expression = _visit(node.expression);
+    var typeString = js.escapedString(node.convertedType.toString());
+    return js.call('dart.closureWrap(#, #)', [expression, typeString]);
+  }
+
   @override
   visitAsExpression(AsExpression node) =>
       _emitCast(node.expression, node.type.type);

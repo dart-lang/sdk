@@ -887,9 +887,9 @@ var _isolate_helper;
     }
     static handleSpawnWorkerRequest(msg) {
       let replyPort = dart.dindex(msg, 'replyPort');
-      spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then((msg) => {
+      spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.closureWrap((msg) => {
         dart.dinvoke(replyPort, 'send', msg);
-      }, {
+      }, "(List<dynamic>) → dynamic"), {
         onError: (errorMessage) => {
           dart.dinvoke(replyPort, 'send', new List.from([_SPAWN_FAILED_SIGNAL, errorMessage]));
         }

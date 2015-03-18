@@ -348,14 +348,18 @@ writeString(',');
  void writeMap(Map<String, Object> map) {
 writeString('{');
  String separator = '"';
- map.forEach((String key, value) {
+ map.forEach(((__x27) => DEVC$RT.wrap((dynamic f(String __u19, dynamic __u20)) {
+dynamic c(String x0, dynamic x1) => f(x0, x1);
+ return f == null ? null : c;
+}
+, __x27, __t24, __t21, "WrapLiteral", """line 721, column 17 of dart:convert/json.dart: """, __x27 is __t21))((String key, value) {
 writeString(separator);
  separator = ',"';
  writeStringContent(key);
  writeString('":');
  writeObject(value);
 }
-);
+));
  writeString('}');
 }
 }
@@ -389,11 +393,7 @@ writeString('{}');
 writeString('{\n');
  _indentLevel++;
  bool first = true;
- map.forEach(((__x27) => DEVC$RT.wrap((dynamic f(String __u19, Object __u20)) {
-dynamic c(String x0, Object x1) => f(DEVC$RT.cast(x0, dynamic, String, "CastParam", """line 773, column 19 of dart:convert/json.dart: """, x0 is String, true), x1);
- return f == null ? null : c;
-}
-, __x27, __t24, __t21, "WrapLiteral", """line 773, column 19 of dart:convert/json.dart: """, __x27 is __t21))((String key, Object value) {
+ map.forEach((String key, Object value) {
 if (!first) {
 writeString(",\n");
 }
@@ -404,7 +404,7 @@ writeString(",\n");
  writeObject(value);
  first = false;
 }
-));
+);
  writeString('\n');
  _indentLevel--;
  writeIndentation(_indentLevel);
@@ -566,5 +566,5 @@ writeByte(indent[i]);
  typedef Object __t7(Object __u8);
  typedef dynamic __t9(dynamic __u10);
  typedef dynamic __t13(Object __u14);
- typedef void __t21(dynamic __u22, dynamic __u23);
- typedef dynamic __t24(String __u25, Object __u26);
+ typedef void __t21(String __u22, Object __u23);
+ typedef dynamic __t24(String __u25, dynamic __u26);
