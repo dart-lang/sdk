@@ -38,6 +38,7 @@ main() {
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
   runReflectiveTests(BuildExportSourceClosureTaskTest);
   runReflectiveTests(BuildExportNamespaceTaskTest);
+  runReflectiveTests(BuildFunctionTypeAliasesTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
@@ -582,6 +583,49 @@ library lib_d;
 }
 
 @reflectiveTest
+class BuildFunctionTypeAliasesTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = _newSource('/test.dart', '''
+typedef int F(G g);
+typedef String G(int p);
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, RESOLVED_UNIT5);
+    expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    FunctionTypeAlias nodeF = unit.declarations[0];
+    FunctionTypeAlias nodeG = unit.declarations[1];
+    {
+      FormalParameter parameter = nodeF.parameters.parameters[0];
+      DartType parameterType = parameter.element.type;
+      Element returnTypeElement = nodeF.returnType.type.element;
+      expect(returnTypeElement.displayName, 'int');
+      expect(parameterType.element, nodeG.element);
+    }
+    {
+      FormalParameter parameter = nodeG.parameters.parameters[0];
+      DartType parameterType = parameter.element.type;
+      expect(nodeG.returnType.type.element.displayName, 'String');
+      expect(parameterType.element.displayName, 'int');
+    }
+  }
+
+  test_perform_errors() {
+    Source source = _newSource('/test.dart', '''
+typedef int F(NoSuchType p);
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, BUILD_FUNCTION_TYPE_ALIASES_ERRORS);
+    expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
+    // validate
+    _fillErrorListener(BUILD_FUNCTION_TYPE_ALIASES_ERRORS);
+    errorListener
+        .assertErrorsWithCodes(<ErrorCode>[StaticWarningCode.UNDEFINED_CLASS]);
+  }
+}
+
+@reflectiveTest
 class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   Source librarySource;
   CompilationUnit libraryUnit;
@@ -1084,6 +1128,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
   }

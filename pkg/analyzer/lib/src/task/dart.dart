@@ -37,7 +37,19 @@ final ResultDescriptor<List<AnalysisError>> BUILD_DIRECTIVES_ERRORS =
         contributesTo: DART_ERRORS);
 
 /**
- * The errors produced while builing a library element.
+ * The errors produced while building function type aliases.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<List<AnalysisError>> BUILD_FUNCTION_TYPE_ALIASES_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'BUILD_FUNCTION_TYPE_ALIASES_ERRORS', AnalysisError.NO_ERRORS,
+        contributesTo: DART_ERRORS);
+
+/**
+ * The errors produced while building a library element.
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
@@ -141,6 +153,16 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT4', null);
+
+/**
+ * The partially resolved [CompilationUnit] associated with a unit.
+ *
+ * All the function type aliases are resolved.
+ *
+ * The result is only available for targets representing a unit.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT5', null);
 
 /**
  * The [TypeProvider] of the context.
@@ -679,6 +701,87 @@ class BuildExportSourceClosureTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * A task that builds [RESOLVED_UNIT5] for a library.
+ */
+class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The name of the [RESOLVED_UNIT3] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildFunctionTypeAliasesTask', createTask, buildInputs,
+      <ResultDescriptor>[BUILD_FUNCTION_TYPE_ALIASES_ERRORS, RESOLVED_UNIT5]);
+
+  BuildFunctionTypeAliasesTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    //
+    // Prepare inputs.
+    //
+    Source source = getRequiredSource();
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    LibraryElement libraryElement = unit.element.library;
+    //
+    // Resolve FunctionTypeAlias declarations.
+    //
+    TypeResolverVisitor visitor = new TypeResolverVisitor.con2(
+        libraryElement, source, typeProvider, errorListener);
+    for (CompilationUnitMember member in unit.declarations) {
+      if (member is FunctionTypeAlias) {
+        member.accept(visitor);
+      }
+    }
+    //
+    // Record outputs.
+    //
+    outputs[BUILD_FUNCTION_TYPE_ALIASES_ERRORS] = errorListener.errors;
+    outputs[RESOLVED_UNIT5] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
+    return <String, TaskInput>{
+      TYPE_PROVIDER_INPUT:
+          TYPE_PROVIDER.inputFor(AnalysisContextTarget.request),
+      'importsExportNamespace': new ListToMapTaskInput<Source, LibraryElement>(
+          IMPORTED_LIBRARIES.inputFor(target.library),
+          (Source importSource) => LIBRARY_ELEMENT4.inputFor(importSource)),
+      UNIT_INPUT: RESOLVED_UNIT4.inputFor(target.unit)
+    };
+  }
+
+  /**
+   * Create a [BuildFunctionTypeAliasesTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildFunctionTypeAliasesTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildFunctionTypeAliasesTask(context, target);
+  }
+}
+
+/**
  * A task that builds a library element for a Dart library.
  */
 class BuildLibraryElementTask extends SourceBasedAnalysisTask {
@@ -1171,6 +1274,7 @@ class ExportNamespaceBuilder {
 class LibraryUnitTarget implements AnalysisTarget {
   final Source library;
   final Source unit;
+
   LibraryUnitTarget(this.library, this.unit);
 
   @override

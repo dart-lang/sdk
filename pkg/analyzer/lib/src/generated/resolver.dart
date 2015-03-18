@@ -9460,6 +9460,14 @@ class NamespaceBuilder {
    */
   HashMap<String, Element> _createExportMapping(
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
+    // Check if the export namespace has been already computed.
+    {
+      Namespace exportNamespace = library.exportNamespace;
+      if (exportNamespace != null) {
+        return exportNamespace.definedNames;
+      }
+    }
+    // TODO(scheglov) Remove this after switching to the new task model.
     visitedElements.add(library);
     try {
       HashMap<String, Element> definedNames = new HashMap<String, Element>();
