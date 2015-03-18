@@ -144,10 +144,6 @@ abstract class TracerVisitor<T extends TypeInformation>
     continueAnalyzing = false;
   }
 
-  void visitAwaitTypeInformation(AwaitTypeInformation info) {
-    bailout("Passed through await");
-  }
-
   void visitNarrowTypeInformation(NarrowTypeInformation info) {
     addNewEscapeInformation(info);
   }

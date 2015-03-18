@@ -1128,13 +1128,6 @@ class TypeGraphInferrerEngine
     return info;
   }
 
-  TypeInformation registerAwait(ast.Node node, TypeInformation argument) {
-    AwaitTypeInformation info = new AwaitTypeInformation(types.currentMember,
-                                                         node);
-    info.addAssignment(argument);
-    return info;
-  }
-
   TypeInformation registerCalledClosure(ast.Node node,
                                         Selector selector,
                                         TypeInformation closure,

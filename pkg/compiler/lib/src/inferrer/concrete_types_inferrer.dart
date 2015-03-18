@@ -2243,11 +2243,6 @@ class ConcreteTypesInferrer
     return result;
   }
 
-  ConcreteType registerAwait(Node node, ConcreteType argumentType) {
-    // TODO(polux): Properly handle await expressions.
-    return types.dynamicType;
-  }
-
   @override
   void setDefaultTypeOfParameter(ParameterElement parameter,
                                  ConcreteType type) {
