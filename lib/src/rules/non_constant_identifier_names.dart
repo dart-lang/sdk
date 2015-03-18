@@ -8,7 +8,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 
-const desc = r'DO name non-constant identifiers using lowerCamelCase.';
+const desc = r'Name non-constant identifiers using lowerCamelCase.';
 
 const details = r'''
 **DO** name non-constant identifiers using lowerCamelCase.

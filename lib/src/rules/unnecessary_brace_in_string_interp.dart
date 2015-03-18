@@ -10,7 +10,7 @@ import 'package:linter/src/linter.dart';
 
 final RegExp alphaNumeric = new RegExp(r'^[a-zA-Z0-9]');
 
-const desc = 'AVOID using braces in interpolation when not needed.';
+const desc = 'Avoid using braces in interpolation when not needed.';
 
 const details = r'''
 **AVOID** using braces in interpolation when not needed. 

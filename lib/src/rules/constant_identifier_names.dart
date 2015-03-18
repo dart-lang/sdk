@@ -8,7 +8,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 
-const desc = r'PREFER using lowerCamelCase for constant names.';
+const desc = r'Prefer using lowerCamelCase for constant names.';
 
 const details = r'''
 **PREFER** using lowerCamelCase for constant names.
