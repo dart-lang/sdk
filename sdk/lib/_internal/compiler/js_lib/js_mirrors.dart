@@ -1186,14 +1186,8 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   _newProbeFn(String id, bool useEval) {
     if (useEval) {
-      // We give the probe function a name to make it appear nicely in
-      // profiles and when debugging. The name also makes the source code
-      // for the function more "unique" so the underlying JavaScript
-      // engine is less likely to re-use an existing piece of generated
-      // code as the result of calling eval. In return, this leads to
-      // less polymorphic access in the probe function.
-      var body = "(function probe\$$id(c){return c.$id})";
-      return JS('', '(function(b){return eval(b)})(#)', body);
+      String body = "return c.$id;";
+      return JS('', 'new Function("c", #)', body);
     } else {
       return JS('', '(function(n){return(function(c){return c[n]})})(#)', id);
     }
@@ -1201,16 +1195,15 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   _newGetterFn(String name, bool useEval) {
     if (!useEval) return _newGetterNoEvalFn(name);
-    // We give the getter function a name that associates it with the
-    // class of the reflectee. This makes it easier to spot in profiles
-    // and when debugging, but it also means that the underlying JavaScript
-    // engine will only share the generated code for accessors on the
+    // We use a comment that associates the generated function with the
+    // class of the reflectee. This makes it more likely that the underlying
+    // JavaScript engine will only share the generated code for accessors on the
     // same class (through caching of eval'ed code). This makes the
     // generated call to the getter - e.g. o.get$foo() - much more likely
     // to be monomorphic and inlineable.
     String className = JS('String', '#.constructor.name', reflectee);
-    var body = "(function $className\$$name(o){return o.$name()})";
-    return JS('', '(function(b){return eval(b)})(#)', body);
+    String body = "/* $className */ return o.$name();";
+    return JS('', 'new Function("o", #)', body);
   }
 
   _newGetterNoEvalFn(n) => JS('',
@@ -1225,12 +1218,10 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     if (!useEval) return _newInterceptGetterNoEvalFn(name, interceptor);
     String className = JS('String', '#.constructor.name', interceptor);
     String functionName = '$className\$$name';
-    var body =
-        '(function(i) {'
+    String body =
         '  function $functionName(o){return i.$name(o)}'
-        '  return $functionName;'
-        '})';
-    return JS('', '(function(b){return eval(b)})(#)(#)', body, interceptor);
+        '  return $functionName;';
+    return JS('', '(new Function("i", #))(#)', body, interceptor);
   }
 
   _newInterceptGetterNoEvalFn(n, i) => JS('',
