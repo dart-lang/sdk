@@ -452,11 +452,8 @@ jsAst.Statement getReflectionDataParser(OldEmitter oldEmitter,
       var constructor = constructors[i];
       var cls = constructor.name;
       var desc = processedClasses.collected[cls];
-      var globalObject = \$;
-      if (desc instanceof Array) {
-        globalObject = desc[0] || \$;
-        desc = desc[1];
-      }
+      var globalObject = desc[0];
+      desc = desc[1];
       if (#isTreeShakingDisabled)
         constructor["${namer.metadataField}"] = desc;
       allClasses[cls] = constructor;
