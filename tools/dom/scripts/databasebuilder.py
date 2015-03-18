@@ -817,6 +817,15 @@ class DatabaseBuilder(object):
     print '  (GET/SET)   - attribute has relationship'
     print '  RETURN      - operation\'s returned value has relationship'
     print '  (ARGUMENT)  - operation\'s argument(s) has relationship'
+    print ''
+    print '  (New)       - After dictionary name if constructor(s) exist'
+    print '  (Ops,Props,New) after a NoInterfaceObject name is defined as:'
+    print '    Ops       - number of operations for a NoInterfaceObject'
+    print '    Props     - number of properties for a NoInterfaceObject'
+    print '    New       - T(#) number constructors for a NoInterfaceObject'
+    print '                F no constructors for a NoInterfaceObject'
+    print '                e.g., an interface 5 operations, 3 properties and 2'
+    print '                      constructors would display (5,3,T(2))'
 
     print '\n\nExamination Complete\n'
 
@@ -825,11 +834,26 @@ class DatabaseBuilder(object):
     # |  Dictionary  |  Used In Interface  |  Usage Operation/Attribute  |
     print '\n\n'
     title_bar = ['Dictionary', 'Used In Interface', 'Usage Operation/Attribute'] if check_dictionaries \
-                else ['NoInterfaceObject', 'Used In Interface', 'Usage Operation/Attribute']
+                else ['NoInterfaceObject (Ops,Props,New)', 'Used In Interface', 'Usage Operation/Attribute']
     self._tabulate_title(title_bar)
     diags = self._diag_dictionaries if check_dictionaries else self._diag_no_interfaces
     for diag in diags:
-      self._tabluate([diag['dictionary' if check_dictionaries else 'no_interface_object'].id, '', ''])
+      if not(check_dictionaries):
+        interface = diag['no_interface_object']
+        ops_count = len(interface.operations)
+        properties_count = len(interface.attributes)
+        any_constructors = 'Constructor' in interface.ext_attrs
+        constructors = 'T(%s)' % len(interface.ext_attrs['Constructor']) if any_constructors else 'F'
+        interface_detail = '%s (%s,%s,%s)' % \
+            (diag['no_interface_object'].id,
+             ops_count,
+             properties_count,
+             constructors)
+        self._tabulate([interface_detail, '', ''])
+      else:
+        dictionary = diag['dictionary']
+        any_constructors = 'Constructor' in dictionary.ext_attrs
+        self._tabulate(['%s%s' % (dictionary.id, ' (New)' if any_constructors else ''), '', ''])
       for usage in diag['usages']:
         detail = ''
         if 'attribute' in usage:
@@ -839,7 +863,7 @@ class DatabaseBuilder(object):
           detail = '%s %s%s' % ('RETURN' if usage['result'] else '',
                                          usage['operation'],
                                          '(ARGUMENT)' if usage['argument'] else '')
-        self._tabluate([None, usage['interface'], detail])
+        self._tabulate([None, usage['interface'], detail])
       self._tabulate_break()
 
   # operation_or_attribute either IDLOperation or IDLAttribute if None then
@@ -967,15 +991,15 @@ class DatabaseBuilder(object):
 
   def _tabulate_title(self, row_title):
     title_separator = "=" * self._TABULATE_WIDTH()
-    self._tabluate([title_separator, title_separator, title_separator])
-    self._tabluate(row_title)
-    self._tabluate([title_separator, title_separator, title_separator])
+    self._tabulate([title_separator, title_separator, title_separator])
+    self._tabulate(row_title)
+    self._tabulate([title_separator, title_separator, title_separator])
 
   def _tabulate_break(self):
     break_separator = "-" * self._TABULATE_WIDTH()
-    self._tabluate([break_separator, break_separator, break_separator])
+    self._tabulate([break_separator, break_separator, break_separator])
 
-  def _tabluate(self, columns):
+  def _tabulate(self, columns):
     """Tabulate a list of columns for a row.  Each item in columns is a column
        value each column will be padded up to _TABULATE_WIDTH.  Each
        column starts/ends with a vertical bar '|' the format a row:
