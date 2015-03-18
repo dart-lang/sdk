@@ -372,9 +372,10 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
     var analysisDriver = new AnalysisDriver(options);
     errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
-    files
-        .where((f) => isPubspecFile(f))
-        .forEach((p) => errors.addAll(_lintPubspecFile(p)));
+    files.where((f) => isPubspecFile(f)).forEach((p) {
+      numSourcesAnalyzed++;
+      return errors.addAll(_lintPubspecFile(p));
+    });
     return errors;
   }
 
