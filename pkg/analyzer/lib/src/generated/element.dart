@@ -511,6 +511,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
+   * The [SourceRange] of the `with` clause, `null` if there is no one.
+   */
+  SourceRange withClauseRange;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
