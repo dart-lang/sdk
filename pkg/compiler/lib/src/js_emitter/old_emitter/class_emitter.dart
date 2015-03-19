@@ -243,7 +243,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (identical(classElement, compiler.objectClass)
-        && backend.enabledNoSuchMethod) {
+        && compiler.enabledNoSuchMethod) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the

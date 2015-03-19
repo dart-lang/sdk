@@ -51,6 +51,5 @@ part 'constant_system_javascript.dart';
 part 'custom_elements_analysis.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
-part 'no_such_method_registry.dart';
 part 'runtime_types.dart';
 part 'type_variable_handler.dart';

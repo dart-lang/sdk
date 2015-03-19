@@ -361,14 +361,13 @@ abstract class Backend {
    */
   void registerRuntimeType(Enqueuer enqueuer, Registry registry) {}
 
-  /// Call this to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(Element noSuchMethodElement) {}
-
-  /// Call this method to enable support for `noSuchMethod`.
-  void enableNoSuchMethod(Enqueuer enqueuer) {}
-
-  /// Returns whether or not `noSuchMethod` support has been enabled.
-  bool get enabledNoSuchMethod => false;
+  /**
+   * Call this method to enable [noSuchMethod] handling in the
+   * backend.
+   */
+  void enableNoSuchMethod(Element context, Enqueuer enqueuer) {
+    enqueuer.registerInvocation(compiler.noSuchMethodSelector);
+  }
 
   /// Call this method to enable support for isolates.
   void enableIsolateSupport(Enqueuer enqueuer) {}
@@ -950,6 +949,7 @@ abstract class Compiler implements DiagnosticListener {
   final Selector symbolValidatedConstructorSelector = new Selector.call(
       'validated', null, 1);
 
+  bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;
   bool enabledInvokeOn = false;
@@ -1625,6 +1625,9 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
     if (hasIsolateSupport) {
       backend.enableIsolateSupport(enqueuer.codegen);
+    }
+    if (enabledNoSuchMethod) {
+      backend.enableNoSuchMethod(null, enqueuer.codegen);
     }
     if (compileAll) {
       libraryLoader.libraries.forEach((LibraryElement library) {

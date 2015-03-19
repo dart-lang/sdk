@@ -585,9 +585,6 @@ class JavaScriptBackend extends Backend {
   /// constructors for custom elements.
   CustomElementsAnalysis customElementsAnalysis;
 
-  /// Support for classifying `noSuchMethod` implementations.
-  NoSuchMethodRegistry noSuchMethodRegistry;
-
   JavaScriptConstantTask constantCompilerTask;
 
   JavaScriptResolutionCallbacks resolutionCallbacks;
@@ -595,8 +592,6 @@ class JavaScriptBackend extends Backend {
   PatchResolverTask patchResolverTask;
 
   bool get canHandleCompilationFailed => true;
-
-  bool enabledNoSuchMethod = false;
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
@@ -608,7 +603,6 @@ class JavaScriptBackend extends Backend {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     typeVariableHandler = new TypeVariableHandler(this);
     customElementsAnalysis = new CustomElementsAnalysis(this);
-    noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
     patchResolverTask = new PatchResolverTask(compiler);
@@ -1216,13 +1210,11 @@ class JavaScriptBackend extends Backend {
     enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
   }
 
-  void registerNoSuchMethod(Element noSuchMethod) {
-    noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
-  }
-
-  void enableNoSuchMethod(Enqueuer world) {
+  void enableNoSuchMethod(Element context, Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
     world.registerInvocation(compiler.noSuchMethodSelector);
+    // TODO(tyoverby): Send the context element to DumpInfoTask to be
+    // blamed.
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {
@@ -2410,14 +2402,6 @@ class JavaScriptBackend extends Backend {
     // elements are added to avoid counting the elements as due to mirrors.
     customElementsAnalysis.onQueueEmpty(enqueuer);
     if (!enqueuer.queueIsEmpty) return false;
-
-    noSuchMethodRegistry.onQueueEmpty();
-    if (!enabledNoSuchMethod &&
-        (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
-         noSuchMethodRegistry.hasComplexNoSuchMethod)) {
-      enableNoSuchMethod(enqueuer);
-      enabledNoSuchMethod = true;
-    }
 
     if (compiler.hasIncrementalSupport) {
       // Always enable tear-off closures during incremental compilation.
