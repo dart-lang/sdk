@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
+import 'package:yaml/yaml.dart';
 
 import 'js/keywords.dart';
 
@@ -316,15 +317,18 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri) {
   // further inside the folder where the entrypoint is located, otherwise we
   // assume this is a runtime resource from the dev_compiler.
   if (!relativePath.startsWith('..')) return relativePath;
-  var segments = resourceUri.pathSegments;
-  var len = segments.length;
-  if (segments.length < 4 ||
-      segments[len - 2] != 'runtime' ||
-      segments[len - 3] != 'lib' ||
-      // If loaded from sources this will be exactly dev_compiler, otherwise it
-      // can be the name in the pub cache (typically dev_compiler-version).
-      !segments[len - 4].startsWith('dev_compiler')) {
-    return null;
-  }
-  return path.joinAll(['dev_compiler']..addAll(segments.skip(len - 2)));
+
+  // Expect the code to live under lib/runtime/ in the dev_compiler's folder.
+  var filename = path.basename(filepath);
+  var dir = path.dirname(filepath);
+  if (path.basename(dir) != 'runtime') return null;
+  dir = path.dirname(dir);
+  if (path.basename(dir) != 'lib') return null;
+  dir = path.dirname(dir);
+  var pubspec =
+      loadYaml(new File(path.join(dir, 'pubspec.yaml')).readAsStringSync());
+
+  // Ensure this is loaded from the dev_compiler package.
+  if (pubspec['name'] != 'dev_compiler') return null;
+  return path.join('dev_compiler', 'runtime', filename);
 }
