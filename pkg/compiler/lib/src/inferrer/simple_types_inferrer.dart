@@ -281,6 +281,12 @@ abstract class InferrerEngine<T, V extends TypeSystem>
                           bool inLoop);
 
   /**
+   * Registers a call to await with an expression of type [argumentType] as
+   * argument.
+   */
+  T registerAwait(ast.Node node, T argumentType);
+
+  /**
    * Notifies to the inferrer that [analyzedElement] can have return
    * type [newType]. [currentType] is the type the [InferrerVisitor]
    * currently found.
@@ -1011,8 +1017,7 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitAwait(ast.Await node) {
     T futureType = node.expression.accept(this);
-    // TODO(herhut): Return a better type here if possible.
-    return types.dynamicType;
+    return inferrer.registerAwait(node, futureType);
   }
 
   T visitStaticSend(ast.Send node) {
