@@ -27,7 +27,19 @@ void AstPrinter::VisitGenericAstNode(AstNode* node) {
 
 void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   indent_++;
-  ISL_Print("(%s (scope \"%p\")", node->PrettyName(), node->scope());
+  LocalScope* scope = node->scope();
+  ISL_Print("(%s (scope \"%p\"", node->PrettyName(), scope);
+  if (scope != NULL) {
+    ISL_Print(" loop %d", scope->loop_level());
+    if (scope->HasContextLevel()) {
+      ISL_Print(" context %d captures %d",
+                scope->context_level(),
+                scope->num_context_variables());
+    } else {
+      ASSERT(scope->num_context_variables() == 0);
+    }
+  }
+  ISL_Print(")");
   for (int i = 0; i < node->length(); ++i) {
     ISL_Print("\n");
     for (intptr_t p = 0; p < indent_; p++) {

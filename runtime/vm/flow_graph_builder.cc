@@ -3785,7 +3785,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         Bind(new(Z) AllocateContextInstr(node->token_pos(),
                                          num_context_variables));
     { LocalVariable* tmp_var = EnterTempLocalScope(allocated_context);
-      if (HasContextScope() || !is_top_level_sequence) {
+      if (!is_top_level_sequence || HasContextScope()) {
+        ASSERT(is_top_level_sequence ||
+               (nested_block.ContextLevel() ==
+                nested_block.outer()->ContextLevel() + 1));
         Value* tmp_val = Bind(new(Z) LoadLocalInstr(*tmp_var));
         Value* parent_context = Bind(BuildCurrentContext());
         Do(new(Z) StoreInstanceFieldInstr(Context::parent_offset(),
@@ -3994,7 +3997,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   if (is_open() &&
       (num_context_variables > 0) &&
-      (HasContextScope() || !is_top_level_sequence)) {
+      (!is_top_level_sequence || HasContextScope())) {
     UnchainContexts(1);
   }
 
