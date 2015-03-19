@@ -354,6 +354,37 @@ main() {
 ''');
   }
 
+  void test_directives_comments() {
+    _parseTestUnit(r'''
+// header
+library lib;
+
+import 'c.dart';// c
+import 'a.dart';// aa
+import 'b.dart';// bbb
+
+/** doc */
+main() {
+}
+''');
+    // validate change
+    _assertSort(r'''
+// header
+library lib;
+
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+// c
+// aa
+// bbb
+
+/** doc */
+main() {
+}
+''');
+  }
+
   void test_unitMembers_class() {
     _parseTestUnit(r'''
 class C {}
