@@ -3436,10 +3436,13 @@ void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // If the right hand side is an expression that does not contain
   // a safe point for the debugger to stop, add an explicit stub
-  // call.
-  if (node->value()->IsLiteralNode() ||
+  // call. Exception: don't do this when assigning to internal variables,
+  // or for generated code that has no source position.
+  if ((node->value()->IsLiteralNode() ||
       node->value()->IsLoadLocalNode() ||
-      node->value()->IsClosureNode()) {
+      node->value()->IsClosureNode()) &&
+      node->local().IsInternal() &&
+      (node->token_pos() != Scanner::kNoSourcePos)) {
     AddInstruction(new(Z) DebugStepCheckInstr(
         node->token_pos(), RawPcDescriptors::kRuntimeCall));
   }
