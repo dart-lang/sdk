@@ -1106,7 +1106,7 @@ void FlowGraphCompiler::CompileGraph() {
           __ StoreToOffset(CTX, FP, (slot_base - i) * kWordSize, PP);
         } else {
           const Context& empty_context = Context::ZoneHandle(
-              isolate(), isolate()->object_store()->empty_context());
+              zone(), isolate()->object_store()->empty_context());
           __ LoadObject(R1, empty_context, PP);
           __ StoreToOffset(R1, FP, (slot_base - i) * kWordSize, PP);
         }

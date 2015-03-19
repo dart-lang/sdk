@@ -1122,7 +1122,7 @@ void FlowGraphCompiler::CompileGraph() {
           __ movq(Address(RBP, (slot_base - i) * kWordSize), CTX);
         } else {
           const Context& empty_context = Context::ZoneHandle(
-              isolate(), isolate()->object_store()->empty_context());
+              zone(), isolate()->object_store()->empty_context());
           __ StoreObject(
               Address(RBP, (slot_base - i) * kWordSize), empty_context, PP);
         }

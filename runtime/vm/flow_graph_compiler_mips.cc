@@ -1130,7 +1130,7 @@ void FlowGraphCompiler::CompileGraph() {
           __ sw(CTX, Address(FP, (slot_base - i) * kWordSize));
         } else {
           const Context& empty_context = Context::ZoneHandle(
-              isolate(), isolate()->object_store()->empty_context());
+              zone(), isolate()->object_store()->empty_context());
           __ LoadObject(V1, empty_context);
           __ sw(V1, Address(FP, (slot_base - i) * kWordSize));
         }
