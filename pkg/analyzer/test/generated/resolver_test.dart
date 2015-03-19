@@ -9557,6 +9557,50 @@ main() {
     expect(type, new isInstanceOf<FunctionType>());
   }
 
+  void test_FunctionExpressionInvocation_block() {
+    String code = r'''
+main() {
+  var foo = (() { return 1; })();
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.isDynamic, isTrue);
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_FunctionExpressionInvocation_expression() {
+    String code = r'''
+main() {
+  var foo = (() => 1)();
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_FunctionExpressionInvocation_curried() {
+    String code = r'''
+typedef int F();
+F f() => null;
+main() {
+  var foo = f()();
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
   void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
     String code = r"""
 typedef Foo();

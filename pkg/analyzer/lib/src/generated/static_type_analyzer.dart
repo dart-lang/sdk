@@ -390,25 +390,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    ExecutableElement staticMethodElement = node.staticElement;
-    // Record static return type of the static element.
-    DartType staticStaticType = _computeStaticReturnType(staticMethodElement);
-    _recordStaticType(node, staticStaticType);
-    // Record propagated return type of the static element.
-    DartType staticPropagatedType =
-        _computePropagatedReturnType(staticMethodElement);
-    _recordPropagatedTypeIfBetter(node, staticPropagatedType);
-    // Process propagated element.
-    ExecutableElement propagatedMethodElement = node.propagatedElement;
-    if (!identical(propagatedMethodElement, staticMethodElement)) {
-      // Record static return type of the propagated element.
-      DartType propagatedStaticType =
-          _computeStaticReturnType(propagatedMethodElement);
-      _recordPropagatedTypeIfBetter(node, propagatedStaticType, true);
-      // Record propagated return type of the propagated element.
-      DartType propagatedPropagatedType =
-          _computePropagatedReturnType(propagatedMethodElement);
-      _recordPropagatedTypeIfBetter(node, propagatedPropagatedType, true);
+    DartType functionStaticType = _getStaticType(node.function);
+    DartType staticType;
+    if (functionStaticType is FunctionType) {
+      staticType = functionStaticType.returnType;
+    } else {
+      staticType = _dynamicType;
+    }
+    _recordStaticType(node, staticType);
+    DartType functionPropagatedType = node.function.propagatedType;
+    if (functionPropagatedType is FunctionType) {
+      DartType propagatedType = functionPropagatedType.returnType;
+      _recordPropagatedTypeIfBetter(node, propagatedType);
     }
     return null;
   }

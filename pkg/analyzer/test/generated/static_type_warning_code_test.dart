@@ -345,6 +345,16 @@ main() {
     verify([source]);
   }
 
+  void test_invalidAssignment_functionExpressionInvocation() {
+    Source source = addSource('''
+main() {
+  String x = (() => 5)();
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
   void test_invalidAssignment_instanceVariable() {
     Source source = addSource(r'''
 class A {
