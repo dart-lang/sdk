@@ -4,8 +4,8 @@
 
 library test.operation;
 
-import 'package:analysis_server/plugin/plugin.dart';
-import 'package:analysis_server/src/plugin/plugin_impl.dart';
+import 'package:analyzer/plugin/plugin.dart';
+import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:unittest/unittest.dart';
 
 main() {

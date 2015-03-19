@@ -4,9 +4,9 @@
 
 library driver;
 
-import 'package:analysis_server/plugin/plugin.dart';
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/plugin.dart';
 
 /**
  * An object that can be used to start an analysis server.

@@ -4,7 +4,6 @@
 
 library analysis_server.src.plugin.server_plugin;
 
-import 'package:analysis_server/plugin/plugin.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
@@ -13,12 +12,11 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analyzer/plugin/plugin.dart';
 
 /**
  * A function that will create a request handler that can be used by the given
  * [server].
- *
- * TODO(brianwilkerson) Move this into 'protocol.dart'.
  */
 typedef RequestHandler RequestHandlerFactory(AnalysisServer server);
 

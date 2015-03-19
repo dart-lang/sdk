@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.plugin.plugin_impl;
+library analyzer.src.plugin.plugin_impl;
 
 import 'dart:collection';
 
-import 'package:analysis_server/plugin/plugin.dart';
+import 'package:analyzer/plugin/plugin.dart';
 
 /**
  * An object that manages the extension points for a single instance of the

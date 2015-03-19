@@ -13,10 +13,10 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
-import 'package:analysis_server/src/plugin/plugin_impl.dart';
 
 main() {
   group('SocketServer', () {
@@ -44,8 +44,9 @@ class SocketServerTest {
     expect(channel2.responsesReceived[0].error, isNotNull);
     expect(channel2.responsesReceived[0].error.code,
         equals(RequestErrorCode.SERVER_ALREADY_STARTED));
-    channel2.sendRequest(new ServerShutdownParams().toRequest('0')).then(
-        (Response response) {
+    channel2
+        .sendRequest(new ServerShutdownParams().toRequest('0'))
+        .then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
       expect(
@@ -60,8 +61,9 @@ class SocketServerTest {
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(channel.notificationsReceived[0].event, SERVER_CONNECTED);
-    return channel.sendRequest(new ServerShutdownParams().toRequest('0')).then(
-        (Response response) {
+    return channel
+        .sendRequest(new ServerShutdownParams().toRequest('0'))
+        .then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNull);
       channel.expectMsgCount(responseCount: 1, notificationCount: 1);
