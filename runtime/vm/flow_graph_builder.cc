@@ -3441,7 +3441,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   if ((node->value()->IsLiteralNode() ||
       node->value()->IsLoadLocalNode() ||
       node->value()->IsClosureNode()) &&
-      node->local().IsInternal() &&
+      !node->local().IsInternal() &&
       (node->token_pos() != Scanner::kNoSourcePos)) {
     AddInstruction(new(Z) DebugStepCheckInstr(
         node->token_pos(), RawPcDescriptors::kRuntimeCall));
