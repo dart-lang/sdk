@@ -4,7 +4,7 @@
 
 library dev_compiler.src.codegen.js_codegen;
 
-import 'dart:collection' show HashSet;
+import 'dart:collection' show HashSet, HashMap;
 import 'dart:io' show Directory, File;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
@@ -67,9 +67,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _privateNames = new HashSet<String>();
   final _pendingPrivateNames = <String>[];
 
+  /// Classes we have not emitted yet. Values can be [ClassDeclaration] or
+  /// [ClassTypeAlias].
+  final _pendingClasses = new HashMap<ClassElement, CompilationUnitMember>();
+
+  /// Memoized results of [_lazyClass].
+  final _lazyClassMemo = new HashMap<ClassElement, bool>();
+
+  /// Memoized results of [_inLibraryCycle].
+  final _libraryCycleMemo = new HashMap<LibraryElement, bool>();
+
   JSCodegenVisitor(this.libraryInfo, this.rules, this._checkerReporter);
 
-  Element get currentLibrary => libraryInfo.library;
+  LibraryElement get currentLibrary => libraryInfo.library;
 
   JS.Program emitLibrary(LibraryUnit library) {
     var jsDefaultValue = '{}';
@@ -87,14 +97,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
     var body = <JS.Statement>[];
 
-    // Visit parts first, since the "part" declarations come before code
-    // in the main library's compilation unit.
-    for (var unit in library.parts) {
-      body.add(_visit(unit));
+    // Collect classes we need to emit, used for:
+    // * tracks what we've emitted so we don't emit twice
+    // * provides a mapping from ClassElement back to the ClassDeclaration.
+    for (var unit in library.partsThenLibrary) {
+      for (var decl in unit.declarations) {
+        if (decl is ClassDeclaration || decl is ClassTypeAlias) {
+          _pendingClasses[decl.element] = decl;
+        }
+      }
     }
 
-    // Visit main library
-    body.add(_visit(library.library));
+    for (var unit in library.partsThenLibrary) body.add(_visit(unit));
+
+    assert(_pendingClasses.isEmpty);
 
     if (_exports.isNotEmpty) body.add(js.comment('Exports:'));
 
@@ -234,57 +250,32 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
+    // If we've already emitted this class, skip it.
+    var classElem = node.element;
+    if (_pendingClasses.remove(classElem) == null) return null;
+
     var name = node.name.name;
     var heritage =
         js.call('dart.mixin(#)', [_visitList(node.withClause.mixinTypes)]);
     var classDecl = new JS.ClassDeclaration(
         new JS.ClassExpression(new JS.VariableDeclaration(name), heritage, []));
     if (isPublic(name)) _exports.add(name);
-    return _addTypeParameters(node.typeParameters, name, classDecl);
-  }
 
-  @override
-  visitTypeParameter(TypeParameter node) => new JS.Parameter(node.name.name);
-
-  JS.Statement _addTypeParameters(
-      TypeParameterList node, String name, JS.Statement clazz) {
-    if (node == null) return clazz;
-
-    var genericName = '$name\$';
-    var genericDef = js.statement(
-        'let # = dart.generic(function(#) { #; return #; });', [
-      genericName,
-      _visitList(node.typeParameters),
-      clazz,
-      name
-    ]);
-
-    // TODO(jmesserly): we may not want this to be `dynamic` if the generic
-    // has a lower bound, e.g. `<T extends SomeType>`.
-    // https://github.com/dart-lang/dart-dev-compiler/issues/38
-    var typeArgs =
-        new List.filled(node.typeParameters.length, js.call('dart.dynamic'));
-
-    var dynInst = js.statement('let # = #(#);', [name, genericName, typeArgs]);
-
-    // TODO(jmesserly): is it worth exporting both names? Alternatively we could
-    // put the generic type constructor on the <dynamic> instance.
-    if (isPublic(name)) _exports.add('${name}\$');
-    return new JS.Block([genericDef, dynInst]);
+    return _finishClassDef(classElem, classDecl);
   }
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
+    // If we've already emitted this class, skip it.
+    var classElem = node.element;
+    if (_pendingClasses.remove(classElem) == null) return null;
     if (_getJsNameAnnotation(node) != null) return null;
 
     currentClass = node;
 
-    // dart:core Object is a bit special.
-    var isObject = node.element.type.isObject;
+    var name = classElem.name;
+    if (isPublic(name)) _exports.add(name);
 
-    var body = <JS.Statement>[];
-
-    var name = node.name.name;
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
     var staticFields = <FieldDeclaration>[];
@@ -295,6 +286,212 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         (member.isStatic ? staticFields : fields).add(member);
       }
     }
+
+    var classExpr = new JS.ClassExpression(new JS.VariableDeclaration(name),
+        _classHeritage(node), _emitClassMethods(node, ctors, fields));
+
+    var body = _finishClassMembers(name, classExpr, ctors, staticFields);
+    currentClass = null;
+
+    return _finishClassDef(classElem, body);
+  }
+
+  /// Given a class element and body, complete the class declaration.
+  /// This handles generic type parameters, laziness (in library-cycle cases),
+  /// and ensuring dependencies are loaded first.
+  JS.Statement _finishClassDef(ClassElement classElem, JS.Statement body) {
+    var name = classElem.name;
+    var genericName = '$name\$';
+
+    JS.Statement genericDef;
+    JS.Expression genericInst;
+    if (classElem.typeParameters.isNotEmpty) {
+      genericDef = _emitGenericClassDef(classElem, body);
+      var dynamicArgs = new List.filled(
+          classElem.typeParameters.length, js.call('dart.dynamic'));
+
+      var target = genericName;
+      if (_needQualifiedName(classElem)) {
+        target = js.call('#.#', [_EXPORTS, genericName]);
+      }
+      genericInst = js.call('#(#)', [target, dynamicArgs]);
+    }
+
+    // The base class and all mixins must be declared before this class.
+    if (_lazyClass(classElem)) {
+      // TODO(jmesserly): the lazy class def is a simple solution for now.
+      // We may want to consider other options in the future.
+
+      if (genericDef != null) {
+        return js.statement(
+            '{ #; dart.defineLazyClassGeneric(#, #, { get: # }); }', [
+          genericDef,
+          _EXPORTS,
+          js.string(name, "'"),
+          genericName
+        ]);
+      }
+
+      return js.statement(
+          'dart.defineLazyClass(#, { get #() { #; return #; } });', [
+        _EXPORTS,
+        name,
+        body,
+        name
+      ]);
+    }
+
+    if (genericDef != null) {
+      body = js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
+    }
+
+    if (classElem.type.isObject) return body;
+
+    // If we're not lazy, we still need to ensure our dependencies are
+    // generated first.
+    var classDefs = <JS.Statement>[];
+    _emitClassIfNeeded(classDefs, classElem.supertype.element);
+    for (var m in classElem.mixins) {
+      _emitClassIfNeeded(classDefs, m.element);
+    }
+    classDefs.add(body);
+    return _statement(classDefs);
+  }
+
+  void _emitClassIfNeeded(List<JS.Statement> defs, ClassElement base) {
+    // We can only emit classes from this library.
+    if (base.library != currentLibrary) return;
+
+    var baseNode = _pendingClasses[base];
+    if (baseNode != null) defs.add(visitClassDeclaration(baseNode));
+  }
+
+  /// Returns true if the supertype or mixins aren't loaded.
+  /// If that is the case, we'll emit a lazy class definition.
+  bool _lazyClass(ClassElement cls) {
+    if (cls.type.isObject) return false;
+
+    assert(cls.library == currentLibrary);
+    var result = _lazyClassMemo[cls];
+    if (result != null) return result;
+
+    result = _classMightNotBeLoaded(cls.supertype.element);
+    for (var mixin in cls.mixins) {
+      if (result) break;
+      result = _classMightNotBeLoaded(mixin.element);
+    }
+    return _lazyClassMemo[cls] = result;
+  }
+
+  /// Curated order to minimize lazy classes needed by dart:core and its
+  /// transitive SDK imports.
+  static const CORELIB_ORDER = const [
+    'dart.core',
+    'dart.collection',
+    'dart._internal'
+  ];
+
+  /// Returns true if the class might not be loaded.
+  ///
+  /// If the class is from our library, this can happen because it's lazy.
+  ///
+  /// If the class is from a different library, it could happen if we're in
+  /// a library cycle. In other words, if that different library depends back
+  /// on this library via some transitive import path.
+  ///
+  /// If we could control the global import ordering, we could eliminate some
+  /// of these cases, by ordering the imports of the cyclic libraries in an
+  /// optimal way. For example, we could order the libraries in a cycle to
+  /// minimize laziness. However, we currently assume we cannot control the
+  /// order that the cycle of libraries will be loaded in.
+  bool _classMightNotBeLoaded(ClassElement cls) {
+    if (cls.library == currentLibrary) return _lazyClass(cls);
+
+    // The SDK is a special case: we optimize the order to prevent laziness.
+    if (cls.library.isInSdk) {
+      // SDK is loaded before non-SDK libraies
+      if (!currentLibrary.isInSdk) return false;
+
+      // Compute the order of both SDK libraries. If unknown, assume it's after.
+      var classOrder = CORELIB_ORDER.indexOf(cls.library.name);
+      if (classOrder == -1) classOrder = CORELIB_ORDER.length;
+
+      var currentOrder = CORELIB_ORDER.indexOf(currentLibrary.name);
+      if (currentOrder == -1) currentOrder = CORELIB_ORDER.length;
+
+      // If the dart:* library we are currently compiling is loaded after the
+      // class's library, then we know the class is available.
+      if (classOrder != currentOrder) return currentOrder < classOrder;
+
+      // If we don't know the order of the class's library or the current
+      // library, do the normal cycle check. (Not all SDK libs are cycles.)
+    }
+
+    return _inLibraryCycle(cls.library);
+  }
+
+  /// Returns true if [library] depends on the [currentLibrary] via some
+  /// transitive import.
+  bool _inLibraryCycle(LibraryElement library) {
+    // SDK libs don't depend on things outside the SDK.
+    // (We can reach this via the recursive call below.)
+    if (library.isInSdk && !currentLibrary.isInSdk) return false;
+
+    var result = _libraryCycleMemo[library];
+    if (result != null) return result;
+
+    result = library == currentLibrary;
+    _libraryCycleMemo[library] = result;
+    for (var e in library.imports) {
+      if (result) break;
+      result = _inLibraryCycle(e.importedLibrary);
+    }
+    for (var e in library.exports) {
+      if (result) break;
+      result = _inLibraryCycle(e.exportedLibrary);
+    }
+    return _libraryCycleMemo[library] = result;
+  }
+
+  JS.Statement _emitGenericClassDef(ClassElement cls, JS.Statement body) {
+    var name = cls.name;
+    var genericName = '$name\$';
+    var typeParams = cls.typeParameters.map((p) => new JS.Parameter(p.name));
+    // TODO(jmesserly): is it worth exporting both names? Alternatively we could
+    // put the generic type constructor on the <dynamic> instance.
+    if (isPublic(name)) _exports.add(genericName);
+    return js.statement('let # = dart.generic(function(#) { #; return #; });', [
+      genericName,
+      typeParams,
+      body,
+      name
+    ]);
+  }
+
+  JS.Expression _classHeritage(ClassDeclaration node) {
+    if (node.element.type.isObject) return null;
+
+    JS.Expression heritage = null;
+    if (node.extendsClause != null) {
+      heritage = _visit(node.extendsClause.superclass);
+    } else {
+      heritage = _emitTypeName(rules.provider.objectType);
+    }
+    if (node.withClause != null) {
+      var mixins = _visitList(node.withClause.mixinTypes);
+      mixins.insert(0, heritage);
+      heritage = js.call('dart.mixin(#)', [mixins]);
+    }
+    return heritage;
+  }
+
+  /// Emit class members that can be generated as methods.
+  /// Anything not handled here will be addressed in [_finishClassMembers].
+  List<JS.Method> _emitClassMethods(ClassDeclaration node,
+      List<ConstructorDeclaration> ctors, List<FieldDeclaration> fields) {
+    var element = node.element;
+    var isObject = element.type.isObject;
+    var name = node.name.name;
 
     var jsMethods = <JS.Method>[];
     // Iff no constructor is specified for a class C, it implicitly has a
@@ -314,7 +511,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Support for adapting dart:core Iterator/Iterable to ES6 versions.
     // This lets them use for-of loops transparently.
     // https://github.com/lukehoban/es6features#iterators--forof
-    if (node.element.library.isDartCore && node.element.name == 'Iterable') {
+    if (element.library.isDartCore && element.name == 'Iterable') {
       JS.Fun body = js.call('''function() {
         var iterator = this.iterator;
         return {
@@ -326,23 +523,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }''');
       jsMethods.add(new JS.Method(js.call('Symbol.iterator'), body));
     }
+    return jsMethods.where((m) => m != null).toList(growable: false);
+  }
 
-    JS.Expression heritage = null;
-    if (node.extendsClause != null) {
-      heritage = _visit(node.extendsClause.superclass);
-    } else if (!isObject) {
-      heritage = _emitTypeName(rules.provider.objectType);
-    }
-    if (node.withClause != null) {
-      var mixins = _visitList(node.withClause.mixinTypes);
-      mixins.insert(0, heritage);
-      heritage = js.call('dart.mixin(#)', [mixins]);
-    }
-    body.add(new JS.ClassDeclaration(new JS.ClassExpression(
-        new JS.VariableDeclaration(name), heritage,
-        jsMethods.where((m) => m != null).toList(growable: false))));
-
-    if (isPublic(name)) _exports.add(name);
+  /// Emit class members that need to come after the class declaration, such
+  /// as static fields. See [_emitClassMethods] for things that are emitted
+  /// insite the ES6 `class { ... }` node.
+  JS.Statement _finishClassMembers(String name, JS.ClassExpression cls,
+      List<ConstructorDeclaration> ctors, List<FieldDeclaration> staticFields) {
+    var body = <JS.Statement>[];
+    body.add(new JS.ClassDeclaration(cls));
 
     // Named constructors
     for (ConstructorDeclaration member in ctors) {
@@ -370,9 +560,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
     var lazy = _emitLazyFields(name, lazyStatics);
     if (lazy != null) body.add(lazy);
-
-    currentClass = null;
-    return _addTypeParameters(node.typeParameters, name, _statement(body));
+    return _statement(body);
   }
 
   /// Generates the implicit default constructor for class C of the form
@@ -752,7 +940,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Expression _emitTypeName(DartType type) {
     var name = type.name;
-    var lib = type.element.library;
+    var element = type.element;
     if (name == '') {
       // TODO(jmesserly): remove when we're using coercion reifier.
       return _unimplementedCall('Unimplemented type $type');
@@ -761,8 +949,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var typeArgs = null;
     if (type is ParameterizedType) {
       // TODO(jmesserly): this is a workaround for an analyzer bug, see:
-      // https://github.com/dart-lang/dart-dev-compiler/commit/a212d59ad046085a626dd8d16881cdb8e8b9c3fa
-      if (type is! FunctionType || type.element is FunctionTypeAlias) {
+      // https://github.com/dart-lang/dev_compiler/commit/a212d59ad046085a626dd8d16881cdb8e8b9c3fa
+      if (type is! FunctionType || element is FunctionTypeAlias) {
         var args = type.typeArguments;
         if (args.any((a) => a != rules.provider.dynamicType)) {
           name = '$name\$';
@@ -772,8 +960,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     JS.Expression result;
-    if (lib != currentLibrary && lib != null) {
-      result = js.call('#.#', [_libraryName(lib), name]);
+    if (_needQualifiedName(element)) {
+      result = js.call('#.#', [_libraryName(element.library), name]);
     } else {
       result = new JS.VariableUse(name);
     }
@@ -782,6 +970,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       result = js.call('#(#)', [result, typeArgs]);
     }
     return result;
+  }
+
+  bool _needQualifiedName(Element element) {
+    var lib = element.library;
+
+    return lib != null &&
+        (lib != currentLibrary ||
+            element is ClassElement && _lazyClass(element));
   }
 
   JS.Node _emitDPutIfDynamic(
@@ -1095,7 +1291,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     return js.statement(
-        'dart.defineLazyProperties(#, { # })', [objExpr, methods]);
+        'dart.defineLazyProperties(#, { # });', [objExpr, methods]);
   }
 
   void _flushLibraryProperties(List<JS.Statement> body) {

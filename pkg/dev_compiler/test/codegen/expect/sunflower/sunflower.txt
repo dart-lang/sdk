@@ -5,6 +5,6 @@ final InputElement slider = querySelector("#slider");
 info: line 25, column 5 of test/codegen/sunflower/sunflower.dart: [DownCast] (querySelector("#canvas") as CanvasElement).getContext('2d') (RenderingContext) will need runtime check to cast to type CanvasRenderingContext2D
     (querySelector("#canvas") as CanvasElement).getContext('2d');
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 60, column 37 of test/codegen/sunflower/sunflower.dart: [ClosureWrapLiteral] (e) => draw() ((dynamic) → void) will need to be wrapped with a closure of type (Event) → void
+warning: line 28, column 37 of test/codegen/sunflower/sunflower.dart: [ClosureWrapLiteral] (e) => draw() ((dynamic) → void) will need to be wrapped with a closure of type (Event) → void
   slider.addEventListener('change', (e) => draw());
                                     ^^^^^^^^^^^^^

@@ -1481,13 +1481,16 @@ class MiniJsParser {
         interpolatedValues.add(member);
         return member;
       }
-      name = parseInterpolatedExpression();
+      var interpolated = new InterpolatedExpression(parseHash());
+      interpolatedValues.add(interpolated);
+      name = interpolated;
     } else {
       name = parsePropertyName();
     }
 
     // Allow get or set to be followed by another property name.
-    if (lastCategory == ALPHA && name is PropertyName) {
+    if (name is PropertyName &&
+        (lastCategory == ALPHA || lastCategory == HASH)) {
       PropertyName p = name;
       isGetter = p.name == 'get';
       isSetter = p.name == 'set';
@@ -1520,16 +1523,12 @@ class MiniJsParser {
       expectCategory(RSQUARE);
       return expr;
     } else if (acceptCategory(HASH)) {
-      return parseInterpolatedExpression();
+      var member = new InterpolatedPropertyName(parseHash());
+      interpolatedValues.add(member);
+      return member;
     } else {
       error('Expected property name');
       return null;
     }
-  }
-
-  InterpolatedExpression parseInterpolatedExpression() {
-    var interpolated = new InterpolatedExpression(parseHash());
-    interpolatedValues.add(interpolated);
-    return interpolated;
   }
 }

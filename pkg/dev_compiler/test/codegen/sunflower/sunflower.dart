@@ -24,11 +24,31 @@ int seeds = 0;
 final CanvasRenderingContext2D context =
     (querySelector("#canvas") as CanvasElement).getContext('2d');
 
-// TODO(jmesserly): modified this example to use classes and mixins.
-class Circle {
-  final num x, y, radius;
+void main() {
+  slider.addEventListener('change', (e) => draw());
+  draw();
+}
 
-  Circle(this.x, this.y, this.radius);
+/// Draw the complete figure for the current number of seeds.
+void draw() {
+  seeds = int.parse(slider.value);
+  context.clearRect(0, 0, MAX_D, MAX_D);
+  for (var i = 0; i < seeds; i++) {
+    final num theta = i * TAU / PHI;
+    final num r = sqrt(i) * SCALE_FACTOR;
+    final num x = centerX + r * cos(theta);
+    final num y = centerY - r * sin(theta);
+    new SunflowerSeed(x, y, SEED_RADIUS).draw();
+  }
+  notes.textContent = "$seeds seeds";
+}
+
+// This example was modified to use classes and mixins.
+class SunflowerSeed extends Circle with CirclePainter {
+  SunflowerSeed(num x, num y, num radius, [String color])
+  : super(x, y, radius) {
+    if (color != null) this.color = color;
+  }
 }
 
 abstract class CirclePainter implements Circle {
@@ -49,28 +69,8 @@ abstract class CirclePainter implements Circle {
   }
 }
 
-class SunflowerSeed extends Circle with CirclePainter {
-  SunflowerSeed(num x, num y, num radius, [String color])
-      : super(x, y, radius) {
-    if (color != null) this.color = color;
-  }
-}
+class Circle {
+  final num x, y, radius;
 
-void main() {
-  slider.addEventListener('change', (e) => draw());
-  draw();
-}
-
-/// Draw the complete figure for the current number of seeds.
-void draw() {
-  seeds = int.parse(slider.value);
-  context.clearRect(0, 0, MAX_D, MAX_D);
-  for (var i = 0; i < seeds; i++) {
-    final num theta = i * TAU / PHI;
-    final num r = sqrt(i) * SCALE_FACTOR;
-    final num x = centerX + r * cos(theta);
-    final num y = centerY - r * sin(theta);
-    new SunflowerSeed(x, y, SEED_RADIUS).draw();
-  }
-  notes.textContent = "$seeds seeds";
+  Circle(this.x, this.y, this.radius);
 }

@@ -1,6 +1,25 @@
 var _interceptors;
 (function(exports) {
   'use strict';
+  class Interceptor extends core.Object {
+    Interceptor() {
+    }
+    ['=='](other) {
+      return core.identical(this, other);
+    }
+    get hashCode() {
+      return _js_helper.Primitives.objectHashCode(this);
+    }
+    toString() {
+      return _js_helper.Primitives.objectToString(this);
+    }
+    noSuchMethod(invocation) {
+      throw new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
+    }
+    get runtimeType() {
+      return _js_helper.getRuntimeType(this);
+    }
+  }
   let JSArray$ = dart.generic(function(E) {
     class JSArray extends Interceptor {
       JSArray() {
@@ -1294,25 +1313,6 @@ var _interceptors;
       return null;
     return constructor.prototype;
   }
-  class Interceptor extends core.Object {
-    Interceptor() {
-    }
-    ['=='](other) {
-      return core.identical(this, other);
-    }
-    get hashCode() {
-      return _js_helper.Primitives.objectHashCode(this);
-    }
-    toString() {
-      return _js_helper.Primitives.objectToString(this);
-    }
-    noSuchMethod(invocation) {
-      throw new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
-    }
-    get runtimeType() {
-      return _js_helper.getRuntimeType(this);
-    }
-  }
   class JSBool extends Interceptor {
     JSBool() {
       super.Interceptor();
@@ -1380,6 +1380,7 @@ var _interceptors;
   // Exports:
   exports.JSArray = JSArray;
   exports.JSArray$ = JSArray$;
+  exports.Interceptor = Interceptor;
   exports.JSMutableArray = JSMutableArray;
   exports.JSMutableArray$ = JSMutableArray$;
   exports.JSFixedArray = JSFixedArray;
@@ -1407,7 +1408,6 @@ var _interceptors;
   exports.findInterceptorConstructorForType = findInterceptorConstructorForType;
   exports.findConstructorForNativeSubclassType = findConstructorForNativeSubclassType;
   exports.findInterceptorForType = findInterceptorForType;
-  exports.Interceptor = Interceptor;
   exports.JSBool = JSBool;
   exports.JSNull = JSNull;
   exports.JSIndexable = JSIndexable;

@@ -27,6 +27,24 @@ var sunflower;
       return dart.as(dart.as(querySelector("#canvas"), dom.CanvasElement).getContext('2d'), dom.CanvasRenderingContext2D);
     }
   });
+  // Function main: () → void
+  function main() {
+    exports.slider.addEventListener('change', dart.closureWrap((e) => draw(), "(Event) → void"));
+    draw();
+  }
+  // Function draw: () → void
+  function draw() {
+    exports.seeds = core.int.parse(exports.slider.value);
+    exports.context.clearRect(0, 0, MAX_D, MAX_D);
+    for (let i = 0; dart.notNull(i) < dart.notNull(exports.seeds); i = dart.notNull(i) + 1) {
+      let theta = dart.notNull(i) * dart.notNull(TAU) / dart.notNull(exports.PHI);
+      let r = dart.notNull(math.sqrt(i)) * dart.notNull(SCALE_FACTOR);
+      let x = dart.notNull(centerX) + dart.notNull(r) * dart.notNull(math.cos(theta));
+      let y = dart.notNull(centerY) - dart.notNull(r) * dart.notNull(math.sin(theta));
+      new SunflowerSeed(x, y, SEED_RADIUS).draw();
+    }
+    exports.notes.textContent = `${exports.seeds} seeds`;
+  }
   class Circle extends core.Object {
     Circle(x, y, radius) {
       this.x = x;
@@ -58,24 +76,6 @@ var sunflower;
         this.color = color;
     }
   }
-  // Function main: () → void
-  function main() {
-    exports.slider.addEventListener('change', dart.closureWrap((e) => draw(), "(Event) → void"));
-    draw();
-  }
-  // Function draw: () → void
-  function draw() {
-    exports.seeds = core.int.parse(exports.slider.value);
-    exports.context.clearRect(0, 0, MAX_D, MAX_D);
-    for (let i = 0; dart.notNull(i) < dart.notNull(exports.seeds); i = dart.notNull(i) + 1) {
-      let theta = dart.notNull(i) * dart.notNull(TAU) / dart.notNull(exports.PHI);
-      let r = dart.notNull(math.sqrt(i)) * dart.notNull(SCALE_FACTOR);
-      let x = dart.notNull(centerX) + dart.notNull(r) * dart.notNull(math.cos(theta));
-      let y = dart.notNull(centerY) - dart.notNull(r) * dart.notNull(math.sin(theta));
-      new SunflowerSeed(x, y, SEED_RADIUS).draw();
-    }
-    exports.notes.textContent = `${exports.seeds} seeds`;
-  }
   // Exports:
   exports.ORANGE = ORANGE;
   exports.SEED_RADIUS = SEED_RADIUS;
@@ -85,9 +85,9 @@ var sunflower;
   exports.centerX = centerX;
   exports.centerY = centerY;
   exports.querySelector = querySelector;
-  exports.Circle = Circle;
-  exports.CirclePainter = CirclePainter;
-  exports.SunflowerSeed = SunflowerSeed;
   exports.main = main;
   exports.draw = draw;
+  exports.SunflowerSeed = SunflowerSeed;
+  exports.Circle = Circle;
+  exports.CirclePainter = CirclePainter;
 })(sunflower || (sunflower = {}));

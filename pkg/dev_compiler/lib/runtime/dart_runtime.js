@@ -8,6 +8,8 @@ var core = core || {int: { parse: Number }, print: e => console.log(e) };
 
 var dart;
 (function (dart) {
+  'use strict';
+
   var defineProperty = Object.defineProperty;
   var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
   var getOwnPropertyNames = Object.getOwnPropertyNames;
@@ -172,14 +174,17 @@ var dart;
     defineProperty(to, name, desc);
   }
 
-  function defineLazyProperties(to, from) {
+  function defineLazy(to, from) {
     var names = getOwnPropertyNames(from);
     for (var i = 0; i < names.length; i++) {
       var name = names[i];
       defineLazyProperty(to, name, getOwnPropertyDescriptor(from, name));
     }
   }
-  dart.defineLazyProperties = defineLazyProperties;
+  // TODO(jmesserly): these are identical, but this makes it easier to grep for.
+  dart.defineLazyClass = defineLazy;
+  dart.defineLazyProperties = defineLazy;
+  dart.defineLazyClassGeneric = defineLazyProperty;
 
   /**
    * Copy properties from source to destination object.
@@ -205,33 +210,27 @@ var dart;
    * superclass (prototype).
    */
   function mixin(base/*, ...mixins*/) {
-    // Inherit statics from Base to simulate ES6 class inheritance
-    // Conceptually this is: `class Mixin extends base {}`
-    function Mixin() {
-      // TODO(jmesserly): since we're using initializers and not constructors,
-      // we can just skip directly to core.Object.
-      core.Object.apply(this, arguments);
-    }
-    Mixin.__proto__ = base;
-    Mixin.prototype = Object.create(base.prototype);
-    Mixin.prototype.constructor = Mixin;
-    // Copy each mixin, with later ones overwriting earlier entries.
-    var mixins = Array.prototype.slice.call(arguments, 1);
-    for (var i = 0; i < mixins.length; i++) {
-      copyProperties(Mixin.prototype, mixins[i].prototype);
-    }
     // Create an initializer for the mixin, so when derived constructor calls
     // super, we can correctly initialize base and mixins.
-    var baseCtor = base.prototype[base.name];
-    Mixin.prototype[base.name] = function() {
-      // Run mixin initializers. They cannot have arguments.
-      // Run them backwards so most-derived mixin is initialized first.
-      for (var i = mixins.length - 1; i >= 0; i--) {
-        var mixin = mixins[i];
-        mixin.prototype[mixin.name].call(this);
+    var mixins = Array.prototype.slice.call(arguments, 1);
+
+    // Create a class that will hold all of the mixin methods.
+    class Mixin extends base {
+      // Initializer method: run mixin initializers, then the base.
+      [base.name](/*...args*/) {
+        // Run mixin initializers. They cannot have arguments.
+        // Run them backwards so most-derived mixin is initialized first.
+        for (var i = mixins.length - 1; i >= 0; i--) {
+          var mixin = mixins[i];
+          mixin.prototype[mixin.name].call(this);
+        }
+        // Run base initializer.
+        base.prototype[base.name].apply(this, arguments);
       }
-      // Run base initializer.
-      baseCtor.apply(this, arguments);
+    }
+    // Copy each mixin's methods, with later ones overwriting earlier entries.
+    for (var i = 0; i < mixins.length; i++) {
+      copyProperties(Mixin.prototype, mixins[i].prototype);
     }
     return Mixin;
   }
@@ -314,8 +313,7 @@ var dart;
       var value = resultMap;
       for (var i = 0; i < length; i++) {
         var arg = arguments[i];
-        // TODO(jmesserly): assume `dynamic` here?
-        if (arg === void 0) throw 'undefined is not allowed as a type argument';
+        if (arg === void 0) arg = dart.dynamic;
 
         var map = value;
         value = map.get(arg);
@@ -339,28 +337,7 @@ var dart;
   }
   dart.generic = generic;
 
-
-  /**
-   * Implements Dart constructor behavior. Because of V8 `super` [constructor
-   * restrictions](https://code.google.com/p/v8/issues/detail?id=3330#c65) we
-   * cannot currently emit actual ES6 constructors with super calls. Instead
-   * we use the same trick as named constructors, and do them as instance
-   * methods that perform initialization.
-   */
-  // TODO(jmesserly): we'll need to rethink this once the ES6 spec and V8
-  // settles. See <https://github.com/dart-lang/dart-dev-compiler/issues/51>.
-  // Performance of this pattern is likely to be bad.
-  core.Object = function Object() {
-    // Get the class name for this instance.
-    var name = this.constructor.name;
-    // Call the default constructor.
-    var init = this[name];
-    var result = void 0;
-    if (init) result = init.apply(this, arguments);
-    return result === void 0 ? this : result;
-  };
-  // The initializer for Object
-  core.Object.prototype.Object = function() {};
-  core.Object.prototype.constructor = core.Object;
+  // TODO(jmesserly): this is just a placeholder.
+  dart.dynamic = Object.create(null);
 
 })(dart || (dart = {}));

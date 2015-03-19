@@ -1,6 +1,31 @@
 var core;
 (function(exports) {
   'use strict';
+  class Object {
+    Object() {
+      var name = this.constructor.name;
+      var init = this[name];
+      var result = void 0;
+      if (init)
+        result = init.apply(this, arguments);
+      return result === void 0 ? this : result;
+    }
+    ['=='](other) {
+      return identical(this, other);
+    }
+    get hashCode() {
+      return _js_helper.Primitives.objectHashCode(this);
+    }
+    toString() {
+      return _js_helper.Primitives.objectToString(this);
+    }
+    noSuchMethod(invocation) {
+      throw new NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
+    }
+    get runtimeType() {
+      return _js_helper.getRuntimeType(this);
+    }
+  }
   class Deprecated extends Object {
     Deprecated(expires) {
       this.expires = expires;
@@ -314,6 +339,35 @@ var core;
   DateTime.DECEMBER = 12;
   DateTime.MONTHS_PER_YEAR = 12;
   DateTime._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
+  let _onParseErrorInt = Symbol('_onParseErrorInt');
+  let _onParseErrorDouble = Symbol('_onParseErrorDouble');
+  class num extends Object {
+    static parse(input, onError) {
+      if (onError === void 0)
+        onError = null;
+      let source = input.trim();
+      _parseError = false;
+      let result = int.parse(source, {onError: _onParseErrorInt});
+      if (!dart.notNull(_parseError))
+        return result;
+      _parseError = false;
+      result = double.parse(source, _onParseErrorDouble);
+      if (!dart.notNull(_parseError))
+        return result;
+      if (onError === null)
+        throw new FormatException(input);
+      return onError(input);
+    }
+    static [_onParseErrorInt](_) {
+      _parseError = true;
+      return 0;
+    }
+    static [_onParseErrorDouble](_) {
+      _parseError = true;
+      return 0.0;
+    }
+  }
+  num._parseError = false;
   class double extends num {
     static parse(source, onError) {
       if (onError === void 0)
@@ -1075,7 +1129,7 @@ var core;
     dart.defineNamedConstructor(_GeneratorIterable, 'slice');
     return _GeneratorIterable;
   });
-  let _GeneratorIterable = _GeneratorIterable$(dart.dynamic);
+  dart.defineLazyClassGeneric(exports, '_GeneratorIterable', {get: _GeneratorIterable$});
   let _index = Symbol('_index');
   let _current = Symbol('_current');
   let _GeneratorIterator$ = dart.generic(function(E) {
@@ -1201,60 +1255,6 @@ var core;
     }
   }
   dart.defineNamedConstructor(Null, '_uninstantiable');
-  let _onParseErrorInt = Symbol('_onParseErrorInt');
-  let _onParseErrorDouble = Symbol('_onParseErrorDouble');
-  class num extends Object {
-    static parse(input, onError) {
-      if (onError === void 0)
-        onError = null;
-      let source = input.trim();
-      _parseError = false;
-      let result = int.parse(source, {onError: _onParseErrorInt});
-      if (!dart.notNull(_parseError))
-        return result;
-      _parseError = false;
-      result = double.parse(source, _onParseErrorDouble);
-      if (!dart.notNull(_parseError))
-        return result;
-      if (onError === null)
-        throw new FormatException(input);
-      return onError(input);
-    }
-    static [_onParseErrorInt](_) {
-      _parseError = true;
-      return 0;
-    }
-    static [_onParseErrorDouble](_) {
-      _parseError = true;
-      return 0.0;
-    }
-  }
-  num._parseError = false;
-  class Object {
-    Object() {
-      var name = this.constructor.name;
-      var init = this[name];
-      var result = void 0;
-      if (init)
-        result = init.apply(this, arguments);
-      return result === void 0 ? this : result;
-    }
-    ['=='](other) {
-      return identical(this, other);
-    }
-    get hashCode() {
-      return _js_helper.Primitives.objectHashCode(this);
-    }
-    toString() {
-      return _js_helper.Primitives.objectToString(this);
-    }
-    noSuchMethod(invocation) {
-      throw new NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
-    }
-    get runtimeType() {
-      return _js_helper.getRuntimeType(this);
-    }
-  }
   class Pattern extends Object {
   }
   // Function print: (Object) → void
@@ -1291,7 +1291,7 @@ var core;
     dart.defineNamedConstructor(Set, 'from');
     return Set;
   });
-  let Set = Set$(dart.dynamic);
+  dart.defineLazyClassGeneric(exports, 'Set', {get: Set$});
   let Sink$ = dart.generic(function(T) {
     class Sink extends Object {
     }
@@ -1424,29 +1424,34 @@ var core;
   dart.defineNamedConstructor(String, 'fromCharCodes');
   dart.defineNamedConstructor(String, 'fromCharCode');
   dart.defineNamedConstructor(String, 'fromEnvironment');
-  class Runes extends collection.IterableBase$(int) {
-    Runes(string) {
-      this.string = string;
-      super.IterableBase();
-    }
-    get iterator() {
-      return new RuneIterator(this.string);
-    }
-    get last() {
-      if (this.string.length === 0) {
-        throw new StateError('No elements.');
-      }
-      let length = this.string.length;
-      let code = this.string.codeUnitAt(dart.notNull(length) - 1);
-      if (dart.notNull(_isTrailSurrogate(code)) && dart.notNull(this.string.length) > 1) {
-        let previousCode = this.string.codeUnitAt(dart.notNull(length) - 2);
-        if (_isLeadSurrogate(previousCode)) {
-          return _combineSurrogatePair(previousCode, code);
+  dart.defineLazyClass(exports, {
+    get Runes() {
+      class Runes extends collection.IterableBase$(int) {
+        Runes(string) {
+          this.string = string;
+          super.IterableBase();
+        }
+        get iterator() {
+          return new RuneIterator(this.string);
+        }
+        get last() {
+          if (this.string.length === 0) {
+            throw new StateError('No elements.');
+          }
+          let length = this.string.length;
+          let code = this.string.codeUnitAt(dart.notNull(length) - 1);
+          if (dart.notNull(_isTrailSurrogate(code)) && dart.notNull(this.string.length) > 1) {
+            let previousCode = this.string.codeUnitAt(dart.notNull(length) - 2);
+            if (_isLeadSurrogate(previousCode)) {
+              return _combineSurrogatePair(previousCode, code);
+            }
+          }
+          return code;
         }
       }
-      return code;
+      return Runes;
     }
-  }
+  });
   // Function _isLeadSurrogate: (int) → bool
   function _isLeadSurrogate(code) {
     return (dart.notNull(code) & 64512) === 55296;
@@ -2968,13 +2973,19 @@ var core;
     });
     return result;
   }
-  class _ListConstructorSentinel extends _interceptors.JSInt {
-    _ListConstructorSentinel() {
-      super.JSInt();
+  dart.defineLazyClass(exports, {
+    get _ListConstructorSentinel() {
+      class _ListConstructorSentinel extends _interceptors.JSInt {
+        _ListConstructorSentinel() {
+          super.JSInt();
+        }
+      }
+      return _ListConstructorSentinel;
     }
-  }
+  });
   // Exports:
   exports.Deprecated = Deprecated;
+  exports.Object = Object;
   exports.deprecated = deprecated;
   exports.override = override;
   exports.proxy = proxy;
@@ -2983,6 +2994,7 @@ var core;
   exports.Comparable$ = Comparable$;
   exports.DateTime = DateTime;
   exports.double = double;
+  exports.num = num;
   exports.Duration = Duration;
   exports.Error = Error;
   exports.AssertionError = AssertionError;
@@ -3023,8 +3035,6 @@ var core;
   exports.Map = Map;
   exports.Map$ = Map$;
   exports.Null = Null;
-  exports.num = num;
-  exports.Object = Object;
   exports.Pattern = Pattern;
   exports.print = print;
   exports.Match = Match;

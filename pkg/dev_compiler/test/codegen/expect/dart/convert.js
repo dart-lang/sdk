@@ -4,6 +4,46 @@ var convert;
   let ASCII = new AsciiCodec();
   let _ASCII_MASK = 127;
   let _allowInvalid = Symbol('_allowInvalid');
+  let Codec$ = dart.generic(function(S, T) {
+    class Codec extends core.Object {
+      Codec() {
+      }
+      encode(input) {
+        return this.encoder.convert(input);
+      }
+      decode(encoded) {
+        return this.decoder.convert(encoded);
+      }
+      fuse(other) {
+        return new _FusedCodec(this, other);
+      }
+      get inverted() {
+        return new _InvertedCodec(this);
+      }
+    }
+    return Codec;
+  });
+  let Codec = Codec$(dart.dynamic, dart.dynamic);
+  class Encoding extends Codec$(core.String, core.List$(core.int)) {
+    Encoding() {
+      super.Codec();
+    }
+    decodeStream(byteStream) {
+      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dynamic))).fold(new core.StringBuffer(), (buffer, string) => dart.dinvoke(buffer, 'write', string), buffer).then((buffer) => dart.dinvoke(buffer, 'toString')), async.Future$(core.String));
+    }
+    static getByName(name) {
+      if (name === null)
+        return null;
+      name = name.toLowerCase();
+      return _nameToEncoding.get(name);
+    }
+  }
+  dart.defineLazyProperties(Encoding, {
+    get _nameToEncoding() {
+      return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
+    },
+    set _nameToEncoding(_) {}
+  });
   class AsciiCodec extends Encoding {
     AsciiCodec(opt$) {
       let allowInvalid = opt$.allowInvalid === void 0 ? false : opt$.allowInvalid;
@@ -31,6 +71,23 @@ var convert;
     }
   }
   let _subsetMask = Symbol('_subsetMask');
+  let Converter$ = dart.generic(function(S, T) {
+    class Converter extends core.Object {
+      Converter() {
+      }
+      fuse(other) {
+        return new _FusedConverter(this, other);
+      }
+      startChunkedConversion(sink) {
+        throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
+      }
+      bind(source) {
+        return new async.Stream.eventTransformed(source, ((sink) => new _ConverterStreamEventSink(this, sink)).bind(this));
+      }
+    }
+    return Converter;
+  });
+  let Converter = Converter$(dart.dynamic, dart.dynamic);
   class _UnicodeSubsetEncoder extends Converter$(core.String, core.List$(core.int)) {
     _UnicodeSubsetEncoder($_subsetMask) {
       this[_subsetMask] = $_subsetMask;
@@ -72,6 +129,19 @@ var convert;
     }
   }
   let _sink = Symbol('_sink');
+  class StringConversionSinkMixin extends core.Object {
+    add(str) {
+      return this.addSlice(str, 0, str.length, false);
+    }
+    asUtf8Sink(allowMalformed) {
+      return new _Utf8ConversionSink(this, allowMalformed);
+    }
+    asStringSink() {
+      return new _StringConversionSinkAsStringSinkAdapter(this);
+    }
+  }
+  class StringConversionSinkBase extends StringConversionSinkMixin {
+  }
   class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
     _UnicodeSubsetEncoderSink($_subsetMask, $_sink) {
       this[_subsetMask] = $_subsetMask;
@@ -157,6 +227,38 @@ var convert;
     }
   }
   let _utf8Sink = Symbol('_utf8Sink');
+  let ChunkedConversionSink$ = dart.generic(function(T) {
+    class ChunkedConversionSink extends core.Object {
+      ChunkedConversionSink() {
+      }
+      ChunkedConversionSink$withCallback(callback) {
+        return new _SimpleCallbackSink(callback);
+      }
+    }
+    dart.defineNamedConstructor(ChunkedConversionSink, 'withCallback');
+    return ChunkedConversionSink;
+  });
+  let ChunkedConversionSink = ChunkedConversionSink$(dart.dynamic);
+  class ByteConversionSink extends ChunkedConversionSink$(core.List$(core.int)) {
+    ByteConversionSink() {
+      super.ChunkedConversionSink();
+    }
+    ByteConversionSink$withCallback(callback) {
+      return new _ByteCallbackSink(callback);
+    }
+    ByteConversionSink$from(sink) {
+      return new _ByteAdapterSink(sink);
+    }
+  }
+  dart.defineNamedConstructor(ByteConversionSink, 'withCallback');
+  dart.defineNamedConstructor(ByteConversionSink, 'from');
+  class ByteConversionSinkBase extends ByteConversionSink {
+    addSlice(chunk, start, end, isLast) {
+      this.add(chunk.sublist(start, end));
+      if (isLast)
+        this.close();
+    }
+  }
   class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
     _ErrorHandlingAsciiDecoderSink($_utf8Sink) {
       this[_utf8Sink] = $_utf8Sink;
@@ -214,26 +316,6 @@ var convert;
         this.close();
     }
   }
-  class ByteConversionSink extends ChunkedConversionSink$(core.List$(core.int)) {
-    ByteConversionSink() {
-      super.ChunkedConversionSink();
-    }
-    ByteConversionSink$withCallback(callback) {
-      return new _ByteCallbackSink(callback);
-    }
-    ByteConversionSink$from(sink) {
-      return new _ByteAdapterSink(sink);
-    }
-  }
-  dart.defineNamedConstructor(ByteConversionSink, 'withCallback');
-  dart.defineNamedConstructor(ByteConversionSink, 'from');
-  class ByteConversionSinkBase extends ByteConversionSink {
-    addSlice(chunk, start, end, isLast) {
-      this.add(chunk.sublist(start, end));
-      if (isLast)
-        this.close();
-    }
-  }
   class _ByteAdapterSink extends ByteConversionSinkBase {
     _ByteAdapterSink($_sink) {
       this[_sink] = $_sink;
@@ -285,18 +367,6 @@ var convert;
     }
   }
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
-  let ChunkedConversionSink$ = dart.generic(function(T) {
-    class ChunkedConversionSink extends core.Object {
-      ChunkedConversionSink() {
-      }
-      ChunkedConversionSink$withCallback(callback) {
-        return new _SimpleCallbackSink(callback);
-      }
-    }
-    dart.defineNamedConstructor(ChunkedConversionSink, 'withCallback');
-    return ChunkedConversionSink;
-  });
-  let ChunkedConversionSink = ChunkedConversionSink$(dart.dynamic);
   let _accumulated = Symbol('_accumulated');
   let _SimpleCallbackSink$ = dart.generic(function(T) {
     class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
@@ -353,26 +423,6 @@ var convert;
     return _ConverterStreamEventSink;
   });
   let _ConverterStreamEventSink = _ConverterStreamEventSink$(dart.dynamic, dart.dynamic);
-  let Codec$ = dart.generic(function(S, T) {
-    class Codec extends core.Object {
-      Codec() {
-      }
-      encode(input) {
-        return this.encoder.convert(input);
-      }
-      decode(encoded) {
-        return this.decoder.convert(encoded);
-      }
-      fuse(other) {
-        return new _FusedCodec(this, other);
-      }
-      get inverted() {
-        return new _InvertedCodec(this);
-      }
-    }
-    return Codec;
-  });
-  let Codec = Codec$(dart.dynamic, dart.dynamic);
   let _first = Symbol('_first');
   let _second = Symbol('_second');
   let _FusedCodec$ = dart.generic(function(S, M, T) {
@@ -412,23 +462,6 @@ var convert;
     return _InvertedCodec;
   });
   let _InvertedCodec = _InvertedCodec$(dart.dynamic, dart.dynamic);
-  let Converter$ = dart.generic(function(S, T) {
-    class Converter extends core.Object {
-      Converter() {
-      }
-      fuse(other) {
-        return new _FusedConverter(this, other);
-      }
-      startChunkedConversion(sink) {
-        throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
-      }
-      bind(source) {
-        return new async.Stream.eventTransformed(source, ((sink) => new _ConverterStreamEventSink(this, sink)).bind(this));
-      }
-    }
-    return Converter;
-  });
-  let Converter = Converter$(dart.dynamic, dart.dynamic);
   let _FusedConverter$ = dart.generic(function(S, M, T) {
     class _FusedConverter extends Converter$(S, T) {
       _FusedConverter($_first, $_second) {
@@ -446,26 +479,6 @@ var convert;
     return _FusedConverter;
   });
   let _FusedConverter = _FusedConverter$(dart.dynamic, dart.dynamic, dart.dynamic);
-  class Encoding extends Codec$(core.String, core.List$(core.int)) {
-    Encoding() {
-      super.Codec();
-    }
-    decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dynamic))).fold(new core.StringBuffer(), (buffer, string) => dart.dinvoke(buffer, 'write', string), buffer).then((buffer) => dart.dinvoke(buffer, 'toString')), async.Future$(core.String));
-    }
-    static getByName(name) {
-      if (name === null)
-        return null;
-      name = name.toLowerCase();
-      return _nameToEncoding.get(name);
-    }
-  }
-  dart.defineLazyProperties(Encoding, {
-    get _nameToEncoding() {
-      return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
-    },
-    set _nameToEncoding(_) {}
-  });
   let HTML_ESCAPE = new HtmlEscape();
   let _name = Symbol('_name');
   class HtmlEscapeMode extends core.Object {
@@ -1490,19 +1503,6 @@ var convert;
     }
   }
   _StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE = 16;
-  class StringConversionSinkBase extends StringConversionSinkMixin {
-  }
-  class StringConversionSinkMixin extends core.Object {
-    add(str) {
-      return this.addSlice(str, 0, str.length, false);
-    }
-    asUtf8Sink(allowMalformed) {
-      return new _Utf8ConversionSink(this, allowMalformed);
-    }
-    asStringSink() {
-      return new _StringConversionSinkAsStringSinkAdapter(this);
-    }
-  }
   let _stringSink = Symbol('_stringSink');
   class _StringSinkConversionSink extends StringConversionSinkBase {
     _StringSinkConversionSink($_stringSink) {
@@ -2291,17 +2291,19 @@ var convert;
   // Exports:
   exports.ASCII = ASCII;
   exports.AsciiCodec = AsciiCodec;
-  exports.AsciiEncoder = AsciiEncoder;
-  exports.AsciiDecoder = AsciiDecoder;
-  exports.ByteConversionSink = ByteConversionSink;
-  exports.ByteConversionSinkBase = ByteConversionSinkBase;
-  exports.ChunkedConversionSink = ChunkedConversionSink;
-  exports.ChunkedConversionSink$ = ChunkedConversionSink$;
+  exports.Encoding = Encoding;
   exports.Codec = Codec;
   exports.Codec$ = Codec$;
   exports.Converter = Converter;
   exports.Converter$ = Converter$;
-  exports.Encoding = Encoding;
+  exports.AsciiEncoder = AsciiEncoder;
+  exports.StringConversionSinkBase = StringConversionSinkBase;
+  exports.StringConversionSinkMixin = StringConversionSinkMixin;
+  exports.AsciiDecoder = AsciiDecoder;
+  exports.ByteConversionSinkBase = ByteConversionSinkBase;
+  exports.ByteConversionSink = ByteConversionSink;
+  exports.ChunkedConversionSink = ChunkedConversionSink;
+  exports.ChunkedConversionSink$ = ChunkedConversionSink$;
   exports.HTML_ESCAPE = HTML_ESCAPE;
   exports.HtmlEscapeMode = HtmlEscapeMode;
   exports.HtmlEscape = HtmlEscape;
@@ -2319,8 +2321,6 @@ var convert;
   exports.LineSplitter = LineSplitter;
   exports.StringConversionSink = StringConversionSink;
   exports.ClosableStringSink = ClosableStringSink;
-  exports.StringConversionSinkBase = StringConversionSinkBase;
-  exports.StringConversionSinkMixin = StringConversionSinkMixin;
   exports.UNICODE_REPLACEMENT_CHARACTER_RUNE = UNICODE_REPLACEMENT_CHARACTER_RUNE;
   exports.UNICODE_BOM_CHARACTER_RUNE = UNICODE_BOM_CHARACTER_RUNE;
   exports.UTF8 = UTF8;

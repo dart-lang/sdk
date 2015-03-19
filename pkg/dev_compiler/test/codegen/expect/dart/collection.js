@@ -17,7 +17,7 @@ var collection;
     }
     return UnmodifiableListView;
   });
-  let UnmodifiableListView = UnmodifiableListView$(dart.dynamic);
+  dart.defineLazyClassGeneric(exports, 'UnmodifiableListView', {get: UnmodifiableListView$});
   // Function _defaultEquals: (dynamic, dynamic) → bool
   function _defaultEquals(a, b) {
     return dart.equals(a, b);
@@ -87,6 +87,261 @@ var collection;
   });
   let HashMap = HashMap$(dart.dynamic, dart.dynamic);
   let _newSet = Symbol('_newSet');
+  let SetMixin$ = dart.generic(function(E) {
+    class SetMixin extends core.Object {
+      get isEmpty() {
+        return this.length === 0;
+      }
+      get isNotEmpty() {
+        return this.length !== 0;
+      }
+      clear() {
+        this.removeAll(this.toList());
+      }
+      addAll(elements) {
+        for (let element of elements)
+          this.add(element);
+      }
+      removeAll(elements) {
+        for (let element of elements)
+          this.remove(element);
+      }
+      retainAll(elements) {
+        let toRemove = this.toSet();
+        for (let o of elements) {
+          toRemove.remove(o);
+        }
+        this.removeAll(toRemove);
+      }
+      removeWhere(test) {
+        let toRemove = new List.from([]);
+        for (let element of this) {
+          if (test(element))
+            toRemove.add(element);
+        }
+        this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
+      }
+      retainWhere(test) {
+        let toRemove = new List.from([]);
+        for (let element of this) {
+          if (!dart.notNull(test(element)))
+            toRemove.add(element);
+        }
+        this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
+      }
+      containsAll(other) {
+        for (let o of other) {
+          if (!dart.notNull(this.contains(o)))
+            return false;
+        }
+        return true;
+      }
+      union(other) {
+        return ((_) => {
+          _.addAll(other);
+          return _;
+        }).bind(this)(this.toSet());
+      }
+      intersection(other) {
+        let result = this.toSet();
+        for (let element of this) {
+          if (!dart.notNull(other.contains(element)))
+            result.remove(element);
+        }
+        return result;
+      }
+      difference(other) {
+        let result = this.toSet();
+        for (let element of this) {
+          if (other.contains(element))
+            result.remove(element);
+        }
+        return result;
+      }
+      toList(opt$) {
+        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let result = growable ? ((_) => {
+          _.length = this.length;
+          return _;
+        }).bind(this)(new core.List()) : new core.List(this.length);
+        let i = 0;
+        for (let element of this)
+          result.set((($tmp) => i = dart.notNull($tmp) + 1, $tmp)(i), element);
+        return result;
+      }
+      map(f) {
+        return new _internal.EfficientLengthMappedIterable(this, f);
+      }
+      get single() {
+        if (dart.notNull(this.length) > 1)
+          throw _internal.IterableElementError.tooMany();
+        let it = this.iterator;
+        if (!dart.notNull(it.moveNext()))
+          throw _internal.IterableElementError.noElement();
+        let result = dart.as(it.current, E);
+        return result;
+      }
+      toString() {
+        return IterableBase.iterableToFullString(this, '{', '}');
+      }
+      where(f) {
+        return new _internal.WhereIterable(this, f);
+      }
+      expand(f) {
+        return new _internal.ExpandIterable(this, f);
+      }
+      forEach(f) {
+        for (let element of this)
+          f(element);
+      }
+      reduce(combine) {
+        let iterator = this.iterator;
+        if (!dart.notNull(iterator.moveNext())) {
+          throw _internal.IterableElementError.noElement();
+        }
+        let value = iterator.current;
+        while (iterator.moveNext()) {
+          value = combine(value, iterator.current);
+        }
+        return value;
+      }
+      fold(initialValue, combine) {
+        let value = initialValue;
+        for (let element of this)
+          value = dart.dinvokef(combine, value, element);
+        return value;
+      }
+      every(f) {
+        for (let element of this) {
+          if (!dart.notNull(f(element)))
+            return false;
+        }
+        return true;
+      }
+      join(separator) {
+        if (separator === void 0)
+          separator = "";
+        let iterator = this.iterator;
+        if (!dart.notNull(iterator.moveNext()))
+          return "";
+        let buffer = new core.StringBuffer();
+        if (dart.notNull(separator === null) || dart.notNull(dart.equals(separator, ""))) {
+          do {
+            buffer.write(`${iterator.current}`);
+          } while (iterator.moveNext());
+        } else {
+          buffer.write(`${iterator.current}`);
+          while (iterator.moveNext()) {
+            buffer.write(separator);
+            buffer.write(`${iterator.current}`);
+          }
+        }
+        return buffer.toString();
+      }
+      any(test) {
+        for (let element of this) {
+          if (test(element))
+            return true;
+        }
+        return false;
+      }
+      take(n) {
+        return new _internal.TakeIterable(this, n);
+      }
+      takeWhile(test) {
+        return new _internal.TakeWhileIterable(this, test);
+      }
+      skip(n) {
+        return new _internal.SkipIterable(this, n);
+      }
+      skipWhile(test) {
+        return new _internal.SkipWhileIterable(this, test);
+      }
+      get first() {
+        let it = this.iterator;
+        if (!dart.notNull(it.moveNext())) {
+          throw _internal.IterableElementError.noElement();
+        }
+        return dart.as(it.current, E);
+      }
+      get last() {
+        let it = this.iterator;
+        if (!dart.notNull(it.moveNext())) {
+          throw _internal.IterableElementError.noElement();
+        }
+        let result = null;
+        do {
+          result = dart.as(it.current, E);
+        } while (it.moveNext());
+        return result;
+      }
+      firstWhere(test, opt$) {
+        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        for (let element of this) {
+          if (test(element))
+            return element;
+        }
+        if (orElse !== null)
+          return orElse();
+        throw _internal.IterableElementError.noElement();
+      }
+      lastWhere(test, opt$) {
+        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let result = null;
+        let foundMatching = false;
+        for (let element of this) {
+          if (test(element)) {
+            result = element;
+            foundMatching = true;
+          }
+        }
+        if (foundMatching)
+          return result;
+        if (orElse !== null)
+          return orElse();
+        throw _internal.IterableElementError.noElement();
+      }
+      singleWhere(test) {
+        let result = null;
+        let foundMatching = false;
+        for (let element of this) {
+          if (test(element)) {
+            if (foundMatching) {
+              throw _internal.IterableElementError.tooMany();
+            }
+            result = element;
+            foundMatching = true;
+          }
+        }
+        if (foundMatching)
+          return result;
+        throw _internal.IterableElementError.noElement();
+      }
+      elementAt(index) {
+        if (!(typeof index == number))
+          throw new core.ArgumentError.notNull("index");
+        core.RangeError.checkNotNegative(index, "index");
+        let elementIndex = 0;
+        for (let element of this) {
+          if (index === elementIndex)
+            return element;
+          elementIndex = dart.notNull(elementIndex) + 1;
+        }
+        throw new core.RangeError.index(index, this, "index", null, elementIndex);
+      }
+    }
+    return SetMixin;
+  });
+  let SetMixin = SetMixin$(dart.dynamic);
+  let SetBase$ = dart.generic(function(E) {
+    class SetBase extends SetMixin$(E) {
+      static setToString(set) {
+        return IterableBase.iterableToFullString(set, '{', '}');
+      }
+    }
+    return SetBase;
+  });
+  let SetBase = SetBase$(dart.dynamic);
   let _HashSetBase$ = dart.generic(function(E) {
     class _HashSetBase extends SetBase$(E) {
       difference(other) {
@@ -1015,15 +1270,6 @@ var collection;
     return LinkedListEntry;
   });
   let LinkedListEntry = LinkedListEntry$(dart.dynamic);
-  let ListBase$ = dart.generic(function(E) {
-    class ListBase extends dart.mixin(core.Object, ListMixin$(E)) {
-      static listToString(list) {
-        return IterableBase.iterableToFullString(list, '[', ']');
-      }
-    }
-    return ListBase;
-  });
-  let ListBase = ListBase$(dart.dynamic);
   let _filter = Symbol('_filter');
   let ListMixin$ = dart.generic(function(E) {
     class ListMixin extends core.Object {
@@ -1475,12 +1721,15 @@ var collection;
     return ListMixin;
   });
   let ListMixin = ListMixin$(dart.dynamic);
-  let MapBase$ = dart.generic(function(K, V) {
-    class MapBase extends dart.mixin(MapMixin$(K, V)) {
+  let ListBase$ = dart.generic(function(E) {
+    class ListBase extends dart.mixin(core.Object, ListMixin$(E)) {
+      static listToString(list) {
+        return IterableBase.iterableToFullString(list, '[', ']');
+      }
     }
-    return MapBase;
+    return ListBase;
   });
-  let MapBase = MapBase$(dart.dynamic, dart.dynamic);
+  let ListBase = ListBase$(dart.dynamic);
   let MapMixin$ = dart.generic(function(K, V) {
     class MapMixin extends core.Object {
       forEach(action) {
@@ -1528,6 +1777,33 @@ var collection;
     return MapMixin;
   });
   let MapMixin = MapMixin$(dart.dynamic, dart.dynamic);
+  let MapBase$ = dart.generic(function(K, V) {
+    class MapBase extends dart.mixin(MapMixin$(K, V)) {
+    }
+    return MapBase;
+  });
+  let MapBase = MapBase$(dart.dynamic, dart.dynamic);
+  let _UnmodifiableMapMixin$ = dart.generic(function(K, V) {
+    class _UnmodifiableMapMixin extends core.Object {
+      set(key, value) {
+        throw new core.UnsupportedError("Cannot modify unmodifiable map");
+      }
+      addAll(other) {
+        throw new core.UnsupportedError("Cannot modify unmodifiable map");
+      }
+      clear() {
+        throw new core.UnsupportedError("Cannot modify unmodifiable map");
+      }
+      remove(key) {
+        throw new core.UnsupportedError("Cannot modify unmodifiable map");
+      }
+      putIfAbsent(key, ifAbsent) {
+        throw new core.UnsupportedError("Cannot modify unmodifiable map");
+      }
+    }
+    return _UnmodifiableMapMixin;
+  });
+  let _UnmodifiableMapMixin = _UnmodifiableMapMixin$(dart.dynamic, dart.dynamic);
   let UnmodifiableMapBase$ = dart.generic(function(K, V) {
     class UnmodifiableMapBase extends dart.mixin(_UnmodifiableMapMixin$(K, V)) {
     }
@@ -1589,27 +1865,6 @@ var collection;
     return _MapBaseValueIterator;
   });
   let _MapBaseValueIterator = _MapBaseValueIterator$(dart.dynamic);
-  let _UnmodifiableMapMixin$ = dart.generic(function(K, V) {
-    class _UnmodifiableMapMixin extends core.Object {
-      set(key, value) {
-        throw new core.UnsupportedError("Cannot modify unmodifiable map");
-      }
-      addAll(other) {
-        throw new core.UnsupportedError("Cannot modify unmodifiable map");
-      }
-      clear() {
-        throw new core.UnsupportedError("Cannot modify unmodifiable map");
-      }
-      remove(key) {
-        throw new core.UnsupportedError("Cannot modify unmodifiable map");
-      }
-      putIfAbsent(key, ifAbsent) {
-        throw new core.UnsupportedError("Cannot modify unmodifiable map");
-      }
-    }
-    return _UnmodifiableMapMixin;
-  });
-  let _UnmodifiableMapMixin = _UnmodifiableMapMixin$(dart.dynamic, dart.dynamic);
   let MapView$ = dart.generic(function(K, V) {
     class MapView extends core.Object {
       MapView(map) {
@@ -2325,261 +2580,6 @@ var collection;
     return _ListQueueIterator;
   });
   let _ListQueueIterator = _ListQueueIterator$(dart.dynamic);
-  let SetMixin$ = dart.generic(function(E) {
-    class SetMixin extends core.Object {
-      get isEmpty() {
-        return this.length === 0;
-      }
-      get isNotEmpty() {
-        return this.length !== 0;
-      }
-      clear() {
-        this.removeAll(this.toList());
-      }
-      addAll(elements) {
-        for (let element of elements)
-          this.add(element);
-      }
-      removeAll(elements) {
-        for (let element of elements)
-          this.remove(element);
-      }
-      retainAll(elements) {
-        let toRemove = this.toSet();
-        for (let o of elements) {
-          toRemove.remove(o);
-        }
-        this.removeAll(toRemove);
-      }
-      removeWhere(test) {
-        let toRemove = new List.from([]);
-        for (let element of this) {
-          if (test(element))
-            toRemove.add(element);
-        }
-        this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
-      }
-      retainWhere(test) {
-        let toRemove = new List.from([]);
-        for (let element of this) {
-          if (!dart.notNull(test(element)))
-            toRemove.add(element);
-        }
-        this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
-      }
-      containsAll(other) {
-        for (let o of other) {
-          if (!dart.notNull(this.contains(o)))
-            return false;
-        }
-        return true;
-      }
-      union(other) {
-        return ((_) => {
-          _.addAll(other);
-          return _;
-        }).bind(this)(this.toSet());
-      }
-      intersection(other) {
-        let result = this.toSet();
-        for (let element of this) {
-          if (!dart.notNull(other.contains(element)))
-            result.remove(element);
-        }
-        return result;
-      }
-      difference(other) {
-        let result = this.toSet();
-        for (let element of this) {
-          if (other.contains(element))
-            result.remove(element);
-        }
-        return result;
-      }
-      toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
-        let result = growable ? ((_) => {
-          _.length = this.length;
-          return _;
-        }).bind(this)(new core.List()) : new core.List(this.length);
-        let i = 0;
-        for (let element of this)
-          result.set((($tmp) => i = dart.notNull($tmp) + 1, $tmp)(i), element);
-        return result;
-      }
-      map(f) {
-        return new _internal.EfficientLengthMappedIterable(this, f);
-      }
-      get single() {
-        if (dart.notNull(this.length) > 1)
-          throw _internal.IterableElementError.tooMany();
-        let it = this.iterator;
-        if (!dart.notNull(it.moveNext()))
-          throw _internal.IterableElementError.noElement();
-        let result = dart.as(it.current, E);
-        return result;
-      }
-      toString() {
-        return IterableBase.iterableToFullString(this, '{', '}');
-      }
-      where(f) {
-        return new _internal.WhereIterable(this, f);
-      }
-      expand(f) {
-        return new _internal.ExpandIterable(this, f);
-      }
-      forEach(f) {
-        for (let element of this)
-          f(element);
-      }
-      reduce(combine) {
-        let iterator = this.iterator;
-        if (!dart.notNull(iterator.moveNext())) {
-          throw _internal.IterableElementError.noElement();
-        }
-        let value = iterator.current;
-        while (iterator.moveNext()) {
-          value = combine(value, iterator.current);
-        }
-        return value;
-      }
-      fold(initialValue, combine) {
-        let value = initialValue;
-        for (let element of this)
-          value = dart.dinvokef(combine, value, element);
-        return value;
-      }
-      every(f) {
-        for (let element of this) {
-          if (!dart.notNull(f(element)))
-            return false;
-        }
-        return true;
-      }
-      join(separator) {
-        if (separator === void 0)
-          separator = "";
-        let iterator = this.iterator;
-        if (!dart.notNull(iterator.moveNext()))
-          return "";
-        let buffer = new core.StringBuffer();
-        if (dart.notNull(separator === null) || dart.notNull(dart.equals(separator, ""))) {
-          do {
-            buffer.write(`${iterator.current}`);
-          } while (iterator.moveNext());
-        } else {
-          buffer.write(`${iterator.current}`);
-          while (iterator.moveNext()) {
-            buffer.write(separator);
-            buffer.write(`${iterator.current}`);
-          }
-        }
-        return buffer.toString();
-      }
-      any(test) {
-        for (let element of this) {
-          if (test(element))
-            return true;
-        }
-        return false;
-      }
-      take(n) {
-        return new _internal.TakeIterable(this, n);
-      }
-      takeWhile(test) {
-        return new _internal.TakeWhileIterable(this, test);
-      }
-      skip(n) {
-        return new _internal.SkipIterable(this, n);
-      }
-      skipWhile(test) {
-        return new _internal.SkipWhileIterable(this, test);
-      }
-      get first() {
-        let it = this.iterator;
-        if (!dart.notNull(it.moveNext())) {
-          throw _internal.IterableElementError.noElement();
-        }
-        return dart.as(it.current, E);
-      }
-      get last() {
-        let it = this.iterator;
-        if (!dart.notNull(it.moveNext())) {
-          throw _internal.IterableElementError.noElement();
-        }
-        let result = null;
-        do {
-          result = dart.as(it.current, E);
-        } while (it.moveNext());
-        return result;
-      }
-      firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
-        for (let element of this) {
-          if (test(element))
-            return element;
-        }
-        if (orElse !== null)
-          return orElse();
-        throw _internal.IterableElementError.noElement();
-      }
-      lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
-        let result = null;
-        let foundMatching = false;
-        for (let element of this) {
-          if (test(element)) {
-            result = element;
-            foundMatching = true;
-          }
-        }
-        if (foundMatching)
-          return result;
-        if (orElse !== null)
-          return orElse();
-        throw _internal.IterableElementError.noElement();
-      }
-      singleWhere(test) {
-        let result = null;
-        let foundMatching = false;
-        for (let element of this) {
-          if (test(element)) {
-            if (foundMatching) {
-              throw _internal.IterableElementError.tooMany();
-            }
-            result = element;
-            foundMatching = true;
-          }
-        }
-        if (foundMatching)
-          return result;
-        throw _internal.IterableElementError.noElement();
-      }
-      elementAt(index) {
-        if (!(typeof index == number))
-          throw new core.ArgumentError.notNull("index");
-        core.RangeError.checkNotNegative(index, "index");
-        let elementIndex = 0;
-        for (let element of this) {
-          if (index === elementIndex)
-            return element;
-          elementIndex = dart.notNull(elementIndex) + 1;
-        }
-        throw new core.RangeError.index(index, this, "index", null, elementIndex);
-      }
-    }
-    return SetMixin;
-  });
-  let SetMixin = SetMixin$(dart.dynamic);
-  let SetBase$ = dart.generic(function(E) {
-    class SetBase extends SetMixin$(E) {
-      static setToString(set) {
-        return IterableBase.iterableToFullString(set, '{', '}');
-      }
-    }
-    return SetBase;
-  });
-  let SetBase = SetBase$(dart.dynamic);
   let _SplayTreeNode$ = dart.generic(function(K) {
     class _SplayTreeNode extends core.Object {
       _SplayTreeNode(key) {
@@ -4835,6 +4835,10 @@ var collection;
   exports.UnmodifiableListView$ = UnmodifiableListView$;
   exports.HashMap = HashMap;
   exports.HashMap$ = HashMap$;
+  exports.SetBase = SetBase;
+  exports.SetBase$ = SetBase$;
+  exports.SetMixin = SetMixin;
+  exports.SetMixin$ = SetMixin$;
   exports.HashSet = HashSet;
   exports.HashSet$ = HashSet$;
   exports.IterableMixin = IterableMixin;
@@ -4874,10 +4878,6 @@ var collection;
   exports.DoubleLinkedQueue$ = DoubleLinkedQueue$;
   exports.ListQueue = ListQueue;
   exports.ListQueue$ = ListQueue$;
-  exports.SetMixin = SetMixin;
-  exports.SetMixin$ = SetMixin$;
-  exports.SetBase = SetBase;
-  exports.SetBase$ = SetBase$;
   exports.SplayTreeMap = SplayTreeMap;
   exports.SplayTreeMap$ = SplayTreeMap$;
   exports.SplayTreeSet = SplayTreeSet;

@@ -1343,7 +1343,7 @@ var _js_helper;
       if (result !== null)
         return dart.as(result, core.bool);
     }
-    return dart.is(object, JavaScriptIndexingBehavior);
+    return dart.is(object, exports.JavaScriptIndexingBehavior);
   }
   // Function S: (dynamic) → String
   function S(value) {
@@ -3133,8 +3133,13 @@ var _js_helper;
       throw new DeferredNotLoadedError(uri);
     }
   }
-  class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {
-  }
+  dart.defineLazyClass(exports, {
+    get JavaScriptIndexingBehavior() {
+      class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {
+      }
+      return JavaScriptIndexingBehavior;
+    }
+  });
   class TypeErrorImplementation extends core.Error {
     TypeErrorImplementation(value, type) {
       this.message = `type '${Primitives.objectTypeName(value)}' is not a subtype ` + `of type '${type}'`;
