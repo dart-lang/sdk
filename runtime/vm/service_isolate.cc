@@ -205,7 +205,8 @@ class ServiceIsolateNatives : public AllStatic {
   static void SendIsolateServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
-    StackZone zone(isolate);
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
     GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
@@ -228,7 +229,8 @@ class ServiceIsolateNatives : public AllStatic {
   static void SendRootServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
-    StackZone zone(isolate);
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
     Service::HandleRootMessage(message);
@@ -237,7 +239,8 @@ class ServiceIsolateNatives : public AllStatic {
   static void SetEventMask(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
-    StackZone zone(isolate);
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
     GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(0));
     Service::SetEventMask(mask.AsTruncatedUint32Value());

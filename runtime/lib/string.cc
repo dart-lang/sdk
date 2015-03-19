@@ -62,7 +62,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
   intptr_t array_len = end - start;
   intptr_t utf16_len = array_len;
   int32_t* utf32_array = zone->Alloc<int32_t>(array_len);
-  Instance& index_object = Instance::Handle(isolate);
+  Instance& index_object = Instance::Handle(zone);
   for (intptr_t i = 0; i < array_len; i++) {
     index_object ^= a.At(start + i);
     if (!index_object.IsSmi()) {
@@ -170,7 +170,7 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, is_onebyte_obj, arguments->NativeArgAt(3));
 
   intptr_t len = matches_growable.Length();
-  const Array& matches = Array::Handle(isolate, matches_growable.data());
+  const Array& matches = Array::Handle(zone, matches_growable.data());
 
   const intptr_t length = length_obj.Value();
   if (length < 0) {
@@ -188,13 +188,13 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
   }
 
   const intptr_t base_length = base.Length();
-  String& result = String::Handle(isolate);
+  String& result = String::Handle(zone);
   if (is_onebyte) {
     result ^= OneByteString::New(length, Heap::kNew);
   } else {
     result ^= TwoByteString::New(length, Heap::kNew);
   }
-  Instance& object = Instance::Handle(isolate);
+  Instance& object = Instance::Handle(zone);
   intptr_t write_index = 0;
   for (intptr_t i = 0; i < len; i++) {
     object ^= matches.At(i);
@@ -264,16 +264,16 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
 
 // This is high-performance code.
 DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
-  const String& receiver = String::CheckedHandle(isolate,
+  const String& receiver = String::CheckedHandle(zone,
                                                  arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
   const intptr_t len = receiver.Length();
   const intptr_t split_code = smi_split_code.Value();
   const GrowableObjectArray& result = GrowableObjectArray::Handle(
-      isolate,
+      zone,
       GrowableObjectArray::New(16, Heap::kNew));
-  String& str = String::Handle(isolate);
+  String& str = String::Handle(zone);
   intptr_t start = 0;
   intptr_t i = 0;
   for (; i < len; i++) {
@@ -447,7 +447,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     if (end > Smi::Value(TypedDataView::Length(list))) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const Instance& data_obj = Instance::Handle(isolate,
+    const Instance& data_obj = Instance::Handle(zone,
                                                 TypedDataView::Data(list));
     intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(list));
     if (data_obj.IsTypedData()) {
@@ -464,7 +464,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     if (end > array.Length()) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const String& string = String::Handle(isolate,
+    const String& string = String::Handle(zone,
                                           TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
       intptr_t value =
@@ -477,7 +477,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     if (end > array.Length()) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const String& string = String::Handle(isolate,
+    const String& string = String::Handle(zone,
                                           TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
       intptr_t value =

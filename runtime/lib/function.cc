@@ -30,7 +30,7 @@ DEFINE_NATIVE_ENTRY(Function_apply, 2) {
 
 DEFINE_NATIVE_ENTRY(FunctionImpl_equals, 2) {
   const Instance& receiver = Instance::CheckedHandle(
-      isolate, arguments->NativeArgAt(0));
+      zone, arguments->NativeArgAt(0));
   ASSERT(receiver.IsClosure());
   GET_NATIVE_ARGUMENT(Instance, other, arguments->NativeArgAt(1));
   ASSERT(!other.IsNull());
@@ -55,7 +55,7 @@ DEFINE_NATIVE_ENTRY(FunctionImpl_equals, 2) {
 
 DEFINE_NATIVE_ENTRY(FunctionImpl_hashCode, 1) {
   const Instance& receiver = Instance::CheckedHandle(
-      isolate, arguments->NativeArgAt(0));
+      zone, arguments->NativeArgAt(0));
   if (receiver.IsClosure()) {
     const Function& func = Function::Handle(Closure::function(receiver));
     // Hash together name, class name and signature.
@@ -77,17 +77,17 @@ DEFINE_NATIVE_ENTRY(FunctionImpl_hashCode, 1) {
 
 DEFINE_NATIVE_ENTRY(FunctionImpl_clone, 1) {
   const Instance& receiver = Instance::CheckedHandle(
-      isolate, arguments->NativeArgAt(0));
+      zone, arguments->NativeArgAt(0));
   ASSERT(receiver.IsClosure());
   if (receiver.IsClosure()) {
     const Function& func =
-        Function::Handle(isolate, Closure::function(receiver));
+        Function::Handle(zone, Closure::function(receiver));
     const Context& ctx =
-        Context::Handle(isolate, Closure::context(receiver));
+        Context::Handle(zone, Closure::context(receiver));
     Context& cloned_ctx =
-        Context::Handle(isolate, Context::New(ctx.num_variables()));
-    cloned_ctx.set_parent(Context::Handle(isolate, ctx.parent()));
-    Object& inst = Object::Handle(isolate);
+        Context::Handle(zone, Context::New(ctx.num_variables()));
+    cloned_ctx.set_parent(Context::Handle(zone, ctx.parent()));
+    Object& inst = Object::Handle(zone);
     for (int i = 0; i < ctx.num_variables(); i++) {
       inst = ctx.At(i);
       cloned_ctx.SetAt(i, inst);

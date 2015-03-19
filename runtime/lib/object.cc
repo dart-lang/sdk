@@ -158,15 +158,15 @@ static void WarnOnJSIntegralNumTypeTest(
 
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
   const Instance& instance =
-      Instance::CheckedHandle(isolate, arguments->NativeArgAt(0));
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   // Instantiator at position 1 is not used. It is passed along so that the call
   // can be easily converted to an optimized implementation. Instantiator is
   // used to populate the subtype cache.
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(isolate, arguments->NativeArgAt(2));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
   const AbstractType& type =
-      AbstractType::CheckedHandle(isolate, arguments->NativeArgAt(3));
-  const Bool& negate = Bool::CheckedHandle(isolate, arguments->NativeArgAt(4));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(4));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
@@ -176,7 +176,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
     WarnOnJSIntegralNumTypeTest(instance, instantiator_type_arguments, type);
   }
 
-  Error& bound_error = Error::Handle(isolate, Error::null());
+  Error& bound_error = Error::Handle(zone, Error::null());
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
                                                     &bound_error);
@@ -198,7 +198,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
     ASSERT(caller_frame != NULL);
     const intptr_t location = caller_frame->GetTokenPos();
     String& bound_error_message = String::Handle(
-        isolate, String::New(bound_error.ToErrorCString()));
+        zone, String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
         location, Symbols::Empty(), Symbols::Empty(),
         Symbols::Empty(), bound_error_message);

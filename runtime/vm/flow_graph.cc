@@ -100,7 +100,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   if (constant == NULL) {
     // Otherwise, allocate and add it to the pool.
     constant = new(zone()) ConstantInstr(
-        Object::ZoneHandle(isolate(), object.raw()));
+        Object::ZoneHandle(zone(), object.raw()));
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
 
     AddToInitialDefinitions(constant);

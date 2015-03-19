@@ -897,8 +897,8 @@ class IsolateSpawnState {
   bool paused() const { return paused_; }
 
   RawObject* ResolveFunction();
-  RawInstance* BuildArgs();
-  RawInstance* BuildMessage();
+  RawInstance* BuildArgs(Zone* zone);
+  RawInstance* BuildMessage(Zone* zone);
   void Cleanup();
 
  private:

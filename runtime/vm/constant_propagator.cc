@@ -296,7 +296,7 @@ void ConstantPropagator::MarkPhi(Definition* phi) {
 void ConstantPropagator::VisitPhi(PhiInstr* instr) {
   // Compute the join over all the reachable predecessor values.
   JoinEntryInstr* block = instr->block();
-  Object& value = Object::ZoneHandle(I, Unknown());
+  Object& value = Object::ZoneHandle(Z, Unknown());
   for (intptr_t pred_idx = 0; pred_idx < instr->InputCount(); ++pred_idx) {
     if (reachable_->Contains(
             block->PredecessorAt(pred_idx)->preorder_number())) {
@@ -601,7 +601,7 @@ void ConstantPropagator::VisitStringFromCharCode(
     ASSERT(ch_code >= 0);
     if (ch_code < Symbols::kMaxOneCharCodeSymbol) {
       RawString** table = Symbols::PredefinedAddress();
-      SetValue(instr, String::ZoneHandle(I, table[ch_code]));
+      SetValue(instr, String::ZoneHandle(Z, table[ch_code]));
     } else {
       SetValue(instr, non_constant_);
     }
@@ -617,7 +617,7 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
     const String& str = String::Cast(o);
     const intptr_t result =
         (str.Length() == 1) ? static_cast<intptr_t>(str.CharAt(0)) : -1;
-    SetValue(instr, Smi::ZoneHandle(I, Smi::New(result)));
+    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(result)));
   }
 }
 
@@ -780,12 +780,12 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
   intptr_t cid = instr->object()->Type()->ToCid();
   if (cid != kDynamicCid) {
-    SetValue(instr, Smi::ZoneHandle(I, Smi::New(cid)));
+    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
     return;
   }
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
-    SetValue(instr, Smi::ZoneHandle(I, Smi::New(object.GetClassId())));
+    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(object.GetClassId())));
     return;
   }
   SetValue(instr, non_constant_);
@@ -801,7 +801,7 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
     if (num_elements->BindsToConstant() &&
         num_elements->BoundConstant().IsSmi()) {
       intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
-      const Object& result = Smi::ZoneHandle(I, Smi::New(length));
+      const Object& result = Smi::ZoneHandle(Z, Smi::New(length));
       SetValue(instr, result);
       return;
     }
@@ -812,17 +812,17 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
         instance->definition()->OriginalDefinition()->AsConstant();
     if (constant != NULL) {
       if (constant->value().IsString()) {
-        SetValue(instr, Smi::ZoneHandle(I,
+        SetValue(instr, Smi::ZoneHandle(Z,
             Smi::New(String::Cast(constant->value()).Length())));
         return;
       }
       if (constant->value().IsArray()) {
-        SetValue(instr, Smi::ZoneHandle(I,
+        SetValue(instr, Smi::ZoneHandle(Z,
             Smi::New(Array::Cast(constant->value()).Length())));
         return;
       }
       if (constant->value().IsTypedData()) {
-        SetValue(instr, Smi::ZoneHandle(I,
+        SetValue(instr, Smi::ZoneHandle(Z,
             Smi::New(TypedData::Cast(constant->value()).Length())));
         return;
       }
@@ -842,7 +842,7 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
   if (IsConstant(object)) {
     if (instr->type().IsTypeParameter()) {
       if (object.IsNull()) {
-        SetValue(instr, Type::ZoneHandle(I, Type::DynamicType()));
+        SetValue(instr, Type::ZoneHandle(Z, Type::DynamicType()));
         return;
       }
       // We could try to instantiate the type parameter and return it if no
@@ -905,7 +905,7 @@ void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
       const Integer& result =
           Integer::Handle(I, binary_op->Evaluate(left_int, right_int));
       if (!result.IsNull()) {
-        SetValue(binary_op, Integer::ZoneHandle(I, result.raw()));
+        SetValue(binary_op, Integer::ZoneHandle(Z, result.raw()));
         return;
       }
     }
@@ -964,7 +964,7 @@ void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
     const Integer& result =
         Integer::Handle(I, unary_op->Evaluate(value_int));
     if (!result.IsNull()) {
-      SetValue(unary_op, Integer::ZoneHandle(I, result.raw()));
+      SetValue(unary_op, Integer::ZoneHandle(Z, result.raw()));
       return;
     }
   }

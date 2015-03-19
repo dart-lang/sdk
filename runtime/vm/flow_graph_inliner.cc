@@ -993,7 +993,7 @@ class CallSiteInliner : public ValueObject {
         LoadFieldInstr* context_load = new(Z) LoadFieldInstr(
             new Value((*arguments)[0]->definition()),
             Closure::context_offset(),
-            AbstractType::ZoneHandle(isolate(), AbstractType::null()),
+            AbstractType::ZoneHandle(zone(), AbstractType::null()),
             call_data->call->token_pos());
         context_load->set_is_immutable(true);
         context_load->set_ssa_temp_index(
@@ -1436,7 +1436,7 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
       LoadFieldInstr* context_load = new(Z) LoadFieldInstr(
           new Value(redefinition),
           Closure::context_offset(),
-          AbstractType::ZoneHandle(isolate(), AbstractType::null()),
+          AbstractType::ZoneHandle(zone(), AbstractType::null()),
           call_data.call->token_pos());
       context_load->set_is_immutable(true);
       context_load->set_ssa_temp_index(

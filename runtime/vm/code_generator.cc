@@ -631,16 +631,16 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
   const Instance& exception =
-      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+      Instance::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::Throw(isolate, exception);
 }
 
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
   const Instance& exception =
-      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+      Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& stacktrace =
-      Instance::CheckedHandle(isolate, arguments.ArgAt(1));
+      Instance::CheckedHandle(zone, arguments.ArgAt(1));
   Exceptions::ReThrow(isolate, exception, stacktrace);
 }
 
@@ -1297,7 +1297,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
-  const Function& function = Function::CheckedHandle(isolate,
+  const Function& function = Function::CheckedHandle(zone,
                                                      arguments.ArgAt(0));
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
@@ -1393,7 +1393,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
   const uword target =
       CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code);
   const Code& stub = Code::Handle(isolate, Code::LookupCode(target));
-  Class& alloc_class = Class::ZoneHandle(isolate);
+  Class& alloc_class = Class::ZoneHandle(zone);
   alloc_class ^= stub.owner();
   Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {

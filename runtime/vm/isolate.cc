@@ -357,7 +357,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   }
 
   // Parse the message.
-  SnapshotReader reader(message->data(), message->len(), Snapshot::kMessage, I);
+  SnapshotReader reader(message->data(), message->len(), Snapshot::kMessage,
+                        I, zone.GetZone());
   const Object& msg_obj = Object::Handle(I, reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
@@ -1221,8 +1222,8 @@ static bool RunIsolate(uword parameter) {
     const Array& args = Array::Handle(Array::New(7));
     args.SetAt(0, SendPort::Handle(SendPort::New(state->parent_port())));
     args.SetAt(1, Instance::Handle(func.ImplicitStaticClosure()));
-    args.SetAt(2, Instance::Handle(state->BuildArgs()));
-    args.SetAt(3, Instance::Handle(state->BuildMessage()));
+    args.SetAt(2, Instance::Handle(state->BuildArgs(zone.GetZone())));
+    args.SetAt(3, Instance::Handle(state->BuildMessage(zone.GetZone())));
     args.SetAt(4, is_spawn_uri ? Bool::True() : Bool::False());
     args.SetAt(5, ReceivePort::Handle(
         ReceivePort::New(isolate->main_port(), true /* control port */)));
@@ -1795,12 +1796,13 @@ T* Isolate::AllocateReusableHandle() {
 
 
 static RawInstance* DeserializeObject(Isolate* isolate,
+                                      Zone* zone,
                                       uint8_t* obj_data,
                                       intptr_t obj_len) {
   if (obj_data == NULL) {
     return Instance::null();
   }
-  SnapshotReader reader(obj_data, obj_len, Snapshot::kMessage, isolate);
+  SnapshotReader reader(obj_data, obj_len, Snapshot::kMessage, isolate, zone);
   const Object& obj = Object::Handle(isolate, reader.ReadObject());
   ASSERT(!obj.IsError());
   Instance& instance = Instance::Handle(isolate);
@@ -1959,13 +1961,14 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 }
 
 
-RawInstance* IsolateSpawnState::BuildArgs() {
-  return DeserializeObject(isolate_, serialized_args_, serialized_args_len_);
+RawInstance* IsolateSpawnState::BuildArgs(Zone* zone) {
+  return DeserializeObject(isolate_, zone,
+                           serialized_args_, serialized_args_len_);
 }
 
 
-RawInstance* IsolateSpawnState::BuildMessage() {
-  return DeserializeObject(isolate_,
+RawInstance* IsolateSpawnState::BuildMessage(Zone* zone) {
+  return DeserializeObject(isolate_, zone,
                            serialized_message_, serialized_message_len_);
 }
 

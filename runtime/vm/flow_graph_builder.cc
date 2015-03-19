@@ -1352,7 +1352,7 @@ static const String& BinaryOpAndMaskName(BinaryOpNode* node) {
     return Library::PrivateCoreLibName(Symbols::_leftShiftWithMask32());
   }
   UNIMPLEMENTED();
-  return String::ZoneHandle(Isolate::Current(), String::null());
+  return String::ZoneHandle(Thread::Current()->zone(), String::null());
 }
 
 

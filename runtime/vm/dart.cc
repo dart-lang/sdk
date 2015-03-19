@@ -238,7 +238,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
-                          Snapshot::kFull, isolate);
+                          Snapshot::kFull, isolate, zone.GetZone());
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
       return error.raw();

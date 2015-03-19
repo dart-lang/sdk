@@ -6657,8 +6657,8 @@ void Function::SaveICDataMap(
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
-  Isolate* isolate = Isolate::Current();
-  const Array& saved_icd = Array::Handle(isolate, ic_data_array());
+  Zone* zone = Thread::Current()->zone();
+  const Array& saved_icd = Array::Handle(zone, ic_data_array());
   if (saved_icd.Length() == 0) {
     deopt_id_to_ic_data->Clear();
     return;
@@ -6671,7 +6671,7 @@ void Function::RestoreICDataMap(
     (*deopt_id_to_ic_data)[i] = NULL;
   }
   for (intptr_t i = 0; i < saved_icd.Length(); i++) {
-    ICData& icd = ICData::ZoneHandle(isolate);
+    ICData& icd = ICData::ZoneHandle(zone);
     icd ^= saved_icd.At(i);
     (*deopt_id_to_ic_data)[icd.deopt_id()] = &icd;
   }

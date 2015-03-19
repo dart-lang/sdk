@@ -164,10 +164,12 @@ intptr_t BaseReader::ReadSmiValue() {
 SnapshotReader::SnapshotReader(const uint8_t* buffer,
                                intptr_t size,
                                Snapshot::Kind kind,
-                               Isolate* isolate)
+                               Isolate* isolate,
+                               Zone* zone)
     : BaseReader(buffer, size),
       kind_(kind),
       isolate_(isolate),
+      zone_(zone),
       heap_(isolate->heap()),
       old_space_(isolate->heap()->old_space()),
       cls_(Class::Handle(isolate)),
@@ -219,7 +221,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
          !IsSingletonClassId(GetVMIsolateObjectId(class_header)));
   ASSERT((SerializedHeaderTag::decode(class_header) != kObjectId) ||
          !IsObjectStoreClassId(SerializedHeaderData::decode(class_header)));
-  Class& cls = Class::ZoneHandle(isolate(), Class::null());
+  Class& cls = Class::ZoneHandle(zone(), Class::null());
   AddBackRef(object_id, &cls, kIsDeserialized);
   // Read the library/class information and lookup the class.
   str_ ^= ReadObjectImpl(class_header);
@@ -244,7 +246,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   // First create a function object and associate it with the specified
   // 'object_id'.
   Function& func = Function::Handle(isolate(), Function::null());
-  Instance& obj = Instance::ZoneHandle(isolate(), Instance::null());
+  Instance& obj = Instance::ZoneHandle(zone(), Instance::null());
   AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Read the library/class/function information and lookup the function.
@@ -356,7 +358,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   // instance of it. The individual fields will be read later.
   intptr_t header_id = SerializedHeaderData::decode(class_header);
   if (header_id == kInstanceObjectId) {
-    Instance& result = Instance::ZoneHandle(isolate(), Instance::null());
+    Instance& result = Instance::ZoneHandle(zone(), Instance::null());
     AddBackRef(object_id, &result, kIsNotDeserialized);
 
     cls_ ^= ReadObjectImpl();  // Read class information.
@@ -385,7 +387,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
     Array& array = Array::ZoneHandle(
-        isolate(),
+        zone(),
         ((kind_ == Snapshot::kFull) ?
          NewArray(len) : Array::New(len, HEAP_SPACE(kind_))));
     AddBackRef(object_id, &array, kIsNotDeserialized);
@@ -396,7 +398,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
     Array& array = Array::ZoneHandle(
-        isolate(),
+        zone(),
         (kind_ == Snapshot::kFull) ?
         NewImmutableArray(len) : ImmutableArray::New(len, HEAP_SPACE(kind_)));
     AddBackRef(object_id, &array, kIsNotDeserialized);
@@ -992,7 +994,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     Instance* result = reinterpret_cast<Instance*>(GetBackRef(object_id));
     intptr_t instance_size = 0;
     if (result == NULL) {
-      result = &(Instance::ZoneHandle(isolate(), Instance::null()));
+      result = &(Instance::ZoneHandle(zone(), Instance::null()));
       AddBackRef(object_id, result, kIsDeserialized);
       cls_ ^= ReadObjectImpl();
       ASSERT(!cls_.IsNull());

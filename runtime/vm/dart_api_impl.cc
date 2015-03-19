@@ -1713,15 +1713,17 @@ DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
 
 DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
                                           bool* value) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
   const Instance& expected =
-      Instance::CheckedHandle(isolate, Api::UnwrapHandle(obj1));
+      Instance::CheckedHandle(zone, Api::UnwrapHandle(obj1));
   const Instance& actual =
-      Instance::CheckedHandle(isolate, Api::UnwrapHandle(obj2));
+      Instance::CheckedHandle(zone, Api::UnwrapHandle(obj2));
   const Object& result =
-      Object::Handle(isolate, DartLibraryCalls::Equals(expected, actual));
+      Object::Handle(zone, DartLibraryCalls::Equals(expected, actual));
   if (result.IsBool()) {
     *value = Bool::Cast(result).value();
     return Api::Success();
@@ -5007,6 +5009,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_script_loading);
+  StackZone zone(isolate);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
   }
@@ -5034,7 +5037,8 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   SnapshotReader reader(snapshot->content(),
                         snapshot->length(),
                         snapshot->kind(),
-                        isolate);
+                        isolate,
+                        zone.GetZone());
   const Object& tmp = Object::Handle(isolate, reader.ReadScriptSnapshot());
   if (tmp.IsError()) {
     return Api::NewHandle(isolate, tmp.raw());

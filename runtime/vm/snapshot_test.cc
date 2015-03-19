@@ -158,7 +158,7 @@ TEST_CASE(SerializeNull) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(null_object, serialized_object));
 
@@ -184,7 +184,7 @@ TEST_CASE(SerializeSmi1) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
 
@@ -211,7 +211,7 @@ TEST_CASE(SerializeSmi2) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
 
@@ -235,7 +235,8 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(),
+                        Thread::Current()->zone());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(serialized_object.IsMint());
 
@@ -306,7 +307,7 @@ TEST_CASE(SerializeDouble) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(dbl, serialized_object));
 
@@ -333,7 +334,7 @@ TEST_CASE(SerializeTrue) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   fprintf(stderr, "%s / %s\n", bl.ToCString(), serialized_object.ToCString());
 
@@ -362,7 +363,7 @@ TEST_CASE(SerializeFalse) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(bl, serialized_object));
 
@@ -397,7 +398,7 @@ TEST_CASE(SerializeBigint) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
 
@@ -425,7 +426,8 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(),
+                        Thread::Current()->zone());
   Bigint& serialized_bigint = Bigint::Handle();
   serialized_bigint ^= reader.ReadObject();
   const char* str1 = bigint.ToHexCString(allocator);
@@ -489,7 +491,7 @@ TEST_CASE(SerializeSingletons) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage,
-                        Isolate::Current());
+                        Isolate::Current(), Thread::Current()->zone());
   EXPECT(Object::class_class() == reader.ReadObject());
   EXPECT(Object::type_arguments_class() == reader.ReadObject());
   EXPECT(Object::function_class() == reader.ReadObject());
@@ -520,7 +522,7 @@ static void TestString(const char* cstr) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   String& serialized_str = String::Handle();
   serialized_str ^= reader.ReadObject();
   EXPECT(str.Equals(serialized_str));
@@ -568,7 +570,7 @@ TEST_CASE(SerializeArray) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
   EXPECT(array.CanonicalizeEquals(serialized_array));
@@ -653,7 +655,7 @@ TEST_CASE(SerializeEmptyArray) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
   EXPECT(array.CanonicalizeEquals(serialized_array));
@@ -686,7 +688,7 @@ TEST_CASE(SerializeByteArray) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   TypedData& serialized_typed_data = TypedData::Handle();
   serialized_typed_data ^= reader.ReadObject();
   EXPECT(serialized_typed_data.IsTypedData());
@@ -719,7 +721,8 @@ TEST_CASE(SerializeByteArray) {
     writer.WriteMessage(array);                                               \
     intptr_t buffer_len = writer.BytesWritten();                              \
     SnapshotReader reader(buffer, buffer_len,                                 \
-                          Snapshot::kMessage, Isolate::Current());            \
+                          Snapshot::kMessage, Isolate::Current(),             \
+                          zone.GetZone());                                    \
     TypedData& serialized_array = TypedData::Handle();                        \
     serialized_array ^= reader.ReadObject();                                  \
     for (int i = 0; i < kArrayLength; i++) {                                  \
@@ -743,7 +746,8 @@ TEST_CASE(SerializeByteArray) {
     writer.WriteMessage(array);                                               \
     intptr_t buffer_len = writer.BytesWritten();                              \
     SnapshotReader reader(buffer, buffer_len,                                 \
-                          Snapshot::kMessage, Isolate::Current());            \
+                          Snapshot::kMessage, Isolate::Current(),             \
+                          zone.GetZone());                                    \
     TypedData& serialized_array = TypedData::Handle();                        \
     serialized_array ^= reader.ReadObject();                                  \
     for (int i = 0; i < length; i++) {                                        \
@@ -795,7 +799,7 @@ TEST_CASE(SerializeEmptyByteArray) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
-                        Snapshot::kMessage, Isolate::Current());
+                        Snapshot::kMessage, Isolate::Current(), zone.GetZone());
   TypedData& serialized_typed_data = TypedData::Handle();
   serialized_typed_data ^= reader.ReadObject();
   EXPECT(serialized_typed_data.IsTypedData());
@@ -926,7 +930,8 @@ TEST_CASE(SerializeScript) {
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, writer.BytesWritten(),
-                        Snapshot::kScript, Isolate::Current());
+                        Snapshot::kScript, Isolate::Current(),
+                        Thread::Current()->zone());
   Script& serialized_script = Script::Handle();
   serialized_script ^= reader.ReadObject();
 

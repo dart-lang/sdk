@@ -93,10 +93,6 @@ class Symbols;
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& CheckedHandle(Isolate* isolate, RawObject* raw_ptr) {         \
-    return CheckedHandle(isolate->current_zone(), raw_ptr);                    \
-  }                                                                            \
   static object& CheckedHandle(RawObject* raw_ptr) {                           \
     return CheckedHandle(Thread::Current()->zone(), raw_ptr);                  \
   }                                                                            \
@@ -106,10 +102,6 @@ class Symbols;
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& ZoneHandle(Isolate* isolate, Raw##object* raw_ptr) {          \
-    return ZoneHandle(isolate->current_zone(), raw_ptr);                       \
-  }                                                                            \
   static object* ReadOnlyHandle() {                                            \
     object* obj = reinterpret_cast<object*>(                                   \
         Dart::AllocateReadOnlyHandle());                                       \
@@ -118,10 +110,6 @@ class Symbols;
   }                                                                            \
   static object& ZoneHandle(Zone* zone) {                                      \
     return ZoneHandle(zone, object::null());                                   \
-  }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& ZoneHandle(Isolate* isolate) {                                \
-    return ZoneHandle(isolate->current_zone(), object::null());                \
   }                                                                            \
   static object& ZoneHandle() {                                                \
     return ZoneHandle(Thread::Current()->zone(), object::null());              \
@@ -380,17 +368,13 @@ class Object {
     initializeHandle(obj, raw_ptr);
     return *obj;
   }
-  // DEPRECATED: Use Zone version.
-  static Object& ZoneHandle(Isolate* isolate, RawObject* raw_ptr) {
-    return ZoneHandle(isolate->current_zone(), raw_ptr);
-  }
 
   static Object& ZoneHandle() {
-    return ZoneHandle(Isolate::Current(), null_);
+    return ZoneHandle(Thread::Current()->zone(), null_);
   }
 
   static Object& ZoneHandle(RawObject* raw_ptr) {
-    return ZoneHandle(Isolate::Current(), raw_ptr);
+    return ZoneHandle(Thread::Current()->zone(), raw_ptr);
   }
 
   static RawObject* null() { return null_; }
@@ -869,22 +853,14 @@ class PassiveObject : public Object {
     obj->set_vtable(0);
     return *obj;
   }
-  // DEPRECATED - use Zone version.
-  static PassiveObject& ZoneHandle(Isolate* I, RawObject* raw_ptr) {
-    return ZoneHandle(I->current_zone(), raw_ptr);
-  }
   static PassiveObject& ZoneHandle(RawObject* raw_ptr) {
-    return ZoneHandle(Isolate::Current(), raw_ptr);
+    return ZoneHandle(Thread::Current()->zone(), raw_ptr);
   }
   static PassiveObject& ZoneHandle() {
-    return ZoneHandle(Isolate::Current(), Object::null());
+    return ZoneHandle(Thread::Current()->zone(), Object::null());
   }
   static PassiveObject& ZoneHandle(Zone* zone) {
     return ZoneHandle(zone, Object::null());
-  }
-  // DEPRECATED - use Zone version.
-  static PassiveObject& ZoneHandle(Isolate* I) {
-    return ZoneHandle(I->current_zone(), Object::null());
   }
 
  private:
