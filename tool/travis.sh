@@ -10,7 +10,7 @@ set -e
 # Verify that the libraries are error free.
 dartanalyzer --fatal-warnings \
   bin/linter.dart \
-  lib/linter.dart \
+  lib/src/linter.dart \
   test/all.dart
 
 # Run the tests.
