@@ -423,11 +423,11 @@ abstract class IrBuilder {
     state.localConstants.add(new ConstDeclaration(variableElement, value));
   }
 
-  // Plug an expression into the 'hole' in the context being accumulated.  The
-  // empty context (just a hole) is represented by root (and current) being
-  // null.  Since the hole in the current context is filled by this function,
-  // the new hole must be in the newly added expression---which becomes the
-  // new value of current.
+  /// Plug an expression into the 'hole' in the context being accumulated.  The
+  /// empty context (just a hole) is represented by root (and current) being
+  /// null.  Since the hole in the current context is filled by this function,
+  /// the new hole must be in the newly added expression---which becomes the
+  /// new value of current.
   void add(ir.Expression expr) {
     assert(isOpen);
     if (_root == null) {
@@ -435,6 +435,12 @@ abstract class IrBuilder {
     } else {
       _current = _current.plug(expr);
     }
+  }
+
+  /// Create and add a new [LetPrim] for [primitive].
+  ir.Primitive addPrimitive(ir.Primitive primitive) {
+    add(new ir.LetPrim(primitive));
+    return primitive;
   }
 
   ir.Primitive _continueWithExpression(ir.Expression build(ir.Continuation k)) {
@@ -485,9 +491,7 @@ abstract class IrBuilder {
   /// Create a constant literal from [constant].
   ir.Constant buildConstantLiteral(ConstantExpression constant) {
     assert(isOpen);
-    ir.Constant prim = new ir.Constant(constant);
-    add(new ir.LetPrim(prim));
-    return prim;
+    return addPrimitive(new ir.Constant(constant));
   }
 
   // Helper for building primitive literals.
@@ -526,9 +530,7 @@ abstract class IrBuilder {
   ir.Primitive buildListLiteral(InterfaceType type,
                                 Iterable<ir.Primitive> values) {
     assert(isOpen);
-    ir.Primitive result = new ir.LiteralList(type, values);
-    add(new ir.LetPrim(result));
-    return result;
+    return addPrimitive(new ir.LiteralList(type, values));
   }
 
   /// Creates a non-constant map literal of the provided [type] and with the
@@ -546,9 +548,7 @@ abstract class IrBuilder {
           build(key.current), build(value.current)));
     }
     assert(!key.moveNext() && !value.moveNext());
-    ir.Primitive result = new ir.LiteralMap(type, entries);
-    add(new ir.LetPrim(result));
-    return result;
+    return addPrimitive(new ir.LiteralMap(type, entries));
   }
 
   /// Creates a conditional expression with the provided [condition] where the
@@ -2018,9 +2018,9 @@ class DartIrBuilder extends IrBuilder {
     for (LocalElement loopVariable in loopVariables) {
       if (isInMutableVariable(loopVariable)) {
         ir.MutableVariable mutableVariable = getMutableVariable(loopVariable);
-        ir.Primitive get = new ir.GetMutableVariable(mutableVariable);
-        add(new ir.LetPrim(get));
-        environment.update(loopVariable, get);
+        ir.Primitive value =
+            addPrimitive(new ir.GetMutableVariable(mutableVariable));
+        environment.update(loopVariable, value);
         dartState.registerizedMutableVariables.add(loopVariable);
       }
     }
@@ -2060,8 +2060,7 @@ class DartIrBuilder extends IrBuilder {
       ir.MutableVariable variable = getMutableVariable(functionElement);
       add(new ir.DeclareFunction(variable, definition));
     } else {
-      ir.CreateFunction prim = new ir.CreateFunction(definition);
-      add(new ir.LetPrim(prim));
+      ir.CreateFunction prim = addPrimitive(new ir.CreateFunction(definition));
       environment.extend(functionElement, prim);
       prim.useElementAsHint(functionElement);
     }
@@ -2069,9 +2068,7 @@ class DartIrBuilder extends IrBuilder {
 
   /// Create a function expression from [definition].
   ir.Primitive buildFunctionExpression(ir.FunctionDefinition definition) {
-    ir.CreateFunction prim = new ir.CreateFunction(definition);
-    add(new ir.LetPrim(prim));
-    return prim;
+    return addPrimitive(new ir.CreateFunction(definition));
   }
 
   /// Create a read access of [local].
@@ -2080,10 +2077,7 @@ class DartIrBuilder extends IrBuilder {
     if (isInMutableVariable(local)) {
       // Do not use [local] as a hint on [result]. The variable should always
       // be inlined, but the hint prevents it.
-      ir.Primitive result =
-          new ir.GetMutableVariable(getMutableVariable(local));
-      add(new ir.LetPrim(result));
-      return result;
+      return addPrimitive(new ir.GetMutableVariable(getMutableVariable(local)));
     } else {
       return environment.lookup(local);
     }
@@ -2101,11 +2095,7 @@ class DartIrBuilder extends IrBuilder {
     return value;
   }
 
-  ir.Primitive buildThis() {
-    ir.Primitive thisPrim = new ir.This();
-    add(new ir.LetPrim(thisPrim));
-    return thisPrim;
-  }
+  ir.Primitive buildThis() => addPrimitive(new ir.This());
 
   ir.Primitive buildSuperInvocation(Element target,
                                     Selector selector,
@@ -2152,8 +2142,7 @@ class JsIrBuilder extends IrBuilder {
     if (env == null) return;
 
     // Obtain a reference to the function object (this).
-    ir.Primitive thisPrim = new ir.This();
-    add(new ir.LetPrim(thisPrim));
+    ir.Primitive thisPrim = addPrimitive(new ir.This());
 
     // Obtain access to the free variables.
     env.freeVariables.forEach((Local local, ClosureLocation location) {
@@ -2163,9 +2152,8 @@ class JsIrBuilder extends IrBuilder {
       } else {
         // Unboxed variables are loaded from the function object immediately.
         // This includes BoxLocals which are themselves unboxed variables.
-        ir.Primitive load = new ir.GetField(thisPrim, location.field);
-        add(new ir.LetPrim(load));
-        environment.extend(local, load);
+        environment.extend(local,
+            addPrimitive(new ir.GetField(thisPrim, location.field)));
       }
     });
 
@@ -2190,8 +2178,7 @@ class JsIrBuilder extends IrBuilder {
 
   void _enterScope(ClosureScope scope) {
     if (scope == null) return;
-    ir.CreateBox boxPrim = new ir.CreateBox();
-    add(new ir.LetPrim(boxPrim));
+    ir.CreateBox boxPrim = addPrimitive(new ir.CreateBox());
     environment.extend(scope.box, boxPrim);
     boxPrim.useElementAsHint(scope.box);
     scope.capturedVariables.forEach((Local local, ClosureLocation location) {
@@ -2250,9 +2237,7 @@ class JsIrBuilder extends IrBuilder {
           : environment.lookup(field.local);
       arguments.add(value);
     }
-    ir.Primitive closure = new ir.CreateInstance(classElement, arguments);
-    add(new ir.LetPrim(closure));
-    return closure;
+    return addPrimitive(new ir.CreateInstance(classElement, arguments));
   }
 
   /// Create a read access of [local].
@@ -2263,8 +2248,7 @@ class JsIrBuilder extends IrBuilder {
       ir.Primitive result = new ir.GetField(environment.lookup(location.box),
                                             location.field);
       result.useElementAsHint(local);
-      add(new ir.LetPrim(result));
-      return result;
+      return addPrimitive(result);
     } else {
       return environment.lookup(local);
     }
@@ -2310,23 +2294,19 @@ class JsIrBuilder extends IrBuilder {
     // body, so there is no need to explicitly renew it.
     if (scope.boxedLoopVariables.isEmpty) return;
     ir.Primitive box = environment.lookup(scope.box);
-    ir.Primitive newBox = new ir.CreateBox();
+    ir.Primitive newBox = addPrimitive(new ir.CreateBox());
     newBox.useElementAsHint(scope.box);
-    add(new ir.LetPrim(newBox));
     for (VariableElement loopVar in scope.boxedLoopVariables) {
       ClosureLocation location = scope.capturedVariables[loopVar];
-      ir.Primitive get = new ir.GetField(box, location.field);
-      add(new ir.LetPrim(get));
-      add(new ir.SetField(newBox, location.field, get));
+      ir.Primitive value = addPrimitive(new ir.GetField(box, location.field));
+      add(new ir.SetField(newBox, location.field, value));
     }
     environment.update(scope.box, newBox);
   }
 
   ir.Primitive buildThis() {
     if (jsState.receiver != null) return jsState.receiver;
-    ir.Primitive thisPrim = new ir.This();
-    add(new ir.LetPrim(thisPrim));
-    return thisPrim;
+    return addPrimitive(new ir.This());
   }
 
   ir.Primitive buildSuperInvocation(Element target,
@@ -2339,9 +2319,7 @@ class JsIrBuilder extends IrBuilder {
     // this should be the result of inlining the field's getter.
     if (target is FieldElement) {
       if (selector.isGetter) {
-        ir.Primitive get = new ir.GetField(buildThis(), target);
-        add(new ir.LetPrim(get));
-        return get;
+        return addPrimitive(new ir.GetField(buildThis(), target));
       } else {
         assert(selector.isSetter);
         add(new ir.SetField(buildThis(), target, arguments.single));
