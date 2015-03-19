@@ -65,7 +65,6 @@ native_gc_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
-touchevent_test/supported: Pass, Fail # Issue 17061
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
@@ -94,7 +93,7 @@ element_offset_test/offset: RuntimeError # Issue 18573
 element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
-touchevent_test/supported: Pass, Fail # Issue 17061
+touchevent_test/supported: Fail # Touch events are only supported on touch devices
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
 audiocontext_test/functional: Skip # Renderer crash. Issue 22327
@@ -170,7 +169,7 @@ svgelement_test/supported_animateMotion: Fail
 svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_foreignObject: Fail
 svgelement_test/supported_set: Fail
-touchevent_test/supported: Fail
+touchevent_test/supported: Fail # IE does not support TouchEvents
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
@@ -227,7 +226,7 @@ svgelement_test/supported_animateMotion: Fail
 svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_foreignObject: Fail
 svgelement_test/supported_set: Fail
-touchevent_test/supported: Fail
+touchevent_test/supported: Fail # IE does not support TouchEvents
 webgl_1_test/functional: Fail
 websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
@@ -277,7 +276,7 @@ input_element_test/supported_time: RuntimeError
 input_element_test/supported_week: RuntimeError
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
-touchevent_test/supported: Fail
+touchevent_test/supported: Fail # Safari does not support TouchEvents
 notification_test/constructors: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 
 [ $runtime == safari ]
@@ -381,7 +380,7 @@ node_validator_test: Fail # Issue 22564
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
 
-[ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
+[ ($runtime == dartium || $runtime == drt) && ($system == macos || $system == windows || $system == linux)]
 # Desktop operation systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
 
