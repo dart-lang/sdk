@@ -35,6 +35,7 @@ import 'sdk.dart' show DartSdk;
 import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_general.dart';
+import 'package:analyzer/src/plugin/engine_plugin.dart';
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -6077,41 +6078,41 @@ class AnalysisDelta {
 }
 
 /**
- * The unique instance of the class `AnalysisEngine` serves as the entry point
- * for the functionality provided by the analysis engine.
+ * The entry point for the functionality provided by the analysis engine. There
+ * is a single instance of this class.
  */
 class AnalysisEngine {
   /**
    * The suffix used for Dart source files.
    */
-  static String SUFFIX_DART = "dart";
+  static const String SUFFIX_DART = "dart";
 
   /**
    * The short suffix used for HTML files.
    */
-  static String SUFFIX_HTM = "htm";
+  static const String SUFFIX_HTM = "htm";
 
   /**
    * The long suffix used for HTML files.
    */
-  static String SUFFIX_HTML = "html";
+  static const String SUFFIX_HTML = "html";
 
   /**
    * The unique instance of this class.
    */
-  static AnalysisEngine _UniqueInstance = new AnalysisEngine();
+  static final AnalysisEngine instance = new AnalysisEngine._();
 
   /**
-   * Return the unique instance of this class.
-   *
-   * @return the unique instance of this class
-   */
-  static AnalysisEngine get instance => _UniqueInstance;
-
-  /**
-   * The logger that should receive information about errors within the analysis engine.
+   * The logger that should receive information about errors within the analysis
+   * engine.
    */
   Logger _logger = Logger.NULL;
+
+  /**
+   * The plugin that defines the extension points and extensions that are
+   * inherently defined by the analysis engine.
+   */
+  final EnginePlugin enginePlugin = new EnginePlugin();
 
   /**
    * The instrumentation service that is to be used by this analysis engine.
@@ -6130,10 +6131,12 @@ class AnalysisEngine {
   bool enableUnionTypes = false;
 
   /**
-   * A flag indicating whether union types should have strict semantics. This option has no effect
-   * when `enabledUnionTypes` is `false`.
+   * A flag indicating whether union types should have strict semantics. This
+   * option has no effect when `enabledUnionTypes` is `false`.
    */
   bool strictUnionTypes = false;
+
+  AnalysisEngine._();
 
   /**
    * Return the instrumentation service that is to be used by this analysis
@@ -6154,45 +6157,37 @@ class AnalysisEngine {
   }
 
   /**
-   * Return the logger that should receive information about errors within the analysis engine.
-   *
-   * @return the logger that should receive information about errors within the analysis engine
+   * Return the logger that should receive information about errors within the
+   * analysis engine.
    */
   Logger get logger => _logger;
 
   /**
-   * Set the logger that should receive information about errors within the analysis engine to the
-   * given logger.
-   *
-   * @param logger the logger that should receive information about errors within the analysis
-   *          engine
+   * Set the logger that should receive information about errors within the
+   * analysis engine to the given [logger].
    */
   void set logger(Logger logger) {
     this._logger = logger == null ? Logger.NULL : logger;
   }
 
   /**
-   * Clear any caches holding on to analysis results so that a full re-analysis will be performed
-   * the next time an analysis context is created.
+   * Clear any caches holding on to analysis results so that a full re-analysis
+   * will be performed the next time an analysis context is created.
    */
   void clearCaches() {
     partitionManager.clearCache();
   }
 
   /**
-   * Create a new context in which analysis can be performed.
-   *
-   * @return the analysis context that was created
+   * Create and return a new context in which analysis can be performed.
    */
   AnalysisContext createAnalysisContext() {
     return new AnalysisContextImpl();
   }
 
   /**
-   * Return `true` if the given file name is assumed to contain Dart source code.
-   *
-   * @param fileName the name of the file being tested
-   * @return `true` if the given file name is assumed to contain Dart source code
+   * Return `true` if the given [fileName] is assumed to contain Dart source
+   * code.
    */
   static bool isDartFileName(String fileName) {
     if (fileName == null) {
@@ -6203,10 +6198,7 @@ class AnalysisEngine {
   }
 
   /**
-   * Return `true` if the given file name is assumed to contain HTML.
-   *
-   * @param fileName the name of the file being tested
-   * @return `true` if the given file name is assumed to contain HTML
+   * Return `true` if the given [fileName] is assumed to contain HTML.
    */
   static bool isHtmlFileName(String fileName) {
     if (fileName == null) {
