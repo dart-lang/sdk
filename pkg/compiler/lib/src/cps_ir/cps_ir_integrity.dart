@@ -102,19 +102,34 @@ class CheckCpsIntegrity extends RecursiveVisitor {
 
   @override
   visitFunctionDefinition(FunctionDefinition node) {
+    if (node.thisParameter != null) {
+      markAsSeen(node.thisParameter);
+    }
     node.parameters.forEach(markAsSeen);
     if (node.body != null) {
-      doInScope(node.parameters, node, () => visit(node.body));
+      doInOptionalScope(node.thisParameter, node,
+          () => doInScope(node.parameters, node, () => visit(node.body)));
     }
   }
 
   @override
   visitConstructorDefinition(ConstructorDefinition node) {
+    if (node.thisParameter != null) {
+      markAsSeen(node.thisParameter);
+    }
     node.parameters.forEach(markAsSeen);
     doInScope(node.parameters, node, () {
       if (node.initializers != null) node.initializers.forEach(visit);
-      if (node.body != null) visit(node.body);
+      if (node.body != null) {
+        doInOptionalScope(node.thisParameter, node, () => visit(node.body));
+      }
     });
+  }
+
+  doInOptionalScope(Parameter parameter, Node node, action) {
+    return (parameter == null)
+        ? action()
+        : doInScope([parameter], node, action);
   }
 
   @override

@@ -638,12 +638,6 @@ class Constant extends Primitive {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
-class This extends Primitive {
-  This();
-
-  accept(Visitor visitor) => visitor.visitThis(this);
-}
-
 /// Reify the given type variable as a [Type].
 /// This depends on the current binding of 'this'.
 class ReifyTypeVar extends Primitive implements DartSpecificNode {
@@ -706,6 +700,8 @@ class Parameter extends Primitive {
   int parentIndex;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
+
+  String toString() => 'Parameter(${hint == null ? null : hint.name})';
 }
 
 /// Continuations are normally bound by 'let cont'.  A continuation with one
@@ -797,6 +793,7 @@ class RunnableBody extends InteriorNode {
 class FunctionDefinition extends Node
     implements ExecutableDefinition {
   final FunctionElement element;
+  final Parameter thisParameter;
   /// Mixed list of [Parameter]s and [MutableVariable]s.
   final List<Definition> parameters;
   final RunnableBody body;
@@ -806,12 +803,14 @@ class FunctionDefinition extends Node
   final List<ConstantExpression> defaultParameterValues;
 
   FunctionDefinition(this.element,
+      this.thisParameter,
       this.parameters,
       this.body,
       this.localConstants,
       this.defaultParameterValues);
 
   FunctionDefinition.abstract(this.element,
+                              this.thisParameter,
                               this.parameters,
                               this.defaultParameterValues)
       : body = null,
@@ -848,13 +847,14 @@ class ConstructorDefinition extends FunctionDefinition {
   final List<Initializer> initializers;
 
   ConstructorDefinition(ConstructorElement element,
+                        Definition thisParameter, // only Dart
                         List<Definition> parameters,
                         RunnableBody body,
                         this.initializers,
                         List<ConstDeclaration> localConstants,
                         List<ConstantExpression> defaultParameterValues)
-      : super(element, parameters, body, localConstants,
-              defaultParameterValues);
+  : super(element, thisParameter, parameters, body, localConstants,
+          defaultParameterValues);
 
   // 'Abstract' here means "has no body" and is used to represent external
   // constructors.
@@ -863,7 +863,7 @@ class ConstructorDefinition extends FunctionDefinition {
       List<Definition> parameters,
       List<ConstantExpression> defaultParameterValues)
       : initializers = null,
-        super.abstract(element, parameters, defaultParameterValues);
+        super.abstract(element, null, parameters, defaultParameterValues);
 
   accept(Visitor visitor) => visitor.visitConstructorDefinition(this);
   applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
@@ -937,7 +937,6 @@ abstract class Visitor<T> {
   T visitLiteralList(LiteralList node);
   T visitLiteralMap(LiteralMap node);
   T visitConstant(Constant node);
-  T visitThis(This node);
   T visitReifyTypeVar(ReifyTypeVar node);
   T visitCreateFunction(CreateFunction node);
   T visitGetMutableVariable(GetMutableVariable node);
@@ -990,6 +989,7 @@ class RecursiveVisitor implements Visitor {
   processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
     processFunctionDefinition(node);
+    if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
     if (!node.isAbstract) {
       visit(node.body);
@@ -999,6 +999,7 @@ class RecursiveVisitor implements Visitor {
   processConstructorDefinition(ConstructorDefinition node) {}
   visitConstructorDefinition(ConstructorDefinition node) {
     processConstructorDefinition(node);
+    if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
     node.initializers.forEach(visit);
     visit(node.body);
@@ -1141,9 +1142,6 @@ class RecursiveVisitor implements Visitor {
 
   processConstant(Constant node) {}
   visitConstant(Constant node) => processConstant(node);
-
-  processThis(This node) {}
-  visitThis(This node) => processThis(node);
 
   processReifyTypeVar(ReifyTypeVar node) {}
   visitReifyTypeVar(ReifyTypeVar node) => processReifyTypeVar(node);
@@ -1419,9 +1417,6 @@ class RegisterAllocator implements Visitor {
   }
 
   void visitConstant(Constant node) {
-  }
-
-  void visitThis(This node) {
   }
 
   void visitReifyTypeVar(ReifyTypeVar node) {

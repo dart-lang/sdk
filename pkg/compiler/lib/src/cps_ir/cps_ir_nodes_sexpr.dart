@@ -46,11 +46,17 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return decorator(node, s);
   }
 
+  String formatThisParameter(Parameter thisParameter) {
+    return thisParameter == null ? '()' : '(${visit(thisParameter)})';
+  }
+
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
+    String thisParameter = formatThisParameter(node.thisParameter);
     String parameters = node.parameters.map(visit).join(' ');
     String body = visit(node.body);
-    return '$indentation(FunctionDefinition $name ($parameters) return\n'
+    return '$indentation'
+        '(FunctionDefinition $name $thisParameter ($parameters) return\n'
         '$body)';
   }
 
@@ -68,6 +74,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitConstructorDefinition(ConstructorDefinition node) {
     String name = node.element.name;
     if (name != '') name = '$name ';
+    String thisParameter = formatThisParameter(node.thisParameter);
     String parameters = node.parameters.map(visit).join(' ');
     if (node.body != null) {
       String initializers = indentBlock(() {
@@ -80,17 +87,19 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
         });
       });
       String body = visit(node.body);
-      return '$indentation(ConstructorDefinition $name($parameters) return'
+      return '$indentation'
+          '(ConstructorDefinition $name$thisParameter ($parameters) return'
           ' (\n$initializers)\n$body)';
     } else {
-      return '$indentation(ConstructorDefinition $name($parameters) return)';
+      return '$indentation'
+          '(ConstructorDefinition $name$thisParameter ($parameters) return)';
     }
   }
 
   String visitFieldInitializer(FieldInitializer node) {
     String name = node.element.name;
     String body = visit(node.body);
-    return '$indentation(FieldInitializer $name\$body)';
+    return '$indentation(FieldInitializer $name\n$body)';
   }
 
   String visitSuperInitializer(SuperInitializer node) {
@@ -233,10 +242,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String value =
         node.expression.value.accept(new ConstantStringifier(), null);
     return '(Constant $value)';
-  }
-
-  String visitThis(This node) {
-    return '(This)';
   }
 
   String visitReifyTypeVar(ReifyTypeVar node) {
@@ -416,6 +421,9 @@ class _Namer {
   final Map<Node, String> _names = <Node, String>{};
   int _valueCounter = 0;
   int _continuationCounter = 0;
+
+  // TODO(sra): Make the methods not assert and print something indicating an
+  // error, so printer can be used to inspect broken terms.
 
   String nameParameter(Parameter parameter) {
     assert(!_names.containsKey(parameter));

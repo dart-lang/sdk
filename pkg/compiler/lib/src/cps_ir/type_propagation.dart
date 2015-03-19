@@ -422,6 +422,9 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {
+    if (node.thisParameter != null) {
+      setValue(node.thisParameter, nonConst());
+    }
     node.parameters.forEach(visit);
     setReachable(node.body);
   }
@@ -723,11 +726,6 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visitConstant(Constant node) {
     ConstantValue value = node.value;
     setValue(node, constantValue(value, typeSystem.typeOf(value)));
-  }
-
-  void visitThis(This node) {
-    // TODO(karlklose): Add the type.
-    setValue(node, nonConst());
   }
 
   void visitReifyTypeVar(ReifyTypeVar node) {

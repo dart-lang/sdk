@@ -184,4 +184,3 @@ class CheckTreeIntegrity extends RecursiveVisitor {
   }
 
 }
-
