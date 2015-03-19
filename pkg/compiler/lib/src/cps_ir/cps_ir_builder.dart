@@ -219,25 +219,10 @@ class IrBuilderDelimitedState {
   final ExecutableElement currentElement;
 
   final ir.Continuation returnContinuation = new ir.Continuation.retrn();
-  ir.Parameter _thisParameter;
-  ir.Parameter enclosingMethodThisParameter;
 
   final List<ir.Definition> functionParameters = <ir.Definition>[];
 
   IrBuilderDelimitedState(this.constantSystem, this.currentElement);
-
-  ir.Parameter get thisParameter => _thisParameter;
-  void set thisParameter(ir.Parameter value) {
-    assert(_thisParameter == null);
-    _thisParameter = value;
-  }
-}
-
-class ThisParameterLocal implements Local {
-  final ExecutableElement executableContext;
-  ThisParameterLocal(this.executableContext);
-  String get name => 'this';
-  toString() => 'ThisParameterLocal($executableContext)';
 }
 
 /// A factory for building the cps IR.
@@ -311,7 +296,6 @@ abstract class IrBuilder {
   /// Add the given function parameter to the IR, and bind it in the environment
   /// or put it in its box, if necessary.
   void _createFunctionParameter(ParameterElement parameterElement);
-  void _createThisParameter();
 
   /// Creates an access to the receiver from the current (or enclosing) method.
   ///
@@ -403,11 +387,8 @@ abstract class IrBuilder {
 
   /// Construct a builder for an inner function.
   IrBuilder makeInnerFunctionBuilder(ExecutableElement currentElement) {
-    IrBuilderDelimitedState innerState =
-        new IrBuilderDelimitedState(state.constantSystem, currentElement)
-          ..enclosingMethodThisParameter = state.enclosingMethodThisParameter;
     return _makeInstance()
-        ..state = innerState
+        ..state = new IrBuilderDelimitedState(state.constantSystem, currentElement)
         ..environment = new Environment.empty();
   }
 
@@ -421,7 +402,6 @@ abstract class IrBuilder {
   List<ir.Primitive> buildFunctionHeader(Iterable<ParameterElement> parameters,
                                         {ClosureScope closureScope,
                                          ClosureEnvironment env}) {
-    _createThisParameter();
     _enterClosureEnvironment(env);
     _enterScope(closureScope);
     parameters.forEach(_createFunctionParameter);
@@ -678,11 +658,11 @@ abstract class IrBuilder {
           message: "Local constants for abstract method $element: "
                    "${state.localConstants}"));
       return new ir.FunctionDefinition.abstract(
-          element, state.thisParameter, state.functionParameters, defaults);
+                element, state.functionParameters, defaults);
     } else {
       ir.RunnableBody body = makeRunnableBody();
       return new ir.FunctionDefinition(
-          element, state.thisParameter, state.functionParameters, body,
+          element, state.functionParameters, body,
           state.localConstants, defaults);
     }
   }
@@ -706,7 +686,7 @@ abstract class IrBuilder {
     FunctionElement element = state.currentElement;
     ir.RunnableBody body = makeRunnableBody();
     return new ir.ConstructorDefinition(
-        element, state.thisParameter, state.functionParameters, body, initializers,
+        element, state.functionParameters, body, initializers,
         state.localConstants, defaults);
   }
 
@@ -1167,17 +1147,13 @@ abstract class IrBuilder {
     bodyBuilder.add(new ir.LetCont(currentInvoked,
         new ir.InvokeMethod(iterator, new Selector.getter("current", null),
             currentInvoked, emptyArguments)));
-    // TODO(sra): Does this cover all cases? The general setter case include
-    // super.
     if (Elements.isLocal(variableElement)) {
       bodyBuilder.buildLocalSet(variableElement, currentValue);
-    } else if (Elements.isStaticOrTopLevel(variableElement) ||
-               Elements.isErroneous(variableElement)) {
+    } else if (Elements.isStaticOrTopLevel(variableElement)) {
       bodyBuilder.buildStaticSet(
           variableElement, variableSelector, currentValue);
     } else {
       ir.Primitive receiver = bodyBuilder.buildThis();
-      assert(receiver != null);
       bodyBuilder.buildDynamicSet(receiver, variableSelector, currentValue);
     }
 
@@ -2061,17 +2037,6 @@ class DartIrBuilder extends IrBuilder {
     }
   }
 
-  void _createThisParameter() {
-    if (state.currentElement.isGenerativeConstructor ||
-        !(Elements.isStaticOrTopLevel(state.currentElement) ||
-          state.currentElement.isLocal)) {
-      ir.Parameter thisParameter =
-          new ir.Parameter(new ThisParameterLocal(state.currentElement));
-      state.thisParameter = thisParameter;
-      state.enclosingMethodThisParameter = thisParameter;
-    }
-  }
-
   void declareLocalVariable(LocalVariableElement variableElement,
                             {ir.Primitive initialValue}) {
     assert(isOpen);
@@ -2130,9 +2095,7 @@ class DartIrBuilder extends IrBuilder {
     return value;
   }
 
-  ir.Primitive buildThis() {
-    return state.enclosingMethodThisParameter;
-  }
+  ir.Primitive buildThis() => addPrimitive(new ir.This());
 
   ir.Primitive buildSuperInvocation(Element target,
                                     Selector selector,
@@ -2179,7 +2142,7 @@ class JsIrBuilder extends IrBuilder {
     if (env == null) return;
 
     // Obtain a reference to the function object (this).
-    ir.Parameter thisPrim = state.thisParameter;
+    ir.Primitive thisPrim = addPrimitive(new ir.This());
 
     // Obtain access to the free variables.
     env.freeVariables.forEach((Local local, ClosureLocation location) {
@@ -2238,13 +2201,6 @@ class JsIrBuilder extends IrBuilder {
     } else {
       environment.extend(parameterElement, parameter);
     }
-  }
-
-  void _createThisParameter() {
-    if (Elements.isStaticOrTopLevel(state.currentElement)) return;
-    if (state.currentElement.isLocal) return;
-    state.thisParameter =
-        new ir.Parameter(new ThisParameterLocal(state.currentElement));
   }
 
   void declareLocalVariable(LocalElement variableElement,
@@ -2350,7 +2306,7 @@ class JsIrBuilder extends IrBuilder {
 
   ir.Primitive buildThis() {
     if (jsState.receiver != null) return jsState.receiver;
-    return state.thisParameter;
+    return addPrimitive(new ir.This());
   }
 
   ir.Primitive buildSuperInvocation(Element target,
@@ -2392,7 +2348,6 @@ class JsIrBuilder extends IrBuilder {
   /// instead of being created in the header.
   void buildConstructorBodyHeader(Iterable<Local> parameters,
                                   ClosureScope closureScope) {
-    _createThisParameter();
     for (Local param in parameters) {
       ir.Parameter parameter = createLocalParameter(param);
       state.functionParameters.add(parameter);

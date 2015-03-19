@@ -160,10 +160,7 @@ void main() {
           , "LiteralMap"
           // Parameters are encoded by name only and hence are not in this list.
           , "ReifyTypeVar"
-
-          , "(this)"   // 'this' Parameter declarations
-          , "this"     // 'this' Parameter uses
-
+          , "This"
           ];
 
   asyncTest(() => testStringifier(CODE, tokens).then((List<String> sexprs) {

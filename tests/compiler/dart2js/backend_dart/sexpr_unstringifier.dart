@@ -87,17 +87,7 @@ class Tokens {
 
   String read([String expected]) {
     if (expected != null) {
-      if (current != expected) {
-        print('expected "$expected", found "$current"');
-        int start = _index - 15;
-        String dotdotdot = '... ';
-        if (start < 0) {
-          start = 0;
-          dotdotdot = '';
-        }
-        print('${dotdotdot}${_list.sublist(start, _index + 1).join(' ')}');
-        assert(current == expected);
-      }
+      assert(current == expected);
     }
     return _list[_index++];
   }
@@ -278,20 +268,6 @@ class SExpressionUnstringifier {
       element = new DummyElement(tokens.read());
     }
 
-    // (this) or ()
-    Definition thisParameter = null;
-    tokens.consumeStart();
-    if (tokens.current != ')') {
-      String thisName = tokens.read();
-      if (name2variable.containsKey(thisName)) {
-        thisParameter = name2variable[thisName];
-      } else {
-        thisParameter = new Parameter(new DummyElement(thisName));
-        name2variable[thisName] = thisParameter;
-      }
-    }
-    tokens.consumeEnd();
-
     // (parameters)
     List<Definition> parameters = <Definition>[];
     tokens.consumeStart();
@@ -316,7 +292,7 @@ class SExpressionUnstringifier {
     Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new FunctionDefinition(element, thisParameter, parameters,
+    return new FunctionDefinition(element, parameters,
         new RunnableBody(body, cont), null, null);
   }
 

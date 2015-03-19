@@ -1276,8 +1276,7 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildReifyTypeVariable(ir.Primitive target,
                                       TypeVariableType variable) {
-    //assert(target == irBuilder.state.thisParameter);
-    assert(target == irBuilder.state.enclosingMethodThisParameter);
+    assert(target is ir.This);
     ir.Primitive prim = new ir.ReifyTypeVar(variable.element);
     irBuilder.add(new ir.LetPrim(prim));
     return prim;

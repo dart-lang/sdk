@@ -167,7 +167,6 @@ class DartBackend extends Backend {
     applyCpsPass(typePropagator);
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
-    //print(cpsDefinition.accept(new SExpressionStringifier()));
 
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
