@@ -218,7 +218,14 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
 /// Parses options from the command-line
 CompilerOptions parseOptions(List<String> argv) {
   ArgResults args = argParser.parse(argv);
-  var levelName = args['log'].toUpperCase();
+  var serverMode = args['server'];
+  var logLevel = serverMode ? Level.ALL : Level.SEVERE;
+  var levelName = args['log'];
+  if (levelName != null) {
+    levelName = levelName.toUpperCase();
+    logLevel = Level.LEVELS.firstWhere((l) => l.name == levelName,
+        orElse: () => logLevel);
+  }
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
   var sdkPath = args['dart-sdk'];
   if (sdkPath == null && !args['mock-sdk']) {
@@ -228,17 +235,24 @@ CompilerOptions parseOptions(List<String> argv) {
   if (runtimeDir == null) {
     runtimeDir = _computeRuntimeDir();
   }
+  var outputDir = args['out'];
+  if (outputDir == null && serverMode) {
+    outputDir = Directory.systemTemp.createTempSync("dev_compiler_out_").path;
+  }
+  var dumpInfo = args['dump-info'];
+  if (dumpInfo == null) dumpInfo = serverMode;
+
   return new CompilerOptions(
       allowConstCasts: args['allow-const-casts'],
       checkSdk: args['sdk-check'],
-      dumpInfo: args['dump-info'],
+      dumpInfo: dumpInfo,
       dumpInfoFile: args['dump-info-file'],
       dumpSrcDir: args['dump-src-to'],
-      forceCompile: args['force-compile'],
+      forceCompile: args['force-compile'] || serverMode,
       formatOutput: args['dart-gen-fmt'],
       ignoreTypes: args['ignore-types'],
       outputDart: args['dart-gen'],
-      outputDir: args['out'],
+      outputDir: outputDir,
       covariantGenerics: args['covariant-generics'],
       relaxedCasts: args['relaxed-casts'],
       useColors: useColors,
@@ -253,11 +267,10 @@ CompilerOptions parseOptions(List<String> argv) {
       help: args['help'],
       useMockSdk: args['mock-sdk'],
       dartSdkPath: sdkPath,
-      logLevel: Level.LEVELS.firstWhere((Level l) => l.name == levelName,
-          orElse: () => Level.SEVERE),
+      logLevel: logLevel,
       emitSourceMaps: args['source-maps'],
       entryPointFile: args.rest.length == 0 ? null : args.rest.first,
-      serverMode: args['server'],
+      serverMode: serverMode,
       port: int.parse(args['port']),
       runtimeDir: runtimeDir);
 }
@@ -321,9 +334,9 @@ final ArgParser argParser = new ArgParser()
       defaultsTo: '8080')
   ..addFlag('force-compile',
       help: 'Compile code with static errors', defaultsTo: false)
-  ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
+  ..addOption('log', abbr: 'l', help: 'Logging level (defaults to severe)')
   ..addFlag('dump-info',
-      abbr: 'i', help: 'Dump summary information', defaultsTo: false)
+      abbr: 'i', help: 'Dump summary information', defaultsTo: null)
   ..addOption('dump-info-file',
       abbr: 'f',
       help: 'Dump info json file (requires dump-info)',
