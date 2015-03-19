@@ -12,14 +12,16 @@ part of dart.math;
  */
 abstract class Random {
   /**
-   * Creates a random-number generator. The optional parameter [seed] is used
+   * Creates a random number generator.
+   *
+   * The optional parameter [seed] is used
    * to initialize the internal state of the generator. The implementation of
    * the random stream can change between releases of the library.
    */
   external factory Random([int seed]);
 
   /**
-   * Generates a positive random integer uniformly distributed on the range
+   * Generates a non-negative random integer uniformly distributed in the range
    * from 0, inclusive, to [max], exclusive.
    *
    * Implementation note: The default implementation supports [max] values
@@ -28,8 +30,8 @@ abstract class Random {
   int nextInt(int max);
 
   /**
-   * Generates a positive random floating point value uniformly distributed on
-   * the range from 0.0, inclusive, to 1.0, exclusive.
+   * Generates a non-negative random floating point value uniformly distributed
+   * in the range from 0.0, inclusive, to 1.0, exclusive.
    */
   double nextDouble();
 
