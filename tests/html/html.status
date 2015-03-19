@@ -380,8 +380,8 @@ node_validator_test: Fail # Issue 22564
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
 
-[ ($runtime == dartium || $runtime == drt) && ($system == macos || $system == windows || $system == linux)]
-# Desktop operation systems do not support touch events on chrome 34 dartium.
+[ ($runtime == dartium) && ($system == macos || $system == windows || $system == linux)]
+# Desktop operating systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
 
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
