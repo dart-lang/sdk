@@ -146,6 +146,15 @@ class FixProcessor {
     if (errorCode == HintCode.TYPE_CHECK_IS_NULL) {
       _addFix_isNull();
     }
+    if (errorCode == HintCode.UNDEFINED_GETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
+      _addFix_createField();
+      _addFix_createGetter();
+    }
+    if (errorCode == HintCode.UNDEFINED_SETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
+      _addFix_createField();
+    }
     if (errorCode == HintCode.UNNECESSARY_CAST) {
       _addFix_removeUnnecessaryCast();
     }
@@ -253,6 +262,7 @@ class FixProcessor {
       _addFix_undefinedFunction_create();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
     }
     // done
@@ -391,46 +401,6 @@ class FixProcessor {
     _insertBuilder(sb, unitElement);
     // add proposal
     _addFix(FixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, []);
-  }
-
-  /**
-   * Here we handle cases when a constructors does not initialize all of the
-   * final fields.
-   */
-  void _addFix_updateConstructor_forUninitializedFinalFields() {
-    if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
-      return;
-    }
-    ConstructorDeclaration constructor = node.parent;
-    // add these fields
-    List<FieldElement> fields =
-        error.getProperty(ErrorProperty.NOT_INITIALIZED_FIELDS);
-    if (fields != null) {
-      // prepare new parameters code
-      fields.sort((a, b) => a.nameOffset - b.nameOffset);
-      String fieldParametersCode =
-          fields.map((field) => 'this.${field.name}').join(', ');
-      // prepare the last required parameter
-      FormalParameter lastRequiredParameter;
-      List<FormalParameter> parameters = constructor.parameters.parameters;
-      for (FormalParameter parameter in parameters) {
-        if (parameter.kind == ParameterKind.REQUIRED) {
-          lastRequiredParameter = parameter;
-        }
-      }
-      // append new field formal initializers
-      if (lastRequiredParameter != null) {
-        _addInsertEdit(lastRequiredParameter.end, ', $fieldParametersCode');
-      } else {
-        int offset = constructor.parameters.leftParenthesis.end;
-        if (parameters.isNotEmpty) {
-          fieldParametersCode += ', ';
-        }
-        _addInsertEdit(offset, fieldParametersCode);
-      }
-      // add proposal
-      _addFix(FixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
-    }
   }
 
   void _addFix_createConstructor_insteadOfSyntheticDefault() {
@@ -1742,6 +1712,46 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       _addFix_undefinedClassMember_useSimilar(invocation.realTarget,
           (Element element) => element is MethodElement && !element.isOperator);
+    }
+  }
+
+  /**
+   * Here we handle cases when a constructors does not initialize all of the
+   * final fields.
+   */
+  void _addFix_updateConstructor_forUninitializedFinalFields() {
+    if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
+      return;
+    }
+    ConstructorDeclaration constructor = node.parent;
+    // add these fields
+    List<FieldElement> fields =
+        error.getProperty(ErrorProperty.NOT_INITIALIZED_FIELDS);
+    if (fields != null) {
+      // prepare new parameters code
+      fields.sort((a, b) => a.nameOffset - b.nameOffset);
+      String fieldParametersCode =
+          fields.map((field) => 'this.${field.name}').join(', ');
+      // prepare the last required parameter
+      FormalParameter lastRequiredParameter;
+      List<FormalParameter> parameters = constructor.parameters.parameters;
+      for (FormalParameter parameter in parameters) {
+        if (parameter.kind == ParameterKind.REQUIRED) {
+          lastRequiredParameter = parameter;
+        }
+      }
+      // append new field formal initializers
+      if (lastRequiredParameter != null) {
+        _addInsertEdit(lastRequiredParameter.end, ', $fieldParametersCode');
+      } else {
+        int offset = constructor.parameters.leftParenthesis.end;
+        if (parameters.isNotEmpty) {
+          fieldParametersCode += ', ';
+        }
+        _addInsertEdit(offset, fieldParametersCode);
+      }
+      // add proposal
+      _addFix(FixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
     }
   }
 

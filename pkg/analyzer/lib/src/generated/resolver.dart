@@ -4873,7 +4873,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
  * ImplicitConstructorBuilderCallback to inform it of the computations to be
  * done and their ordering dependencies.
  */
-class ImplicitConstructorBuilder extends ElementVisitor {
+class ImplicitConstructorBuilder extends SimpleElementVisitor {
   final AnalysisErrorListener errorListener;
 
   /**

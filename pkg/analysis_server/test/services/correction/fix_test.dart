@@ -752,6 +752,46 @@ class A {
 ''');
   }
 
+  void test_createField_hint() {
+    resolveTestUnit('''
+class A {
+}
+main(A a) {
+  var x = a;
+  int v = x.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+}
+main(A a) {
+  var x = a;
+  int v = x.test;
+}
+''');
+  }
+
+  void test_createField_hint_setter() {
+    resolveTestUnit('''
+class A {
+}
+main(A a) {
+  var x = a;
+  x.test = 0;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+}
+main(A a) {
+  var x = a;
+  x.test = 0;
+}
+''');
+  }
+
   void test_createField_importType() {
     addSource('/libA.dart', r'''
 library libA;
@@ -975,6 +1015,26 @@ main(List p) {
 }
 ''');
     assertNoFix(FixKind.CREATE_GETTER);
+  }
+
+  void test_createGetter_hint_getter() {
+    resolveTestUnit('''
+class A {
+}
+main(A a) {
+  var x = a;
+  int v = x.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_GETTER, '''
+class A {
+  int get test => null;
+}
+main(A a) {
+  var x = a;
+  int v = x.test;
+}
+''');
   }
 
   void test_createGetter_multiLevel() {
@@ -2818,6 +2878,27 @@ main() {
 ''');
   }
 
+  void test_undefinedGetter_useSimilar_hint() {
+    resolveTestUnit('''
+class A {
+  int myField;
+}
+main(A a) {
+  var x = a;
+  print(x.myFild);
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  int myField;
+}
+main(A a) {
+  var x = a;
+  print(x.myField);
+}
+''');
+  }
+
   void test_undefinedGetter_useSimilar_qualified() {
     resolveTestUnit('''
 class A {
@@ -3239,6 +3320,46 @@ class A {
   main() {
     myMethod();
   }
+}
+''');
+  }
+
+  void test_undefinedSetter_useSimilar_hint() {
+    resolveTestUnit('''
+class A {
+  int myField;
+}
+main(A a) {
+  var x = a;
+  x.myFild = 42;
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  int myField;
+}
+main(A a) {
+  var x = a;
+  x.myField = 42;
+}
+''');
+  }
+
+  void test_undefinedSetter_useSimilar_qualified() {
+    resolveTestUnit('''
+class A {
+  int myField;
+}
+main(A a) {
+  a.myFild = 42;
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  int myField;
+}
+main(A a) {
+  a.myField = 42;
 }
 ''');
   }
