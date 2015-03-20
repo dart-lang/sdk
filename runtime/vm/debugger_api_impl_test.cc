@@ -253,7 +253,7 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
   const char* func_name_chars_from_func_handle;
   Dart_StringToCString(Dart_FunctionName(func),
                        &func_name_chars_from_func_handle);
-  EXPECT_STREQ(func_name_chars, func_name_chars_from_func_handle);
+  EXPECT_SUBSTRING(func_name_chars_from_func_handle, func_name_chars);
 
   if (!Dart_IsNull(expected_locals)) {
     Dart_Handle locals = Dart_GetLocalVariables(frame);
@@ -1572,7 +1572,7 @@ static void StackTraceDump1BreakpointHandler(
   Dart_ListSetAt(frame0_locals, 7, Dart_NewInteger(99));
 
   // Frame 1 corresponding to "Test.local1_to_func1".
-  Dart_Handle frame1_locals = Dart_NewList(14);
+  Dart_Handle frame1_locals = Dart_NewList(12);
   Dart_ListSetAt(frame1_locals, 0, NewString("i"));
   Dart_ListSetAt(frame1_locals, 1, Dart_NewInteger(11));
   Dart_ListSetAt(frame1_locals, 2, NewString("j"));
@@ -1585,8 +1585,6 @@ static void StackTraceDump1BreakpointHandler(
   Dart_ListSetAt(frame1_locals, 9, Dart_NewInteger(55));
   Dart_ListSetAt(frame1_locals, 10, NewString("func"));
   Dart_ListSetAt(frame1_locals, 11, Dart_Null());
-  Dart_ListSetAt(frame1_locals, 12, NewString("n"));
-  Dart_ListSetAt(frame1_locals, 13, Dart_Null());
 
   // Frame 2 corresponding to "Test.func1".
   Dart_Handle frame2_locals = Dart_NewList(18);
@@ -1740,7 +1738,7 @@ static void StackTraceDump2ExceptionHandler(Dart_IsolateId isolate_id,
   Dart_ListSetAt(frame1_locals, 3, Dart_Null());
 
   // Frame 2 corresponding to "Test.local1_to_func1".
-  Dart_Handle frame2_locals = Dart_NewList(16);
+  Dart_Handle frame2_locals = Dart_NewList(14);
   Dart_ListSetAt(frame2_locals, 0, NewString("i"));
   Dart_ListSetAt(frame2_locals, 1, Dart_NewInteger(11));
   Dart_ListSetAt(frame2_locals, 2, NewString("j"));
@@ -1755,8 +1753,6 @@ static void StackTraceDump2ExceptionHandler(Dart_IsolateId isolate_id,
   Dart_ListSetAt(frame2_locals, 11, Dart_Null());
   Dart_ListSetAt(frame2_locals, 12, NewString("func"));
   Dart_ListSetAt(frame2_locals, 13, Dart_Null());
-  Dart_ListSetAt(frame2_locals, 14, NewString("n"));
-  Dart_ListSetAt(frame2_locals, 15, Dart_Null());
 
   // Frame 3 corresponding to "Test.func1".
   Dart_Handle frame3_locals = Dart_NewList(18);
