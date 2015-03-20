@@ -12,7 +12,7 @@ part of dart.async;
     return zone.registerBinaryCallback(errorHandler);
     }
    else {
-    return zone.registerUnaryCallback(DEVC$RT.cast(errorHandler, Function, __t0, "CastGeneral", """line 20, column 39 of dart:async/async_error.dart: """, errorHandler is __t0, false));
+    return zone.registerUnaryCallback(DEVC$RT.cast(errorHandler, Function, __t0, "CastGeneral", """line 20, column 39 of dart:async/async_error.dart: """, errorHandler is __t0, true));
     }
   }
  class _UncaughtAsyncError extends AsyncError {_UncaughtAsyncError(error, StackTrace stackTrace) : super(error, _getBestStackTrace(error, stackTrace));

@@ -33,7 +33,7 @@ part of dart.collection;
     }
   ), DEVC$RT.type((Iterable<Object> _) {
     }
-  ), "CastDynamic", """line 77, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, false));
+  ), "CastDynamic", """line 77, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, true));
   }
  void retainWhere(bool test(E element)) {
   List toRemove = [];
@@ -44,7 +44,7 @@ part of dart.collection;
     }
   ), DEVC$RT.type((Iterable<Object> _) {
     }
-  ), "CastDynamic", """line 85, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, false));
+  ), "CastDynamic", """line 85, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, true));
   }
  bool containsAll(Iterable<Object> other) {
   for (Object o in other) {

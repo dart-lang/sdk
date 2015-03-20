@@ -60,7 +60,7 @@ if (_reviver == null) return const JsonDecoder();
  final Function _toEncodable;
  const JsonEncoder([Object toEncodable(Object nonSerializable)]) : this.indent = null, this._toEncodable = toEncodable;
  const JsonEncoder.withIndent(this.indent, [Object toEncodable(Object nonSerializable)]) : this._toEncodable = toEncodable;
- String convert(Object object) => _JsonStringStringifier.stringify(object, DEVC$RT.cast(_toEncodable, Function, __t9, "CastGeneral", """line 243, column 48 of dart:convert/json.dart: """, _toEncodable is __t9, false), indent);
+ String convert(Object object) => _JsonStringStringifier.stringify(object, DEVC$RT.cast(_toEncodable, Function, __t9, "CastGeneral", """line 243, column 48 of dart:convert/json.dart: """, _toEncodable is __t9, true), indent);
  ChunkedConversionSink<Object> startChunkedConversion(Sink<String> sink) {
 if (sink is! StringConversionSink) {
 sink = new StringConversionSink.from(sink);
@@ -160,7 +160,7 @@ throw new StateError("Only one call to add allowed");
 }
  _isDone = true;
  ClosableStringSink stringSink = _sink.asStringSink();
- _JsonStringStringifier.printOn(o, stringSink, DEVC$RT.cast(_toEncodable, Function, __t9, "CastGeneral", """line 425, column 51 of dart:convert/json.dart: """, _toEncodable is __t9, false), _indent);
+ _JsonStringStringifier.printOn(o, stringSink, DEVC$RT.cast(_toEncodable, Function, __t9, "CastGeneral", """line 425, column 51 of dart:convert/json.dart: """, _toEncodable is __t9, true), _indent);
  stringSink.close();
 }
  void close() {
@@ -198,7 +198,7 @@ _isDone = true;
 }
 ), DEVC$RT.type((DDC$async$.Stream<Object> _) {
 }
-), "CastDynamic", """line 507, column 49 of dart:convert/json.dart: """, __x17 is DDC$async$.Stream<Object>, false))(super.bind(stream));
+), "CastDynamic", """line 507, column 49 of dart:convert/json.dart: """, __x17 is DDC$async$.Stream<Object>, true))(super.bind(stream));
 }
  external _parseJson(String source, reviver(key, value)) ;
  Object _defaultToEncodable(object) => object.toJson();

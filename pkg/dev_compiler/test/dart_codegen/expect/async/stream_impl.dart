@@ -185,10 +185,10 @@ assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInput
  void sendError() {
 if (_isCanceled && !_waitsForCancel) return; _state |= _STATE_IN_CALLBACK;
  if (_onError is ZoneBinaryCallback) {
-  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t95, "CastGeneral", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t95, false), error, stackTrace);
+  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t95, "CastGeneral", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t95, true), error, stackTrace);
   }
  else {
-  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t92, "CastGeneral", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t92, false), error);
+  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t92, "CastGeneral", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t92, true), error);
   }
  _state &= ~_STATE_IN_CALLBACK;
 }

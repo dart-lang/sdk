@@ -159,7 +159,7 @@ part of dart.async;
    var nextIteration;
    nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
     if (keepGoing) {
-      new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __t12, "CastGeneral", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t12, false), onError: doneSignal._completeError);
+      new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __t12, "CastGeneral", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t12, true), onError: doneSignal._completeError);
       }
      else {
       doneSignal._complete(null);

@@ -58,14 +58,14 @@ future._completeError(error, stackTrace);
  bool get hasErrorTest => (state == STATE_CATCHERROR_TEST);
  bool get handlesComplete => (state == STATE_WHENCOMPLETE);
  _FutureOnValue get _onValue {
-assert (handlesValue); return DEVC$RT.cast(callback, Function, __t14, "CastGeneral", """line 112, column 12 of dart:async/future_impl.dart: """, callback is __t14, false);
+assert (handlesValue); return DEVC$RT.cast(callback, Function, __t14, "CastGeneral", """line 112, column 12 of dart:async/future_impl.dart: """, callback is __t14, true);
 }
  Function get _onError => errorCallback;
  _FutureErrorTest get _errorTest {
 assert (hasErrorTest); return DEVC$RT.cast(callback, Function, __t16, "CastGeneral", """line 117, column 12 of dart:async/future_impl.dart: """, callback is __t16, false);
 }
  _FutureAction get _whenCompleteAction {
-assert (handlesComplete); return DEVC$RT.cast(callback, Function, __t18, "CastGeneral", """line 121, column 12 of dart:async/future_impl.dart: """, callback is __t18, false);
+assert (handlesComplete); return DEVC$RT.cast(callback, Function, __t18, "CastGeneral", """line 121, column 12 of dart:async/future_impl.dart: """, callback is __t18, true);
 }
 }
  class _Future<T> implements Future<T> {static const int _INCOMPLETE = 0;
@@ -345,7 +345,7 @@ AsyncError asyncError = source._error;
       listenerValueOrError = zone.runBinary(errorCallback, asyncError.error, asyncError.stackTrace);
       }
      else {
-      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t14, "CastGeneral", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t14, false), asyncError.error);
+      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t14, "CastGeneral", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t14, true), asyncError.error);
       }
     }
    catch (e, s) {

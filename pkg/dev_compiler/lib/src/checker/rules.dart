@@ -133,19 +133,35 @@ class RestrictedRules extends TypeRules {
     }
   }
 
+  bool _anyParameterType(FunctionType ft, bool predicate(DartType t)) {
+    return ft.normalParameterTypes.any(predicate) ||
+        ft.optionalParameterTypes.any(predicate) ||
+        ft.namedParameterTypes.values.any(predicate);
+  }
+
   // TODO(leafp): Revisit this.
   bool isGroundType(DartType t) {
-    if (t is FunctionType) return false;
     if (t is TypeParameterType) return false;
     if (t.isDynamic) return true;
 
-    // t must be an InterfaceType.
-    var typeArguments = (t as InterfaceType).typeArguments;
-    for (var typeArgument in typeArguments) {
-      if (!typeArgument.isDynamic) return false;
+    if (t is FunctionType) {
+      if (!t.returnType.isDynamic ||
+          _anyParameterType(t, (pt) => !pt.isDynamic)) {
+        return false;
+      } else {
+        return true;
+      }
     }
 
-    return true;
+    if (t is InterfaceType) {
+      var typeArguments = t.typeArguments;
+      for (var typeArgument in typeArguments) {
+        if (!typeArgument.isDynamic && !typeArgument.isObject) return false;
+      }
+      return true;
+    }
+
+    throw new StateError("Unexpected type");
   }
 
   FunctionType getCallMethodType(DartType t) {
@@ -510,16 +526,8 @@ class RestrictedRules extends TypeRules {
         return false;
       }
     }
+
     var ft = t as FunctionType;
-    for (var parameterType in ft.normalParameterTypes) {
-      if (parameterType.isDynamic) return true;
-    }
-    for (var parameterType in ft.optionalParameterTypes) {
-      if (parameterType.isDynamic) return true;
-    }
-    for (var parameterType in ft.namedParameterTypes.values) {
-      if (parameterType.isDynamic) return true;
-    }
-    return false;
+    return _anyParameterType(ft, (pt) => pt.isDynamic);
   }
 }

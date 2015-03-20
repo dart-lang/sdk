@@ -675,6 +675,9 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   visitAsExpression(AsExpression node) {
+    // We could do the same check as the IsExpression below, but that is
+    // potentially too conservative.  Instead, at runtime, we must fail hard
+    // if the Dart as and the DDC as would return different values.
     node.visitChildren(this);
   }
 

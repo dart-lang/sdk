@@ -2753,4 +2753,60 @@ void main() {
       }, inferFromOverrides: false);
     });
   });
+
+  test('invalid runtime checks', () {
+    testChecker({
+      '/main.dart': '''
+          typedef int I2I(int x);
+          typedef int D2I(x);
+          typedef int II2I(int x, int y);
+          typedef int DI2I(x, int y);
+          typedef int ID2I(int x, y);
+          typedef int DD2I(x, y);
+
+          typedef I2D(int x);
+          typedef D2D(x);
+          typedef II2D(int x, int y);
+          typedef DI2D(x, int y);
+          typedef ID2D(int x, y);
+          typedef DD2D(x, y);
+
+          int foo(int x) => x;
+          int bar(int x, int y) => x + y;
+          
+          void main() {
+            bool b;
+            b = /*severe:InvalidRuntimeCheckError*/foo is I2I;
+            b = /*severe:InvalidRuntimeCheckError*/foo is D2I;
+            b = /*severe:InvalidRuntimeCheckError*/foo is I2D;
+            b = foo is D2D;
+
+            b = /*severe:InvalidRuntimeCheckError*/bar is II2I;
+            b = /*severe:InvalidRuntimeCheckError*/bar is DI2I;
+            b = /*severe:InvalidRuntimeCheckError*/bar is ID2I;
+            b = /*severe:InvalidRuntimeCheckError*/bar is II2D;
+            b = /*severe:InvalidRuntimeCheckError*/bar is DD2I;
+            b = /*severe:InvalidRuntimeCheckError*/bar is DI2D;
+            b = /*severe:InvalidRuntimeCheckError*/bar is ID2D;
+            b = bar is DD2D;
+
+            // For as, the validity of checks is deferred to runtime.
+            Function f;
+            f = foo as I2I;
+            f = foo as D2I;
+            f = foo as I2D;
+            f = foo as D2D;
+
+            f = bar as II2I;
+            f = bar as DI2I;
+            f = bar as ID2I;
+            f = bar as II2D;
+            f = bar as DD2I;
+            f = bar as DI2D;
+            f = bar as ID2D;
+            f = bar as DD2D;
+          }
+      '''
+    });
+  });
 }
