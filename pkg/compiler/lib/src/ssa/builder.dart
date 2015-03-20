@@ -237,9 +237,9 @@ class LocalsHandler {
     // TODO(floitsch): Clean up this hack. Should we create a box-object by
     // just creating an empty object literal?
     JavaScriptBackend backend = builder.backend;
-    HInstruction box = new HForeign(js.js.parseForeignJS('{}'),
-                                    backend.nonNullType,
-                                    <HInstruction>[]);
+    HInstruction box = new HForeignCode(js.js.parseForeignJS('{}'),
+                                        backend.nonNullType,
+                                        <HInstruction>[]);
     builder.add(box);
     return box;
   }
@@ -1483,7 +1483,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   /// A stack of [DartType]s the have been seen during inlining of factory
   /// constructors.  These types are preserved in [HInvokeStatic]s and
-  /// [HForeignNews] inside the inline code and registered during code
+  /// [HForeignNew]s inside the inline code and registered during code
   /// generation for these nodes.
   // TODO(karlklose): consider removing this and keeping the (substituted)
   // types of the type variables in an environment (like the [LocalsHandler]).
@@ -3373,10 +3373,10 @@ class SsaBuilder extends ResolvedVisitor {
     return interceptor;
   }
 
-  HForeign createForeign(js.Template code,
-                         TypeMask type,
-                         List<HInstruction> inputs) {
-    return new HForeign(code, type, inputs);
+  HForeignCode createForeign(js.Template code,
+                             TypeMask type,
+                             List<HInstruction> inputs) {
+    return new HForeignCode(code, type, inputs);
   }
 
   HLiteralList buildLiteralList(List<HInstruction> inputs) {
@@ -3637,15 +3637,15 @@ class SsaBuilder extends ResolvedVisitor {
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
 
     if (nativeBehavior.codeTemplate.isExpression) {
-      push(new HForeign(nativeBehavior.codeTemplate, ssaType, inputs,
-                        effects: nativeBehavior.sideEffects,
-                        nativeBehavior: nativeBehavior));
+      push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
+                            effects: nativeBehavior.sideEffects,
+                            nativeBehavior: nativeBehavior));
     } else {
-      push(new HForeign(nativeBehavior.codeTemplate, ssaType, inputs,
-                        isStatement: true,
-                        effects: nativeBehavior.sideEffects,
-                        nativeBehavior: nativeBehavior,
-                        canThrow: true));
+      push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
+                            isStatement: true,
+                            effects: nativeBehavior.sideEffects,
+                            nativeBehavior: nativeBehavior,
+                            canThrow: true));
     }
   }
 
@@ -3668,9 +3668,9 @@ class SsaBuilder extends ResolvedVisitor {
       // If the isolate library is not used, we just generate code
       // to fetch the current isolate.
       String name = backend.namer.currentIsolate;
-      push(new HForeign(js.js.parseForeignJS(name),
-                        backend.dynamicType,
-                        <HInstruction>[]));
+      push(new HForeignCode(js.js.parseForeignJS(name),
+                            backend.dynamicType,
+                            <HInstruction>[]));
     } else {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
@@ -3804,7 +3804,7 @@ class SsaBuilder extends ResolvedVisitor {
         compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
-    push(new HForeign(expr, ssaType, const []));
+    push(new HForeignCode(expr, ssaType, const []));
   }
 
   void handleJsInterceptorConstant(ast.Send node) {
@@ -3876,10 +3876,10 @@ class SsaBuilder extends ResolvedVisitor {
     }
 
     registry.registerStaticUse(element);
-    push(new HForeign(js.js.expressionTemplateYielding(
+    push(new HForeignCode(js.js.expressionTemplateYielding(
                           backend.emitter.staticFunctionAccess(element)),
-                      backend.dynamicType,
-                      <HInstruction>[]));
+                          backend.dynamicType,
+                          <HInstruction>[]));
     return params;
   }
 
@@ -3899,29 +3899,29 @@ class SsaBuilder extends ResolvedVisitor {
     String isolateName = backend.namer.currentIsolate;
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
-    push(new HForeign(js.js.parseForeignJS("$isolateName = #"),
-                      backend.dynamicType,
-                      <HInstruction>[pop()],
-                      effects: sideEffects));
+    push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
+                          backend.dynamicType,
+                          <HInstruction>[pop()],
+                          effects: sideEffects));
   }
 
   void handleForeignDartObjectJsConstructorFunction(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
-    push(new HForeign(js.js.expressionTemplateYielding(
+    push(new HForeignCode(js.js.expressionTemplateYielding(
                           backend.emitter.typeAccess(compiler.objectClass)),
-                      backend.dynamicType,
-                      <HInstruction>[]));
+                          backend.dynamicType,
+                          <HInstruction>[]));
   }
 
   void handleForeignJsCurrentIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
-    push(new HForeign(js.js.parseForeignJS(backend.namer.currentIsolate),
-                      backend.dynamicType,
-                      <HInstruction>[]));
+    push(new HForeignCode(js.js.parseForeignJS(backend.namer.currentIsolate),
+                          backend.dynamicType,
+                          <HInstruction>[]));
   }
 
   visitForeignSend(ast.Send node) {
@@ -4411,7 +4411,7 @@ class SsaBuilder extends ResolvedVisitor {
         var constant = inputs[0];
         if (constant.constant.primitiveValue >= 0) canThrow = false;
       }
-      HForeign foreign = new HForeign(
+      HForeignCode foreign = new HForeignCode(
           code, elementType, inputs, nativeBehavior: behavior,
           canThrow: canThrow);
       push(foreign);
@@ -4420,7 +4420,7 @@ class SsaBuilder extends ResolvedVisitor {
         js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
-        add(new HForeign(
+        add(new HForeignCode(
               code, backend.nullType, [stack.last], canThrow: true));
       }
     } else if (isGrowableListConstructorCall) {

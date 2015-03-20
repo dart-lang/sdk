@@ -1743,7 +1743,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     });
   }
 
-  visitForeign(HForeign node) {
+  visitForeignCode(HForeignCode node) {
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement()) {
       List<js.Expression> interpolatedExpressions = <js.Expression>[];
