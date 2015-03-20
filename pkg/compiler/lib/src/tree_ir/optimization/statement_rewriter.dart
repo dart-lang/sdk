@@ -420,11 +420,13 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   }
 
   Statement visitTry(Try node) {
-    Set<Label> saved = safeForInlining;
-    safeForInlining = new Set<Label>();
-    node.tryBody = visitStatement(node.tryBody);
-    safeForInlining = saved;
-    node.catchBody = visitStatement(node.catchBody);
+    inEmptyEnvironment(() {
+      Set<Label> saved = safeForInlining;
+      safeForInlining = new Set<Label>();
+      node.tryBody = visitStatement(node.tryBody);
+      safeForInlining = saved;
+      node.catchBody = visitStatement(node.catchBody);
+    });
     return node;
   }
 
