@@ -241,6 +241,7 @@ class Compiler {
 class CompilerServer {
   final Compiler compiler;
   final String outDir;
+  final String host;
   final int port;
   final String _entryPath;
 
@@ -259,12 +260,14 @@ class CompilerServer {
       exit(1);
     }
     var port = options.port;
-    _log.fine('Serving $entryPath at http://0.0.0.0:$port/');
+    var host = options.host;
+    _log.fine('Serving $entryPath at http://$host:$port/');
     var compiler = new Compiler(options);
-    return new CompilerServer._(compiler, outDir, port, entryPath);
+    return new CompilerServer._(compiler, outDir, host, port, entryPath);
   }
 
-  CompilerServer._(this.compiler, this.outDir, this.port, this._entryPath);
+  CompilerServer._(
+      this.compiler, this.outDir, this.host, this.port, this._entryPath);
 
   Future start() async {
     // Create output directory if needed. shelf_static will fail otherwise.
@@ -275,7 +278,7 @@ class CompilerServer {
         .addMiddleware(rebuildAndCache)
         .addHandler(shelf_static.createStaticHandler(outDir,
             defaultDocument: _entryPath));
-    await shelf.serve(handler, '0.0.0.0', port);
+    await shelf.serve(handler, host, port);
     compiler.run();
   }
 

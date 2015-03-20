@@ -117,6 +117,7 @@ var dart;
     // TODO(vsm): Remove this once we handle in the checker.
     return obj;
   }
+  dart.closureWrap = closureWrap;
 
   function isGroundType(type) {
     // TODO(vsm): Implement.

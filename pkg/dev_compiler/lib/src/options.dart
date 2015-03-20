@@ -147,6 +147,9 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Port used for the HTTP server when [serverMode] is on.
   final int port;
 
+  /// Host name or address for HTTP server when [serverMode] is on.
+  final String host;
+
   /// Whether to use covariant generics
   @override
   final bool covariantGenerics;
@@ -212,7 +215,8 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
       this.emitSourceMaps: true, this.entryPointFile: null,
-      this.serverMode: false, this.port: 8080, this.runtimeDir});
+      this.serverMode: false, this.host: 'localhost', this.port: 8080,
+      this.runtimeDir});
 }
 
 /// Parses options from the command-line
@@ -271,6 +275,7 @@ CompilerOptions parseOptions(List<String> argv) {
       emitSourceMaps: args['source-maps'],
       entryPointFile: args.rest.length == 0 ? null : args.rest.first,
       serverMode: serverMode,
+      host: args['host'],
       port: int.parse(args['port']),
       runtimeDir: runtimeDir);
 }
@@ -294,7 +299,7 @@ final ArgParser argParser = new ArgParser()
       help: 'Comma separated string of non-nullable types',
       defaultsTo: null)
   ..addFlag('infer-from-overrides',
-      help: 'Infer unspecified types of fields and return types from '
+      help: 'Infer unspecified types of fields and return types from\n'
       'definitions in supertypes',
       defaultsTo: ResolverOptions.inferFromOverridesDefault)
   ..addFlag('infer-transitively',
@@ -319,8 +324,9 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('use-multi-package',
       help: 'Whether to use the multi-package resolver for "package:" imports',
       defaultsTo: false)
-  ..addOption('package-paths', help: 'if using the multi-package resolver, '
-      'the list of directories where to look for packages.', defaultsTo: '')
+  ..addOption('package-paths',
+      help: 'if using the multi-package resolver, the list of directories to\n'
+      'look for packages in.', defaultsTo: '')
   ..addFlag('source-maps',
       help: 'Whether to emit source map files', defaultsTo: true)
   ..addOption('runtime-dir',
@@ -329,8 +335,12 @@ final ArgParser argParser = new ArgParser()
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')
   ..addFlag('server', help: 'Run as a development server.', defaultsTo: false)
+  ..addOption('host',
+      help: 'Host name or address to serve files from, e.g. --host=0.0.0.0\n'
+      'to listen on all interfaces (used only when --serve is on)',
+      defaultsTo: 'localhost')
   ..addOption('port',
-      help: 'Port where to serve files from (used only when --serve is on)',
+      help: 'Port to serve files from (used only when --serve is on)',
       defaultsTo: '8080')
   ..addFlag('force-compile',
       help: 'Compile code with static errors', defaultsTo: false)
