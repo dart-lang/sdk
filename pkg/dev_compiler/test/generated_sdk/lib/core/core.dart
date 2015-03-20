@@ -201,6 +201,7 @@ import 'dart:_js_helper' show patch,
                               Primitives,
                               stringJoinUnchecked,
                               objectHashCode;
+import 'dart:_foreign_helper' show JS;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 _symbolMapToStringMap(Map<Symbol, dynamic> map) {
@@ -211,6 +212,6 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
   });
   return result;
 }
-class _ListConstructorSentinel extends JSInt {
+class _ListConstructorSentinel {
   const _ListConstructorSentinel();
 }

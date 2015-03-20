@@ -67,8 +67,5 @@ var fieldtest;
   exports.bar = bar;
   exports.baz = baz;
   exports.compute = compute;
-  exports.q = q;
-  exports.z = z;
-  exports.z = z;
   exports.main = main;
 })(fieldtest || (fieldtest = {}));

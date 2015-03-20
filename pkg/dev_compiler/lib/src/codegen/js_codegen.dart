@@ -31,9 +31,6 @@ import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart';
 import 'code_generator.dart';
 
-// This must match the optional parameter name used in runtime.js
-const String _jsNamedParameterName = r'opt$';
-
 bool _isAnnotationType(Annotation m, String name) => m.name.name == name;
 
 Annotation _getAnnotation(AnnotatedNode node, String name) => node.metadata
@@ -130,7 +127,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   JS.Statement _initPrivateSymbol(String name) =>
-      js.statement('let # = Symbol(#);', [name, js.string(name, "'")]);
+      js.statement('let # = $_SYMBOL(#);', [name, js.string(name, "'")]);
+
+  // TODO(jmesserly): this is a temporary workaround for `Symbol` in core,
+  // until we have better name tracking.
+  String get _SYMBOL => currentLibrary.isDartCore ? 'dart.JsSymbol' : 'Symbol';
 
   @override
   JS.Statement visitCompilationUnit(CompilationUnit node) {
@@ -259,7 +260,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         js.call('dart.mixin(#)', [_visitList(node.withClause.mixinTypes)]);
     var classDecl = new JS.ClassDeclaration(
         new JS.ClassExpression(new JS.VariableDeclaration(name), heritage, []));
-    if (isPublic(name)) _exports.add(name);
 
     return _finishClassDef(classElem, classDecl);
   }
@@ -274,7 +274,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     currentClass = node;
 
     var name = classElem.name;
-    if (isPublic(name)) _exports.add(name);
 
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
@@ -341,8 +340,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       ]);
     }
 
+    if (isPublic(name)) _exports.add(name);
+
     if (genericDef != null) {
       body = js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
+      if (isPublic(name)) _exports.add(genericName);
     }
 
     if (classElem.type.isObject) return body;
@@ -457,9 +459,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = cls.name;
     var genericName = '$name\$';
     var typeParams = cls.typeParameters.map((p) => new JS.Parameter(p.name));
-    // TODO(jmesserly): is it worth exporting both names? Alternatively we could
-    // put the generic type constructor on the <dynamic> instance.
-    if (isPublic(name)) _exports.add(genericName);
     return js.statement('let # = dart.generic(function(#) { #; return #; });', [
       genericName,
       typeParams,
@@ -521,7 +520,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           }
         };
       }''');
-      jsMethods.add(new JS.Method(js.call('Symbol.iterator'), body));
+      jsMethods.add(new JS.Method(js.call('$_SYMBOL.iterator'), body));
     }
     return jsMethods.where((m) => m != null).toList(growable: false);
   }
@@ -598,6 +597,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // TODO(jmesserly): we'll need to rethink this once the ES6 spec and V8
       // settles. See <https://github.com/dart-lang/dev_compiler/issues/51>.
       // Performance of this pattern is likely to be bad.
+      name = 'constructor';
       body = js.statement('''{
         // Get the class name for this instance.
         var name = this.constructor.name;
@@ -797,11 +797,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var name = param.identifier.name;
 
       if (param.kind == ParameterKind.NAMED) {
-        body.add(js.statement('let # = opt\$.# === void 0 ? # : opt\$.#;', [
+        body.add(js.statement('let # = opt\$ && # in opt\$ ? opt\$.# : #;', [
           name,
+          js.string(name, "'"),
           name,
           _defaultParamValue(param),
-          name
         ]));
       } else if (param.kind == ParameterKind.POSITIONAL) {
         body.add(js.statement('if (# === void 0) # = #;', [
@@ -865,7 +865,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Method _emitTopLevelProperty(FunctionDeclaration node) {
     var name = node.name.name;
-    if (isPublic(name)) _exports.add(name);
     return new JS.Method(
         new JS.PropertyName(name), _visit(node.functionExpression),
         isGetter: node.isGetter, isSetter: node.isSetter);
@@ -1160,7 +1159,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var result = <JS.Parameter>[];
     for (FormalParameter param in node.parameters) {
       if (param.kind == ParameterKind.NAMED) {
-        result.add(new JS.Parameter(_jsNamedParameterName));
+        result.add(new JS.Parameter(r'opt$'));
         break;
       }
       result.add(_visit(param));

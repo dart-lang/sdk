@@ -17,8 +17,8 @@ var isolate;
   let _pause = Symbol('_pause');
   class Isolate extends core.Object {
     Isolate(controlPort, opt$) {
-      let pauseCapability = opt$.pauseCapability === void 0 ? null : opt$.pauseCapability;
-      let terminateCapability = opt$.terminateCapability === void 0 ? null : opt$.terminateCapability;
+      let pauseCapability = opt$ && 'pauseCapability' in opt$ ? opt$.pauseCapability : null;
+      let terminateCapability = opt$ && 'terminateCapability' in opt$ ? opt$.terminateCapability : null;
       this.controlPort = controlPort;
       this.pauseCapability = pauseCapability;
       this.terminateCapability = terminateCapability;
@@ -27,7 +27,7 @@ var isolate;
       return dart.as(_currentIsolateCache, Isolate);
     }
     static spawn(entryPoint, message, opt$) {
-      let paused = opt$.paused === void 0 ? false : opt$.paused;
+      let paused = opt$ && 'paused' in opt$ ? opt$.paused : false;
       try {
         return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.closureWrap((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), "(List<dynamic>) → dynamic")), async.Future$(Isolate));
       } catch (e) {
@@ -37,8 +37,8 @@ var isolate;
 
     }
     static spawnUri(uri, args, message, opt$) {
-      let paused = opt$.paused === void 0 ? false : opt$.paused;
-      let packageRoot = opt$.packageRoot === void 0 ? null : opt$.packageRoot;
+      let paused = opt$ && 'paused' in opt$ ? opt$.paused : false;
+      let packageRoot = opt$ && 'packageRoot' in opt$ ? opt$.packageRoot : null;
       if (packageRoot !== null)
         throw new core.UnimplementedError("packageRoot");
       try {

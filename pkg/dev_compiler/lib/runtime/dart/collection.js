@@ -29,9 +29,9 @@ var collection;
   let HashMap$ = dart.generic(function(K, V) {
     class HashMap extends core.Object {
       HashMap(opt$) {
-        let equals = opt$.equals === void 0 ? null : opt$.equals;
-        let hashCode = opt$.hashCode === void 0 ? null : opt$.hashCode;
-        let isValidKey = opt$.isValidKey === void 0 ? null : opt$.isValidKey;
+        let equals = opt$ && 'equals' in opt$ ? opt$.equals : null;
+        let hashCode = opt$ && 'hashCode' in opt$ ? opt$.hashCode : null;
+        let isValidKey = opt$ && 'isValidKey' in opt$ ? opt$.isValidKey : null;
         if (isValidKey === null) {
           if (hashCode === null) {
             if (equals === null) {
@@ -67,8 +67,8 @@ var collection;
         return result;
       }
       HashMap$fromIterable(iterable, opt$) {
-        let key = opt$.key === void 0 ? null : opt$.key;
-        let value = opt$.value === void 0 ? null : opt$.value;
+        let key = opt$ && 'key' in opt$ ? opt$.key : null;
+        let value = opt$ && 'value' in opt$ ? opt$.value : null;
         let map = new HashMap();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
@@ -159,7 +159,7 @@ var collection;
         return result;
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         let result = growable ? ((_) => {
           _.length = this.length;
           return _;
@@ -276,7 +276,7 @@ var collection;
         return result;
       }
       firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         for (let element of this) {
           if (test(element))
             return element;
@@ -286,7 +286,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -373,9 +373,9 @@ var collection;
   let HashSet$ = dart.generic(function(E) {
     class HashSet extends core.Object {
       HashSet(opt$) {
-        let equals = opt$.equals === void 0 ? null : opt$.equals;
-        let hashCode = opt$.hashCode === void 0 ? null : opt$.hashCode;
-        let isValidKey = opt$.isValidKey === void 0 ? null : opt$.isValidKey;
+        let equals = opt$ && 'equals' in opt$ ? opt$.equals : null;
+        let hashCode = opt$ && 'hashCode' in opt$ ? opt$.hashCode : null;
+        let isValidKey = opt$ && 'isValidKey' in opt$ ? opt$.isValidKey : null;
         if (isValidKey === null) {
           if (hashCode === null) {
             if (equals === null) {
@@ -489,7 +489,7 @@ var collection;
         return false;
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         return new core.List.from(this, {growable: growable});
       }
       toSet() {
@@ -550,7 +550,7 @@ var collection;
         return result;
       }
       firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         for (let element of this) {
           if (test(element))
             return element;
@@ -560,7 +560,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -688,7 +688,7 @@ var collection;
         return false;
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         return new core.List.from(this, {growable: growable});
       }
       toSet() {
@@ -749,7 +749,7 @@ var collection;
         return result;
       }
       firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         for (let element of this) {
           if (test(element))
             return element;
@@ -759,7 +759,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -982,9 +982,9 @@ var collection;
   let LinkedHashMap$ = dart.generic(function(K, V) {
     class LinkedHashMap extends core.Object {
       LinkedHashMap(opt$) {
-        let equals = opt$.equals === void 0 ? null : opt$.equals;
-        let hashCode = opt$.hashCode === void 0 ? null : opt$.hashCode;
-        let isValidKey = opt$.isValidKey === void 0 ? null : opt$.isValidKey;
+        let equals = opt$ && 'equals' in opt$ ? opt$.equals : null;
+        let hashCode = opt$ && 'hashCode' in opt$ ? opt$.hashCode : null;
+        let isValidKey = opt$ && 'isValidKey' in opt$ ? opt$.isValidKey : null;
         if (isValidKey === null) {
           if (hashCode === null) {
             if (equals === null) {
@@ -1020,8 +1020,8 @@ var collection;
         return result;
       }
       LinkedHashMap$fromIterable(iterable, opt$) {
-        let key = opt$.key === void 0 ? null : opt$.key;
-        let value = opt$.value === void 0 ? null : opt$.value;
+        let key = opt$ && 'key' in opt$ ? opt$.key : null;
+        let value = opt$ && 'value' in opt$ ? opt$.value : null;
         let map = new LinkedHashMap();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
@@ -1050,9 +1050,9 @@ var collection;
   let LinkedHashSet$ = dart.generic(function(E) {
     class LinkedHashSet extends core.Object {
       LinkedHashSet(opt$) {
-        let equals = opt$.equals === void 0 ? null : opt$.equals;
-        let hashCode = opt$.hashCode === void 0 ? null : opt$.hashCode;
-        let isValidKey = opt$.isValidKey === void 0 ? null : opt$.isValidKey;
+        let equals = opt$ && 'equals' in opt$ ? opt$.equals : null;
+        let hashCode = opt$ && 'hashCode' in opt$ ? opt$.hashCode : null;
+        let isValidKey = opt$ && 'isValidKey' in opt$ ? opt$.isValidKey : null;
         if (isValidKey === null) {
           if (hashCode === null) {
             if (equals === null) {
@@ -1345,7 +1345,7 @@ var collection;
         return false;
       }
       firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.get(i);
@@ -1360,7 +1360,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = this.get(i);
@@ -1450,7 +1450,7 @@ var collection;
         return new _internal.TakeWhileIterable(this, test);
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         let result = null;
         if (growable) {
           result = ((_) => {
@@ -2347,7 +2347,7 @@ var collection;
         return this[_table].get(dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table].length) - 1);
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         let list = null;
         if (growable) {
           list = ((_) => {
@@ -2786,10 +2786,10 @@ var collection;
         return result;
       }
       SplayTreeMap$fromIterable(iterable, opt$) {
-        let key = opt$.key === void 0 ? null : opt$.key;
-        let value = opt$.value === void 0 ? null : opt$.value;
-        let compare = opt$.compare === void 0 ? null : opt$.compare;
-        let isValidKey = opt$.isValidKey === void 0 ? null : opt$.isValidKey;
+        let key = opt$ && 'key' in opt$ ? opt$.key : null;
+        let value = opt$ && 'value' in opt$ ? opt$.value : null;
+        let compare = opt$ && 'compare' in opt$ ? opt$.compare : null;
+        let isValidKey = opt$ && 'isValidKey' in opt$ ? opt$.isValidKey : null;
         let map = new SplayTreeMap(compare, isValidKey);
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
@@ -4831,8 +4831,6 @@ var collection;
   });
   let LinkedHashSetIterator = LinkedHashSetIterator$(dart.dynamic);
   // Exports:
-  exports.UnmodifiableListView = UnmodifiableListView;
-  exports.UnmodifiableListView$ = UnmodifiableListView$;
   exports.HashMap = HashMap;
   exports.HashMap$ = HashMap$;
   exports.SetBase = SetBase;

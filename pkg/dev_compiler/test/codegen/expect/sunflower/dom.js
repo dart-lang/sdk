@@ -3,7 +3,7 @@ var dom;
   'use strict';
   class JsName extends core.Object {
     JsName(opt$) {
-      let name = opt$.name === void 0 ? null : opt$.name;
+      let name = opt$ && 'name' in opt$ ? opt$.name : null;
       this.name = name;
     }
   }

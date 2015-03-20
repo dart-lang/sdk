@@ -475,8 +475,8 @@ var _js_helper;
       return `RegExp/${this.pattern}/`;
     }
     JSSyntaxRegExp(source, opt$) {
-      let multiLine = opt$.multiLine === void 0 ? false : opt$.multiLine;
-      let caseSensitive = opt$.caseSensitive === void 0 ? true : opt$.caseSensitive;
+      let multiLine = opt$ && 'multiLine' in opt$ ? opt$.multiLine : false;
+      let caseSensitive = opt$ && 'caseSensitive' in opt$ ? opt$.caseSensitive : true;
       this.pattern = source;
       this[_nativeRegExp] = makeNative(source, multiLine, caseSensitive, false);
       this[_nativeGlobalRegExp] = null;
@@ -936,7 +936,7 @@ var _js_helper;
   }
   // Function getRuntimeTypeAsString: (dynamic, {onTypeVariable: (int) → String}) → String
   function getRuntimeTypeAsString(runtimeType, opt$) {
-    let onTypeVariable = opt$.onTypeVariable === void 0 ? null : opt$.onTypeVariable;
+    let onTypeVariable = opt$ && 'onTypeVariable' in opt$ ? opt$.onTypeVariable : null;
     dart.assert(isJsArray(runtimeType));
     let className = getConstructorName(getIndex(runtimeType, 0));
     return `${className}` + `${joinArguments(runtimeType, 1, {onTypeVariable: onTypeVariable})}`;
@@ -947,7 +947,7 @@ var _js_helper;
   }
   // Function runtimeTypeToString: (dynamic, {onTypeVariable: (int) → String}) → String
   function runtimeTypeToString(type, opt$) {
-    let onTypeVariable = opt$.onTypeVariable === void 0 ? null : opt$.onTypeVariable;
+    let onTypeVariable = opt$ && 'onTypeVariable' in opt$ ? opt$.onTypeVariable : null;
     if (type === null) {
       return 'dynamic';
     } else if (isJsArray(type)) {
@@ -966,7 +966,7 @@ var _js_helper;
   }
   // Function joinArguments: (dynamic, int, {onTypeVariable: (int) → String}) → String
   function joinArguments(types, startIndex, opt$) {
-    let onTypeVariable = opt$.onTypeVariable === void 0 ? null : opt$.onTypeVariable;
+    let onTypeVariable = opt$ && 'onTypeVariable' in opt$ ? opt$.onTypeVariable : null;
     if (types === null)
       return '';
     dart.assert(isJsArray(types));
@@ -3754,8 +3754,6 @@ var _js_helper;
   exports.hashCodeForNativeObject = hashCodeForNativeObject;
   exports.defineProperty = defineProperty;
   exports.isDartObject = isDartObject;
-  exports.interceptorsByTag = interceptorsByTag;
-  exports.leafTags = leafTags;
   exports.findDispatchTagForInterceptorClass = findDispatchTagForInterceptorClass;
   exports.lookupInterceptor = lookupInterceptor;
   exports.UNCACHED_MARK = UNCACHED_MARK;
@@ -3927,7 +3925,6 @@ var _js_helper;
   exports.voidTypeCheck = voidTypeCheck;
   exports.checkMalformedType = checkMalformedType;
   exports.checkDeferredIsLoaded = checkDeferredIsLoaded;
-  exports.JavaScriptIndexingBehavior = JavaScriptIndexingBehavior;
   exports.TypeErrorImplementation = TypeErrorImplementation;
   exports.CastErrorImplementation = CastErrorImplementation;
   exports.FallThroughErrorImplementation = FallThroughErrorImplementation;

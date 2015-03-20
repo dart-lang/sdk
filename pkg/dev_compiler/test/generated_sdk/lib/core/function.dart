@@ -33,11 +33,11 @@ abstract class Function {
    * If [positionalArguments] is null, it's considered an empty list.
    * If [namedArguments] is omitted or null, it is considered an empty map.
    */
-  static apply(Function function,
+  static apply(Function f,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
     return Primitives.applyFunction(
-        function, positionalArguments,
+        f, positionalArguments,
         namedArguments == null ? null : _toMangledNames(namedArguments));
   }
 

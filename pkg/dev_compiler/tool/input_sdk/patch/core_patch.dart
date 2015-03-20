@@ -14,6 +14,8 @@ import 'dart:_js_helper' show patch,
                               stringJoinUnchecked,
                               objectHashCode;
 
+import 'dart:_foreign_helper' show JS;
+
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
 _symbolMapToStringMap(Map<Symbol, dynamic> map) {
@@ -55,11 +57,11 @@ class Object {
 @patch
 class Function {
   @patch
-  static apply(Function function,
+  static apply(Function f,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
     return Primitives.applyFunction(
-        function, positionalArguments,
+        f, positionalArguments,
         namedArguments == null ? null : _toMangledNames(namedArguments));
   }
 
@@ -115,7 +117,9 @@ class int {
   static int parse(String source,
                          { int radix,
                            int onError(String source) }) {
-    return Primitives.parseInt(source, radix, onError);
+    // TODO(jmesserly): fix this
+    return JS('int', 'Number(#)', source);
+    //return Primitives.parseInt(source, radix, onError);
   }
 
   @patch
@@ -232,7 +236,7 @@ class Stopwatch {
   static int _now() => Primitives.timerTicks();
 }
 
-class _ListConstructorSentinel extends JSInt {
+class _ListConstructorSentinel {
   const _ListConstructorSentinel();
 }
 
@@ -260,12 +264,16 @@ class List<E> {
 
   @patch
   factory List.from(Iterable elements, { bool growable: true }) {
+    // TODO(jmesserly): fix this. This is just to unblock initial SDK check in.
+    return null;
+    /*
     List<E> list = new List<E>();
     for (E e in elements) {
       list.add(e);
     }
     if (growable) return list;
     return makeListFixedLength(list);
+    */
   }
 }
 

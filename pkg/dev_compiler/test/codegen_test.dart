@@ -12,12 +12,14 @@ import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
-import 'package:dev_compiler/devc.dart';
-import 'package:dev_compiler/src/options.dart';
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
+
+import 'package:dev_compiler/devc.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/dependency_graph.dart'
+    show defaultRuntimeFiles;
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
@@ -114,38 +116,37 @@ main(arguments) {
     });
   }
 
-  group('sdk', () {
-    // The analyzer does not bubble exception messages for certain internal
-    // dart:* library failures, such as failing to find
-    // "_internal/libraries.dart". Instead it produces an opaque "failed to
-    // instantiate dart:core" message. To remedy this we hook up an analysis
-    // logger that prints these messages.
-    var savedLogger;
-    setUp(() {
-      savedLogger = AnalysisEngine.instance.logger;
-      AnalysisEngine.instance.logger = new PrintLogger();
-    });
-    tearDown(() {
-      AnalysisEngine.instance.logger = savedLogger;
-    });
+  if (dartGen) {
+    group('sdk', () {
+      // The analyzer does not bubble exception messages for certain internal
+      // dart:* library failures, such as failing to find
+      // "_internal/libraries.dart". Instead it produces an opaque "failed to
+      // instantiate dart:core" message. To remedy this we hook up an analysis
+      // logger that prints these messages.
+      var savedLogger;
+      setUp(() {
+        savedLogger = AnalysisEngine.instance.logger;
+        AnalysisEngine.instance.logger = new PrintLogger();
+      });
+      tearDown(() {
+        AnalysisEngine.instance.logger = savedLogger;
+      });
 
-    test('devc dart:core', () {
-      // Get the test SDK. We use a checked in copy so test expectations can be
-      // generated against a specific SDK version.
-      // TODO(jmesserly): eventually we should track compiler messages.
-      // For now we're just trying to get decent code generation.
-      var testSdk = dartGen
-          ? path.join(testDir, '..', 'tool', 'input_sdk')
-          : path.join(testDir, 'generated_sdk');
-      var result = compile('dart:core', testSdk, checkSdk: true);
-      var outputDir = new Directory(path.join(actualDir, 'core'));
-      var outFile = dartGen
-          ? new File(path.join(actualDir, 'core/core'))
-          : new File(path.join(actualDir, 'dart/core.js'));
-      expect(outFile.existsSync(), true,
-          reason: '${outFile.path} was created for dart:core');
+      test('devc dart:core', () {
+        // Get the test SDK. We use a checked in copy so test expectations can
+        // be generated against a specific SDK version.
+        var testSdk = path.join(testDir, '..', 'tool', 'input_sdk');
+        var result = compile('dart:core', testSdk, checkSdk: true);
+        var outputDir = new Directory(path.join(actualDir, 'core'));
+        var outFile = new File(path.join(actualDir, 'core/core'));
+        expect(outFile.existsSync(), true,
+            reason: '${outFile.path} was created for dart:core');
+      });
     });
-  });
+  }
+
+  var expectedRuntime =
+      defaultRuntimeFiles.map((f) => 'dev_compiler/runtime/$f');
 
   if (!dartGen) {
     test('devc jscodegen sunflower.html', () {
@@ -164,10 +165,8 @@ main(arguments) {
         'sunflower.js',
         'sunflower.css',
         'math.png',
-        'dev_compiler/runtime/dart_core.js',
-        'dev_compiler/runtime/dart_runtime.js',
-        'dev_compiler/runtime/harmony_feature_check.js',
-      ];
+      ]..addAll(expectedRuntime);
+
       for (var filepath in expectedFiles) {
         var outFile = new File(path.join(actualDir, 'sunflower', filepath));
         expect(outFile.existsSync(), success,
@@ -192,11 +191,9 @@ main(arguments) {
         'dir/html_input_b.js',
         'dir/html_input_c.js',
         'dir/html_input_d.js',
-        'dir/html_input_e.js',
-        'dev_compiler/runtime/dart_core.js',
-        'dev_compiler/runtime/dart_runtime.js',
-        'dev_compiler/runtime/harmony_feature_check.js',
-      ];
+        'dir/html_input_e.js'
+      ]..addAll(expectedRuntime);
+
       for (var filepath in expectedFiles) {
         var outFile = new File(path.join(actualDir, filepath));
         expect(outFile.existsSync(), success,
@@ -233,12 +230,10 @@ main(arguments) {
         'dir/html_input_c.js',
         'dir/html_input_d.js',
         'dir/html_input_e.js',
-        'dev_compiler/runtime/dart_core.js',
-        'dev_compiler/runtime/dart_runtime.js',
-        'dev_compiler/runtime/harmony_feature_check.js',
         'dev_compiler/runtime/messages_widget.js',
         'dev_compiler/runtime/messages.css'
-      ];
+      ]..addAll(expectedRuntime);
+
       for (var filepath in expectedFiles) {
         var outFile = new File(path.join(actualDir, 'server_mode', filepath));
         expect(outFile.existsSync(), success,

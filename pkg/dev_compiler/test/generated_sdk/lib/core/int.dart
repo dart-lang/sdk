@@ -278,6 +278,8 @@ abstract class int extends num {
   static int parse(String source,
                          { int radix,
                            int onError(String source) }) {
-    return Primitives.parseInt(source, radix, onError);
+    // TODO(jmesserly): fix this
+    return JS('int', 'Number(#)', source);
+    //return Primitives.parseInt(source, radix, onError);
   }
 }

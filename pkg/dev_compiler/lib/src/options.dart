@@ -196,7 +196,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final bool emitSourceMaps;
 
-  /// Location for runtime files, such as `dart_core.js`. By default this is
+  /// Location for runtime files, such as `dart_runtime.js`. By default this is
   /// inferred to be under `lib/runtime/` in the location of the `dev_compiler`
   /// package (if we can infer where that is located).
   final String runtimeDir;

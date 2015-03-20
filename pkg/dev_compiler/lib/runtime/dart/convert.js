@@ -46,7 +46,7 @@ var convert;
   });
   class AsciiCodec extends Encoding {
     AsciiCodec(opt$) {
-      let allowInvalid = opt$.allowInvalid === void 0 ? false : opt$.allowInvalid;
+      let allowInvalid = opt$ && 'allowInvalid' in opt$ ? opt$.allowInvalid : false;
       this[_allowInvalid] = allowInvalid;
       super.Encoding();
     }
@@ -54,7 +54,7 @@ var convert;
       return "us-ascii";
     }
     decode(bytes, opt$) {
-      let allowInvalid = opt$.allowInvalid === void 0 ? null : opt$.allowInvalid;
+      let allowInvalid = opt$ && 'allowInvalid' in opt$ ? opt$.allowInvalid : null;
       if (allowInvalid === null)
         allowInvalid = this[_allowInvalid];
       if (allowInvalid) {
@@ -209,7 +209,7 @@ var convert;
   }
   class AsciiDecoder extends _UnicodeSubsetDecoder {
     AsciiDecoder(opt$) {
-      let allowInvalid = opt$.allowInvalid === void 0 ? false : opt$.allowInvalid;
+      let allowInvalid = opt$ && 'allowInvalid' in opt$ ? opt$.allowInvalid : false;
       super._UnicodeSubsetDecoder(allowInvalid, _ASCII_MASK);
     }
     startChunkedConversion(sink) {
@@ -582,7 +582,7 @@ var convert;
   }
   class JsonUnsupportedObjectError extends core.Error {
     JsonUnsupportedObjectError(unsupportedObject, opt$) {
-      let cause = opt$.cause === void 0 ? null : opt$.cause;
+      let cause = opt$ && 'cause' in opt$ ? opt$.cause : null;
       this.unsupportedObject = unsupportedObject;
       this.cause = cause;
       super.Error();
@@ -608,8 +608,8 @@ var convert;
   let _toEncodable = Symbol('_toEncodable');
   class JsonCodec extends Codec$(core.Object, core.String) {
     JsonCodec(opt$) {
-      let reviver = opt$.reviver === void 0 ? null : opt$.reviver;
-      let toEncodable = opt$.toEncodable === void 0 ? null : opt$.toEncodable;
+      let reviver = opt$ && 'reviver' in opt$ ? opt$.reviver : null;
+      let toEncodable = opt$ && 'toEncodable' in opt$ ? opt$.toEncodable : null;
       this[_reviver] = reviver;
       this[_toEncodable] = toEncodable;
       super.Codec();
@@ -618,7 +618,7 @@ var convert;
       this.JsonCodec({reviver: reviver});
     }
     decode(source, opt$) {
-      let reviver = opt$.reviver === void 0 ? null : opt$.reviver;
+      let reviver = opt$ && 'reviver' in opt$ ? opt$.reviver : null;
       if (reviver === null)
         reviver = this[_reviver];
       if (reviver === null)
@@ -626,7 +626,7 @@ var convert;
       return new JsonDecoder(reviver).convert(source);
     }
     encode(value, opt$) {
-      let toEncodable = opt$.toEncodable === void 0 ? null : opt$.toEncodable;
+      let toEncodable = opt$ && 'toEncodable' in opt$ ? opt$.toEncodable : null;
       if (toEncodable === null)
         toEncodable = this[_toEncodable];
       if (toEncodable === null)
@@ -1222,7 +1222,7 @@ var convert;
   let _LATIN1_MASK = 255;
   class Latin1Codec extends Encoding {
     Latin1Codec(opt$) {
-      let allowInvalid = opt$.allowInvalid === void 0 ? false : opt$.allowInvalid;
+      let allowInvalid = opt$ && 'allowInvalid' in opt$ ? opt$.allowInvalid : false;
       this[_allowInvalid] = allowInvalid;
       super.Encoding();
     }
@@ -1230,7 +1230,7 @@ var convert;
       return "iso-8859-1";
     }
     decode(bytes, opt$) {
-      let allowInvalid = opt$.allowInvalid === void 0 ? null : opt$.allowInvalid;
+      let allowInvalid = opt$ && 'allowInvalid' in opt$ ? opt$.allowInvalid : null;
       if (allowInvalid === null)
         allowInvalid = this[_allowInvalid];
       if (allowInvalid) {
@@ -1253,7 +1253,7 @@ var convert;
   }
   class Latin1Decoder extends _UnicodeSubsetDecoder {
     Latin1Decoder(opt$) {
-      let allowInvalid = opt$.allowInvalid === void 0 ? false : opt$.allowInvalid;
+      let allowInvalid = opt$ && 'allowInvalid' in opt$ ? opt$.allowInvalid : false;
       super._UnicodeSubsetDecoder(allowInvalid, _LATIN1_MASK);
     }
     startChunkedConversion(sink) {
@@ -1631,7 +1631,7 @@ var convert;
   let _allowMalformed = Symbol('_allowMalformed');
   class Utf8Codec extends Encoding {
     Utf8Codec(opt$) {
-      let allowMalformed = opt$.allowMalformed === void 0 ? false : opt$.allowMalformed;
+      let allowMalformed = opt$ && 'allowMalformed' in opt$ ? opt$.allowMalformed : false;
       this[_allowMalformed] = allowMalformed;
       super.Encoding();
     }
@@ -1639,7 +1639,7 @@ var convert;
       return "utf-8";
     }
     decode(codeUnits, opt$) {
-      let allowMalformed = opt$.allowMalformed === void 0 ? null : opt$.allowMalformed;
+      let allowMalformed = opt$ && 'allowMalformed' in opt$ ? opt$.allowMalformed : null;
       if (allowMalformed === null)
         allowMalformed = this[_allowMalformed];
       return new Utf8Decoder({allowMalformed: allowMalformed}).convert(codeUnits);
@@ -1812,7 +1812,7 @@ var convert;
   }
   class Utf8Decoder extends Converter$(core.List$(core.int), core.String) {
     Utf8Decoder(opt$) {
-      let allowMalformed = opt$.allowMalformed === void 0 ? false : opt$.allowMalformed;
+      let allowMalformed = opt$ && 'allowMalformed' in opt$ ? opt$.allowMalformed : false;
       this[_allowMalformed] = allowMalformed;
       super.Converter();
     }

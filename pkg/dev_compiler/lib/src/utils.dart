@@ -318,13 +318,17 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri) {
   // assume this is a runtime resource from the dev_compiler.
   if (!relativePath.startsWith('..')) return relativePath;
 
-  // Expect the code to live under lib/runtime/ in the dev_compiler's folder.
-  var filename = path.basename(filepath);
-  var dir = path.dirname(filepath);
-  if (path.basename(dir) != 'runtime') return null;
-  dir = path.dirname(dir);
-  if (path.basename(dir) != 'lib') return null;
-  dir = path.dirname(dir);
+  // Since this is a URI path we can assume forward slash and use lastIndexOf.
+  var runtimePath = '/lib/runtime/';
+  var pos = filepath.lastIndexOf(runtimePath);
+  if (pos == -1) return null;
+
+  var filename = filepath.substring(pos + runtimePath.length);
+  var dir = filepath.substring(0, pos);
+
+  // TODO(jmesserly): can we implement this without repeatedly reading pubspec?
+  // It seems like we should know our package's root directory without needing
+  // to search like this.
   var pubspec =
       loadYaml(new File(path.join(dir, 'pubspec.yaml')).readAsStringSync());
 

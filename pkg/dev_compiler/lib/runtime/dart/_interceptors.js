@@ -169,11 +169,11 @@ var _interceptors;
         return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
       }
       firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
       }
       lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
       }
       singleWhere(test) {
@@ -299,7 +299,7 @@ var _interceptors;
         return collection.ListBase.listToString(this);
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         if (growable) {
           return new JSArray.markGrowable(this.slice());
         } else {
@@ -825,8 +825,8 @@ var _interceptors;
       return this.splitMapJoin(from, {onMatch: convert});
     }
     splitMapJoin(from, opt$) {
-      let onMatch = opt$.onMatch === void 0 ? null : opt$.onMatch;
-      let onNonMatch = opt$.onNonMatch === void 0 ? null : opt$.onNonMatch;
+      let onMatch = opt$ && 'onMatch' in opt$ ? opt$.onMatch : null;
+      let onNonMatch = opt$ && 'onNonMatch' in opt$ ? opt$.onNonMatch : null;
       return dart.as(_js_helper.stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch), core.String);
     }
     replaceFirst(from, to, startIndex) {
@@ -1403,7 +1403,6 @@ var _interceptors;
   exports.dispatchRecordExtension = dispatchRecordExtension;
   exports.dispatchRecordIndexability = dispatchRecordIndexability;
   exports.getNativeInterceptor = getNativeInterceptor;
-  exports.mapTypeToInterceptor = mapTypeToInterceptor;
   exports.findIndexForNativeSubclassType = findIndexForNativeSubclassType;
   exports.findInterceptorConstructorForType = findInterceptorConstructorForType;
   exports.findConstructorForNativeSubclassType = findConstructorForNativeSubclassType;

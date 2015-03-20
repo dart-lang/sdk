@@ -465,7 +465,8 @@ class DependencyGraphError extends MessageWithSpan {
 const defaultRuntimeFiles = const [
   'harmony_feature_check.js',
   'dart_runtime.js',
-  'dart_core.js'
+  'dart/core.js',
+  'dart/math.js'
 ];
 
 /// Runtime files added to applications when running in server mode.

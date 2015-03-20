@@ -10,42 +10,54 @@ library dev_compiler.tool.patch_sdk;
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
-import 'input_sdk/lib/_internal/libraries.dart' as sdk;
-
 void main(List<String> argv) {
-  var toolDir = path.relative(path.dirname(Platform.script.path));
-  var sdkLibIn = path.join(toolDir, 'input_sdk', 'lib');
-  var patchIn = path.join(toolDir, 'input_sdk', 'patch');
-  var privateIn = path.join(toolDir, 'input_sdk', 'private');
-  var sdkOut =
-      path.normalize(path.join(toolDir, '..', 'test', 'generated_sdk', 'lib'));
+  if (argv.length < 2) {
+    var self = path.relative(Platform.script.path);
+    var toolDir = path.relative(path.dirname(Platform.script.path));
+
+    var inputExample = path.join(toolDir, 'input_sdk');
+    var outExample = path.relative(
+        path.normalize(path.join(toolDir, '..', 'test', 'generated_sdk')));
+
+    print('Usage: $self INPUT_DIR OUTPUT_DIR');
+    print('For example:');
+    print('\$ $self $inputExample $outExample');
+
+    inputExample = path.join(toolDir, 'min_sdk');
+    outExample = path.join(toolDir, 'out', 'min_sdk');
+    print('\$ $self $inputExample $outExample');
+    exit(1);
+  }
+
+  var input = argv[0];
+  var sdkLibIn = path.join(input, 'lib');
+  var patchIn = path.join(input, 'patch');
+  var privateIn = path.join(input, 'private');
+  var sdkOut = path.join(argv[1], 'lib');
   var privateLibOut =
       path.normalize(path.join(sdkOut, '_internal', 'compiler', 'js_lib'));
 
   var INTERNAL_PATH = '_internal/compiler/js_lib/';
 
-  if (argv.isNotEmpty) {
-    print('Usage: ${path.relative(Platform.script.path)}\n');
-    print('input SDK directory: $sdkLibIn');
-    // We can freely make changes to these two.
-    print('input private libs directory: $privateIn');
-    print('input patch directory: $patchIn');
-    print('output SDK directory: $sdkOut');
-    exit(1);
-  }
-
   // Copy libraries.dart and version
-  _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'),
-      new File(path.join(sdkLibIn, '_internal', 'libraries.dart'))
-          .readAsStringSync());
+  var libContents = new File(path.join(sdkLibIn, '_internal', 'libraries.dart'))
+      .readAsStringSync();
+  _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
   _writeSync(path.join(sdkOut, '..', 'version'),
       new File(path.join(sdkLibIn, '..', 'version')).readAsStringSync());
 
+  // Parse libraries.dart
+  var sdkLibraries = _getSdkLibraries(libContents);
+
   // Enumerate core libraries and apply patches
-  for (var library in sdk.LIBRARIES.values) {
-    if (library.platforms & sdk.DART2JS_PLATFORM == 0) continue;
+  for (SdkLibrary library in sdkLibraries) {
+    // TODO(jmesserly): analyzer does not handle the default case of
+    // "both platforms" correctly, and treats it as being supported on neither.
+    // So instead we skip explicitly marked as VM libs.
+    if (library.isVmLibrary) continue;
 
     var libraryOut = path.join(sdkLibIn, library.path);
     var libraryIn;
@@ -72,11 +84,12 @@ void main(List<String> argv) {
         }
       }
 
-      if (library.dart2jsPatchPath != null) {
-        var patchPath = path.join(
-            patchIn, library.dart2jsPatchPath.replaceAll(INTERNAL_PATH, ''));
-        var patchContents = new File(patchPath).readAsStringSync();
+      // See if we can find a patch file.
+      var patchPath = path.join(
+          patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
 
+      if (new File(patchPath).existsSync()) {
+        var patchContents = new File(patchPath).readAsStringSync();
         contents = _patchLibrary(contents, patchContents);
       }
       for (var i = 0; i < paths.length; i++) {
@@ -90,8 +103,6 @@ void main(List<String> argv) {
 
 /// Writes a file, creating the directory if needed.
 void _writeSync(String filePath, String contents) {
-  print('Writing $filePath');
-
   var outDir = new Directory(path.dirname(filePath));
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
@@ -197,7 +208,10 @@ class PatchApplier extends GeneralizingAstVisitor {
 
     var name = _qualifiedName(node);
     var patchNode = patch.patches[name];
-    if (patchNode == null) throw 'patch not found for $name: $node';
+    if (patchNode == null) {
+      print('warning: patch not found for $name: $node');
+      return;
+    }
 
     Annotation patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
     int start = patchMeta.endToken.next.offset;
@@ -258,10 +272,6 @@ class PatchFinder extends GeneralizingAstVisitor {
 }
 
 String _qualifiedName(Declaration node) {
-  assert(node is MethodDeclaration ||
-      node is FunctionDeclaration ||
-      node is ConstructorDeclaration);
-
   var parent = node.parent;
   var className = '';
   if (parent is ClassDeclaration) {
@@ -367,4 +377,10 @@ class _StringEdit implements Comparable<_StringEdit> {
     if (diff != 0) return diff;
     return end - other.end;
   }
+}
+
+List<SdkLibrary> _getSdkLibraries(String contents) {
+  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(true);
+  parseCompilationUnit(contents).accept(libraryBuilder);
+  return libraryBuilder.librariesMap.sdkLibraries;
 }

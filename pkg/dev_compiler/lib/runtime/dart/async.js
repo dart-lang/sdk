@@ -124,8 +124,8 @@ var async;
         return false;
       }
       asBroadcastStream(opt$) {
-        let onListen = opt$.onListen === void 0 ? null : opt$.onListen;
-        let onCancel = opt$.onCancel === void 0 ? null : opt$.onCancel;
+        let onListen = opt$ && 'onListen' in opt$ ? opt$.onListen : null;
+        let onCancel = opt$ && 'onCancel' in opt$ ? opt$.onCancel : null;
         return new _AsBroadcastStream(this, dart.closureWrap(onListen, "(StreamSubscription<dynamic>) → void"), dart.closureWrap(onCancel, "(StreamSubscription<dynamic>) → void"));
       }
       where(test) {
@@ -215,7 +215,7 @@ var async;
         return controller.stream;
       }
       handleError(onError, opt$) {
-        let test = opt$.test === void 0 ? null : opt$.test;
+        let test = opt$ && 'test' in opt$ ? opt$.test : null;
         return new _HandleErrorStream(this, onError, test);
       }
       expand(convert) {
@@ -489,7 +489,7 @@ var async;
         return future;
       }
       firstWhere(test, opt$) {
-        let defaultValue = opt$.defaultValue === void 0 ? null : opt$.defaultValue;
+        let defaultValue = opt$ && 'defaultValue' in opt$ ? opt$.defaultValue : null;
         let future = new _Future();
         let subscription = null;
         subscription = this.listen((value) => {
@@ -514,7 +514,7 @@ var async;
         return future;
       }
       lastWhere(test, opt$) {
-        let defaultValue = opt$.defaultValue === void 0 ? null : opt$.defaultValue;
+        let defaultValue = opt$ && 'defaultValue' in opt$ ? opt$.defaultValue : null;
         let future = new _Future();
         let result = null;
         let foundResult = false;
@@ -600,7 +600,7 @@ var async;
         return future;
       }
       timeout(timeLimit, opt$) {
-        let onTimeout = opt$.onTimeout === void 0 ? null : opt$.onTimeout;
+        let onTimeout = opt$ && 'onTimeout' in opt$ ? opt$.onTimeout : null;
         let controller = null;
         let subscription = null;
         let timer = null;
@@ -671,9 +671,9 @@ var async;
   let _StreamImpl$ = dart.generic(function(T) {
     class _StreamImpl extends Stream$(T) {
       listen(onData, opt$) {
-        let onError = opt$.onError === void 0 ? null : opt$.onError;
-        let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
-        let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
+        let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
+        let onDone = opt$ && 'onDone' in opt$ ? opt$.onDone : null;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = this[_createSubscription](onData, onError, onDone, cancelOnError);
         this[_onListen](subscription);
@@ -1288,7 +1288,7 @@ var async;
         return this[_ensureDoneFuture]();
       }
       addStream(stream, opt$) {
-        let cancelOnError = opt$.cancelOnError === void 0 ? true : opt$.cancelOnError;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_addEventError]();
         this[_state] = _BroadcastStreamController._STATE_ADDSTREAM;
@@ -1533,7 +1533,7 @@ var async;
   let _DoneSubscription = _DoneSubscription$(dart.dynamic);
   class DeferredLibrary extends core.Object {
     DeferredLibrary(libraryName, opt$) {
-      let uri = opt$.uri === void 0 ? null : opt$.uri;
+      let uri = opt$ && 'uri' in opt$ ? opt$.uri : null;
       this.libraryName = libraryName;
       this.uri = uri;
     }
@@ -1622,8 +1622,8 @@ var async;
         return dart.as(result, Future$(T));
       }
       static wait(futures, opt$) {
-        let eagerError = opt$.eagerError === void 0 ? false : opt$.eagerError;
-        let cleanUp = opt$.cleanUp === void 0 ? null : opt$.cleanUp;
+        let eagerError = opt$ && 'eagerError' in opt$ ? opt$.eagerError : false;
+        let cleanUp = opt$ && 'cleanUp' in opt$ ? opt$.cleanUp : null;
         let result = new _Future();
         let values = null;
         let remaining = 0;
@@ -1956,7 +1956,7 @@ var async;
         }
       }
       then(f, opt$) {
-        let onError = opt$.onError === void 0 ? null : opt$.onError;
+        let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
         let result = new _Future();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           f = dart.closureWrap(result[_zone].registerUnaryCallback(f), "(T) → dynamic");
@@ -1968,7 +1968,7 @@ var async;
         return result;
       }
       catchError(onError, opt$) {
-        let test = opt$.test === void 0 ? null : opt$.test;
+        let test = opt$ && 'test' in opt$ ? opt$.test : null;
         let result = new _Future();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           onError = _registerErrorHandler(onError, result[_zone]);
@@ -2288,7 +2288,7 @@ var async;
         }
       }
       timeout(timeLimit, opt$) {
-        let onTimeout = opt$.onTimeout === void 0 ? null : opt$.onTimeout;
+        let onTimeout = opt$ && 'onTimeout' in opt$ ? opt$.onTimeout : null;
         if (this[_isComplete])
           return new _Future.immediate(this);
         let result = new _Future();
@@ -2497,14 +2497,14 @@ var async;
         return this[_stream].isBroadcast;
       }
       asBroadcastStream(opt$) {
-        let onListen = opt$.onListen === void 0 ? null : opt$.onListen;
-        let onCancel = opt$.onCancel === void 0 ? null : opt$.onCancel;
+        let onListen = opt$ && 'onListen' in opt$ ? opt$.onListen : null;
+        let onCancel = opt$ && 'onCancel' in opt$ ? opt$.onCancel : null;
         return this[_stream].asBroadcastStream({onListen: onListen, onCancel: onCancel});
       }
       listen(onData, opt$) {
-        let onError = opt$.onError === void 0 ? null : opt$.onError;
-        let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
-        let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
+        let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
+        let onDone = opt$ && 'onDone' in opt$ ? opt$.onDone : null;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : null;
         return this[_stream].listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
       }
     }
@@ -2568,20 +2568,20 @@ var async;
   let StreamController$ = dart.generic(function(T) {
     class StreamController extends core.Object {
       StreamController(opt$) {
-        let onListen = opt$.onListen === void 0 ? null : opt$.onListen;
-        let onPause = opt$.onPause === void 0 ? null : opt$.onPause;
-        let onResume = opt$.onResume === void 0 ? null : opt$.onResume;
-        let onCancel = opt$.onCancel === void 0 ? null : opt$.onCancel;
-        let sync = opt$.sync === void 0 ? false : opt$.sync;
+        let onListen = opt$ && 'onListen' in opt$ ? opt$.onListen : null;
+        let onPause = opt$ && 'onPause' in opt$ ? opt$.onPause : null;
+        let onResume = opt$ && 'onResume' in opt$ ? opt$.onResume : null;
+        let onCancel = opt$ && 'onCancel' in opt$ ? opt$.onCancel : null;
+        let sync = opt$ && 'sync' in opt$ ? opt$.sync : false;
         if (dart.notNull(onListen === null) && dart.notNull(onPause === null) && dart.notNull(onResume === null) && dart.notNull(onCancel === null)) {
           return dart.as(sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController(), StreamController$(T));
         }
         return sync ? new _SyncStreamController(onListen, onPause, onResume, onCancel) : new _AsyncStreamController(onListen, onPause, onResume, onCancel);
       }
       StreamController$broadcast(opt$) {
-        let onListen = opt$.onListen === void 0 ? null : opt$.onListen;
-        let onCancel = opt$.onCancel === void 0 ? null : opt$.onCancel;
-        let sync = opt$.sync === void 0 ? false : opt$.sync;
+        let onListen = opt$ && 'onListen' in opt$ ? opt$.onListen : null;
+        let onCancel = opt$ && 'onCancel' in opt$ ? opt$.onCancel : null;
+        let sync = opt$ && 'sync' in opt$ ? opt$.sync : false;
         return sync ? new _SyncBroadcastStreamController(onListen, onCancel) : new _AsyncBroadcastStreamController(onListen, onCancel);
       }
     }
@@ -2678,7 +2678,7 @@ var async;
         return new core.StateError("Cannot add event while adding a stream");
       }
       addStream(source, opt$) {
-        let cancelOnError = opt$.cancelOnError === void 0 ? true : opt$.cancelOnError;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_badEventState]();
         if (this[_isCanceled])
@@ -2941,7 +2941,7 @@ var async;
         return this[_target].close();
       }
       addStream(source, opt$) {
-        let cancelOnError = opt$.cancelOnError === void 0 ? true : opt$.cancelOnError;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : true;
         return this[_target].addStream(source, {cancelOnError: cancelOnError});
       }
       get done() {
@@ -3309,9 +3309,9 @@ var async;
         return true;
       }
       listen(onData, opt$) {
-        let onError = opt$.onError === void 0 ? null : opt$.onError;
-        let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
-        let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
+        let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
+        let onDone = opt$ && 'onDone' in opt$ ? opt$.onDone : null;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : null;
         if (dart.notNull(this[_controller] === null) || dart.notNull(this[_controller].isClosed)) {
           return new _DoneStreamSubscription(onDone);
         }
@@ -3576,9 +3576,9 @@ var async;
         return this[_source].isBroadcast;
       }
       listen(onData, opt$) {
-        let onError = opt$.onError === void 0 ? null : opt$.onError;
-        let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
-        let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
+        let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
+        let onDone = opt$ && 'onDone' in opt$ ? opt$.onDone : null;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         return this[_createSubscription](onData, onError, onDone, cancelOnError);
       }
@@ -4040,9 +4040,9 @@ var async;
         super.Stream();
       }
       listen(onData, opt$) {
-        let onError = opt$.onError === void 0 ? null : opt$.onError;
-        let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
-        let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
+        let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
+        let onDone = opt$ && 'onDone' in opt$ ? opt$.onDone : null;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = dart.as(new _SinkTransformerStreamSubscription(this[_stream], dart.closureWrap(this[_sinkMapper], "(EventSink<dynamic>) → EventSink"), onData, onError, onDone, cancelOnError), StreamSubscription$(T));
         return subscription;
@@ -4080,9 +4080,9 @@ var async;
   let _StreamHandlerTransformer$ = dart.generic(function(S, T) {
     class _StreamHandlerTransformer extends _StreamSinkTransformer$(S, T) {
       _StreamHandlerTransformer(opt$) {
-        let handleData = opt$.handleData === void 0 ? null : opt$.handleData;
-        let handleError = opt$.handleError === void 0 ? null : opt$.handleError;
-        let handleDone = opt$.handleDone === void 0 ? null : opt$.handleDone;
+        let handleData = opt$ && 'handleData' in opt$ ? opt$.handleData : null;
+        let handleError = opt$ && 'handleError' in opt$ ? opt$.handleError : null;
+        let handleDone = opt$ && 'handleDone' in opt$ ? opt$.handleDone : null;
         super._StreamSinkTransformer(dart.closureWrap((outputSink) => {
           if (handleData === null)
             handleData = dart.closureWrap(_defaultHandleData, "(S, EventSink<T>) → void");
@@ -4130,9 +4130,9 @@ var async;
         super.Stream();
       }
       listen(onData, opt$) {
-        let onError = opt$.onError === void 0 ? null : opt$.onError;
-        let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
-        let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
+        let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
+        let onDone = opt$ && 'onDone' in opt$ ? opt$.onDone : null;
+        let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let result = this[_transformer](this[_stream], cancelOnError);
         result.onData(onData);
@@ -4187,38 +4187,38 @@ var async;
       return new _ZoneSpecification(opt$);
     }
     ZoneSpecification$from(other, opt$) {
-      let handleUncaughtError = opt$.handleUncaughtError === void 0 ? null : opt$.handleUncaughtError;
-      let run = opt$.run === void 0 ? null : opt$.run;
-      let runUnary = opt$.runUnary === void 0 ? null : opt$.runUnary;
-      let runBinary = opt$.runBinary === void 0 ? null : opt$.runBinary;
-      let registerCallback = opt$.registerCallback === void 0 ? null : opt$.registerCallback;
-      let registerUnaryCallback = opt$.registerUnaryCallback === void 0 ? null : opt$.registerUnaryCallback;
-      let registerBinaryCallback = opt$.registerBinaryCallback === void 0 ? null : opt$.registerBinaryCallback;
-      let errorCallback = opt$.errorCallback === void 0 ? null : opt$.errorCallback;
-      let scheduleMicrotask = opt$.scheduleMicrotask === void 0 ? null : opt$.scheduleMicrotask;
-      let createTimer = opt$.createTimer === void 0 ? null : opt$.createTimer;
-      let createPeriodicTimer = opt$.createPeriodicTimer === void 0 ? null : opt$.createPeriodicTimer;
-      let print = opt$.print === void 0 ? null : opt$.print;
-      let fork = opt$.fork === void 0 ? null : opt$.fork;
+      let handleUncaughtError = opt$ && 'handleUncaughtError' in opt$ ? opt$.handleUncaughtError : null;
+      let run = opt$ && 'run' in opt$ ? opt$.run : null;
+      let runUnary = opt$ && 'runUnary' in opt$ ? opt$.runUnary : null;
+      let runBinary = opt$ && 'runBinary' in opt$ ? opt$.runBinary : null;
+      let registerCallback = opt$ && 'registerCallback' in opt$ ? opt$.registerCallback : null;
+      let registerUnaryCallback = opt$ && 'registerUnaryCallback' in opt$ ? opt$.registerUnaryCallback : null;
+      let registerBinaryCallback = opt$ && 'registerBinaryCallback' in opt$ ? opt$.registerBinaryCallback : null;
+      let errorCallback = opt$ && 'errorCallback' in opt$ ? opt$.errorCallback : null;
+      let scheduleMicrotask = opt$ && 'scheduleMicrotask' in opt$ ? opt$.scheduleMicrotask : null;
+      let createTimer = opt$ && 'createTimer' in opt$ ? opt$.createTimer : null;
+      let createPeriodicTimer = opt$ && 'createPeriodicTimer' in opt$ ? opt$.createPeriodicTimer : null;
+      let print = opt$ && 'print' in opt$ ? opt$.print : null;
+      let fork = opt$ && 'fork' in opt$ ? opt$.fork : null;
       return new ZoneSpecification({handleUncaughtError: dart.as(handleUncaughtError !== null ? handleUncaughtError : other.handleUncaughtError, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, dynamic, StackTrace) → dynamic")), run: dart.as(run !== null ? run : other.run, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, () → dynamic) → dynamic")), runUnary: dart.as(runUnary !== null ? runUnary : other.runUnary, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic) → dynamic, dynamic) → dynamic")), runBinary: dart.as(runBinary !== null ? runBinary : other.runBinary, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic, dynamic, dynamic) → dynamic")), registerCallback: dart.as(registerCallback !== null ? registerCallback : other.registerCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, () → dynamic) → ZoneCallback")), registerUnaryCallback: dart.as(registerUnaryCallback !== null ? registerUnaryCallback : other.registerUnaryCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic) → dynamic) → ZoneUnaryCallback")), registerBinaryCallback: dart.as(registerBinaryCallback !== null ? registerBinaryCallback : other.registerBinaryCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic) → ZoneBinaryCallback")), errorCallback: dart.as(errorCallback !== null ? errorCallback : other.errorCallback, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, Object, StackTrace) → AsyncError")), scheduleMicrotask: dart.as(scheduleMicrotask !== null ? scheduleMicrotask : other.scheduleMicrotask, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, () → dynamic) → void")), createTimer: dart.as(createTimer !== null ? createTimer : other.createTimer, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, Duration, () → void) → Timer")), createPeriodicTimer: dart.as(createPeriodicTimer !== null ? createPeriodicTimer : other.createPeriodicTimer, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, Duration, (Timer) → void) → Timer")), print: dart.as(print !== null ? print : other.print, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, String) → void")), fork: dart.as(fork !== null ? fork : other.fork, dart.throw_("Unimplemented type (Zone, ZoneDelegate, Zone, ZoneSpecification, Map<dynamic, dynamic>) → Zone"))});
     }
   }
   dart.defineNamedConstructor(ZoneSpecification, 'from');
   class _ZoneSpecification extends core.Object {
     _ZoneSpecification(opt$) {
-      let handleUncaughtError = opt$.handleUncaughtError === void 0 ? null : opt$.handleUncaughtError;
-      let run = opt$.run === void 0 ? null : opt$.run;
-      let runUnary = opt$.runUnary === void 0 ? null : opt$.runUnary;
-      let runBinary = opt$.runBinary === void 0 ? null : opt$.runBinary;
-      let registerCallback = opt$.registerCallback === void 0 ? null : opt$.registerCallback;
-      let registerUnaryCallback = opt$.registerUnaryCallback === void 0 ? null : opt$.registerUnaryCallback;
-      let registerBinaryCallback = opt$.registerBinaryCallback === void 0 ? null : opt$.registerBinaryCallback;
-      let errorCallback = opt$.errorCallback === void 0 ? null : opt$.errorCallback;
-      let scheduleMicrotask = opt$.scheduleMicrotask === void 0 ? null : opt$.scheduleMicrotask;
-      let createTimer = opt$.createTimer === void 0 ? null : opt$.createTimer;
-      let createPeriodicTimer = opt$.createPeriodicTimer === void 0 ? null : opt$.createPeriodicTimer;
-      let print = opt$.print === void 0 ? null : opt$.print;
-      let fork = opt$.fork === void 0 ? null : opt$.fork;
+      let handleUncaughtError = opt$ && 'handleUncaughtError' in opt$ ? opt$.handleUncaughtError : null;
+      let run = opt$ && 'run' in opt$ ? opt$.run : null;
+      let runUnary = opt$ && 'runUnary' in opt$ ? opt$.runUnary : null;
+      let runBinary = opt$ && 'runBinary' in opt$ ? opt$.runBinary : null;
+      let registerCallback = opt$ && 'registerCallback' in opt$ ? opt$.registerCallback : null;
+      let registerUnaryCallback = opt$ && 'registerUnaryCallback' in opt$ ? opt$.registerUnaryCallback : null;
+      let registerBinaryCallback = opt$ && 'registerBinaryCallback' in opt$ ? opt$.registerBinaryCallback : null;
+      let errorCallback = opt$ && 'errorCallback' in opt$ ? opt$.errorCallback : null;
+      let scheduleMicrotask = opt$ && 'scheduleMicrotask' in opt$ ? opt$.scheduleMicrotask : null;
+      let createTimer = opt$ && 'createTimer' in opt$ ? opt$.createTimer : null;
+      let createPeriodicTimer = opt$ && 'createPeriodicTimer' in opt$ ? opt$.createPeriodicTimer : null;
+      let print = opt$ && 'print' in opt$ ? opt$.print : null;
+      let fork = opt$ && 'fork' in opt$ ? opt$.fork : null;
       this.handleUncaughtError = handleUncaughtError;
       this.run = run;
       this.runUnary = runUnary;
@@ -4429,7 +4429,7 @@ var async;
 
     }
     bindCallback(f, opt$) {
-      let runGuarded = opt$.runGuarded === void 0 ? true : opt$.runGuarded;
+      let runGuarded = opt$ && 'runGuarded' in opt$ ? opt$.runGuarded : true;
       let registered = this.registerCallback(f);
       if (runGuarded) {
         return (() => this.runGuarded(registered)).bind(this);
@@ -4438,7 +4438,7 @@ var async;
       }
     }
     bindUnaryCallback(f, opt$) {
-      let runGuarded = opt$.runGuarded === void 0 ? true : opt$.runGuarded;
+      let runGuarded = opt$ && 'runGuarded' in opt$ ? opt$.runGuarded : true;
       let registered = this.registerUnaryCallback(f);
       if (runGuarded) {
         return ((arg) => this.runUnaryGuarded(registered, arg)).bind(this);
@@ -4447,7 +4447,7 @@ var async;
       }
     }
     bindBinaryCallback(f, opt$) {
-      let runGuarded = opt$.runGuarded === void 0 ? true : opt$.runGuarded;
+      let runGuarded = opt$ && 'runGuarded' in opt$ ? opt$.runGuarded : true;
       let registered = this.registerBinaryCallback(f);
       if (runGuarded) {
         return ((arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2)).bind(this);
@@ -4476,8 +4476,8 @@ var async;
       return dart.dinvokef(implementation['function'], implementation.zone, parentDelegate, this, error, stackTrace);
     }
     fork(opt$) {
-      let specification = opt$.specification === void 0 ? null : opt$.specification;
-      let zoneValues = opt$.zoneValues === void 0 ? null : opt$.zoneValues;
+      let specification = opt$ && 'specification' in opt$ ? opt$.specification : null;
+      let zoneValues = opt$ && 'zoneValues' in opt$ ? opt$.zoneValues : null;
       let implementation = this[_fork];
       dart.assert(implementation !== null);
       let parentDelegate = _parentDelegate(implementation.zone);
@@ -4793,7 +4793,7 @@ var async;
 
     }
     bindCallback(f, opt$) {
-      let runGuarded = opt$.runGuarded === void 0 ? true : opt$.runGuarded;
+      let runGuarded = opt$ && 'runGuarded' in opt$ ? opt$.runGuarded : true;
       if (runGuarded) {
         return (() => this.runGuarded(f)).bind(this);
       } else {
@@ -4801,7 +4801,7 @@ var async;
       }
     }
     bindUnaryCallback(f, opt$) {
-      let runGuarded = opt$.runGuarded === void 0 ? true : opt$.runGuarded;
+      let runGuarded = opt$ && 'runGuarded' in opt$ ? opt$.runGuarded : true;
       if (runGuarded) {
         return ((arg) => this.runUnaryGuarded(f, arg)).bind(this);
       } else {
@@ -4809,7 +4809,7 @@ var async;
       }
     }
     bindBinaryCallback(f, opt$) {
-      let runGuarded = opt$.runGuarded === void 0 ? true : opt$.runGuarded;
+      let runGuarded = opt$ && 'runGuarded' in opt$ ? opt$.runGuarded : true;
       if (runGuarded) {
         return ((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2)).bind(this);
       } else {
@@ -4823,8 +4823,8 @@ var async;
       return _rootHandleUncaughtError(null, null, this, error, stackTrace);
     }
     fork(opt$) {
-      let specification = opt$.specification === void 0 ? null : opt$.specification;
-      let zoneValues = opt$.zoneValues === void 0 ? null : opt$.zoneValues;
+      let specification = opt$ && 'specification' in opt$ ? opt$.specification : null;
+      let zoneValues = opt$ && 'zoneValues' in opt$ ? opt$.zoneValues : null;
       return _rootFork(null, null, this, specification, zoneValues);
     }
     run(f) {
@@ -4877,9 +4877,9 @@ var async;
   let _ROOT_ZONE = new _RootZone();
   // Function runZoned: (() → dynamic, {zoneValues: Map<dynamic, dynamic>, zoneSpecification: ZoneSpecification, onError: Function}) → dynamic
   function runZoned(body, opt$) {
-    let zoneValues = opt$.zoneValues === void 0 ? null : opt$.zoneValues;
-    let zoneSpecification = opt$.zoneSpecification === void 0 ? null : opt$.zoneSpecification;
-    let onError = opt$.onError === void 0 ? null : opt$.onError;
+    let zoneValues = opt$ && 'zoneValues' in opt$ ? opt$.zoneValues : null;
+    let zoneSpecification = opt$ && 'zoneSpecification' in opt$ ? opt$.zoneSpecification : null;
+    let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
     let errorHandler = null;
     if (onError !== null) {
       errorHandler = (self, parent, zone, error, stackTrace) => {

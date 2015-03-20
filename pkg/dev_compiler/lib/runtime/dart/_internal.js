@@ -74,7 +74,7 @@ var _internal;
         return false;
       }
       firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.elementAt(i);
@@ -89,7 +89,7 @@ var _internal;
         throw IterableElementError.noElement();
       }
       lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = this.elementAt(i);
@@ -198,7 +198,7 @@ var _internal;
         return super.takeWhile(test);
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         let result = null;
         if (growable) {
           result = ((_) => {
@@ -292,7 +292,7 @@ var _internal;
         }
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         let start = this[_start];
         let end = this[_iterable].length;
         if (this[_endOrLength] !== null && dart.notNull(this[_endOrLength]) < dart.notNull(end))
@@ -773,19 +773,19 @@ var _internal;
         return false;
       }
       firstWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         if (orElse !== null)
           return orElse();
         throw IterableElementError.noElement();
       }
       lastWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         if (orElse !== null)
           return orElse();
         throw IterableElementError.noElement();
       }
       singleWhere(test, opt$) {
-        let orElse = opt$.orElse === void 0 ? null : opt$.orElse;
+        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
         if (orElse !== null)
           return orElse();
         throw IterableElementError.noElement();
@@ -822,7 +822,7 @@ var _internal;
         return this;
       }
       toList(opt$) {
-        let growable = opt$.growable === void 0 ? true : opt$.growable;
+        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
         return growable ? new List.from([]) : new core.List(0);
       }
       toSet() {

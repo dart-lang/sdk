@@ -23,7 +23,7 @@ var _isolate_helper;
   let _id = Symbol('_id');
   class _Serializer extends core.Object {
     _Serializer(opt$) {
-      let serializeSendPorts = opt$.serializeSendPorts === void 0 ? true : opt$.serializeSendPorts;
+      let serializeSendPorts = opt$ && 'serializeSendPorts' in opt$ ? opt$.serializeSendPorts : true;
       this.serializedObjectIds = new core.Map.identity();
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
     }
@@ -158,7 +158,7 @@ var _isolate_helper;
   let _adjustSendPorts = Symbol('_adjustSendPorts');
   class _Deserializer extends core.Object {
     _Deserializer(opt$) {
-      let adjustSendPorts = opt$.adjustSendPorts === void 0 ? true : opt$.adjustSendPorts;
+      let adjustSendPorts = opt$ && 'adjustSendPorts' in opt$ ? opt$.adjustSendPorts : true;
       this.deserializedObjects = new core.List();
       this[_adjustSendPorts] = dart.as(adjustSendPorts, core.bool);
     }
@@ -1181,9 +1181,9 @@ var _isolate_helper;
       this[_rawPort].handler = this[_controller].add;
     }
     listen(onData, opt$) {
-      let onError = opt$.onError === void 0 ? null : opt$.onError;
-      let onDone = opt$.onDone === void 0 ? null : opt$.onDone;
-      let cancelOnError = opt$.cancelOnError === void 0 ? null : opt$.cancelOnError;
+      let onError = opt$ && 'onError' in opt$ ? opt$.onError : null;
+      let onDone = opt$ && 'onDone' in opt$ ? opt$.onDone : null;
+      let cancelOnError = opt$ && 'cancelOnError' in opt$ ? opt$.cancelOnError : null;
       return this[_controller].stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
     }
     close() {
@@ -1301,9 +1301,6 @@ var _isolate_helper;
   exports.leaveJsAsync = leaveJsAsync;
   exports.isWorker = isWorker;
   exports.startRootIsolate = startRootIsolate;
-  exports.globalWindow = globalWindow;
-  exports.globalWorker = globalWorker;
-  exports.globalPostMessageDefined = globalPostMessageDefined;
   exports.IsolateNatives = IsolateNatives;
   exports.RawReceivePortImpl = RawReceivePortImpl;
   exports.ReceivePortImpl = ReceivePortImpl;

@@ -553,9 +553,7 @@ void main() {
       var node = nodeOf('/index3.html');
       expectGraph(node, '''
           index3.html
-          |-- harmony_feature_check.js
-          |-- dart_runtime.js
-          |-- dart_core.js
+          $_RUNTIME_GRAPH
           ''');
       refreshStructureAndMarks(node, graph);
       expectGraph(node, '''
@@ -566,9 +564,7 @@ void main() {
           |    |    |-- a10.dart [needs-rebuild]
           |    |-- a5.dart [needs-rebuild]
           |    |-- a6.dart (part) [needs-rebuild]
-          |-- harmony_feature_check.js [needs-rebuild]
-          |-- dart_runtime.js [needs-rebuild]
-          |-- dart_core.js [needs-rebuild]
+          $_RUNTIME_GRAPH_REBUILD
           ''');
     });
 
@@ -583,9 +579,7 @@ void main() {
           |    |    |-- a10.dart [needs-rebuild]
           |    |-- a5.dart [needs-rebuild]
           |    |-- a6.dart (part) [needs-rebuild]
-          |-- harmony_feature_check.js [needs-rebuild]
-          |-- dart_runtime.js [needs-rebuild]
-          |-- dart_core.js [needs-rebuild]
+          $_RUNTIME_GRAPH_REBUILD
           ''');
       clearMarks(node);
       expectGraph(node, '''
@@ -596,9 +590,7 @@ void main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
-          |-- harmony_feature_check.js
-          |-- dart_runtime.js
-          |-- dart_core.js
+          $_RUNTIME_GRAPH
           ''');
 
       refreshStructureAndMarks(node, graph);
@@ -610,9 +602,7 @@ void main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
-          |-- harmony_feature_check.js
-          |-- dart_runtime.js
-          |-- dart_core.js
+          $_RUNTIME_GRAPH
           ''');
     });
 
@@ -632,9 +622,7 @@ void main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
-          |-- harmony_feature_check.js
-          |-- dart_runtime.js
-          |-- dart_core.js
+          $_RUNTIME_GRAPH
           ''');
     });
 
@@ -657,9 +645,7 @@ void main() {
           |    |    |-- a8.dart [needs-rebuild] [structure-changed]
           |    |    |    |-- a8.dart...
           |    |-- a6.dart (part)
-          |-- harmony_feature_check.js
-          |-- dart_runtime.js
-          |-- dart_core.js
+          $_RUNTIME_GRAPH
           ''');
     });
   });
@@ -677,9 +663,7 @@ void main() {
       var node = nodeOf('/index3.html');
       expectGraph(node, '''
           index3.html
-          |-- harmony_feature_check.js
-          |-- dart_runtime.js
-          |-- dart_core.js
+          $_RUNTIME_GRAPH
           |-- messages_widget.js
           |-- messages.css
           ''');
@@ -692,9 +676,7 @@ void main() {
           |    |    |-- a10.dart [needs-rebuild]
           |    |-- a5.dart [needs-rebuild]
           |    |-- a6.dart (part) [needs-rebuild]
-          |-- harmony_feature_check.js [needs-rebuild]
-          |-- dart_runtime.js [needs-rebuild]
-          |-- dart_core.js [needs-rebuild]
+          $_RUNTIME_GRAPH_REBUILD
           |-- messages_widget.js [needs-rebuild]
           |-- messages.css [needs-rebuild]
           ''');
@@ -723,17 +705,9 @@ void main() {
       var node = nodeOf('/index3.html');
       rebuild(node, graph, buildNoTransitiveChange);
       // Note: a6.dart is not included because it built as part of a2.dart
-      expect(results, [
-        'a3.dart',
-        'a10.dart',
-        'a4.dart',
-        'a5.dart',
-        'a2.dart',
-        'harmony_feature_check.js',
-        'dart_runtime.js',
-        'dart_core.js',
-        'index3.html',
-      ]);
+      expect(results, ['a3.dart', 'a10.dart', 'a4.dart', 'a5.dart', 'a2.dart']
+        ..addAll(runtimeFilesWithoutPath)
+        ..add('index3.html'));
 
       // Marks are removed automatically by rebuild
       expectGraph(node, '''
@@ -744,9 +718,7 @@ void main() {
           |    |    |-- a10.dart
           |    |-- a5.dart
           |    |-- a6.dart (part)
-          |-- harmony_feature_check.js
-          |-- dart_runtime.js
-          |-- dart_core.js
+          $_RUNTIME_GRAPH
           ''');
     });
 
@@ -897,9 +869,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
 
         // Modify the file first:
@@ -920,9 +890,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
 
         a2.source.contents.modificationTime++;
@@ -953,9 +921,7 @@ void main() {
             |    |-- a6.dart
             |    |    |-- a5.dart
             |    |-- a5.dart...
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
       });
 
@@ -973,9 +939,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
 
         a2.source.contents.modificationTime++;
@@ -997,9 +961,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a6.dart
             |    |-- a5.dart
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
 
         a6.source.contents.modificationTime++;
@@ -1016,9 +978,7 @@ void main() {
             |    |-- a6.dart
             |    |    |-- a5.dart
             |    |-- a5.dart...
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
       });
 
@@ -1036,9 +996,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
 
         a2.source.contents.modificationTime++;
@@ -1061,9 +1019,7 @@ void main() {
             |    |-- a4.dart
             |    |    |-- a10.dart
             |    |-- a5.dart
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
       });
 
@@ -1081,9 +1037,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a5.dart
             |    |-- a6.dart (part)
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
 
         a2.source.contents.modificationTime++;
@@ -1105,9 +1059,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a5.dart (part)
             |    |-- a6.dart (part)
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
 
         a5.source.contents.modificationTime++;
@@ -1123,9 +1075,7 @@ void main() {
             |    |    |-- a10.dart
             |    |-- a5.dart (part)
             |    |-- a6.dart (part)
-            |-- harmony_feature_check.js
-            |-- dart_runtime.js
-            |-- dart_core.js
+            $_RUNTIME_GRAPH
             ''');
       });
     });
@@ -1240,5 +1190,12 @@ printReachable(SourceNode node) {
   helper(node);
   return sb.toString();
 }
+
+final runtimeFilesWithoutPath = defaultRuntimeFiles
+    .map((f) => f.replaceAll('dart/', ''))
+    .toList(growable: false);
+final _RUNTIME_GRAPH = runtimeFilesWithoutPath.map((s) => '|--  $s').join('\n');
+final _RUNTIME_GRAPH_REBUILD =
+    runtimeFilesWithoutPath.map((s) => '|--  $s [needs-rebuild]').join('\n');
 
 bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);

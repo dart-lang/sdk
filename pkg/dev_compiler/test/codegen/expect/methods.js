@@ -23,11 +23,11 @@ var methods;
       return b;
     }
     w(a, opt$) {
-      let b = opt$.b === void 0 ? null : opt$.b;
+      let b = opt$ && 'b' in opt$ ? opt$.b : null;
       return dart.notNull(a) + dart.notNull(b);
     }
     ww(a, opt$) {
-      let b = opt$.b === void 0 ? 0 : opt$.b;
+      let b = opt$ && 'b' in opt$ ? opt$.b : 0;
       return dart.notNull(a) + dart.notNull(b);
     }
     get a() {

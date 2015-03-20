@@ -2,11 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jmesserly, sigmund): remove these two lines:
-var math = Math;
-var core = core || {int: { parse: Number }, print: e => console.log(e) };
-
-var dart;
+var dart, _js_helper;
 (function (dart) {
   'use strict';
 
@@ -307,8 +303,8 @@ var dart;
 
     var resultMap = new Map();
     function makeGenericType(/*...arguments*/) {
-      if (arguments.length != length) {
-        throw 'requires ' + length + ' type arguments';
+      if (arguments.length != length && arguments.length != 0) {
+        throw 'requires ' + length + ' or 0 type arguments';
       }
 
       var value = resultMap;
@@ -338,7 +334,14 @@ var dart;
   }
   dart.generic = generic;
 
-  // TODO(jmesserly): this is just a placeholder.
+  // TODO(jmesserly): right now this is a sentinel. It should be a type object
+  // of some sort, assuming we keep around `dynamic` at runtime.
   dart.dynamic = Object.create(null);
+
+  dart.JsSymbol = Symbol;
+
+  // TODO(jmesserly): hack to bootstrap the SDK
+  _js_helper = _js_helper || {};
+  _js_helper.checkNum = notNull;
 
 })(dart || (dart = {}));

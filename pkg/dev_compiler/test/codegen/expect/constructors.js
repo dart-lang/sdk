@@ -43,7 +43,7 @@ var constructors;
   }
   class H extends core.Object {
     H(opt$) {
-      let p1 = opt$.p1 === void 0 ? null : opt$.p1;
+      let p1 = opt$ && 'p1' in opt$ ? opt$.p1 : null;
     }
   }
   class I extends core.Object {
