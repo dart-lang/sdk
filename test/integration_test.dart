@@ -44,6 +44,21 @@ defineTests() {
         });
       });
     });
+    group('p3', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() => outSink = collectingOut);
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+      });
+      test('bad pubspec', () {
+        dartlint.main(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
+        expect(collectingOut.trim(),
+            endsWith('1 file analyzed, 0 issues found.'));
+      });
+    });
+
     group('examples', () {
       test('lintconfig.yaml', () {
         var src = readFile('example/lintconfig.yaml');

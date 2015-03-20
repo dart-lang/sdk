@@ -118,9 +118,9 @@ abstract class PSNodeList extends Object with IterableMixin<PSNode> {
   PSNode get token;
 }
 
-abstract class PubSpec {
-  factory PubSpec.parse(String source, {String sourceUrl}) =>
-      new _PubSpec(source, sourceUrl: sourceUrl);
+abstract class Pubspec {
+  factory Pubspec.parse(String source, {String sourceUrl}) =>
+      new _Pubspec(source, sourceUrl: sourceUrl);
   PSEntry get author;
   PSNodeList get authors;
   PSDependencyList get dependencies;
@@ -130,10 +130,10 @@ abstract class PubSpec {
   PSEntry get homepage;
   PSEntry get name;
   PSEntry get version;
-  accept(PubSpecVisitor visitor);
+  accept(PubspecVisitor visitor);
 }
 
-abstract class PubSpecVisitor<T> {
+abstract class PubspecVisitor<T> {
   T visitPackageAuthor(PSEntry author) => null;
   T visitPackageAuthors(PSNodeList authors) => null;
   T visitPackageDependencies(PSDependencyList dependencies) => null;
@@ -175,7 +175,6 @@ class _PSDependency extends PSDependency {
       details.nodes.forEach((k, v) {
         if (k is! YamlScalar) {
           return;
-          //WARN?
         }
         YamlScalar key = k;
         switch (key.toString()) {
@@ -222,9 +221,9 @@ class _PSDependency extends PSDependency {
 }
 
 class _PSDependencyList extends PSDependencyList {
-  final PSNode token;
 
   final dependencies = <PSDependency>[];
+  final PSNode token;
 
   _PSDependencyList(this.token);
 
@@ -290,7 +289,7 @@ $token:
   - ${nodes.join('\n  - ')}''';
 }
 
-class _PubSpec implements PubSpec {
+class _Pubspec implements Pubspec {
   PSEntry author;
   PSNodeList authors;
   PSEntry description;
@@ -301,11 +300,15 @@ class _PubSpec implements PubSpec {
   PSDependencyList dependencies;
   PSDependencyList devDependencies;
 
-  _PubSpec(String src, {String sourceUrl}) {
-    _parse(src, sourceUrl: sourceUrl);
+  _Pubspec(String src, {String sourceUrl}) {
+    try {
+      _parse(src, sourceUrl: sourceUrl);
+    } on Exception {
+      // ignore
+    }
   }
 
-  void accept(PubSpecVisitor visitor) {
+  void accept(PubspecVisitor visitor) {
     if (author != null) {
       visitor.visitPackageAuthor(author);
     }
@@ -355,13 +358,11 @@ class _PubSpec implements PubSpec {
     var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
     if (yaml is! YamlMap) {
       return;
-      // WARN?
     }
     YamlMap yamlMap = yaml;
     yamlMap.nodes.forEach((k, v) {
       if (k is! YamlScalar) {
         return;
-        //WARN?
       }
       YamlScalar key = k;
       switch (key.toString()) {

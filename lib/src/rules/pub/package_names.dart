@@ -35,10 +35,10 @@ class PubPackageNames extends LintRule {
           kind: Kind.DO);
 
   @override
-  PubSpecVisitor getPubspecVisitor() => new Visitor(this);
+  PubspecVisitor getPubspecVisitor() => new Visitor(this);
 }
 
-class Visitor extends PubSpecVisitor {
+class Visitor extends PubspecVisitor {
   LintRule rule;
   Visitor(this.rule);
 

@@ -21,7 +21,7 @@ import 'package:linter/src/rules.dart';
 void _registerLinters(Iterable<Linter> linters) {
   if (linters != null) {
     LintGenerator.LINTERS.clear();
-    linters.forEach((l) => LintGenerator.LINTERS.add(l));
+    LintGenerator.LINTERS.addAll(linters);
   }
 }
 
@@ -260,7 +260,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
-  PubSpecVisitor getPubspecVisitor() => null;
+  PubspecVisitor getPubspecVisitor() => null;
 
   @override
   AstVisitor getVisitor() => null;
@@ -353,7 +353,7 @@ abstract class Reporter {
   void warn(String message);
 }
 
-/// Linter implementation
+/// Linter implementation.
 class SourceLinter implements DartLinter, AnalysisErrorListener {
   final errors = <AnalysisError>[];
   final LinterOptions options;
@@ -362,8 +362,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   int numSourcesAnalyzed;
 
-  SourceLinter(LinterOptions options, {this.reporter: const PrintingReporter()})
-      : this.options = options != null ? options : _defaultOptions();
+  SourceLinter(this.options, {this.reporter: const PrintingReporter()});
 
   @override
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
@@ -385,7 +384,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
     var results = <AnalysisErrorInfo>[];
 
     //TODO: error handling
-    var spec = new PubSpec.parse(contents, sourceUrl: sourceUrl);
+    var spec = new Pubspec.parse(contents, sourceUrl: sourceUrl);
 
     for (Linter lint in options.enabledLints) {
       if (lint is LintRule) {
@@ -421,8 +420,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
           contents: sourceFile.readAsStringSync(), sourceUrl: sourceFile.path);
-
-  static LinterOptions _defaultOptions() => new LinterOptions(ruleRegistry);
 }
 
 class _LineInfo implements LineInfo {

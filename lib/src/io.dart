@@ -97,7 +97,7 @@ String _calculateProjectPackageName(String path) {
   var pubspec = _findPubspecFileRelativeTo(path);
   if (pubspec != null) {
     var spec =
-        new PubSpec.parse(pubspec.readAsStringSync(), sourceUrl: pubspec.path);
+        new Pubspec.parse(pubspec.readAsStringSync(), sourceUrl: pubspec.path);
     var nameEntry = spec.name;
     if (nameEntry != null) {
       var value = nameEntry.value.text;

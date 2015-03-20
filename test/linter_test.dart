@@ -604,7 +604,7 @@ class MockLinter extends LintRule {
   }
 
   @override
-  PubSpecVisitor getPubspecVisitor() => visitorCallback();
+  PubspecVisitor getPubspecVisitor() => visitorCallback();
 
   @override
   AstVisitor getVisitor() => visitorCallback();
@@ -617,7 +617,7 @@ class MockLintRule extends LintRule {
   AstVisitor getVisitor() => new MockVisitor(null);
 }
 
-class MockVisitor extends GeneralizingAstVisitor with PubSpecVisitor {
+class MockVisitor extends GeneralizingAstVisitor with PubspecVisitor {
   final nodeVisitor;
 
   MockVisitor(this.nodeVisitor);
