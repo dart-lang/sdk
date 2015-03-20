@@ -10,6 +10,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, share_enclosing_context, true,
+            "Allocate captured variables in the existing context of an "
+            "enclosing scope (up to innermost loop) and spare the allocation "
+            "of a local context.");
+
 int SourceLabel::FunctionLevel() const {
   ASSERT(owner() != NULL);
   return owner()->function_level();
@@ -148,7 +153,16 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
     // This scope becomes the current context owner.
     set_context_level(1);
     *context_owner = this;
+  } else if (!FLAG_share_enclosing_context && ((*context_owner) != this)) {
+    // The captured variable is in a child scope of the context owner and we do
+    // not share contexts.
+    // This scope will allocate and chain a new context.
+    ASSERT(num_context_variables_ == 0);
+    // This scope becomes the current context owner.
+    set_context_level((*context_owner)->context_level() + 1);
+    *context_owner = this;
   } else if ((*context_owner)->loop_level() < loop_level()) {
+    ASSERT(FLAG_share_enclosing_context);
     // The captured variable is at a deeper loop level than the current context.
     // This scope will allocate and chain a new context.
     ASSERT(num_context_variables_ == 0);
