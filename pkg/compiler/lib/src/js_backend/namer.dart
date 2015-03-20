@@ -101,7 +101,7 @@ part of js_backend;
  * For local variables, the [Namer] only provides *proposed names*. These names
  * must be disambiguated elsewhere.
  */
-class Namer {
+class Namer implements ClosureNamer {
 
   static const List<String> javaScriptKeywords = const <String>[
     // These are current keywords.
@@ -970,6 +970,20 @@ class Namer {
       name = '\$\$$name';
     }
     return name;
+  }
+
+  /// Generate a unique name for the [id]th closure variable, with proposed name
+  /// [name].
+  ///
+  /// The result is used as the name of [BoxFieldElement]s and
+  /// [ClosureFieldElement]s, and must therefore be unique to avoid breaking an
+  /// invariant in the element model (classes cannot declare multiple fields
+  /// with the same name).
+  ///
+  /// Since the result is used as an element name, it will later show up as a
+  /// *proposed name* when the element is passed to [instanceFieldPropertyName].
+  String getClosureVariableName(String name, int id) {
+    return "${name}_$id";
   }
 
   /**

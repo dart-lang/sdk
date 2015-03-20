@@ -1049,11 +1049,14 @@ abstract class Compiler implements DiagnosticListener {
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
 
+    closureMapping.ClosureNamer closureNamer;
     if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
           new js_backend.JavaScriptBackend(this, generateSourceMap);
+      closureNamer = jsBackend.namer;
       backend = jsBackend;
     } else {
+      closureNamer = new closureMapping.ClosureNamer();
       backend = new dart_backend.DartBackend(this, strips,
                                              multiFile: dart2dartMultiFile);
       if (dumpInfo) {
@@ -1068,7 +1071,7 @@ abstract class Compiler implements DiagnosticListener {
       parser = new ParserTask(this),
       patchParser = new PatchParserTask(this),
       resolver = new ResolverTask(this, backend.constantCompilerTask),
-      closureToClassMapper = new closureMapping.ClosureTask(this),
+      closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       irBuilder = new IrBuilderTask(this),
       typesTask = new ti.TypesTask(this),
