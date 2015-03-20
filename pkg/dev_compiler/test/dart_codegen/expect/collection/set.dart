@@ -29,22 +29,14 @@ part of dart.collection;
    for (E element in this) {
     if (test(element)) toRemove.add(element);
     }
-   removeAll(DEVC$RT.cast(toRemove, DEVC$RT.type((List<dynamic> _) {
-    }
-  ), DEVC$RT.type((Iterable<Object> _) {
-    }
-  ), "CastDynamic", """line 77, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, true));
+   removeAll(toRemove);
   }
  void retainWhere(bool test(E element)) {
   List toRemove = [];
    for (E element in this) {
     if (!test(element)) toRemove.add(element);
     }
-   removeAll(DEVC$RT.cast(toRemove, DEVC$RT.type((List<dynamic> _) {
-    }
-  ), DEVC$RT.type((Iterable<Object> _) {
-    }
-  ), "CastDynamic", """line 85, column 15 of dart:collection/set.dart: """, toRemove is Iterable<Object>, true));
+   removeAll(toRemove);
   }
  bool containsAll(Iterable<Object> other) {
   for (Object o in other) {

@@ -119,7 +119,7 @@ var collection;
           if (test(element))
             toRemove.add(element);
         }
-        this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
+        this.removeAll(toRemove);
       }
       retainWhere(test) {
         let toRemove = new List.from([]);
@@ -127,7 +127,7 @@ var collection;
           if (!dart.notNull(test(element)))
             toRemove.add(element);
         }
-        this.removeAll(dart.as(toRemove, core.Iterable$(core.Object)));
+        this.removeAll(toRemove);
       }
       containsAll(other) {
         for (let o of other) {

@@ -194,11 +194,7 @@ _isDone = true;
  const JsonDecoder([reviver(var key, var value)]) : this._reviver = reviver;
  dynamic convert(String input) => _parseJson(input, _reviver);
  external StringConversionSink startChunkedConversion(Sink<Object> sink);
- Stream<Object> bind(Stream<String> stream) => ((__x17) => DEVC$RT.cast(__x17, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
-}
-), DEVC$RT.type((DDC$async$.Stream<Object> _) {
-}
-), "CastDynamic", """line 507, column 49 of dart:convert/json.dart: """, __x17 is DDC$async$.Stream<Object>, true))(super.bind(stream));
+ Stream<Object> bind(Stream<String> stream) => super.bind(stream);
 }
  external _parseJson(String source, reviver(key, value)) ;
  Object _defaultToEncodable(object) => object.toJson();
@@ -218,7 +214,7 @@ _isDone = true;
  static const int CHAR_u = 0x75;
  final List _seen = new List();
  final Function _toEncodable;
- _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = ((__x18) => DEVC$RT.cast(__x18, dynamic, Function, "CastGeneral", """line 547, column 24 of dart:convert/json.dart: """, __x18 is Function, true))((_toEncodable != null) ? _toEncodable : _defaultToEncodable);
+ _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = ((__x17) => DEVC$RT.cast(__x17, dynamic, Function, "CastGeneral", """line 547, column 24 of dart:convert/json.dart: """, __x17 is Function, true))((_toEncodable != null) ? _toEncodable : _defaultToEncodable);
  void writeString(String characters);
  void writeStringSlice(String characters, int start, int end);
  void writeCharCode(int charCode);
@@ -348,11 +344,11 @@ writeString(',');
  void writeMap(Map<String, Object> map) {
 writeString('{');
  String separator = '"';
- map.forEach(((__x27) => DEVC$RT.wrap((dynamic f(String __u19, dynamic __u20)) {
+ map.forEach(((__x26) => DEVC$RT.wrap((dynamic f(String __u18, dynamic __u19)) {
 dynamic c(String x0, dynamic x1) => f(x0, x1);
  return f == null ? null : c;
 }
-, __x27, __t24, __t21, "WrapLiteral", """line 721, column 17 of dart:convert/json.dart: """, __x27 is __t21))((String key, value) {
+, __x26, __t23, __t20, "WrapLiteral", """line 721, column 17 of dart:convert/json.dart: """, __x26 is __t20))((String key, value) {
 writeString(separator);
  separator = ',"';
  writeStringContent(key);
@@ -566,5 +562,5 @@ writeByte(indent[i]);
  typedef Object __t7(Object __u8);
  typedef dynamic __t9(dynamic __u10);
  typedef dynamic __t13(Object __u14);
- typedef void __t21(String __u22, Object __u23);
- typedef dynamic __t24(String __u25, dynamic __u26);
+ typedef void __t20(String __u21, Object __u22);
+ typedef dynamic __t23(String __u24, dynamic __u25);

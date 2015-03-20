@@ -114,6 +114,20 @@ class RestrictedRules extends TypeRules {
     return provider.dynamicType;
   }
 
+  bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
+    if (t.isDynamic && dynamicIsBottom) return true;
+    // TODO(vsm): We need direct support for non-nullability in DartType.
+    // This should check on "true/nonnullable" Bottom
+    if (t.isBottom && _nonnullableTypes.isEmpty) return true;
+    return false;
+  }
+
+  bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+    if (t.isDynamic && !dynamicIsBottom) return true;
+    if (t.isObject) return true;
+    return false;
+  }
+
   bool isNonNullableType(DartType t) => _nonnullableTypes.contains(t);
 
   bool maybeNonNullableType(DartType t) {
@@ -142,11 +156,11 @@ class RestrictedRules extends TypeRules {
   // TODO(leafp): Revisit this.
   bool isGroundType(DartType t) {
     if (t is TypeParameterType) return false;
-    if (t.isDynamic) return true;
+    if (_isTop(t)) return true;
 
     if (t is FunctionType) {
-      if (!t.returnType.isDynamic ||
-          _anyParameterType(t, (pt) => !pt.isDynamic)) {
+      if (!_isTop(t.returnType) ||
+          _anyParameterType(t, (pt) => !_isBottom(pt, dynamicIsBottom: true))) {
         return false;
       } else {
         return true;
@@ -156,7 +170,7 @@ class RestrictedRules extends TypeRules {
     if (t is InterfaceType) {
       var typeArguments = t.typeArguments;
       for (var typeArgument in typeArguments) {
-        if (!typeArgument.isDynamic && !typeArgument.isObject) return false;
+        if (!_isTop(typeArgument)) return false;
       }
       return true;
     }
@@ -279,20 +293,26 @@ class RestrictedRules extends TypeRules {
   bool isSubTypeOf(DartType t1, DartType t2, {bool dynamicIsBottom: false}) {
     if (t1 == t2) return true;
 
-    if (t2.isDynamic) return !dynamicIsBottom;
-    if (t1.isDynamic) return dynamicIsBottom;
+    // Trivially true.
+    if (_isTop(t2, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(t1, dynamicIsBottom: dynamicIsBottom)) {
+      return true;
+    }
 
-    // Null can be assigned to anything non-primitive.
-    // FIXME: Can this be anything besides null?
+    // Trivially false.
+    if (_isTop(t1, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(t2, dynamicIsBottom: dynamicIsBottom)) {
+      return false;
+    }
+
+    // The null type is a subtype of any nonnullable type.
+    // TODO(vsm): Note, t1.isBottom still allows for null confusingly.
+    // _isBottom(t1) does not necessarily imply t1.isBottom if there are
+    // nonnullable types in the system.
     if (t1.isBottom) {
       // Return false iff t2 *may* be a primitive type.
       return !maybeNonNullableType(t2);
     }
-    if (t2.isBottom) return false;
-
-    // Trivially true for non-primitives.
-    if (t2 == provider.objectType) return true;
-    if (t1 == provider.objectType) return false;
 
     // S <: T where S is a type variable
     //  T is not dynamic or object (handled above)

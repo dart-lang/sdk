@@ -817,7 +817,7 @@ var convert;
       return new _JsonDecoderSink(this[_reviver], sink);
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream$(core.Object));
+      return super.bind(stream);
     }
   }
   // Function _parseJson: (String, (dynamic, dynamic) → dynamic) → dynamic

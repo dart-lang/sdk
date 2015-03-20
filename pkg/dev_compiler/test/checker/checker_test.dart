@@ -1409,17 +1409,13 @@ void main() {
 
       class L<T> {}
       class M<T> extends L<T> {}
-      //     L<dynamic>
-      //    /          \
-      // M<dynamic> L<Object>
-      //    |      /    /
-      // M<Object>    L<A>
-      //    \        /
-      //       M<A>
+      //     L<dynamic|Object>
+      //    /              \
+      // M<dynamic|Object>  L<A>
+      //    \              /
+      //          M<A>
       // In normal Dart, there are additional edges
       //  from M<A> to M<dynamic>
-      //  from L<Object> to M<dynamic>
-      //  from L<Object> to L<dynamic>
       //  from L<A> to M<dynamic>
       //  from L<A> to L<dynamic>
       void main() {
@@ -1440,10 +1436,10 @@ void main() {
           lOfDs = lOfAs;
         }
         {
-          lOfOs = /*warning:DownCastDynamic*/mOfDs;
+          lOfOs = mOfDs;
           lOfOs = mOfOs;
           lOfOs = mOfAs;
-          lOfOs = /*warning:DownCastDynamic*/lOfDs;
+          lOfOs = lOfDs;
           lOfOs = lOfOs;
           lOfOs = lOfAs;
         }
@@ -1464,7 +1460,7 @@ void main() {
           mOfDs = /*info:DownCast*/lOfAs;
         }
         {
-          mOfOs = /*warning:DownCastDynamic*/mOfDs;
+          mOfOs = mOfDs;
           mOfOs = mOfOs;
           mOfOs = mOfAs;
           mOfOs = /*info:DownCast*/lOfDs;
