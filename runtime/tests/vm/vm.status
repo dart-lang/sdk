@@ -71,6 +71,9 @@ dart/data_uri_failures_test/nomime: RuntimeError, OK
 dart/data_uri_failures_test/nocharset: RuntimeError, OK
 dart/data_uri_failures_test/base64: RuntimeError, OK
 
+[ $runtime == vm && $system == windows ]
+dart/data_uri_spawn_test: Crash # http://dartbug.com/22943
+
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
