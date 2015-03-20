@@ -215,6 +215,7 @@ Uri _createUri(String userUri) {
   var uri = Uri.parse(userUri);
   switch (uri.scheme) {
     case '':
+    case 'data':
     case 'file':
     case 'http':
     case 'https':
@@ -349,6 +350,7 @@ String _filePathFromUri(String userUri) {
       return uri.toFilePath();
     case 'package':
       return _filePathFromUri(_resolvePackageUri(uri).toString());
+    case 'data':
     case 'http':
     case 'https':
       return uri.toString();

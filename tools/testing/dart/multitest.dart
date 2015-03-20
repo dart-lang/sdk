@@ -188,7 +188,7 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
       '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
       '(import|part)'
       '\\s+["\']'
-      '(?!(dart:|dart-ext:|package:|/))' // Look-ahead: not in package.
+      '(?!(dart:|dart-ext:|data:|package:|/))' // Look-ahead: not in package.
       '([^"\']*)' // The path to the imported file.
       '["\']');
   while (!toSearch.isEmpty) {

@@ -47,6 +47,37 @@ void _loadFile(sendPort, path) {
   });
 }
 
+var dataUriRegex = new RegExp(
+    r"data:([\w-]+/[\w-]+)?(;charset=([\w-]+))?(;base64)?,(.*)");
+
+void _loadDataUri(sendPort, uri) {
+  try {
+    var match = dataUriRegex.firstMatch(uri.toString());
+    if (match == null) throw "Malformed data uri";
+
+    var mimeType = match.group(1);
+    var encoding = match.group(3);
+    var maybeBase64 = match.group(4);
+    var encodedData = match.group(5);
+
+    if (mimeType != "application/dart") {
+      throw "MIME-type must be application/dart";
+    }
+    if (encoding != "utf-8") {
+      // Default is ASCII. The C++ portion of the embedder assumes UTF-8.
+      throw "Only utf-8 encoding is supported";
+    }
+    if (maybeBase64 != null) {
+      throw "Only percent encoding is supported";
+    }
+
+    var data = UTF8.encode(Uri.decodeComponent(encodedData));
+    sendPort.send(data);
+  } catch (e) {
+    sendPort.send("Invalid data uri ($uri) $e");
+  }
+}
+
 _processLoadRequest(request) {
   var sp = request[0];
   var uri = Uri.parse(request[1]);
@@ -54,6 +85,8 @@ _processLoadRequest(request) {
     _loadFile(sp, uri.toFilePath());
   } else if ((uri.scheme == 'http') || (uri.scheme == 'https')) {
     _loadHttp(sp, uri);
+  } else if ((uri.scheme == 'data')) {
+    _loadDataUri(sp, uri);
   } else {
     sp.send('Unknown scheme for $uri');
   }
