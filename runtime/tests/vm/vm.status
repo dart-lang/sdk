@@ -57,10 +57,13 @@ dart/simd128float32_test: Skip # compilers not aware of Simd128
 # The source positions do not match with dart2js.
 dart/optimized_stacktrace_test: RuntimeError
 
-[ $compiler == dart2js ]
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
 dart/inline_stack_frame_test: RuntimeError # Issue 7953
+
+[ $compiler == dart2js || $compiler == dartanalyzer || $compiler == dart2analyzer ]
+# Data uri's not supported by dart2js or the analyzer.
+dart/data_uri*test: Skip
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
