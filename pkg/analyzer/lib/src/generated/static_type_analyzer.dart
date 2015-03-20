@@ -172,9 +172,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * The Dart Language Specification, 16.29 (Await Expressions):
    *
-   *   Let flatten(T) = flatten(S) if T = Future<S>, and T otherwise.  The
-   *   static type of [the expression "await e"] is flatten(T) where T is the
-   *   static type of e.
+   *   The static type of [the expression "await e"] is flatten(T) where T is
+   *   the static type of e.
    */
   @override
   Object visitAwaitExpression(AwaitExpression node) {
@@ -1740,15 +1739,43 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Implements the function "flatten" defined in the spec: "Let flatten(T) =
-   * flatten(S) if T = Future<S>, and T otherwise."
+   * Implements the function "flatten" defined in the spec:
+   *
+   *   If T = Future<S> then flatten(T) = flatten(S).
+   *
+   *   Otherwise if T <: Future then let S be a type such that T << Future<S>
+   *   and for all R, if T << Future<R> then S << R.  Then flatten(T) = S.
+   *
+   *   In any other circumstance, flatten(T) = T.
    */
   static DartType flattenFutures(TypeProvider typeProvider, DartType type) {
-    if (type is InterfaceType &&
-        type.element == typeProvider.futureType.element &&
-        type.typeArguments.length > 0) {
-      return flattenFutures(typeProvider, type.typeArguments[0]);
+    if (type is InterfaceType) {
+      // Implement the case: "If T = Future<S> then flatten(T) = flatten(S)."
+      if (type.element == typeProvider.futureType.element &&
+          type.typeArguments.length > 0) {
+        return flattenFutures(typeProvider, type.typeArguments[0]);
+      }
+
+      // Implement the case: "Otherwise if T <: Future then let S be a type
+      // such that T << Future<S> and for all R, if T << Future<R> then S << R.
+      // Then flatten(T) = S."
+      //
+      // In other words, given the set of all types R such that T << Future<R>,
+      // let S be the most specific of those types, if any such S exists.
+      //
+      // Since we only care about the most specific type, it is sufficent to
+      // look at the types appearing as a parameter to Future in the type
+      // hierarchy of T.  We don't need to consider the supertypes of those
+      // types, since they are by definition less specific.
+      List<DartType> candidateTypes =
+          _searchTypeHierarchyForFutureParameters(typeProvider, type);
+      DartType flattenResult = _findMostSpecificType(candidateTypes);
+      if (flattenResult != null) {
+        return flattenResult;
+      }
     }
+
+    // Implement the case: "In any other circumstance, flatten(T) = T."
     return type;
   }
 
@@ -1819,6 +1846,88 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     map["ul"] = "UListElement";
     map["video"] = "VideoElement";
     return map;
+  }
+
+  /**
+   * If there is a single type which is at least as specific as all of the
+   * types in [types], return it.  Otherwise return `null`.
+   */
+  static DartType _findMostSpecificType(List<DartType> types) {
+    // The << relation ("more specific than") is a partial ordering on types,
+    // so to find the most specific type of a set, we keep a bucket of the most
+    // specific types seen so far such that no type in the bucket is more
+    // specific than any other type in the bucket.
+    List<DartType> bucket = <DartType>[];
+
+    // Then we consider each type in turn.
+    for (DartType type in types) {
+      // If any existing type in the bucket is more specific than this type,
+      // then we can ignore this type.
+      if (bucket.any((DartType t) => t.isMoreSpecificThan(type))) {
+        continue;
+      }
+      // Otherwise, we need to add this type to the bucket and remove any types
+      // that are less specific than it.
+      bool added = false;
+      int i = 0;
+      while (i < bucket.length) {
+        if (type.isMoreSpecificThan(bucket[i])) {
+          if (added) {
+            if (i < bucket.length - 1) {
+              bucket[i] = bucket.removeLast();
+            } else {
+              bucket.removeLast();
+            }
+          } else {
+            bucket[i] = type;
+            i++;
+            added = true;
+          }
+        } else {
+          i++;
+        }
+      }
+      if (!added) {
+        bucket.add(type);
+      }
+    }
+
+    // Now that we are finished, if there is exactly one type left in the
+    // bucket, it is the most specific type.
+    if (bucket.length == 1) {
+      return bucket[0];
+    }
+
+    // Otherwise, there is no single type that is more specific than the
+    // others.
+    return null;
+  }
+
+  /**
+   * Given a seed type [type], search its class hierarchy for types of the form
+   * Future<R>, and return a list of the resulting R's.
+   */
+  static List<DartType> _searchTypeHierarchyForFutureParameters(
+      TypeProvider typeProvider, InterfaceType type) {
+    List<DartType> result = <DartType>[];
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    void recurse(InterfaceType type) {
+      if (type.element == typeProvider.futureType.element &&
+          type.typeArguments.length > 0) {
+        result.add(type.typeArguments[0]);
+      }
+      if (visitedClasses.add(type.element)) {
+        if (type.superclass != null) {
+          recurse(type.superclass);
+        }
+        for (InterfaceType interface in type.interfaces) {
+          recurse(interface);
+        }
+        visitedClasses.remove(type.element);
+      }
+    }
+    recurse(type);
+    return result;
   }
 }
 

@@ -9542,21 +9542,6 @@ class StaticTypeAnalyzer2Test extends ResolverTestCase {
   Source testSource;
   CompilationUnit testUnit;
 
-  void test_MethodInvocation_nameType_localVariable() {
-    String code = r"""
-typedef Foo();
-main() {
-  Foo foo;
-  foo();
-}
-""";
-    _resolveTestUnit(code);
-    // "foo" should be resolved to the "Foo" type
-    SimpleIdentifier identifier = _findIdentifier("foo();");
-    DartType type = identifier.staticType;
-    expect(type, new isInstanceOf<FunctionType>());
-  }
-
   void test_FunctionExpressionInvocation_block() {
     String code = r'''
 main() {
@@ -9568,20 +9553,6 @@ main() {
     VariableDeclaration declaration =
         identifier.getAncestor((node) => node is VariableDeclaration);
     expect(declaration.initializer.staticType.isDynamic, isTrue);
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_FunctionExpressionInvocation_expression() {
-    String code = r'''
-main() {
-  var foo = (() => 1)();
-}
-''';
-    _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
     expect(declaration.initializer.propagatedType, isNull);
   }
 
@@ -9599,6 +9570,35 @@ main() {
         identifier.getAncestor((node) => node is VariableDeclaration);
     expect(declaration.initializer.staticType.name, 'int');
     expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_FunctionExpressionInvocation_expression() {
+    String code = r'''
+main() {
+  var foo = (() => 1)();
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_MethodInvocation_nameType_localVariable() {
+    String code = r"""
+typedef Foo();
+main() {
+  Foo foo;
+  foo();
+}
+""";
+    _resolveTestUnit(code);
+    // "foo" should be resolved to the "Foo" type
+    SimpleIdentifier identifier = _findIdentifier("foo();");
+    DartType type = identifier.staticType;
+    expect(type, new isInstanceOf<FunctionType>());
   }
 
   void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
@@ -9692,6 +9692,126 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
     _analyzer = _createAnalyzer();
+  }
+
+  void test_flatten_derived() {
+    // class Derived<T> extends Future<T> { ... }
+    ClassElementImpl derivedClass =
+        ElementFactory.classElement2('Derived', ['T']);
+    derivedClass.supertype = _typeProvider.futureType
+        .substitute4([derivedClass.typeParameters[0].type]);
+    InterfaceType intType = _typeProvider.intType;
+    DartType dynamicType = _typeProvider.dynamicType;
+    InterfaceType derivedIntType = derivedClass.type.substitute4([intType]);
+    // flatten(Derived) = dynamic
+    InterfaceType derivedDynamicType =
+        derivedClass.type.substitute4([dynamicType]);
+    expect(_flatten(derivedDynamicType), dynamicType);
+    // flatten(Derived<int>) = int
+    expect(_flatten(derivedIntType), intType);
+    // flatten(Derived<Derived>) = Derived
+    expect(_flatten(derivedClass.type.substitute4([derivedDynamicType])),
+        derivedDynamicType);
+    // flatten(Derived<Derived<int>>) = Derived<int>
+    expect(_flatten(derivedClass.type.substitute4([derivedIntType])),
+        derivedIntType);
+  }
+
+  void test_flatten_inhibit_recursion() {
+    // class A extends B
+    // class B extends A
+    ClassElementImpl classA = ElementFactory.classElement2('A', []);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    classA.supertype = classB.type;
+    classB.supertype = classA.type;
+    // flatten(A) = A and flatten(B) = B, since neither class contains Future
+    // in its class hierarchy.  Even though there is a loop in the class
+    // hierarchy, flatten() should terminate.
+    expect(_flatten(classA.type), classA.type);
+    expect(_flatten(classB.type), classB.type);
+  }
+
+  void test_flatten_related_derived_types() {
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType numType = _typeProvider.numType;
+    // class Derived<T> extends Future<T>
+    ClassElementImpl derivedClass =
+        ElementFactory.classElement2('Derived', ['T']);
+    derivedClass.supertype = _typeProvider.futureType
+        .substitute4([derivedClass.typeParameters[0].type]);
+    InterfaceType derivedType = derivedClass.type;
+    // class A extends Derived<int> implements Derived<num> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', derivedType.substitute4([intType]));
+    classA.interfaces = <InterfaceType>[derivedType.substitute4([numType])];
+    // class B extends Future<num> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', derivedType.substitute4([numType]));
+    classB.interfaces = <InterfaceType>[derivedType.substitute4([intType])];
+    // flatten(A) = flatten(B) = int, since int is more specific than num.
+    // The code in flatten() that inhibits infinite recursion shouldn't be
+    // fooled by the fact that Derived appears twice in the type hierarchy.
+    expect(_flatten(classA.type), intType);
+    expect(_flatten(classB.type), intType);
+  }
+
+  void test_flatten_related_types() {
+    InterfaceType futureType = _typeProvider.futureType;
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType numType = _typeProvider.numType;
+    // class A extends Future<int> implements Future<num> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', futureType.substitute4([intType]));
+    classA.interfaces = <InterfaceType>[futureType.substitute4([numType])];
+    // class B extends Future<num> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', futureType.substitute4([numType]));
+    classB.interfaces = <InterfaceType>[futureType.substitute4([intType])];
+    // flatten(A) = flatten(B) = int, since int is more specific than num.
+    expect(_flatten(classA.type), intType);
+    expect(_flatten(classB.type), intType);
+  }
+
+  void test_flatten_simple() {
+    InterfaceType intType = _typeProvider.intType;
+    DartType dynamicType = _typeProvider.dynamicType;
+    InterfaceType futureDynamicType = _typeProvider.futureDynamicType;
+    InterfaceType futureIntType =
+        _typeProvider.futureType.substitute4([intType]);
+    InterfaceType futureFutureDynamicType =
+        _typeProvider.futureType.substitute4([futureDynamicType]);
+    InterfaceType futureFutureIntType =
+        _typeProvider.futureType.substitute4([futureIntType]);
+    // flatten(int) = int
+    expect(_flatten(intType), intType);
+    // flatten(dynamic) = dynamic
+    expect(_flatten(dynamicType), dynamicType);
+    // flatten(Future) = dynamic
+    expect(_flatten(futureDynamicType), dynamicType);
+    // flatten(Future<int>) = int
+    expect(_flatten(futureIntType), intType);
+    // flatten(Future<Future>) = dynamic
+    expect(_flatten(futureFutureDynamicType), dynamicType);
+    // flatten(Future<Future<int>>) = int
+    expect(_flatten(futureFutureIntType), intType);
+  }
+
+  void test_flatten_unrelated_types() {
+    InterfaceType futureType = _typeProvider.futureType;
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType stringType = _typeProvider.stringType;
+    // class A extends Future<int> implements Future<String> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', futureType.substitute4([intType]));
+    classA.interfaces = <InterfaceType>[futureType.substitute4([stringType])];
+    // class B extends Future<String> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', futureType.substitute4([stringType]));
+    classB.interfaces = <InterfaceType>[futureType.substitute4([intType])];
+    // flatten(A) = A and flatten(B) = B, since neither string nor int is more
+    // specific than the other.
+    expect(_flatten(classA.type), classA.type);
+    expect(_flatten(classB.type), classB.type);
   }
 
   void test_visitAdjacentStrings() {
@@ -10772,6 +10892,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
           "Could not create analyzer", exception);
     }
   }
+
+  DartType _flatten(DartType type) =>
+      StaticTypeAnalyzer.flattenFutures(_typeProvider, type);
 
   /**
    * Return an integer literal that has been resolved to the correct type.

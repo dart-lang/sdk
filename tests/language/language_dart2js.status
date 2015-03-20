@@ -113,6 +113,15 @@ mixin_mixin_bound2_test: RuntimeError # Issue 12605
 malformed_test/none: Fail # Expect failure in lib/_internal/compiler/js_lib/preambles/d8.js
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
+flatten_test/04: Skip # Issue 22922
+flatten_test/05: Crash # Issue 22921
+flatten_test/06: Crash # Issue 22921
+flatten_test/07: Crash # Issue 22921
+flatten_test/08: Crash # Issue 22921
+flatten_test/09: Crash # Issue 22921
+flatten_test/10: Crash # Issue 22921
+flatten_test/11: Crash # Issue 22921
+flatten_test/12: Crash # Issue 22921
 
 type_variable_conflict2_test/01: RuntimeError # Issue 19725
 
