@@ -15,7 +15,6 @@ main() {
     String source = """
 import "dart:isolate";
 main(List args, SendPort replyPort) {
-  print('Child running');
   replyPort.send(42);
 }
 """;
