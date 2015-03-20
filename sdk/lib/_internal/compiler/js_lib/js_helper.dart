@@ -1153,9 +1153,12 @@ class Primitives {
         return functionNoSuchMethod(function, positionalArguments, null);
       }
       ReflectionInfo info = new ReflectionInfo(jsFunction);
-      int maxArgumentCount = info.requiredParameterCount +
+      int requiredArgumentCount = info.requiredParameterCount;
+      int maxArgumentCount = requiredArgumentCount +
           info.optionalParameterCount;
-      if (info.areOptionalParametersNamed || maxArgumentCount < argumentCount) {
+      if (info.areOptionalParametersNamed ||
+          requiredArgumentCount > argumentCount ||
+          maxArgumentCount < argumentCount) {
         return functionNoSuchMethod(function, positionalArguments, null);
       }
       arguments = new List.from(arguments);

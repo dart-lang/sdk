@@ -1518,6 +1518,22 @@ abstract class TracedTypeInformation implements TypeInformation {
   }
 }
 
+class AwaitTypeInformation extends TypeInformation {
+  final ast.Node node;
+
+  AwaitTypeInformation(MemberTypeInformation context, this.node)
+      : super(context);
+
+  // TODO(22894): Compute a better type here.
+  TypeMask computeType(TypeGraphInferrerEngine inferrer) => safeType(inferrer);
+
+  String toString() => 'Await';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitAwaitTypeInformation(this);
+  }
+}
+
 abstract class TypeInformationVisitor<T> {
   T visitNarrowTypeInformation(NarrowTypeInformation info);
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
@@ -1535,4 +1551,5 @@ abstract class TypeInformationVisitor<T> {
   T visitMemberTypeInformation(MemberTypeInformation info);
   T visitParameterTypeInformation(ParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
+  T visitAwaitTypeInformation(AwaitTypeInformation info);
 }
