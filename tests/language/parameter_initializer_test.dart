@@ -7,6 +7,7 @@ import "package:expect/expect.dart";
 class ParameterInitializerTest {
 
   static testMain() {
+
     var obj = new Foo.untyped(1);
     Expect.equals(1, obj.x);
 

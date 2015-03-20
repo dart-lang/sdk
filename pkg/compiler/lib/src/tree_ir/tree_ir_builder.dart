@@ -67,6 +67,8 @@ class Builder implements cps_ir.Visitor<Node> {
   List<cps_ir.Continuation> safeForInlining = <cps_ir.Continuation>[];
 
   ExecutableElement currentElement;
+  /// The 'this' Parameter for currentElement or the enclosing method.
+  cps_ir.Parameter thisParameter;
   cps_ir.Continuation returnContinuation;
 
   Builder parent;
@@ -120,7 +122,10 @@ class Builder implements cps_ir.Visitor<Node> {
   /// referred to by [reference].
   /// This increments the reference count for the given variable, so the
   /// returned expression must be used in the tree.
-  VariableUse getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
+  Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
+    if (thisParameter != null && reference.definition == thisParameter) {
+      return new This();
+    }
     Variable variable = getVariable(reference.definition);
     if (variable == null) {
       // Note: this may fail because you forgot to implement a visit-function
@@ -170,6 +175,12 @@ class Builder implements cps_ir.Visitor<Node> {
 
   FunctionDefinition buildFunction(cps_ir.FunctionDefinition node) {
     currentElement = node.element;
+    if (parent != null) {
+      // Local function's 'this' refers to enclosing method's 'this'
+      thisParameter = parent.thisParameter;
+    } else {
+      thisParameter = node.thisParameter;
+    }
     List<Variable> parameters =
         node.parameters.map(addFunctionParameter).toList();
     Statement body;
@@ -185,6 +196,7 @@ class Builder implements cps_ir.Visitor<Node> {
 
   ConstructorDefinition buildConstructor(cps_ir.ConstructorDefinition node) {
     currentElement = node.element;
+    thisParameter = node.thisParameter;
     List<Variable> parameters =
         node.parameters.map(addFunctionParameter).toList();
     List<Initializer> initializers;
@@ -214,17 +226,6 @@ class Builder implements cps_ir.Visitor<Node> {
          growable: false);
   }
 
-  /// Returns the list of variables corresponding to the arguments to a join
-  /// continuation.
-  ///
-  /// The `readCount` of these variables will not be incremented. Instead,
-  /// [buildPhiAssignments] will handle the increment, if necessary.
-  List<Variable> translatePhiArguments(List<cps_ir.Reference> args) {
-    return new List<Variable>.generate(args.length,
-         (int index) => getVariable(args[index].definition),
-         growable: false);
-  }
-
   Statement buildContinuationAssignment(
       cps_ir.Parameter parameter,
       Expression argument,
@@ -244,7 +245,7 @@ class Builder implements cps_ir.Visitor<Node> {
   /// then continues at the statement created by [buildRest].
   Statement buildPhiAssignments(
       List<cps_ir.Parameter> parameters,
-      List<Variable> arguments,
+      List<Expression> arguments,
       Statement buildRest()) {
     assert(parameters.length == arguments.length);
     // We want a parallel assignment to all parameters simultaneously.
@@ -258,43 +259,51 @@ class Builder implements cps_ir.Visitor<Node> {
     Map<Variable, List<int>> rightHand = <Variable, List<int>>{};
     for (int i = 0; i < parameters.length; i++) {
       Variable param = getVariable(parameters[i]);
-      Variable arg = arguments[i];
-      if (param == null || param == arg) {
-        continue; // No assignment necessary.
+      Expression arg = arguments[i];
+      if (arg is VariableUse) {
+        if (param == null || param == arg.variable) {
+          // No assignment necessary.
+          --arg.variable.readCount;
+          continue;
+        }
+        // v1 = v0
+        List<int> list = rightHand[arg.variable];
+        if (list == null) {
+          rightHand[arg.variable] = list = <int>[];
+        }
+        list.add(i);
+      } else {
+        // v1 = this;
       }
-      List<int> list = rightHand[arg];
-      if (list == null) {
-        rightHand[arg] = list = <int>[];
-      }
-      list.add(i);
     }
 
     Statement first, current;
-    void addAssignment(Variable dst, Variable src) {
+    void addAssignment(Variable dst, Expression src) {
       if (first == null) {
-        first = current = new Assign(dst, new VariableUse(src), null);
+        first = current = new Assign(dst, src, null);
       } else {
-        current = current.next = new Assign(dst, new VariableUse(src), null);
+        current = current.next = new Assign(dst, src, null);
       }
     }
 
-    List<Variable> assignmentSrc = new List<Variable>(parameters.length);
-    List<bool> done = new List<bool>(parameters.length);
+    List<Expression> assignmentSrc = new List<Expression>(parameters.length);
+    List<bool> done = new List<bool>.filled(parameters.length, false);
     void visitAssignment(int i) {
-      if (done[i] == true) {
+      if (done[i]) {
         return;
       }
       Variable param = getVariable(parameters[i]);
-      Variable arg = arguments[i];
-      if (param == null || param == arg) {
+      Expression arg = arguments[i];
+      if (param == null || (arg is VariableUse && param == arg.variable)) {
         return; // No assignment necessary.
       }
       if (assignmentSrc[i] != null) {
         // Cycle found; store argument in a temporary variable.
         // The temporary will then be used as right-hand side when the
         // assignment gets added.
-        if (assignmentSrc[i] != phiTempVar) { // Only move to temporary once.
-          assignmentSrc[i] = phiTempVar;
+        VariableUse source = assignmentSrc[i];
+        if (source.variable != phiTempVar) { // Only move to temporary once.
+          assignmentSrc[i] = new VariableUse(phiTempVar);
           addAssignment(phiTempVar, arg);
         }
         return;
@@ -311,7 +320,7 @@ class Builder implements cps_ir.Visitor<Node> {
     }
 
     for (int i = 0; i < parameters.length; i++) {
-      if (done[i] == null) {
+      if (!done[i]) {
         visitAssignment(i);
       }
     }
@@ -526,7 +535,7 @@ class Builder implements cps_ir.Visitor<Node> {
       assert(node.arguments.length == 1);
       return new Return(getVariableUse(node.arguments.single));
     } else {
-      List<Variable> arguments = translatePhiArguments(node.arguments);
+      List<Expression> arguments = translateArguments(node.arguments);
       return buildPhiAssignments(cont.parameters, arguments,
           () {
             // Translate invocations of recursive and non-recursive
@@ -573,10 +582,6 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Expression visitConstant(cps_ir.Constant node) {
     return new Constant(node.expression);
-  }
-
-  Expression visitThis(cps_ir.This node) {
-    return new This();
   }
 
   Expression visitReifyTypeVar(cps_ir.ReifyTypeVar node) {

@@ -486,6 +486,7 @@ class _RemovalVisitor extends RecursiveVisitor {
 class ParentVisitor extends RecursiveVisitor {
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
+    if (node.thisParameter != null) node.thisParameter.parent = node;
     int index = 0;
     node.parameters.forEach((Definition parameter) {
       parameter.parent = node;

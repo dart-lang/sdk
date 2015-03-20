@@ -321,10 +321,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "Interceptor(${formatReference(node.input)})";
   }
 
-  visitThis(cps_ir.This node) {
-    return "This";
-  }
-
   visitReifyTypeVar(cps_ir.ReifyTypeVar node) {
     return "ReifyTypeVar ${node.typeVariable.name}";
   }
@@ -547,9 +543,6 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
   visitConstant(cps_ir.Constant node) {
-    unexpectedNode(node);
-  }
-  visitThis(cps_ir.This node) {
     unexpectedNode(node);
   }
   visitReifyTypeVar(cps_ir.ReifyTypeVar node) {

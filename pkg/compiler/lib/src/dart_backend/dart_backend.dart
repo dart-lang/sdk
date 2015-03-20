@@ -12,6 +12,7 @@ import '../library_loader.dart' show LoadedLibraries;
 import '../dart_types.dart';
 import '../tree/tree.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import '../cps_ir/cps_ir_nodes_sexpr.dart';
 import '../constants/expressions.dart';
 import '../cps_ir/optimizers.dart';
 import '../cps_ir/optimizers.dart' as cps_opt;

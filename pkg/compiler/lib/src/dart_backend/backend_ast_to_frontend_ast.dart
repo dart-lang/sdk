@@ -398,9 +398,9 @@ class TreePrinter {
       }
     } else if (exp is CallMethod) {
       precedence = CALLEE;
-      tree.Node receiver = exp.object is This
-          ? null
-          : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
+      // TODO(sra): Elide receiver when This, but only if not in a scope that
+      // shadows the method (e.g. constructor body).
+      tree.Node receiver = makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
       result = new tree.Send(
           receiver,
           makeIdentifier(exp.methodName),
@@ -445,9 +445,9 @@ class TreePrinter {
           colon);
     } else if (exp is FieldExpression) {
       precedence = PRIMARY;
-      tree.Node receiver = exp.object is This
-          ? null
-          : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
+      // TODO(sra): Elide receiver when This, but only if not in a scope that
+      // shadows the method (e.g. constructor body).
+      tree.Node receiver = makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
       result = new tree.Send(receiver, makeIdentifier(exp.fieldName));
     } else if (exp is ConstructorDefinition) {
       precedence = EXPRESSION;
