@@ -611,6 +611,7 @@ class Assignment extends Expression {
 
   Assignment(leftHandSide, value)
       : this.compound(leftHandSide, null, value);
+  // If `this.op == null` this will be a non-compound assignment.
   Assignment.compound(this.leftHandSide, this.op, this.value);
 
   int get precedenceLevel => ASSIGNMENT;

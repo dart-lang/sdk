@@ -220,14 +220,12 @@ void ParsedFunction::AllocateVariables() {
 
   // Allocate parameters and local variables, either in the local frame or
   // in the context(s).
-  LocalScope* context_owner = NULL;  // No context needed yet.
   bool found_captured_variables = false;
   int next_free_frame_index =
       scope->AllocateVariables(first_parameter_index_,
                                num_params,
                                first_stack_local_index_,
-                               scope,
-                               &context_owner,
+                               NULL,
                                &found_captured_variables);
 
   // Frame indices are relative to the frame pointer and are decreasing.
@@ -9411,7 +9409,7 @@ AstNode* Parser::ParseYieldStatement() {
     // restore saved_try_context
 
     SequenceNode* true_branch =
-        new(Z) SequenceNode(Scanner::kNoSourcePos, current_block_->scope);
+        new(Z) SequenceNode(Scanner::kNoSourcePos, NULL);
     AstNode* return_from_generator = new(Z) ReturnNode(yield_pos);
     true_branch->Add(return_from_generator);
     AddNodeForFinallyInlining(return_from_generator);

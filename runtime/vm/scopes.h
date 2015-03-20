@@ -313,8 +313,7 @@ class LocalScope : public ZoneAllocated {
   int AllocateVariables(int first_parameter_index,
                         int num_parameters,
                         int first_frame_index,
-                        LocalScope* loop_owner,
-                        LocalScope** context_owner,
+                        LocalScope* context_owner,
                         bool* found_captured_variables);
 
   // Creates variable info for the scope and all its nested scopes.

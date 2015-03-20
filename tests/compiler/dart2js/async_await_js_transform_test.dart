@@ -597,7 +597,7 @@ function(g) {
           return thenHelper(foo2(), __body, __completer);
         case 11:
           // returning from await.
-          i = __result;
+          i += __result;
           // goto for condition
           __goto = 3;
           break;
@@ -1050,6 +1050,85 @@ function(l) {
               print(2);
               break;
           }
+          // implicit return
+          return thenHelper(null, 0, __completer, null);
+        case 1:
+          // rethrow
+          return thenHelper(__currentError, 1, __completer);
+      }
+  }
+  return thenHelper(null, __body, __completer, null);
+}""");
+
+  testTransform("""
+  function(m) async {
+    var exception = 1;
+    try {
+      await 42;
+      throw 42;
+    } catch (exception) {
+      exception = await 10;
+      exception += await 10;
+      exception++;
+      exception--;
+      ++exception;
+      --exception;
+      exception += 10;
+    }
+    print(exception);
+  }""", """
+function(m) {
+  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], exception, __exception;
+  function __body(__errorCode, __result) {
+    if (__errorCode === 1) {
+      __currentError = __result;
+      __goto = __handler;
+    }
+    while (true)
+      switch (__goto) {
+        case 0:
+          // Function start
+          exception = 1;
+          __handler = 3;
+          __goto = 6;
+          return thenHelper(42, __body, __completer);
+        case 6:
+          // returning from await.
+          throw 42;
+          __handler = 1;
+          // goto after finally
+          __goto = 5;
+          break;
+        case 3:
+          // catch
+          __handler = 2;
+          __exception = __currentError;
+          __goto = 7;
+          return thenHelper(10, __body, __completer);
+        case 7:
+          // returning from await.
+          __exception = __result;
+          __goto = 8;
+          return thenHelper(10, __body, __completer);
+        case 8:
+          // returning from await.
+          __exception += __result;
+          __exception++;
+          __exception--;
+          ++__exception;
+          --__exception;
+          __exception += 10;
+          // goto after finally
+          __goto = 5;
+          break;
+        case 2:
+          // uncaught
+          // goto rethrow
+          __goto = 1;
+          break;
+        case 5:
+          // after finally
+          print(exception);
           // implicit return
           return thenHelper(null, 0, __completer, null);
         case 1:

@@ -139,44 +139,44 @@ intptr_t LocalScope::PreviousReferencePos(const String& name) const {
 void LocalScope::AllocateContextVariable(LocalVariable* variable,
                                          LocalScope** context_owner) {
   ASSERT(variable->is_captured());
-  ASSERT(variable->owner()->loop_level() == loop_level());
-  if (num_context_variables_ == 0) {
-    // This scope will allocate and chain a new context.
-    int new_context_level = ((*context_owner) == NULL) ?
-        1 : (*context_owner)->context_level() + 1;
-    // This scope becomes the current context owner.
-    *context_owner = this;
-    set_context_level(new_context_level);
-  }
+  ASSERT(variable->owner() == this);
   // The context level in the owner scope of a captured variable indicates at
   // code generation time how far to walk up the context chain in order to
   // access the variable from the current context level.
-  if (!variable->owner()->HasContextLevel()) {
-    ASSERT(variable->owner() != this);
-    variable->owner()->set_context_level(context_level());
+  if ((*context_owner) == NULL) {
+    ASSERT(num_context_variables_ == 0);
+    // This scope becomes the current context owner.
+    set_context_level(1);
+    *context_owner = this;
+  } else if ((*context_owner)->loop_level() < loop_level()) {
+    // The captured variable is at a deeper loop level than the current context.
+    // This scope will allocate and chain a new context.
+    ASSERT(num_context_variables_ == 0);
+    // This scope becomes the current context owner.
+    set_context_level((*context_owner)->context_level() + 1);
+    *context_owner = this;
   } else {
-    ASSERT(variable->owner()->context_level() == context_level());
+    // Allocate the captured variable in the current context.
+    if (!HasContextLevel()) {
+      ASSERT(variable->owner() != *context_owner);
+      set_context_level((*context_owner)->context_level());
+    } else {
+      ASSERT(context_level() == (*context_owner)->context_level());
+    }
   }
-  variable->set_index(num_context_variables_++);
+  variable->set_index((*context_owner)->num_context_variables_++);
 }
 
 
 int LocalScope::AllocateVariables(int first_parameter_index,
                                   int num_parameters,
                                   int first_frame_index,
-                                  LocalScope* loop_owner,
-                                  LocalScope** context_owner,
+                                  LocalScope* context_owner,
                                   bool* found_captured_variables) {
   // We should not allocate variables of nested functions while compiling an
   // enclosing function.
   ASSERT(function_level() == 0);
   ASSERT(num_parameters >= 0);
-
-  // Keep track of the current loop owner scope, that is of the highest parent
-  // scope at the same loop level as this scope.
-  if (loop_level() > loop_owner->loop_level()) {
-    loop_owner = this;
-  }
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_parameters <= num_variables());
   int pos = 0;  // Current variable position.
@@ -194,7 +194,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
       // context, where it gets copied to. The parameter index reflects the
       // context allocation index.
       frame_index--;
-      loop_owner->AllocateContextVariable(parameter, context_owner);
+      AllocateContextVariable(parameter, &context_owner);
       *found_captured_variables = true;
     } else {
       parameter->set_index(frame_index--);
@@ -208,7 +208,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
     pos++;
     if (variable->owner() == this) {
       if (variable->is_captured()) {
-        loop_owner->AllocateContextVariable(variable, context_owner);
+        AllocateContextVariable(variable, &context_owner);
         *found_captured_variables = true;
       } else {
         variable->set_index(frame_index--);
@@ -216,26 +216,18 @@ int LocalScope::AllocateVariables(int first_parameter_index,
     }
   }
   // Allocate variables of all children.
-  int min_frame_index = frame_index;
+  int min_frame_index = frame_index;  // Frame index decreases with allocations.
   LocalScope* child = this->child();
   while (child != NULL) {
-    LocalScope* child_context_owner = *context_owner;
     int const dummy_parameter_index = 0;  // Ignored, since no parameters.
     int const num_parameters_in_child = 0;  // No parameters in children scopes.
     int child_frame_index = child->AllocateVariables(dummy_parameter_index,
                                                      num_parameters_in_child,
                                                      frame_index,
-                                                     loop_owner,
-                                                     &child_context_owner,
+                                                     context_owner,
                                                      found_captured_variables);
     if (child_frame_index < min_frame_index) {
       min_frame_index = child_frame_index;
-    }
-    // A context allocated at a deeper loop level than the current loop level is
-    // not shared between children.
-    if ((child_context_owner != *context_owner) &&
-        (child_context_owner->loop_level() <= loop_owner->loop_level())) {
-      *context_owner = child_context_owner;  // Share context between siblings.
     }
     child = child->sibling();
   }
