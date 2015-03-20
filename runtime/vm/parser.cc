@@ -3181,23 +3181,24 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   Function& generated_body_closure = Function::ZoneHandle(Z);
   if (func.IsAsyncFunction()) {
     ASSERT(!func.is_generated_body());
-    // The code of an async function is synthesized. Disable debugging.
-    func.set_is_debuggable(false);
+    // Must show frame for checked mode return type error.
+    ASSERT(func.is_debuggable());
     generated_body_closure = OpenAsyncFunction(func.token_pos());
   } else if (func.IsAsyncClosure()) {
     // The closure containing the body of an async function is debuggable.
     ASSERT(func.is_debuggable());
     OpenAsyncClosure();
   } else if (func.IsSyncGenerator()) {
-    // The code of a sync generator is synthesized. Disable debugging.
-    func.set_is_debuggable(false);
+    // Must show frame for checked mode return type error.
+    ASSERT(func.is_debuggable());
     generated_body_closure = OpenSyncGeneratorFunction(func.token_pos());
   } else if (func.IsSyncGenClosure()) {
     // The closure containing the body of a sync generator is debuggable.
     ASSERT(func.is_debuggable());
     async_temp_scope_ = current_block_->scope;
   } else if (func.IsAsyncGenerator()) {
-    func.set_is_debuggable(false);
+    // Must show frame for checked mode return type error.
+    ASSERT(func.is_debuggable());
     generated_body_closure = OpenAsyncGeneratorFunction(func.token_pos());
   } else if (func.IsAsyncGenClosure()) {
     // The closure containing the body of an async* function is debuggable.
