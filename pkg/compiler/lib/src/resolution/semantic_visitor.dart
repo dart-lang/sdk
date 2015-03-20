@@ -1058,7 +1058,7 @@ abstract class SemanticSendVisitor<R, A> {
 
   /// Binary expression `left operator right` where [operator] is a user
   /// definable operator. Binary expressions using operator `==` are handled
-  /// by [visitEquals].
+  /// by [visitEquals] and index operations `a[b]` are handled by [visitIndex].
   ///
   /// For instance:
   ///     add(a, b) => a + b;
@@ -1089,6 +1089,34 @@ abstract class SemanticSendVisitor<R, A> {
       FunctionElement function,
       BinaryOperator operator,
       Node argument,
+      A arg);
+
+  /// Index expression `receiver[index]`.
+  ///
+  /// For instance:
+  ///     lookup(a, b) => a[b];
+  ///
+  R visitIndex(
+      Send node,
+      Node receiver,
+      Node index,
+      A arg);
+
+  /// Index expression `super[index]` where 'operator []' is implemented on a
+  /// superclass by [function].
+  ///
+  /// For instance:
+  ///     class B {
+  ///       operator [](_) => null;
+  ///     }
+  ///     class C extends B {
+  ///       m(a) => super[a];
+  ///     }
+  ///
+  R visitSuperIndex(
+      Send node,
+      FunctionElement function,
+      Node index,
       A arg);
 
   /// Binary expression `left == right`.
@@ -1193,7 +1221,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver, index, rhs) => receiver[index] = rhs;
   ///
   R visitIndexSet(
-      Send node,
+      SendSet node,
       Node receiver,
       Node index,
       Node rhs,
@@ -1211,7 +1239,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperIndexSet(
-      Send node,
+      SendSet node,
       FunctionElement function,
       Node index,
       Node rhs,
@@ -1643,7 +1671,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m(rhs) => C += rhs;
   ///
-  R visitClassTypeLiteralCompound(
+  R errorClassTypeLiteralCompound(
       Send node,
       TypeConstantExpression constant,
       AssignmentOperator operator,
@@ -1657,7 +1685,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m(rhs) => F += rhs;
   ///
-  R visitTypedefTypeLiteralCompound(
+  R errorTypedefTypeLiteralCompound(
       Send node,
       TypeConstantExpression constant,
       AssignmentOperator operator,
@@ -1672,7 +1700,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => T += rhs;
   ///     }
   ///
-  R visitTypeVariableTypeLiteralCompound(
+  R errorTypeVariableTypeLiteralCompound(
       Send node,
       TypeVariableElement element,
       AssignmentOperator operator,
@@ -1685,7 +1713,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance:
   ///     m(rhs) => dynamic += rhs;
   ///
-  R visitDynamicTypeLiteralCompound(
+  R errorDynamicTypeLiteralCompound(
       Send node,
       TypeConstantExpression constant,
       AssignmentOperator operator,
@@ -1700,7 +1728,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver, index, rhs) => receiver[index] += rhs;
   ///
   R visitCompoundIndexSet(
-      Send node,
+      SendSet node,
       Node receiver,
       Node index,
       AssignmentOperator operator,
@@ -1720,7 +1748,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperCompoundIndexSet(
-      Send node,
+      SendSet node,
       FunctionElement getter,
       FunctionElement setter,
       Node index,
@@ -2018,7 +2046,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => ++C;
   ///
-  R visitClassTypeLiteralPrefix(
+  R errorClassTypeLiteralPrefix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
@@ -2031,7 +2059,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m() => ++F;
   ///
-  R visitTypedefTypeLiteralPrefix(
+  R errorTypedefTypeLiteralPrefix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
@@ -2045,7 +2073,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++T;
   ///     }
   ///
-  R visitTypeVariableTypeLiteralPrefix(
+  R errorTypeVariableTypeLiteralPrefix(
       Send node,
       TypeVariableElement element,
       IncDecOperator operator,
@@ -2056,7 +2084,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance:
   ///     m() => ++dynamic;
   ///
-  R visitDynamicTypeLiteralPrefix(
+  R errorDynamicTypeLiteralPrefix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
@@ -2353,7 +2381,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => C++;
   ///
-  R visitClassTypeLiteralPostfix(
+  R errorClassTypeLiteralPostfix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
@@ -2366,7 +2394,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m() => F++;
   ///
-  R visitTypedefTypeLiteralPostfix(
+  R errorTypedefTypeLiteralPostfix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
@@ -2380,7 +2408,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => T++;
   ///     }
   ///
-  R visitTypeVariableTypeLiteralPostfix(
+  R errorTypeVariableTypeLiteralPostfix(
       Send node,
       TypeVariableElement element,
       IncDecOperator operator,
@@ -2391,7 +2419,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance:
   ///     m() => dynamic++;
   ///
-  R visitDynamicTypeLiteralPostfix(
+  R errorDynamicTypeLiteralPostfix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,

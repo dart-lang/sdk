@@ -14,6 +14,7 @@ enum SendStructureKind {
   EQ,
   NOT_EQ,
   COMPOUND,
+  INDEX,
   INDEX_SET,
   COMPOUND_INDEX_SET,
   PREFIX,
@@ -186,7 +187,7 @@ abstract class SendResolverMixin {
             case BinaryOperatorKind.INDEX:
               if (node.arguments.tail.isEmpty) {
                 // a[b]
-                kind = SendStructureKind.BINARY;
+                kind = SendStructureKind.INDEX;
               } else {
                 if (kind == SendStructureKind.COMPOUND) {
                   // a[b] += c
@@ -233,6 +234,8 @@ abstract class SendResolverMixin {
         return new NotStructure(semantics, selector);
       case SendStructureKind.BINARY:
         return new BinaryStructure(semantics, binaryOperator, selector);
+      case SendStructureKind.INDEX:
+        return new IndexStructure(semantics, selector);
       case SendStructureKind.EQ:
         return new EqualsStructure(semantics, selector);
       case SendStructureKind.NOT_EQ:

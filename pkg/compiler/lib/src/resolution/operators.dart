@@ -205,6 +205,10 @@ class AssignmentOperator {
   const AssignmentOperator._(this.kind, this.name, this.binaryOperator,
                              {this.isUserDefinable: true});
 
+  String get selectorName {
+    return binaryOperator != null ? binaryOperator.selectorName: null;
+  }
+
   String toString() => name;
 
   /// The = operator.
@@ -294,18 +298,21 @@ enum IncDecOperatorKind {
 class IncDecOperator {
   final IncDecOperatorKind kind;
   final String name;
+  final BinaryOperator binaryOperator;
 
-  const IncDecOperator._(this.kind, this.name);
+  const IncDecOperator._(this.kind, this.name, this.binaryOperator);
+
+  String get selectorName => binaryOperator.selectorName;
 
   String toString() => name;
 
   /// The prefix/postfix ++ operator.
   static const IncDecOperator INC =
-      const IncDecOperator._(IncDecOperatorKind.INC, '++');
+      const IncDecOperator._(IncDecOperatorKind.INC, '++', BinaryOperator.ADD);
 
   /// The prefix/postfix -- operator.
   static const IncDecOperator DEC =
-      const IncDecOperator._(IncDecOperatorKind.DEC, '--');
+      const IncDecOperator._(IncDecOperatorKind.DEC, '--', BinaryOperator.SUB);
 
   static IncDecOperator parse(String value) {
     switch (value) {

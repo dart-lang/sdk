@@ -29,7 +29,7 @@ const Map<String, List<String>> WHITE_LIST = const {
       "The method 'error"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
       "The method 'error",
-      "The class 'SuperBulkMixin' is never used."]
+      "Mixin' is never used."]
 };
 
 void main() {

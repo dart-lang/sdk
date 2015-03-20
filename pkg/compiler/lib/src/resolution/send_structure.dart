@@ -706,6 +706,40 @@ class InvalidUnaryStructure<R, A> implements SendStructure<R, A> {
   }
 }
 
+/// The structure for a [Send] that is an index expression, i.e. of the form
+/// `a[b]`.
+class IndexStructure<R, A> implements SendStructure<R, A> {
+  /// The target of the left operand.
+  final AccessSemantics semantics;
+
+  // TODO(johnniwinther): Should we store this?
+  /// The [Selector] for the `[]` invocation.
+  final Selector selector;
+
+  IndexStructure(this.semantics, this.selector);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    switch (semantics.kind) {
+      case AccessKind.DYNAMIC_PROPERTY:
+        return visitor.visitIndex(
+            node,
+            node.receiver,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_METHOD:
+        return visitor.visitSuperIndex(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      default:
+        // This is not a valid case.
+        break;
+    }
+    throw new SpannableAssertionFailure(node, "Invalid index: ${semantics}");
+  }
+}
+
 /// The structure for a [Send] that is an equals test, i.e. of the form
 /// `a == b`.
 class EqualsStructure<R, A> implements SendStructure<R, A> {
@@ -966,28 +1000,28 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
       case AccessKind.CLASS_TYPE_LITERAL:
-        return visitor.visitClassTypeLiteralCompound(
+        return visitor.errorClassTypeLiteralCompound(
             node,
             semantics.constant,
             operator,
             node.arguments.single,
             arg);
       case AccessKind.TYPEDEF_TYPE_LITERAL:
-        return visitor.visitTypedefTypeLiteralCompound(
+        return visitor.errorTypedefTypeLiteralCompound(
             node,
             semantics.constant,
             operator,
             node.arguments.single,
             arg);
       case AccessKind.DYNAMIC_TYPE_LITERAL:
-        return visitor.visitDynamicTypeLiteralCompound(
+        return visitor.errorDynamicTypeLiteralCompound(
             node,
             semantics.constant,
             operator,
             node.arguments.single,
             arg);
       case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
-        return visitor.visitTypeVariableTypeLiteralCompound(
+        return visitor.errorTypeVariableTypeLiteralCompound(
             node,
             semantics.element,
             operator,
@@ -1253,25 +1287,25 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
       case AccessKind.CLASS_TYPE_LITERAL:
-        return visitor.visitClassTypeLiteralPrefix(
+        return visitor.errorClassTypeLiteralPrefix(
             node,
             semantics.constant,
             operator,
             arg);
       case AccessKind.TYPEDEF_TYPE_LITERAL:
-        return visitor.visitTypedefTypeLiteralPrefix(
+        return visitor.errorTypedefTypeLiteralPrefix(
             node,
             semantics.constant,
             operator,
             arg);
       case AccessKind.DYNAMIC_TYPE_LITERAL:
-        return visitor.visitDynamicTypeLiteralPrefix(
+        return visitor.errorDynamicTypeLiteralPrefix(
             node,
             semantics.constant,
             operator,
             arg);
       case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
-        return visitor.visitTypeVariableTypeLiteralPrefix(
+        return visitor.errorTypeVariableTypeLiteralPrefix(
             node,
             semantics.element,
             operator,
@@ -1465,25 +1499,25 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
       case AccessKind.CLASS_TYPE_LITERAL:
-        return visitor.visitClassTypeLiteralPostfix(
+        return visitor.errorClassTypeLiteralPostfix(
             node,
             semantics.constant,
             operator,
             arg);
       case AccessKind.TYPEDEF_TYPE_LITERAL:
-        return visitor.visitTypedefTypeLiteralPostfix(
+        return visitor.errorTypedefTypeLiteralPostfix(
             node,
             semantics.constant,
             operator,
             arg);
       case AccessKind.DYNAMIC_TYPE_LITERAL:
-        return visitor.visitDynamicTypeLiteralPostfix(
+        return visitor.errorDynamicTypeLiteralPostfix(
             node,
             semantics.constant,
             operator,
             arg);
       case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
-        return visitor.visitTypeVariableTypeLiteralPostfix(
+        return visitor.errorTypeVariableTypeLiteralPostfix(
             node,
             semantics.element,
             operator,

@@ -1044,8 +1044,8 @@ const List<Test> TESTS = const [
         '''
         m() => 2[3];
         ''',
-        const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '[]', right: '3')),
+        const Visit(VisitKind.VISIT_INDEX,
+                    receiver: '2', index: '3')),
     const Test.clazz(
         '''
         class B {
@@ -1059,6 +1059,18 @@ const List<Test> TESTS = const [
                     element: 'function(B#+)',
                     operator: '+',
                     right: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+        }
+        class C extends B {
+          m() => super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_INDEX,
+                    element: 'function(B#[])',
+                    index: '42')),
 
     // Equals
     const Test(
@@ -2076,6 +2088,18 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   }
 
   @override
+  visitIndex(
+      Send node,
+      Node receiver,
+      Node index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_INDEX,
+        receiver: receiver, index: index));
+    apply(receiver, arg);
+    apply(index, arg);
+  }
+
+  @override
   visitClassTypeLiteralGet(
       Send node,
       TypeConstantExpression constant,
@@ -2446,6 +2470,17 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
     visits.add(new Visit(VisitKind.VISIT_SUPER_BINARY,
             element: function, operator: operator, right: argument));
     apply(argument, arg);
+  }
+
+  @override
+  visitSuperIndex(
+      Send node,
+      FunctionElement function,
+      Node index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_INDEX,
+            element: function, index: index));
+    apply(index, arg);
   }
 
   @override
@@ -3264,49 +3299,49 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   }
 
   @override
-  visitClassTypeLiteralCompound(
+  errorClassTypeLiteralCompound(
       Send node,
       TypeConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_COMPOUND,
+    visits.add(new Visit(VisitKind.ERROR_CLASS_TYPE_LITERAL_COMPOUND,
         constant: constant.getText(), operator: operator, rhs: rhs));
     apply(rhs, arg);
   }
 
   @override
-  visitDynamicTypeLiteralCompound(
+  errorDynamicTypeLiteralCompound(
       Send node,
       TypeConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_COMPOUND,
+    visits.add(new Visit(VisitKind.ERROR_DYNAMIC_TYPE_LITERAL_COMPOUND,
         constant: constant.getText(), operator: operator, rhs: rhs));
     apply(rhs, arg);
   }
 
   @override
-  visitTypeVariableTypeLiteralCompound(
+  errorTypeVariableTypeLiteralCompound(
       Send node,
       TypeVariableElement element,
       AssignmentOperator operator,
       Node rhs,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_COMPOUND,
+    visits.add(new Visit(VisitKind.ERROR_TYPE_VARIABLE_TYPE_LITERAL_COMPOUND,
         element: element, operator: operator, rhs: rhs));
     apply(rhs, arg);
   }
 
   @override
-  visitTypedefTypeLiteralCompound(
+  errorTypedefTypeLiteralCompound(
       Send node,
       TypeConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_COMPOUND,
+    visits.add(new Visit(VisitKind.ERROR_TYPEDEF_TYPE_LITERAL_COMPOUND,
         constant: constant.getText(), operator: operator, rhs: rhs));
     apply(rhs, arg);
   }
@@ -3321,22 +3356,22 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   }
 
   @override
-  visitClassTypeLiteralPrefix(
+  errorClassTypeLiteralPrefix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_PREFIX,
+    visits.add(new Visit(VisitKind.ERROR_CLASS_TYPE_LITERAL_PREFIX,
         constant: constant.getText(), operator: operator));
   }
 
   @override
-  visitDynamicTypeLiteralPrefix(
+  errorDynamicTypeLiteralPrefix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_PREFIX,
+    visits.add(new Visit(VisitKind.ERROR_DYNAMIC_TYPE_LITERAL_PREFIX,
         constant: constant.getText(), operator: operator));
   }
 
@@ -3498,22 +3533,22 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   }
 
   @override
-  visitTypeVariableTypeLiteralPrefix(
+  errorTypeVariableTypeLiteralPrefix(
       Send node,
       TypeVariableElement element,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_PREFIX,
+    visits.add(new Visit(VisitKind.ERROR_TYPE_VARIABLE_TYPE_LITERAL_PREFIX,
         element: element, operator: operator));
   }
 
   @override
-  visitTypedefTypeLiteralPrefix(
+  errorTypedefTypeLiteralPrefix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_PREFIX,
+    visits.add(new Visit(VisitKind.ERROR_TYPEDEF_TYPE_LITERAL_PREFIX,
         constant: constant.getText(), operator: operator));
   }
 
@@ -3527,22 +3562,22 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   }
 
   @override
-  visitClassTypeLiteralPostfix(
+  errorClassTypeLiteralPostfix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_POSTFIX,
+    visits.add(new Visit(VisitKind.ERROR_CLASS_TYPE_LITERAL_POSTFIX,
         constant: constant.getText(), operator: operator));
   }
 
   @override
-  visitDynamicTypeLiteralPostfix(
+  errorDynamicTypeLiteralPostfix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_POSTFIX,
+    visits.add(new Visit(VisitKind.ERROR_DYNAMIC_TYPE_LITERAL_POSTFIX,
         constant: constant.getText(), operator: operator));
   }
 
@@ -3704,22 +3739,22 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   }
 
   @override
-  visitTypeVariableTypeLiteralPostfix(
+  errorTypeVariableTypeLiteralPostfix(
       Send node,
       TypeVariableElement element,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_POSTFIX,
+    visits.add(new Visit(VisitKind.ERROR_TYPE_VARIABLE_TYPE_LITERAL_POSTFIX,
         element: element, operator: operator));
   }
 
   @override
-  visitTypedefTypeLiteralPostfix(
+  errorTypedefTypeLiteralPostfix(
       Send node,
       TypeConstantExpression constant,
       IncDecOperator operator,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_POSTFIX,
+    visits.add(new Visit(VisitKind.ERROR_TYPEDEF_TYPE_LITERAL_POSTFIX,
         constant: constant.getText(), operator: operator));
   }
 
@@ -3950,10 +3985,12 @@ enum VisitKind {
   VISIT_SUPER_METHOD_INVOKE,
 
   VISIT_BINARY,
+  VISIT_INDEX,
   VISIT_EQUALS,
   VISIT_NOT_EQUALS,
 
   VISIT_SUPER_BINARY,
+  VISIT_SUPER_INDEX,
   VISIT_SUPER_EQUALS,
   VISIT_SUPER_NOT_EQUALS,
 
@@ -3967,33 +4004,33 @@ enum VisitKind {
   VISIT_CLASS_TYPE_LITERAL_SET,
   VISIT_CLASS_TYPE_LITERAL_INVOKE,
   VISIT_CLASS_TYPE_LITERAL_BINARY,
-  VISIT_CLASS_TYPE_LITERAL_COMPOUND,
-  VISIT_CLASS_TYPE_LITERAL_PREFIX,
-  VISIT_CLASS_TYPE_LITERAL_POSTFIX,
+  ERROR_CLASS_TYPE_LITERAL_COMPOUND,
+  ERROR_CLASS_TYPE_LITERAL_PREFIX,
+  ERROR_CLASS_TYPE_LITERAL_POSTFIX,
 
   VISIT_TYPEDEF_TYPE_LITERAL_GET,
   VISIT_TYPEDEF_TYPE_LITERAL_SET,
   VISIT_TYPEDEF_TYPE_LITERAL_INVOKE,
   VISIT_TYPEDEF_TYPE_LITERAL_BINARY,
-  VISIT_TYPEDEF_TYPE_LITERAL_COMPOUND,
-  VISIT_TYPEDEF_TYPE_LITERAL_PREFIX,
-  VISIT_TYPEDEF_TYPE_LITERAL_POSTFIX,
+  ERROR_TYPEDEF_TYPE_LITERAL_COMPOUND,
+  ERROR_TYPEDEF_TYPE_LITERAL_PREFIX,
+  ERROR_TYPEDEF_TYPE_LITERAL_POSTFIX,
 
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_GET,
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_INVOKE,
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_BINARY,
-  VISIT_TYPE_VARIABLE_TYPE_LITERAL_COMPOUND,
-  VISIT_TYPE_VARIABLE_TYPE_LITERAL_PREFIX,
-  VISIT_TYPE_VARIABLE_TYPE_LITERAL_POSTFIX,
+  ERROR_TYPE_VARIABLE_TYPE_LITERAL_COMPOUND,
+  ERROR_TYPE_VARIABLE_TYPE_LITERAL_PREFIX,
+  ERROR_TYPE_VARIABLE_TYPE_LITERAL_POSTFIX,
 
   VISIT_DYNAMIC_TYPE_LITERAL_GET,
   VISIT_DYNAMIC_TYPE_LITERAL_SET,
   VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
   VISIT_DYNAMIC_TYPE_LITERAL_BINARY,
-  VISIT_DYNAMIC_TYPE_LITERAL_COMPOUND,
-  VISIT_DYNAMIC_TYPE_LITERAL_PREFIX,
-  VISIT_DYNAMIC_TYPE_LITERAL_POSTFIX,
+  ERROR_DYNAMIC_TYPE_LITERAL_COMPOUND,
+  ERROR_DYNAMIC_TYPE_LITERAL_PREFIX,
+  ERROR_DYNAMIC_TYPE_LITERAL_POSTFIX,
 
   VISIT_INDEX_SET,
   VISIT_COMPOUND_INDEX_SET,
