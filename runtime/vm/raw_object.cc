@@ -65,6 +65,11 @@ void RawObject::Validate(Isolate* isolate) const {
 
 
 intptr_t RawObject::SizeFromClass() const {
+  return SizeFromClass(Isolate::Current()->class_table());
+}
+
+
+intptr_t RawObject::SizeFromClass(const ClassTable* class_table) const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
@@ -191,9 +196,6 @@ intptr_t RawObject::SizeFromClass() const {
     }
     default: {
       // Get the (constant) instance size out of the class object.
-      // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
-      Isolate* isolate = Isolate::Current();
-      ClassTable* class_table = isolate->class_table();
 #if defined(DEBUG)
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {

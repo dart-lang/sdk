@@ -395,6 +395,7 @@ class RawObject {
     return ((GetClassId() == kFreeListElement));
   }
 
+  // Uses the class table of the current isolate, when needed.
   intptr_t Size() const {
     uword tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
@@ -403,6 +404,19 @@ class RawObject {
       return result;
     }
     result = SizeFromClass();
+    ASSERT(result > SizeTag::kMaxSizeTag);
+    return result;
+  }
+
+  // Like above, but avoids Thread/Isolate::Current.
+  intptr_t Size(const ClassTable* class_table) const {
+    uword tags = ptr()->tags_;
+    intptr_t result = SizeTag::decode(tags);
+    if (result != 0) {
+      ASSERT(result == SizeFromClass(class_table));
+      return result;
+    }
+    result = SizeFromClass(class_table);
     ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
@@ -477,6 +491,7 @@ class RawObject {
   }
 
   intptr_t SizeFromClass() const;
+  intptr_t SizeFromClass(const ClassTable* class_table) const;
 
   intptr_t GetClassId() const {
     uword tags = ptr()->tags_;

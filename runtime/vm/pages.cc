@@ -796,7 +796,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       heap_->Verify(kAllowMarked);
       OS::PrintErr(" done.\n");
     }
-    GCSweeper sweeper;
+    GCSweeper sweeper(isolate->class_table());
 
     // During stop-the-world phases we should use bulk lock when adding elements
     // to the free list.
