@@ -654,7 +654,7 @@ class DumpInfoTask extends CompilerTask {
       'compilationDuration': compiler.totalCompileTime.elapsed.toString(),
       'toJsonDuration': 0,
       'dumpInfoDuration': this.timing.toString(),
-      'noSuchMethodEnabled': compiler.enabledNoSuchMethod
+      'noSuchMethodEnabled': backend.enabledNoSuchMethod
     };
 
     outJson['program'] = generalProgramInfo;
