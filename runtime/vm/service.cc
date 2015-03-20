@@ -573,14 +573,14 @@ void Service::SendEvent(intptr_t eventFamilyId,
   message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
   offset += sizeof(uint64_t);
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
     offset += meta_bytes;
   }
   // TODO(koda): It would be nice to avoid this copy (requires changes to
   // MessageWriter code).
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(message.DataAddr(offset), data, size);
     offset += size;
   }
@@ -2285,7 +2285,7 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
   Object& object = Object::Handle(isolate);
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }

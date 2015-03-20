@@ -202,7 +202,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
                                    const Object& stacktrace_object) {
   // The no_gc StackResource is unwound through the tear down of
   // stack resources below.
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
 

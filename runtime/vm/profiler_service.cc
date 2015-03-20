@@ -63,7 +63,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
     if (array.IsNull() || code.IsNull()) {
       return false;
     }
-    NoGCScope no_gc_scope;
+    NoSafepointScope no_safepoint_scope;
     for (intptr_t i = 0; array.Length(); i++) {
       if (code.raw() == array.At(i)) {
         return true;

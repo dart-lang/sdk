@@ -139,7 +139,7 @@ TEST_CASE(EnumIndexHashMap) {
   EXPECT(b_value.Equals("BBB"));
   {
     // When the key is already present, there should be no allocation.
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     b_value ^= table.InsertNewOrGetValue("b", a_value);
     EXPECT(b_value.Equals("BBB"));
   }

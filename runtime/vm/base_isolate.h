@@ -64,25 +64,25 @@ class BaseIsolate {
 #endif
   }
 
-  int32_t no_gc_scope_depth() const {
+  int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
-    return no_gc_scope_depth_;
+    return no_safepoint_scope_depth_;
 #else
     return 0;
 #endif
   }
 
-  void IncrementNoGCScopeDepth() {
+  void IncrementNoSafepointScopeDepth() {
 #if defined(DEBUG)
-    ASSERT(no_gc_scope_depth_ < INT_MAX);
-    no_gc_scope_depth_ += 1;
+    ASSERT(no_safepoint_scope_depth_ < INT_MAX);
+    no_safepoint_scope_depth_ += 1;
 #endif
   }
 
-  void DecrementNoGCScopeDepth() {
+  void DecrementNoSafepointScopeDepth() {
 #if defined(DEBUG)
-    ASSERT(no_gc_scope_depth_ > 0);
-    no_gc_scope_depth_ -= 1;
+    ASSERT(no_safepoint_scope_depth_ > 0);
+    no_safepoint_scope_depth_ -= 1;
 #endif
   }
 
@@ -111,7 +111,7 @@ class BaseIsolate {
 #if defined(DEBUG)
         top_handle_scope_(NULL),
         no_handle_scope_depth_(0),
-        no_gc_scope_depth_(0),
+        no_safepoint_scope_depth_(0),
 #endif
         no_callback_scope_depth_(0)
   {}
@@ -125,7 +125,7 @@ class BaseIsolate {
 #if defined(DEBUG)
   HandleScope* top_handle_scope_;
   int32_t no_handle_scope_depth_;
-  int32_t no_gc_scope_depth_;
+  int32_t no_safepoint_scope_depth_;
 #endif
   int32_t no_callback_scope_depth_;
 

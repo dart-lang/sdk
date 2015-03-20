@@ -100,7 +100,7 @@ class RuntimeEntry : public ValueObject {
       argument_count, true, false);                                            \
   type DLRT_##name(__VA_ARGS__) {                                              \
     CHECK_STACK_ALIGNMENT;                                                     \
-    NoGCScope no_gc_scope;                                                     \
+    NoSafepointScope no_safepoint_scope;                                       \
 
 #define END_LEAF_RUNTIME_ENTRY }
 

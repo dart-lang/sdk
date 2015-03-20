@@ -125,7 +125,8 @@ class Heap {
   // point.
   // The 'visitor' function should return false if the object is not found,
   // traversal through the heap space continues.
-  // Returns null object if nothing is found. Must be called within a NoGCScope.
+  // Returns null object if nothing is found. Must be called within a
+  // NoSafepointScope.
   RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor) const;
   RawObject* FindOldObject(FindObjectVisitor* visitor) const;
   RawObject* FindNewObject(FindObjectVisitor* visitor) const;
@@ -335,20 +336,22 @@ class GCEvent {
 };
 
 
+// Within a NoSafepointScope, the thread must not reach any safepoint. Used
+// around code that manipulates raw object pointers directly without handles.
 #if defined(DEBUG)
-class NoGCScope : public StackResource {
+class NoSafepointScope : public StackResource {
  public:
-  NoGCScope();
-  ~NoGCScope();
+  NoSafepointScope();
+  ~NoSafepointScope();
  private:
-  DISALLOW_COPY_AND_ASSIGN(NoGCScope);
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
 };
 #else  // defined(DEBUG)
-class NoGCScope : public ValueObject {
+class NoSafepointScope : public ValueObject {
  public:
-  NoGCScope() {}
+  NoSafepointScope() {}
  private:
-  DISALLOW_COPY_AND_ASSIGN(NoGCScope);
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
 };
 #endif  // defined(DEBUG)
 

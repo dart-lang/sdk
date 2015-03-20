@@ -81,7 +81,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   ASSERT(isolate_ == Isolate::Current());
   ASSERT(visitor != NULL);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   Code code;
   code = LookupDartCode();
   if (!code.IsNull()) {
@@ -173,7 +173,7 @@ RawCode* StackFrame::LookupDartCode() const {
   // We add a no gc scope to ensure that the code below does not trigger
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   RawCode* code = GetCodeObject();
   ASSERT(code == Code::null() || code->ptr()->owner_ != Function::null());
   return code;
@@ -184,7 +184,7 @@ RawCode* StackFrame::GetCodeObject() const {
   // We add a no gc scope to ensure that the code below does not trigger
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   const uword pc_marker =
       *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
   if (pc_marker != 0) {

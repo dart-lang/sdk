@@ -906,7 +906,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Read the stream of tokens into the TokenStream object for script
   // snapshots as we made a copy of token stream.
   if (kind == Snapshot::kScript) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawExternalTypedData* stream = token_stream.GetStream();
     reader->ReadBytes(stream->ptr()->data_, len);
   }
@@ -1903,7 +1903,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     if (len == 0) {
       return;
     }
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     CharacterType* str_addr = StringType::CharAddr(*str_obj, 0);
     for (intptr_t i = 0; i < len; i++) {
       *str_addr = reader->Read<CharacterType>();
@@ -1924,7 +1924,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   String& str_obj = String::Handle(reader->zone(), String::null());
 
   if (kind == Snapshot::kFull) {
-    ASSERT(reader->isolate()->no_gc_scope_depth() != 0);
+    ASSERT(reader->isolate()->no_safepoint_scope_depth() != 0);
     RawOneByteString* obj = reader->NewOneByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
@@ -1958,7 +1958,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
     str_obj = obj;
     str_obj.set_tags(tags);
     str_obj.SetHash(hash);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     uint16_t* raw_ptr = (len > 0)? CharAddr(str_obj, 0) : NULL;
     for (intptr_t i = 0; i < len; i++) {
       ASSERT(CharAddr(str_obj, i) == raw_ptr);  // Will trigger assertions.
@@ -2432,7 +2432,7 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid: {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
       reader->ReadBytes(data, length_in_bytes);
       break;

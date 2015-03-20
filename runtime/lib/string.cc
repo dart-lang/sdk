@@ -108,7 +108,7 @@ static uint16_t CharacterLimit(const String& string,
   ASSERT(string.IsTwoByteString() || string.IsExternalTwoByteString());
   // Maybe do loop unrolling, and handle two uint16_t in a single uint32_t
   // operation.
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   uint16_t result = 0;
   if (string.IsTwoByteString()) {
     for (intptr_t i = start; i < end; i++) {
@@ -606,7 +606,7 @@ DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
   const String& result = isLatin1.value()
       ? String::Handle(OneByteString::New(length_value, Heap::kNew))
       : String::Handle(TwoByteString::New(length_value, Heap::kNew));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
 
   uint16_t* data_position = reinterpret_cast<uint16_t*>(codeUnits.DataAddr(0));
   String::Copy(result, 0, data_position, length_value);

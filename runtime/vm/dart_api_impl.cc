@@ -472,7 +472,7 @@ void Api::InitHandles() {
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               int arg_index,
                               void** peer) {
-  NoGCScope no_gc_scope;
+  NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (!raw_obj->IsHeapObject()) {
     return false;
@@ -502,7 +502,7 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
 
 
 bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
-  NoGCScope no_gc_scope;
+  NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = arguments->NativeArg0();
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
@@ -525,7 +525,7 @@ bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
 bool Api::GetNativeBooleanArgument(NativeArguments* arguments,
                                    int arg_index,
                                    bool* value) {
-  NoGCScope no_gc_scope;
+  NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
       intptr_t cid = raw_obj->GetClassId();
@@ -545,7 +545,7 @@ bool Api::GetNativeBooleanArgument(NativeArguments* arguments,
 bool Api::GetNativeIntegerArgument(NativeArguments* arguments,
                                    int arg_index,
                                    int64_t* value) {
-  NoGCScope no_gc_scope;
+  NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
@@ -563,7 +563,7 @@ bool Api::GetNativeIntegerArgument(NativeArguments* arguments,
 bool Api::GetNativeDoubleArgument(NativeArguments* arguments,
                                   int arg_index,
                                   double* value) {
-  NoGCScope no_gc_scope;
+  NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
@@ -587,7 +587,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
                                     int arg_index,
                                     int num_fields,
                                     intptr_t* field_values) {
-  NoGCScope no_gc_scope;
+  NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
@@ -793,10 +793,10 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   const Error* error;
   {
     // We need to preserve the error object across the destruction of zones
-    // when the ApiScopes are unwound.  By using NoGCScope, we can ensure
+    // when the ApiScopes are unwound.  By using NoSafepointScope, we can ensure
     // that GC won't touch the raw error object before creating a valid
     // handle for it in the surviving zone.
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawError* raw_error = Api::UnwrapErrorHandle(isolate, handle).raw();
     state->UnwindScopes(isolate->top_exit_frame_info());
     error = &Error::Handle(isolate, raw_error);
@@ -839,7 +839,7 @@ DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   {
-    NoGCScope ngc;
+    NoSafepointScope no_safepoint_scope;
     if (Api::UnwrapHandle(obj1) == Api::UnwrapHandle(obj2)) {
       return true;
     }
@@ -1156,7 +1156,7 @@ class PrologueWeakVisitor : public HandleVisitor {
   }
 
   void VisitHandle(uword addr) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
@@ -2454,7 +2454,7 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
     *peer = str.GetPeer();
     ASSERT(*peer != NULL);
   } else {
-    NoGCScope no_gc_scope;
+    NoSafepointScope no_safepoint_scope;
     *peer = isolate->heap()->GetPeer(str.raw());
   }
   *char_size = str.CharSize();
@@ -2713,7 +2713,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   ASSERT(state != NULL);
   const Instance* saved_exception;
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawInstance* raw_exception = exception.raw();
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
@@ -2751,7 +2751,7 @@ static Dart_Handle CopyBytes(const T& array,
                              uint8_t* native_array,
                              intptr_t length) {
   ASSERT(array.ElementSizeInBytes() == 1);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   memmove(native_array,
           reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
           length);
@@ -2894,7 +2894,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     const TypedData& array = TypedData::Cast(obj);
     if (array.ElementSizeInBytes() == 1) {
       if (Utils::RangeCheck(offset, length, array.Length())) {
-        NoGCScope no_gc;
+        NoSafepointScope no_safepoint;
         memmove(reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
                 native_array,
                 length);
@@ -3471,7 +3471,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     ASSERT(!obj.IsNull());
     length = obj.Length();
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
-    isolate->IncrementNoGCScopeDepth();
+    isolate->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     data_tmp = obj.DataAddr(0);
   } else {
@@ -3485,7 +3485,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     val ^= TypedDataView::OffsetInBytes(view_obj);
     intptr_t offset_in_bytes = val.Value();
     const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
-    isolate->IncrementNoGCScopeDepth();
+    isolate->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     if (TypedData::IsTypedData(obj)) {
       const TypedData& data_obj = TypedData::Cast(obj);
@@ -3527,7 +3527,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
   if (!RawObject::IsExternalTypedDataClassId(class_id)) {
-    isolate->DecrementNoGCScopeDepth();
+    isolate->DecrementNoSafepointScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
   }
   if (FLAG_verify_acquired_data) {
@@ -4411,7 +4411,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   ASSERT(state != NULL);
   const Instance* saved_exception;
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawInstance* raw_exception =
         Api::UnwrapInstanceHandle(isolate, exception).raw();
     state->UnwindScopes(isolate->top_exit_frame_info());
@@ -4450,7 +4450,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   const Instance* saved_exception;
   const Stacktrace* saved_stacktrace;
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawInstance* raw_exception =
         Api::UnwrapInstanceHandle(isolate, exception).raw();
     RawStacktrace* raw_stacktrace =
@@ -5470,7 +5470,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
     return Api::NewError(msg, CURRENT_FUNC);
   }
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawObject* raw_obj = obj.raw();
     *peer = isolate->heap()->GetPeer(raw_obj);
   }
@@ -5490,7 +5490,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
     return Api::NewError(msg, CURRENT_FUNC);
   }
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawObject* raw_obj = obj.raw();
     isolate->heap()->SetPeer(raw_obj, peer);
   }

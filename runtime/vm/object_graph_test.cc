@@ -59,7 +59,7 @@ TEST_CASE(ObjectGraph) {
   intptr_t d_size = d.raw()->Size();
   {
     // No more allocation; raw pointers ahead.
-    NoGCScope no_gc_scope;
+    NoSafepointScope no_safepoint_scope;
     RawObject* b_raw = b.raw();
     // Clear handles to cut unintended retained paths.
     b = Array::null();

@@ -67,7 +67,7 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
 
 
 void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   Isolate* isolate = Isolate::Current();
   ObjectSet* allocated_set =
       isolate->heap()->CreateAllocatedObjectSet(mark_expectation);

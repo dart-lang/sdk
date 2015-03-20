@@ -813,7 +813,7 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
       reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
       Disassembler::CanFindOldObject(addr)) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     if (obj.IsArray()) {
       const Array& arr = Array::Cast(obj);
