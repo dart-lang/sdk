@@ -272,6 +272,7 @@ class Driver implements ServerStarter {
         analysisServerOptions, defaultSdk, service, serverPlugin);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
+    socketServer.userDefinedPlugins = _userDefinedPlugins;
 
     if (serve_http) {
       httpServer.serveHttp(port);

@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analyzer/plugin/plugin.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_execution.dart';
@@ -402,8 +403,8 @@ class GetHandler {
 
     List<Folder> allContexts = <Folder>[];
     Map<Folder, SourceEntry> entryMap = new HashMap<Folder, SourceEntry>();
-    analysisServer.folderMap.forEach(
-        (Folder folder, AnalysisContextImpl context) {
+    analysisServer.folderMap
+        .forEach((Folder folder, AnalysisContextImpl context) {
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source != null) {
         SourceEntry entry = context.getReadableSourceEntryOrNull(source);
@@ -459,8 +460,8 @@ class GetHandler {
         };
 
         buffer.write('<h3>Library Independent</h3>');
-        _writeDescriptorTable(buffer,
-            entry.descriptors, entry.getState, entry.getValue, linkParameters);
+        _writeDescriptorTable(buffer, entry.descriptors, entry.getState,
+            entry.getValue, linkParameters);
         if (entry is DartEntry) {
           for (Source librarySource in entry.containingLibraries) {
             String libraryName = HTML_ESCAPE.convert(librarySource.fullName);
@@ -575,8 +576,8 @@ class GetHandler {
               : 0;
           buffer.write('<h4>Startup</h4>');
           buffer.write('<table>');
-          _writeRow(
-              buffer, [requestCount, 'requests'], classes: ["right", null]);
+          _writeRow(buffer, [requestCount, 'requests'],
+              classes: ["right", null]);
           _writeRow(buffer, [averageLatency, 'ms average latency'],
               classes: ["right", null]);
           _writeRow(buffer, [maximumLatency, 'ms maximum latency'],
@@ -605,8 +606,8 @@ class GetHandler {
               : 0;
           buffer.write('<h4>Current</h4>');
           buffer.write('<table>');
-          _writeRow(
-              buffer, [requestCount, 'requests'], classes: ["right", null]);
+          _writeRow(buffer, [requestCount, 'requests'],
+              classes: ["right", null]);
           _writeRow(buffer, [averageLatency, 'ms average latency'],
               classes: ["right", null]);
           _writeRow(buffer, [maximumLatency, 'ms maximum latency'],
@@ -712,9 +713,8 @@ class GetHandler {
     }
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Context', [
-        'Context: $contextFilter'
-      ], (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Context',
+          ['Context: $contextFilter'], (StringBuffer buffer) {
         List headerRowText = ['Context'];
         headerRowText.addAll(CacheState.values);
         buffer.write('<h3>Summary</h3>');
@@ -833,14 +833,13 @@ class GetHandler {
       Map<List<String>, List<InspectLocation>> relations =
           await index.findElementsByName(name);
       _writeResponse(request, (StringBuffer buffer) {
-        _writePage(buffer, 'Analysis Server - Index Elements', [
-          'Name: $name'
-        ], (StringBuffer buffer) {
+        _writePage(buffer, 'Analysis Server - Index Elements', ['Name: $name'],
+            (StringBuffer buffer) {
           buffer.write('<table border="1">');
           _writeRow(buffer, ['Element', 'Relationship', 'Location'],
               header: true);
-          relations.forEach(
-              (List<String> elementPath, List<InspectLocation> relations) {
+          relations.forEach((List<String> elementPath,
+              List<InspectLocation> relations) {
             String elementLocation = elementPath.join(' ');
             relations.forEach((InspectLocation location) {
               var relString = location.relationship.identifier;
@@ -912,6 +911,7 @@ class GetHandler {
           _writeAnalysisStatus(buffer);
           _writeEditStatus(buffer);
           _writeExecutionStatus(buffer);
+          _writePluginStatus(buffer);
           _writeRecentOutput(buffer);
         }
       });
@@ -1018,8 +1018,8 @@ class GetHandler {
       _writeOption(buffer, 'Incremental resolution', options.incremental);
       _writeOption(buffer, 'Incremental resolution with API changes',
           options.incrementalApi);
-      _writeOption(
-          buffer, 'Preserve comments', options.preserveComments, last: true);
+      _writeOption(buffer, 'Preserve comments', options.preserveComments,
+          last: true);
       buffer.write('</p>');
       int freq = AnalysisServer.performOperationDelayFreqency;
       String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
@@ -1309,6 +1309,26 @@ class GetHandler {
     }
     buffer.write('</body>');
     buffer.write('</html>');
+  }
+
+  /**
+   * Write the recent output section (on the main status page) to the given
+   * [buffer] object.
+   */
+  void _writePluginStatus(StringBuffer buffer) {
+    void writePlugin(Plugin plugin) {
+      buffer.write(_server.serverPlugin.uniqueIdentifier);
+      buffer.write(' (');
+      buffer.write(_server.serverPlugin.runtimeType);
+      buffer.write(')<br>');
+    }
+    buffer.write('<h3>Plugin Status</h3><p>');
+    writePlugin(AnalysisEngine.instance.enginePlugin);
+    writePlugin(_server.serverPlugin);
+    for (Plugin plugin in _server.analysisServer.userDefinedPlugins) {
+      writePlugin(plugin);
+    }
+    buffer.write('<p>');
   }
 
   /**
