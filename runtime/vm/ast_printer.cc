@@ -30,7 +30,10 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   LocalScope* scope = node->scope();
   ISL_Print("(%s (scope \"%p\"", node->PrettyName(), scope);
   if (scope != NULL) {
-    ISL_Print(" loop %d", scope->loop_level());
+    ISL_Print(" (%d-%d) loop %d",
+              scope->begin_token_pos(),
+              scope->end_token_pos(),
+              scope->loop_level());
     if (scope->HasContextLevel()) {
       ISL_Print(" context %d captures %d",
                 scope->context_level(),
