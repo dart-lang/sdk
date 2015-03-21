@@ -522,7 +522,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   Object _getConstantValue(String source) =>
-      ParserTestCase.parseExpression(source).accept(new ConstantEvaluator());
+      parseExpression(source).accept(new ConstantEvaluator());
 }
 
 @reflectiveTest
