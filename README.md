@@ -8,24 +8,23 @@ A Dart style linter.
 
 ## Installing
 
-Clone the `linter` repo like this:
+The easiest way to install is via pub:
 
-    git clone https://github.com/dart-lang/linter.git
+    $ pub global activate linter
 
-When the source is more mature, we’ll push regular builds to `pub`.
+Alternatively, clone the `linter` repo like this:
+
+    $ git clone https://github.com/dart-lang/linter.git
 
 ## Usage
 
 Linter for Dart gives you feedback to help you keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforced lint rules (or "lints") are catalogued [here](http://dart-lang.github.io/linter/lints/).  When you run the linter all lints are enabled but don't worry, configuration, wherein you can specifically enable/disable lints, is in the [works](https://github.com/dart-lang/linter/issues/7).  While initial focus is on style lints, other lints that catch common programming errors are certainly of interest.  If you have ideas, please file a [feature request][tracker].
 
-The easiest way to run the linter is via `pub`.  For example:
+Running the linter via pub looks like this:
 
-    $ pub global activate linter
-    $ pub global run linter .
+    $ pub global run linter my_project
 
-Alternatively, you can always try the latest bits by running from source.
-
-Either way, example output will look something like this:
+With example output will looking like this:
 
     my_project/my_library.dart 13:8 [lint] Name non-constant identifiers using lowerCamelCase.
       IOSink std_err = stderr;
