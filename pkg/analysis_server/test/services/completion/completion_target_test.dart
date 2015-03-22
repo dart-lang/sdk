@@ -475,9 +475,9 @@ class C2 {
   }
 
   test_TypeArgumentList() {
-    // SimpleIdentifier  BinaryExpression  ExpressionStatement
+    // TypeName  TypeArgumentList  TypeName
     addTestSource('main() { C<^> c; }');
-    assertTarget('', 'C < ');
+    assertTarget('', '<>');
   }
 
   test_TypeArgumentList2() {

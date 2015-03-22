@@ -139,22 +139,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (identical(entity, node.rightOperand)) {
-      // An empty type argument list is parsed as a binary expression
-      // `C<>` is parsed as `C < `
-      Object entity = this.entity;
-      if (entity is SimpleIdentifier && entity.isSynthetic) {
-        Token operator = node.operator;
-        if (operator != null && operator.lexeme == '<') {
-          Token next = entity.token.next;
-          if (next is StringToken && next.lexeme.length == 0) {
-            next = next.next;
-          }
-          if (next != null && next.lexeme == '>') {
-            optype.includeTypeNameSuggestions = true;
-            return;
-          }
-        }
-      }
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }

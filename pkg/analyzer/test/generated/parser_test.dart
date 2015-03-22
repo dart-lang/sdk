@@ -8766,6 +8766,18 @@ void''');
     expect(identifier.name, lexeme);
   }
 
+  void test_parseStatement_emptyTypeArgumentListt() {
+    VariableDeclarationStatement statement = ParserTestCase.parse4(
+        "parseStatement", "C<> c;", [ParserErrorCode.EXPECTED_TYPE_NAME]);
+    VariableDeclarationList variables = statement.variables;
+    TypeName type = variables.type;
+    TypeArgumentList argumentList = type.typeArguments;
+    expect(argumentList.leftBracket, isNotNull);
+    expect(argumentList.arguments, hasLength(1));
+    expect(argumentList.arguments[0].isSynthetic, isTrue);
+    expect(argumentList.rightBracket, isNotNull);
+  }
+
   void test_parseStatement_functionDeclaration() {
     // TODO(brianwilkerson) Implement more tests for this method.
     FunctionDeclarationStatement statement =
@@ -9129,6 +9141,14 @@ void''');
     expect(typeAlias.returnType, isNotNull);
     expect(typeAlias.semicolon, isNotNull);
     expect(typeAlias.typeParameters, isNull);
+  }
+
+  void test_parseTypeArgumentList_empty() {
+    TypeArgumentList argumentList = ParserTestCase.parse4(
+        "parseTypeArgumentList", "<>", [ParserErrorCode.EXPECTED_TYPE_NAME]);
+    expect(argumentList.leftBracket, isNotNull);
+    expect(argumentList.arguments, hasLength(1));
+    expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeArgumentList_multiple() {

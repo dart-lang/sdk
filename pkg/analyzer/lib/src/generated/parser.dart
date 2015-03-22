@@ -7974,6 +7974,12 @@ class Parser {
     }
     token = _skipTypeName(token.next);
     if (token == null) {
+      // If the start token '<' is followed by '>'
+      // then assume this should be type argument list but is missing a type
+      token = startToken.next;
+      if (_tokenMatches(token, TokenType.GT)) {
+        return token.next;
+      }
       return null;
     }
     while (_tokenMatches(token, TokenType.COMMA)) {
