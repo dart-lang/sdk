@@ -16,7 +16,9 @@ main() {
     test('supported', () {
       expect(Notification.supported, true);
     });
+  });
 
+  group('simple_timing', () {
     test('simple timing', () {
       var body = document.body;
       var opacity = num.parse(body.getComputedStyle().opacity);
@@ -24,21 +26,24 @@ main() {
       var newOpacity = num.parse(body.getComputedStyle().opacity);
       expect(newOpacity < opacity, isTrue);
     });
+  });
 
+  group('timing_dict', () {
     test('timing dict', () {
       var body = document.body;
       // Animate different characteristics so the tests can run concurrently.
       var fontSize = body.getComputedStyle().fontSize;
       var player = body.animate(
-          [{"font-size": "500px"}, {"font-size": fontSize}],
-          {"duration": 100});
+          [{"font-size": "500px"}, {"font-size": fontSize}], {"duration": 100});
       var newFontSize = body.getComputedStyle().fontSize;
       // Don't bother to parse to numbers, as long as it's changed that
       // indicates something is happening.
       expect(newFontSize == fontSize, isFalse);
       player.on['finish'].listen(expectAsync((_) => 'done'));
     });
+  });
 
+  group('omit_timing', () {
     test('omit timing', () {
       var body = document.body;
       var player = body.animate([
