@@ -876,6 +876,26 @@ void testWaitCleanUpError() {
   });
 }
 
+void testBadFuture() {
+  var bad = new BadFuture();
+  // Completing with bad future (then call throws) puts error in result.
+  asyncStart();
+  Completer completer = new Completer();
+  completer.complete(bad);
+  completer.future.then((_) { fail("unreachable"); },
+                        onError: (e, s) {
+                          Expect.isTrue(completer.isCompleted);
+                          asyncEnd();
+                        });
+
+  asyncStart();
+  var f = new Future.value().then((_) => bad);
+  f.then((_) { fail("unreachable"); },
+         onError: (e, s) {
+           asyncEnd();
+         });
+}
+
 main() {
   asyncStart();
 
@@ -935,6 +955,8 @@ main() {
   testWaitCleanUp();
   testWaitCleanUpError();
 
+  testBadFuture();
+
   asyncEnd();
 }
 
@@ -952,4 +974,16 @@ class CustomFuture<T> implements Future<T> {
   Stream asStream() => _realFuture.asStream();
   String toString() => "CustomFuture@${_realFuture.hashCode}";
   int get hashCode => _realFuture.hashCode;
+}
+
+class BadFuture<T> implements Future<T> {
+  Future then(action(result)) {
+    throw "then GOTCHA!";
+  }
+  Future catchError(Function onError) {
+    throw "catch GOTCHA!";
+  }
+  Future whenComplete(action()) {
+    throw "finally GOTCHA!";
+  }
 }
