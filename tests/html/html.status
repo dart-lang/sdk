@@ -15,7 +15,9 @@ indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
 worker_api_test: Fail # Issue 10223
 media_stream_test/constructors: Pass, Crash # Issue 22267
-element_animate_test: Fail # Not supported on Dartium
+element_animate_test/simple_timing: Fail # Not supported on Dartium
+element_animate_test/omit_timing: Fail # Not supported on Dartium
+element_animate_test/timing_dict: Fail # Not supported on Dartium
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540

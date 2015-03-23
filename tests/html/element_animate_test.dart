@@ -14,7 +14,7 @@ main() {
 
   group('animate_supported', () {
     test('supported', () {
-      expect(Notification.supported, true);
+      expect(AnimationPlayer.supported, true);
     });
   });
 
