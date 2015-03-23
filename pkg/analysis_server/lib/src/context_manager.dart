@@ -285,7 +285,7 @@ abstract class ContextManager {
     List<Resource> children;
     try {
       children = folder.getChildren();
-    } on FileSystemException catch (exception) {
+    } on FileSystemException {
       // The folder no longer exists, or cannot be read, to there's nothing to
       // do.
       return;
