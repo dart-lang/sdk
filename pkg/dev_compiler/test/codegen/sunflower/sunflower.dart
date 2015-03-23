@@ -7,19 +7,20 @@ library sunflower;
 import 'dart:math';
 import 'dom.dart';
 
-const String ORANGE = "orange";
-const int SEED_RADIUS = 2;
-const int SCALE_FACTOR = 4;
-const num TAU = PI * 2;
-const int MAX_D = 300;
+const ORANGE = "orange";
+const SEED_RADIUS = 2;
+const SCALE_FACTOR = 4;
+const TAU = PI * 2;
+const MAX_D = 300;
+// TODO(sigmund): remove `num` here, this is to workaround dartbug.com/22937
 const num centerX = MAX_D / 2;
 const num centerY = centerX;
 
 Element querySelector(String selector) => document.querySelector(selector);
 
 final InputElement slider = querySelector("#slider");
-final Element notes = querySelector("#notes");
-final num PHI = (sqrt(5) + 1) / 2;
+final notes = querySelector("#notes");
+final PHI = (sqrt(5) + 1) / 2;
 int seeds = 0;
 final CanvasRenderingContext2D context =
     (querySelector("#canvas") as CanvasElement).getContext('2d');
@@ -34,10 +35,10 @@ void draw() {
   seeds = int.parse(slider.value);
   context.clearRect(0, 0, MAX_D, MAX_D);
   for (var i = 0; i < seeds; i++) {
-    final num theta = i * TAU / PHI;
-    final num r = sqrt(i) * SCALE_FACTOR;
-    final num x = centerX + r * cos(theta);
-    final num y = centerY - r * sin(theta);
+    final theta = i * TAU / PHI;
+    final r = sqrt(i) * SCALE_FACTOR;
+    final x = centerX + r * cos(theta);
+    final y = centerY - r * sin(theta);
     new SunflowerSeed(x, y, SEED_RADIUS).draw();
   }
   notes.textContent = "$seeds seeds";

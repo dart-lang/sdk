@@ -34,19 +34,17 @@ class ResolverOptions {
   ///
   ///      const A = B;
   ///
-  /// We can infer the type of `A` based on the type of `B`. The current
-  /// implementation of this inference is limited to ensure the answer is
-  /// deterministic when applying inference on library cycles. In the example
-  /// above, `A` is inferred to have `B`'s declared type if they are both in the
-  /// same library cycle. However, if `B`'s definition is not in the same
-  /// connected component as `A`, we use `B`'s inferred type instead.
+  /// We can infer the type of `A` based on the type of `B`.
   ///
-  /// Because this might be surprising to users, this is turned off by default.
-  /// In the future, inference might track dependencies between variables in
-  /// more detail so that, in the example above, we can use `B`'s inferred type
-  /// always.
+  /// The inference algorithm determines what variables depend on others, and
+  /// computes types by visiting the variable dependency graph in topological
+  /// order. This ensures that the inferred type is deterministic when applying
+  /// inference on library cycles.
+  ///
+  /// When this feature is turned off, we don't use the type of `B` to infer the
+  /// type of `A`, even if `B` has a declared type.
   final bool inferTransitively;
-  static const inferTransitivelyDefault = false;
+  static const inferTransitivelyDefault = true;
 
   /// Restrict inference of fields and top-levels to those that are final and
   /// const.

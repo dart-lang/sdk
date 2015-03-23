@@ -18,6 +18,8 @@ import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart'
+    show DirectedGraph;
 import 'package:logging/logging.dart' as logger;
 
 import 'package:dev_compiler/src/options.dart';
@@ -89,7 +91,7 @@ class TypeResolver {
 
 class AnalyzerError extends Message {
   factory AnalyzerError.from(analyzer.AnalysisError error) {
-    var severity = error.errorCode.errorSeverity;
+    var severity = error.errorCode.type.severity;
     var isError = severity == analyzer.ErrorSeverity.ERROR;
     var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
     int begin = error.offset;
@@ -125,9 +127,12 @@ class LibraryResolverWithInference extends LibraryResolver {
 
     // Run resolution in two stages, skipping method bodies first, so we can run
     // type-inference before we fully analyze methods.
-    _resolveReferencesAndTypes(true);
-    _runInference();
-    _resolveReferencesAndTypes(false);
+    var visitors = _createVisitors();
+    _resolveEverything(visitors);
+    _runInference(visitors);
+
+    visitors.values.forEach((v) => v.skipMethodBodies = false);
+    _resolveEverything(visitors);
   }
 
   // Note: this was split from _resolveReferencesAndTypesInLibrary so we do it
@@ -143,19 +148,30 @@ class LibraryResolverWithInference extends LibraryResolver {
 
   // Note: this was split from _resolveReferencesAndTypesInLibrary so we can do
   // resolution in pieces.
-  void _resolveReferencesAndTypes(bool skipMethods) {
+  Map<Source, RestrictedResolverVisitor> _createVisitors() {
+    var visitors = <Source, RestrictedResolverVisitor>{};
     for (Library library in resolvedLibraries) {
       for (Source source in library.compilationUnitSources) {
-        library.getAST(source).accept(new RestrictedResolverVisitor(
-            library, source, typeProvider, _options, skipMethods));
+        var visitor = new RestrictedResolverVisitor(
+            library, source, typeProvider, _options);
+        visitors[source] = visitor;
+      }
+    }
+    return visitors;
+  }
+
+  /// Runs the resolver on the entire library cycle.
+  void _resolveEverything(Map<Source, RestrictedResolverVisitor> visitors) {
+    for (Library library in resolvedLibraries) {
+      for (Source source in library.compilationUnitSources) {
+        library.getAST(source).accept(visitors[source]);
       }
     }
   }
 
-  _runInference() {
-    var consts = [];
-    var statics = [];
-    var classes = [];
+  _runInference(Map<Source, RestrictedResolverVisitor> visitors) {
+    var globalsAndStatics = <VariableDeclaration>[];
+    var classes = <ClassDeclaration>[];
 
     // Extract top-level members that are const, statics, or classes.
     for (Library library in resolvedLibraries) {
@@ -163,30 +179,61 @@ class LibraryResolverWithInference extends LibraryResolver {
         CompilationUnit ast = library.getAST(source);
         for (var declaration in ast.declarations) {
           if (declaration is TopLevelVariableDeclaration) {
-            if (declaration.variables.isConst) {
-              consts.addAll(declaration.variables.variables);
-            } else {
-              statics.addAll(declaration.variables.variables);
-            }
+            globalsAndStatics.addAll(declaration.variables.variables);
           } else if (declaration is ClassDeclaration) {
             classes.add(declaration);
             for (var member in declaration.members) {
-              if (member is! FieldDeclaration) continue;
-              if (member.fields.isConst) {
-                consts.addAll(member.fields.variables);
-              } else if (member.isStatic) {
-                statics.addAll(member.fields.variables);
+              if (member is FieldDeclaration &&
+                  (member.fields.isConst || member.isStatic)) {
+                globalsAndStatics.addAll(member.fields.variables);
               }
             }
           }
         }
       }
     }
+    _inferGlobalsAndStatics(globalsAndStatics, visitors);
+    _inferInstanceFields(classes, visitors);
+  }
 
-    // TODO(sigmund): consider propagating const types after this layer of
-    // inference, so their types can be used to initialize other members below.
-    _inferVariableFromInitializer(consts);
-    _inferVariableFromInitializer(statics);
+  _inferGlobalsAndStatics(List<VariableDeclaration> globalsAndStatics,
+      Map<Source, RestrictedResolverVisitor> visitors) {
+    var elementToDeclaration = {};
+    for (var c in globalsAndStatics) {
+      elementToDeclaration[c.element] = c;
+    }
+    var constGraph = new DirectedGraph<VariableDeclaration>();
+    globalsAndStatics.forEach(constGraph.addNode);
+    for (var c in globalsAndStatics) {
+      for (var e in _VarExtractor.extract(c.initializer)) {
+        // Note: declaration is null for variables that come from other strongly
+        // connected components.
+        var declaration = elementToDeclaration[e];
+        if (declaration != null) constGraph.addEdge(c, declaration);
+      }
+    }
+
+    for (var component in constGraph.computeTopologicalSort()) {
+      if (_options.inferTransitively) {
+        component.forEach((v) => _reanalyzeVar(visitors, v));
+      }
+      _inferVariableFromInitializer(component);
+    }
+  }
+
+  _inferInstanceFields(List<ClassDeclaration> classes,
+      Map<Source, RestrictedResolverVisitor> visitors) {
+    // First propagate what was inferred from globals to all instance fields.
+    if (_options.inferTransitively) {
+      // TODO(sigmund): also do a fine-grain propagation between fields. We want
+      // infer-by-override to take precedence, so we would have to include
+      // classes in the dependency graph and ensure that fields depend on their
+      // class, and classes depend on superclasses.
+      classes
+          .expand((c) => c.members.where(_isInstanceField))
+          .expand((f) => f.fields.variables)
+          .forEach((v) => _reanalyzeVar(visitors, v));
+    }
 
     // Track types in this strongly connected component, ensure we visit
     // supertypes before subtypes.
@@ -202,9 +249,6 @@ class LibraryResolverWithInference extends LibraryResolver {
         if (supertypeClass != null) visit(supertypeClass);
       }
       seen.add(type);
-
-      _isInstanceField(f) =>
-          f is FieldDeclaration && !f.isStatic && !f.fields.isConst;
 
       if (_options.inferFromOverrides) {
         // Infer field types from overrides first, otherwise from initializers.
@@ -226,6 +270,16 @@ class LibraryResolverWithInference extends LibraryResolver {
     }
     classes.forEach(visit);
   }
+
+  void _reanalyzeVar(Map<Source, RestrictedResolverVisitor> visitors,
+      VariableDeclaration variable) {
+    if (variable.initializer == null) return;
+    var visitor = visitors[(variable.root as CompilationUnit).element.source];
+    visitor.reanalyzeInitializer(variable);
+  }
+
+  static bool _isInstanceField(f) =>
+      f is FieldDeclaration && !f.isStatic && !f.fields.isConst;
 
   /// Attempts to infer the type on [field] from overridden fields or getters if
   /// a type was not specified. If no type could be inferred, but it contains an
@@ -309,6 +363,7 @@ class LibraryResolverWithInference extends LibraryResolver {
   }
 
   bool _canInferFrom(Expression expression) {
+    if (_options.inferTransitively) return true;
     if (expression is Literal) return true;
     if (expression is InstanceCreationExpression) return true;
     if (expression is FunctionExpression) return true;
@@ -317,11 +372,11 @@ class LibraryResolverWithInference extends LibraryResolver {
       return _canInferFrom(expression.target);
     }
     if (expression is SimpleIdentifier || expression is PropertyAccess) {
-      return _options.inferTransitively;
+      return false;
     }
     if (expression is PrefixedIdentifier) {
       if (expression.staticElement is PropertyAccessorElement) {
-        return _options.inferTransitively;
+        return false;
       }
       return _canInferFrom(expression.identifier);
     }
@@ -345,6 +400,22 @@ class LibraryResolverWithInference extends LibraryResolver {
   }
 }
 
+/// Extracts the [VariableElement]s used in an initializer expression.
+class _VarExtractor extends RecursiveAstVisitor {
+  final elements = <VariableElement>[];
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    var e = node.staticElement;
+    if (e is PropertyAccessorElement) elements.add(e.variable);
+  }
+
+  static List<VariableElement> extract(Expression initializer) {
+    if (initializer == null) return const [];
+    var extractor = new _VarExtractor();
+    initializer.accept(extractor);
+    return extractor.elements;
+  }
+}
+
 /// Overrides the default [ResolverVisitor] to support type inference in
 /// [LibraryResolverWithInference] above.
 ///
@@ -356,10 +427,26 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   final TypeProvider _typeProvider;
 
   /// Whether to skip resolution within method bodies.
-  final bool skipMethodBodies;
+  bool skipMethodBodies = true;
+
+  /// State of the resolver at the point a field or variable was declared.
+  final _stateAtDeclaration = <AstNode, _ResolverState>{};
+
+  /// Internal tracking of whether a node was skipped while visiting, for
+  /// example, if it contained a function expression with a function body.
+  bool _nodeWasSkipped = false;
+
+  /// Internal state, whether we are revisiting an initializer, so we minimize
+  /// the work being done elsewhere.
+  bool _revisiting = false;
+
+  /// Initializers that have been visited, reanalyzed, and for which no node was
+  /// internally skipped. These initializers are fully resolved and don't need
+  /// to be re-resolved on a sunsequent pass.
+  final _visitedInitializers = new Set<VariableDeclaration>();
 
   RestrictedResolverVisitor(Library library, Source source,
-      TypeProvider typeProvider, ResolverOptions options, this.skipMethodBodies)
+      TypeProvider typeProvider, ResolverOptions options)
       : _typeProvider = typeProvider,
         super.con1(library, source, typeProvider,
             typeAnalyzerFactory: RestrictedStaticTypeAnalyzer.constructor);
@@ -380,18 +467,62 @@ class RestrictedResolverVisitor extends ResolverVisitor {
     return super.visitCatchClause(node);
   }
 
+  reanalyzeInitializer(VariableDeclaration variable) {
+    try {
+      _revisiting = true;
+      _nodeWasSkipped = false;
+      var node = variable.parent.parent;
+      var oldState;
+      var state = _stateAtDeclaration[node];
+      if (state != null) {
+        oldState = new _ResolverState(this);
+        state.restore(this);
+        if (node is FieldDeclaration) {
+          var cls = node.parent;
+          enclosingClass = cls.element;
+        }
+      }
+      visitNode(variable.initializer);
+      if (!_nodeWasSkipped) _visitedInitializers.add(variable);
+      if (oldState != null) oldState.restore(this);
+    } finally {
+      _revisiting = false;
+    }
+  }
+
+  @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _stateAtDeclaration[node] = new _ResolverState(this);
+    return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    _stateAtDeclaration[node] = new _ResolverState(this);
+    return super.visitFieldDeclaration(node);
+  }
+
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    var state = new _ResolverState(this);
+    try {
+      if (_revisiting) {
+        _stateAtDeclaration[node].restore(this);
+      } else {
+        _stateAtDeclaration[node] = state;
+      }
+      return super.visitVariableDeclaration(node);
+    } finally {
+      state.restore(this);
+    }
+  }
+
   @override
   Object visitNode(AstNode node) {
-    if (skipMethodBodies &&
-        (node is FunctionBody ||
-            node is FunctionExpression ||
-            node is FunctionExpressionInvocation ||
-            node is SuperConstructorInvocation ||
-            node is RedirectingConstructorInvocation ||
-            node is Annotation ||
-            node is Comment)) {
+    if (skipMethodBodies && node is FunctionBody) {
+      _nodeWasSkipped = true;
       return null;
     }
+    if (_visitedInitializers.contains(node)) return null;
     assert(node is! Statement || !skipMethodBodies);
     return super.visitNode(node);
   }
@@ -427,6 +558,25 @@ class RestrictedResolverVisitor extends ResolverVisitor {
     } else {
       return super.visitConstructorDeclaration(node);
     }
+  }
+}
+
+/// Internal state of the resolver, stored so we can reanalyze portions of the
+/// AST quickly, without recomputing everything from the top.
+class _ResolverState {
+  final TypePromotionManager_TypePromoteScope promotionScope;
+  final TypeOverrideManager_TypeOverrideScope overrideScope;
+  final Scope nameScope;
+
+  _ResolverState(ResolverVisitor visitor)
+      : promotionScope = visitor.promoteManager.currentScope,
+        overrideScope = visitor.overrideManager.currentScope,
+        nameScope = visitor.nameScope;
+
+  void restore(ResolverVisitor visitor) {
+    visitor.promoteManager.currentScope = promotionScope;
+    visitor.overrideManager.currentScope = overrideScope;
+    visitor.nameScope_J2DAccessor = nameScope;
   }
 }
 

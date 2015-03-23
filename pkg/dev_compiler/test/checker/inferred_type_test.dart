@@ -162,7 +162,7 @@ void main() {
     });
   });
 
-  test('do not infer from variables in same lib (order independence)', () {
+  test('do not infer from variables if flag is off', () {
     testChecker({
       '/main.dart': '''
           var x = 2;
@@ -173,7 +173,7 @@ void main() {
             y = "hi";
           }
     '''
-    });
+    }, inferTransitively: false);
 
     testChecker({
       '/main.dart': '''
@@ -187,10 +187,10 @@ void main() {
             A.y = "hi";
           }
     '''
-    });
+    }, inferTransitively: false);
   });
 
-  test('not ok to infer from variables in non-cycle libs', () {
+  test('do not infer from variables in non-cycle imports if flag is off', () {
     testChecker({
       '/a.dart': '''
           var x = 2;
@@ -204,7 +204,7 @@ void main() {
             y = "hi";
           }
     '''
-    });
+    }, inferTransitively: false);
 
     testChecker({
       '/a.dart': '''
@@ -219,10 +219,10 @@ void main() {
             B.y = "hi";
           }
     '''
-    });
+    }, inferTransitively: false);
   });
 
-  test('ok to infer from variables in non-cycle libs with flag', () {
+  test('infer from variables in non-cycle imports with flag', () {
     testChecker({
       '/a.dart': '''
           var x = 2;
@@ -254,7 +254,7 @@ void main() {
     }, inferTransitively: true);
   });
 
-  test('do not infer from variables in cycle libs', () {
+  test('do not infer from variables in cycle libs when flag is off', () {
     testChecker({
       '/a.dart': '''
           import 'main.dart';
@@ -268,6 +268,42 @@ void main() {
             int t = 3;
             t = x;
             t = /*info:DownCast*/y;
+          }
+    '''
+    }, inferTransitively: false);
+
+    testChecker({
+      '/a.dart': '''
+          import 'main.dart';
+          class A { static var x = 2; }
+      ''',
+      '/main.dart': '''
+          import 'a.dart';
+          class B { static var y = A.x; }
+
+          test1() {
+            int t = 3;
+            t = A.x;
+            t = /*info:DownCast*/B.y;
+          }
+    '''
+    }, inferTransitively: false);
+  });
+
+  test('infer from variables in cycle libs when flag is on', () {
+    testChecker({
+      '/a.dart': '''
+          import 'main.dart';
+          var x = 2; // ok to infer
+      ''',
+      '/main.dart': '''
+          import 'a.dart';
+          var y = x; // now ok :)
+
+          test1() {
+            int t = 3;
+            t = x;
+            t = y;
           }
     '''
     }, inferTransitively: true);
@@ -284,13 +320,13 @@ void main() {
           test1() {
             int t = 3;
             t = A.x;
-            t = /*info:DownCast*/A.y;
+            t = B.y;
           }
     '''
     }, inferTransitively: true);
   });
 
-  test('do not infer from static and instance fields', () {
+  test('do not infer from static and instance fields when flag is off', () {
     testChecker({
       '/a.dart': '''
           import 'b.dart';
@@ -315,7 +351,7 @@ void main() {
             x = /*info:DownCast*/new A().a2;
           }
     '''
-    });
+    }, inferTransitively: false);
   });
 
   test('can infer also from static and instance fields (flag on)', () {
@@ -341,26 +377,6 @@ void main() {
             // inference in A now works.
             x = A.a1;
             x = new A().a2;
-          }
-    '''
-    }, inferTransitively: true);
-  });
-
-  test('inference uses declared types', () {
-    testChecker({
-      '/main.dart': '''
-          int w = 0;
-          var x = 0;
-
-          var y = w; // y can be inferred because w is typed int.
-          var z = x; // z cannot, because x would be inferred.
-
-          test1() {
-            int a;
-            a = w;
-            a = x;
-            a = y;
-            a = /*info:DownCast*/z;
           }
     '''
     }, inferTransitively: true);
@@ -433,7 +449,7 @@ void main() {
             // not when it depends on other fields within the cycle
             x = C.c1;
             x = D.d1;
-            x = /*info:DownCast*/D.d2;
+            x = D.d2;
             x = new C().c2;
             x = new D().d3;
             x = /*info:DownCast*/new D().d4;
@@ -441,7 +457,7 @@ void main() {
 
             // Similarly if the library contains parts.
             x = E.e1;
-            x = /*info:DownCast*/E.e2;
+            x = E.e2;
             x = E.e3;
             x = new E().e4;
             x = /*info:DownCast*/new E().e5;
@@ -529,7 +545,7 @@ void main() {
           i = new B().y; // B.y was inferred though
         }
     '''
-    });
+    }, inferTransitively: false);
 
     // but flags can enable this behavior.
     testChecker({
@@ -1051,5 +1067,116 @@ void main() {
         }
     '''
     }, inferFromOverrides: true);
+  });
+
+  test('infer consts transitively', () {
+    testChecker({
+      '/b.dart': '''
+        const b1 = 2;
+      ''',
+      '/a.dart': '''
+        import 'main.dart';
+        import 'b.dart';
+        const a1 = m2;
+        const a2 = b1;
+      ''',
+      '/main.dart': '''
+        import 'a.dart';
+        const m1 = a1;
+        const m2 = a2;
+
+        foo() {
+          int i;
+          i = m1;
+        }
+    '''
+    }, inferFromOverrides: true, inferTransitively: true);
+  });
+
+  test('infer statics transitively', () {
+    testChecker({
+      '/b.dart': '''
+        final b1 = 2;
+      ''',
+      '/a.dart': '''
+        import 'main.dart';
+        import 'b.dart';
+        final a1 = m2;
+        class A {
+          static final a2 = b1;
+        }
+      ''',
+      '/main.dart': '''
+        import 'a.dart';
+        final m1 = a1;
+        final m2 = A.a2;
+
+        foo() {
+          int i;
+          i = m1;
+        }
+    '''
+    }, inferFromOverrides: true, inferTransitively: true);
+
+    testChecker({
+      '/main.dart': '''
+        const x1 = 1;
+        final x2 = 1;
+        final y1 = x1;
+        final y2 = x2;
+
+        foo() {
+          int i;
+          i = y1;
+          i = y2;
+        }
+    '''
+    }, inferFromOverrides: true, inferTransitively: true);
+
+    testChecker({
+      '/a.dart': '''
+        const a1 = 3;
+        const a2 = 4;
+        class A {
+          a3;
+        }
+      ''',
+      '/main.dart': '''
+        import 'a.dart' show a1, A;
+        import 'a.dart' as p show a2, A;
+        const t1 = 1;
+        const t2 = t1;
+        const t3 = a1;
+        const t4 = p.a2;
+        const t5 = A.a3;
+        const t6 = p.A.a3;
+
+        foo() {
+          int i;
+          i = t1;
+          i = t2;
+          i = t3;
+          i = t4;
+        }
+    '''
+    }, inferFromOverrides: true, inferTransitively: true);
+  });
+
+  test('infer statics with method invocations', () {
+    testChecker({
+      '/a.dart': '''
+        m3(String a, String b, [a1,a2]) {}
+      ''',
+      '/main.dart': '''
+        import 'a.dart';
+        class T {
+          static final T foo = m1(m2(m3('', '')));
+          static T m1(String m) { return null; }
+          static String m2(e) { return ''; }
+        }
+
+
+    '''
+    }, inferFromOverrides: true, inferTransitively: true);
   });
 }

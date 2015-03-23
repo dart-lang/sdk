@@ -24,7 +24,7 @@ var isolate;
       this.terminateCapability = terminateCapability;
     }
     static get current() {
-      return dart.as(_currentIsolateCache, Isolate);
+      return _currentIsolateCache;
     }
     static spawn(entryPoint, message, opt$) {
       let paused = opt$ && 'paused' in opt$ ? opt$.paused : false;

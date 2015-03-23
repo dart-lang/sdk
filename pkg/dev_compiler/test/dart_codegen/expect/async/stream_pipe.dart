@@ -265,7 +265,7 @@ if (_equals == null) {
 isEqual = (_previous == inputEvent);
 }
  else {
-isEqual = _equals(DEVC$RT.cast(_previous, dynamic, T, "CastGeneral", """line 426, column 29 of dart:async/stream_pipe.dart: """, _previous is T, false), inputEvent);
+isEqual = _equals(DEVC$RT.cast(_previous, Object, T, "CastGeneral", """line 426, column 29 of dart:async/stream_pipe.dart: """, _previous is T, false), inputEvent);
 }
 }
  catch (e, s) {
