@@ -295,6 +295,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return _finishClassDef(classElem, body);
   }
 
+  @override
+  JS.Statement visitEnumDeclaration(EnumDeclaration node) =>
+      _unimplementedCall("Unimplemented enum: $node").toStatement();
+
   /// Given a class element and body, complete the class declaration.
   /// This handles generic type parameters, laziness (in library-cycle cases),
   /// and ensuring dependencies are loaded first.
@@ -1955,6 +1959,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Expression visitExpression(Expression node) =>
       _unimplementedCall('Unimplemented ${node.runtimeType}: $node');
+
+  @override
+  JS.Statement visitYieldStatement(YieldStatement node) =>
+      _unimplementedCall('Unimplemented yield: $node').toStatement();
 
   JS.Expression _unimplementedCall(String comment) {
     return js.call('dart.throw_(#)', [js.escapedString(comment)]);
