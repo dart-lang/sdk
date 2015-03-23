@@ -21,3 +21,7 @@ abstract class Z extends X {
 }
 
 abstract class ZZ extends Predicate {}
+
+abstract class Config {
+  String get datasetId; //OK -- Issue #64
+}

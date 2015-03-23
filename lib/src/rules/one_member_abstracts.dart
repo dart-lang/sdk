@@ -55,7 +55,10 @@ class Visitor extends SimpleAstVisitor {
         node.extendsClause == null &&
         node.members.length == 1) {
       var member = node.members[0];
-      if (member is MethodDeclaration && member.isAbstract) {
+      if (member is MethodDeclaration &&
+          member.isAbstract &&
+          !member.isGetter &&
+          !member.isSetter) {
         rule.reportLint(node.name);
       }
     }
