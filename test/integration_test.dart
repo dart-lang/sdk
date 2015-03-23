@@ -4,10 +4,14 @@
 
 library linter.test.integration;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:linter/src/config.dart';
 import 'package:linter/src/io.dart';
+import 'package:linter/src/linter.dart';
+import 'package:mockito/mockito.dart';
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../bin/linter.dart' as dartlint;
@@ -54,8 +58,32 @@ defineTests() {
       });
       test('bad pubspec', () {
         dartlint.main(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
+        expect(
+            collectingOut.trim(), endsWith('1 file analyzed, 0 issues found.'));
+      });
+    });
+    group('p4', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() => outSink = collectingOut);
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+      });
+      test('no warnings due to bad canonicalization', () {
+        var libPath = new Directory('test/_data/p4/lib').absolute.path;
+        var options = new LinterOptions([]);
+        options.runPubList = (_) {
+          var processResult = new MockProcessResult();
+          when(processResult.exitCode).thenReturn(0);
+          when(processResult.stderr).thenReturn('');
+          when(processResult.stdout).thenReturn(
+              JSON.encode({'packages': {'p4': libPath}, 'input_files': []}));
+          return processResult;
+        };
+        dartlint.runLinter(['test/_data/p4'], options);
         expect(collectingOut.trim(),
-            endsWith('1 file analyzed, 0 issues found.'));
+            endsWith('3 files analyzed, 0 issues found.'));
       });
     });
 
@@ -74,4 +102,9 @@ defineTests() {
       });
     });
   });
+}
+
+class MockProcessResult extends Mock implements ProcessResult {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

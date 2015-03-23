@@ -12,6 +12,34 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 
 void main(List<String> args) {
+  runLinter(args, new LinterOptions());
+}
+
+const processFileFailedExitCode = 65;
+
+const unableToProcessExitCode = 64;
+
+String getRoot(List<String> paths) =>
+    paths.length == 1 && new Directory(paths[0]).existsSync() ? paths[0] : null;
+
+isLinterErrorCode(int code) =>
+    code == unableToProcessExitCode || code == processFileFailedExitCode;
+
+void printUsage(ArgParser parser, IOSink out, [String error]) {
+  var message = "Lints Dart source files and pubspecs.";
+  if (error != null) {
+    message = error;
+  }
+
+  out.writeln('''$message
+Usage: linter <file>
+${parser.usage}
+  
+For more information, see https://github.com/dart-lang/linter
+''');
+}
+
+void runLinter(List<String> args, LinterOptions initialLintOptions) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
   parser
@@ -49,7 +77,7 @@ void main(List<String> args) {
     return;
   }
 
-  var lintOptions = new LinterOptions();
+  var lintOptions = initialLintOptions;
 
   var configFile = options["config"];
   if (configFile != null) {
@@ -94,28 +122,4 @@ void main(List<String> args) {
 $err
 $stack''');
   }
-}
-
-const processFileFailedExitCode = 65;
-
-const unableToProcessExitCode = 64;
-
-String getRoot(List<String> paths) =>
-    paths.length == 1 && new Directory(paths[0]).existsSync() ? paths[0] : null;
-
-isLinterErrorCode(int code) =>
-    code == unableToProcessExitCode || code == processFileFailedExitCode;
-
-void printUsage(ArgParser parser, IOSink out, [String error]) {
-  var message = "Lints Dart source files and pubspecs.";
-  if (error != null) {
-    message = error;
-  }
-
-  out.writeln('''$message
-Usage: linter <file>
-${parser.usage}
-  
-For more information, see https://github.com/dart-lang/linter
-''');
 }
