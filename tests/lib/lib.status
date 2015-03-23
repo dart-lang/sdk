@@ -312,6 +312,8 @@ mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
 
+async/future_test: StaticWarning, OK # Deliberately broken implementation.
+
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
