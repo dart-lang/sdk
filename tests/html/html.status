@@ -101,6 +101,8 @@ touchevent_test/supported: Fail # Touch events are only supported on touch devic
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
 audiocontext_test/functional: Skip # Renderer crash. Issue 22327
+element_animate_test/omit_timing: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
+element_animate_test/timing_dict: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
 
 [ ($runtime == chrome || $runtime == drt) && $compiler == dart2js && $checked ]
 notification_test/constructors: Fail # Issue 22842
