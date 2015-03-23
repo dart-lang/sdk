@@ -111,7 +111,8 @@ Future<List<String>> testStringifier(String code,
         String withoutNullConstants = combined.replaceAll("Constant null", "");
         Expect.isFalse(withoutNullConstants.contains("null"));
         for (String token in expectedTokens) {
-          Expect.isTrue(combined.contains(token));
+          Expect.isTrue(combined.contains(token),
+              "'$combined' doesn't contain '$token' in test:\n$code");
         }
 
         return sexprs;

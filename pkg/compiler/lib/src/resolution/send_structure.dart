@@ -732,6 +732,12 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             node.arguments.single,
             arg);
+      case AccessKind.UNRESOLVED:
+        return visitor.errorUnresolvedSuperIndex(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
       default:
         // This is not a valid case.
         break;
@@ -912,6 +918,132 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(
         node, "Invalid index set: ${semantics}");
+  }
+}
+
+/// The structure for a [Send] that is an prefix operation on an index
+/// expression, i.e. of the form `--a[b]`.
+class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
+  /// The target of the left operand.
+  final AccessSemantics semantics;
+
+  /// The `++` or `--` operator used in the operation.
+  final IncDecOperator operator;
+
+  // TODO(johnniwinther): Should we store this?
+  /// The [Selector] for the `[]` invocation.
+  final Selector getterSelector;
+
+  // TODO(johnniwinther): Should we store this?
+  /// The [Selector] for the `[]=` invocation.
+  final Selector setterSelector;
+
+  IndexPrefixStructure(this.semantics,
+                       this.operator,
+                       this.getterSelector,
+                       this.setterSelector);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    switch (semantics.kind) {
+      case AccessKind.DYNAMIC_PROPERTY:
+        return visitor.visitIndexPrefix(
+            node,
+            node.receiver,
+            node.arguments.single,
+            operator,
+            arg);
+      case AccessKind.UNRESOLVED:
+        return visitor.errorUnresolvedSuperIndexPrefix(
+            node,
+            semantics.element,
+            node.arguments.single,
+            operator,
+            arg);
+      case AccessKind.COMPOUND:
+        CompoundAccessSemantics compoundSemantics = semantics;
+        switch (compoundSemantics.compoundAccessKind) {
+          case CompoundAccessKind.SUPER_GETTER_SETTER:
+            return visitor.visitSuperIndexPrefix(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                operator,
+                arg);
+          default:
+            // This is not a valid case.
+            break;
+        }
+        break;
+      default:
+        // This is not a valid case.
+        break;
+    }
+    throw new SpannableAssertionFailure(
+        node, "Invalid index prefix: ${semantics}");
+  }
+}
+
+/// The structure for a [Send] that is an postfix operation on an index
+/// expression, i.e. of the form `a[b]++`.
+class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
+  /// The target of the left operand.
+  final AccessSemantics semantics;
+
+  /// The `++` or `--` operator used in the operation.
+  final IncDecOperator operator;
+
+  // TODO(johnniwinther): Should we store this?
+  /// The [Selector] for the `[]` invocation.
+  final Selector getterSelector;
+
+  // TODO(johnniwinther): Should we store this?
+  /// The [Selector] for the `[]=` invocation.
+  final Selector setterSelector;
+
+  IndexPostfixStructure(this.semantics,
+                        this.operator,
+                        this.getterSelector,
+                        this.setterSelector);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    switch (semantics.kind) {
+      case AccessKind.DYNAMIC_PROPERTY:
+        return visitor.visitIndexPostfix(
+            node,
+            node.receiver,
+            node.arguments.single,
+            operator,
+            arg);
+      case AccessKind.UNRESOLVED:
+        return visitor.errorUnresolvedSuperIndexPostfix(
+            node,
+            semantics.element,
+            node.arguments.single,
+            operator,
+            arg);
+      case AccessKind.COMPOUND:
+        CompoundAccessSemantics compoundSemantics = semantics;
+        switch (compoundSemantics.compoundAccessKind) {
+          case CompoundAccessKind.SUPER_GETTER_SETTER:
+            return visitor.visitSuperIndexPostfix(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                operator,
+                arg);
+          default:
+            // This is not a valid case.
+            break;
+        }
+        break;
+      default:
+        // This is not a valid case.
+        break;
+    }
+    throw new SpannableAssertionFailure(
+        node, "Invalid index postfix: ${semantics}");
   }
 }
 

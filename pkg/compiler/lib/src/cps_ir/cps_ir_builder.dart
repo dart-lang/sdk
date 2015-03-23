@@ -274,8 +274,6 @@ abstract class IrBuilder {
 
   void declareLocalVariable(LocalVariableElement element,
                             {ir.Primitive initialValue});
-  ir.Primitive buildLocalGet(LocalElement element);
-  ir.Primitive buildLocalSet(LocalElement element, ir.Primitive value);
 
   /// Called when entering a nested function with free variables.
   ///
@@ -475,6 +473,8 @@ abstract class IrBuilder {
                                   Selector selector,
                                   List<ir.Primitive> arguments,
                                   SourceInformation sourceInformation) {
+    assert(!element.isLocal);
+    assert(!element.isInstanceMember);
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeStatic(element, selector, k, arguments,
@@ -484,6 +484,7 @@ abstract class IrBuilder {
   ir.Primitive _buildInvokeSuper(Element target,
                                  Selector selector,
                                  List<ir.Primitive> arguments) {
+    assert(target.isInstanceMember);
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
@@ -717,10 +718,18 @@ abstract class IrBuilder {
                                     Selector selector,
                                     List<ir.Primitive> arguments);
 
-  /// Create a setter invocation on the super class where the setter name and
-  /// argument are defined by [selector] and [value], respectively.
-  void buildSuperSet(Element target, Selector selector, ir.Primitive value) {
+  /// Create a getter invocation of the [target] on the super class.
+  ir.Primitive buildSuperGet(Element target) {
+    Selector selector = new Selector.getter(target.name, target.library);
+    return buildSuperInvocation(target, selector, const <ir.Primitive>[]);
+  }
+
+  /// Create a setter invocation of the [target] on the super class of with
+  /// [value].
+  ir.Primitive buildSuperSet(Element target, ir.Primitive value) {
+    Selector selector = new Selector.setter(target.name, target.library);
     buildSuperInvocation(target, selector, [value]);
+    return value;
   }
 
   /// Create an index set invocation on the super class with the provided
@@ -769,6 +778,20 @@ abstract class IrBuilder {
     return value;
   }
 
+  /// Create a read access of [local].
+  ir.Primitive buildLocalGet(LocalElement element);
+
+  /// Create a write access to [local] with the provided [value].
+  ir.Primitive buildLocalSet(LocalElement element, ir.Primitive value);
+
+  /// Create an invocation of the local [element] where argument structure is
+  /// defined by [selector] and the argument values are defined by [arguments].
+  ir.Primitive buildLocalInvocation(LocalElement element,
+                                    Selector selector,
+                                    List<ir.Primitive> arguments) {
+    return buildCallInvocation(buildLocalGet(element), selector, arguments);
+  }
+
   /// Create a static invocation of [element] where argument structure is
   /// defined by [selector] and the argument values are defined by [arguments].
   ir.Primitive buildStaticInvocation(Element element,
@@ -781,9 +804,8 @@ abstract class IrBuilder {
   /// Create a static getter invocation of [element] where the getter name is
   /// defined by [selector].
   ir.Primitive buildStaticGet(Element element,
-                              Selector selector,
                               {SourceInformation sourceInformation}) {
-    assert(selector.isGetter);
+    Selector selector = new Selector.getter(element.name, element.library);
     // TODO(karlklose,sigurdm): build different nodes for getters.
     return _buildInvokeStatic(
         element, selector, const <ir.Primitive>[], sourceInformation);
@@ -792,10 +814,9 @@ abstract class IrBuilder {
   /// Create a static setter invocation of [element] where the setter name and
   /// argument are defined by [selector] and [value], respectively.
   ir.Primitive buildStaticSet(Element element,
-                              Selector selector,
                               ir.Primitive value,
                               {SourceInformation sourceInformation}) {
-    assert(selector.isSetter);
+    Selector selector = new Selector.setter(element.name, element.library);
     // TODO(karlklose,sigurdm): build different nodes for setters.
     _buildInvokeStatic(
         element, selector, <ir.Primitive>[value], sourceInformation);
@@ -1173,8 +1194,7 @@ abstract class IrBuilder {
       bodyBuilder.buildLocalSet(variableElement, currentValue);
     } else if (Elements.isStaticOrTopLevel(variableElement) ||
                Elements.isErroneous(variableElement)) {
-      bodyBuilder.buildStaticSet(
-          variableElement, variableSelector, currentValue);
+      bodyBuilder.buildStaticSet(variableElement, currentValue);
     } else {
       ir.Primitive receiver = bodyBuilder.buildThis();
       assert(receiver != null);

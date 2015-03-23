@@ -391,10 +391,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticSet(
-        target,
-        new Selector.setter(target.name, target.library),
-        build(node.rightHandSide));
+    return irBuilder.buildStaticSet(target, build(node.rightHandSide));
   }
 
   @override
@@ -414,8 +411,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticGet(target,
-        new Selector.getter(target.name, target.library));
+    return irBuilder.buildStaticGet(target);
   }
 
   ir.Primitive handleBinaryExpression(BinaryExpression node,

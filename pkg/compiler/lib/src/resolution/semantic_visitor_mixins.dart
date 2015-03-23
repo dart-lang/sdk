@@ -479,6 +479,35 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  R errorUnresolvedSuperIndex(
+      Send node,
+      Element function,
+      Node index,
+      A arg) {
+    return bulkHandleError(node);
+  }
+
+  @override
+  R errorUnresolvedSuperIndexPostfix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandleError(node);
+  }
+
+  @override
+  R errorUnresolvedSuperIndexPrefix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandleError(node);
+  }
+
+  @override
   R errorUnresolvedSuperIndexSet(
       SendSet node,
       Element element,
@@ -546,6 +575,16 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       Selector getterSelector,
       Selector setterSelector,
+      A arg) {
+    return bulkHandlePrefix(node);
+  }
+
+  @override
+  R visitIndexPrefix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
       A arg) {
     return bulkHandlePrefix(node);
   }
@@ -647,6 +686,17 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  R visitSuperIndexPrefix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandlePrefix(node);
+  }
+
+  @override
   R visitSuperMethodSetterPrefix(
       Send node,
       FunctionElement method,
@@ -715,6 +765,16 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       Selector getterSelector,
       Selector setterSelector,
+      A arg) {
+    return bulkHandlePostfix(node);
+  }
+
+  @override
+  R visitIndexPostfix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
       A arg) {
     return bulkHandlePostfix(node);
   }
@@ -810,6 +870,17 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       FunctionElement setter,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandlePostfix(node);
+  }
+
+  @override
+  R visitSuperIndexPostfix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
       IncDecOperator operator,
       A arg) {
     return bulkHandlePostfix(node);
@@ -2439,6 +2510,16 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  R errorUnresolvedSuperIndex(
+      Send node,
+      Element function,
+      Node index,
+      A arg) {
+    apply(index, arg);
+    return null;
+  }
+
+  @override
   R visitAs(
       Send node,
       Node expression,
@@ -3887,6 +3968,68 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
       A arg) {
     return null;
   }
+
+  @override
+  R errorUnresolvedSuperIndexPostfix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    // TODO: implement errorUnresolvedSuperIndexPostfix
+  }
+
+  @override
+  R errorUnresolvedSuperIndexPrefix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    // TODO: implement errorUnresolvedSuperIndexPrefix
+  }
+
+  @override
+  R visitIndexPostfix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    // TODO: implement visitIndexPostfix
+  }
+
+  @override
+  R visitIndexPrefix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    // TODO: implement visitIndexPrefix
+  }
+
+  @override
+  R visitSuperIndexPostfix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    // TODO: implement visitSuperIndexPostfix
+  }
+
+  @override
+  R visitSuperIndexPrefix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    // TODO: implement visitSuperIndexPrefix
+  }
 }
 
 /// AST visitor that visits all normal [Send] and [SendSet] nodes using the
@@ -3947,7 +4090,8 @@ class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
 ///
 /// This mixin is useful for the cases where both top level members and static
 /// class members are handled uniformly.
-abstract class GroupStaticMixin<R, A> implements SemanticSendVisitor<R, A> {
+abstract class BaseImplementationOfStaticsMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
   R handleStaticFieldCompound(
       Send node,
       FieldElement field,
@@ -4388,7 +4532,8 @@ abstract class GroupStaticMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// This mixin is useful for the cases where both parameters, local variables,
 /// and local functions, captured or not, are handled uniformly.
-abstract class GroupLocalMixin<R, A> implements SemanticSendVisitor<R, A> {
+abstract class BaseImplementationOfLocalsMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
   R handleLocalCompound(
       Send node,
       LocalElement element,
@@ -4559,7 +4704,8 @@ abstract class GroupLocalMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// This mixin is useful for the cases where expressions on constants are
 /// handled uniformly.
-abstract class GroupConstantMixin<R, A> implements SemanticSendVisitor<R, A> {
+abstract class BaseImplementationOfConstantsMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
   R handleConstantGet(
       Send node,
       ConstantExpression constant,
@@ -4651,7 +4797,8 @@ abstract class GroupConstantMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// This mixin is useful for the cases where dynamic and this properties are
 /// handled uniformly.
-abstract class GroupDynamicMixin<R, A> implements SemanticSendVisitor<R, A> {
+abstract class BaseImplementationOfDynamicsMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
   R handleDynamicCompound(
       Send node,
       Node receiver,
@@ -4689,6 +4836,14 @@ abstract class GroupDynamicMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector selector,
       Node rhs,
       A arg);
+
+  R handleDynamicIndexPostfixPrefix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      A arg,
+      {bool isPrefix});
 
   @override
   R visitDynamicPropertyCompound(
@@ -4819,6 +4974,28 @@ abstract class GroupDynamicMixin<R, A> implements SemanticSendVisitor<R, A> {
       A arg) {
     return handleDynamicSet(node, null, selector, rhs, arg);
   }
+
+  @override
+  R visitIndexPostfix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleDynamicIndexPostfixPrefix(
+        node, receiver, index, operator, arg, isPrefix: false);
+  }
+
+  @override
+  R visitIndexPrefix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleDynamicIndexPostfixPrefix(
+        node, receiver, index, operator, arg, isPrefix: true);
+  }
 }
 
 /// Mixin that groups all `visitSuperXPrefix`, `visitSuperXPostfix` methods for
@@ -4826,7 +5003,8 @@ abstract class GroupDynamicMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// This mixin is useful for the cases where super prefix/postfix expression are
 /// handled uniformly.
-abstract class GroupSuperMixin<R, A> implements SemanticSendVisitor<R, A> {
+abstract class BaseImplementationOfSuperIncDecsMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
   R handleSuperFieldFieldPostfixPrefix(
       Send node,
       FieldElement readField,
@@ -4863,6 +5041,15 @@ abstract class GroupSuperMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement method,
       FunctionElement setter,
+      IncDecOperator operator,
+      A arg,
+      {bool isPrefix});
+
+  R handleSuperIndexPostfixPrefix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
       IncDecOperator operator,
       A arg,
       {bool isPrefix});
@@ -4995,5 +5182,31 @@ abstract class GroupSuperMixin<R, A> implements SemanticSendVisitor<R, A> {
       A arg) {
     return handleSuperMethodSetterPostfixPrefix(
         node, method, setter, operator, arg, isPrefix: true);
+  }
+
+  @override
+  R visitSuperIndexPostfix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleSuperIndexPostfixPrefix(
+        node, indexFunction, indexSetFunction,
+        index, operator, arg, isPrefix: false);
+  }
+
+  @override
+  R visitSuperIndexPrefix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleSuperIndexPostfixPrefix(
+        node, indexFunction, indexSetFunction,
+        index, operator, arg, isPrefix: true);
   }
 }

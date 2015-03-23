@@ -19,6 +19,8 @@ enum SendStructureKind {
   COMPOUND_INDEX_SET,
   PREFIX,
   POSTFIX,
+  INDEX_PREFIX,
+  INDEX_POSTFIX,
 }
 
 abstract class SendResolverMixin {
@@ -185,7 +187,11 @@ abstract class SendResolverMixin {
               kind = SendStructureKind.NOT_EQ;
               break;
             case BinaryOperatorKind.INDEX:
-              if (node.arguments.tail.isEmpty) {
+              if (node.isPrefix) {
+                kind = SendStructureKind.INDEX_PREFIX;
+              } else if (node.isPostfix) {
+                kind = SendStructureKind.INDEX_POSTFIX;
+              } else if (node.arguments.tail.isEmpty) {
                 // a[b]
                 kind = SendStructureKind.INDEX;
               } else {
@@ -215,7 +221,9 @@ abstract class SendResolverMixin {
         isCompound: kind == SendStructureKind.COMPOUND ||
                     kind == SendStructureKind.COMPOUND_INDEX_SET ||
                     kind == SendStructureKind.PREFIX ||
-                    kind == SendStructureKind.POSTFIX);
+                    kind == SendStructureKind.POSTFIX ||
+                    kind == SendStructureKind.INDEX_PREFIX ||
+                    kind == SendStructureKind.INDEX_POSTFIX);
     if (semantics == null) {
       return internalError(node, 'No semantics for $node');
     }
@@ -256,6 +264,22 @@ abstract class SendResolverMixin {
         return new CompoundIndexSetStructure(
             semantics,
             assignmentOperator,
+            getterSelector,
+            selector);
+      case SendStructureKind.INDEX_PREFIX:
+        Selector getterSelector =
+            elements.getGetterSelectorInComplexSendSet(node);
+        return new IndexPrefixStructure(
+            semantics,
+            incDecOperator,
+            getterSelector,
+            selector);
+      case SendStructureKind.INDEX_POSTFIX:
+        Selector getterSelector =
+            elements.getGetterSelectorInComplexSendSet(node);
+        return new IndexPostfixStructure(
+            semantics,
+            incDecOperator,
             getterSelector,
             selector);
       case SendStructureKind.PREFIX:

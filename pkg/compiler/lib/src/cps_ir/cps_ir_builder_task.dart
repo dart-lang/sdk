@@ -15,6 +15,8 @@ import '../elements/modelx.dart' show SynthesizedConstructorElementX,
 import '../io/source_file.dart';
 import '../io/source_information.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../resolution/semantic_visitor.dart';
+import '../resolution/operators.dart' as op;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../tree/tree.dart' as ast;
 import '../universe/universe.dart' show SelectorKind;
@@ -116,21 +118,20 @@ class IrBuilderTask extends CompilerTask {
 
 }
 
-class _GetterElements {
-  ir.Primitive result;
-  ir.Primitive index;
-  ir.Primitive receiver;
-
-  _GetterElements({this.result, this.index, this.receiver}) ;
-}
-
 /**
  * A tree visitor that builds [IrNodes]. The visit methods add statements using
  * to the [builder] and return the last added statement for trees that represent
  * an expression.
  */
-abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
-    with IrBuilderMixin<ast.Node> {
+abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
+    with IrBuilderMixin<ast.Node>,
+         BaseImplementationOfStaticsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfLocalsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfDynamicsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfConstantsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfSuperIncDecsMixin<ir.Primitive, dynamic>,
+         ErrorBulkMixin<ir.Primitive, dynamic>
+    implements SemanticSendVisitor<ir.Primitive, dynamic> {
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
 
@@ -157,6 +158,15 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
                    this.compiler,
                    this.sourceInformationBuilder)
       : super(elements);
+
+  @override
+  bulkHandleNode(ast.Node node, String message) => giveup(node, message);
+
+  @override
+  ir.Primitive apply(ast.Node node, _) => node.accept(this);
+
+  @override
+  SemanticSendVisitor get sendVisitor => this;
 
   /**
    * Builds the [ir.ExecutableDefinition] for an executable element. In case the
@@ -301,7 +311,7 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
   ir.Primitive visit(ast.Node node) => node.accept(this);
 
-  // ==== Statements ====
+  // ## Statements ##
   visitBlock(ast.Block node) {
     irBuilder.buildBlock(node.statements.nodes, build);
   }
@@ -489,7 +499,7 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         catchClauseInfos: catchClauseInfos);
   }
 
-  // ==== Expressions ====
+  // ## Expressions ##
   ir.Primitive visitConditional(ast.Conditional node) {
     return irBuilder.buildConditional(
         build(node.condition),
@@ -598,8 +608,12 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return receiver;
   }
 
-  // ==== Sends ====
-  ir.Primitive visitAssert(ast.Send node) {
+  // ## Sends ##
+  @override
+  ir.Primitive visitAssert(
+      ast.Send node,
+      ast.Node condition,
+      _) {
     assert(irBuilder.isOpen);
     return giveup(node, 'Assert');
   }
@@ -609,25 +623,15 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return visit(node.expression);
   }
 
-  ir.Primitive visitClosureSend(ast.Send node) {
-    assert(irBuilder.isOpen);
-    Element element = elements[node];
-    Selector selector = elements.getSelector(node);
-    ir.Primitive receiver = (element == null)
-        ? visit(node.selector)
-        : irBuilder.buildLocalGet(element);
+  @override
+  ir.Primitive visitExpressionInvoke(ast.Send node,
+                                     ast.Node expression,
+                                     ast.NodeList arguments,
+                                     Selector selector, _) {
+    ir.Primitive receiver = visit(expression);
     List<ir.Primitive> arguments = node.arguments.mapToList(visit);
     arguments = normalizeDynamicArguments(selector, arguments);
     return irBuilder.buildCallInvocation(receiver, selector, arguments);
-  }
-
-  /// If [node] is null, returns this.
-  /// If [node] is super, returns null (for special handling)
-  /// Otherwise visits [node] and returns the result.
-  ir.Primitive visitReceiver(ast.Expression node) {
-    if (node == null) return irBuilder.buildThis();
-    if (node.isSuper()) return null;
-    return visit(node);
   }
 
   /// Returns `true` if [node] is a super call.
@@ -636,82 +640,123 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return node != null && node.receiver != null && node.receiver.isSuper();
   }
 
-  ir.Primitive visitDynamicSend(ast.Send node) {
-    assert(irBuilder.isOpen);
-    Selector selector = elements.getSelector(node);
-    ir.Primitive receiver = visitReceiver(node.receiver);
-    List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-    arguments = normalizeDynamicArguments(selector, arguments);
-    return irBuilder.buildDynamicInvocation(receiver, selector, arguments);
+  @override
+  ir.Primitive handleConstantGet(ast.Send node,
+                                 ConstantExpression constant, _) {
+    return irBuilder.buildConstantLiteral(constant);
   }
 
-  _GetterElements translateGetter(ast.Send node, Selector selector) {
-    Element element = elements[node];
-    ir.Primitive result;
-    ir.Primitive receiver;
-    ir.Primitive index;
+  /// If [node] is null, returns this.
+  /// Otherwise visits [node] and returns the result.
+  ir.Primitive translateReceiver(ast.Expression node) {
+    return node != null ? visit(node) : irBuilder.buildThis();
+  }
 
-    if (element != null && element.isConst) {
-      // Reference to constant local, top-level or static field
-      result = translateConstant(node);
-    } else if (Elements.isLocal(element)) {
-      // Reference to local variable
-      result = irBuilder.buildLocalGet(element);
-    } else if (element == null ||
-               Elements.isInstanceField(element) ||
-               Elements.isInstanceMethod(element) ||
-               selector.isIndex ||
-               // TODO(johnniwinther): clean up semantics of resolution.
-               node.isSuperCall) {
-      // Dynamic dispatch to a getter. Sometimes resolution will suggest a
-      // target element, but in these cases we must still emit a dynamic
-      // dispatch. The target element may be an instance method in case we are
-      // converting a method to a function object.
+  @override
+  ir.Primitive handleDynamicGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    return irBuilder.buildDynamicGet(
+        translateReceiver(receiver),
+        selector);
+  }
 
-      receiver = visitReceiver(node.receiver);
-      List<ir.Primitive> arguments = new List<ir.Primitive>();
-      if (selector.isIndex) {
-        index = visit(node.arguments.head);
-        arguments.add(index);
-      }
+  @override
+  ir.Primitive visitDynamicTypeLiteralGet(
+      ast.Send node,
+      ConstantExpression constant,
+      _) {
+    return irBuilder.buildConstantLiteral(constant);
+  }
 
-      assert(selector.kind == SelectorKind.GETTER ||
-             selector.kind == SelectorKind.INDEX);
-      if (isSuperCall(node)) {
-        result = irBuilder.buildSuperInvocation(element, selector, arguments);
-      } else {
-        result =
-            irBuilder.buildDynamicInvocation(receiver, selector, arguments);
-      }
-    } else if (element.isField || element.isGetter || element.isErroneous ||
-               element.isSetter) {
-      // TODO(johnniwinther): Change handling of setter selectors.
-      // Access to a static field or getter (non-static case handled above).
-      // Even if there is only a setter, we compile as if it was a getter,
-      // so the vm can fail at runtime.
-      assert(selector.kind == SelectorKind.GETTER ||
-             selector.kind == SelectorKind.SETTER);
-      result = irBuilder.buildStaticGet(element, selector,
-          sourceInformation: sourceInformationBuilder.buildGet(node));
-    } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      // Convert a top-level or static function to a function object.
-      result = translateConstant(node);
-    } else {
-      throw "Unexpected SendSet getter: $node, $element";
+  @override
+  ir.Primitive handleLocalGet(
+      ast.Send node,
+      LocalElement element,
+      _) {
+    if (element.isConst) {
+      return translateConstant(node);
     }
-    return new _GetterElements(
-        result: result,index: index, receiver: receiver);
+    return irBuilder.buildLocalGet(element);
   }
 
-  ir.Primitive visitGetterSend(ast.Send node) {
-    assert(irBuilder.isOpen);
-    return translateGetter(node, elements.getSelector(node)).result;
-
+  @override
+  ir.Primitive handleStaticFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    if (field.isConst) {
+      return translateConstant(node);
+    }
+    return irBuilder.buildStaticGet(field,
+        sourceInformation: sourceInformationBuilder.buildGet(node));
   }
 
-  ir.Primitive translateLogicalOperator(ast.Operator op,
-                                        ast.Expression left,
-                                        ast.Expression right) {
+  @override
+  ir.Primitive handleStaticFunctionGet(
+      ast.Send node,
+      MethodElement function,
+      _) {
+    // TODO(karlklose): support foreign functions.
+    if (function.isForeign(compiler.backend)) {
+      return giveup(node, 'handleStaticFunctionGet: foreign: $function');
+    }
+    return translateConstant(node);
+  }
+
+  @override
+  ir.Primitive handleStaticGetterGet(
+      ast.Send node,
+      FunctionElement getter,
+      _) {
+    return irBuilder.buildStaticInvocation(getter,
+        new Selector.getter(getter.name, getter.library), const []);
+  }
+
+  @override
+  ir.Primitive visitSuperFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    return irBuilder.buildSuperGet(field);
+  }
+
+  @override
+  ir.Primitive visitSuperGetterGet(
+      ast.Send node,
+      FunctionElement getter,
+      _) {
+    return irBuilder.buildSuperGet(getter);
+  }
+
+  @override
+  ir.Primitive visitSuperMethodGet(
+      ast.Send node,
+      MethodElement method,
+      _) {
+    return irBuilder.buildSuperGet(method);
+  }
+
+  @override
+  ir.Primitive visitThisGet(ast.Identifier node, _) {
+    return irBuilder.buildThis();
+  }
+
+  ir.Primitive translateTypeVariableTypeLiteral(TypeVariableElement element) {
+    return buildReifyTypeVariable(irBuilder.buildThis(), element.type);
+  }
+
+  @override
+  ir.Primitive visitTypeVariableTypeLiteralGet(ast.Send node,
+                                               TypeVariableElement element, _) {
+    return translateTypeVariableTypeLiteral(element);
+  }
+
+  ir.Primitive translateLogicalOperator(ast.Expression left,
+                                        ast.Expression right,
+                                        {bool isLazyOr}) {
     ir.Primitive leftValue = visit(left);
 
     ir.Primitive buildRightValue(IrBuilder rightBuilder) {
@@ -719,241 +764,943 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
 
     return irBuilder.buildLogicalOperator(
-        leftValue, buildRightValue, isLazyOr: op.source == '||');
+        leftValue, buildRightValue, isLazyOr: isLazyOr);
   }
 
-  ir.Primitive visitOperatorSend(ast.Send node) {
-    assert(irBuilder.isOpen);
-    ast.Operator op = node.selector;
-    if (isUserDefinableOperator(op.source)) {
-      return visitDynamicSend(node);
-    }
-    if (op.source == '&&' || op.source == '||') {
-      assert(node.receiver != null);
-      assert(!node.arguments.isEmpty);
-      assert(node.arguments.tail.isEmpty);
-      return translateLogicalOperator(op, node.receiver, node.arguments.head);
-    }
-    if (op.source == "!") {
-      assert(node.receiver != null);
-      assert(node.arguments.isEmpty);
-      return irBuilder.buildNegation(visit(node.receiver));
-    }
-    if (op.source == "!=") {
-      assert(node.receiver != null);
-      assert(!node.arguments.isEmpty);
-      assert(node.arguments.tail.isEmpty);
-      return irBuilder.buildNegation(visitDynamicSend(node));
-    }
-    assert(invariant(node, op.source == "is" || op.source == "as",
-           message: "unexpected operator $op"));
-    DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-    ir.Primitive receiver = visit(node.receiver);
+  @override
+  ir.Primitive visitLogicalAnd(
+      ast.Send node, ast.Node left, ast.Node right, _) {
+    return translateLogicalOperator(left, right, isLazyOr: false);
+  }
+
+  @override
+  ir.Primitive visitLogicalOr(
+      ast.Send node, ast.Node left, ast.Node right, _) {
+    return translateLogicalOperator(left, right, isLazyOr: true);
+  }
+
+  @override
+  ir.Primitive visitAs(
+      ast.Send node,
+      ast.Node expression,
+      DartType type,
+      _) {
+    ir.Primitive receiver = visit(expression);
+    return irBuilder.buildTypeOperator(receiver, type, isTypeTest: false);
+  }
+
+  @override
+  ir.Primitive visitIs(
+      ast.Send node,
+      ast.Node expression,
+      DartType type,
+      _) {
+    ir.Primitive receiver = visit(expression);
     return irBuilder.buildTypeOperator(
         receiver, type,
-        isTypeTest: op.source == "is",
-        isNotCheck: node.isIsNotCheck);
+        isTypeTest: true,
+        isNotCheck: false);
   }
 
-  // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
-  //   where (C', xs) = arguments.fold(Build, C)
-  ir.Primitive visitStaticSend(ast.Send node) {
-    assert(irBuilder.isOpen);
-    Element element = elements[node];
-    assert(!element.isConstructor);
-    // TODO(lry): support foreign functions.
-    if (element.isForeign(compiler.backend)) {
-      return giveup(node, 'StaticSend: foreign');
-    }
-
-    Selector selector = elements.getSelector(node);
-
-    if (selector.isCall && (element.isGetter || element.isField)) {
-      // We are invoking a static field or getter as if it was a method, e.g:
-      //
-      //     get foo => {..}
-      //     main() {  foo(1, 2, 3);  }
-      //
-      // We invoke the getter of 'foo' and then invoke the 'call' method
-      // on the result, using the given arguments.
-      Selector getter = new Selector.getterFrom(selector);
-      Selector call = new Selector.callClosureFrom(selector);
-      ir.Primitive receiver = irBuilder.buildStaticGet(element, getter);
-      List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-      arguments = normalizeDynamicArguments(selector, arguments);
-      return irBuilder.buildCallInvocation(receiver, call, arguments);
-    } else if (selector.isGetter) {
-      // We are reading a static field or invoking a static getter.
-      return irBuilder.buildStaticGet(element, selector);
-    } else {
-      // We are invoking a static method.
-      assert(selector.isCall);
-      assert(element is FunctionElement);
-      List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-      arguments = normalizeStaticArguments(selector, element, arguments);
-      return irBuilder.buildStaticInvocation(element, selector, arguments,
-          sourceInformation: sourceInformationBuilder.buildCall(node));
-    }
+  @override
+  ir.Primitive visitIsNot(ast.Send node,
+                          ast.Node expression, DartType type, _) {
+    ir.Primitive receiver = visit(expression);
+    return irBuilder.buildTypeOperator(
+        receiver, type,
+        isTypeTest: true,
+        isNotCheck: true);
   }
 
-  ir.Primitive visitSuperSend(ast.Send node) {
-    assert(irBuilder.isOpen);
-    Selector selector = elements.getSelector(node);
-    Element target = elements[node];
-
-    if (selector.isCall && (target.isGetter || target.isField)) {
-      // We are invoking a field or getter as if it was a method, e.g:
-      //
-      //     class A { get foo => {..} }
-      //     class B extends A {
-      //         m() {
-      //           super.foo(1, 2, 3);  }
-      //         }
-      //     }
-      //
-      // We invoke the getter of 'foo' and then invoke the 'call' method on
-      // the result, using the given arguments.
-      Selector getter = new Selector.getterFrom(selector);
-      Selector call = new Selector.callClosureFrom(selector);
-      ir.Primitive receiver =
-          irBuilder.buildSuperInvocation(target, getter, []);
-      List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-      arguments = normalizeDynamicArguments(selector, arguments);
-      return irBuilder.buildCallInvocation(receiver, call, arguments);
-    } else if (selector.isCall) {
-      // We are invoking a method.
-      assert(target is FunctionElement);
-      List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-      arguments = normalizeStaticArguments(selector, target, arguments);
-      return irBuilder.buildSuperInvocation(target, selector, arguments);
-    } else {
-      // We are invoking a getter, operator, indexer, etc.
-      List<ir.Primitive> arguments = node.argumentsNode == null
-          ? <ir.Primitive>[]
-          : node.arguments.mapToList(visit);
-      return irBuilder.buildSuperInvocation(target, selector, arguments);
-    }
+  ir.Primitive translateBinary(ast.Node left,
+                               op.BinaryOperator operator,
+                               ast.Node right) {
+    Selector selector = new Selector.binaryOperator(operator.selectorName);
+    ir.Primitive receiver = visit(left);
+    List<ir.Primitive> arguments = <ir.Primitive>[visit(right)];
+    arguments = normalizeDynamicArguments(selector, arguments);
+    return irBuilder.buildDynamicInvocation(receiver, selector, arguments);
   }
 
-  visitTypePrefixSend(ast.Send node) {
-    compiler.internalError(node, "visitTypePrefixSend should not be called.");
+  @override
+  ir.Primitive visitBinary(ast.Send node,
+                           ast.Node left,
+                           op.BinaryOperator operator,
+                           ast.Node right, _) {
+    return translateBinary(left, operator, right);
   }
 
-  ir.Primitive visitTypeLiteralSend(ast.Send node) {
-    assert(irBuilder.isOpen);
-    // If the user is trying to invoke the type literal or variable,
-    // it must be treated as a function call.
-    if (node.argumentsNode != null) {
-      // TODO(sigurdm): Handle this to match proposed semantics of issue #19725.
-      return giveup(node, 'Type literal invoked as function');
-    }
-
-    DartType type = elements.getTypeLiteralType(node);
-    if (type is TypeVariableType) {
-      return buildReifyTypeVariable(irBuilder.buildThis(), type);
-    } else {
-      return translateConstant(node);
-    }
+  @override
+  ir.Primitive visitIndex(ast.Send node,
+                          ast.Node receiver,
+                          ast.Node index, _) {
+    Selector selector = new Selector.index();
+    ir.Primitive target = visit(receiver);
+    List<ir.Primitive> arguments = <ir.Primitive>[visit(index)];
+    arguments = normalizeDynamicArguments(selector, arguments);
+    return irBuilder.buildDynamicInvocation(target, selector, arguments);
   }
 
+  ir.Primitive translateSuperBinary(FunctionElement function,
+                                    op.BinaryOperator operator,
+                                    ast.Node argument) {
+    Selector selector = new Selector.binaryOperator(operator.selectorName);
+    List<ir.Primitive> arguments = <ir.Primitive>[visit(argument)];
+    arguments = normalizeDynamicArguments(selector, arguments);
+    return irBuilder.buildSuperInvocation(function, selector, arguments);
+  }
+
+  @override
+  ir.Primitive visitSuperBinary(
+      ast.Send node,
+      FunctionElement function,
+      op.BinaryOperator operator,
+      ast.Node argument,
+      _) {
+    return translateSuperBinary(function, operator, argument);
+  }
+
+  @override
+  ir.Primitive visitSuperIndex(
+      ast.Send node,
+      FunctionElement function,
+      ast.Node index,
+      _) {
+    Selector selector = new Selector.index();
+    List<ir.Primitive> arguments = <ir.Primitive>[visit(index)];
+    arguments = normalizeDynamicArguments(selector, arguments);
+    return irBuilder.buildSuperInvocation(function, selector, arguments);
+  }
+
+  @override
+  ir.Primitive visitEquals(
+      ast.Send node,
+      ast.Node left,
+      ast.Node right,
+      _) {
+    return translateBinary(left, op.BinaryOperator.EQ, right);
+  }
+
+  @override
+  ir.Primitive visitSuperEquals(
+      ast.Send node,
+      FunctionElement function,
+      ast.Node argument,
+      _) {
+    return translateSuperBinary(function, op.BinaryOperator.EQ, argument);
+  }
+
+  @override
+  ir.Primitive visitNot(
+      ast.Send node,
+      ast.Node expression,
+      _) {
+    return irBuilder.buildNegation(visit(expression));
+  }
+
+  @override
+  ir.Primitive visitNotEquals(
+      ast.Send node,
+      ast.Node left,
+      ast.Node right,
+      _) {
+    return irBuilder.buildNegation(
+        translateBinary(left, op.BinaryOperator.NOT_EQ, right));
+  }
+
+  @override
+  ir.Primitive visitSuperNotEquals(
+      ast.Send node,
+      FunctionElement function,
+      ast.Node argument,
+      _) {
+    return irBuilder.buildNegation(
+        translateSuperBinary(function, op.BinaryOperator.NOT_EQ, argument));
+  }
+
+  @override
+  ir.Primitive visitUnary(ast.Send node,
+                          op.UnaryOperator operator, ast.Node expression, _) {
+    // TODO(johnniwinther): Clean up the creation of selectors.
+    Selector selector =
+        new Selector(SelectorKind.OPERATOR, operator.selectorName, null, 0);
+    ir.Primitive receiver = translateReceiver(expression);
+    return irBuilder.buildDynamicInvocation(receiver, selector, const []);
+  }
+
+  @override
+  ir.Primitive visitSuperUnary(
+      ast.Send node,
+      op.UnaryOperator operator,
+      FunctionElement function,
+      _) {
+    // TODO(johnniwinther): Clean up the creation of selectors.
+    Selector selector =
+        new Selector(SelectorKind.OPERATOR, operator.selectorName, null, 0);
+    return irBuilder.buildSuperInvocation(function, selector, const []);
+  }
+
+  // TODO(johnniwinther): Handle this in the [IrBuilder] to ensure the correct
+  // semantic correlation between arguments and invocation.
+  List<ir.Primitive> translateDynamicArguments(ast.NodeList nodeList,
+                                               Selector selector) {
+    List<ir.Primitive> arguments = nodeList.nodes.mapToList(visit);
+    return normalizeDynamicArguments(selector, arguments);
+  }
+
+  // TODO(johnniwinther): Handle this in the [IrBuilder] to ensure the correct
+  // semantic correlation between arguments and invocation.
+  List<ir.Primitive> translateStaticArguments(ast.NodeList nodeList,
+                                              Element element,
+                                              Selector selector) {
+    List<ir.Primitive> arguments = nodeList.nodes.mapToList(visit);
+    return normalizeStaticArguments(selector, element, arguments);
+  }
+
+  ir.Primitive translateCallInvoke(ir.Primitive target,
+                                   ast.NodeList arguments,
+                                   Selector selector) {
+
+    return irBuilder.buildCallInvocation(target, selector,
+        translateDynamicArguments(arguments, selector));
+  }
+
+  ir.Primitive translateConstantInvoke(ConstantExpression constant,
+                                       ast.NodeList arguments,
+                                       Selector selector) {
+    return translateCallInvoke(
+        irBuilder.buildConstantLiteral(constant),
+        arguments,
+        selector);
+  }
+
+  @override
+  ir.Primitive handleConstantInvoke(
+      ast.Send node,
+      ConstantExpression constant,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return translateConstantInvoke(constant, arguments, selector);
+  }
+
+  @override
+  ir.Primitive handleDynamicInvoke(
+      ast.Send node,
+      ast.Node receiver,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return irBuilder.buildDynamicInvocation(
+        translateReceiver(receiver), selector,
+        translateDynamicArguments(arguments, selector));
+  }
+
+  ir.Primitive handleLocalInvoke(
+      ast.Send node,
+      LocalElement element,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return irBuilder.buildLocalInvocation(element, selector,
+        translateDynamicArguments(arguments, selector));
+  }
+
+  @override
+  ir.Primitive handleStaticFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return translateCallInvoke(
+        irBuilder.buildStaticGet(field),
+        arguments, selector);
+  }
+
+  @override
+  ir.Primitive handleStaticFunctionInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    // TODO(karlklose): support foreign functions.
+    if (function.isForeign(compiler.backend)) {
+      return giveup(node, 'handleStaticFunctionInvoke: foreign: $function');
+    }
+    return irBuilder.buildStaticInvocation(function, selector,
+        translateStaticArguments(arguments, function, selector),
+        sourceInformation: sourceInformationBuilder.buildCall(node));
+  }
+
+  @override
+  ir.Primitive handleStaticGetterInvoke(
+      ast.Send node,
+      FunctionElement getter,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return translateCallInvoke(
+        irBuilder.buildStaticGet(getter),
+        arguments, selector);
+  }
+
+  @override
+  ir.Primitive visitSuperFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return translateCallInvoke(
+        irBuilder.buildSuperGet(field),
+        arguments, selector);
+  }
+
+  @override
+  ir.Primitive visitSuperGetterInvoke(
+      ast.Send node,
+      FunctionElement getter,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return translateCallInvoke(
+        irBuilder.buildSuperGet(getter),
+        arguments, selector);
+  }
+
+  @override
+  ir.Primitive visitSuperMethodInvoke(
+      ast.Send node,
+      MethodElement method,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return irBuilder.buildSuperInvocation(method, selector,
+        translateDynamicArguments(arguments, selector));
+  }
+
+  @override
+  ir.Primitive visitThisInvoke(
+      ast.Send node,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return translateCallInvoke(irBuilder.buildThis(), arguments, selector);
+  }
+
+  @override
+  ir.Primitive visitTypeVariableTypeLiteralInvoke(
+      ast.Send node,
+      TypeVariableElement element,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return translateCallInvoke(
+        translateTypeVariableTypeLiteral(element),
+        arguments,
+        selector);
+  }
+
+  @override
+  ir.Primitive visitTypedefTypeLiteralInvoke(
+      ast.Send node,
+      TypeConstantExpression constant,
+      ast.NodeList arguments,
+      Selector selector, _) {
+    return translateConstantInvoke(constant, arguments, selector);
+  }
+
+  // TODO(johnniwinther): This should be a method on [IrBuilder].
   ir.Primitive buildReifyTypeVariable(ir.Primitive target,
                                       TypeVariableType variable);
 
-  ir.Primitive visitSendSet(ast.SendSet node) {
-    assert(irBuilder.isOpen);
-    Element element = elements[node];
-    ast.Operator op = node.assignmentOperator;
-    // For complex operators, this is the result of getting (before assigning)
-    ir.Primitive originalValue;
-    // For []+= style operators, this saves the index.
-    ir.Primitive index;
-    ir.Primitive receiver;
-    // This is what gets assigned.
-    ir.Primitive valueToStore;
-    Selector selector = elements.getSelector(node);
+  @override
+  ir.Primitive visitIndexSet(
+       ast.SendSet node,
+       ast.Node receiver,
+       ast.Node index,
+       ast.Node rhs,
+       _) {
+    return irBuilder.buildDynamicIndexSet(
+        visit(receiver), visit(index), visit(rhs));
+  }
+
+  @override
+  ir.Primitive visitSuperIndexSet(
+      ast.SendSet node,
+      FunctionElement function,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    return irBuilder.buildSuperIndexSet(function, visit(index), visit(rhs));
+  }
+
+  @override
+  ir.Primitive visitCompoundIndexSet(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    ir.Primitive target = visit(receiver);
+    ir.Primitive indexValue = visit(index);
+    return translateCompound(
+        getValue: () {
+          Selector selector = new Selector.index();
+          List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
+          arguments = normalizeDynamicArguments(selector, arguments);
+          return irBuilder.buildDynamicInvocation(target, selector, arguments);
+        },
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildDynamicIndexSet(target, indexValue, result);
+        });
+  }
+
+  @override
+  ir.Primitive visitSuperCompoundIndexSet(
+      ast.SendSet node,
+      FunctionElement getter,
+      FunctionElement setter,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    ir.Primitive indexValue = visit(index);
+    return translateCompound(
+        getValue: () {
+          Selector selector = new Selector.index();
+          List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
+          arguments = normalizeDynamicArguments(selector, arguments);
+          return irBuilder.buildSuperInvocation(getter, selector, arguments);
+        },
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperIndexSet(setter, indexValue, result);
+        });
+  }
+
+  ir.Primitive translatePrefixPostfix(
+      {ir.Primitive getValue(),
+       op.IncDecOperator operator,
+       void setValue(ir.Primitive value),
+       bool isPrefix}) {
+    ir.Primitive value = getValue();
     Selector operatorSelector =
-        elements.getOperatorSelectorInComplexSendSet(node);
-    Selector getterSelector =
-        elements.getGetterSelectorInComplexSendSet(node);
-    assert(
-        // Indexing send-sets have an argument for the index.
-        (selector.isIndexSet ? 1 : 0) +
-        // Non-increment send-sets have one more argument.
-        (ast.Operator.INCREMENT_OPERATORS.contains(op.source) ? 0 : 1)
-            == node.argumentCount());
+        new Selector.binaryOperator(operator.selectorName);
+    List<ir.Primitive> arguments =
+        <ir.Primitive>[irBuilder.buildIntegerLiteral(1)];
+    arguments = normalizeDynamicArguments(operatorSelector, arguments);
+    ir.Primitive result =
+        irBuilder.buildDynamicInvocation(value, operatorSelector, arguments);
+    setValue(result);
+    return isPrefix ? result : value;
+  }
 
-    ast.Node getAssignArgument() {
-      assert(invariant(node, !node.arguments.isEmpty,
-                       message: "argument expected"));
-      return selector.isIndexSet
-          ? node.arguments.tail.head
-          : node.arguments.head;
-    }
+  ir.Primitive translateCompound(
+      {ir.Primitive getValue(),
+       op.AssignmentOperator operator,
+       ast.Node rhs,
+       void setValue(ir.Primitive value)}) {
+    ir.Primitive value = getValue();
+    Selector operatorSelector =
+        new Selector.binaryOperator(operator.selectorName);
+    List<ir.Primitive> arguments = <ir.Primitive>[visit(rhs)];
+    arguments = normalizeDynamicArguments(operatorSelector, arguments);
+    ir.Primitive result =
+        irBuilder.buildDynamicInvocation(value, operatorSelector, arguments);
+    setValue(result);
+    return result;
+  }
 
-    // Get the value into valueToStore
-    if (op.source == "=") {
-      if (selector.isIndexSet) {
-        receiver = visitReceiver(node.receiver);
-        index = visit(node.arguments.head);
-      } else if (element == null || Elements.isInstanceField(element)) {
-        receiver = visitReceiver(node.receiver);
-      }
-      valueToStore = visit(getAssignArgument());
-    } else {
-      // Get the original value into getter
-      assert(ast.Operator.COMPLEX_OPERATORS.contains(op.source));
+  @override
+  ir.Primitive handleDynamicCompound(
+      ast.Send node,
+      ast.Node receiver,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      Selector getterSelector,
+      Selector setterSelector,
+      _) {
+    ir.Primitive target = translateReceiver(receiver);
+    return translateCompound(
+        getValue: () => irBuilder.buildDynamicGet(target, getterSelector),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildDynamicSet(target, setterSelector, result);
+        });
+  }
 
-      _GetterElements getterResult = translateGetter(node, getterSelector);
-      index = getterResult.index;
-      receiver = getterResult.receiver;
-      originalValue = getterResult.result;
+  @override
+  ir.Primitive handleDynamicPostfixPrefix(
+      ast.Send node,
+      ast.Node receiver,
+      op.IncDecOperator operator,
+      Selector getterSelector,
+      Selector setterSelector,
+      arg,
+      {bool isPrefix}) {
+    ir.Primitive target = translateReceiver(receiver);
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildDynamicGet(target, getterSelector),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildDynamicSet(target, setterSelector, result);
+        },
+        isPrefix: isPrefix);
+  }
 
-      // Do the modification of the value in getter.
-      ir.Primitive arg;
-      if (ast.Operator.INCREMENT_OPERATORS.contains(op.source)) {
-        arg = irBuilder.buildIntegerLiteral(1);
-      } else {
-        arg = visit(getAssignArgument());
-      }
-      valueToStore = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([valueToStore]);
-      ir.Expression invoke =
-          new ir.InvokeMethod(originalValue, operatorSelector, k, [arg]);
-      irBuilder.add(new ir.LetCont(k, invoke));
-    }
+  @override
+  ir.Primitive handleDynamicSet(
+      ast.SendSet node,
+      ast.Node receiver,
+      Selector selector,
+      ast.Node rhs,
+      _) {
+    return irBuilder.buildDynamicSet(
+        translateReceiver(receiver),
+        selector,
+        visit(rhs));
+  }
 
-    if (Elements.isLocal(element)) {
-      irBuilder.buildLocalSet(element, valueToStore);
-    } else if ((!node.isSuperCall && Elements.isErroneous(element)) ||
-                Elements.isStaticOrTopLevel(element)) {
-      irBuilder.buildStaticSet(
-          element, elements.getSelector(node), valueToStore);
-    } else {
-      // Setter or index-setter invocation
-      Selector selector = elements.getSelector(node);
-      assert(selector.kind == SelectorKind.SETTER ||
-          selector.kind == SelectorKind.INDEX);
-      if (selector.isIndexSet) {
-        if (isSuperCall(node)) {
-          irBuilder.buildSuperIndexSet(element, index, valueToStore);
-        } else {
-          irBuilder.buildDynamicIndexSet(receiver, index, valueToStore);
-        }
-      } else {
-        if (isSuperCall(node)) {
-          irBuilder.buildSuperSet(element, selector, valueToStore);
-        } else {
-          irBuilder.buildDynamicSet(receiver, selector, valueToStore);
-        }
-      }
-    }
+  @override
+  ir.Primitive handleLocalCompound(
+      ast.Send node,
+      LocalElement element,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildLocalGet(element),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildLocalSet(element, result);
+        });
+  }
 
-    if (node.isPostfix) {
-      assert(originalValue != null);
-      return originalValue;
-    } else {
-      return valueToStore;
-    }
+  @override
+  ir.Primitive handleLocalPostfixPrefix(
+      ast.Send node,
+      LocalElement element,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildLocalGet(element),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildLocalSet(element, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleLocalSet(
+      ast.SendSet node,
+      LocalElement element,
+      ast.Node rhs,
+      _) {
+    return irBuilder.buildLocalSet(element, visit(rhs));
+  }
+
+  @override
+  ir.Primitive handleStaticFieldCompound(
+      ast.Send node,
+      FieldElement field,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildStaticGet(field),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildStaticSet(field, result);
+        });
+  }
+
+  @override
+  ir.Primitive handleStaticFieldPostfixPrefix(
+      ast.Send node,
+      FieldElement field,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildStaticGet(field),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildStaticSet(field, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleStaticFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    return irBuilder.buildStaticSet(field, visit(rhs));
+  }
+
+  @override
+  ir.Primitive visitSuperFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    return irBuilder.buildSuperSet(field, visit(rhs));
+  }
+
+  @override
+  ir.Primitive visitSuperSetterSet(
+      ast.SendSet node,
+      FunctionElement setter,
+      ast.Node rhs,
+      _) {
+    return irBuilder.buildSuperSet(setter, visit(rhs));
+  }
+
+  @override
+  ir.Primitive handleStaticGetterSetterCompound(
+      ast.Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildStaticGet(getter),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildStaticSet(setter, result);
+        });
+  }
+
+  @override
+  ir.Primitive handleSuperFieldFieldPostfixPrefix(
+      ast.Send node,
+      FieldElement readField,
+      FieldElement writtenField,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildSuperGet(readField),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(writtenField, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleSuperFieldSetterPostfixPrefix(
+      ast.Send node,
+      FieldElement field,
+      FunctionElement setter,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildSuperGet(field),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(setter, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleSuperGetterFieldPostfixPrefix(
+      ast.Send node,
+      FunctionElement getter,
+      FieldElement field,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildSuperGet(getter),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(field, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleSuperGetterSetterPostfixPrefix(
+      ast.Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildSuperGet(getter),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(setter, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleSuperMethodSetterPostfixPrefix(
+      ast.Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildSuperGet(method),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(setter, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleStaticGetterSetterPostfixPrefix(
+      ast.Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildStaticGet(getter),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildStaticSet(setter, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleStaticMethodSetterCompound(
+      ast.Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildStaticGet(method),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildStaticSet(setter, result);
+        });
+  }
+
+  @override
+  ir.Primitive handleStaticMethodSetterPostfixPrefix(
+      ast.Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildStaticGet(getter),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildStaticSet(setter, result);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleDynamicIndexPostfixPrefix(
+      ast.Send node,
+      ast.Node receiver,
+      ast.Node index,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    ir.Primitive target = visit(receiver);
+    ir.Primitive indexValue = visit(index);
+    return translatePrefixPostfix(
+        getValue: () {
+          Selector selector = new Selector.index();
+          List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
+          arguments = normalizeDynamicArguments(selector, arguments);
+          return irBuilder.buildDynamicInvocation(target, selector, arguments);
+        },
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          Selector selector = new Selector.indexSet();
+          List<ir.Primitive> arguments = <ir.Primitive>[indexValue, result];
+          arguments = normalizeDynamicArguments(selector, arguments);
+          irBuilder.buildDynamicInvocation(target, selector, arguments);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleSuperIndexPostfixPrefix(
+      ast.Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      ast.Node index,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    ir.Primitive indexValue = visit(index);
+    return translatePrefixPostfix(
+        getValue: () {
+          Selector selector = new Selector.index();
+          List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
+          arguments = normalizeDynamicArguments(selector, arguments);
+          return irBuilder.buildSuperInvocation(
+              indexFunction, selector, arguments);
+        },
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          Selector selector = new Selector.indexSet();
+          List<ir.Primitive> arguments = <ir.Primitive>[indexValue, result];
+          arguments = normalizeDynamicArguments(selector, arguments);
+          irBuilder.buildSuperInvocation(
+              indexSetFunction, selector, arguments);
+        },
+        isPrefix: isPrefix);
+  }
+
+  @override
+  ir.Primitive handleStaticSetterSet(
+      ast.SendSet node,
+      FunctionElement setter,
+      ast.Node rhs,
+      _) {
+    return irBuilder.buildStaticSet(setter, visit(rhs));
+  }
+
+  @override
+  ir.Primitive visitSuperFieldCompound(
+      ast.Send node,
+      FieldElement field,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildSuperGet(field),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(field, result);
+        });
+  }
+
+  @override
+  ir.Primitive visitSuperFieldFieldPostfix(
+      ast.Send node,
+      FieldElement readField,
+      FieldElement writtenField,
+      op.IncDecOperator operator,
+      _) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildSuperGet(readField),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(writtenField, result);
+        },
+        isPrefix: false);
+  }
+
+  @override
+  ir.Primitive visitSuperFieldFieldPrefix(
+      ast.Send node,
+      FieldElement readField,
+      FieldElement writtenField,
+      op.IncDecOperator operator,
+      _) {
+    return translatePrefixPostfix(
+        getValue: () => irBuilder.buildSuperGet(readField),
+        operator: operator,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(writtenField, result);
+        },
+        isPrefix: true);
+  }
+
+  @override
+  ir.Primitive visitSuperFieldSetterCompound(
+      ast.Send node,
+      FieldElement field,
+      FunctionElement setter,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildSuperGet(field),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(setter, result);
+        });
+  }
+
+  @override
+  ir.Primitive visitSuperGetterFieldCompound(
+      ast.Send node,
+      FunctionElement getter,
+      FieldElement field,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildSuperGet(getter),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(field, result);
+        });
+  }
+
+  @override
+  ir.Primitive visitSuperGetterSetterCompound(
+      ast.Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildSuperGet(getter),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(setter, result);
+        });
+  }
+
+  @override
+  ir.Primitive visitSuperMethodSetterCompound(
+      ast.Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return translateCompound(
+        getValue: () => irBuilder.buildSuperGet(method),
+        operator: operator,
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          irBuilder.buildSuperSet(setter, result);
+        });
   }
 
   ir.Primitive visitNewExpression(ast.NewExpression node) {
@@ -1007,8 +1754,13 @@ abstract class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
   }
 
-  void internalError(String reason, {ast.Node node}) {
+  void internalError(ast.Node node, String message) {
     giveup(node);
+  }
+
+  @override
+  visitNode(ast.Node node) {
+    internalError(node, "Unhandled node");
   }
 }
 

@@ -1040,12 +1040,6 @@ const List<Test> TESTS = const [
         ''',
         const Visit(VisitKind.VISIT_BINARY,
                     left: '2', operator: '^', right: '3')),
-    const Test(
-        '''
-        m() => 2[3];
-        ''',
-        const Visit(VisitKind.VISIT_INDEX,
-                    receiver: '2', index: '3')),
     const Test.clazz(
         '''
         class B {
@@ -1059,6 +1053,25 @@ const List<Test> TESTS = const [
                     element: 'function(B#+)',
                     operator: '+',
                     right: '42')),
+    // Index
+    const Test(
+        '''
+        m() => 2[3];
+        ''',
+        const Visit(VisitKind.VISIT_INDEX,
+                    receiver: '2', index: '3')),
+    const Test(
+        '''
+        m() => --2[3];
+        ''',
+        const Visit(VisitKind.VISIT_INDEX_PREFIX,
+                    receiver: '2', index: '3', operator: '--')),
+    const Test(
+        '''
+        m() => 2[3]++;
+        ''',
+        const Visit(VisitKind.VISIT_INDEX_POSTFIX,
+                    receiver: '2', index: '3', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -1071,6 +1084,36 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_INDEX,
                     element: 'function(B#[])',
                     index: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_INDEX_PREFIX,
+                    getter: 'function(B#[])',
+                    setter: 'function(B#[]=)',
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_INDEX_POSTFIX,
+                    getter: 'function(B#[])',
+                    setter: 'function(B#[]=)',
+                    index: '42',
+                    operator: '--')),
 
     // Equals
     const Test(
@@ -3889,6 +3932,89 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
       arg) {
     // TODO: implement errorUnresolvedSuperUnary
   }
+
+  @override
+  errorUnresolvedSuperIndex(
+      Send node,
+      Element element,
+      Node index,
+      arg) {
+    // TODO: implement errorUnresolvedSuperIndex
+  }
+
+  @override
+  errorUnresolvedSuperIndexPostfix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    // TODO: implement errorUnresolvedSuperIndexPostfix
+  }
+
+  @override
+  errorUnresolvedSuperIndexPrefix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    // TODO: implement errorUnresolvedSuperIndexPrefix
+  }
+
+  @override
+  visitIndexPostfix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_INDEX_POSTFIX,
+        receiver: receiver, index: index, operator: operator));
+    apply(receiver, arg);
+    apply(index, arg);
+  }
+
+  @override
+  visitIndexPrefix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_INDEX_PREFIX,
+        receiver: receiver, index: index, operator: operator));
+    apply(receiver, arg);
+    apply(index, arg);
+  }
+
+  @override
+  visitSuperIndexPostfix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_INDEX_POSTFIX,
+        getter: indexFunction, setter: indexSetFunction,
+        index: index, operator: operator));
+    apply(index, arg);
+  }
+
+  @override
+  visitSuperIndexPrefix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_INDEX_PREFIX,
+        getter: indexFunction, setter: indexSetFunction,
+        index: index, operator: operator));
+    apply(index, arg);
+  }
 }
 
 enum VisitKind {
@@ -3988,11 +4114,15 @@ enum VisitKind {
   VISIT_INDEX,
   VISIT_EQUALS,
   VISIT_NOT_EQUALS,
+  VISIT_INDEX_PREFIX,
+  VISIT_INDEX_POSTFIX,
 
   VISIT_SUPER_BINARY,
   VISIT_SUPER_INDEX,
   VISIT_SUPER_EQUALS,
   VISIT_SUPER_NOT_EQUALS,
+  VISIT_SUPER_INDEX_PREFIX,
+  VISIT_SUPER_INDEX_POSTFIX,
 
   VISIT_UNARY,
   VISIT_SUPER_UNARY,

@@ -5,6 +5,7 @@
 library dart2js.semantics_visitor;
 
 import '../constants/expressions.dart';
+import '../dart2jslib.dart' show invariant;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
@@ -57,6 +58,8 @@ abstract class SemanticVisitor<R, A> extends Visitor<R>
   }
 }
 
+// TODO(johnniwinther): Add visits for [visitLocalConstantGet],
+// [visitLocalConstantInvoke], [visitStaticConstantGet], etc.
 abstract class SemanticSendVisitor<R, A> {
   R apply(Node node, A arg);
 
@@ -1102,6 +1105,32 @@ abstract class SemanticSendVisitor<R, A> {
       Node index,
       A arg);
 
+  /// Prefix operation on an index expression `operator receiver[index]` where
+  /// the operation is defined by [operator].
+  ///
+  /// For instance:
+  ///     lookup(a, b) => --a[b];
+  ///
+  R visitIndexPrefix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation on an index expression `receiver[index] operator` where
+  /// the operation is defined by [operator].
+  ///
+  /// For instance:
+  ///     lookup(a, b) => a[b]++;
+  ///
+  R visitIndexPostfix(
+      Send node,
+      Node receiver,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
   /// Index expression `super[index]` where 'operator []' is implemented on a
   /// superclass by [function].
   ///
@@ -1117,6 +1146,98 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement function,
       Node index,
+      A arg);
+
+  /// Prefix operation on an index expression `operator super[index]` where
+  /// 'operator []' is implemented on a superclass by [indexFunction] and
+  /// 'operator []=' is implemented on by [indexSetFunction] and the operation
+  /// is defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {
+  ///       operator [](_) => null;
+  ///       operator []=(a, b) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(a) => --super[a];
+  ///     }
+  ///
+  R visitSuperIndexPrefix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation on an index expression `super[index] operator` where
+  /// 'operator []' is implemented on a superclass by [indexFunction] and
+  /// 'operator []=' is implemented on by [indexSetFunction] and the operation
+  /// is defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {
+  ///       operator [](_) => null;
+  ///       operator []=(a, b) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(a) => super[a]++;
+  ///     }
+  ///
+  R visitSuperIndexPostfix(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Index expression `super[index]` where 'operator []' is unresolved.
+  ///
+  /// For instance:
+  ///     class B {}
+  ///     class C extends B {
+  ///       m(a) => super[a];
+  ///     }
+  ///
+  R errorUnresolvedSuperIndex(
+      Send node,
+      Element element,
+      Node index,
+      A arg);
+
+  /// Prefix operation on an index expression `operator super[index]` where
+  /// 'operator []' or 'operator []=' is unresolved and the operation
+  /// is defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {}
+  ///     class C extends B {
+  ///       m(a) => --super[a];
+  ///     }
+  ///
+  R errorUnresolvedSuperIndexPrefix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation on an index expression `super[index] operator` where
+  /// 'operator []' or 'operator []=' is unresolved and the operation
+  /// is defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {}
+  ///     class C extends B {
+  ///       m(a) => super[a]++;
+  ///     }
+  ///
+  R errorUnresolvedSuperIndexPostfix(
+      Send node,
+      Element function,
+      Node index,
+      IncDecOperator operator,
       A arg);
 
   /// Binary expression `left == right`.
