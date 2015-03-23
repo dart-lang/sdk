@@ -8767,7 +8767,7 @@ void''');
   }
 
   void test_parseStatement_emptyTypeArgumentListt() {
-    VariableDeclarationStatement statement = ParserTestCase.parse4(
+    VariableDeclarationStatement statement = parse4(
         "parseStatement", "C<> c;", [ParserErrorCode.EXPECTED_TYPE_NAME]);
     VariableDeclarationList variables = statement.variables;
     TypeName type = variables.type;
@@ -9144,7 +9144,7 @@ void''');
   }
 
   void test_parseTypeArgumentList_empty() {
-    TypeArgumentList argumentList = ParserTestCase.parse4(
+    TypeArgumentList argumentList = parse4(
         "parseTypeArgumentList", "<>", [ParserErrorCode.EXPECTED_TYPE_NAME]);
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
