@@ -11209,12 +11209,12 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * Examples
    *
-   *       var animation = elem.animate([{"opacity": 75}, {"opacity": 0}], 200);
+   *     var animation = elem.animate([{"opacity": 75}, {"opacity": 0}], 200);
    *
-   *       var animation = elem.animate([
-   *         {"transform": "translate(100px, -100%)"},
-   *         {"transform" : "translate(400px, 500px)"}
-   *       ], 1500);  
+   *     var animation = elem.animate([
+   *       {"transform": "translate(100px, -100%)"},
+   *       {"transform" : "translate(400px, 500px)"}
+   *     ], 1500);  
    *
    * The [frames] parameter is an Iterable<Map>, where the
    * map entries specify CSS animation effects. The
