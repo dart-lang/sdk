@@ -1233,32 +1233,20 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(EAX, counter);
-#if defined(DEBUG)
   intptr_t increment_start = assembler_->CodeSize();
-#endif  // DEBUG
   __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(0)), 1);
-#if defined(DEBUG)
-  // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
-  intptr_t expected = EdgeCounterIncrementSizeInBytes();
-  intptr_t actual = assembler_->CodeSize() - increment_start;
-  if (actual != expected) {
-    FATAL2("Edge counter increment length: %" Pd ", expected %" Pd "\n",
-           actual,
-           expected);
+  int32_t size = assembler_->CodeSize() - increment_start;
+  if (isolate()->edge_counter_increment_size() == -1) {
+    isolate()->set_edge_counter_increment_size(size);
+  } else {
+    ASSERT(size == isolate()->edge_counter_increment_size());
   }
-#endif  // DEBUG
 }
 
 
 int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
-  // Used by CodePatcher; so must be constant across all code in an isolate.
-  int32_t size = 4;
-#if defined(DEBUG)
-  size += 19;  // VerifySmi
-#endif  // DEBUG
-  if (VerifiedMemory::enabled()) {
-    size += 50;
-  }
+  const int32_t size = Isolate::Current()->edge_counter_increment_size();
+  ASSERT(size != -1);
   return size;
 }
 

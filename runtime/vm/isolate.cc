@@ -577,6 +577,7 @@ Isolate::Isolate()
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
+      edge_counter_increment_size_(-1),
       is_service_isolate_(false),
       log_(new class Log()),
       stacktrace_(NULL),

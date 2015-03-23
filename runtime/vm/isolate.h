@@ -517,6 +517,15 @@ class Isolate : public BaseIsolate {
     deopt_context_ = value;
   }
 
+  int32_t edge_counter_increment_size() const {
+    return edge_counter_increment_size_;
+  }
+  void set_edge_counter_increment_size(int32_t size) {
+    ASSERT(edge_counter_increment_size_ == -1);
+    ASSERT(size >= 0);
+    edge_counter_increment_size_ = size;
+  }
+
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
         OS::GetCurrentTimeMillis();
@@ -708,6 +717,7 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
+  int32_t edge_counter_increment_size_;
 
   // Log.
   bool is_service_isolate_;
