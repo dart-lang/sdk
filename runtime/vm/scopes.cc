@@ -282,12 +282,7 @@ static bool IsInternalIdentifier(const String& str) {
 void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
                                        int16_t* scope_id) {
   (*scope_id)++;
-  if (HasContextLevel() &&
-      ((parent() == NULL) ||
-      (!parent()->HasContextLevel()) ||
-      (parent()->context_level() != context_level()))) {
-    // This is the outermost scope with a context level or this scope's
-    // context level differs from its parent's level.
+  if (num_context_variables() > 0) {
     VarDesc desc;
     desc.name = &Symbols::Empty();  // No name.
     desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);

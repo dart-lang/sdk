@@ -45,12 +45,12 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   const char* current_buffer = reinterpret_cast<const char*>(buffer);
   while (remaining > 0) {
-    int64_t bytes_read = Write(current_buffer, remaining);
-    if (bytes_read < 0) {
+    int64_t bytes_written = Write(current_buffer, remaining);
+    if (bytes_written < 0) {
       return false;
     }
-    remaining -= bytes_read;  // Reduce the number of remaining bytes.
-    current_buffer += bytes_read;  // Move the buffer forward.
+    remaining -= bytes_written;  // Reduce the number of remaining bytes.
+    current_buffer += bytes_written;  // Move the buffer forward.
   }
   return true;
 }
@@ -140,9 +140,9 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
   int64_t byte = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &byte)) {
     uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
-    int64_t bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
-    if (bytes_written >= 0) {
-      Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
+    bool success = file->WriteFully(reinterpret_cast<void*>(&buffer), 1);
+    if (success) {
+      Dart_SetReturnValue(args, Dart_NewInteger(1));
     } else {
       Dart_Handle err = DartUtils::NewDartOSError();
       if (Dart_IsError(err)) Dart_PropagateError(err);
@@ -266,16 +266,19 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   ASSERT(end <= buffer_len);
   ASSERT(buffer != NULL);
 
-  // Write the data out into the file.
-  int64_t bytes_written = file->Write(buffer, length);
+  // Write all the data out into the file.
+  bool success = file->WriteFully(buffer, length);
+
   // Release the direct pointer acquired above.
   result = Dart_TypedDataReleaseData(buffer_obj);
   if (Dart_IsError(result)) Dart_PropagateError(result);
 
-  if (bytes_written != length) {
+  if (!success) {
     Dart_Handle err = DartUtils::NewDartOSError();
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
+  } else {
+    Dart_SetReturnValue(args, Dart_Null());
   }
 }
 
@@ -955,9 +958,9 @@ CObject* File::WriteByteRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t byte = CObjectInt32OrInt64ToInt64(request[1]);
       uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
-      int64_t bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
-      if (bytes_written > 0) {
-        return new CObjectInt64(CObject::NewInt64(bytes_written));
+      bool success = file->WriteFully(reinterpret_cast<void*>(&buffer), 1);
+      if (success) {
+        return new CObjectInt64(CObject::NewInt64(1));
       } else {
         return CObject::NewOSError();
       }
@@ -1092,13 +1095,13 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
         }
         start = 0;
       }
-      int64_t bytes_written =
-          file->Write(reinterpret_cast<void*>(buffer_start), length);
+      bool success =
+          file->WriteFully(reinterpret_cast<void*>(buffer_start), length);
       if (!request[1]->IsTypedData()) {
         delete[] buffer_start;
       }
-      if (bytes_written >= 0) {
-        return new CObjectInt64(CObject::NewInt64(bytes_written));
+      if (success) {
+        return new CObjectInt64(CObject::NewInt64(length));
       } else {
         return CObject::NewOSError();
       }
