@@ -589,7 +589,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   }
 
   void test_divide_int_int() {
-    _assertValue3(1, "3 / 2");
+    _assertValue2(1.5, "3 / 2");
   }
   void test_divide_int_int_byZero() {
     EvaluationResult result = _getExpressionValue("3 / 0");
@@ -2576,7 +2576,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_divide_knownInt_knownInt() {
-    _assertDivide(_intValue(3), _intValue(6), _intValue(2));
+    _assertDivide(_doubleValue(3.0), _intValue(6), _intValue(2));
   }
 
   void test_divide_knownInt_knownString() {
@@ -2588,7 +2588,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_divide_knownInt_unknownInt() {
-    _assertDivide(_intValue(null), _intValue(6), _intValue(null));
+    _assertDivide(_doubleValue(null), _intValue(6), _intValue(null));
   }
 
   void test_divide_knownString_knownInt() {
@@ -2608,7 +2608,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_divide_unknownInt_knownInt() {
-    _assertDivide(_intValue(null), _intValue(null), _intValue(2));
+    _assertDivide(_doubleValue(null), _intValue(null), _intValue(2));
   }
 
   void test_equalEqual_bool_false() {

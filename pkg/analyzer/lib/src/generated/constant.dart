@@ -4049,19 +4049,15 @@ class IntState extends NumState {
   NumState divide(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (value == null) {
-      if (rightOperand is DoubleState) {
-        return DoubleState.UNKNOWN_VALUE;
-      }
-      return UNKNOWN_VALUE;
+      return DoubleState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
       int rightValue = rightOperand.value;
       if (rightValue == null) {
-        return UNKNOWN_VALUE;
-      } else if (rightValue == 0) {
+        return DoubleState.UNKNOWN_VALUE;
+      } else {
         return new DoubleState(value.toDouble() / rightValue.toDouble());
       }
-      return new IntState(value ~/ rightValue);
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
@@ -4069,7 +4065,7 @@ class IntState extends NumState {
       }
       return new DoubleState(value.toDouble() / rightValue);
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
+      return DoubleState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -4684,7 +4680,7 @@ class NumState extends InstanceState {
   @override
   NumState divide(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
-    return UNKNOWN_VALUE;
+    return DoubleState.UNKNOWN_VALUE;
   }
 
   @override
