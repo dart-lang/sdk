@@ -39,25 +39,28 @@ class DetailedReporter extends SimpleFormatter {
   DetailedReporter(
       Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
       {int fileCount, String fileRoot, bool showStatistics: false,
-      quiet: false})
+      bool machineOutput: false, quiet: false})
       : super(errors, filter, out,
           fileCount: fileCount,
           fileRoot: fileRoot,
           showStatistics: showStatistics,
+          machineOutput: machineOutput,
           quiet: quiet);
 
   @override
   writeLint(AnalysisError error, {int offset, int line, int column}) {
     super.writeLint(error, offset: offset, column: column, line: line);
 
-    var contents = getLineContents(line, error);
-    out.writeln(contents);
+    if (!machineOutput) {
+      var contents = getLineContents(line, error);
+      out.writeln(contents);
 
-    var spaces = column - 1;
-    var arrows = max(1, min(error.length, contents.length - spaces));
+      var spaces = column - 1;
+      var arrows = max(1, min(error.length, contents.length - spaces));
 
-    var result = '${" " * spaces}${"^" * arrows}';
-    out.writeln(result);
+      var result = '${" " * spaces}${"^" * arrows}';
+      out.writeln(result);
+    }
   }
 }
 
@@ -65,10 +68,12 @@ abstract class ReportFormatter {
   factory ReportFormatter(
       Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
       {int fileCount, String fileRoot, bool showStatistics: false,
-      bool quiet: false}) => new DetailedReporter(errors, filter, out,
+      bool machineOutput: false, bool quiet: false}) => new DetailedReporter(
+      errors, filter, out,
       fileCount: fileCount,
       fileRoot: fileRoot,
       showStatistics: showStatistics,
+      machineOutput: machineOutput,
       quiet: quiet);
 
   write();
@@ -86,6 +91,7 @@ class SimpleFormatter implements ReportFormatter {
   final int fileCount;
   final String fileRoot;
   final bool showStatistics;
+  final bool machineOutput;
   final bool quiet;
 
   /// Cached for the purposes of statistics report formatting.
@@ -94,7 +100,8 @@ class SimpleFormatter implements ReportFormatter {
   Map<String, int> stats = <String, int>{};
 
   SimpleFormatter(this.errors, this.filter, this.out, {this.fileCount,
-      this.fileRoot, this.showStatistics: false, this.quiet: false});
+      this.fileRoot, this.showStatistics: false, this.quiet: false,
+      this.machineOutput: false});
 
   /// Override to influence error sorting
   int compare(AnalysisError error1, AnalysisError error2) {
@@ -124,11 +131,31 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeLint(AnalysisError error, {int offset, int line, int column}) {
-    // test/linter_test.dart 452:9 [lint] DO name types using UpperCamelCase.
-    out
-      ..write('${shorten(fileRoot, error.source.fullName)} ')
-      ..write('$line:$column ')
-      ..writeln('[${error.errorCode.type.displayName}] ${error.message}');
+    if (machineOutput) {
+      //INFO|LINT|constant_identifier_names|test/linter_test.dart|91|22|3|Prefer using lowerCamelCase for constant names.
+      out
+        ..write(error.errorCode.errorSeverity)
+        ..write('|')
+        ..write(error.errorCode.type)
+        ..write('|')
+        ..write(error.errorCode.name)
+        ..write('|')
+        ..write(_escapePipe(error.source.fullName))
+        ..write('|')
+        ..write(line)
+        ..write('|')
+        ..write(column)
+        ..write('|')
+        ..write(error.length)
+        ..write('|')
+        ..writeln(_escapePipe(error.message));
+    } else {
+      // test/linter_test.dart 452:9 [lint] DO name types using UpperCamelCase.
+      out
+        ..write('${shorten(fileRoot, error.source.fullName)} ')
+        ..write('$line:$column ')
+        ..writeln('[${error.errorCode.type.displayName}] ${error.message}');
+    }
   }
 
   void writeLints() {
@@ -188,4 +215,15 @@ class SimpleFormatter implements ReportFormatter {
 
     writeLint(error, offset: offset, column: column, line: line);
   }
+}
+
+String _escapePipe(String input) {
+  var result = new StringBuffer();
+  for (var c in input.codeUnits) {
+    if (c == '\\' || c == '|') {
+      result.write('\\');
+    }
+    result.writeCharCode(c);
+  }
+  return result.toString();
 }
