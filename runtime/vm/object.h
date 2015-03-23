@@ -2242,9 +2242,12 @@ class Function : public Object {
   // abstract: Skipped during instance-side resolution.
   // reflectable: Enumerated by mirrors, invocable by mirrors. False for private
   //              functions of dart: libraries.
-  // debuggable: Valid location of a break point. True for functions with source
-  //             code; false for synthetic functions such as dispatchers. Also
-  //             used to decide whether to include a frame in stack traces.
+  // debuggable: Valid location of a breakpoint. Synthetic code is not
+  //             debuggable.
+  // visible: Frame is included in stack traces. Synthetic code such as
+  //          dispatchers is not visible. Synthetic code that can trigger
+  //          exceptions such as the outer async functions that create Futures
+  //          is visible.
   // optimizable: Candidate for going through the optimizing compiler. False for
   //              some functions known to be execute infrequently and functions
   //              which have been de-optimized too many times.
@@ -2262,6 +2265,7 @@ class Function : public Object {
   V(Const, is_const)                                                           \
   V(Abstract, is_abstract)                                                     \
   V(Reflectable, is_reflectable)                                               \
+  V(Visible, is_visible)                                                       \
   V(Debuggable, is_debuggable)                                                 \
   V(Optimizable, is_optimizable)                                               \
   V(Inlinable, is_inlinable)                                                   \

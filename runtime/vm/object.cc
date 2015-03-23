@@ -2589,6 +2589,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   }
   invocation.set_result_type(Type::Handle(Type::DynamicType()));
   invocation.set_is_debuggable(false);
+  invocation.set_is_visible(false);
   invocation.set_is_reflectable(false);
   invocation.set_saved_args_desc(args_desc);
 
@@ -6136,6 +6137,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_external(is_external);
   result.set_is_native(is_native);
   result.set_is_reflectable(true);  // Will be computed later.
+  result.set_is_visible(true);  // Will be computed later.
   result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
@@ -6237,6 +6239,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
+  result.set_is_visible(false);
   result.set_eval_script(script);
   return result.raw();
 }
@@ -20340,7 +20343,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
       }
-    } else if (function.is_debuggable() || FLAG_show_invisible_frames) {
+    } else if (function.is_visible() || FLAG_show_invisible_frames) {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
@@ -20349,7 +20352,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         for (InlinedFunctionsIterator it(code, pc);
              !it.Done() && (*frame_index < max_frames); it.Advance()) {
           function = it.function();
-          if (function.is_debuggable() || FLAG_show_invisible_frames) {
+          if (function.is_visible() || FLAG_show_invisible_frames) {
             code = it.code();
             ASSERT(function.raw() == code.function());
             uword pc = it.pc();

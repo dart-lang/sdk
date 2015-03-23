@@ -91,6 +91,7 @@ static RawFunction* CreateMethodExtractor(const String& getter_name,
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
+  extractor.set_is_visible(false);
 
   owner.AddFunction(extractor);
 
