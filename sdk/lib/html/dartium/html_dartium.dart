@@ -951,6 +951,9 @@ class AnimationPlayer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
   @DomName('AnimationPlayer.currentTime')
   @DocsEditable()
   @Experimental() // untriaged

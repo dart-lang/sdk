@@ -58,6 +58,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Document.createTreeWalker',
     'DOMException.name',
     'DOMException.toString',
+    'Element.animate',
     'Element.createShadowRoot',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
@@ -407,6 +408,7 @@ _js_support_checks_additional_element = [
 ]
 
 js_support_checks = dict({
+    'AnimationPlayer': "JS('bool', '!!(document.body.animate)')",
     'AudioContext': "JS('bool', '!!(window.AudioContext ||"
         " window.webkitAudioContext)')",
     'Crypto':
