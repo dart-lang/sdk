@@ -127,6 +127,8 @@ class Isolate : public BaseIsolate {
   static Isolate* Init(const char* name_prefix, bool is_vm_isolate = false);
   void Shutdown();
 
+  Isolate* ShallowCopy();
+
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
   void RegisterClassAt(intptr_t index, const Class& cls);
@@ -645,6 +647,7 @@ class Isolate : public BaseIsolate {
 
  private:
   Isolate();
+  explicit Isolate(Isolate* original);
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();

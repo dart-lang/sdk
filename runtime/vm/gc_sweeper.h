@@ -10,7 +10,6 @@
 namespace dart {
 
 // Forward declarations.
-class ClassTable;
 class FreeList;
 class Heap;
 class HeapPage;
@@ -21,8 +20,7 @@ class PageSpace;
 // memory.
 class GCSweeper {
  public:
-  explicit GCSweeper(const ClassTable* class_table)
-      : class_table_(class_table) {}
+  GCSweeper() {}
   ~GCSweeper() {}
 
   // Sweep the memory area for the page while clearing the mark bits and adding
@@ -41,9 +39,6 @@ class GCSweeper {
                               HeapPage* first,
                               HeapPage* last,
                               FreeList* freelist);
-
- private:
-  const ClassTable* class_table_;
 };
 
 }  // namespace dart

@@ -230,8 +230,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
     if (RawObject::IsVariableSizeClassId(raw_obj->GetClassId())) {
-      class_table_->UpdateLiveOld(raw_obj->GetClassId(),
-                                  raw_obj->Size(class_table_));
+      class_table_->UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
     } else {
       class_table_->UpdateLiveOld(raw_obj->GetClassId(), 0);
     }
@@ -426,7 +425,7 @@ void GCMarker::DrainMarkingStack(Isolate* isolate,
       marked_bytes_ += raw_obj->VisitPointers(visitor);
     } else {
       RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
-      marked_bytes_ += raw_weak->Size(isolate->class_table());
+      marked_bytes_ += raw_weak->Size();
       ProcessWeakProperty(raw_weak, visitor);
     }
   }

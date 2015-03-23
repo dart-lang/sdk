@@ -28,10 +28,10 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
     if (raw_obj->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ClearMarkBit();
-      obj_size = raw_obj->Size(class_table_);
+      obj_size = raw_obj->Size();
       in_use = true;
     } else {
-      uword free_end = current + raw_obj->Size(class_table_);
+      uword free_end = current + raw_obj->Size();
       while (free_end < end) {
         RawObject* next_obj = RawObject::FromAddr(free_end);
         if (next_obj->IsMarked()) {
@@ -39,7 +39,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
           break;
         }
         // Expand the free block by the size of this object.
-        free_end += next_obj->Size(class_table_);
+        free_end += next_obj->Size();
       }
       obj_size = free_end - current;
       if (is_executable) {
@@ -71,17 +71,17 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
   if (raw_obj->IsMarked()) {
     raw_obj->ClearMarkBit();
-    words_to_end = (raw_obj->Size(class_table_) >> kWordSizeLog2);
+    words_to_end = (raw_obj->Size() >> kWordSizeLog2);
   }
 #ifdef DEBUG
   // String::MakeExternal and Array::MakeArray create trailing filler objects,
   // but they are always unreachable. Verify that they are not marked.
-  uword current = RawObject::ToAddr(raw_obj) + raw_obj->Size(class_table_);
+  uword current = RawObject::ToAddr(raw_obj) + raw_obj->Size();
   uword end = page->object_end();
   while (current < end) {
     RawObject* cur_obj = RawObject::FromAddr(current);
     ASSERT(!cur_obj->IsMarked());
-    intptr_t obj_size = cur_obj->Size(class_table_);
+    intptr_t obj_size = cur_obj->Size();
     memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
     current += obj_size;
   }
@@ -92,17 +92,17 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
 
 class SweeperTask : public ThreadPool::Task {
  public:
-  SweeperTask(ClassTable* class_table,
+  SweeperTask(Isolate* isolate,
               PageSpace* old_space,
               HeapPage* first,
               HeapPage* last,
               FreeList* freelist)
-      : class_table_(class_table),
+      : task_isolate_(isolate),
         old_space_(old_space),
         first_(first),
         last_(last),
         freelist_(freelist) {
-    ASSERT(class_table_ != NULL);
+    ASSERT(task_isolate_ != NULL);
     ASSERT(first_ != NULL);
     ASSERT(old_space_ != NULL);
     ASSERT(last_ != NULL);
@@ -113,7 +113,8 @@ class SweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    GCSweeper sweeper(class_table_);
+    Isolate::SetCurrent(task_isolate_);
+    GCSweeper sweeper;
 
     HeapPage* page = first_;
     HeapPage* prev_page = NULL;
@@ -142,10 +143,12 @@ class SweeperTask : public ThreadPool::Task {
       old_space_->set_tasks(old_space_->tasks() - 1);
       ml.Notify();
     }
+    Isolate::SetCurrent(NULL);
+    delete task_isolate_;
   }
 
  private:
-  ClassTable* class_table_;
+  Isolate* task_isolate_;
   PageSpace* old_space_;
   HeapPage* first_;
   HeapPage* last_;
@@ -158,7 +161,7 @@ void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* last,
                                 FreeList* freelist) {
   SweeperTask* task =
-      new SweeperTask(isolate->class_table(),
+      new SweeperTask(isolate->ShallowCopy(),
                       isolate->heap()->old_space(),
                       first, last,
                       freelist);
