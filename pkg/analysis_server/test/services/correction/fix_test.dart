@@ -26,7 +26,13 @@ typedef bool AnalysisErrorFilter(AnalysisError error);
 
 @reflectiveTest
 class FixProcessorTest extends AbstractSingleUnitTest {
-  AnalysisErrorFilter errorFilter = null;
+  AnalysisErrorFilter errorFilter = (AnalysisError error) {
+    return error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
+        error.errorCode != HintCode.UNUSED_CATCH_STACK &&
+        error.errorCode != HintCode.UNUSED_ELEMENT &&
+        error.errorCode != HintCode.UNUSED_FIELD &&
+        error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
+  };
 
   Fix fix;
   SourceChange change;
@@ -2439,6 +2445,46 @@ main(Object p) {
 ''');
   }
 
+  void test_removeUnusedCatchClause() {
+    errorFilter = (AnalysisError error) => true;
+    resolveTestUnit('''
+main() {
+  try {
+    throw 42;
+  } on int catch (e) {
+  }
+}
+''');
+    assertHasFix(FixKind.REMOVE_UNUSED_CATCH_CLAUSE, '''
+main() {
+  try {
+    throw 42;
+  } on int {
+  }
+}
+''');
+  }
+
+  void test_removeUnusedCatchStack() {
+    errorFilter = (AnalysisError error) => true;
+    resolveTestUnit('''
+main() {
+  try {
+    throw 42;
+  } catch (e, stack) {
+  }
+}
+''');
+    assertHasFix(FixKind.REMOVE_UNUSED_CATCH_STACK, '''
+main() {
+  try {
+    throw 42;
+  } catch (e) {
+  }
+}
+''');
+  }
+
   void test_removeUnusedImport() {
     resolveTestUnit('''
 import 'dart:math';
@@ -3440,13 +3486,6 @@ main() {
 
   AnalysisError _findErrorToFix() {
     List<AnalysisError> errors = context.computeErrors(testSource);
-    errors.removeWhere((error) {
-      return error.errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
-          error.errorCode == HintCode.UNUSED_CATCH_STACK ||
-          error.errorCode == HintCode.UNUSED_ELEMENT ||
-          error.errorCode == HintCode.UNUSED_FIELD ||
-          error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE;
-    });
     if (errorFilter != null) {
       errors = errors.where(errorFilter).toList();
     }

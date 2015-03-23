@@ -99,6 +99,10 @@ class FixKind {
       "Remove parentheses in getter invocation");
   static const REMOVE_UNNECASSARY_CAST =
       const FixKind('REMOVE_UNNECASSARY_CAST', 50, "Remove unnecessary cast");
+  static const REMOVE_UNUSED_CATCH_CLAUSE = const FixKind(
+      'REMOVE_UNUSED_CATCH', 50, "Remove unused 'catch' clause");
+  static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
+      'REMOVE_UNUSED_CATCH_STACK', 50, "Remove unused stack trace variable");
   static const REMOVE_UNUSED_IMPORT =
       const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(

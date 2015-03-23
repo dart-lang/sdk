@@ -158,6 +158,12 @@ class FixProcessor {
     if (errorCode == HintCode.UNNECESSARY_CAST) {
       _addFix_removeUnnecessaryCast();
     }
+    if (errorCode == HintCode.UNUSED_CATCH_CLAUSE) {
+      _addFix_removeUnusedCatchClause();
+    }
+    if (errorCode == HintCode.UNUSED_CATCH_STACK) {
+      _addFix_removeUnusedCatchStack();
+    }
     if (errorCode == HintCode.UNUSED_IMPORT) {
       _addFix_removeUnusedImport();
     }
@@ -1375,6 +1381,30 @@ class FixProcessor {
     _removeEnclosingParentheses(asExpression, expressionPrecedence);
     // done
     _addFix(FixKind.REMOVE_UNNECASSARY_CAST, []);
+  }
+
+  void _addFix_removeUnusedCatchClause() {
+    if (node is SimpleIdentifier) {
+      AstNode catchClause = node.parent;
+      if (catchClause is CatchClause &&
+          catchClause.exceptionParameter == node) {
+        _addRemoveEdit(
+            rf.rangeStartStart(catchClause.catchKeyword, catchClause.body));
+        _addFix(FixKind.REMOVE_UNUSED_CATCH_CLAUSE, []);
+      }
+    }
+  }
+
+  void _addFix_removeUnusedCatchStack() {
+    if (node is SimpleIdentifier) {
+      AstNode catchClause = node.parent;
+      if (catchClause is CatchClause &&
+          catchClause.stackTraceParameter == node &&
+          catchClause.exceptionParameter != null) {
+        _addRemoveEdit(rf.rangeEndEnd(catchClause.exceptionParameter, node));
+        _addFix(FixKind.REMOVE_UNUSED_CATCH_STACK, []);
+      }
+    }
   }
 
   void _addFix_removeUnusedImport() {
