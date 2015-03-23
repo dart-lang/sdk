@@ -4155,11 +4155,38 @@ class B {}''');
     Source source = addSource(r'''
 main() {
   try {
+  } on String catch (exception) {
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_CATCH_CLAUSE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inCatch_exception_hasStack() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  try {
+  } catch (exception, stack) {
+    print(stack);
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inCatch_exception_noOnClause() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  try {
   } catch (exception) {
   }
 }''');
     resolve(source);
-    assertErrors(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -4172,7 +4199,7 @@ main() {
   }
 }''');
     resolve(source);
-    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    assertErrors(source, [HintCode.UNUSED_CATCH_STACK]);
     verify([source]);
   }
 
@@ -7621,7 +7648,9 @@ class ResolverTestCase extends EngineTestCase {
         continue;
       }
       if (!enableUnusedLocalVariable &&
-          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+          (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+              errorCode == HintCode.UNUSED_CATCH_STACK ||
+              errorCode == HintCode.UNUSED_LOCAL_VARIABLE)) {
         continue;
       }
       errorListener.onError(error);

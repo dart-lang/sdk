@@ -14956,7 +14956,18 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
   @override
   visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
-    _useStaticElement(exceptionParameter);
+    SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
+    if (exceptionParameter != null) {
+      Element element = exceptionParameter.staticElement;
+      usedElements.addCatchException(element);
+      if (stackTraceParameter != null || node.onKeyword == null) {
+        _useElement(element);
+      }
+    }
+    if (stackTraceParameter != null) {
+      Element element = stackTraceParameter.staticElement;
+      usedElements.addCatchStackTrace(element);
+    }
     super.visitCatchClause(node);
   }
 
@@ -15083,12 +15094,6 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
     }
     // OK
     _useElement(element);
-  }
-
-  void _useStaticElement(SimpleIdentifier identifier) {
-    if (identifier != null) {
-      _useElement(identifier.staticElement);
-    }
   }
 
   static bool _isReadIdentifier(SimpleIdentifier node) {
@@ -15257,8 +15262,15 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
   @override
   visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(
-          HintCode.UNUSED_LOCAL_VARIABLE, element, [element.displayName]);
+      HintCode errorCode;
+      if (_usedElements.isCatchException(element)) {
+        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
+      } else if (_usedElements.isCatchStackTrace(element)) {
+        errorCode = HintCode.UNUSED_CATCH_STACK;
+      } else {
+        errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
+      }
+      _reportErrorForElement(errorCode, element, [element.displayName]);
     }
   }
 
@@ -15340,6 +15352,18 @@ class _UsedElements {
   final HashSet<Element> elements = new HashSet<Element>();
 
   /**
+   * [LocalVariableElement]s that represent exceptions in [CatchClause]s.
+   */
+  final HashSet<LocalVariableElement> catchExceptionElements =
+      new HashSet<LocalVariableElement>();
+
+  /**
+   * [LocalVariableElement]s that represent stack traces in [CatchClause]s.
+   */
+  final HashSet<LocalVariableElement> catchStackTraceElements =
+      new HashSet<LocalVariableElement>();
+
+  /**
    * Names of resolved or unresolved class members that are referenced in the
    * library.
    */
@@ -15350,4 +15374,24 @@ class _UsedElements {
    * library.
    */
   final HashSet<String> readMembers = new HashSet<String>();
+
+  void addCatchException(LocalVariableElement element) {
+    if (element != null) {
+      catchExceptionElements.add(element);
+    }
+  }
+
+  void addCatchStackTrace(LocalVariableElement element) {
+    if (element != null) {
+      catchStackTraceElements.add(element);
+    }
+  }
+
+  bool isCatchException(LocalVariableElement element) {
+    return catchExceptionElements.contains(element);
+  }
+
+  bool isCatchStackTrace(LocalVariableElement element) {
+    return catchStackTraceElements.contains(element);
+  }
 }

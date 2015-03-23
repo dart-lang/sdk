@@ -2977,6 +2977,20 @@ class HintCode extends ErrorCode {
       const HintCode('UNUSED_IMPORT', "Unused import");
 
   /**
+   * Unused catch exception variables.
+   */
+  static const HintCode UNUSED_CATCH_CLAUSE = const HintCode(
+      'UNUSED_CATCH_CLAUSE',
+      "The exception variable '{0}' is not used, so the 'catch' clause can be removed");
+
+  /**
+   * Unused catch stack trace variables.
+   */
+  static const HintCode UNUSED_CATCH_STACK = const HintCode(
+      'UNUSED_CATCH_STACK',
+      "The stack trace variable '{0}' is not used and can be removed");
+
+  /**
    * Unused local variables are local varaibles which are never read.
    */
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(

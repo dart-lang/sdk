@@ -3441,7 +3441,9 @@ main() {
   AnalysisError _findErrorToFix() {
     List<AnalysisError> errors = context.computeErrors(testSource);
     errors.removeWhere((error) {
-      return error.errorCode == HintCode.UNUSED_ELEMENT ||
+      return error.errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+          error.errorCode == HintCode.UNUSED_CATCH_STACK ||
+          error.errorCode == HintCode.UNUSED_ELEMENT ||
           error.errorCode == HintCode.UNUSED_FIELD ||
           error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE;
     });
