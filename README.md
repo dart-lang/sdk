@@ -8,7 +8,7 @@ A Dart style linter.
 
 ## Installing
 
-The easiest way to install is via pub:
+The easiest way to install the `linter` is to [globally activate](https://www.dartlang.org/tools/pub/cmd/pub-global.html) it via `pub`:
 
     $ pub global activate linter
 
@@ -20,7 +20,7 @@ Alternatively, clone the `linter` repo like this:
 
 Linter for Dart gives you feedback to help you keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforced lint rules (or "lints") are catalogued [here](http://dart-lang.github.io/linter/lints/).  When you run the linter all lints are enabled but don't worry, configuration, wherein you can specifically enable/disable lints, is in the [works](https://github.com/dart-lang/linter/issues/7).  While initial focus is on style lints, other lints that catch common programming errors are certainly of interest.  If you have ideas, please file a [feature request][tracker].
 
-Running the linter via pub looks like this:
+Running the linter via `pub` looks like this:
 
     $ pub global run linter my_project
 
@@ -39,7 +39,7 @@ Supported options are
     -q, --[no-]quiet                       Don't show individual lint errors.
     -c, --config                           Use configuration from this file.
         --dart-sdk                         Custom path to a Dart SDK.
-    -p, --package-root                     Custom package root. (Discouraged.) Remove to use package information computed by pub.
+    -p, --package-root                     Custom package root. (Discouraged.)
 
 Note that you should not need to specify an `sdk` or `package-root`. Lint configuration file format is provisional and under [active discussion](https://github.com/dart-lang/linter/issues/41). Other configuration options are on the way.  
 
