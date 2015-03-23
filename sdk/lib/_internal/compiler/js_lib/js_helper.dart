@@ -3685,18 +3685,28 @@ void asyncStarHelper(dynamic object,
                      AsyncStarStreamController controller) {
   if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
     // This happens on return from the async* function.
-    controller.close();
+    if (controller.cancelationCompleter != null) {
+      controller.cancelationCompleter.complete();
+    } else {
+      controller.close();
+    }
     return;
   } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
     // The error is a js-error.
-    controller.addError(unwrapException(object),
-                        getTraceFromException(object));
-    controller.close();
+    if (controller.cancelationCompleter != null) {
+      controller.cancelationCompleter.completeError(
+          unwrapException(object),
+          getTraceFromException(object));
+    } else {
+      controller.addError(unwrapException(object),
+                          getTraceFromException(object));
+      controller.close();
+    }
     return;
   }
 
   if (object is IterationMarker) {
-    if (controller.stopRunning) {
+    if (controller.cancelationCompleter != null) {
       _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
           async_error_codes.STREAM_WAS_CANCELED)(null);
       return;
@@ -3753,7 +3763,8 @@ Stream streamOfController(AsyncStarStreamController controller) {
 class AsyncStarStreamController {
   StreamController controller;
   Stream get stream => controller.stream;
-  bool stopRunning = false;
+  Completer cancelationCompleter = null;
+  bool get isCanceled => cancelationCompleter != null;
   bool isAdding = false;
   bool isPaused = false;
   add(event) => controller.add(event);
@@ -3780,8 +3791,12 @@ class AsyncStarStreamController {
           asyncStarHelper(null, body, this);
         }
       }, onCancel: () {
-        stopRunning = true;
-        if (isPaused) asyncStarHelper(null, body, this);
+        if (!controller.isClosed) {
+          cancelationCompleter = new Completer();
+          if (isPaused) asyncStarHelper(null, body, this);
+
+          return cancelationCompleter.future;
+        }
       });
   }
 }
