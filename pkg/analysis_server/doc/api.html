@@ -227,7 +227,7 @@ dt.typeDefinition {
       
       
       
-    <h3>Requests</h3><dl><dt class="request">server.getVersion</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_server.getVersion">server.getVersion</a> (<a href="#request_server.getVersion">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.getVersion"
 }</pre><br><pre>response: {
@@ -242,7 +242,7 @@ dt.typeDefinition {
       <h4>Returns</h4><dl><dt class="field"><b><i>version ( String )</i></b></dt><dd>
             
             <p>The version number of the analysis server.</p>
-          </dd></dl></dd><dt class="request">server.shutdown</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_server.shutdown">server.shutdown</a> (<a href="#request_server.shutdown">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.shutdown"
 }</pre><br><pre>response: {
@@ -257,7 +257,7 @@ dt.typeDefinition {
           further responses or notifications will be sent after the
           response to this request has been sent.
         </p>
-      </dd><dt class="request">server.setSubscriptions</dt><dd><div class="box"><pre>request: {
+      </dd><dt class="request"><a name="request_server.setSubscriptions">server.setSubscriptions</a> (<a href="#request_server.setSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.setSubscriptions"
   "params": {
@@ -280,7 +280,7 @@ dt.typeDefinition {
       <h4>Parameters</h4><dl><dt class="field"><b><i>subscriptions ( List&lt;<a href="#type_ServerService">ServerService</a>&gt; )</i></b></dt><dd>
             
             <p>A list of the services being subscribed to.</p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">server.connected</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_server.connected">server.connected</a> (<a href="#notification_server.connected">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "server.connected"
   "params": {
     "<b>version</b>": String
@@ -300,7 +300,7 @@ dt.typeDefinition {
       <h4>Parameters</h4><dl><dt class="field"><b><i>version ( String )</i></b></dt><dd>
             
             <p>The version number of the analysis server.</p>
-          </dd></dl></dd><dt class="notification">server.error</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a> (<a href="#notification_server.error">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {
     "<b>isFatal</b>": bool
@@ -340,7 +340,7 @@ dt.typeDefinition {
               The stack trace associated with the generation of the
               error, used for debugging the server.
             </p>
-          </dd></dl></dd><dt class="notification">server.status</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_server.status">server.status</a> (<a href="#notification_server.status">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "server.status"
   "params": {
     "<b>analysis</b>": <span style="color:#999999">optional</span> <a href="#type_AnalysisStatus">AnalysisStatus</a>
@@ -397,7 +397,7 @@ dt.typeDefinition {
       
       
       
-    <h3>Requests</h3><dl><dt class="request">analysis.getErrors</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_analysis.getErrors">analysis.getErrors</a> (<a href="#request_analysis.getErrors">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getErrors"
   "params": {
@@ -449,7 +449,7 @@ dt.typeDefinition {
             <p>
               The errors associated with the file.
             </p>
-          </dd></dl></dd><dt class="request">analysis.getHover</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.getHover">analysis.getHover</a> (<a href="#request_analysis.getHover">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getHover"
   "params": {
@@ -491,7 +491,7 @@ dt.typeDefinition {
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
             </p>
-          </dd></dl></dd><dt class="request">analysis.getLibraryDependencies</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.getLibraryDependencies">analysis.getLibraryDependencies</a> (<a href="#request_analysis.getLibraryDependencies">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getLibraryDependencies"
 }</pre><br><pre>response: {
@@ -520,7 +520,7 @@ dt.typeDefinition {
                 package names to source directories for use in client-side
                 package URI resolution.
               </p>
-            </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
+            </dd></dl></dd><dt class="request"><a name="request_analysis.getNavigation">analysis.getNavigation</a> (<a href="#request_analysis.getNavigation">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getNavigation"
   "params": {
@@ -592,7 +592,7 @@ dt.typeDefinition {
               A list of the navigation regions within the requested region of
               the file.
             </p>
-          </dd></dl></dd><dt class="request">analysis.reanalyze</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.reanalyze">analysis.reanalyze</a> (<a href="#request_analysis.reanalyze">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.reanalyze"
   "params": {
@@ -621,7 +621,7 @@ dt.typeDefinition {
             <p>
               A list of the analysis roots that are to be re-analyzed.
             </p>
-          </dd></dl></dd><dt class="request">analysis.setAnalysisRoots</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a> (<a href="#request_analysis.setAnalysisRoots">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setAnalysisRoots"
   "params": {
@@ -698,7 +698,7 @@ dt.typeDefinition {
               or the empty map is specified, that indicates that the
               normal pubspec.yaml mechanism should always be used.
             </p>
-          </dd></dl></dd><dt class="request">analysis.setPriorityFiles</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setPriorityFiles">analysis.setPriorityFiles</a> (<a href="#request_analysis.setPriorityFiles">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setPriorityFiles"
   "params": {
@@ -739,7 +739,7 @@ dt.typeDefinition {
             <p>
               The files that are to be a priority for analysis.
             </p>
-          </dd></dl></dd><dt class="request">analysis.setSubscriptions</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setSubscriptions">analysis.setSubscriptions</a> (<a href="#request_analysis.setSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setSubscriptions"
   "params": {
@@ -789,7 +789,7 @@ dt.typeDefinition {
               A table mapping services to a list of the files being
               subscribed to the service.
             </p>
-          </dd></dl></dd><dt class="request">analysis.updateContent</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.updateContent">analysis.updateContent</a> (<a href="#request_analysis.updateContent">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.updateContent"
   "params": {
@@ -819,7 +819,7 @@ dt.typeDefinition {
               A table mapping the files whose content has changed to a
               description of the content change.
             </p>
-          </dd></dl><h4>Returns</h4><dl></dl></dd><dt class="request">analysis.updateOptions</dt><dd><div class="box"><pre>request: {
+          </dd></dl><h4>Returns</h4><dl></dl></dd><dt class="request"><a name="request_analysis.updateOptions">analysis.updateOptions</a> (<a href="#request_analysis.updateOptions">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.updateOptions"
   "params": {
@@ -842,7 +842,7 @@ dt.typeDefinition {
             <p>
               The options that are to be used to control analysis.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">analysis.errors</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_analysis.errors">analysis.errors</a> (<a href="#notification_analysis.errors">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.errors"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -869,7 +869,7 @@ dt.typeDefinition {
             <p>
               The errors contained in the file.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.flushResults</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.flushResults">analysis.flushResults</a> (<a href="#notification_analysis.flushResults">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.flushResults"
   "params": {
     "<b>files</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
@@ -898,7 +898,7 @@ dt.typeDefinition {
             <p>
               The files that are no longer being analyzed.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.folding</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.folding">analysis.folding</a> (<a href="#notification_analysis.folding">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.folding"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -929,7 +929,7 @@ dt.typeDefinition {
             <p>
               The folding regions contained in the file.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.highlights</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.highlights">analysis.highlights</a> (<a href="#notification_analysis.highlights">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.highlights"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -961,7 +961,7 @@ dt.typeDefinition {
               other highlight regions if there is more than one
               meaning associated with a particular region.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.invalidate</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.invalidate">analysis.invalidate</a> (<a href="#notification_analysis.invalidate">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.invalidate"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1002,7 +1002,7 @@ dt.typeDefinition {
               the invalidated region in order to update it so that it doesn't
               need to be re-requested.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.navigation</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.navigation">analysis.navigation</a> (<a href="#notification_analysis.navigation">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.navigation"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1054,7 +1054,7 @@ dt.typeDefinition {
               They are referenced by <tt>NavigationTarget</tt>s by their
               index in this array.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.occurrences</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.occurrences">analysis.occurrences</a> (<a href="#notification_analysis.occurrences">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.occurrences"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1083,7 +1083,7 @@ dt.typeDefinition {
               The occurrences of references to elements within the
               file.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.outline</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.outline">analysis.outline</a> (<a href="#notification_analysis.outline">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.outline"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1110,7 +1110,7 @@ dt.typeDefinition {
             <p>
               The outline associated with the file.
             </p>
-          </dd></dl></dd><dt class="notification">analysis.overrides</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.overrides">analysis.overrides</a> (<a href="#notification_analysis.overrides">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.overrides"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1145,7 +1145,7 @@ dt.typeDefinition {
       </p>
       
       
-    <h3>Requests</h3><dl><dt class="request">completion.getSuggestions</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_completion.getSuggestions">completion.getSuggestions</a> (<a href="#request_completion.getSuggestions">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "completion.getSuggestions"
   "params": {
@@ -1183,7 +1183,7 @@ dt.typeDefinition {
               The identifier used to associate results with this
               completion request.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">completion.results</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_completion.results">completion.results</a> (<a href="#notification_completion.results">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "completion.results"
   "params": {
     "<b>id</b>": <a href="#type_CompletionId">CompletionId</a>
@@ -1251,7 +1251,7 @@ dt.typeDefinition {
       
       
       
-    <h3>Requests</h3><dl><dt class="request">search.findElementReferences</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_search.findElementReferences">search.findElementReferences</a> (<a href="#request_search.findElementReferences">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findElementReferences"
   "params": {
@@ -1318,7 +1318,7 @@ dt.typeDefinition {
               If no element was found at the given location, this
               field will be absent.
             </p>
-          </dd></dl></dd><dt class="request">search.findMemberDeclarations</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.findMemberDeclarations">search.findMemberDeclarations</a> (<a href="#request_search.findMemberDeclarations">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findMemberDeclarations"
   "params": {
@@ -1353,7 +1353,7 @@ dt.typeDefinition {
               The identifier used to associate results with this
               search request.
             </p>
-          </dd></dl></dd><dt class="request">search.findMemberReferences</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.findMemberReferences">search.findMemberReferences</a> (<a href="#request_search.findMemberReferences">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findMemberReferences"
   "params": {
@@ -1390,7 +1390,7 @@ dt.typeDefinition {
               The identifier used to associate results with this
               search request.
             </p>
-          </dd></dl></dd><dt class="request">search.findTopLevelDeclarations</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.findTopLevelDeclarations">search.findTopLevelDeclarations</a> (<a href="#request_search.findTopLevelDeclarations">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findTopLevelDeclarations"
   "params": {
@@ -1427,7 +1427,7 @@ dt.typeDefinition {
               The identifier used to associate results with this
               search request.
             </p>
-          </dd></dl></dd><dt class="request">search.getTypeHierarchy</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.getTypeHierarchy">search.getTypeHierarchy</a> (<a href="#request_search.getTypeHierarchy">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.getTypeHierarchy"
   "params": {
@@ -1474,7 +1474,7 @@ dt.typeDefinition {
               not been sufficiently analyzed to allow a type hierarchy
               to be produced.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">search.results</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_search.results">search.results</a> (<a href="#notification_search.results">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "search.results"
   "params": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
@@ -1518,7 +1518,7 @@ dt.typeDefinition {
       
       
       
-    <h3>Requests</h3><dl><dt class="request">edit.format</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_edit.format">edit.format</a> (<a href="#request_edit.format">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.format"
   "params": {
@@ -1585,7 +1585,7 @@ dt.typeDefinition {
             <p>
               The length of the selection after formatting the code.
             </p>
-          </dd></dl></dd><dt class="request">edit.getAssists</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getAssists">edit.getAssists</a> (<a href="#request_edit.getAssists">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getAssists"
   "params": {
@@ -1631,7 +1631,7 @@ dt.typeDefinition {
             <p>
               The assists that are available at the given location.
             </p>
-          </dd></dl></dd><dt class="request">edit.getAvailableRefactorings</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getAvailableRefactorings">edit.getAvailableRefactorings</a> (<a href="#request_edit.getAvailableRefactorings">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getAvailableRefactorings"
   "params": {
@@ -1676,7 +1676,7 @@ dt.typeDefinition {
               The kinds of refactorings that are valid for the given
               selection.
             </p>
-          </dd></dl></dd><dt class="request">edit.getFixes</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getFixes">edit.getFixes</a> (<a href="#request_edit.getFixes">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getFixes"
   "params": {
@@ -1713,7 +1713,7 @@ dt.typeDefinition {
             <p>
               The fixes that are available for the errors at the given offset.
             </p>
-          </dd></dl></dd><dt class="request">edit.getRefactoring</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getRefactoring">edit.getRefactoring</a> (<a href="#request_edit.getRefactoring">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getRefactoring"
   "params": {
@@ -1837,7 +1837,7 @@ dt.typeDefinition {
               will be omitted if the change field is omitted or if there are no
               potential edits for the refactoring.
             </p>
-          </dd></dl></dd><dt class="request">edit.sortMembers</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.sortMembers">edit.sortMembers</a> (<a href="#request_edit.sortMembers">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.sortMembers"
   "params": {
@@ -1887,7 +1887,7 @@ dt.typeDefinition {
       
       
       
-    <h3>Requests</h3><dl><dt class="request">execution.createContext</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_execution.createContext">execution.createContext</a> (<a href="#request_execution.createContext">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "execution.createContext"
   "params": {
@@ -1920,7 +1920,7 @@ dt.typeDefinition {
               The identifier used to refer to the execution context that was
               created.
             </p>
-          </dd></dl></dd><dt class="request">execution.deleteContext</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_execution.deleteContext">execution.deleteContext</a> (<a href="#request_execution.deleteContext">#</a>)</dt><dd><div class="box"><pre>request: {
   "<b>id</b>": String
   "method": "execution.deleteContext"
   "params": {
@@ -1941,7 +1941,7 @@ dt.typeDefinition {
             <p>
               The identifier of the execution context that is to be deleted.
             </p>
-          </dd></dl></dd><dt class="request">execution.mapUri</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_execution.mapUri">execution.mapUri</a> (<a href="#request_execution.mapUri">#</a>)</dt><dd><div class="box"><pre>request: {
   "<b>id</b>": String
   "method": "execution.mapUri"
   "params": {
@@ -2015,7 +2015,7 @@ dt.typeDefinition {
               The URI to which the file path was mapped. This field is omitted
               if the file field was not given in the request.
             </p>
-          </dd></dl></dd><dt class="request">execution.setSubscriptions</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_execution.setSubscriptions">execution.setSubscriptions</a> (<a href="#request_execution.setSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "execution.setSubscriptions"
   "params": {
@@ -2040,7 +2040,7 @@ dt.typeDefinition {
             <p>
               A list of the services being subscribed to.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">execution.launchData</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_execution.launchData">execution.launchData</a> (<a href="#notification_execution.launchData">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "execution.launchData"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
