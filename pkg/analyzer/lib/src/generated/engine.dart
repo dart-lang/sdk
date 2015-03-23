@@ -1758,7 +1758,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is DartEntry) {
       try {
         return _getDartParseData(source, sourceEntry, DartEntry.SOURCE_KIND);
-      } on AnalysisException catch (exception) {
+      } on AnalysisException {
         return SourceKind.UNKNOWN;
       }
     }
@@ -1919,7 +1919,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
-    } on _ElementByIdFinderException catch (e) {
+    } on _ElementByIdFinderException {
       return finder.result;
     }
     return null;
@@ -6810,7 +6810,7 @@ abstract class AnalysisTask {
       AnalysisEngine.instance.instrumentationService.logAnalysisTask(
           contextName, taskDescription);
       internalPerform();
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       rethrow;
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -9474,7 +9474,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
   TypeProvider get typeProvider {
     try {
       return context.typeProvider;
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       return null;
     }
   }
@@ -10160,7 +10160,7 @@ class ParseHtmlTask_getLibrarySources extends ht.RecursiveXmlVisitor<Object> {
         if (_task.context.exists(librarySource)) {
           libraries.add(librarySource);
         }
-      } on FormatException catch (e) {
+      } on FormatException {
         // ignored - invalid URI reported during resolution phase
       }
     }

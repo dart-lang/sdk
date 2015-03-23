@@ -11498,7 +11498,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
     try {
       manager.exitScope();
       fail("Expected IllegalStateException");
-    } on IllegalStateException catch (exception) {
+    } on IllegalStateException {
       // Expected
     }
   }
@@ -11510,7 +11510,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
     try {
       manager.exitScope();
       fail("Expected IllegalStateException");
-    } on IllegalStateException catch (exception) {
+    } on IllegalStateException {
       // Expected
     }
   }
@@ -11524,7 +11524,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
     try {
       manager.exitScope();
       fail("Expected IllegalStateException");
-    } on IllegalStateException catch (exception) {
+    } on IllegalStateException {
       // Expected
     }
   }

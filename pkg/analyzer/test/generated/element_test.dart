@@ -3786,7 +3786,7 @@ class UnionTypeImplTest extends EngineTestCase {
   void test_emptyUnionsNotAllowed() {
     try {
       UnionTypeImpl.union([]);
-    } on IllegalArgumentException catch (e) {
+    } on IllegalArgumentException {
       return;
     }
     fail("Expected illegal argument exception.");

@@ -3807,7 +3807,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     try {
       _scopeFor(AstFactory.identifier3("x"));
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -3816,7 +3816,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     try {
       _scopeFor(null);
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -3825,7 +3825,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     try {
       _scopeFor(AstFactory.compilationUnit());
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }

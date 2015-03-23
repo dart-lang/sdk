@@ -2677,7 +2677,7 @@ class DeclaredVariables {
     int bigInteger;
     try {
       bigInteger = int.parse(value);
-    } on FormatException catch (exception) {
+    } on FormatException {
       return new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
     }
     return new DartObjectImpl(typeProvider.intType, new IntState(bigInteger));

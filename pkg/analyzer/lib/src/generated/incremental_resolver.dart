@@ -103,7 +103,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _captureEnclosingElements(element);
       _gatherElements(element);
       node.accept(this);
-    } on _DeclarationMismatchException catch (exception) {
+    } on _DeclarationMismatchException {
       return DeclarationMatchKind.MISMATCH;
     } finally {
       logger.exit();
@@ -347,7 +347,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       // matches, update the existing element
       node.name.staticElement = element;
       _setLocalElements(element, newElement);
-    } on _DeclarationMismatchException catch (e) {
+    } on _DeclarationMismatchException {
       _addedElements.add(newElement);
       _removeElement(element);
       // add new element

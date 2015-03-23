@@ -200,11 +200,6 @@ class DirectoryBasedDartSdk implements DartSdk {
   JavaFile _dart2jsExecutable;
 
   /**
-   * The file containing the dart formatter executable.
-   */
-  JavaFile _dartFmtExecutable;
-
-  /**
    * The file containing the Dartium executable.
    */
   JavaFile _dartiumExecutable;
@@ -354,7 +349,7 @@ class DirectoryBasedDartSdk implements DartSdk {
         if (revision != null) {
           _sdkVersion = revision.trim();
         }
-      } on FileSystemException catch (exception) {
+      } on FileSystemException {
         // Fall through to return the default.
       }
     }
@@ -500,7 +495,7 @@ class DirectoryBasedDartSdk implements DartSdk {
         file = new JavaFile.relative(file, relativePath);
       }
       return new FileBasedSource.con2(parseUriWithException(dartUri), file);
-    } on URISyntaxException catch (exception) {
+    } on URISyntaxException {
       return null;
     }
   }

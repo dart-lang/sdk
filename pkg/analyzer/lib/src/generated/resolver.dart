@@ -4742,7 +4742,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
               _reportValueError(HtmlWarningCode.URI_DOES_NOT_EXIST,
                   scriptAttribute, [scriptSourcePath]);
             }
-          } on URISyntaxException catch (exception) {
+          } on URISyntaxException {
             _reportValueError(HtmlWarningCode.INVALID_URI, scriptAttribute,
                 [scriptSourcePath]);
           }
@@ -6948,7 +6948,7 @@ class Library {
             CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
       }
       return source;
-    } on URISyntaxException catch (exception) {
+    } on URISyntaxException {
       _errorListener.onError(new AnalysisError.con2(librarySource,
           uriLiteral.offset, uriLiteral.length,
           CompileTimeErrorCode.INVALID_URI, [uriContent]));

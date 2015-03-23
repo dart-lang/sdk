@@ -12405,7 +12405,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     }
     try {
       node.accept(this);
-    } on NodeLocator_NodeFoundException catch (exception) {
+    } on NodeLocator_NodeFoundException {
       // A node with the right source position was found.
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
@@ -12428,7 +12428,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     }
     try {
       node.visitChildren(this);
-    } on NodeLocator_NodeFoundException catch (exception) {
+    } on NodeLocator_NodeFoundException {
       rethrow;
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
@@ -16747,7 +16747,7 @@ abstract class StringLiteral extends Literal {
     StringBuffer buffer = new StringBuffer();
     try {
       _appendStringValue(buffer);
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       return null;
     }
     return buffer.toString();
@@ -19519,7 +19519,7 @@ abstract class UriBasedDirective extends Directive {
     }
     try {
       parseUriWithException(Uri.encodeFull(uriContent));
-    } on URISyntaxException catch (exception) {
+    } on URISyntaxException {
       return UriValidationCode.INVALID_URI;
     }
     return null;

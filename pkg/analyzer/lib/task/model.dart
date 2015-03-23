@@ -211,7 +211,7 @@ abstract class AnalysisTask {
       } finally {
         stopwatch.stop();
       }
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       rethrow;
     } catch (exception, stackTrace) {
       throw new AnalysisException(

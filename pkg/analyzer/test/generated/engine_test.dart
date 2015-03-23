@@ -656,7 +656,7 @@ main() {}''');
     try {
       _context.computeResolvableCompilationUnit(source);
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -666,7 +666,7 @@ main() {}''');
     try {
       _context.computeResolvableCompilationUnit(source);
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -1364,7 +1364,7 @@ main() {}''');
     try {
       _context.parseCompilationUnit(source);
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -1387,7 +1387,7 @@ main() {}''');
     try {
       _context.parseCompilationUnit(source);
       fail("Expected AnalysisException because file does not exist");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected result
     }
   }
@@ -2489,8 +2489,8 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getState(DartEntry.RESOLUTION_ERRORS);
-      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for RESOLUTION_ERRORS");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -2499,8 +2499,8 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getState(DartEntry.VERIFICATION_ERRORS);
-      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for VERIFICATION_ERRORS");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -2509,8 +2509,8 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
-      fail("Expected IllegalArgumentException for ELEMENT");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for ELEMENT");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -2533,16 +2533,16 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getValue(DartEntry.RESOLUTION_ERRORS);
-      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } on ArgumentError catch (exception) {}
+      fail("Expected ArgumentError for RESOLUTION_ERRORS");
+    } on ArgumentError {}
   }
 
   void test_getValue_invalid_verificationErrors() {
     DartEntry entry = new DartEntry();
     try {
       entry.getValue(DartEntry.VERIFICATION_ERRORS);
-      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for VERIFICATION_ERRORS");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -2551,8 +2551,8 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
-      fail("Expected IllegalArgumentException for ELEMENT");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for ELEMENT");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -2570,8 +2570,8 @@ class DartEntryTest extends EngineTestCase {
         DartEntry.RESOLVED_UNIT, source3, AstFactory.compilationUnit());
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, source3);
-      fail("Expected IllegalArgumentException for ELEMENT");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for ELEMENT");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -3303,8 +3303,8 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.setStateInLibrary(DartEntry.ELEMENT, null, CacheState.FLUSHED);
-      fail("Expected IllegalArgumentException for ELEMENT");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for ELEMENT");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -3313,8 +3313,8 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.setState(DartEntry.RESOLUTION_ERRORS, CacheState.FLUSHED);
-      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for RESOLUTION_ERRORS");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -3324,15 +3324,15 @@ class DartEntryTest extends EngineTestCase {
     try {
       entry.setState(SourceEntry.LINE_INFO, CacheState.VALID);
       fail("Expected ArgumentError for a state of VALID");
-    } on ArgumentError catch (exception) {}
+    } on ArgumentError {}
   }
 
   void test_setState_invalid_verificationErrors() {
     DartEntry entry = new DartEntry();
     try {
       entry.setState(DartEntry.VERIFICATION_ERRORS, CacheState.FLUSHED);
-      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
-    } on ArgumentError catch (exception) {
+      fail("Expected ArgumentError for VERIFICATION_ERRORS");
+    } on ArgumentError {
       // Expected
     }
   }
@@ -4028,8 +4028,8 @@ class HtmlEntryTest extends EngineTestCase {
     HtmlEntry entry = new HtmlEntry();
     try {
       entry.setValue(DartEntry.ELEMENT, null);
-      fail("Expected IllegalArgumentException for DartEntry.ELEMENT");
-    } on ArgumentError catch (exception) {}
+      fail("Expected ArgumentError for DartEntry.ELEMENT");
+    } on ArgumentError {}
   }
 
   void test_setValue_lineInfo() {
@@ -4876,7 +4876,7 @@ class ParseHtmlTaskTest_non_existing_source extends TestSource {
   Uri resolveRelativeUri(Uri containedUri) {
     try {
       return parseUriWithException("file:/does/not/exist.dart");
-    } on URISyntaxException catch (exception) {
+    } on URISyntaxException {
       return null;
     }
   }
@@ -6501,7 +6501,7 @@ class WorkManagerTest extends EngineTestCase {
     try {
       iterator.next();
       fail("Expected NoSuchElementException");
-    } on NoSuchElementException catch (exception) {}
+    } on NoSuchElementException {}
   }
   void test_iterator_nonEmpty() {
     TestSource source = new TestSource();

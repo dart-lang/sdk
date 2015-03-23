@@ -312,7 +312,7 @@ class _MemoryFileSource extends Source {
   int get modificationStamp {
     try {
       return file.modificationStamp;
-    } on FileSystemException catch (e) {
+    } on FileSystemException {
       return -1;
     }
   }

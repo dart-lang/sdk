@@ -1722,7 +1722,7 @@ class IncrementalParser {
             newNode.offset != oldNode.offset) {
           advanceToParent = true;
         }
-      } on InsufficientContextException catch (exception) {
+      } on InsufficientContextException {
         advanceToParent = true;
       } catch (exception) {
         return null;
@@ -6742,7 +6742,7 @@ class Parser {
       double value = 0.0;
       try {
         value = double.parse(token.lexeme);
-      } on FormatException catch (exception) {
+      } on FormatException {
         // The invalid format should have been reported by the scanner.
       }
       return new DoubleLiteral(token, value);
@@ -6751,7 +6751,7 @@ class Parser {
       int value = null;
       try {
         value = int.parse(token.lexeme.substring(2), radix: 16);
-      } on FormatException catch (exception) {
+      } on FormatException {
         // The invalid format should have been reported by the scanner.
       }
       return new IntegerLiteral(token, value);
@@ -6760,7 +6760,7 @@ class Parser {
       int value = null;
       try {
         value = int.parse(token.lexeme);
-      } on FormatException catch (exception) {
+      } on FormatException {
         // The invalid format should have been reported by the scanner.
       }
       return new IntegerLiteral(token, value);

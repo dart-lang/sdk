@@ -3322,7 +3322,7 @@ class DartObjectImplTest extends EngineTestCase {
     try {
       _assertLogicalAnd(_boolValue(false), _boolValue(false), _nullValue());
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalAnd_false_string() {
@@ -3330,7 +3330,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalAnd(
           _boolValue(false), _boolValue(false), _stringValue("false"));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalAnd_false_true() {
@@ -3341,14 +3341,14 @@ class DartObjectImplTest extends EngineTestCase {
     try {
       _assertLogicalAnd(_boolValue(false), _nullValue(), _boolValue(false));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalAnd_null_true() {
     try {
       _assertLogicalAnd(_boolValue(false), _nullValue(), _boolValue(true));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalAnd_string_false() {
@@ -3356,7 +3356,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalAnd(
           _boolValue(false), _stringValue("true"), _boolValue(false));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalAnd_string_true() {
@@ -3364,7 +3364,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalAnd(
           _boolValue(false), _stringValue("false"), _boolValue(true));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalAnd_true_false() {
@@ -3380,7 +3380,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalAnd(
           _boolValue(false), _boolValue(true), _stringValue("true"));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalAnd_true_true() {
@@ -3399,7 +3399,7 @@ class DartObjectImplTest extends EngineTestCase {
     try {
       _assertLogicalNot(_boolValue(true), _stringValue(null));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalNot_true() {
@@ -3423,7 +3423,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalOr(
           _boolValue(false), _boolValue(false), _stringValue("false"));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalOr_false_true() {
@@ -3434,14 +3434,14 @@ class DartObjectImplTest extends EngineTestCase {
     try {
       _assertLogicalOr(_boolValue(false), _nullValue(), _boolValue(false));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalOr_null_true() {
     try {
       _assertLogicalOr(_boolValue(true), _nullValue(), _boolValue(true));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalOr_string_false() {
@@ -3449,7 +3449,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalOr(
           _boolValue(false), _stringValue("true"), _boolValue(false));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalOr_string_true() {
@@ -3457,7 +3457,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalOr(
           _boolValue(true), _stringValue("false"), _boolValue(true));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalOr_true_false() {
@@ -3468,7 +3468,7 @@ class DartObjectImplTest extends EngineTestCase {
     try {
       _assertLogicalOr(_boolValue(true), _boolValue(true), _nullValue());
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalOr_true_string() {
@@ -3476,7 +3476,7 @@ class DartObjectImplTest extends EngineTestCase {
       _assertLogicalOr(
           _boolValue(true), _boolValue(true), _stringValue("true"));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_logicalOr_true_true() {
@@ -3762,7 +3762,7 @@ class DartObjectImplTest extends EngineTestCase {
     try {
       _assertStringLength(_intValue(null), _intValue(0));
       fail("Expected EvaluationException");
-    } on EvaluationException catch (exception) {}
+    } on EvaluationException {}
   }
 
   void test_stringLength_knownString() {
@@ -3840,7 +3840,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.add(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.add(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -3863,7 +3863,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.bitAnd(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.bitAnd(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -3884,7 +3884,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         operand.bitNot(_typeProvider);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = operand.bitNot(_typeProvider);
       expect(result, isNotNull);
@@ -3907,7 +3907,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.bitOr(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.bitOr(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -3930,7 +3930,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.bitXor(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.bitXor(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -3953,7 +3953,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.concatenate(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.concatenate(_typeProvider, rightOperand);
@@ -3977,7 +3977,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.divide(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.divide(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -4000,7 +4000,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.equalEqual(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.equalEqual(_typeProvider, rightOperand);
@@ -4024,7 +4024,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.greaterThan(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.greaterThan(_typeProvider, rightOperand);
@@ -4048,7 +4048,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.greaterThanOrEqual(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.greaterThanOrEqual(_typeProvider, rightOperand);
@@ -4092,7 +4092,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.integerDivide(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.integerDivide(_typeProvider, rightOperand);
@@ -4116,7 +4116,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.lessThan(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.lessThan(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -4139,7 +4139,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.lessThanOrEqual(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.lessThanOrEqual(_typeProvider, rightOperand);
@@ -4163,7 +4163,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.logicalAnd(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.logicalAnd(_typeProvider, rightOperand);
@@ -4185,7 +4185,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         operand.logicalNot(_typeProvider);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = operand.logicalNot(_typeProvider);
       expect(result, isNotNull);
@@ -4208,7 +4208,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.logicalOr(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.logicalOr(_typeProvider, rightOperand);
@@ -4232,7 +4232,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.minus(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.minus(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -4253,7 +4253,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         operand.negated(_typeProvider);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = operand.negated(_typeProvider);
       expect(result, isNotNull);
@@ -4276,7 +4276,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.notEqual(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.notEqual(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -4297,7 +4297,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         operand.performToString(_typeProvider);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = operand.performToString(_typeProvider);
       expect(result, isNotNull);
@@ -4320,7 +4320,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.remainder(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.remainder(_typeProvider, rightOperand);
@@ -4344,7 +4344,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.shiftLeft(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.shiftLeft(_typeProvider, rightOperand);
@@ -4368,7 +4368,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.shiftRight(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result =
           leftOperand.shiftRight(_typeProvider, rightOperand);
@@ -4390,7 +4390,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         operand.stringLength(_typeProvider);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = operand.stringLength(_typeProvider);
       expect(result, isNotNull);
@@ -4413,7 +4413,7 @@ class DartObjectImplTest extends EngineTestCase {
       try {
         leftOperand.times(_typeProvider, rightOperand);
         fail("Expected an EvaluationException");
-      } on EvaluationException catch (exception) {}
+      } on EvaluationException {}
     } else {
       DartObjectImpl result = leftOperand.times(_typeProvider, rightOperand);
       expect(result, isNotNull);
@@ -8035,14 +8035,14 @@ class SourceFactoryTest {
     try {
       factory.fromEncoding("<:&%>");
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {}
+    } on IllegalArgumentException {}
   }
   void test_fromEncoding_noResolver() {
     SourceFactory factory = new SourceFactory([]);
     try {
       factory.fromEncoding("foo:/does/not/exist.dart");
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {}
+    } on IllegalArgumentException {}
   }
   void test_fromEncoding_valid() {
     String encoding = "file:///does/not/exist.dart";
