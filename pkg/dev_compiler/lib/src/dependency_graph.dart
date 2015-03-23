@@ -21,8 +21,8 @@ import 'package:analyzer/src/generated/ast.dart'
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
-import 'package:html5lib/dom.dart' show Document, Node;
-import 'package:html5lib/parser.dart' as html;
+import 'package:html/dom.dart' show Document, Node;
+import 'package:html/parser.dart' as html;
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart' show SourceSpan;

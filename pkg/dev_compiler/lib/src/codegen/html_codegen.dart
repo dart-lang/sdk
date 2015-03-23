@@ -4,8 +4,8 @@
 
 library dev_compiler.src.codegen.html_codegen;
 
-import 'package:html5lib/dom.dart';
-import 'package:html5lib/parser.dart' show parseFragment;
+import 'package:html/dom.dart';
+import 'package:html/parser.dart' show parseFragment;
 import 'package:logging/logging.dart' show Logger;
 import 'package:path/path.dart' as path;
 
