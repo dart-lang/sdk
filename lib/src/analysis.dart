@@ -49,16 +49,13 @@ class AnalysisDriver {
 
   List<UriResolver> get resolvers {
     DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDir));
-    List<UriResolver> resolvers = [
-      new DartUriResolver(sdk),
-      new FileUriResolver()
-    ];
+    List<UriResolver> resolvers = [new DartUriResolver(sdk)];
     if (options.packageRootPath != null) {
       JavaFile packageDirectory = new JavaFile(options.packageRootPath);
       resolvers.add(new PackageUriResolver([packageDirectory]));
     } else {
-      PubPackageMapProvider pubPackageMapProvider =
-          new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
+      PubPackageMapProvider pubPackageMapProvider = new PubPackageMapProvider(
+          PhysicalResourceProvider.INSTANCE, sdk, options.runPubList);
       PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
           PhysicalResourceProvider.INSTANCE.getResource('.'));
       Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
@@ -67,6 +64,9 @@ class AnalysisDriver {
             PhysicalResourceProvider.INSTANCE, packageMap));
       }
     }
+    // File URI resolver must come last so that files inside "/lib" are
+    // are analyzed via "package:" URI's.
+    resolvers.add(new FileUriResolver());
     return resolvers;
   }
 
@@ -90,6 +90,12 @@ class AnalysisDriver {
     for (File file in files) {
       JavaFile sourceFile = new JavaFile(file.path);
       Source source = new FileBasedSource.con2(sourceFile.toURI(), sourceFile);
+      Uri uri = context.sourceFactory.restoreUri(source);
+      if (uri != null) {
+        // Ensure that we analyze the file using its canonical URI (e.g. if
+        // it's in "/lib", analyze it using a "package:" URI).
+        source = new FileBasedSource.con2(uri, sourceFile);
+      }
       sources.add(source);
       changeSet.addedSource(source);
     }
@@ -155,6 +161,10 @@ class DriverOptions {
   /// Whether to show lints for the transitive closure of imported and exported
   /// libraries.
   bool visitTransitiveClosure = false;
+
+  /// If non-null, the function to use to run pub list.  This is used to mock
+  /// out executions of pub list when testing the linter.
+  RunPubList runPubList = null;
 }
 
 /// Prints logging information comments to the [outSink] and error messages to
