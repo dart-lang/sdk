@@ -933,7 +933,7 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
 ///
 /// Returns a [ByteStream] that emits the contents of the archive.
 ByteStream createTarGz(List contents, {baseDir}) {
-  return new ByteStream(futureStream(new Future.sync(() {
+  return new ByteStream(futureStream(new Future.sync(() async {
     var buffer = new StringBuffer();
     buffer.write('Creating .tag.gz stream containing:\n');
     contents.forEach((file) => buffer.write('$file\n'));
@@ -950,41 +950,51 @@ ByteStream createTarGz(List contents, {baseDir}) {
     }).toList();
 
     if (Platform.operatingSystem != "windows") {
-      var args = ["--create", "--gzip", "--directory", baseDir];
-      args.addAll(contents);
-      // TODO(nweiz): It's possible that enough command-line arguments will
-      // make the process choke, so at some point we should save the arguments
-      // to a file and pass them in via --files-from for tar and -i@filename
-      // for 7zip.
-      return startProcess("tar", args).then((process) => process.stdout);
+      var args = [
+        "--create",
+        "--gzip",
+        "--directory",
+        baseDir,
+        "--files-from",
+        "/dev/stdin"
+      ];
+
+      var process = await startProcess("tar", args);
+      process.stdin.add(UTF8.encode(contents.join("\n")));
+      process.stdin.close();
+      return process.stdout;
     }
 
     // Don't use [withTempDir] here because we don't want to delete the temp
     // directory until the returned stream has closed.
     var tempDir = createSystemTempDir();
-    return new Future.sync(() {
+
+    try {
+      // Create the file containing the list of files to compress.
+      var contentsPath = path.join(tempDir, "files.txt");
+      writeTextFile(contentsPath, contents.join("\n"));
+
       // Create the tar file.
       var tarFile = path.join(tempDir, "intermediate.tar");
-      var args = ["a", "-w$baseDir", tarFile];
-      args.addAll(contents.map((entry) => '-i!$entry'));
+      var args = ["a", "-w$baseDir", tarFile, "@$contentsPath"];
 
       // We're passing 'baseDir' both as '-w' and setting it as the working
       // directory explicitly here intentionally. The former ensures that the
       // files added to the archive have the correct relative path in the
       // archive. The latter enables relative paths in the "-i" args to be
       // resolved.
-      return runProcess(pathTo7zip, args, workingDir: baseDir).then((_) {
-        // GZIP it. 7zip doesn't support doing both as a single operation.
-        // Send the output to stdout.
-        args = ["a", "unused", "-tgzip", "-so", tarFile];
-        return startProcess(pathTo7zip, args);
-      }).then((process) => process.stdout);
-    }).then((stream) {
-      return stream.transform(onDoneTransformer(() => deleteEntry(tempDir)));
-    }).catchError((e) {
+      await runProcess(pathTo7zip, args, workingDir: baseDir);
+
+      // GZIP it. 7zip doesn't support doing both as a single operation.
+      // Send the output to stdout.
+      args = ["a", "unused", "-tgzip", "-so", tarFile];
+      return (await startProcess(pathTo7zip, args))
+          .stdout
+          .transform(onDoneTransformer(() => deleteEntry(tempDir)));
+    } catch (_) {
       deleteEntry(tempDir);
-      throw e;
-    });
+      rethrow;
+    }
   })));
 }
 
