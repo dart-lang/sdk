@@ -17,14 +17,14 @@ abstract class _HashBase {
   // The length of _index is twice the number of entries in _data, and both
   // are doubled when _data is full. Thus, _index will have a max load factor
   // of 1/2, which enables one more bit to be used for the hash.
-  // TODO(koda): Consider growing _data by factor sqrt(2), twice as often. 
+  // TODO(koda): Consider growing _data by factor sqrt(2), twice as often.
   static const int _INITIAL_INDEX_BITS = 3;
   static const int _INITIAL_INDEX_SIZE = 1 << (_INITIAL_INDEX_BITS + 1);
-  
+
   // Unused and deleted entries are marked by 0 and 1, respectively.
   static const int _UNUSED_PAIR = 0;
   static const int _DELETED_PAIR = 1;
-  
+
   // Cached in-place mask for the hash pattern component. On 32-bit, the top
   // bits are wasted to avoid Mint allocation.
   // TODO(koda): Reclaim the bits by making the compiler treat hash patterns
@@ -46,14 +46,14 @@ abstract class _HashBase {
     return ((i << 1) + i) & sizeMask;
   }
   static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
-  
+
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
   List _data;
   // Length of _data that is used (i.e., keys + values for a map).
   int _usedData = 0;
   // Number of deleted keys.
   int _deletedKeys = 0;
-  
+
   // A self-loop is used to mark a deleted key or value.
   static bool _isDeleted(List data, Object keyOrValue) =>
       identical(keyOrValue, data);
@@ -89,13 +89,13 @@ class _CompactLinkedHashMap<K, V>
     _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
     _data = new List(_HashBase._INITIAL_INDEX_SIZE);
   }
-  
+
   int get length => (_usedData >> 1) - _deletedKeys;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;
-  
+
   void _rehash() {
-    if ((_deletedKeys << 1) > _usedData) {
+    if ((_deletedKeys << 2) > _usedData) {
       // TODO(koda): Consider shrinking.
       // TODO(koda): Consider in-place compaction and more costly CME check.
       _init(_index.length, _hashMask, _data, _usedData);
@@ -104,7 +104,7 @@ class _CompactLinkedHashMap<K, V>
       _init(_index.length << 1, _hashMask >> 1, _data, _usedData);
     }
   }
-  
+
   void clear() {
     if (!isEmpty) {
       _init(_index.length, _hashMask);
@@ -130,7 +130,7 @@ class _CompactLinkedHashMap<K, V>
       }
     }
   }
-  
+
   void _insert(K key, V value, int hashPattern, int i) {
     if (_usedData == _data.length) {
       _rehash();
@@ -144,7 +144,7 @@ class _CompactLinkedHashMap<K, V>
       _data[_usedData++] = value;
     }
   }
-  
+
   // If key is present, returns the index of the value in _data, else returns
   // the negated insertion point in _index.
   int _findValueOrInsertPoint(K key, int fullHash, int hashPattern, int size) {
@@ -172,7 +172,7 @@ class _CompactLinkedHashMap<K, V>
     }
     return firstDeleted >= 0 ? -firstDeleted : -i;
   }
-  
+
   void operator[]=(K key, V value) {
     final int size = _index.length;
     final int sizeMask = size - 1;
@@ -186,7 +186,7 @@ class _CompactLinkedHashMap<K, V>
       _insert(key, value, hashPattern, i);
     }
   }
-  
+
   V putIfAbsent(K key, V ifAbsent()) {
     final int size = _index.length;
     final int sizeMask = size - 1;
@@ -209,7 +209,7 @@ class _CompactLinkedHashMap<K, V>
     }
     return value;
   }
-  
+
   V remove(Object key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
@@ -238,7 +238,7 @@ class _CompactLinkedHashMap<K, V>
     }
     return null;
   }
-  
+
   // If key is absent, return _data (which is never a value).
   Object _getValueOrData(Object key) {
     final int size = _index.length;
@@ -263,14 +263,14 @@ class _CompactLinkedHashMap<K, V>
     }
     return _data;
   }
-  
+
   bool containsKey(Object key) => !identical(_data, _getValueOrData(key));
-  
+
   V operator[](Object key) {
     var v = _getValueOrData(key);
     return identical(_data, v) ? null : v;
   }
-  
+
   bool containsValue(Object value) {
     for (var v in values) {
       // Spec. says this should always use "==", also for identity maps, etc.
@@ -309,7 +309,7 @@ class _CompactLinkedCustomHashMap<K, V>
   // TODO(koda): Ask gbracha why I cannot have fields _equals/_hashCode.
   int _hashCode(e) => _hasher(e);
   bool _equals(e1, e2) => _equality(e1, e2);
-      
+
   bool containsKey(Object o) => _validKey(o) ? super.containsKey(o) : false;
   V operator[](Object o) => _validKey(o) ? super[o] : null;
   V remove(Object o) => _validKey(o) ? super.remove(o) : null;
@@ -317,7 +317,7 @@ class _CompactLinkedCustomHashMap<K, V>
   _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
 }
-      
+
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
 // and checks for concurrent modification.
 class _CompactIterable<E> extends IterableBase<E> {
@@ -387,13 +387,13 @@ class _CompactLinkedHashSet<E>
       _init(_index.length << 1, _hashMask >> 1, _data, _usedData);
     }
   }
-  
+
   void clear() {
     if (!isEmpty) {
       _init(_index.length, _hashMask);
     }
   }
-  
+
   void _init(int size, int hashMask, [List oldData, int oldUsed]) {
     _index = new Uint32List(size);
     _hashMask = hashMask;
@@ -445,7 +445,7 @@ class _CompactLinkedHashSet<E>
     }
     return true;
   }
-  
+
   // If key is absent, return _data (which is never a value).
   Object _getKeyOrData(Object key) {
     final int size = _index.length;
@@ -465,14 +465,14 @@ class _CompactLinkedHashSet<E>
       i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
-    return _data;    
+    return _data;
   }
 
   E lookup(Object key) {
     var k = _getKeyOrData(key);
     return identical(_data, k) ? null : k;
   }
-  
+
   bool contains(Object key) => !identical(_data, _getKeyOrData(key));
 
   bool remove(Object key) {
@@ -498,7 +498,7 @@ class _CompactLinkedHashSet<E>
     }
     return false;
   }
-                                                
+
   Iterator<E> get iterator =>
       new _CompactIterator<E>(this, _data, _usedData, -1, 1);
 
@@ -507,12 +507,12 @@ class _CompactLinkedHashSet<E>
   // would be technically correct, albeit surprising.)
   Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
 }
-    
+
 class _CompactLinkedIdentityHashSet<E>
     extends _CompactLinkedHashSet<E> with _IdenticalAndIdentityHashCode {
   Set<E> toSet() => new _CompactLinkedIdentityHashSet<E>()..addAll(this);
 }
-    
+
 class _CompactLinkedCustomHashSet<E>
     extends _CompactLinkedHashSet<E> {
   final _equality;
@@ -521,7 +521,7 @@ class _CompactLinkedCustomHashSet<E>
 
   int _hashCode(e) => _hasher(e);
   bool _equals(e1, e2) => _equality(e1, e2);
-  
+
   bool contains(Object o) => _validKey(o) ? super.contains(o) : false;
   E lookup(Object o) => _validKey(o) ? super.lookup(o) : null;
   bool remove(Object o) => _validKey(o) ? super.remove(o) : false;
