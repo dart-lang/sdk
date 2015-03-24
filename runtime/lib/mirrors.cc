@@ -1366,6 +1366,13 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
   Function& function = Function::Handle();
   bool callable = closure.IsCallable(&function);
   if (callable) {
+    if (function.IsImplicitClosureFunction()) {
+      // The VM uses separate Functions for tear-offs, but the mirrors consider
+      // the tear-offs to be the same as the torn-off methods. Avoid handing out
+      // a reference to the tear-off here to avoid a special case in the
+      // the equality test.
+      function = function.parent_function();
+    }
     return CreateMethodMirror(function, Instance::null_instance());
   }
   return Instance::null();

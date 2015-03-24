@@ -19,6 +19,7 @@ math/random_big_test: RuntimeError  # Using bigint seeds for random.
 mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/class_mirror_location_test: RuntimeError # Issue 6490
+mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/enum_test: RuntimeError # Issue 6490
