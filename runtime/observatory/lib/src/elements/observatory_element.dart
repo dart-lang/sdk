@@ -164,7 +164,18 @@ class ObservatoryElement extends PolymerElement {
 
   void clearShadowRoot() {
     // Remove all non-style elements.
-    shadowRoot.children.removeWhere((e) => e is! StyleElement);
+    // Have to do the following because removeWhere doesn't work on DOM child
+    // node lists. i.e. removeWhere((e) => e is! StyleElement);
+    var styleElements = [];
+    for (var child in shadowRoot.children) {
+      if (child is StyleElement) {
+        styleElements.add(child);
+      }
+    }
+    shadowRoot.children.clear();
+    for (var style in styleElements) {
+      shadowRoot.children.add(style);
+    }
   }
 
   void insertTextSpanIntoShadowRoot(String text) {

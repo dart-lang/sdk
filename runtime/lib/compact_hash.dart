@@ -85,7 +85,7 @@ class _CompactLinkedHashMap<K, V>
   bool get isNotEmpty => !isEmpty;
   
   void _rehash() {
-    if ((_deletedKeys << 1) > _usedData) {
+    if ((_deletedKeys << 2) > _usedData) {
       // TODO(koda): Consider shrinking.
       // TODO(koda): Consider in-place compaction and more costly CME check.
       _init(_index.length, _hashMask, _data, _usedData);

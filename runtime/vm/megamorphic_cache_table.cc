@@ -68,6 +68,7 @@ void MegamorphicCacheTable::InitMissHandler() {
                                      cls,
                                      0));  // No token position.
   function.set_is_debuggable(false);
+  function.set_is_visible(false);
   miss_handler_code_ = code.raw();
   miss_handler_function_ = function.raw();
   function.AttachCode(code);
