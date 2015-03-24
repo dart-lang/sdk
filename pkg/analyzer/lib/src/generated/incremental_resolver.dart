@@ -268,7 +268,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(
         node.functionExpression.parameters, element.parameters);
-    _assertBodyModifiers(node.functionExpression.body, element);
+    _assertBody(node.functionExpression.body, element);
     // matches, update the existing element
     ExecutableElement newElement = node.element;
     node.name.staticElement = element;
@@ -342,7 +342,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertEquals(node.isStatic, element.isStatic);
       _assertSameType(node.returnType, element.returnType);
       _assertCompatibleParameters(node.parameters, element.parameters);
-      _assertBodyModifiers(node.body, element);
+      _assertBody(node.body, element);
       _removedElements.remove(element);
       // matches, update the existing element
       node.name.staticElement = element;
@@ -420,12 +420,18 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   /**
-   * Asserts that [body] has async / generator modifiers compatible with the
-   * given [element].
+   * Assert that the given [body] is compatible with the given [element].
+   * It should not be empty if the [element] is not an abstract class member.
+   * If it is present, it should have the same async / generator modifiers.
    */
-  void _assertBodyModifiers(FunctionBody body, ExecutableElementImpl element) {
-    _assertEquals(body.isSynchronous, element.isSynchronous);
-    _assertEquals(body.isGenerator, element.isGenerator);
+  void _assertBody(FunctionBody body, ExecutableElementImpl element) {
+    if (body is EmptyFunctionBody) {
+      _assertTrue(element.isAbstract);
+    } else {
+      _assertFalse(element.isAbstract);
+      _assertEquals(body.isSynchronous, element.isSynchronous);
+      _assertEquals(body.isGenerator, element.isGenerator);
+    }
   }
 
   void _assertCombinators(List<Combinator> nodeCombinators,

@@ -502,6 +502,9 @@ abstract class ExecutableElementHandle extends ElementHandle
   List<FunctionElement> get functions => actualElement.functions;
 
   @override
+  bool get isAbstract => actualElement.isAbstract;
+
+  @override
   bool get isAsynchronous => actualElement.isAsynchronous;
 
   @override
@@ -853,9 +856,6 @@ class MethodElementHandle extends ExecutableElementHandle
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
   @override
-  bool get isAbstract => actualElement.isAbstract;
-
-  @override
   bool get isStatic => actualElement.isStatic;
 
   @override
@@ -950,9 +950,6 @@ class PropertyAccessorElementHandle extends ExecutableElementHandle
   @override
   PropertyAccessorElement get correspondingSetter =>
       actualElement.correspondingSetter;
-
-  @override
-  bool get isAbstract => actualElement.isAbstract;
 
   @override
   bool get isGetter => actualElement.isGetter;

@@ -704,7 +704,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     if (isEnum) {
       return getNodeMatching((node) => node is EnumDeclaration);
     } else {
-      return getNodeMatching((node) => node is ClassDeclaration || node is ClassTypeAlias);
+      return getNodeMatching(
+          (node) => node is ClassDeclaration || node is ClassTypeAlias);
     }
   }
 
@@ -3238,6 +3239,12 @@ abstract class ExecutableElement implements Element {
   List<FunctionElement> get functions;
 
   /**
+   * Return `true` if this executable element is abstract.
+   * Executable elements are abstract if they are not external and have no body.
+   */
+  bool get isAbstract;
+
+  /**
    * Return `true` if this executable element has body marked as being
    * asynchronous.
    */
@@ -3380,6 +3387,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   void set generator(bool isGenerator) {
     setModifier(Modifier.GENERATOR, isGenerator);
   }
+
+  @override
+  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
   @override
   bool get isAsynchronous => hasModifier(Modifier.ASYNCHRONOUS);
@@ -3535,6 +3545,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     throw new UnsupportedOperationException();
 //    return getBaseElement().getFunctions();
   }
+
+  @override
+  bool get isAbstract => baseElement.isAbstract;
 
   @override
   bool get isAsynchronous => baseElement.isAsynchronous;
@@ -7568,12 +7581,6 @@ abstract class Member implements Element {
  */
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   /**
-   * Return `true` if this method is abstract. Methods are abstract if they are
-   * not external and have no body.
-   */
-  bool get isAbstract;
-
-  /**
    * Return the resolved [MethodDeclaration] node that declares this
    * [MethodElement].
    *
@@ -7622,9 +7629,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
-
-  @override
-  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
   @override
   bool get isOperator {
@@ -7696,9 +7700,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   ClassElement get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  bool get isAbstract => baseElement.isAbstract;
 
   @override
   MethodDeclaration get node => baseElement.node;
@@ -8630,12 +8631,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   PropertyAccessorElement get correspondingSetter;
 
   /**
-   * Return `true` if this accessor is abstract. Accessors are abstract if they
-   * are not external and have no body.
-   */
-  bool get isAbstract;
-
-  /**
    * Return `true` if this accessor represents a getter.
    */
   bool get isGetter;
@@ -8725,9 +8720,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     String suffix = isGetter ? "?" : "=";
     return "$name$suffix";
   }
-
-  @override
-  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
   @override
   bool get isGetter => hasModifier(Modifier.GETTER);
@@ -8828,9 +8820,6 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   Element get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  bool get isAbstract => baseElement.isAbstract;
 
   @override
   bool get isGetter => baseElement.isGetter;
