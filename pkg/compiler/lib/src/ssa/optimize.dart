@@ -1001,6 +1001,33 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return zapInstructionCache;
   }
 
+  /// Returns true of [foreign] will throw an noSuchMethod error if
+  /// receiver is `null` before having any other side-effects.
+  bool templateThrowsNSMonNull(HForeignCode foreign, HInstruction receiver) {
+    // We look for a template of the form
+    //
+    // #.something -or- #.something()
+    //
+    // where # is substituted by receiver.
+    js.Template template = foreign.codeTemplate;
+    js.Node node = template.ast;
+    // #.something = ...
+    if (node is js.Assignment) {
+      js.Assignment assignment = node;
+      node = assignment.leftHandSide;
+    }
+
+    // #.something
+    if (node is js.PropertyAccess) {
+      js.PropertyAccess access = node;
+      if (access.receiver is js.InterpolatedExpression) {
+        js.InterpolatedExpression hole = access.receiver;
+        return hole.isPositional && foreign.inputs.first == receiver;
+      }
+    }
+    return false;
+  }
+
   /// Returns whether the next throwing instruction that may have side
   /// effects after [instruction], throws [NoSuchMethodError] on the
   /// same receiver of [instruction].
@@ -1010,6 +1037,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     do {
       if ((current.getDartReceiver(compiler) == receiver)
           && current.canThrow()) {
+        return true;
+      }
+      if (current is HForeignCode &&
+          templateThrowsNSMonNull(current, receiver)) {
         return true;
       }
       if (current.canThrow() || current.sideEffects.hasSideEffects()) {
