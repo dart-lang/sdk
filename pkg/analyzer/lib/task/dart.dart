@@ -125,3 +125,14 @@ final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
  */
 final ResultDescriptor<Token> TOKEN_STREAM =
     new ResultDescriptor<Token>('TOKEN_STREAM', null);
+
+/**
+ * The sources of the Dart files that a library consists of.
+ *
+ * The list will include the source of the defining unit and [INCLUDED_PARTS].
+ * So, it is never empty or `null`.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<List<Source>> UNITS =
+    new ResultDescriptor<List<Source>>('UNITS', Source.EMPTY_ARRAY);

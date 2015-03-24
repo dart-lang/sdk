@@ -61,6 +61,12 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
         contributesTo: DART_ERRORS);
 
 /**
+ * The [ClassElement]s of a [LibraryUnitTarget].
+ */
+final ResultDescriptor<List<ClassElement>> CLASS_ELEMENTS =
+    new ResultDescriptor<List<ClassElement>>('CLASS_ELEMENTS', null);
+
+/**
  * The sources representing the export closure of a library.
  *
  * The result is only available for targets representing a Dart library.
@@ -202,7 +208,11 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildCompilationUnitElementTask', createTask, buildInputs,
-      <ResultDescriptor>[COMPILATION_UNIT_ELEMENT, RESOLVED_UNIT1]);
+      <ResultDescriptor>[
+    CLASS_ELEMENTS,
+    COMPILATION_UNIT_ELEMENT,
+    RESOLVED_UNIT1
+  ]);
 
   /**
    * Initialize a newly created task to build a compilation unit element for
@@ -231,6 +241,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
+    outputs[CLASS_ELEMENTS] = element.types;
     outputs[COMPILATION_UNIT_ELEMENT] = element;
     outputs[RESOLVED_UNIT1] = unit;
   }
@@ -1329,7 +1340,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     INCLUDED_PARTS,
     PARSE_ERRORS,
     PARSED_UNIT,
-    SOURCE_KIND
+    SOURCE_KIND,
+    UNITS
   ]);
 
   /**
@@ -1406,6 +1418,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[PARSE_ERRORS] = errorListener.getErrorsForSource(source);
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
+    outputs[UNITS] = <Source>[source]..addAll(includedSources);
   }
 
   /**
@@ -1548,11 +1561,9 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source libSource) {
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT4.inputFor(libSource),
-      'resolvedDefiningUnit':
-          RESOLVED_UNIT4.inputFor(new LibraryUnitTarget(libSource, libSource)),
-      'resolvedPartsUnit': new ListToMapTaskInput<Source, CompilationUnit>(
-          INCLUDED_PARTS.inputFor(libSource), (Source source) => RESOLVED_UNIT4
-              .inputFor(new LibraryUnitTarget(libSource, source))),
+      'resolvedUnits': new ListToMapTaskInput<Source, CompilationUnit>(
+          UNITS.inputFor(libSource), (Source source) =>
+              RESOLVED_UNIT4.inputFor(new LibraryUnitTarget(libSource, source)))
     };
   }
 

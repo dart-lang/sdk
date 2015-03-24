@@ -90,8 +90,11 @@ library lib;
 import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
-class A {''');
-    expect(outputs, hasLength(2));
+class A {}
+class B = Object with A;
+''');
+    expect(outputs, hasLength(3));
+    expect(outputs[CLASS_ELEMENTS], hasLength(2));
     expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
     expect(outputs[RESOLVED_UNIT1], isNotNull);
   }
@@ -935,13 +938,14 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
     _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(6));
+    expect(outputs, hasLength(7));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
     expect(outputs[INCLUDED_PARTS], hasLength(0));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.PART);
+    expect(outputs[UNITS], hasLength(1));
   }
 
   test_perform_invalidDirectives() {
@@ -952,13 +956,14 @@ import '://invaliduri.dart';
 export '${a}lib3.dart';
 part 'part.dart';
 class A {}''');
-    expect(outputs, hasLength(6));
+    expect(outputs, hasLength(7));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
     expect(outputs[INCLUDED_PARTS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(2));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(2));
   }
 
   test_perform_library() {
@@ -968,13 +973,14 @@ import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
 class A {''');
-    expect(outputs, hasLength(6));
+    expect(outputs, hasLength(7));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(1));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
     expect(outputs[INCLUDED_PARTS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(1));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(2));
   }
 
   void _performParseTask(String content) {
