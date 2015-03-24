@@ -41,7 +41,9 @@ class TypeEnvironment {
     Compiler compiler;
     bool stopAfterTypeInference = mainSource != null;
     if (mainSource == null) {
-      source = 'main() {}\n$source';
+      source = '''import 'dart:async';
+                  main() {}
+                  $source''';
     } else {
       source = '$mainSource\n$source';
     }
@@ -121,6 +123,10 @@ class TypeEnvironment {
 
   DartType computeLeastUpperBound(DartType T, DartType S) {
     return compiler.types.computeLeastUpperBound(T, S);
+  }
+
+  DartType flatten(DartType T) {
+    return compiler.types.flatten(T);
   }
 
   FunctionType functionType(DartType returnType,

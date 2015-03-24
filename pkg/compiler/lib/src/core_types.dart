@@ -5,6 +5,7 @@
 library dart2js.type_system;
 
 import 'dart_types.dart';
+import 'elements/elements.dart' show ClassElement;
 
 /// The core types in Dart.
 abstract class CoreTypes {
@@ -44,6 +45,9 @@ abstract class CoreTypes {
   /// Returns an instance of the `Iterable` type defined in 'dart:core' with
   /// [elementType] as its type argument.
   InterfaceType iterableType([DartType elementType = const DynamicType()]);
+
+  /// The `Future` class declaration.
+  ClassElement get futureClass;
 
   /// Returns an instance of the `Future` type defined in 'dart:async' with
   /// [elementType] as its type argument.

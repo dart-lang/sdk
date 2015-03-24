@@ -59,15 +59,6 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
-flatten_test/05: Crash # Issue 22921
-flatten_test/06: Crash # Issue 22921
-flatten_test/07: Crash # Issue 22921
-flatten_test/08: Crash # Issue 22921
-flatten_test/09: Crash # Issue 22921
-flatten_test/10: Crash # Issue 22921
-flatten_test/11: Crash # Issue 22921
-flatten_test/12: Crash # Issue 22921
-
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
