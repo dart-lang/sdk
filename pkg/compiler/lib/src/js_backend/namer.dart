@@ -101,7 +101,7 @@ part of js_backend;
  * For local variables, the [Namer] only provides *proposed names*. These names
  * must be disambiguated elsewhere.
  */
-class Namer implements ClosureNamer {
+class Namer {
 
   static const List<String> javaScriptKeywords = const <String>[
     // These are current keywords.
@@ -663,12 +663,22 @@ class Namer implements ClosureNamer {
     ClassElement enclosingClass = element.enclosingClass;
 
     if (element.hasFixedBackendName) {
-      // Box fields and certain native fields must be given a specific name.
-      // Native names must not contain '$'. We rely on this to avoid clashes.
-      assert(element is BoxFieldElement ||
-          enclosingClass.isNative && !element.fixedBackendName.contains(r'$'));
+      // Certain native fields must be given a specific name. Native names must
+      // not contain '$'. We rely on this to avoid clashes.
+      assert(enclosingClass.isNative &&
+             !element.fixedBackendName.contains(r'$'));
 
       return element.fixedBackendName;
+    }
+
+    // Instances of BoxFieldElement are special. They are already created with
+    // a unique and safe name. However, as boxes are not really instances of
+    // classes, the usual naming scheme that tries to avoid name clashes with
+    // super classes does not apply. We still do not mark the name as a
+    // fixedBackendName, as we want to allow other namers to do something more
+    // clever with them.
+    if (element is BoxFieldElement) {
+      return element.name;
     }
 
     // If the name of the field might clash with another field,
@@ -970,20 +980,6 @@ class Namer implements ClosureNamer {
       name = '\$\$$name';
     }
     return name;
-  }
-
-  /// Generate a unique name for the [id]th closure variable, with proposed name
-  /// [name].
-  ///
-  /// The result is used as the name of [BoxFieldElement]s and
-  /// [ClosureFieldElement]s, and must therefore be unique to avoid breaking an
-  /// invariant in the element model (classes cannot declare multiple fields
-  /// with the same name).
-  ///
-  /// Since the result is used as an element name, it will later show up as a
-  /// *proposed name* when the element is passed to [instanceFieldPropertyName].
-  String getClosureVariableName(String name, int id) {
-    return "${name}_$id";
   }
 
   /**

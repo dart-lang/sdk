@@ -21,18 +21,9 @@ import "elements/visitor.dart" show ElementVisitor;
 import 'universe/universe.dart' show
     Universe;
 
-class ClosureNamer {
-  String getClosureVariableName(String name, int id) {
-    return "${name}_$id";
-  }
-
-  void forgetElement(Element element) {}
-}
-
 class ClosureTask extends CompilerTask {
   Map<Node, ClosureClassMap> closureMappingCache;
-  ClosureNamer namer;
-  ClosureTask(Compiler compiler, this.namer)
+  ClosureTask(Compiler compiler)
       : closureMappingCache = new Map<Node, ClosureClassMap>(),
         super(compiler);
 
@@ -46,7 +37,7 @@ class ClosureTask extends CompilerTask {
       if (cached != null) return cached;
 
       ClosureTranslator translator =
-          new ClosureTranslator(compiler, elements, closureMappingCache, namer);
+          new ClosureTranslator(compiler, elements, closureMappingCache);
 
       // The translator will store the computed closure-mappings inside the
       // cache. One for given node and one for each nested closure.
@@ -91,7 +82,6 @@ class ClosureTask extends CompilerTask {
       throw new SpannableAssertionFailure(
           closure, 'Not a closure: $closure (${closure.runtimeType}).');
     }
-    namer.forgetElement(cls);
     compiler.enqueuer.codegen.forgetElement(cls);
   }
 }
@@ -459,14 +449,37 @@ class ClosureTranslator extends Visitor {
   // The closureData of the currentFunctionElement.
   ClosureClassMap closureData;
 
-  ClosureNamer namer;
-
   bool insideClosure = false;
 
   ClosureTranslator(this.compiler,
                     this.elements,
-                    this.closureMappingCache,
-                    this.namer);
+                    this.closureMappingCache);
+
+  /// Generate a unique name for the [id]th closure field, with proposed name
+  /// [name].
+  ///
+  /// The result is used as the name of [ClosureFieldElement]s, and must
+  /// therefore be unique to avoid breaking an invariant in the element model
+  /// (classes cannot declare multiple fields with the same name).
+  ///
+  /// Also, the names should be distinct from real field names to prevent
+  /// clashes with selectors for those fields.
+  String getClosureVariableName(String name, int id) {
+    return "_captured_${name}_$id";
+  }
+
+  /// Generate a unique name for the [id]th box field, with proposed name
+  /// [name].
+  ///
+  /// The result is used as the name of [BoxFieldElement]s, and must
+  /// therefore be unique to avoid breaking an invariant in the element model
+  /// (classes cannot declare multiple fields with the same name).
+  ///
+  /// Also, the names should be distinct from real field names to prevent
+  /// clashes with selectors for those fields.
+  String getBoxFieldName(int id) {
+    return "_box_$id";
+  }
 
   bool isCapturedVariable(Local element) {
     return _capturedVariableMapping.containsKey(element);
@@ -569,7 +582,7 @@ class ClosureTranslator extends Visitor {
 
       for (Local capturedLocal in fieldCaptures.toList()..sort(compareLocals)) {
         int id = closureFieldCounter++;
-        String name = namer.getClosureVariableName(capturedLocal.name, id);
+        String name = getClosureVariableName(capturedLocal.name, id);
         addClosureField(capturedLocal, name);
       }
       closureClass.reverseBackendMembers();
@@ -797,18 +810,14 @@ class ClosureTranslator extends Visitor {
       if (isCapturedVariable(variable)) {
         if (box == null) {
           // TODO(floitsch): construct better box names.
-          String boxName =
-              namer.getClosureVariableName('box', closureFieldCounter++);
+          String boxName = getBoxFieldName(closureFieldCounter++);
           box = new BoxLocal(boxName, executableContext);
         }
         String elementName = variable.name;
         String boxedName =
-            namer.getClosureVariableName(elementName, boxedFieldCounter++);
+            getClosureVariableName(elementName, boxedFieldCounter++);
         // TODO(kasperl): Should this be a FieldElement instead?
         BoxFieldElement boxed = new BoxFieldElement(boxedName, variable, box);
-        // No need to rename the fields of a box, so we give them a native name
-        // right now.
-        boxed.setFixedBackendName(boxedName);
         scopeMapping[variable] = boxed;
         setCapturedVariableBoxField(variable, boxed);
       }

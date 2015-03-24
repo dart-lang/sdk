@@ -48,15 +48,6 @@ class MinifyNamer extends Namer {
     return freshName;
   }
 
-  String getClosureVariableName(String _, int id) {
-    if (id < ALPHABET_CHARACTERS) {
-      return new String.fromCharCodes([_letterNumber(id)]);
-    }
-    // Fall back to a slightly longer name.
-    String basename = _disambiguateMember(null, 'closure');
-    return '${basename}_$id';
-  }
-
   // From issue 7554.  These should not be used on objects (as instance
   // variables) because they clash with names from the DOM. However, it is
   // OK to use them as fields, as we only access fields directly if we know
