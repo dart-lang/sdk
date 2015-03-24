@@ -1181,7 +1181,7 @@ class Primitives {
       }
       arguments = new List.from(arguments);
       for (int pos = argumentCount; pos < maxArgumentCount; pos++) {
-        arguments.add(info.defaultValue(pos));
+        arguments.add(getMetadata(info.defaultValue(pos)));
       }
     }
     // We bound 'this' to [function] because of how we compile
