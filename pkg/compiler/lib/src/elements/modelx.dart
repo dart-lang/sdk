@@ -244,9 +244,6 @@ abstract class ElementX extends Element {
     _isNative = true;
     _fixedBackendName = name;
   }
-  void setFixedBackendName(String name) {
-    _fixedBackendName = name;
-  }
 
   FunctionElement asFunctionElement() => null;
 
