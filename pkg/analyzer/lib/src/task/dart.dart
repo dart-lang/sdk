@@ -5,6 +5,7 @@
 library analyzer.src.task.dart;
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -65,6 +66,23 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
  */
 final ResultDescriptor<List<ClassElement>> CLASS_ELEMENTS =
     new ResultDescriptor<List<ClassElement>>('CLASS_ELEMENTS', null);
+
+/**
+ * The [ConstructorElement]s of a [ClassElement].
+ */
+final ResultDescriptor<List<ConstructorElement>> CONSTRUCTORS =
+    new ResultDescriptor<List<ConstructorElement>>('CONSTRUCTORS', null);
+
+/**
+ * The errors produced while building a [ClassElement] constructors.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a [ClassElement].
+ */
+final ResultDescriptor<List<AnalysisError>> CONSTRUCTORS_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'CONSTRUCTORS_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
  * The sources representing the export closure of a library.
@@ -187,6 +205,226 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
  */
 final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
     new ResultDescriptor<TypeProvider>('TYPE_PROVIDER', null);
+
+/**
+ * A task that builds implicit constructors for a [ClassElement], or keeps
+ * the existing explicit constructors if the class has them.
+ */
+class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [CONSTRUCTORS] input for the superclass.
+   */
+  static const String SUPER_CONSTRUCTORS = 'SUPER_CONSTRUCTORS';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildConstructorsForClassTask', createTask, buildInputs,
+      <ResultDescriptor>[CONSTRUCTORS, CONSTRUCTORS_ERRORS]);
+
+  BuildClassConstructorsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    List<AnalysisError> errors = <AnalysisError>[];
+    //
+    // Prepare inputs.
+    //
+    ClassElementImpl classElement = this.target;
+    List<ConstructorElement> superConstructors = inputs[SUPER_CONSTRUCTORS];
+    DartType superType = classElement.supertype;
+    ClassElement superElement = superType.element;
+    //
+    // Shortcut for ClassElement(s) without implicit constructors.
+    //
+    if (superConstructors == null) {
+      outputs[CONSTRUCTORS] = classElement.constructors;
+      outputs[CONSTRUCTORS_ERRORS] = AnalysisError.NO_ERRORS;
+      return;
+    }
+    //
+    // ClassTypeAlias
+    //
+    if (classElement.isTypedef) {
+      List<ConstructorElement> implicitConstructors =
+          new List<ConstructorElement>();
+      void callback(ConstructorElement explicitConstructor,
+          List<DartType> parameterTypes, List<DartType> argumentTypes) {
+        implicitConstructors.add(_createImplicitContructor(classElement.type,
+            explicitConstructor, parameterTypes, argumentTypes));
+      }
+      if (_findForwardedConstructors(classElement, superType, callback)) {
+        if (implicitConstructors.isEmpty) {
+          errors.add(new AnalysisError.con2(classElement.source,
+              classElement.nameOffset, classElement.name.length,
+              CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+              [superElement.name]));
+        } else {
+          classElement.constructors = implicitConstructors;
+        }
+      }
+      outputs[CONSTRUCTORS] = classElement.constructors;
+      outputs[CONSTRUCTORS_ERRORS] = errors;
+    }
+    //
+    // ClassDeclaration
+    //
+    if (!classElement.isTypedef) {
+      bool constructorFound = false;
+      void callback(ConstructorElement explicitConstructor,
+          List<DartType> parameterTypes, List<DartType> argumentTypes) {
+        constructorFound = true;
+      }
+      if (_findForwardedConstructors(classElement, superType, callback) &&
+          !constructorFound) {
+        SourceRange withRange = classElement.withClauseRange;
+        errors.add(new AnalysisError.con2(classElement.source, withRange.offset,
+            withRange.length, CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+            [superElement.name]));
+        classElement.mixinErrorsReported = true;
+      }
+      outputs[CONSTRUCTORS] = classElement.constructors;
+      outputs[CONSTRUCTORS_ERRORS] = errors;
+    }
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [classElement].
+   */
+  static Map<String, TaskInput> buildInputs(ClassElement classElement) {
+    // TODO(scheglov) Here we implicitly depend on LIBRARY_ELEMENT5, i.e. that
+    // "supertype" for the "classElement" is set.
+    // We need to make it an explicit dependency.
+    DartType superType = classElement.supertype;
+    if (superType is InterfaceType) {
+      if (classElement.isTypedef || classElement.mixins.isNotEmpty) {
+        ClassElement superElement = superType.element;
+        return <String, TaskInput>{
+          SUPER_CONSTRUCTORS: CONSTRUCTORS.inputFor(superElement)
+        };
+      }
+    }
+    // No implicit constructors, no inputs required.
+    return <String, TaskInput>{};
+  }
+
+  /**
+   * Create a [BuildClassConstructorsTask] based on the given
+   * [target] in the given [context].
+   */
+  static BuildClassConstructorsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildClassConstructorsTask(context, target);
+  }
+
+  /**
+   * Create an implicit constructor that is copied from the given
+   * [explicitConstructor], but that is in the given class.
+   *
+   * [classType] - the class in which the implicit constructor is defined.
+   * [explicitConstructor] - the constructor on which the implicit constructor
+   *    is modeled.
+   * [parameterTypes] - the types to be replaced when creating parameters.
+   * [argumentTypes] - the types with which the parameters are to be replaced.
+   */
+  static ConstructorElement _createImplicitContructor(InterfaceType classType,
+      ConstructorElement explicitConstructor, List<DartType> parameterTypes,
+      List<DartType> argumentTypes) {
+    ConstructorElementImpl implicitConstructor =
+        new ConstructorElementImpl(explicitConstructor.name, -1);
+    implicitConstructor.synthetic = true;
+    implicitConstructor.redirectedConstructor = explicitConstructor;
+    implicitConstructor.const2 = explicitConstructor.isConst;
+    implicitConstructor.returnType = classType;
+    List<ParameterElement> explicitParameters = explicitConstructor.parameters;
+    int count = explicitParameters.length;
+    if (count > 0) {
+      List<ParameterElement> implicitParameters =
+          new List<ParameterElement>(count);
+      for (int i = 0; i < count; i++) {
+        ParameterElement explicitParameter = explicitParameters[i];
+        ParameterElementImpl implicitParameter =
+            new ParameterElementImpl(explicitParameter.name, -1);
+        implicitParameter.const3 = explicitParameter.isConst;
+        implicitParameter.final2 = explicitParameter.isFinal;
+        implicitParameter.parameterKind = explicitParameter.parameterKind;
+        implicitParameter.synthetic = true;
+        implicitParameter.type =
+            explicitParameter.type.substitute2(argumentTypes, parameterTypes);
+        implicitParameters[i] = implicitParameter;
+      }
+      implicitConstructor.parameters = implicitParameters;
+    }
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(implicitConstructor);
+    type.typeArguments = classType.typeArguments;
+    implicitConstructor.type = type;
+    return implicitConstructor;
+  }
+
+  /**
+   * Find all the constructors that should be forwarded from the given
+   * [superType], to the class or mixin application [classElement],
+   * and pass information about them to [callback].
+   *
+   * Return true if some constructors were considered.  (A false return value
+   * can only happen if the supeclass is a built-in type, in which case it
+   * can't be used as a mixin anyway).
+   */
+  static bool _findForwardedConstructors(ClassElementImpl classElement,
+      InterfaceType superType, void callback(
+          ConstructorElement explicitConstructor, List<DartType> parameterTypes,
+          List<DartType> argumentTypes)) {
+    ClassElement superclassElement = superType.element;
+    List<ConstructorElement> constructors = superclassElement.constructors;
+    int count = constructors.length;
+    if (count == 0) {
+      return false;
+    }
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(superType.typeParameters);
+    List<DartType> argumentTypes = _getArgumentTypes(superType, parameterTypes);
+    for (int i = 0; i < count; i++) {
+      ConstructorElement explicitConstructor = constructors[i];
+      if (!explicitConstructor.isFactory &&
+          classElement.isSuperConstructorAccessible(explicitConstructor)) {
+        callback(explicitConstructor, parameterTypes, argumentTypes);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Return a list of argument types that corresponds to the [parameterTypes]
+   * and that are derived from the type arguments of the given [superType].
+   */
+  static List<DartType> _getArgumentTypes(
+      InterfaceType superType, List<DartType> parameterTypes) {
+    DynamicTypeImpl dynamic = DynamicTypeImpl.instance;
+    int parameterCount = parameterTypes.length;
+    List<DartType> types = new List<DartType>(parameterCount);
+    if (superType == null) {
+      types = new List<DartType>.filled(parameterCount, dynamic);
+    } else {
+      List<DartType> typeArguments = superType.typeArguments;
+      int argumentCount = math.min(typeArguments.length, parameterCount);
+      for (int i = 0; i < argumentCount; i++) {
+        types[i] = typeArguments[i];
+      }
+      for (int i = argumentCount; i < parameterCount; i++) {
+        types[i] = dynamic;
+      }
+    }
+    return types;
+  }
+}
 
 /**
  * A task that builds a compilation unit element for a single compilation unit.

@@ -31,6 +31,7 @@ import '../mock_sdk.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(BuildClassConstructorsTaskTest);
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
   runReflectiveTests(BuildDirectiveElementsTaskTest);
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
@@ -44,6 +45,112 @@ main() {
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
+}
+
+@reflectiveTest
+class BuildClassConstructorsTaskTest extends _AbstractDartTaskTest {
+  test_perform_ClassDeclaration_errors_mixinHasNoConstructors() {
+    Source source = _newSource('/test.dart', '''
+class B {
+  B({x});
+}
+class M {}
+class C extends B with M {}
+''');
+    LibraryElement libraryElement;
+    {
+      _computeResult(source, LIBRARY_ELEMENT5);
+      libraryElement = outputs[LIBRARY_ELEMENT5];
+    }
+    // prepare C
+    ClassElement c = libraryElement.getType('C');
+    expect(c, isNotNull);
+    // build constructors
+    _computeResult(c, CONSTRUCTORS);
+    expect(task, new isInstanceOf<BuildClassConstructorsTask>());
+    _fillErrorListener(CONSTRUCTORS_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+  }
+
+  test_perform_ClassDeclaration_explicitConstructors() {
+    Source source = _newSource('/test.dart', '''
+class B {
+  B(p);
+}
+class C extends B {
+  C(int a, String b) {}
+}
+''');
+    LibraryElement libraryElement;
+    {
+      _computeResult(source, LIBRARY_ELEMENT5);
+      libraryElement = outputs[LIBRARY_ELEMENT5];
+    }
+    // prepare C
+    ClassElement c = libraryElement.getType('C');
+    expect(c, isNotNull);
+    // build constructors
+    _computeResult(c, CONSTRUCTORS);
+    expect(task, new isInstanceOf<BuildClassConstructorsTask>());
+    // no errors
+    expect(outputs[CONSTRUCTORS_ERRORS], isEmpty);
+    // explicit constructor
+    List<ConstructorElement> constructors = outputs[CONSTRUCTORS];
+    expect(constructors, hasLength(1));
+    expect(constructors[0].parameters, hasLength(2));
+  }
+
+  test_perform_ClassTypeAlias() {
+    Source source = _newSource('/test.dart', '''
+class B {
+  B(int i);
+}
+class M1 {}
+class M2 {}
+
+class C2 = C1 with M2;
+class C1 = B with M1;
+''');
+    LibraryElement libraryElement;
+    {
+      _computeResult(source, LIBRARY_ELEMENT5);
+      libraryElement = outputs[LIBRARY_ELEMENT5];
+    }
+    // prepare C2
+    ClassElement class2 = libraryElement.getType('C2');
+    expect(class2, isNotNull);
+    // build constructors
+    _computeResult(class2, CONSTRUCTORS);
+    expect(task, new isInstanceOf<BuildClassConstructorsTask>());
+    List<ConstructorElement> constructors = outputs[CONSTRUCTORS];
+    expect(constructors, hasLength(1));
+    expect(constructors[0].parameters, hasLength(1));
+  }
+
+  test_perform_ClassTypeAlias_errors_mixinHasNoConstructors() {
+    Source source = _newSource('/test.dart', '''
+class B {
+  B({x});
+}
+class M {}
+class C = B with M;
+''');
+    LibraryElement libraryElement;
+    {
+      _computeResult(source, LIBRARY_ELEMENT5);
+      libraryElement = outputs[LIBRARY_ELEMENT5];
+    }
+    // prepare C
+    ClassElement c = libraryElement.getType('C');
+    expect(c, isNotNull);
+    // build constructors
+    _computeResult(c, CONSTRUCTORS);
+    expect(task, new isInstanceOf<BuildClassConstructorsTask>());
+    _fillErrorListener(CONSTRUCTORS_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+  }
 }
 
 @reflectiveTest
@@ -163,7 +270,9 @@ library libC;
     // no errors
     _assertErrorsWithCodes([]);
     // validate directives
-    CompilationUnit libraryUnitA = context.getCacheEntry(new LibraryUnitTarget(sourceA, sourceA)).getValue(RESOLVED_UNIT1);
+    CompilationUnit libraryUnitA = context
+        .getCacheEntry(new LibraryUnitTarget(sourceA, sourceA))
+        .getValue(RESOLVED_UNIT1);
     {
       ImportDirective importNode = libraryUnitA.directives[1];
       ImportElement importElement = importNode.element;
@@ -208,7 +317,9 @@ library libB;
     _computeResult(sourceA, LIBRARY_ELEMENT2);
     expect(task, new isInstanceOf<BuildDirectiveElementsTask>());
     // prepare outputs
-    CompilationUnit libraryUnitA = context.getCacheEntry(new LibraryUnitTarget(sourceA, sourceA)).getValue(RESOLVED_UNIT1);
+    CompilationUnit libraryUnitA = context
+        .getCacheEntry(new LibraryUnitTarget(sourceA, sourceA))
+        .getValue(RESOLVED_UNIT1);
     // no errors
     _assertErrorsWithCodes([]);
     // validate directives
@@ -299,7 +410,9 @@ library libC;
     _computeResult(sourceA, LIBRARY_ELEMENT2);
     expect(task, new isInstanceOf<BuildDirectiveElementsTask>());
     // prepare outputs
-    CompilationUnit libraryUnitA = context.getCacheEntry(new LibraryUnitTarget(sourceA, sourceA)).getValue(RESOLVED_UNIT1);
+    CompilationUnit libraryUnitA = context
+        .getCacheEntry(new LibraryUnitTarget(sourceA, sourceA))
+        .getValue(RESOLVED_UNIT1);
     // validate directives
     {
       ImportDirective importNodeB = libraryUnitA.directives[1];
@@ -816,12 +929,13 @@ void set test(_) {}
     Source libSource = sources.first;
     _computeResult(libSource, LIBRARY_ELEMENT1);
     expect(task, new isInstanceOf<BuildLibraryElementTask>());
-    libraryUnit = context.getCacheEntry(new LibraryUnitTarget(libSource, libSource)).getValue(RESOLVED_UNIT1);
+    libraryUnit = context
+        .getCacheEntry(new LibraryUnitTarget(libSource, libSource))
+        .getValue(RESOLVED_UNIT1);
     libraryUnitElement = libraryUnit.element;
     librarySource = libraryUnitElement.source;
     libraryElement = outputs[LIBRARY_ELEMENT1];
-    partUnits =
-        task.inputs[BuildLibraryElementTask.PARTS_UNIT_INPUT];
+    partUnits = task.inputs[BuildLibraryElementTask.PARTS_UNIT_INPUT];
   }
 }
 
@@ -1153,6 +1267,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(GetContentTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ScanDartTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ParseDartTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildClassConstructorsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);

@@ -10,6 +10,7 @@ library engine.element;
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/task/model.dart' show AnalysisTarget;
 
 import 'ast.dart';
 import 'constant.dart' show EvaluationResultImpl;
@@ -2122,7 +2123,7 @@ class DynamicTypeImpl extends TypeImpl {
  * These correspond to unnamed functions and exist in order to more accurately
  * represent the semantic structure of the program.
  */
-abstract class Element {
+abstract class Element implements AnalysisTarget {
   /**
    * An Unicode right arrow.
    */
