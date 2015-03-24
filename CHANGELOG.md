@@ -1,3 +1,10 @@
+# 0.0.2+1
+
+* Added machine output option. Fix #69.
+* Fixed resolution of files in `lib/` to use a `package:` URI. Fix #49.
+* Tightened up `analyzer` package constraints.
+* Fixed false positives in `one_member_abstracts` lint. Fix #64.
+
 # 0.0.2
 
 * Initial push to pub.
