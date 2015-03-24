@@ -403,12 +403,6 @@ abstract class Backend {
 
   ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
 
-  bool isDefaultNoSuchMethodImplementation(Element element) {
-    assert(element.name == Compiler.NO_SUCH_METHOD);
-    ClassElement classElement = element.enclosingClass;
-    return classElement == compiler.objectClass;
-  }
-
   bool isInterceptorClass(ClassElement element) => false;
 
   /// Returns `true` if [element] is a foreign element, that is, that the

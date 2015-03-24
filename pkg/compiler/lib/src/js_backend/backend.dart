@@ -1275,13 +1275,8 @@ class JavaScriptBackend extends Backend {
         compiler.enabledRuntimeType;
   }
 
-  bool isDefaultNoSuchMethodImplementation(Element element) {
-    assert(element.name == Compiler.NO_SUCH_METHOD);
-    ClassElement classElement = element.enclosingClass;
-    return classElement == compiler.objectClass
-        || classElement == jsInterceptorClass
-        || classElement == jsNullClass;
-  }
+  bool isComplexNoSuchMethod(FunctionElement element) =>
+    noSuchMethodRegistry.isComplex(element);
 
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');

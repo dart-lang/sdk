@@ -305,7 +305,7 @@ abstract class TracerVisitor<T extends TypeInformation>
       bailout('Used as key in Map');
     }
 
-    if (info.targetsIncludeNoSuchMethod &&
+    if (info.targetsIncludeComplexNoSuchMethod(inferrer) &&
         info.arguments != null &&
         info.arguments.contains(currentUser)) {
       bailout('Passed to noSuchMethod');

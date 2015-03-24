@@ -45,25 +45,33 @@ class NoSuchMethodRegistry {
   final Set<Element> otherImpls = new Set<Element>();
 
   /// The implementations that have not yet been categorized.
-  final Set<Element> uncategorizedImpls = new Set<Element>();
+  final Set<Element> _uncategorizedImpls = new Set<Element>();
 
-  final JavaScriptBackend backend;
-  final Compiler compiler;
+  final JavaScriptBackend _backend;
+  final Compiler _compiler;
 
   NoSuchMethodRegistry(JavaScriptBackend backend)
-      : this.backend = backend,
-        this.compiler = backend.compiler;
+      : this._backend = backend,
+        this._compiler = backend.compiler;
 
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
 
   void registerNoSuchMethod(Element noSuchMethodElement) {
-    uncategorizedImpls.add(noSuchMethodElement);
+    _uncategorizedImpls.add(noSuchMethodElement);
   }
 
   void onQueueEmpty() {
-    uncategorizedImpls.forEach(_categorizeImpl);
-    uncategorizedImpls.clear();
+    _uncategorizedImpls.forEach(_categorizeImpl);
+    _uncategorizedImpls.clear();
+  }
+
+  /// Returns [true] if the given element is a complex [noSuchMethod]
+  /// implementation. An implementation is complex if it falls into
+  /// category C, as described above.
+  bool isComplex(FunctionElement element) {
+    assert(element.name == Compiler.NO_SUCH_METHOD);
+    return otherImpls.contains(element);
   }
 
   NsmCategory _categorizeImpl(Element noSuchMethodElement) {
@@ -78,19 +86,19 @@ class NoSuchMethodRegistry {
       return NsmCategory.OTHER;
     }
     if (noSuchMethodElement is! FunctionElement ||
-        !compiler.noSuchMethodSelector.signatureApplies(noSuchMethodElement)) {
+        !_compiler.noSuchMethodSelector.signatureApplies(noSuchMethodElement)) {
       otherImpls.add(noSuchMethodElement);
       return NsmCategory.OTHER;
     }
     FunctionElement noSuchMethodFunc = noSuchMethodElement as FunctionElement;
-    if (backend.isDefaultNoSuchMethodImplementation(noSuchMethodFunc)) {
+    if (_isDefaultNoSuchMethodImplementation(noSuchMethodFunc)) {
       defaultImpls.add(noSuchMethodFunc);
       return NsmCategory.DEFAULT;
-    } else if (hasForwardingSyntax(noSuchMethodFunc)) {
+    } else if (_hasForwardingSyntax(noSuchMethodFunc)) {
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
       Element superCall = noSuchMethodFunc.enclosingClass
-          .lookupSuperSelector(compiler.noSuchMethodSelector);
+          .lookupSuperSelector(_compiler.noSuchMethodSelector);
       NsmCategory category = _categorizeImpl(superCall);
       switch(category) {
         case NsmCategory.DEFAULT:
@@ -104,7 +112,7 @@ class NoSuchMethodRegistry {
           break;
       }
       return category;
-    } else if (isThrowing(noSuchMethodFunc)) {
+    } else if (_hasThrowingSyntax(noSuchMethodFunc)) {
       throwingImpls.add(noSuchMethodFunc);
       return NsmCategory.THROWING;
     } else {
@@ -113,7 +121,14 @@ class NoSuchMethodRegistry {
     }
   }
 
-  bool hasForwardingSyntax(FunctionElement element) {
+  bool _isDefaultNoSuchMethodImplementation(Element element) {
+    ClassElement classElement = element.enclosingClass;
+    return classElement == _compiler.objectClass
+        || classElement == _backend.jsInterceptorClass
+        || classElement == _backend.jsNullClass;
+  }
+
+  bool _hasForwardingSyntax(FunctionElement element) {
     // At this point we know that this is signature-compatible with
     // Object.noSuchMethod, but it may have more than one argument as long as
     // it only has one required argument.
@@ -147,7 +162,7 @@ class NoSuchMethodRegistry {
     return false;
   }
 
-  bool isThrowing(FunctionElement element) {
+  bool _hasThrowingSyntax(FunctionElement element) {
     Statement body = element.node.body;
     if (body is Return && body.isArrowBody) {
       if (body.expression is Throw) {

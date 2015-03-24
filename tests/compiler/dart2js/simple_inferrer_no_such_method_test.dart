@@ -6,6 +6,7 @@ import 'package:expect/expect.dart';
 
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
+import 'package:compiler/src/types/types.dart';
 import 'parser_helper.dart';
 import 'type_mask_test_helper.dart';
 
@@ -94,6 +95,72 @@ main() {
 }
 """;
 
+const String TEST3 = """
+class A {
+  // We may ignore this for type inference because syntactically it always
+  // throws an exception.
+  noSuchMethod(im) => throw 'foo';
+}
+
+class B extends A {
+  foo() => {};
+}
+
+class C extends B {
+  foo() => {};
+}
+
+var a = [new B(), new C()][0];
+test1() => new A().foo();
+test2() => a.foo();
+test3() => new B().foo();
+test4() => new C().foo();
+test5() => (a ? new A() : new B()).foo();
+test6() => (a ? new B() : new C()).foo();
+
+main() {
+  test1();
+  test2();
+  test3();
+  test4();
+  test5();
+  test6();
+}
+""";
+
+const String TEST4 = """
+class A {
+  // We may ignore this for type inference because it forwards to a default
+  // noSuchMethod implementation, which always throws an exception.
+  noSuchMethod(im) => super.noSuchMethod(im);
+}
+
+class B extends A {
+  foo() => {};
+}
+
+class C extends B {
+  foo() => {};
+}
+
+var a = [new B(), new C()][0];
+test1() => new A().foo();
+test2() => a.foo();
+test3() => new B().foo();
+test4() => new C().foo();
+test5() => (a ? new A() : new B()).foo();
+test6() => (a ? new B() : new C()).foo();
+
+main() {
+  test1();
+  test2();
+  test3();
+  test4();
+  test5();
+  test6();
+}
+""";
+
 main() {
   Uri uri = new Uri(scheme: 'source');
 
@@ -133,5 +200,25 @@ main() {
     checkReturn(compiler2, 'test9', compiler2.typesTask.uint31Type);
     checkReturn(compiler2, 'test10', compiler2.typesTask.numType);
     checkReturn(compiler2, 'test11', compiler2.typesTask.doubleType);
+  }));
+
+  var compiler3 = compilerFor(TEST3, uri);
+  asyncTest(() => compiler3.runCompiler(uri).then((_) {
+    checkReturn(compiler3, 'test1', const TypeMask.nonNullEmpty());
+    checkReturn(compiler3, 'test2', compiler3.typesTask.mapType);
+    checkReturn(compiler3, 'test3', compiler3.typesTask.mapType);
+    checkReturn(compiler3, 'test4', compiler3.typesTask.mapType);
+    checkReturn(compiler3, 'test5', compiler3.typesTask.mapType);
+    checkReturn(compiler3, 'test6', compiler3.typesTask.mapType);
+  }));
+
+  var compiler4 = compilerFor(TEST4, uri);
+  asyncTest(() => compiler4.runCompiler(uri).then((_) {
+    checkReturn(compiler4, 'test1', const TypeMask.nonNullEmpty());
+    checkReturn(compiler4, 'test2', compiler4.typesTask.mapType);
+    checkReturn(compiler4, 'test3', compiler4.typesTask.mapType);
+    checkReturn(compiler4, 'test4', compiler4.typesTask.mapType);
+    checkReturn(compiler4, 'test5', compiler4.typesTask.mapType);
+    checkReturn(compiler4, 'test6', compiler4.typesTask.mapType);
   }));
 }

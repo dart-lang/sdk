@@ -5,7 +5,7 @@
 part of types;
 
 /**
- * A flat type mask is a type mask that has been flatten to contain a
+ * A flat type mask is a type mask that has been flattened to contain a
  * base type.
  */
 class FlatTypeMask implements TypeMask {
