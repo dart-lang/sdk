@@ -875,8 +875,9 @@ class OldEmitter implements Emitter {
     //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
     // The name is used for error reporting. The 'initial' must be a
     // closure that constructs the initial value.
-    return js('#(#,#,#,#)',
+    return js('#(#,#,#,#,#)',
         [js(lazyInitializerName),
+            js(isolateProperties),
             js.string(element.name),
             js.string(namer.globalPropertyName(element)),
             js.string(namer.lazyInitializerName(element)),
@@ -1023,28 +1024,28 @@ class OldEmitter implements Emitter {
         #finishedClasses = Object.create(null);
 
         if (#needsLazyInitializer) {
-          $lazyInitializerName = function (staticName, fieldName,
+          $lazyInitializerName = function (prototype, staticName, fieldName,
                                            getterName, lazyValue) {
             if (!#lazies) #lazies = Object.create(null);
             #lazies[fieldName] = getterName;
 
             var sentinelUndefined = {};
             var sentinelInProgress = {};
-            $isolateProperties[fieldName] = sentinelUndefined;
+            prototype[fieldName] = sentinelUndefined;
 
-            $isolateProperties[getterName] = function () {
-              var result = this[fieldName];
+            prototype[getterName] = function () {
+              var result = $isolate[fieldName];
               try {
                 if (result === sentinelUndefined) {
-                  this[fieldName] = sentinelInProgress;
+                  $isolate[fieldName] = sentinelInProgress;
 
                   try {
-                    result = this[fieldName] = lazyValue();
+                    result = $isolate[fieldName] = lazyValue();
                   } finally {
                     // Use try-finally, not try-catch/throw as it destroys the
                     // stack trace.
                     if (result === sentinelUndefined)
-                      this[fieldName] = null;
+                      $isolate[fieldName] = null;
                   }
                 } else {
                   if (result === sentinelInProgress)
@@ -1053,7 +1054,7 @@ class OldEmitter implements Emitter {
 
                 return result;
               } finally {
-                this[getterName] = function() { return this[fieldName]; };
+                $isolate[getterName] = function() { return this[fieldName]; };
               }
             }
           }
