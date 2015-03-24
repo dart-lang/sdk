@@ -858,8 +858,15 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   SequenceNode* node_sequence = NULL;
   Array& default_parameter_values = Array::ZoneHandle(zone, Array::null());
   switch (func.kind()) {
-    case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
+      if (func.IsImplicitClosureFunction()) {
+        parser.SkipFunctionPreamble();
+        node_sequence =
+            parser.ParseImplicitClosure(func, &default_parameter_values);
+        break;
+      }
+      // Fall-through: Handle non-implicit closures.
+    case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -1297,6 +1304,59 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
       new StoreInstanceFieldNode(ident_pos, receiver, field, value);
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseImplicitClosure(const Function& func,
+                                           Array* default_values) {
+  TRACE_PARSER("ParseImplicitClosure");
+
+  intptr_t token_pos = func.token_pos();
+
+  OpenFunctionBlock(func);
+
+  ParamList params;
+
+  params.AddFinalParameter(
+      token_pos,
+      &Symbols::ClosureParameter(),
+      &Type::ZoneHandle(Type::DynamicType()));
+
+  const bool allow_explicit_default_values = true;
+  ParseFormalParameterList(allow_explicit_default_values, false, &params);
+  SetupDefaultsForOptionalParams(&params, default_values);
+
+  // Getters can't be closurized. If supported, they need special
+  // handling of the parameters as in ParseFunc.
+  const Function& parent = Function::ZoneHandle(func.parent_function());
+  ASSERT(!parent.IsGetterFunction());
+
+  // Populate function scope with the formal parameters.
+  LocalScope* scope = current_block_->scope;
+  AddFormalParamsToScope(&params, scope);
+
+  ArgumentListNode* func_args = new ArgumentListNode(token_pos);
+  if (!func.is_static()) {
+    func_args->Add(LoadReceiver(token_pos));
+  }
+  // Skip implicit parameter at 0.
+  for (intptr_t i = 1; i < func.NumParameters(); ++i) {
+    func_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+  }
+
+  if (func.HasOptionalNamedParameters()) {
+    const Array& arg_names =
+        Array::ZoneHandle(Array::New(func.NumOptionalParameters()));
+    for (intptr_t i = 0; i < arg_names.Length(); ++i) {
+      intptr_t index = func.num_fixed_parameters() + i;
+      arg_names.SetAt(i, String::Handle(func.ParameterNameAt(index)));
+    }
+    func_args->set_names(arg_names);
+  }
+  StaticCallNode* call = new StaticCallNode(token_pos, parent, func_args);
+  ReturnNode* return_node = new ReturnNode(token_pos, call);
+  current_block_->statements->Add(return_node);
   return CloseBlock();
 }
 

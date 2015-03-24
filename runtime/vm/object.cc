@@ -6270,6 +6270,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Set closure function's end token to this end token.
   closure_function.set_end_token_pos(end_token_pos());
 
+  // The closurized method stub just calls into the original method and should
+  // therefore be skipped by the debugger and in stack traces.
+  closure_function.set_is_debuggable(false);
+  closure_function.set_is_visible(false);
+
   // Set closure function's formal parameters to this formal parameters,
   // removing the receiver if this is an instance method and adding the closure
   // object as first parameter.

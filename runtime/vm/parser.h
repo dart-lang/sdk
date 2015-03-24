@@ -526,6 +526,8 @@ class Parser : public ValueObject {
                                             Array* default_values);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
                                            Array* default_values);
+  SequenceNode* ParseImplicitClosure(const Function& func,
+                                     Array* default_values);
 
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
