@@ -10,7 +10,7 @@ library engine.testing.token_factory;
 import 'package:analyzer/src/generated/scanner.dart';
 
 /**
- * The class `TokenFactory` defines utility methods that can be used to create tokens.
+ * A set of utility methods that can be used to create tokens.
  */
 class TokenFactory {
   static Token tokenFromKeyword(Keyword keyword) =>
