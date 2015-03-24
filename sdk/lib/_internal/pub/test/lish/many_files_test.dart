@@ -16,20 +16,19 @@ import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
 
-/// The depth of directories to use when creating files to tickle
-/// argument-length limits.
-final _depth = 10;
-
-/// The maximum number of characters in a path component.
+/// The maximum number of bytes in an entire path.
 ///
-/// Only Windows has this tight of a constraint, but we abide by it on all
-/// operating systems to avoid specializing the test too much.
-final _componentMax = 255;
+/// This is [Windows's number][MAX_PATH], which is a much tighter constraint
+/// than OS X or Linux. We use it everywhere for consistency.
+///
+/// [MAX_PATH]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa383130(v=vs.85).aspx
+const _pathMax = 260;
 
 main() {
   initConfig();
 
-  integration('archives and uploads a package', () {
+  integration('archives and uploads a package with more files than can fit on '
+      'the command line', () {
     d.validPackage.create();
 
     var argMax;
@@ -49,21 +48,28 @@ main() {
     }
 
     schedule(() {
-      var dir = p.join(sandboxDir, appPath);
-      for (var i = 0; i < _depth; i++) {
-        dir = p.join(dir, "x" * _componentMax);
-        new Directory(dir).createSync();
-      }
+      var appRoot = p.join(sandboxDir, appPath);
 
-      var pathLength = (_componentMax + 1) * _depth;
-      var filesToCreate = (argMax / pathLength).ceil();
+      // We'll make the filenames as long as possible to reduce the number of
+      // files we have to create to hit the maximum. However, the tar process
+      // uses relative paths, which means we can't count the root as part of the
+      // length.
+      var lengthPerFile = _pathMax - appRoot.length;
+
+      // Create enough files to hit [argMax]. This may be a slight overestimate,
+      // since other options are passed to the tar command line, but we don't
+      // know how long those will be.
+      var filesToCreate = (argMax / lengthPerFile).ceil();
+
       for (var i = 0; i < filesToCreate; i++) {
-        var filePath = p.join(dir, "x" * _componentMax);
         var iString = i.toString();
-        filePath = filePath.substring(0, filePath.length - iString.length) +
-            iString;
 
-        new File(filePath).writeAsStringSync("");
+        // The file name contains "x"s to make the path hit [_pathMax],
+        // followed by a number to distinguish different files.
+        var fileName =
+          "x" * (_pathMax - appRoot.length - iString.length - 1) + iString;
+
+        new File(p.join(appRoot, fileName)).writeAsStringSync("");
       }
     });
 
