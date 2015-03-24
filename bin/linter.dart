@@ -50,11 +50,14 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     ..addFlag('visit-transitive-closure',
         help: 'Visit the transitive closure of imported/exported libraries.')
     ..addFlag('quiet', abbr: 'q', help: "Don't show individual lint errors.")
+    ..addFlag('machine',
+        help: 'Print results in a format suitable for parsing.',
+        defaultsTo: false,
+        negatable: false)
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addOption('package-root',
-        abbr: 'p',
-        help: 'Custom package root. (Discouraged.) Remove to use package information computed by pub.');
+        abbr: 'p', help: 'Custom package root. (Discouraged.)');
 
   var options;
   try {
@@ -114,6 +117,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,
         showStatistics: stats,
+        machineOutput: options['machine'],
         quiet: options['quiet']);
     reporter.write();
   } catch (err, stack) {

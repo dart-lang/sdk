@@ -84,7 +84,7 @@ mock_code                     1
       });
     });
 
-    group('reporter (filtered)', () {
+    group('reporter', () {
       var info = new MockAnalysisErrorInfo();
       var error = new MockAnalysisError();
       var lineInfo = new MockLineInfo();
@@ -94,6 +94,8 @@ mock_code                     1
 
       when(lineInfo.getLocation(any)).thenReturn(location);
       var code = new MockErrorCode();
+      when(code.errorSeverity).thenReturn(new MockErrorCode());
+      when(code.name).thenReturn('MockError');
       when(error.errorCode).thenReturn(code);
       var type = new MockErrorType();
       when(type.displayName).thenReturn('test');
@@ -102,29 +104,48 @@ mock_code                     1
       var source = new MockSource();
       when(source.fullName).thenReturn('/foo/bar/baz.dart');
       when(error.source).thenReturn(source);
+      when(error.length).thenReturn(13);
+      when(error.source).thenReturn(source);
 
       when(info.lineInfo).thenReturn(lineInfo);
 
       when(info.errors).thenReturn([error]);
       var out = new CollectingSink();
 
-      var reporter = new SimpleFormatter([info], new _RejectingFilter(), out,
-          fileCount: 1);
-      reporter.write();
+      group('filtered', () {
+        var reporter = new SimpleFormatter([info], new _RejectingFilter(), out,
+            fileCount: 1);
+        reporter.write();
 
-      test('error count', () {
-        expect(reporter.errorCount, equals(0));
-      });
+        test('error count', () {
+          expect(reporter.errorCount, equals(0));
+        });
 
-      test('filter count', () {
-        expect(reporter.filteredLintCount, equals(1));
-      });
+        test('filter count', () {
+          expect(reporter.filteredLintCount, equals(1));
+        });
 
-      test('write', () {
-        expect(out.buffer.toString(), equals('''
+        test('write', () {
+          expect(out.buffer.toString(), equals('''
 
 1 file analyzed, 0 issues found (1 filtered).
 '''));
+        });
+      });
+
+      group('machine-ouptut', () {
+        test('write', () {
+          out.buffer.clear();
+          var reporter = new SimpleFormatter([info], null, out,
+              fileCount: 1, machineOutput: true);
+          reporter.write();
+
+          expect(out.buffer.toString(), equals(
+              '''MockErrorCode|MockErrorType|MockError|/foo/bar/baz.dart|3|3|13|MSG
+
+1 file analyzed, 1 issue found.
+'''));
+        });
       });
     });
   });
