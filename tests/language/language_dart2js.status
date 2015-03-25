@@ -198,7 +198,6 @@ type_variable_conflict2_test/01: RuntimeError # Issue 16180
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
 sync_generator2_test/08: MissingCompileTimeError # Issue 22324
 sync_generator2_test/10: MissingCompileTimeError # Issue 22324
-await_for_cancel_test: RuntimeError # Issue 21404
 
 regress_13494_test: Fail # Issue 22370
 
