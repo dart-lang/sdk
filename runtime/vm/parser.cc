@@ -10327,15 +10327,18 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     if (name.IsNull()) {
       ReportError(left_pos, "expression is not assignable");
     }
-    result = ThrowNoSuchMethodError(
-        original->token_pos(),
-        *target_cls,
-        String::Handle(Z, Field::SetterName(name)),
-        NULL,  // No arguments.
-        InvocationMirror::kStatic,
-        original->IsLoadLocalNode() ?
-            InvocationMirror::kLocalVar : InvocationMirror::kSetter,
-        NULL);  // No existing function.
+    LetNode* let_node = new(Z) LetNode(left_pos);
+    let_node->AddInitializer(rhs);
+    let_node->AddNode(ThrowNoSuchMethodError(
+         original->token_pos(),
+         *target_cls,
+         String::Handle(Z, Field::SetterName(name)),
+         NULL,  // No arguments.
+         InvocationMirror::kStatic,
+         original->IsLoadLocalNode() ?
+         InvocationMirror::kLocalVar : InvocationMirror::kSetter,
+         NULL));  // No existing function.
+    result = let_node;
   } else if (result->IsStoreIndexedNode() ||
              result->IsInstanceSetterNode() ||
              result->IsStaticSetterNode() ||
