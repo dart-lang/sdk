@@ -657,6 +657,12 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_FunctionExpression() {
+    // BlockFunctionBody  FunctionExpression  FunctionDeclaration
+    addTestSource('main()^ { int b = 2; b++; b. }');
+    assertOpType();
+  }
+
   test_FunctionTypeAlias() {
     // SimpleIdentifier  FunctionTypeAlias  CompilationUnit
     addTestSource('typedef n^ ;');

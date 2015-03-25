@@ -320,6 +320,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitFunctionExpression(FunctionExpression node) {}
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(entity, node.returnType) ||
         identical(entity, node.name) && node.returnType == null) {
