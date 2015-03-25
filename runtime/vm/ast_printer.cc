@@ -412,9 +412,7 @@ void AstPrinter::VisitCatchClauseNode(CatchClauseNode* node) {
 void AstPrinter::VisitTryCatchNode(TryCatchNode* node) {
   ISL_Print("(%s ", node->PrettyName());
   node->try_block()->Visit(this);
-  if (node->catch_block() != NULL) {
-    node->catch_block()->Visit(this);
-  }
+  node->catch_block()->Visit(this);
   if (node->finally_block() != NULL) {
     ISL_Print("(finally ");
     node->finally_block()->Visit(this);
