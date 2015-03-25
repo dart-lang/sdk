@@ -107,7 +107,7 @@ class ResultDescriptorImplTest extends EngineTestCase {
   test_inputFor() {
     AnalysisTarget target = new TestSource();
     ResultDescriptorImpl result = new ResultDescriptorImpl('result', null);
-    TaskInput input = result.inputFor(target);
+    TaskInput input = result.of(target);
     expect(input, isNotNull);
   }
 

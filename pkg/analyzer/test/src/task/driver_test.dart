@@ -314,7 +314,7 @@ class AnalysisDriverTest extends EngineTestCase {
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': inputResult.inputFor(target)},
+        (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);
     driver.currentWorkOrder =
         new WorkOrder(manager, new WorkItem(null, null, descriptor));
@@ -387,7 +387,7 @@ class WorkItemTest extends EngineTestCase {
         <ResultDescriptor>[new ResultDescriptor('output', null)];
     TaskDescriptor descriptor = new TaskDescriptor('task', (context, target) =>
             new TestAnalysisTask(context, target, results: outputResults),
-        (target) => {'one': inputResult.inputFor(target)}, outputResults);
+        (target) => {'one': inputResult.of(target)}, outputResults);
     WorkItem item = new WorkItem(context, target, descriptor);
     expect(() => item.buildTask(), throwsStateError);
   }
@@ -428,7 +428,7 @@ class WorkItemTest extends EngineTestCase {
         (target) => {}, [resultA]);
     TaskDescriptor task2 = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': resultA.inputFor(target)}, [resultB]);
+        (target) => {'one': resultA.of(target)}, [resultB]);
     manager.addTaskDescriptor(task1);
     manager.addTaskDescriptor(task2);
     WorkItem item = new WorkItem(context, target, task2);
@@ -442,7 +442,7 @@ class WorkItemTest extends EngineTestCase {
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': inputResult.inputFor(target)},
+        (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);
     WorkItem item = new WorkItem(context, target, descriptor);
     WorkItem result = item.gatherInputs(manager);

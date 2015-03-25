@@ -39,9 +39,8 @@ final CompositeResultDescriptor<List<AnalysisError>> DART_ERRORS =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<Source>> EXPORTED_LIBRARIES =
-    new ResultDescriptor<List<Source>>(
-        'EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
+    new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
  * A flag specifying whether a library imports 'dart:html'.
@@ -60,9 +59,8 @@ final ResultDescriptor<bool> HAS_HTML_IMPORT =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<Source>> IMPORTED_LIBRARIES =
-    new ResultDescriptor<List<Source>>(
-        'IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+final ListResultDescriptor<Source> IMPORTED_LIBRARIES =
+    new ListResultDescriptor<Source>('IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
  * The sources of the parts that are included in a library.
@@ -72,8 +70,8 @@ final ResultDescriptor<List<Source>> IMPORTED_LIBRARIES =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<Source>> INCLUDED_PARTS =
-    new ResultDescriptor<List<Source>>('INCLUDED_PARTS', Source.EMPTY_ARRAY);
+final ListResultDescriptor<Source> INCLUDED_PARTS =
+    new ListResultDescriptor<Source>('INCLUDED_PARTS', Source.EMPTY_ARRAY);
 
 /**
  * A flag specifying whether a library is launchable.

@@ -32,6 +32,25 @@ class CompositeResultDescriptorImpl<V> extends ResultDescriptorImpl<V>
 }
 
 /**
+ * A concrete implementation of a [ListResultDescriptor].
+ */
+class ListResultDescriptorImpl<E> extends ResultDescriptorImpl<List<E>>
+    implements ListResultDescriptor<E> {
+  /**
+   * Initialize a newly created analysis result to have the given [name] and
+   * [defaultValue]. If a composite result is specified, then this result will
+   * contribute to it.
+   */
+  ListResultDescriptorImpl(String name, List<E> defaultValue,
+      {CompositeResultDescriptor contributesTo})
+      : super(name, defaultValue, contributesTo: contributesTo);
+
+  @override
+  ListTaskInput<E> of(AnalysisTarget target) =>
+      new ListTaskInputImpl<E>(target, this);
+}
+
+/**
  * A concrete implementation of a [ResultDescriptor].
  */
 class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
@@ -58,7 +77,7 @@ class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
   }
 
   @override
-  TaskInput<V> inputFor(AnalysisTarget target) =>
+  TaskInput<V> of(AnalysisTarget target) =>
       new SimpleTaskInput<V>(target, this);
 
   @override

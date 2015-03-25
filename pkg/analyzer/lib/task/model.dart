@@ -27,6 +27,13 @@ typedef AnalysisTask BuildTask(AnalysisContext context, AnalysisTarget target);
 typedef Map<String, TaskInput> CreateTaskInputs(AnalysisTarget target);
 
 /**
+ * A function that converts an object of the type [B] into a [TaskInput].
+ * This is used, for example, by a [ListTaskInput] to create task inputs
+ * for each value in a list of values.
+ */
+typedef TaskInput<E> UnaryFunction<B, E>(B object);
+
+/**
  * An [AnalysisTarget] wrapper for an [AnalysisContext].
  */
 class AnalysisContextTarget implements AnalysisTarget {
@@ -244,6 +251,60 @@ abstract class CompositeResultDescriptor<V> extends ResultDescriptor<V> {
 }
 
 /**
+ * A description of a [List]-based analysis result that can be computed by an
+ * [AnalysisTask].
+ *
+ * Clients are not expected to subtype this class.
+ */
+abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
+  /**
+   * Initialize a newly created analysis result to have the given [name]. If a
+   * composite result is specified, then this result will contribute to it.
+   */
+  factory ListResultDescriptor(String name, List<E> defaultValue,
+      {CompositeResultDescriptor<List<E>> contributesTo}) = ListResultDescriptorImpl<E>;
+
+  @override
+  ListTaskInput<E> of(AnalysisTarget target);
+}
+
+/**
+ * A description of an input to an [AnalysisTask] that can be used to compute
+ * that input.
+ *
+ * Clients are not expected to subtype this class.
+ */
+abstract class ListTaskInput<E> extends TaskInput<List<E>> {
+  /**
+   * Return a task input that can be used to compute a list whose elements are
+   * the result of passing the elements of this input to the [mapper] function.
+   */
+  TaskInput<List /*<V>*/ > toList(UnaryFunction<E, dynamic /*<V>*/ > mapper);
+
+  /**
+   * Return a task input that can be used to compute a list whose elements are
+   * [valueResult]'s associated with those elements.
+   */
+  TaskInput<List /*<V>*/ > toListOf(ResultDescriptor /*<V>*/ valueResult);
+
+  /**
+   * Return a task input that can be used to compute a map whose keys are the
+   * elements of this input and whose values are the result of passing the
+   * corresponding key to the [mapper] function.
+   */
+  TaskInput<Map<E, dynamic /*V*/ >> toMap(
+      UnaryFunction<E, dynamic /*<V>*/ > mapper);
+
+  /**
+   * Return a task input that can be used to compute a map whose keys are the
+   * elements of this input and whose values are the [valueResult]'s associated
+   * with those elements.
+   */
+  TaskInput<Map<AnalysisTarget, dynamic /*V*/ >> toMapOf(
+      ResultDescriptor /*<V>*/ valueResult);
+}
+
+/**
  * A description of an analysis result that can be computed by an [AnalysisTask].
  *
  * Clients are not expected to subtype this class.
@@ -270,7 +331,7 @@ abstract class ResultDescriptor<V> {
    * Return a task input that can be used to compute this result for the given
    * [target].
    */
-  TaskInput<V> inputFor(AnalysisTarget target);
+  TaskInput<V> of(AnalysisTarget target);
 }
 
 /**

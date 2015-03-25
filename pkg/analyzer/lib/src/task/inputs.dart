@@ -16,6 +16,42 @@ import 'package:analyzer/task/model.dart';
 typedef TaskInput<E> GenerateTaskInputs<B, E>(B object);
 
 /**
+ * An input to an [AnalysisTask] that is computed by accessing a single result
+ * defined on a single target.
+ */
+class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
+    implements ListTaskInput<E> {
+  /**
+   * Initialize a newly created task input that computes the input by accessing
+   * the given [result] associated with the given [target].
+   */
+  ListTaskInputImpl(AnalysisTarget target, ResultDescriptor<List<E>> result)
+      : super(target, result);
+
+  @override
+  TaskInput<List /*<V>*/ > toList(UnaryFunction<E, dynamic /*<V>*/ > mapper) {
+    return new ListToListTaskInput<E, dynamic /*V*/ >(this, mapper);
+  }
+
+  @override
+  TaskInput<List /*<V>*/ > toListOf(ResultDescriptor /*<V>*/ valueResult) {
+    return (this as ListTaskInputImpl<AnalysisTarget>).toList(valueResult.of);
+  }
+
+  @override
+  TaskInput<Map<E, dynamic /*V*/ >> toMap(
+      UnaryFunction<E, dynamic /*<V>*/ > mapper) {
+    return new ListToMapTaskInput<E, dynamic /*V*/ >(this, mapper);
+  }
+
+  @override
+  TaskInput<Map<AnalysisTarget, dynamic /*V*/ >> toMapOf(
+      ResultDescriptor /*<V>*/ valueResult) {
+    return (this as ListTaskInputImpl<AnalysisTarget>).toMap(valueResult.of);
+  }
+}
+
+/**
  * An input to an [AnalysisTask] that is computed by the following steps. First
  * another (base) task input is used to compute a [List]-valued result. An input
  * generator function is then used to map each element of that list to a task
