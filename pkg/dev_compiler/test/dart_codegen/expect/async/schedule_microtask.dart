@@ -30,19 +30,19 @@ _isInCallbackLoop = true;
 }
  void _scheduleAsyncCallback(callback) {
 if (_nextCallback == null) {
-  _nextCallback = _lastCallback = new _AsyncCallbackEntry(DEVC$RT.cast(callback, dynamic, __t28, "CastGeneral", """line 66, column 61 of dart:async/schedule_microtask.dart: """, callback is __t28, false));
+  _nextCallback = _lastCallback = new _AsyncCallbackEntry(DEVC$RT.cast(callback, dynamic, __t28, "CompositeCast", """line 66, column 61 of dart:async/schedule_microtask.dart: """, callback is __t28, false));
    if (!_isInCallbackLoop) {
     _AsyncRun._scheduleImmediate(_asyncRunCallback);
     }
   }
  else {
-  _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(DEVC$RT.cast(callback, dynamic, __t28, "CastGeneral", """line 71, column 60 of dart:async/schedule_microtask.dart: """, callback is __t28, false));
+  _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(DEVC$RT.cast(callback, dynamic, __t28, "CompositeCast", """line 71, column 60 of dart:async/schedule_microtask.dart: """, callback is __t28, false));
    _lastCallback.next = newEntry;
    _lastCallback = newEntry;
   }
 }
  void _schedulePriorityAsyncCallback(callback) {
-_AsyncCallbackEntry entry = new _AsyncCallbackEntry(DEVC$RT.cast(callback, dynamic, __t28, "CastGeneral", """line 84, column 55 of dart:async/schedule_microtask.dart: """, callback is __t28, false));
+_AsyncCallbackEntry entry = new _AsyncCallbackEntry(DEVC$RT.cast(callback, dynamic, __t28, "CompositeCast", """line 84, column 55 of dart:async/schedule_microtask.dart: """, callback is __t28, false));
  if (_nextCallback == null) {
   _scheduleAsyncCallback(callback);
    _lastPriorityCallback = _lastCallback;

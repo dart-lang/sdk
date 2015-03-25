@@ -76,7 +76,7 @@ Queue<E> list = ((__x17) => DEVC$RT.cast(__x17, DEVC$RT.type((DoubleLinkedQueue<
 }
 ), DEVC$RT.type((Queue<E> _) {
 }
-), "CastExact", """line 207, column 21 of dart:collection/queue.dart: """, __x17 is Queue<E>, false))(new DoubleLinkedQueue());
+), "InferableAllocation", """line 207, column 21 of dart:collection/queue.dart: """, __x17 is Queue<E>, false))(new DoubleLinkedQueue());
  for (final E e in elements) {
 list.addLast(e);
 }
@@ -84,7 +84,7 @@ list.addLast(e);
 }
 ), DEVC$RT.type((DoubleLinkedQueue<E> _) {
 }
-), "CastGeneral", """line 211, column 12 of dart:collection/queue.dart: """, list is DoubleLinkedQueue<E>, false);
+), "CompositeCast", """line 211, column 12 of dart:collection/queue.dart: """, list is DoubleLinkedQueue<E>, false);
 }
  int get length => _elementCount;
  void addLast(E value) {
@@ -220,13 +220,13 @@ int length = elements.length;
 }
 ), DEVC$RT.type((ListQueue<E> _) {
 }
-), "CastExact", """line 399, column 28 of dart:collection/queue.dart: """, __x18 is ListQueue<E>, false))(new ListQueue(length + 1));
+), "InferableAllocation", """line 399, column 28 of dart:collection/queue.dart: """, __x18 is ListQueue<E>, false))(new ListQueue(length + 1));
  assert (queue._table.length > length); List sourceList = elements;
  queue._table.setRange(0, length, DEVC$RT.cast(sourceList, DEVC$RT.type((List<dynamic> _) {
 }
 ), DEVC$RT.type((Iterable<E> _) {
 }
-), "CastDynamic", """line 402, column 40 of dart:collection/queue.dart: """, sourceList is Iterable<E>, false), 0);
+), "CompositeCast", """line 402, column 40 of dart:collection/queue.dart: """, sourceList is Iterable<E>, false), 0);
  queue._tail = length;
  return queue;
 }
@@ -291,7 +291,7 @@ List list = DEVC$RT.cast(elements, DEVC$RT.type((Iterable<E> _) {
 }
 ), DEVC$RT.type((List<dynamic> _) {
 }
-), "CastGeneral", """line 474, column 19 of dart:collection/queue.dart: """, elements is List<dynamic>, true);
+), "AssignmentCast", """line 474, column 19 of dart:collection/queue.dart: """, elements is List<dynamic>, true);
  int addCount = list.length;
  int length = this.length;
  if (length + addCount >= _table.length) {
@@ -300,7 +300,7 @@ _preGrow(length + addCount);
 }
 ), DEVC$RT.type((Iterable<E> _) {
 }
-), "CastDynamic", """line 480, column 52 of dart:collection/queue.dart: """, list is Iterable<E>, false), 0);
+), "CompositeCast", """line 480, column 52 of dart:collection/queue.dart: """, list is Iterable<E>, false), 0);
  _tail += addCount;
 }
  else {
@@ -310,7 +310,7 @@ _table.setRange(_tail, _tail + addCount, DEVC$RT.cast(list, DEVC$RT.type((List<d
 }
 ), DEVC$RT.type((Iterable<E> _) {
 }
-), "CastDynamic", """line 486, column 52 of dart:collection/queue.dart: """, list is Iterable<E>, false), 0);
+), "CompositeCast", """line 486, column 52 of dart:collection/queue.dart: """, list is Iterable<E>, false), 0);
  _tail += addCount;
 }
  else {
@@ -319,12 +319,12 @@ int preSpace = addCount - endSpace;
 }
 ), DEVC$RT.type((Iterable<E> _) {
 }
-), "CastDynamic", """line 490, column 52 of dart:collection/queue.dart: """, list is Iterable<E>, false), 0);
+), "CompositeCast", """line 490, column 52 of dart:collection/queue.dart: """, list is Iterable<E>, false), 0);
  _table.setRange(0, preSpace, DEVC$RT.cast(list, DEVC$RT.type((List<dynamic> _) {
 }
 ), DEVC$RT.type((Iterable<E> _) {
 }
-), "CastDynamic", """line 491, column 40 of dart:collection/queue.dart: """, list is Iterable<E>, false), endSpace);
+), "CompositeCast", """line 491, column 40 of dart:collection/queue.dart: """, list is Iterable<E>, false), endSpace);
  _tail = preSpace;
 }
 }
@@ -494,7 +494,7 @@ _queue._checkModification(_modificationCount);
 _current = null;
  return false;
 }
- _current = ((__x19) => DEVC$RT.cast(__x19, dynamic, E, "CastGeneral", """line 738, column 16 of dart:collection/queue.dart: """, __x19 is E, false))(_queue._table[_position]);
+ _current = ((__x19) => DEVC$RT.cast(__x19, dynamic, E, "CompositeCast", """line 738, column 16 of dart:collection/queue.dart: """, __x19 is E, false))(_queue._table[_position]);
  _position = (_position + 1) & (_queue._table.length - 1);
  return true;
 }

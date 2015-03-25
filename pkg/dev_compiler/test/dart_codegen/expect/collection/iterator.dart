@@ -11,7 +11,7 @@ part of dart.collection;
   }
  E next() {
   if (!hasNext) throw new StateError("No more elements");
-   assert (_state == _HAS_NEXT_AND_NEXT_IN_CURRENT); E result = DEVC$RT.cast(_iterator.current, dynamic, E, "CastGeneral", """line 33, column 16 of dart:collection/iterator.dart: """, _iterator.current is E, false);
+   assert (_state == _HAS_NEXT_AND_NEXT_IN_CURRENT); E result = DEVC$RT.cast(_iterator.current, dynamic, E, "CompositeCast", """line 33, column 16 of dart:collection/iterator.dart: """, _iterator.current is E, false);
    _move();
    return result;
   }

@@ -76,10 +76,13 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   static String _conversionKind(Conversion node) {
     if (node is ClosureWrapLiteral) return "WrapLiteral";
     if (node is ClosureWrap) return "Wrap";
-    if (node is DownCastDynamic) return "CastDynamic";
-    if (node is DownCastLiteral) return "CastLiteral";
-    if (node is DownCastExact) return "CastExact";
-    if (node is DownCast) return "CastGeneral";
+    if (node is DynamicCast) return "DynamicCast";
+    if (node is AssignmentCast) return "AssignmentCast";
+    if (node is InferableLiteral) return "InferableLiteral";
+    if (node is InferableClosure) return "InferableClosure";
+    if (node is InferableAllocation) return "InferableAllocation";
+    if (node is DownCastComposite) return "CompositeCast";
+    if (node is DownCastImplicit) return "ImplicitCast";
     assert(false);
     return "";
   }
@@ -98,7 +101,7 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   }
 
   @override
-  Object visitDownCastBase(DownCastBase node) {
+  Object visitDownCast(DownCast node) {
     if (_skipCoercions) {
       _log.severe("Skipping runtime downcast in constant context");
       return null;

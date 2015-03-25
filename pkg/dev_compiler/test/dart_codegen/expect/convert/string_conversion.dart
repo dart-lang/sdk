@@ -46,14 +46,14 @@ if (_buffer.isNotEmpty) _flush();
  Iterator iterator = objects.iterator;
  if (!iterator.moveNext()) return; if (separator.isEmpty) {
 do {
-_chunkedSink.add(((__x28) => DEVC$RT.cast(__x28, dynamic, String, "CastGeneral", """line 147, column 26 of dart:convert/string_conversion.dart: """, __x28 is String, true))(iterator.current.toString()));
+_chunkedSink.add(((__x28) => DEVC$RT.cast(__x28, dynamic, String, "DynamicCast", """line 147, column 26 of dart:convert/string_conversion.dart: """, __x28 is String, true))(iterator.current.toString()));
 }
  while (iterator.moveNext());}
  else {
-_chunkedSink.add(((__x29) => DEVC$RT.cast(__x29, dynamic, String, "CastGeneral", """line 150, column 24 of dart:convert/string_conversion.dart: """, __x29 is String, true))(iterator.current.toString()));
+_chunkedSink.add(((__x29) => DEVC$RT.cast(__x29, dynamic, String, "DynamicCast", """line 150, column 24 of dart:convert/string_conversion.dart: """, __x29 is String, true))(iterator.current.toString()));
  while (iterator.moveNext()) {
 write(separator);
- _chunkedSink.add(((__x30) => DEVC$RT.cast(__x30, dynamic, String, "CastGeneral", """line 153, column 26 of dart:convert/string_conversion.dart: """, __x30 is String, true))(iterator.current.toString()));
+ _chunkedSink.add(((__x30) => DEVC$RT.cast(__x30, dynamic, String, "DynamicCast", """line 153, column 26 of dart:convert/string_conversion.dart: """, __x30 is String, true))(iterator.current.toString()));
 }
 }
 }
@@ -100,7 +100,7 @@ return new ClosableStringSink.fromStringSink(_stringSink, this.close);
  class _StringCallbackSink extends _StringSinkConversionSink {final _ChunkedConversionCallback<String> _callback;
  _StringCallbackSink(this._callback) : super(new StringBuffer());
  void close() {
-StringBuffer buffer = DEVC$RT.cast(_stringSink, StringSink, StringBuffer, "CastGeneral", """line 233, column 27 of dart:convert/string_conversion.dart: """, _stringSink is StringBuffer, true);
+StringBuffer buffer = DEVC$RT.cast(_stringSink, StringSink, StringBuffer, "AssignmentCast", """line 233, column 27 of dart:convert/string_conversion.dart: """, _stringSink is StringBuffer, true);
  String accumulated = buffer.toString();
  buffer.clear();
  _callback(accumulated);

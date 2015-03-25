@@ -39,13 +39,13 @@ if (sink is! ByteConversionSink) {
   }
  return new _Utf8EncoderSink(DEVC$RT.cast(sink, DEVC$RT.type((Sink<List<int>> _) {
   }
-), ByteConversionSink, "CastGeneral", """line 125, column 33 of dart:convert/utf.dart: """, sink is ByteConversionSink, true));
+), ByteConversionSink, "ImplicitCast", """line 125, column 33 of dart:convert/utf.dart: """, sink is ByteConversionSink, true));
 }
  Stream<List<int>> bind(Stream<String> stream) => ((__x31) => DEVC$RT.cast(__x31, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
 }
 ), DEVC$RT.type((DDC$async$.Stream<List<int>> _) {
 }
-), "CastDynamic", """line 129, column 52 of dart:convert/utf.dart: """, __x31 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
+), "CompositeCast", """line 129, column 52 of dart:convert/utf.dart: """, __x31 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
 }
  class _Utf8Encoder {int _carry = 0;
  int _bufferIndex = 0;
@@ -174,7 +174,7 @@ stringSink = new StringConversionSink.from(sink);
 }
 ), DEVC$RT.type((DDC$async$.Stream<String> _) {
 }
-), "CastDynamic", """line 361, column 52 of dart:convert/utf.dart: """, __x32 is DDC$async$.Stream<String>, false))(super.bind(stream));
+), "CompositeCast", """line 361, column 52 of dart:convert/utf.dart: """, __x32 is DDC$async$.Stream<String>, false))(super.bind(stream));
  external Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next);
 }
  const int _ONE_BYTE_LIMIT = 0x7f;

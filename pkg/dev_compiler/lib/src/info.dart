@@ -190,12 +190,11 @@ abstract class Conversion extends Expression with StaticInfo {
   Iterable get childEntities => new ChildEntities()..add(expression);
 }
 
-// A down cast from a subtype to a supertype.  This must be checked at
-// runtime to recover soundness.
-abstract class DownCastBase extends Conversion {
+// Base class for all casts from base type to sub type.
+abstract class DownCast extends Conversion {
   Cast _cast;
 
-  DownCastBase._internal(TypeRules rules, Expression expression, this._cast)
+  DownCast._internal(TypeRules rules, Expression expression, this._cast)
       : super(rules, expression) {
     assert(_cast.toType != baseType &&
         _cast.fromType == baseType &&
@@ -212,28 +211,8 @@ abstract class DownCastBase extends Conversion {
   String get message => '$expression ($baseType) will need runtime check '
       'to cast to type $convertedType';
 
-  // Differentiate between Function down cast and non-Function down cast?  The
-  // former seems less likely to actually succeed.
-  Level get level =>
-      (_cast.toType is FunctionType) ? Level.WARNING : super.level;
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitDownCastBase(this);
-    } else {
-      return expression.accept(visitor);
-    }
-  }
-}
-
-// Standard / unspecialized down cast.
-class DownCast extends DownCastBase {
-  DownCast(TypeRules rules, Expression expression, Cast cast)
-      : super._internal(rules, expression, cast);
-
   // Factory to create correct DownCast variant.
-  static DownCastBase create(
-      TypeRules rules, Expression expression, Cast cast) {
+  static StaticInfo create(TypeRules rules, Expression expression, Cast cast) {
     final fromT = cast.fromType;
     final toT = cast.toType;
 
@@ -242,54 +221,147 @@ class DownCast extends DownCastBase {
     // types, but the function type is not assignable to the class
     assert(toT.isSubtypeOf(fromT) || fromT.isAssignableTo(toT));
 
-    // Specialized casts:
+    // Handle null call specially.
+    if (expression is NullLiteral) {
+      if (rules.isNonNullableType(toT)) {
+        return new StaticTypeError(rules, expression, toT);
+      } else {
+        // We should only get here if some coercion is required.
+        assert(rules.maybeNonNullableType(toT));
+        // TODO(vsm): Create a NullCast for this once we revisit nonnullability.
+        return new DownCastImplicit(rules, expression, cast);
+      }
+    }
+
+    // Inference "casts":
     if (expression is Literal) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new DownCastLiteral(rules, expression, cast);
+      return new InferableLiteral(rules, expression, cast);
+    }
+    if (expression is FunctionExpression) {
+      // fromT should be an exact type - this will almost certainly fail at
+      // runtime.
+      return new InferableClosure(rules, expression, cast);
     }
     if (expression is InstanceCreationExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new DownCastExact(rules, expression, cast);
+      return new InferableAllocation(rules, expression, cast);
     }
-    if (fromT.isSubtypeOf(toT) && !fromT.isDynamic) {
+
+    // Composite cast: these are more likely to fail.
+    if (!rules.isGroundType(toT)) {
       // This cast is (probably) due to our different treatment of dynamic.
       // It may be more likely to fail at runtime.
-      return new DownCastDynamic(rules, expression, cast);
+      return new DownCastComposite(rules, expression, cast);
     }
-    return new DownCast(rules, expression, cast);
+
+    // Dynamic cast
+    if (fromT.isDynamic) {
+      return new DynamicCast(rules, expression, cast);
+    }
+
+    // Assignment cast
+    var parent = expression.parent;
+    if (parent is VariableDeclaration && (parent.initializer == expression)) {
+      return new AssignmentCast(rules, expression, cast);
+    }
+
+    // Other casts
+    return new DownCastImplicit(rules, expression, cast);
+  }
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitDownCast(this);
+    } else {
+      return expression.accept(visitor);
+    }
   }
 }
 
-// A down cast that would be "unnecessary" with standard Dart rules.
-// E.g., the fromType <: toType in standard Dart but not in our restricted
-// rules.  These occur due to our stricter rules on dynamic type parameters in
-// generics.
-class DownCastDynamic extends DownCastBase {
-  DownCastDynamic(TypeRules rules, Expression expression, Cast cast)
+//
+// Standard down casts.  These casts are implicitly injected by the compiler.
+//
+
+// A down cast from dynamic to T.
+class DynamicCast extends DownCast {
+  DynamicCast(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
+
+  final Level level = Level.INFO;
+}
+
+// A down cast due to a variable declaration to a ground type.  E.g.,
+//   T x = expr;
+// where T is ground.  We exclude non-ground types as these behave differently
+// compared to standard Dart.
+class AssignmentCast extends DownCast {
+  AssignmentCast(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
+
+  final Level level = Level.INFO;
+}
+
+//
+// Temporary "casts" of allocation sites - literals, constructor invocations,
+// and closures.  These should be handled by contextual inference.  In most
+// cases, inference will be sufficient, though in some it may unmask an actual
+// error: e.g.,
+//   List<int> l = [1, 2, 3]; // Inference succeeds
+//   List<String> l = [1, 2, 3]; // Inference reveals static type error
+// We're marking all as warnings for now.
+//
+
+// A "down cast" on a literal expression.
+class InferableLiteral extends DownCast {
+  InferableLiteral(TypeRules rules, Literal expression, Cast cast)
       : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
 }
 
-// A down cast on a literal expression.  This should never succeed.
-// TODO(vsm): Mark as severe / error?
-class DownCastLiteral extends DownCastBase {
-  DownCastLiteral(TypeRules rules, Expression expression, Cast cast)
+// A "down cast" on a closure literal.
+class InferableClosure extends DownCast {
+  InferableClosure(TypeRules rules, FunctionExpression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
 }
 
-// A down cast on a non-literal allocation site.  This should never succeed.
-// TODO(vsm): Mark as severe / error?
-class DownCastExact extends DownCastBase {
-  DownCastExact(TypeRules rules, Expression expression, Cast cast)
+// A "down cast" on a non-literal allocation site.
+class InferableAllocation extends DownCast {
+  InferableAllocation(
+      TypeRules rules, InstanceCreationExpression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
 }
+
+//
+// Implicit down casts.  These are only injected by the compiler by flag.
+//
+
+// A down cast to a non-ground type.  These behave differently from standard
+// Dart and may be more likely to fail at runtime.
+class DownCastComposite extends DownCast {
+  DownCastComposite(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
+
+  final Level level = Level.WARNING;
+}
+
+// A down cast to a non-ground type.  These behave differently from standard
+// Dart and may be more likely to fail at runtime.
+class DownCastImplicit extends DownCast {
+  DownCastImplicit(TypeRules rules, Expression expression, Cast cast)
+      : super._internal(rules, expression, cast);
+
+  final Level level = Level.WARNING;
+}
+
+// TODO(vsm): Remove these.
 
 // A wrapped closure coerces the underlying type to the desired type.
 class ClosureWrapBase extends Conversion {
@@ -581,10 +653,7 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
   R visitConversion(Conversion node) => visitNode(node);
 
   // Methods for conversion subtypes:
-  R visitDownCastBase(DownCastBase node) => visitConversion(node);
-  R visitDownCast(DownCast node) => visitDownCastBase(node);
-  R visitDownCastDynamic(DownCastDynamic node) => visitDownCastBase(node);
-  R visitDownCastExact(DownCastExact node) => visitDownCastBase(node);
+  R visitDownCast(DownCast node) => visitConversion(node);
   R visitClosureWrapBase(ClosureWrapBase node) => visitConversion(node);
   R visitClosureWrap(ClosureWrap node) => visitClosureWrapBase(node);
   R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);

@@ -58,14 +58,14 @@ future._completeError(error, stackTrace);
  bool get hasErrorTest => (state == STATE_CATCHERROR_TEST);
  bool get handlesComplete => (state == STATE_WHENCOMPLETE);
  _FutureOnValue get _onValue {
-assert (handlesValue); return DEVC$RT.cast(callback, Function, __t14, "CastGeneral", """line 112, column 12 of dart:async/future_impl.dart: """, callback is __t14, true);
+assert (handlesValue); return DEVC$RT.cast(callback, Function, __t14, "ImplicitCast", """line 112, column 12 of dart:async/future_impl.dart: """, callback is __t14, true);
 }
  Function get _onError => errorCallback;
  _FutureErrorTest get _errorTest {
-assert (hasErrorTest); return DEVC$RT.cast(callback, Function, __t16, "CastGeneral", """line 117, column 12 of dart:async/future_impl.dart: """, callback is __t16, false);
+assert (hasErrorTest); return DEVC$RT.cast(callback, Function, __t16, "CompositeCast", """line 117, column 12 of dart:async/future_impl.dart: """, callback is __t16, false);
 }
  _FutureAction get _whenCompleteAction {
-assert (handlesComplete); return DEVC$RT.cast(callback, Function, __t18, "CastGeneral", """line 121, column 12 of dart:async/future_impl.dart: """, callback is __t18, true);
+assert (handlesComplete); return DEVC$RT.cast(callback, Function, __t18, "ImplicitCast", """line 121, column 12 of dart:async/future_impl.dart: """, callback is __t18, true);
 }
 }
  class _Future<T> implements Future<T> {static const int _INCOMPLETE = 0;
@@ -140,22 +140,22 @@ action = result._zone.registerCallback(action);
 }
 ), DEVC$RT.type((Future<T> _) {
 }
-), "CastDynamic", """line 233, column 12 of dart:async/future_impl.dart: """, result is Future<T>, false);
+), "CompositeCast", """line 233, column 12 of dart:async/future_impl.dart: """, result is Future<T>, false);
 }
  Stream<T> asStream() => ((__x26) => DEVC$RT.cast(__x26, DEVC$RT.type((Stream<dynamic> _) {
 }
 ), DEVC$RT.type((Stream<T> _) {
 }
-), "CastExact", """line 236, column 27 of dart:async/future_impl.dart: """, __x26 is Stream<T>, false))(new Stream.fromFuture(this));
+), "InferableAllocation", """line 236, column 27 of dart:async/future_impl.dart: """, __x26 is Stream<T>, false))(new Stream.fromFuture(this));
  void _markPendingCompletion() {
 if (!_mayComplete) throw new StateError("Future already completed");
  _state = _PENDING_COMPLETE;
 }
  T get _value {
-assert (_isComplete && _hasValue); return DEVC$RT.cast(_resultOrListeners, dynamic, T, "CastGeneral", """line 245, column 12 of dart:async/future_impl.dart: """, _resultOrListeners is T, false);
+assert (_isComplete && _hasValue); return DEVC$RT.cast(_resultOrListeners, dynamic, T, "CompositeCast", """line 245, column 12 of dart:async/future_impl.dart: """, _resultOrListeners is T, false);
 }
  AsyncError get _error {
-assert (_isComplete && _hasError); return DEVC$RT.cast(_resultOrListeners, dynamic, AsyncError, "CastGeneral", """line 250, column 12 of dart:async/future_impl.dart: """, _resultOrListeners is AsyncError, true);
+assert (_isComplete && _hasError); return DEVC$RT.cast(_resultOrListeners, dynamic, AsyncError, "DynamicCast", """line 250, column 12 of dart:async/future_impl.dart: """, _resultOrListeners is AsyncError, true);
 }
  void _setValue(T value) {
 assert (!_isComplete); _state = _VALUE;
@@ -176,12 +176,12 @@ _propagateToListeners(this, listener);
 );
 }
  else {
-listener._nextListener = DEVC$RT.cast(_resultOrListeners, dynamic, _FutureListener, "CastGeneral", """line 277, column 32 of dart:async/future_impl.dart: """, _resultOrListeners is _FutureListener, true);
+listener._nextListener = DEVC$RT.cast(_resultOrListeners, dynamic, _FutureListener, "DynamicCast", """line 277, column 32 of dart:async/future_impl.dart: """, _resultOrListeners is _FutureListener, true);
  _resultOrListeners = listener;
 }
 }
  _FutureListener _removeListeners() {
-assert (!_isComplete); _FutureListener current = DEVC$RT.cast(_resultOrListeners, dynamic, _FutureListener, "CastGeneral", """line 286, column 31 of dart:async/future_impl.dart: """, _resultOrListeners is _FutureListener, true);
+assert (!_isComplete); _FutureListener current = DEVC$RT.cast(_resultOrListeners, dynamic, _FutureListener, "DynamicCast", """line 286, column 31 of dart:async/future_impl.dart: """, _resultOrListeners is _FutureListener, true);
  _resultOrListeners = null;
  _FutureListener prev = null;
  while (current != null) {
@@ -198,7 +198,7 @@ assert (!target._isComplete); assert (source is! _Future); target._isChained = t
 assert (target._isChained); target._completeWithValue(value);
 }
 , onError: (error, [stackTrace]) {
-assert (target._isChained); target._completeError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 317, column 38 of dart:async/future_impl.dart: """, stackTrace is StackTrace, true));
+assert (target._isChained); target._completeError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 317, column 38 of dart:async/future_impl.dart: """, stackTrace is StackTrace, true));
 }
 );
 }
@@ -217,23 +217,23 @@ assert (!_isComplete); if (value is Future) {
 if (value is _Future) {
 _chainCoreFuture(DEVC$RT.cast(value, dynamic, DEVC$RT.type((_Future<dynamic> _) {
 }
-), "CastGeneral", """line 341, column 26 of dart:async/future_impl.dart: """, value is _Future<dynamic>, true), this);
+), "DynamicCast", """line 341, column 26 of dart:async/future_impl.dart: """, value is _Future<dynamic>, true), this);
 }
  else {
 _chainForeignFuture(DEVC$RT.cast(value, dynamic, DEVC$RT.type((Future<dynamic> _) {
 }
-), "CastGeneral", """line 343, column 29 of dart:async/future_impl.dart: """, value is Future<dynamic>, true), this);
+), "DynamicCast", """line 343, column 29 of dart:async/future_impl.dart: """, value is Future<dynamic>, true), this);
 }
 }
  else {
 _FutureListener listeners = _removeListeners();
- _setValue(DEVC$RT.cast(value, dynamic, T, "CastGeneral", """line 347, column 17 of dart:async/future_impl.dart: """, value is T, false));
+ _setValue(DEVC$RT.cast(value, dynamic, T, "CompositeCast", """line 347, column 17 of dart:async/future_impl.dart: """, value is T, false));
  _propagateToListeners(this, listeners);
 }
 }
  void _completeWithValue(value) {
 assert (!_isComplete); assert (value is! Future); _FutureListener listeners = _removeListeners();
- _setValue(DEVC$RT.cast(value, dynamic, T, "CastGeneral", """line 357, column 15 of dart:async/future_impl.dart: """, value is T, false));
+ _setValue(DEVC$RT.cast(value, dynamic, T, "CompositeCast", """line 357, column 15 of dart:async/future_impl.dart: """, value is T, false));
  _propagateToListeners(this, listeners);
 }
  void _completeError(error, [StackTrace stackTrace]) {
@@ -247,13 +247,13 @@ assert (!_isComplete); if (value == null) {
  else if (value is Future) {
 Future<T> typedFuture = DEVC$RT.cast(value, dynamic, DEVC$RT.type((Future<T> _) {
 }
-), "CastGeneral", """line 386, column 31 of dart:async/future_impl.dart: """, value is Future<T>, false);
+), "CompositeCast", """line 386, column 31 of dart:async/future_impl.dart: """, value is Future<T>, false);
  if (typedFuture is _Future) {
 _Future<T> coreFuture = DEVC$RT.cast(typedFuture, DEVC$RT.type((Future<T> _) {
 }
 ), DEVC$RT.type((_Future<T> _) {
 }
-), "CastGeneral", """line 388, column 33 of dart:async/future_impl.dart: """, typedFuture is _Future<T>, false);
+), "CompositeCast", """line 388, column 33 of dart:async/future_impl.dart: """, typedFuture is _Future<T>, false);
  if (coreFuture._isComplete && coreFuture._hasError) {
 _markPendingCompletion();
  _zone.scheduleMicrotask(() {
@@ -270,7 +270,7 @@ _chainForeignFuture(typedFuture, this);
 }
  return;}
  else {
-T typedValue = DEVC$RT.cast(value, dynamic, T, "CastGeneral", """line 407, column 22 of dart:async/future_impl.dart: """, value is T, false);
+T typedValue = DEVC$RT.cast(value, dynamic, T, "CompositeCast", """line 407, column 22 of dart:async/future_impl.dart: """, value is T, false);
 }
  _markPendingCompletion();
  _zone.scheduleMicrotask(() {
@@ -331,7 +331,7 @@ AsyncError asyncError = source._error;
  if (listener.hasErrorTest) {
   _FutureErrorTest test = listener._errorTest;
    try {
-    matchesTest = ((__x27) => DEVC$RT.cast(__x27, dynamic, bool, "CastGeneral", """line 499, column 29 of dart:async/future_impl.dart: """, __x27 is bool, true))(zone.runUnary(test, asyncError.error));
+    matchesTest = ((__x27) => DEVC$RT.cast(__x27, dynamic, bool, "DynamicCast", """line 499, column 29 of dart:async/future_impl.dart: """, __x27 is bool, true))(zone.runUnary(test, asyncError.error));
     }
    catch (e, s) {
     listenerValueOrError = identical(asyncError.error, e) ? asyncError : new AsyncError(e, s);
@@ -345,7 +345,7 @@ AsyncError asyncError = source._error;
       listenerValueOrError = zone.runBinary(errorCallback, asyncError.error, asyncError.stackTrace);
       }
      else {
-      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t14, "CastGeneral", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t14, true), asyncError.error);
+      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t14, "ImplicitCast", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t14, true), asyncError.error);
       }
     }
    catch (e, s) {
@@ -387,7 +387,7 @@ var completeResult;
       }
      _propagateToListeners(DEVC$RT.cast(completeResult, dynamic, DEVC$RT.type((_Future<dynamic> _) {
       }
-    ), "CastGeneral", """line 559, column 37 of dart:async/future_impl.dart: """, completeResult is _Future<dynamic>, true), new _FutureListener.chain(result));
+    ), "DynamicCast", """line 559, column 37 of dart:async/future_impl.dart: """, completeResult is _Future<dynamic>, true), new _FutureListener.chain(result));
     }
   );
   }
@@ -407,7 +407,7 @@ handleWhenCompleteCallback();
  if (isPropagationAborted) return; if (listenerHasValue && !identical(sourceValue, listenerValueOrError) && listenerValueOrError is Future) {
 Future chainSource = DEVC$RT.cast(listenerValueOrError, dynamic, DEVC$RT.type((Future<dynamic> _) {
   }
-), "CastGeneral", """line 585, column 32 of dart:async/future_impl.dart: """, listenerValueOrError is Future<dynamic>, true);
+), "DynamicCast", """line 585, column 32 of dart:async/future_impl.dart: """, listenerValueOrError is Future<dynamic>, true);
  _Future result = listener.result;
  if (chainSource is _Future) {
   if (chainSource._isComplete) {
@@ -431,7 +431,7 @@ Future chainSource = DEVC$RT.cast(listenerValueOrError, dynamic, DEVC$RT.type((F
 result._setValue(listenerValueOrError);
 }
  else {
-AsyncError asyncError = DEVC$RT.cast(listenerValueOrError, dynamic, AsyncError, "CastGeneral", """line 610, column 33 of dart:async/future_impl.dart: """, listenerValueOrError is AsyncError, true);
+AsyncError asyncError = DEVC$RT.cast(listenerValueOrError, dynamic, AsyncError, "DynamicCast", """line 610, column 33 of dart:async/future_impl.dart: """, listenerValueOrError is AsyncError, true);
  result._setErrorObject(asyncError);
 }
  source = result;
@@ -471,7 +471,7 @@ timer.cancel();
 , onError: (e, s) {
 if (timer.isActive) {
 timer.cancel();
- result._completeError(e, DEVC$RT.cast(s, dynamic, StackTrace, "CastGeneral", """line 646, column 34 of dart:async/future_impl.dart: """, s is StackTrace, true));
+ result._completeError(e, DEVC$RT.cast(s, dynamic, StackTrace, "DynamicCast", """line 646, column 34 of dart:async/future_impl.dart: """, s is StackTrace, true));
 }
 }
 );

@@ -74,7 +74,7 @@ part of dart.collection;
   if (length > 1) throw IterableElementError.tooMany();
    Iterator it = iterator;
    if (!it.moveNext()) throw IterableElementError.noElement();
-   E result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 130, column 16 of dart:collection/set.dart: """, it.current is E, false);
+   E result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 130, column 16 of dart:collection/set.dart: """, it.current is E, false);
    return result;
   }
  String toString() => IterableBase.iterableToFullString(this, '{', '}');
@@ -146,7 +146,7 @@ part of dart.collection;
    if (!it.moveNext()) {
     throw IterableElementError.noElement();
     }
-   return DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 220, column 12 of dart:collection/set.dart: """, it.current is E, false);
+   return DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 220, column 12 of dart:collection/set.dart: """, it.current is E, false);
   }
  E get last {
   Iterator it = iterator;
@@ -155,7 +155,7 @@ part of dart.collection;
     }
    E result;
    do {
-    result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 230, column 16 of dart:collection/set.dart: """, it.current is E, false);
+    result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 230, column 16 of dart:collection/set.dart: """, it.current is E, false);
     }
    while (it.moveNext()); return result;
   }

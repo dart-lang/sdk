@@ -30,7 +30,7 @@ import 'dart:collection';
 }
 ), DEVC$RT.type((List<int> _) {
 }
-), "CastLiteral", """line 120, column 48 of dart:typed_data: """, __x0 is List<int>, false))([1])).buffer)).getInt8(0) == 1 ? LITTLE_ENDIAN : BIG_ENDIAN;
+), "InferableLiteral", """line 120, column 48 of dart:typed_data: """, __x0 is List<int>, false))([1])).buffer)).getInt8(0) == 1 ? LITTLE_ENDIAN : BIG_ENDIAN;
  final bool _littleEndian;
 }
  abstract class ByteData implements TypedData {external factory ByteData(int length);

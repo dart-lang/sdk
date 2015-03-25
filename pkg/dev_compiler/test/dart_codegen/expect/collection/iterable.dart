@@ -88,7 +88,7 @@ part of dart.collection;
    if (!it.moveNext()) {
     throw IterableElementError.noElement();
     }
-   return DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 127, column 12 of dart:collection/iterable.dart: """, it.current is E, false);
+   return DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 127, column 12 of dart:collection/iterable.dart: """, it.current is E, false);
   }
  E get last {
   Iterator it = iterator;
@@ -97,14 +97,14 @@ part of dart.collection;
     }
    E result;
    do {
-    result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 137, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+    result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 137, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
     }
    while (it.moveNext()); return result;
   }
  E get single {
   Iterator it = iterator;
    if (!it.moveNext()) throw IterableElementError.noElement();
-   E result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 145, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+   E result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 145, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
    if (it.moveNext()) throw IterableElementError.tooMany();
    return result;
   }
@@ -249,7 +249,7 @@ Iterator it = iterator;
  if (!it.moveNext()) {
   throw IterableElementError.noElement();
   }
- return DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 323, column 12 of dart:collection/iterable.dart: """, it.current is E, false);
+ return DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 323, column 12 of dart:collection/iterable.dart: """, it.current is E, false);
 }
  E get last {
 Iterator it = iterator;
@@ -258,14 +258,14 @@ Iterator it = iterator;
   }
  E result;
  do {
-  result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 333, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+  result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 333, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
   }
  while (it.moveNext()); return result;
 }
  E get single {
 Iterator it = iterator;
  if (!it.moveNext()) throw IterableElementError.noElement();
- E result = DEVC$RT.cast(it.current, dynamic, E, "CastGeneral", """line 341, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+ E result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 341, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
  if (it.moveNext()) throw IterableElementError.tooMany();
  return result;
 }
@@ -379,8 +379,8 @@ const int LENGTH_LIMIT = 80;
  var penultimate = null;
  var ultimate = null;
  if (!it.moveNext()) {
-  if (count <= HEAD_COUNT + TAIL_COUNT) return; ultimateString = ((__x0) => DEVC$RT.cast(__x0, dynamic, String, "CastGeneral", """line 530, column 24 of dart:collection/iterable.dart: """, __x0 is String, true))(parts.removeLast());
-   penultimateString = ((__x1) => DEVC$RT.cast(__x1, dynamic, String, "CastGeneral", """line 531, column 27 of dart:collection/iterable.dart: """, __x1 is String, true))(parts.removeLast());
+  if (count <= HEAD_COUNT + TAIL_COUNT) return; ultimateString = ((__x0) => DEVC$RT.cast(__x0, dynamic, String, "DynamicCast", """line 530, column 24 of dart:collection/iterable.dart: """, __x0 is String, true))(parts.removeLast());
+   penultimateString = ((__x1) => DEVC$RT.cast(__x1, dynamic, String, "DynamicCast", """line 531, column 27 of dart:collection/iterable.dart: """, __x1 is String, true))(parts.removeLast());
   }
  else {
   penultimate = it.current;
@@ -390,7 +390,7 @@ const int LENGTH_LIMIT = 80;
       parts.add("$penultimate");
        return;}
      ultimateString = "$penultimate";
-     penultimateString = ((__x2) => DEVC$RT.cast(__x2, dynamic, String, "CastGeneral", """line 541, column 29 of dart:collection/iterable.dart: """, __x2 is String, true))(parts.removeLast());
+     penultimateString = ((__x2) => DEVC$RT.cast(__x2, dynamic, String, "DynamicCast", """line 541, column 29 of dart:collection/iterable.dart: """, __x2 is String, true))(parts.removeLast());
      length += ultimateString.length + OVERHEAD;
     }
    else {
@@ -402,7 +402,7 @@ const int LENGTH_LIMIT = 80;
        count++;
        if (count > MAX_COUNT) {
         while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
-          length -= ((__x3) => DEVC$RT.cast(__x3, dynamic, int, "CastGeneral", """line 562, column 25 of dart:collection/iterable.dart: """, __x3 is int, true))(parts.removeLast().length + OVERHEAD);
+          length -= ((__x3) => DEVC$RT.cast(__x3, dynamic, int, "DynamicCast", """line 562, column 25 of dart:collection/iterable.dart: """, __x3 is int, true))(parts.removeLast().length + OVERHEAD);
            count--;
           }
          parts.add("...");
@@ -419,7 +419,7 @@ const int LENGTH_LIMIT = 80;
    length += ELLIPSIS_SIZE + OVERHEAD;
   }
  while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-  length -= ((__x4) => DEVC$RT.cast(__x4, dynamic, int, "CastGeneral", """line 588, column 17 of dart:collection/iterable.dart: """, __x4 is int, true))(parts.removeLast().length + OVERHEAD);
+  length -= ((__x4) => DEVC$RT.cast(__x4, dynamic, int, "DynamicCast", """line 588, column 17 of dart:collection/iterable.dart: """, __x4 is int, true))(parts.removeLast().length + OVERHEAD);
    if (elision == null) {
     elision = "...";
      length += ELLIPSIS_SIZE + OVERHEAD;

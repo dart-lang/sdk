@@ -61,11 +61,11 @@ try {
 }
  void _handleError(error, [stackTrace]) {
 try {
-  _transformerSink.addError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 127, column 40 of dart:async/stream_transformers.dart: """, stackTrace is StackTrace, true));
+  _transformerSink.addError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 127, column 40 of dart:async/stream_transformers.dart: """, stackTrace is StackTrace, true));
   }
  catch (e, s) {
   if (identical(e, error)) {
-    _addError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 130, column 26 of dart:async/stream_transformers.dart: """, stackTrace is StackTrace, true));
+    _addError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 130, column 26 of dart:async/stream_transformers.dart: """, stackTrace is StackTrace, true));
     }
    else {
     _addError(e, s);
@@ -99,7 +99,7 @@ cancelOnError = identical(true, cancelOnError);
 }
 ), DEVC$RT.type((StreamSubscription<T> _) {
 }
-), "CastExact", """line 186, column 42 of dart:async/stream_transformers.dart: """, __x105 is StreamSubscription<T>, false))(new _SinkTransformerStreamSubscription(_stream, DEVC$RT.wrap((EventSink<S> f(EventSink<T> __u106)) {
+), "InferableAllocation", """line 186, column 42 of dart:async/stream_transformers.dart: """, __x105 is StreamSubscription<T>, false))(new _SinkTransformerStreamSubscription(_stream, DEVC$RT.wrap((EventSink<S> f(EventSink<T> __u106)) {
 EventSink<S> c(EventSink<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((EventSink<dynamic> _) {
 }
 ), DEVC$RT.type((EventSink<T> _) {

@@ -5,11 +5,11 @@ part of dart.convert;
     }
   ), DEVC$RT.type((DDC$async$.Future<String> _) {
     }
-  ), "CastDynamic", """line 14, column 12 of dart:convert/encoding.dart: """, __x5 is DDC$async$.Future<String>, false))(byteStream.transform(DEVC$RT.cast(decoder, DEVC$RT.type((Converter<List<int>, String> _) {
+  ), "CompositeCast", """line 14, column 12 of dart:convert/encoding.dart: """, __x5 is DDC$async$.Future<String>, false))(byteStream.transform(DEVC$RT.cast(decoder, DEVC$RT.type((Converter<List<int>, String> _) {
     }
   ), DEVC$RT.type((DDC$async$.StreamTransformer<List<int>, dynamic> _) {
     }
-  ), "CastDynamic", """line 15, column 18 of dart:convert/encoding.dart: """, decoder is DDC$async$.StreamTransformer<List<int>, dynamic>, false)).fold(new StringBuffer(), (buffer, string) => buffer..write(string)).then((buffer) => buffer.toString()));
+  ), "CompositeCast", """line 15, column 18 of dart:convert/encoding.dart: """, decoder is DDC$async$.StreamTransformer<List<int>, dynamic>, false)).fold(new StringBuffer(), (buffer, string) => buffer..write(string)).then((buffer) => buffer.toString()));
   }
  String get name;
  static Map<String, Encoding> _nameToEncoding = <String, Encoding> {

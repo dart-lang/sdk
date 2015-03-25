@@ -2,15 +2,15 @@
 warning: line 63, column 7 of test/codegen/BenchmarkBase.dart: [DynamicInvoke] f() requires dynamic invoke
       f();
       ^^^
-info: line 130, column 18 of test/codegen/DeltaBlue.dart: [DownCast] mark (dynamic) will need runtime check to cast to type int
+info: line 130, column 18 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
     chooseMethod(mark);
                  ^^^^
-info: line 137, column 16 of test/codegen/DeltaBlue.dart: [DownCast] mark (dynamic) will need runtime check to cast to type int
+info: line 137, column 16 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
     markInputs(mark);
                ^^^^
-info: line 142, column 37 of test/codegen/DeltaBlue.dart: [DownCast] mark (dynamic) will need runtime check to cast to type int
+info: line 142, column 37 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
     if (!planner.addPropagate(this, mark)) print("Cycle encountered");
                                     ^^^^
-info: line 143, column 16 of test/codegen/DeltaBlue.dart: [DownCast] mark (dynamic) will need runtime check to cast to type int
+info: line 143, column 16 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
     out.mark = mark;
                ^^^^

@@ -3,7 +3,7 @@ part of dart.async;
   }
 ), DEVC$RT.type((_StreamControllerLifecycle<T> _) {
   }
-), "CastDynamic", """line 8, column 67 of dart:async/broadcast_stream_controller.dart: """, controller is _StreamControllerLifecycle<T>, false));
+), "CompositeCast", """line 8, column 67 of dart:async/broadcast_stream_controller.dart: """, controller is _StreamControllerLifecycle<T>, false));
  bool get isBroadcast => true;
 }
  abstract class _BroadcastSubscriptionLink {_BroadcastSubscriptionLink _next;
@@ -19,14 +19,14 @@ part of dart.async;
 }
 ), DEVC$RT.type((_StreamControllerLifecycle<T> _) {
 }
-), "CastDynamic", """line 36, column 15 of dart:async/broadcast_stream_controller.dart: """, controller is _StreamControllerLifecycle<T>, false), onData, onError, onDone, cancelOnError) {
+), "CompositeCast", """line 36, column 15 of dart:async/broadcast_stream_controller.dart: """, controller is _StreamControllerLifecycle<T>, false), onData, onError, onDone, cancelOnError) {
 _next = _previous = this;
 }
  _BroadcastStreamController get _controller => ((__x2) => DEVC$RT.cast(__x2, DEVC$RT.type((_StreamControllerLifecycle<T> _) {
 }
 ), DEVC$RT.type((_BroadcastStreamController<dynamic> _) {
 }
-), "CastGeneral", """line 40, column 49 of dart:async/broadcast_stream_controller.dart: """, __x2 is _BroadcastStreamController<dynamic>, true))(super._controller);
+), "ImplicitCast", """line 40, column 49 of dart:async/broadcast_stream_controller.dart: """, __x2 is _BroadcastStreamController<dynamic>, true))(super._controller);
  bool _expectsEvent(int eventId) => (_eventState & _STATE_EVENT_ID) == eventId;
  void _toggleEventId() {
 _eventState ^= _STATE_EVENT_ID;
@@ -96,7 +96,7 @@ if (onDone == null) onDone = _nullDoneHandler;
 }
 ), DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
-), "CastGeneral", """line 196, column 18 of dart:async/broadcast_stream_controller.dart: """, subscription is _BroadcastSubscription<T>, false));
+), "CompositeCast", """line 196, column 18 of dart:async/broadcast_stream_controller.dart: """, subscription is _BroadcastSubscription<T>, false));
  if (identical(_next, _previous)) {
 _runGuarded(_onListen);
 }
@@ -104,7 +104,7 @@ _runGuarded(_onListen);
 }
 ), DEVC$RT.type((StreamSubscription<T> _) {
 }
-), "CastDynamic", """line 201, column 12 of dart:async/broadcast_stream_controller.dart: """, subscription is StreamSubscription<T>, false);
+), "CompositeCast", """line 201, column 12 of dart:async/broadcast_stream_controller.dart: """, subscription is StreamSubscription<T>, false);
 }
  Future _recordCancel(_BroadcastSubscription<T> subscription) {
 if (identical(subscription._next, subscription)) return null;
@@ -163,7 +163,7 @@ if (!_mayAddEvent) throw _addEventError();
 }
 ), DEVC$RT.type((_AddStreamState<T> _) {
 }
-), "CastExact", """line 268, column 23 of dart:async/broadcast_stream_controller.dart: """, __x3 is _AddStreamState<T>, false))(new _AddStreamState(this, stream, cancelOnError));
+), "InferableAllocation", """line 268, column 23 of dart:async/broadcast_stream_controller.dart: """, __x3 is _AddStreamState<T>, false))(new _AddStreamState(this, stream, cancelOnError));
  return _addStreamState.addStreamFuture;
 }
  void _add(T data) {
@@ -188,7 +188,7 @@ throw new StateError("Cannot fire new event. Controller is already firing an eve
  while (!identical(link, this)) {
 _BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
-), "CastGeneral", """line 309, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
+), "CompositeCast", """line 309, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  if (subscription._expectsEvent(id)) {
 subscription._eventState |= _BroadcastSubscription._STATE_FIRING;
  action(subscription);
@@ -221,7 +221,7 @@ if (_isEmpty) return; if (_hasOneListener) {
 _state |= _BroadcastStreamController._STATE_FIRING;
  _BroadcastSubscription subscription = DEVC$RT.cast(_next, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<dynamic> _) {
 }
-), "CastGeneral", """line 350, column 45 of dart:async/broadcast_stream_controller.dart: """, _next is _BroadcastSubscription<dynamic>, true);
+), "AssignmentCast", """line 350, column 45 of dart:async/broadcast_stream_controller.dart: """, _next is _BroadcastSubscription<dynamic>, true);
  subscription._add(data);
  _state &= ~_BroadcastStreamController._STATE_FIRING;
  if (_isEmpty) {
@@ -268,7 +268,7 @@ assert (_doneFuture != null); assert (_doneFuture._mayComplete); _doneFuture._as
 for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
 _BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
-), "CastGeneral", """line 393, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
+), "CompositeCast", """line 393, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  subscription._addPending(new _DelayedData(data));
 }
 }
@@ -276,7 +276,7 @@ _BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscripti
 for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
 _BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
-), "CastGeneral", """line 402, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
+), "CompositeCast", """line 402, column 48 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  subscription._addPending(new _DelayedError(error, stackTrace));
 }
 }
@@ -285,7 +285,7 @@ if (!_isEmpty) {
 for (_BroadcastSubscriptionLink link = _next; !identical(link, this); link = link._next) {
 _BroadcastSubscription<T> subscription = DEVC$RT.cast(link, _BroadcastSubscriptionLink, DEVC$RT.type((_BroadcastSubscription<T> _) {
 }
-), "CastGeneral", """line 412, column 50 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
+), "CompositeCast", """line 412, column 50 of dart:async/broadcast_stream_controller.dart: """, link is _BroadcastSubscription<T>, false);
  subscription._addPending(const _DelayedDone());
 }
 }

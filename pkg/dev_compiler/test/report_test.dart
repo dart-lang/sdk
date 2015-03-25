@@ -28,7 +28,7 @@ void main() {
       'package:foo/bar.dart': '''
           num x;
           test2() {
-            int y = /*info:DownCast*/x;
+            int y = /*info:AssignmentCast*/x;
           }
       ''',
     };

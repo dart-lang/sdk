@@ -753,7 +753,9 @@ class CodeChecker extends RecursiveAstVisitor {
           // compound operators in the int += num and num += dynamic cases.
           staticInfo = DownCast.create(
               _rules, expr.rightHandSide, Coercion.cast(rhsType, lhsType));
-          expr.rightHandSide = staticInfo;
+          if (staticInfo is DownCast) {
+            expr.rightHandSide = staticInfo;
+          }
           rhsType = lhsType;
         } else {
           // Static type error

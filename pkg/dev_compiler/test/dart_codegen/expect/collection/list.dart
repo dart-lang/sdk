@@ -277,7 +277,7 @@ RangeError.checkValidRange(start, end, this.length);
     }
   ), DEVC$RT.type((List<dynamic> _) {
     }
-  ), "CastGeneral", """line 369, column 19 of dart:collection/list.dart: """, iterable is List<dynamic>, true);
+  ), "ImplicitCast", """line 369, column 19 of dart:collection/list.dart: """, iterable is List<dynamic>, true);
    otherStart = skipCount;
   }
  else {
@@ -289,12 +289,12 @@ RangeError.checkValidRange(start, end, this.length);
   }
  if (otherStart < start) {
   for (int i = length - 1; i >= 0; i--) {
-    this[start + i] = ((__x11) => DEVC$RT.cast(__x11, dynamic, E, "CastGeneral", """line 381, column 27 of dart:collection/list.dart: """, __x11 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x11) => DEVC$RT.cast(__x11, dynamic, E, "CompositeCast", """line 381, column 27 of dart:collection/list.dart: """, __x11 is E, false))(otherList[otherStart + i]);
     }
   }
  else {
   for (int i = 0; i < length; i++) {
-    this[start + i] = ((__x12) => DEVC$RT.cast(__x12, dynamic, E, "CastGeneral", """line 385, column 27 of dart:collection/list.dart: """, __x12 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x12) => DEVC$RT.cast(__x12, dynamic, E, "CompositeCast", """line 385, column 27 of dart:collection/list.dart: """, __x12 is E, false))(otherList[otherStart + i]);
     }
   }
 }

@@ -9,13 +9,13 @@ part of dart.math;
   }
  int get hashCode => _JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
  Point<T> operator +(Point<T> other) {
-  return new Point<T>(((__x0) => DEVC$RT.cast(__x0, num, T, "CastGeneral", """line 37, column 25 of dart:math/point.dart: """, __x0 is T, false))(x + other.x), ((__x1) => DEVC$RT.cast(__x1, num, T, "CastGeneral", """line 37, column 38 of dart:math/point.dart: """, __x1 is T, false))(y + other.y));
+  return new Point<T>(((__x0) => DEVC$RT.cast(__x0, num, T, "CompositeCast", """line 37, column 25 of dart:math/point.dart: """, __x0 is T, false))(x + other.x), ((__x1) => DEVC$RT.cast(__x1, num, T, "CompositeCast", """line 37, column 38 of dart:math/point.dart: """, __x1 is T, false))(y + other.y));
   }
  Point<T> operator -(Point<T> other) {
-  return new Point<T>(((__x2) => DEVC$RT.cast(__x2, num, T, "CastGeneral", """line 46, column 25 of dart:math/point.dart: """, __x2 is T, false))(x - other.x), ((__x3) => DEVC$RT.cast(__x3, num, T, "CastGeneral", """line 46, column 38 of dart:math/point.dart: """, __x3 is T, false))(y - other.y));
+  return new Point<T>(((__x2) => DEVC$RT.cast(__x2, num, T, "CompositeCast", """line 46, column 25 of dart:math/point.dart: """, __x2 is T, false))(x - other.x), ((__x3) => DEVC$RT.cast(__x3, num, T, "CompositeCast", """line 46, column 38 of dart:math/point.dart: """, __x3 is T, false))(y - other.y));
   }
  Point<T> operator *(num factor) {
-  return new Point<T>(((__x4) => DEVC$RT.cast(__x4, num, T, "CastGeneral", """line 59, column 25 of dart:math/point.dart: """, __x4 is T, false))(x * factor), ((__x5) => DEVC$RT.cast(__x5, num, T, "CastGeneral", """line 59, column 37 of dart:math/point.dart: """, __x5 is T, false))(y * factor));
+  return new Point<T>(((__x4) => DEVC$RT.cast(__x4, num, T, "CompositeCast", """line 59, column 25 of dart:math/point.dart: """, __x4 is T, false))(x * factor), ((__x5) => DEVC$RT.cast(__x5, num, T, "CompositeCast", """line 59, column 37 of dart:math/point.dart: """, __x5 is T, false))(y * factor));
   }
  double get magnitude => sqrt(x * x + y * y);
  double distanceTo(Point<T> other) {
@@ -26,6 +26,6 @@ part of dart.math;
  T squaredDistanceTo(Point<T> other) {
   var dx = x - other.x;
    var dy = y - other.y;
-   return ((__x6) => DEVC$RT.cast(__x6, num, T, "CastGeneral", """line 86, column 12 of dart:math/point.dart: """, __x6 is T, false))(dx * dx + dy * dy);
+   return ((__x6) => DEVC$RT.cast(__x6, num, T, "CompositeCast", """line 86, column 12 of dart:math/point.dart: """, __x6 is T, false))(dx * dx + dy * dy);
   }
 }

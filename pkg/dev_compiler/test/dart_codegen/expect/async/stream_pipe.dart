@@ -102,12 +102,12 @@ _stream._handleDone(this);
 }
  typedef bool _Predicate<T>(T value);
  void _addErrorWithReplacement(_EventSink sink, error, stackTrace) {
-AsyncError replacement = Zone.current.errorCallback(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 191, column 62 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
+AsyncError replacement = Zone.current.errorCallback(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 191, column 62 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
  if (replacement != null) {
 error = _nonNullError(replacement.error);
  stackTrace = replacement.stackTrace;
 }
- sink._addError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 196, column 25 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
+ sink._addError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 196, column 25 of dart:async/stream_pipe.dart: """, stackTrace is StackTrace, true));
 }
  class _WhereStream<T> extends _ForwardingStream<T, T> {final _Predicate<T> _test;
  _WhereStream(Stream<T> source, bool test(T value)) : _test = test, super(source);
@@ -130,7 +130,7 @@ sink._add(inputEvent);
  void _handleData(S inputEvent, _EventSink<T> sink) {
 T outputEvent;
  try {
-outputEvent = ((__x104) => DEVC$RT.cast(__x104, dynamic, T, "CastGeneral", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x104 is T, false))(_transform(inputEvent));
+outputEvent = ((__x104) => DEVC$RT.cast(__x104, dynamic, T, "CompositeCast", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x104 is T, false))(_transform(inputEvent));
 }
  catch (e, s) {
 _addErrorWithReplacement(sink, e, s);
@@ -265,7 +265,7 @@ if (_equals == null) {
 isEqual = (_previous == inputEvent);
 }
  else {
-isEqual = _equals(DEVC$RT.cast(_previous, Object, T, "CastGeneral", """line 426, column 29 of dart:async/stream_pipe.dart: """, _previous is T, false), inputEvent);
+isEqual = _equals(DEVC$RT.cast(_previous, Object, T, "CompositeCast", """line 426, column 29 of dart:async/stream_pipe.dart: """, _previous is T, false), inputEvent);
 }
 }
  catch (e, s) {

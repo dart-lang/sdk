@@ -65,9 +65,9 @@ part of dart.core;
    if (inMicroseconds < 0) {
     return "-${-this}";
     }
-   String twoDigitMinutes = twoDigits(((__x0) => DEVC$RT.cast(__x0, num, int, "CastGeneral", """line 258, column 40 of dart:core/duration.dart: """, __x0 is int, true))(inMinutes.remainder(MINUTES_PER_HOUR)));
-   String twoDigitSeconds = twoDigits(((__x1) => DEVC$RT.cast(__x1, num, int, "CastGeneral", """line 259, column 40 of dart:core/duration.dart: """, __x1 is int, true))(inSeconds.remainder(SECONDS_PER_MINUTE)));
-   String sixDigitUs = sixDigits(((__x2) => DEVC$RT.cast(__x2, num, int, "CastGeneral", """line 261, column 19 of dart:core/duration.dart: """, __x2 is int, true))(inMicroseconds.remainder(MICROSECONDS_PER_SECOND)));
+   String twoDigitMinutes = twoDigits(((__x0) => DEVC$RT.cast(__x0, num, int, "ImplicitCast", """line 258, column 40 of dart:core/duration.dart: """, __x0 is int, true))(inMinutes.remainder(MINUTES_PER_HOUR)));
+   String twoDigitSeconds = twoDigits(((__x1) => DEVC$RT.cast(__x1, num, int, "ImplicitCast", """line 259, column 40 of dart:core/duration.dart: """, __x1 is int, true))(inSeconds.remainder(SECONDS_PER_MINUTE)));
+   String sixDigitUs = sixDigits(((__x2) => DEVC$RT.cast(__x2, num, int, "ImplicitCast", """line 261, column 19 of dart:core/duration.dart: """, __x2 is int, true))(inMicroseconds.remainder(MICROSECONDS_PER_SECOND)));
    return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
   }
  bool get isNegative => _duration < 0;

@@ -11,7 +11,7 @@ part of dart.convert;
     }
    return new _LineSplitterSink(DEVC$RT.cast(sink, DEVC$RT.type((Sink<String> _) {
     }
-  ), StringConversionSink, "CastGeneral", """line 26, column 34 of dart:convert/line_splitter.dart: """, sink is StringConversionSink, true));
+  ), StringConversionSink, "ImplicitCast", """line 26, column 34 of dart:convert/line_splitter.dart: """, sink is StringConversionSink, true));
   }
 }
  class _LineSplitterSink extends StringConversionSinkBase {static const int _LF = 10;

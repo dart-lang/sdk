@@ -5,7 +5,7 @@ import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DEVC$RT;
 import 'b.dart';
 
 void bar() {
-  f3(((__x0) => DEVC$RT.cast(__x0, dynamic, DDC$a$.A, "CastGeneral",
+  f3(((__x0) => DEVC$RT.cast(__x0, dynamic, DDC$a$.A, "DynamicCast",
       """line 10, column 6 of test/dart_codegen/types/c.dart: """,
       __x0 is DDC$a$.A, true))(f4(3)));
   f1(DEVC$RT.wrap((dynamic f(dynamic __u2)) {

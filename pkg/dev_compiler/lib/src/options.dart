@@ -73,8 +73,12 @@ class RulesOptions extends TypeOptions {
   /// Whether to use static types for code generation.
   final bool ignoreTypes;
 
+  /// Whether to wrap closures for compatibility.
+  final bool wrapClosures;
+
   RulesOptions({this.allowConstCasts: true, this.covariantGenerics: true,
-      this.relaxedCasts: true, this.ignoreTypes: false});
+      this.relaxedCasts: true, this.ignoreTypes: false,
+      this.wrapClosures: true});
 }
 
 class JSCodeOptions {
@@ -190,6 +194,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final bool ignoreTypes;
 
+  /// Whether to wrap closures for compatibility.
+  @override
+  final bool wrapClosures;
+
   /// Whether to emit the source map files.
   @override
   final bool emitSourceMaps;
@@ -202,11 +210,11 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   CompilerOptions({this.allowConstCasts: true, this.checkSdk: false,
       this.dumpInfo: false, this.dumpInfoFile, this.dumpSrcDir,
       this.forceCompile: false, this.formatOutput: false,
-      this.cheapTestFormat: false, this.ignoreTypes: false, this.outputDir,
-      this.outputDart: false, this.useColors: true,
-      this.covariantGenerics: true, this.relaxedCasts: true,
-      this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[],
+      this.cheapTestFormat: false, this.ignoreTypes: false,
+      this.wrapClosures: true, this.outputDir, this.outputDart: false,
+      this.useColors: true, this.covariantGenerics: true,
+      this.relaxedCasts: true, this.useMultiPackage: false,
+      this.packageRoot: 'packages/', this.packagePaths: const <String>[],
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
       this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: ResolverOptions.onlyInferConstAndFinalFieldsDefault,
@@ -253,6 +261,7 @@ CompilerOptions parseOptions(List<String> argv) {
       forceCompile: args['force-compile'] || serverMode,
       formatOutput: args['dart-gen-fmt'],
       ignoreTypes: args['ignore-types'],
+      wrapClosures: args['wrap-closures'],
       outputDart: args['dart-gen'],
       outputDir: outputDir,
       covariantGenerics: args['covariant-generics'],
@@ -290,6 +299,7 @@ final ArgParser argParser = new ArgParser()
       help: 'Use covariant generics', defaultsTo: true)
   ..addFlag('ignore-types',
       help: 'Ignore types during codegen', defaultsTo: false)
+  ..addFlag('wrap-closures', help: 'wrap closures implicitly', defaultsTo: true)
   ..addFlag('relaxed-casts',
       help: 'Cast between Dart assignable types', defaultsTo: true)
   ..addOption('nonnullable',

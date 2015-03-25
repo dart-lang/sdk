@@ -5,7 +5,7 @@ import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as DEVC$RT;
 import 'b.dart';
 
 void foo() {
-  var x = f3(((__x0) => DEVC$RT.cast(__x0, dynamic, DDC$a$.A, "CastGeneral",
+  var x = f3(((__x0) => DEVC$RT.cast(__x0, dynamic, DDC$a$.A, "DynamicCast",
       """line 10, column 14 of test/dart_codegen/types/d.dart: """,
       __x0 is DDC$a$.A, true))(f4("""hello""")));
   var y = f1(DEVC$RT.wrap((dynamic f(dynamic __u2)) {

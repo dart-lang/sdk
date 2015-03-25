@@ -14,7 +14,7 @@ part of dart.convert;
  class _FusedConverter<S, M, T> extends Converter<S, T> {final Converter _first;
  final Converter _second;
  _FusedConverter(this._first, this._second);
- T convert(S input) => ((__x4) => DEVC$RT.cast(__x4, dynamic, T, "CastGeneral", """line 58, column 25 of dart:convert/converter.dart: """, __x4 is T, false))(_second.convert(_first.convert(input)));
+ T convert(S input) => ((__x4) => DEVC$RT.cast(__x4, dynamic, T, "CompositeCast", """line 58, column 25 of dart:convert/converter.dart: """, __x4 is T, false))(_second.convert(_first.convert(input)));
  ChunkedConversionSink startChunkedConversion(Sink sink) {
 return _first.startChunkedConversion(_second.startChunkedConversion(sink));
 }

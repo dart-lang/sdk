@@ -100,7 +100,7 @@ result._complete(futureValue);
 ;
  _onError = (error, stackTrace) {
 cancel();
- result._completeError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "CastGeneral", """line 212, column 36 of dart:async/stream_impl.dart: """, stackTrace is StackTrace, true));
+ result._completeError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 212, column 36 of dart:async/stream_impl.dart: """, stackTrace is StackTrace, true));
 }
 ;
  return result;
@@ -163,7 +163,7 @@ assert (!_isInputPaused);}
 assert (_isCanceled); return null;
 }
  void _addPending(_DelayedEvent event) {
-_StreamImplEvents pending = DEVC$RT.cast(_pending, _PendingEvents, _StreamImplEvents, "CastGeneral", """line 322, column 33 of dart:async/stream_impl.dart: """, _pending is _StreamImplEvents, true);
+_StreamImplEvents pending = DEVC$RT.cast(_pending, _PendingEvents, _StreamImplEvents, "AssignmentCast", """line 322, column 33 of dart:async/stream_impl.dart: """, _pending is _StreamImplEvents, true);
  if (_pending == null) pending = _pending = new _StreamImplEvents();
  pending.add(event);
  if (!_hasPending) {
@@ -185,10 +185,10 @@ assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInput
  void sendError() {
 if (_isCanceled && !_waitsForCancel) return; _state |= _STATE_IN_CALLBACK;
  if (_onError is ZoneBinaryCallback) {
-  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t95, "CastGeneral", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t95, true), error, stackTrace);
+  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t95, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t95, true), error, stackTrace);
   }
  else {
-  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t92, "CastGeneral", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t92, true), error);
+  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t92, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t92, true), error);
   }
  _state &= ~_STATE_IN_CALLBACK;
 }
@@ -267,7 +267,7 @@ cancelOnError = identical(true, cancelOnError);
 }
 ), DEVC$RT.type((StreamSubscription<T> _) {
 }
-), "CastDynamic", """line 476, column 12 of dart:async/stream_impl.dart: """, subscription is StreamSubscription<T>, false);
+), "CompositeCast", """line 476, column 12 of dart:async/stream_impl.dart: """, subscription is StreamSubscription<T>, false);
 }
  _BufferingStreamSubscription<T> _createSubscription(void onData(T data), Function onError, void onDone(), bool cancelOnError) {
 return new _BufferingStreamSubscription<T>(onData, onError, onDone, cancelOnError);
@@ -581,15 +581,15 @@ _state = _STATE_MOVING;
  _futureOrPrefetch = new _Future<bool>();
  return DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((Future<bool> _) {
 }
-), "CastGeneral", """line 1000, column 14 of dart:async/stream_impl.dart: """, _futureOrPrefetch is Future<bool>, false);
+), "CompositeCast", """line 1000, column 14 of dart:async/stream_impl.dart: """, _futureOrPrefetch is Future<bool>, false);
 }
  else {
 assert (_state >= _STATE_EXTRA_DATA); switch (_state) {case _STATE_EXTRA_DATA: _state = _STATE_FOUND;
- _current = DEVC$RT.cast(_futureOrPrefetch, dynamic, T, "CastGeneral", """line 1006, column 22 of dart:async/stream_impl.dart: """, _futureOrPrefetch is T, false);
+ _current = DEVC$RT.cast(_futureOrPrefetch, dynamic, T, "CompositeCast", """line 1006, column 22 of dart:async/stream_impl.dart: """, _futureOrPrefetch is T, false);
  _futureOrPrefetch = null;
  _subscription.resume();
  return new _Future<bool>.immediate(true);
- case _STATE_EXTRA_ERROR: AsyncError prefetch = DEVC$RT.cast(_futureOrPrefetch, dynamic, AsyncError, "CastGeneral", """line 1011, column 33 of dart:async/stream_impl.dart: """, _futureOrPrefetch is AsyncError, true);
+ case _STATE_EXTRA_ERROR: AsyncError prefetch = DEVC$RT.cast(_futureOrPrefetch, dynamic, AsyncError, "DynamicCast", """line 1011, column 33 of dart:async/stream_impl.dart: """, _futureOrPrefetch is AsyncError, true);
  _clear();
  return new _Future<bool>.immediateError(prefetch.error, prefetch.stackTrace);
  case _STATE_EXTRA_DONE: _clear();
@@ -608,7 +608,7 @@ StreamSubscription subscription = _subscription;
  if (_state == _STATE_MOVING) {
 _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_Future<bool> _) {
 }
-), "CastGeneral", """line 1033, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
+), "CompositeCast", """line 1033, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
  _clear();
  hasNext._complete(false);
 }
@@ -622,7 +622,7 @@ if (_state == _STATE_MOVING) {
 _current = data;
  _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_Future<bool> _) {
 }
-), "CastGeneral", """line 1045, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
+), "CompositeCast", """line 1045, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
  _futureOrPrefetch = null;
  _state = _STATE_FOUND;
  hasNext._complete(true);
@@ -635,7 +635,7 @@ _current = data;
 if (_state == _STATE_MOVING) {
 _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_Future<bool> _) {
 }
-), "CastGeneral", """line 1059, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
+), "CompositeCast", """line 1059, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
  _clear();
  hasNext._completeError(error, stackTrace);
  return;}
@@ -647,7 +647,7 @@ _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_
 if (_state == _STATE_MOVING) {
 _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_Future<bool> _) {
 }
-), "CastGeneral", """line 1073, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
+), "CompositeCast", """line 1073, column 31 of dart:async/stream_impl.dart: """, _futureOrPrefetch is _Future<bool>, false);
  _clear();
  hasNext._complete(false);
  return;}

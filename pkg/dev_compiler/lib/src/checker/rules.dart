@@ -393,7 +393,7 @@ class RestrictedRules extends TypeRules {
     final n2s = toT.namedParameterTypes;
     final ret2 = toT.returnType;
 
-    Coercion ret = _coerceTo(ret1, ret2, true);
+    Coercion ret = _coerceTo(ret1, ret2, options.wrapClosures);
 
     // Reject if one has named and the other has optional
     if (n1s.length > 0 && o2s.length > 0) return Coercion.error();
@@ -456,12 +456,6 @@ class RestrictedRules extends TypeRules {
     // fromT <: toT, no coercion needed
     if (isSubTypeOf(fromT, toT)) return Coercion.identity(toT);
 
-    // Downcasting from dynamic to object always succeeds,
-    // no coercion needed.
-    if (fromT.isDynamic && toT == provider.objectType) {
-      return Coercion.identity(toT);
-    }
-
     // For now, we always wrap closures.
     if (wrap && fromT is FunctionType && toT is FunctionType) {
       return _wrapTo(fromT, toT);
@@ -494,7 +488,7 @@ class RestrictedRules extends TypeRules {
 
   StaticInfo checkAssignment(Expression expr, DartType toT, bool constContext) {
     final fromT = getStaticType(expr);
-    final Coercion c = _coerceTo(fromT, toT, true);
+    final Coercion c = _coerceTo(fromT, toT, options.wrapClosures);
     if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
     if (constContext && !options.allowConstCasts) {

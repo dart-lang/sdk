@@ -41,7 +41,7 @@ void main() {
     '/main.dart': '''
       test1() {
         int x = 3;
-        x = /*warning:DownCastLiteral*/null;
+        x = /*severe:StaticTypeError*/null;
       }
     '''
   }, nonnullableTypes: <String>['int', 'double']);
@@ -51,7 +51,7 @@ void main() {
     '/main.dart': '''
       test1() {
         var x = 3;
-        x = /*warning:DownCastLiteral*/null;
+        x = /*severe:StaticTypeError*/null;
       }
     '''
   }, nonnullableTypes: <String>['int', 'double']);
@@ -267,7 +267,7 @@ void main() {
           test1() {
             int t = 3;
             t = x;
-            t = /*info:DownCast*/y;
+            t = /*info:DynamicCast*/y;
           }
     '''
     }, inferTransitively: false);
@@ -284,7 +284,7 @@ void main() {
           test1() {
             int t = 3;
             t = A.x;
-            t = /*info:DownCast*/B.y;
+            t = /*info:DynamicCast*/B.y;
           }
     '''
     }, inferTransitively: false);
@@ -347,8 +347,8 @@ void main() {
           test1() {
             int x = 0;
             // inference in A disabled (flag is off)
-            x = /*info:DownCast*/A.a1;
-            x = /*info:DownCast*/new A().a2;
+            x = /*info:DynamicCast*/A.a1;
+            x = /*info:DynamicCast*/new A().a2;
           }
     '''
     }, inferTransitively: false);
@@ -452,7 +452,7 @@ void main() {
             x = D.d2;
             x = new C().c2;
             x = new D().d3;
-            x = /*info:DownCast*/new D().d4;
+            x = /*info:DynamicCast*/new D().d4;
 
 
             // Similarly if the library contains parts.
@@ -460,7 +460,7 @@ void main() {
             x = E.e2;
             x = E.e3;
             x = new E().e4;
-            x = /*info:DownCast*/new E().e5;
+            x = /*info:DynamicCast*/new E().e5;
             x = new E().e6;
             x = F.f1;
             x = new F().f2;
@@ -539,9 +539,9 @@ void main() {
           A a;
           B b;
           a = t1;
-          i = /*info:DownCast*/t2;
+          i = /*info:DynamicCast*/t2;
           b = t3;
-          i = /*info:DownCast*/t4;
+          i = /*info:DynamicCast*/t4;
           i = new B().y; // B.y was inferred though
         }
     '''
@@ -571,7 +571,7 @@ void main() {
           a = t1;
           i = t2;
           b = t3;
-          i = /*info:DownCast*/t4;
+          i = /*info:DynamicCast*/t4;
           i = new B().y; // B.y was inferred though
         }
     '''
@@ -589,7 +589,7 @@ void main() {
       test() {
         var l = List<Foo>();
         for (var x in list) {
-          String y = /*info:DownCast should be severe:StaticTypeError*/x;
+          String y = /*info:DynamicCast should be severe:StaticTypeError*/x;
         }
       }
       '''
@@ -632,7 +632,7 @@ void main() {
 
       test() {
         dynamic a = new A();
-        A b = /*info:DownCast*/a;
+        A b = /*info:DynamicCast*/a;
         print(/*warning:DynamicInvoke*/a.x);
         print((/*warning:DynamicInvoke*/a.x) + 2);
       }
@@ -698,8 +698,8 @@ void main() {
         }
 
         foo() {
-          String y = /*info:DownCast*/new B().x;
-          int z = /*info:DownCast*/new B().x;
+          String y = /*info:DynamicCast*/new B().x;
+          int z = /*info:DynamicCast*/new B().x;
         }
     '''
     }, inferFromOverrides: false);
@@ -732,8 +732,8 @@ void main() {
         }
 
         foo() {
-          String y = /*info:DownCast*/new B().x;
-          int z = /*info:DownCast*/new B().x;
+          String y = /*info:DynamicCast*/new B().x;
+          int z = /*info:DynamicCast*/new B().x;
         }
     '''
     }, inferFromOverrides: false);
@@ -769,8 +769,8 @@ void main() {
           }
 
           foo() {
-            String y = /*info:DownCast*/new B().x;
-            int z = /*info:DownCast*/new B().x;
+            String y = /*info:DynamicCast*/new B().x;
+            int z = /*info:DynamicCast*/new B().x;
           }
       '''
       }, inferFromOverrides: infer);
@@ -787,8 +787,8 @@ void main() {
         }
 
         foo() {
-          String y = /*info:DownCast*/new B().x;
-          int z = /*info:DownCast*/new B().x;
+          String y = /*info:DynamicCast*/new B().x;
+          int z = /*info:DynamicCast*/new B().x;
         }
     '''
     }, inferFromOverrides: false);
@@ -934,8 +934,8 @@ void main() {
           }
 
           foo() {
-            String y = /*info:DownCast*/new B().x;
-            int z = /*info:DownCast*/new B().x;
+            String y = /*info:DynamicCast*/new B().x;
+            int z = /*info:DynamicCast*/new B().x;
           }
       '''
       }, inferFromOverrides: infer);
@@ -1016,8 +1016,8 @@ void main() {
         }
 
         foo() {
-          String y = /*info:DownCast*/new B().x;
-          int z = /*info:DownCast*/new B().x;
+          String y = /*info:DynamicCast*/new B().x;
+          int z = /*info:DynamicCast*/new B().x;
         }
     '''
     }, inferFromOverrides: true);
@@ -1055,12 +1055,12 @@ void main() {
           String s;
           int i;
 
-          s = /*info:DownCast*/new B().x;
+          s = /*info:DynamicCast*/new B().x;
           s = /*severe:StaticTypeError*/new B().y;
           s = new B().z;
           s = /*severe:StaticTypeError*/new B().w;
 
-          i = /*info:DownCast*/new B().x;
+          i = /*info:DynamicCast*/new B().x;
           i = new B().y;
           i = /*severe:StaticTypeError*/new B().z;
           i = new B().w;

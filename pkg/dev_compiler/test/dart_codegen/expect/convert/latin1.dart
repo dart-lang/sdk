@@ -76,7 +76,7 @@ if (i > start) _addSliceToSink(source, start, i, false);
 }
 ), DEVC$RT.type((List<int> _) {
 }
-), "CastLiteral", """line 161, column 25 of dart:convert/latin1.dart: """, __x27 is List<int>, false))(const [0xFFFD]), 0, 1, false);
+), "InferableLiteral", """line 161, column 25 of dart:convert/latin1.dart: """, __x27 is List<int>, false))(const [0xFFFD]), 0, 1, false);
  start = i + 1;
 }
 }

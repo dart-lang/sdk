@@ -18,7 +18,7 @@ part of dart.async;
  class AsyncError implements Error {final error;
  final StackTrace stackTrace;
  AsyncError(this.error, this.stackTrace);
- String toString() => ((__x143) => DEVC$RT.cast(__x143, dynamic, String, "CastGeneral", """line 46, column 24 of dart:async/zone.dart: """, __x143 is String, true))(error.toString());
+ String toString() => ((__x143) => DEVC$RT.cast(__x143, dynamic, String, "DynamicCast", """line 46, column 24 of dart:async/zone.dart: """, __x143 is String, true))(error.toString());
 }
  class _ZoneFunction {final _Zone zone;
  final Function function;
@@ -30,7 +30,7 @@ dynamic handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone, error, St
  factory ZoneSpecification.from(ZoneSpecification other, {
 dynamic handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) : null, dynamic run(Zone self, ZoneDelegate parent, Zone zone, f()) : null, dynamic runUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) : null, dynamic runBinary(Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2), arg1, arg2) : null, ZoneCallback registerCallback(Zone self, ZoneDelegate parent, Zone zone, f()) : null, ZoneUnaryCallback registerUnaryCallback(Zone self, ZoneDelegate parent, Zone zone, f(arg)) : null, ZoneBinaryCallback registerBinaryCallback(Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)) : null, AsyncError errorCallback(Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace), void scheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) : null, Timer createTimer(Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f()) : null, Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone, Duration period, void f(Timer timer)) : null, void print(Zone self, ZoneDelegate parent, Zone zone, String line) : null, Zone fork(Zone self, ZoneDelegate parent, Zone zone, ZoneSpecification specification, Map zoneValues) : null}
 ) {
-return new ZoneSpecification(handleUncaughtError: ((__x150) => DEVC$RT.cast(__x150, dynamic, __t144, "CastGeneral", """line 138, column 28 of dart:async/zone.dart: """, __x150 is __t144, false))(handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError), run: ((__x156) => DEVC$RT.cast(__x156, dynamic, __t151, "CastGeneral", """line 141, column 12 of dart:async/zone.dart: """, __x156 is __t151, false))(run != null ? run : other.run), runUnary: ((__x164) => DEVC$RT.cast(__x164, dynamic, __t157, "CastGeneral", """line 142, column 17 of dart:async/zone.dart: """, __x164 is __t157, false))(runUnary != null ? runUnary : other.runUnary), runBinary: ((__x174) => DEVC$RT.cast(__x174, dynamic, __t165, "CastGeneral", """line 143, column 18 of dart:async/zone.dart: """, __x174 is __t165, false))(runBinary != null ? runBinary : other.runBinary), registerCallback: ((__x181) => DEVC$RT.cast(__x181, dynamic, __t175, "CastGeneral", """line 144, column 25 of dart:async/zone.dart: """, __x181 is __t175, false))(registerCallback != null ? registerCallback : other.registerCallback), registerUnaryCallback: ((__x190) => DEVC$RT.cast(__x190, dynamic, __t182, "CastGeneral", """line 147, column 30 of dart:async/zone.dart: """, __x190 is __t182, false))(registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback), registerBinaryCallback: ((__x201) => DEVC$RT.cast(__x201, dynamic, __t191, "CastGeneral", """line 150, column 31 of dart:async/zone.dart: """, __x201 is __t191, false))(registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback), errorCallback: ((__x208) => DEVC$RT.cast(__x208, dynamic, __t202, "CastGeneral", """line 153, column 22 of dart:async/zone.dart: """, __x208 is __t202, false))(errorCallback != null ? errorCallback : other.errorCallback), scheduleMicrotask: ((__x214) => DEVC$RT.cast(__x214, dynamic, __t209, "CastGeneral", """line 156, column 26 of dart:async/zone.dart: """, __x214 is __t209, false))(scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask), createTimer: ((__x221) => DEVC$RT.cast(__x221, dynamic, __t215, "CastGeneral", """line 159, column 21 of dart:async/zone.dart: """, __x221 is __t215, false))(createTimer != null ? createTimer : other.createTimer), createPeriodicTimer: ((__x229) => DEVC$RT.cast(__x229, dynamic, __t222, "CastGeneral", """line 160, column 28 of dart:async/zone.dart: """, __x229 is __t222, false))(createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer), print: ((__x235) => DEVC$RT.cast(__x235, dynamic, __t230, "CastGeneral", """line 163, column 15 of dart:async/zone.dart: """, __x235 is __t230, false))(print != null ? print : other.print), fork: ((__x242) => DEVC$RT.cast(__x242, dynamic, __t236, "CastGeneral", """line 164, column 13 of dart:async/zone.dart: """, __x242 is __t236, false))(fork != null ? fork : other.fork));
+return new ZoneSpecification(handleUncaughtError: ((__x150) => DEVC$RT.cast(__x150, dynamic, __t144, "CompositeCast", """line 138, column 28 of dart:async/zone.dart: """, __x150 is __t144, false))(handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError), run: ((__x156) => DEVC$RT.cast(__x156, dynamic, __t151, "CompositeCast", """line 141, column 12 of dart:async/zone.dart: """, __x156 is __t151, false))(run != null ? run : other.run), runUnary: ((__x164) => DEVC$RT.cast(__x164, dynamic, __t157, "CompositeCast", """line 142, column 17 of dart:async/zone.dart: """, __x164 is __t157, false))(runUnary != null ? runUnary : other.runUnary), runBinary: ((__x174) => DEVC$RT.cast(__x174, dynamic, __t165, "CompositeCast", """line 143, column 18 of dart:async/zone.dart: """, __x174 is __t165, false))(runBinary != null ? runBinary : other.runBinary), registerCallback: ((__x181) => DEVC$RT.cast(__x181, dynamic, __t175, "CompositeCast", """line 144, column 25 of dart:async/zone.dart: """, __x181 is __t175, false))(registerCallback != null ? registerCallback : other.registerCallback), registerUnaryCallback: ((__x190) => DEVC$RT.cast(__x190, dynamic, __t182, "CompositeCast", """line 147, column 30 of dart:async/zone.dart: """, __x190 is __t182, false))(registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback), registerBinaryCallback: ((__x201) => DEVC$RT.cast(__x201, dynamic, __t191, "CompositeCast", """line 150, column 31 of dart:async/zone.dart: """, __x201 is __t191, false))(registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback), errorCallback: ((__x208) => DEVC$RT.cast(__x208, dynamic, __t202, "CompositeCast", """line 153, column 22 of dart:async/zone.dart: """, __x208 is __t202, false))(errorCallback != null ? errorCallback : other.errorCallback), scheduleMicrotask: ((__x214) => DEVC$RT.cast(__x214, dynamic, __t209, "CompositeCast", """line 156, column 26 of dart:async/zone.dart: """, __x214 is __t209, false))(scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask), createTimer: ((__x221) => DEVC$RT.cast(__x221, dynamic, __t215, "CompositeCast", """line 159, column 21 of dart:async/zone.dart: """, __x221 is __t215, false))(createTimer != null ? createTimer : other.createTimer), createPeriodicTimer: ((__x229) => DEVC$RT.cast(__x229, dynamic, __t222, "CompositeCast", """line 160, column 28 of dart:async/zone.dart: """, __x229 is __t222, false))(createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer), print: ((__x235) => DEVC$RT.cast(__x235, dynamic, __t230, "CompositeCast", """line 163, column 15 of dart:async/zone.dart: """, __x235 is __t230, false))(print != null ? print : other.print), fork: ((__x242) => DEVC$RT.cast(__x242, dynamic, __t236, "CompositeCast", """line 164, column 13 of dart:async/zone.dart: """, __x242 is __t236, false))(fork != null ? fork : other.fork));
 }
  HandleUncaughtErrorHandler get handleUncaughtError;
  RunHandler get run;
@@ -150,23 +150,23 @@ _ZoneFunction implementation = _delegationTarget._runBinary;
  ZoneCallback registerCallback(Zone zone, f()) {
 _ZoneFunction implementation = _delegationTarget._registerCallback;
  _Zone implZone = implementation.zone;
- return ((__x243) => DEVC$RT.cast(__x243, dynamic, __t180, "CastGeneral", """line 522, column 12 of dart:async/zone.dart: """, __x243 is __t180, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, f));
+ return ((__x243) => DEVC$RT.cast(__x243, dynamic, __t180, "DynamicCast", """line 522, column 12 of dart:async/zone.dart: """, __x243 is __t180, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, f));
 }
  ZoneUnaryCallback registerUnaryCallback(Zone zone, f(arg)) {
 _ZoneFunction implementation = _delegationTarget._registerUnaryCallback;
  _Zone implZone = implementation.zone;
- return ((__x244) => DEVC$RT.cast(__x244, dynamic, __t188, "CastGeneral", """line 529, column 12 of dart:async/zone.dart: """, __x244 is __t188, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, f));
+ return ((__x244) => DEVC$RT.cast(__x244, dynamic, __t188, "DynamicCast", """line 529, column 12 of dart:async/zone.dart: """, __x244 is __t188, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, f));
 }
  ZoneBinaryCallback registerBinaryCallback(Zone zone, f(arg1, arg2)) {
 _ZoneFunction implementation = _delegationTarget._registerBinaryCallback;
  _Zone implZone = implementation.zone;
- return ((__x245) => DEVC$RT.cast(__x245, dynamic, __t198, "CastGeneral", """line 536, column 12 of dart:async/zone.dart: """, __x245 is __t198, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, f));
+ return ((__x245) => DEVC$RT.cast(__x245, dynamic, __t198, "DynamicCast", """line 536, column 12 of dart:async/zone.dart: """, __x245 is __t198, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, f));
 }
  AsyncError errorCallback(Zone zone, Object error, StackTrace stackTrace) {
 _ZoneFunction implementation = _delegationTarget._errorCallback;
  _Zone implZone = implementation.zone;
  if (identical(implZone, _ROOT_ZONE)) return null;
- return ((__x246) => DEVC$RT.cast(__x246, dynamic, AsyncError, "CastGeneral", """line 544, column 12 of dart:async/zone.dart: """, __x246 is AsyncError, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, error, stackTrace));
+ return ((__x246) => DEVC$RT.cast(__x246, dynamic, AsyncError, "DynamicCast", """line 544, column 12 of dart:async/zone.dart: """, __x246 is AsyncError, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, error, stackTrace));
 }
  void scheduleMicrotask(Zone zone, f()) {
 _ZoneFunction implementation = _delegationTarget._scheduleMicrotask;
@@ -176,12 +176,12 @@ _ZoneFunction implementation = _delegationTarget._scheduleMicrotask;
  Timer createTimer(Zone zone, Duration duration, void f()) {
 _ZoneFunction implementation = _delegationTarget._createTimer;
  _Zone implZone = implementation.zone;
- return ((__x247) => DEVC$RT.cast(__x247, dynamic, Timer, "CastGeneral", """line 558, column 12 of dart:async/zone.dart: """, __x247 is Timer, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, duration, f));
+ return ((__x247) => DEVC$RT.cast(__x247, dynamic, Timer, "DynamicCast", """line 558, column 12 of dart:async/zone.dart: """, __x247 is Timer, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, duration, f));
 }
  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer)) {
 _ZoneFunction implementation = _delegationTarget._createPeriodicTimer;
  _Zone implZone = implementation.zone;
- return ((__x248) => DEVC$RT.cast(__x248, dynamic, Timer, "CastGeneral", """line 565, column 12 of dart:async/zone.dart: """, __x248 is Timer, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, period, f));
+ return ((__x248) => DEVC$RT.cast(__x248, dynamic, Timer, "DynamicCast", """line 565, column 12 of dart:async/zone.dart: """, __x248 is Timer, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, period, f));
 }
  void print(Zone zone, String line) {
 _ZoneFunction implementation = _delegationTarget._print;
@@ -191,7 +191,7 @@ _ZoneFunction implementation = _delegationTarget._print;
  Zone fork(Zone zone, ZoneSpecification specification, Map zoneValues) {
 _ZoneFunction implementation = _delegationTarget._fork;
  _Zone implZone = implementation.zone;
- return ((__x249) => DEVC$RT.cast(__x249, dynamic, Zone, "CastGeneral", """line 580, column 12 of dart:async/zone.dart: """, __x249 is Zone, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, specification, zoneValues));
+ return ((__x249) => DEVC$RT.cast(__x249, dynamic, Zone, "DynamicCast", """line 580, column 12 of dart:async/zone.dart: """, __x249 is Zone, true))((implementation.function)(implZone, _parentDelegate(implZone), zone, specification, zoneValues));
 }
 }
  abstract class _Zone implements Zone {const _Zone();
@@ -331,7 +331,7 @@ ZoneSpecification specification, Map zoneValues}
 ) {
 _ZoneFunction implementation = this._fork;
  assert (implementation != null); ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
- return ((__x250) => DEVC$RT.cast(__x250, dynamic, Zone, "CastGeneral", """line 787, column 12 of dart:async/zone.dart: """, __x250 is Zone, true))((implementation.function)(implementation.zone, parentDelegate, this, specification, zoneValues));
+ return ((__x250) => DEVC$RT.cast(__x250, dynamic, Zone, "DynamicCast", """line 787, column 12 of dart:async/zone.dart: """, __x250 is Zone, true))((implementation.function)(implementation.zone, parentDelegate, this, specification, zoneValues));
 }
  dynamic run(f()) {
 _ZoneFunction implementation = this._run;
@@ -351,24 +351,24 @@ _ZoneFunction implementation = this._runBinary;
  ZoneCallback registerCallback(f()) {
 _ZoneFunction implementation = this._registerCallback;
  assert (implementation != null); ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
- return ((__x251) => DEVC$RT.cast(__x251, dynamic, __t180, "CastGeneral", """line 820, column 12 of dart:async/zone.dart: """, __x251 is __t180, true))((implementation.function)(implementation.zone, parentDelegate, this, f));
+ return ((__x251) => DEVC$RT.cast(__x251, dynamic, __t180, "DynamicCast", """line 820, column 12 of dart:async/zone.dart: """, __x251 is __t180, true))((implementation.function)(implementation.zone, parentDelegate, this, f));
 }
  ZoneUnaryCallback registerUnaryCallback(f(arg)) {
 _ZoneFunction implementation = this._registerUnaryCallback;
  assert (implementation != null); ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
- return ((__x252) => DEVC$RT.cast(__x252, dynamic, __t188, "CastGeneral", """line 828, column 12 of dart:async/zone.dart: """, __x252 is __t188, true))((implementation.function)(implementation.zone, parentDelegate, this, f));
+ return ((__x252) => DEVC$RT.cast(__x252, dynamic, __t188, "DynamicCast", """line 828, column 12 of dart:async/zone.dart: """, __x252 is __t188, true))((implementation.function)(implementation.zone, parentDelegate, this, f));
 }
  ZoneBinaryCallback registerBinaryCallback(f(arg1, arg2)) {
 _ZoneFunction implementation = this._registerBinaryCallback;
  assert (implementation != null); ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
- return ((__x253) => DEVC$RT.cast(__x253, dynamic, __t198, "CastGeneral", """line 836, column 12 of dart:async/zone.dart: """, __x253 is __t198, true))((implementation.function)(implementation.zone, parentDelegate, this, f));
+ return ((__x253) => DEVC$RT.cast(__x253, dynamic, __t198, "DynamicCast", """line 836, column 12 of dart:async/zone.dart: """, __x253 is __t198, true))((implementation.function)(implementation.zone, parentDelegate, this, f));
 }
  AsyncError errorCallback(Object error, StackTrace stackTrace) {
 final _ZoneFunction implementation = this._errorCallback;
  assert (implementation != null); final Zone implementationZone = implementation.zone;
  if (identical(implementationZone, _ROOT_ZONE)) return null;
- final ZoneDelegate parentDelegate = _parentDelegate(DEVC$RT.cast(implementationZone, Zone, _Zone, "CastGeneral", """line 845, column 57 of dart:async/zone.dart: """, implementationZone is _Zone, true));
- return ((__x254) => DEVC$RT.cast(__x254, dynamic, AsyncError, "CastGeneral", """line 846, column 12 of dart:async/zone.dart: """, __x254 is AsyncError, true))((implementation.function)(implementationZone, parentDelegate, this, error, stackTrace));
+ final ZoneDelegate parentDelegate = _parentDelegate(DEVC$RT.cast(implementationZone, Zone, _Zone, "ImplicitCast", """line 845, column 57 of dart:async/zone.dart: """, implementationZone is _Zone, true));
+ return ((__x254) => DEVC$RT.cast(__x254, dynamic, AsyncError, "DynamicCast", """line 846, column 12 of dart:async/zone.dart: """, __x254 is AsyncError, true))((implementation.function)(implementationZone, parentDelegate, this, error, stackTrace));
 }
  void scheduleMicrotask(void f()) {
 _ZoneFunction implementation = this._scheduleMicrotask;
@@ -378,12 +378,12 @@ _ZoneFunction implementation = this._scheduleMicrotask;
  Timer createTimer(Duration duration, void f()) {
 _ZoneFunction implementation = this._createTimer;
  assert (implementation != null); ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
- return ((__x255) => DEVC$RT.cast(__x255, dynamic, Timer, "CastGeneral", """line 862, column 12 of dart:async/zone.dart: """, __x255 is Timer, true))((implementation.function)(implementation.zone, parentDelegate, this, duration, f));
+ return ((__x255) => DEVC$RT.cast(__x255, dynamic, Timer, "DynamicCast", """line 862, column 12 of dart:async/zone.dart: """, __x255 is Timer, true))((implementation.function)(implementation.zone, parentDelegate, this, duration, f));
 }
  Timer createPeriodicTimer(Duration duration, void f(Timer timer)) {
 _ZoneFunction implementation = this._createPeriodicTimer;
  assert (implementation != null); ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
- return ((__x256) => DEVC$RT.cast(__x256, dynamic, Timer, "CastGeneral", """line 870, column 12 of dart:async/zone.dart: """, __x256 is Timer, true))((implementation.function)(implementation.zone, parentDelegate, this, duration, f));
+ return ((__x256) => DEVC$RT.cast(__x256, dynamic, Timer, "DynamicCast", """line 870, column 12 of dart:async/zone.dart: """, __x256 is Timer, true))((implementation.function)(implementation.zone, parentDelegate, this, duration, f));
 }
  void print(String line) {
 _ZoneFunction implementation = this._print;
@@ -486,7 +486,7 @@ valueMap = new HashMap();
  else {
 valueMap = new HashMap.from(zoneValues);
 }
- return new _CustomZone(DEVC$RT.cast(zone, Zone, _Zone, "CastGeneral", """line 999, column 26 of dart:async/zone.dart: """, zone is _Zone, true), specification, valueMap);
+ return new _CustomZone(DEVC$RT.cast(zone, Zone, _Zone, "ImplicitCast", """line 999, column 26 of dart:async/zone.dart: """, zone is _Zone, true), specification, valueMap);
 }
  class _RootZoneSpecification implements ZoneSpecification {HandleUncaughtErrorHandler get handleUncaughtError => _rootHandleUncaughtError;
  RunHandler get run => _rootRun;
@@ -637,7 +637,7 @@ try {
 if (onError is ZoneBinaryCallback) {
 return self.parent.runBinary(onError, error, stackTrace);
 }
- return self.parent.runUnary(DEVC$RT.cast(onError, Function, __t188, "CastGeneral", """line 1228, column 37 of dart:async/zone.dart: """, onError is __t188, true), error);
+ return self.parent.runUnary(DEVC$RT.cast(onError, Function, __t188, "ImplicitCast", """line 1228, column 37 of dart:async/zone.dart: """, onError is __t188, true), error);
 }
  catch (e, s) {
 if (identical(e, error)) {
