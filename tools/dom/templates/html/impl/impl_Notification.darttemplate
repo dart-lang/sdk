@@ -15,13 +15,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     if (lang != null) parsedOptions['lang'] = lang;
     if (tag != null) parsedOptions['tag'] = tag;
     if (icon != null) parsedOptions['icon'] = icon;
-    var nativeOptions;
-$if DART2JS
-    nativeOptions = convertDartToNative_Dictionary(parsedOptions);
-$else
-    nativeOptions = parsedOptions;
-$endif
-    return $CLASSNAME._factory$CLASSNAME(title, nativeOptions);
+    return $CLASSNAME._factory$CLASSNAME(title, parsedOptions);
   }
 $!MEMBERS
 }

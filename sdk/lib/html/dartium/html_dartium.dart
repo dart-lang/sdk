@@ -24852,9 +24852,7 @@ class Notification extends EventTarget {
     if (lang != null) parsedOptions['lang'] = lang;
     if (tag != null) parsedOptions['tag'] = tag;
     if (icon != null) parsedOptions['icon'] = icon;
-    var nativeOptions;
-    nativeOptions = parsedOptions;
-    return Notification._factoryNotification(title, nativeOptions);
+    return Notification._factoryNotification(title, parsedOptions);
   }
   // To suppress missing implicit constructor warnings.
   factory Notification._() { throw new UnsupportedError("Not supported"); }

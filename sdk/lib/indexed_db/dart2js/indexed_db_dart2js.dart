@@ -1042,8 +1042,8 @@ class ObjectStore extends Interceptor {
       var key_2 = convertDartToNative_SerializedScriptValue(key);
       return _add_1(value_1, key_2);
     }
-    var value_3 = convertDartToNative_SerializedScriptValue(value);
-    return _add_2(value_3);
+    var value_1 = convertDartToNative_SerializedScriptValue(value);
+    return _add_2(value_1);
   }
   @JSName('add')
   @DomName('IDBObjectStore.add')
@@ -1081,13 +1081,13 @@ class ObjectStore extends Interceptor {
       return _createIndex_2(name, keyPath, options_1);
     }
     if ((keyPath is List<String> || keyPath == null) && options == null) {
-      List keyPath_2 = convertDartToNative_StringArray(keyPath);
-      return _createIndex_3(name, keyPath_2);
+      List keyPath_1 = convertDartToNative_StringArray(keyPath);
+      return _createIndex_3(name, keyPath_1);
     }
     if (options != null && (keyPath is List<String> || keyPath == null)) {
-      List keyPath_3 = convertDartToNative_StringArray(keyPath);
-      var options_4 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath_3, options_4);
+      List keyPath_1 = convertDartToNative_StringArray(keyPath);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return _createIndex_4(name, keyPath_1, options_2);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -1153,8 +1153,8 @@ class ObjectStore extends Interceptor {
       var key_2 = convertDartToNative_SerializedScriptValue(key);
       return _put_1(value_1, key_2);
     }
-    var value_3 = convertDartToNative_SerializedScriptValue(value);
-    return _put_2(value_3);
+    var value_1 = convertDartToNative_SerializedScriptValue(value);
+    return _put_2(value_1);
   }
   @JSName('put')
   @DomName('IDBObjectStore.put')

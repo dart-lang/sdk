@@ -275,7 +275,8 @@ class Animation extends AnimationNode {
       return Animation._create_2(target, keyframes, timingInput);
     }
     if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return Animation._create_3(target, keyframes, timingInput);
+      var timingInput_1 = convertDartToNative_Dictionary(timingInput);
+      return Animation._create_3(target, keyframes, timingInput_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -2036,8 +2037,8 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
       return;
     }
     if (dirtyHeight != null && dirtyWidth != null && dirtyY != null && dirtyX != null) {
-      var imagedata_2 = convertDartToNative_ImageData(imagedata);
-      _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      var imagedata_1 = convertDartToNative_ImageData(imagedata);
+      _putImageData_2(imagedata_1, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -2524,7 +2525,8 @@ class CircularGeofencingRegion extends GeofencingRegion {
   @DomName('CircularGeofencingRegion.CircularGeofencingRegion')
   @DocsEditable()
   factory CircularGeofencingRegion(Map init) {
-    return CircularGeofencingRegion._create_1(init);
+    var init_1 = convertDartToNative_Dictionary(init);
+    return CircularGeofencingRegion._create_1(init_1);
   }
   static CircularGeofencingRegion _create_1(init) => JS('CircularGeofencingRegion', 'new CircularGeofencingRegion(#)', init);
 
@@ -7329,13 +7331,13 @@ class DirectoryEntry extends Entry {
       return;
     }
     if (successCallback != null) {
-      var options_2 = convertDartToNative_Dictionary(options);
-      __getDirectory_2(path, options_2, successCallback);
+      var options_1 = convertDartToNative_Dictionary(options);
+      __getDirectory_2(path, options_1, successCallback);
       return;
     }
     if (options != null) {
-      var options_3 = convertDartToNative_Dictionary(options);
-      __getDirectory_3(path, options_3);
+      var options_1 = convertDartToNative_Dictionary(options);
+      __getDirectory_3(path, options_1);
       return;
     }
     __getDirectory_4(path);
@@ -7378,13 +7380,13 @@ class DirectoryEntry extends Entry {
       return;
     }
     if (successCallback != null) {
-      var options_2 = convertDartToNative_Dictionary(options);
-      __getFile_2(path, options_2, successCallback);
+      var options_1 = convertDartToNative_Dictionary(options);
+      __getFile_2(path, options_1, successCallback);
       return;
     }
     if (options != null) {
-      var options_3 = convertDartToNative_Dictionary(options);
-      __getFile_3(path, options_3);
+      var options_1 = convertDartToNative_Dictionary(options);
+      __getFile_3(path, options_1);
       return;
     }
     __getFile_4(path);
@@ -9099,7 +9101,8 @@ class DomPoint extends DomPointReadOnly {
       return DomPoint._create_1();
     }
     if ((point_OR_x is Map || point_OR_x == null) && y == null && z == null && w == null) {
-      return DomPoint._create_2(point_OR_x);
+      var point_1 = convertDartToNative_Dictionary(point_OR_x);
+      return DomPoint._create_2(point_1);
     }
     if ((y is num || y == null) && (point_OR_x is num || point_OR_x == null) && z == null && w == null) {
       return DomPoint._create_3(point_OR_x, y);
@@ -13940,7 +13943,8 @@ class EventSource extends EventTarget {
   @DocsEditable()
   static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
     if (eventSourceInit != null) {
-      return EventSource._create_1(url, eventSourceInit);
+      var eventSourceInit_1 = convertDartToNative_Dictionary(eventSourceInit);
+      return EventSource._create_1(url, eventSourceInit_1);
     }
     return EventSource._create_2(url);
   }
@@ -14906,19 +14910,22 @@ class FontFace extends Interceptor {
       return FontFace._create_1(family, source);
     }
     if ((descriptors is Map || descriptors == null) && (source is String || source == null) && (family is String || family == null)) {
-      return FontFace._create_2(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return FontFace._create_2(family, source, descriptors_1);
     }
     if ((source is TypedData || source == null) && (family is String || family == null) && descriptors == null) {
       return FontFace._create_3(family, source);
     }
     if ((descriptors is Map || descriptors == null) && (source is TypedData || source == null) && (family is String || family == null)) {
-      return FontFace._create_4(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return FontFace._create_4(family, source, descriptors_1);
     }
     if ((source is ByteBuffer || source == null) && (family is String || family == null) && descriptors == null) {
       return FontFace._create_5(family, source);
     }
     if ((descriptors is Map || descriptors == null) && (source is ByteBuffer || source == null) && (family is String || family == null)) {
-      return FontFace._create_6(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return FontFace._create_6(family, source, descriptors_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -16153,7 +16160,8 @@ class Headers extends Interceptor {
       return Headers._create_2(input);
     }
     if ((input is Map || input == null)) {
-      return Headers._create_3(input);
+      var input_1 = convertDartToNative_Dictionary(input);
+      return Headers._create_3(input_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -20637,8 +20645,8 @@ class MessagePort extends EventTarget {
       _postMessage_1(message_1, transfer);
       return;
     }
-    var message_2 = convertDartToNative_SerializedScriptValue(message);
-    _postMessage_2(message_2);
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
     return;
   }
   @JSName('postMessage')
@@ -22745,9 +22753,7 @@ class Notification extends EventTarget {
     if (lang != null) parsedOptions['lang'] = lang;
     if (tag != null) parsedOptions['tag'] = tag;
     if (icon != null) parsedOptions['icon'] = icon;
-    var nativeOptions;
-    nativeOptions = convertDartToNative_Dictionary(parsedOptions);
-    return Notification._factoryNotification(title, nativeOptions);
+    return Notification._factoryNotification(title, parsedOptions);
   }
   // To suppress missing implicit constructor warnings.
   factory Notification._() { throw new UnsupportedError("Not supported"); }
@@ -22796,7 +22802,8 @@ class Notification extends EventTarget {
   @DocsEditable()
   static Notification _factoryNotification(String title, [Map options]) {
     if (options != null) {
-      return Notification._create_1(title, options);
+      var options_1 = convertDartToNative_Dictionary(options);
+      return Notification._create_1(title, options_1);
     }
     return Notification._create_2(title);
   }
@@ -25154,8 +25161,8 @@ class RtcPeerConnection extends EventTarget {
       return;
     }
     if (configuration != null) {
-      var configuration_3 = convertDartToNative_Dictionary(configuration);
-      _updateIce_2(configuration_3);
+      var configuration_1 = convertDartToNative_Dictionary(configuration);
+      _updateIce_2(configuration_1);
       return;
     }
     _updateIce_3();
@@ -25942,8 +25949,8 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
       return _fetch_3(request);
     }
     if (requestInitDict != null && (request is _Request || request == null)) {
-      var requestInitDict_2 = convertDartToNative_Dictionary(requestInitDict);
-      return _fetch_4(request, requestInitDict_2);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return _fetch_4(request, requestInitDict_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -29924,7 +29931,8 @@ class WebSocket extends EventTarget {
       return WebSocket._create_2(url, protocol_OR_protocols);
     }
     if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return WebSocket._create_3(url, protocol_OR_protocols);
+      List protocols_1 = convertDartToNative_StringArray(protocol_OR_protocols);
+      return WebSocket._create_3(url, protocols_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -31408,8 +31416,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _postMessage_1(message_1, targetOrigin, transfer);
       return;
     }
-    var message_2 = convertDartToNative_SerializedScriptValue(message);
-    _postMessage_2(message_2, targetOrigin);
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1, targetOrigin);
     return;
   }
   @JSName('postMessage')
@@ -31484,8 +31492,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if (scrollOptions != null && (y is int) && (x is int)) {
-      var scrollOptions_2 = convertDartToNative_Dictionary(scrollOptions);
-      _scroll_4(x, y, scrollOptions_2);
+      var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
+      _scroll_4(x, y, scrollOptions_1);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -31572,8 +31580,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if (scrollOptions != null && (y is int) && (x is int)) {
-      var scrollOptions_2 = convertDartToNative_Dictionary(scrollOptions);
-      _scrollBy_4(x, y, scrollOptions_2);
+      var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
+      _scrollBy_4(x, y, scrollOptions_1);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -31654,8 +31662,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if (scrollOptions != null && (y is int) && (x is int)) {
-      var scrollOptions_2 = convertDartToNative_Dictionary(scrollOptions);
-      _scrollTo_4(x, y, scrollOptions_2);
+      var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
+      _scrollTo_4(x, y, scrollOptions_1);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34020,13 +34028,15 @@ class _Request extends Body {
       return _Request._create_1(input);
     }
     if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
-      return _Request._create_2(input, requestInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return _Request._create_2(input, requestInitDict_1);
     }
     if ((input is _Request || input == null) && requestInitDict == null) {
       return _Request._create_3(input);
     }
     if ((requestInitDict is Map || requestInitDict == null) && (input is _Request || input == null)) {
-      return _Request._create_4(input, requestInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return _Request._create_4(input, requestInitDict_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -34085,25 +34095,29 @@ abstract class _Response extends Body {
       return _Response._create_1(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is String || body_OR_input == null)) {
-      return _Response._create_2(body_OR_input, requestInitDict_OR_responseInitDict);
+      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _Response._create_2(body_OR_input, responseInitDict_1);
     }
     if ((body_OR_input is Blob || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
       return _Response._create_3(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is Blob || body_OR_input == null)) {
-      return _Response._create_4(body_OR_input, requestInitDict_OR_responseInitDict);
+      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _Response._create_4(body_OR_input, responseInitDict_1);
     }
     if ((body_OR_input is TypedData || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
       return _Response._create_5(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is TypedData || body_OR_input == null)) {
-      return _Response._create_6(body_OR_input, requestInitDict_OR_responseInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _Response._create_6(body_OR_input, requestInitDict_1);
     }
     if ((body_OR_input is ByteBuffer || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
       return _Response._create_7(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is ByteBuffer || body_OR_input == null)) {
-      return _Response._create_8(body_OR_input, requestInitDict_OR_responseInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _Response._create_8(body_OR_input, requestInitDict_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }

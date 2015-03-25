@@ -393,6 +393,9 @@ class DartiumBackend(HtmlDartGenerator):
   def CustomJSMembers(self):
     return {}
 
+  def _InputConversion(self, type_name, info):
+    return None
+
   def GenerateCallback(self, info):
     if IsPureInterface(self._interface.id) or IsCustomType(self._interface.id):
       return

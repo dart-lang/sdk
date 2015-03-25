@@ -542,6 +542,14 @@ class HtmlDartGenerator(object):
     else:
       factory_parameters = ', '.join(constructor_info.factory_parameters)
 
+    def InputType(type_name):
+      conversion = self._InputConversion(
+          type_name, constructor_info.declared_name)
+      if conversion:
+        return conversion.input_type
+      else:
+        return self._NarrowInputType(type_name) if type_name else 'dynamic'
+
     if constructor_info.pure_dart_constructor:
       # TODO(antonm): use common dispatcher generation for this case as well.
       has_optional = any(param_info.is_optional
@@ -553,7 +561,7 @@ class HtmlDartGenerator(object):
             'factory $CTOR($PARAMS) => '
             '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
-            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
+            PARAMS=constructor_info.ParametersAsDeclaration(InputType),
             FACTORY=factory_name,
             METADATA=metadata,
             CTOR_FACTORY_NAME=factory_constructor_name,
@@ -570,7 +578,7 @@ class HtmlDartGenerator(object):
             METADATA=metadata,
             FACTORY=factory_name,
             CTOR_FACTORY_NAME=factory_constructor_name,
-            PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
+            PARAMS=constructor_info.ParametersAsDeclaration(InputType),
             FACTORY_PARAMS=factory_parameters)
 
         for index, param_info in enumerate(constructor_info.param_infos):
@@ -586,6 +594,7 @@ class HtmlDartGenerator(object):
           version, signature_index, argument_count):
         name = emitter.Format('_create_$VERSION', VERSION=version)
         arguments = constructor_info.idl_args[signature_index][:argument_count]
+        args = None
         if self._dart_use_blink:
             type_ids = [p.type.id for p in arguments]
             base_name, rs = \
@@ -593,15 +602,18 @@ class HtmlDartGenerator(object):
             qualified_name = \
                 self.DeriveQualifiedBlinkName(self._interface.id,
                                               base_name)
+            args = constructor_info.ParametersAsArgumentList(argument_count)
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',
                 FACTORY=factory_name,
                 NAME=name)
+            (factory_params, converted_arguments) = self._ConvertArgumentTypes(
+                stmts_emitter, arguments, argument_count, constructor_info)
+            args = ', '.join(converted_arguments)
         call_emitter.Emit('$FACTORY_NAME($FACTORY_PARAMS)',
             FACTORY_NAME=qualified_name,
-            FACTORY_PARAMS= \
-                constructor_info.ParametersAsArgumentList(argument_count))
+            FACTORY_PARAMS=args)
         self.EmitStaticFactoryOverload(constructor_info, name, arguments)
 
       def IsOptional(signature_index, argument):
@@ -614,7 +626,7 @@ class HtmlDartGenerator(object):
           CTOR=(('' if not custom_factory_ctr else '_factory')
                 + constructor_full_name),
           METADATA=metadata,
-          PARAMS=constructor_info.ParametersAsDeclaration(self._DartType))
+          PARAMS=constructor_info.ParametersAsDeclaration(InputType))
 
       overload_emitter = self._members_emitter
       overload_declaration = entry_declaration
