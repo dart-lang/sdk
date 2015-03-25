@@ -28,11 +28,15 @@ class ServiceIsolate : public AllStatic {
   static void Run();
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();
+  static void SendServiceExitMessage();
+  static void Shutdown();
 
  protected:
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);
   static void SetLoadPort(Dart_Port port);
+  static void ConstructExitMessageAndCache(Isolate* isolate);
+  static void FinishedExiting();
   static void FinishedInitializing();
   static void MaybeInjectVMServiceLibrary(Isolate* isolate);
   static Dart_IsolateCreateCallback create_callback() {
@@ -44,8 +48,11 @@ class ServiceIsolate : public AllStatic {
                                        Dart_Handle url);
 
   static Dart_IsolateCreateCallback create_callback_;
+  static uint8_t* exit_message_;
+  static intptr_t exit_message_length_;
   static Monitor* monitor_;
   static bool initializing_;
+  static bool shutting_down_;
   static Isolate* isolate_;
   static Dart_Port port_;
   static Dart_Port load_port_;

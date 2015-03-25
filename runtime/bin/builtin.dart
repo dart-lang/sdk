@@ -295,6 +295,7 @@ _loadDataAsyncLoadPort(int tag,
                        Uri resourceUri) {
   var receivePort = new ReceivePort();
   receivePort.first.then((dataOrError) {
+    receivePort.close();
     if (dataOrError is List<int>) {
       _loadScript(tag, uri, libraryUri, dataOrError);
     } else {
@@ -303,6 +304,7 @@ _loadDataAsyncLoadPort(int tag,
       _asyncLoadError(tag, uri, libraryUri, error);
     }
   }).catchError((e) {
+    receivePort.close();
     // Wrap inside a LoadError unless we are already propagating a previously
     // seen LoadError.
     var error = (e is LoadError) ? e : new LoadError(e.toString);

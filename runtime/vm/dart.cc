@@ -158,6 +158,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
 
 
 const char* Dart::Cleanup() {
+  // Shutdown the service isolate before shutting down the thread pool.
+  ServiceIsolate::Shutdown();
 #if 0
   // Ideally we should shutdown the VM isolate here, but the thread pool
   // shutdown does not seem to ensure that all the threads have stopped
