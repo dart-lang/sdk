@@ -1146,20 +1146,47 @@ class Primitives {
 
   static applyFunctionWithPositionalArguments(Function function,
                                               List positionalArguments) {
-    int argumentCount = 0;
     List arguments;
 
     if (positionalArguments != null) {
       if (JS('bool', '# instanceof Array', positionalArguments)) {
-        arguments = positionalArguments;
+        arguments = JS('JSArray', '#', positionalArguments);
       } else {
         arguments = new List.from(positionalArguments);
       }
-      argumentCount = JS('int', '#.length', arguments);
     } else {
       arguments = [];
     }
 
+    if (arguments.length == 0) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX0);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#]()', function, selectorName);
+      }
+    } else if (arguments.length == 1) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX1);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#](#[0])', function, selectorName, arguments);
+      }
+    } else if (arguments.length == 2) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX2);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#](#[0],#[1])', function, selectorName,
+            arguments, arguments);
+      }
+    } else if (arguments.length == 3) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX3);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
+            arguments, arguments, arguments);
+      }
+    }
+    return _genericApplyFunctionWithPositionalArguments(function, arguments);
+  }
+
+  static _genericApplyFunctionWithPositionalArguments(Function function,
+                                                      List arguments) {
+    int argumentCount = arguments.length;
     String selectorName =
         '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
@@ -1168,7 +1195,7 @@ class Primitives {
       jsFunction = JS('', '#["call*"]', interceptor);
 
       if (jsFunction == null) {
-        return functionNoSuchMethod(function, positionalArguments, null);
+        return functionNoSuchMethod(function, arguments, null);
       }
       ReflectionInfo info = new ReflectionInfo(jsFunction);
       int requiredArgumentCount = info.requiredParameterCount;
@@ -1177,7 +1204,7 @@ class Primitives {
       if (info.areOptionalParametersNamed ||
           requiredArgumentCount > argumentCount ||
           maxArgumentCount < argumentCount) {
-        return functionNoSuchMethod(function, positionalArguments, null);
+        return functionNoSuchMethod(function, arguments, null);
       }
       arguments = new List.from(arguments);
       for (int pos = argumentCount; pos < maxArgumentCount; pos++) {

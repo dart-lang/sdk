@@ -418,6 +418,10 @@ class Namer {
       case JsGetName.GETTER_PREFIX: return getterPrefix;
       case JsGetName.SETTER_PREFIX: return setterPrefix;
       case JsGetName.CALL_PREFIX: return callPrefix;
+      case JsGetName.CALL_PREFIX0: return '${callPrefix}\$0';
+      case JsGetName.CALL_PREFIX1: return '${callPrefix}\$1';
+      case JsGetName.CALL_PREFIX2: return '${callPrefix}\$2';
+      case JsGetName.CALL_PREFIX3: return '${callPrefix}\$3';
       case JsGetName.CALL_CATCH_ALL: return callCatchAllName;
       case JsGetName.REFLECTABLE: return reflectableField;
       case JsGetName.CLASS_DESCRIPTOR_PROPERTY:
