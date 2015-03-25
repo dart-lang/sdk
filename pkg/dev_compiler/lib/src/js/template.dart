@@ -274,17 +274,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
-  Instantiator visitInterpolatedPropertyName(InterpolatedPropertyName node) {
-    var nameOrPosition = node.nameOrPosition;
-    return (arguments) {
-      var item = arguments[nameOrPosition];
-      if (item is PropertyName) return item;
-      if (item is String) return new PropertyName(item);
-      return error('Interpolated value #$nameOrPosition is not a '
-          'PropertyName or String: $item');
-    };
-  }
-
   Instantiator visitInterpolatedVariableDeclaration(
         InterpolatedVariableDeclaration node) {
     var nameOrPosition = node.nameOrPosition;
@@ -751,9 +740,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       return new Property(makeName(arguments), makeValue(arguments));
     };
   }
-
-  Instantiator visitPropertyName(PropertyName node) =>
-      (arguments) => new PropertyName(node.name);
 
   Instantiator visitRegExpLiteral(RegExpLiteral node) =>
       (arguments) => new RegExpLiteral(node.pattern);

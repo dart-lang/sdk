@@ -1026,8 +1026,6 @@ class Printer implements NodeVisitor {
     localNamer.leaveScope();
   }
 
-  visitPropertyName(PropertyName node) => propertyNameOut(node);
-
   void propertyNameOut(Expression node, {bool inMethod: false,
       bool inAccess: false}) {
 
@@ -1037,13 +1035,8 @@ class Printer implements NodeVisitor {
       out(nameNumber.value);
       if (inAccess) out(']');
     } else {
-      String quotedName;
-      if (node is PropertyName) {
-        quotedName = "'${node.name}'";
-      } else if (node is LiteralString) {
-        quotedName = node.value;
-      }
-      if (quotedName != null) {
+      if (node is LiteralString) {
+        var quotedName = node.value;
         if (isValidJavaScriptId(quotedName)) {
           if (inAccess) out('.');
           out(quotedName.substring(1, quotedName.length - 1));
@@ -1098,9 +1091,6 @@ class Printer implements NodeVisitor {
       visitInterpolatedNode(node);
 
   visitInterpolatedSelector(InterpolatedSelector node) =>
-      visitInterpolatedNode(node);
-
-  visitInterpolatedPropertyName(InterpolatedPropertyName node) =>
       visitInterpolatedNode(node);
 
   visitInterpolatedMethod(InterpolatedMethod node) =>

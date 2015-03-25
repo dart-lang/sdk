@@ -338,7 +338,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.statement(
           'dart.defineLazyClass(#, { get #() { #; return #; } });', [
         _EXPORTS,
-        name,
+        _propertyName(name),
         body,
         name
       ]);
@@ -577,7 +577,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var superCall = _superConstructorCall(node);
     if (superCall != null) body = [[body, superCall]];
     return new JS.Method(
-        new JS.PropertyName(name), js.call('function() { #; }', body));
+        _propertyName(name), js.call('function() { #; }', body));
   }
 
   JS.Method _emitConstructor(ConstructorDeclaration node, String className,
@@ -619,7 +619,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
     return new JS.Method(
-        new JS.PropertyName(name), new JS.Fun(_visit(node.parameters), body))
+        _propertyName(name), new JS.Fun(_visit(node.parameters), body))
       ..sourceInformation = node;
   }
 
@@ -869,8 +869,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Method _emitTopLevelProperty(FunctionDeclaration node) {
     var name = node.name.name;
-    return new JS.Method(
-        new JS.PropertyName(name), _visit(node.functionExpression),
+    return new JS.Method(_propertyName(name), _visit(node.functionExpression),
         isGetter: node.isGetter, isSetter: node.isSetter);
   }
 
@@ -1155,7 +1154,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Property visitNamedExpression(NamedExpression node) {
     assert(node.parent is ArgumentList);
     return new JS.Property(
-        new JS.PropertyName(node.name.label.name), _visit(node.expression));
+        _propertyName(node.name.label.name), _visit(node.expression));
   }
 
   @override
@@ -1281,15 +1280,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var methods = [];
     for (var node in fields) {
       var name = node.name.name;
-      methods.add(new JS.Method(new JS.PropertyName(name),
+      methods.add(new JS.Method(_propertyName(name),
           js.call('function() { return #; }', _visit(node.initializer)),
           isGetter: true));
 
       // TODO(jmesserly): use a dummy setter to indicate writable.
       if (!node.isFinal) {
         methods.add(new JS.Method(
-            new JS.PropertyName(name), js.call('function(_) {}'),
-            isSetter: true));
+            _propertyName(name), js.call('function(_) {}'), isSetter: true));
       }
     }
 
@@ -2085,7 +2083,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     } else if (unary && name == '-') {
       name = 'unary-';
     }
-    return new JS.PropertyName(name);
+    return _propertyName(name);
   }
 
   bool _externalOrNative(node) =>
@@ -2238,6 +2236,12 @@ String jsNodeToString(JS.Node node) {
 /// This never uses the library's name (the identifier in the `library`
 /// declaration) as it doesn't have any meaningful rules enforced.
 String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
+
+/// Shorthand for identifier-like property names.
+/// For now, we emit them as strings and the printer restores them to
+/// identifiers if it can.
+// TODO(jmesserly): avoid the round tripping through quoted form.
+JS.LiteralString _propertyName(String name) => js.string(name, "'");
 
 /// Path to file that will be generated for [info]. In case it's url is a
 /// `file:` url, we use [root] to determine the relative path from the entry

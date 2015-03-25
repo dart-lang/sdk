@@ -769,15 +769,17 @@ class MiniJsParser {
       Expression expression = new RegExpLiteral(regexp + flags);
       return expression;
     } else if (acceptCategory(HASH)) {
-      var nameOrPosition = parseHash();
-      InterpolatedExpression expression =
-          new InterpolatedExpression(nameOrPosition);
-      interpolatedValues.add(expression);
-      return expression;
+      return parseInterpolatedExpression();
     } else {
       error("Expected primary expression");
       return null;
     }
+  }
+
+  InterpolatedExpression parseInterpolatedExpression() {
+    var expression = new InterpolatedExpression(parseHash());
+    interpolatedValues.add(expression);
+    return expression;
   }
 
   /**
@@ -1474,6 +1476,7 @@ class MiniJsParser {
     bool isGetter = false;
     bool isSetter = false;
     Expression name = null;
+    bool propertyNameIsIdentifier = lastCategory == ALPHA;
     if (acceptCategory(HASH)) {
       if (lastCategory != LPAREN && (onlyMethods || lastCategory != COLON)) {
         // Interpolated method
@@ -1481,19 +1484,17 @@ class MiniJsParser {
         interpolatedValues.add(member);
         return member;
       }
-      var interpolated = new InterpolatedExpression(parseHash());
-      interpolatedValues.add(interpolated);
-      name = interpolated;
+      name = parseInterpolatedExpression();
     } else {
       name = parsePropertyName();
     }
 
     // Allow get or set to be followed by another property name.
-    if (name is PropertyName &&
+    if (propertyNameIsIdentifier &&
         (lastCategory == ALPHA || lastCategory == HASH)) {
-      PropertyName p = name;
-      isGetter = p.name == 'get';
-      isSetter = p.name == 'set';
+      LiteralString p = name;
+      isGetter = p.value == '"get"';
+      isSetter = p.value == '"set"';
       if (isGetter || isSetter) {
         name = parsePropertyName();
       }
@@ -1511,21 +1512,17 @@ class MiniJsParser {
 
   Expression parsePropertyName() {
     String identifier = lastToken;
-    if (acceptCategory(ALPHA)) {
-      return new PropertyName(identifier);
-    } else if (acceptCategory(STRING)) {
+    if (acceptCategory(STRING)) {
       return new LiteralString(identifier);
-    } else if (acceptCategory(SYMBOL)) {
-      // e.g. void
+    } else if (acceptCategory(ALPHA) || acceptCategory(SYMBOL)) {
+      // ALPHA or a SYMBOL, e.g. void
       return new LiteralString('"$identifier"');
     } else if (acceptCategory(LSQUARE)) {
       var expr = parseAssignment();
       expectCategory(RSQUARE);
       return expr;
     } else if (acceptCategory(HASH)) {
-      var member = new InterpolatedPropertyName(parseHash());
-      interpolatedValues.add(member);
-      return member;
+      return parseInterpolatedExpression();
     } else {
       error('Expected property name');
       return null;

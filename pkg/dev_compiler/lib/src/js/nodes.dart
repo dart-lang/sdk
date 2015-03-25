@@ -70,7 +70,6 @@ abstract class NodeVisitor<T> {
   T visitClassDeclaration(ClassDeclaration node);
   T visitClassExpression(ClassExpression node);
   T visitMethod(Method node);
-  T visitPropertyName(PropertyName node);
 
   T visitComment(Comment node);
   T visitCommentExpression(CommentExpression node);
@@ -81,7 +80,6 @@ abstract class NodeVisitor<T> {
   T visitInterpolatedSelector(InterpolatedSelector node);
   T visitInterpolatedStatement(InterpolatedStatement node);
   T visitInterpolatedMethod(InterpolatedMethod node);
-  T visitInterpolatedPropertyName(InterpolatedPropertyName node);
   T visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node);
 }
 
@@ -174,7 +172,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitClassDeclaration(ClassDeclaration node) => visitStatement(node);
   T visitClassExpression(ClassExpression node) => visitExpression(node);
   T visitMethod(Method node) => visitProperty(node);
-  T visitPropertyName(PropertyName node) => visitExpression(node);
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
 
@@ -189,8 +186,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitInterpolatedStatement(InterpolatedStatement node)
       => visitInterpolatedNode(node);
   T visitInterpolatedMethod(InterpolatedMethod node)
-      => visitInterpolatedNode(node);
-  T visitInterpolatedPropertyName(InterpolatedPropertyName node)
       => visitInterpolatedNode(node);
   T visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node)
       => visitInterpolatedNode(node);
@@ -857,16 +852,6 @@ class VariableDeclaration extends VariableReference {
   VariableDeclaration _clone() => new VariableDeclaration(name);
 }
 
-class PropertyName extends Expression {
-  final String name;
-  PropertyName(this.name);
-
-  accept(NodeVisitor visitor) => visitor.visitPropertyName(this);
-  visitChildren(NodeVisitor visitor) {}
-  int get precedenceLevel => PRIMARY;
-  PropertyName _clone() => new PropertyName(name);
-}
-
 class Parameter extends VariableDeclaration {
   Parameter(String name) : super(name);
 
@@ -1307,22 +1292,6 @@ class InterpolatedMethod extends Expression with InterpolatedNode
   bool get isStatic => _unsupported;
   Fun get function => _unsupported;
   get _unsupported => throw '$runtimeType does not support this member.';
-}
-
-class InterpolatedPropertyName extends Expression with InterpolatedNode
-    implements PropertyName {
-  final nameOrPosition;
-
-  InterpolatedPropertyName(this.nameOrPosition);
-
-  accept(NodeVisitor visitor) => visitor.visitInterpolatedPropertyName(this);
-  void visitChildren(NodeVisitor visitor) {}
-  InterpolatedPropertyName _clone() =>
-      new InterpolatedPropertyName(nameOrPosition);
-
-  int get precedenceLevel => PRIMARY;
-  String get name => throw '$runtimeType does not support this member.';
-  bool get allowRename => false;
 }
 
 class InterpolatedVariableDeclaration extends Expression with InterpolatedNode
