@@ -14,6 +14,7 @@ import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(ListTaskInputImplTest);
   runReflectiveTests(ListToListTaskInputTest);
   runReflectiveTests(ListToListTaskInputBuilderTest);
   runReflectiveTests(ListToMapTaskInputBuilderTest);
@@ -21,6 +22,53 @@ main() {
   runReflectiveTests(SimpleTaskInputTest);
   runReflectiveTests(SimpleTaskInputBuilderTest);
   runReflectiveTests(TopLevelTaskInputBuilderTest);
+}
+
+@reflectiveTest
+class ListTaskInputImplTest extends EngineTestCase {
+  static final AnalysisTarget target = new TestSource();
+  static final result1 =
+      new ResultDescriptorImpl<List<AnalysisTarget>>('result1', null);
+  static final result2 = new ResultDescriptorImpl<int>('result2', null);
+
+  test_create() {
+    var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
+    expect(input, isNotNull);
+    expect(input.target, target);
+    expect(input.result, result1);
+  }
+
+  test_createBuilder() {
+    var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
+    expect(input.createBuilder(), new isInstanceOf<SimpleTaskInputBuilder>());
+  }
+
+  test_toList() {
+    var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
+    TaskInput<List> input2 = input.toList((target) => 'name');
+    expect(input2,
+        new isInstanceOf<ListToListTaskInput<AnalysisTarget, String>>());
+  }
+
+  test_toListOf() {
+    var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
+    TaskInput<List> input2 = input.toListOf(result2);
+    expect(
+        input2, new isInstanceOf<ListToListTaskInput<AnalysisTarget, int>>());
+  }
+
+  test_toMap() {
+    var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
+    TaskInput<Map> input2 = input.toMap((target) => 'name');
+    expect(
+        input2, new isInstanceOf<ListToMapTaskInput<AnalysisTarget, String>>());
+  }
+
+  test_toMapOf() {
+    var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
+    TaskInput<Map> input2 = input.toMapOf(result2);
+    expect(input2, new isInstanceOf<ListToMapTaskInput<AnalysisTarget, int>>());
+  }
 }
 
 @reflectiveTest
