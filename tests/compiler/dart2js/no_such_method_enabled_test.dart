@@ -209,6 +209,28 @@ main() {
   }));
 }
 
+dummyImplTest10() {
+  String source = """
+class A {
+  noSuchMethod(Invocation x) {
+    throw new UnsupportedException();
+  }
+}
+main() {
+  print(new A().foo());
+}
+""";
+  Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(source, uri);
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+    ClassElement clsA = findElement(compiler, 'A');
+    Expect.isTrue(
+        compiler.backend.noSuchMethodRegistry.throwingImpls.contains(
+            clsA.lookupMember('noSuchMethod')));
+  }));
+}
+
 main() {
   dummyImplTest();
   dummyImplTest2();
@@ -219,4 +241,5 @@ main() {
   dummyImplTest7();
   dummyImplTest8();
   dummyImplTest9();
+  dummyImplTest10();
 }

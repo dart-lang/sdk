@@ -171,8 +171,9 @@ class NoSuchMethodRegistry {
     } else if (body is Block &&
         !body.statements.isEmpty &&
         body.statements.nodes.tail.isEmpty) {
-      if (body.statements.nodes.head is Throw) {
-        return true;
+      if (body.statements.nodes.head is ExpressionStatement) {
+        ExpressionStatement stmt = body.statements.nodes.head;
+        return stmt.expression is Throw;
       }
     }
     return false;
