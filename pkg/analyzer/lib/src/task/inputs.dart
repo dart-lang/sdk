@@ -20,31 +20,32 @@ typedef TaskInput<E> GenerateTaskInputs<B, E>(B object);
  * defined on a single target.
  */
 class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
-    implements ListTaskInput<E> {
+    with ListTaskInputMixin<E> implements ListTaskInput<E> {
   /**
    * Initialize a newly created task input that computes the input by accessing
    * the given [result] associated with the given [target].
    */
   ListTaskInputImpl(AnalysisTarget target, ResultDescriptor<List<E>> result)
       : super(target, result);
+}
 
-  @override
-  TaskInput<List /*<V>*/ > toList(UnaryFunction<E, dynamic /*<V>*/ > mapper) {
+/**
+ * A mixin-ready implementation of [ListTaskInput].
+ */
+abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
+  ListTaskInput /*<V>*/ toList(UnaryFunction<E, dynamic /*<V>*/ > mapper) {
     return new ListToListTaskInput<E, dynamic /*V*/ >(this, mapper);
   }
 
-  @override
-  TaskInput<List /*<V>*/ > toListOf(ResultDescriptor /*<V>*/ valueResult) {
+  ListTaskInput /*<V>*/ toListOf(ResultDescriptor /*<V>*/ valueResult) {
     return (this as ListTaskInputImpl<AnalysisTarget>).toList(valueResult.of);
   }
 
-  @override
   TaskInput<Map<E, dynamic /*V*/ >> toMap(
       UnaryFunction<E, dynamic /*<V>*/ > mapper) {
     return new ListToMapTaskInput<E, dynamic /*V*/ >(this, mapper);
   }
 
-  @override
   TaskInput<Map<AnalysisTarget, dynamic /*V*/ >> toMapOf(
       ResultDescriptor /*<V>*/ valueResult) {
     return (this as ListTaskInputImpl<AnalysisTarget>).toMap(valueResult.of);
@@ -59,7 +60,8 @@ class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
  * and the list of the analysis results is used as the input to the task.
  */
 class ListToListTaskInput<B, E>
-    extends _ListToCollectionTaskInput<B, E, List<E>> {
+    extends _ListToCollectionTaskInput<B, E, List<E>>
+    with ListTaskInputMixin<E> {
   /**
    * Initialize a result accessor to use the given [baseAccessor] to access a
    * list of values that can be passed to the given [generateTaskInputs] to
