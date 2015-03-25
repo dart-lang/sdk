@@ -92,6 +92,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetEntropySourceCallback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
+  Thread::InitOnce();
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();

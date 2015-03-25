@@ -178,7 +178,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   StackZone zone(isolate);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -279,7 +279,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
     }
   }
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
@@ -374,9 +374,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   }
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  Thread* volatile thread = Thread::Current();
+  Zone* volatile zone = thread->zone();
+  Isolate* volatile isolate = thread->isolate();
   HANDLESCOPE(isolate);
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -964,10 +964,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  Thread* volatile thread = Thread::Current();
+  Isolate* volatile isolate = thread->isolate();
   StackZone stack_zone(isolate);
-  Zone* zone = stack_zone.GetZone();
+  Zone* volatile zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(isolate, time_compilation);
@@ -1065,7 +1065,7 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 // This is only used from unit tests.
 RawError* Compiler::CompileParsedFunction(
     ParsedFunction* parsed_function) {
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
@@ -1142,7 +1142,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   // The VM sets the field's value to transiton_sentinel prior to
   // evaluating the initializer value.
   ASSERT(field.value() == Object::transition_sentinel().raw());
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   StackZone zone(isolate);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -1175,8 +1175,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  Thread* volatile thread = Thread::Current();
+  Isolate* volatile isolate = thread->isolate();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {

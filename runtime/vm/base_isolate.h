@@ -5,6 +5,7 @@
 #ifndef VM_BASE_ISOLATE_H_
 #define VM_BASE_ISOLATE_H_
 
+#include "platform/assert.h"
 #include "vm/globals.h"
 
 namespace dart {

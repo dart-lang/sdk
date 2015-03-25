@@ -53,7 +53,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     {                                                                          \
       Isolate* isolate = arguments->isolate();                                 \
       /* TODO(koda): Pivot from Isolate to Thread in NativeArguments. */       \
-      Thread* thread = Thread::CurrentFromCurrentIsolate(isolate);             \
+      Thread* thread = isolate->mutator_thread();                              \
+      ASSERT(thread == Thread::Current());                                     \
       StackZone zone(isolate);                                                 \
       SET_NATIVE_RETVAL(arguments,                                             \
                         DN_Helper##name(isolate,                               \

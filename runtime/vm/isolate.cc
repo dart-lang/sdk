@@ -536,7 +536,8 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   object##_handle_(NULL),
 
 Isolate::Isolate()
-    : vm_tag_(0),
+  :   mutator_thread_(new Thread(this)),
+      vm_tag_(0),
       store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
@@ -584,7 +585,6 @@ Isolate::Isolate()
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
-      cha_(NULL),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
       profiler_data_(NULL),
@@ -603,7 +603,8 @@ Isolate::Isolate()
 }
 
 Isolate::Isolate(Isolate* original)
-    : vm_tag_(0),
+  :   mutator_thread_(new Thread(this)),
+      vm_tag_(0),
       store_buffer_(true),
       class_table_(original->class_table()),
       message_notify_callback_(NULL),
@@ -647,7 +648,6 @@ Isolate::Isolate(Isolate* original)
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
-      cha_(NULL),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
       profiler_data_(NULL),
@@ -682,7 +682,15 @@ Isolate::~Isolate() {
   delete spawn_state_;
   delete log_;
   log_ = NULL;
+  delete mutator_thread_;
 }
+
+
+#if defined(DEBUG)
+bool Isolate::IsIsolateOf(Thread* thread) {
+  return this == thread->isolate();
+}
+#endif  // DEBUG
 
 
 void Isolate::SetCurrent(Isolate* current) {
@@ -692,8 +700,8 @@ void Isolate::SetCurrent(Isolate* current) {
     old_current->set_thread_state(NULL);
     Profiler::EndExecution(old_current);
   }
-  OSThread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
   if (current != NULL) {
+    Thread::SetCurrent(current->mutator_thread());
     ASSERT(current->thread_state() == NULL);
     InterruptableThreadState* thread_state =
         ThreadInterrupter::GetCurrentThreadState();
@@ -704,21 +712,13 @@ void Isolate::SetCurrent(Isolate* current) {
     Profiler::BeginExecution(current);
     current->set_thread_state(thread_state);
     current->set_vm_tag(VMTag::kVMTagId);
+  } else {
+    Thread::SetCurrent(NULL);
   }
 }
 
 
-// The single thread local key which stores all the thread local data
-// for a thread. Since an Isolate is the central repository for
-// storing all isolate specific information a single thread local key
-// is sufficient.
-ThreadLocalKey Isolate::isolate_key = OSThread::kUnsetThreadLocalKey;
-
-
 void Isolate::InitOnce() {
-  ASSERT(isolate_key == OSThread::kUnsetThreadLocalKey);
-  isolate_key = OSThread::CreateThreadLocal();
-  ASSERT(isolate_key != OSThread::kUnsetThreadLocalKey);
   create_callback_ = NULL;
   isolates_list_monitor_ = new Monitor();
   ASSERT(isolates_list_monitor_ != NULL);

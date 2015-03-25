@@ -16,6 +16,7 @@
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
+#include "vm/thread.h"
 #include "vm/os_thread.h"
 #include "vm/trace_buffer.h"
 #include "vm/timer.h"
@@ -118,9 +119,9 @@ class Isolate : public BaseIsolate {
   ~Isolate();
 
   static inline Isolate* Current() {
-    return reinterpret_cast<Isolate*>(OSThread::GetThreadLocal(isolate_key));
+    Thread* thread = Thread::Current();
+    return thread == NULL ? NULL : thread->isolate();
   }
-
   static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();
@@ -165,7 +166,19 @@ class Isolate : public BaseIsolate {
     message_notify_callback_ = value;
   }
 
+  // A thread that operates on this isolate and may execute Dart code.
+  // No other threads operating on this isolate may execute Dart code.
+  // TODO(koda): Remove after caching current thread in generated code.
+  Thread* mutator_thread() {
+    DEBUG_ASSERT(IsIsolateOf(mutator_thread_));
+    return mutator_thread_;
+  }
+#if defined(DEBUG)
+  bool IsIsolateOf(Thread* thread);
+#endif  // DEBUG
+
   const char* name() const { return name_; }
+  // TODO(koda): Move to Thread.
   class Log* Log() const;
 
   int64_t start_time() const { return start_time_; }
@@ -667,13 +680,9 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
-  CHA* cha() const { return cha_; }
-  void set_cha(CHA* value) { cha_ = value; }
-
   template<class T> T* AllocateReusableHandle();
 
-  static ThreadLocalKey isolate_key;
-
+  Thread* mutator_thread_;
   uword vm_tag_;
   StoreBuffer store_buffer_;
   ClassTable class_table_;
@@ -730,8 +739,6 @@ class Isolate : public BaseIsolate {
   // Timestamps of last operation via service.
   int64_t last_allocationprofile_accumulator_reset_timestamp_;
   int64_t last_allocationprofile_gc_timestamp_;
-
-  CHA* cha_;
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;

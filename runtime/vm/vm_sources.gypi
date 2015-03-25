@@ -432,6 +432,7 @@
     'symbols.h',
     'tags.cc',
     'tags.h',
+    'thread.cc',
     'thread.h',
     'thread_interrupter.cc',
     'thread_interrupter.h',

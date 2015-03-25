@@ -5,48 +5,48 @@
 #ifndef VM_THREAD_H_
 #define VM_THREAD_H_
 
-#include "vm/isolate.h"
+#include "vm/base_isolate.h"
+#include "vm/globals.h"
+#include "vm/os_thread.h"
 
 namespace dart {
+
+class CHA;
+class Isolate;
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation.
 class Thread {
  public:
+  explicit Thread(Isolate* isolate)
+      : isolate_(isolate),
+        cha_(NULL) {}
+
+  static void InitOnce();
+
   static Thread* Current() {
-    // For now, there is still just one thread per isolate, and the Thread
-    // class just aliases the Isolate*. Once all interfaces and uses have been
-    // updated to distinguish between isolates and threads, Thread will get its
-    // own thread-local storage key and fields.
-    return reinterpret_cast<Thread*>(Isolate::Current());
+    return reinterpret_cast<Thread*>(OSThread::GetThreadLocal(thread_key));
   }
-  // TODO(koda): Remove after pivoting to Thread* in native/runtime entries.
-  static Thread* CurrentFromCurrentIsolate(BaseIsolate* isolate) {
-    ASSERT(Isolate::Current() == isolate);
-    return reinterpret_cast<Thread*>(isolate);
-  }
+  static void SetCurrent(Thread* current);
 
   // The topmost zone used for allocation in this thread.
   Zone* zone() {
-    return reinterpret_cast<BaseIsolate*>(this)->current_zone();
+    return reinterpret_cast<BaseIsolate*>(isolate())->current_zone();
   }
 
-  // The isolate that this thread is operating on.
-  Isolate* isolate() { return reinterpret_cast<Isolate*>(this); }
-  const Isolate* isolate() const {
-    return reinterpret_cast<const Isolate*>(this);
-  }
-
-  // The log for this thread.
-  class Log* Log() {
-    return reinterpret_cast<Isolate*>(this)->Log();
-  }
+  // The isolate that this thread is operating on, or NULL if none.
+  Isolate* isolate() const { return isolate_; }
 
   // The (topmost) CHA for the compilation in this thread.
-  CHA* cha() const { return isolate()->cha(); }
-  void set_cha(CHA* value) { isolate()->set_cha(value); }
+  CHA* cha() const { return cha_; }
+  void set_cha(CHA* value) { cha_ = value; }
 
  private:
+  static ThreadLocalKey thread_key;
+
+  Isolate* isolate_;
+  CHA* cha_;
+
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
