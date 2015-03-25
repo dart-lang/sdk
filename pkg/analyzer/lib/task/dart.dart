@@ -132,5 +132,5 @@ final ResultDescriptor<Token> TOKEN_STREAM =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<Source>> UNITS =
-    new ResultDescriptor<List<Source>>('UNITS', Source.EMPTY_ARRAY);
+final ListResultDescriptor<Source> UNITS =
+    new ListResultDescriptor<Source>('UNITS', Source.EMPTY_ARRAY);

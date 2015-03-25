@@ -63,8 +63,8 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
 /**
  * The [ClassElement]s of a [LibraryUnitTarget].
  */
-final ResultDescriptor<List<ClassElement>> CLASS_ELEMENTS =
-    new ResultDescriptor<List<ClassElement>>('CLASS_ELEMENTS', null);
+final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
+    new ListResultDescriptor<ClassElement>('CLASS_ELEMENTS', null);
 
 /**
  * The [ConstructorElement]s of a [ClassElement].
@@ -146,6 +146,16 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT5', null);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * Implicit constructors are built for every [ClassElement] requiring them.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT6 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT6', null);
 
 /**
  * The errors produced while resolving type names.
@@ -1035,6 +1045,59 @@ class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * An artifitial task that does nothing except to force building constructors
+ * for for the defining and part units of a library.
+ */
+class BuildLibraryConstructorsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [LIBRARY_ELEMENT5] input.
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildLibraryConstructorsTask', createTask, buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT6]);
+
+  BuildLibraryConstructorsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    outputs[LIBRARY_ELEMENT6] = library;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(Source libSource) {
+    return <String, TaskInput>{
+      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(libSource),
+      'resolvedConstructors':
+          CLASS_ELEMENTS.of(libSource).toListOf(CONSTRUCTORS),
+    };
+  }
+
+  /**
+   * Create a [BuildLibraryConstructorsTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildLibraryConstructorsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildLibraryConstructorsTask(context, target);
+  }
+}
+
+/**
  * A task that builds a library element for a Dart library.
  */
 class BuildLibraryElementTask extends SourceBasedAnalysisTask {
@@ -1055,6 +1118,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildLibraryElementTask', createTask, buildInputs, <ResultDescriptor>[
     BUILD_LIBRARY_ERRORS,
+    CLASS_ELEMENTS,
     LIBRARY_ELEMENT1,
     IS_LAUNCHABLE,
     HAS_HTML_IMPORT
@@ -1188,9 +1252,17 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       _patchTopLevelAccessors(libraryElement);
     }
     //
+    // Prepare all class elements.
+    //
+    List<ClassElement> classElements = libraryElement.units
+        .map((CompilationUnitElement unitElement) => unitElement.types)
+        .expand((List<ClassElement> unitClassElements) => unitClassElements)
+        .toList();
+    //
     // Record outputs.
     //
     outputs[BUILD_LIBRARY_ERRORS] = errors;
+    outputs[CLASS_ELEMENTS] = classElements;
     outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
     outputs[HAS_HTML_IMPORT] = hasHtmlImport;
@@ -1784,9 +1856,7 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source libSource) {
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT4.of(libSource),
-      'resolvedDefiningUnit':
-          RESOLVED_UNIT4.of(new LibraryUnitTarget(libSource, libSource)),
-      'resolvedPartsUnit': INCLUDED_PARTS.of(libSource).toMap((Source source) =>
+      'resolvedUnits': UNITS.of(libSource).toMap((Source source) =>
           RESOLVED_UNIT4.of(new LibraryUnitTarget(libSource, source)))
     };
   }

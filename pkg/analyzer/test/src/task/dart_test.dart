@@ -38,6 +38,7 @@ main() {
   runReflectiveTests(BuildExportSourceClosureTaskTest);
   runReflectiveTests(BuildExportNamespaceTaskTest);
   runReflectiveTests(BuildFunctionTypeAliasesTaskTest);
+  runReflectiveTests(BuildLibraryConstructorsTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
@@ -698,6 +699,40 @@ typedef int F(NoSuchType p);
 }
 
 @reflectiveTest
+class BuildLibraryConstructorsTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = _newSource('/test.dart', '''
+class B {
+  B(int i);
+}
+class M1 {}
+class M2 {}
+
+class C2 = C1 with M2;
+class C1 = B with M1;
+class C3 = B with M2;
+''');
+    _computeResult(source, LIBRARY_ELEMENT6);
+    expect(task, new isInstanceOf<BuildLibraryConstructorsTask>());
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT6];
+    // C1
+    {
+      ClassElement classElement = libraryElement.getType('C2');
+      List<ConstructorElement> constructors = classElement.constructors;
+      expect(constructors, hasLength(1));
+      expect(constructors[0].parameters, hasLength(1));
+    }
+    // C3
+    {
+      ClassElement classElement = libraryElement.getType('C3');
+      List<ConstructorElement> constructors = classElement.constructors;
+      expect(constructors, hasLength(1));
+      expect(constructors[0].parameters, hasLength(1));
+    }
+  }
+}
+
+@reflectiveTest
 class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   Source librarySource;
   CompilationUnit libraryUnit;
@@ -747,7 +782,7 @@ part of lib;
 part of lib;
 '''
     });
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(5));
     // simple outputs
     expect(outputs[BUILD_LIBRARY_ERRORS], isEmpty);
     expect(outputs[IS_LAUNCHABLE], isFalse);
@@ -787,6 +822,28 @@ part of lib;
     expect(secondPart.uriEnd, 49);
     expect(
         (libraryUnit.directives[2] as PartDirective).element, same(secondPart));
+  }
+
+  test_perform_classElements() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+class A {}
+''',
+      '/part1.dart': '''
+part of lib;
+class B {}
+''',
+      '/part2.dart': '''
+part of lib;
+class C {}
+'''
+    });
+    List<ClassElement> classElements = outputs[CLASS_ELEMENTS];
+    List<String> classNames = classElements.map((c) => c.displayName).toList();
+    expect(classNames, unorderedEquals(['A', 'B', 'C']));
   }
 
   test_perform_error_missingLibraryDirectiveWithPart_hasCommon() {
@@ -1269,6 +1326,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(ParseDartTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildClassConstructorsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildLibraryConstructorsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
