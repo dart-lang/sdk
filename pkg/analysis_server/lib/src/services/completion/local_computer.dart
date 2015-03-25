@@ -429,6 +429,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
 
+  /**
+   * The simple identifier that is being completed, or `null` if none.
+   */
+  SimpleIdentifier targetId;
+
   _LocalVisitor(this.request, int offset, this.optype) : super(offset);
 
   @override
@@ -626,6 +631,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    // Record the visited identifier so as not to suggest it
+    targetId = node;
+    return super.visitSimpleIdentifier(node);
+  }
+
   void _addParameterInfo(
       CompletionSuggestion suggestion, FormalParameterList parameters) {
     var paramList = parameters.parameters;
@@ -664,7 +676,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName returnType,
       bool isDeprecated, int defaultRelevance, {ClassDeclaration classDecl}) {
-    if (id != null) {
+    if (id != null && !identical(id, targetId)) {
       String completion = id.name;
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
