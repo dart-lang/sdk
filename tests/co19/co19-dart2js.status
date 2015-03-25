@@ -574,7 +574,6 @@ LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, Runt
 LayoutTests/fast/css/font-face-unicode-range-load_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/html-attr-case-sensitivity_t01: RuntimeError # Please triage this failure
@@ -1700,7 +1699,7 @@ LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Pleas
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -3198,7 +3197,7 @@ LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please tri
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -4460,7 +4459,7 @@ LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # Please triage this 
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class not defined for this browser
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -5859,7 +5858,7 @@ LayoutTests/fast/css/font-family-initial-shorthand_t01: RuntimeError # Please tr
 LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -7880,7 +7879,7 @@ LayoutTests/fast/css/font-family-initial-shorthand_t01: RuntimeError # Please tr
 LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
