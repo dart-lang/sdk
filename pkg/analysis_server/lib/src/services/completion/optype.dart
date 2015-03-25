@@ -320,7 +320,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {}
+  void visitFunctionExpression(FunctionExpression node) {}
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {}
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
@@ -435,6 +438,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitPostfixExpression(PostfixExpression node) {
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (identical(entity, node.identifier)) {
       optype.includeInvocationSuggestions = true;
@@ -496,6 +505,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
