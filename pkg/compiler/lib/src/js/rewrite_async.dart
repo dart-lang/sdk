@@ -117,6 +117,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// or error case.
   String errorCodeName;
 
+  final String suggestedBodyName;
   /// The inner function that is scheduled to do each await/yield,
   /// and called to do a new iteration for sync*.
   js.VariableUse get body => new js.VariableUse(bodyName);
@@ -179,7 +180,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   AsyncRewriterBase(this.diagnosticListener,
                     spannable,
-                    this.safeVariableName)
+                    this.safeVariableName,
+                    this.suggestedBodyName)
       : _spannable = spannable;
 
   /// Initialize names used by the subClass.
@@ -199,7 +201,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // generated after the analysis.
     resultName = freshName("result");
     errorCodeName = freshName("errorCode");
-    bodyName = freshName("body");
+    bodyName = freshName(suggestedBodyName);
     gotoName = freshName("goto");
     handlerName = freshName("handler");
     nextName = freshName("next");
@@ -1674,10 +1676,12 @@ class AsyncRewriter extends AsyncRewriterBase {
                 spannable,
                 {this.asyncHelper,
                  this.newCompleter,
-                 safeVariableName})
+                 String safeVariableName(String proposedName),
+                 String bodyName})
         : super(diagnosticListener,
                 spannable,
-                safeVariableName);
+                safeVariableName,
+                bodyName);
 
   @override
   void addYield(js.DartYield node, js.Expression expression) {
@@ -1804,10 +1808,12 @@ class SyncStarRewriter extends AsyncRewriterBase {
                  this.newIterable,
                  this.yieldStarExpression,
                  this.uncaughtErrorExpression,
-                 safeVariableName})
+                 String safeVariableName(String proposedName),
+                 String bodyName})
         : super(diagnosticListener,
                 spannable,
-                safeVariableName);
+                safeVariableName,
+                bodyName);
 
   /// Translates a yield/yield* in an sync*.
   ///
@@ -1972,10 +1978,12 @@ class AsyncStarRewriter extends AsyncRewriterBase {
                  this.newController,
                  this.yieldExpression,
                  this.yieldStarExpression,
-                 String safeVariableName(String original)})
+                 String safeVariableName(String proposedName),
+                 String bodyName})
         : super(diagnosticListener,
                 spannable,
-                safeVariableName);
+                safeVariableName,
+                bodyName);
 
 
   /// Translates a yield/yield* in an async* function.

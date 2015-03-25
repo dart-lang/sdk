@@ -15,7 +15,8 @@ void testTransform(String source, String expected) {
       null,
       asyncHelper: new VariableUse("thenHelper"),
       newCompleter: new VariableUse("Completer"),
-      safeVariableName: (String name) => "__$name").rewrite(fun);
+      safeVariableName: (String name) => "__$name",
+      bodyName: "body").rewrite(fun);
 
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
   SimpleJavaScriptPrintingContext context =

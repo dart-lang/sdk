@@ -25,7 +25,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       JavaScriptBackend backend = builder.backend;
 
       AsyncRewriterBase rewriter = null;
-
+      String name = backend.namer.methodPropertyName(element);
       if (element.asyncMarker == AsyncMarker.ASYNC) {
         rewriter = new AsyncRewriter(
             backend.compiler,
@@ -34,7 +34,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.emitter.staticFunctionAccess(backend.getAsyncHelper()),
             newCompleter: backend.emitter.staticFunctionAccess(
                 backend.getCompleterConstructor()),
-            safeVariableName: backend.namer.safeVariableName);
+            safeVariableName: backend.namer.safeVariableName,
+            bodyName: name);
       } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
         rewriter = new SyncStarRewriter(
             backend.compiler,
@@ -47,7 +48,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.getYieldStar()),
             uncaughtErrorExpression: backend.emitter.staticFunctionAccess(
                 backend.getSyncStarUncaughtError()),
-            safeVariableName: backend.namer.safeVariableName);
+            safeVariableName: backend.namer.safeVariableName,
+            bodyName: name);
       }
       else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
         rewriter = new AsyncStarRewriter(
@@ -63,7 +65,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
             yieldExpression: backend.emitter.staticFunctionAccess(
                 backend.getYieldSingle()),
             yieldStarExpression: backend.emitter.staticFunctionAccess(
-                backend.getYieldStar()));
+                backend.getYieldStar()),
+            bodyName: name);
       }
       if (rewriter != null) {
         result = rewriter.rewrite(result);
