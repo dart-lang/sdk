@@ -178,19 +178,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     throw 'Unimplemented InstantiatorGeneratorVisitor for $node';
   }
 
-  static RegExp identiferRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
-
-  static Expression convertStringToVariableUse(String value) {
-    assert(identiferRE.hasMatch(value));
-    return new VariableUse(value);
-  }
-
   Instantiator visitInterpolatedExpression(InterpolatedExpression node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
-      if (value is String) return convertStringToVariableUse(value);
+      if (value is String) return new Identifier(value);
       error('Interpolated value #$nameOrPosition is not an Expression: $value');
     };
   }
@@ -202,7 +195,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         var value = arguments[nameOrPosition];
         Expression toExpression(item) {
           if (item is Expression) return item;
-          if (item is String) return convertStringToVariableUse(item);
+          if (item is String) return new Identifier(item);
           return error('Interpolated value #$nameOrPosition is not '
               'an Expression or List of Expressions: $value');
         }
@@ -227,14 +220,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) {
       var value = arguments[nameOrPosition];
 
-      Parameter toParameter(item) {
-        if (item is Parameter) return item;
-        if (item is String) return new Parameter(item);
-        return error('Interpolated value #$nameOrPosition is not a Parameter or'
-                     ' List of Parameters: $value');
+      Identifier toIdentifier(item) {
+        if (item is Identifier) return item;
+        if (item is String) return new Identifier(item);
+        return error('Interpolated value #$nameOrPosition is not an Identifier'
+                     ' or List of Identifiers: $value');
       }
-      if (value is Iterable) return value.map(toParameter);
-      return toParameter(value);
+      if (value is Iterable) return value.map(toIdentifier);
+      return toIdentifier(value);
     };
   }
 
@@ -274,15 +267,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
-  Instantiator visitInterpolatedVariableDeclaration(
-        InterpolatedVariableDeclaration node) {
+  Instantiator visitInterpolatedIdentifier(InterpolatedIdentifier node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var item = arguments[nameOrPosition];
-      if (item is VariableDeclaration) return item;
-      if (item is String) return new VariableDeclaration(item);
+      if (item is Identifier) return item;
+      if (item is String) return new Identifier(item);
       return error('Interpolated value #$nameOrPosition is not a '
-          'VariableDeclaration or String: $item');
+          'Identifier or String: $item');
     };
   }
 
@@ -370,7 +362,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         var value = arguments[nameOrPosition];
         if (value is bool) return value;
         if (value is Expression) return value;
-        if (value is String) return convertStringToVariableUse(value);;
+        if (value is String) return new Identifier(value);
         error('Interpolated value #$nameOrPosition '
               'is not an Expression: $value');
       };
@@ -632,17 +624,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) => new Postfix(op, makeOperand(arguments));
   }
 
-  Instantiator visitVariableUse(VariableUse node) =>
-      (arguments) => new VariableUse(node.name);
-
   Instantiator visitThis(This node) => (arguments) => new This();
   Instantiator visitSuper(Super node) => (arguments) => new Super();
 
-  Instantiator visitVariableDeclaration(VariableDeclaration node) =>
-      (arguments) => new VariableDeclaration(node.name);
-
-  Instantiator visitParameter(Parameter node) =>
-      (arguments) => new Parameter(node.name);
+  Instantiator visitIdentifier(Identifier node) =>
+      (arguments) => new Identifier(node.name);
 
   Instantiator visitAccess(PropertyAccess node) {
     Instantiator makeReceiver = visit(node.receiver);
@@ -663,7 +649,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeBody = visit(node.body);
     // TODO(sra): Avoid copying params if no interpolation or forced copying.
     return (arguments) {
-      List<Parameter> params = <Parameter>[];
+      List<Identifier> params = <Identifier>[];
       for (Instantiator instantiator in paramMakers) {
         var result = instantiator(arguments);
         if (result is Iterable) {

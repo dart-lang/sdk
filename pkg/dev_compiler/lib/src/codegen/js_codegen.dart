@@ -259,7 +259,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var heritage =
         js.call('dart.mixin(#)', [_visitList(node.withClause.mixinTypes)]);
     var classDecl = new JS.ClassDeclaration(
-        new JS.ClassExpression(new JS.VariableDeclaration(name), heritage, []));
+        new JS.ClassExpression(new JS.Identifier(name), heritage, []));
 
     return _finishClassDef(classElem, classDecl);
   }
@@ -286,7 +286,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
     }
 
-    var classExpr = new JS.ClassExpression(new JS.VariableDeclaration(name),
+    var classExpr = new JS.ClassExpression(new JS.Identifier(name),
         _classHeritage(node), _emitClassMethods(node, ctors, fields));
 
     var body = _finishClassMembers(name, classExpr, ctors, staticFields);
@@ -462,7 +462,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Statement _emitGenericClassDef(ClassElement cls, JS.Statement body) {
     var name = cls.name;
     var genericName = '$name\$';
-    var typeParams = cls.typeParameters.map((p) => new JS.Parameter(p.name));
+    var typeParams = cls.typeParameters.map((p) => p.name);
     return js.statement('let # = dart.generic(function(#) { #; return #; });', [
       genericName,
       typeParams,
@@ -861,7 +861,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     body.add(js.comment('Function $name: ${node.element.type}'));
 
     body.add(new JS.FunctionDeclaration(
-        new JS.VariableDeclaration(name), _visit(node.functionExpression)));
+        new JS.Identifier(name), _visit(node.functionExpression)));
 
     if (isPublic(name)) _exports.add(name);
     return _statement(body);
@@ -905,7 +905,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.comment('Unimplemented function get/set statement: $node');
     }
 
-    var name = new JS.VariableDeclaration(func.name.name);
+    var name = new JS.Identifier(func.name.name);
     return new JS.Block([
       js.comment("// Function ${func.name.name}: ${func.element.type}\n"),
       new JS.FunctionDeclaration(name, _visit(func.functionExpression))
@@ -919,7 +919,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var e = node.staticElement;
     if (e == null) {
       return js.commentExpression(
-          'Unimplemented unknown name', new JS.VariableUse(node.name));
+          'Unimplemented unknown name', new JS.Identifier(node.name));
     }
 
     var name = node.name;
@@ -937,7 +937,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     } else if (e is ParameterElement && e.isInitializingFormal) {
       name = _fieldParameterName(name);
     }
-    return new JS.VariableUse(name);
+    return new JS.Identifier(name);
   }
 
   JS.Expression _emitTypeName(DartType type) {
@@ -965,7 +965,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (_needQualifiedName(element)) {
       result = js.call('#.#', [_libraryName(element.library), name]);
     } else {
-      result = new JS.VariableUse(name);
+      result = new JS.Identifier(name);
     }
 
     if (typeArgs != null) {
@@ -1158,11 +1158,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   @override
-  List<JS.Parameter> visitFormalParameterList(FormalParameterList node) {
-    var result = <JS.Parameter>[];
+  List<JS.Identifier> visitFormalParameterList(FormalParameterList node) {
+    var result = <JS.Identifier>[];
     for (FormalParameter param in node.parameters) {
       if (param.kind == ParameterKind.NAMED) {
-        result.add(new JS.Parameter(r'opt$'));
+        result.add(new JS.Identifier(r'opt$'));
         break;
       }
       result.add(_visit(param));
@@ -1203,10 +1203,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         // constant fields don't change, so we can generate them as `let`
         // but add them to the module's exports
         var name = field.name.name;
-        body.add(js.statement('let # = #;', [
-          new JS.VariableDeclaration(name),
-          _visitInitializer(field)
-        ]));
+        body.add(js.statement(
+            'let # = #;', [new JS.Identifier(name), _visitInitializer(field)]));
         if (isPublic(name)) _exports.add(name);
       } else if (_isFieldInitConstant(field)) {
         body.add(js.statement(
@@ -1239,8 +1237,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
       variables = _visitList(node.variables.take(node.variables.length - 1));
       variables.add(new JS.VariableInitialization(
-          new JS.VariableDeclaration(last.name.name),
-          _visit(lastInitializer.target)));
+          new JS.Identifier(last.name.name), _visit(lastInitializer.target)));
 
       var result =
           <JS.Expression>[new JS.VariableDeclarationList('let', variables)];
@@ -1256,7 +1253,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.VariableInitialization visitVariableDeclaration(VariableDeclaration node) {
-    var name = new JS.VariableDeclaration(node.name.name);
+    var name = new JS.Identifier(node.name.name);
     return new JS.VariableInitialization(name, _visitInitializer(node));
   }
 
@@ -1641,11 +1638,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitFormalParameter(FormalParameter node) =>
-      new JS.Parameter(node.identifier.name);
+      new JS.Identifier(node.identifier.name);
 
   @override
   visitFieldFormalParameter(FieldFormalParameter node) =>
-      new JS.Parameter(_fieldParameterName(node.identifier.name));
+      new JS.Identifier(_fieldParameterName(node.identifier.name));
 
   /// Rename private names so they don't shadow the private field symbol.
   // TODO(jmesserly): replace this ad-hoc rename with a general strategy.
@@ -1795,7 +1792,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
     }
 
-    var catchVarDecl = new JS.VariableDeclaration(_catchParameter);
+    var catchVarDecl = new JS.Identifier(_catchParameter);
     var catchBody = new JS.Block(_visitList(clauses));
     _catchParameter = savedCatch;
 
@@ -1818,7 +1815,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (node.catchKeyword != null) {
       var name = node.exceptionParameter;
       if (name != null && name.name != _catchParameter) {
-        var decl = new JS.VariableDeclaration(name.name);
+        var decl = new JS.Identifier(name.name);
         decl.sourceInformation = name;
         body.add(js.statement('let # = #;', [decl, _catchParameter]));
         _catchParameter = name.name;
@@ -2074,7 +2071,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Expression _jsMemberName(String name, {bool unary: false}) {
     if (name.startsWith('_')) {
       if (_privateNames.add(name)) _pendingPrivateNames.add(name);
-      return new JS.VariableUse(name);
+      return new JS.Identifier(name);
     }
     if (name == '[]') {
       name = 'get';

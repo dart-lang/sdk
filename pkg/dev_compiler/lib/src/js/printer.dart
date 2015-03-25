@@ -505,7 +505,7 @@ class Printer implements NodeVisitor {
     blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
 
-  void functionOut(Fun fun, Node name, VarCollector vars) {
+  void functionOut(Fun fun, Node name, Node scope) {
     out("function");
     if (name != null) {
       out(" ");
@@ -513,7 +513,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(name, PRIMARY,
                             newInForInit: false, newAtStatementBegin: false);
     }
-    localNamer.enterScope(vars);
+    localNamer.enterScope(scope);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -538,10 +538,8 @@ class Printer implements NodeVisitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
-    VarCollector vars = new VarCollector();
-    vars.visitFunctionDeclaration(declaration);
     indent();
-    functionOut(declaration.function, declaration.name, vars);
+    functionOut(declaration.function, declaration.name, declaration);
     lineOut();
   }
 
@@ -772,10 +770,6 @@ class Printer implements NodeVisitor {
     out(postfix.op);
   }
 
-  visitVariableUse(VariableUse ref) {
-    out(localNamer.getName(ref.name));
-  }
-
   visitThis(This node) {
     out("this");
   }
@@ -784,11 +778,7 @@ class Printer implements NodeVisitor {
     out("super");
   }
 
-  visitVariableDeclaration(VariableDeclaration decl) {
-    out(localNamer.getName(decl.name));
-  }
-
-  visitParameter(Parameter param) {
+  visitIdentifier(Identifier param) {
     out(localNamer.getName(param.name));
   }
 
@@ -829,21 +819,15 @@ class Printer implements NodeVisitor {
   }
 
   visitNamedFunction(NamedFunction namedFunction) {
-    VarCollector vars = new VarCollector();
-    vars.visitNamedFunction(namedFunction);
-    functionOut(namedFunction.function, namedFunction.name, vars);
+    functionOut(namedFunction.function, namedFunction.name, namedFunction);
   }
 
   visitFun(Fun fun) {
-    VarCollector vars = new VarCollector();
-    vars.visitFun(fun);
-    functionOut(fun, null, vars);
+    functionOut(fun, null, fun);
   }
 
   visitArrowFun(ArrowFun fun) {
-    VarCollector vars = new VarCollector();
-    vars.visitArrowFun(fun);
-    localNamer.enterScope(vars);
+    localNamer.enterScope(fun);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -1003,12 +987,9 @@ class Printer implements NodeVisitor {
     } else if (node.isSetter) {
       out('set ');
     }
-    var vars = new VarCollector();
-    vars.visitMethod(node);
-
     propertyNameOut(node.name, inMethod: true);
 
-    localNamer.enterScope(vars);
+    localNamer.enterScope(node);
     out("(");
     var fun = node.function;
     if (fun.params != null) {
@@ -1096,7 +1077,7 @@ class Printer implements NodeVisitor {
   visitInterpolatedMethod(InterpolatedMethod node) =>
       visitInterpolatedNode(node);
 
-  visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node) =>
+  visitInterpolatedIdentifier(InterpolatedIdentifier node) =>
       visitInterpolatedNode(node);
 
   visitInterpolatedStatement(InterpolatedStatement node) {
@@ -1134,35 +1115,16 @@ class Printer implements NodeVisitor {
   }
 }
 
-
-class OrderedSet<T> {
-  final Set<T> set;
-  final List<T> list;
-
-  OrderedSet() : set = new Set<T>(), list = <T>[];
-
-  void add(T x) {
-    if (!set.contains(x)) {
-      set.add(x);
-      list.add(x);
-    }
-  }
-
-  void forEach(void fun(T x)) {
-    list.forEach(fun);
-  }
-}
-
 // Collects all the var declarations in the function.  We need to do this in a
 // separate pass because JS vars are lifted to the top of the function.
 class VarCollector extends BaseVisitor {
   bool nested;
-  final OrderedSet<String> vars;
-  final OrderedSet<String> params;
+  final Set<String> vars;
+  final Set<String> params;
 
   VarCollector() : nested = false,
-                   vars = new OrderedSet<String>(),
-                   params = new OrderedSet<String>();
+                   vars = new Set<String>(),
+                   params = new Set<String>();
 
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
@@ -1171,8 +1133,8 @@ class VarCollector extends BaseVisitor {
     if (!nested) {
       nested = true;
       if (fun.params != null) {
-        for (int i = 0; i < fun.params.length; i++) {
-          params.add(fun.params[i].name);
+        for (var param in fun.params) {
+          params.add(param.name);
         }
       }
       fun.body.accept(this);
@@ -1191,7 +1153,7 @@ class VarCollector extends BaseVisitor {
   }
 
   void visitMethod(Method declaration) {
-    // Note that we don't bother collecting the name of the function.
+    // Method names are qualified by the instance, so we don't collect them.
     collectVarsInFunction(declaration.function);
   }
 
@@ -1203,9 +1165,23 @@ class VarCollector extends BaseVisitor {
     collectVarsInFunction(fun);
   }
 
-  void visitThis(This node) {}
+  void visitClassExpression(ClassExpression node) {
+    // Note that we don't bother collecting the name of the class.
+    if (node.heritage != null) node.heritage.accept(this);
+    for (Method method in node.methods) method.accept(this);
+  }
 
-  void visitVariableDeclaration(VariableDeclaration decl) {
+  void visitCatch(Catch node) {
+    declareVariable(node.declaration);
+    node.body.accept(this);
+  }
+
+  void visitVariableInitialization(VariableInitialization node) {
+    declareVariable(node.declaration);
+    if (node.value != null) node.value.accept(this);
+  }
+
+  void declareVariable(Identifier decl) {
     if (decl.allowRename) vars.add(decl.name);
   }
 }
@@ -1266,18 +1242,14 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
 abstract class LocalNamer {
   String getName(String oldName);
-  String declareVariable(String oldName);
-  String declareParameter(String oldName);
-  void enterScope(VarCollector vars);
+  void enterScope(Node node);
   void leaveScope();
 }
 
 
 class IdentityNamer implements LocalNamer {
   String getName(String oldName) => oldName;
-  String declareVariable(String oldName) => oldName;
-  String declareParameter(String oldName) => oldName;
-  void enterScope(VarCollector vars) {}
+  void enterScope(Node node) {}
   void leaveScope() {}
 }
 
@@ -1289,9 +1261,9 @@ class MinifyRenamer implements LocalNamer {
   int parameterNumber = 0;
   int variableNumber = 0;
 
-  MinifyRenamer();
-
-  void enterScope(VarCollector vars) {
+  void enterScope(Node node) {
+    var vars = new VarCollector();
+    node.accept(vars);
     maps.add(new Map<String, String>());
     variableNumberStack.add(variableNumber);
     parameterNumberStack.add(parameterNumber);

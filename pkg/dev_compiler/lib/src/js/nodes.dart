@@ -41,11 +41,9 @@ abstract class NodeVisitor<T> {
   T visitPrefix(Prefix node);
   T visitPostfix(Postfix node);
 
-  T visitVariableUse(VariableUse node);
+  T visitIdentifier(Identifier node);
   T visitThis(This node);
   T visitSuper(Super node);
-  T visitVariableDeclaration(VariableDeclaration node);
-  T visitParameter(Parameter node);
   T visitAccess(PropertyAccess node);
 
   T visitNamedFunction(NamedFunction node);
@@ -80,7 +78,7 @@ abstract class NodeVisitor<T> {
   T visitInterpolatedSelector(InterpolatedSelector node);
   T visitInterpolatedStatement(InterpolatedStatement node);
   T visitInterpolatedMethod(InterpolatedMethod node);
-  T visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node);
+  T visitInterpolatedIdentifier(InterpolatedIdentifier node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -121,7 +119,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDefault(Default node) => visitNode(node);
 
   T visitExpression(Expression node) => visitNode(node);
-  T visitVariableReference(VariableReference node) => visitExpression(node);
 
   T visitLiteralExpression(LiteralExpression node) => visitExpression(node);
   T visitVariableDeclarationList(VariableDeclarationList node)
@@ -142,12 +139,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitPostfix(Postfix node) => visitExpression(node);
   T visitAccess(PropertyAccess node) => visitExpression(node);
 
-  T visitVariableUse(VariableUse node) => visitVariableReference(node);
-  T visitVariableDeclaration(VariableDeclaration node)
-      => visitVariableReference(node);
-  T visitParameter(Parameter node) => visitVariableDeclaration(node);
-  T visitThis(This node) => visitParameter(node);
-  T visitSuper(Super node) => visitParameter(node);
+  T visitIdentifier(Identifier node) => visitExpression(node);
+  T visitThis(This node) => visitExpression(node);
+  T visitSuper(Super node) => visitExpression(node);
 
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
   T visitFunctionExpression(FunctionExpression node) => visitExpression(node);
@@ -187,7 +181,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
       => visitInterpolatedNode(node);
   T visitInterpolatedMethod(InterpolatedMethod node)
       => visitInterpolatedNode(node);
-  T visitInterpolatedVariableDeclaration(InterpolatedVariableDeclaration node)
+  T visitInterpolatedIdentifier(InterpolatedIdentifier node)
       => visitInterpolatedNode(node);
 
   // Ignore comments by default.
@@ -222,8 +216,6 @@ abstract class Node {
     clone.sourceInformation = sourceInformation;
     return clone;
   }
-
-  VariableUse asVariableUse() => null;
 
   bool get isCommaOperator => false;
 
@@ -462,7 +454,7 @@ class Try extends Statement {
 }
 
 class Catch extends Node {
-  final VariableDeclaration declaration;
+  final Identifier declaration;
   final Block body;
 
   Catch(this.declaration, this.body);
@@ -527,7 +519,7 @@ class Default extends SwitchClause {
 }
 
 class FunctionDeclaration extends Statement {
-  final VariableDeclaration name;
+  final Identifier name;
   final Fun function;
 
   FunctionDeclaration(this.name, this.function);
@@ -666,10 +658,10 @@ class Assignment extends Expression {
 
 class VariableInitialization extends Assignment {
   /** [value] may be null. */
-  VariableInitialization(VariableDeclaration declaration, Expression value)
+  VariableInitialization(Identifier declaration, Expression value)
       : super(declaration, value);
 
-  VariableDeclaration get declaration => leftHandSide;
+  Identifier get declaration => leftHandSide;
 
   accept(NodeVisitor visitor) => visitor.visitVariableInitialization(this);
 
@@ -816,67 +808,43 @@ class Postfix extends Expression {
     argument.accept(visitor);
   }
 
-
   int get precedenceLevel => UNARY;
 }
 
-abstract class VariableReference extends Expression {
+class Identifier extends Expression {
   final String name;
+  final bool allowRename;
 
-  VariableReference(this.name) {
+  Identifier(this.name, {this.allowRename: true}) {
     assert(_identifierRE.hasMatch(name));
   }
   static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
-  accept(NodeVisitor visitor);
+  Identifier _clone() =>
+      new Identifier(name, allowRename: allowRename);
+  accept(NodeVisitor visitor) => visitor.visitIdentifier(this);
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
 }
 
-class VariableUse extends VariableReference {
-  VariableUse(String name) : super(name);
-
-  accept(NodeVisitor visitor) => visitor.visitVariableUse(this);
-  VariableUse _clone() => new VariableUse(name);
-
-  VariableUse asVariableUse() => this;
-
-  toString() => 'VariableUse($name)';
-}
-
-class VariableDeclaration extends VariableReference {
-  final bool allowRename;
-  VariableDeclaration(String name, {this.allowRename: true}) : super(name);
-
-  accept(NodeVisitor visitor) => visitor.visitVariableDeclaration(this);
-  VariableDeclaration _clone() => new VariableDeclaration(name);
-}
-
-class Parameter extends VariableDeclaration {
-  Parameter(String name) : super(name);
-
-  accept(NodeVisitor visitor) => visitor.visitParameter(this);
-  Parameter _clone() => new Parameter(name);
-}
-
-class This extends Parameter {
-  This() : super("this");
-
+class This extends Expression {
   accept(NodeVisitor visitor) => visitor.visitThis(this);
   This _clone() => new This();
+  int get precedenceLevel => PRIMARY;
+  void visitChildren(NodeVisitor visitor) {}
 }
 
 // `super` is more restricted in the ES6 spec, but for simplicity we accept
 // it anywhere that `this` is accepted.
-class Super extends Parameter {
-  Super() : super("super");
-
+class Super extends Expression {
   accept(NodeVisitor visitor) => visitor.visitSuper(this);
   Super _clone() => new Super();
+  int get precedenceLevel => PRIMARY;
+  void visitChildren(NodeVisitor visitor) {}
 }
 
 class NamedFunction extends Expression {
-  final VariableDeclaration name;
+  final Identifier name;
   final Fun function;
 
   NamedFunction(this.name, this.function);
@@ -893,12 +861,12 @@ class NamedFunction extends Expression {
 }
 
 abstract class FunctionExpression extends Expression {
-  List<Parameter> get params;
+  List<Identifier> get params;
   get body; // Expression or block
 }
 
 class Fun extends FunctionExpression {
-  final List<Parameter> params;
+  final List<Identifier> params;
   final Block body;
   final AsyncModifier asyncModifier;
 
@@ -907,7 +875,7 @@ class Fun extends FunctionExpression {
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
   void visitChildren(NodeVisitor visitor) {
-    for (Parameter param in params) param.accept(visitor);
+    for (Identifier param in params) param.accept(visitor);
     body.accept(visitor);
   }
 
@@ -917,7 +885,7 @@ class Fun extends FunctionExpression {
 }
 
 class ArrowFun extends FunctionExpression {
-  final List<Parameter> params;
+  final List<Identifier> params;
   final body; // Expression or Block
 
   ArrowFun(this.params, this.body);
@@ -925,7 +893,7 @@ class ArrowFun extends FunctionExpression {
   accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
 
   void visitChildren(NodeVisitor visitor) {
-    for (Parameter param in params) param.accept(visitor);
+    for (Identifier param in params) param.accept(visitor);
     body.accept(visitor);
   }
 
@@ -1087,9 +1055,7 @@ class Property extends Node {
   final Expression name;
   final Expression value;
 
-  Property(this.name, this.value) {
-    assert(name is! VariableDeclaration);
-  }
+  Property(this.name, this.value);
 
   accept(NodeVisitor visitor) => visitor.visitProperty(this);
 
@@ -1160,7 +1126,7 @@ class ClassDeclaration extends Statement {
 }
 
 class ClassExpression extends Expression {
-  final VariableDeclaration name;
+  final Identifier name;
   final Expression heritage; // Can be null.
   final List<Method> methods;
 
@@ -1236,7 +1202,7 @@ class InterpolatedLiteral extends Literal with InterpolatedNode {
 }
 
 class InterpolatedParameter extends Expression with InterpolatedNode
-    implements Parameter {
+    implements Identifier {
   final nameOrPosition;
 
   String get name { throw "InterpolatedParameter.name must not be invoked"; }
@@ -1294,17 +1260,16 @@ class InterpolatedMethod extends Expression with InterpolatedNode
   get _unsupported => throw '$runtimeType does not support this member.';
 }
 
-class InterpolatedVariableDeclaration extends Expression with InterpolatedNode
-    implements VariableDeclaration {
+class InterpolatedIdentifier extends Expression with InterpolatedNode
+    implements Identifier {
   final nameOrPosition;
 
-  InterpolatedVariableDeclaration(this.nameOrPosition);
+  InterpolatedIdentifier(this.nameOrPosition);
 
   accept(NodeVisitor visitor) =>
-      visitor.visitInterpolatedVariableDeclaration(this);
+      visitor.visitInterpolatedIdentifier(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedVariableDeclaration _clone() =>
-      new InterpolatedVariableDeclaration(nameOrPosition);
+  InterpolatedIdentifier _clone() => new InterpolatedIdentifier(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
   String get name => throw '$runtimeType does not support this member.';

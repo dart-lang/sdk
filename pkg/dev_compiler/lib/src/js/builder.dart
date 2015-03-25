@@ -64,7 +64,7 @@ still has one semicolon:
 If the placeholder is not followed by a semicolon, it is part of an expression.
 Here the paceholder is in the position of the function in a function call:
 
-    var vFoo = new VariableUse('foo');
+    var vFoo = new Identifier('foo');
     js.statement('if (happy) #("Happy!")', vFoo)
     -->
     if (happy)
@@ -73,7 +73,7 @@ Here the paceholder is in the position of the function in a function call:
 Generally, a placeholder in an expression position requires an Expression AST as
 an argument and a placeholder in a statement position requires a Statement AST.
 An expression will be converted to a Statement if needed by creating an
-ExpessionStatement.  A String argument will be converted into a VariableUse and
+ExpessionStatement.  A String argument will be converted into a Identifier and
 requires that the string is a JavaScript identifier.
 
     js('# + 1', vFoo)       -->  foo + 1
@@ -82,7 +82,7 @@ requires that the string is a JavaScript identifier.
 
 Some placeholder positions are _splicing contexts_.  A function argument list is
 a splicing expression context.  A placeholder in a splicing expression context
-can take a single Expression (or String, converted to VariableUse) or an
+can take a single Expression (or String, converted to Identifier) or an
 Iterable of Expressions (and/or Strings).
 
     // non-splicing argument:
@@ -737,7 +737,7 @@ class MiniJsParser {
       } else if (last == "class") {
         return parseClass();
       } else {
-        return new VariableUse(last);
+        return new Identifier(last);
       }
     } else if (acceptCategory(LPAREN)) {
       return parseExpressionOrArrowFunction();
@@ -792,12 +792,12 @@ class MiniJsParser {
   Expression parseExpressionOrArrowFunction() {
     if (acceptCategory(RPAREN)) {
       expectCategory(ARROW);
-      return parseArrowFunctionBody(<Parameter>[]);
+      return parseArrowFunctionBody(<Identifier>[]);
     }
     Expression expression = parseExpression();
     expectCategory(RPAREN);
     if (acceptCategory(ARROW)) {
-      var params = <Parameter>[];
+      var params = <Identifier>[];
       _expressionToParameterList(expression, params);
       return parseArrowFunctionBody(params);
     }
@@ -809,10 +809,10 @@ class MiniJsParser {
    * Converts a parenthesized expression into a list of parameters, issuing an
    * error if the conversion fails.
    */
-  void _expressionToParameterList(Expression node, List<Parameter> params) {
-    if (node is VariableUse) {
+  void _expressionToParameterList(Expression node, List<Identifier> params) {
+    if (node is Identifier) {
       // TODO(jmesserly): support default/rest parameters
-      params.add(new Parameter(node.name));
+      params.add(node);
     } else if (node is Binary && node.op == ',') {
       // TODO(jmesserly): this will allow illegal parens, such as
       // `((a, b), (c, d))`. Fixing it on the left side needs an explicit
@@ -827,7 +827,7 @@ class MiniJsParser {
     }
   }
 
-  Expression parseArrowFunctionBody(List<Parameter> params) {
+  Expression parseArrowFunctionBody(List<Identifier> params) {
     Node body;
     if (acceptCategory(LBRACE)) {
       body = parseBlock();
@@ -841,14 +841,14 @@ class MiniJsParser {
     String last = lastToken;
     if (acceptCategory(ALPHA)) {
       String functionName = last;
-      return new NamedFunction(new VariableDeclaration(functionName),
+      return new NamedFunction(new Identifier(functionName),
           parseFun());
     }
     return parseFun();
   }
 
   Expression parseFun() {
-    List<Parameter> params = <Parameter>[];
+    List<Identifier> params = <Identifier>[];
 
     expectCategory(LPAREN);
     if (!acceptCategory(RPAREN)) {
@@ -862,7 +862,7 @@ class MiniJsParser {
         } else {
           String argumentName = lastToken;
           expectCategory(ALPHA);
-          params.add(new Parameter(argumentName));
+          params.add(new Identifier(argumentName));
         }
         if (acceptCategory(COMMA)) continue;
         expectCategory(RPAREN);
@@ -1079,7 +1079,7 @@ class MiniJsParser {
     // Supports one form for interpolated variable declaration:
     //    let # = ...
     if (acceptCategory(HASH)) {
-      var name = new InterpolatedVariableDeclaration(parseHash());
+      var name = new InterpolatedIdentifier(parseHash());
       interpolatedValues.add(name);
 
       Expression initializer = acceptString("=") ? parseAssignment() : null;
@@ -1101,7 +1101,7 @@ class MiniJsParser {
       if (acceptString("=")) {
         initializer = parseAssignment();
       }
-      var declaration = new VariableDeclaration(variable);
+      var declaration = new Identifier(variable);
       initialization.add(new VariableInitialization(declaration, initializer));
     }
 
@@ -1214,7 +1214,7 @@ class MiniJsParser {
 
     Expression expression = parseExpression();
 
-    if (expression is VariableUse && acceptCategory(COLON)) {
+    if (expression is Identifier && acceptCategory(COLON)) {
       return new LabeledStatement(expression.name, parseStatement());
     }
 
@@ -1347,14 +1347,14 @@ class MiniJsParser {
       String keyword, String identifier) {
     return new VariableDeclarationList(keyword, [
         new VariableInitialization(
-            new VariableDeclaration(identifier), null)]);
+            new Identifier(identifier), null)]);
   }
 
   Statement parseFunctionDeclaration() {
     String name = lastToken;
     expectCategory(ALPHA);
     Expression fun = parseFun();
-    return new FunctionDeclaration(new VariableDeclaration(name), fun);
+    return new FunctionDeclaration(new Identifier(name), fun);
   }
 
   Statement parseTry() {
@@ -1433,17 +1433,17 @@ class MiniJsParser {
     expectCategory(RPAREN);
     expectCategory(LBRACE);
     Block body = parseBlock();
-    return new Catch(new VariableDeclaration(identifier), body);
+    return new Catch(new Identifier(identifier), body);
   }
 
   ClassExpression parseClass() {
-    VariableDeclaration name;
+    Identifier name;
     if (acceptCategory(HASH)) {
-      var interpolatedName = new InterpolatedVariableDeclaration(parseHash());
+      var interpolatedName = new InterpolatedIdentifier(parseHash());
       interpolatedValues.add(interpolatedName);
       name = interpolatedName;
     } else {
-      name = new VariableDeclaration(lastToken);
+      name = new Identifier(lastToken);
       expectCategory(ALPHA);
     }
     Expression heritage = null;
