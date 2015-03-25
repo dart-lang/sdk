@@ -1345,7 +1345,6 @@ class Namer {
   String get incrementalHelperName => r'$dart_unsafe_incremental_support';
 
   jsAst.Expression get accessIncrementalHelper {
-    assert(compiler.hasIncrementalSupport);
     return js('self.${incrementalHelperName}');
   }
 
