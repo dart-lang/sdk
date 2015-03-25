@@ -13172,6 +13172,11 @@ abstract class TypeProvider {
   InterfaceType get mapType;
 
   /**
+   * Return a [DartObjectImpl] representing the `null` object.
+   */
+  DartObjectImpl get nullObject;
+
+  /**
    * Return the type representing the built-in type 'Null'.
    *
    * @return the type representing the built-in type 'null'
@@ -13312,6 +13317,11 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _mapType;
 
   /**
+   * An shared object representing the value 'null'.
+   */
+  DartObjectImpl _nullObject;
+
+  /**
    * The type representing the type 'Null'.
    */
   InterfaceType _nullType;
@@ -13423,6 +13433,14 @@ class TypeProviderImpl implements TypeProvider {
 
   @override
   InterfaceType get mapType => _mapType;
+
+  @override
+  DartObjectImpl get nullObject {
+    if (_nullObject == null) {
+      _nullObject = new DartObjectImpl(nullType, NullState.NULL_STATE);
+    }
+    return _nullObject;
+  }
 
   @override
   InterfaceType get nullType => _nullType;

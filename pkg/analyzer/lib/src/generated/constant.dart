@@ -757,7 +757,7 @@ class ConstantValueComputer {
         namedArgumentValues[name] =
             constantVisitor._valueOf(argument.expression);
         namedArgumentNodes[name] = argument;
-        argumentValues[i] = constantVisitor.null2;
+        argumentValues[i] = typeProvider.nullObject;
       } else {
         argumentValues[i] = constantVisitor._valueOf(argument);
         argumentNodes[i] = argument;
@@ -868,7 +868,7 @@ class ConstantValueComputer {
         EvaluationResultImpl evaluationResult = baseParameter.evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
-          argumentValue = constantVisitor.null2;
+          argumentValue = typeProvider.nullObject;
         } else if (evaluationResult.value != null) {
           argumentValue = evaluationResult.value;
         }
@@ -1165,11 +1165,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   final TypeProvider _typeProvider;
 
-  /**
-   * An shared object representing the value 'null'.
-   */
-  DartObjectImpl _nullObject;
-
   HashMap<String, DartObjectImpl> _lexicalEnvironment;
 
   /**
@@ -1206,17 +1201,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     this._lexicalEnvironment = lexicalEnvironment;
     this._dartObjectComputer =
         new DartObjectComputer(_errorReporter, _typeProvider);
-  }
-
-  /**
-   * Return an object representing the value 'null'.
-   */
-  DartObjectImpl get null2 {
-    if (_nullObject == null) {
-      _nullObject =
-          new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
-    }
-    return _nullObject;
   }
 
   /**
@@ -1504,7 +1488,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitNullLiteral(NullLiteral node) => null2;
+  DartObjectImpl visitNullLiteral(NullLiteral node) => _typeProvider.nullObject;
 
   @override
   DartObjectImpl visitParenthesizedExpression(ParenthesizedExpression node) =>
@@ -1677,7 +1661,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (expressionValue != null) {
       return expressionValue;
     }
-    return null2;
+    return _typeProvider.nullObject;
   }
 }
 

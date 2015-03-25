@@ -7,6 +7,7 @@
 
 library engine.testing.test_type_provider;
 
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -90,6 +91,11 @@ class TestTypeProvider implements TypeProvider {
    * The type representing the built-in type 'Map'.
    */
   InterfaceType _mapType;
+
+  /**
+   * An shared object representing the value 'null'.
+   */
+  DartObjectImpl _nullObject;
 
   /**
    * The type representing the built-in type 'Null'.
@@ -321,6 +327,14 @@ class TestTypeProvider implements TypeProvider {
       _propagateTypeArguments(mapElement);
     }
     return _mapType;
+  }
+
+  @override
+  DartObjectImpl get nullObject {
+    if (_nullObject == null) {
+      _nullObject = new DartObjectImpl(nullType, NullState.NULL_STATE);
+    }
+    return _nullObject;
   }
 
   @override
