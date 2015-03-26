@@ -72,7 +72,11 @@ var tests = [
       return block.closureCtxt.load().then((Context ctxt) {
         expect(ctxt.variables.single['value'].isString, isTrue);
         expect(ctxt.variables.single['value'].valueAsString, equals('I could be copied into the block'));
-        expect(block.closureCtxt.parentContext.isNull, isTrue);
+        expect(ctxt.parentContext.isContext, isTrue);
+        expect(ctxt.parentContext.length, equals(0));
+        return ctxt.parentContext.load().then((Context outerCtxt) {
+          expect(outerCtxt.parentContext.isNull, isTrue);
+        });
       });
     });
   }),
@@ -87,7 +91,11 @@ var tests = [
       return block.closureCtxt.load().then((ctxt) {
         expect(ctxt.variables.single['value'].isInt, isTrue);
         expect(ctxt.variables.single['value'].valueAsString, equals('43'));
-        expect(ctxt.parentContext.isNull, isTrue);
+        expect(ctxt.parentContext.isContext, isTrue);
+        expect(ctxt.parentContext.length, equals(0));
+        return ctxt.parentContext.load().then((Context outerCtxt) {
+          expect(outerCtxt.parentContext.isNull, isTrue);
+        });
       });
     });
   }),
@@ -107,7 +115,11 @@ var tests = [
         return ctxt.parentContext.load().then((Context outerCtxt) {
           expect(outerCtxt.variables.single['value'].isInt, isTrue);
           expect(outerCtxt.variables.single['value'].valueAsString, equals('421'));
-          expect(outerCtxt.parentContext.isNull, isTrue);
+          expect(outerCtxt.parentContext.isContext, isTrue);
+          expect(outerCtxt.parentContext.length, equals(0));
+          return outerCtxt.parentContext.load().then((Context outerCtxt2) {
+            expect(outerCtxt2.parentContext.isNull, isTrue);
+          });
         });
       });
     });

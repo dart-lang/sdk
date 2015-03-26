@@ -121,7 +121,7 @@ var tests = [
                            equals([14, 1, 15, 1, 16, 0, 18, 1,
                                    23, 1, 24, 1, 26, 0]));
                     expect(normalize(coverage['coverage'][1]['hits']).take(12),
-                           equals([32, 0, 35, 0, 36, 0, 32, 1, 35, 1, 36, 0]));
+                           equals([32, 1, 35, 1, 36, 0, 31, 1, 44, 0, 45, 0]));
                 }));
       // Script
       tests.add(cls.load().then((_) {
@@ -134,7 +134,7 @@ var tests = [
                            equals([14, 1, 15, 1, 16, 0, 18, 1,
                                    23, 1, 24, 1, 26, 0]));
                     expect(normalize(coverage['coverage'][1]['hits']).take(12),
-                           equals([32, 0, 35, 0, 36, 0, 32, 1, 35, 1, 36, 0]));
+                           equals([32, 1, 35, 1, 36, 0, 31, 1, 44, 0, 45, 0]));
                 });
           }));
       // Isolate
