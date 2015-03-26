@@ -24,25 +24,40 @@ void main() {
           test1() {
             x = /*severe:StaticTypeError*/"hi";
           }
-      ''',
+      '''.replaceAll('\n          ', '\n'),
       'package:foo/bar.dart': '''
           num x;
           test2() {
             int y = /*info:AssignmentCast*/x;
           }
-      ''',
+      '''.replaceAll('\n          ', '\n'),
     };
     testChecker(files);
     var reporter = new SummaryReporter();
     testChecker(files, reporter: reporter);
 
-    var summary1 = reporter.result;
-    expect(summary1.loose['file:///main.dart'].messages.length, 1);
-    var barUrl = 'package:foo/bar.dart';
-    expect(summary1.packages['foo'].libraries[barUrl].messages.length, 1);
+    _verifySummary(GlobalSummary summary) {
+      var mainLib = summary.loose['file:///main.dart'];
+      expect(mainLib.messages.length, 1);
 
-    var summary2 = GlobalSummary.parse(summary1.toJsonMap());
-    expect(summary2.loose['file:///main.dart'].messages.length, 1);
-    expect(summary2.packages['foo'].libraries[barUrl].messages.length, 1);
+      var mainMessage = mainLib.messages[0];
+      expect(mainMessage.kind, "StaticTypeError");
+      expect(mainMessage.level, "severe");
+      expect(mainMessage.span.text, '"hi"');
+      expect(
+          mainMessage.span.context, '  x = /*severe:StaticTypeError*/"hi";\n');
+
+      var barLib = summary.packages['foo'].libraries['package:foo/bar.dart'];
+      expect(barLib.messages.length, 1);
+      var barMessage = barLib.messages[0];
+      expect(barMessage.kind, "AssignmentCast");
+      expect(barMessage.level, "info");
+      expect(barMessage.span.text, 'x');
+      expect(barMessage.span.context, '  int y = /*info:AssignmentCast*/x;\n');
+    }
+
+    var original = reporter.result;
+    _verifySummary(original);
+    _verifySummary(GlobalSummary.parse(original.toJsonMap()));
   });
 }

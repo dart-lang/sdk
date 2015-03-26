@@ -152,17 +152,27 @@ class MessageSummary implements Summary {
     'level': level,
     'message': message,
     'url': '${span.sourceUrl}',
-    'start': span.start.offset,
-    'end': span.end.offset,
+    'start': [span.start.offset, span.start.line, span.start.column],
+    'end': [span.end.offset, span.end.line, span.end.column],
     'text': span.text,
+    'context': span is SourceSpanWithContext
+        ? (span as SourceSpanWithContext).context
+        : null,
   };
 
   void accept(SummaryVisitor visitor) => visitor.visitMessage(this);
 
   static MessageSummary parse(Map json) {
-    var start = new SourceLocation(json['start'], sourceUrl: json['url']);
-    var end = new SourceLocation(json['end'], sourceUrl: json['url']);
-    var span = new SourceSpanBase(start, end, json['text']);
+    var start = new SourceLocation(json['start'][0],
+        sourceUrl: json['url'],
+        line: json['start'][1],
+        column: json['start'][2]);
+    var end = new SourceLocation(json['end'][0],
+        sourceUrl: json['url'], line: json['end'][1], column: json['end'][2]);
+    var context = json['context'];
+    var span = context != null
+        ? new SourceSpanWithContext(start, end, json['text'], context)
+        : new SourceSpan(start, end, json['text']);
     return new MessageSummary(
         json['kind'], json['level'], span, json['message']);
   }

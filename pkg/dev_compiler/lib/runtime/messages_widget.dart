@@ -55,7 +55,19 @@ void displayMessages(String data) {
       if (span != null) {
         sb.write('<div class="location">'
             '  <span class="location">${span.start.toolString}</span></div>'
-            '  <span class="text">${_escape(span.text)}</span></div></div>');
+            '  <span class="text">');
+        if (span is SourceSpanWithContext) {
+          var context = span.context;
+          var text = span.text;
+          sb.write(_escape(context.substring(0, span.start.column)));
+          sb.write('<span class="$level">');
+          sb.write(_escape(span.text));
+          sb.write('</span>');
+          sb.write(_escape(context.substring(span.end.column)));
+        } else {
+          sb.write(_escape(span.text));
+        }
+        sb.write('</span></div></div>');
       }
       sb.write('</div>');
 
