@@ -10,6 +10,15 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:linter/src/util.dart';
 
+/// Returns the most specific AST node appropriate for associating errors.
+AstNode getNodeToAnnotate(Declaration node) {
+  AstNode mostSpecific = _getNodeToAnnotate(node);
+  if (mostSpecific != null) {
+    return mostSpecific;
+  }
+  return node;
+}
+
 /// Returns `true` if the given [id] is a Dart keyword.
 bool isKeyWord(String id) => Keyword.keywords.keys.contains(id);
 
@@ -135,4 +144,44 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   }
 
   return false;
+}
+
+AstNode _getNodeToAnnotate(Declaration node) {
+  if (node is MethodDeclaration) {
+    return node.name;
+  }
+  if (node is ConstructorDeclaration) {
+    return node.name;
+  }
+  if (node is FieldDeclaration) {
+    return node.fields;
+  }
+  if (node is ClassTypeAlias) {
+    return node.name;
+  }
+  if (node is FunctionTypeAlias) {
+    return node.name;
+  }
+  if (node is ClassDeclaration) {
+    return node.name;
+  }
+  if (node is EnumDeclaration) {
+    return node.name;
+  }
+  if (node is FunctionDeclaration) {
+    return node.name;
+  }
+  if (node is TopLevelVariableDeclaration) {
+    return node.variables;
+  }
+  if (node is EnumConstantDeclaration) {
+    return node.name;
+  }
+  if (node is TypeParameter) {
+    return node.name;
+  }
+  if (node is VariableDeclaration) {
+    return node.name;
+  }
+  return null;
 }

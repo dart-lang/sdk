@@ -21,6 +21,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:linter/src/io.dart';
+import 'package:path/path.dart' as p;
+import 'package:linter/src/project.dart';
+import 'package:linter/src/rules.dart';
+
 
 Source createSource(Uri sourceUri) =>
     new FileBasedSource.con1(new JavaFile(sourceUri.toFilePath()));
@@ -35,12 +39,14 @@ AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
 }
 
 class AnalysisDriver {
-  final DriverOptions options;
+
 
   /// The sources which have been analyzed so far.  This is used to avoid
   /// analyzing a source more than once, and to compute the total number of
   /// sources analyzed for statistics.
   Set<Source> _sourcesAnalyzed = new HashSet<Source>();
+
+  final DriverOptions options;
 
   AnalysisDriver(this.options);
 
@@ -88,7 +94,7 @@ class AnalysisDriver {
     List<Source> sources = [];
     ChangeSet changeSet = new ChangeSet();
     for (File file in files) {
-      JavaFile sourceFile = new JavaFile(file.path);
+      JavaFile sourceFile = new JavaFile(p.normalize(file.absolute.path));
       Source source = new FileBasedSource.con2(sourceFile.toURI(), sourceFile);
       Uri uri = context.sourceFactory.restoreUri(source);
       if (uri != null) {
@@ -100,6 +106,16 @@ class AnalysisDriver {
       changeSet.addedSource(source);
     }
     context.applyChanges(changeSet);
+
+    // Temporary location
+    var project = new DartProject(context, sources);
+    // This will get pushed into the generator (or somewhere comparable) when
+    // we have a proper plugin.
+    ruleRegistry.forEach((lint) {
+      if (lint is ProjectVisitor) {
+        lint.visit(project);
+      }
+    });
 
     List<AnalysisErrorInfo> errors = [];
 

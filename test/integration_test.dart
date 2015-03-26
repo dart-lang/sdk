@@ -11,7 +11,6 @@ import 'package:linter/src/config.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:mockito/mockito.dart';
-import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../bin/linter.dart' as dartlint;

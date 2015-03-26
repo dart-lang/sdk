@@ -15,6 +15,7 @@ import 'package:glob/glob.dart';
 import 'package:linter/src/analysis.dart';
 import 'package:linter/src/config.dart';
 import 'package:linter/src/io.dart';
+import 'package:linter/src/project.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 
@@ -257,6 +258,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     return name.compareTo(other.name);
   }
 
+  /// Return a visitor to be passed to provide access to Dart project context
+  /// and to perform project-level analyses.
+  ProjectVisitor getProjectVisitor() => null;
+
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
@@ -383,7 +388,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
       {String contents, String sourceUrl}) {
     var results = <AnalysisErrorInfo>[];
 
-    //TODO: error handling
     var spec = new Pubspec.parse(contents, sourceUrl: sourceUrl);
 
     for (Linter lint in options.enabledLints) {
