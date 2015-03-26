@@ -15946,18 +15946,11 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
-// dart2js represents integers as double precision floats, which can represent
-// anything in the range -2^53 ... 2^53.
-static bool IsJavascriptInt(int64_t value) {
-  return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
-}
-
-
 RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   const bool is_smi = Smi::IsValid(value);
   if (!silent &&
       FLAG_throw_on_javascript_int_overflow &&
-      !IsJavascriptInt(value)) {
+      !Utils::IsJavascriptInt(value)) {
     const Integer& i = is_smi ?
         Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
         Integer::Handle(Mint::New(value, space));
@@ -16055,7 +16048,7 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
       value = AsInt64Value();
     }
   }
-  return !IsJavascriptInt(value);
+  return !Utils::IsJavascriptInt(value);
 }
 
 

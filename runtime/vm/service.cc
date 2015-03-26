@@ -529,6 +529,7 @@ void Service::SetEventMask(uint32_t mask) {
 void Service::SendEvent(intptr_t eventFamilyId,
                         intptr_t eventType,
                         const Object& eventMessage) {
+  ASSERT(!ServiceIsolate::IsServiceIsolate(Isolate::Current()));
   if (!ServiceIsolate::IsRunning()) {
     return;
   }
@@ -591,6 +592,9 @@ void Service::SendEvent(intptr_t eventFamilyId,
 
 
 void Service::HandleGCEvent(GCEvent* event) {
+  if (ServiceIsolate::IsServiceIsolate(Isolate::Current())) {
+    return;
+  }
   JSONStream js;
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
@@ -2438,7 +2442,6 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
-  jsobj.AddPropertyF("date", "%" Pd64 "", OS::GetCurrentTimeMillis());
   jsobj.AddProperty("version", Version::String());
   // Send pid as a string because it allows us to avoid any issues with
   // pids > 53-bits (when consumed by JavaScript).
@@ -2446,12 +2449,10 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
   jsobj.AddProperty("assertsEnabled", isolate->AssertsEnabled());
   jsobj.AddProperty("typeChecksEnabled", isolate->TypeChecksEnabled());
-  int64_t start_time_micros = Dart::vm_isolate()->start_time();
-  int64_t uptime_micros = (OS::GetCurrentTimeMicros() - start_time_micros);
-  double seconds = (static_cast<double>(uptime_micros) /
-                    static_cast<double>(kMicrosecondsPerSecond));
-  jsobj.AddProperty("uptime", seconds);
-
+  int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
+                               kMicrosecondsPerMillisecond);
+  jsobj.AddProperty64("refreshTime", OS::GetCurrentTimeMillis());
+  jsobj.AddProperty64("startTime", start_time_millis);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");
@@ -2503,6 +2504,25 @@ static bool SetFlag(Isolate* isolate, JSONStream* js) {
     jsobj.AddProperty("message", error);
     return true;
   }
+}
+
+
+static const MethodParameter* set_name_params[] = {
+  ISOLATE_PARAMETER,
+  new MethodParameter("name", true),
+  NULL,
+};
+
+
+static bool SetName(Isolate* isolate, JSONStream* js) {
+  isolate->set_debugger_name(js->LookupParam("name"));
+  {
+    ServiceEvent event(isolate, ServiceEvent::kIsolateUpdate);
+    Service::HandleEvent(&event);
+  }
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Success");
+  return true;
 }
 
 
@@ -2577,8 +2597,10 @@ static ServiceMethodDescriptor service_methods_[] = {
     resume_params },
   { "requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
-  { "setFlag", SetFlag ,
+  { "setFlag", SetFlag,
     set_flags_params },
+  { "setName", SetName,
+    set_name_params },
 };
 
 

@@ -274,12 +274,14 @@ void JSONStream::PrintPropertyBool(const char* name, bool b) {
 
 
 void JSONStream::PrintProperty(const char* name, intptr_t i) {
+  ASSERT(Utils::IsJavascriptInt(i));
   PrintPropertyName(name);
   PrintValue(i);
 }
 
 
 void JSONStream::PrintProperty64(const char* name, int64_t i) {
+  ASSERT(Utils::IsJavascriptInt(i));
   PrintPropertyName(name);
   PrintValue64(i);
 }

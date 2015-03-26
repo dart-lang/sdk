@@ -13,12 +13,15 @@
         <img src="img/isolate_icon.png">
       </div>
       <div class="flex-item-10-percent">
+        {{ isolate.number }}
+      </div>
+      <div class="flex-item-20-percent">
         <isolate-ref ref="{{ isolate }}"></isolate-ref>
       </div>
       <div class="flex-item-10-percent">
         <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
       </div>
-      <div class="flex-item-60-percent">
+      <div class="flex-item-40-percent">
         <isolate-location isolate="{{ isolate }}"></isolate-location>
         [<a on-click="{{ goto }}" _href="{{ gotoLink('/debugger', isolate) }}">debug</a>]
       </div>

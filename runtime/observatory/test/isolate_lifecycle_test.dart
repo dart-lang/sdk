@@ -67,7 +67,7 @@ var tests = [
     var resumesIssued = 0;
     var isolateList = vm.isolates.toList();
     for (var isolate in isolateList) {
-      if (isolate.name == 'root') {
+      if (isolate.name.endsWith('main')) {
         continue;
       }
       try {

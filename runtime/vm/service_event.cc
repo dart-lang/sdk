@@ -58,6 +58,8 @@ const char* ServiceEvent::EventTypeToCString(EventType type) {
       return "IsolateStart";
     case kIsolateExit:
       return "IsolateExit";
+    case kIsolateUpdate:
+      return "IsolateUpdate";
     case kPauseStart:
       return "PauseStart";
     case kPauseExit:

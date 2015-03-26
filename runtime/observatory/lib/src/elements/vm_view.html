@@ -26,8 +26,16 @@
           <div class="memberValue">{{ vm.version }}</div>
         </div>
         <div class="memberItem">
+          <div class="memberName">started at</div>
+          <div class="memberValue">{{ vm.startTime.toString() }}</div>
+        </div>
+        <div class="memberItem">
           <div class="memberName">uptime</div>
-          <div class="memberValue">{{ vm.uptime | formatTime }}</div>
+          <div class="memberValue">{{ vm.upTime.toString() }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">refreshed at</div>
+          <div class="memberValue">{{ vm.refreshTime.toString() }}</div>
         </div>
         <div class="memberItem">
           <div class="memberName">type checks enabled</div>
@@ -40,10 +48,6 @@
         <div class="memberItem">
           <div class="memberName">pid</div>
           <div class="memberValue">{{ vm.pid }}</div>
-        </div>
-        <div class="memberItem">
-          <div class="memberName">refreshed at</div>
-          <div class="memberValue">{{ vm.lastUpdate }}</div>
         </div>
         <br>
         <div class="memberItem">

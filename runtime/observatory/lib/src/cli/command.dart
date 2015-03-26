@@ -149,11 +149,11 @@ class RootCommand extends _CommandBase {
     }
 
     // We have found a set of commands which match all of the args.
-    // Return the completions strings.
+    // Return the completion strings.
     var prefix = _concatArgs(args, args.length - 1);
     var completions =
         commands.map((command) => '${prefix}${command.name} ').toList();
-    if (showAll && matchLen == args.length) {
+    if (matchLen == args.length) {
       // If we are showing all possiblities, also include local
       // completions for the parent command.
       return commands[0]._parent._buildCompletions(args, false)

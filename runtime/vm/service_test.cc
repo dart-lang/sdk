@@ -1083,7 +1083,7 @@ TEST_CASE(Service_VM) {
   EXPECT_SUBSTRING("\"targetCPU\"", handler.msg());
   EXPECT_SUBSTRING("\"hostCPU\"", handler.msg());
   EXPECT_SUBSTRING("\"version\"", handler.msg());
-  EXPECT_SUBSTRING("\"uptime\"", handler.msg());
+  EXPECT_SUBSTRING("\"startTime\"", handler.msg());
   EXPECT_SUBSTRING("\"isolates\"", handler.msg());
 }
 

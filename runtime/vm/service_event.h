@@ -16,6 +16,7 @@ class ServiceEvent {
   enum EventType {
     kIsolateStart,       // New isolate has started
     kIsolateExit,        // Isolate has exited
+    kIsolateUpdate,      // Isolate identity information has changed
 
     kPauseStart,         // --pause-isolates-on-start
     kPauseExit,          // --pause-isolates-on-exit

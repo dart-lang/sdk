@@ -178,6 +178,9 @@ class Isolate : public BaseIsolate {
 #endif  // DEBUG
 
   const char* name() const { return name_; }
+  const char* debugger_name() const { return debugger_name_; }
+  void set_debugger_name(const char* name);
+
   // TODO(koda): Move to Thread.
   class Log* Log() const;
 
@@ -689,6 +692,7 @@ class Isolate : public BaseIsolate {
   MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
+  char* debugger_name_;
   int64_t start_time_;
   Dart_Port main_port_;
   Dart_Port origin_id_;  // Isolates created by spawnFunc have some origin id.
@@ -799,7 +803,8 @@ class Isolate : public BaseIsolate {
   static void AddIsolateTolist(Isolate* isolate);
   static void RemoveIsolateFromList(Isolate* isolate);
   static void CheckForDuplicateThreadState(InterruptableThreadState* state);
-  static Monitor* isolates_list_monitor_;
+
+  static Monitor* isolates_list_monitor_;  // Protects isolates_list_head_
   static Isolate* isolates_list_head_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \

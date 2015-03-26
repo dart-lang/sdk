@@ -347,11 +347,13 @@ abstract class VM extends ServiceObjectOwner {
   @observable String version = 'unknown';
   @observable String targetCPU;
   @observable int architectureBits;
-  @observable double uptime = 0.0;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
   @observable String pid = '';
-  @observable DateTime lastUpdate;
+  @observable DateTime startTime;
+  @observable DateTime refreshTime;
+  @observable Duration get upTime =>
+      (new DateTime.now().difference(startTime));
 
   VM() : super._empty(null) {
     name = 'vm';
@@ -366,19 +368,6 @@ abstract class VM extends ServiceObjectOwner {
       new StreamController.broadcast();
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
-
-  bool _isIsolateLifecycleEvent(String eventType) {
-    return _isIsolateExitEvent(eventType) ||
-           _isIsolateStartEvent(eventType);
-  }
-
-  bool _isIsolateExitEvent(String eventType) {
-    return (eventType == ServiceEvent.kIsolateExit);
-  }
-
-  bool _isIsolateStartEvent(String eventType) {
-    return (eventType == ServiceEvent.kIsolateStart);
-  }
 
   void postServiceEvent(String response, ByteData data) {
     var map;
@@ -398,98 +387,42 @@ abstract class VM extends ServiceObjectOwner {
       return;
     }
 
-    var eventType = map['eventType'];
-
-    if (_isIsolateLifecycleEvent(eventType)) {
-      String isolateId = map['isolate']['id'];
-      var event;
-      if (_isIsolateStartEvent(eventType)) {
-        _onIsolateStart(map['isolate']);
-        // By constructing the event *after* adding the isolate to the
-        // isolate cache, the call to getFromMap will use the cached Isolate.
-        event = new ServiceObject._fromMap(this, map);
-      } else {
-        assert(_isIsolateExitEvent(eventType));
-        // By constructing the event *before* removing the isolate from the
-        // isolate cache, the call to getFromMap will use the cached Isolate.
-        event = new ServiceObject._fromMap(this, map);
-        _onIsolateExit(isolateId);
-      }
-      assert(event != null);
+    var eventIsolate = map['isolate'];
+    if (eventIsolate == null) {
+      var event = new ServiceObject._fromMap(vm, map);
       events.add(event);
-      return;
+    } else {
+      // getFromMap creates the Isolate if it hasn't been seen already.
+      var isolate = getFromMap(map['isolate']);
+      var event = new ServiceObject._fromMap(isolate, map);
+      if (event.eventType == ServiceEvent.kIsolateExit) {
+        _removeIsolate(isolate.id);
+      }
+      isolate._onEvent(event);
+      events.add(event);
     }
-
-    // Extract the owning isolate from the event itself.
-    String owningIsolateId = map['isolate']['id'];
-    getIsolate(owningIsolateId).then((owningIsolate) {
-        if (owningIsolate == null) {
-          // TODO(koda): Do we care about GC events in VM isolate?
-          Logger.root.severe('Ignoring event with unknown isolate id: '
-                             '$owningIsolateId');
-          return;
-        }
-        var event = new ServiceObject._fromMap(owningIsolate, map);
-        owningIsolate._onEvent(event);
-        events.add(event);
-    });
   }
 
-  Isolate _onIsolateStart(Map isolateMap) {
-    var isolateId = isolateMap['id'];
-    assert(!_isolateCache.containsKey(isolateId));
-    Isolate isolate = new ServiceObject._fromMap(this, isolateMap);
-    _isolateCache[isolateId] = isolate;
-    notifyPropertyChange(#isolates, true, false);
-    // Eagerly load the isolate.
-    isolate.load().catchError((e) {
-      Logger.root.info('Eagerly loading an isolate failed: $e');
-    });
-    return isolate;
-  }
-
-  void _onIsolateExit(String isolateId) {
+  void _removeIsolate(String isolateId) {
     assert(_isolateCache.containsKey(isolateId));
     _isolateCache.remove(isolateId);
     notifyPropertyChange(#isolates, true, false);
   }
 
-  void _updateIsolatesFromList(List isolateList) {
-    var shutdownIsolates = <String>[];
-    var createdIsolates = <Map>[];
-    var isolateStillExists = <String, bool>{};
+  void _removeDeadIsolates(List newIsolates) {
+    // Build a set of new isolates.
+    var newIsolateSet = new Set();
+    newIsolates.forEach((iso) => newIsolateSet.add(iso.id));
 
-    // Start with the assumption that all isolates are gone.
-    for (var isolateId in _isolateCache.keys) {
-      isolateStillExists[isolateId] = false;
-    }
-
-    // Find created isolates and mark existing isolates as living.
-    for (var isolateMap in isolateList) {
-      var isolateId = isolateMap['id'];
-      if (!_isolateCache.containsKey(isolateId)) {
-        createdIsolates.add(isolateMap);
-      } else {
-        isolateStillExists[isolateId] = true;
-      }
-    }
-
-    // Find shutdown isolates.
-    isolateStillExists.forEach((isolateId, exists) {
-      if (!exists) {
-        shutdownIsolates.add(isolateId);
+    // Remove any old isolates which no longer exist.
+    List toRemove = [];
+    _isolateCache.forEach((id, _) {
+      if (!newIsolateSet.contains(id)) {
+        toRemove.add(id);
       }
     });
-
-    // Process shutdown.
-    for (var isolateId in shutdownIsolates) {
-      _onIsolateExit(isolateId);
-    }
-
-    // Process creation.
-    for (var isolateMap in createdIsolates) {
-      _onIsolateStart(isolateMap);
-    }
+    toRemove.forEach((id) => _removeIsolate(id));
+    notifyPropertyChange(#isolates, true, false);
   }
 
   static final String _isolateIdPrefix = 'isolates/';
@@ -507,11 +440,16 @@ abstract class VM extends ServiceObjectOwner {
     // Check cache.
     var isolate = _isolateCache[id];
     if (isolate == null) {
-      // We should never see an unknown isolate here.
-      throw new UnimplementedError();
-    }
-    var mapIsRef = _hasRef(map['type']);
-    if (!mapIsRef) {
+      // Add new isolate to the cache.
+      isolate = new ServiceObject._fromMap(this, map);
+      _isolateCache[id] = isolate;
+      notifyPropertyChange(#isolates, true, false);
+
+      // Eagerly load the isolate.
+      isolate.load().catchError((e, stack) {
+        Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
+      });
+    } else {
       isolate.update(map);
     }
     return isolate;
@@ -624,17 +562,23 @@ abstract class VM extends ServiceObjectOwner {
     if (mapIsRef) {
       return;
     }
+    // Note that upgrading the collection creates any isolates in the
+    // isolate list which are new.
+    _upgradeCollection(map, vm);
+
     _loaded = true;
     version = map['version'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
-    uptime = map['uptime'];
-    var dateInMillis = int.parse(map['date']);
-    lastUpdate = new DateTime.fromMillisecondsSinceEpoch(dateInMillis);
+    var startTimeMillis = map['startTime'];
+    startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeMillis);
+    var refreshTimeMillis = map['refreshTime'];
+    refreshTime = new DateTime.fromMillisecondsSinceEpoch(refreshTimeMillis);
+    notifyPropertyChange(#upTime, 0, 1);
     assertsEnabled = map['assertsEnabled'];
     pid = map['pid'];
     typeChecksEnabled = map['typeChecksEnabled'];
-    _updateIsolatesFromList(map['isolates']);
+    _removeDeadIsolates(map['isolates']);
   }
 
   // Reload all isolates.
@@ -780,9 +724,12 @@ class HeapSnapshot {
 class Isolate extends ServiceObjectOwner with Coverage {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
-  @observable ObservableMap counters = new ObservableMap();
+  @observable int number;
+  @observable DateTime startTime;
+  @observable Duration get upTime =>
+      (new DateTime.now().difference(startTime));
 
-  @observable ServiceEvent pauseEvent = null;
+  @observable ObservableMap counters = new ObservableMap();
 
   void _updateRunState() {
     topFrame = (pauseEvent != null ? pauseEvent.topFrame : null);
@@ -796,6 +743,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     notifyPropertyChange(#idle, 0, 1);
   }
 
+  @observable ServiceEvent pauseEvent = null;
   @observable bool paused = false;
   @observable bool running = false;
   @observable bool idle = false;
@@ -863,13 +811,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (map == null) {
       return null;
     }
+    var mapType = _stripRef(map['type']);
+    if (mapType == 'Isolate') {
+      // There are sometimes isolate refs in ServiceEvents.
+      return vm.getFromMap(map);
+    }
     String mapId = map['id'];
     var obj = (mapId != null) ? _cache[mapId] : null;
     if (obj != null) {
-      var mapIsRef = _hasRef(map['type']);
-      if (!mapIsRef) {
-        obj.update(map);
-      }
+      obj.update(map);
       return obj;
     }
     // Build the object from the map directly.
@@ -917,7 +867,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   @observable String name;
   @observable String vmName;
-  @observable String mainPort;
   @observable ServiceFunction entry;
 
   @observable final Map<String, double> timers =
@@ -953,9 +902,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void _update(ObservableMap map, bool mapIsRef) {
-    mainPort = map['mainPort'];
     name = map['name'];
     vmName = map['name'];
+    number = int.parse(map['number'], onError:(_) => null);
     if (mapIsRef) {
       return;
     }
@@ -973,7 +922,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (map['entry'] != null) {
       entry = map['entry'];
     }
-
+    var startTimeInMillis = map['startTime'];
+    startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeInMillis);
+    notifyPropertyChange(#upTime, 0, 1);
     var countersMap = map['tagCounters'];
     if (countersMap != null) {
       var names = countersMap['names'];
@@ -1041,21 +992,21 @@ class Isolate extends ServiceObjectOwner with Coverage {
   ObservableMap<int, Breakpoint> breakpoints = new ObservableMap();
 
   void _updateBreakpoints(List newBpts) {
-    // Build a map of new breakpoints.
-    var newBptMap = {};
-    newBpts.forEach((bpt) => (newBptMap[bpt.number] = bpt));
+    // Build a set of new breakpoints.
+    var newBptSet = new Set();
+    newBpts.forEach((bpt) => newBptSet.add(bpt.number));
 
     // Remove any old breakpoints which no longer exist.
     List toRemove = [];
     breakpoints.forEach((key, _) {
-      if (!newBptMap.containsKey(key)) {
+      if (!newBptSet.contains(key)) {
         toRemove.add(key);
       }
     });
     toRemove.forEach((key) => breakpoints.remove(key));
 
     // Add all new breakpoints.
-    breakpoints.addAll(newBptMap);
+    newBpts.forEach((bpt) => (breakpoints[bpt.number] = bpt));
   }
 
   void _addBreakpoint(Breakpoint bpt) {
@@ -1068,13 +1019,17 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void _onEvent(ServiceEvent event) {
-    assert(event.eventType != ServiceEvent.kIsolateStart &&
-           event.eventType != ServiceEvent.kIsolateExit);
     switch(event.eventType) {
+      case ServiceEvent.kIsolateStart:
+      case ServiceEvent.kIsolateExit:
+        // Handled elsewhere.
+        break;
+
       case ServiceEvent.kBreakpointAdded:
         _addBreakpoint(event.breakpoint);
         break;
 
+      case ServiceEvent.kIsolateUpdate:
       case ServiceEvent.kBreakpointResolved:
         // Update occurs as side-effect of caching.
         break;
@@ -1145,6 +1100,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
+        return result;
       });
   }
 
@@ -1154,6 +1110,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
+        return result;
       });
   }
 
@@ -1163,6 +1120,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
+        return result;
       });
   }
 
@@ -1172,6 +1130,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
+        return result;
       });
   }
 
@@ -1181,7 +1140,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
           // TODO(turnidge): Handle this more gracefully.
           Logger.root.severe(result.message);
         }
+        return result;
       });
+  }
+
+  Future setName(String newName) {
+    Map params = {
+      'name': newName,
+    };
+    return invokeRpc('setName', params);
   }
 
   Future<ServiceMap> getStack() {
@@ -1426,6 +1393,7 @@ class ServiceEvent extends ServiceObject {
   /// The possible 'eventType' values.
   static const kIsolateStart       = 'IsolateStart';
   static const kIsolateExit        = 'IsolateExit';
+  static const kIsolateUpdate      = 'IsolateUpdate';
   static const kPauseStart         = 'PauseStart';
   static const kPauseExit          = 'PauseExit';
   static const kPauseBreakpoint    = 'PauseBreakpoint';
@@ -1455,6 +1423,7 @@ class ServiceEvent extends ServiceObject {
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
+    assert(map['isolate'] == null || owner == map['isolate']);
     eventType = map['eventType'];
     name = 'ServiceEvent $eventType';
     vmName = name;
@@ -1868,7 +1837,7 @@ class FunctionKind {
       case 'Stub': return kStub;
       case 'Tag': return kTag;
     }
-    print('did not understand $value');
+    Logger.root.severe('Unrecognized function kind: $value');
     throw new FallThroughError();
   }
 
@@ -2494,7 +2463,7 @@ class CodeKind {
     } else if (s == 'Stub') {
       return Stub;
     }
-    print('do not understand code kind $s');
+    Logger.root.severe('Unrecognized code kind: $s');
     throw new FallThroughError();
   }
   static const Collected = const CodeKind._internal('Collected');

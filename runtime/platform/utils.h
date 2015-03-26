@@ -201,6 +201,19 @@ class Utils {
   static bool DoublesBitEqual(const double a, const double b) {
     return bit_cast<int64_t, double>(a) == bit_cast<int64_t, double>(b);
   }
+
+  // dart2js represents integers as double precision floats, which can
+  // represent anything in the range -2^53 ... 2^53.
+  static bool IsJavascriptInt(int64_t value) {
+    return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
+  }
+  static bool IsJavascriptInt(intptr_t value) {
+#if defined(ARCH_IS_64BIT)
+    return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
+#else
+    return true;
+#endif
+  }
 };
 
 }  // namespace dart
