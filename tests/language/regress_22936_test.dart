@@ -15,12 +15,10 @@ foo() {
 
 main() {
   final x = null;
-  bool assignmentFailed = false;
   try {
-    x = foo();
+    x =    /// 01: static type warning
+        foo();
   } on NoSuchMethodError {
-    assignmentFailed = true;
   }
   Expect.isTrue(fooCalled);
-  Expect.isTrue(assignmentFailed);
 }
