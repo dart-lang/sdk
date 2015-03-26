@@ -103,6 +103,14 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
     new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null);
 
 /**
+ * The resolved [CompilationUnit] associated with a unit.
+ *
+ * The result is only available for targets representing a unit.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null);
+
+/**
  * The errors produced while scanning a compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.

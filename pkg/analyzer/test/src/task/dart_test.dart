@@ -45,6 +45,7 @@ main() {
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
+  runReflectiveTests(ResolveReferencesTaskTest);
   runReflectiveTests(ResolveVariableReferencesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
 }
@@ -1198,6 +1199,60 @@ class C extends A {}
 }
 
 @reflectiveTest
+class ResolveReferencesTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = _newSource('/test.dart', '''
+class A {
+  m() {}
+}
+main(A a) {
+  a.m();
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    // prepare unit and "a.m()" invocation
+    CompilationUnit unit;
+    MethodInvocation invocation;
+    {
+      _computeResult(target, RESOLVED_UNIT1);
+      unit = outputs[RESOLVED_UNIT1];
+      // walk the AST
+      FunctionDeclaration function = unit.declarations[1];
+      BlockFunctionBody body = function.functionExpression.body;
+      ExpressionStatement statement = body.block.statements[0];
+      invocation = statement.expression;
+      // not resolved yet
+      expect(invocation.methodName.staticElement, isNull);
+    }
+    // fully resolve
+    {
+      _computeResult(target, RESOLVED_UNIT);
+      expect(task, new isInstanceOf<ResolveReferencesTask>());
+      expect(outputs[RESOLVED_UNIT], same(outputs[RESOLVED_UNIT]));
+      // a.m() is resolved now
+      expect(invocation.methodName.staticElement, isNotNull);
+    }
+  }
+
+  test_perform_errors() {
+    Source source = _newSource('/test.dart', '''
+class A {
+}
+main(A a) {
+  a.unknownMethod();
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, RESOLVED_UNIT);
+    expect(task, new isInstanceOf<ResolveReferencesTask>());
+    // validate
+    _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+}
+
+@reflectiveTest
 class ResolveUnitTypeNamesTaskTest extends _AbstractDartTaskTest {
   test_perform() {
     Source source = _newSource('/test.dart', '''
@@ -1423,6 +1478,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(ResolveReferencesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveVariableReferencesTask.DESCRIPTOR);
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
