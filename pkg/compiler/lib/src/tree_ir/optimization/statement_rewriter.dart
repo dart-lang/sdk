@@ -92,6 +92,8 @@ part of tree_ir.optimization;
  * separated two ifs.
  */
 class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
+  String get passName => 'Statement rewriter';
+
   // The binding environment.  The rightmost element of the list is the nearest
   // available enclosing binding.
   List<Assign> environment;
@@ -169,7 +171,10 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   Expression visitVariableUse(VariableUse node) {
     // Propagate constant to use site.
     Expression constant = constantEnvironment[node.variable];
-    if (constant != null) return constant;
+    if (constant != null) {
+      --node.variable.readCount;
+      return constant;
+    }
 
     // Propagate a variable's definition to its use site if:
     // 1.  It has a single use, to avoid code growth and potential duplication
@@ -178,8 +183,9 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     //     reorder expressions with side effects.
     if (!environment.isEmpty &&
         environment.last.variable == node.variable &&
-        environment.last.hasExactlyOneUse) {
-      return visitExpression(environment.removeLast().definition);
+        node.variable.readCount == 1) {
+      --node.variable.readCount;
+      return visitExpression(environment.removeLast().value);
     }
 
     // If the definition could not be propagated, leave the variable use.
@@ -199,21 +205,22 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   }
 
   Statement visitAssign(Assign node) {
-    if (isEffectivelyConstant(node.definition) &&
+    if (isEffectivelyConstant(node.value) &&
         node.variable.writeCount == 1) {
       // Handle constant assignments specially.
       // They are always safe to propagate (though we should avoid duplication).
       // Moreover, they should not prevent other expressions from propagating.
       if (node.variable.readCount <= 1) {
         // A single-use constant should always be propagted to its use site.
-        constantEnvironment[node.variable] = visitExpression(node.definition);
+        constantEnvironment[node.variable] = visitExpression(node.value);
+        --node.variable.writeCount;
         return visitStatement(node.next);
       } else {
         // With more than one use, we cannot propagate the constant.
         // Visit the following statement without polluting [environment] so
         // that any preceding non-constant assignments might still propagate.
         node.next = visitStatement(node.next);
-        node.definition = visitExpression(node.definition);
+        node.value = visitExpression(node.value);
         return node;
       }
     } else {
@@ -225,10 +232,11 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         // The definition could not be propagated. Residualize the let binding.
         node.next = next;
         environment.removeLast();
-        node.definition = visitExpression(node.definition);
+        node.value = visitExpression(node.value);
         return node;
       }
       assert(!environment.contains(node));
+      --node.variable.writeCount; // This assignment was removed.
       return next;
     }
   }
@@ -412,11 +420,13 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   }
 
   Statement visitTry(Try node) {
-    Set<Label> saved = safeForInlining;
-    safeForInlining = new Set<Label>();
-    node.tryBody = visitStatement(node.tryBody);
-    safeForInlining = saved;
-    node.catchBody = visitStatement(node.catchBody);
+    inEmptyEnvironment(() {
+      Set<Label> saved = safeForInlining;
+      safeForInlining = new Set<Label>();
+      node.tryBody = visitStatement(node.tryBody);
+      safeForInlining = saved;
+      node.catchBody = visitStatement(node.catchBody);
+    });
     return node;
   }
 
@@ -491,6 +501,16 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
+  Expression visitReifyRuntimeType(ReifyRuntimeType node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Expression visitReadTypeVariable(ReadTypeVariable node) {
+    node.target = visitExpression(node.target);
+    return node;
+  }
+
   /// If [s] and [t] are similar statements we extract their subexpressions
   /// and returns a new statement of the same type using expressions combined
   /// with the [combine] callback. For example:
@@ -517,9 +537,12 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     if (s is Assign && t is Assign && s.variable == t.variable) {
       Statement next = combineStatements(s.next, t.next);
       if (next != null) {
-        --t.variable.writeCount; // Two assignments become one.
+        // Destroy both original assignments to the variable.
+        --s.variable.writeCount;
+        --t.variable.writeCount;
+        // The Assign constructor will increment the reference count again.
         return new Assign(s.variable,
-                          combine(s.definition, t.definition),
+                          combine(s.value, t.value),
                           next);
       }
     }

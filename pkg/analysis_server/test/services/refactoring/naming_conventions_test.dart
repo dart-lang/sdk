@@ -479,6 +479,12 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Method name must not be empty.");
   }
 
+  void test_validateMethodName_keyword() {
+    assertRefactoringStatus(
+        validateMethodName("for"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Method name must not be a keyword.");
+  }
+
   void test_validateMethodName_leadingBlanks() {
     assertRefactoringStatus(
         validateMethodName(" newName"), RefactoringProblemSeverity.FATAL,

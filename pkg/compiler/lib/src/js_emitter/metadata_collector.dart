@@ -9,11 +9,18 @@ class MetadataCollector {
   final Emitter _emitter;
 
   /// A list of JS expressions that represent metadata, parameter names and
-  /// type, and return types.
-  final List<String> globalMetadata = [];
+  /// type variable types.
+  final List<String> globalMetadata = <String>[];
 
   /// A map used to canonicalize the entries of globalMetadata.
   final Map<String, int> _globalMetadataMap = <String, int>{};
+
+  /// A list of JS expression representing types including function types and
+  /// typedefs.
+  final List<String> types = <String>[];
+
+  /// A map used to canonicalize the entries of types.
+  final Map<String, int> _typesMap = <String, int>{};
 
   MetadataCollector(this._compiler, this._emitter);
 
@@ -96,7 +103,7 @@ class MetadataCollector {
               return _backend.isAccessibleByReflection(typedef.element);
             });
 
-    return addGlobalMetadata(
+    return addType(
         jsAst.prettyPrint(representation, _compiler).getText());
   }
 
@@ -108,6 +115,13 @@ class MetadataCollector {
     return _globalMetadataMap.putIfAbsent(string, () {
       globalMetadata.add(string);
       return globalMetadata.length - 1;
+    });
+  }
+
+  int addType(String compiledType) {
+    return _typesMap.putIfAbsent(compiledType, () {
+      types.add(compiledType);
+      return types.length - 1;
     });
   }
 

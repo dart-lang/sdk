@@ -398,9 +398,9 @@ class TreePrinter {
       }
     } else if (exp is CallMethod) {
       precedence = CALLEE;
-      tree.Node receiver = exp.object is This
-          ? null
-          : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
+      // TODO(sra): Elide receiver when This, but only if not in a scope that
+      // shadows the method (e.g. constructor body).
+      tree.Node receiver = makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
       result = new tree.Send(
           receiver,
           makeIdentifier(exp.methodName),
@@ -445,9 +445,9 @@ class TreePrinter {
           colon);
     } else if (exp is FieldExpression) {
       precedence = PRIMARY;
-      tree.Node receiver = exp.object is This
-          ? null
-          : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
+      // TODO(sra): Elide receiver when This, but only if not in a scope that
+      // shadows the method (e.g. constructor body).
+      tree.Node receiver = makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
       result = new tree.Send(receiver, makeIdentifier(exp.fieldName));
     } else if (exp is ConstructorDefinition) {
       precedence = EXPRESSION;
@@ -976,17 +976,16 @@ class TreePrinter {
         setElement(definition, param.element, param);
       }
       if (param.defaultValue != null) {
-        return new tree.SendSet(
+        definition = new tree.SendSet(
             null,
             definition,
             new tree.Operator(assignOperator),
             singleton(makeExpression(param.defaultValue)));
-      } else {
-        return new tree.VariableDefinitions(
-            null,
-            makeEmptyModifiers(),
-            singleton(definition));
       }
+      return new tree.VariableDefinitions(
+          null,
+          makeEmptyModifiers(),
+          singleton(definition));
     } else {
       tree.Node definition;
       if (param.defaultValue != null) {

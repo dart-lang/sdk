@@ -27,6 +27,12 @@ class CommandLineOptions {
   final bool displayVersion;
 
   /**
+   * Whether to strictly follow the specification when generating warnings on
+   * "call" methods (fixes dartbug.com/21938).
+   */
+  final bool enableStrictCallChecks;
+
+  /**
    * Whether to treat type mismatches found during constant evaluation as
    * errors.
    */
@@ -80,6 +86,7 @@ class CommandLineOptions {
         this.definedVariables = definedVariables,
         disableHints = args['no-hints'],
         displayVersion = args['version'],
+        enableStrictCallChecks = args['enable-strict-call-checks'],
         enableTypeChecks = args['enable_type_checks'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         log = args['log'],
@@ -203,6 +210,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('enable-enum',
           help: 'Enable support for the proposed enum feature',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('enable-strict-call-checks',
+          help: 'Fix issue 21938',
           defaultsTo: false,
           negatable: false,
           hide: true)

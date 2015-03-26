@@ -57,9 +57,11 @@
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <!-- Disabled dartbug.com/22970
     <div class="nav-option">
       <input type="checkbox" checked="{{ autoRefresh }}">Auto-refresh on GC
     </div>
+    -->
     <nav-control></nav-control>
   </nav-bar>
   <div class="content">

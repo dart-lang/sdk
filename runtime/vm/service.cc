@@ -573,14 +573,14 @@ void Service::SendEvent(intptr_t eventFamilyId,
   message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
   offset += sizeof(uint64_t);
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
     offset += meta_bytes;
   }
   // TODO(koda): It would be nice to avoid this copy (requires changes to
   // MessageWriter code).
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(message.DataAddr(offset), data, size);
     offset += size;
   }
@@ -1555,43 +1555,6 @@ static bool EvalFrame(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* get_call_site_data_params[] = {
-  ISOLATE_PARAMETER,
-  new IdParameter("targetId", true),
-  NULL,
-};
-
-
-static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
-  const char* target_id = js->LookupParam("targetId");
-  Object& obj = Object::Handle(LookupHeapObject(isolate, target_id, NULL));
-  if (obj.raw() == Object::sentinel().raw()) {
-    PrintInvalidParamError(js, "targetId");
-    return true;
-  }
-  if (obj.IsFunction()) {
-    const Function& func = Function::Cast(obj);
-    const GrowableObjectArray& ics =
-        GrowableObjectArray::Handle(func.CollectICsWithSourcePositions());
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "_CallSiteData");
-    jsobj.AddProperty("function", func);
-    JSONArray elements(&jsobj, "callSites");
-    Smi& line = Smi::Handle();
-    Smi& column = Smi::Handle();
-    ICData& ic_data = ICData::Handle();
-    for (intptr_t i = 0; i < ics.Length();) {
-      ic_data ^= ics.At(i++);
-      line ^= ics.At(i++);
-      column ^= ics.At(i++);
-      ic_data.PrintToJSONArray(&elements, line.Value(), column.Value());
-    }
-    return true;
-  }
-  return false;
-}
-
-
 class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
   GetInstancesVisitor(const Class& cls, const Array& storage)
@@ -1733,15 +1696,9 @@ class FunctionCoverageFilter : public CoverageFilter {
 };
 
 
-static const MethodParameter* get_coverage_params[] = {
-  ISOLATE_PARAMETER,
-  NULL,
-};
-
-
-static bool GetCoverage(Isolate* isolate, JSONStream* js) {
+static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
   if (!js->HasParam("targetId")) {
-    CodeCoverage::PrintJSON(isolate, js, NULL);
+    CodeCoverage::PrintJSON(isolate, js, NULL, as_sites);
     return true;
   }
   const char* target_id = js->LookupParam("targetId");
@@ -1752,28 +1709,52 @@ static bool GetCoverage(Isolate* isolate, JSONStream* js) {
   }
   if (obj.IsScript()) {
     ScriptCoverageFilter sf(Script::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &sf);
+    CodeCoverage::PrintJSON(isolate, js, &sf, as_sites);
     return true;
   }
   if (obj.IsLibrary()) {
     LibraryCoverageFilter lf(Library::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &lf);
+    CodeCoverage::PrintJSON(isolate, js, &lf, as_sites);
     return true;
   }
   if (obj.IsClass()) {
     ClassCoverageFilter cf(Class::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &cf);
+    CodeCoverage::PrintJSON(isolate, js, &cf, as_sites);
     return true;
   }
   if (obj.IsFunction()) {
     FunctionCoverageFilter ff(Function::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &ff);
+    CodeCoverage::PrintJSON(isolate, js, &ff, as_sites);
     return true;
   }
   PrintError(js, "%s: Invalid 'targetId' parameter value: "
              "id '%s' does not correspond to a "
              "script, library, class, or function", js->method(), target_id);
   return true;
+}
+
+
+static const MethodParameter* get_coverage_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetCoverage(Isolate* isolate, JSONStream* js) {
+  // TODO(rmacnak): Remove this response; it is subsumed by GetCallSiteData.
+  return GetHitsOrSites(isolate, js, false);
+}
+
+
+static const MethodParameter* get_call_site_data_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("targetId", true),
+  NULL,
+};
+
+
+static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
+  return GetHitsOrSites(isolate, js, true);
 }
 
 
@@ -2304,7 +2285,7 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
   Object& object = Object::Handle(isolate);
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }

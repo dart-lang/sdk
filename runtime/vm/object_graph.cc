@@ -171,7 +171,7 @@ ObjectGraph::~ObjectGraph() {
 
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
-  NoGCScope no_gc_scope_;
+  NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
   isolate()->VisitObjectPointers(&stack, false, false);
   stack.TraverseGraph(visitor);
@@ -181,7 +181,7 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
 
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
-  NoGCScope no_gc_scope_;
+  NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
@@ -256,7 +256,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   // We cannot use a GrowableObjectArray, since we must not trigger GC.
   RetainingPathVisitor(RawObject* obj, const Array& path)
       : obj_(obj), path_(path), length_(0) {
-    ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }
@@ -291,7 +291,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
 
 
 intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
-  NoGCScope no_gc_scope_;
+  NoSafepointScope no_safepoint_scope_;
   // To break the trivial path, the handle 'obj' is temporarily cleared during
   // the search, but restored before returning.
   RawObject* raw = obj->raw();
@@ -313,7 +313,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            Object* scratch)
     : ObjectVisitor(isolate), ObjectPointerVisitor(isolate), source_(NULL),
       target_(target), references_(references), scratch_(scratch), length_(0) {
-    ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }
@@ -365,7 +365,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
 
 intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
-  NoGCScope no_gc_scope_;
+  NoSafepointScope no_safepoint_scope_;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
   isolate()->heap()->IterateObjects(&visitor);
   return visitor.length();

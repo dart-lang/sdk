@@ -6,7 +6,7 @@ library tree_ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values;
-import '../dart_types.dart' show DartType, GenericType;
+import '../dart_types.dart' show DartType, GenericType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart';
@@ -116,9 +116,17 @@ class Variable extends Node {
   /// - catch parameter in a [Try]
   int writeCount = 0;
 
+  /// True if a nested function reads or writes this variable.
+  ///
+  /// Always false in JS-mode because closure conversion eliminated nested
+  /// functions.
+  bool isCaptured = false;
+
   Variable(this.host, this.element) {
     assert(host != null);
   }
+
+  String toString() => element == null ? 'Variable' : element.toString();
 }
 
 /// Read the value of a variable.
@@ -258,7 +266,7 @@ class This extends Expression {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitThis(this, arg);
 }
 
-class ReifyTypeVar extends Expression {
+class ReifyTypeVar extends Expression implements DartSpecificNode {
   TypeVariableElement typeVariable;
 
   ReifyTypeVar(this.typeVariable);
@@ -518,7 +526,7 @@ class Continue extends Jump {
 class Assign extends Statement {
   Statement next;
   Variable variable;
-  Expression definition;
+  Expression value;
 
   /// If true, this assignes to a fresh variable scoped to the [next]
   /// statement.
@@ -527,7 +535,7 @@ class Assign extends Statement {
   bool isDeclaration;
 
   /// Creates an assignment to [variable] and updates its `writeCount`.
-  Assign(this.variable, this.definition, this.next,
+  Assign(this.variable, this.value, this.next,
          { this.isDeclaration: false }) {
     variable.writeCount++;
   }
@@ -755,6 +763,35 @@ class SetField extends Statement implements JsSpecificNode {
   accept1(StatementVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
 }
 
+class ReifyRuntimeType extends Expression implements JsSpecificNode {
+  Expression value;
+
+  ReifyRuntimeType(this.value);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitReifyRuntimeType(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitReifyRuntimeType(this, arg);
+  }
+}
+
+class ReadTypeVariable extends Expression implements JsSpecificNode {
+  final TypeVariableType variable;
+  Expression target;
+
+  ReadTypeVariable(this.variable, this.target);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitReadTypeVariable(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitReadTypeVariable(this, arg);
+  }
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression e) => e.accept(this);
   E visitVariableUse(VariableUse node);
@@ -778,6 +815,8 @@ abstract class ExpressionVisitor<E> {
   E visitGetField(GetField node);
   E visitCreateBox(CreateBox node);
   E visitCreateInstance(CreateInstance node);
+  E visitReifyRuntimeType(ReifyRuntimeType node);
+  E visitReadTypeVariable(ReadTypeVariable node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -803,6 +842,8 @@ abstract class ExpressionVisitor1<E, A> {
   E visitGetField(GetField node, A arg);
   E visitCreateBox(CreateBox node, A arg);
   E visitCreateInstance(CreateInstance node, A arg);
+  E visitReifyRuntimeType(ReifyRuntimeType reifyRuntimeType, A arg);
+  E visitReadTypeVariable(ReadTypeVariable readTypeVariable, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -850,9 +891,45 @@ abstract class Visitor1<S, E, A> implements ExpressionVisitor1<E, A>,
 }
 
 class RecursiveVisitor extends Visitor {
+  // TODO(asgerf): Clean up the tree visitor.
+  
+  visitExecutableDefinition(ExecutableDefinition node) {
+    if (node is ConstructorDefinition) return visitConstructorDefinition(node);
+    if (node is FunctionDefinition) return visitFunctionDefinition(node);
+    if (node is FieldDefinition) return visitFieldDefinition(node);
+    throw 'Unexpected ExecutableDefinition: $node';
+  }
+
   visitFunctionDefinition(FunctionDefinition node) {
     node.parameters.forEach(visitVariable);
+    if (node.body != null) visitStatement(node.body);
+  }
+
+  visitConstructorDefinition(ConstructorDefinition node) {
+    if (node.initializers != null) node.initializers.forEach(visitInitializer);
+    visitFunctionDefinition(node);
+  }
+
+  visitFieldDefinition(FieldDefinition node) {
+    if (node.body != null) {
+      visitStatement(node.body);
+    }
+  }
+
+  visitInitializer(Initializer node) {
+    if (node is FieldInitializer) {
+      return visitFieldInitializer(node);
+    } else {
+      return visitSuperInitializer(node);
+    }
+  }
+
+  visitFieldInitializer(FieldInitializer node) {
     visitStatement(node.body);
+  }
+
+  visitSuperInitializer(SuperInitializer node) {
+    node.arguments.forEach(visitStatement);
   }
 
   visitVariable(Variable node) {}
@@ -929,7 +1006,7 @@ class RecursiveVisitor extends Visitor {
   }
 
   visitAssign(Assign node) {
-    visitExpression(node.definition);
+    visitExpression(node.value);
     visitVariable(node.variable);
     visitStatement(node.next);
   }
@@ -973,14 +1050,6 @@ class RecursiveVisitor extends Visitor {
     visitStatement(node.catchBody);
   }
 
-  visitFieldInitializer(FieldInitializer node) {
-    visitStatement(node.body);
-  }
-
-  visitSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach(visitStatement);
-  }
-
   visitGetField(GetField node) {
     visitExpression(node.object);
   }
@@ -996,5 +1065,13 @@ class RecursiveVisitor extends Visitor {
 
   visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitExpression);
+  }
+
+  visitReifyRuntimeType(ReifyRuntimeType node) {
+    visitExpression(node.value);
+  }
+
+  visitReadTypeVariable(ReadTypeVariable node) {
+    visitExpression(node.target);
   }
 }

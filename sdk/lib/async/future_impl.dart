@@ -304,18 +304,28 @@ class _Future<T> implements Future<T> {
 
     // Mark the target as chained (and as such half-completed).
     target._isChained = true;
-    source.then((value) {
-        assert(target._isChained);
-        target._completeWithValue(value);
-      },
-      // TODO(floitsch): eventually we would like to make this non-optional
-      // and dependent on the listeners of the target future. If none of
-      // the target future's listeners want to have the stack trace we don't
-      // need a trace.
-      onError: (error, [stackTrace]) {
-        assert(target._isChained);
-        target._completeError(error, stackTrace);
+    try {
+      source.then((value) {
+          assert(target._isChained);
+          target._completeWithValue(value);
+        },
+        // TODO(floitsch): eventually we would like to make this non-optional
+        // and dependent on the listeners of the target future. If none of
+        // the target future's listeners want to have the stack trace we don't
+        // need a trace.
+        onError: (error, [stackTrace]) {
+          assert(target._isChained);
+          target._completeError(error, stackTrace);
+        });
+    } catch (e, s) {
+      // This only happens if the `then` call threw synchronously when given
+      // valid arguments.
+      // That requires a non-conforming implementation of the Future interface,
+      // which should, hopefully, never happen.
+      scheduleMicrotask(() {
+        target._completeError(e, s);
       });
+    }
   }
 
   // Take the value (when completed) of source and complete target with that
@@ -399,7 +409,7 @@ class _Future<T> implements Future<T> {
       } else {
         // Case 2 from above. Chain the future immidiately.
         // Note that we are still completing asynchronously (through
-        // _chainForeignFuture)..
+        // _chainForeignFuture).
         _chainForeignFuture(typedFuture, this);
       }
       return;

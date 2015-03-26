@@ -98,12 +98,12 @@ main() {
 }""",
 r"""
 function(x, y) {
-  var box_0, v0;
-  box_0 = {};
-  box_0.x1_0 = x;
-  v0 = new V.Sub(y, new V.Base_closure(box_0));
+  var _box_0, v0;
+  _box_0 = {};
+  _box_0._captured_x1_0 = x;
+  v0 = new V.Sub(y, new V.Base_closure(_box_0));
   v0.Base0$0();
-  v0.Base$1(box_0);
+  v0.Base$1(_box_0);
   v0.Sub$2(x, y);
   return v0;
 }"""),

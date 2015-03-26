@@ -93,6 +93,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
  * by Wegman, Zadeck.
  */
 class TypePropagator<T> extends PassMixin {
+  String get passName => 'Sparse constant propagation';
+
   final types.DartTypes _dartTypes;
 
   // The constant system is used for evaluation of expressions with constant
@@ -287,7 +289,7 @@ class _TransformingVisitor extends RecursiveVisitor {
  * const-ness as well as reachability, both of which are used in the subsequent
  * transformation pass.
  */
-class _TypePropagationVisitor<T> extends Visitor {
+class _TypePropagationVisitor<T> implements Visitor {
   // The node worklist stores nodes that are both reachable and need to be
   // processed, but have not been processed yet. Using a worklist avoids deep
   // recursion.
@@ -411,26 +413,38 @@ class _TypePropagationVisitor<T> extends Visitor {
   }
 
   // -------------------------- Visitor overrides ------------------------------
+  void visit(Node node) { node.accept(this); }
 
-  void visitNode(Node node) {
-    internalError(NO_LOCATION_SPANNABLE,
-        "_TypePropagationVisitor is stale,"
-        " add missing visit overrides ($node)");
+  void visitFieldDefinition(FieldDefinition node) {
+    if (node.hasInitializer) {
+      setReachable(node.body);
+    }
+  }
+
+  void visitFunctionDefinition(FunctionDefinition node) {
+    if (node.thisParameter != null) {
+      setValue(node.thisParameter, nonConst());
+    }
+    node.parameters.forEach(visit);
+    setReachable(node.body);
+  }
+
+  void visitConstructorDefinition(ConstructorDefinition node) {
+    node.parameters.forEach(visit);
+    node.initializers.forEach(visit);
+    setReachable(node.body);
   }
 
   void visitRunnableBody(RunnableBody node) {
     setReachable(node.body);
   }
 
-  void visitFunctionDefinition(FunctionDefinition node) {
-    node.parameters.forEach(visit);
+  void visitFieldInitializer(FieldInitializer node) {
     setReachable(node.body);
   }
 
-  void visitFieldDefinition(FieldDefinition node) {
-    if (node.hasInitializer) {
-      setReachable(node.body);
-    }
+  void visitSuperInitializer(SuperInitializer node) {
+    node.arguments.forEach(setReachable);
   }
 
   // Expressions.
@@ -714,11 +728,6 @@ class _TypePropagationVisitor<T> extends Visitor {
     setValue(node, constantValue(value, typeSystem.typeOf(value)));
   }
 
-  void visitThis(This node) {
-    // TODO(karlklose): Add the type.
-    setValue(node, nonConst());
-  }
-
   void visitReifyTypeVar(ReifyTypeVar node) {
     setValue(node, nonConst(typeSystem.typeType));
   }
@@ -831,6 +840,16 @@ class _TypePropagationVisitor<T> extends Visitor {
   }
 
   void visitCreateInstance(CreateInstance node) {
+    setValue(node, nonConst());
+  }
+
+  void visitReifyRuntimeType(ReifyRuntimeType node) {
+    setValue(node, nonConst(typeSystem.typeType));
+  }
+
+  void visitReadTypeVariable(ReadTypeVariable node) {
+    // TODO(karlklose): come up with a type marker for JS entities or switch to
+    // real constants of type [Type].
     setValue(node, nonConst());
   }
 }

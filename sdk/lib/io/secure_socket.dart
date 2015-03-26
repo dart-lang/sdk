@@ -558,6 +558,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         throw new ArgumentError(
             "Subscription passed to TLS upgrade is paused");
       }
+      // If we are upgrading a socket that is already closed for read,
+      // report an error as if we received READ_CLOSED during the handshake.
+      dynamic s = _socket;  // Cast to dynamic to avoid warning.
+      if (s._socket.closedReadEventSent) {
+        _eventDispatcher(RawSocketEvent.READ_CLOSED);
+      }
       _socketSubscription
           ..onData(_eventDispatcher)
           ..onError(_reportError)

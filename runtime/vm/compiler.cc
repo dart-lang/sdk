@@ -73,10 +73,11 @@ DECLARE_FLAG(bool, trace_patching);
 // separate helpers functions & `optimizing` args.
 class CompilationPipeline : public ZoneAllocated {
  public:
-  static CompilationPipeline* New(Isolate* isolate, const Function& function);
+  static CompilationPipeline* New(Zone* zone, const Function& function);
 
   virtual void ParseFunction(ParsedFunction* parsed_function) = 0;
   virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
       ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) = 0;
@@ -93,6 +94,7 @@ class DartCompilationPipeline : public CompilationPipeline {
   }
 
   virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
       ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) {
@@ -111,9 +113,7 @@ class DartCompilationPipeline : public CompilationPipeline {
 
 class IrregexpCompilationPipeline : public CompilationPipeline {
  public:
-  explicit IrregexpCompilationPipeline(Isolate* isolate)
-    : backtrack_goto_(NULL),
-      isolate_(isolate) { }
+  IrregexpCompilationPipeline() : backtrack_goto_(NULL) { }
 
   virtual void ParseFunction(ParsedFunction* parsed_function) {
     RegExpParser::ParseFunction(parsed_function);
@@ -121,6 +121,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
   }
 
   virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
       ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) {
@@ -140,26 +141,25 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
                              NULL,  // NULL = not inlining.
                              osr_id);
 
-    return new(isolate_) FlowGraph(*parsed_function,
-                                   result.graph_entry,
-                                   result.num_blocks);
+    return new(zone) FlowGraph(*parsed_function,
+                               result.graph_entry,
+                               result.num_blocks);
   }
 
   virtual void FinalizeCompilation() {
-    backtrack_goto_->ComputeOffsetTable(isolate_);
+    backtrack_goto_->ComputeOffsetTable();
   }
 
  private:
   IndirectGotoInstr* backtrack_goto_;
-  Isolate* isolate_;
 };
 
-CompilationPipeline* CompilationPipeline::New(Isolate* isolate,
+CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
   if (function.IsIrregexpFunction()) {
-    return new(isolate) IrregexpCompilationPipeline(isolate);
+    return new(zone) IrregexpCompilationPipeline();
   } else {
-    return new(isolate) DartCompilationPipeline();
+    return new(zone) DartCompilationPipeline();
   }
 }
 
@@ -169,7 +169,7 @@ CompilationPipeline* CompilationPipeline::New(Isolate* isolate,
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.HasCode());
-  const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+  const Error& error = Error::Handle(Compiler::CompileFunction(thread,
                                                                function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
@@ -178,7 +178,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   StackZone zone(isolate);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -279,7 +279,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
     }
   }
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
@@ -374,7 +374,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   }
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
-  Isolate* isolate = Isolate::Current();
+  Thread* volatile thread = Thread::Current();
+  Zone* volatile zone = thread->zone();
+  Isolate* volatile isolate = thread->isolate();
   HANDLESCOPE(isolate);
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -395,7 +397,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
       // Class hierarchy analysis is registered with the isolate in the
       // constructor and unregisters itself upon destruction.
-      CHA cha(isolate);
+      CHA cha(thread);
 
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
@@ -404,7 +406,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                          &CompilerStats::graphbuilder_timer,
                          isolate);
         ZoneGrowableArray<const ICData*>* ic_data_array =
-            new(isolate) ZoneGrowableArray<const ICData*>();
+            new(zone) ZoneGrowableArray<const ICData*>();
         if (optimized) {
           ASSERT(function.HasCode());
           // Extract type feedback before the graph is built, as the graph
@@ -422,7 +424,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           }
         }
 
-        flow_graph = pipeline->BuildFlowGraph(parsed_function,
+        flow_graph = pipeline->BuildFlowGraph(zone,
+                                              parsed_function,
                                               *ic_data_array,
                                               osr_id);
       }
@@ -742,9 +745,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
           // Register code with the classes it depends on because of CHA.
           for (intptr_t i = 0;
-               i < isolate->cha()->leaf_classes().length();
+               i < thread->cha()->leaf_classes().length();
                ++i) {
-            isolate->cha()->leaf_classes()[i]->RegisterCHACode(code);
+            thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
           }
 
           for (intptr_t i = 0;
@@ -961,10 +964,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  Thread* volatile thread = Thread::Current();
+  Isolate* volatile isolate = thread->isolate();
   StackZone stack_zone(isolate);
-  Zone* zone = stack_zone.GetZone();
+  Zone* volatile zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(isolate, time_compilation);
@@ -1040,19 +1043,21 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 }
 
 
-RawError* Compiler::CompileFunction(Isolate* isolate,
+RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
-  VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
-  CompilationPipeline* pipeline = CompilationPipeline::New(isolate, function);
+  VMTagScope tagScope(thread->isolate(), VMTag::kCompileUnoptimizedTagId);
+  CompilationPipeline* pipeline =
+      CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId);
 }
 
 
-RawError* Compiler::CompileOptimizedFunction(Isolate* isolate,
+RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  VMTagScope tagScope(isolate, VMTag::kCompileOptimizedTagId);
-  CompilationPipeline* pipeline = CompilationPipeline::New(isolate, function);
+  VMTagScope tagScope(thread->isolate(), VMTag::kCompileOptimizedTagId);
+  CompilationPipeline* pipeline =
+      CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, true, osr_id);
 }
 
@@ -1060,7 +1065,7 @@ RawError* Compiler::CompileOptimizedFunction(Isolate* isolate,
 // This is only used from unit tests.
 RawError* Compiler::CompileParsedFunction(
     ParsedFunction* parsed_function) {
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
@@ -1086,10 +1091,11 @@ RawError* Compiler::CompileParsedFunction(
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
-  Error& error = Error::Handle(isolate);
-  Array& functions = Array::Handle(isolate, cls.functions());
-  Function& func = Function::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
+  Array& functions = Array::Handle(zone, cls.functions());
+  Function& func = Function::Handle(zone);
   // Class dynamic lives in the vm isolate. Its array fields cannot be set to
   // an empty array.
   if (functions.IsNull()) {
@@ -1103,7 +1109,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() &&
         !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
-      error = CompileFunction(isolate, func);
+      error = CompileFunction(thread, func);
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -1114,12 +1120,12 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   // more closures can be added to the end of the array. Compile all the
   // closures until we have reached the end of the "worklist".
   GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(isolate, cls.closures());
+      GrowableObjectArray::Handle(zone, cls.closures());
   if (!closures.IsNull()) {
     for (int i = 0; i < closures.Length(); i++) {
       func ^= closures.At(i);
       if (!func.HasCode()) {
-        error = CompileFunction(isolate, func);
+        error = CompileFunction(thread, func);
         if (!error.IsNull()) {
           return error.raw();
         }
@@ -1136,7 +1142,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   // The VM sets the field's value to transiton_sentinel prior to
   // evaluating the initializer value.
   ASSERT(field.value() == Object::transition_sentinel().raw());
-  Isolate* isolate = Isolate::Current();
+  Isolate* volatile isolate = Isolate::Current();
   StackZone zone(isolate);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -1169,8 +1175,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  Thread* volatile thread = Thread::Current();
+  Isolate* volatile isolate = thread->isolate();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {

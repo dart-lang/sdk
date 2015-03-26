@@ -14,8 +14,10 @@ indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
 worker_api_test: Fail # Issue 10223
-two_scripts_htmltest: Fail # Issue 16603
 media_stream_test/constructors: Pass, Crash # Issue 22267
+element_animate_test/simple_timing: Fail # Not supported on Dartium
+element_animate_test/omit_timing: Fail # Not supported on Dartium
+element_animate_test/timing_dict: Fail # Not supported on Dartium
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
@@ -34,6 +36,8 @@ storage_quota_test: Fail # Support for promises.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
+fontface_test: Fail # Fontface not supported on these.
+element_animate_test: Fail # Element.animate not supported on these browsers.
 
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
@@ -56,6 +60,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 1766
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issue 20524
+notification_test/constructors: Skip # Times out on Android Dartium. Issue 22835
 
 element_offset_test/offset: RuntimeError # Issue 17550
 request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
@@ -65,7 +70,6 @@ native_gc_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
-touchevent_test/supported: Pass, Fail # Issue 17061
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
@@ -94,17 +98,15 @@ element_offset_test/offset: RuntimeError # Issue 18573
 element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
-touchevent_test/supported: Pass, Fail # Issue 17061
+touchevent_test/supported: Fail # Touch events are only supported on touch devices
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
-element_types_test/constructors: Skip # Times out. Issue 22050
 audiocontext_test/functional: Skip # Renderer crash. Issue 22327
+element_animate_test/omit_timing: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
+element_animate_test/timing_dict: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
-
-[ ($compiler == none || $compiler == dart2dart) ]
-deferred_multi_app_htmltest: Fail # Issue 16603
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
@@ -112,10 +114,6 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 native_gc_test: Pass, Slow
-
-[$runtime == chrome && $compiler == dart2js && $system == macos]
-transition_event_test/functional: Skip # Times out. Issue 
-request_animation_frame_test: Skip # Times out. Issue 
 
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
@@ -132,6 +130,7 @@ deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 localstorage_test: Pass, RuntimeError # Issue 22166
 storage_test: Pass, RuntimeError # Issue 22166
 postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
+notification_test/supported_notification: Fail # Notification not supported on IE
 
 [$runtime == ie10 || $runtime == ie11 || ($runtime == chrome && $system == macos)]
 transition_event_test/functional: Skip # Times out. Issue 22167
@@ -163,6 +162,7 @@ input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
+mediasource_test/supported: Fail
 mutationobserver_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
@@ -173,7 +173,7 @@ svgelement_test/supported_animateMotion: Fail
 svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_foreignObject: Fail
 svgelement_test/supported_set: Fail
-touchevent_test/supported: Fail
+touchevent_test/supported: Fail # IE does not support TouchEvents
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
@@ -219,6 +219,8 @@ input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
+mediasource_test/supported: Pass, Fail # Should pass on Windows 8
+mediasource_test/functional: Pass, Fail # Fails on Windows 8
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -228,7 +230,7 @@ svgelement_test/supported_animateMotion: Fail
 svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_foreignObject: Fail
 svgelement_test/supported_set: Fail
-touchevent_test/supported: Fail
+touchevent_test/supported: Fail # IE does not support TouchEvents
 webgl_1_test/functional: Fail
 websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
@@ -248,6 +250,7 @@ webgl_1_test: Pass, Fail # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 element_test: Pass, Fail # Issue 21434
+mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -268,6 +271,8 @@ speechrecognition_test/supported: Fail
 indexeddb_1_test/supported: Fail
 element_types_test/supported_template: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type
+notification_test/constructors: Pass # Safari mobile will pass this test on the basis that notifications aren't supported at all.
+notification_test/supported_notification: RuntimeError # Issue 22869
 
 [ $runtime == safari ]
 input_element_test/supported_month: RuntimeError
@@ -275,7 +280,8 @@ input_element_test/supported_time: RuntimeError
 input_element_test/supported_week: RuntimeError
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
-touchevent_test/supported: Fail
+touchevent_test/supported: Fail # Safari does not support TouchEvents
+notification_test/constructors: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 
 [ $runtime == safari ]
 indexeddb_1_test/functional: Skip # Times out. Issue 21433
@@ -345,6 +351,7 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
+mediasource_test/supported: Fail # Behind a flag as of FF 36
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
@@ -377,8 +384,8 @@ node_validator_test: Fail # Issue 22564
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
 
-[ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
-# Desktop operation systems do not support touch events on chrome 34 dartium.
+[ ($runtime == dartium) && ($system == macos || $system == windows || $system == linux)]
+# Desktop operating systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
 
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
@@ -386,9 +393,6 @@ xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $compiler == none && $runtime == dartium ]
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
-
-[ $runtime == chrome && $system == macos && $compiler == dart2js]
-element_offset_test/offset: RuntimeError # Issue 22619
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning

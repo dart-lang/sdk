@@ -10,8 +10,14 @@ sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 async_star_test/02: RuntimeError # 22853
 async_star_test/05: RuntimeError, Timeout
 
+try_catch_on_syntax_test/10: Fail # Issue 19823
+try_catch_on_syntax_test/11: Fail # Issue 19823
+
+deferred_load_constants_test/none: CompileTimeError # issue 22893
+
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
+async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 regress_22700_test: CompileTimeError # Issue 22700
@@ -162,8 +168,11 @@ expect_test: RuntimeError, OK # Issue 13080
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 22695.
+async_await_test/none: Pass, Timeout # Issue 22695.
+async_await_test/02: Pass, Timeout # Issue 22695.
+async_await_test/03: Pass, Timeout # Issue 22695.
 
-[ $compiler == dart2js && ($runtime == jsshell || $runtime == safari || $runtime == safarimobilesim)]
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $runtime == ff ]
@@ -177,33 +186,18 @@ call_through_getter_test: Fail, OK
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2dart && $builder_tag == new_backend ]
-async_await_syntax_test/a03a: CompileTimeError # Issue 21404
-async_await_syntax_test/a03b: CompileTimeError # Issue 21404
-async_await_syntax_test/a11d: CompileTimeError # Issue 21404
-async_await_syntax_test/b03a: CompileTimeError # Issue 21404
-async_await_syntax_test/b11d: CompileTimeError # Issue 21404
-async_await_syntax_test/c03a: CompileTimeError # Issue 21404
-async_await_syntax_test/d03a: CompileTimeError # Issue 21404
 regress_13494_test: Pass # Issue 22370, passes for the wrong reason
 
-[ $compiler == dart2dart && $builder_tag == new_backend && $minified == true ]
-# This test fails in minified, because the type-argument is
-# renamed, but the symbol naming it it is not.
-type_variable_conflict2_test/01: RuntimeError # Issue 16180
+[ $compiler == dart2dart && $builder_tag == new_backend && $host_checked ]
+large_implicit_getter_test: Crash # Stack overflow
 
-[ $compiler == dart2dart && $builder_tag == new_backend && $minified == false ]
-# This test happens not to fail in minified, because the type-argument is
-# renamed, but the unresolved reference to it is not.
-type_variable_conflict2_test/04: Fail # Issue 19725
-
-[ $compiler == dart2dart && $minified && $builder_tag != new_backend ]
+[ $compiler == dart2dart && ($minified == true || $builder_tag == new_backend) ]
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
 sync_generator2_test/07: MissingCompileTimeError # Issue 22324
 sync_generator2_test/08: MissingCompileTimeError # Issue 22324
 sync_generator2_test/10: MissingCompileTimeError # Issue 22324
-await_for_cancel_test: RuntimeError # Issue 21404
 
 regress_13494_test: Fail # Issue 22370
 

@@ -245,9 +245,11 @@ class SnapshotReader : public BaseReader {
   SnapshotReader(const uint8_t* buffer,
                  intptr_t size,
                  Snapshot::Kind kind,
-                 Isolate* isolate);
+                 Isolate* isolate,
+                 Zone* zone);
   ~SnapshotReader() { }
 
+  Zone* zone() const { return zone_; }
   Isolate* isolate() const { return isolate_; }
   Heap* heap() const { return heap_; }
   ObjectStore* object_store() const { return isolate_->object_store(); }
@@ -373,6 +375,7 @@ class SnapshotReader : public BaseReader {
 
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
+  Zone* zone_;  // Zone for allocations while reading snapshot.
   Heap* heap_;  // Heap of the current isolate.
   PageSpace* old_space_;  // Old space of the current isolate.
   Class& cls_;  // Temporary Class handle.

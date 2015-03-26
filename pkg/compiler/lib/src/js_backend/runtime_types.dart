@@ -663,7 +663,12 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
       index++;
     }
     for (DartType type in types) {
-      elements.add(visit(type));
+      jsAst.Expression element = visit(type);
+      if (element is jsAst.LiteralNull) {
+        elements.add(new jsAst.ArrayHole());
+      } else {
+        elements.add(element);
+      }
     }
     return new jsAst.ArrayInitializer(elements);
   }
@@ -675,8 +680,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
       properties.add(new jsAst.Property(js.string(name), value));
     }
 
-    jsAst.LiteralString name = js.string(namer.getFunctionTypeName(type));
-    addProperty(namer.functionTypeTag, name);
+    addProperty(namer.functionTypeTag, js.string(''));
     if (type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {

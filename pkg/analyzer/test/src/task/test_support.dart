@@ -30,10 +30,10 @@ class TestAnalysisTask extends AnalysisTask {
   /**
    * The next value that is to be used for a result.
    */
-  int value = 1;
+  int value;
 
   TestAnalysisTask(AnalysisContext context, AnalysisTarget target,
-      {this.descriptor, this.exception, this.results})
+      {this.descriptor, this.exception, this.results, this.value: 1})
       : super(context, target);
 
   @override

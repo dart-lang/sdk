@@ -164,10 +164,12 @@ intptr_t BaseReader::ReadSmiValue() {
 SnapshotReader::SnapshotReader(const uint8_t* buffer,
                                intptr_t size,
                                Snapshot::Kind kind,
-                               Isolate* isolate)
+                               Isolate* isolate,
+                               Zone* zone)
     : BaseReader(buffer, size),
       kind_(kind),
       isolate_(isolate),
+      zone_(zone),
       heap_(isolate->heap()),
       old_space_(isolate->heap()->old_space()),
       cls_(Class::Handle(isolate)),
@@ -219,7 +221,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
          !IsSingletonClassId(GetVMIsolateObjectId(class_header)));
   ASSERT((SerializedHeaderTag::decode(class_header) != kObjectId) ||
          !IsObjectStoreClassId(SerializedHeaderData::decode(class_header)));
-  Class& cls = Class::ZoneHandle(isolate(), Class::null());
+  Class& cls = Class::ZoneHandle(zone(), Class::null());
   AddBackRef(object_id, &cls, kIsDeserialized);
   // Read the library/class information and lookup the class.
   str_ ^= ReadObjectImpl(class_header);
@@ -244,7 +246,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   // First create a function object and associate it with the specified
   // 'object_id'.
   Function& func = Function::Handle(isolate(), Function::null());
-  Instance& obj = Instance::ZoneHandle(isolate(), Instance::null());
+  Instance& obj = Instance::ZoneHandle(zone(), Instance::null());
   AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Read the library/class/function information and lookup the function.
@@ -356,7 +358,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   // instance of it. The individual fields will be read later.
   intptr_t header_id = SerializedHeaderData::decode(class_header);
   if (header_id == kInstanceObjectId) {
-    Instance& result = Instance::ZoneHandle(isolate(), Instance::null());
+    Instance& result = Instance::ZoneHandle(zone(), Instance::null());
     AddBackRef(object_id, &result, kIsNotDeserialized);
 
     cls_ ^= ReadObjectImpl();  // Read class information.
@@ -385,7 +387,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
     Array& array = Array::ZoneHandle(
-        isolate(),
+        zone(),
         ((kind_ == Snapshot::kFull) ?
          NewArray(len) : Array::New(len, HEAP_SPACE(kind_))));
     AddBackRef(object_id, &array, kIsNotDeserialized);
@@ -396,7 +398,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
     Array& array = Array::ZoneHandle(
-        isolate(),
+        zone(),
         (kind_ == Snapshot::kFull) ?
         NewImmutableArray(len) : ImmutableArray::New(len, HEAP_SPACE(kind_)));
     AddBackRef(object_id, &array, kIsNotDeserialized);
@@ -494,7 +496,7 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
   // TODO(asiva): Add a check here to ensure we have the right heap
   // size for the full snapshot being read.
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     HeapLocker hl(isolate, old_space());
 
     // Read in all the objects stored in the object store.
@@ -589,7 +591,7 @@ RawApiError* SnapshotReader::VerifyVersion() {
 
 #define ALLOC_NEW_OBJECT_WITH_LEN(type, length)                                \
   ASSERT(kind_ == Snapshot::kFull);                                            \
-  ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);                          \
   Raw##type* obj = reinterpret_cast<Raw##type*>(                               \
       AllocateUninitialized(k##type##Cid, type::InstanceSize(length)));        \
   obj->StoreSmi(&(obj->ptr()->length_), Smi::New(length));                     \
@@ -623,7 +625,7 @@ RawTypeArguments* SnapshotReader::NewTypeArguments(intptr_t len) {
 
 RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   stream_ = reinterpret_cast<RawTokenStream*>(
       AllocateUninitialized(kTokenStreamCid, TokenStream::InstanceSize()));
   uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
@@ -641,7 +643,7 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
 
 RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawContext* obj = reinterpret_cast<RawContext*>(
       AllocateUninitialized(kContextCid, Context::InstanceSize(num_variables)));
   obj->ptr()->num_variables_ = num_variables;
@@ -651,7 +653,7 @@ RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
 
 RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
     ASSERT((class_id >= kInstanceCid) &&
            (class_id <= kNullCid));
@@ -670,7 +672,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
 
 RawInstance* SnapshotReader::NewInstance() {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawInstance* obj = reinterpret_cast<RawInstance*>(
       AllocateUninitialized(kObjectCid, Instance::InstanceSize()));
   return obj;
@@ -679,7 +681,7 @@ RawInstance* SnapshotReader::NewInstance() {
 
 RawMint* SnapshotReader::NewMint(int64_t value) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawMint* obj = reinterpret_cast<RawMint*>(
       AllocateUninitialized(kMintCid, Mint::InstanceSize()));
   obj->ptr()->value_ = value;
@@ -689,7 +691,7 @@ RawMint* SnapshotReader::NewMint(int64_t value) {
 
 RawDouble* SnapshotReader::NewDouble(double value) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawDouble* obj = reinterpret_cast<RawDouble*>(
       AllocateUninitialized(kDoubleCid, Double::InstanceSize()));
   obj->ptr()->value_ = value;
@@ -699,7 +701,7 @@ RawDouble* SnapshotReader::NewDouble(double value) {
 
 RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   const intptr_t lengthInBytes = len * TypedData::ElementSizeInBytes(class_id);
   RawTypedData* obj = reinterpret_cast<RawTypedData*>(
       AllocateUninitialized(class_id, TypedData::InstanceSize(lengthInBytes)));
@@ -710,7 +712,7 @@ RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
 
 #define ALLOC_NEW_OBJECT(type)                                                 \
   ASSERT(kind_ == Snapshot::kFull);                                            \
-  ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);                          \
   return reinterpret_cast<Raw##type*>(                                         \
       AllocateUninitialized(k##type##Cid, type::InstanceSize()));              \
 
@@ -808,7 +810,7 @@ RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
 RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
                                            float v3) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawFloat32x4* obj = reinterpret_cast<RawFloat32x4*>(
       AllocateUninitialized(kFloat32x4Cid, Float32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
@@ -822,7 +824,7 @@ RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
 RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
                                        uint32_t v3) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawInt32x4* obj = reinterpret_cast<RawInt32x4*>(
       AllocateUninitialized(kInt32x4Cid, Int32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
@@ -835,7 +837,7 @@ RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
 
 RawFloat64x2* SnapshotReader::NewFloat64x2(double v0, double v1) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawFloat64x2* obj = reinterpret_cast<RawFloat64x2*>(
       AllocateUninitialized(kFloat64x2Cid, Float64x2::InstanceSize()));
   obj->ptr()->value_[0] = v0;
@@ -894,7 +896,7 @@ intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
 
 RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
                                                  intptr_t size) {
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
   // Allocate memory where all words look like smis. This is currently
@@ -992,7 +994,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     Instance* result = reinterpret_cast<Instance*>(GetBackRef(object_id));
     intptr_t instance_size = 0;
     if (result == NULL) {
-      result = &(Instance::ZoneHandle(isolate(), Instance::null()));
+      result = &(Instance::ZoneHandle(zone(), Instance::null()));
       AddBackRef(object_id, result, kIsDeserialized);
       cls_ ^= ReadObjectImpl();
       ASSERT(!cls_.IsNull());
@@ -1218,7 +1220,7 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     return;
   }
 
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   RawClass* cls = class_table_->At(raw->GetClassId());
   intptr_t class_id = cls->ptr()->id_;
   ASSERT(class_id == raw->GetClassId());
@@ -1333,7 +1335,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 
     // Write out the full snapshot.
     {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
 
       // Write out all the objects in the object store of the isolate which
       // is the root set for all dart allocated objects at this point.
@@ -1388,7 +1390,7 @@ ForwardList::~ForwardList() {
 
 
 intptr_t ForwardList::MarkAndAddObject(RawObject* raw, SerializeState state) {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   intptr_t object_id = next_object_id();
   ASSERT(object_id <= kMaxObjectId);
   uword value = 0;
@@ -1405,7 +1407,7 @@ intptr_t ForwardList::MarkAndAddObject(RawObject* raw, SerializeState state) {
 
 
 void ForwardList::UnmarkAll() const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   for (intptr_t id = first_object_id(); id < next_object_id(); ++id) {
     const Node* node = NodeForObjectId(id);
     RawObject* raw = node->raw();
@@ -1420,7 +1422,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   // - VM internal class (from VM isolate): (index of class in vm isolate | 0x3)
   // - Object that has already been written: (negative id in stream | 0x3)
 
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
 
   // First check if it is a Smi (i.e not a heap object).
   if (!rawobj->IsHeapObject()) {
@@ -1522,7 +1524,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   //    (object size in multiples of kObjectAlignment | 0x1)
   //    serialized fields of the object
   //    ......
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   uword tags = raw->ptr()->tags_;
   ASSERT(SerializedHeaderTag::decode(tags) == kObjectId);
   intptr_t object_id = SerializedHeaderData::decode(tags);
@@ -1913,7 +1915,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
 
     // Write out the library object.
     {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
 
       // Write out the library object.
       WriteObject(lib.raw());
@@ -1947,7 +1949,7 @@ void MessageWriter::WriteMessage(const Object& obj) {
   // the message.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     WriteObject(obj.raw());
     UnmarkAll();
   } else {

@@ -101,7 +101,7 @@ part of js_backend;
  * For local variables, the [Namer] only provides *proposed names*. These names
  * must be disambiguated elsewhere.
  */
-class Namer implements ClosureNamer {
+class Namer {
 
   static const List<String> javaScriptKeywords = const <String>[
     // These are current keywords.
@@ -332,6 +332,7 @@ class Namer implements ClosureNamer {
   final String defaultValuesField = r'$defaultValues';
   final String methodsWithOptionalArgumentsField =
       r'$methodsWithOptionalArguments';
+  final String deferredAction = r'$deferredAction';
 
   final String classDescriptorProperty = r'^';
   final String requiredParameterField = r'$requiredArgCount';
@@ -417,6 +418,10 @@ class Namer implements ClosureNamer {
       case JsGetName.GETTER_PREFIX: return getterPrefix;
       case JsGetName.SETTER_PREFIX: return setterPrefix;
       case JsGetName.CALL_PREFIX: return callPrefix;
+      case JsGetName.CALL_PREFIX0: return '${callPrefix}\$0';
+      case JsGetName.CALL_PREFIX1: return '${callPrefix}\$1';
+      case JsGetName.CALL_PREFIX2: return '${callPrefix}\$2';
+      case JsGetName.CALL_PREFIX3: return '${callPrefix}\$3';
       case JsGetName.CALL_CATCH_ALL: return callCatchAllName;
       case JsGetName.REFLECTABLE: return reflectableField;
       case JsGetName.CLASS_DESCRIPTOR_PROPERTY:
@@ -425,6 +430,7 @@ class Namer implements ClosureNamer {
         return requiredParameterField;
       case JsGetName.DEFAULT_VALUES_PROPERTY: return defaultValuesField;
       case JsGetName.CALL_NAME_PROPERTY: return callNameField;
+      case JsGetName.DEFERRED_ACTION_PROPERTY: return deferredAction;
       default:
         compiler.reportError(
           node, MessageKind.GENERIC,
@@ -661,12 +667,22 @@ class Namer implements ClosureNamer {
     ClassElement enclosingClass = element.enclosingClass;
 
     if (element.hasFixedBackendName) {
-      // Box fields and certain native fields must be given a specific name.
-      // Native names must not contain '$'. We rely on this to avoid clashes.
-      assert(element is BoxFieldElement ||
-          enclosingClass.isNative && !element.fixedBackendName.contains(r'$'));
+      // Certain native fields must be given a specific name. Native names must
+      // not contain '$'. We rely on this to avoid clashes.
+      assert(enclosingClass.isNative &&
+             !element.fixedBackendName.contains(r'$'));
 
       return element.fixedBackendName;
+    }
+
+    // Instances of BoxFieldElement are special. They are already created with
+    // a unique and safe name. However, as boxes are not really instances of
+    // classes, the usual naming scheme that tries to avoid name clashes with
+    // super classes does not apply. We still do not mark the name as a
+    // fixedBackendName, as we want to allow other namers to do something more
+    // clever with them.
+    if (element is BoxFieldElement) {
+      return element.name;
     }
 
     // If the name of the field might clash with another field,
@@ -968,20 +984,6 @@ class Namer implements ClosureNamer {
       name = '\$\$$name';
     }
     return name;
-  }
-
-  /// Generate a unique name for the [id]th closure variable, with proposed name
-  /// [name].
-  ///
-  /// The result is used as the name of [BoxFieldElement]s and
-  /// [ClosureFieldElement]s, and must therefore be unique to avoid breaking an
-  /// invariant in the element model (classes cannot declare multiple fields
-  /// with the same name).
-  ///
-  /// Since the result is used as an element name, it will later show up as a
-  /// *proposed name* when the element is passed to [instanceFieldPropertyName].
-  String getClosureVariableName(String name, int id) {
-    return "${name}_$id";
   }
 
   /**
@@ -1347,7 +1349,6 @@ class Namer implements ClosureNamer {
   String get incrementalHelperName => r'$dart_unsafe_incremental_support';
 
   jsAst.Expression get accessIncrementalHelper {
-    assert(compiler.hasIncrementalSupport);
     return js('self.${incrementalHelperName}');
   }
 

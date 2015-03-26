@@ -92,6 +92,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetEntropySourceCallback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
+  Thread::InitOnce();
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
@@ -158,6 +159,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
 
 
 const char* Dart::Cleanup() {
+  // Shutdown the service isolate before shutting down the thread pool.
+  ServiceIsolate::Shutdown();
 #if 0
   // Ideally we should shutdown the VM isolate here, but the thread pool
   // shutdown does not seem to ensure that all the threads have stopped
@@ -238,7 +241,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
-                          Snapshot::kFull, isolate);
+                          Snapshot::kFull, isolate, zone.GetZone());
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
       return error.raw();

@@ -18,7 +18,7 @@ void CHA::AddToLeafClasses(const Class& cls) {
       return;
     }
   }
-  leaf_classes_.Add(&Class::ZoneHandle(isolate_, cls.raw()));
+  leaf_classes_.Add(&Class::ZoneHandle(thread_->zone(), cls.raw()));
 }
 
 
@@ -36,7 +36,7 @@ bool CHA::HasSubclasses(const Class& cls) {
     return true;
   }
   const GrowableObjectArray& direct_subclasses =
-      GrowableObjectArray::Handle(isolate_, cls.direct_subclasses());
+      GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
   bool result =
       !direct_subclasses.IsNull() && (direct_subclasses.Length() > 0);
   if (!result) {
@@ -47,8 +47,8 @@ bool CHA::HasSubclasses(const Class& cls) {
 
 
 bool CHA::HasSubclasses(intptr_t cid) {
-  const ClassTable& class_table = *isolate_->class_table();
-  Class& cls = Class::Handle(isolate_, class_table.At(cid));
+  const ClassTable& class_table = *thread_->isolate()->class_table();
+  Class& cls = Class::Handle(thread_->zone(), class_table.At(cid));
   return HasSubclasses(cls);
 }
 
@@ -72,7 +72,7 @@ bool CHA::IsImplemented(const Class& cls) {
 
 bool CHA::HasOverride(const Class& cls, const String& function_name) {
   const GrowableObjectArray& cls_direct_subclasses =
-      GrowableObjectArray::Handle(isolate_, cls.direct_subclasses());
+      GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
   // Subclasses of Object are not tracked by CHA. Safely assume that overrides
   // exist.
   if (cls.IsObjectClass()) {
@@ -83,7 +83,7 @@ bool CHA::HasOverride(const Class& cls, const String& function_name) {
     AddToLeafClasses(cls);
     return false;
   }
-  Class& direct_subclass = Class::Handle(isolate_);
+  Class& direct_subclass = Class::Handle(thread_->zone());
   for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
     direct_subclass ^= cls_direct_subclasses.At(i);
     // Unfinalized classes are treated as non-existent for CHA purposes,

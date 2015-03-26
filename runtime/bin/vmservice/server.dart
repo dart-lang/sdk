@@ -180,6 +180,13 @@ class Server {
     });
   }
 
+  close(bool force) {
+    if (_server == null) {
+      return new Future.value(null);
+    }
+    return _server.close(force: force);
+  }
+
   Future shutdown(bool forced) {
     if (_server == null) {
       // Not started.
@@ -192,7 +199,7 @@ class Server {
     // Shutdown HTTP server and subscription.
     var ip = _server.address.address.toString();
     var port = _server.port.toString();
-    return _server.close(force: forced).then((_) {
+    return close(forced).then((_) {
       if (_displayMessages) {
         print('Observatory no longer listening on http://$ip:$port');
       }

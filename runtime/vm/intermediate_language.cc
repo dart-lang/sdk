@@ -769,7 +769,7 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
                                           Definition* result) {
   ASSERT(call->env() != NULL);
   deopt_id_ = Isolate::ToDeoptAfter(call->deopt_id_);
-  call->env()->DeepCopyAfterTo(flow_graph->isolate(),
+  call->env()->DeepCopyAfterTo(flow_graph->zone(),
                                this,
                                call->ArgumentCount(),
                                flow_graph->constant_dead(),
@@ -779,17 +779,17 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
 }
 
 
-void Instruction::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
+void Instruction::InheritDeoptTarget(Zone* zone, Instruction* other) {
   ASSERT(other->env() != NULL);
   CopyDeoptIdFrom(*other);
-  other->env()->DeepCopyTo(isolate, this);
+  other->env()->DeepCopyTo(zone, this);
   env()->set_deopt_id(deopt_id_);
 }
 
 
-void BranchInstr::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
+void BranchInstr::InheritDeoptTarget(Zone* zone, Instruction* other) {
   ASSERT(env() == NULL);
-  Instruction::InheritDeoptTarget(isolate, other);
+  Instruction::InheritDeoptTarget(zone, other);
   comparison()->SetDeoptId(*this);
 }
 
@@ -2123,7 +2123,7 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 
     const Object& val = value()->BoundConstant();
     if (val.IsSmi()) {
-      const Double& double_val = Double::ZoneHandle(flow_graph->isolate(),
+      const Double& double_val = Double::ZoneHandle(flow_graph->zone(),
           Double::NewCanonical(Smi::Cast(val).AsDoubleValue()));
       uc = new UnboxedConstantInstr(double_val, kUnboxedDouble);
     } else if (val.IsDouble()) {
@@ -2391,7 +2391,7 @@ static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
 
 
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
-  Isolate* isolate = flow_graph->isolate();
+  Zone* zone = flow_graph->zone();
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
     bool negated = false;
@@ -2452,8 +2452,8 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
           comparison()->token_pos(),
           negate ? Token::NegateComparison(comparison()->kind())
                  : comparison()->kind(),
-          bit_and->left()->Copy(isolate),
-          bit_and->right()->Copy(isolate));
+          bit_and->left()->Copy(zone),
+          bit_and->right()->Copy(zone));
       ASSERT(!CanDeoptimize());
       RemoveEnvironment();
       flow_graph->CopyDeoptTarget(this, bit_and);
@@ -2694,7 +2694,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
+void IndirectGotoInstr::ComputeOffsetTable() {
   if (GetBlock()->offset() < 0) {
     // Don't generate a table when contained in an unreachable block.
     return;
@@ -2924,23 +2924,23 @@ static uword TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Isolate* isolate = compiler->isolate();
+  Zone* zone = compiler->zone();
   const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
     const Array& arguments_descriptor =
-        Array::Handle(isolate, ArgumentsDescriptor::New(ArgumentCount(),
+        Array::Handle(zone, ArgumentsDescriptor::New(ArgumentCount(),
                                                         argument_names()));
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
         checked_argument_count());
   } else {
-    call_ic_data = &ICData::ZoneHandle(isolate, ic_data()->raw());
+    call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }
   if (compiler->is_optimizing()) {
     ASSERT(HasICData());
     if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
-          ICData::ZoneHandle(isolate, ic_data()->AsUnaryClassChecks());
+          ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
@@ -2963,8 +2963,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // We have a dedicated inline cache stub for this operation, add an
       // an initial Smi/Smi check with count 0.
       ASSERT(call_ic_data->NumArgsTested() == 2);
-      const String& name = String::Handle(isolate, call_ic_data->target_name());
-      const Class& smi_class = Class::Handle(isolate, Smi::Class());
+      const String& name = String::Handle(zone, call_ic_data->target_name());
+      const Class& smi_class = Class::Handle(zone, Smi::Class());
       const Function& smi_op_target =
           Function::Handle(Resolver::ResolveDynamicAnyArgs(smi_class, name));
       if (call_ic_data->NumberOfChecks() == 0) {
@@ -2977,7 +2977,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         is_smi_two_args_op = true;
       } else if (call_ic_data->NumberOfChecks() == 1) {
         GrowableArray<intptr_t> class_ids(2);
-        Function& target = Function::Handle(isolate);
+        Function& target = Function::Handle(zone);
         call_ic_data->GetCheckAt(0, &class_ids, &target);
         if ((target.raw() == smi_op_target.raw()) &&
             (class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
@@ -2997,7 +2997,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                  (ArgumentCount() == 1));
       ASSERT(Token::IsBinaryArithmeticOperator(token_kind()) ==
                  (ArgumentCount() == 2));
-      StubCode* stub_code = isolate->stub_code();
+      StubCode* stub_code = compiler->isolate()->stub_code();
       ExternalLabel target_label((ArgumentCount() == 1) ?
           stub_code->UnaryRangeCollectingInlineCacheEntryPoint() :
           stub_code->BinaryRangeCollectingInlineCacheEntryPoint());
@@ -3096,37 +3096,37 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-Environment* Environment::From(Isolate* isolate,
+Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
                                const ParsedFunction& parsed_function) {
   Environment* env =
-      new(isolate) Environment(definitions.length(),
+      new(zone) Environment(definitions.length(),
                                fixed_parameter_count,
                                Isolate::kNoDeoptId,
                                parsed_function,
                                NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
-    env->values_.Add(new(isolate) Value(definitions[i]));
+    env->values_.Add(new(zone) Value(definitions[i]));
   }
   return env;
 }
 
 
-Environment* Environment::DeepCopy(Isolate* isolate, intptr_t length) const {
+Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy = new(isolate) Environment(
+  Environment* copy = new(zone) Environment(
       length,
       fixed_parameter_count_,
       deopt_id_,
       parsed_function_,
-      (outer_ == NULL) ? NULL : outer_->DeepCopy(isolate));
+      (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
   if (locations_ != NULL) {
-    Location* new_locations = isolate->current_zone()->Alloc<Location>(length);
+    Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);
   }
   for (intptr_t i = 0; i < length; ++i) {
-    copy->values_.Add(values_[i]->Copy(isolate));
+    copy->values_.Add(values_[i]->Copy(zone));
     if (locations_ != NULL) {
       copy->locations_[i] = locations_[i].Copy();
     }
@@ -3136,12 +3136,12 @@ Environment* Environment::DeepCopy(Isolate* isolate, intptr_t length) const {
 
 
 // Copies the environment and updates the environment use lists.
-void Environment::DeepCopyTo(Isolate* isolate, Instruction* instr) const {
+void Environment::DeepCopyTo(Zone* zone, Instruction* instr) const {
   for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
     it.CurrentValue()->RemoveFromUseList();
   }
 
-  Environment* copy = DeepCopy(isolate);
+  Environment* copy = DeepCopy(zone);
   instr->SetEnvironment(copy);
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
@@ -3150,7 +3150,7 @@ void Environment::DeepCopyTo(Isolate* isolate, Instruction* instr) const {
 }
 
 
-void Environment::DeepCopyAfterTo(Isolate* isolate,
+void Environment::DeepCopyAfterTo(Zone* zone,
                                   Instruction* instr,
                                   intptr_t argc,
                                   Definition* dead,
@@ -3159,11 +3159,11 @@ void Environment::DeepCopyAfterTo(Isolate* isolate,
     it.CurrentValue()->RemoveFromUseList();
   }
 
-  Environment* copy = DeepCopy(isolate, values_.length() - argc);
+  Environment* copy = DeepCopy(zone, values_.length() - argc);
   for (intptr_t i = 0; i < argc; i++) {
-    copy->values_.Add(new(isolate) Value(dead));
+    copy->values_.Add(new(zone) Value(dead));
   }
-  copy->values_.Add(new(isolate) Value(result));
+  copy->values_.Add(new(zone) Value(result));
 
   instr->SetEnvironment(copy);
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
@@ -3175,12 +3175,12 @@ void Environment::DeepCopyAfterTo(Isolate* isolate,
 
 // Copies the environment as outer on an inlined instruction and updates the
 // environment use lists.
-void Environment::DeepCopyToOuter(Isolate* isolate, Instruction* instr) const {
+void Environment::DeepCopyToOuter(Zone* zone, Instruction* instr) const {
   // Create a deep copy removing caller arguments from the environment.
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
-  Environment* copy = DeepCopy(isolate, values_.length() - argument_count);
+  Environment* copy = DeepCopy(zone, values_.length() - argument_count);
   instr->env()->outer_ = copy;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {

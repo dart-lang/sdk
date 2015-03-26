@@ -16,38 +16,71 @@ import 'dart:_js_embedded_names' show JsGetName;
  * on the number of arguments.
  *
  * The [typeDescription] argument is interpreted as a description of the
- * behavior of the JavaScript code.  Currently it describes the types that may
- * be returned by the expression, with the additional behavior that the returned
- * values may be fresh instances of the types.  The type information must be
- * correct as it is trusted by the compiler in optimizations, and it must be
- * precise as possible since it is used for native live type analysis to
- * tree-shake large parts of the DOM libraries.  If poorly written, the
- * [typeDescription] will cause unnecessarily bloated programs.  (You can check
- * for this by compiling with `--verbose`; there is an info message describing
- * the number of native (DOM) types that can be removed, which usually should be
- * greater than zero.)
+ * behavior of the JavaScript code.  Currently it describes the side effects
+ * types that may be returned by the expression, with the additional behavior
+ * that the returned values may be fresh instances of the types.  The type
+ * information must be correct as it is trusted by the compiler in
+ * optimizations, and it must be precise as possible since it is used for native
+ * live type analysis to tree-shake large parts of the DOM libraries.  If poorly
+ * written, the [typeDescription] will cause unnecessarily bloated programs.
+ * (You can check for this by compiling with `--verbose`; there is an info
+ * message describing the number of native (DOM) types that can be removed,
+ * which usually should be greater than zero.)
  *
- * The [typeDescription] is a [String] which contains a union of types separated
- * by vertical bar `|` symbols, e.g.  `"num|String"` describes the union of
- * numbers and Strings.  There is no type in Dart that is this precise.  The
- * Dart alternative would be `Object` or `dynamic`, but these types imply that
- * the JS-code might also be creating instances of all the DOM types.  If `null`
- * is possible, it must be specified explicitly, e.g. `"String|Null"`.
- * [typeDescription] has several extensions to help describe the behavior more
- * accurately.  In addition to the union type already described:
+ * The [typeDescription] must be a [String]. Two forms of it are supported:
  *
- *  + `=Object` is a plain JavaScript object.  Some DOM methods return instances
- *     that have no corresponing Dart type (e.g. cross-frame documents),
- *     `=Object` can be used to describe these untyped' values.
+ * 1) a union of types separated by vertical bar `|` symbols, e.g.
+ *    `"num|String"` describes the union of numbers and Strings.  There is no
+ *    type in Dart that is this precise.  The Dart alternative would be `Object`
+ *    or `dynamic`, but these types imply that the JS-code might also be
+ *    creating instances of all the DOM types.
  *
- *  + `var` (or empty string).  If the entire [typeDescription] is `var` (or
- *    empty string) then the type is `dynamic` but the code is known to not
- *    create any instances.
+ *    If `null` is possible, it must be specified explicitly, e.g.
+ *    `"String|Null"`. [typeDescription] has several extensions to help describe
+ *    the behavior more accurately.  In addition to the union type already
+ *    described:
  *
- * Examples:
+ *    + `=Object` is a plain JavaScript object.  Some DOM methods return
+ *       instances that have no corresponing Dart type (e.g. cross-frame
+ *       documents), `=Object` can be used to describe these untyped' values.
  *
- *     // Parent window might be an opaque cross-frame window.
- *     var thing = JS('=Object|Window', '#.parent', myWindow);
+ *    + `var` (or empty string).  If the entire [typeDescription] is `var` (or
+ *      empty string) then the type is `dynamic` but the code is known to not
+ *      create any instances.
+ *
+ *   Examples:
+ *
+ *       // Parent window might be an opaque cross-frame window.
+ *       var thing = JS('=Object|Window', '#.parent', myWindow);
+ *
+ * 2) a sequence of the form `<tag>:<value>;` where `<tag>` is one of
+ *    `creates`, `returns`, `effects` or `depends`.
+ *
+ *    The first two tags are used to specify the created and returned types of
+ *    the expression. The value of `creates` and `returns` is a type string as
+ *    defined in 1).
+ *
+ *    The tags `effects` and `depends` encode the side effects of this call.
+ *    They can be omitted, in which case the expression is parsed and a safe
+ *    conservative side-effect estimation is computed.
+ *
+ *    The values of `effects` and `depends` may be 'all', 'none' or a
+ *    comma-separated list of 'no-index', 'no-instance' and 'no-static'.
+ *
+ *    The value 'all' indicates that the call affects/depends on every
+ *    side-effect. The flag 'none' signals that the call does not affect
+ *    (resp. depends on) anything.
+ *
+ *    The value 'no-index' indicates that the call does *not* do (resp. depends
+ *    on) any array index-store. The flag 'no-instance' indicates that the call
+ *    does not modify (resp. depends on) any instance variable. Similarly,
+ *    the 'no-static' value indicates that the call does not modify (resp.
+ *    depends on) any static variable.
+ *
+ *    The `effects` and `depends` flag must be used in tandem. Either both are
+ *    specified or none is.
+ *
+ *    Each tag (including the type tags) may only occur once in the sequence.
  *
  * Guidelines:
  *
@@ -102,9 +135,10 @@ import 'dart:_js_embedded_names' show JsGetName;
  *
  * In the future we may extend [typeDescription] to include other aspects of the
  * behavior, for example, separating the returned types from the instantiated
- * types, or including effects to allow the compiler to perform more
- * optimizations around the code.  This might be an extension of [JS] or a new
- * function similar to [JS] with additional arguments for the new information.
+ * types to allow the compiler to perform more optimizations around the code.
+ *
+ * This might be an extension of [JS] or a new function similar to [JS] with
+ * additional arguments for the new information.
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.

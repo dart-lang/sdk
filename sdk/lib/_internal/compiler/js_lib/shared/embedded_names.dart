@@ -46,6 +46,10 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 const PRECOMPILED = 'precompiled';
 
+/// A list of types used in the program e.g. for reflection or encoding of
+/// function types.
+const TYPES = 'types';
+
 /// Returns a function that creates a new Isolate (its static state).
 ///
 /// (floitsch): Note that this will probably go away, since one JS heap will
@@ -71,10 +75,15 @@ enum JsGetName {
   GETTER_PREFIX,
   SETTER_PREFIX,
   CALL_PREFIX,
+  CALL_PREFIX0,
+  CALL_PREFIX1,
+  CALL_PREFIX2,
+  CALL_PREFIX3,
   CALL_CATCH_ALL,
   REFLECTABLE,
   CLASS_DESCRIPTOR_PROPERTY,
   REQUIRED_PARAMETER_PROPERTY,
   DEFAULT_VALUES_PROPERTY,
-  CALL_NAME_PROPERTY
+  CALL_NAME_PROPERTY,
+  DEFERRED_ACTION_PROPERTY
 }

@@ -24,7 +24,7 @@ class GetContentTask extends SourceBasedAnalysisTask {
    * Initialize a newly created task to access the content of the source
    * associated with the given [target] in the given [context].
    */
-  GetContentTask(InternalAnalysisContext context, AnalysisTarget target)
+  GetContentTask(AnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
   @override
@@ -71,8 +71,7 @@ abstract class SourceBasedAnalysisTask extends AnalysisTask {
   @override
   String get description {
     Source source = target.source;
-    String sourceName =
-        target.source == null ? '<unknown source>' : source.fullName;
+    String sourceName = source == null ? '<unknown source>' : source.fullName;
     return '${descriptor.name} for source $sourceName';
   }
 }

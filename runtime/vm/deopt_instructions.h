@@ -12,6 +12,7 @@
 #include "vm/growable_array.h"
 #include "vm/locations.h"
 #include "vm/object.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -84,7 +85,7 @@ class DeoptContext {
     dest_frame_ = dest_frame;
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return thread_->zone(); }
 
   intptr_t source_frame_size() const { return source_frame_size_; }
   intptr_t dest_frame_size() const { return dest_frame_size_; }
@@ -196,7 +197,7 @@ class DeoptContext {
   ICData::DeoptReasonId deopt_reason_;
   uint32_t deopt_flags_;
   intptr_t caller_fp_;
-  Isolate* isolate_;
+  Thread* thread_;
 
   DeferredSlot* deferred_slots_;
 
@@ -247,7 +248,7 @@ class DeoptInstr : public ZoneAllocated {
   virtual const char* ToCString() const {
     const char* args = ArgumentsToCString();
     if (args != NULL) {
-      return Isolate::Current()->current_zone()->PrintToString(
+      return Thread::Current()->zone()->PrintToString(
           "%s(%s)", KindToCString(kind()), args);
     } else {
       return KindToCString(kind());
@@ -362,7 +363,7 @@ class RegisterSource {
     if (is_register()) {
       return Name(reg());
     } else {
-      return Isolate::Current()->current_zone()->PrintToString(
+      return Thread::Current()->zone()->PrintToString(
           "s%" Pd "", raw_index());
     }
   }
@@ -401,7 +402,7 @@ typedef RegisterSource<FpuRegister> FpuRegisterSource;
 // the heap and reset the builder's internal state for the next DeoptInfo.
 class DeoptInfoBuilder : public ValueObject {
  public:
-  DeoptInfoBuilder(Isolate* isolate, const intptr_t num_args);
+  DeoptInfoBuilder(Zone* zone, const intptr_t num_args);
 
   // 'object_table' holds all objects referred to by DeoptInstr in
   // all DeoptInfo instances for a single Code object.
@@ -462,9 +463,9 @@ class DeoptInfoBuilder : public ValueObject {
 
   void AddConstant(const Object& obj, intptr_t dest_index);
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
-  Isolate* isolate_;
+  Zone* zone_;
 
   GrowableArray<DeoptInstr*> instructions_;
   const GrowableObjectArray& object_table_;

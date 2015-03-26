@@ -1589,7 +1589,7 @@ class BooleanArrayTest {
     try {
       BooleanArray.get(0, -1);
       fail("Expected ");
-    } on RangeError catch (exception) {
+    } on RangeError {
       // Expected
     }
   }
@@ -1598,7 +1598,7 @@ class BooleanArrayTest {
     try {
       BooleanArray.get(0, 31);
       fail("Expected ");
-    } on RangeError catch (exception) {
+    } on RangeError {
       // Expected
     }
   }
@@ -1614,7 +1614,7 @@ class BooleanArrayTest {
     try {
       BooleanArray.set(0, -1, true);
       fail("Expected ");
-    } on RangeError catch (exception) {
+    } on RangeError {
       // Expected
     }
   }
@@ -1623,7 +1623,7 @@ class BooleanArrayTest {
     try {
       BooleanArray.set(0, 32, true);
       fail("Expected ");
-    } on RangeError catch (exception) {
+    } on RangeError {
       // Expected
     }
   }
@@ -1771,7 +1771,7 @@ class DirectedGraphTest extends EngineTestCase {
     try {
       graph.findCycleContaining(null);
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       // Expected
     }
   }
@@ -2790,7 +2790,7 @@ class LineInfoTest {
     try {
       new LineInfo(<int>[]);
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       // Expected
     }
   }
@@ -2799,7 +2799,7 @@ class LineInfoTest {
     try {
       new LineInfo(null);
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       // Expected
     }
   }
@@ -3194,19 +3194,19 @@ class MultipleMapIteratorTest extends EngineTestCase {
     try {
       iterator.key;
       fail("Expected NoSuchElementException");
-    } on NoSuchElementException catch (exception) {
+    } on NoSuchElementException {
       // Expected
     }
     try {
       iterator.value;
       fail("Expected NoSuchElementException");
-    } on NoSuchElementException catch (exception) {
+    } on NoSuchElementException {
       // Expected
     }
     try {
       iterator.value = "x";
       fail("Expected NoSuchElementException");
-    } on NoSuchElementException catch (exception) {
+    } on NoSuchElementException {
       // Expected
     }
   }
@@ -4151,19 +4151,19 @@ class SingleMapIteratorTest extends EngineTestCase {
     try {
       iterator.key;
       fail("Expected NoSuchElementException");
-    } on NoSuchElementException catch (exception) {
+    } on NoSuchElementException {
       // Expected
     }
     try {
       iterator.value;
       fail("Expected NoSuchElementException");
-    } on NoSuchElementException catch (exception) {
+    } on NoSuchElementException {
       // Expected
     }
     try {
       iterator.value = "x";
       fail("Expected NoSuchElementException");
-    } on NoSuchElementException catch (exception) {
+    } on NoSuchElementException {
       // Expected
     }
     expect(iterator.moveNext(), isFalse);
@@ -4446,7 +4446,7 @@ class StringUtilitiesTest {
     try {
       StringUtilities.printListOfQuotedNames(new List<String>(0));
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       // Expected
     }
   }
@@ -4461,7 +4461,7 @@ class StringUtilitiesTest {
     try {
       StringUtilities.printListOfQuotedNames(null);
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       // Expected
     }
   }
@@ -4470,7 +4470,7 @@ class StringUtilitiesTest {
     try {
       StringUtilities.printListOfQuotedNames(<String>["a"]);
       fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       // Expected
     }
   }

@@ -25,6 +25,7 @@ import 'test_support.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(ElementKindTest);
+  runReflectiveTests(FieldElementImplTest);
   runReflectiveTests(FunctionTypeImplTest);
   runReflectiveTests(InterfaceTypeImplTest);
   runReflectiveTests(TypeParameterTypeImplTest);
@@ -111,33 +112,6 @@ class ClassElementImplTest extends EngineTestCase {
     MethodElement method = ElementFactory.methodElement(methodName, null);
     classA.methods = <MethodElement>[method];
     expect(classA.getMethod("${methodName}x"), isNull);
-  }
-
-  void test_getNode() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", r'''
-class A {}
-class B {}''');
-    // prepare CompilationUnitElement
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    {
-      ClassElement elementA = unitElement.getType("A");
-      ClassDeclaration nodeA = elementA.node;
-      expect(nodeA, isNotNull);
-      expect(nodeA.name.name, "A");
-      expect(nodeA.element, same(elementA));
-    }
-    // B
-    {
-      ClassElement elementB = unitElement.getType("B");
-      ClassDeclaration nodeB = elementB.node;
-      expect(nodeB, isNotNull);
-      expect(nodeB.name.name, "B");
-      expect(nodeB.element, same(elementB));
-    }
   }
 
   void test_hasNonFinalField_false_const() {
@@ -883,6 +857,61 @@ class B {}''');
         <ClassElement>[classA, classB];
     expect(classA.lookUpSetter("s", library), isNull);
   }
+
+  void test_node_ClassDeclaration() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+class A {}
+class B {}
+enum C {C1, C2, C3}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // A
+    {
+      ClassElement elementA = unitElement.getType("A");
+      ClassDeclaration nodeA = elementA.node;
+      expect(nodeA, isNotNull);
+      expect(nodeA.name.name, "A");
+      expect(nodeA.element, same(elementA));
+    }
+    // B
+    {
+      ClassElement elementB = unitElement.getType("B");
+      ClassDeclaration nodeB = elementB.node;
+      expect(nodeB, isNotNull);
+      expect(nodeB.name.name, "B");
+      expect(nodeB.element, same(elementB));
+    }
+    // C
+    {
+      ClassElement elementC = unitElement.getEnum("C");
+      EnumDeclaration nodeC = elementC.node;
+      expect(nodeC, isNotNull);
+      expect(nodeC.name.name, "C");
+      expect(nodeC.element, same(elementC));
+    }
+  }
+
+  void test_node_ClassTypeAlias() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+abstract class A<K, V> = Object with MapMixin<K, V>;
+''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // A
+    {
+      ClassElement elementA = unitElement.getType("A");
+      ClassTypeAlias nodeA = elementA.node;
+      expect(nodeA, isNotNull);
+      expect(nodeA.name.name, "A");
+      expect(nodeA.element, same(elementA));
+    }
+  }
 }
 
 @reflectiveTest
@@ -1102,6 +1131,38 @@ class ElementLocationImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
+class FieldElementImplTest extends EngineTestCase {
+  void test_node() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+class A {
+  int a;
+}
+enum B {B1, B2, B3}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // A
+    {
+      FieldElement elementA = unitElement.getType("A").getField('a');
+      VariableDeclaration nodeA = elementA.node;
+      expect(nodeA, isNotNull);
+      expect(nodeA.name.name, "a");
+      expect(nodeA.element, same(elementA));
+    }
+    // B
+    {
+      FieldElement elementB = unitElement.getEnum("B").getField('B2');
+      EnumConstantDeclaration nodeB = elementB.node;
+      expect(nodeB, isNotNull);
+      expect(nodeB.name.name, "B2");
+      expect(nodeB.element, same(elementB));
+    }
+  }
+}
+
+@reflectiveTest
 class FunctionTypeImplTest extends EngineTestCase {
   void test_creation() {
     expect(new FunctionTypeImpl.con1(
@@ -1218,12 +1279,12 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_isSubtypeOf_namedParameters_isNotAssignable() {
     // ! ({name: A}) -> void <: ({name: B}) -> void
-    FunctionType t = ElementFactory.functionElement4("t", null, null, <String>[
-      "name"
-    ], <ClassElement>[ElementFactory.classElement2("A")]).type;
-    FunctionType s = ElementFactory.functionElement4("s", null, null, <String>[
-      "name"
-    ], <ClassElement>[ElementFactory.classElement2("B")]).type;
+    FunctionType t = ElementFactory.functionElement4("t", null, null,
+        <String>["name"],
+        <ClassElement>[ElementFactory.classElement2("A")]).type;
+    FunctionType s = ElementFactory.functionElement4("s", null, null,
+        <String>["name"],
+        <ClassElement>[ElementFactory.classElement2("B")]).type;
     expect(t.isSubtypeOf(s), isFalse);
   }
 
@@ -3426,12 +3487,10 @@ class LibraryElementImplTest extends EngineTestCase {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "app");
     LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    libraryA.imports = <ImportElementImpl>[
-      ElementFactory.importFor(library, null)
-    ];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
+    libraryA.imports =
+        <ImportElementImpl>[ElementFactory.importFor(library, null)];
+    library.imports =
+        <ImportElementImpl>[ElementFactory.importFor(libraryA, null)];
     List<LibraryElement> libraries = library.visibleLibraries;
     expect(libraries, unorderedEquals(<LibraryElement>[library, libraryA]));
   }
@@ -3449,9 +3508,8 @@ class LibraryElementImplTest extends EngineTestCase {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "app");
     LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
+    library.imports =
+        <ImportElementImpl>[ElementFactory.importFor(libraryA, null)];
     List<LibraryElement> libraries = library.visibleLibraries;
     expect(libraries, unorderedEquals(<LibraryElement>[library, libraryA]));
   }
@@ -3462,9 +3520,8 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl libraryA = ElementFactory.library(context, "A");
     LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
     libraryA.exports = <ExportElementImpl>[ElementFactory.exportFor(libraryAA)];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
+    library.imports =
+        <ImportElementImpl>[ElementFactory.importFor(libraryA, null)];
     List<LibraryElement> libraries = library.visibleLibraries;
     expect(libraries,
         unorderedEquals(<LibraryElement>[library, libraryA, libraryAA]));
@@ -3476,9 +3533,8 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl libraryA = ElementFactory.library(context, "A");
     LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
     LibraryElementImpl libraryB = ElementFactory.library(context, "B");
-    libraryA.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryAA, null)
-    ];
+    libraryA.imports =
+        <ImportElementImpl>[ElementFactory.importFor(libraryAA, null)];
     library.imports = <ImportElementImpl>[
       ElementFactory.importFor(libraryA, null),
       ElementFactory.importFor(libraryB, null)
@@ -3730,7 +3786,7 @@ class UnionTypeImplTest extends EngineTestCase {
   void test_emptyUnionsNotAllowed() {
     try {
       UnionTypeImpl.union([]);
-    } on IllegalArgumentException catch (e) {
+    } on IllegalArgumentException {
       return;
     }
     fail("Expected illegal argument exception.");

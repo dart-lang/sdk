@@ -12,8 +12,11 @@ import os
 import subprocess
 import sys
 
+SCRIPT_DIR = os.path.dirname(sys.argv[0])
+DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
+
 def execute(args):
-  process = subprocess.Popen(args)
+  process = subprocess.Popen(args, cwd=DART_ROOT)
   process.wait()
   return process.returncode
 
@@ -23,11 +26,11 @@ def main():
     component = sys.argv[1]
 
   component_gyp_files = {
-    'all' : 'dart/dart.gyp',
-    'runtime' : 'dart/runtime/dart-runtime.gyp',
+    'all' : 'dart.gyp',
+    'runtime' : 'runtime/dart-runtime.gyp',
   }
-  args = ['python', 'dart/third_party/gyp/gyp_main.py',
-          '--depth=dart', '-Idart/tools/gyp/all.gypi',
+  args = ['python', '-S', 'third_party/gyp/gyp_main.py',
+          '--depth=.', '-Itools/gyp/all.gypi',
           component_gyp_files[component]]
 
   if sys.platform == 'win32':

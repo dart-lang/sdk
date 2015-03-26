@@ -73,17 +73,18 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
   // Only generative constructors can have initializing formals.
   if (!func.IsGenerativeConstructor()) return;
 
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, func.Owner());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, func.Owner());
   const Error& error = Error::Handle(
-      isolate, cls.EnsureIsFinalized(Isolate::Current()));
+      zone, cls.EnsureIsFinalized(thread->isolate()));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
   if (!func.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(isolate, func));
+        zone, Compiler::CompileFunction(thread, func));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
       UNREACHABLE();
@@ -1365,6 +1366,13 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
   Function& function = Function::Handle();
   bool callable = closure.IsCallable(&function);
   if (callable) {
+    if (function.IsImplicitClosureFunction()) {
+      // The VM uses separate Functions for tear-offs, but the mirrors consider
+      // the tear-offs to be the same as the torn-off methods. Avoid handing out
+      // a reference to the tear-off here to avoid a special case in the
+      // the equality test.
+      function = function.parent_function();
+    }
     return CreateMethodMirror(function, Instance::null_instance());
   }
   return Instance::null();

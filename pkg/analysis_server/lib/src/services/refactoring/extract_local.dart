@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -51,7 +50,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
   final Map<Element, int> elementIds = <Element, int>{};
-  final Set<String> excludedVariableNames = new Set<String>();
+  Set<String> excludedVariableNames = new Set<String>();
 
   ExtractLocalRefactoringImpl(
       this.unit, this.selectionOffset, this.selectionLength) {
@@ -94,7 +93,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     _prepareOccurrences();
     _prepareOffsetsLengths();
     // names
-    _prepareExcludedNames();
+    excludedVariableNames =
+        utils.findPossibleLocalVariableConflicts(selectionOffset);
     _prepareNames();
     // done
     return new Future.value(result);
@@ -369,31 +369,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return _isPartOfConstantExpression(node.parent);
     }
     return false;
-  }
-
-  void _prepareExcludedNames() {
-    excludedVariableNames.clear();
-    AstNode enclosingNode =
-        new NodeLocator.con1(selectionOffset).searchWithin(unit);
-    Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
-    if (enclosingBlock != null) {
-      SourceRange newVariableVisibleRange =
-          rangeStartEnd(selectionRange, enclosingBlock.end);
-      ExecutableElement enclosingExecutable =
-          getEnclosingExecutableElement(enclosingNode);
-      if (enclosingExecutable != null) {
-        visitChildren(enclosingExecutable, (Element element) {
-          if (element is LocalElement) {
-            SourceRange elementRange = element.visibleRange;
-            if (elementRange != null &&
-                elementRange.intersects(newVariableVisibleRange)) {
-              excludedVariableNames.add(element.displayName);
-            }
-          }
-          return true;
-        });
-      }
-    }
   }
 
   void _prepareNames() {

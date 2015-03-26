@@ -265,7 +265,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 6) {
   char* utf8_package_root = NULL;
   if (!package_root.IsNull()) {
     const intptr_t len = Utf8::Length(package_root);
-    Zone* zone = isolate->current_zone();
     utf8_package_root = zone->Alloc<char>(len + 1);
     package_root.ToUTF8(reinterpret_cast<uint8_t*>(utf8_package_root), len);
     utf8_package_root[len] = '\0';

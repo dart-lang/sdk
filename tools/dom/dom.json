@@ -8259,17 +8259,6 @@
     },
     "support_level": "experimental"
   },
-  "NotificationCenter": {
-    "comment": "http://www.w3.org/TR/notifications/#showing-a-notification",
-    "dart_action": "suppress",
-    "members": {
-      "checkPermission": {},
-      "createHTMLNotification": {},
-      "createNotification": {},
-      "requestPermission": {}
-    },
-    "support_level": "deprecated"
-  },
   "NotificationPermissionCallback": {
     "comment": "http://www.w3.org/TR/notifications/#notificationpermissioncallback",
     "members": {

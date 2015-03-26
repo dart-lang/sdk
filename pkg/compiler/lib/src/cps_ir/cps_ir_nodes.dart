@@ -9,8 +9,11 @@ library dart2js.ir_nodes;
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
 import '../cps_ir/optimizers.dart';
-import '../dart_types.dart' show DartType, GenericType;
-import '../dart2jslib.dart' as dart2js show invariant;
+import '../dart_types.dart' show DartType, GenericType, TypeVariableType;
+import '../dart2jslib.dart' as dart2js show
+    CURRENT_ELEMENT_SPANNABLE,
+    InternalErrorFunction,
+    invariant;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart' show Selector, SelectorKind;
@@ -635,15 +638,9 @@ class Constant extends Primitive {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
-class This extends Primitive {
-  This();
-
-  accept(Visitor visitor) => visitor.visitThis(this);
-}
-
 /// Reify the given type variable as a [Type].
 /// This depends on the current binding of 'this'.
-class ReifyTypeVar extends Primitive {
+class ReifyTypeVar extends Primitive implements DartSpecificNode {
   final TypeVariableElement typeVariable;
 
   ReifyTypeVar(this.typeVariable);
@@ -703,6 +700,8 @@ class Parameter extends Primitive {
   int parentIndex;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
+
+  String toString() => 'Parameter(${hint == null ? null : hint.name})';
 }
 
 /// Continuations are normally bound by 'let cont'.  A continuation with one
@@ -731,6 +730,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 
 abstract class ExecutableDefinition implements Node {
   RunnableBody get body;
+  Element get element;
 
   applyPass(Pass pass);
 }
@@ -793,6 +793,7 @@ class RunnableBody extends InteriorNode {
 class FunctionDefinition extends Node
     implements ExecutableDefinition {
   final FunctionElement element;
+  final Parameter thisParameter;
   /// Mixed list of [Parameter]s and [MutableVariable]s.
   final List<Definition> parameters;
   final RunnableBody body;
@@ -802,12 +803,14 @@ class FunctionDefinition extends Node
   final List<ConstantExpression> defaultParameterValues;
 
   FunctionDefinition(this.element,
+      this.thisParameter,
       this.parameters,
       this.body,
       this.localConstants,
       this.defaultParameterValues);
 
   FunctionDefinition.abstract(this.element,
+                              this.thisParameter,
                               this.parameters,
                               this.defaultParameterValues)
       : body = null,
@@ -844,13 +847,14 @@ class ConstructorDefinition extends FunctionDefinition {
   final List<Initializer> initializers;
 
   ConstructorDefinition(ConstructorElement element,
+                        Definition thisParameter, // only Dart
                         List<Definition> parameters,
                         RunnableBody body,
                         this.initializers,
                         List<ConstDeclaration> localConstants,
                         List<ConstantExpression> defaultParameterValues)
-      : super(element, parameters, body, localConstants,
-              defaultParameterValues);
+  : super(element, thisParameter, parameters, body, localConstants,
+          defaultParameterValues);
 
   // 'Abstract' here means "has no body" and is used to represent external
   // constructors.
@@ -859,10 +863,39 @@ class ConstructorDefinition extends FunctionDefinition {
       List<Definition> parameters,
       List<ConstantExpression> defaultParameterValues)
       : initializers = null,
-        super.abstract(element, parameters, defaultParameterValues);
+        super.abstract(element, null, parameters, defaultParameterValues);
 
   accept(Visitor visitor) => visitor.visitConstructorDefinition(this);
   applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
+}
+
+/// Converts the internal representation of a type to a Dart object of type
+/// [Type].
+class ReifyRuntimeType extends Primitive implements JsSpecificNode {
+  /// Reference to the internal representation of a type (as produced, for
+  /// example, by [ReadTypeVariable]).
+  final Reference<Primitive> value;
+  ReifyRuntimeType(Primitive value)
+    : this.value = new Reference<Primitive>(value);
+
+  @override
+  accept(Visitor visitor) => visitor.visitReifyRuntimeType(this);
+}
+
+/// Read the value the type variable [variable] from the target object.
+///
+/// The resulting value is an internal representation (and not neccessarily a
+/// Dart object), and must be reified by [ReifyRuntimeType], if it should be
+/// used as a Dart value.
+class ReadTypeVariable extends Primitive implements JsSpecificNode {
+  final TypeVariableType variable;
+  final Reference<Primitive> target;
+
+  ReadTypeVariable(this.variable, Primitive target)
+      : this.target = new Reference<Primitive>(target);
+
+  @override
+  accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
 }
 
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
@@ -872,79 +905,69 @@ List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
 abstract class Visitor<T> {
   const Visitor();
 
-  T visit(Node node) => node.accept(this);
-  // Abstract classes.
-  T visitNode(Node node) => null;
-  T visitExpression(Expression node) => visitNode(node);
-  T visitDefinition(Definition node) => visitNode(node);
-  T visitPrimitive(Primitive node) => visitDefinition(node);
-  T visitCondition(Condition node) => visitNode(node);
-  T visitRunnableBody(RunnableBody node) => visitNode(node);
+  T visit(Node node);
 
   // Concrete classes.
-  T visitFieldDefinition(FieldDefinition node) => visitNode(node);
-  T visitFunctionDefinition(FunctionDefinition node) => visitNode(node);
-  T visitConstructorDefinition(ConstructorDefinition node) {
-    return visitFunctionDefinition(node);
-  }
+  T visitFieldDefinition(FieldDefinition node);
+  T visitFunctionDefinition(FunctionDefinition node);
+  T visitConstructorDefinition(ConstructorDefinition node);
+  T visitRunnableBody(RunnableBody node);
 
   // Initializers
-  T visitInitializer(Initializer node) => visitNode(node);
-  T visitFieldInitializer(FieldInitializer node) => visitInitializer(node);
-  T visitSuperInitializer(SuperInitializer node) => visitInitializer(node);
+  T visitFieldInitializer(FieldInitializer node);
+  T visitSuperInitializer(SuperInitializer node);
 
   // Expressions.
-  T visitLetPrim(LetPrim node) => visitExpression(node);
-  T visitLetCont(LetCont node) => visitExpression(node);
-  T visitLetHandler(LetHandler node) => visitExpression(node);
-  T visitLetMutable(LetMutable node) => visitExpression(node);
-  T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
-  T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
-  T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
-  T visitInvokeMethodDirectly(InvokeMethodDirectly node) => visitExpression(node);
-  T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
-  T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
-  T visitBranch(Branch node) => visitExpression(node);
-  T visitTypeOperator(TypeOperator node) => visitExpression(node);
-  T visitSetMutableVariable(SetMutableVariable node) => visitExpression(node);
-  T visitDeclareFunction(DeclareFunction node) => visitExpression(node);
-  T visitSetField(SetField node) => visitExpression(node);
+  T visitLetPrim(LetPrim node);
+  T visitLetCont(LetCont node);
+  T visitLetHandler(LetHandler node);
+  T visitLetMutable(LetMutable node);
+  T visitInvokeContinuation(InvokeContinuation node);
+  T visitInvokeStatic(InvokeStatic node);
+  T visitInvokeMethod(InvokeMethod node);
+  T visitInvokeMethodDirectly(InvokeMethodDirectly node);
+  T visitInvokeConstructor(InvokeConstructor node);
+  T visitConcatenateStrings(ConcatenateStrings node);
+  T visitBranch(Branch node);
+  T visitTypeOperator(TypeOperator node);
+  T visitSetMutableVariable(SetMutableVariable node);
+  T visitDeclareFunction(DeclareFunction node);
 
   // Definitions.
-  T visitLiteralList(LiteralList node) => visitPrimitive(node);
-  T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
-  T visitConstant(Constant node) => visitPrimitive(node);
-  T visitThis(This node) => visitPrimitive(node);
-  T visitReifyTypeVar(ReifyTypeVar node) => visitPrimitive(node);
-  T visitCreateFunction(CreateFunction node) => visitPrimitive(node);
-  T visitGetMutableVariable(GetMutableVariable node) => visitPrimitive(node);
-  T visitParameter(Parameter node) => visitPrimitive(node);
-  T visitContinuation(Continuation node) => visitDefinition(node);
-  T visitMutableVariable(MutableVariable node) => visitDefinition(node);
-  T visitGetField(GetField node) => visitDefinition(node);
-  T visitCreateBox(CreateBox node) => visitDefinition(node);
-  T visitCreateInstance(CreateInstance node) => visitDefinition(node);
-
-  // Conditions.
-  T visitIsTrue(IsTrue node) => visitCondition(node);
+  T visitLiteralList(LiteralList node);
+  T visitLiteralMap(LiteralMap node);
+  T visitConstant(Constant node);
+  T visitReifyTypeVar(ReifyTypeVar node);
+  T visitCreateFunction(CreateFunction node);
+  T visitGetMutableVariable(GetMutableVariable node);
+  T visitParameter(Parameter node);
+  T visitContinuation(Continuation node);
+  T visitMutableVariable(MutableVariable node);
 
   // JavaScript specific nodes.
-  T visitIdentical(Identical node) => visitPrimitive(node);
-  T visitInterceptor(Interceptor node) => visitPrimitive(node);
+
+  // Conditions.
+  T visitIsTrue(IsTrue node);
+
+  // Expressions.
+  T visitSetField(SetField node);
+
+  // Definitions.
+  T visitIdentical(Identical node);
+  T visitInterceptor(Interceptor node);
+  T visitCreateInstance(CreateInstance node);
+  T visitGetField(GetField node);
+  T visitCreateBox(CreateBox node);
+  T visitReifyRuntimeType(ReifyRuntimeType node);
+  T visitReadTypeVariable(ReadTypeVariable node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
 /// (i.e. `processLetPrim`) functions in pre-order.
-abstract class RecursiveVisitor extends Visitor {
+class RecursiveVisitor implements Visitor {
   const RecursiveVisitor();
 
-  // Ensures that RecursiveVisitor contains overrides for all relevant nodes.
-  // As a rule of thumb, nodes with structure to traverse should be overridden
-  // with the appropriate visits in this class (for example, visitLetCont),
-  // while leaving other nodes for subclasses (i.e., visitLiteralList).
-  visitNode(Node node) {
-    throw "$this is stale, add missing visit override for $node";
-  }
+  visit(Node node) => node.accept(this);
 
   processReference(Reference ref) {}
 
@@ -966,6 +989,7 @@ abstract class RecursiveVisitor extends Visitor {
   processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
     processFunctionDefinition(node);
+    if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
     if (!node.isAbstract) {
       visit(node.body);
@@ -975,6 +999,7 @@ abstract class RecursiveVisitor extends Visitor {
   processConstructorDefinition(ConstructorDefinition node) {}
   visitConstructorDefinition(ConstructorDefinition node) {
     processConstructorDefinition(node);
+    if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
     node.initializers.forEach(visit);
     visit(node.body);
@@ -983,14 +1008,13 @@ abstract class RecursiveVisitor extends Visitor {
   processFieldInitializer(FieldInitializer node) {}
   visitFieldInitializer(FieldInitializer node) {
     processFieldInitializer(node);
-    visit(node.body.body);
+    visit(node.body);
   }
 
   processSuperInitializer(SuperInitializer node) {}
   visitSuperInitializer(SuperInitializer node) {
     processSuperInitializer(node);
-    node.arguments.forEach(
-        (RunnableBody argument) => visit(argument.body));
+    node.arguments.forEach(visit);
   }
 
   // Expressions.
@@ -1119,9 +1143,6 @@ abstract class RecursiveVisitor extends Visitor {
   processConstant(Constant node) {}
   visitConstant(Constant node) => processConstant(node);
 
-  processThis(This node) {}
-  visitThis(This node) => processThis(node);
-
   processReifyTypeVar(ReifyTypeVar node) {}
   visitReifyTypeVar(ReifyTypeVar node) => processReifyTypeVar(node);
 
@@ -1139,6 +1160,7 @@ abstract class RecursiveVisitor extends Visitor {
   processGetMutableVariable(GetMutableVariable node) {}
   visitGetMutableVariable(GetMutableVariable node) {
     processGetMutableVariable(node);
+    processReference(node.variable);
   }
 
   processParameter(Parameter node) {}
@@ -1197,6 +1219,18 @@ abstract class RecursiveVisitor extends Visitor {
   visitCreateBox(CreateBox node) {
     processCreateBox(node);
   }
+
+  processReifyRuntimeType(ReifyRuntimeType node) {}
+  visitReifyRuntimeType(ReifyRuntimeType node) {
+    processReifyRuntimeType(node);
+    processReference(node.value);
+  }
+
+  processReadTypeVariable(ReadTypeVariable node) {}
+  visitReadTypeVariable(ReadTypeVariable node) {
+    processReadTypeVariable(node);
+    processReference(node.target);
+  }
 }
 
 /// Keeps track of currently unused register indices.
@@ -1224,10 +1258,14 @@ class RegisterArray {
 /// redundant variables.
 /// Currently, the liveness analysis is very simple and is often inadequate
 /// for removing all of the redundant variables.
-class RegisterAllocator extends Visitor {
+class RegisterAllocator implements Visitor {
+  final dart2js.InternalErrorFunction internalError;
+
   /// Separate register spaces for each source-level variable/parameter.
   /// Note that null is used as key for primitives without hints.
   final Map<Local, RegisterArray> elementRegisters = <Local, RegisterArray>{};
+
+  RegisterAllocator(this.internalError);
 
   RegisterArray getRegisterArray(Local local) {
     RegisterArray registers = elementRegisters[local];
@@ -1251,6 +1289,8 @@ class RegisterAllocator extends Visitor {
       getRegisterArray(primitive.hint).releaseIndex(primitive.registerIndex);
     }
   }
+
+  void visit(Node node) => node.accept(this);
 
   void visitReference(Reference reference) {
     allocate(reference.definition);
@@ -1379,14 +1419,11 @@ class RegisterAllocator extends Visitor {
   void visitConstant(Constant node) {
   }
 
-  void visitThis(This node) {
-  }
-
   void visitReifyTypeVar(ReifyTypeVar node) {
   }
 
   void visitCreateFunction(CreateFunction node) {
-    new RegisterAllocator().visit(node.definition);
+    new RegisterAllocator(internalError).visit(node.definition);
   }
 
   void visitGetMutableVariable(GetMutableVariable node) {
@@ -1398,13 +1435,20 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitDeclareFunction(DeclareFunction node) {
-    new RegisterAllocator().visit(node.definition);
+    new RegisterAllocator(internalError).visit(node.definition);
     visit(node.body);
   }
 
   void visitParameter(Parameter node) {
-    throw "Parameters should not be visited by RegisterAllocator";
+    // Parameters are handled differently depending on whether they are
+    // function parameters, continuation parameters, exception handler
+    // parameters, etc.  Thus we do not call visitParameter directly and
+    // handle them explicitly in their parent IR node.
+    internalError(dart2js.CURRENT_ELEMENT_SPANNABLE,
+                  'tried to allocate a parameter');
   }
+
+  void visitMutableVariable(MutableVariable node) {}
 
   void visitContinuation(Continuation node) {
     visit(node.body);
@@ -1447,5 +1491,13 @@ class RegisterAllocator extends Visitor {
 
   void visitInterceptor(Interceptor node) {
     visitReference(node.input);
+  }
+
+  void visitReifyRuntimeType(ReifyRuntimeType node) {
+    visitReference(node.value);
+  }
+
+  void visitReadTypeVariable(ReadTypeVariable node) {
+    visitReference(node.target);
   }
 }

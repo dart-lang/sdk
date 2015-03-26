@@ -860,135 +860,80 @@ num res() => 1 + X;
 ''');
   }
 
-  test_getExtractGetter_false_do() async {
+  test_getExtractGetter_expression_true_binaryExpression() async {
     indexTestUnit('''
 main() {
-// start
-  int v = 0;
-  do {
-    v++;
-  } while (v < 10);
-// end
-  print(v);
-}
-''');
-    _createRefactoringForStartEndComments();
-    // apply refactoring
-    await assertRefactoringConditionsOK();
-    expect(refactoring.createGetter, false);
-  }
-
-  test_getExtractGetter_false_for() async {
-    indexTestUnit('''
-main() {
-// start
-  int v = 0;
-  for (int i = 0; i < 10; i++) {
-    v += i;
-  }
-// end
-  print(v);
-}
-''');
-    _createRefactoringForStartEndComments();
-    // apply refactoring
-    await assertRefactoringConditionsOK();
-    expect(refactoring.createGetter, false);
-  }
-
-  test_getExtractGetter_false_forEach() async {
-    indexTestUnit('''
-main() {
-// start
-  int v = 0;
-  for (int i in [1, 2, 3]) {
-    v += i;
-  }
-// end
-  print(v);
-}
-''');
-    _createRefactoringForStartEndComments();
-    // apply refactoring
-    await assertRefactoringConditionsOK();
-    expect(refactoring.createGetter, false);
-  }
-
-  test_getExtractGetter_false_methodInvocation_expression() async {
-    indexTestUnit('''
-main() {
-  int v = calculateSomething() + 5;
-}
-int calculateSomething() => 42;
-''');
-    _createRefactoringForString('calculateSomething() + 5');
-    // apply refactoring
-    await assertRefactoringConditionsOK();
-    expect(refactoring.createGetter, false);
-  }
-
-  test_getExtractGetter_false_methodInvocation_statements() async {
-    indexTestUnit('''
-main() {
-// start
-  int v = calculateSomething();
-// end
-  print(v);
-}
-int calculateSomething() => 42;
-''');
-    _createRefactoringForStartEndComments();
-    // apply refactoring
-    await assertRefactoringConditionsOK();
-    expect(refactoring.createGetter, false);
-  }
-
-  test_getExtractGetter_false_while() async {
-    indexTestUnit('''
-main() {
-// start
-  int v = 0;
-  while (v < 10) {
-    v++;
-  }
-// end
-  print(v);
-}
-''');
-    _createRefactoringForStartEndComments();
-    // apply refactoring
-    await assertRefactoringConditionsOK();
-    expect(refactoring.createGetter, false);
-  }
-
-  test_getExtractGetter_true_simpleBlock() async {
-    indexTestUnit('''
-main() {
-// start
-  int v = 1 + 2;
-// end
-  print(v);
-}
-''');
-    _createRefactoringForStartEndComments();
-    // apply refactoring
-    await assertRefactoringConditionsOK();
-    expect(refactoring.createGetter, true);
-  }
-
-  test_getExtractGetter_true_singleExpression() async {
-    indexTestUnit('''
-main() {
-// start
-  int v = 1 + 2;
-// end
-  print(v);
+  print(1 + 2);
 }
 ''');
     _createRefactoringForString('1 + 2');
     // apply refactoring
     await assertRefactoringConditionsOK();
     expect(refactoring.createGetter, true);
+  }
+
+  test_getExtractGetter_expression_true_literal() async {
+    indexTestUnit('''
+main() {
+  print(42);
+}
+''');
+    _createRefactoringForString('42');
+    // apply refactoring
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, true);
+  }
+
+  test_getExtractGetter_expression_true_prefixedExpression() async {
+    indexTestUnit('''
+main() {
+  print(!true);
+}
+''');
+    _createRefactoringForString('!true');
+    // apply refactoring
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, true);
+  }
+
+  test_getExtractGetter_expression_true_prefixedIdentifier() async {
+    indexTestUnit('''
+main() {
+  print(myValue.isEven);
+}
+int get myValue => 42;
+''');
+    _createRefactoringForString('myValue.isEven');
+    // apply refactoring
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, true);
+  }
+
+  test_getExtractGetter_expression_true_propertyAccess() async {
+    indexTestUnit('''
+main() {
+  print(1.isEven);
+}
+''');
+    _createRefactoringForString('1.isEven');
+    // apply refactoring
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, true);
+  }
+
+  test_getExtractGetter_statements() async {
+    indexTestUnit('''
+main() {
+// start
+  int v = 0;
+// end
+  print(v);
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    await assertRefactoringConditionsOK();
+    expect(refactoring.createGetter, false);
   }
 
   test_getRefactoringName_function() {
@@ -1045,6 +990,19 @@ main() {
     expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
+  test_returnType_closure() async {
+    indexTestUnit('''
+process(f(x)) {}
+main() {
+  process((x) => x * 2);
+}
+''');
+    _createRefactoringForString('(x) => x * 2');
+    // do check
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, '');
+  }
+
   test_returnType_expression() async {
     indexTestUnit('''
 main() {
@@ -1070,19 +1028,6 @@ main() {
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'double');
-  }
-
-  test_returnType_closure() async {
-    indexTestUnit('''
-process(f(x)) {}
-main() {
-  process((x) => x * 2);
-}
-''');
-    _createRefactoringForString('(x) => x * 2');
-    // do check
-    await refactoring.checkInitialConditions();
-    expect(refactoring.returnType, '');
   }
 
   test_returnType_statements_nullMix() async {

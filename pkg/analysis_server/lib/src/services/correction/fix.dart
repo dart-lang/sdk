@@ -44,6 +44,8 @@ class Fix {
 class FixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
+  static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
+      'ADD_FIELD_FORMAL_PARAMETERS', 30, "Add final field formal parameters");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(
@@ -56,6 +58,9 @@ class FixKind {
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
       const FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '{0}'");
+  static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS = const FixKind(
+      'CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS', 50,
+      "Create constructor for final fields");
   static const CREATE_CONSTRUCTOR_SUPER = const FixKind(
       'CREATE_CONSTRUCTOR_SUPER', 50, "Create constructor to call {0}");
   static const CREATE_FIELD =
@@ -94,6 +99,10 @@ class FixKind {
       "Remove parentheses in getter invocation");
   static const REMOVE_UNNECASSARY_CAST =
       const FixKind('REMOVE_UNNECASSARY_CAST', 50, "Remove unnecessary cast");
+  static const REMOVE_UNUSED_CATCH_CLAUSE = const FixKind(
+      'REMOVE_UNUSED_CATCH', 50, "Remove unused 'catch' clause");
+  static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
+      'REMOVE_UNUSED_CATCH_STACK', 50, "Remove unused stack trace variable");
   static const REMOVE_UNUSED_IMPORT =
       const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
@@ -102,6 +111,9 @@ class FixKind {
       const FixKind('REPLACE_IMPORT_URI', 50, "Replace with '{0}'");
   static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(
       'REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
+  static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
+      'REPLACE_RETURN_TYPE_FUTURE', 50,
+      "Return 'Future' from 'async' function");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
       'USE_EFFECTIVE_INTEGER_DIVISION', 50,

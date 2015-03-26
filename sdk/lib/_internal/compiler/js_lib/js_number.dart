@@ -167,7 +167,9 @@ class JSNumber extends Interceptor implements num {
 
   String toRadixString(int radix) {
     checkInt(radix);
-    if (radix < 2 || radix > 36) throw new RangeError(radix);
+    if (radix < 2 || radix > 36) {
+      throw new RangeError.range(radix, 2, 36, "radix");
+    }
     String result = JS('String', r'#.toString(#)', this, radix);
     const int rightParenCode = 0x29;
     if (result.codeUnitAt(result.length - 1) != rightParenCode) {

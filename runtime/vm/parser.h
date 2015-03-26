@@ -526,6 +526,8 @@ class Parser : public ValueObject {
                                             Array* default_values);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
                                            Array* default_values);
+  SequenceNode* ParseImplicitClosure(const Function& func,
+                                     Array* default_values);
 
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
@@ -699,7 +701,9 @@ class Parser : public ValueObject {
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
                            intptr_t ident_pos);
-  AstNode* ParseInstanceCall(AstNode* receiver, const String& method_name);
+  AstNode* ParseInstanceCall(AstNode* receiver,
+                             const String& method_name,
+                             intptr_t ident_pos);
   AstNode* ParseClosureCall(AstNode* closure);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      intptr_t ident_pos);

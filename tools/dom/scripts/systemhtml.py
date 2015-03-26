@@ -58,6 +58,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Document.createTreeWalker',
     'DOMException.name',
     'DOMException.toString',
+    'Element.animate',
     'Element.createShadowRoot',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
@@ -407,6 +408,7 @@ _js_support_checks_additional_element = [
 ]
 
 js_support_checks = dict({
+    'AnimationPlayer': "JS('bool', '!!(document.body.animate)')",
     'AudioContext': "JS('bool', '!!(window.AudioContext ||"
         " window.webkitAudioContext)')",
     'Crypto':
@@ -421,7 +423,8 @@ js_support_checks = dict({
     'HTMLTemplateElement': ElemSupportStr('template'),
     'MediaStreamEvent': "Device.isEventTypeSupported('MediaStreamEvent')",
     'MediaStreamTrackEvent': "Device.isEventTypeSupported('MediaStreamTrackEvent')",
-    'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
+    'MediaSource': "JS('bool', '!!(window.MediaSource)')",
+    'Notification': "JS('bool', '!!(window.Notification)')",
     'Performance': "JS('bool', '!!(window.performance)')",
     'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
         "window.webkitSpeechRecognition)')",
@@ -996,6 +999,53 @@ class Dart2JSBackend(HtmlDartGenerator):
         NAME=html_name,
         PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
 
+  def _ConvertArgumentTypes(
+          self, stmts_emitter, arguments, argument_count, info):
+    temp_version = [0]
+    converted_arguments = []  
+    target_parameters = []
+    for position, arg in enumerate(arguments[:argument_count]):
+      conversion = self._InputConversion(arg.type.id, info.declared_name)
+      param_name = arguments[position].id
+      if conversion:
+        temp_version[0] += 1
+        temp_name = '%s_%s' % (param_name, temp_version[0])
+        temp_type = conversion.output_type
+        stmts_emitter.Emit(
+            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
+            TYPE=TypeOrVar(temp_type),
+            NAME=temp_name,
+            CONVERT=conversion.function_name,
+            ARG=info.param_infos[position].name)
+        converted_arguments.append(temp_name)
+        param_type = temp_type
+        verified_type = temp_type  # verified by assignment in checked mode.
+      else:
+        converted_arguments.append(info.param_infos[position].name)
+        param_type = self._NarrowInputType(arg.type.id)
+        # Verified by argument checking on entry to the dispatcher.
+
+        verified_type = self._InputType(
+            info.param_infos[position].type_id, info)
+        # The native method does not need an argument type if we know the type.
+        # But we do need the native methods to have correct function types, so
+        # be conservative.
+        if param_type == verified_type:
+          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
+            param_type = 'dynamic'
+
+      target_parameters.append(
+          '%s%s' % (TypeOrNothing(param_type), param_name))
+
+    return target_parameters, converted_arguments
+
+  def _InputType(self, type_name, info):
+    conversion = self._InputConversion(type_name, info.declared_name)
+    if conversion:
+      return conversion.input_type
+    else:
+      return self._NarrowInputType(type_name) if type_name else 'dynamic'
+
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
     assert len(set([op.type.id for op in info.operations])) == 1
@@ -1008,57 +1058,21 @@ class Dart2JSBackend(HtmlDartGenerator):
       return_type = self._NarrowInputType(info.type_name)
       native_return_type = return_type
 
-    def InputType(type_name):
-      conversion = self._InputConversion(type_name, info.declared_name)
-      if conversion:
-        return conversion.input_type
-      else:
-        return self._NarrowInputType(type_name) if type_name else 'dynamic'
-
     parameter_names = [param_info.name for param_info in info.param_infos]
-    parameter_types = [InputType(param_info.type_id)
+    parameter_types = [self._InputType(param_info.type_id, info)
                        for param_info in info.param_infos]
     operations = info.operations
 
-    temp_version = [0]
+    def InputType(type_name):
+        return self._InputType(type_name, info)
 
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
       target = '_%s_%d' % (
           html_name[1:] if html_name.startswith('_') else html_name, version);
-      arguments = []
-      target_parameters = []
-      for position, arg in enumerate(operation.arguments[:argument_count]):
-        conversion = self._InputConversion(arg.type.id, operation.id)
-        param_name = operation.arguments[position].id
-        if conversion:
-          temp_version[0] += 1
-          temp_name = '%s_%s' % (param_name, temp_version[0])
-          temp_type = conversion.output_type
-          stmts_emitter.Emit(
-              '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
-              TYPE=TypeOrVar(temp_type),
-              NAME=temp_name,
-              CONVERT=conversion.function_name,
-              ARG=parameter_names[position])
-          arguments.append(temp_name)
-          param_type = temp_type
-          verified_type = temp_type  # verified by assignment in checked mode.
-        else:
-          arguments.append(parameter_names[position])
-          param_type = self._NarrowInputType(arg.type.id)
-          # Verified by argument checking on entry to the dispatcher.
 
-          verified_type = InputType(info.param_infos[position].type_id)
-          # The native method does not need an argument type if we know the type.
-          # But we do need the native methods to have correct function types, so
-          # be conservative.
-          if param_type == verified_type:
-            if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-              param_type = 'dynamic'
-
-        target_parameters.append(
-            '%s%s' % (TypeOrNothing(param_type), param_name))
+      (target_parameters, arguments) = self._ConvertArgumentTypes(
+          stmts_emitter, operation.arguments, argument_count, info)
 
       argument_list = ', '.join(arguments)
       # TODO(sra): If the native method has zero type checks, we can 'inline' is

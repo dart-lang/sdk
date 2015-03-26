@@ -753,6 +753,7 @@ class DatabaseBuilder(object):
 
     for interface in self._database.GetInterfaces():
       map(all_types, interface.all(IDLExtAttrFunctionValue))
+      map(all_types, interface.attributes)
       map(all_types, interface.operations)
 
   def fetch_constructor_data(self, options):
@@ -772,3 +773,244 @@ class DatabaseBuilder(object):
       if 'V8EnabledAtRuntime' in attr.ext_attrs:
         interface.ext_attrs['synthesizedV8EnabledAtRuntime'] = \
             attr.ext_attrs['V8EnabledAtRuntime'] or attr.id
+
+  # Iterate of the database looking for relationships between dictionaries and
+  # interfaces marked with NoInterfaceObject.  This mechanism can be used for
+  # other IDL analysis.
+  def examine_database(self):
+    # Contains list of dictionary structure: {'dictionary': dictionary, 'usages': []}
+    self._diag_dictionaries = [];
+    self._dictionaries_used_types = [];
+
+    # Record any dictionary.
+    for dictionary in self._database.GetDictionaries():
+      self._diag_dictionaries.append({'dictionary': dictionary, 'usages': []});
+
+    # Contains list of NoInterfaceObject structures: {'no_interface_object': dictionary, 'usages': []}
+    self._diag_no_interfaces = [];
+    self._no_interfaces_used_types = [];
+
+    # Record any interface with Blink IDL Extended Attribute 'NoInterfaceObject'.
+    for interface in self._database.GetInterfaces():
+      if interface.is_no_interface_object:
+        self._diag_no_interfaces.append({'no_interface_object': interface, 'usages': []});
+
+    for interface in self._database.GetInterfaces():
+      self._constructors(interface)
+      self._constructors(interface, check_dictionaries=False)
+
+      for attribute in interface.attributes:
+        self._attribute_operation(interface, attribute)
+        self._attribute_operation(interface, attribute, check_dictionaries=False)
+
+      for operation in interface.operations:
+        self._attribute_operation(interface, operation)
+        self._attribute_operation(interface, operation, check_dictionaries=False)
+
+    # Report all dictionaries and their usage.
+    self._output_examination()
+    # Report all interface marked with NoInterfaceObject and their usage.
+    self._output_examination(check_dictionaries=False)
+
+    print '\nKey:'
+    print '  (READ-ONLY) - read-only attribute has relationship'
+    print '  (GET/SET)   - attribute has relationship'
+    print '  RETURN      - operation\'s returned value has relationship'
+    print '  (ARGUMENT)  - operation\'s argument(s) has relationship'
+    print ''
+    print '  (New)       - After dictionary name if constructor(s) exist'
+    print '  (Ops,Props,New) after a NoInterfaceObject name is defined as:'
+    print '    Ops       - number of operations for a NoInterfaceObject'
+    print '    Props     - number of properties for a NoInterfaceObject'
+    print '    New       - T(#) number constructors for a NoInterfaceObject'
+    print '                F no constructors for a NoInterfaceObject'
+    print '                e.g., an interface 5 operations, 3 properties and 2'
+    print '                      constructors would display (5,3,T(2))'
+
+    print '\n\nExamination Complete\n'
+
+  def _output_examination(self, check_dictionaries=True):
+    # Output diagnostics. First columns is Dictionary or NoInterfaceObject e.g.,
+    # |  Dictionary  |  Used In Interface  |  Usage Operation/Attribute  |
+    print '\n\n'
+    title_bar = ['Dictionary', 'Used In Interface', 'Usage Operation/Attribute'] if check_dictionaries \
+                else ['NoInterfaceObject (Ops,Props,New)', 'Used In Interface', 'Usage Operation/Attribute']
+    self._tabulate_title(title_bar)
+    diags = self._diag_dictionaries if check_dictionaries else self._diag_no_interfaces
+    for diag in diags:
+      if not(check_dictionaries):
+        interface = diag['no_interface_object']
+        ops_count = len(interface.operations)
+        properties_count = len(interface.attributes)
+        any_constructors = 'Constructor' in interface.ext_attrs
+        constructors = 'T(%s)' % len(interface.ext_attrs['Constructor']) if any_constructors else 'F'
+        interface_detail = '%s (%s,%s,%s)' % \
+            (diag['no_interface_object'].id,
+             ops_count,
+             properties_count,
+             constructors)
+        self._tabulate([interface_detail, '', ''])
+      else:
+        dictionary = diag['dictionary']
+        any_constructors = 'Constructor' in dictionary.ext_attrs
+        self._tabulate(['%s%s' % (dictionary.id, ' (New)' if any_constructors else ''), '', ''])
+      for usage in diag['usages']:
+        detail = ''
+        if 'attribute' in usage:
+          attribute_type = 'READ-ONLY' if not usage['argument'] else 'GET/SET'
+          detail = '(%s) %s' % (attribute_type, usage['attribute'])
+        elif 'operation' in usage:
+          detail = '%s %s%s' % ('RETURN' if usage['result'] else '',
+                                         usage['operation'],
+                                         '(ARGUMENT)' if usage['argument'] else '')
+        self._tabulate([None, usage['interface'], detail])
+      self._tabulate_break()
+
+  # operation_or_attribute either IDLOperation or IDLAttribute if None then
+  # its a constructor (IDLExtAttrFunctionValue).
+  def _mark_usage(self, interface, operation_or_attribute = None, check_dictionaries=True):
+    for diag in self._diag_dictionaries if check_dictionaries else self._diag_no_interfaces:
+      for usage in diag['usages']:
+        if not usage['interface']:
+          usage['interface'] = interface.id
+          if isinstance(operation_or_attribute, IDLOperation):
+            usage['operation'] = operation_or_attribute.id
+            if check_dictionaries:
+              usage['result'] = hasattr(operation_or_attribute.type, 'dictionary') and \
+                operation_or_attribute.type.dictionary == diag['dictionary'].id
+            else:
+              usage['result'] = operation_or_attribute.type.id == diag['no_interface_object'].id
+            usage['argument'] = False
+            for argument in operation_or_attribute.arguments:
+              if check_dictionaries:
+                arg = hasattr(argument.type, 'dictionary') and argument.type.dictionary == diag['dictionary'].id
+              else:
+                arg = argument.type.id == diag['no_interface_object'].id
+              if arg:
+                usage['argument'] = arg
+          elif isinstance(operation_or_attribute, IDLAttribute):
+            usage['attribute'] = operation_or_attribute.id
+            usage['result'] = True
+            usage['argument'] = not operation_or_attribute.is_read_only
+          elif not operation_or_attribute:
+            # Its a constructor only argument is dictionary or interface with NoInterfaceObject.
+            usage['operation'] = 'constructor'
+            usage['result'] = False
+            usage['argument'] = True
+
+  def _remember_usage(self, node, check_dictionaries=True):
+    if check_dictionaries:
+      used_types = self._dictionaries_used_types
+      diag_list = self._diag_dictionaries
+      diag_name = 'dictionary'
+    else:
+      used_types = self._no_interfaces_used_types
+      diag_list = self._diag_no_interfaces
+      diag_name = 'no_interface_object'
+
+    if len(used_types) > 0:
+      normalized_used = list(set(used_types))
+      for recorded_id in normalized_used:
+        for diag in diag_list:
+          if diag[diag_name].id == recorded_id:
+            diag['usages'].append({'interface': None, 'node': node})
+
+  # Iterator function to look for any IDLType that is a dictionary then remember
+  # that dictionary.
+  def _dictionary_used(self, type_node):
+    if hasattr(type_node, 'dictionary'):
+      dictionary_id = type_node.dictionary
+      if self._database.HasDictionary(dictionary_id):
+        for diag_dictionary in self._diag_dictionaries:
+          if diag_dictionary['dictionary'].id == dictionary_id:
+            # Record the dictionary that was referenced.
+            self._dictionaries_used_types.append(dictionary_id)
+            return
+
+      # If we get to this point, the IDL dictionary was never defined ... oops.
+      print 'DIAGNOSE_ERROR: IDL Dictionary %s doesn\'t exist.' % dictionary_id
+
+  # Iterator function to look for any IDLType that is an interface marked with
+  # NoInterfaceObject then remember that interface.
+  def _no_interface_used(self, type_node):
+    if hasattr(type_node, 'id'):
+      no_interface_id = type_node.id
+      if self._database.HasInterface(no_interface_id):
+        no_interface = self._database.GetInterface(no_interface_id)
+        if no_interface.is_no_interface_object:
+          for diag_no_interface in self._diag_no_interfaces:
+            if diag_no_interface['no_interface_object'].id == no_interface_id:
+              # Record the interface marked with NoInterfaceObject.
+              self._no_interfaces_used_types.append(no_interface_id)
+              return
+
+  def _constructors(self, interface, check_dictionaries=True):
+    if check_dictionaries:
+      self._dictionaries_used_types = []
+      constructor_function = self._dictionary_constructor_types
+    else:
+      self._no_interfaces_used_types = [];
+      constructor_function = self._no_interface_constructor_types
+
+    map(constructor_function, interface.all(IDLExtAttrFunctionValue))
+
+    self._mark_usage(interface, check_dictionaries=check_dictionaries)
+
+  # Scan an attribute or operation for a dictionary or interface with NoInterfaceObject
+  # reference.  
+  def _attribute_operation(self, interface, operation_attribute, check_dictionaries=True):
+    if check_dictionaries:
+      self._dictionaries_used_types = []
+      used = self._dictionary_used
+    else:
+      self._no_interfaces_used_types = [];
+      used = self._no_interface_used
+
+    map(used, operation_attribute.all(IDLType))
+
+    self._remember_usage(operation_attribute, check_dictionaries=check_dictionaries)
+    self._mark_usage(interface, operation_attribute, check_dictionaries=check_dictionaries)
+
+  # Iterator function for map to iterate over all constructor types
+  # (IDLExtAttrFunctionValue) that have a dictionary reference.
+  def _dictionary_constructor_types(self, node):
+    self._dictionaries_used_types = []
+    map(self._dictionary_used, node.all(IDLType))
+    self._remember_usage(node)
+
+  # Iterator function for map to iterate over all constructor types
+  # (IDLExtAttrFunctionValue) that reference an interface with NoInterfaceObject.
+  def _no_interface_constructor_types(self, node):
+    self._no_interfaces_used_types = [];
+    map(self._no_interface_used, node.all(IDLType))
+    self._remember_usage(node, check_dictionaries=False)
+
+  # Maximum width of each column.
+  def _TABULATE_WIDTH(self):
+    return 45
+
+  def _tabulate_title(self, row_title):
+    title_separator = "=" * self._TABULATE_WIDTH()
+    self._tabulate([title_separator, title_separator, title_separator])
+    self._tabulate(row_title)
+    self._tabulate([title_separator, title_separator, title_separator])
+
+  def _tabulate_break(self):
+    break_separator = "-" * self._TABULATE_WIDTH()
+    self._tabulate([break_separator, break_separator, break_separator])
+
+  def _tabulate(self, columns):
+    """Tabulate a list of columns for a row.  Each item in columns is a column
+       value each column will be padded up to _TABULATE_WIDTH.  Each
+       column starts/ends with a vertical bar '|' the format a row:
+
+           | columns[0] | columns[1] | columns[2] | ... |
+    """
+    if len(columns) > 0:
+      for column in columns:
+        value = '' if not column else column
+        sys.stdout.write('|{0:^{1}}'.format(value, self._TABULATE_WIDTH()))
+    else:
+      sys.stdout.write('|{0:^{1}}'.format('', self._TABULATE_WIDTH()))
+
+    sys.stdout.write('|\n')

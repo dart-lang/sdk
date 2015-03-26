@@ -55,6 +55,7 @@ import 'dart:_js_helper' show
     createUnmangledInvocationMirror,
     getMangledTypeName,
     getMetadata,
+    getType,
     getRuntimeType,
     runtimeTypeToString,
     setRuntimeTypeInfo,
@@ -287,7 +288,7 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   TypeMirror get upperBound {
     if (_cachedUpperBound != null) return _cachedUpperBound;
     return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
-        owner, getMetadata(_typeVariable.bound));
+        owner, getType(_typeVariable.bound));
   }
 
   bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
@@ -649,7 +650,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     //  }
     //  The typedefType is the index into the metadata table.
     int index = JS('int', '#[#]', descriptor, TYPEDEF_TYPE_PROPERTY_NAME);
-    mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
+    mirror = new JsTypedefMirror(symbol, mangledName, getType(index));
   } else {
     fields = JS('', '#[#]', descriptor,
         JS_GET_NAME(JsGetName.CLASS_DESCRIPTOR_PROPERTY));
@@ -1185,14 +1186,8 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   _newProbeFn(String id, bool useEval) {
     if (useEval) {
-      // We give the probe function a name to make it appear nicely in
-      // profiles and when debugging. The name also makes the source code
-      // for the function more "unique" so the underlying JavaScript
-      // engine is less likely to re-use an existing piece of generated
-      // code as the result of calling eval. In return, this leads to
-      // less polymorphic access in the probe function.
-      var body = "(function probe\$$id(c){return c.$id})";
-      return JS('', '(function(b){return eval(b)})(#)', body);
+      String body = "return c.$id;";
+      return JS('', 'new Function("c", #)', body);
     } else {
       return JS('', '(function(n){return(function(c){return c[n]})})(#)', id);
     }
@@ -1200,16 +1195,15 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   _newGetterFn(String name, bool useEval) {
     if (!useEval) return _newGetterNoEvalFn(name);
-    // We give the getter function a name that associates it with the
-    // class of the reflectee. This makes it easier to spot in profiles
-    // and when debugging, but it also means that the underlying JavaScript
-    // engine will only share the generated code for accessors on the
+    // We use a comment that associates the generated function with the
+    // class of the reflectee. This makes it more likely that the underlying
+    // JavaScript engine will only share the generated code for accessors on the
     // same class (through caching of eval'ed code). This makes the
     // generated call to the getter - e.g. o.get$foo() - much more likely
     // to be monomorphic and inlineable.
     String className = JS('String', '#.constructor.name', reflectee);
-    var body = "(function $className\$$name(o){return o.$name()})";
-    return JS('', '(function(b){return eval(b)})(#)', body);
+    String body = "/* $className */ return o.$name();";
+    return JS('', 'new Function("o", #)', body);
   }
 
   _newGetterNoEvalFn(n) => JS('',
@@ -1224,12 +1218,10 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     if (!useEval) return _newInterceptGetterNoEvalFn(name, interceptor);
     String className = JS('String', '#.constructor.name', interceptor);
     String functionName = '$className\$$name';
-    var body =
-        '(function(i) {'
+    String body =
         '  function $functionName(o){return i.$name(o)}'
-        '  return $functionName;'
-        '})';
-    return JS('', '(function(b){return eval(b)})(#)(#)', body, interceptor);
+        '  return $functionName;';
+    return JS('', '(new Function("i", #))(#)', body, interceptor);
   }
 
   _newInterceptGetterNoEvalFn(n, i) => JS('',
@@ -1510,7 +1502,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     List<int> typeInformation =
         JS('List|Null', '#[#]', typeInformationContainer, _class._mangledName);
     assert(typeInformation != null);
-    var type = getMetadata(typeInformation[0]);
+    var type = getType(typeInformation[0]);
     return _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
   }
 
@@ -1679,6 +1671,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   List<JsMethodMirror> _getMethodsWithOwner(DeclarationMirror methodOwner) {
     var prototype = JS('', '#.prototype', _jsConstructor);
+    // The prototype might not have been processed yet, so do that now.
+    JS('', '#[#]()', prototype,
+                     JS_GET_NAME(JsGetName.DEFERRED_ACTION_PROPERTY));
     List<String> keys = extractKeys(prototype);
     var result = <JsMethodMirror>[];
     for (String key in keys) {
@@ -1986,7 +1981,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       List<int> typeInformation =
           JS('List|Null', '#[#]', typeInformationContainer, _mangledName);
       if (typeInformation != null) {
-        var type = getMetadata(typeInformation[0]);
+        var type = getType(typeInformation[0]);
         _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
       } else {
         var superclassName = _fieldsDescriptor.split(';')[0];
@@ -2044,7 +2039,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     List<ClassMirror> result = const <ClassMirror>[];
     if (typeInformation != null) {
       ClassMirror lookupType(int i) {
-        var type = getMetadata(i);
+        var type = getType(i);
         return typeMirrorFromRuntimeTypeRepresentation(owner, type);
       }
 
@@ -2188,7 +2183,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   String get _prettyName => 'VariableMirror';
 
   TypeMirror get type {
-    return typeMirrorFromRuntimeTypeRepresentation(owner, getMetadata(_type));
+    return typeMirrorFromRuntimeTypeRepresentation(owner, getType(_type));
   }
 
   DeclarationMirror get owner => _owner;

@@ -16,8 +16,9 @@ DEFINE_FLAG(bool, trace_integer_ir_selection, false,
     "Print integer IR selection optimization pass.");
 DECLARE_FLAG(bool, trace_constant_propagation);
 
-// Quick access to the locally defined isolate() method.
+// Quick access to the locally defined isolate() and zone() methods.
 #define I (isolate())
+#define Z (zone())
 
 void RangeAnalysis::Analyze() {
   CollectValues();
@@ -344,21 +345,21 @@ static Token::Kind FlipComparison(Token::Kind op) {
 Range* RangeAnalysis::ConstraintSmiRange(Token::Kind op, Definition* boundary) {
   switch (op) {
     case Token::kEQ:
-      return new(I) Range(RangeBoundary::FromDefinition(boundary),
+      return new(Z) Range(RangeBoundary::FromDefinition(boundary),
                           RangeBoundary::FromDefinition(boundary));
     case Token::kNE:
-      return new(I) Range(Range::Full(RangeBoundary::kRangeBoundarySmi));
+      return new(Z) Range(Range::Full(RangeBoundary::kRangeBoundarySmi));
     case Token::kLT:
-      return new(I) Range(RangeBoundary::MinSmi(),
+      return new(Z) Range(RangeBoundary::MinSmi(),
                           RangeBoundary::FromDefinition(boundary, -1));
     case Token::kGT:
-      return new(I) Range(RangeBoundary::FromDefinition(boundary, 1),
+      return new(Z) Range(RangeBoundary::FromDefinition(boundary, 1),
                           RangeBoundary::MaxSmi());
     case Token::kLTE:
-      return new(I) Range(RangeBoundary::MinSmi(),
+      return new(Z) Range(RangeBoundary::MinSmi(),
                           RangeBoundary::FromDefinition(boundary));
     case Token::kGTE:
-      return new(I) Range(RangeBoundary::FromDefinition(boundary),
+      return new(Z) Range(RangeBoundary::FromDefinition(boundary),
                           RangeBoundary::MaxSmi());
     default:
       UNREACHABLE();
@@ -385,7 +386,7 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
     constraint = constraint->next()->AsConstraint();
   }
 
-  constraint = new(I) ConstraintInstr(
+  constraint = new(Z) ConstraintInstr(
       use->CopyWithType(), constraint_range);
 
   flow_graph_->InsertAfter(after, constraint, NULL, FlowGraph::kValue);
@@ -469,13 +470,13 @@ void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
   Range* constraint_range = NULL;
   if (use_index == CheckArrayBoundInstr::kIndexPos) {
     Definition* length = check->length()->definition();
-    constraint_range = new(I) Range(
+    constraint_range = new(Z) Range(
         RangeBoundary::FromConstant(0),
         RangeBoundary::FromDefinition(length, -1));
   } else {
     ASSERT(use_index == CheckArrayBoundInstr::kLengthPos);
     Definition* index = check->index()->definition();
-    constraint_range = new(I) Range(
+    constraint_range = new(Z) Range(
         RangeBoundary::FromDefinition(index, 1),
         RangeBoundary::MaxSmi());
   }
@@ -1653,14 +1654,11 @@ void RangeAnalysis::NarrowMintToInt32() {
 
 
 IntegerInstructionSelector::IntegerInstructionSelector(FlowGraph* flow_graph)
-    : flow_graph_(flow_graph),
-      isolate_(NULL) {
+    : flow_graph_(flow_graph) {
   ASSERT(flow_graph_ != NULL);
-  isolate_ = flow_graph_->isolate();
-  ASSERT(isolate_ != NULL);
-  Zone* zone = flow_graph_->zone();
+  zone_ = flow_graph_->zone();
   selected_uint32_defs_ =
-      new(zone) BitVector(zone, flow_graph_->current_ssa_temp_index());
+      new(zone_) BitVector(zone_, flow_graph_->current_ssa_temp_index());
 }
 
 
@@ -1853,28 +1851,28 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
-    return new(I) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
+    return new(Z) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
   } else if (def->IsBoxInt64()) {
     Value* value = def->AsBoxInt64()->value()->CopyWithType();
-    return new(I) BoxUint32Instr(value);
+    return new(Z) BoxUint32Instr(value);
   } else if (def->IsUnboxInt64()) {
     UnboxInstr* unbox = def->AsUnboxInt64();
     Value* value = unbox->value()->CopyWithType();
     intptr_t deopt_id = unbox->DeoptimizationTarget();
-    return new(I) UnboxUint32Instr(value, deopt_id);
+    return new(Z) UnboxUint32Instr(value, deopt_id);
   } else if (def->IsUnaryMintOp()) {
     UnaryMintOpInstr* op = def->AsUnaryMintOp();
     Token::Kind op_kind = op->op_kind();
     Value* value = op->value()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
-    return new(I) UnaryUint32OpInstr(op_kind, value, deopt_id);
+    return new(Z) UnaryUint32OpInstr(op_kind, value, deopt_id);
   } else if (def->IsShiftMintOp()) {
     ShiftMintOpInstr* op = def->AsShiftMintOp();
     Token::Kind op_kind = op->op_kind();
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
-    return new(I) ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+    return new(Z) ShiftUint32OpInstr(op_kind, left, right, deopt_id);
   }
   UNREACHABLE();
   return NULL;

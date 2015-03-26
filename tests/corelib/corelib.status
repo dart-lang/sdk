@@ -103,7 +103,7 @@ unicode_test: Fail
 # IEEE-754 rounding algorithm.
 double_parse_test: Fail, OK
 
-[ $runtime == jsshell || $runtime == safari || $runtime == safarimobilesim ]
+[ $runtime == safari || $runtime == safarimobilesim ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 

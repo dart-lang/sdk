@@ -8,9 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:analysis_server/plugin/plugin.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_impl.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -19,12 +17,14 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/options.dart';
+import 'package:analyzer/plugin/plugin.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:analyzer/options.dart';
+import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:args/args.dart';
 
 /**
@@ -262,6 +262,7 @@ class Driver implements ServerStarter {
     //
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
+    plugins.add(AnalysisEngine.instance.enginePlugin);
     plugins.add(serverPlugin);
     plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
@@ -271,6 +272,7 @@ class Driver implements ServerStarter {
         analysisServerOptions, defaultSdk, service, serverPlugin);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
+    socketServer.userDefinedPlugins = _userDefinedPlugins;
 
     if (serve_http) {
       httpServer.serveHttp(port);

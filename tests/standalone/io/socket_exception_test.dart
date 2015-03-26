@@ -71,8 +71,9 @@ class SocketExceptionTest {
       Expect.isNotNull(server);
      int port = server.port;
       Socket.connect("127.0.0.1", port).then((client) {
-       Expect.isNotNull(client);
+        Expect.isNotNull(client);
         client.close();
+        // First calls for which exceptions are note expected.
         try {
           client.close();
         } on SocketException catch(ex) {
@@ -87,7 +88,6 @@ class SocketExceptionTest {
         } on SocketException catch(ex) {
           exceptionCaught = true;
         } catch (ex) {
-          print(ex);
           wrongExceptionCaught = true;
         }
         Expect.isFalse(exceptionCaught);
@@ -101,6 +101,48 @@ class SocketExceptionTest {
           wrongExceptionCaught = true;
         }
         Expect.isFalse(exceptionCaught);
+        Expect.isFalse(wrongExceptionCaught);
+
+        // From here exceptions are expected.
+        exceptionCaught = false;
+        try {
+          client.port;
+        } on SocketException catch(ex) {
+          exceptionCaught = true;
+        } catch (ex) {
+          wrongExceptionCaught = true;
+        }
+        Expect.isTrue(exceptionCaught);
+        Expect.isFalse(wrongExceptionCaught);
+        exceptionCaught = false;
+        try {
+          client.remotePort;
+        } on SocketException catch(ex) {
+          exceptionCaught = true;
+        } catch (ex) {
+          wrongExceptionCaught = true;
+        }
+        Expect.isTrue(exceptionCaught);
+        Expect.isFalse(wrongExceptionCaught);
+        exceptionCaught = false;
+        try {
+          client.address;
+        } on SocketException catch(ex) {
+          exceptionCaught = true;
+        } catch (ex) {
+          wrongExceptionCaught = true;
+        }
+        Expect.isTrue(exceptionCaught);
+        Expect.isFalse(wrongExceptionCaught);
+        exceptionCaught = false;
+        try {
+          client.remoteAddress;
+        } on SocketException catch(ex) {
+          exceptionCaught = true;
+        } catch (ex) {
+          wrongExceptionCaught = true;
+        }
+        Expect.isTrue(exceptionCaught);
         Expect.isFalse(wrongExceptionCaught);
 
         server.close();

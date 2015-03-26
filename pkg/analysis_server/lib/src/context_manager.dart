@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * The name of `packages` folders.
@@ -134,7 +133,7 @@ abstract class ContextManager {
         }
       }
     }
-    return flushedFiles.toList(growable:false);
+    return flushedFiles.toList(growable: false);
   }
 
   /**
@@ -286,7 +285,7 @@ abstract class ContextManager {
     List<Resource> children;
     try {
       children = folder.getChildren();
-    } on FileSystemException catch (exception) {
+    } on FileSystemException {
       // The folder no longer exists, or cannot be read, to there's nothing to
       // do.
       return;
@@ -655,9 +654,6 @@ abstract class ContextManager {
     Source source = file.createSource();
     if (context == null) {
       return source;
-    }
-    if (context.sourceFactory == null) {
-      return null;
     }
     Uri uri = context.sourceFactory.restoreUri(source);
     return file.createSource(uri);

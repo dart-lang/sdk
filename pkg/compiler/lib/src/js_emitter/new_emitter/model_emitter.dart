@@ -29,7 +29,8 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     LEAF_TAGS,
     MANGLED_GLOBAL_NAMES,
     METADATA,
-    TYPE_TO_INTERCEPTOR_MAP;
+    TYPE_TO_INTERCEPTOR_MAP,
+    TYPES;
 
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
@@ -117,8 +118,8 @@ class ModelEmitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value);
     }
-    return js.js('#.#', [namer.globalObjectForConstant(value),
-                         namer.constantName(value)]);
+    return js.js('#.#()', [namer.globalObjectForConstant(value),
+                           namer.constantName(value)]);
   }
 
   int emitProgram(Program program) {
@@ -153,6 +154,11 @@ class ModelEmitter {
   js.LiteralString unparse(Compiler compiler, js.Node value) {
     String text = js.prettyPrint(value, compiler).getText();
     if (value is js.Fun) text = '($text)';
+    if (value is js.LiteralExpression &&
+        (value.template.startsWith("function ") ||
+         value.template.startsWith("{"))) {
+      text = '($text)';
+    }
     return js.js.escapedString(text);
   }
 
@@ -167,6 +173,8 @@ class ModelEmitter {
     List<js.Expression> elements = fragment.libraries.map(emitLibrary).toList();
     elements.add(
         emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
+    elements.add(emitConstants(fragment.constants));
+
 
     js.Expression code = new js.ArrayInitializer(elements);
 
@@ -184,7 +192,6 @@ class ModelEmitter {
            backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
        'outputContainsConstantList': program.outputContainsConstantList,
        'embeddedGlobals': emitEmbeddedGlobals(program),
-       'constants': emitConstants(fragment.constants),
        'staticNonFinals':
             emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
@@ -290,7 +297,7 @@ class ModelEmitter {
 
     globals.add(emitGetTypeFromName());
 
-    globals.add(emitMetadata(program));
+    globals.addAll(emitMetadata(program));
 
     if (program.needsNativeSupport) {
       globals.add(new js.Property(js.string(INTERCEPTORS_BY_TAG),
@@ -401,12 +408,21 @@ class ModelEmitter {
     return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
   }
 
-  js.Property emitMetadata(Program program) {
-    String metadataList = "[${program.metadata.join(",")}]";
-    js.Expression metadata =
-        js.js.uncachedExpressionTemplate(metadataList).instantiate([]);
+  List<js.Property> emitMetadata(Program program) {
 
-    return new js.Property(js.string(METADATA), metadata);
+    List<js.Property> metadataGlobals = <js.Property>[];
+
+    js.Property createGlobal(List<String> list, String global) {
+      String listAsString = "[${list.join(",")}]";
+      js.Expression metadata =
+                js.js.uncachedExpressionTemplate(listAsString).instantiate([]);
+      return new js.Property(js.string(global), metadata);
+    }
+
+    metadataGlobals.add(createGlobal(program.metadata, METADATA));
+    metadataGlobals.add(createGlobal(program.metadataTypes, TYPES));
+
+    return metadataGlobals;
   }
 
   js.Expression emitDeferredFragment(DeferredFragment fragment,
@@ -421,16 +437,14 @@ class ModelEmitter {
     deferredCode.add(
         emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
 
+    deferredCode.add(emitConstants(fragment.constants));
+
     js.ArrayInitializer deferredArray = new js.ArrayInitializer(deferredCode);
 
     // This is the code that must be evaluated after all deferred classes have
     // been setup.
-    js.Statement immediateCode = js.js.statement('''{
-          #constants;
-          #eagerClasses;
-        }''',
-        {'constants': emitConstants(fragment.constants),
-         'eagerClasses': emitEagerClassInitializations(fragment.libraries)});
+    js.Statement immediateCode =
+        emitEagerClassInitializations(fragment.libraries);
 
     js.LiteralString immediateString = unparse(compiler, immediateCode);
     js.ArrayInitializer hunk =
@@ -439,13 +453,25 @@ class ModelEmitter {
     return js.js("$deferredInitializersGlobal[$hash] = #", hunk);
   }
 
-  js.Block emitConstants(List<Constant> constants) {
-    Iterable<js.Statement> statements = constants.map((Constant constant) {
-      js.Expression code = constantEmitter.generate(constant.value);
-      return js.js.statement("#.# = #;",
-                             [constant.holder.name, constant.name, code]);
-    });
-    return new js.Block(statements.toList());
+  // This string should be referenced wherever JavaScript code makes assumptions
+  // on the constants format.
+  static final String constantsDescription =
+      "The constants are encoded as a follows:"
+      "   [constantsHolderIndex, name, code, name2, code2, ...]."
+      "The array is completely empty if there is no constant at all.";
+
+  js.ArrayInitializer emitConstants(List<Constant> constants) {
+    List<js.Expression> data = <js.Expression>[];
+    if (constants.isNotEmpty) {
+      int holderIndex = constants.first.holder.index;
+      data.add(js.number(holderIndex));
+      data.addAll(constants.expand((Constant constant) {
+        assert(constant.holder.index == holderIndex);
+        js.Expression code = constantEmitter.generate(constant.value);
+        return [js.string(constant.name), unparse(compiler, code)];
+      }));
+    }
+    return new js.ArrayInitializer(data);
   }
 
   js.Block emitStaticNonFinalFields(List<StaticField> fields) {
@@ -814,10 +840,11 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   var functionCounter = 0;
 
   function $setupProgramName(program) {
-    for (var i = 0; i < program.length - 1; i++) {
+    for (var i = 0; i < program.length - 2; i++) {
       setupLibrary(program[i]);
     }
     setupLazyStatics(program[i]);
+    setupConstants(program[i + 1]);
   }
 
   function setupLibrary(library) {
@@ -863,11 +890,29 @@ function parseFunctionDescriptor(proto, name, descriptor) {
     }
   }
 
+  function setupConstants(constants) {
+    // $constantsDescription.
+    if (constants.length == 0) return;
+    // We assume that all constants are in the same holder.
+    var holder = holders[constants[0]];
+    for (var i = 1; i < constants.length; i += 2) {
+      var name = constants[i];
+      var initializer = constants[i + 1];
+      setupConstant(name, holder, initializer);
+    }
+  }
+
   function setupStatic(name, holder, descriptor) {
     if (typeof descriptor == 'string') {
       holder[name] = function() {
+        if (descriptor == null) {
+          // Already compiled. This happens when we have calls to the static as
+          // arguments to the static: `foo(foo(499))`;
+          return holder[name].apply(this, arguments);
+        }
         var method = compile(name, descriptor);
         holder[name] = method;
+        descriptor = null;  // GC the descriptor.
         return method.apply(this, arguments);
       };
     } else {
@@ -902,7 +947,13 @@ function parseFunctionDescriptor(proto, name, descriptor) {
 
       function setupCompileAllAndDelegateStub(name) {
         holder[name] = function() {
-          compileAllStubs();
+          // The descriptor is null if we already compiled this function. This
+          // happens when we have calls to the static as arguments to the
+          // static: `foo(foo(499))`;
+          if (descriptor != null) {
+            compileAllStubs();
+            descriptor = null;  // GC the descriptor.
+          }
           return holder[name].apply(this, arguments);
         };
       }
@@ -935,18 +986,44 @@ function parseFunctionDescriptor(proto, name, descriptor) {
           // initialization failed.
           holder[name] = null;
         }
+        // TODO(floitsch): the function should probably be unique for each
+        // static.
         holder[getterName] = function() { return this[name]; };
       }
       return result;
     };
   }
 
+  function setupConstant(name, holder, descriptor) {
+    var c;
+    holder[name] = function() {
+      if (descriptor !== null) {
+        c = compile(name, descriptor);
+        name = null;
+        descriptor = null;
+      }
+      return c;
+    };
+  }
+
   function setupClass(name, holder, descriptor) {
     var patch = function() {
-      var constructor = compileConstructor(name, descriptor);
-      holder[name] = constructor;
-      constructor.ensureResolved = function() { return this; };
-      if (this === patch) return constructor;  // Was used as "ensureResolved".
+      if (patch.ensureResolved == patch) {
+        // We have not yet been compiled.
+        var constructor = compileConstructor(name, descriptor);
+        holder[name] = constructor;
+        name = holder = descriptor = null;  // GC the captured arguments.
+        // Make sure we can invoke 'ensureResolved' multiple times on the patch
+        // function.
+        patch.ensureResolved = function() { return constructor; };
+        constructor.ensureResolved = function() { return this; };
+      } else {
+        // This can happen when arguments to the constructor are of the same
+        // class, like in `new A(new A(null))`.
+        constructor = patch.ensureResolved();
+      }
+      // If the patch has been called as "ensureResolved" return.
+      if (this === patch) return constructor;
       var object = new constructor();
       constructor.apply(object, arguments);
       return object;
@@ -1050,9 +1127,6 @@ function parseFunctionDescriptor(proto, name, descriptor) {
   }
 
   $setupProgramName(program);
-
-  // Initialize constants.
-  #constants;
 
   // Initialize globals.
   #embeddedGlobals;

@@ -81,7 +81,7 @@ main() {
 
       var point = itema.offsetTo(itemii);
       expect(point.x, 40);
-      expect(point.y, inInclusiveRange(17, 20));
+      expect(point.y, inInclusiveRange(16, 20));
 
       expect(baz.offsetTo(bar).x, 7000);
       expect(baz.offsetTo(bar).y, inInclusiveRange(599, 604));
@@ -92,13 +92,13 @@ main() {
 
       point = item1.offsetTo(itemb);
       expect(point.x, 40);
-      expect(point.y, inInclusiveRange(17, 20));
+      expect(point.y, inInclusiveRange(16, 20));
       point = itemb.offsetTo(itemii);
       expect(point.x, 190);
-      expect(point.y, inInclusiveRange(54, 60));
+      expect(point.y, inInclusiveRange(52, 60));
       point = item1.offsetTo(itemii);
       expect(point.x, 230);
-      expect(point.y, inInclusiveRange(74, 80));
+      expect(point.y, inInclusiveRange(68, 80));
     });
 
     test('documentOffset', () {
@@ -112,16 +112,16 @@ main() {
       var itemii = query('.item-ii');
 
       expect(itema.documentOffset.x, 88);
-      expect(itema.documentOffset.y, inInclusiveRange(119, 160));
+      expect(itema.documentOffset.y, inInclusiveRange(111, 160));
 
       expect(itemii.documentOffset.x, 48);
-      expect(itemii.documentOffset.y, inInclusiveRange(101, 145));
+      expect(itemii.documentOffset.y, inInclusiveRange(95, 145));
 
       expect(itemb.documentOffset.x, 238);
-      expect(itemb.documentOffset.y, inInclusiveRange(157, 205));
+      expect(itemb.documentOffset.y, inInclusiveRange(147, 205));
 
       expect(item1.documentOffset.x, 278);
-      expect(item1.documentOffset.y, inInclusiveRange(175, 222));
+      expect(item1.documentOffset.y, inInclusiveRange(163, 222));
 
       expect(bar.documentOffset.x, 90);
       expect(bar.documentOffset.y, 8);
@@ -130,10 +130,10 @@ main() {
       expect(baz.documentOffset.y, 608);
 
       expect(qux.documentOffset.x, 8);
-      expect(qux.documentOffset.y, inInclusiveRange(221, 240));
+      expect(qux.documentOffset.y, inInclusiveRange(203, 240));
 
       expect(quux.documentOffset.x, 8);
-      expect(quux.documentOffset.y, inInclusiveRange(221, 240));
+      expect(quux.documentOffset.y, inInclusiveRange(203, 240));
     });
   });
 }

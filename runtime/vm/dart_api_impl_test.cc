@@ -112,7 +112,7 @@ TEST_CASE(StacktraceInfo) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
-  EXPECT_EQ(13, column_number);
+  EXPECT_EQ(10, column_number);
 
   result = Dart_GetActivationFrame(stacktrace, 2, &frame);
   EXPECT_VALID(result);
@@ -124,7 +124,7 @@ TEST_CASE(StacktraceInfo) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(3, line_number);
-  EXPECT_EQ(18, column_number);
+  EXPECT_EQ(15, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
@@ -190,7 +190,7 @@ TEST_CASE(DeepStacktraceInfo) {
     Dart_StringToCString(script_url, &cstr);
     EXPECT_STREQ("test-lib", cstr);
     EXPECT_EQ(1, line_number);
-    EXPECT_EQ(43, column_number);
+    EXPECT_EQ(40, column_number);
   }
 
   // Bottom frame positioned at testMain().
@@ -204,7 +204,7 @@ TEST_CASE(DeepStacktraceInfo) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
-  EXPECT_EQ(18, column_number);
+  EXPECT_EQ(15, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
@@ -327,7 +327,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
-  EXPECT_EQ(32, column_number);
+  EXPECT_EQ(20, column_number);
 
   // Middle frames positioned at the recursive call.
   for (intptr_t frame_index = 2;
@@ -343,7 +343,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
     Dart_StringToCString(script_url, &cstr);
     EXPECT_STREQ("test-lib", cstr);
     EXPECT_EQ(2, line_number);
-    EXPECT_EQ(40, column_number);
+    EXPECT_EQ(37, column_number);
   }
 
   // Bottom frame positioned at testMain().
@@ -357,7 +357,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(3, line_number);
-  EXPECT_EQ(18, column_number);
+  EXPECT_EQ(15, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);

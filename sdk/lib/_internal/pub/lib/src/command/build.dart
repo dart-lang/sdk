@@ -93,7 +93,8 @@ class BuildCommand extends BarbackCommand {
             .map((asset) => asset.id);
 
         return Future.wait(assets.map(_writeAsset)).then((_) {
-          builtFiles += _copyBrowserJsFiles(dart2JSEntrypoints);
+          return _copyBrowserJsFiles(dart2JSEntrypoints, assets);
+        }).then((_) {
           log.message('Built $builtFiles ${pluralize('file', builtFiles)} '
               'to "$outputDirectory".');
 
@@ -190,13 +191,11 @@ class BuildCommand extends BarbackCommand {
   /// If this package depends directly on the `browser` package, this ensures
   /// that the JavaScript bootstrap files are copied into `packages/browser/`
   /// directories next to each entrypoint in [entrypoints].
-  ///
-  /// Returns the number of files it copied.
-  int _copyBrowserJsFiles(Iterable<AssetId> entrypoints) {
+  Future _copyBrowserJsFiles(Iterable<AssetId> entrypoints, AssetSet assets) {
     // Must depend on the browser package.
     if (!entrypoint.root.immediateDependencies.any(
         (dep) => dep.name == 'browser' && dep.source == 'hosted')) {
-      return 0;
+      return new Future.value();
     }
 
     // Get all of the subdirectories that contain Dart entrypoints.
@@ -209,29 +208,17 @@ class BuildCommand extends BarbackCommand {
         .where((dir) => path.split(dir).length > 1)
         .toSet();
 
-    for (var dir in entrypointDirs) {
+    var jsAssets = assets.where((asset) =>
+        asset.id.package == 'browser' && asset.id.extension == '.js');
+    return Future.wait(entrypointDirs.expand((dir) {
       // TODO(nweiz): we should put browser JS files next to any HTML file
       // rather than any entrypoint. An HTML file could import an entrypoint
       // that's not adjacent.
-      _addBrowserJs(dir, "dart");
-      _addBrowserJs(dir, "interop");
-    }
-
-    return entrypointDirs.length * 2;
-  }
-
-  // TODO(nweiz): do something more principled when issue 6101 is fixed.
-  /// Ensures that the [name].js file is copied into [directory] in [target],
-  /// under `packages/browser/`.
-  void _addBrowserJs(String directory, String name) {
-    var jsPath = entrypoint.root.path(
-        outputDirectory, directory, 'packages', 'browser', '$name.js');
-    ensureDir(path.dirname(jsPath));
-
-    // TODO(rnystrom): This won't work if we get rid of symlinks and the top
-    // level "packages" directory. Will need to copy from the browser
-    // directory.
-    copyFile(path.join(entrypoint.packagesDir, 'browser', '$name.js'), jsPath);
+      return jsAssets.map((asset) {
+        var jsPath = path.join(dir, _idToPath(asset.id));
+        return _writeOutputFile(asset, jsPath);
+      });
+    }));
   }
 
   /// Converts [entry] to a JSON object for use with JSON-formatted output.

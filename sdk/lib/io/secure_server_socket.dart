@@ -275,19 +275,11 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
       } else {
         _controller.add(secureConnection);
       }
-    }).catchError((e) {
+    }).catchError((e, s) {
       if (!_closed) {
-        _controller.addError(e);
+        _controller.addError(e, s);
       }
     });
-  }
-
-  void _onError(e, [StackTrace stackTrace]) {
-    _controller.addError(e, stackTrace);
-  }
-
-  void _onDone() {
-    _controller.close();
   }
 
   void _onPauseStateChange() {
@@ -301,14 +293,16 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   void _onSubscriptionStateChange() {
     if (_controller.hasListener) {
       _subscription = _socket.listen(_onData,
-                                     onDone: _onDone,
-                                     onError: _onError);
+                                     onError: _controller.addError,
+                                     onDone: _controller.close);
     } else {
       close();
     }
   }
 
-  void set _owner(owner) { (_socket as dynamic)._owner = owner; }
+  void set _owner(owner) {
+    (_socket as dynamic)._owner = owner;
+  }
 }
 
 

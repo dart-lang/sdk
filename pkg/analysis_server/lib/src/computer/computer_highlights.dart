@@ -168,7 +168,7 @@ class DartUnitHighlightsComputer {
       Element enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isEnum) {
         type = HighlightRegionType.ENUM_CONSTANT;
-      } else if ((element as FieldElement).isStatic) {
+      } else if (element.isStatic) {
         type = HighlightRegionType.FIELD_STATIC;
       } else {
         type = HighlightRegionType.FIELD;

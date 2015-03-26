@@ -275,6 +275,13 @@ class Database(object):
       raise RuntimeError('Dictionary %s already exists' % dictionary_name)
     self._all_dictionaries[dictionary_name] = dictionary
 
+  def GetDictionaries(self):
+    """Returns a list of all loaded dictionaries."""
+    res = []
+    for _, dictionary in sorted(self._all_dictionaries.items()):
+      res.append(dictionary)
+    return res
+
   def TransitiveSecondaryParents(self, interface, propagate_event_target):
     """Returns a list of all non-primary parents.
 

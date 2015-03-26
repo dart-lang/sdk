@@ -9,7 +9,7 @@ namespace dart {
 
 DEFINE_NATIVE_ENTRY(ClassID_getID, 1) {
   const Instance& instance =
-      Instance::CheckedHandle(isolate, arguments->NativeArgAt(0));
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(instance.GetClassId());
 }
 

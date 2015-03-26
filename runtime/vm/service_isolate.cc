@@ -116,6 +116,7 @@ static Dart_Port ExtractPort(Isolate* isolate, Dart_Handle receivePort) {
 
 
 // These must be kept in sync with service/constants.dart
+#define VM_SERVICE_ISOLATE_EXIT_MESSAGE_ID 0
 #define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
 #define VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID 2
 
@@ -134,13 +135,26 @@ static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
 }
 
 
+static RawArray* MakeServiceExitMessage() {
+  const Array& list = Array::Handle(Array::New(1));
+  ASSERT(!list.IsNull());
+  const intptr_t code = VM_SERVICE_ISOLATE_EXIT_MESSAGE_ID;
+  const Integer& code_int = Integer::Handle(Integer::New(code));
+  list.SetAt(0, code_int);
+  return list.raw();
+}
+
+
 const char* ServiceIsolate::kName = "vm-service";
 Isolate* ServiceIsolate::isolate_ = NULL;
 Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::load_port_ = ILLEGAL_PORT;
 Dart_IsolateCreateCallback ServiceIsolate::create_callback_ = NULL;
+uint8_t* ServiceIsolate::exit_message_ = NULL;
+intptr_t ServiceIsolate::exit_message_length_ = 0;
 Monitor* ServiceIsolate::monitor_ = NULL;
 bool ServiceIsolate::initializing_ = true;
+bool ServiceIsolate::shutting_down_ = false;
 
 
 class RegisterRunningIsolatesVisitor : public IsolateVisitor {
@@ -205,7 +219,8 @@ class ServiceIsolateNatives : public AllStatic {
   static void SendIsolateServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
-    StackZone zone(isolate);
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
     GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
@@ -228,7 +243,8 @@ class ServiceIsolateNatives : public AllStatic {
   static void SendRootServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
-    StackZone zone(isolate);
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
     Service::HandleRootMessage(message);
@@ -237,7 +253,8 @@ class ServiceIsolateNatives : public AllStatic {
   static void SetEventMask(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
-    StackZone zone(isolate);
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
     GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(0));
     Service::SetEventMask(mask.AsTruncatedUint32Value());
@@ -276,6 +293,18 @@ class ServiceIsolateNatives : public AllStatic {
       Isolate::VisitIsolates(&register_isolates);
     }
   }
+
+  static void OnExit(Dart_NativeArguments args) {
+    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+    Isolate* isolate = arguments->isolate();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    {
+      if (FLAG_trace_service) {
+        OS::Print("vm-service: processed exit message.\n");
+      }
+    }
+  }
 };
 
 
@@ -295,6 +324,8 @@ static ServiceNativeEntry _ServiceNativeEntries[] = {
     ServiceIsolateNatives::SetEventMask},
   {"VMService_OnStart", 0,
     ServiceIsolateNatives::OnStart },
+  {"VMService_OnExit", 0,
+    ServiceIsolateNatives::OnExit },
 };
 
 
@@ -431,6 +462,23 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
 }
 
 
+void ServiceIsolate::SendServiceExitMessage() {
+  if (!IsRunning()) {
+    return;
+  }
+  if ((exit_message_ == NULL) || (exit_message_length_ == 0)) {
+    return;
+  }
+  if (FLAG_trace_service) {
+    OS::Print("vm-service: sending service exit message.\n");
+  }
+  PortMap::PostMessage(new Message(port_,
+                                   exit_message_,
+                                   exit_message_length_,
+                                   Message::kNormalPriority));
+}
+
+
 void ServiceIsolate::SetServicePort(Dart_Port port) {
   MonitorLocker ml(monitor_);
   port_ = port;
@@ -503,6 +551,31 @@ void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
 }
 
 
+void ServiceIsolate::ConstructExitMessageAndCache(Isolate* isolate) {
+  // Construct and cache exit message here so we can send it without needing an
+  // isolate.
+  StartIsolateScope iso_scope(isolate);
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+  ASSERT(exit_message_ == NULL);
+  ASSERT(exit_message_length_ == 0);
+  const Array& list = Array::Handle(MakeServiceExitMessage());
+  ASSERT(!list.IsNull());
+  MessageWriter writer(&exit_message_, &allocator, false);
+  writer.WriteMessage(list);
+  exit_message_length_ = writer.BytesWritten();
+  ASSERT(exit_message_ != NULL);
+  ASSERT(exit_message_length_ != 0);
+}
+
+
+void ServiceIsolate::FinishedExiting() {
+  MonitorLocker ml(monitor_);
+  shutting_down_ = false;
+  ml.NotifyAll();
+}
+
+
 void ServiceIsolate::FinishedInitializing() {
   MonitorLocker ml(monitor_);
   initializing_ = false;
@@ -539,6 +612,8 @@ class RunServiceTask : public ThreadPool::Task {
     }
 
     Isolate::SetCurrent(NULL);
+
+    ServiceIsolate::ConstructExitMessageAndCache(isolate);
 
     RunMain(isolate);
 
@@ -577,6 +652,7 @@ class RunServiceTask : public ThreadPool::Task {
     if (FLAG_trace_service) {
       OS::Print("vm-service: Shutdown.\n");
     }
+    ServiceIsolate::FinishedExiting();
   }
 
   void RunMain(Isolate* isolate) {
@@ -636,6 +712,24 @@ void ServiceIsolate::Run() {
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();
   Dart::thread_pool()->Run(new RunServiceTask());
+}
+
+
+void ServiceIsolate::Shutdown() {
+  if (!IsRunning()) {
+    return;
+  }
+  {
+    MonitorLocker ml(monitor_);
+    shutting_down_ = true;
+  }
+  SendServiceExitMessage();
+  {
+    MonitorLocker ml(monitor_);
+    while (shutting_down_ && (port_ != ILLEGAL_PORT)) {
+      ml.Wait();
+    }
+  }
 }
 
 

@@ -273,311 +273,20 @@ class OldEmitter implements Emitter {
     return nsmEmitter.buildTrivialNsmHandlers();
   }
 
-  jsAst.FunctionDeclaration get generateAccessorFunction {
-    const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
-    const RANGE2_SIZE = RANGE2_LAST - RANGE2_FIRST + 1;
-    const RANGE1_ADJUST = - (FIRST_FIELD_CODE - RANGE1_FIRST);
-    const RANGE2_ADJUST = - (FIRST_FIELD_CODE + RANGE1_SIZE - RANGE2_FIRST);
-    const RANGE3_ADJUST =
-        - (FIRST_FIELD_CODE + RANGE1_SIZE + RANGE2_SIZE - RANGE3_FIRST);
-
-    String receiverParamName = compiler.enableMinification ? "r" : "receiver";
-    String valueParamName = compiler.enableMinification ? "v" : "value";
-    String reflectableField = namer.reflectableField;
-
-    return js.statement('''
-      function generateAccessor(fieldDescriptor, accessors, cls) {
-        var fieldInformation = fieldDescriptor.split("-");
-        var field = fieldInformation[0];
-        var len = field.length;
-        var code = field.charCodeAt(len - 1);
-        var reflectable;
-        if (fieldInformation.length > 1) reflectable = true;
-             else reflectable = false;
-        code = ((code >= $RANGE1_FIRST) && (code <= $RANGE1_LAST))
-              ? code - $RANGE1_ADJUST
-              : ((code >= $RANGE2_FIRST) && (code <= $RANGE2_LAST))
-                ? code - $RANGE2_ADJUST
-                : ((code >= $RANGE3_FIRST) && (code <= $RANGE3_LAST))
-                  ? code - $RANGE3_ADJUST
-                  : $NO_FIELD_CODE;
-
-        if (code) {  // needsAccessor
-          var getterCode = code & 3;
-          var setterCode = code >> 2;
-          var accessorName = field = field.substring(0, len - 1);
-
-          var divider = field.indexOf(":");
-          if (divider > 0) { // Colon never in first position.
-            accessorName = field.substring(0, divider);
-            field = field.substring(divider + 1);
-          }
-
-          if (getterCode) {  // needsGetter
-            var args = (getterCode & 2) ? "$receiverParamName" : "";
-            var receiver = (getterCode & 1) ? "this" : "$receiverParamName";
-            var body = "return " + receiver + "." + field;
-            var property =
-                cls + ".prototype.${namer.getterPrefix}" + accessorName + "=";
-            var fn = "function(" + args + "){" + body + "}";
-            if (reflectable)
-              accessors.push(property + "\$reflectable(" + fn + ");\\n");
-            else
-              accessors.push(property + fn + ";\\n");
-          }
-
-          if (setterCode) {  // needsSetter
-            var args = (setterCode & 2)
-                ? "$receiverParamName,${_}$valueParamName"
-                : "$valueParamName";
-            var receiver = (setterCode & 1) ? "this" : "$receiverParamName";
-            var body = receiver + "." + field + "$_=$_$valueParamName";
-            var property =
-                cls + ".prototype.${namer.setterPrefix}" + accessorName + "=";
-            var fn = "function(" + args + "){" + body + "}";
-            if (reflectable)
-              accessors.push(property + "\$reflectable(" + fn + ");\\n");
-            else
-              accessors.push(property + fn + ";\\n");
-          }
-        }
-
-        return field;
-      }''');
+  jsAst.Statement buildNativeInfoHandler(
+      jsAst.Expression infoAccess,
+      jsAst.Expression constructorAccess,
+      jsAst.Expression subclassReadGenerator(jsAst.Expression subclass),
+      jsAst.Expression interceptorsByTagAccess,
+      jsAst.Expression leafTagsAccess) {
+    return nativeEmitter.buildNativeInfoHandler(infoAccess, constructorAccess,
+                                                subclassReadGenerator,
+                                                interceptorsByTagAccess,
+                                                leafTagsAccess);
   }
 
-  List<jsAst.Node> get defineClassFunction {
-    // First the class name, then the field names in an array and the members
-    // (inside an Object literal).
-    // The caller can also pass in the constructor as a function if needed.
-    //
-    // Example:
-    // defineClass("A", ["x", "y"], {
-    //  foo$1: function(y) {
-    //   print(this.x + y);
-    //  },
-    //  bar$2: function(t, v) {
-    //   this.x = t - v;
-    //  },
-    // });
-
-    bool hasIsolateSupport = compiler.hasIsolateSupport;
-    String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-
-    jsAst.Expression defineClass = js(r'''
-        function(name, fields) {
-          var accessors = [];
-
-          var str = "function " + name + "(";
-          var body = "";
-          if (#hasIsolateSupport) { var fieldNames = ""; }
-
-          for (var i = 0; i < fields.length; i++) {
-            if(i != 0) str += ", ";
-
-            var field = generateAccessor(fields[i], accessors, name);
-            if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
-            var parameter = "parameter_" + field;
-            str += parameter;
-            body += ("this." + field + " = " + parameter + ";\n");
-          }
-          str += ") {\n" + body + "}\n";
-          str += name + ".builtin$cls=\"" + name + "\";\n";
-          str += "$desc=$collectedClasses." + name + ";\n";
-          str += "if($desc instanceof Array) $desc = \$desc[1];\n";
-          str += name + ".prototype = $desc;\n";
-          if (typeof defineClass.name != "string") {
-            str += name + ".name=\"" + name + "\";\n";
-          }
-          if (#hasIsolateSupport) {
-            str += name + "." + #fieldNamesProperty + "=[" + fieldNames
-                   + "];\n";
-          }
-          str += accessors.join("");
-
-          return str;
-        }''', { 'hasIsolateSupport': hasIsolateSupport,
-                'fieldNamesProperty': js.string(fieldNamesProperty)});
-
-    // Declare a function called "generateAccessor".  This is used in
-    // defineClassFunction.
-    List result = <jsAst.Node>[
-        generateAccessorFunction,
-        new jsAst.FunctionDeclaration(
-            new jsAst.VariableDeclaration('defineClass'), defineClass) ];
-
-    if (compiler.hasIncrementalSupport) {
-      result.add(
-          js(r'#.defineClass = defineClass', [namer.accessIncrementalHelper]));
-    }
-
-    if (hasIsolateSupport) {
-      jsAst.Expression createNewIsolateFunctionAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.CREATE_NEW_ISOLATE);
-      var createIsolateAssignment =
-          js('# = function() { return new ${namer.isolateName}(); }',
-             createNewIsolateFunctionAccess);
-
-      jsAst.Expression classIdExtractorAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.CLASS_ID_EXTRACTOR);
-      var classIdExtractorAssignment =
-          js('# = function(o) { return o.constructor.name; }',
-              classIdExtractorAccess);
-
-      jsAst.Expression classFieldsExtractorAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.CLASS_FIELDS_EXTRACTOR);
-      var classFieldsExtractorAssignment = js('''
-      # = function(o) {
-        var fieldNames = o.constructor.$fieldNamesProperty;
-        if (!fieldNames) return [];  // TODO(floitsch): do something else here.
-        var result = [];
-        result.length = fieldNames.length;
-        for (var i = 0; i < fieldNames.length; i++) {
-          result[i] = o[fieldNames[i]];
-        }
-        return result;
-      }''', classFieldsExtractorAccess);
-
-      jsAst.Expression instanceFromClassIdAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.INSTANCE_FROM_CLASS_ID);
-      jsAst.Expression allClassesAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
-      var instanceFromClassIdAssignment =
-          js('# = function(name) { return new #[name](); }',
-             [instanceFromClassIdAccess, allClassesAccess]);
-
-      jsAst.Expression initializeEmptyInstanceAccess =
-          generateEmbeddedGlobalAccess(embeddedNames.INITIALIZE_EMPTY_INSTANCE);
-      var initializeEmptyInstanceAssignment = js('''
-      # = function(name, o, fields) {
-        #[name].apply(o, fields);
-        return o;
-      }''', [ initializeEmptyInstanceAccess, allClassesAccess ]);
-
-      result.addAll([createIsolateAssignment,
-                     classIdExtractorAssignment,
-                     classFieldsExtractorAssignment,
-                     instanceFromClassIdAssignment,
-                     initializeEmptyInstanceAssignment]);
-    }
-
-    return result;
-  }
-
-  /** Needs defineClass to be defined. */
-  jsAst.Expression buildInheritFrom() {
-    jsAst.Expression result = js(r"""
-        function() {
-          function tmp() {}
-          return function (constructor, superConstructor) {
-            if (superConstructor == null) {
-              // Fix up the the Dart Object class' prototype.
-              var prototype = constructor.prototype;
-              prototype.constructor = constructor;
-              prototype.#isObject = constructor;
-              return prototype;
-            }
-            tmp.prototype = superConstructor.prototype;
-            var object = new tmp();
-            var properties = constructor.prototype;
-            var members = Object.keys(properties);
-            for (var i = 0; i < members.length; i++) {
-              var member = members[i];
-              object[member] = properties[member];
-            }
-            // Use a function for `true` here, as functions are stored in the
-            // hidden class and not as properties in the object.
-            object[#operatorIsPrefix + constructor.name] = constructor;
-            object.constructor = constructor;
-            constructor.prototype = object;
-            return object;
-          };
-        }()
-      """, { 'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
-             'isObject' : namer.operatorIs(compiler.objectClass) });
-    if (compiler.hasIncrementalSupport) {
-      result = js(
-          r'#.inheritFrom = #', [namer.accessIncrementalHelper, result]);
-    }
-    return js(r'var inheritFrom = #', [result]);
-  }
-
-  jsAst.Statement buildFinishClass(bool needsNativeSupport) {
-    String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
-
-    jsAst.Expression finishedClassesAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
-
-    jsAst.Expression nativeInfoAccess = js('prototype[$specProperty]', []);
-    jsAst.Expression constructorAccess = js('constructor', []);
-    Function subclassReadGenerator =
-        (jsAst.Expression subclass) => js('allClasses[#]', subclass);
-    jsAst.Expression interceptorsByTagAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
-    jsAst.Expression leafTagsAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
-    jsAst.Statement nativeInfoHandler = nativeEmitter.buildNativeInfoHandler(
-        nativeInfoAccess,
-        constructorAccess,
-        subclassReadGenerator,
-        interceptorsByTagAccess,
-        leafTagsAccess);
-
-    return js.statement('''
-    {
-      var finishedClasses = #finishedClassesAccess;
-
-      function finishClass(cls) {
-
-        if (finishedClasses[cls]) return;
-        finishedClasses[cls] = true;
-
-        var superclass = processedClasses.pending[cls];
-
-        if (#needsMixinSupport) {
-          if (superclass && superclass.indexOf("+") > 0) {
-            var s = superclass.split("+");
-            superclass = s[0];
-            var mixinClass = s[1];
-            finishClass(mixinClass);
-            var mixin = allClasses[mixinClass];
-            var mixinPrototype = mixin.prototype;
-            var clsPrototype = allClasses[cls].prototype;
-
-            var properties = Object.keys(mixinPrototype);
-            for (var i = 0; i < properties.length; i++) {
-              var d = properties[i];
-              if (!hasOwnProperty.call(clsPrototype, d))
-                clsPrototype[d] = mixinPrototype[d];
-            }
-          }
-        }
-
-        // The superclass is only false (empty string) for the Dart Object
-        // class.  The minifier together with noSuchMethod can put methods on
-        // the Object.prototype object, and they show through here, so we check
-        // that we have a string.
-        if (!superclass || typeof superclass != "string") {
-          inheritFrom(allClasses[cls], null);
-          return;
-        }
-        finishClass(superclass);
-        var superConstructor = allClasses[superclass];
-
-        if (!superConstructor)
-          superConstructor = existingIsolateProperties[superclass];
-
-        var constructor = allClasses[cls];
-        var prototype = inheritFrom(constructor, superConstructor);
-
-        if (#needsNativeSupport)
-          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty))
-            #nativeInfoHandler
-      }
-    }''', {'finishedClassesAccess': finishedClassesAccess,
-           'needsMixinSupport': needsMixinSupport,
-           'needsNativeSupport': needsNativeSupport,
-           'nativeInfoHandler': nativeInfoHandler});
+  jsAst.ObjectInitializer generateInterceptedNamesSet() {
+    return interceptorEmitter.generateInterceptedNamesSet();
   }
 
   void emitFinishIsolateConstructorInvocation(CodeOutput output) {
@@ -851,21 +560,26 @@ class OldEmitter implements Emitter {
             code]);
   }
 
-  void emitMetadata(List<String> globalMetadata, CodeOutput output) {
-    String metadataAccess =
-        generateEmbeddedGlobalAccessString(embeddedNames.METADATA);
-    output.add('$metadataAccess$_=$_[');
-    for (String metadata in globalMetadata) {
-      if (metadata is String) {
-        if (metadata != 'null') {
-          output.add(metadata);
-        }
-      } else {
-        throw 'Unexpected value in metadata: ${Error.safeToString(metadata)}';
-      }
-      output.add(',$n');
-    }
-    output.add('];$n');
+  void emitMetadata(Program program, CodeOutput output) {
+
+   addMetadataGlobal(List<String> list, String global) {
+     String globalAccess = generateEmbeddedGlobalAccessString(global);
+     output.add('$globalAccess$_=$_[');
+     for (String data in list) {
+       if (data is String) {
+         if (data != 'null') {
+           output.add(data);
+         }
+       } else {
+         throw 'Unexpected value in ${global}: ${Error.safeToString(data)}';
+       }
+       output.add(',$n');
+     }
+     output.add('];$n');
+   }
+
+   addMetadataGlobal(program.metadata, embeddedNames.METADATA);
+   addMetadataGlobal(program.metadataTypes, embeddedNames.TYPES);
   }
 
   void emitCompileTimeConstants(CodeOutput output,
@@ -1095,6 +809,20 @@ class OldEmitter implements Emitter {
     }
   }
 
+  String get markerFun => 'markerFun';
+
+  void emitMarkerFun(CodeOutput output) {
+    jsAst.Statement markerFunStmt = js.statement('''
+      // This function is used to mark the end of the inheritance chain so that
+      // finishAddStubsHelper knows where to stop searching for deferred work.
+      // We have to put it at the top level so that we only get one instance of
+      // it even if we call parseReflectionData multiple times, e.g., due to 
+      // deferred loading.
+      function #() {}''', markerFun);
+    output.addBuffer(jsAst.prettyPrint(markerFunStmt, compiler));
+    output.add(N);
+  }
+
   void emitConvertToFastObjectFunction(CodeOutput output) {
     List<jsAst.Statement> debugCode = <jsAst.Statement>[];
     if (DEBUG_FAST_OBJECTS) {
@@ -1126,7 +854,44 @@ class OldEmitter implements Emitter {
     output.add(N);
   }
 
-  void writeLibraryDescriptors(CodeOutput output, LibraryElement library) {
+  void emitConvertToSlowObjectFunction(CodeOutput output) {
+    jsAst.Statement convertToSlowObject = js.statement(r'''
+    function convertToSlowObject(properties) {
+      // Add and remove a property to make the object transition into hashmap
+      // mode.
+      properties.__MAGIC_SLOW_PROPERTY = 1;
+      delete properties.__MAGIC_SLOW_PROPERTY;
+      return properties;
+    }''');
+
+    output.addBuffer(jsAst.prettyPrint(convertToSlowObject, compiler));
+    output.add(N);
+  }
+
+  void emitSupportsDirectProtoAccess(CodeOutput output) {
+    jsAst.Statement supportsDirectProtoAccess;
+
+    if (compiler.hasIncrementalSupport) {
+      supportsDirectProtoAccess = js.statement(r'''
+        var supportsDirectProtoAccess = false;
+      ''');
+    } else {
+      supportsDirectProtoAccess = js.statement(r'''
+        var supportsDirectProtoAccess = (function () {
+          var cls = function () {};
+          cls.prototype = {'p': {}};
+          var object = new cls();
+          return object.__proto__ &&
+                 object.__proto__.p === cls.prototype.p;
+         })();
+      ''');
+    }
+
+    output.addBuffer(jsAst.prettyPrint(supportsDirectProtoAccess, compiler));
+    output.add(N);
+  }
+
+  void writeLibraryDescriptor(CodeOutput output, LibraryElement library) {
     var uri = "";
     if (!compiler.enableMinification || backend.mustPreserveUris) {
       uri = library.canonicalUri;
@@ -1191,8 +956,7 @@ class OldEmitter implements Emitter {
           #constructorName.builtin$cls = #constructorNameString;
           if (!"name" in #constructorName)
               #constructorName.name = #constructorNameString;
-          $desc = $collectedClasses.#constructorName;
-          if ($desc instanceof Array) $desc = $desc[1];
+          $desc = $collectedClasses.#constructorName[1];
           #constructorName.prototype = $desc;
           ''' /* next string is not a raw string */ '''
           if (#hasIsolateSupport) {
@@ -1355,6 +1119,7 @@ class OldEmitter implements Emitter {
     // Using a named function here produces easier to read stack traces in
     // Chrome/V8.
     mainOutput.add('(function(${namer.currentIsolate})$_{\n');
+    emitSupportsDirectProtoAccess(mainOutput);
     if (compiler.hasIncrementalSupport) {
       mainOutput.addBuffer(jsAst.prettyPrint(js.statement(
           """
@@ -1365,7 +1130,7 @@ class OldEmitter implements Emitter {
   #helper.addMethod = #addMethod;
   #helper.extractStubs = function(array, name, isStatic, originalDescriptor) {
     var descriptor = Object.create(null);
-    this.addStubs(descriptor, array, name, isStatic, originalDescriptor, []);
+    this.addStubs(descriptor, array, name, isStatic, []);
     return descriptor;
   };
 }""",
@@ -1411,8 +1176,8 @@ class OldEmitter implements Emitter {
       mainOutput.add(
           '${globalsHolder}.${namer.isolateName}$_=$_${namer.isolateName}$N'
           '${globalsHolder}.$initName$_=${_}$initName$N'
-          '${globalsHolder}.$parseReflectionDataName$_=$_'
-            '$parseReflectionDataName$N');
+          '${globalsHolder}.$setupProgramName$_=$_'
+            '$setupProgramName$N');
     }
     mainOutput.add('init()$N$n');
     mainOutput.add('$isolateProperties$_=$_$isolatePropertiesName$N');
@@ -1430,17 +1195,32 @@ class OldEmitter implements Emitter {
 
     CodeBuffer libraryBuffer = new CodeBuffer();
     for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-      writeLibraryDescriptors(libraryBuffer, library);
+      writeLibraryDescriptor(libraryBuffer, library);
       elementDescriptors.remove(library);
     }
 
+    if (elementDescriptors.isNotEmpty) {
+      List<Element> remainingLibraries = elementDescriptors.keys
+          .where((Element e) => e is LibraryElement)
+          .toList();
+
+      // The remaining descriptors are only accessible through reflection.
+      // The program builder does not collect libraries that only
+      // contain typedefs that are used for reflection.
+      for (LibraryElement element in remainingLibraries) {
+        assert(element is LibraryElement || compiler.hasIncrementalSupport);
+        if (element is LibraryElement) {
+          writeLibraryDescriptor(libraryBuffer, element);
+          elementDescriptors.remove(element);
+        }
+      }
+    }
+
     bool needsNativeSupport = program.needsNativeSupport;
-    mainOutput
-        ..addBuffer(
-            jsAst.prettyPrint(
-                getReflectionDataParser(this, backend, needsNativeSupport),
-                compiler))
-        ..add(n);
+    mainOutput.addBuffer(
+        jsAst.prettyPrint(
+            buildSetupProgram(program, compiler, backend, namer, this),
+            compiler));
 
     // The argument to reflectionDataParser is assigned to a temporary 'dart'
     // so that 'dart.' will appear as the prefix to dart methods in stack
@@ -1457,9 +1237,10 @@ class OldEmitter implements Emitter {
               compiler,
               monitor: compiler.dumpInfoTask,
               allowVariableMinification: false));
+      mainOutput.add(N);
     }
 
-    mainOutput.add('$parseReflectionDataName(dart)$N');
+    mainOutput.add('$setupProgramName(dart)$N');
 
     interceptorEmitter.emitGetInterceptorMethods(mainOutput);
     interceptorEmitter.emitOneShotInterceptors(mainOutput);
@@ -1489,7 +1270,7 @@ class OldEmitter implements Emitter {
 
     mainOutput.add('\n');
 
-    emitMetadata(task.metadataCollector.globalMetadata, mainOutput);
+    emitMetadata(program, mainOutput);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the
@@ -1501,6 +1282,9 @@ class OldEmitter implements Emitter {
         '${namer.currentIsolate}$_=${_}new ${namer.isolateName}()$N');
 
     emitConvertToFastObjectFunction(mainOutput);
+    emitConvertToSlowObjectFunction(mainOutput);
+    emitMarkerFun(mainOutput);
+
     for (String globalObject in Namer.reservedGlobalObjectNames) {
       mainOutput.add('$globalObject = convertToFastObject($globalObject)$N');
     }
@@ -1703,7 +1487,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         CodeBuffer buffer = new CodeBuffer();
         outputBuffers[outputUnit] = buffer;
         for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-          writeLibraryDescriptors(buffer, library);
+          writeLibraryDescriptor(buffer, library);
           elementDescriptors.remove(library);
         }
       }
@@ -1888,8 +1672,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       }
       output
           ..add('var init$_=$_${globalsHolder}.init$N')
-          ..add('var $parseReflectionDataName$_=$_'
-                    '$globalsHolder.$parseReflectionDataName$N')
+          ..add('var $setupProgramName$_=$_'
+                    '$globalsHolder.$setupProgramName$N')
           ..add('var ${namer.isolateName}$_=$_'
                     '${globalsHolder}.${namer.isolateName}$N');
       if (libraryDescriptorBuffer != null) {
@@ -1915,8 +1699,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
                   precompiledFunctionAst, compiler,
                   monitor: compiler.dumpInfoTask,
                   allowVariableMinification: false));
+          output.add(N);
         }
-        output.add('$parseReflectionDataName(dart)$N');
+        output.add('$setupProgramName(dart)$N');
       }
 
       // Set the currentIsolate variable to the current isolate (which is

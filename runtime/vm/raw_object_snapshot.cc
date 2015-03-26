@@ -28,7 +28,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
-  Class& cls = Class::ZoneHandle(reader->isolate(), Class::null());
+  Class& cls = Class::ZoneHandle(reader->zone(), Class::null());
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
@@ -139,7 +139,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
 
   // Allocate unresolved class object.
   UnresolvedClass& unresolved_class = UnresolvedClass::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(UnresolvedClass));
+      reader->zone(), NEW_OBJECT(UnresolvedClass));
   reader->AddBackRef(object_id, &unresolved_class, kIsDeserialized);
 
   // Set the object tags.
@@ -206,7 +206,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate type object.
-  Type& type = Type::ZoneHandle(reader->isolate(), NEW_OBJECT(Type));
+  Type& type = Type::ZoneHandle(reader->zone(), NEW_OBJECT(Type));
   reader->AddBackRef(object_id, &type, kIsDeserialized);
 
   // Set all non object fields.
@@ -281,7 +281,7 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
 
   // Allocate type ref object.
   TypeRef& type_ref = TypeRef::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(TypeRef));
+      reader->zone(), NEW_OBJECT(TypeRef));
   reader->AddBackRef(object_id, &type_ref, kIsDeserialized);
 
   // Set the object tags.
@@ -327,7 +327,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
   // Allocate type parameter object.
   TypeParameter& type_parameter = TypeParameter::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(TypeParameter));
+      reader->zone(), NEW_OBJECT(TypeParameter));
   reader->AddBackRef(object_id, &type_parameter, kIsDeserialized);
 
   // Set the object tags.
@@ -387,7 +387,7 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
 
   // Allocate bounded type object.
   BoundedType& bounded_type = BoundedType::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(BoundedType));
+      reader->zone(), NEW_OBJECT(BoundedType));
   reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
 
   // Set the object tags.
@@ -452,7 +452,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   intptr_t len = reader->ReadSmiValue();
 
   TypeArguments& type_arguments = TypeArguments::ZoneHandle(
-      reader->isolate(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
+      reader->zone(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
   reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
 
   // Set the instantiations field, which is only read from a full snapshot.
@@ -531,7 +531,7 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
          (kind == Snapshot::kFull));
 
   // Allocate function object.
-  PatchClass& cls = PatchClass::ZoneHandle(reader->isolate(),
+  PatchClass& cls = PatchClass::ZoneHandle(reader->zone(),
                                             NEW_OBJECT(PatchClass));
   reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
@@ -583,7 +583,7 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
 
   // Allocate closure data object.
   ClosureData& data = ClosureData::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(ClosureData));
+      reader->zone(), NEW_OBJECT(ClosureData));
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set the object tags.
@@ -643,7 +643,7 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
 
   // Allocate redirection data object.
   RedirectionData& data = RedirectionData::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(RedirectionData));
+      reader->zone(), NEW_OBJECT(RedirectionData));
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set the object tags.
@@ -695,7 +695,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
 
   // Allocate function object.
   Function& func = Function::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(Function));
+      reader->zone(), NEW_OBJECT(Function));
   reader->AddBackRef(object_id, &func, kIsDeserialized);
 
   // Set the object tags.
@@ -773,7 +773,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
          (kind == Snapshot::kFull));
 
   // Allocate field object.
-  Field& field = Field::ZoneHandle(reader->isolate(), NEW_OBJECT(Field));
+  Field& field = Field::ZoneHandle(reader->zone(), NEW_OBJECT(Field));
   reader->AddBackRef(object_id, &field, kIsDeserialized);
 
   // Set the object tags.
@@ -837,7 +837,7 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
 
   // Create the literal token object.
   LiteralToken& literal_token = LiteralToken::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(LiteralToken));
+      reader->zone(), NEW_OBJECT(LiteralToken));
   reader->AddBackRef(object_id, &literal_token, kIsDeserialized);
 
   // Set the object tags.
@@ -897,7 +897,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
 
   // Create the token stream object.
   TokenStream& token_stream = TokenStream::ZoneHandle(
-      reader->isolate(), NEW_OBJECT_WITH_LEN(TokenStream, len));
+      reader->zone(), NEW_OBJECT_WITH_LEN(TokenStream, len));
   reader->AddBackRef(object_id, &token_stream, kIsDeserialized);
 
   // Set the object tags.
@@ -906,7 +906,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Read the stream of tokens into the TokenStream object for script
   // snapshots as we made a copy of token stream.
   if (kind == Snapshot::kScript) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawExternalTypedData* stream = token_stream.GetStream();
     reader->ReadBytes(stream->ptr()->data_, len);
   }
@@ -960,7 +960,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
          (kind == Snapshot::kFull));
 
   // Allocate script object.
-  Script& script = Script::ZoneHandle(reader->isolate(), NEW_OBJECT(Script));
+  Script& script = Script::ZoneHandle(reader->zone(), NEW_OBJECT(Script));
   reader->AddBackRef(object_id, &script, kIsDeserialized);
 
   // Set the object tags.
@@ -1024,7 +1024,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   ASSERT(kind != Snapshot::kMessage);
 
-  Library& library = Library::ZoneHandle(reader->isolate(), Library::null());
+  Library& library = Library::ZoneHandle(reader->zone(), Library::null());
   reader->AddBackRef(object_id, &library, kIsDeserialized);
 
   if ((kind == Snapshot::kScript) && RawObject::IsCreatedFromSnapshot(tags)) {
@@ -1139,7 +1139,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
 
   // Allocate library prefix object.
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(LibraryPrefix));
+      reader->zone(), NEW_OBJECT(LibraryPrefix));
   reader->AddBackRef(object_id, &prefix, kIsDeserialized);
 
   // Set the object tags.
@@ -1203,7 +1203,7 @@ RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
 
   // Allocate Namespace object.
   Namespace& ns = Namespace::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(Namespace));
+      reader->zone(), NEW_OBJECT(Namespace));
   reader->AddBackRef(object_id, &ns, kIsDeserialized);
 
   // Set the object tags.
@@ -1366,7 +1366,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
 
   // Allocate context object.
   int32_t num_vars = reader->Read<int32_t>();
-  Context& context = Context::ZoneHandle(reader->isolate());
+  Context& context = Context::ZoneHandle(reader->zone());
   reader->AddBackRef(object_id, &context, kIsDeserialized);
   if (num_vars == 0) {
     context ^= reader->object_store()->empty_context();
@@ -1501,7 +1501,7 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
 
   // Allocate ApiError object.
   ApiError& api_error =
-      ApiError::ZoneHandle(reader->isolate(), NEW_OBJECT(ApiError));
+      ApiError::ZoneHandle(reader->zone(), NEW_OBJECT(ApiError));
   reader->AddBackRef(object_id, &api_error, kIsDeserialized);
 
   // Set the object tags.
@@ -1547,7 +1547,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
 
   // Allocate LanguageError object.
   LanguageError& language_error =
-      LanguageError::ZoneHandle(reader->isolate(), NEW_OBJECT(LanguageError));
+      LanguageError::ZoneHandle(reader->zone(), NEW_OBJECT(LanguageError));
   reader->AddBackRef(object_id, &language_error, kIsDeserialized);
 
   // Set the object tags.
@@ -1599,7 +1599,7 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
                                                     intptr_t tags,
                                                     Snapshot::Kind kind) {
   UnhandledException& result = UnhandledException::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(UnhandledException));
+      reader->zone(), NEW_OBJECT(UnhandledException));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   // Set the object tags.
@@ -1658,7 +1658,7 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
 
   // Create an Instance object or get canonical one if it is a canonical
   // constant.
-  Instance& obj = Instance::ZoneHandle(reader->isolate(), Instance::null());
+  Instance& obj = Instance::ZoneHandle(reader->zone(), Instance::null());
   if (kind == Snapshot::kFull) {
     obj = reader->NewInstance();
   } else {
@@ -1709,7 +1709,7 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
   int64_t value = reader->Read<int64_t>();
 
   // Create a Mint object or get canonical one if it is a canonical constant.
-  Mint& mint = Mint::ZoneHandle(reader->isolate(), Mint::null());
+  Mint& mint = Mint::ZoneHandle(reader->zone(), Mint::null());
   if (kind == Snapshot::kFull) {
     mint = reader->NewMint(value);
   } else {
@@ -1759,7 +1759,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate bigint object.
-  Bigint& obj = Bigint::ZoneHandle(reader->isolate(), NEW_OBJECT(Bigint));
+  Bigint& obj = Bigint::ZoneHandle(reader->zone(), NEW_OBJECT(Bigint));
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Set all the object fields.
@@ -1822,7 +1822,7 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   double value = reader->ReadDouble();
 
   // Create a Double object or get canonical one if it is a canonical constant.
-  Double& dbl = Double::ZoneHandle(reader->isolate(), Double::null());
+  Double& dbl = Double::ZoneHandle(reader->zone(), Double::null());
   if (kind == Snapshot::kFull) {
     dbl = reader->NewDouble(value);
   } else {
@@ -1889,10 +1889,8 @@ void String::ReadFromImpl(SnapshotReader* reader,
   ASSERT(reader != NULL);
   if (RawObject::IsCanonical(tags)) {
     // Set up canonical string object.
-    Isolate* isolate = reader->isolate();
     ASSERT(reader != NULL);
-    CharacterType* ptr =
-        isolate->current_zone()->Alloc<CharacterType>(len);
+    CharacterType* ptr = reader->zone()->Alloc<CharacterType>(len);
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
@@ -1905,7 +1903,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     if (len == 0) {
       return;
     }
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     CharacterType* str_addr = StringType::CharAddr(*str_obj, 0);
     for (intptr_t i = 0; i < len; i++) {
       *str_addr = reader->Read<CharacterType>();
@@ -1923,10 +1921,10 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   intptr_t len = reader->ReadSmiValue();
   intptr_t hash = reader->ReadSmiValue();
-  String& str_obj = String::Handle(reader->isolate(), String::null());
+  String& str_obj = String::Handle(reader->zone(), String::null());
 
   if (kind == Snapshot::kFull) {
-    ASSERT(reader->isolate()->no_gc_scope_depth() != 0);
+    ASSERT(reader->isolate()->no_safepoint_scope_depth() != 0);
     RawOneByteString* obj = reader->NewOneByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
@@ -1953,14 +1951,14 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   intptr_t len = reader->ReadSmiValue();
   intptr_t hash = reader->ReadSmiValue();
-  String& str_obj = String::Handle(reader->isolate(), String::null());
+  String& str_obj = String::Handle(reader->zone(), String::null());
 
   if (kind == Snapshot::kFull) {
     RawTwoByteString* obj = reader->NewTwoByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
     str_obj.SetHash(hash);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     uint16_t* raw_ptr = (len > 0)? CharAddr(str_obj, 0) : NULL;
     for (intptr_t i = 0; i < len; i++) {
       ASSERT(CharAddr(str_obj, i) == raw_ptr);  // Will trigger assertions.
@@ -2120,7 +2118,7 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
   Array* array = reinterpret_cast<Array*>(
       reader->GetBackRef(object_id));
   if (array == NULL) {
-    array = &(Array::ZoneHandle(reader->isolate(),
+    array = &(Array::ZoneHandle(reader->zone(),
                                 NEW_OBJECT_WITH_LEN_SPACE(Array, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
@@ -2141,7 +2139,7 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
   Array* array = reinterpret_cast<Array*>(reader->GetBackRef(object_id));
   if (array == NULL) {
     array = &(Array::ZoneHandle(
-        reader->isolate(),
+        reader->zone(),
         NEW_OBJECT_WITH_LEN_SPACE(ImmutableArray, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
@@ -2186,7 +2184,7 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
 
   // Read the length so that we can determine instance size to allocate.
   GrowableObjectArray& array = GrowableObjectArray::ZoneHandle(
-      reader->isolate(), GrowableObjectArray::null());
+      reader->zone(), GrowableObjectArray::null());
   if (kind == Snapshot::kFull) {
     array = reader->NewGrowableObjectArray();
   } else {
@@ -2230,7 +2228,7 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   LinkedHashMap& map = LinkedHashMap::ZoneHandle(
-      reader->isolate(), LinkedHashMap::null());
+      reader->zone(), LinkedHashMap::null());
   if (kind == Snapshot::kFull || kind == Snapshot::kScript) {
     // The immutable maps that seed map literals are not yet VM-internal, so
     // we don't reach this.
@@ -2283,7 +2281,7 @@ RawFloat32x4* Float32x4::ReadFrom(SnapshotReader* reader,
   float value3 = reader->Read<float>();
 
   // Create a Float32x4 object.
-  Float32x4& simd = Float32x4::ZoneHandle(reader->isolate(),
+  Float32x4& simd = Float32x4::ZoneHandle(reader->zone(),
                                           Float32x4::null());
   if (kind == Snapshot::kFull) {
     simd = reader->NewFloat32x4(value0, value1, value2, value3);
@@ -2329,7 +2327,7 @@ RawInt32x4* Int32x4::ReadFrom(SnapshotReader* reader,
   uint32_t value3 = reader->Read<uint32_t>();
 
   // Create a Float32x4 object.
-  Int32x4& simd = Int32x4::ZoneHandle(reader->isolate(), Int32x4::null());
+  Int32x4& simd = Int32x4::ZoneHandle(reader->zone(), Int32x4::null());
 
   if (kind == Snapshot::kFull) {
     simd = reader->NewInt32x4(value0, value1, value2, value3);
@@ -2373,7 +2371,7 @@ RawFloat64x2* Float64x2::ReadFrom(SnapshotReader* reader,
   double value1 = reader->Read<double>();
 
   // Create a Float64x2 object.
-  Float64x2& simd = Float64x2::ZoneHandle(reader->isolate(),
+  Float64x2& simd = Float64x2::ZoneHandle(reader->zone(),
                                           Float64x2::null());
   if (kind == Snapshot::kFull) {
     simd = reader->NewFloat64x2(value0, value1);
@@ -2419,7 +2417,7 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
 
   intptr_t cid = RawObject::ClassIdTag::decode(tags);
   intptr_t len = reader->ReadSmiValue();
-  TypedData& result = TypedData::ZoneHandle(reader->isolate(),
+  TypedData& result = TypedData::ZoneHandle(reader->zone(),
       (kind == Snapshot::kFull) ? reader->NewTypedData(cid, len)
                                 : TypedData::New(cid, len, HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
@@ -2434,7 +2432,7 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid: {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
       reader->ReadBytes(data, length_in_bytes);
       break;
@@ -2631,7 +2629,7 @@ RawCapability* Capability::ReadFrom(SnapshotReader* reader,
                                     Snapshot::Kind kind) {
   uint64_t id = reader->Read<uint64_t>();
 
-  Capability& result = Capability::ZoneHandle(reader->isolate(),
+  Capability& result = Capability::ZoneHandle(reader->zone(),
                                               Capability::New(id));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
   return result.raw();
@@ -2682,7 +2680,7 @@ RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
   uint64_t id = reader->Read<uint64_t>();
   uint64_t origin_id = reader->Read<uint64_t>();
 
-  SendPort& result = SendPort::ZoneHandle(reader->isolate(),
+  SendPort& result = SendPort::ZoneHandle(reader->zone(),
                                           SendPort::New(id, origin_id));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
   return result.raw();
@@ -2709,7 +2707,7 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
                                     intptr_t tags,
                                     Snapshot::Kind kind) {
   if (kind == Snapshot::kFull) {
-    Stacktrace& result = Stacktrace::ZoneHandle(reader->isolate(),
+    Stacktrace& result = Stacktrace::ZoneHandle(reader->zone(),
                                                 reader->NewStacktrace());
     reader->AddBackRef(object_id, &result, kIsDeserialized);
 
@@ -2774,7 +2772,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
   // Allocate JSRegExp object.
   JSRegExp& regex = JSRegExp::ZoneHandle(
-      reader->isolate(), JSRegExp::New(len, HEAP_SPACE(kind)));
+      reader->zone(), JSRegExp::New(len, HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Set the object tags.
@@ -2827,7 +2825,7 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
 
   // Allocate the weak property object.
   WeakProperty& weak_property = WeakProperty::ZoneHandle(
-      reader->isolate(), WeakProperty::New(HEAP_SPACE(kind)));
+      reader->zone(), WeakProperty::New(HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &weak_property, kIsDeserialized);
 
   // Set the object tags.

@@ -93,10 +93,6 @@ class Symbols;
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& CheckedHandle(Isolate* isolate, RawObject* raw_ptr) {         \
-    return CheckedHandle(isolate->current_zone(), raw_ptr);                    \
-  }                                                                            \
   static object& CheckedHandle(RawObject* raw_ptr) {                           \
     return CheckedHandle(Thread::Current()->zone(), raw_ptr);                  \
   }                                                                            \
@@ -106,10 +102,6 @@ class Symbols;
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& ZoneHandle(Isolate* isolate, Raw##object* raw_ptr) {          \
-    return ZoneHandle(isolate->current_zone(), raw_ptr);                       \
-  }                                                                            \
   static object* ReadOnlyHandle() {                                            \
     object* obj = reinterpret_cast<object*>(                                   \
         Dart::AllocateReadOnlyHandle());                                       \
@@ -118,10 +110,6 @@ class Symbols;
   }                                                                            \
   static object& ZoneHandle(Zone* zone) {                                      \
     return ZoneHandle(zone, object::null());                                   \
-  }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& ZoneHandle(Isolate* isolate) {                                \
-    return ZoneHandle(isolate->current_zone(), object::null());                \
   }                                                                            \
   static object& ZoneHandle() {                                                \
     return ZoneHandle(Thread::Current()->zone(), object::null());              \
@@ -374,19 +362,19 @@ class Object {
     return Handle(Isolate::Current(), raw_ptr);
   }
 
-  static Object& ZoneHandle(Isolate* isolate, RawObject* raw_ptr) {
+  static Object& ZoneHandle(Zone* zone, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(
-        VMHandles::AllocateZoneHandle(isolate->current_zone()));
+        VMHandles::AllocateZoneHandle(zone));
     initializeHandle(obj, raw_ptr);
     return *obj;
   }
 
   static Object& ZoneHandle() {
-    return ZoneHandle(Isolate::Current(), null_);
+    return ZoneHandle(Thread::Current()->zone(), null_);
   }
 
   static Object& ZoneHandle(RawObject* raw_ptr) {
-    return ZoneHandle(Isolate::Current(), raw_ptr);
+    return ZoneHandle(Thread::Current()->zone(), raw_ptr);
   }
 
   static RawObject* null() { return null_; }
@@ -671,16 +659,16 @@ class Object {
   }
 
   // Provides non-const access to non-pointer fields within the object. Such
-  // access does not need a write barrier, but it is *not* GC-safe (since the
-  // object might move), hence must be fully contained within a NoGCScope.
+  // access does not need a write barrier, but it is *not* GC-safe, since the
+  // object might move, hence must be fully contained within a NoSafepointScope.
   template<typename FieldType>
   FieldType* UnsafeMutableNonPointer(const FieldType* addr) const {
     // Allow pointers at the end of variable-length data, and disallow pointers
     // within the header word.
     ASSERT(Contains(reinterpret_cast<uword>(addr) - 1) &&
            Contains(reinterpret_cast<uword>(addr) - kWordSize));
-    // At least check that there is a NoGCScope, and hope it's big enough.
-    ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
+    // At least check that there is a NoSafepointScope and hope it's big enough.
+    ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
     return const_cast<FieldType*>(addr);
   }
 
@@ -833,12 +821,17 @@ class PassiveObject : public Object {
   void operator^=(RawObject* value) {
     raw_ = value;
   }
-  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
+
+  static PassiveObject& Handle(Zone* zone, RawObject* raw_ptr) {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
-        VMHandles::AllocateHandle(I->current_zone()));
+        VMHandles::AllocateHandle(zone));
     obj->raw_ = raw_ptr;
     obj->set_vtable(0);
     return *obj;
+  }
+  // DEPRECATED - use Zone version.
+  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
+    return Handle(I->current_zone(), raw_ptr);
   }
   static PassiveObject& Handle(RawObject* raw_ptr) {
     return Handle(Isolate::Current(), raw_ptr);
@@ -846,30 +839,28 @@ class PassiveObject : public Object {
   static PassiveObject& Handle() {
     return Handle(Isolate::Current(), Object::null());
   }
-  // DEPRECATED
-  // TODO(koda): Add Zone version.
+  static PassiveObject& Handle(Zone* zone) {
+    return Handle(zone, Object::null());
+  }
+  // DEPRECATED - use Zone version.
   static PassiveObject& Handle(Isolate* I) {
     return Handle(I, Object::null());
   }
-  // DEPRECATED
-  // TODO(koda): Add Zone version.
-  static PassiveObject& ZoneHandle(Isolate* I, RawObject* raw_ptr) {
+  static PassiveObject& ZoneHandle(Zone* zone, RawObject* raw_ptr) {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
-        VMHandles::AllocateZoneHandle(I->current_zone()));
+        VMHandles::AllocateZoneHandle(zone));
     obj->raw_ = raw_ptr;
     obj->set_vtable(0);
     return *obj;
   }
   static PassiveObject& ZoneHandle(RawObject* raw_ptr) {
-    return ZoneHandle(Isolate::Current(), raw_ptr);
+    return ZoneHandle(Thread::Current()->zone(), raw_ptr);
   }
   static PassiveObject& ZoneHandle() {
-    return ZoneHandle(Isolate::Current(), Object::null());
+    return ZoneHandle(Thread::Current()->zone(), Object::null());
   }
-  // DEPRECATED
-  // TODO(koda): Add Zone version.
-  static PassiveObject& ZoneHandle(Isolate* I) {
-    return ZoneHandle(I, Object::null());
+  static PassiveObject& ZoneHandle(Zone* zone) {
+    return ZoneHandle(zone, Object::null());
   }
 
  private:
@@ -1811,8 +1802,6 @@ class Function : public Object {
   }
   bool HasCode() const;
 
-  RawGrowableObjectArray* CollectICsWithSourcePositions() const;
-
   static intptr_t instructions_offset() {
     return OFFSET_OF(RawFunction, instructions_);
   }
@@ -2253,9 +2242,12 @@ class Function : public Object {
   // abstract: Skipped during instance-side resolution.
   // reflectable: Enumerated by mirrors, invocable by mirrors. False for private
   //              functions of dart: libraries.
-  // debuggable: Valid location of a break point. True for functions with source
-  //             code; false for synthetic functions such as dispatchers. Also
-  //             used to decide whether to include a frame in stack traces.
+  // debuggable: Valid location of a breakpoint. Synthetic code is not
+  //             debuggable.
+  // visible: Frame is included in stack traces. Synthetic code such as
+  //          dispatchers is not visible. Synthetic code that can trigger
+  //          exceptions such as the outer async functions that create Futures
+  //          is visible.
   // optimizable: Candidate for going through the optimizing compiler. False for
   //              some functions known to be execute infrequently and functions
   //              which have been de-optimized too many times.
@@ -2273,6 +2265,7 @@ class Function : public Object {
   V(Const, is_const)                                                           \
   V(Abstract, is_abstract)                                                     \
   V(Reflectable, is_reflectable)                                               \
+  V(Visible, is_visible)                                                       \
   V(Debuggable, is_debuggable)                                                 \
   V(Optimizable, is_optimizable)                                               \
   V(Inlinable, is_inlinable)                                                   \
@@ -3292,7 +3285,7 @@ class PcDescriptors : public Object {
                      int64_t deopt_id,
                      int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
     rec->set_pc_offset(pc_offset);
     rec->set_kind(kind);
@@ -3356,23 +3349,23 @@ class PcDescriptors : public Object {
     }
 
     uword PcOffset() const {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       return descriptors_.recAt(current_ix_)->pc_offset();
     }
     intptr_t DeoptId() const {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       return descriptors_.recAt(current_ix_)->deopt_id();
     }
     intptr_t TokenPos() const {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       return descriptors_.recAt(current_ix_)->token_pos();
     }
     intptr_t TryIndex() const {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       return descriptors_.recAt(current_ix_)->try_index();
     }
     RawPcDescriptors::Kind Kind() const {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       return descriptors_.recAt(current_ix_)->kind();
     }
 
@@ -3391,7 +3384,7 @@ class PcDescriptors : public Object {
 
     // Moves to record that matches kind_mask_.
     void MoveToMatching() {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       while (next_ix_ < descriptors_.Length()) {
         const RawPcDescriptors::PcDescriptorRec& rec =
             *descriptors_.recAt(next_ix_);
@@ -3896,9 +3889,9 @@ class ICData : public Object {
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
 
-  void PrintToJSONArray(JSONArray* jsarray,
-                        intptr_t line,
-                        intptr_t column) const;
+  void PrintToJSONArray(const JSONArray& jsarray,
+                        intptr_t token_pos,
+                        bool is_static_call) const;
 
  private:
   RawArray* ic_data() const {
@@ -4155,7 +4148,7 @@ class Code : public Object {
   static RawCode* FindCode(uword pc, int64_t timestamp);
 
   int32_t GetPointerOffsetAt(int index) const {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     return *PointerOffsetAddrAt(index);
   }
   intptr_t GetTokenIndexOfPC(uword pc) const;
@@ -4266,7 +4259,7 @@ class Code : public Object {
     return &UnsafeMutableNonPointer(raw_ptr()->data())[index];
   }
   void SetPointerOffsetAt(int index, int32_t offset_in_instructions) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
 
@@ -6087,7 +6080,7 @@ class OneByteString : public AllStatic {
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint8_t code_unit) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     *CharAddr(str, index) = code_unit;
   }
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
@@ -6218,7 +6211,7 @@ class TwoByteString : public AllStatic {
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint16_t ch) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     *CharAddr(str, index) = ch;
   }
 
@@ -6324,7 +6317,7 @@ class TwoByteString : public AllStatic {
 class ExternalOneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     return *CharAddr(str, index);
   }
 
@@ -6404,7 +6397,7 @@ class ExternalOneByteString : public AllStatic {
 class ExternalTwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     return *CharAddr(str, index);
   }
 
@@ -6532,7 +6525,7 @@ class Array : public Instance {
     return *ObjectAddr(index);
   }
   void SetAt(intptr_t index, const Object& value) const {
-    // TODO(iposva): Add storing NoGCScope.
+    // TODO(iposva): Add storing NoSafepointScope.
     StorePointer(ObjectAddr(index), value.raw());
   }
 
@@ -6664,7 +6657,7 @@ class ImmutableArray : public AllStatic {
 class GrowableObjectArray : public Instance {
  public:
   intptr_t Capacity() const {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     ASSERT(!IsNull());
     return Smi::Value(DataArray()->length_);
   }
@@ -6684,7 +6677,7 @@ class GrowableObjectArray : public Instance {
   }
 
   RawObject* At(intptr_t index) const {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     ASSERT(!IsNull());
     ASSERT(index < Length());
     return *ObjectAddr(index);
@@ -6693,7 +6686,7 @@ class GrowableObjectArray : public Instance {
     ASSERT(!IsNull());
     ASSERT(index < Length());
 
-    // TODO(iposva): Add storing NoGCScope.
+    // TODO(iposva): Add storing NoSafepointScope.
     DataStorePointer(ObjectAddr(index), value.raw());
   }
 
@@ -6942,11 +6935,11 @@ class TypedData : public Instance {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    NoGCScope no_gc;                                                           \
+    NoSafepointScope no_safepoint;                                             \
     return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoGCScope no_gc;                                                           \
+    NoSafepointScope no_safepoint;                                             \
     *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
   }
   TYPED_GETTER_SETTER(Int8, int8_t)
@@ -7015,7 +7008,7 @@ class TypedData : public Instance {
                              length_in_bytes,
                              dst.LengthInBytes()));
     {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       if (length_in_bytes > 0) {
         memmove(dst.DataAddr(dst_offset_in_bytes),
                 src.DataAddr(src_offset_in_bytes),
@@ -7036,7 +7029,7 @@ class TypedData : public Instance {
                              length_in_bytes,
                              dst.LengthInBytes()));
     {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       if (length_in_bytes > 0) {
         uint8_t* dst_data =
             reinterpret_cast<uint8_t*>(dst.DataAddr(dst_offset_in_bytes));
@@ -7766,7 +7759,7 @@ void Context::SetAt(intptr_t index, const Object& value) const {
 
 intptr_t Instance::GetNativeField(int index) const {
   ASSERT(IsValidNativeIndex(index));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   RawTypedData* native_fields =
       reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
   if (native_fields == TypedData::null()) {
@@ -7778,7 +7771,7 @@ intptr_t Instance::GetNativeField(int index) const {
 
 void Instance::GetNativeFields(uint16_t num_fields,
                                intptr_t* field_values) const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   ASSERT(num_fields == NumNativeFields());
   ASSERT(field_values != NULL);
   RawTypedData* native_fields =

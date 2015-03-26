@@ -918,17 +918,15 @@ patch class LinkedHashMap<K, V> {
         if (equals == null) {
           if (_useInternalCached) {
             return new _InternalLinkedHashMap<K, V>();
-          } else if (_useCompactCached) {
-            return new _CompactLinkedHashMap<K, V>();
           } else {
-            return new _LinkedHashMap<K, V>();
+            return new _CompactLinkedHashMap<K, V>();
           }
         }
         hashCode = _defaultHashCode;
       } else {
         if (identical(identityHashCode, hashCode) &&
             identical(identical, equals)) {
-          return new _LinkedIdentityHashMap<K, V>();
+          return new _CompactLinkedIdentityHashMap<K, V>();
         }
         if (equals == null) {
           equals = _defaultEquals;
@@ -942,123 +940,15 @@ patch class LinkedHashMap<K, V> {
         equals = _defaultEquals;
       }
     }
-    return new _LinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
+    return new _CompactLinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 
-  /* patch */ factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
+  /* patch */ factory LinkedHashMap.identity() =
+      _CompactLinkedIdentityHashMap<K, V>;
 
   static final bool _useInternalCached = _useInternal;
   static bool get _useInternal native "LinkedHashMap_useInternal";
-  static final bool _useCompactCached = _useCompact;
-  static bool get _useCompact native "LinkedHashMap_useCompact";
 }
-
-// Methods that are exactly the same in all three linked hash map variants.
-abstract class _LinkedHashMapMixin<K, V> implements LinkedHashMap<K, V> {
-  var _nextEntry;
-  var _previousEntry;
-
-
-  bool containsValue(Object value) {
-    int modificationCount = _modificationCount;
-    var cursor = _nextEntry;
-    while (!identical(cursor, this)) {
-      _HashMapEntry entry = cursor;
-      if (entry.value == value) return true;
-      if (modificationCount != _modificationCount) {
-        throw new ConcurrentModificationError(this);
-      }
-      cursor = cursor._nextEntry;
-    }
-    return false;
-  }
-
-  void forEach(void action(K key, V value)) {
-    int modificationCount = _modificationCount;
-    var cursor = _nextEntry;
-    while (!identical(cursor, this)) {
-      _HashMapEntry entry = cursor;
-      action(entry.key, entry.value);
-      if (modificationCount != _modificationCount) {
-        throw new ConcurrentModificationError(this);
-      }
-      cursor = cursor._nextEntry;
-    }
-  }
-
-  void clear() {
-    _nextEntry = _previousEntry = this;
-    _buckets = new List(_HashMap._INITIAL_CAPACITY);
-    if (_elementCount > 0) {
-      _elementCount = 0;
-      _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-    }
-  }
-
-  void _addEntry(List buckets, int index, int length,
-                 K key, V value, int hashCode) {
-    _HashMapEntry entry =
-        new _LinkedHashMapEntry(key, value, hashCode, buckets[index],
-                                _previousEntry, this);
-    buckets[index] = entry;
-    int newElements = _elementCount + 1;
-    _elementCount = newElements;
-
-    // If we end up with more than 75% non-empty entries, we
-    // resize the backing store.
-    if ((newElements << 2) > ((length << 1) + length)) _resize();
-    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-  }
-
-  void _removeEntry(_LinkedHashMapEntry entry,
-                    _HashMapEntry previousInBucket,
-                    int bucketIndex) {
-    var previousInChain = entry._previousEntry;
-    var nextInChain = entry._nextEntry;
-    previousInChain._nextEntry = nextInChain;
-    nextInChain._previousEntry = previousInChain;
-    if (previousInBucket == null) {
-      _buckets[bucketIndex] = entry.next;
-    } else {
-      previousInBucket.next = entry.next;
-    }
-  }
-
-
-  Iterable<K> get keys => new _LinkedHashMapKeyIterable<K>(this);
-  Iterable<V> get values => new _LinkedHashMapValueIterable<V>(this);
-}
-
-class _LinkedHashMap<K, V> extends _HashMap<K, V>
-                           with _LinkedHashMapMixin<K, V> {
-  _LinkedHashMap() {
-    _nextEntry = _previousEntry = this;
-  }
-
-  Set<K> _newKeySet() => new _LinkedHashSet<K>();
-}
-
-class _LinkedIdentityHashMap<K, V> extends _IdentityHashMap<K, V>
-                                   with _LinkedHashMapMixin<K, V> {
-  _LinkedIdentityHashMap() {
-    _nextEntry = _previousEntry = this;
-  }
-
-  Set<K> _newKeySet() => new _LinkedIdentityHashSet<K>();
-}
-
-class _LinkedCustomHashMap<K, V> extends _CustomHashMap<K, V>
-                                 with _LinkedHashMapMixin<K, V> {
-  _LinkedCustomHashMap(bool equals(K key1, K key2),
-                       int hashCode(K key),
-                       bool isValidKey(potentialKey))
-      : super(equals, hashCode, isValidKey) {
-    _nextEntry = _previousEntry = this;
-  }
-  Set<K> _newKeySet() =>
-      new _LinkedCustomHashSet<K>(_equals, _hashCode, _validKey);
-}
-
 
 patch class LinkedHashSet<E> {
   /* patch */ factory LinkedHashSet({ bool equals(E e1, E e2),
@@ -1067,17 +957,13 @@ patch class LinkedHashSet<E> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          if (LinkedHashMap._useCompactCached) {
-            return new _CompactLinkedHashSet<E>();
-          } else {
-            return new _LinkedHashSet<E>();
-          }
+          return new _CompactLinkedHashSet<E>();
         }
         hashCode = _defaultHashCode;
       } else {
         if (identical(identityHashCode, hashCode) &&
             identical(identical, equals)) {
-          return new _LinkedIdentityHashSet<E>();
+          return new _CompactLinkedIdentityHashSet<E>();
         }
         if (equals == null) {
           equals = _defaultEquals;
@@ -1091,196 +977,9 @@ patch class LinkedHashSet<E> {
         equals = _defaultEquals;
       }
     }
-    return new _LinkedCustomHashSet<E>(equals, hashCode, isValidKey);
+    return new _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
-  /* patch */ factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
-}
-
-class _LinkedHashSetEntry extends _HashSetEntry {
-  /// Links this element into a double-linked list of elements of a hash set.
-  /// The hash set object itself is used as the head entry of the list, so
-  /// the field is typed as "var".
-  /// Both links are initialized to `this` when the object is created.
-  var _nextEntry;
-  var _previousEntry;
-  _LinkedHashSetEntry(var key, int hashCode, _LinkedHashSetEntry next,
-                      this._previousEntry, this._nextEntry)
-      : super(key, hashCode, next) {
-    _previousEntry._nextEntry = _nextEntry._previousEntry = this;
-  }
-
-  _LinkedHashSetEntry remove() {
-    _previousEntry._nextEntry = _nextEntry;
-    _nextEntry._previousEntry = _previousEntry;
-    _nextEntry = _previousEntry = this;
-    return super.remove();
-  }
-}
-
-class _LinkedHashSet<E> extends _HashSet<E>
-                        implements LinkedHashSet<E> {
-  /// Holds a double linked list of the element entries of the set in
-  /// insertion order.
-  /// The fields have the same names as the ones in [_LinkedHashSetEntry],
-  /// allowing this object to be used as the head entry of the list.
-  /// The fields are initialized to `this` when created, representing the
-  /// empty list that only contains the head entry.
-  var _nextEntry;
-  var _previousEntry;
-
-  _LinkedHashSet() {
-    _nextEntry = _previousEntry = this;
-  }
-
-  // Iterable.
-
-  Iterator<E> get iterator => new _LinkedHashSetIterator<E>(this);
-
-  void forEach(void action(E element)) {
-    var cursor = _nextEntry;
-    int modificationCount = _modificationCount;
-    while (!identical(cursor, this)) {
-      _LinkedHashSetEntry entry = cursor;
-      action(entry.key);
-      if (_modificationCount != modificationCount) {
-        throw new ConcurrentModificationError(this);
-      }
-      cursor = entry._nextEntry;
-    }
-  }
-
-  E get first {
-    if (identical(_nextEntry, this)) {
-      throw new StateError("No elements");
-    }
-    _LinkedHashSetEntry entry = _nextEntry;
-    return entry.key;
-  }
-
-  E get last {
-    if (identical(_previousEntry, this)) {
-      throw new StateError("No elements");
-    }
-    _LinkedHashSetEntry entry = _previousEntry;
-    return entry.key;
-  }
-
-  // Set.
-
-  void _filterWhere(bool test(E element), bool removeMatching) {
-    var cursor = _nextEntry;
-    while (!identical(cursor, this)) {
-      _LinkedHashSetEntry entry = cursor;
-      int modificationCount = _modificationCount;
-      bool testResult = test(entry.key);
-      if (modificationCount != _modificationCount) {
-        throw new ConcurrentModificationError(this);
-      }
-      cursor = entry._nextEntry;
-      if (testResult == removeMatching) {
-        _remove(entry.key, entry.hashCode);
-      }
-    }
-  }
-
-  void _addEntry(E key, int hashCode, int index) {
-    _buckets[index] =
-        new _LinkedHashSetEntry(key, hashCode, _buckets[index],
-                                _previousEntry, this);
-    int newElements = _elementCount + 1;
-    _elementCount = newElements;
-    int length = _buckets.length;
-    // If we end up with more than 75% non-empty entries, we
-    // resize the backing store.
-    if ((newElements << 2) > ((length << 1) + length)) _resize();
-    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-  }
-
-  void clear() {
-    _nextEntry = _previousEntry = this;
-    super.clear();
-  }
-
-  HashSet<E> _newSet() => new _LinkedHashSet<E>();
-}
-
-class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
-  int _hashCode(e) => identityHashCode(e);
-  bool _equals(e1, e2) => identical(e1, e2);
-  HashSet<E> _newSet() => new _LinkedIdentityHashSet<E>();
-}
-
-class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
-  final _Equality<E> _equality;
-  final _Hasher<E> _hasher;
-  final _Predicate _validKey;
-
-  _LinkedCustomHashSet(this._equality, this._hasher, bool validKey(Object o))
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
-
-  bool _equals(e1, e2) => _equality(e1, e2);
-
-  int _hashCode(e) => _hasher(e);
-
-  bool contains(Object o) {
-    if (!_validKey(o)) return false;
-    return super.contains(o);
-  }
-
-  E lookup(Object o) {
-    if (!_validKey(o)) return null;
-    return super.lookup(o);
-  }
-
-  bool remove(Object o) {
-    if (!_validKey(o)) return false;
-    return super.remove(o);
-  }
-
-  bool containsAll(Iterable<Object> elements) {
-    for (Object element in elements) {
-      if (!_validKey(element) || !this.contains(element)) return false;
-    }
-    return true;
-  }
-
-  void removeAll(Iterable<Object> elements) {
-    for (Object element in elements) {
-      if (_validKey(element)) {
-        super._remove(element, _hasher(element));
-      }
-    }
-  }
-
-  HashSet<E> _newSet() =>
-      new _LinkedCustomHashSet<E>(_equality, _hasher, _validKey);
-}
-
-class _LinkedHashSetIterator<E> implements Iterator<E> {
-  final _LinkedHashSet _set;
-  final int _modificationCount;
-  var _next;
-  E _current;
-
-  _LinkedHashSetIterator(_LinkedHashSet hashSet)
-      : _set = hashSet,
-        _modificationCount = hashSet._modificationCount,
-        _next = hashSet._nextEntry;
-
-  bool moveNext() {
-    if (_modificationCount != _set._modificationCount) {
-      throw new ConcurrentModificationError(_set);
-    }
-    if (identical(_set, _next)) {
-      _current = null;
-      return false;
-    }
-    _LinkedHashSetEntry entry = _next;
-    _current = entry.key;
-    _next = entry._nextEntry;
-    return true;
-  }
-
-  E get current => _current;
+  /* patch */ factory LinkedHashSet.identity() =
+      _CompactLinkedIdentityHashSet<E>;
 }

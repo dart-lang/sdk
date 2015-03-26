@@ -387,7 +387,7 @@ void Object::InitOnce(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
-  // TODO(iposva): NoGCScope needs to be added here.
+  // TODO(iposva): NoSafepointScope needs to be added here.
   ASSERT(class_class() == null_);
   // Initialize the static vtable values.
   {
@@ -850,7 +850,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 void Object::MakeUnusedSpaceTraversable(const Object& obj,
                                         intptr_t original_size,
                                         intptr_t used_size) {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
+  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
   ASSERT(!obj.IsNull());
   ASSERT(original_size >= used_size);
   if (original_size > used_size) {
@@ -1680,7 +1680,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
   } else {
     isolate->class_table()->UpdateAllocatedOld(cls_id, size);
   }
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
@@ -1729,7 +1729,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   const Class& cls = Class::Handle(orig.clazz());
   intptr_t size = orig.raw()->Size();
   RawObject* raw_clone = Object::Allocate(cls.id(), size, space);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   // TODO(koda): This will trip when we start allocating black.
   // Revisit code below at that point, to account for the new write barrier.
   ASSERT(!raw_clone->IsMarked());
@@ -1851,7 +1851,7 @@ RawClass* Class::New() {
     RawObject* raw = Object::Allocate(Class::kClassId,
                                       Class::InstanceSize(),
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   FakeObject fake;
@@ -2589,6 +2589,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   }
   invocation.set_result_type(Type::Handle(Type::DynamicType()));
   invocation.set_is_debuggable(false);
+  invocation.set_is_visible(false);
   invocation.set_is_reflectable(false);
   invocation.set_saved_args_desc(args_desc);
 
@@ -2950,7 +2951,7 @@ RawClass* Class::New(intptr_t index) {
     RawObject* raw = Object::Allocate(Class::kClassId,
                                       Class::InstanceSize(),
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   FakeInstance fake;
@@ -3889,7 +3890,7 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   }
   if (name.IsSymbol()) {
     // Quick Symbol compare.
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       if (function.name() == name.raw()) {
@@ -4776,7 +4777,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
     RawObject* raw = Object::Allocate(TypeArguments::kClassId,
                                       TypeArguments::InstanceSize(len),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     // Length must be set before we start storing into the array.
     result.SetLength(len);
@@ -6090,7 +6091,7 @@ bool Function::IsImplicitClosureFunction() const {
 
 
 bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   uint32_t kind_tag = func->ptr()->kind_tag_;
   if (KindBits::decode(kind_tag) != RawFunction::kClosureFunction) {
     return false;
@@ -6136,6 +6137,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_external(is_external);
   result.set_is_native(is_native);
   result.set_is_reflectable(true);  // Will be computed later.
+  result.set_is_visible(true);  // Will be computed later.
   result.set_is_debuggable(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
@@ -6237,6 +6239,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
+  result.set_is_visible(false);
   result.set_eval_script(script);
   return result.raw();
 }
@@ -6266,6 +6269,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
   // Set closure function's end token to this end token.
   closure_function.set_end_token_pos(end_token_pos());
+
+  // The closurized method stub just calls into the original method and should
+  // therefore be skipped by the debugger and in stack traces.
+  closure_function.set_is_debuggable(false);
+  closure_function.set_is_visible(false);
 
   // Set closure function's formal parameters to this formal parameters,
   // removing the receiver if this is an instance method and adding the closure
@@ -6657,8 +6665,8 @@ void Function::SaveICDataMap(
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
-  Isolate* isolate = Isolate::Current();
-  const Array& saved_icd = Array::Handle(isolate, ic_data_array());
+  Zone* zone = Thread::Current()->zone();
+  const Array& saved_icd = Array::Handle(zone, ic_data_array());
   if (saved_icd.Length() == 0) {
     deopt_id_to_ic_data->Clear();
     return;
@@ -6671,7 +6679,7 @@ void Function::RestoreICDataMap(
     (*deopt_id_to_ic_data)[i] = NULL;
   }
   for (intptr_t i = 0; i < saved_icd.Length(); i++) {
-    ICData& icd = ICData::ZoneHandle(isolate);
+    ICData& icd = ICData::ZoneHandle(zone);
     icd ^= saved_icd.At(i);
     (*deopt_id_to_ic_data)[icd.deopt_id()] = &icd;
   }
@@ -6848,46 +6856,6 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("tokenPos", token_pos());
     jsobj.AddProperty("endTokenPos", end_token_pos());
   }
-}
-
-
-RawGrowableObjectArray* Function::CollectICsWithSourcePositions() const {
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new ZoneGrowableArray<const ICData*>();
-  RestoreICDataMap(ic_data_array);
-  const Code& code = Code::Handle(unoptimized_code());
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      code.pc_descriptors());
-
-  const intptr_t begin_pos = token_pos();
-  const intptr_t end_pos = end_token_pos();
-
-  const Script& script = Script::Handle(this->script());
-  const GrowableObjectArray& result =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-
-  PcDescriptors::Iterator iter(descriptors,
-      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
-  while (iter.MoveNext()) {
-    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (!ic_data->IsNull()) {
-      const intptr_t token_pos = iter.TokenPos();
-      // Filter out descriptors that do not map to tokens in the source code.
-      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
-        continue;
-      }
-
-      intptr_t line = -1;
-      intptr_t column = -1;
-      script.GetTokenLocation(token_pos, &line, &column);
-
-      result.Add(*ic_data);
-      result.Add(Smi::Handle(Smi::New(line)));
-      result.Add(Smi::Handle(Smi::New(column)));
-    }
-  }
-
-  return result.raw();
 }
 
 
@@ -7979,7 +7947,7 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   result.SetPrivateKey(private_key);
   const Array& token_objects = Array::Handle(data.MakeTokenObjectsArray());
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result.SetStream(stream);
     result.SetTokenObjects(token_objects);
   }
@@ -10522,7 +10490,7 @@ RawInstructions* Instructions::New(intptr_t size) {
     RawObject* raw = Object::Allocate(Instructions::kClassId,
                                       aligned_size,
                                       Heap::kCode);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_size(size);
   }
@@ -10575,7 +10543,7 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors,
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(num_descriptors);
     result.SetRecordSizeInBytes(rec_size);
@@ -10606,7 +10574,7 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  OS::Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
+  ISL_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
             addr_width, "pc");
 }
 
@@ -10738,7 +10706,7 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
   int byte_index = bit_index >> kBitsPerByteLog2;
   int bit_remainder = bit_index & (kBitsPerByte - 1);
   uint8_t byte_mask = 1U << bit_remainder;
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   uint8_t* byte_addr = UnsafeMutableNonPointer(&raw_ptr()->data()[byte_index]);
   if (value) {
     *byte_addr |= byte_mask;
@@ -10770,7 +10738,7 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
     RawObject* raw = Object::Allocate(Stackmap::kClassId,
                                       Stackmap::InstanceSize(length),
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
   }
@@ -10994,7 +10962,7 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
     RawObject* raw = Object::Allocate(LocalVarDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_variables);
   }
@@ -11018,7 +10986,7 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   RawExceptionHandlers::HandlerInfo* info =
       UnsafeMutableNonPointer(&raw_ptr()->data()[try_index]);
   info->outer_try_index = outer_try_index;
@@ -11099,7 +11067,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
     RawObject* raw = Object::Allocate(ExceptionHandlers::kClassId,
                                       size,
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_handlers);
   }
@@ -11126,8 +11094,8 @@ const char* ExceptionHandlers::ToCString() const {
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
-    ASSERT(!handled_types.IsNull());
-    const intptr_t num_types = handled_types.Length();
+    const intptr_t num_types =
+        handled_types.IsNull() ? 0 : handled_types.Length();
     len += OS::SNPrint(NULL, 0, kFormat,
                        i,
                        info.handler_pc_offset,
@@ -11146,7 +11114,8 @@ const char* ExceptionHandlers::ToCString() const {
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
-    const intptr_t num_types = handled_types.Length();
+    const intptr_t num_types =
+        handled_types.IsNull() ? 0 : handled_types.Length();
     num_chars += OS::SNPrint((buffer + num_chars),
                              (len - num_chars),
                              kFormat,
@@ -11177,13 +11146,13 @@ intptr_t DeoptInfo::Length() const {
 
 
 intptr_t DeoptInfo::FromIndex(intptr_t index) const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   return *(EntryAddr(index, kFromIndex));
 }
 
 
 intptr_t DeoptInfo::Instruction(intptr_t index) const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   return *(EntryAddr(index, kInstruction));
 }
 
@@ -11303,7 +11272,7 @@ RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
     RawObject* raw = Object::Allocate(DeoptInfo::kClassId,
                                       size,
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(num_commands);
   }
@@ -11321,7 +11290,7 @@ void DeoptInfo::SetLength(intptr_t value) const {
 void DeoptInfo::SetAt(intptr_t index,
                       intptr_t instr_kind,
                       intptr_t from_index) const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   *(EntryAddr(index, kInstruction)) = instr_kind;
   *(EntryAddr(index, kFromIndex)) = from_index;
 }
@@ -11672,7 +11641,7 @@ intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
 intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   ASSERT(index < NumberOfChecks());
   const intptr_t data_pos = index * TestEntryLength();
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   RawArray* raw_data = ic_data();
   return Smi::Value(Smi::RawCast(raw_data->ptr()->data()[data_pos]));
 }
@@ -11682,7 +11651,7 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
   const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
   ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
 
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   RawArray* raw_data = ic_data();
   return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
 }
@@ -11882,7 +11851,7 @@ RawICData* ICData::New(const Function& owner,
     RawObject* raw = Object::Allocate(ICData::kClassId,
                                       ICData::InstanceSize(),
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_owner(owner);
@@ -11906,27 +11875,38 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void ICData::PrintToJSONArray(JSONArray* jsarray,
-                              intptr_t line,
-                              intptr_t column) const {
+void ICData::PrintToJSONArray(const JSONArray& jsarray,
+                              intptr_t token_pos,
+                              bool is_static_call) const {
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle();
+  Function& func = Function::Handle();
 
-  JSONObject jsobj(jsarray);
+  JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  jsobj.AddProperty("line", line);
-  jsobj.AddProperty("column", column);
+  jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
 
   JSONArray cache_entries(&jsobj, "cacheEntries");
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    intptr_t cid = GetReceiverClassIdAt(i);
-    cls ^= isolate->class_table()->At(cid);
+    func = GetTargetAt(i);
+    if (is_static_call) {
+      cls ^= func.Owner();
+    } else {
+      intptr_t cid = GetReceiverClassIdAt(i);
+      cls ^= isolate->class_table()->At(cid);
+    }
     intptr_t count = GetCountAt(i);
     JSONObject cache_entry(&cache_entries);
-    cache_entry.AddProperty("receiverClass", cls);
+    if (cls.IsTopLevel()) {
+      cache_entry.AddProperty("receiverContainer",
+                              Library::Handle(cls.library()));
+    } else {
+      cache_entry.AddProperty("receiverContainer", cls);
+    }
     cache_entry.AddProperty("count", count);
+    cache_entry.AddProperty("target", func);
   }
 }
 
@@ -12156,7 +12136,7 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc,
 
 
 intptr_t Code::BinarySearchInSCallTable(uword pc) const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
   RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
   intptr_t imin = 0;
@@ -12288,7 +12268,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
   {
     uword size = Code::InstanceSize(pointer_offsets_length);
     RawObject* raw = Object::Allocate(Code::kClassId, size, Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
@@ -12333,7 +12313,7 @@ RawCode* Code::FinalizeCode(const char* name,
                            optimized);
 
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     const ZoneGrowableArray<intptr_t>& pointer_offsets =
         assembler->GetPointerOffsets();
     ASSERT(pointer_offsets.length() == pointer_offset_count);
@@ -12402,7 +12382,7 @@ bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) const {
 
 RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   FindRawCodeVisitor visitor(pc);
   RawInstructions* instr;
   if (isolate->heap() == NULL) {
@@ -12670,7 +12650,7 @@ RawStackmap* Code::GetStackmap(
     uint32_t pc_offset, Array* maps, Stackmap* map) const {
   // This code is used during iterating frames during a GC and hence it
   // should not in turn start a GC.
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   if (stackmaps() == Array::null()) {
     // No stack maps are present in the code object which means this
     // frame relies on tagged pointers.
@@ -12792,7 +12772,7 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
     RawObject* raw = Object::Allocate(Context::kClassId,
                                       Context::InstanceSize(num_variables),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_num_variables(num_variables);
   }
@@ -12896,7 +12876,7 @@ RawContextScope* ContextScope::New(intptr_t num_variables) {
     RawObject* raw = Object::Allocate(ContextScope::kClassId,
                                       size,
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_num_variables(num_variables);
   }
@@ -13061,7 +13041,7 @@ RawMegamorphicCache* MegamorphicCache::New() {
   { RawObject* raw = Object::Allocate(MegamorphicCache::kClassId,
                                       MegamorphicCache::InstanceSize(),
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   const intptr_t capacity = kInitialCapacity;
@@ -13148,7 +13128,7 @@ RawSubtypeTestCache* SubtypeTestCache::New() {
     RawObject* raw = Object::Allocate(SubtypeTestCache::kClassId,
                                       SubtypeTestCache::InstanceSize(),
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   const Array& cache = Array::Handle(Array::New(kTestEntryLength));
@@ -13163,7 +13143,7 @@ void SubtypeTestCache::set_cache(const Array& value) const {
 
 
 intptr_t SubtypeTestCache::NumberOfChecks() const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   // Do not count the sentinel;
   return (Smi::Value(cache()->ptr()->length_) / kTestEntryLength) - 1;
 }
@@ -13249,7 +13229,7 @@ RawApiError* ApiError::New(const String& message, Heap::Space space) {
     RawObject* raw = Object::Allocate(ApiError::kClassId,
                                       ApiError::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_message(message);
@@ -13303,7 +13283,7 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
     RawObject* raw = Object::Allocate(LanguageError::kClassId,
                                       LanguageError::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_previous_error(prev_error);
@@ -13325,7 +13305,7 @@ RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
   va_start(args, format);
   RawLanguageError* result = LanguageError::NewFormattedV(
       prev_error, script, token_pos, kind, space, format, args);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   va_end(args);
   return result;
 }
@@ -13340,7 +13320,7 @@ RawLanguageError* LanguageError::New(const String& formatted_message,
     RawObject* raw = Object::Allocate(LanguageError::kClassId,
                                       LanguageError::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_formatted_message(formatted_message);
@@ -13428,7 +13408,7 @@ RawUnhandledException* UnhandledException::New(const Instance& exception,
     RawObject* raw = Object::Allocate(UnhandledException::kClassId,
                                       UnhandledException::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_exception(exception);
@@ -13444,7 +13424,7 @@ RawUnhandledException* UnhandledException::New(Heap::Space space) {
     RawObject* raw = Object::Allocate(UnhandledException::kClassId,
                                       UnhandledException::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_exception(Object::null_instance());
@@ -13524,7 +13504,7 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
     RawObject* raw = Object::Allocate(UnwindError::kClassId,
                                       UnwindError::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_message(message);
@@ -13590,7 +13570,7 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   }
 
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     // Raw bits compare.
     const intptr_t instance_size = Class::Handle(this->clazz()).instance_size();
     ASSERT(instance_size != 0);
@@ -13817,7 +13797,7 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 
 
 intptr_t* Instance::NativeFieldsDataAddr() const {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
+  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
   RawTypedData* native_fields =
       reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
   if (native_fields == TypedData::null()) {
@@ -13966,7 +13946,7 @@ const char* Instance::ToCString() const {
     return "unknown_constant";
   } else if (raw() == Object::non_constant().raw()) {
     return "non_constant";
-  } else if (Isolate::Current()->no_gc_scope_depth() > 0) {
+  } else if (Isolate::Current()->no_safepoint_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";
   } else {
@@ -16372,7 +16352,7 @@ RawMint* Mint::New(int64_t val, Heap::Space space) {
     RawObject* raw = Object::Allocate(Mint::kClassId,
                                       Mint::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_value(val);
@@ -16522,7 +16502,7 @@ RawDouble* Double::New(double d, Heap::Space space) {
     RawObject* raw = Object::Allocate(Double::kClassId,
                                       Double::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_value(d);
@@ -16726,7 +16706,7 @@ RawBigint* Bigint::New(Heap::Space space) {
     RawObject* raw = Object::Allocate(Bigint::kClassId,
                                       Bigint::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.SetNeg(false);
@@ -16748,7 +16728,7 @@ RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
     RawObject* raw = Object::Allocate(Bigint::kClassId,
                                       Bigint::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   // Clamp the digits array.
@@ -17405,7 +17385,7 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
     return;
   }
   if (str.IsOneByteString()) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     uint8_t* str_addr = OneByteString::CharAddr(str, begin_index);
     for (intptr_t i = 0; i < len; i++) {
       Add(*str_addr);
@@ -17683,7 +17663,7 @@ RawString* String::FromUTF8(const uint8_t* utf8_array,
   if (type == Utf8::kLatin1) {
     const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       Utf8::DecodeToLatin1(utf8_array, array_len,
                            OneByteString::CharAddr(strobj, 0), len);
     }
@@ -17691,7 +17671,7 @@ RawString* String::FromUTF8(const uint8_t* utf8_array,
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   const String& strobj = String::Handle(TwoByteString::New(len, space));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   Utf8::DecodeToUTF16(utf8_array, array_len,
                       TwoByteString::CharAddr(strobj, 0), len);
   return strobj.raw();
@@ -17786,7 +17766,7 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(len >= 0);
   ASSERT(len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     if (len > 0) {
       memmove(OneByteString::CharAddr(dst, dst_offset),
               characters,
@@ -17807,14 +17787,14 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(array_len >= 0);
   ASSERT(array_len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     for (intptr_t i = 0; i < array_len; ++i) {
       ASSERT(Utf::IsLatin1(utf16_array[i]));
       *OneByteString::CharAddr(dst, i + dst_offset) = utf16_array[i];
     }
   } else {
     ASSERT(dst.IsTwoByteString());
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     if (array_len > 0) {
       memmove(TwoByteString::CharAddr(dst, dst_offset),
               utf16_array,
@@ -17836,14 +17816,14 @@ void String::Copy(const String& dst, intptr_t dst_offset,
     intptr_t char_size = src.CharSize();
     if (char_size == kOneByteChar) {
       if (src.IsOneByteString()) {
-        NoGCScope no_gc;
+        NoSafepointScope no_safepoint;
         String::Copy(dst,
                      dst_offset,
                      OneByteString::CharAddr(src, src_offset),
                      len);
       } else {
         ASSERT(src.IsExternalOneByteString());
-        NoGCScope no_gc;
+        NoSafepointScope no_safepoint;
         String::Copy(dst,
                      dst_offset,
                      ExternalOneByteString::CharAddr(src, src_offset),
@@ -17852,14 +17832,14 @@ void String::Copy(const String& dst, intptr_t dst_offset,
     } else {
       ASSERT(char_size == kTwoByteChar);
       if (src.IsTwoByteString()) {
-        NoGCScope no_gc;
+        NoSafepointScope no_safepoint;
         String::Copy(dst,
                      dst_offset,
                      TwoByteString::CharAddr(src, src_offset),
                      len);
       } else {
         ASSERT(src.IsExternalTwoByteString());
-        NoGCScope no_gc;
+        NoSafepointScope no_safepoint;
         String::Copy(dst,
                      dst_offset,
                      ExternalTwoByteString::CharAddr(src, src_offset),
@@ -18041,7 +18021,7 @@ RawString* String::NewFormatted(const char* format, ...) {
   va_list args;
   va_start(args, format);
   RawString* result = NewFormattedV(format, args);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   va_end(args);
   return result;
 }
@@ -18168,7 +18148,7 @@ const char* String::ToCString() const {
     }
     Zone* zone = Isolate::Current()->current_zone();
     uint8_t* result = zone->Alloc<uint8_t>(len + 1);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
     for (intptr_t i = 0; i < len; i++) {
       if (original_str[i] <= Utf8::kMaxOneByteChar) {
@@ -18252,7 +18232,7 @@ RawString* String::MakeExternal(void* array,
   void* external_data;
   Dart_WeakPersistentHandleFinalizer finalizer;
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     ASSERT(array != NULL);
     intptr_t str_length = this->Length();
     ASSERT(length >= (str_length * this->CharSize()));
@@ -18333,7 +18313,7 @@ RawString* String::MakeExternal(void* array,
       external_data = ext_data;
       finalizer = ExternalTwoByteString::Finalize;
     }
-  }  // NoGCScope
+  }  // NoSafepointScope
   AddFinalizer(result, external_data, finalizer);
   return this->raw();
 }
@@ -18383,7 +18363,7 @@ bool String::ParseDouble(const String& str,
   ASSERT(start <= end);
   ASSERT(end <= str.Length());
   intptr_t length = end - start;
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   const uint8_t* startChar;
   if (str.IsOneByteString()) {
     startChar = OneByteString::CharAddr(str, start);
@@ -18481,7 +18461,7 @@ bool String::EqualsIgnoringPrivateKey(const String& str1,
   if (str1.raw() == str2.raw()) {
     return true;  // Both handles point to the same raw instance.
   }
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   intptr_t str1_class_id = str1.raw()->GetClassId();
   intptr_t str2_class_id = str2.raw()->GetClassId();
   switch (str1_class_id) {
@@ -18605,7 +18585,7 @@ RawOneByteString* OneByteString::New(intptr_t len,
     RawObject* raw = Object::Allocate(OneByteString::kClassId,
                                       OneByteString::InstanceSize(len),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawOneByteString* result = reinterpret_cast<RawOneByteString*>(raw);
     result->StoreSmi(&(result->ptr()->length_), Smi::New(len));
     result->StoreSmi(&(result->ptr()->hash_), Smi::New(0));
@@ -18619,7 +18599,7 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
   if (len > 0) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(CharAddr(result, 0), characters, len);
   }
   return OneByteString::raw(result);
@@ -18630,7 +18610,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
@@ -18643,7 +18623,7 @@ RawOneByteString* OneByteString::New(const int32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
@@ -18668,7 +18648,7 @@ RawOneByteString* OneByteString::New(const String& other_one_byte_string,
   const String& result = String::Handle(OneByteString::New(other_len, space));
   ASSERT(other_one_byte_string.IsOneByteString());
   if (other_len > 0) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(OneByteString::CharAddr(result, 0),
             OneByteString::CharAddr(other_one_byte_string, other_start_index),
             other_len);
@@ -18684,7 +18664,7 @@ RawOneByteString* OneByteString::New(const TypedData& other_typed_data,
   const String& result = String::Handle(OneByteString::New(other_len, space));
   ASSERT(other_typed_data.ElementSizeInBytes() == 1);
   if (other_len > 0) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(OneByteString::CharAddr(result, 0),
             other_typed_data.DataAddr(other_start_index),
             other_len);
@@ -18700,7 +18680,7 @@ RawOneByteString* OneByteString::New(const ExternalTypedData& other_typed_data,
   const String& result = String::Handle(OneByteString::New(other_len, space));
   ASSERT(other_typed_data.ElementSizeInBytes() == 1);
   if (other_len > 0) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(OneByteString::CharAddr(result, 0),
             other_typed_data.DataAddr(other_start_index),
             other_len);
@@ -18750,7 +18730,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
   const String& result = String::Handle(OneByteString::New(len, space));
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
     ASSERT(Utf::IsLatin1(ch));
@@ -18772,7 +18752,7 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   }
   ASSERT(begin_index < str.Length());
   RawOneByteString* result = OneByteString::New(length, space);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   if (length > 0) {
     uint8_t* dest = &result->ptr()->data()[0];
     const uint8_t* src =  &raw_ptr(str)->data()[begin_index];
@@ -18846,7 +18826,7 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
     RawObject* raw = Object::Allocate(TwoByteString::kClassId,
                                       TwoByteString::InstanceSize(len),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
@@ -18861,7 +18841,7 @@ RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
   ASSERT(array_len > 0);
   const String& result = String::Handle(TwoByteString::New(array_len, space));
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(CharAddr(result, 0), utf16_array, (array_len * 2));
   }
   return TwoByteString::raw(result);
@@ -18875,7 +18855,7 @@ RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
   ASSERT((array_len > 0) && (utf16_len >= array_len));
   const String& result = String::Handle(TwoByteString::New(utf16_len, space));
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     intptr_t j = 0;
     for (intptr_t i = 0; i < array_len; ++i) {
       if (Utf::IsSupplementary(utf32_array[i])) {
@@ -18908,7 +18888,7 @@ RawTwoByteString* TwoByteString::New(const TypedData& other_typed_data,
                                      Heap::Space space) {
   const String& result = String::Handle(TwoByteString::New(other_len, space));
   if (other_len > 0) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(TwoByteString::CharAddr(result, 0),
             other_typed_data.DataAddr(other_start_index),
             other_len * sizeof(uint16_t));
@@ -18923,7 +18903,7 @@ RawTwoByteString* TwoByteString::New(const ExternalTypedData& other_typed_data,
                                      Heap::Space space) {
   const String& result = String::Handle(TwoByteString::New(other_len, space));
   if (other_len > 0) {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     memmove(TwoByteString::CharAddr(result, 0),
             other_typed_data.DataAddr(other_start_index),
             other_len * sizeof(uint16_t));
@@ -18975,7 +18955,7 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
   const String& result = String::Handle(TwoByteString::New(len, space));
   String::CodePointIterator it(str);
   intptr_t i = 0;
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   while (it.Next()) {
     int32_t src = it.Current();
     int32_t dst = mapping(src);
@@ -19032,7 +19012,7 @@ RawExternalOneByteString* ExternalOneByteString::New(
     RawObject* raw = Object::Allocate(ExternalOneByteString::kClassId,
                                       ExternalOneByteString::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
@@ -19070,7 +19050,7 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     RawObject* raw = Object::Allocate(ExternalTwoByteString::kClassId,
                                       ExternalTwoByteString::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
@@ -19097,7 +19077,7 @@ RawBool* Bool::New(bool value) {
     RawObject* raw = Object::Allocate(Bool::kClassId,
                                       Bool::InstanceSize(),
                                       Heap::kOld);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_value(value);
@@ -19174,7 +19154,7 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
         Object::Allocate(class_id,
                          Array::InstanceSize(len),
                          space));
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     raw->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
     VerifiedMemory::Accept(reinterpret_cast<uword>(raw->ptr()),
                            Array::InstanceSize(len));
@@ -19201,7 +19181,7 @@ RawArray* Array::Slice(intptr_t start,
 
 
 void Array::MakeImmutable() const {
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   uword tags = raw_ptr()->tags_;
   uword old_tags;
   do {
@@ -19289,7 +19269,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
 
   // If there is any left over space fill it with either an Array object or
   // just a plain object (depending on the amount of left over space) so
@@ -19457,7 +19437,7 @@ RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
     RawObject* raw = Object::Allocate(GrowableObjectArray::kClassId,
                                       GrowableObjectArray::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(0);
     result.SetData(array);
@@ -19560,7 +19540,7 @@ RawObject* LinkedHashMap::LookUp(const Object& key) const {
   ASSERT(!IsNull());
   EnumIndexDefaultMap map(data());
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     RawObject* result = map.GetOrNull(key);
     ASSERT(map.Release().raw() == data());
     return result;
@@ -19639,7 +19619,7 @@ RawLinkedHashMap* LinkedHashMap::New(Heap::Space space) {
     RawObject* raw = Object::Allocate(LinkedHashMap::kClassId,
                                       LinkedHashMap::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetData(data);
     result.SetModified();
@@ -19669,7 +19649,7 @@ RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
     RawObject* raw = Object::Allocate(Float32x4::kClassId,
                                       Float32x4::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_x(v0);
@@ -19688,7 +19668,7 @@ RawFloat32x4* Float32x4::New(simd128_value_t value, Heap::Space space) {
     RawObject* raw = Object::Allocate(Float32x4::kClassId,
                                       Float32x4::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_value(value);
@@ -19774,7 +19754,7 @@ RawInt32x4* Int32x4::New(int32_t v0, int32_t v1, int32_t v2, int32_t v3,
     RawObject* raw = Object::Allocate(Int32x4::kClassId,
                                       Int32x4::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_x(v0);
@@ -19793,7 +19773,7 @@ RawInt32x4* Int32x4::New(simd128_value_t value, Heap::Space space) {
     RawObject* raw = Object::Allocate(Int32x4::kClassId,
                                       Int32x4::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_value(value);
@@ -19878,7 +19858,7 @@ RawFloat64x2* Float64x2::New(double value0, double value1, Heap::Space space) {
     RawObject* raw = Object::Allocate(Float64x2::kClassId,
                                       Float64x2::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_x(value0);
@@ -19895,7 +19875,7 @@ RawFloat64x2* Float64x2::New(simd128_value_t value, Heap::Space space) {
     RawObject* raw = Object::Allocate(Float64x2::kClassId,
                                       Float64x2::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_value(value);
@@ -19988,7 +19968,7 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
   if (len != other_typed_data.LengthInBytes()) {
     return false;
   }
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   return (len == 0) ||
       (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
 }
@@ -20006,7 +19986,7 @@ RawTypedData* TypedData::New(intptr_t class_id,
     RawObject* raw = Object::Allocate(class_id,
                                       TypedData::InstanceSize(lengthInBytes),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
     if (len > 0) {
@@ -20056,7 +20036,7 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
     RawObject* raw = Object::Allocate(class_id,
                                       ExternalTypedData::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
     result.SetData(data);
@@ -20082,7 +20062,7 @@ RawCapability* Capability::New(uint64_t id, Heap::Space space) {
     RawObject* raw = Object::Allocate(Capability::kClassId,
                                       Capability::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->id_, id);
   }
@@ -20112,7 +20092,7 @@ RawReceivePort* ReceivePort::New(Dart_Port id,
     RawObject* raw = Object::Allocate(ReceivePort::kClassId,
                                       ReceivePort::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
   }
@@ -20148,7 +20128,7 @@ RawSendPort* SendPort::New(Dart_Port id,
     RawObject* raw = Object::Allocate(SendPort::kClassId,
                                       SendPort::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->id_, id);
     result.StoreNonPointer(&result.raw_ptr()->origin_id_, origin_id);
@@ -20189,7 +20169,7 @@ RawInstance* Closure::New(const Function& function,
   Instance& result = Instance::Handle();
   {
     RawObject* raw = Object::Allocate(cls.id(), Closure::InstanceSize(), space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   Closure::set_function(result, function);
@@ -20264,7 +20244,7 @@ RawStacktrace* Stacktrace::New(const Array& code_array,
     RawObject* raw = Object::Allocate(Stacktrace::kClassId,
                                       Stacktrace::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_code_array(code_array);
@@ -20368,7 +20348,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
       }
-    } else if (function.is_debuggable() || FLAG_show_invisible_frames) {
+    } else if (function.is_visible() || FLAG_show_invisible_frames) {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
@@ -20377,7 +20357,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         for (InlinedFunctionsIterator it(code, pc);
              !it.Done() && (*frame_index < max_frames); it.Advance()) {
           function = it.function();
-          if (function.is_debuggable() || FLAG_show_invisible_frames) {
+          if (function.is_visible() || FLAG_show_invisible_frames) {
             code = it.code();
             ASSERT(function.raw() == code.function());
             uword pc = it.pc();
@@ -20436,7 +20416,7 @@ RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
     RawObject* raw = Object::Allocate(JSRegExp::kClassId,
                                       JSRegExp::InstanceSize(len),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_type(kUnitialized);
     result.set_flags(0);
@@ -20593,7 +20573,7 @@ RawMirrorReference* MirrorReference::New(const Object& referent,
     RawObject* raw = Object::Allocate(MirrorReference::kClassId,
                                       MirrorReference::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_referent(referent);
@@ -20652,7 +20632,7 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
     RawObject* raw = Object::Allocate(UserTag::kClassId,
                                       UserTag::InstanceSize(),
                                       space);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     result ^= raw;
   }
   result.set_label(label);

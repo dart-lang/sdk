@@ -1641,6 +1641,13 @@ class AstCloner implements AstVisitor<AstNode> {
   YieldStatement visitYieldStatement(YieldStatement node) => new YieldStatement(
       cloneToken(node.yieldKeyword), cloneToken(node.star),
       cloneNode(node.expression), cloneToken(node.semicolon));
+
+  /**
+   * Return a clone of the given [node].
+   */
+  static AstNode clone(AstNode node) {
+    return node.accept(new AstCloner());
+  }
 }
 
 /**
@@ -12398,7 +12405,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     }
     try {
       node.accept(this);
-    } on NodeLocator_NodeFoundException catch (exception) {
+    } on NodeLocator_NodeFoundException {
       // A node with the right source position was found.
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
@@ -12421,7 +12428,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     }
     try {
       node.visitChildren(this);
-    } on NodeLocator_NodeFoundException catch (exception) {
+    } on NodeLocator_NodeFoundException {
       rethrow;
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
@@ -16325,15 +16332,13 @@ class SimpleIdentifier extends Identifier {
     }
     // analyze usage
     if (parent is AssignmentExpression) {
-      AssignmentExpression expr = parent as AssignmentExpression;
-      if (identical(expr.leftHandSide, target) &&
-          expr.operator.type == TokenType.EQ) {
+      if (identical(parent.leftHandSide, target) &&
+          parent.operator.type == TokenType.EQ) {
         return false;
       }
     }
     if (parent is ForEachStatement) {
-      ForEachStatement stmt = parent as ForEachStatement;
-      if (identical(stmt.identifier, target)) {
+      if (identical(parent.identifier, target)) {
         return false;
       }
     }
@@ -16370,13 +16375,13 @@ class SimpleIdentifier extends Identifier {
     }
     // analyze usage
     if (parent is PrefixExpression) {
-      return (parent as PrefixExpression).operator.type.isIncrementOperator;
+      return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
       return true;
     } else if (parent is AssignmentExpression) {
-      return identical((parent as AssignmentExpression).leftHandSide, target);
+      return identical(parent.leftHandSide, target);
     } else if (parent is ForEachStatement) {
-      return identical((parent as ForEachStatement).identifier, target);
+      return identical(parent.identifier, target);
     }
     return false;
   }
@@ -16742,7 +16747,7 @@ abstract class StringLiteral extends Literal {
     StringBuffer buffer = new StringBuffer();
     try {
       _appendStringValue(buffer);
-    } on IllegalArgumentException catch (exception) {
+    } on IllegalArgumentException {
       return null;
     }
     return buffer.toString();
@@ -19514,7 +19519,7 @@ abstract class UriBasedDirective extends Directive {
     }
     try {
       parseUriWithException(Uri.encodeFull(uriContent));
-    } on URISyntaxException catch (exception) {
+    } on URISyntaxException {
       return UriValidationCode.INVALID_URI;
     }
     return null;

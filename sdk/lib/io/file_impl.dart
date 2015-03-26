@@ -208,9 +208,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
           onError: error,
           cancelOnError: true);
       })
-      .catchError((e) {
-        completer.completeError(e);
-      });
+      .catchError(completer.completeError);
     return completer.future;
   }
 

@@ -1222,6 +1222,37 @@ class Types implements DartTypes {
     return new Types(compiler);
   }
 
+  /// Flatten [type] by recursively removing enclosing `Future` annotations.
+  ///
+  /// Defined in the language specification as:
+  ///
+  ///   If T = Future<S> then flatten(T) = flatten(S).
+  ///   Otherwise if T <: Future then let S be a type such that T << Future<S>
+  ///   and for all R, if T << Future<R> then S << R. Then flatten(T) =  S.
+  ///   In any other circumstance, flatten(T) = T.
+  ///
+  /// For instance:
+  ///     flatten(T) = T
+  ///     flatten(Future<T>) = T
+  ///     flatten(Future<Future<T>>) = T
+  ///
+  /// This method is used in the static typing of await and type checking of
+  /// return.
+  DartType flatten(DartType type) {
+    if (type is InterfaceType) {
+      if (type.element == coreTypes.futureClass) {
+        // T = Future<S>
+        return flatten(type.typeArguments.first);
+      }
+      InterfaceType futureType = type.asInstanceOf(coreTypes.futureClass);
+      if (futureType != null) {
+        // T << Future<S>
+        return futureType.typeArguments.single;
+      }
+    }
+    return type;
+  }
+
   /** Returns true if [t] is more specific than [s]. */
   bool isMoreSpecific(DartType t, DartType s) {
     return moreSpecificVisitor.isMoreSpecific(t, s);

@@ -67,20 +67,29 @@ class RuntimeEntry : public ValueObject {
   extern void DRT_##name(NativeArguments arguments);                           \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
       "DRT_"#name, &DRT_##name, argument_count, false, false);                 \
-  static void DRT_Helper##name(Isolate* isolate, NativeArguments arguments);   \
+  static void DRT_Helper##name(Isolate* isolate,                               \
+                               Thread* thread,                                 \
+                               Zone* zone,                                     \
+                               NativeArguments arguments);                     \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     ASSERT(arguments.ArgCount() == argument_count);                            \
     if (FLAG_trace_runtime_calls) OS::Print("Runtime call: %s\n", ""#name);    \
     {                                                                          \
-      StackZone zone(arguments.isolate());                                     \
-      HANDLESCOPE(arguments.isolate());                                        \
-      DRT_Helper##name(arguments.isolate(), arguments);                        \
+      Isolate* isolate = arguments.isolate();                                  \
+      Thread* thread = isolate->mutator_thread();                              \
+      ASSERT(thread == Thread::Current());                                     \
+      StackZone zone(isolate);                                                 \
+      HANDLESCOPE(isolate);                                                    \
+      DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
-  static void DRT_Helper##name(Isolate* isolate, NativeArguments arguments)
+  static void DRT_Helper##name(Isolate* isolate,                               \
+                               Thread* thread,                                 \
+                               Zone* zone,                                     \
+                               NativeArguments arguments)
 
 #define DECLARE_RUNTIME_ENTRY(name)                                            \
   extern const RuntimeEntry k##name##RuntimeEntry
@@ -92,7 +101,7 @@ class RuntimeEntry : public ValueObject {
       argument_count, true, false);                                            \
   type DLRT_##name(__VA_ARGS__) {                                              \
     CHECK_STACK_ALIGNMENT;                                                     \
-    NoGCScope no_gc_scope;                                                     \
+    NoSafepointScope no_safepoint_scope;                                       \
 
 #define END_LEAF_RUNTIME_ENTRY }
 

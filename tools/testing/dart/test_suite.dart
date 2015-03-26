@@ -1416,9 +1416,13 @@ class StandardTestSuite extends TestSuite {
           new File.fromUri(copiedScript).writeAsStringSync(
               new File.fromUri(script).readAsStringSync());
         } else {
+          var destination = copiedScript.toFilePath();
+          if (compileToJS) {
+            destination = destination.replaceFirst(dartExtension, '.js');
+          }
           commands.add(_compileCommand(
               script.toFilePath(),
-              copiedScript.toFilePath().replaceFirst(dartExtension, '.js'),
+              destination,
               compiler,
               tempDir,
               info.optionsFromFile));
@@ -1465,7 +1469,6 @@ class StandardTestSuite extends TestSuite {
       packageRootArgument(optionsFromFile['packageRoot']);
     if (packageRoot != null) args.add(packageRoot);
     args.add('--out=$outputFile');
-    if (configuration['csp']) args.add('--csp');
     args.add(inputFile);
     List<String> options = optionsFromFile['sharedOptions'];
     if (options != null) args.addAll(options);
@@ -2215,6 +2218,9 @@ class TestUtils {
     if ((compiler == "dart2js" || compiler == "dart2dart") &&
         configuration["minified"]) {
       args.add("--minify");
+    }
+    if (compiler == "dart2js" && configuration["csp"]) {
+      args.add("--csp");
     }
     if (compiler == "dartanalyzer" || compiler == "dart2analyzer") {
       args.add("--show-package-warnings");

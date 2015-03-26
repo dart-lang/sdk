@@ -32,6 +32,8 @@ abstract class Pass {
   void rewriteConstructorDefinition(ConstructorDefinition root);
   void rewriteFunctionDefinition(FunctionDefinition root);
   void rewriteFieldDefinition(FieldDefinition root);
+
+  String get passName;
 }
 
 abstract class PassMixin implements Pass {

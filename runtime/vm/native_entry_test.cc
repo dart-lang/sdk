@@ -56,11 +56,12 @@ void TestSmiSum(Dart_NativeArguments args) {
 // Arg0-4: 5 smis or null.
 // Result: a smi representing the sum of all non-null arguments.
 void TestNonNullSmiSum(Dart_NativeArguments args) {
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = Isolate::Current();  // Used by GET_NATIVE_ARGUMENT.
   int64_t result = 0;
   int arg_count = Dart_GetNativeArgumentCount(args);
   // Test the lower level macro GET_NATIVE_ARGUMENT.
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Zone* zone = Thread::Current()->zone();  // Used by GET_NATIVE_ARGUMENT.
   for (int i = 0; i < arg_count; i++) {
     Dart_Handle arg = Dart_GetNativeArgument(args, i);
     GET_NATIVE_ARGUMENT(Integer, argument, arguments->NativeArgAt(i));

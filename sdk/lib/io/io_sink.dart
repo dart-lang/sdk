@@ -143,8 +143,9 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     _controller.add(data);
   }
 
-  void addError(error, [StackTrace stackTrace]) =>
-      _controller.addError(error, stackTrace);
+  void addError(error, [StackTrace stackTrace]) {
+    _controller.addError(error, stackTrace);
+  }
 
   Future addStream(Stream<T> stream) {
     if (_isBound) {
@@ -196,21 +197,21 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
   }
 
   void _closeTarget() {
-    _target.close()
-        .then((value) => _completeDone(value: value),
-              onError: (error) => _completeDone(error: error));
+    _target.close().then(_completeDoneValue, onError: _completeDoneError);
   }
 
   Future get done => _doneFuture;
 
-  void _completeDone({value, error}) {
+  void _completeDoneValue(value) {
     if (_doneCompleter == null) return;
-    if (error == null) {
-      _doneCompleter.complete(value);
-    } else {
-      _hasError = true;
-      _doneCompleter.completeError(error);
-    }
+    _doneCompleter.complete(value);
+    _doneCompleter = null;
+  }
+
+  void _completeDoneError(error, StackTrace stackTrace) {
+    if (_doneCompleter == null) return;
+    _hasError = true;
+    _doneCompleter.completeError(error, stackTrace);
     _doneCompleter = null;
   }
 
@@ -237,16 +238,16 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
                   _closeTarget();
                 }
               },
-              onError: (error) {
+              onError: (error, stackTrace) {
                 if (_isBound) {
                   // A new stream takes over - forward errors to that stream.
-                  _controllerCompleter.completeError(error);
+                  _controllerCompleter.completeError(error, stackTrace);
                   _controllerCompleter = null;
                   _controllerInstance = null;
                 } else {
                   // No new stream. No need to close target, as it have already
                   // failed.
-                  _completeDone(error: error);
+                  _completeDoneError(error, stackTrace);
                 }
               });
     }

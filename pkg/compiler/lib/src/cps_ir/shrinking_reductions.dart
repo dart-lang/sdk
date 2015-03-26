@@ -9,6 +9,8 @@ part of dart2js.cps_ir.optimizers;
  * in 'Compiling with Continuations, Continued' by Andrew Kennedy.
  */
 class ShrinkingReducer extends PassMixin {
+  String get passName => 'Shrinking reductions';
+
   Set<_ReductionTask> _worklist;
 
   static final _DeletedNode _DELETED = new _DeletedNode();
@@ -484,6 +486,7 @@ class _RemovalVisitor extends RecursiveVisitor {
 class ParentVisitor extends RecursiveVisitor {
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
+    if (node.thisParameter != null) node.thisParameter.parent = node;
     int index = 0;
     node.parameters.forEach((Definition parameter) {
       parameter.parent = node;
@@ -509,12 +512,11 @@ class ParentVisitor extends RecursiveVisitor {
   // Expressions.
 
   processFieldInitializer(FieldInitializer node) {
-    node.body.body.parent = node;
+    node.body.parent = node;
   }
 
   processSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach(
-        (RunnableBody argument) => argument.body.parent = node);
+    node.arguments.forEach((RunnableBody argument) => argument.parent = node);
   }
 
   processLetPrim(LetPrim node) {
@@ -659,6 +661,14 @@ class ParentVisitor extends RecursiveVisitor {
   }
 
   processCreateBox(CreateBox node) {
+  }
+
+  processReifyRuntimeType(ReifyRuntimeType node) {
+    node.value.parent = node;
+  }
+
+  processReadTypeVariable(ReadTypeVariable node) {
+    node.target.parent = node;
   }
 }
 

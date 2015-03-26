@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/plugin.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -65,7 +66,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.3.0';
+  static final String VERSION = '1.5.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -232,6 +233,11 @@ class AnalysisServer {
    * content cache for all contexts.
    */
   final ContentCache overlayState = new ContentCache();
+
+  /**
+   * The plugins that are defined outside the analysis_server package.
+   */
+  List<Plugin> userDefinedPlugins;
 
   /**
    * Initialize a newly created server to receive requests from and send

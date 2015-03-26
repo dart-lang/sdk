@@ -195,24 +195,38 @@ class ElementTest extends AbstractContextTest {
   void test_fromElement_CLASS() {
     engine.Source source = addSource('/test.dart', '''
 @deprecated
-abstract class _MyClass {}''');
+abstract class _A {}
+class B<K, V> {}''');
     engine.CompilationUnit unit = resolveLibraryUnit(source);
-    engine.ClassElement engineElement = findElementInUnit(unit, '_MyClass');
-    // create notification Element
-    Element element = newElement_fromEngine(engineElement);
-    expect(element.kind, ElementKind.CLASS);
-    expect(element.name, '_MyClass');
     {
-      Location location = element.location;
-      expect(location.file, '/test.dart');
-      expect(location.offset, 27);
-      expect(location.length, '_MyClass'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 16);
+      engine.ClassElement engineElement = findElementInUnit(unit, '_A');
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.CLASS);
+      expect(element.name, '_A');
+      expect(element.typeParameters, isNull);
+      {
+        Location location = element.location;
+        expect(location.file, '/test.dart');
+        expect(location.offset, 27);
+        expect(location.length, '_A'.length);
+        expect(location.startLine, 2);
+        expect(location.startColumn, 16);
+      }
+      expect(element.parameters, isNull);
+      expect(element.flags, Element.FLAG_ABSTRACT |
+          Element.FLAG_DEPRECATED |
+          Element.FLAG_PRIVATE);
     }
-    expect(element.parameters, isNull);
-    expect(element.flags,
-        Element.FLAG_ABSTRACT | Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE);
+    {
+      engine.ClassElement engineElement = findElementInUnit(unit, 'B');
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.CLASS);
+      expect(element.name, 'B');
+      expect(element.typeParameters, '<K, V>');
+      expect(element.flags, 0);
+    }
   }
 
   void test_fromElement_CONSTRUCTOR() {
@@ -227,6 +241,7 @@ class A {
     Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
     expect(element.name, 'myConstructor');
+    expect(element.typeParameters, isNull);
     {
       Location location = element.location;
       expect(location.file, '/test.dart');
@@ -278,20 +293,21 @@ class A {
 
   void test_fromElement_FUNCTION_TYPE_ALIAS() {
     engine.Source source = addSource('/test.dart', '''
-typedef int f(String x);
+typedef int F<T>(String x);
 ''');
     engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.FunctionTypeAliasElement engineElement =
-        findElementInUnit(unit, 'f');
+        findElementInUnit(unit, 'F');
     // create notification Element
     Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(element.name, 'f');
+    expect(element.name, 'F');
+    expect(element.typeParameters, '<T>');
     {
       Location location = element.location;
       expect(location.file, '/test.dart');
       expect(location.offset, 12);
-      expect(location.length, 'f'.length);
+      expect(location.length, 'F'.length);
       expect(location.startLine, 1);
       expect(location.startColumn, 13);
     }

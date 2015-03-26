@@ -19,6 +19,7 @@ math/random_big_test: RuntimeError  # Using bigint seeds for random.
 mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/class_mirror_location_test: RuntimeError # Issue 6490
+mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/enum_test: RuntimeError # Issue 6490
@@ -176,7 +177,7 @@ async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: Iss
 async/stream_asyncmap_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
-mirrors/mirrors_reader_test: Slow, RuntimeError, Crash # Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
+mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
@@ -215,7 +216,7 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $runtime == chrome && $system == macos ]
-async/timer_isActive_test: Pass, Timeout # Issue 22696
+async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
 async/slow_consumer_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 
@@ -311,6 +312,8 @@ mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
+
+async/future_test: StaticWarning, OK # Deliberately broken implementation.
 
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391

@@ -10,7 +10,7 @@
 
   // Location (Uri.base)
 
-  var workingDirectory = environment["PWD"];
+  var workingDirectory = os.getenv("PWD");
 
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.

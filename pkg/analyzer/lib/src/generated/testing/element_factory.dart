@@ -70,6 +70,18 @@ class ElementFactory {
           [List<String> parameterNames]) =>
       classElement(typeName, objectType, parameterNames);
 
+  static ClassElementImpl classTypeAlias2(String typeName,
+          [List<String> parameterNames]) =>
+      classTypeAlias(typeName, objectType, parameterNames);
+
+  static classTypeAlias(String typeName, InterfaceType superclassType,
+      [List<String> parameterNames]) {
+    ClassElementImpl element =
+        classElement(typeName, superclassType, parameterNames);
+    element.typedef = true;
+    return element;
+  }
+
   static CompilationUnitElementImpl compilationUnit(String fileName) {
     Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
@@ -174,7 +186,7 @@ class ElementFactory {
 
   static ExportElementImpl exportFor(LibraryElement exportedLibrary,
       [List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY]) {
-    ExportElementImpl spec = new ExportElementImpl();
+    ExportElementImpl spec = new ExportElementImpl(-1);
     spec.exportedLibrary = exportedLibrary;
     spec.combinators = combinators;
     return spec;
@@ -202,9 +214,8 @@ class ElementFactory {
       setter.setter = true;
       setter.synthetic = true;
       setter.variable = field;
-      setter.parameters = <ParameterElement>[
-        requiredParameter2("_$name", type)
-      ];
+      setter.parameters =
+          <ParameterElement>[requiredParameter2("_$name", type)];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       field.setter = setter;
@@ -507,9 +518,8 @@ class ElementFactory {
       setter.static = true;
       setter.synthetic = true;
       setter.variable = variable;
-      setter.parameters = <ParameterElement>[
-        requiredParameter2("_$name", type)
-      ];
+      setter.parameters =
+          <ParameterElement>[requiredParameter2("_$name", type)];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       variable.setter = setter;

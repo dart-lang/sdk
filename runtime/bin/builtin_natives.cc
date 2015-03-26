@@ -69,6 +69,7 @@ namespace bin {
   V(Builtin_AsyncLoadError, 3)                                                 \
   V(Builtin_DoneLoading, 0)                                                    \
   V(Builtin_NativeLibraryExtension, 0)                                         \
+  V(Builtin_GetCurrentDirectory, 0)                                            \
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);

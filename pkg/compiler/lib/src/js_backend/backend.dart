@@ -26,38 +26,191 @@ abstract class FunctionCompiler {
  *   !canInline(function, insideLoop: true) implies !canInline(function)
  */
 class FunctionInlineCache {
-  final Map<FunctionElement, bool> canBeInlined =
-      new Map<FunctionElement, bool>();
+  static const int _unknown = -1;
+  static const int _mustNotInline = 0;
+  // May-inline-in-loop means that the function may not be inlined outside loops
+  // but may be inlined in a loop.
+  static const int _mayInlineInLoopMustNotOutside = 1;
+  // The function can be inlined in a loop, but not outside.
+  static const int _canInlineInLoopMustNotOutside = 2;
+  // May-inline means that we know that it can be inlined inside a loop, but
+  // don't know about the general case yet.
+  static const int _canInlineInLoopMayInlineOutside = 3;
+  static const int _canInline = 4;
+  static const int _mustInline = 5;
 
-  final Map<FunctionElement, bool> canBeInlinedInsideLoop =
-      new Map<FunctionElement, bool>();
+  final Map<FunctionElement, int> _cachedDecisions =
+      new Map<FunctionElement, int>();
 
-  // Returns [:true:]/[:false:] if we have a cached decision.
-  // Returns [:null:] otherwise.
+  // Returns `true`/`false` if we have a cached decision.
+  // Returns `null` otherwise.
   bool canInline(FunctionElement element, {bool insideLoop}) {
-    return insideLoop ? canBeInlinedInsideLoop[element] : canBeInlined[element];
+    int decision = _cachedDecisions[element];
+
+    if (decision == null) {
+      // These synthetic elements are not yet present when we initially compute
+      // this cache from metadata annotations, so look for their parent.
+      if (element is ConstructorBodyElement) {
+        ConstructorBodyElement body = element;
+        decision = _cachedDecisions[body.constructor];
+      }
+      if (decision == null) {
+        decision = _unknown;
+      }
+    }
+
+    if (insideLoop) {
+      switch (decision) {
+        case _mustNotInline:
+          return false;
+
+        case _unknown:
+        case _mayInlineInLoopMustNotOutside:
+          // We know we can't inline outside a loop, but don't know for the
+          // loop case. Return `null` to indicate that we don't know yet.
+          return null;
+
+        case _canInlineInLoopMustNotOutside:
+        case _canInlineInLoopMayInlineOutside:
+        case _canInline:
+        case _mustInline:
+          return true;
+      }
+    } else {
+      switch (decision) {
+        case _mustNotInline:
+        case _mayInlineInLoopMustNotOutside:
+        case _canInlineInLoopMustNotOutside:
+          return false;
+
+        case _unknown:
+        case _canInlineInLoopMayInlineOutside:
+          // We know we can inline inside a loop, but don't know for the
+          // non-loop case. Return `null` to indicate that we don't know yet.
+          return null;
+
+        case _canInline:
+        case _mustInline:
+          return true;
+      }
+    }
+
+    // Quiet static checker.
+    return null;
   }
 
   void markAsInlinable(FunctionElement element, {bool insideLoop}) {
+    int oldDecision = _cachedDecisions[element];
+
+    if (oldDecision == null) {
+      oldDecision = _unknown;
+    }
+
     if (insideLoop) {
-      canBeInlinedInsideLoop[element] = true;
+      switch (oldDecision) {
+        case _mustNotInline:
+          throw new SpannableAssertionFailure(element,
+              "Can't mark a function as non-inlinable and inlinable at the "
+              "same time.");
+
+        case _unknown:
+          // We know that it can be inlined in a loop, but don't know about the
+          // non-loop case yet.
+          _cachedDecisions[element] = _canInlineInLoopMayInlineOutside;
+          break;
+
+        case _mayInlineInLoopMustNotOutside:
+          _cachedDecisions[element] = _canInlineInLoopMustNotOutside;
+          break;
+
+        case _canInlineInLoopMustNotOutside:
+        case _canInlineInLoopMayInlineOutside:
+        case _canInline:
+        case _mustInline:
+          // Do nothing.
+          break;
+      }
     } else {
-      // If we can inline a function outside a loop then we should do it inside
-      // a loop as well.
-      canBeInlined[element] = true;
-      canBeInlinedInsideLoop[element] = true;
+      switch (oldDecision) {
+        case _mustNotInline:
+        case _mayInlineInLoopMustNotOutside:
+        case _canInlineInLoopMustNotOutside:
+          throw new SpannableAssertionFailure(element,
+              "Can't mark a function as non-inlinable and inlinable at the "
+              "same time.");
+
+        case _unknown:
+        case _canInlineInLoopMayInlineOutside:
+          _cachedDecisions[element] = _canInline;
+          break;
+
+        case _canInline:
+        case _mustInline:
+          // Do nothing.
+          break;
+
+      }
     }
   }
 
-  void markAsNonInlinable(FunctionElement element, {bool insideLoop}) {
-    if (insideLoop == null || insideLoop) {
-      // If we can't inline a function inside a loop, then we should not inline
-      // it outside a loop either.
-      canBeInlined[element] = false;
-      canBeInlinedInsideLoop[element] = false;
-    } else {
-      canBeInlined[element] = false;
+  void markAsNonInlinable(FunctionElement element, {bool insideLoop: true}) {
+    int oldDecision = _cachedDecisions[element];
+
+    if (oldDecision == null) {
+      oldDecision = _unknown;
     }
+
+    if (insideLoop) {
+      switch (oldDecision) {
+        case _canInlineInLoopMustNotOutside:
+        case _canInlineInLoopMayInlineOutside:
+        case _canInline:
+        case _mustInline:
+          throw new SpannableAssertionFailure(element,
+              "Can't mark a function as non-inlinable and inlinable at the "
+              "same time.");
+
+        case _mayInlineInLoopMustNotOutside:
+        case _unknown:
+          _cachedDecisions[element] = _mustNotInline;
+          break;
+
+        case _mustNotInline:
+          // Do nothing.
+          break;
+      }
+    } else {
+      switch (oldDecision) {
+        case _canInline:
+        case _mustInline:
+          throw new SpannableAssertionFailure(element,
+              "Can't mark a function as non-inlinable and inlinable at the "
+              "same time.");
+
+        case _unknown:
+          // We can't inline outside a loop, but we might still be allowed to do
+          // so outside.
+          _cachedDecisions[element] = _mayInlineInLoopMustNotOutside;
+          break;
+
+        case _canInlineInLoopMayInlineOutside:
+          // We already knew that the function could be inlined inside a loop,
+          // but didn't have information about the non-loop case. Now we know
+          // that it can't be inlined outside a loop.
+          _cachedDecisions[element] = _canInlineInLoopMustNotOutside;
+          break;
+
+        case _mayInlineInLoopMustNotOutside:
+        case _canInlineInLoopMustNotOutside:
+        case _mustNotInline:
+          // Do nothing.
+          break;
+      }
+    }
+  }
+
+  void markAsMustInline(FunctionElement element) {
+    _cachedDecisions[element] = _mustInline;
   }
 }
 
@@ -84,21 +237,9 @@ class JavaScriptBackend extends Backend {
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
 
 
-  /// The list of functions for classes in the [internalLibrary] that we want
-  /// to inline always.  Any function in this list must be inlinable with
-  /// respect to the conditions used in [InlineWeeder.canInline], except for
-  /// size/complexity heuristics.
-  static const Map<String, List<String>> ALWAYS_INLINE =
-      const <String, List<String>> {
-  };
-
   String get patchVersion => USE_NEW_EMITTER ? 'new' : 'old';
 
   final Annotations annotations = new Annotations();
-
-  /// List of [FunctionElement]s that we want to inline always.  This list is
-  /// filled when resolution is complete by looking up in [internalLibrary].
-  List<FunctionElement> functionsToAlwaysInline;
 
   /// Reference to the internal library to lookup functions to always inline.
   LibraryElement internalLibrary;
@@ -174,6 +315,7 @@ class JavaScriptBackend extends Backend {
   ClassElement noSideEffectsClass;
   ClassElement noThrowsClass;
   ClassElement noInlineClass;
+  ClassElement forceInlineClass;
   ClassElement irRepresentationClass;
 
   Element getInterceptorMethod;
@@ -443,6 +585,9 @@ class JavaScriptBackend extends Backend {
   /// constructors for custom elements.
   CustomElementsAnalysis customElementsAnalysis;
 
+  /// Support for classifying `noSuchMethod` implementations.
+  NoSuchMethodRegistry noSuchMethodRegistry;
+
   JavaScriptConstantTask constantCompilerTask;
 
   JavaScriptResolutionCallbacks resolutionCallbacks;
@@ -450,6 +595,8 @@ class JavaScriptBackend extends Backend {
   PatchResolverTask patchResolverTask;
 
   bool get canHandleCompilationFailed => true;
+
+  bool enabledNoSuchMethod = false;
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
@@ -461,6 +608,7 @@ class JavaScriptBackend extends Backend {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     typeVariableHandler = new TypeVariableHandler(this);
     customElementsAnalysis = new CustomElementsAnalysis(this);
+    noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
     patchResolverTask = new PatchResolverTask(compiler);
@@ -560,7 +708,7 @@ class JavaScriptBackend extends Backend {
    * Record that [method] is called from a subclass via `super`.
    */
   bool maybeRegisterAliasedSuperMember(Element member, Selector selector) {
-    if (selector.isGetter || compiler.hasIncrementalSupport) {
+    if (!canUseAliasedSuperMember(member, selector)) {
       // Invoking a super getter isn't supported, this would require changes to
       // compact field descriptors in the emitter.
       // We also turn off this optimization in incremental compilation, to
@@ -570,6 +718,10 @@ class JavaScriptBackend extends Backend {
     }
     aliasedSuperMembers.add(member);
     return true;
+  }
+
+  bool canUseAliasedSuperMember(Element member, Selector selector) {
+    return !selector.isGetter && !compiler.hasIncrementalSupport;
   }
 
   /**
@@ -961,26 +1113,6 @@ class JavaScriptBackend extends Backend {
     super.onResolutionComplete();
     computeMembersNeededForReflection();
     rti.computeClassesNeedingRti();
-    computeFunctionsToAlwaysInline();
-  }
-
-  void computeFunctionsToAlwaysInline() {
-    functionsToAlwaysInline = <FunctionElement>[];
-    if (internalLibrary == null) return;
-
-    // Try to find all functions intended to always inline.  If their enclosing
-    // class is not resolved we skip the methods, but it is an error to mention
-    // a function or class that cannot be found.
-    for (String className in ALWAYS_INLINE.keys) {
-      ClassElement cls = find(internalLibrary, className);
-      if (cls.resolutionState != STATE_DONE) continue;
-      for (String functionName in ALWAYS_INLINE[className]) {
-        Element function = cls.lookupMember(functionName);
-        assert(invariant(cls, function is FunctionElement,
-            message: 'unable to find function $functionName in $className'));
-        functionsToAlwaysInline.add(function);
-      }
-    }
   }
 
   void registerGetRuntimeTypeArgument(Registry registry) {
@@ -1084,11 +1216,13 @@ class JavaScriptBackend extends Backend {
     enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
   }
 
-  void enableNoSuchMethod(Element context, Enqueuer world) {
+  void registerNoSuchMethod(Element noSuchMethod) {
+    noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
+  }
+
+  void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
     world.registerInvocation(compiler.noSuchMethodSelector);
-    // TODO(tyoverby): Send the context element to DumpInfoTask to be
-    // blamed.
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {
@@ -1141,13 +1275,8 @@ class JavaScriptBackend extends Backend {
         compiler.enabledRuntimeType;
   }
 
-  bool isDefaultNoSuchMethodImplementation(Element element) {
-    assert(element.name == Compiler.NO_SUCH_METHOD);
-    ClassElement classElement = element.enclosingClass;
-    return classElement == compiler.objectClass
-        || classElement == jsInterceptorClass
-        || classElement == jsNullClass;
-  }
+  bool isComplexNoSuchMethod(FunctionElement element) =>
+    noSuchMethodRegistry.isComplex(element);
 
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');
@@ -1869,6 +1998,7 @@ class JavaScriptBackend extends Backend {
         noSideEffectsClass = findClass('NoSideEffects');
         noThrowsClass = findClass('NoThrows');
         noInlineClass = findClass('NoInline');
+        forceInlineClass = findClass('ForceInline');
         irRepresentationClass = findClass('IrRepresentation');
 
         getIsolateAffinityTagMarker = findMethod('getIsolateAffinityTag');
@@ -2276,6 +2406,14 @@ class JavaScriptBackend extends Backend {
     customElementsAnalysis.onQueueEmpty(enqueuer);
     if (!enqueuer.queueIsEmpty) return false;
 
+    noSuchMethodRegistry.onQueueEmpty();
+    if (!enabledNoSuchMethod &&
+        (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
+         noSuchMethodRegistry.hasComplexNoSuchMethod)) {
+      enableNoSuchMethod(enqueuer);
+      enabledNoSuchMethod = true;
+    }
+
     if (compiler.hasIncrementalSupport) {
       // Always enable tear-off closures during incremental compilation.
       Element e = findHelper('closureFromTearOff');
@@ -2318,13 +2456,15 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
-    if (element.isFunction && annotations.noInline(element)) {
+    if ((element.isFunction || element.isGenerativeConstructor) &&
+        annotations.noInline(element)) {
       inlineCache.markAsNonInlinable(element);
     }
 
     LibraryElement library = element.library;
     if (!library.isPlatformLibrary && !library.canUseNative) return;
     bool hasNoInline = false;
+    bool hasForceInline = false;
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
     for (MetadataAnnotation metadata in element.metadata) {
@@ -2332,7 +2472,15 @@ class JavaScriptBackend extends Backend {
       if (!metadata.constant.value.isConstructedObject) continue;
       ObjectConstantValue value = metadata.constant.value;
       ClassElement cls = value.type.element;
-      if (cls == noInlineClass) {
+      if (cls == forceInlineClass) {
+        hasForceInline = true;
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          compiler.reportHint(element,
+              MessageKind.GENERIC,
+              {'text': "Must inline"});
+        }
+        inlineCache.markAsMustInline(element);
+      } else if (cls == noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           compiler.reportHint(element,
@@ -2362,6 +2510,10 @@ class JavaScriptBackend extends Backend {
         }
         compiler.world.registerSideEffectsFree(element);
       }
+    }
+    if (hasForceInline && hasNoInline) {
+      compiler.internalError(element,
+          "@ForceInline() must not be used with @NoInline.");
     }
     if (hasNoThrows && !hasNoInline) {
       compiler.internalError(element,

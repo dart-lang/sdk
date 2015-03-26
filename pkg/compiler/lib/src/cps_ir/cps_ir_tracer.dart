@@ -31,34 +31,51 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   // Temporary field used during tree walk
   Names names;
 
-  visitExecutableDefinition(cps_ir.ExecutableDefinition node) {
+  printDefinition(cps_ir.ExecutableDefinition node) {
     names = new Names();
     BlockCollector builder = new BlockCollector(names);
     builder.visit(node);
 
     for (Block block in builder.entries) {
-      printNode(block);
+      printBlock(block);
     }
     for (Block block in builder.cont2block.values) {
-      printNode(block);
+      printBlock(block);
     }
     names = null;
   }
 
   visitFieldDefinition(cps_ir.FieldDefinition node) {
     if (node.hasInitializer) {
-      visitExecutableDefinition(node);
+      printDefinition(node);
     }
   }
 
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
     if (node.isAbstract) return;
-    visitExecutableDefinition(node);
+    printDefinition(node);
   }
 
   visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
     if (node.isAbstract) return;
-    visitExecutableDefinition(node);
+    printDefinition(node);
+  }
+
+  // Bodies and initializers are not visited.  They contain continuations which
+  // are found by a BlockCollector, then those continuations are processed by
+  // this visitor.
+  unexpectedNode(cps_ir.Node node) {
+    throw 'The IR tracer reached an unexpected IR instruction: $node';
+  }
+
+  visitRunnableBody(cps_ir.RunnableBody node) {
+    unexpectedNode(node);
+  }
+  visitFieldInitializer(cps_ir.FieldInitializer node) {
+    unexpectedNode(node);
+  }
+  visitSuperInitializer(cps_ir.SuperInitializer node) {
+    unexpectedNode(node);
   }
 
   int countUses(cps_ir.Definition definition) {
@@ -71,7 +88,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return count;
   }
 
-  printNode(Block block) {
+  printBlock(Block block) {
     tag("block", () {
       printProperty("name", block.name);
       printProperty("from_bci", -1);
@@ -131,7 +148,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitLetMutable(cps_ir.LetMutable node) {
     String id = names.name(node.variable);
-    printStmt(id, "${node.runtimeType} $id = ${formatReference(node.value)}");
+    printStmt(id, "LetMutable $id = ${formatReference(node.value)}");
     visit(node.body);
   }
 
@@ -227,7 +244,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String dummy = names.name(node);
     String variable = names.name(node.variable.definition);
     String value = formatReference(node.value);
-    printStmt(dummy, '${node.runtimeType} $variable := $value');
+    printStmt(dummy, 'SetMutableVariable $variable := $value');
     visit(node.body);
   }
 
@@ -258,7 +275,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitMutableVariable(cps_ir.MutableVariable node) {
-    return "${node.runtimeType} ${names.name(node)}";
+    return "MutableVariable ${names.name(node)}";
   }
 
   visitContinuation(cps_ir.Continuation node) {
@@ -304,10 +321,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "Interceptor(${formatReference(node.input)})";
   }
 
-  visitThis(cps_ir.This node) {
-    return "This";
-  }
-
   visitReifyTypeVar(cps_ir.ReifyTypeVar node) {
     return "ReifyTypeVar ${node.typeVariable.name}";
   }
@@ -318,18 +331,19 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitGetMutableVariable(cps_ir.GetMutableVariable node) {
     String variable = names.name(node.variable.definition);
-    return '${node.runtimeType} $variable';
+    return 'GetMutableVariable $variable';
   }
 
-  visitRunnableBody(cps_ir.RunnableBody node) {}
-  visitFieldInitializer(cps_ir.FieldInitializer node) {}
-  visitSuperInitializer(cps_ir.SuperInitializer node) {}
-  visitCondition(cps_ir.Condition c) {}
-  visitExpression(cps_ir.Expression e) {}
-  visitPrimitive(cps_ir.Primitive p) {}
-  visitDefinition(cps_ir.Definition d) {}
-  visitInitializer(cps_ir.Initializer i) {}
-  visitNode(cps_ir.Node n) {}
+  @override
+  visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
+    return "ReadTypeVariable ${node.variable.element} "
+        "${formatReference(node.target)}";
+  }
+
+  @override
+  visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
+    return "ReifyRuntimeType ${formatReference(node.value)}";
+  }
 }
 
 /**
@@ -385,7 +399,7 @@ class Block {
   }
 }
 
-class BlockCollector extends cps_ir.Visitor {
+class BlockCollector implements cps_ir.Visitor {
   final Map<cps_ir.Continuation, Block> cont2block =
       <cps_ir.Continuation, Block>{};
   final Set<Block> entries = new Set<Block>();
@@ -403,6 +417,22 @@ class BlockCollector extends cps_ir.Visitor {
     return block;
   }
 
+  visit(cps_ir.Node node) => node.accept(this);
+
+  visitFieldDefinition(cps_ir.FieldDefinition node) {
+    if (node.hasInitializer) {
+      visit(node.body);
+    }
+  }
+
+  visitFunctionDefinition(cps_ir.FunctionDefinition node) {
+    visit(node.body);
+  }
+
+  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
+    visit(node.body);
+  }
+
   visitRunnableBody(cps_ir.RunnableBody node) {
     current_block = new Block(names.name(node), [], node.body);
     entries.add(current_block);
@@ -415,24 +445,6 @@ class BlockCollector extends cps_ir.Visitor {
 
   visitSuperInitializer(cps_ir.SuperInitializer node) {
     node.arguments.forEach(visit);
-  }
-
-  visitExecutableDefinition(cps_ir.ExecutableDefinition node) {
-    visit(node.body);
-  }
-
-  visitFieldDefinition(cps_ir.FieldDefinition node) {
-    if (node.hasInitializer) {
-      visitExecutableDefinition(node);
-    }
-  }
-
-  visitFunctionDefinition(cps_ir.FunctionDefinition node) {
-    visitExecutableDefinition(node);
-  }
-
-  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
-    visitExecutableDefinition(node);
   }
 
   visitLetPrim(cps_ir.LetPrim exp) {
@@ -460,6 +472,10 @@ class BlockCollector extends cps_ir.Visitor {
     }
   }
 
+  visitInvokeContinuation(cps_ir.InvokeContinuation exp) {
+    addEdgeToContinuation(exp.continuation);
+  }
+
   visitInvokeStatic(cps_ir.InvokeStatic exp) {
     addEdgeToContinuation(exp.continuation);
   }
@@ -468,15 +484,15 @@ class BlockCollector extends cps_ir.Visitor {
     addEdgeToContinuation(exp.continuation);
   }
 
+  visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly exp) {
+    addEdgeToContinuation(exp.continuation);
+  }
+
   visitInvokeConstructor(cps_ir.InvokeConstructor exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
   visitConcatenateStrings(cps_ir.ConcatenateStrings exp) {
-    addEdgeToContinuation(exp.continuation);
-  }
-
-  visitInvokeContinuation(cps_ir.InvokeContinuation exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
@@ -503,10 +519,73 @@ class BlockCollector extends cps_ir.Visitor {
     }
   }
 
+  visitTypeOperator(cps_ir.TypeOperator exp) {
+    addEdgeToContinuation(exp.continuation);
+  }
+
   visitContinuation(cps_ir.Continuation c) {
     var old_node = current_block;
     current_block = getBlock(c);
     visit(c.body);
     current_block = old_node;
+  }
+
+  // Primitives and conditions are not visited when searching for blocks.
+  unexpectedNode(cps_ir.Node node) {
+    throw "The IR tracer's block collector reached an unexpected IR "
+        "instruction: $node";
+  }
+
+  visitLiteralList(cps_ir.LiteralList node) {
+    unexpectedNode(node);
+  }
+  visitLiteralMap(cps_ir.LiteralMap node) {
+    unexpectedNode(node);
+  }
+  visitConstant(cps_ir.Constant node) {
+    unexpectedNode(node);
+  }
+  visitReifyTypeVar(cps_ir.ReifyTypeVar node) {
+    unexpectedNode(node);
+  }
+  visitCreateFunction(cps_ir.CreateFunction node) {
+    unexpectedNode(node);
+  }
+  visitGetMutableVariable(cps_ir.GetMutableVariable node) {
+    unexpectedNode(node);
+  }
+  visitParameter(cps_ir.Parameter node) {
+    unexpectedNode(node);
+  }
+  visitMutableVariable(cps_ir.MutableVariable node) {
+    unexpectedNode(node);
+  }
+  visitGetField(cps_ir.GetField node) {
+    unexpectedNode(node);
+  }
+  visitCreateBox(cps_ir.CreateBox node) {
+    unexpectedNode(node);
+  }
+  visitCreateInstance(cps_ir.CreateInstance node) {
+    unexpectedNode(node);
+  }
+  visitIsTrue(cps_ir.IsTrue node) {
+    unexpectedNode(node);
+  }
+  visitIdentical(cps_ir.Identical node) {
+    unexpectedNode(node);
+  }
+  visitInterceptor(cps_ir.Interceptor node) {
+    unexpectedNode(node);
+  }
+
+  @override
+  visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
+    unexpectedNode(node);
+  }
+
+  @override
+  visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
+    unexpectedNode(node);
   }
 }

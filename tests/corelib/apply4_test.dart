@@ -16,5 +16,5 @@ main() {
   var a = new A();
   var clos = a.foo;
   Expect.equals(Function.apply(clos, ["well"]), "well 99");
-  Expect.equals(Function.apply(clos, ["well", 0, 1, 2, 3, 4, 5, 6]), "well 5");
+  Expect.equals(Function.apply(clos, ["well", 0, 2, 4, 3, 6, 9, 10]), "well 9");
 }

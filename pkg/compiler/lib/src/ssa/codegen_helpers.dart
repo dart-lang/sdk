@@ -335,6 +335,8 @@ class SsaInstructionMerger extends HBaseVisitor {
 
   SsaInstructionMerger(this.generateAtUseSite, this.compiler);
 
+  JavaScriptBackend get backend => compiler.backend;
+
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -382,6 +384,26 @@ class SsaInstructionMerger extends HBaseVisitor {
     // A code motion invariant instruction is dealt before visiting it.
     assert(!instruction.isCodeMotionInvariant());
     analyzeInputs(instruction, 0);
+  }
+
+  void visitInvokeSuper(HInvokeSuper instruction) {
+    Element superMethod = instruction.element;
+    Selector selector = instruction.selector;
+    // If aliased super members cannot be used, we will generate code like
+    //
+    //     C.prototype.method.call(instance)
+    //
+    // where instance is the [this] object for the method. In such a case, the
+    // get of prototype might be evaluated before instance is created if we
+    // generate instance at use site, which in turn might update the prototype
+    // after first access if we use lazy initialization.
+    // In this case, we therefore don't allow the receiver (the first argument)
+    // to be generated at use site, and only analyze all other arguments.
+    if (!backend.canUseAliasedSuperMember(superMethod, selector)) {
+      analyzeInputs(instruction, 1);
+    } else {
+      super.visitInvokeSuper(instruction);
+    }
   }
 
   void visitIs(HIs instruction) {
@@ -615,6 +637,9 @@ class SsaConditionMerger extends HGraphVisitor {
   }
 
   bool isSafeToGenerateAtUseSite(HInstruction user, HInstruction input) {
+    // HForeignNew evaluates arguments in order and passes them to a
+    // constructor.
+    if (user is HForeignNew) return true;
     // A [HForeign] instruction uses operators and if we generate
     // [input] at use site, the precedence might be wrong.
     if (user is HForeign) return false;

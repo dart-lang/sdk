@@ -18,6 +18,8 @@ part 'message_router.dart';
 final RawReceivePort isolateLifecyclePort = new RawReceivePort();
 final RawReceivePort scriptLoadPort = new RawReceivePort();
 
+typedef ShutdownCallback();
+
 class VMService extends MessageRouter {
   static VMService _instance;
   /// Collection of currently connected clients.
@@ -31,6 +33,8 @@ class VMService extends MessageRouter {
 
   /// A port used to receive events from the VM.
   final RawReceivePort eventPort;
+
+  ShutdownCallback onShutdown;
 
   void _addClient(Client client) {
     clients.add(client);
@@ -94,12 +98,28 @@ class VMService extends MessageRouter {
     }
   }
 
+  void _exit() {
+    if (onShutdown != null) {
+      onShutdown();
+    }
+    isolateLifecyclePort.close();
+    scriptLoadPort.close();
+    var clientList = clients.toList();
+    for (var client in clientList) {
+      client.close();
+    }
+    _onExit();
+  }
+
   void messageHandler(message) {
     assert(message is List);
-    if (message is List && message.length == 4) {
+    if (message is List && (message.length == 4)) {
       _controlMessageHandler(message[0], message[1], message[2], message[3]);
-    } else if (message is List && message.length == 2) {
+    } else if (message is List && (message.length == 2)) {
       _eventMessageHandler(message[0], message[1]);
+    } else if (message is List && (message.length == 1)) {
+      assert(message[0] == Constants.SERVICE_EXIT_MESSAGE_ID);
+      _exit();
     } else {
       Logger.root.severe('Unexpected message: $message');
     }
@@ -164,3 +184,5 @@ void _setEventMask(int mask)
     native "VMService_SetEventMask";
 
 void _onStart() native "VMService_OnStart";
+
+void _onExit() native "VMService_OnExit";

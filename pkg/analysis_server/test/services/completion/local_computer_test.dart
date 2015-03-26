@@ -194,15 +194,6 @@ void main() {
     assertNotSuggested('x');
   }
 
-  test_overrides() {
-    addTestSource('''
-class A {m() {}}
-class B extends A {m() {^}}
-''');
-    expect(computeFast(), isTrue);
-    assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
-  }
-
   test_break_ignores_unrelated_statements() {
     addTestSource('''
 void main() {
@@ -576,6 +567,13 @@ class B extends A {
     expect(suggestion.hasNamedParameters, false);
   }
 
+  test_ignore_symbol_being_completed() {
+    addTestSource('class MyClass { } main(MC^) { }');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalClass('MyClass');
+    assertNotSuggested('MC');
+  }
+
   test_InstanceCreationExpression() {
     addTestSource('''
 class A {foo(){var f; {var x;}}}
@@ -741,6 +739,15 @@ class B extends A {
     expect(suggestion.parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_overrides() {
+    addTestSource('''
+class A {m() {}}
+class B extends A {m() {^}}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
   }
 
   test_shadowed_name() {

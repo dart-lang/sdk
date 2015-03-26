@@ -7,20 +7,105 @@ library script_inset_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'service_ref.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 const nbsp = "\u00A0";
 
-class Annotation {
+void addInfoBox(content, infoBox) {
+  infoBox.style.position = 'absolute';
+  infoBox.style.padding = '1em';
+  infoBox.style.border = 'solid black 2px';
+  infoBox.style.zIndex = '10';
+  infoBox.style.backgroundColor = 'white';
+
+  infoBox.style.display = 'none';  // Initially hidden.
+
+  var show = false;
+  content.onClick.listen((event) {
+    show = !show;
+    infoBox.style.display = show ? 'block' : 'none';
+  });
+
+  // Causes infoBox to be positioned relative to the bottom-left of content.
+  content.style.display = 'inline-block';
+  content.append(infoBox);
+}
+
+abstract class Annotation {
   int line;
   int columnStart;
   int columnStop;
-  String title;
+
+  void applyStyleTo(element);
+}
+
+class CurrentExecutionAnnotation extends Annotation {
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.classes.add("currentCol");
+    element.title = "Current execution";
+  }
+}
+
+class CallSiteAnnotation extends Annotation {
+  CallSite callSite;
+
+  Element row() {
+    var e = new DivElement();
+    e.style.display = "table-row";
+    return e;
+  }
+
+  Element cell(content) {
+    var e = new DivElement();
+    e.style.display = "table-cell";
+    e.style.padding = "3px";
+    if (content is String) e.text = content;
+    if (content is Element) e.children.add(content);
+    return e;
+  }
+
+  Element serviceRef(object) {
+    AnyServiceRefElement e = new Element.tag("any-service-ref");
+    e.ref = object;
+    return e;
+  }
+
+  Element entriesTable() {
+    var e = new DivElement();
+    e.style.display = "table";
+    e.style.color = "#333";
+    e.style.font = "400 14px 'Montserrat', sans-serif";
+
+    var r = row();
+    r.append(cell("Container"));
+    r.append(cell("Count"));
+    r.append(cell("Target"));
+    e.append(r);
+
+    for (var entry in callSite.entries) {
+      var r = row();
+      r.append(cell(serviceRef(entry.receiverContainer)));
+      r.append(cell(entry.count.toString()));
+      r.append(cell(serviceRef(entry.target)));
+      e.append(r);
+    }
+
+    return e;
+  }
 
   void applyStyleTo(element) {
-    element.classes.add("currentCol");
-    element.title = title;
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "Call site: ${callSite.name}";
+
+    addInfoBox(element, entriesTable());
   }
 }
 
@@ -150,15 +235,29 @@ class ScriptInsetElement extends ObservatoryElement {
 
     annotations.clear();
     if (currentLine != null) {
-      var a = new Annotation();
+      var a = new CurrentExecutionAnnotation();
       a.line = currentLine;
       a.columnStart = currentCol;
       a.columnStop = currentCol + 1;
-      a.title = "Point of interest";
       annotations.add(a);
     }
 
-    // TODO(rmacnak): Call site data.
+    for (var callSite in script.callSites) {
+      var a = new CallSiteAnnotation();
+      a.line = callSite.line;
+      a.columnStart = callSite.column - 1;  // Call site is 1-origin.
+      var tokenLength = callSite.name.length;  // Approximate.
+      a.columnStop = a.columnStart + tokenLength;
+      a.callSite = callSite;
+      annotations.add(a);
+    }
+
+    annotations.sort((a, b) {
+      if (a.line == b.line) {
+        return a.columnStart.compareTo(b.columnStart);
+      }
+      return a.line.compareTo(b.line);
+    });
   }
 
   Element linesTable() {
@@ -250,8 +349,13 @@ class ScriptInsetElement extends ObservatoryElement {
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return;  // Empty gap between annotations/boundries.
+          return null;  // Empty gap between annotations/boundries.
         }
+        if (stop > line.text.length) {
+          // Approximated token length can run past the end of the line.
+          stop = line.text.length;
+        }
+
         var chunk = line.text.substring(position, stop);
         var chunkNode = span(chunk);
         e.append(chunkNode);

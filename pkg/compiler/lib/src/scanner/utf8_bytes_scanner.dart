@@ -9,7 +9,11 @@ part of scanner;
  * that points to substrings.
  */
 class Utf8BytesScanner extends ArrayBasedScanner {
-  /** The file content. */
+  /**
+   * The file content.
+   *
+   * The content is zero-terminated.
+   */
   List<int> bytes;
 
   /**
@@ -66,9 +70,9 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * is not the case, the entire array is copied before scanning.
    */
   Utf8BytesScanner(SourceFile file, {bool includeComments: false})
-      : bytes = file.slowUtf8Bytes(),
+      : bytes = file.slowUtf8ZeroTerminatedBytes(),
         super(file, includeComments) {
-    ensureZeroTermination();
+    assert(bytes.last == 0);
     // Skip a leading BOM.
     if (_containsBomAt(0)) byteOffset += 3;
   }
@@ -80,21 +84,11 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * the file. If this is not the case, the entire array is copied before
    * scanning.
    */
-  Utf8BytesScanner.fromBytes(this.bytes, {bool includeComments: false})
-      : super(null, includeComments) {
-    ensureZeroTermination();
-  }
-
-  void ensureZeroTermination() {
-    if (bytes.isEmpty || bytes[bytes.length - 1] != 0) {
-      // TODO(lry): abort instead of copying the array, or warn?
-      var newBytes =  new Uint8List(bytes.length + 1);
-      for (int i = 0; i < bytes.length; i++) {
-        newBytes[i] = bytes[i];
-      }
-      newBytes[bytes.length] = 0;
-      bytes = newBytes;
-    }
+  Utf8BytesScanner.fromBytes(List<int> zeroTerminatedBytes,
+                             {bool includeComments: false})
+      : this.bytes = zeroTerminatedBytes,
+        super(null, includeComments) {
+    assert(bytes.last == 0);
   }
 
   bool _containsBomAt(int offset) {

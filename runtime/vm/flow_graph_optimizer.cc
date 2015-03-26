@@ -1199,7 +1199,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
 
   *entry = new(Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
                                    call->GetBlock()->try_index());
-  (*entry)->InheritDeoptTarget(I, call);
+  (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   if (I->TypeChecksEnabled()) {
     // Only type check for the value. A type check for the index is not
@@ -1681,7 +1681,7 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
   Definition* index = call->ArgumentAt(1);
   *entry = new(Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
                                    call->GetBlock()->try_index());
-  (*entry)->InheritDeoptTarget(I, call);
+  (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
   array_cid = PrepareInlineIndexedOp(call,
@@ -2272,8 +2272,8 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
     const String& name = (kind == RawFunction::kMethodExtractor)
         ? String::Handle(Z, Field::NameFromGetter(call->function_name()))
         : call->function_name();
-    return isolate()->cha()->HasOverride(Class::Handle(Z, function.Owner()),
-                                         name);
+    return thread()->cha()->HasOverride(Class::Handle(Z, function.Owner()),
+                                        name);
   }
   return true;
 }
@@ -2738,7 +2738,7 @@ bool FlowGraphOptimizer::InlineStringCodeUnitAt(
 
   *entry = new(Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
                                    call->GetBlock()->try_index());
-  (*entry)->InheritDeoptTarget(I, call);
+  (*entry)->InheritDeoptTarget(Z, call);
 
   *last = PrepareInlineStringIndexOp(call, cid, str, index, *entry);
 
@@ -2760,7 +2760,7 @@ bool FlowGraphOptimizer::InlineStringBaseCharAt(
 
   *entry = new(Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
                                    call->GetBlock()->try_index());
-  (*entry)->InheritDeoptTarget(I, call);
+  (*entry)->InheritDeoptTarget(Z, call);
 
   *last = PrepareInlineStringIndexOp(call, cid, str, index, *entry);
 
@@ -2784,7 +2784,7 @@ bool FlowGraphOptimizer::InlineDoubleOp(
 
   *entry = new(Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
                                    call->GetBlock()->try_index());
-  (*entry)->InheritDeoptTarget(I, call);
+  (*entry)->InheritDeoptTarget(Z, call);
   // Arguments are checked. No need for class check.
   BinaryDoubleOpInstr* double_bin_op =
       new(Z) BinaryDoubleOpInstr(op_kind,
@@ -3554,7 +3554,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
   Definition* index = call->ArgumentAt(1);
   *entry = new(Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
                                    call->GetBlock()->try_index());
-  (*entry)->InheritDeoptTarget(I, call);
+  (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
   array_cid = PrepareInlineByteArrayBaseOp(call,
@@ -3607,7 +3607,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
   Definition* index = call->ArgumentAt(1);
   *entry = new(Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
                                    call->GetBlock()->try_index());
-  (*entry)->InheritDeoptTarget(I, call);
+  (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
   array_cid = PrepareInlineByteArrayBaseOp(call,
@@ -3939,9 +3939,9 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Signature classes have different type checking rules.
   if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
-  if (isolate()->cha()->IsImplemented(type_class)) return false;
+  if (thread()->cha()->IsImplemented(type_class)) return false;
   // Check if there are subclasses.
-  if (isolate()->cha()->HasSubclasses(type_class)) return false;
+  if (thread()->cha()->HasSubclasses(type_class)) return false;
   const intptr_t num_type_args = type_class.NumTypeArguments();
   if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type
@@ -4877,7 +4877,7 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
         Definition* old = (*idefs)[j];
         ConstantInstr* orig = cdefs[j]->AsConstant();
         ConstantInstr* copy =
-            new(flow_graph->isolate()) ConstantInstr(orig->value());
+            new(flow_graph->zone()) ConstantInstr(orig->value());
         copy->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
         old->ReplaceUsesWith(copy);
         (*idefs)[j] = copy;
@@ -5628,7 +5628,7 @@ class PhiPlaceMoves : public ZoneAllocated {
  public:
   // Record a move from the place with id |from| to the place with id |to| at
   // the given block.
-  void CreateOutgoingMove(Isolate* isolate,
+  void CreateOutgoingMove(Zone* zone,
                           BlockEntryInstr* block, intptr_t from, intptr_t to) {
     const intptr_t block_num = block->preorder_number();
     while (moves_.length() <= block_num) {
@@ -5636,7 +5636,7 @@ class PhiPlaceMoves : public ZoneAllocated {
     }
 
     if (moves_[block_num] == NULL) {
-      moves_[block_num] = new(isolate) ZoneGrowableArray<Move>(5);
+      moves_[block_num] = new(zone) ZoneGrowableArray<Move>(5);
     }
 
     moves_[block_num]->Add(Move(from, to));
@@ -6204,7 +6204,6 @@ static PhiPlaceMoves* ComputePhiMoves(
     DirectChainedHashMap<PointerKeyValueTrait<Place> >* map,
     ZoneGrowableArray<Place*>* places) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   PhiPlaceMoves* phi_moves = new(zone) PhiPlaceMoves();
 
@@ -6234,7 +6233,7 @@ static PhiPlaceMoves* ComputePhiMoves(
                       result->id());
           }
         }
-        phi_moves->CreateOutgoingMove(isolate,
+        phi_moves->CreateOutgoingMove(zone,
                                       block->PredecessorAt(j),
                                       result->id(),
                                       place->id());
@@ -7694,14 +7693,14 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
 }
 
 
-JoinEntryInstr* BranchSimplifier::ToJoinEntry(Isolate* isolate,
+JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
                                               TargetEntryInstr* target) {
   // Convert a target block into a join block.  Branches will be duplicated
   // so the former true and false targets become joins of the control flows
   // from all the duplicated branches.
   JoinEntryInstr* join =
-      new(isolate) JoinEntryInstr(target->block_id(), target->try_index());
-  join->InheritDeoptTarget(isolate, target);
+      new(zone) JoinEntryInstr(target->block_id(), target->try_index());
+  join->InheritDeoptTarget(zone, target);
   join->LinkTo(target->next());
   join->set_last_instruction(target->last_instruction());
   target->UnuseAllInputs();
@@ -7709,14 +7708,14 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(Isolate* isolate,
 }
 
 
-BranchInstr* BranchSimplifier::CloneBranch(Isolate* isolate,
+BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
                                            BranchInstr* branch,
                                            Value* new_left,
                                            Value* new_right) {
   ComparisonInstr* comparison = branch->comparison();
   ComparisonInstr* new_comparison =
       comparison->CopyWithNewOperands(new_left, new_right);
-  BranchInstr* new_branch = new(isolate) BranchInstr(new_comparison);
+  BranchInstr* new_branch = new(zone) BranchInstr(new_comparison);
   new_branch->set_is_checked(branch->is_checked());
   return new_branch;
 }
@@ -7734,7 +7733,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
 
   // Begin with a worklist of join blocks ending in branches.  They are
   // candidates for the pattern below.
-  Isolate* isolate = flow_graph->isolate();
+  Zone* zone = flow_graph->zone();
   const GrowableArray<BlockEntryInstr*>& postorder = flow_graph->postorder();
   GrowableArray<BlockEntryInstr*> worklist(postorder.length());
   for (BlockIterator it(postorder); !it.Done(); it.Advance()) {
@@ -7765,9 +7764,9 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       BranchInstr* branch = block->last_instruction()->AsBranch();
       ASSERT(branch != NULL);
       JoinEntryInstr* join_true =
-          ToJoinEntry(isolate, branch->true_successor());
+          ToJoinEntry(zone, branch->true_successor());
       JoinEntryInstr* join_false =
-          ToJoinEntry(isolate, branch->false_successor());
+          ToJoinEntry(zone, branch->false_successor());
 
       ComparisonInstr* comparison = branch->comparison();
       PhiInstr* phi = comparison->left()->definition()->AsPhi();
@@ -7781,15 +7780,15 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
 
         // Replace the goto in each predecessor with a rewritten branch,
         // rewritten to use the corresponding phi input instead of the phi.
-        Value* new_left = phi->InputAt(i)->Copy(isolate);
-        Value* new_right = new(isolate) Value(constant);
+        Value* new_left = phi->InputAt(i)->Copy(zone);
+        Value* new_right = new(zone) Value(constant);
         BranchInstr* new_branch =
-            CloneBranch(isolate, branch, new_left, new_right);
+            CloneBranch(zone, branch, new_left, new_right);
         if (branch->env() == NULL) {
-          new_branch->InheritDeoptTarget(isolate, old_goto);
+          new_branch->InheritDeoptTarget(zone, old_goto);
         } else {
           // Take the environment from the branch if it has one.
-          new_branch->InheritDeoptTarget(isolate, branch);
+          new_branch->InheritDeoptTarget(zone, branch);
           // InheritDeoptTarget gave the new branch's comparison the same
           // deopt id that it gave the new branch.  The id should be the
           // deopt id of the original comparison.
@@ -7822,22 +7821,22 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         // Connect the branch to the true and false joins, via empty target
         // blocks.
         TargetEntryInstr* true_target =
-            new(isolate) TargetEntryInstr(flow_graph->max_block_id() + 1,
+            new(zone) TargetEntryInstr(flow_graph->max_block_id() + 1,
                                           block->try_index());
-        true_target->InheritDeoptTarget(isolate, join_true);
+        true_target->InheritDeoptTarget(zone, join_true);
         TargetEntryInstr* false_target =
-            new(isolate) TargetEntryInstr(flow_graph->max_block_id() + 2,
+            new(zone) TargetEntryInstr(flow_graph->max_block_id() + 2,
                                           block->try_index());
-        false_target->InheritDeoptTarget(isolate, join_false);
+        false_target->InheritDeoptTarget(zone, join_false);
         flow_graph->set_max_block_id(flow_graph->max_block_id() + 2);
         *new_branch->true_successor_address() = true_target;
         *new_branch->false_successor_address() = false_target;
-        GotoInstr* goto_true = new(isolate) GotoInstr(join_true);
-        goto_true->InheritDeoptTarget(isolate, join_true);
+        GotoInstr* goto_true = new(zone) GotoInstr(join_true);
+        goto_true->InheritDeoptTarget(zone, join_true);
         true_target->LinkTo(goto_true);
         true_target->set_last_instruction(goto_true);
-        GotoInstr* goto_false = new(isolate) GotoInstr(join_false);
-        goto_false->InheritDeoptTarget(isolate, join_false);
+        GotoInstr* goto_false = new(zone) GotoInstr(join_false);
+        goto_false->InheritDeoptTarget(zone, join_false);
         false_target->LinkTo(goto_false);
         false_target->set_last_instruction(goto_false);
       }
@@ -7881,7 +7880,7 @@ static void EliminateTrivialBlock(BlockEntryInstr* block,
 
 
 void IfConverter::Simplify(FlowGraph* flow_graph) {
-  Isolate* isolate = flow_graph->isolate();
+  Zone* zone = flow_graph->zone();
   bool changed = false;
 
   const GrowableArray<BlockEntryInstr*>& postorder = flow_graph->postorder();
@@ -7936,12 +7935,12 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
 
           ComparisonInstr* new_comparison =
               comparison->CopyWithNewOperands(
-                  comparison->left()->Copy(isolate),
-                  comparison->right()->Copy(isolate));
-          IfThenElseInstr* if_then_else = new(isolate) IfThenElseInstr(
+                  comparison->left()->Copy(zone),
+                  comparison->right()->Copy(zone));
+          IfThenElseInstr* if_then_else = new(zone) IfThenElseInstr(
               new_comparison,
-              if_true->Copy(isolate),
-              if_false->Copy(isolate));
+              if_true->Copy(zone),
+              if_false->Copy(zone));
           flow_graph->InsertBefore(branch,
                                    if_then_else,
                                    NULL,

@@ -76,7 +76,7 @@ Heap::~Heap() {
 
 
 uword Heap::AllocateNew(intptr_t size) {
-  ASSERT(isolate()->no_gc_scope_depth() == 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
   uword addr = new_space_->TryAllocate(size);
   if (addr == 0) {
     CollectGarbage(kNew);
@@ -90,7 +90,7 @@ uword Heap::AllocateNew(intptr_t size) {
 
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
-  ASSERT(isolate()->no_gc_scope_depth() == 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
   uword addr = old_space_->TryAllocate(size, type);
   if (addr != 0) {
     return addr;
@@ -151,7 +151,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 
 
 uword Heap::AllocatePretenured(intptr_t size) {
-  ASSERT(isolate()->no_gc_scope_depth() == 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
   uword addr = old_space_->TryAllocateDataBump(size, PageSpace::kControlGrowth);
   if (addr != 0) return addr;
   return AllocateOld(size, HeapPage::kData);
@@ -159,7 +159,7 @@ uword Heap::AllocatePretenured(intptr_t size) {
 
 
 void Heap::AllocateExternal(intptr_t size, Space space) {
-  ASSERT(isolate()->no_gc_scope_depth() == 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
     new_space_->AllocateExternal(size);
     if (new_space_->ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
@@ -268,7 +268,7 @@ RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
 
 
 RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
   RawObject* raw_obj = FindNewObject(visitor);
   if (raw_obj != Object::null()) {
     return raw_obj;
@@ -716,13 +716,13 @@ void GCEvent::PrintJSON(JSONStream* js) const {
 
 
 #if defined(DEBUG)
-NoGCScope::NoGCScope() : StackResource(Isolate::Current()) {
-  isolate()->IncrementNoGCScopeDepth();
+NoSafepointScope::NoSafepointScope() : StackResource(Isolate::Current()) {
+  isolate()->IncrementNoSafepointScopeDepth();
 }
 
 
-NoGCScope::~NoGCScope() {
-  isolate()->DecrementNoGCScopeDepth();
+NoSafepointScope::~NoSafepointScope() {
+  isolate()->DecrementNoSafepointScopeDepth();
 }
 #endif  // defined(DEBUG)
 

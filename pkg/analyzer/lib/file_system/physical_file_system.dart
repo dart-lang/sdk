@@ -80,7 +80,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
       io.File file = _entry as io.File;
       return file.lastModifiedSync().millisecondsSinceEpoch;
     } on io.FileSystemException catch (exception) {
-      throw new FileSystemException(path, exception.message);
+      throw new FileSystemException(exception.path, exception.message);
     }
   }
 
@@ -97,6 +97,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   bool isOrContains(String path) {
     return path == this.path;
+  }
+
+  @override
+  String readAsStringSync() {
+    try {
+      io.File file = _entry as io.File;
+      return file.readAsStringSync();
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
   }
 }
 
@@ -134,19 +144,23 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   List<Resource> getChildren() {
-    List<Resource> children = <Resource>[];
-    io.Directory directory = _entry as io.Directory;
-    List<io.FileSystemEntity> entries = directory.listSync(recursive: false);
-    int numEntries = entries.length;
-    for (int i = 0; i < numEntries; i++) {
-      io.FileSystemEntity entity = entries[i];
-      if (entity is io.Directory) {
-        children.add(new _PhysicalFolder(entity));
-      } else if (entity is io.File) {
-        children.add(new _PhysicalFile(entity));
+    try {
+      List<Resource> children = <Resource>[];
+      io.Directory directory = _entry as io.Directory;
+      List<io.FileSystemEntity> entries = directory.listSync(recursive: false);
+      int numEntries = entries.length;
+      for (int i = 0; i < numEntries; i++) {
+        io.FileSystemEntity entity = entries[i];
+        if (entity is io.Directory) {
+          children.add(new _PhysicalFolder(entity));
+        } else if (entity is io.File) {
+          children.add(new _PhysicalFile(entity));
+        }
       }
+      return children;
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
     }
-    return children;
   }
 
   @override

@@ -7,13 +7,14 @@
 
 library engine.testing.test_type_provider;
 
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 
 /**
- * Instances of the class `TestTypeProvider` implement a type provider that can be used by
- * tests without creating the element model for the core library.
+ * A type provider that can be used by tests without creating the element model
+ * for the core library.
  */
 class TestTypeProvider implements TypeProvider {
   /**
@@ -90,6 +91,11 @@ class TestTypeProvider implements TypeProvider {
    * The type representing the built-in type 'Map'.
    */
   InterfaceType _mapType;
+
+  /**
+   * An shared object representing the value 'null'.
+   */
+  DartObjectImpl _nullObject;
 
   /**
    * The type representing the built-in type 'Null'.
@@ -324,6 +330,14 @@ class TestTypeProvider implements TypeProvider {
   }
 
   @override
+  DartObjectImpl get nullObject {
+    if (_nullObject == null) {
+      _nullObject = new DartObjectImpl(nullType, NullState.NULL_STATE);
+    }
+    return _nullObject;
+  }
+
+  @override
   InterfaceType get nullType {
     if (_nullType == null) {
       _nullType = ElementFactory.classElement2("Null").type;
@@ -442,8 +456,8 @@ class TestTypeProvider implements TypeProvider {
   }
 
   /**
-   * Initialize the numeric types. They are created as a group so that we can (a) create the right
-   * hierarchy and (b) add members to them.
+   * Initialize the numeric types. They are created as a group so that we can
+   * (a) create the right hierarchy and (b) add members to them.
    */
   void _initializeNumericTypes() {
     //
@@ -555,10 +569,9 @@ class TestTypeProvider implements TypeProvider {
   }
 
   /**
-   * Given a class element representing a class with type parameters, propagate those type
-   * parameters to all of the accessors, methods and constructors defined for the class.
-   *
-   * @param classElement the element representing the class with type parameters
+   * Given a [classElement] representing a class with type parameters, propagate
+   * those type parameters to all of the accessors, methods and constructors
+   * defined for the class.
    */
   void _propagateTypeArguments(ClassElementImpl classElement) {
     List<DartType> typeArguments =

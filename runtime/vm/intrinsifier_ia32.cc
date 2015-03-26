@@ -810,17 +810,13 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
 
-  // Preserve CTX to free ESI.
-  __ pushl(CTX);
-  ASSERT(CTX == ESI);
-
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
-  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
+  __ movl(EDI, Address(ESP, 5 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 4 * kWordSize));  // used is Smi
   __ SmiUntag(EAX);  // used > 0.
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
-  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
+  __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 2 * kWordSize));  // a_used is Smi
   __ SmiUntag(ECX);  // a_used > 0.
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
@@ -858,8 +854,6 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ adcl(EAX, Immediate(0));
   __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
 
-  // Restore CTX and return.
-  __ popl(CTX);
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
@@ -870,17 +864,13 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
 
-  // Preserve CTX to free ESI.
-  __ pushl(CTX);
-  ASSERT(CTX == ESI);
-
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
-  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
+  __ movl(EDI, Address(ESP, 5 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 4 * kWordSize));  // used is Smi
   __ SmiUntag(EAX);  // used > 0.
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
-  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
+  __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 2 * kWordSize));  // a_used is Smi
   __ SmiUntag(ECX);  // a_used > 0.
-  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
@@ -914,8 +904,6 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // Restore CTX and return.
-  __ popl(CTX);
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
@@ -962,18 +950,14 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ SmiUntag(EDX);
   __ j(ZERO, &no_op, Assembler::kNearJump);
 
-  // Preserve CTX to free ESI.
-  __ pushl(CTX);
-  ASSERT(CTX == ESI);
-
   // EDI = mip = &m_digits[i >> 1]
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // m_digits
-  __ movl(EAX, Address(ESP, 5 * kWordSize));  // i is Smi
+  __ movl(EDI, Address(ESP, 5 * kWordSize));  // m_digits
+  __ movl(EAX, Address(ESP, 4 * kWordSize));  // i is Smi
   __ leal(EDI, FieldAddress(EDI, EAX, TIMES_2, TypedData::data_offset()));
 
   // ESI = ajp = &a_digits[j >> 1]
-  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
-  __ movl(EAX, Address(ESP, 3 * kWordSize));  // j is Smi
+  __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
+  __ movl(EAX, Address(ESP, 2 * kWordSize));  // j is Smi
   __ leal(ESI, FieldAddress(ESI, EAX, TIMES_2, TypedData::data_offset()));
 
   // Save n
@@ -1032,8 +1016,6 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   __ Bind(&done);
   __ Drop(1);  // n
-  // Restore CTX and return.
-  __ popl(CTX);
 
   __ Bind(&no_op);
   __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
@@ -1080,12 +1062,8 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ j(EQUAL, &x_zero, Assembler::kNearJump);
   __ addl(EDI, Immediate(Bigint::kBytesPerDigit));
 
-  // Preserve CTX to free ESI.
-  __ pushl(CTX);
-  ASSERT(CTX == ESI);
-
   // ESI = ajp = &a_digits[i]
-  __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
+  __ movl(ESI, Address(ESP, 2 * kWordSize));  // a_digits
   __ leal(ESI, FieldAddress(ESI, EAX, TIMES_4, TypedData::data_offset()));
 
   // EDX:EAX = t = x*x + *ajp
@@ -1099,8 +1077,8 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
 
   // int n = used - i - 1
-  __ movl(EAX, Address(ESP, 2 * kWordSize));  // used is Smi
-  __ subl(EAX, Address(ESP, 4 * kWordSize));  // i is Smi
+  __ movl(EAX, Address(ESP, 1 * kWordSize));  // used is Smi
+  __ subl(EAX, Address(ESP, 3 * kWordSize));  // i is Smi
   __ SmiUntag(EAX);
   __ decl(EAX);
   __ pushl(EAX);  // Save n on stack.
@@ -1165,9 +1143,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ movl(Address(ESI, 0), EAX);
   __ movl(Address(ESI, Bigint::kBytesPerDigit), EDX);
 
-  // Restore CTX and return.
   __ Drop(3);
-  __ popl(CTX);
   __ Bind(&x_zero);
   __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ ret();

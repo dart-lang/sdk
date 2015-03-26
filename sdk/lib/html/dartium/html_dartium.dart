@@ -951,6 +951,9 @@ class AnimationPlayer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
   @DomName('AnimationPlayer.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
@@ -22046,6 +22049,8 @@ class MediaQueryListEvent extends Event {
 
 @DocsEditable()
 @DomName('MediaSource')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '11')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource
 @Experimental()
 class MediaSource extends EventTarget {
@@ -22057,6 +22062,9 @@ class MediaSource extends EventTarget {
   factory MediaSource() {
     return _blink.BlinkMediaSource.instance.constructorCallback_0_();
   }
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable()
@@ -24835,16 +24843,15 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
 @Experimental() // experimental
 class Notification extends EventTarget {
 
-  factory Notification(String title, {String titleDir: null, String body: null,
-      String bodyDir: null, String tag: null, String iconUrl: null}) {
+  factory Notification(String title, {String dir: null, String body: null,
+      String lang: null, String tag: null, String icon: null}) {
 
     var parsedOptions = {};
-    if (titleDir != null) parsedOptions['titleDir'] = titleDir;
+    if (dir != null) parsedOptions['dir'] = dir;
     if (body != null) parsedOptions['body'] = body;
-    if (bodyDir != null) parsedOptions['bodyDir'] = bodyDir;
+    if (lang != null) parsedOptions['lang'] = lang;
     if (tag != null) parsedOptions['tag'] = tag;
-    if (iconUrl != null) parsedOptions['iconUrl'] = iconUrl;
-
+    if (icon != null) parsedOptions['icon'] = icon;
     return Notification._factoryNotification(title, parsedOptions);
   }
   // To suppress missing implicit constructor warnings.
@@ -24898,6 +24905,9 @@ class Notification extends EventTarget {
     }
     return _blink.BlinkNotification.instance.constructorCallback_1_(title);
   }
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('Notification.body')
   @DocsEditable()

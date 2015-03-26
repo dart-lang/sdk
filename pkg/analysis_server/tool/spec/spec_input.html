@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.3.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.5.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -2301,6 +2301,13 @@
               will contain an empty string.
             </p>
           </field>
+          <field name="typeParameters" optional="true">
+            <ref>String</ref>
+            <p>
+              The type parameter list for the element. If the element doesn't
+              have type parameters, this field will not be defined.
+            </p>
+          </field>
         </object>
       </type>
       <type name="ElementKind">
@@ -2529,6 +2536,14 @@
               declared. This data is omitted if there is no referenced
               element, or if the element is declared inside an HTML
               file.
+            </p>
+          </field>
+          <field name="containingClassDescription" optional="true">
+            <ref>String</ref>
+            <p>
+              A human-readable description of the class declaring the element
+              being referenced. This data is omitted if there is no referenced
+              element, or if the element is not a class member.
             </p>
           </field>
           <field name="dartdoc" optional="true">

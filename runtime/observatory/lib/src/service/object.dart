@@ -293,26 +293,30 @@ abstract class Coverage {
   String get id;
   Isolate get isolate;
 
+  Future refreshCoverage() {
+    return refreshCallSiteData();
+  }
+
   /// Default handler for coverage data.
-  void processCoverageData(List coverageData) {
+  void processCallSiteData(List coverageData) {
     coverageData.forEach((scriptCoverage) {
       assert(scriptCoverage['script'] != null);
-      scriptCoverage['script']._processHits(scriptCoverage['hits']);
+      scriptCoverage['script']._processCallSites(scriptCoverage['callSites']);
     });
   }
 
-  Future refreshCoverage() {
+  Future refreshCallSiteData() {
     Map params = {};
     if (this is! Isolate) {
       params['targetId'] = id;
     }
-    return isolate.invokeRpcNoUpgrade('getCoverage', params).then(
+    return isolate.invokeRpcNoUpgrade('getCallSiteData', params).then(
         (ObservableMap map) {
           var coverage = new ServiceObject._fromMap(isolate, map);
           assert(coverage.type == 'CodeCoverage');
           var coverageList = coverage['coverage'];
           assert(coverageList != null);
-          processCoverageData(coverageList);
+          processCallSiteData(coverageList);
           return this;
         });
   }
@@ -2073,7 +2077,61 @@ class ScriptLine extends Observable {
   }
 }
 
+class CallSite {
+  final String name;
+  final Script script;
+  final int tokenPos;
+  final List<CallSiteEntry> entries;
+
+  CallSite(this.name, this.script, this.tokenPos, this.entries);
+
+  int get line => script.tokenToLine(tokenPos);
+  int get column => script.tokenToCol(tokenPos);
+
+  int get aggregateCount {
+    var count = 0;
+    for (var entry in entries) {
+      count += entry.count;
+    }
+    return count;
+  }
+
+  factory CallSite.fromMap(Map siteMap, Script script) {
+    var name = siteMap['name'];
+    var tokenPos = siteMap['tokenPos'];
+    var entries = new List<CallSiteEntry>();
+    for (var entryMap in siteMap['cacheEntries']) {
+      entries.add(new CallSiteEntry.fromMap(entryMap));
+    }
+    return new CallSite(name, script, tokenPos, entries);
+  }
+
+  operator ==(other) {
+    return (script == other.script) && (tokenPos == other.tokenPos);
+  }
+  int get hashCode => (script.hashCode << 8) | tokenPos;
+
+  String toString() => "CallSite($name, $tokenPos)";
+}
+
+class CallSiteEntry {
+  final /* Class | Library */ receiverContainer;
+  final int count;
+  final ServiceFunction target;
+
+  CallSiteEntry(this.receiverContainer, this.count, this.target);
+
+  factory CallSiteEntry.fromMap(Map entryMap) {
+    return new CallSiteEntry(entryMap['receiverContainer'],
+                             entryMap['count'],
+                             entryMap['target']);
+  }
+
+  String toString() => "CallSiteEntry(${receiverContainer.name}, $count)";
+}
+
 class Script extends ServiceObject with Coverage {
+  Set<CallSite> callSites = new Set<CallSite>();
   final lines = new ObservableList<ScriptLine>();
   final _hits = new Map<int, int>();
   @observable String kind;
@@ -2158,11 +2216,14 @@ class Script extends ServiceObject with Coverage {
     }
   }
 
-  void _processHits(List scriptHits) {
-    // Update hits table.
-    for (var i = 0; i < scriptHits.length; i += 2) {
-      var line = scriptHits[i];
-      var hit = scriptHits[i + 1]; // hit status.
+  void _processCallSites(List newCallSiteMaps) {
+    var mergedCallSites = new Set<CallSite>();
+    for (var callSiteMap in newCallSiteMaps) {
+      var newSite = new CallSite.fromMap(callSiteMap, this);
+      mergedCallSites.add(newSite);
+
+      var line = newSite.line;
+      var hit = newSite.aggregateCount;
       assert(line >= 1); // Lines start at 1.
       var oldHits = _hits[line];
       if (oldHits != null) {
@@ -2170,6 +2231,9 @@ class Script extends ServiceObject with Coverage {
       }
       _hits[line] = hit;
     }
+
+    mergedCallSites.addAll(callSites);
+    callSites = mergedCallSites;
     _applyHitsToLines();
     // Notify any Observers that this Script's state has changed.
     notifyChange(null);

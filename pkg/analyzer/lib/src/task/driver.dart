@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
@@ -66,15 +67,17 @@ class AnalysisDriver {
 
   /**
    * Perform work until the given [result] has been computed for the given
-   * [target].
+   * [target]. Return the last [AnalysisTask] that was performed.
    */
-  void computeResult(AnalysisTarget target, ResultDescriptor result) {
+  AnalysisTask computeResult(AnalysisTarget target, ResultDescriptor result) {
+    AnalysisTask task;
     WorkOrder workOrder = createWorkOrderForResult(target, result);
     if (workOrder != null) {
       while (workOrder.moveNext()) {
-        performWorkItem(workOrder.current);
+        task = performWorkItem(workOrder.current);
       }
     }
+    return task;
   }
 
   /**
@@ -185,17 +188,15 @@ class AnalysisDriver {
 
   /**
    * Perform the given work item.
+   * Return the performed [AnalysisTask].
    */
-  void performWorkItem(WorkItem item) {
+  AnalysisTask performWorkItem(WorkItem item) {
     if (item.exception != null) {
       // Mark all of the results that the task would have computed as being in
       // ERROR with the exception recorded on the work item.
       CacheEntry targetEntry = context.getCacheEntry(item.target);
-      targetEntry.exception = item.exception;
-      for (ResultDescriptor result in item.descriptor.results) {
-        targetEntry.setState(result, CacheState.ERROR);
-      }
-      return;
+      targetEntry.setErrorState(item.exception, item.descriptor.results);
+      return null;
     }
     // Otherwise, perform the task.
     AnalysisTask task = item.buildTask();
@@ -210,12 +211,10 @@ class AnalysisDriver {
         entry.setValue(result, outputs[result]);
       }
     } else {
-      entry.exception = task.caughtException;
-      for (ResultDescriptor result in task.descriptor.results) {
-        entry.setState(result, CacheState.ERROR);
-      }
+      entry.setErrorState(task.caughtException, item.descriptor.results);
     }
     _onTaskCompletedController.add(task);
+    return task;
   }
 
   /**
@@ -235,6 +234,7 @@ class AnalysisDriver {
 abstract class ExtendedAnalysisContext implements InternalAnalysisContext {
   List<AnalysisTarget> get explicitTargets;
   List<AnalysisTarget> get priorityTargets;
+  void set typeProvider(TypeProvider typeProvider);
   CacheEntry getCacheEntry(AnalysisTarget target);
 }
 
@@ -283,8 +283,12 @@ class WorkItem {
    * described by the given descriptor.
    */
   WorkItem(this.context, this.target, this.descriptor) {
+    AnalysisTarget actualTarget = identical(
+            target, AnalysisContextTarget.request)
+        ? new AnalysisContextTarget(context)
+        : target;
     Map<String, TaskInput> inputDescriptors =
-        descriptor.createTaskInputs(target);
+        descriptor.createTaskInputs(actualTarget);
     builder = new TopLevelTaskInputBuilder(inputDescriptors);
     if (!builder.moveNext()) {
       builder = null;

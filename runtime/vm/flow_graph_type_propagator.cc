@@ -410,13 +410,13 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   Instruction* check_clone = NULL;
   if (check->IsCheckSmi()) {
     check_clone =
-        new CheckSmiInstr(assert->value()->Copy(isolate()),
+        new CheckSmiInstr(assert->value()->Copy(zone()),
                           assert->env()->deopt_id(),
                           check->token_pos());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
-        new CheckClassInstr(assert->value()->Copy(isolate()),
+        new CheckClassInstr(assert->value()->Copy(zone()),
                             assert->env()->deopt_id(),
                             check->AsCheckClass()->unary_checks(),
                             check->token_pos());
@@ -424,7 +424,7 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
   check_clone->InsertBefore(assert);
-  assert->env()->DeepCopyTo(isolate(), check_clone);
+  assert->env()->DeepCopyTo(zone(), check_clone);
 
   (*asserts_)[defn->ssa_temp_index()] = kStrengthenedAssertMarker;
 }
@@ -538,7 +538,7 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->HasResolvedTypeClass()) {
       if (FLAG_use_cha) {
         const Class& type_class = Class::Handle(type_->type_class());
-        CHA* cha = Isolate::Current()->cha();
+        CHA* cha = Thread::Current()->cha();
         // Don't infer a cid from an abstract type for signature classes since
         // there can be multiple compatible classes with different cids.
         if (!type_class.IsSignatureClass() &&
@@ -772,7 +772,7 @@ CompileType ParameterInstr::ComputeType() const {
     intptr_t cid = kDynamicCid;
     if (FLAG_use_cha && type.HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type.type_class());
-      if (!Isolate::Current()->cha()->HasSubclasses(type_class.id())) {
+      if (!Thread::Current()->cha()->HasSubclasses(type_class.id())) {
         cid = type_class.id();
       }
     }

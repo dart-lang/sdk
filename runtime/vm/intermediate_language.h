@@ -317,7 +317,7 @@ class Value : public ZoneAllocated {
   inline void BindTo(Definition* definition);
   inline void BindToEnvironment(Definition* definition);
 
-  Value* Copy(Isolate* isolate) { return new(isolate) Value(definition_); }
+  Value* Copy(Zone* zone) { return new(zone) Value(definition_); }
 
   // This function must only be used when the new Value is dominated by
   // the original Value.
@@ -841,7 +841,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return false;
   }
 
-  virtual void InheritDeoptTarget(Isolate* isolate, Instruction* other);
+  virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   bool NeedsEnvironment() const {
     return CanDeoptimize() || CanBecomeDeoptimizationTarget();
@@ -2235,7 +2235,7 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
   virtual void PrintTo(BufferFormatter* f) const;
 
   Value* offset() const { return inputs_[0]; }
-  void ComputeOffsetTable(Isolate* isolate);
+  void ComputeOffsetTable();
 
  private:
   GrowableArray<TargetEntryInstr*> successors_;
@@ -2385,7 +2385,7 @@ class BranchInstr : public Instruction {
     return constant_target_;
   }
 
-  virtual void InheritDeoptTarget(Isolate* isolate, Instruction* other);
+  virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   virtual bool MayThrow() const {
     return comparison()->MayThrow();
@@ -7920,7 +7920,7 @@ class Environment : public ZoneAllocated {
   };
 
   // Construct an environment by constructing uses from an array of definitions.
-  static Environment* From(Isolate* isolate,
+  static Environment* From(Zone* zone,
                            const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
                            const ParsedFunction& parsed_function);
@@ -7981,14 +7981,14 @@ class Environment : public ZoneAllocated {
 
   const Code& code() const { return parsed_function_.code(); }
 
-  Environment* DeepCopy(Isolate* isolate) const {
-    return DeepCopy(isolate, Length());
+  Environment* DeepCopy(Zone* zone) const {
+    return DeepCopy(zone, Length());
   }
 
-  void DeepCopyTo(Isolate* isolate, Instruction* instr) const;
-  void DeepCopyToOuter(Isolate* isolate, Instruction* instr) const;
+  void DeepCopyTo(Zone* zone, Instruction* instr) const;
+  void DeepCopyToOuter(Zone* zone, Instruction* instr) const;
 
-  void DeepCopyAfterTo(Isolate* isolate,
+  void DeepCopyAfterTo(Zone* zone,
                        Instruction* instr,
                        intptr_t argc,
                        Definition* dead,
@@ -8000,7 +8000,7 @@ class Environment : public ZoneAllocated {
   // Deep copy an environment.  The 'length' parameter may be less than the
   // environment's length in order to drop values (e.g., passed arguments)
   // from the copy.
-  Environment* DeepCopy(Isolate* isolate, intptr_t length) const;
+  Environment* DeepCopy(Zone* zone, intptr_t length) const;
 
  private:
   friend class ShallowIterator;

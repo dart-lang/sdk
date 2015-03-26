@@ -8,6 +8,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/regexp_parser.h"
+#include "vm/thread.h"
 
 #include "lib/regexp_jsc.h"
 
@@ -39,7 +40,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   }
 
   // Create a JSRegExp object containing only the initial parameters.
-  return RegExpEngine::CreateJSRegExp(isolate,
+  return RegExpEngine::CreateJSRegExp(zone,
                                       pattern,
                                       multi_line,
                                       ignore_case);
@@ -102,7 +103,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   ASSERT(!fn.IsNull());
 
   // And finally call the generated code.
-  return IRRegExpMacroAssembler::Execute(fn, str, start_index, isolate);
+  return IRRegExpMacroAssembler::Execute(fn, str, start_index, zone);
 }
 
 }  // namespace dart

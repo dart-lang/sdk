@@ -79,10 +79,12 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   if (!function.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(isolate, function));
+        zone, Compiler::CompileFunction(thread, function));
     if (!error.IsNull()) {
       return error.raw();
     }
@@ -90,7 +92,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       isolate->stub_code()->InvokeDartCodeEntryPoint());
-  const Code& code = Code::Handle(isolate, function.CurrentCode());
+  const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(isolate);

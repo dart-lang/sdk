@@ -448,7 +448,7 @@ class ExclusivePageIterator : ValueObject {
  private:
   const PageSpace* space_;
   MutexLocker ml_;
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   HeapPage* page_;
 };
 
@@ -471,7 +471,7 @@ class ExclusiveCodePageIterator : ValueObject {
  private:
   const PageSpace* space_;
   MutexLocker ml_;
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   HeapPage* page_;
 };
 
@@ -493,7 +493,7 @@ class ExclusiveLargePageIterator : ValueObject {
  private:
   const PageSpace* space_;
   MutexLocker ml_;
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   HeapPage* page_;
 };
 
@@ -670,7 +670,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
     // TODO(19445): Use ExclusivePageIterator once HeapMap supports large pages.
     MutexLocker ml(pages_lock_);
     MakeIterable();
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
@@ -713,7 +713,7 @@ bool PageSpace::ShouldCollectCode() {
 void PageSpace::WriteProtectCode(bool read_only) {
   if (FLAG_write_protect_code) {
     MutexLocker ml(pages_lock_);
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     // No need to go through all of the data pages first.
     HeapPage* page = exec_pages_;
     while (page != NULL) {

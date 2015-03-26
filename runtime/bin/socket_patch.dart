@@ -287,6 +287,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool isClosed = false;
   bool isClosing = false;
   bool isClosedRead = false;
+  bool closedReadEventSent = false;
   bool isClosedWrite = false;
   Completer closeCompleter = new Completer.sync();
 
@@ -302,7 +303,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int localPort = 0;
 
   // Holds the address used to connect or bind the socket.
-  InternetAddress address;
+  InternetAddress localAddress;
 
   int available = 0;
 
@@ -416,7 +417,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             }
             var address = it.current;
             var socket = new _NativeSocket.normal();
-            socket.address = address;
+            socket.localAddress = address;
             var result;
             if (sourceAddress == null) {
               result = socket.nativeCreateConnect(address._in_addr, port);
@@ -432,7 +433,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               }
               connectNext();
             } else {
-              socket.port;  // Query the local port, for error messages.
+              // Query the local port, for error messages.
+              socket.port;
               // Set up timer for when we should retry the next address
               // (if any).
               var duration = address.isLoopback ?
@@ -489,7 +491,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         })
         .then((address) {
           var socket = new _NativeSocket.listen();
-          socket.address = address;
+          socket.localAddress = address;
 
           var result = socket.nativeCreateBindListen(address._in_addr,
                                                      port,
@@ -536,7 +538,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         });
   }
 
-  _NativeSocket.datagram(this.address)
+  _NativeSocket.datagram(this.localAddress)
     : typeFlags = TYPE_NORMAL_SOCKET | TYPE_UDP_SOCKET;
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
@@ -670,7 +672,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     var socket = new _NativeSocket.normal();
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
-    socket.address = address;
+    socket.localAddress = address;
     totalRead += 1;
     lastRead = timestamp;
     return socket;
@@ -678,22 +680,32 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   int get port {
     if (localPort != 0) return localPort;
+    if (isClosing || isClosed) throw const SocketException.closed();
     var result = nativeGetPort();
     if (result is OSError) throw result;
     return localPort = result;
   }
 
   int get remotePort {
-    return nativeGetRemotePeer()[1];
+    if (isClosing || isClosed) throw const SocketException.closed();
+    var result = nativeGetRemotePeer();
+    if (result is OSError) throw result;
+    return result[1];
   }
 
+  InternetAddress get address => localAddress;
+
   InternetAddress get remoteAddress {
-    var result = nativeGetRemotePeer()[0];
-    var type = new InternetAddressType._from(result[0]);
-    return new _InternetAddress(result[1], null, result[2]);
+    if (isClosing || isClosed) throw const SocketException.closed();
+    var result = nativeGetRemotePeer();
+    if (result is OSError) throw result;
+    var addr = result[0];
+    var type = new InternetAddressType._from(addr[0]);
+    return new _InternetAddress(addr[1], null, addr[2]);
   }
 
   void issueReadEvent() {
+    if (closedReadEventSent) return;
     if (readEventIssued) return;
     readEventIssued = true;
     void issue() {
@@ -701,10 +713,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isClosing) return;
       if (!sendReadEvents) return;
       if (available == 0) {
-        if (isClosedRead) {
+        if (isClosedRead && !closedReadEventSent) {
           if (isClosedWrite) close();
           var handler = eventHandlers[CLOSED_EVENT];
           if (handler == null) return;
+          closedReadEventSent = true;
           handler();
         }
         return;
@@ -860,7 +873,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   void shutdownWrite() {
     if (!isClosing && !isClosed) {
-      if (isClosedRead) {
+      if (closedReadEventSent) {
         close();
       } else {
         sendToEventHandler(1 << SHUTDOWN_WRITE_COMMAND);
@@ -1350,6 +1363,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   factory _RawSocket._writePipe() {
     var native = new _NativeSocket.pipe();
     native.isClosedRead = true;
+    native.closedReadEventSent = true;
     return new _RawSocket(native);
   }
 
@@ -1701,10 +1715,25 @@ class _Socket extends Stream<List<int>> implements Socket {
     return _raw.setOption(option, enabled);
   }
 
-  int get port => _raw.port;
-  InternetAddress get address => _raw.address;
-  int get remotePort => _raw.remotePort;
-  InternetAddress get remoteAddress => _raw.remoteAddress;
+  int get port {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.port;
+  }
+
+  InternetAddress get address {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.address;
+  }
+
+  int get remotePort {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.remotePort;
+  }
+
+  InternetAddress get remoteAddress {
+    if (_raw == null) throw const SocketException.closed();;
+    return _raw.remoteAddress;
+  }
 
   Future _detachRaw() {
     _detachReady = new Completer();

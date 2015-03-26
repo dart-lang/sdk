@@ -131,6 +131,7 @@ class InlineExitCollector: public ZoneAllocated {
                           intptr_t try_index);
 
   Isolate* isolate() const { return caller_graph_->isolate(); }
+  Zone* zone() const { return caller_graph_->zone(); }
 
   FlowGraph* caller_graph_;
   Definition* call_;
@@ -230,6 +231,7 @@ class FlowGraphBuilder : public ValueObject {
   static uword FindDoubleConstant(double value);
 
   Isolate* isolate() const { return parsed_function().isolate(); }
+  Zone* zone() const { return parsed_function().zone(); }
 
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
@@ -480,6 +482,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
                       JoinEntryInstr* target);
 
   Isolate* isolate() const { return owner()->isolate(); }
+  Zone* zone() const { return owner()->zone(); }
 
  private:
   friend class TempLocalScope;  // For ReturnDefinition.

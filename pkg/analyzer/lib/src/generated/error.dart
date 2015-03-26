@@ -13,8 +13,7 @@ import 'scanner.dart' show Token;
 import 'source.dart';
 
 /**
- * Instances of the class `AnalysisError` represent an error discovered during the analysis of
- * some Dart code.
+ * An error discovered during the analysis of some Dart code.
  *
  * See [AnalysisErrorListener].
  */
@@ -25,15 +24,15 @@ class AnalysisError {
   static const List<AnalysisError> NO_ERRORS = const <AnalysisError>[];
 
   /**
-   * A [Comparator] that sorts by the name of the file that the [AnalysisError] was
-   * found.
+   * A [Comparator] that sorts by the name of the file that the [AnalysisError]
+   * was found.
    */
   static Comparator<AnalysisError> FILE_COMPARATOR = (AnalysisError o1,
       AnalysisError o2) => o1.source.shortName.compareTo(o2.source.shortName);
 
   /**
-   * A [Comparator] that sorts error codes first by their severity (errors first, warnings
-   * second), and then by the the error code type.
+   * A [Comparator] that sorts error codes first by their severity (errors
+   * first, warnings second), and then by the the error code type.
    */
   static Comparator<AnalysisError> ERROR_CODE_COMPARATOR = (AnalysisError o1,
       AnalysisError o2) {
@@ -61,8 +60,8 @@ class AnalysisError {
   String _message;
 
   /**
-   * The correction to be displayed for this error, or `null` if there is no correction
-   * information for this error.
+   * The correction to be displayed for this error, or `null` if there is no
+   * correction information for this error.
    */
   String _correction;
 
@@ -78,37 +77,31 @@ class AnalysisError {
   int offset = 0;
 
   /**
-   * The number of characters from the offset to the end of the source which encompasses the
-   * compilation error.
+   * The number of characters from the offset to the end of the source which
+   * encompasses the compilation error.
    */
   int _length = 0;
 
   /**
-   * A flag indicating whether this error can be shown to be a non-issue because of the result of
-   * type propagation.
+   * A flag indicating whether this error can be shown to be a non-issue because
+   * of the result of type propagation.
    */
   bool isStaticOnly = false;
 
   /**
-   * Initialize a newly created analysis error for the specified source. The error has no location
-   * information.
-   *
-   * @param source the source for which the exception occurred
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
+   * Initialize a newly created analysis error for the specified [source]. The
+   * error will have the given [errorCode] and the list of [arguments] will be
+   * used to complete the message. The error has no location information.
    */
   AnalysisError.con1(this.source, this.errorCode, [List<Object> arguments]) {
     this._message = formatList(errorCode.message, arguments);
   }
 
   /**
-   * Initialize a newly created analysis error for the specified source at the given location.
-   *
-   * @param source the source for which the exception occurred
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
+   * Initialize a newly created analysis error for the specified [source] at the
+   * given [offset] with the given [length]. The error will have the given
+   * [errorCode] and the list of [arguments] will be used to complete the
+   * message.
    */
   AnalysisError.con2(this.source, this.offset, int length, this.errorCode,
       [List<Object> arguments]) {
@@ -121,10 +114,9 @@ class AnalysisError {
   }
 
   /**
-   * Return the correction to be displayed for this error, or `null` if there is no correction
-   * information for this error. The correction should indicate how the user can fix the error.
-   *
-   * @return the template used to create the correction to be displayed for this error
+   * Return the template used to create the correction to be displayed for this
+   * error, or `null` if there is no correction information for this error. The
+   * correction should indicate how the user can fix the error.
    */
   String get correction => _correction;
 
@@ -137,18 +129,15 @@ class AnalysisError {
   }
 
   /**
-   * Return the number of characters from the offset to the end of the source which encompasses the
-   * compilation error.
-   *
-   * @return the length of the error location
+   * Return the length of the error location, that is, the number of characters
+   * from the offset to the end of the source which encompasses the compilation
+   * error.
    */
   int get length => _length;
 
   /**
-   * Return the message to be displayed for this error. The message should indicate what is wrong
-   * and why it is wrong.
-   *
-   * @return the message to be displayed for this error
+   * Return the message to be displayed for this error. The message should
+   * indicate what is wrong and why it is wrong.
    */
   String get message => _message;
 
@@ -184,11 +173,8 @@ class AnalysisError {
   }
 
   /**
-   * Return the value of the given property, or `null` if the given property is not defined
-   * for this error.
-   *
-   * @param property the property whose value is to be returned
-   * @return the value of the given property
+   * Return the value of the given [property], or `null` if the given property
+   * is not defined for this error.
    */
   Object getProperty(ErrorProperty property) => null;
 
@@ -208,8 +194,8 @@ class AnalysisError {
 }
 
 /**
- * The interface `AnalysisErrorListener` defines the behavior of objects that listen for
- * [AnalysisError] being produced by the analysis engine.
+ * An object that listen for [AnalysisError]s being produced by the analysis
+ * engine.
  */
 abstract class AnalysisErrorListener {
   /**
@@ -219,13 +205,15 @@ abstract class AnalysisErrorListener {
       new AnalysisErrorListener_NULL_LISTENER();
 
   /**
-   * This method is invoked when an error has been found by the analysis engine.
-   *
-   * @param error the error that was just found (not `null`)
+   * This method is invoked when an [error] has been found by the analysis
+   * engine.
    */
   void onError(AnalysisError error);
 }
 
+/**
+ * An [AnalysisErrorListener] that ignores error.
+ */
 class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
   @override
   void onError(AnalysisError event) {
@@ -234,7 +222,7 @@ class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
 }
 
 /**
- * Instances of the class `AnalysisErrorWithProperties`
+ * An [AnalysisError] that can have arbitrary properties associated with it.
  */
 class AnalysisErrorWithProperties extends AnalysisError {
   /**
@@ -244,39 +232,31 @@ class AnalysisErrorWithProperties extends AnalysisError {
       new HashMap<ErrorProperty, Object>();
 
   /**
-   * Initialize a newly created analysis error for the specified source. The error has no location
-   * information.
-   *
-   * @param source the source for which the exception occurred
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
+   * Initialize a newly created analysis error for the specified [source]. The
+   * error will have the given [errorCode] and the list of [arguments] will be
+   * used to complete the message. The error has no location information.
    */
-  AnalysisErrorWithProperties.con1(
-      Source source, ErrorCode errorCode, List<Object> arguments)
+  AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode,
+      [List<Object> arguments])
       : super.con1(source, errorCode, arguments);
 
   /**
-   * Initialize a newly created analysis error for the specified source at the given location.
-   *
-   * @param source the source for which the exception occurred
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
+   * Initialize a newly created analysis error for the specified [source] at the
+   * given [offset] with the given [length]. The error will have the given
+   * [errorCode] and the list of [arguments] will be used to complete the
+   * message.
    */
-  AnalysisErrorWithProperties.con2(Source source, int offset, int length,
-      ErrorCode errorCode, List<Object> arguments)
+  AnalysisErrorWithProperties.con2(
+      Source source, int offset, int length, ErrorCode errorCode,
+      [List<Object> arguments])
       : super.con2(source, offset, length, errorCode, arguments);
 
   @override
   Object getProperty(ErrorProperty property) => _propertyMap[property];
 
   /**
-   * Set the value of the given property to the given value. Using a value of `null` will
-   * effectively remove the property from this error.
-   *
-   * @param property the property whose value is to be returned
-   * @param value the new value of the given property
+   * Set the value of the given [property] to the given [value]. Using a value
+   * of `null` will effectively remove the property from this error.
    */
   void setProperty(ErrorProperty property, Object value) {
     _propertyMap[property] = value;
@@ -284,8 +264,8 @@ class AnalysisErrorWithProperties extends AnalysisError {
 }
 
 /**
- * Instances of the class `BooleanErrorListener` implement a listener that keeps track of
- * whether an error has been reported to it.
+ * An [AnalysisErrorListener] that keeps track of whether any error has been
+ * reported to it.
  */
 class BooleanErrorListener implements AnalysisErrorListener {
   /**
@@ -295,8 +275,6 @@ class BooleanErrorListener implements AnalysisErrorListener {
 
   /**
    * Return `true` if an error has been reported to this listener.
-   *
-   * @return `true` if an error has been reported to this listener
    */
   bool get errorReported => _errorReported;
 
@@ -307,12 +285,12 @@ class BooleanErrorListener implements AnalysisErrorListener {
 }
 
 /**
- * The enumeration `CompileTimeErrorCode` defines the error codes used for
- * compile time errors caused by constant evaluation that would throw an
- * exception when run in checked mode. The client of the analysis engine is
- * responsible for determining how these errors should be presented to the user
- * (for example, a command-line compiler might elect to treat these errors
- * differently depending whether it is compiling it "checked" mode).
+ * The error codes used for compile time errors caused by constant evaluation
+ * that would throw an exception when run in checked mode. The client of the
+ * analysis engine is responsible for determining how these errors should be
+ * presented to the user (for example, a command-line compiler might elect to
+ * treat these errors differently depending whether it is compiling it "checked"
+ * mode).
  */
 class CheckedModeCompileTimeErrorCode extends ErrorCode {
   // TODO(paulberry): improve the text of these error messages so that it's
@@ -348,8 +326,9 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
    *
-   * @param initializerType the name of the type of the initializer expression
-   * @param fieldType the name of the type of the field
+   * Parameters:
+   * 0: the name of the type of the initializer expression
+   * 1: the name of the type of the field
    */
   static const CheckedModeCompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
       const CheckedModeCompileTimeErrorCode(
@@ -438,11 +417,10 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
 }
 
 /**
- * The enumeration `CompileTimeErrorCode` defines the error codes used for
- * compile time errors. The convention for this class is for the name of the
- * error code to indicate the problem that caused the error to be generated and
- * for the error message to explain what is wrong and, when appropriate, how the
- * problem can be corrected.
+ * The error codes used for compile time errors. The convention for this class
+ * is for the name of the error code to indicate the problem that caused the
+ * error to be generated and for the error message to explain what is wrong and,
+ * when appropriate, how the problem can be corrected.
  */
 class CompileTimeErrorCode extends ErrorCode {
   /**
@@ -459,11 +437,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * of <i>L</i> by more than one export, unless each all exports refer to same
    * declaration for the name N.
    *
-   * @param ambiguousElementName the name of the ambiguous element
-   * @param firstLibraryName the name of the first library that the type is
-   *        found
-   * @param secondLibraryName the name of the second library that the type is
-   *        found
+   * Parameters:
+   * 0: the name of the ambiguous element
+   * 1: the name of the first library that the type is found
+   * 2: the name of the second library that the type is found
    */
   static const CompileTimeErrorCode AMBIGUOUS_EXPORT =
       const CompileTimeErrorCode('AMBIGUOUS_EXPORT',
@@ -473,8 +450,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does
    * not denote a formal parameter.
    *
-   * @param the name of the identifier in the argument definition test that is
-   *        not a parameter
+   * Parameters:
+   * 0: the name of the identifier in the argument definition test that is not a
+   *    parameter
    */
   static const CompileTimeErrorCode ARGUMENT_DEFINITION_TEST_NON_PARAMETER =
       const CompileTimeErrorCode(
@@ -713,7 +691,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 5 Variables: A constant variable must be initialized to a compile-time
    * constant (12.1) or a compile-time error occurs.
    *
-   * @param name the name of the uninitialized final variable
+   * Parameters:
+   * 0: the name of the uninitialized final variable
    */
   static const CompileTimeErrorCode CONST_NOT_INITIALIZED =
       const CompileTimeErrorCode('CONST_NOT_INITIALIZED',
@@ -777,9 +756,11 @@ class CompileTimeErrorCode extends ErrorCode {
    * &hellip;, U<sub>m</sub>&gt;</i>, let <i>R = S</i>; It is a compile time
    * error if <i>S</i> is not a generic type with <i>m</i> type parameters.
    *
-   * @param typeName the name of the type being referenced (<i>S</i>)
-   * @param parameterCount the number of type parameters that were declared
-   * @param argumentCount the number of type arguments provided
+   * Parameters:
+   * 0: the name of the type being referenced (<i>S</i>)
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   *
    * See [CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS], and
    * [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS].
    */
@@ -817,7 +798,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>T</i> is not a class accessible in the current scope, optionally
    * followed by type arguments.
    *
-   * @param name the name of the non-type element
+   * Parameters:
+   * 0: the name of the non-type element
    */
   static const CompileTimeErrorCode CONST_WITH_NON_TYPE =
       const CompileTimeErrorCode(
@@ -835,8 +817,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
    * a constant constructor declared by the type <i>T</i>.
    *
-   * @param typeName the name of the type
-   * @param constructorName the name of the requested constant constructor
+   * Parameters:
+   * 0: the name of the type
+   * 1: the name of the requested constant constructor
    */
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR =
       const CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR',
@@ -846,7 +829,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
    * a constant constructor declared by the type <i>T</i>.
    *
-   * @param typeName the name of the type
+   * Parameters:
+   * 0: the name of the type
    */
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       const CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
@@ -891,7 +875,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 3.1 Scoping: It is a compile-time error if there is more than one entity
    * with the same name declared in the same scope.
    *
-   * @param duplicateName the name of the duplicate entity
+   * Parameters:
+   * 0: the name of the duplicate entity
    */
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_NAME =
       const CompileTimeErrorCode('DUPLICATE_CONSTRUCTOR_NAME',
@@ -907,7 +892,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7 Classes: It is a compile-time error if a class has an instance member and
    * a static member with the same name.
    *
-   * @param duplicateName the name of the duplicate entity
+   * Parameters:
+   * 0: the name of the duplicate entity
    */
   static const CompileTimeErrorCode DUPLICATE_DEFINITION =
       const CompileTimeErrorCode(
@@ -920,9 +906,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * This covers the additional duplicate definition cases where inheritance has
    * to be considered.
    *
-   * @param className the name of the class that has conflicting instance/static
-   *        members
-   * @param name the name of the conflicting members
+   * Parameters:
+   * 0: the name of the class that has conflicting instance/static members
+   * 1: the name of the conflicting members
+   *
    * See [DUPLICATE_DEFINITION].
    */
   static const CompileTimeErrorCode DUPLICATE_DEFINITION_INHERITANCE =
@@ -941,7 +928,8 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * SDK implementation libraries can be exported only by other SDK libraries.
    *
-   * @param uri the uri pointing to a library
+   * Parameters:
+   * 0: the uri pointing to a library
    */
   static const CompileTimeErrorCode EXPORT_INTERNAL_LIBRARY =
       const CompileTimeErrorCode('EXPORT_INTERNAL_LIBRARY',
@@ -951,7 +939,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
    * the specified URI is not a library declaration.
    *
-   * @param uri the uri pointing to a non-library declaration
+   * Parameters:
+   * 0: the uri pointing to a non-library declaration
    */
   static const CompileTimeErrorCode EXPORT_OF_NON_LIBRARY =
       const CompileTimeErrorCode('EXPORT_OF_NON_LIBRARY',
@@ -969,7 +958,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * class <i>C</i> includes a type expression that does not denote a class
    * available in the lexical scope of <i>C</i>.
    *
-   * @param typeName the name of the superclass that was not found
+   * Parameters:
+   * 0: the name of the superclass that was not found
    */
   static const CompileTimeErrorCode EXTENDS_NON_CLASS =
       const CompileTimeErrorCode(
@@ -995,7 +985,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend
    * or implement String.
    *
-   * @param typeName the name of the type that cannot be extended
+   * Parameters:
+   * 0: the name of the type that cannot be extended
+   *
    * See [IMPLEMENTS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
@@ -1006,7 +998,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
    * class <i>C</i> includes a deferred type expression.
    *
-   * @param typeName the name of the type that cannot be extended
+   * Parameters:
+   * 0: the name of the type that cannot be extended
+   *
    * See [IMPLEMENTS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
@@ -1020,8 +1014,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
    *
-   * @param requiredCount the maximum number of positional arguments
-   * @param argumentCount the actual number of positional arguments given
+   * Parameters:
+   * 0: the maximum number of positional arguments
+   * 1: the actual number of positional arguments given
    */
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       const CompileTimeErrorCode('EXTRA_POSITIONAL_ARGUMENTS',
@@ -1052,7 +1047,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * has is initialized by means of an initializing formal of a constructor is
    * also initialized elsewhere in the same constructor.
    *
-   * @param name the name of the field in question
+   * Parameters:
+   * 0: the name of the field in question
    */
   static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES =
       const CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
@@ -1092,7 +1088,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a
    * method with the same name.
    *
-   * @param name the conflicting name of the getter and method
+   * Parameters:
+   * 0: the conflicting name of the getter and method
    */
   static const CompileTimeErrorCode GETTER_AND_METHOD_WITH_SAME_NAME =
       const CompileTimeErrorCode('GETTER_AND_METHOD_WITH_SAME_NAME',
@@ -1103,7 +1100,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * of a class <i>C</i> specifies a malformed type or deferred type as a
    * superinterface.
    *
-   * @param typeName the name of the type that cannot be extended
+   * Parameters:
+   * 0: the name of the type that cannot be extended
+   *
    * See [EXTENDS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS =
@@ -1130,7 +1129,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend
    * or implement String.
    *
-   * @param typeName the name of the type that cannot be implemented
+   * Parameters:
+   * 0: the name of the type that cannot be implemented
+   *
    * See [EXTENDS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS =
@@ -1158,7 +1159,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * of a class <i>C</i> includes a type expression that does not denote a class
    * available in the lexical scope of <i>C</i>.
    *
-   * @param typeName the name of the interface that was not found
+   * Parameters:
+   * 0: the name of the interface that was not found
    */
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS =
       const CompileTimeErrorCode(
@@ -1168,7 +1170,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears
    * more than once in the implements clause of a class.
    *
-   * @param className the name of the class that is implemented more than once
+   * Parameters:
+   * 0: the name of the class that is implemented more than once
    */
   static const CompileTimeErrorCode IMPLEMENTS_REPEATED =
       const CompileTimeErrorCode(
@@ -1178,8 +1181,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.10 Superinterfaces: It is a compile-time error if the superclass of a
    * class <i>C</i> appears in the implements clause of <i>C</i>.
    *
-   * @param className the name of the class that appears in both "extends" and
-   *        "implements" clauses
+   * Parameters:
+   * 0: the name of the class that appears in both "extends" and "implements"
+   *    clauses
    */
   static const CompileTimeErrorCode IMPLEMENTS_SUPER_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_SUPER_CLASS',
@@ -1194,7 +1198,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * method or variable initializer, or in the initializer of an instance
    * variable.
    *
-   * @param name the name of the type in question
+   * Parameters:
+   * 0: the name of the type in question
    */
   static const CompileTimeErrorCode IMPLICIT_THIS_REFERENCE_IN_INITIALIZER =
       const CompileTimeErrorCode('IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
@@ -1203,7 +1208,8 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * SDK implementation libraries can be imported only by other SDK libraries.
    *
-   * @param uri the uri pointing to a library
+   * Parameters:
+   * 0: the uri pointing to a library
    */
   static const CompileTimeErrorCode IMPORT_INTERNAL_LIBRARY =
       const CompileTimeErrorCode('IMPORT_INTERNAL_LIBRARY',
@@ -1213,7 +1219,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 14.1 Imports: It is a compile-time error if the specified URI of an
    * immediate import does not refer to a library declaration.
    *
-   * @param uri the uri pointing to a non-library declaration
+   * Parameters:
+   * 0: the uri pointing to a non-library declaration
+   *
    * See [StaticWarningCode.IMPORT_OF_NON_LIBRARY].
    */
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
@@ -1225,9 +1233,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>e<sub>k</sub></i> are not instances of the same class <i>C</i>, for all
    * <i>1 &lt;= k &lt;= n</i>.
    *
-   * @param expressionSource the expression source code that is the unexpected
-   *        type
-   * @param expectedType the name of the expected type
+   * Parameters:
+   * 0: the expression source code that is the unexpected type
+   * 1: the name of the expected type
    */
   static const CompileTimeErrorCode INCONSISTENT_CASE_EXPRESSION_TYPES =
       const CompileTimeErrorCode('INCONSISTENT_CASE_EXPRESSION_TYPES',
@@ -1239,8 +1247,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * initializer for a variable that is not an instance variable declared in the
    * immediately surrounding class.
    *
-   * @param id the name of the initializing formal that is not an instance
-   *        variable in the immediately enclosing class
+   * Parameters:
+   * 0: the name of the initializing formal that is not an instance variable in
+   *    the immediately enclosing class
+   *
    * See [INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTENT_FIELD =
@@ -1253,8 +1263,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * initializer for a variable that is not an instance variable declared in the
    * immediately surrounding class.
    *
-   * @param id the name of the initializing formal that is a static variable in
-   *        the immediately enclosing class
+   * Parameters:
+   * 0: the name of the initializing formal that is a static variable in the
+   *    immediately enclosing class
+   *
    * See [INITIALIZING_FORMAL_FOR_STATIC_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZER_FOR_STATIC_FIELD =
@@ -1266,8 +1278,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>this.id</i>. It is a compile-time error if <i>id</i> is not the name of
    * an instance variable of the immediately enclosing class.
    *
-   * @param id the name of the initializing formal that is not an instance
-   *        variable in the immediately enclosing class
+   * Parameters:
+   * 0: the name of the initializing formal that is not an instance variable in
+   *    the immediately enclosing class
+   *
    * See [INITIALIZING_FORMAL_FOR_STATIC_FIELD], and
    * [INITIALIZER_FOR_NON_EXISTENT_FIELD].
    */
@@ -1280,8 +1294,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>this.id</i>. It is a compile-time error if <i>id</i> is not the name of
    * an instance variable of the immediately enclosing class.
    *
-   * @param id the name of the initializing formal that is a static variable in
-   *        the immediately enclosing class
+   * Parameters:
+   * 0: the name of the initializing formal that is a static variable in the
+   *    immediately enclosing class
+   *
    * See [INITIALIZER_FOR_STATIC_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_STATIC_FIELD =
@@ -1400,7 +1416,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.6 Lists: It is a compile time error if the type argument of a constant
    * list literal includes a type parameter.
    *
-   * @name the name of the type parameter
+   * Parameters:
+   * 0: the name of the type parameter
    */
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST =
       const CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
@@ -1410,7 +1427,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.7 Maps: It is a compile time error if the type arguments of a constant
    * map literal include a type parameter.
    *
-   * @name the name of the type parameter
+   * Parameters:
+   * 0: the name of the type parameter
    */
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP =
       const CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
@@ -1426,7 +1444,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a
    * valid part declaration.
    *
-   * @param uri the URI that is invalid
+   * Parameters:
+   * 0: the URI that is invalid
+   *
    * See [URI_DOES_NOT_EXIST].
    */
   static const CompileTimeErrorCode INVALID_URI =
@@ -1441,7 +1461,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * clause <i>s<sub>E</sub></i> exists within the innermost function in which
    * <i>s<sub>c</sub></i> occurs.
    *
-   * @param labelName the name of the unresolvable label
+   * Parameters:
+   * 0: the name of the unresolvable label
    */
   static const CompileTimeErrorCode LABEL_IN_OUTER_SCOPE =
       const CompileTimeErrorCode('LABEL_IN_OUTER_SCOPE',
@@ -1456,7 +1477,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * clause <i>s<sub>E</sub></i> exists within the innermost function in which
    * <i>s<sub>c</sub></i> occurs.
    *
-   * @param labelName the name of the unresolvable label
+   * Parameters:
+   * 0: the name of the unresolvable label
    */
   static const CompileTimeErrorCode LABEL_UNDEFINED =
       const CompileTimeErrorCode(
@@ -1474,7 +1496,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a
    * method with the same name.
    *
-   * @param name the conflicting name of the getter and method
+   * Parameters:
+   * 0: the conflicting name of the getter and method
    */
   static const CompileTimeErrorCode METHOD_AND_GETTER_WITH_SAME_NAME =
       const CompileTimeErrorCode('METHOD_AND_GETTER_WITH_SAME_NAME',
@@ -1501,9 +1524,11 @@ class CompileTimeErrorCode extends ErrorCode {
    * * The static type of <i>e</i> is an enumerated typed with elements
    *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
    * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
-   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the same.
+   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
+   *   same.
    *
-   * @param constantName the name of the constant that is missing
+   * Parameters:
+   * 0: the name of the constant that is missing
    */
   static const CompileTimeErrorCode MISSING_ENUM_CONSTANT_IN_SWITCH =
       const CompileTimeErrorCode('MISSING_ENUM_CONSTANT_IN_SWITCH',
@@ -1514,7 +1539,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
    *
-   * @param typeName the name of the mixin that is invalid
+   * Parameters:
+   * 0: the name of the mixin that is invalid
    */
   static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
       const CompileTimeErrorCode('MIXIN_DECLARES_CONSTRUCTOR',
@@ -1524,7 +1550,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 9.1 Mixin Application: It is a compile-time error if the with clause of a
    * mixin application <i>C</i> includes a deferred type expression.
    *
-   * @param typeName the name of the type that cannot be extended
+   * Parameters:
+   * 0: the name of the type that cannot be extended
+   *
    * See [EXTENDS_DEFERRED_CLASS], and [IMPLEMENTS_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS =
@@ -1547,7 +1575,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class
    * whose superclass is not Object.
    *
-   * @param typeName the name of the mixin that is invalid
+   * Parameters:
+   * 0: the name of the mixin that is invalid
    */
   static const CompileTimeErrorCode MIXIN_INHERITS_FROM_NOT_OBJECT =
       const CompileTimeErrorCode('MIXIN_INHERITS_FROM_NOT_OBJECT',
@@ -1572,7 +1601,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend
    * or implement String.
    *
-   * @param typeName the name of the type that cannot be extended
+   * Parameters:
+   * 0: the name of the type that cannot be extended
+   *
    * See [IMPLEMENTS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS =
@@ -1827,8 +1858,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
    *
-   * @param requiredCount the expected number of required arguments
-   * @param argumentCount the actual number of positional arguments given
+   * Parameters:
+   * 0: the expected number of required arguments
+   * 1: the actual number of positional arguments given
    */
   static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
       const CompileTimeErrorCode('NOT_ENOUGH_REQUIRED_ARGUMENTS',
@@ -1864,7 +1896,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a
    * valid part declaration.
    *
-   * @param uri the uri pointing to a non-library declaration
+   * Parameters:
+   * 0: the uri pointing to a non-library declaration
    */
   static const CompileTimeErrorCode PART_OF_NON_PART =
       const CompileTimeErrorCode('PART_OF_NON_PART',
@@ -1926,8 +1959,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a
    * superclass of itself.
    *
-   * @param className the name of the class that implements itself recursively
-   * @param strImplementsPath a string representation of the implements loop
+   * Parameters:
+   * 0: the name of the class that implements itself recursively
+   * 1: a string representation of the implements loop
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE =
       const CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
@@ -1943,7 +1977,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a
    * superclass of itself.
    *
-   * @param className the name of the class that implements itself recursively
+   * Parameters:
+   * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS =
       const CompileTimeErrorCode(
@@ -1960,7 +1995,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a
    * superclass of itself.
    *
-   * @param className the name of the class that implements itself recursively
+   * Parameters:
+   * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS =
       const CompileTimeErrorCode(
@@ -1977,7 +2013,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a
    * superclass of itself.
    *
-   * @param className the name of the class that implements itself recursively
+   * Parameters:
+   * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH =
       const CompileTimeErrorCode(
@@ -2109,10 +2146,11 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.1 Constants: It is a compile-time error if evaluation of a compile-time
    * constant would raise an exception.
    *
-   * @param boundedTypeName the name of the type used in the instance creation
-   *        that should be limited by the bound as specified in the class
-   *        declaration
-   * @param boundingTypeName the name of the bounding type
+   * Parameters:
+   * 0: the name of the type used in the instance creation that should be
+   *    limited by the bound as specified in the class declaration
+   * 1: the name of the bounding type
+   *
    * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
@@ -2165,7 +2203,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
    *
-   * @param name the name of the requested named parameter
+   * Parameters:
+   * 0: the name of the requested named parameter
    */
   static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER =
       const CompileTimeErrorCode('UNDEFINED_NAMED_PARAMETER',
@@ -2181,7 +2220,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a
    * valid part declaration.
    *
-   * @param uri the URI pointing to a non-existent file
+   * Parameters:
+   * 0: the URI pointing to a non-existent file
+   *
    * See [INVALID_URI].
    */
   static const CompileTimeErrorCode URI_DOES_NOT_EXIST =
@@ -2212,10 +2253,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * or 1. It is a compile time error if the arity of the user-declared operator
    * ~ is not 0.
    *
-   * @param operatorName the name of the declared operator
-   * @param expectedNumberOfParameters the number of parameters expected
-   * @param actualNumberOfParameters the number of parameters found in the
-   *        operator declaration
+   * Parameters:
+   * 0: the name of the declared operator
+   * 1: the number of parameters expected
+   * 2: the number of parameters found in the operator declaration
    */
   static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR =
       const CompileTimeErrorCode('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
@@ -2225,8 +2266,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.1.1 Operators: It is a compile time error if the arity of the
    * user-declared operator - is not 0 or 1.
    *
-   * @param actualNumberOfParameters the number of parameters found in the
-   *        operator declaration
+   * Parameters:
+   * 0: the number of parameters found in the operator declaration
    */
   static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS =
       const CompileTimeErrorCode(
@@ -2274,7 +2315,7 @@ class CompileTimeErrorCode extends ErrorCode {
 }
 
 /**
- * An `ErrorCode` represents an error code associated with an [AnalysisError].
+ * An error code associated with an [AnalysisError].
  *
  * Generally, we want to provide messages that consist of three sentences. From
  * the user's perspective these sentences should explain:
@@ -2333,25 +2374,43 @@ abstract class ErrorCode {
 }
 
 /**
- * The enumeration `ErrorProperty` defines the properties that can be associated with an
- * [AnalysisError].
+ * The properties that can be associated with an [AnalysisError].
  */
 class ErrorProperty extends Enum<ErrorProperty> {
   /**
-   * A property whose value is an array of [ExecutableElement] that should
+   * A property whose value is a list of [FieldElement]s that are final, but
+   * not initialized by a constructor.
+   */
+  static const ErrorProperty NOT_INITIALIZED_FIELDS =
+      const ErrorProperty('NOT_INITIALIZED_FIELDS', 0);
+
+  /**
+   * A property whose value is the name of the library that is used by all
+   * of the "part of" directives, so should be used in the "library" directive.
+   * Is `null` if there is no a single name used by all of the parts.
+   */
+  static const ErrorProperty PARTS_LIBRARY_NAME =
+      const ErrorProperty('PARTS_LIBRARY_NAME', 1);
+
+  /**
+   * A property whose value is a list of [ExecutableElement] that should
    * be but are not implemented by a concrete class.
    */
   static const ErrorProperty UNIMPLEMENTED_METHODS =
-      const ErrorProperty('UNIMPLEMENTED_METHODS', 0);
+      const ErrorProperty('UNIMPLEMENTED_METHODS', 2);
 
-  static const List<ErrorProperty> values = const [UNIMPLEMENTED_METHODS];
+  static const List<ErrorProperty> values = const [
+    NOT_INITIALIZED_FIELDS,
+    PARTS_LIBRARY_NAME,
+    UNIMPLEMENTED_METHODS
+  ];
 
   const ErrorProperty(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
- * Instances of the class `ErrorReporter` wrap an error listener with utility methods used to
- * create the errors being reported.
+ * An object used to create analysis errors and report then to an error
+ * listener.
  */
 class ErrorReporter {
   /**
@@ -2370,10 +2429,9 @@ class ErrorReporter {
   Source _source;
 
   /**
-   * Initialize a newly created error reporter that will report errors to the given listener.
-   *
-   * @param errorListener the error listener to which errors will be reported
-   * @param defaultSource the default source to be used when reporting errors
+   * Initialize a newly created error reporter that will report errors to the
+   * given [_errorListener]. Errors will be reported against the
+   * [_defaultSource] unless another source is provided later.
    */
   ErrorReporter(this._errorListener, this._defaultSource) {
     if (_errorListener == null) {
@@ -2387,21 +2445,16 @@ class ErrorReporter {
   Source get source => _source;
 
   /**
-   * Set the source to be used when reporting errors. Setting the source to `null` will cause
-   * the default source to be used.
-   *
-   * @param source the source to be used when reporting errors
+   * Set the source to be used when reporting errors to the given [source].
+   * Setting the source to `null` will cause the default source to be used.
    */
   void set source(Source source) {
     this._source = source == null ? _defaultSource : source;
   }
 
   /**
-   * Creates an error with properties with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
+   * Creates an error with properties with the given [errorCode] and
+   * [arguments]. The [node] is used to compute the location of the error.
    */
   AnalysisErrorWithProperties newErrorWithProperties(
           ErrorCode errorCode, AstNode node, List<Object> arguments) =>
@@ -2409,20 +2462,15 @@ class ErrorReporter {
           _source, node.offset, node.length, errorCode, arguments);
 
   /**
-   * Report a passed error.
-   *
-   * @param error the error to report
+   * Report the given [error].
    */
   void reportError(AnalysisError error) {
     _errorListener.onError(error);
   }
 
   /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param element the element which name should be used as the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
+   * Report an error with the given [errorCode] and [arguments]. The [element]
+   * is used to compute the location of the error.
    */
   void reportErrorForElement(
       ErrorCode errorCode, Element element, List<Object> arguments) {
@@ -2431,15 +2479,12 @@ class ErrorReporter {
   }
 
   /**
-   * Report an error with the given error code and arguments.
+   * Report an error with the given [errorCode] and [arguments].
+   * The [node] is used to compute the location of the error.
    *
    * If the arguments contain the names of two or more types, the method
    * [reportTypeErrorForNode] should be used and the types
    * themselves (rather than their names) should be passed as arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
    */
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
@@ -2447,12 +2492,8 @@ class ErrorReporter {
   }
 
   /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
+   * Report an error with the given [errorCode] and [arguments]. The location of
+   * the error is specified by the given [offset] and [length].
    */
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
@@ -2461,11 +2502,8 @@ class ErrorReporter {
   }
 
   /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param token the token specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
+   * Report an error with the given [errorCode] and [arguments]. The [token] is
+   * used to compute the location of the error.
    */
   void reportErrorForToken(ErrorCode errorCode, Token token,
       [List<Object> arguments]) {
@@ -2473,17 +2511,15 @@ class ErrorReporter {
   }
 
   /**
-   * Report an error with the given error code and arguments. The arguments are expected to contain
-   * two or more types. Convert the types into strings by using the display names of the types,
-   * unless there are two or more types with the same names, in which case the extended display
-   * names of the types will be used in order to clarify the message.
+   * Report an error with the given [errorCode] and [arguments]. The [node] is
+   * used to compute the location of the error. The arguments are expected to
+   * contain two or more types. Convert the types into strings by using the
+   * display names of the types, unless there are two or more types with the
+   * same names, in which case the extended display names of the types will be
+   * used in order to clarify the message.
    *
    * If there are not two or more types in the argument list, the method
    * [reportErrorForNode] should be used instead.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
    */
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
@@ -2492,12 +2528,11 @@ class ErrorReporter {
   }
 
   /**
-   * Given an array of arguments that is expected to contain two or more types, convert the types
-   * into strings by using the display names of the types, unless there are two or more types with
-   * the same names, in which case the extended display names of the types will be used in order to
+   * Given an array of [arguments] that is expected to contain two or more
+   * types, convert the types into strings by using the display names of the
+   * types, unless there are two or more types with the same names, in which
+   * case the extended display names of the types will be used in order to
    * clarify the message.
-   *
-   * @param arguments the arguments that are to be converted
    */
   void _convertTypeNames(List<Object> arguments) {
     if (_hasEqualTypeNames(arguments)) {
@@ -2526,12 +2561,8 @@ class ErrorReporter {
   }
 
   /**
-   * Return `true` if the given array of arguments contains two or more types with the same
-   * display name.
-   *
-   * @param arguments the arguments being tested
-   * @return `true` if the array of arguments contains two or more types with the same display
-   *         name
+   * Return `true` if the given array of [arguments] contains two or more types
+   * with the same display name.
    */
   bool _hasEqualTypeNames(List<Object> arguments) {
     int count = arguments.length;
@@ -2547,13 +2578,12 @@ class ErrorReporter {
 }
 
 /**
- * Instances of the enumeration `ErrorSeverity` represent the severity of an [ErrorCode]
- * .
+ * The severity of an [ErrorCode].
  */
 class ErrorSeverity extends Enum<ErrorSeverity> {
   /**
-   * The severity representing a non-error. This is never used for any error code, but is useful for
-   * clients.
+   * The severity representing a non-error. This is never used for any error
+   * code, but is useful for clients.
    */
   static const ErrorSeverity NONE = const ErrorSeverity('NONE', 0, " ", "none");
 
@@ -2590,8 +2620,9 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
   /**
    * Initialize a newly created severity with the given names.
    *
-   * @param machineCode the name of the severity used when producing machine output
-   * @param displayName the name of the severity used when producing readable output
+   * Parameters:
+   * 0: the name of the severity used when producing machine output
+   * 1: the name of the severity used when producing readable output
    */
   const ErrorSeverity(
       String name, int ordinal, this.machineCode, this.displayName)
@@ -2599,16 +2630,13 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
 
   /**
    * Return the severity constant that represents the greatest severity.
-   *
-   * @param severity the severity being compared against
-   * @return the most sever of this or the given severity
    */
   ErrorSeverity max(ErrorSeverity severity) =>
       this.ordinal >= severity.ordinal ? this : severity;
 }
 
 /**
- * Instances of the enumeration `ErrorType` represent the type of an [ErrorCode].
+ * The type of an [ErrorCode].
  */
 class ErrorType extends Enum<ErrorType> {
   /**
@@ -2617,47 +2645,51 @@ class ErrorType extends Enum<ErrorType> {
   static const ErrorType TODO = const ErrorType('TODO', 0, ErrorSeverity.INFO);
 
   /**
-   * Extra analysis run over the code to follow best practices, which are not in the Dart Language
-   * Specification.
+   * Extra analysis run over the code to follow best practices, which are not in
+   * the Dart Language Specification.
    */
   static const ErrorType HINT = const ErrorType('HINT', 1, ErrorSeverity.INFO);
 
   /**
-   * Compile-time errors are errors that preclude execution. A compile time error must be reported
-   * by a Dart compiler before the erroneous code is executed.
+   * Compile-time errors are errors that preclude execution. A compile time
+   * error must be reported by a Dart compiler before the erroneous code is
+   * executed.
    */
   static const ErrorType COMPILE_TIME_ERROR =
       const ErrorType('COMPILE_TIME_ERROR', 2, ErrorSeverity.ERROR);
 
   /**
-   * Checked mode compile-time errors are errors that preclude execution in checked mode.
+   * Checked mode compile-time errors are errors that preclude execution in
+   * checked mode.
    */
   static const ErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const ErrorType(
       'CHECKED_MODE_COMPILE_TIME_ERROR', 3, ErrorSeverity.ERROR);
 
   /**
-   * Static warnings are those warnings reported by the static checker. They have no effect on
-   * execution. Static warnings must be provided by Dart compilers used during development.
+   * Static warnings are those warnings reported by the static checker. They
+   * have no effect on execution. Static warnings must be provided by Dart
+   * compilers used during development.
    */
   static const ErrorType STATIC_WARNING =
       const ErrorType('STATIC_WARNING', 4, ErrorSeverity.WARNING);
 
   /**
-   * Many, but not all, static warnings relate to types, in which case they are known as static type
-   * warnings.
+   * Many, but not all, static warnings relate to types, in which case they are
+   * known as static type warnings.
    */
   static const ErrorType STATIC_TYPE_WARNING =
       const ErrorType('STATIC_TYPE_WARNING', 5, ErrorSeverity.WARNING);
 
   /**
-   * Syntactic errors are errors produced as a result of input that does not conform to the grammar.
+   * Syntactic errors are errors produced as a result of input that does not
+   * conform to the grammar.
    */
   static const ErrorType SYNTACTIC_ERROR =
       const ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
 
   /**
-   * Lint warnings describe style and best practice recommendations that can be used to formalize a project's style
-   * guidelines.
+   * Lint warnings describe style and best practice recommendations that can be
+   * used to formalize a project's style guidelines.
    */
   static const ErrorType LINT = const ErrorType('LINT', 7, ErrorSeverity.INFO);
 
@@ -2678,9 +2710,8 @@ class ErrorType extends Enum<ErrorType> {
   final ErrorSeverity severity;
 
   /**
-   * Initialize a newly created error type to have the given severity.
-   *
-   * @param severity the severity of this type of error
+   * Initialize a newly created error type to have the given [name] and
+   * [severity].
    */
   const ErrorType(String name, int ordinal, this.severity)
       : super(name, ordinal);
@@ -2689,8 +2720,8 @@ class ErrorType extends Enum<ErrorType> {
 }
 
 /**
- * The class `HintCode` defines the hints and coding recommendations for best
- * practices which are not mentioned in the Dart Language Specification.
+ * The hints and coding recommendations for best practices which are not
+ * mentioned in the Dart Language Specification.
  */
 class HintCode extends ErrorCode {
   /**
@@ -2698,8 +2729,9 @@ class HintCode extends ErrorCode {
    * [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated,
    * if we used propagated information for the warnings.
    *
-   * @param actualType the name of the actual argument type
-   * @param expectedType the name of the expected type
+   * Parameters:
+   * 0: the name of the actual argument type
+   * 1: the name of the expected type
    */
   static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE = const HintCode(
       'ARGUMENT_TYPE_NOT_ASSIGNABLE',
@@ -2724,8 +2756,9 @@ class HintCode extends ErrorCode {
    * user has an on-catch clause such as `on A catch (e)`, where a supertype of
    * `A` was already caught.
    *
-   * @param subtypeName name of the subtype
-   * @param supertypeName name of the supertype
+   * Parameters:
+   * 0: name of the subtype
+   * 1: name of the supertype
    */
   static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = const HintCode(
       'DEAD_CODE_ON_CATCH_SUBTYPE',
@@ -2734,7 +2767,8 @@ class HintCode extends ErrorCode {
   /**
    * Deprecated members should not be invoked or used.
    *
-   * @param memberName the name of the member
+   * Parameters:
+   * 0: the name of the member
    */
   static const HintCode DEPRECATED_MEMBER_USE =
       const HintCode('DEPRECATED_MEMBER_USE', "'{0}' is deprecated");
@@ -2788,8 +2822,9 @@ class HintCode extends ErrorCode {
    * [StaticTypeWarningCode.INVALID_ASSIGNMENT] would have been generated, if we
    * used propagated information for the warnings.
    *
-   * @param rhsTypeName the name of the right hand side type
-   * @param lhsTypeName the name of the left hand side type
+   * Parameters:
+   * 0: the name of the right hand side type
+   * 1: the name of the left hand side type
    */
   static const HintCode INVALID_ASSIGNMENT = const HintCode(
       'INVALID_ASSIGNMENT',
@@ -2801,7 +2836,8 @@ class HintCode extends ErrorCode {
    * or functions with no return, Dart implicitly returns `null`, avoiding these
    * implicit returns is considered a best practice.
    *
-   * @param returnType the name of the declared return type
+   * Parameters:
+   * 0: the name of the declared return type
    */
   static const HintCode MISSING_RETURN = const HintCode('MISSING_RETURN',
       "This function declares a return type of '{0}', but does not end with a return statement",
@@ -2831,7 +2867,8 @@ class HintCode extends ErrorCode {
   /**
    * Hint for classes that override equals, but not hashCode.
    *
-   * @param className the name of the current class
+   * Parameters:
+   * 0: the name of the current class
    */
   static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode(
       'OVERRIDE_EQUALS_BUT_NOT_HASH_CODE',
@@ -2856,9 +2893,9 @@ class HintCode extends ErrorCode {
    * [StaticWarningCode.UNDEFINED_GETTER] would have been generated, if we used
    * propagated information for the warnings.
    *
-   * @param getterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the getter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the getter is being looked for
    */
   static const HintCode UNDEFINED_GETTER = const HintCode('UNDEFINED_GETTER',
       "The getter '{0}' is not defined for the class '{1}'");
@@ -2868,9 +2905,9 @@ class HintCode extends ErrorCode {
    * [StaticTypeWarningCode.UNDEFINED_METHOD] would have been generated, if we
    * used propagated information for the warnings.
    *
-   * @param methodName the name of the method that is undefined
-   * @param typeName the resolved type name that the method lookup is happening
-   *        on
+   * Parameters:
+   * 0: the name of the method that is undefined
+   * 1: the resolved type name that the method lookup is happening on
    */
   static const HintCode UNDEFINED_METHOD = const HintCode('UNDEFINED_METHOD',
       "The method '{0}' is not defined for the class '{1}'");
@@ -2880,9 +2917,9 @@ class HintCode extends ErrorCode {
    * [StaticTypeWarningCode.UNDEFINED_OPERATOR] would have been generated, if we
    * used propagated information for the warnings.
    *
-   * @param operator the name of the operator
-   * @param enclosingType the name of the enclosing type where the operator is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the operator
+   * 1: the name of the enclosing type where the operator is being looked for
    */
   static const HintCode UNDEFINED_OPERATOR = const HintCode(
       'UNDEFINED_OPERATOR',
@@ -2894,9 +2931,9 @@ class HintCode extends ErrorCode {
    * [StaticWarningCode.UNDEFINED_SETTER] would have been generated, if we used
    * propagated information for the warnings.
    *
-   * @param setterName the name of the setter
-   * @param enclosingType the name of the enclosing type where the setter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the setter
+   * 1: the name of the enclosing type where the setter is being looked for
    */
   static const HintCode UNDEFINED_SETTER = const HintCode('UNDEFINED_SETTER',
       "The setter '{0}' is not defined for the class '{1}'");
@@ -2940,6 +2977,20 @@ class HintCode extends ErrorCode {
       const HintCode('UNUSED_IMPORT', "Unused import");
 
   /**
+   * Unused catch exception variables.
+   */
+  static const HintCode UNUSED_CATCH_CLAUSE = const HintCode(
+      'UNUSED_CATCH_CLAUSE',
+      "The exception variable '{0}' is not used, so the 'catch' clause can be removed");
+
+  /**
+   * Unused catch stack trace variables.
+   */
+  static const HintCode UNUSED_CATCH_STACK = const HintCode(
+      'UNUSED_CATCH_STACK',
+      "The stack trace variable '{0}' is not used and can be removed");
+
+  /**
    * Unused local variables are local varaibles which are never read.
    */
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
@@ -2950,7 +3001,8 @@ class HintCode extends ErrorCode {
    * Hint for cases where the source expects a method or function to return a
    * non-void result, but the method or function signature returns void.
    *
-   * @param name the name of the method or function that returns void
+   * Parameters:
+   * 0: the name of the method or function that returns void
    */
   static const HintCode USE_OF_VOID_RESULT = const HintCode(
       'USE_OF_VOID_RESULT',
@@ -3005,18 +3057,18 @@ class HintCode extends ErrorCode {
 }
 
 /**
- * The enumeration `HtmlWarningCode` defines the error codes used for warnings
- * in HTML files. The convention for this class is for the name of the error
- * code to indicate the problem that caused the error to be generated and for
- * the error message to explain what is wrong and, when appropriate, how the
- * problem can be corrected.
+ * The error codes used for warnings in HTML files. The convention for this
+ * class is for the name of the error code to indicate the problem that caused
+ * the error to be generated and for the error message to explain what is wrong
+ * and, when appropriate, how the problem can be corrected.
  */
 class HtmlWarningCode extends ErrorCode {
   /**
    * An error code indicating that the value of the 'src' attribute of a Dart
    * script tag is not a valid URI.
    *
-   * @param uri the URI that is invalid
+   * Parameters:
+   * 0: the URI that is invalid
    */
   static const HtmlWarningCode INVALID_URI =
       const HtmlWarningCode('INVALID_URI', "Invalid URI syntax: '{0}'");
@@ -3025,7 +3077,8 @@ class HtmlWarningCode extends ErrorCode {
    * An error code indicating that the value of the 'src' attribute of a Dart
    * script tag references a file that does not exist.
    *
-   * @param uri the URI pointing to a non-existent file
+   * Parameters:
+   * 0: the URI pointing to a non-existent file
    */
   static const HtmlWarningCode URI_DOES_NOT_EXIST = const HtmlWarningCode(
       'URI_DOES_NOT_EXIST', "Target of URI does not exist: '{0}'");
@@ -3049,8 +3102,9 @@ class HtmlWarningCode extends ErrorCode {
 /**
  * Defines style and best practice recommendations.
  *
- * Unlike [HintCode]s, which are akin to traditional static warnings from a compiler, lint recommendations focus on
- * matters of style and practices that might aggregated to define a project's style guide.
+ * Unlike [HintCode]s, which are akin to traditional static warnings from a
+ * compiler, lint recommendations focus on matters of style and practices that
+ * might aggregated to define a project's style guide.
  */
 class LintCode extends ErrorCode {
   const LintCode(String name, String message, [String correction])
@@ -3064,18 +3118,18 @@ class LintCode extends ErrorCode {
 }
 
 /**
- * The class `StaticTypeWarningCode` defines the error codes used for static
- * type warnings. The convention for this class is for the name of the error
- * code to indicate the problem that caused the error to be generated and for
- * the error message to explain what is wrong and, when appropriate, how the
- * problem can be corrected.
+ * The error codes used for static type warnings. The convention for this class
+ * is for the name of the error code to indicate the problem that caused the
+ * error to be generated and for the error message to explain what is wrong and,
+ * when appropriate, how the problem can be corrected.
  */
 class StaticTypeWarningCode extends ErrorCode {
   /**
    * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose
    * class implements the built-in class <i>List&lt;E></i> is allocated.
    *
-   * @param numTypeArgument the number of provided type arguments
+   * Parameters:
+   * 0: the number of provided type arguments
    */
   static const StaticTypeWarningCode EXPECTED_ONE_LIST_TYPE_ARGUMENTS =
       const StaticTypeWarningCode('EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
@@ -3085,7 +3139,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * 12.8 Maps: A fresh instance (7.6.1) <i>m</i>, of size <i>n</i>, whose class
    * implements the built-in class <i>Map&lt;K, V></i> is allocated.
    *
-   * @param numTypeArgument the number of provided type arguments
+   * Parameters:
+   * 0: the number of provided type arguments
    */
   static const StaticTypeWarningCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS =
       const StaticTypeWarningCode('EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
@@ -3161,7 +3216,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
    * not have an accessible (3.2) instance member named <i>m</i>.
    *
-   * @param memberName the name of the static member
+   * Parameters:
+   * 0: the name of the static member
+   *
    * See [UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
    */
   static const StaticTypeWarningCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
@@ -3181,8 +3238,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * It is a static type warning if the static type of <i>e<sub>2</sub></i> may
    * not be assigned to <i>T</i>.
    *
-   * @param rhsTypeName the name of the right hand side type
-   * @param lhsTypeName the name of the left hand side type
+   * Parameters:
+   * 0: the name of the right hand side type
+   * 1: the name of the left hand side type
    */
   static const StaticTypeWarningCode INVALID_ASSIGNMENT =
       const StaticTypeWarningCode('INVALID_ASSIGNMENT',
@@ -3209,8 +3267,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * <i>S.m</i> exists, it is a static warning if the type <i>F</i> of
    * <i>S.m</i> may not be assigned to a function type.
    *
-   * @param nonFunctionIdentifier the name of the identifier that is not a
-   *        function type
+   * Parameters:
+   * 0: the name of the identifier that is not a function type
    */
   static const StaticTypeWarningCode INVOCATION_OF_NON_FUNCTION =
       const StaticTypeWarningCode(
@@ -3270,7 +3328,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * static types of both of <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> may
    * not be assigned to bool.
    *
-   * @param operator the lexeme of the logical operator
+   * Parameters:
+   * 0: the lexeme of the logical operator
    */
   static const StaticTypeWarningCode NON_BOOL_OPERAND =
       const StaticTypeWarningCode('NON_BOOL_OPERAND',
@@ -3289,9 +3348,10 @@ class StaticTypeWarningCode extends ErrorCode {
    * be assigned to the declared return type of the immediately enclosing
    * function.
    *
-   * @param actualReturnType the return type as declared in the return statement
-   * @param expectedReturnType the expected return type as defined by the method
-   * @param methodName the name of the method
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the method
+   * 2: the name of the method
    */
   static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE =
       const StaticTypeWarningCode('RETURN_OF_INVALID_TYPE',
@@ -3318,10 +3378,11 @@ class StaticTypeWarningCode extends ErrorCode {
    * to <i>k'</i> are not subtypes of the bounds of the corresponding formal
    * type parameters of type.
    *
-   * @param boundedTypeName the name of the type used in the instance creation
-   *        that should be limited by the bound as specified in the class
-   *        declaration
-   * @param boundingTypeName the name of the bounding type
+   * Parameters:
+   * 0: the name of the type used in the instance creation that should be
+   *    limited by the bound as specified in the class declaration
+   * 1: the name of the bounding type
+   *
    * See [TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
    */
   static const StaticTypeWarningCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
@@ -3332,7 +3393,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * 10 Generics: It is a static type warning if a type parameter is a supertype
    * of its upper bound.
    *
-   * @param typeParameterName the name of the type parameter
+   * Parameters:
+   * 0: the name of the type parameter
+   *
    * See [TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
@@ -3344,9 +3407,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
    * not declare, implicitly or explicitly, a getter named <i>m</i>.
    *
-   * @param constantName the name of the enumeration constant that is not
-   *        defined
-   * @param enumName the name of the enumeration used to access the constant
+   * Parameters:
+   * 0: the name of the enumeration constant that is not defined
+   * 1: the name of the enumeration used to access the constant
    */
   static const StaticTypeWarningCode UNDEFINED_ENUM_CONSTANT =
       const StaticTypeWarningCode('UNDEFINED_ENUM_CONSTANT',
@@ -3361,7 +3424,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * <i>x<sub>n+1</sub></i> : <i>a<sub>n+1</sub></i>, ...,
    * <i>x<sub>n+k</sub></i> : <i>a<sub>n+k</sub></i>).
    *
-   * @param methodName the name of the method that is undefined
+   * Parameters:
+   * 0: the name of the method that is undefined
    */
   static const StaticTypeWarningCode UNDEFINED_FUNCTION =
       const StaticTypeWarningCode(
@@ -3371,9 +3435,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
    * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
    *
-   * @param getterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the getter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_GETTER =
       const StaticTypeWarningCode('UNDEFINED_GETTER',
@@ -3384,9 +3448,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * It is a static type warning if <i>T</i> does not have an accessible
    * instance member named <i>m</i>.
    *
-   * @param methodName the name of the method that is undefined
-   * @param typeName the resolved type name that the method lookup is happening
-   *        on
+   * Parameters:
+   * 0: the name of the method that is undefined
+   * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_METHOD =
       const StaticTypeWarningCode('UNDEFINED_METHOD',
@@ -3408,9 +3472,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * It is a static type warning if <i>T</i> does not have an accessible
    * instance member named <i>m</i>.
    *
-   * @param operator the name of the operator
-   * @param enclosingType the name of the enclosing type where the operator is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the operator
+   * 1: the name of the enclosing type where the operator is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_OPERATOR =
       const StaticTypeWarningCode('UNDEFINED_OPERATOR',
@@ -3421,9 +3485,10 @@ class StaticTypeWarningCode extends ErrorCode {
    * It is a static type warning if <i>T</i> does not have an accessible
    * instance setter named <i>v=</i>.
    *
-   * @param setterName the name of the setter
-   * @param enclosingType the name of the enclosing type where the setter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the setter
+   * 1: the name of the enclosing type where the setter is being looked for
+   *
    * See [INACCESSIBLE_SETTER].
    */
   static const StaticTypeWarningCode UNDEFINED_SETTER =
@@ -3434,9 +3499,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
    * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
    *
-   * @param getterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the getter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_GETTER =
       const StaticTypeWarningCode('UNDEFINED_SUPER_GETTER',
@@ -3449,9 +3514,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * static type warning if <i>S</i> does not have an accessible instance member
    * named <i>m</i>.
    *
-   * @param methodName the name of the method that is undefined
-   * @param typeName the resolved type name that the method lookup is happening
-   *        on
+   * Parameters:
+   * 0: the name of the method that is undefined
+   * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD =
       const StaticTypeWarningCode('UNDEFINED_SUPER_METHOD',
@@ -3473,9 +3538,9 @@ class StaticTypeWarningCode extends ErrorCode {
    * It is a static type warning if <i>T</i> does not have an accessible
    * instance member named <i>m</i>.
    *
-   * @param operator the name of the operator
-   * @param enclosingType the name of the enclosing type where the operator is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the operator
+   * 1: the name of the enclosing type where the operator is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_OPERATOR =
       const StaticTypeWarningCode('UNDEFINED_SUPER_OPERATOR',
@@ -3486,9 +3551,10 @@ class StaticTypeWarningCode extends ErrorCode {
    * It is a static type warning if <i>T</i> does not have an accessible
    * instance setter named <i>v=</i>.
    *
-   * @param setterName the name of the setter
-   * @param enclosingType the name of the enclosing type where the setter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the setter
+   * 1: the name of the enclosing type where the setter is being looked for
+   *
    * See [INACCESSIBLE_SETTER].
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_SETTER =
@@ -3512,9 +3578,11 @@ class StaticTypeWarningCode extends ErrorCode {
    * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not a
    * generic type with exactly <i>n</i> type parameters.
    *
-   * @param typeName the name of the type being referenced (<i>G</i>)
-   * @param parameterCount the number of type parameters that were declared
-   * @param argumentCount the number of type arguments provided
+   * Parameters:
+   * 0: the name of the type being referenced (<i>G</i>)
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   *
    * See [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS], and
    * [CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS].
    */
@@ -3561,11 +3629,10 @@ class StaticTypeWarningCode extends ErrorCode {
 }
 
 /**
- * The enumeration `StaticWarningCode` defines the error codes used for static
- * warnings. The convention for this class is for the name of the error code to
- * indicate the problem that caused the error to be generated and for the error
- * message to explain what is wrong and, when appropriate, how the problem can
- * be corrected.
+ * The error codes used for static warnings. The convention for this class is
+ * for the name of the error code to indicate the problem that caused the error
+ * to be generated and for the error message to explain what is wrong and, when
+ * appropriate, how the problem can be corrected.
  */
 class StaticWarningCode extends ErrorCode {
   /**
@@ -3577,11 +3644,10 @@ class StaticWarningCode extends ErrorCode {
    *    <i>NoSuchMethodError</i> is raised.
    * 3. If <i>N</i> is referenced as a type, it is treated as a malformed type.
    *
-   * @param ambiguousTypeName the name of the ambiguous type
-   * @param firstLibraryName the name of the first library that the type is
-   *        found
-   * @param secondLibraryName the name of the second library that the type is
-   *        found
+   * Parameters:
+   * 0: the name of the ambiguous type
+   * 1: the name of the first library that the type is found
+   * 2: the name of the second library that the type is found
    */
   static const StaticWarningCode AMBIGUOUS_IMPORT = const StaticWarningCode(
       'AMBIGUOUS_IMPORT', "The name '{0}' is defined in the libraries {1}",
@@ -3613,8 +3679,9 @@ class StaticWarningCode extends ErrorCode {
    * assigned to <i>S<sub>r</sub></i>, where <i>r = q<sub>j</sub>, 1 &lt;= j
    * &lt;= l</i>.
    *
-   * @param actualType the name of the actual argument type
-   * @param expectedType the name of the expected type
+   * Parameters:
+   * 0: the name of the actual argument type
+   * 1: the name of the expected type
    */
   static const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
       const StaticWarningCode('ARGUMENT_TYPE_NOT_ASSIGNABLE',
@@ -3699,11 +3766,10 @@ class StaticWarningCode extends ErrorCode {
    * * The import from <i>dart:</i> is implicitly extended by a hide N clause.
    * * A static warning is issued.
    *
-   * @param ambiguousName the ambiguous name
-   * @param sdkLibraryName the name of the dart: library that the element is
-   *        found
-   * @param otherLibraryName the name of the non-dart: library that the element
-   *        is found
+   * Parameters:
+   * 0: the ambiguous name
+   * 1: the name of the dart: library in which the element is found
+   * 1: the name of the non-dart: library in which the element is found
    */
   static const StaticWarningCode CONFLICTING_DART_IMPORT =
       const StaticWarningCode('CONFLICTING_DART_IMPORT',
@@ -3714,7 +3780,8 @@ class StaticWarningCode extends ErrorCode {
    * instance getter named <i>v</i> and an accessible static member named
    * <i>v</i> or <i>v=</i> is declared in a superclass of <i>C</i>.
    *
-   * @param superName the name of the super class declaring a static member
+   * Parameters:
+   * 0: the name of the super class declaring a static member
    */
   static const StaticWarningCode CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER =
       const StaticWarningCode(
@@ -3742,7 +3809,8 @@ class StaticWarningCode extends ErrorCode {
    * instance setter named <i>v=</i> and an accessible static member named
    * <i>v=</i> or <i>v</i> is declared in a superclass of <i>C</i>.
    *
-   * @param superName the name of the super class declaring a static member
+   * Parameters:
+   * 0: the name of the super class declaring a static member
    */
   static const StaticWarningCode CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER =
       const StaticWarningCode(
@@ -3786,9 +3854,10 @@ class StaticWarningCode extends ErrorCode {
    * 14.2 Exports: It is a static warning to export two different libraries with
    * the same name.
    *
-   * @param uri1 the uri pointing to a first library
-   * @param uri2 the uri pointing to a second library
-   * @param name the shared name of the exported libraries
+   * Parameters:
+   * 0: the uri pointing to a first library
+   * 1: the uri pointing to a second library
+   * 2:e the shared name of the exported libraries
    */
   static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAMED =
       const StaticWarningCode('EXPORT_DUPLICATED_LIBRARY_NAMED',
@@ -3798,8 +3867,9 @@ class StaticWarningCode extends ErrorCode {
    * 14.2 Exports: It is a static warning to export two different libraries with
    * the same name.
    *
-   * @param uri1 the uri pointing to a first library
-   * @param uri2 the uri pointing to a second library
+   * Parameters:
+   * 0: the uri pointing to a first library
+   * 1: the uri pointing to a second library
    */
   static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_UNNAMED =
       const StaticWarningCode('EXPORT_DUPLICATED_LIBRARY_UNNAMED',
@@ -3809,8 +3879,10 @@ class StaticWarningCode extends ErrorCode {
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *
-   * @param requiredCount the maximum number of positional arguments
-   * @param argumentCount the actual number of positional arguments given
+   * Parameters:
+   * 0: the maximum number of positional arguments
+   * 1: the actual number of positional arguments given
+   *
    * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
    */
   static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS =
@@ -3832,7 +3904,8 @@ class StaticWarningCode extends ErrorCode {
    * been initialized at its point of declaration is also initialized in a
    * constructor.
    *
-   * @param name the name of the field in question
+   * Parameters:
+   * 0: the name of the field in question
    */
   static const StaticWarningCode FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR =
       const StaticWarningCode(
@@ -3852,8 +3925,9 @@ class StaticWarningCode extends ErrorCode {
    * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1
    * &lt;= j &lt;= m</i>.
    *
-   * @param initializerType the name of the type of the initializer expression
-   * @param fieldType the name of the type of the field
+   * Parameters:
+   * 0: the name of the type of the initializer expression
+   * 1: the name of the type of the field
    */
   static const StaticWarningCode FIELD_INITIALIZER_NOT_ASSIGNABLE =
       const StaticWarningCode('FIELD_INITIALIZER_NOT_ASSIGNABLE',
@@ -3864,8 +3938,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>this.id</i>. It is a static warning if the static type of <i>id</i> is
    * not assignable to <i>T<sub>id</sub></i>.
    *
-   * @param parameterType the name of the type of the field formal parameter
-   * @param fieldType the name of the type of the field
+   * Parameters:
+   * 0: the name of the type of the field formal parameter
+   * 1: the name of the type of the field
    */
   static const StaticWarningCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE =
       const StaticWarningCode('FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
@@ -3876,6 +3951,14 @@ class StaticWarningCode extends ErrorCode {
    * <i>v</i> is final and <i>v</i> is not initialized at its point of
    * declaration.
    *
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   */
+  static const StaticWarningCode FINAL_NOT_INITIALIZED =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED',
+          "The final variable '{0}' must be initialized");
+
+  /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
    * declared in the immediately enclosing class must have an initializer in
    * <i>k</i>'s initializer list unless it has already been initialized by one
@@ -3884,11 +3967,47 @@ class StaticWarningCode extends ErrorCode {
    * * Initialization by means of an initializing formal of <i>k</i>.
    * or a static warning occurs.
    *
-   * @param name the name of the uninitialized final variable
+   * Parameters:
+   * 0: the name of the uninitialized final variable
    */
-  static const StaticWarningCode FINAL_NOT_INITIALIZED =
-      const StaticWarningCode('FINAL_NOT_INITIALIZED',
+  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "The final variable '{0}' must be initialized");
+
+  /**
+   * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
+   * declared in the immediately enclosing class must have an initializer in
+   * <i>k</i>'s initializer list unless it has already been initialized by one
+   * of the following means:
+   * * Initialization at the declaration of <i>f</i>.
+   * * Initialization by means of an initializing formal of <i>k</i>.
+   * or a static warning occurs.
+   *
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   * 1: the name of the uninitialized final variable
+   */
+  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+          "The final variables '{0}' and '{1}' must be initialized");
+
+  /**
+   * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
+   * declared in the immediately enclosing class must have an initializer in
+   * <i>k</i>'s initializer list unless it has already been initialized by one
+   * of the following means:
+   * * Initialization at the declaration of <i>f</i>.
+   * * Initialization by means of an initializing formal of <i>k</i>.
+   * or a static warning occurs.
+   *
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   * 1: the name of the uninitialized final variable
+   * 2: the number of additional not initialized variables that aren't listed
+   */
+  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          "The final variables '{0}', '{1}' and '{2}' more must be initialized");
 
   /**
    * 15.5 Function Types: It is a static warning if a concrete class implements
@@ -3902,9 +4021,10 @@ class StaticWarningCode extends ErrorCode {
    * 14.1 Imports: It is a static warning to import two different libraries with
    * the same name.
    *
-   * @param uri1 the uri pointing to a first library
-   * @param uri2 the uri pointing to a second library
-   * @param name the shared name of the imported libraries
+   * Parameters:
+   * 0: the uri pointing to a first library
+   * 1: the uri pointing to a second library
+   * 2: the shared name of the imported libraries
    */
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
       const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_NAMED',
@@ -3914,8 +4034,9 @@ class StaticWarningCode extends ErrorCode {
    * 14.1 Imports: It is a static warning to import two different libraries with
    * the same name.
    *
-   * @param uri1 the uri pointing to a first library
-   * @param uri2 the uri pointing to a second library
+   * Parameters:
+   * 0: the uri pointing to a first library
+   * 1: the uri pointing to a second library
    */
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_UNNAMED =
       const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_UNNAMED',
@@ -3925,7 +4046,9 @@ class StaticWarningCode extends ErrorCode {
    * 14.1 Imports: It is a static warning if the specified URI of a deferred
    * import does not refer to a library declaration.
    *
-   * @param uri the uri pointing to a non-library declaration
+   * Parameters:
+   * 0: the uri pointing to a non-library declaration
+   *
    * See [CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY].
    */
   static const StaticWarningCode IMPORT_OF_NON_LIBRARY =
@@ -3953,9 +4076,9 @@ class StaticWarningCode extends ErrorCode {
    * an instance method named <i>n</i> and an accessible static member named
    * <i>n</i> is declared in a superclass of <i>C</i>.
    *
-   * @param memberName the name of the member with the name conflict
-   * @param superclassName the name of the enclosing class that has the static
-   *        member
+   * Parameters:
+   * 0: the name of the member with the name conflict
+   * 1: the name of the enclosing class that has the static member
    */
   static const StaticWarningCode INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC =
       const StaticWarningCode(
@@ -3967,11 +4090,12 @@ class StaticWarningCode extends ErrorCode {
    * getter <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of
    * <i>m2</i>.
    *
-   * @param actualReturnTypeName the name of the expected return type
-   * @param expectedReturnType the name of the actual return type, not
-   *        assignable to the actualReturnTypeName
-   * @param className the name of the class where the overridden getter is
-   *        declared
+   * Parameters:
+   * 0: the name of the actual return type
+   * 1: the name of the expected return type, not assignable to the actual
+   *    return type
+   * 2: the name of the class where the overridden getter is declared
+   *
    * See [INVALID_METHOD_OVERRIDE_RETURN_TYPE].
    */
   static const StaticWarningCode INVALID_GETTER_OVERRIDE_RETURN_TYPE =
@@ -3983,11 +4107,11 @@ class StaticWarningCode extends ErrorCode {
    * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
    * is not a subtype of the type of <i>m2</i>.
    *
-   * @param actualParamTypeName the name of the expected parameter type
-   * @param expectedParamType the name of the actual parameter type, not
-   *        assignable to the actualParamTypeName
-   * @param className the name of the class where the overridden method is
-   *        declared
+   * Parameters:
+   * 0: the name of the actual parameter type
+   * 1: the name of the expected parameter type, not assignable to the actual
+   *    parameter type
+   * 2: the name of the class where the overridden method is declared
    */
   static const StaticWarningCode INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE =
       const StaticWarningCode('INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE',
@@ -3998,11 +4122,11 @@ class StaticWarningCode extends ErrorCode {
    * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
    * is not a subtype of the type of <i>m2</i>.
    *
-   * @param actualParamTypeName the name of the expected parameter type
-   * @param expectedParamType the name of the actual parameter type, not
-   *        assignable to the actualParamTypeName
-   * @param className the name of the class where the overridden method is
-   *        declared
+   * Parameters:
+   * 0: the name of the actual parameter type
+   * 1: the name of the expected parameter type, not assignable to the actual
+   *    parameter type
+   * 2: the name of the class where the overridden method is declared
    * See [INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE].
    */
   static const StaticWarningCode INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE =
@@ -4014,11 +4138,11 @@ class StaticWarningCode extends ErrorCode {
    * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
    * is not a subtype of the type of <i>m2</i>.
    *
-   * @param actualParamTypeName the name of the expected parameter type
-   * @param expectedParamType the name of the actual parameter type, not
-   *        assignable to the actualParamTypeName
-   * @param className the name of the class where the overridden method is
-   *        declared
+   * Parameters:
+   * 0: the name of the actual parameter type
+   * 1: the name of the expected parameter type, not assignable to the actual
+   *    parameter type
+   * 2: the name of the class where the overridden method is declared
    */
   static const StaticWarningCode INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE =
       const StaticWarningCode('INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE',
@@ -4029,11 +4153,12 @@ class StaticWarningCode extends ErrorCode {
    * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
    * is not a subtype of the type of <i>m2</i>.
    *
-   * @param actualReturnTypeName the name of the expected return type
-   * @param expectedReturnType the name of the actual return type, not
-   *        assignable to the actualReturnTypeName
-   * @param className the name of the class where the overridden method is
-   *        declared
+   * Parameters:
+   * 0: the name of the actual return type
+   * 1: the name of the expected return type, not assignable to the actual
+   *    return type
+   * 2: the name of the class where the overridden method is declared
+   *
    * See [INVALID_GETTER_OVERRIDE_RETURN_TYPE].
    */
   static const StaticWarningCode INVALID_METHOD_OVERRIDE_RETURN_TYPE =
@@ -4068,8 +4193,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>m1</i> overrides an instance member <i>m2</i> and <i>m1</i> does not
    * declare all the named parameters declared by <i>m2</i>.
    *
-   * @param paramCount the number of named parameters in the overridden member
-   * @param className the name of the class from the overridden method
+   * Parameters:
+   * 0: the number of named parameters in the overridden member
+   * 1: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_NAMED = const StaticWarningCode(
       'INVALID_OVERRIDE_NAMED',
@@ -4080,9 +4206,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>m1</i> overrides an instance member <i>m2</i> and <i>m1</i> has fewer
    * positional parameters than <i>m2</i>.
    *
-   * @param paramCount the number of positional parameters in the overridden
-   *        member
-   * @param className the name of the class from the overridden method
+   * Parameters:
+   * 0: the number of positional parameters in the overridden member
+   * 1: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_POSITIONAL =
       const StaticWarningCode('INVALID_OVERRIDE_POSITIONAL',
@@ -4093,9 +4219,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>m1</i> overrides an instance member <i>m2</i> and <i>m1</i> has a
    * greater number of required parameters than <i>m2</i>.
    *
-   * @param paramCount the number of required parameters in the overridden
-   *        member
-   * @param className the name of the class from the overridden method
+   * Parameters:
+   * 0: the number of required parameters in the overridden member
+   * 1: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_REQUIRED =
       const StaticWarningCode('INVALID_OVERRIDE_REQUIRED',
@@ -4106,11 +4232,12 @@ class StaticWarningCode extends ErrorCode {
    * setter <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of
    * <i>m2</i>.
    *
-   * @param actualParamTypeName the name of the expected parameter type
-   * @param expectedParamType the name of the actual parameter type, not
-   *        assignable to the actualParamTypeName
-   * @param className the name of the class where the overridden setter is
-   *        declared
+   * Parameters:
+   * 0: the name of the actual parameter type
+   * 1: the name of the expected parameter type, not assignable to the actual
+   * parameter type
+   * 2: the name of the class where the overridden setter is declared
+   *
    * See [INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE].
    */
   static const StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE =
@@ -4212,9 +4339,11 @@ class StaticWarningCode extends ErrorCode {
    * 15.8 Parameterized Types: Any use of a malbounded type gives rise to a
    * static warning.
    *
-   * @param typeName the name of the type being referenced (<i>S</i>)
-   * @param parameterCount the number of type parameters that were declared
-   * @param argumentCount the number of type arguments provided
+   * Parameters:
+   * 0: the name of the type being referenced (<i>S</i>)
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   *
    * See [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS], and
    * [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS].
    */
@@ -4226,7 +4355,8 @@ class StaticWarningCode extends ErrorCode {
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible
    * in the current scope, optionally followed by type arguments.
    *
-   * @param name the name of the non-type element
+   * Parameters:
+   * 0: the name of the non-type element
    */
   static const StaticWarningCode NEW_WITH_NON_TYPE = const StaticWarningCode(
       'NEW_WITH_NON_TYPE', "The name '{0}' is not a class");
@@ -4278,12 +4408,12 @@ class StaticWarningCode extends ErrorCode {
    * is declared or inherited in a concrete class unless that member overrides a
    * concrete one.
    *
-   * @param memberName the name of the first member
-   * @param memberName the name of the second member
-   * @param memberName the name of the third member
-   * @param memberName the name of the fourth member
-   * @param additionalCount the number of additional missing members that aren't
-   *        listed
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
+   * 2: the name of the third member
+   * 3: the name of the fourth member
+   * 4: the number of additional missing members that aren't listed
    */
   static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
       const StaticWarningCode(
@@ -4304,10 +4434,11 @@ class StaticWarningCode extends ErrorCode {
    * is declared or inherited in a concrete class unless that member overrides a
    * concrete one.
    *
-   * @param memberName the name of the first member
-   * @param memberName the name of the second member
-   * @param memberName the name of the third member
-   * @param memberName the name of the fourth member
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
+   * 2: the name of the third member
+   * 3: the name of the fourth member
    */
   static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
       const StaticWarningCode(
@@ -4328,7 +4459,8 @@ class StaticWarningCode extends ErrorCode {
    * is declared or inherited in a concrete class unless that member overrides a
    * concrete one.
    *
-   * @param memberName the name of the member
+   * Parameters:
+   * 0: the name of the member
    */
   static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE =
       const StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
@@ -4348,9 +4480,10 @@ class StaticWarningCode extends ErrorCode {
    * is declared or inherited in a concrete class unless that member overrides a
    * concrete one.
    *
-   * @param memberName the name of the first member
-   * @param memberName the name of the second member
-   * @param memberName the name of the third member
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
+   * 2: the name of the third member
    */
   static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
       const StaticWarningCode(
@@ -4371,8 +4504,9 @@ class StaticWarningCode extends ErrorCode {
    * is declared or inherited in a concrete class unless that member overrides a
    * concrete one.
    *
-   * @param memberName the name of the first member
-   * @param memberName the name of the second member
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
    */
   static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO =
       const StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
@@ -4385,7 +4519,8 @@ class StaticWarningCode extends ErrorCode {
    * <i>T</i> does not denote a type available in the lexical scope of the
    * catch clause.
    *
-   * @param name the name of the non-type element
+   * Parameters:
+   * 0: the name of the non-type element
    */
   static const StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE =
       const StaticWarningCode('NON_TYPE_IN_CATCH_CLAUSE',
@@ -4419,7 +4554,8 @@ class StaticWarningCode extends ErrorCode {
    *
    * Any use of a malformed type gives rise to a static warning.
    *
-   * @param nonTypeName the name that is not a type
+   * Parameters:
+   * 0: the name that is not a type
    */
   static const StaticWarningCode NOT_A_TYPE =
       const StaticWarningCode('NOT_A_TYPE', "{0} is not a type");
@@ -4428,8 +4564,10 @@ class StaticWarningCode extends ErrorCode {
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *
-   * @param requiredCount the expected number of required arguments
-   * @param argumentCount the actual number of positional arguments given
+   * Parameters:
+   * 0: the expected number of required arguments
+   * 1: the actual number of positional arguments given
+   *
    * See [EXTRA_POSITIONAL_ARGUMENTS].
    */
   static const StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
@@ -4441,9 +4579,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>p</i> names a library other than the current library as the library to
    * which <i>p</i> belongs.
    *
-   * @param expectedLibraryName the name of expected library name
-   * @param actualLibraryName the non-matching actual library name from the
-   *        "part of" declaration
+   * Parameters:
+   * 0: the name of expected library name
+   * 1: the non-matching actual library name from the "part of" declaration
    */
   static const StaticWarningCode PART_OF_DIFFERENT_LIBRARY =
       const StaticWarningCode('PART_OF_DIFFERENT_LIBRARY',
@@ -4453,8 +4591,9 @@ class StaticWarningCode extends ErrorCode {
    * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i>
    * is not a subtype of the type of <i>k</i>.
    *
-   * @param redirectedName the name of the redirected constructor
-   * @param redirectingName the name of the redirecting constructor
+   * Parameters:
+   * 0: the name of the redirected constructor
+   * 1: the name of the redirecting constructor
    */
   static const StaticWarningCode REDIRECT_TO_INVALID_FUNCTION_TYPE =
       const StaticWarningCode('REDIRECT_TO_INVALID_FUNCTION_TYPE',
@@ -4464,8 +4603,9 @@ class StaticWarningCode extends ErrorCode {
    * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i>
    * is not a subtype of the type of <i>k</i>.
    *
-   * @param redirectedName the name of the redirected constructor return type
-   * @param redirectingName the name of the redirecting constructor return type
+   * Parameters:
+   * 0: the name of the redirected constructor return type
+   * 1: the name of the redirecting constructor return type
    */
   static const StaticWarningCode REDIRECT_TO_INVALID_RETURN_TYPE =
       const StaticWarningCode('REDIRECT_TO_INVALID_RETURN_TYPE',
@@ -4505,7 +4645,8 @@ class StaticWarningCode extends ErrorCode {
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
    * declare a static method or getter <i>m</i>.
    *
-   * @param memberName the name of the instance member
+   * Parameters:
+   * 0: the name of the instance member
    */
   static const StaticWarningCode STATIC_ACCESS_TO_INSTANCE_MEMBER =
       const StaticWarningCode('STATIC_ACCESS_TO_INSTANCE_MEMBER',
@@ -4523,8 +4664,9 @@ class StaticWarningCode extends ErrorCode {
    * 15.1 Static Types: It is a static warning to use a deferred type in a type
    * annotation.
    *
-   * @param name the name of the type that is deferred and being used in a type
-   *        annotation
+   * Parameters:
+   * 0: the name of the type that is deferred and being used in a type
+   *    annotation
    */
   static const StaticWarningCode TYPE_ANNOTATION_DEFERRED_CLASS =
       const StaticWarningCode('TYPE_ANNOTATION_DEFERRED_CLASS',
@@ -4564,7 +4706,8 @@ class StaticWarningCode extends ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a
    * static warning if <i>C</i> does not denote a class in the current scope.
    *
-   * @param undefinedClassName the name of the undefined class
+   * Parameters:
+   * 0: the name of the undefined class
    */
   static const StaticWarningCode UNDEFINED_CLASS =
       const StaticWarningCode('UNDEFINED_CLASS', "Undefined class '{0}'");
@@ -4581,9 +4724,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
    * not declare, implicitly or explicitly, a getter named <i>m</i>.
    *
-   * @param getterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the getter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticWarningCode UNDEFINED_GETTER = const StaticWarningCode(
       'UNDEFINED_GETTER',
@@ -4596,7 +4739,8 @@ class StaticWarningCode extends ErrorCode {
    * initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
    *
-   * @param name the name of the identifier
+   * Parameters:
+   * 0: the name of the identifier
    */
   static const StaticWarningCode UNDEFINED_IDENTIFIER =
       const StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'");
@@ -4607,7 +4751,8 @@ class StaticWarningCode extends ErrorCode {
    * {<i>p<sub>n+1</sub></i> &hellip; <i>p<sub>n+k</sub></i>} or a static
    * warning occurs.
    *
-   * @param name the name of the requested named parameter
+   * Parameters:
+   * 0: the name of the requested named parameter
    */
   static const StaticWarningCode UNDEFINED_NAMED_PARAMETER =
       const StaticWarningCode('UNDEFINED_NAMED_PARAMETER',
@@ -4624,9 +4769,9 @@ class StaticWarningCode extends ErrorCode {
    * the enclosing lexical scope of the assignment, or if <i>C</i> does not
    * declare, implicitly or explicitly, a setter <i>v=</i>.
    *
-   * @param setterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the setter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the setter is being looked for
    */
   static const StaticWarningCode UNDEFINED_SETTER = const StaticWarningCode(
       'UNDEFINED_SETTER',
@@ -4636,9 +4781,9 @@ class StaticWarningCode extends ErrorCode {
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
    * declare a static method or getter <i>m</i>.
    *
-   * @param methodName the name of the method
-   * @param enclosingType the name of the enclosing type where the method is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the method
+   * 1: the name of the enclosing type where the method is being looked for
    */
   static const StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER =
       const StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER',
@@ -4649,9 +4794,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
    * not declare, implicitly or explicitly, a getter named <i>m</i>.
    *
-   * @param getterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the getter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticWarningCode UNDEFINED_SUPER_GETTER =
       const StaticWarningCode('UNDEFINED_SUPER_GETTER',
@@ -4668,9 +4813,9 @@ class StaticWarningCode extends ErrorCode {
    * the enclosing lexical scope of the assignment, or if <i>C</i> does not
    * declare, implicitly or explicitly, a setter <i>v=</i>.
    *
-   * @param setterName the name of the getter
-   * @param enclosingType the name of the enclosing type where the setter is
-   *        being looked for
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the setter is being looked for
    */
   static const StaticWarningCode UNDEFINED_SUPER_SETTER =
       const StaticWarningCode('UNDEFINED_SUPER_SETTER',
@@ -4700,7 +4845,8 @@ class StaticWarningCode extends ErrorCode {
 }
 
 /**
- * The class `TodoCode` defines the single TODO error code.
+ * The error code indicating a marker in code for work that needs to be finished
+ * or revisited.
  */
 class TodoCode extends ErrorCode {
   /**

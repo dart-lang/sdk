@@ -191,34 +191,6 @@ import "../foo/foo.dart";
     });
   }
 
-  test_getAnalysisContext_nested() {
-    String dir1Path = '/dir1';
-    String dir2Path = dir1Path + '/dir2';
-    String filePath = dir2Path + '/file.dart';
-    Folder dir1 = resourceProvider.newFolder(dir1Path);
-    Folder dir2 = resourceProvider.newFolder(dir2Path);
-    resourceProvider.newFile(filePath, 'library lib;');
-
-    AnalysisContext context1 = AnalysisEngine.instance.createAnalysisContext();
-    AnalysisContext context2 = AnalysisEngine.instance.createAnalysisContext();
-    server.folderMap[dir1] = context1;
-    server.folderMap[dir2] = context2;
-
-    expect(server.getAnalysisContext(filePath), context2);
-  }
-
-  test_getAnalysisContext_simple() {
-    String dirPath = '/dir';
-    String filePath = dirPath + '/file.dart';
-    Folder dir = resourceProvider.newFolder(dirPath);
-    resourceProvider.newFile(filePath, 'library lib;');
-
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    server.folderMap[dir] = context;
-
-    expect(server.getAnalysisContext(filePath), context);
-  }
-
   Future test_getAnalysisContextForSource() {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = [ServerService.STATUS].toSet();
@@ -311,25 +283,6 @@ import "../foo/foo.dart";
     expect(source.fullName, filePath);
   }
 
-  test_operationsRemovedOnContextDisposal() async {
-    resourceProvider.newFolder('/foo');
-    resourceProvider.newFile('/foo/baz.dart', 'library lib;');
-    resourceProvider.newFolder('/bar');
-    resourceProvider.newFile('/bar/baz.dart', 'library lib;');
-    server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    await pumpEventQueue();
-    AnalysisContext contextFoo = server.getAnalysisContext('/foo/baz.dart');
-    AnalysisContext contextBar = server.getAnalysisContext('/bar/baz.dart');
-    _MockServerOperation operationFoo = new _MockServerOperation(contextFoo);
-    _MockServerOperation operationBar = new _MockServerOperation(contextBar);
-    server.scheduleOperation(operationFoo);
-    server.scheduleOperation(operationBar);
-    server.setAnalysisRoots('1', ['/foo'], [], {});
-    await pumpEventQueue();
-    expect(operationFoo.isComplete, isTrue);
-    expect(operationBar.isComplete, isFalse);
-  }
-
   /**
    * Test that having multiple analysis contexts analyze the same file doesn't
    * cause that file to receive duplicate notifications when it's modified.
@@ -375,6 +328,25 @@ import "../foo/foo.dart";
           break;
       }
     }
+  }
+
+  test_operationsRemovedOnContextDisposal() async {
+    resourceProvider.newFolder('/foo');
+    resourceProvider.newFile('/foo/baz.dart', 'library lib;');
+    resourceProvider.newFolder('/bar');
+    resourceProvider.newFile('/bar/baz.dart', 'library lib;');
+    server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
+    await pumpEventQueue();
+    AnalysisContext contextFoo = server.getAnalysisContext('/foo/baz.dart');
+    AnalysisContext contextBar = server.getAnalysisContext('/bar/baz.dart');
+    _MockServerOperation operationFoo = new _MockServerOperation(contextFoo);
+    _MockServerOperation operationBar = new _MockServerOperation(contextBar);
+    server.scheduleOperation(operationFoo);
+    server.scheduleOperation(operationBar);
+    server.setAnalysisRoots('1', ['/foo'], [], {});
+    await pumpEventQueue();
+    expect(operationFoo.isComplete, isTrue);
+    expect(operationBar.isComplete, isFalse);
   }
 
   Future test_prioritySourcesChangedEvent() {

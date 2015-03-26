@@ -413,7 +413,6 @@ abstract class Element implements Entity {
 
   void addMetadata(MetadataAnnotation annotation);
   void setNative(String name);
-  void setFixedBackendName(String name);
 
   Scope buildScope();
 

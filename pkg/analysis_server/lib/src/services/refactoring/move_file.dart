@@ -11,16 +11,20 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:source_span/src/span.dart';
+import 'package:yaml/yaml.dart';
 
 /**
  * [ExtractLocalRefactoring] implementation.
  */
 class MoveFileRefactoringImpl extends RefactoringImpl
     implements MoveFileRefactoring {
+  final ResourceProvider resourceProvider;
   final pathos.Context pathContext;
   final SearchEngine searchEngine;
   final AnalysisContext context;
@@ -34,9 +38,13 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   String oldLibraryDir;
   String newLibraryDir;
 
-  MoveFileRefactoringImpl(
-      this.pathContext, this.searchEngine, this.context, this.source) {
-    oldFile = source.fullName;
+  MoveFileRefactoringImpl(ResourceProvider resourceProvider, this.searchEngine,
+      this.context, this.source, this.oldFile)
+      : resourceProvider = resourceProvider,
+        pathContext = resourceProvider.pathContext {
+    if (source != null) {
+      oldFile = source.fullName;
+    }
   }
 
   @override
@@ -56,6 +64,45 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
+    // move file
+    if (source != null) {
+      return _createFileChange();
+    }
+    // rename project
+    if (oldFile != null) {
+      Resource projectFolder = resourceProvider.getResource(oldFile);
+      if (projectFolder is Folder && projectFolder.exists) {
+        Resource pubspecFile = projectFolder.getChild('pubspec.yaml');
+        if (pubspecFile is File && pubspecFile.exists) {
+          return _createProjectChange(projectFolder, pubspecFile);
+        }
+      }
+    }
+    // no change
+    return null;
+  }
+
+  @override
+  bool requiresPreview() => false;
+
+  /**
+   * Computes the URI to use to reference [newFile] from [reference].
+   */
+  String _computeNewUri(SourceReference reference) {
+    String refDir = pathContext.dirname(reference.file);
+    // try to keep package: URI
+    if (_isPackageReference(reference)) {
+      Source newSource = new NonExistingSource(newFile, UriKind.FILE_URI);
+      Uri restoredUri = context.sourceFactory.restoreUri(newSource);
+      if (restoredUri != null) {
+        return restoredUri.toString();
+      }
+    }
+    // if no package: URI, prepare relative
+    return _getRelativeUri(newFile, refDir);
+  }
+
+  Future<SourceChange> _createFileChange() async {
     change = new SourceChange('Update File References');
     List<Source> librarySources = context.getLibrariesContaining(source);
     await Future.forEach(librarySources, (Source librarySource) async {
@@ -84,24 +131,57 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return change;
   }
 
-  @override
-  bool requiresPreview() => false;
-
-  /**
-   * Computes the URI to use to reference [newFile] from [reference].
-   */
-  String _computeNewUri(SourceReference reference) {
-    String refDir = pathContext.dirname(reference.file);
-    // try to keep package: URI
-    if (_isPackageReference(reference)) {
-      Source newSource = new NonExistingSource(newFile, UriKind.FILE_URI);
-      Uri restoredUri = context.sourceFactory.restoreUri(newSource);
-      if (restoredUri != null) {
-        return restoredUri.toString();
+  Future<SourceChange> _createProjectChange(
+      Folder project, File pubspecFile) async {
+    change = new SourceChange('Rename project');
+    String oldPackageName = pathContext.basename(oldFile);
+    String newPackageName = pathContext.basename(newFile);
+    // add pubspec.yaml change
+    {
+      // prepare "name" field value location
+      SourceSpan nameSpan;
+      {
+        String pubspecString = pubspecFile.readAsStringSync();
+        YamlMap pubspecNode = loadYamlNode(pubspecString);
+        YamlNode nameNode = pubspecNode.nodes['name'];
+        nameSpan = nameNode.span;
       }
+      int nameOffset = nameSpan.start.offset;
+      int nameLength = nameSpan.length;
+      // add edit
+      change.addEdit(pubspecFile.path, pubspecFile.modificationStamp,
+          new SourceEdit(nameOffset, nameLength, newPackageName));
     }
-    // if no package: URI, prepare relative
-    return _getRelativeUri(newFile, refDir);
+    // check all local libraries
+    for (Source librarySource in context.librarySources) {
+      // should be a local library
+      if (!project.contains(librarySource.fullName)) {
+        continue;
+      }
+      // we need LibraryElement
+      LibraryElement library = context.getLibraryElement(librarySource);
+      if (library == null) {
+        continue;
+      }
+      // update all imports
+      updateUriElements(List<UriReferencedElement> uriElements) {
+        for (UriReferencedElement element in uriElements) {
+          String uri = element.uri;
+          if (uri != null) {
+            String oldPrefix = 'package:$oldPackageName/';
+            if (uri.startsWith(oldPrefix)) {
+              doSourceChange_addElementEdit(change, library, new SourceEdit(
+                  element.uriOffset + 1, oldPrefix.length,
+                  'package:$newPackageName/'));
+            }
+          }
+        }
+      }
+      updateUriElements(library.imports);
+      updateUriElements(library.exports);
+    }
+    // done
+    return change;
   }
 
   String _getRelativeUri(String path, String from) {

@@ -357,7 +357,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   }
 
   // Parse the message.
-  SnapshotReader reader(message->data(), message->len(), Snapshot::kMessage, I);
+  SnapshotReader reader(message->data(), message->len(), Snapshot::kMessage,
+                        I, zone.GetZone());
   const Object& msg_obj = Object::Handle(I, reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
@@ -535,7 +536,8 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   object##_handle_(NULL),
 
 Isolate::Isolate()
-    : vm_tag_(0),
+  :   mutator_thread_(new Thread(this)),
+      vm_tag_(0),
       store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
@@ -576,13 +578,13 @@ Isolate::Isolate()
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
+      edge_counter_increment_size_(-1),
       is_service_isolate_(false),
       log_(new class Log()),
       stacktrace_(NULL),
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
-      cha_(NULL),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
       profiler_data_(NULL),
@@ -601,7 +603,8 @@ Isolate::Isolate()
 }
 
 Isolate::Isolate(Isolate* original)
-    : vm_tag_(0),
+  :   mutator_thread_(new Thread(this)),
+      vm_tag_(0),
       store_buffer_(true),
       class_table_(original->class_table()),
       message_notify_callback_(NULL),
@@ -645,7 +648,6 @@ Isolate::Isolate(Isolate* original)
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
-      cha_(NULL),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
       profiler_data_(NULL),
@@ -680,7 +682,15 @@ Isolate::~Isolate() {
   delete spawn_state_;
   delete log_;
   log_ = NULL;
+  delete mutator_thread_;
 }
+
+
+#if defined(DEBUG)
+bool Isolate::IsIsolateOf(Thread* thread) {
+  return this == thread->isolate();
+}
+#endif  // DEBUG
 
 
 void Isolate::SetCurrent(Isolate* current) {
@@ -690,8 +700,8 @@ void Isolate::SetCurrent(Isolate* current) {
     old_current->set_thread_state(NULL);
     Profiler::EndExecution(old_current);
   }
-  OSThread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
   if (current != NULL) {
+    Thread::SetCurrent(current->mutator_thread());
     ASSERT(current->thread_state() == NULL);
     InterruptableThreadState* thread_state =
         ThreadInterrupter::GetCurrentThreadState();
@@ -702,21 +712,13 @@ void Isolate::SetCurrent(Isolate* current) {
     Profiler::BeginExecution(current);
     current->set_thread_state(thread_state);
     current->set_vm_tag(VMTag::kVMTagId);
+  } else {
+    Thread::SetCurrent(NULL);
   }
 }
 
 
-// The single thread local key which stores all the thread local data
-// for a thread. Since an Isolate is the central repository for
-// storing all isolate specific information a single thread local key
-// is sufficient.
-ThreadLocalKey Isolate::isolate_key = OSThread::kUnsetThreadLocalKey;
-
-
 void Isolate::InitOnce() {
-  ASSERT(isolate_key == OSThread::kUnsetThreadLocalKey);
-  isolate_key = OSThread::CreateThreadLocal();
-  ASSERT(isolate_key != OSThread::kUnsetThreadLocalKey);
   create_callback_ = NULL;
   isolates_list_monitor_ = new Monitor();
   ASSERT(isolates_list_monitor_ != NULL);
@@ -1221,8 +1223,8 @@ static bool RunIsolate(uword parameter) {
     const Array& args = Array::Handle(Array::New(7));
     args.SetAt(0, SendPort::Handle(SendPort::New(state->parent_port())));
     args.SetAt(1, Instance::Handle(func.ImplicitStaticClosure()));
-    args.SetAt(2, Instance::Handle(state->BuildArgs()));
-    args.SetAt(3, Instance::Handle(state->BuildMessage()));
+    args.SetAt(2, Instance::Handle(state->BuildArgs(zone.GetZone())));
+    args.SetAt(3, Instance::Handle(state->BuildMessage(zone.GetZone())));
     args.SetAt(4, is_spawn_uri ? Bool::True() : Bool::False());
     args.SetAt(5, ReceivePort::Handle(
         ReceivePort::New(isolate->main_port(), true /* control port */)));
@@ -1446,7 +1448,6 @@ Dart_FileReadCallback Isolate::file_read_callback_ = NULL;
 Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
-Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
@@ -1796,12 +1797,13 @@ T* Isolate::AllocateReusableHandle() {
 
 
 static RawInstance* DeserializeObject(Isolate* isolate,
+                                      Zone* zone,
                                       uint8_t* obj_data,
                                       intptr_t obj_len) {
   if (obj_data == NULL) {
     return Instance::null();
   }
-  SnapshotReader reader(obj_data, obj_len, Snapshot::kMessage, isolate);
+  SnapshotReader reader(obj_data, obj_len, Snapshot::kMessage, isolate, zone);
   const Object& obj = Object::Handle(isolate, reader.ReadObject());
   ASSERT(!obj.IsError());
   Instance& instance = Instance::Handle(isolate);
@@ -1960,13 +1962,14 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 }
 
 
-RawInstance* IsolateSpawnState::BuildArgs() {
-  return DeserializeObject(isolate_, serialized_args_, serialized_args_len_);
+RawInstance* IsolateSpawnState::BuildArgs(Zone* zone) {
+  return DeserializeObject(isolate_, zone,
+                           serialized_args_, serialized_args_len_);
 }
 
 
-RawInstance* IsolateSpawnState::BuildMessage() {
-  return DeserializeObject(isolate_,
+RawInstance* IsolateSpawnState::BuildMessage(Zone* zone) {
+  return DeserializeObject(isolate_, zone,
                            serialized_message_, serialized_message_len_);
 }
 

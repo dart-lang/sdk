@@ -22,6 +22,11 @@ class NoInline {
   const NoInline();
 }
 
+/// Tells the optimizing compiler to always inline the annotated method.
+class ForceInline {
+  const ForceInline();
+}
+
 // Ensures that the annotated method is represented internally using
 // IR nodes ([:value == true:]) or AST nodes ([:value == false:]).
 class IrRepresentation {

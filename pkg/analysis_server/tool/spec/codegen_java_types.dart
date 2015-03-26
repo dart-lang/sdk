@@ -672,11 +672,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
       // contains(int x)
       //
       if (className == 'Occurrences') {
-        publicMethod('contains', () {
-          writeln('public boolean contains(int x) {');
+        publicMethod('containsInclusive', () {
+          writeln('public boolean containsInclusive(int x) {');
           indent(() {
             writeln('for (int offset : offsets) {');
-            writeln('  if (offset <= x && x < offset + length) {');
+            writeln('  if (offset <= x && x <= offset + length) {');
             writeln('    return true;');
             writeln('  }');
             writeln('}');

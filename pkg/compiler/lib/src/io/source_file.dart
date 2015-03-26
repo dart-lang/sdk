@@ -6,6 +6,7 @@ library dart2js.io.source_file;
 
 import 'dart:math';
 import 'dart:convert' show UTF8;
+import 'dart:typed_data' show Uint8List;
 
 import 'line_column_provider.dart';
 
@@ -25,8 +26,11 @@ abstract class SourceFile implements LineColumnProvider {
   /** The text content of the file represented as a String. */
   String slowText();
 
-  /** The content of the file represented as a UTF-8 encoded [List<int>]. */
-  List<int> slowUtf8Bytes();
+  /**
+   * The content of the file represented as a UTF-8 encoded [List<int>],
+   * terminated with a trailing 0 byte.
+   */
+  List<int> slowUtf8ZeroTerminatedBytes();
 
   /**
    * The length of the string representation of this source file, i.e.,
@@ -168,17 +172,36 @@ abstract class SourceFile implements LineColumnProvider {
   }
 }
 
+List<int> _zeroTerminateIfNecessary(List<int> bytes) {
+  if (bytes.length > 0 && bytes.last == 0) return bytes;
+  List<int> result = new Uint8List(bytes.length + 1);
+  result.setRange(0, bytes.length, bytes);
+  result[result.length - 1] = 0;
+  return result;
+}
+
 class Utf8BytesSourceFile extends SourceFile {
   final Uri uri;
 
   /** The UTF-8 encoded content of the source file. */
-  final List<int> content;
+  final List<int> zeroTerminatedContent;
 
-  Utf8BytesSourceFile(this.uri, this.content);
+  /**
+   * Creates a Utf8BytesSourceFile.
+   *
+   * If possible, the given [content] should be zero-terminated. If it isn't,
+   * the constructor clones the content and adds a trailing 0.
+   */
+  Utf8BytesSourceFile(this.uri, List<int> content)
+    : this.zeroTerminatedContent = _zeroTerminateIfNecessary(content);
 
-  String slowText() => UTF8.decode(content);
+  String slowText() {
+    // Don't convert the trailing zero byte.
+    return UTF8.decoder.convert(
+        zeroTerminatedContent, 0, zeroTerminatedContent.length - 1);
+  }
 
-  List<int> slowUtf8Bytes() => content;
+  List<int> slowUtf8ZeroTerminatedBytes() => zeroTerminatedContent;
 
   String slowSubstring(int start, int end) {
     // TODO(lry): to make this faster, the scanner could record the UTF-8 slack
@@ -230,7 +253,9 @@ class StringSourceFile extends SourceFile {
 
   String slowText() => text;
 
-  List<int> slowUtf8Bytes() => UTF8.encode(text);
+  List<int> slowUtf8ZeroTerminatedBytes() {
+    return _zeroTerminateIfNecessary(UTF8.encode(text));
+  }
 
   String slowSubstring(int start, int end) => text.substring(start, end);
 }

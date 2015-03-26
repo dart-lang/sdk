@@ -23,25 +23,37 @@ bool _autoStart;
 bool _isWindows = false;
 
 var _signalWatch;
+var _signalSubscription;
 
 // HTTP servr.
 Server server;
 Future<Server> serverFuture;
 
-void _bootServer() {
+_onShutdown() {
+  if (server != null) {
+    server.close(true).catchError((e, st) => assert(e));
+  }
+  if (_signalSubscription != null) {
+    _signalSubscription.cancel();
+    _signalSubscription = null;
+  }
+}
+
+_bootServer() {
   // Load resources.
   _triggerResourceLoad();
   // Lazily create service.
   var service = new VMService();
+  service.onShutdown = _onShutdown;
   // Lazily create server.
   server = new Server(service, _ip, _port);
 }
 
-void _clearFuture(_) {
+_clearFuture(_) {
   serverFuture = null;
 }
 
-void _onSignal(ProcessSignal signal) {
+_onSignal(ProcessSignal signal) {
   if (serverFuture != null) {
     // Still waiting.
     return;
@@ -57,12 +69,12 @@ void _onSignal(ProcessSignal signal) {
   }
 }
 
-void _registerSignalHandler() {
+_registerSignalHandler() {
   if (_isWindows) {
     // Cannot register for signals on Windows.
     return;
   }
-  _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
+  _signalSubscription = _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
 }
 
 const _shortDelay = const Duration(milliseconds: 10);

@@ -307,7 +307,14 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   @override
   void visitNotification(Notification notification) {
     dt('notification', () {
-      write(notification.longEvent);
+      anchor('notification_${notification.longEvent}', () {
+        write(notification.longEvent);
+      });
+      write(' (');
+      link('notification_${notification.longEvent}', () {
+        write('#');
+      });
+      write(')');
     });
     dd(() {
       box(() {
@@ -341,7 +348,14 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   @override
   void visitRequest(Request request) {
     dt('request', () {
-      write(request.longMethod);
+      anchor('request_${request.longMethod}', () {
+        write(request.longMethod);
+      });
+      write(' (');
+      link('request_${request.longMethod}', () {
+        write('#');
+      });
+      write(')');
     });
     dd(() {
       box(() {

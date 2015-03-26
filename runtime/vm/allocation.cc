@@ -24,12 +24,6 @@ void* ZoneAllocated::operator new(uword size) {
 }
 
 
-void* ZoneAllocated::operator new(uword size, BaseIsolate* isolate) {
-  ASSERT(isolate != NULL);
-  return Allocate(size, isolate->current_zone());
-}
-
-
 void* ZoneAllocated::operator new(uword size, Zone* zone) {
   ASSERT(zone == Isolate::Current()->current_zone());
   return Allocate(size, zone);

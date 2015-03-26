@@ -15,53 +15,61 @@ import 'scanner.dart' as sc;
 import 'utilities_dart.dart';
 
 /**
- * Instances of the class `ElementResolver` are used by instances of [ResolverVisitor]
- * to resolve references within the AST structure to the elements being referenced. The requirements
- * for the element resolver are:
- * <ol>
- * * Every [SimpleIdentifier] should be resolved to the element to which it refers.
- * Specifically:
- * * An identifier within the declaration of that name should resolve to the element being
- * declared.
- * * An identifier denoting a prefix should resolve to the element representing the import that
- * defines the prefix (an [ImportElement]).
- * * An identifier denoting a variable should resolve to the element representing the variable (a
- * [VariableElement]).
- * * An identifier denoting a parameter should resolve to the element representing the parameter
- * (a [ParameterElement]).
- * * An identifier denoting a field should resolve to the element representing the getter or
- * setter being invoked (a [PropertyAccessorElement]).
- * * An identifier denoting the name of a method or function being invoked should resolve to the
- * element representing the method or function (a [ExecutableElement]).
- * * An identifier denoting a label should resolve to the element representing the label (a
- * [LabelElement]).
- * The identifiers within directives are exceptions to this rule and are covered below.
- * * Every node containing a token representing an operator that can be overridden (
- * [BinaryExpression], [PrefixExpression], [PostfixExpression]) should resolve to
- * the element representing the method invoked by that operator (a [MethodElement]).
- * * Every [FunctionExpressionInvocation] should resolve to the element representing the
- * function being invoked (a [FunctionElement]). This will be the same element as that to
- * which the name is resolved if the function has a name, but is provided for those cases where an
- * unnamed function is being invoked.
- * * Every [LibraryDirective] and [PartOfDirective] should resolve to the element
- * representing the library being specified by the directive (a [LibraryElement]) unless, in
- * the case of a part-of directive, the specified library does not exist.
- * * Every [ImportDirective] and [ExportDirective] should resolve to the element
- * representing the library being specified by the directive unless the specified library does not
- * exist (an [ImportElement] or [ExportElement]).
- * * The identifier representing the prefix in an [ImportDirective] should resolve to the
- * element representing the prefix (a [PrefixElement]).
- * * The identifiers in the hide and show combinators in [ImportDirective]s and
- * [ExportDirective]s should resolve to the elements that are being hidden or shown,
- * respectively, unless those names are not defined in the specified library (or the specified
- * library does not exist).
- * * Every [PartDirective] should resolve to the element representing the compilation unit
- * being specified by the string unless the specified compilation unit does not exist (a
- * [CompilationUnitElement]).
- * </ol>
- * Note that AST nodes that would represent elements that are not defined are not resolved to
- * anything. This includes such things as references to undeclared variables (which is an error) and
- * names in hide and show combinators that are not defined in the imported library (which is not an
+ * An object used by instances of [ResolverVisitor] to resolve references within
+ * the AST structure to the elements being referenced. The requirements for the
+ * element resolver are:
+ *
+ * 1. Every [SimpleIdentifier] should be resolved to the element to which it
+ *    refers. Specifically:
+ *    * An identifier within the declaration of that name should resolve to the
+ *      element being declared.
+ *    * An identifier denoting a prefix should resolve to the element
+ *      representing the import that defines the prefix (an [ImportElement]).
+ *    * An identifier denoting a variable should resolve to the element
+ *      representing the variable (a [VariableElement]).
+ *    * An identifier denoting a parameter should resolve to the element
+ *      representing the parameter (a [ParameterElement]).
+ *    * An identifier denoting a field should resolve to the element
+ *      representing the getter or setter being invoked (a
+ *      [PropertyAccessorElement]).
+ *    * An identifier denoting the name of a method or function being invoked
+ *      should resolve to the element representing the method or function (an
+ *      [ExecutableElement]).
+ *    * An identifier denoting a label should resolve to the element
+ *      representing the label (a [LabelElement]).
+ *    The identifiers within directives are exceptions to this rule and are
+ *    covered below.
+ * 2. Every node containing a token representing an operator that can be
+ *    overridden ( [BinaryExpression], [PrefixExpression], [PostfixExpression])
+ *    should resolve to the element representing the method invoked by that
+ *    operator (a [MethodElement]).
+ * 3. Every [FunctionExpressionInvocation] should resolve to the element
+ *    representing the function being invoked (a [FunctionElement]). This will
+ *    be the same element as that to which the name is resolved if the function
+ *    has a name, but is provided for those cases where an unnamed function is
+ *    being invoked.
+ * 4. Every [LibraryDirective] and [PartOfDirective] should resolve to the
+ *    element representing the library being specified by the directive (a
+ *    [LibraryElement]) unless, in the case of a part-of directive, the
+ *    specified library does not exist.
+ * 5. Every [ImportDirective] and [ExportDirective] should resolve to the
+ *    element representing the library being specified by the directive unless
+ *    the specified library does not exist (an [ImportElement] or
+ *    [ExportElement]).
+ * 6. The identifier representing the prefix in an [ImportDirective] should
+ *    resolve to the element representing the prefix (a [PrefixElement]).
+ * 7. The identifiers in the hide and show combinators in [ImportDirective]s
+ *    and [ExportDirective]s should resolve to the elements that are being
+ *    hidden or shown, respectively, unless those names are not defined in the
+ *    specified library (or the specified library does not exist).
+ * 8. Every [PartDirective] should resolve to the element representing the
+ *    compilation unit being specified by the string unless the specified
+ *    compilation unit does not exist (a [CompilationUnitElement]).
+ *
+ * Note that AST nodes that would represent elements that are not defined are
+ * not resolved to anything. This includes such things as references to
+ * undeclared variables (which is an error) and names in hide and show
+ * combinators that are not defined in the imported library (which is not an
  * error).
  */
 class ElementResolver extends SimpleAstVisitor<Object> {
@@ -81,6 +89,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   bool _enableHints = false;
 
   /**
+   * A flag indicating whether we should strictly follow the specification when
+   * generating warnings on "call" methods (fixes dartbug.com/21938).
+   */
+  bool _enableStrictCallChecks = false;
+
+  /**
    * The type representing the type 'dynamic'.
    */
   DartType _dynamicType;
@@ -91,7 +105,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   DartType _typeType;
 
   /**
-   * A utility class for the resolver to answer the question of "what are my subtypes?".
+   * A utility class for the resolver to answer the question of "what are my
+   * subtypes?".
    */
   SubtypeManager _subtypeManager;
 
@@ -101,14 +116,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   TypePromotionManager _promoteManager;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param resolver the resolver driving this participant
+   * Initialize a newly created visitor to work for the given [_resolver] to
+   * resolve the nodes in a compilation unit.
    */
   ElementResolver(this._resolver) {
     this._definingLibrary = _resolver.definingLibrary;
     AnalysisOptions options = _definingLibrary.context.analysisOptions;
     _enableHints = options.hint;
+    _enableStrictCallChecks = options.enableStrictCallChecks;
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
     _subtypeManager = new SubtypeManager();
@@ -116,7 +131,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * @return `true` iff current enclosing function is constant constructor declaration.
+   * Return `true` iff the current enclosing function is a constant constructor
+   * declaration.
    */
   bool get isInConstConstructor {
     ExecutableElement function = _resolver.enclosingFunction;
@@ -223,8 +239,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         simpleIdentifier.staticElement = element;
         if (node.newKeyword != null) {
           if (element is ClassElement) {
-            ConstructorElement constructor =
-                (element as ClassElement).unnamedConstructor;
+            ConstructorElement constructor = element.unnamedConstructor;
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
@@ -262,14 +277,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         name.staticElement = element;
         if (node.newKeyword == null) {
           if (element is ClassElement) {
-            Element memberElement = _lookupGetterOrMethod(
-                (element as ClassElement).type, name.name);
+            Element memberElement =
+                _lookupGetterOrMethod(element.type, name.name);
             if (memberElement == null) {
-              memberElement =
-                  (element as ClassElement).getNamedConstructor(name.name);
+              memberElement = element.getNamedConstructor(name.name);
               if (memberElement == null) {
-                memberElement = _lookUpSetter(
-                    prefix, (element as ClassElement).type, name.name);
+                memberElement = _lookUpSetter(prefix, element.type, name.name);
               }
             }
             if (memberElement == null) {
@@ -283,7 +296,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else {
           if (element is ClassElement) {
             ConstructorElement constructor =
-                (element as ClassElement).getNamedConstructor(name.name);
+                element.getNamedConstructor(name.name);
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
@@ -627,8 +640,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         // TODO(collinsn): an improvement here is to make the propagated type
         // of the method call the union of the propagated types of all possible
         // calls.
-        if (_lookupMethods(
-                target, propagatedType as UnionType, methodName.name).length >
+        if (_lookupMethods(target, propagatedType, methodName.name).length >
             1) {
           return null;
         }
@@ -665,9 +677,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (identical(
         errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION)) {
       _resolver.reportErrorForNode(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, methodName, [
-        methodName.name
-      ]);
+          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, methodName,
+          [methodName.name]);
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
       _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_FUNCTION,
           methodName, [methodName.name]);
@@ -695,7 +706,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             targetType = _getStaticType(target);
           }
         }
-        if (targetType != null &&
+        if (!_enableStrictCallChecks &&
+            targetType != null &&
             targetType.isDartCoreFunction &&
             methodName.name == FunctionElement.CALL_METHOD_NAME) {
           // TODO(brianwilkerson) Can we ever resolve the function being
@@ -707,8 +719,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ErrorCode proxyErrorCode = (generatedWithTypePropagation
             ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD);
-        _recordUndefinedNode(targetType.element, proxyErrorCode,
-            methodName, [methodName.name, targetTypeName]);
+        _recordUndefinedNode(targetType.element, proxyErrorCode, methodName, [
+          methodName.name,
+          targetTypeName
+        ]);
       }
     } else if (identical(
         errorCode, StaticTypeWarningCode.UNDEFINED_SUPER_METHOD)) {
@@ -1083,11 +1097,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Generate annotation elements for each of the annotations in the given node list and add them to
-   * the given list of elements.
-   *
-   * @param annotationList the list of elements to which new elements are to be added
-   * @param annotations the AST nodes used to generate new elements
+   * Generate annotation elements for each of the annotations in the
+   * [annotationList] and add them to the given list of [annotations].
    */
   void _addAnnotations(List<ElementAnnotationImpl> annotationList,
       NodeList<Annotation> annotations) {
@@ -1105,13 +1116,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given that we have found code to invoke the given element, return the error code that should be
-   * reported, or `null` if no error should be reported.
-   *
-   * @param target the target of the invocation, or `null` if there was no target
-   * @param useStaticContext
-   * @param element the element to be invoked
-   * @return the error code that should be reported
+   * Given that we have found code to invoke the given [element], return the
+   * error code that should be reported, or `null` if no error should be
+   * reported. The [target] is the target of the invocation, or `null` if there
+   * was no target. The flag [useStaticContext] should be `true` if the
+   * invocation is in a static constant (does not have access to instance state.
    */
   ErrorCode _checkForInvocationError(
       Expression target, bool useStaticContext, Element element) {
@@ -1196,17 +1205,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Check that the for some index expression that the method element was resolved, otherwise a
-   * [StaticTypeWarningCode.UNDEFINED_OPERATOR] is generated.
-   *
-   * @param node the index expression to resolve
-   * @param target the target of the expression
-   * @param methodName the name of the operator associated with the context of using of the given
-   *          index expression
-   * @return `true` if and only if an error code is generated on the passed node
+   * Check that the given index [expression] was resolved, otherwise a
+   * [StaticTypeWarningCode.UNDEFINED_OPERATOR] is generated. The [target] is
+   * the target of the expression. The [methodName] is the name of the operator
+   * associated with the context of using of the given index expression.
    */
-  bool _checkForUndefinedIndexOperator(IndexExpression node, Expression target,
-      String methodName, MethodElement staticMethod,
+  bool _checkForUndefinedIndexOperator(IndexExpression expression,
+      Expression target, String methodName, MethodElement staticMethod,
       MethodElement propagatedMethod, DartType staticType,
       DartType propagatedType) {
     bool shouldReportMissingMember_static =
@@ -1219,8 +1224,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
                 propagatedType.element, methodName, true, false);
     if (shouldReportMissingMember_static ||
         shouldReportMissingMember_propagated) {
-      sc.Token leftBracket = node.leftBracket;
-      sc.Token rightBracket = node.rightBracket;
+      sc.Token leftBracket = expression.leftBracket;
+      sc.Token rightBracket = expression.rightBracket;
       ErrorCode errorCode;
       if (shouldReportMissingMember_static) {
         if (target is SuperExpression) {
@@ -1234,13 +1239,17 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       DartType type =
           shouldReportMissingMember_static ? staticType : propagatedType;
       if (leftBracket == null || rightBracket == null) {
-        _recordUndefinedNode(
-            type.element, errorCode, node, [methodName, type.displayName]);
+        _recordUndefinedNode(type.element, errorCode, expression, [
+          methodName,
+          type.displayName
+        ]);
       } else {
         int offset = leftBracket.offset;
         int length = rightBracket.offset - offset + 1;
-        _recordUndefinedOffset(type.element, errorCode,
-            offset, length, [methodName, type.displayName]);
+        _recordUndefinedOffset(type.element, errorCode, offset, length, [
+          methodName,
+          type.displayName
+        ]);
       }
       return true;
     }
@@ -1248,13 +1257,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a list of arguments and the element that will be invoked using those argument, compute
-   * the list of parameters that correspond to the list of arguments. Return the parameters that
-   * correspond to the arguments, or `null` if no correspondence could be computed.
-   *
-   * @param argumentList the list of arguments being passed to the element
-   * @param executableElement the element that will be invoked with the arguments
-   * @return the parameters that correspond to the arguments
+   * Given an [argumentList] and the executable [element] that  will be invoked
+   * using those arguments, compute the list of parameters that correspond to
+   * the list of arguments. Return the parameters that correspond to the
+   * arguments, or `null` if no correspondence could be computed.
    */
   List<ParameterElement> _computeCorrespondingParameters(
       ArgumentList argumentList, Element element) {
@@ -1300,11 +1306,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * If the given element is a setter, return the getter associated with it. Otherwise, return the
-   * element unchanged.
-   *
-   * @param element the element to be normalized
-   * @return a non-setter element derived from the given element
+   * If the given [element] is a setter, return the getter associated with it.
+   * Otherwise, return the element unchanged.
    */
   Element _convertSetterToGetter(Element element) {
     // TODO(brianwilkerson) Determine whether and why the element could ever be
@@ -1316,22 +1319,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given element is not a proxy.
-   *
-   * @param element the enclosing element. If null, `true` will be returned.
-   * @return `false` iff the passed [Element] is a [ClassElement] that is a proxy
-   *         or inherits proxy
-   * See [ClassElement.isOrInheritsProxy].
+   * Return `true` if the given [element] is not a proxy. See
+   * [ClassElement.isOrInheritsProxy].
    */
   bool _doesntHaveProxy(Element element) =>
       !(element is ClassElement && element.isOrInheritsProxy);
 
   /**
-   * Look for any declarations of the given identifier that are imported using a prefix. Return the
-   * element that was found, or `null` if the name is not imported using a prefix.
-   *
-   * @param identifier the identifier that might have been imported using a prefix
-   * @return the element that was found
+   * Look for any declarations of the given [identifier] that are imported using
+   * a prefix. Return the element that was found, or `null` if the name is not
+   * imported using a prefix.
    */
   Element _findImportWithoutPrefix(SimpleIdentifier identifier) {
     Element element = null;
@@ -1357,11 +1354,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Assuming that the given expression is a prefix for a deferred import, return the library that
-   * is being imported.
-   *
-   * @param expression the expression representing the deferred import's prefix
-   * @return the library that is being imported by the import associated with the prefix
+   * Assuming that the given [expression] is a prefix for a deferred import,
+   * return the library that is being imported.
    */
   LibraryElement _getImportedLibrary(Expression expression) {
     PrefixElement prefixElement =
@@ -1372,24 +1366,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the name of the method invoked by the given postfix expression.
-   *
-   * @param node the postfix expression being invoked
-   * @return the name of the method invoked by the expression
+   * Return the name of the method invoked by the given postfix [expression].
    */
-  String _getPostfixOperator(PostfixExpression node) =>
-      (node.operator.type == sc.TokenType.PLUS_PLUS)
+  String _getPostfixOperator(PostfixExpression expression) =>
+      (expression.operator.type == sc.TokenType.PLUS_PLUS)
           ? sc.TokenType.PLUS.lexeme
           : sc.TokenType.MINUS.lexeme;
 
   /**
-   * Return the name of the method invoked by the given postfix expression.
-   *
-   * @param node the postfix expression being invoked
-   * @return the name of the method invoked by the expression
+   * Return the name of the method invoked by the given postfix [expression].
    */
-  String _getPrefixOperator(PrefixExpression node) {
-    sc.Token operator = node.operator;
+  String _getPrefixOperator(PrefixExpression expression) {
+    sc.Token operator = expression.operator;
     sc.TokenType operatorType = operator.type;
     if (operatorType == sc.TokenType.PLUS_PLUS) {
       return sc.TokenType.PLUS.lexeme;
@@ -1403,10 +1391,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the propagated type of the given expression that is to be used for type analysis.
-   *
-   * @param expression the expression whose type is to be returned
-   * @return the type of the given expression
+   * Return the propagated type of the given [expression] that is to be used for
+   * type analysis.
    */
   DartType _getPropagatedType(Expression expression) {
     DartType propagatedType = _resolveTypeParameter(expression.propagatedType);
@@ -1421,10 +1407,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the static type of the given expression that is to be used for type analysis.
-   *
-   * @param expression the expression whose type is to be returned
-   * @return the type of the given expression
+   * Return the static type of the given [expression] that is to be used for
+   * type analysis.
    */
   DartType _getStaticType(Expression expression) {
     if (expression is NullLiteral) {
@@ -1442,10 +1426,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given expression is a prefix for a deferred import.
-   *
-   * @param expression the expression being tested
-   * @return `true` if the given expression is a prefix for a deferred import
+   * Return `true` if the given [expression] is a prefix for a deferred import.
    */
   bool _isDeferredPrefix(Expression expression) {
     if (expression is! SimpleIdentifier) {
@@ -1465,17 +1446,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given type represents an object that could be invoked using the call
-   * operator '()'.
-   *
-   * @param type the type being tested
-   * @return `true` if the given type represents an object that could be invoked
+   * Return `true` if the given [type] represents an object that could be
+   * invoked using the call operator '()'.
    */
   bool _isExecutableType(DartType type) {
-    if (type.isDynamic ||
-        (type is FunctionType) ||
-        type.isDartCoreFunction ||
-        type.isObject) {
+    if (type.isDynamic || type is FunctionType) {
+      return true;
+    } else if (!_enableStrictCallChecks &&
+        (type.isDartCoreFunction || type.isObject)) {
       return true;
     } else if (type is InterfaceType) {
       ClassElement classElement = type.element;
@@ -1495,10 +1473,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given element is a static element.
-   *
-   * @param element the element being tested
-   * @return `true` if the given element is a static element
+   * Return `true` if the given [element] is a static element.
    */
   bool _isStatic(Element element) {
     if (element is ExecutableElement) {
@@ -1510,12 +1485,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given node can validly be resolved to a prefix:
+   * Return `true` if the given [node] can validly be resolved to a prefix:
    * * it is the prefix in an import directive, or
    * * it is the prefix in a prefixed identifier.
-   *
-   * @param node the node being tested
-   * @return `true` if the given node is the prefix in an import directive
    */
   bool _isValidAsPrefix(SimpleIdentifier node) {
     AstNode parent = node.parent;
@@ -1531,10 +1503,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   /**
    * Return the target of a break or continue statement, and update the static
-   * element of its label (if any).  [parentNode] is the AST node of the break
-   * or continue statement, [labelNode] is the label contained in that
-   * statement (if any), and [isContinue] is true if the node being visited is
-   * a continue statement.
+   * element of its label (if any). The [parentNode] is the AST node of the
+   * break or continue statement. The [labelNode] is the label contained in that
+   * statement (if any). The flag [isContinue] is `true` if the node being
+   * visited is a continue statement.
    */
   AstNode _lookupBreakOrContinueTarget(
       AstNode parentNode, SimpleIdentifier labelNode, bool isContinue) {
@@ -1570,13 +1542,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the getter with the given name in the given type. Return the element representing the
-   * getter that was found, or `null` if there is no getter with the given name.
-   *
-   * @param target the target of the invocation, or `null` if there is no target
-   * @param type the type in which the getter is defined
-   * @param getterName the name of the getter being looked up
-   * @return the element representing the getter that was found
+   * Look up the getter with the given [getterName] in the given [type]. Return
+   * the element representing the getter that was found, or `null` if there is
+   * no getter with the given name. The [target] is the target of the
+   * invocation, or `null` if there is no target.
    */
   PropertyAccessorElement _lookUpGetter(
       Expression target, DartType type, String getterName) {
@@ -1600,16 +1569,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the getter with the given name in the interfaces implemented by the given type, either
-   * directly or indirectly. Return the element representing the getter that was found, or
-   * `null` if there is no getter with the given name.
-   *
-   * @param targetType the type in which the getter might be defined
-   * @param includeTargetType `true` if the search should include the target type
-   * @param getterName the name of the getter being looked up
-   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
-   *          to prevent infinite recursion and to optimize the search
-   * @return the element representing the getter that was found
+   * Look up the getter with the given [getterName] in the interfaces
+   * implemented by the given [targetType], either directly or indirectly.
+   * Return the element representing the getter that was found, or `null` if
+   * there is no getter with the given name. The flag [includeTargetType] should
+   * be `true` if the search should include the target type. The
+   * [visitedInterfaces] is a set containing all of the interfaces that have
+   * been examined, used to prevent infinite recursion and to optimize the
+   * search.
    */
   PropertyAccessorElement _lookUpGetterInInterfaces(InterfaceType targetType,
       bool includeTargetType, String getterName,
@@ -1652,13 +1619,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the method or getter with the given name in the given type. Return the element
-   * representing the method or getter that was found, or `null` if there is no method or
-   * getter with the given name.
-   *
-   * @param type the type in which the method or getter is defined
-   * @param memberName the name of the method or getter being looked up
-   * @return the element representing the method or getter that was found
+   * Look up the method or getter with the given [memberName] in the given
+   * [type]. Return the element representing the method or getter that was
+   * found, or `null` if there is no method or getter with the given name.
    */
   ExecutableElement _lookupGetterOrMethod(DartType type, String memberName) {
     type = _resolveTypeParameter(type);
@@ -1680,16 +1643,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the method or getter with the given name in the interfaces implemented by the given
-   * type, either directly or indirectly. Return the element representing the method or getter that
-   * was found, or `null` if there is no method or getter with the given name.
-   *
-   * @param targetType the type in which the method or getter might be defined
-   * @param includeTargetType `true` if the search should include the target type
-   * @param memberName the name of the method or getter being looked up
-   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
-   *          to prevent infinite recursion and to optimize the search
-   * @return the element representing the method or getter that was found
+   * Look up the method or getter with the given [memberName] in the interfaces
+   * implemented by the given [targetType], either directly or indirectly.
+   * Return the element representing the method or getter that was found, or
+   * `null` if there is no method or getter with the given name. The flag
+   * [includeTargetType] should be `true` if the search should include the
+   * target type. The [visitedInterfaces] is a set containing all of the
+   * interfaces that have been examined, used to prevent infinite recursion and
+   * to optimize the search.
    */
   ExecutableElement _lookUpGetterOrMethodInInterfaces(InterfaceType targetType,
       bool includeTargetType, String memberName,
@@ -1736,13 +1697,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the method with the given name in the given type. Return the element representing the
-   * method that was found, or `null` if there is no method with the given name.
-   *
-   * @param target the target of the invocation, or `null` if there is no target
-   * @param type the type in which the method is defined
-   * @param methodName the name of the method being looked up
-   * @return the element representing the method that was found
+   * Look up the method with the given [methodName] in the given [type]. Return
+   * the element representing the method that was found, or `null` if there is
+   * no method with the given name. The [target] is the target of the
+   * invocation, or `null` if there is no target.
    */
   MethodElement _lookUpMethod(
       Expression target, DartType type, String methodName) {
@@ -1773,16 +1731,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the method with the given name in the interfaces implemented by the given type, either
-   * directly or indirectly. Return the element representing the method that was found, or
-   * `null` if there is no method with the given name.
-   *
-   * @param targetType the type in which the member might be defined
-   * @param includeTargetType `true` if the search should include the target type
-   * @param methodName the name of the method being looked up
-   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
-   *          to prevent infinite recursion and to optimize the search
-   * @return the element representing the method that was found
+   * Look up the method with the given [methodName] in the interfaces
+   * implemented by the given [targetType], either directly or indirectly.
+   * Return the element representing the method that was found, or `null` if
+   * there is no method with the given name. The flag [includeTargetType] should
+   * be `true` if the search should include the target type. The
+   * [visitedInterfaces] is a set containing all of the interfaces that have
+   * been examined, used to prevent infinite recursion and to optimize the
+   * search.
    */
   MethodElement _lookUpMethodInInterfaces(InterfaceType targetType,
       bool includeTargetType, String methodName,
@@ -1825,12 +1781,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up all methods of a given name defined on a union type.
-   *
-   * @param target
-   * @param type
-   * @param methodName
-   * @return all methods named `methodName` defined on the union type `type`.
+   * Look up all methods with the given [methodName] that are defined on the
+   * given union [type].
    */
   Set<ExecutableElement> _lookupMethods(
       Expression target, UnionType type, String methodName) {
@@ -1858,13 +1810,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the setter with the given name in the given type. Return the element representing the
-   * setter that was found, or `null` if there is no setter with the given name.
-   *
-   * @param target the target of the invocation, or `null` if there is no target
-   * @param type the type in which the setter is defined
-   * @param setterName the name of the setter being looked up
-   * @return the element representing the setter that was found
+   * Look up the setter with the given [setterName] in the given [type]. Return
+   * the element representing the setter that was found, or `null` if there is
+   * no setter with the given name. The [target] is the target of the
+   * invocation, or `null` if there is no target.
    */
   PropertyAccessorElement _lookUpSetter(
       Expression target, DartType type, String setterName) {
@@ -1888,16 +1837,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look up the setter with the given name in the interfaces implemented by the given type, either
-   * directly or indirectly. Return the element representing the setter that was found, or
-   * `null` if there is no setter with the given name.
-   *
-   * @param targetType the type in which the setter might be defined
-   * @param includeTargetType `true` if the search should include the target type
-   * @param setterName the name of the setter being looked up
-   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
-   *          to prevent infinite recursion and to optimize the search
-   * @return the element representing the setter that was found
+   * Look up the setter with the given [setterName] in the interfaces
+   * implemented by the given [targetType], either directly or indirectly.
+   * Return the element representing the setter that was found, or `null` if
+   * there is no setter with the given name. The [targetType] is the type in
+   * which the setter might be defined. The flag [includeTargetType] should be
+   * `true` if the search should include the target type. The
+   * [visitedInterfaces] is a set containing all of the interfaces that have
+   * been examined, used to prevent infinite recursion and to optimize the
+   * search.
    */
   PropertyAccessorElement _lookUpSetterInInterfaces(InterfaceType targetType,
       bool includeTargetType, String setterName,
@@ -1940,17 +1888,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given some class element, this method uses [subtypeManager] to find the set of all
-   * subtypes; the subtypes are then searched for a member (method, getter, or setter), that matches
-   * a passed
-   *
-   * @param element the class element to search the subtypes of, if a non-ClassElement element is
-   *          passed, then `false` is returned
-   * @param memberName the member name to search for
-   * @param asMethod `true` if the methods should be searched for in the subtypes
-   * @param asAccessor `true` if the accessors (getters and setters) should be searched for in
-   *          the subtypes
-   * @return `true` if and only if the passed memberName was found in a subtype
+   * Given some class [element], this method uses [_subtypeManager] to find the
+   * set of all subtypes; the subtypes are then searched for a member (method,
+   * getter, or setter), that has the given [memberName]. The flag [asMethod]
+   * should be `true` if the methods should be searched for in the subtypes. The
+   * flag [asAccessor] should be `true` if the accessors (getters and setters)
+   * should be searched for in the subtypes.
    */
   bool _memberFoundInSubclass(
       Element element, String memberName, bool asMethod, bool asAccessor) {
@@ -1972,10 +1915,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the binary operator that is invoked by the given compound assignment operator.
-   *
-   * @param operator the assignment operator being mapped
-   * @return the binary operator that invoked by the given assignment operator
+   * Return the binary operator that is invoked by the given compound assignment
+   * [operator].
    */
   sc.TokenType _operatorFromCompoundAssignment(sc.TokenType operator) {
     while (true) {
@@ -2012,13 +1953,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Record that the given node is undefined, causing an error to be reported if appropriate.
-   *
-   * @param declaringElement the element inside which no declaration was found. If this element is a
-   *          proxy, no error will be reported. If null, then an error will always be reported.
-   * @param errorCode the error code to report.
-   * @param node the node which is undefined.
-   * @param arguments arguments to the error message.
+   * Record that the given [node] is undefined, causing an error to be reported
+   * if appropriate. The [declaringElement] is the element inside which no
+   * declaration was found. If this element is a proxy, no error will be
+   * reported. If null, then an error will always be reported. The [errorCode]
+   * is the error code to report. The [arguments] are the arguments to the error
+   * message.
    */
   void _recordUndefinedNode(Element declaringElement, ErrorCode errorCode,
       AstNode node, List<Object> arguments) {
@@ -2028,15 +1968,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Record that the given offset/length is undefined, causing an error to be reported if
-   * appropriate.
-   *
-   * @param declaringElement the element inside which no declaration was found. If this element is a
-   *          proxy, no error will be reported. If null, then an error will always be reported.
-   * @param errorCode the error code to report.
-   * @param offset the offset to the text which is undefined.
-   * @param length the length of the text which is undefined.
-   * @param arguments arguments to the error message.
+   * Record that the given [offset]/[length] is undefined, causing an error to
+   * be reported if appropriate. The [declaringElement] is the element inside
+   * which no declaration was found. If this element is a proxy, no error will
+   * be reported. If null, then an error will always be reported. The
+   * [errorCode] is the error code to report. The [arguments] are arguments to
+   * the error message.
    */
   void _recordUndefinedOffset(Element declaringElement, ErrorCode errorCode,
       int offset, int length, List<Object> arguments) {
@@ -2046,13 +1983,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Record that the given token is undefined, causing an error to be reported if appropriate.
-   *
-   * @param declaringElement the element inside which no declaration was found. If this element is a
-   *          proxy, no error will be reported. If null, then an error will always be reported.
-   * @param errorCode the error code to report.
-   * @param token the token which is undefined.
-   * @param arguments arguments to the error message.
+   * Record that the given [token] is undefined, causing an error to be reported
+   * if appropriate. The [declaringElement] is the element inside which no
+   * declaration was found. If this element is a proxy, no error will be
+   * reported. If null, then an error will always be reported. The [errorCode]
+   * is the error code to report. The [arguments] are arguments to the error
+   * message.
    */
   void _recordUndefinedToken(Element declaringElement, ErrorCode errorCode,
       sc.Token token, List<Object> arguments) {
@@ -2077,9 +2013,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Continues resolution of the given [Annotation].
-   *
-   * @param annotation the [Annotation] to resolve
+   * Continues resolution of the given [annotation].
    */
   void _resolveAnnotationElement(Annotation annotation) {
     SimpleIdentifier nameNode1;
@@ -2129,14 +2063,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element2 is PropertyAccessorElement) {
         nameNode2.staticElement = element2;
         annotation.element = element2;
-        _resolveAnnotationElementGetter(
-            annotation, element2 as PropertyAccessorElement);
+        _resolveAnnotationElementGetter(annotation, element2);
         return;
       }
       // prefix.Class()
       if (element2 is ClassElement) {
-        ClassElement classElement = element2 as ClassElement;
-        constructor = classElement.unnamedConstructor;
+        constructor = element2.unnamedConstructor;
       }
       // Class.constructor(args)
       if (element1 is ClassElement) {
@@ -2201,15 +2133,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a list of arguments and the element that will be invoked using those argument, compute
-   * the list of parameters that correspond to the list of arguments. Return the parameters that
-   * correspond to the arguments, or `null` if no correspondence could be computed.
-   *
-   * @param reportError if `true` then compile-time error should be reported; if `false`
-   *          then compile-time warning
-   * @param argumentList the list of arguments being passed to the element
-   * @param executableElement the element that will be invoked with the arguments
-   * @return the parameters that correspond to the arguments
+   * Given an [argumentList] and the [executableElement] that will be invoked
+   * using those argument, compute the list of parameters that correspond to the
+   * list of arguments. An error will be reported if any of the arguments cannot
+   * be matched to a parameter. The flag [reportError] should be `true` if a
+   * compile-time error should be reported; or `false` if a compile-time warning
+   * should be reported. Return the parameters that correspond to the arguments,
+   * or `null` if no correspondence could be computed.
    */
   List<ParameterElement> _resolveArgumentsToFunction(bool reportError,
       ArgumentList argumentList, ExecutableElement executableElement) {
@@ -2221,15 +2151,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a list of arguments and the parameters related to the element that will be invoked using
-   * those argument, compute the list of parameters that correspond to the list of arguments. Return
-   * the parameters that correspond to the arguments.
-   *
-   * @param reportError if `true` then compile-time error should be reported; if `false`
-   *          then compile-time warning
-   * @param argumentList the list of arguments being passed to the element
-   * @param parameters the of the function that will be invoked with the arguments
-   * @return the parameters that correspond to the arguments
+   * Given an [argumentList] and the [parameters] related to the element that
+   * will be invoked using those arguments, compute the list of parameters that
+   * correspond to the list of arguments. An error will be reported if any of
+   * the arguments cannot be matched to a parameter. The flag [reportError]
+   * should be `true` if a compile-time error should be reported; or `false` if
+   * a compile-time warning should be reported. Return the parameters that
+   * correspond to the arguments.
    */
   List<ParameterElement> _resolveArgumentsToParameters(bool reportError,
       ArgumentList argumentList, List<ParameterElement> parameters) {
@@ -2293,15 +2221,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       ErrorCode errorCode = (reportError
           ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
           : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [requiredParameters.length, positionalArgumentCount]);
+      _resolver.reportErrorForNode(errorCode, argumentList, [
+        requiredParameters.length,
+        positionalArgumentCount
+      ]);
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
       ErrorCode errorCode = (reportError
           ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
           : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [unnamedParameterCount, positionalArgumentCount]);
+      _resolver.reportErrorForNode(errorCode, argumentList, [
+        unnamedParameterCount,
+        positionalArgumentCount
+      ]);
     }
     return resolvedParameters;
   }
@@ -2345,10 +2277,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Resolve the names in the given combinators in the scope of the given library.
-   *
-   * @param library the library that defines the names
-   * @param combinators the combinators containing the names to be resolved
+   * Resolve the names in the given [combinators] in the scope of the given
+   * [library].
    */
   void _resolveCombinators(
       LibraryElement library, NodeList<Combinator> combinators) {
@@ -2387,8 +2317,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given that we are accessing a property of the given [classElement] with
-   * the given [propertyName], return the element that represents the property.
+   * Given that we are accessing a property of the given [classElement] with the
+   * given [propertyName], return the element that represents the property.
    */
   Element _resolveElement(
       ClassElementImpl classElement, SimpleIdentifier propertyName) {
@@ -2410,13 +2340,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given an invocation of the form 'm(a1, ..., an)', resolve 'm' to the element being invoked. If
-   * the returned element is a method, then the method will be invoked. If the returned element is a
-   * getter, the getter will be invoked without arguments and the result of that invocation will
-   * then be invoked with the arguments.
-   *
-   * @param methodName the name of the method being invoked ('m')
-   * @return the element being invoked
+   * Given an invocation of the form 'm(a1, ..., an)', resolve 'm' to the
+   * element being invoked. If the returned element is a method, then the method
+   * will be invoked. If the returned element is a getter, the getter will be
+   * invoked without arguments and the result of that invocation will then be
+   * invoked with the arguments. The [methodName] is the name of the method
+   * being invoked ('m').
    */
   Element _resolveInvokedElement(SimpleIdentifier methodName) {
     //
@@ -2446,15 +2375,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the element being invoked.
-   * If the returned element is a method, then the method will be invoked. If the returned element
-   * is a getter, the getter will be invoked without arguments and the result of that invocation
-   * will then be invoked with the arguments.
-   *
-   * @param target the target of the invocation ('e')
-   * @param targetType the type of the target
-   * @param methodName the name of the method being invoked ('m')
-   * @return the element being invoked
+   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the
+   * element being invoked. If the returned element is a method, then the method
+   * will be invoked. If the returned element is a getter, the getter will be
+   * invoked without arguments and the result of that invocation will then be
+   * invoked with the arguments. The [target] is the target of the invocation
+   * ('e'). The [targetType] is the type of the target. The [methodName] is th
+   *  name of the method being invoked ('m').
    */
   Element _resolveInvokedElementWithTarget(
       Expression target, DartType targetType, SimpleIdentifier methodName) {
@@ -2495,13 +2422,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given that we are accessing a property of the given type with the given name, return the
-   * element that represents the property.
-   *
-   * @param target the target of the invocation ('e')
-   * @param targetType the type in which the search for the property should begin
-   * @param propertyName the name of the property being accessed
-   * @return the element that represents the property
+   * Given that we are accessing a property of the given [targetType] with the
+   * given [propertyName], return the element that represents the property. The
+   * [target] is the target of the invocation ('e').
    */
   ExecutableElement _resolveProperty(
       Expression target, DartType targetType, SimpleIdentifier propertyName) {
@@ -2579,7 +2502,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             staticOrPropagatedEnclosingElt is ClassElement) {
           ClassElement classElement = staticOrPropagatedEnclosingElt;
           InterfaceType targetType = classElement.type;
-          if (targetType != null &&
+          if (!_enableStrictCallChecks &&
+              targetType != null &&
               targetType.isDartCoreFunction &&
               propertyName.name == FunctionElement.CALL_METHOD_NAME) {
             // TODO(brianwilkerson) Can we ever resolve the function being
@@ -2588,9 +2512,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             return;
           } else if (classElement.isEnum && propertyName.name == "_name") {
             _resolver.reportErrorForNode(
-                CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD, propertyName, [
-              propertyName.name
-            ]);
+                CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD, propertyName,
+                [propertyName.name]);
             return;
           }
         }
@@ -2645,24 +2568,20 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ]);
       } else {
         _recordUndefinedNode(declaringElement,
-            StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [
-          propertyName.name
-        ]);
+            StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName,
+            [propertyName.name]);
       }
     }
   }
 
   /**
-   * Resolve the given simple identifier if possible. Return the element to which it could be
-   * resolved, or `null` if it could not be resolved. This does not record the results of the
-   * resolution.
-   *
-   * @param node the identifier to be resolved
-   * @return the element to which the identifier could be resolved
+   * Resolve the given simple [identifier] if possible. Return the element to
+   * which it could be resolved, or `null` if it could not be resolved. This
+   * does not record the results of the resolution.
    */
-  Element _resolveSimpleIdentifier(SimpleIdentifier node) {
-    Element element = _resolver.nameScope.lookup(node, _definingLibrary);
-    if (element is PropertyAccessorElement && node.inSetterContext()) {
+  Element _resolveSimpleIdentifier(SimpleIdentifier identifier) {
+    Element element = _resolver.nameScope.lookup(identifier, _definingLibrary);
+    if (element is PropertyAccessorElement && identifier.inSetterContext()) {
       PropertyInducingElement variable =
           (element as PropertyAccessorElement).variable;
       if (variable != null) {
@@ -2674,7 +2593,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           //
           ClassElement enclosingClass = _resolver.enclosingClass;
           if (enclosingClass != null) {
-            setter = _lookUpSetter(null, enclosingClass.type, node.name);
+            setter = _lookUpSetter(null, enclosingClass.type, identifier.name);
           }
         }
         if (setter != null) {
@@ -2682,34 +2601,33 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     } else if (element == null &&
-        (node.inSetterContext() || node.parent is CommentReference)) {
+        (identifier.inSetterContext() ||
+            identifier.parent is CommentReference)) {
       element = _resolver.nameScope.lookup(
-          new SyntheticIdentifier("${node.name}=", node), _definingLibrary);
+          new SyntheticIdentifier("${identifier.name}=", identifier),
+          _definingLibrary);
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.type;
       if (element == null &&
-          (node.inSetterContext() || node.parent is CommentReference)) {
-        element = _lookUpSetter(null, enclosingType, node.name);
+          (identifier.inSetterContext() ||
+              identifier.parent is CommentReference)) {
+        element = _lookUpSetter(null, enclosingType, identifier.name);
       }
-      if (element == null && node.inGetterContext()) {
-        element = _lookUpGetter(null, enclosingType, node.name);
+      if (element == null && identifier.inGetterContext()) {
+        element = _lookUpGetter(null, enclosingType, identifier.name);
       }
       if (element == null) {
-        element = _lookUpMethod(null, enclosingType, node.name);
+        element = _lookUpMethod(null, enclosingType, identifier.name);
       }
     }
     return element;
   }
 
   /**
-   * If the given type is a type parameter, resolve it to the type that should be used when looking
-   * up members. Otherwise, return the original type.
-   *
-   * @param type the type that is to be resolved if it is a type parameter
-   * @return the type that should be used in place of the argument if it is a type parameter, or the
-   *         original argument if it isn't a type parameter
+   * If the given [type] is a type parameter, resolve it to the type that should
+   * be used when looking up members. Otherwise, return the original type.
    */
   DartType _resolveTypeParameter(DartType type) {
     if (type is TypeParameterType) {
@@ -2723,12 +2641,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a node that can have annotations associated with it and the element to which that node
-   * has been resolved, create the annotations in the element model representing the annotations on
-   * the node.
-   *
-   * @param element the element to which the node has been resolved
-   * @param node the node that can have annotations associated with it
+   * Given a [node] that can have annotations associated with it and the
+   * [element] to which that node has been resolved, create the annotations in
+   * the element model representing the annotations on the node.
    */
   void _setMetadata(Element element, AnnotatedNode node) {
     if (element is! ElementImpl) {
@@ -2755,12 +2670,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a node that can have annotations associated with it and the element to which that node
-   * has been resolved, create the annotations in the element model representing the annotations on
-   * the node.
-   *
-   * @param element the element to which the node has been resolved
-   * @param node the node that can have annotations associated with it
+   * Given a [node] that can have annotations associated with it and the
+   * [element] to which that node has been resolved, create the annotations in
+   * the element model representing the annotations on the node.
    */
   void _setMetadataForParameter(Element element, NormalFormalParameter node) {
     if (element is! ElementImpl) {
@@ -2775,12 +2687,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if we should report an error as a result of looking up a member in the
-   * given type and not finding any member.
-   *
-   * @param type the type in which we attempted to perform the look-up
-   * @param member the result of the look-up
-   * @return `true` if we should report an error
+   * Return `true` if we should report an error as a result of looking up a
+   * [member] in the given [type] and not finding any member.
    */
   bool _shouldReportMissingMember(DartType type, Element member) {
     if (member != null || type == null || type.isDynamic || type.isBottom) {
@@ -2790,11 +2698,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Checks whether the given expression is a reference to a class. If it is then the
-   * [ClassElement] is returned, otherwise `null` is returned.
-   *
-   * @param expression the expression to evaluate
-   * @return the element representing the class
+   * Checks whether the given [expression] is a reference to a class. If it is
+   * then the element representing the class is returned, otherwise `null` is
+   * returned.
    */
   static ClassElementImpl getTypeReference(Expression expression) {
     if (expression is Identifier) {
@@ -2807,10 +2713,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Helper function for `maybeMergeExecutableElements` that does the actual merging.
-   *
-   * @param elementArrayToMerge non-empty array of elements to merge.
-   * @return
+   * Helper function for `maybeMergeExecutableElements` that does the actual
+   * merging. The [elementArrayToMerge] is the non-empty list of elements to
+   * merge.
    */
   static ExecutableElement _computeMergedExecutableElement(
       List<ExecutableElement> elementArrayToMerge) {
@@ -2882,9 +2787,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given identifier is the return type of a constructor declaration.
-   *
-   * @return `true` if the given identifier is the return type of a constructor declaration.
+   * Return `true` if the given [identifier] is the return type of a constructor
+   * declaration.
    */
   static bool _isConstructorReturnType(SimpleIdentifier identifier) {
     AstNode parent = identifier.parent;
@@ -2895,54 +2799,45 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given identifier is the return type of a factory constructor.
-   *
-   * @return `true` if the given identifier is the return type of a factory constructor
-   *         declaration.
+   * Return `true` if the given [identifier] is the return type of a factory
+   * constructor.
    */
-  static bool _isFactoryConstructorReturnType(SimpleIdentifier node) {
-    AstNode parent = node.parent;
+  static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
+    AstNode parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
       ConstructorDeclaration constructor = parent;
-      return identical(constructor.returnType, node) &&
+      return identical(constructor.returnType, identifier) &&
           constructor.factoryKeyword != null;
     }
     return false;
   }
 
   /**
-   * Return `true` if the given 'super' expression is used in a valid context.
-   *
-   * @param node the 'super' expression to analyze
-   * @return `true` if the 'super' expression is in a valid context
+   * Return `true` if the given 'super' [expression] is used in a valid context.
    */
-  static bool _isSuperInValidContext(SuperExpression node) {
-    for (AstNode n = node; n != null; n = n.parent) {
-      if (n is CompilationUnit) {
+  static bool _isSuperInValidContext(SuperExpression expression) {
+    for (AstNode node = expression; node != null; node = node.parent) {
+      if (node is CompilationUnit) {
         return false;
       }
-      if (n is ConstructorDeclaration) {
-        ConstructorDeclaration constructor = n as ConstructorDeclaration;
-        return constructor.factoryKeyword == null;
+      if (node is ConstructorDeclaration) {
+        return node.factoryKeyword == null;
       }
-      if (n is ConstructorFieldInitializer) {
+      if (node is ConstructorFieldInitializer) {
         return false;
       }
-      if (n is MethodDeclaration) {
-        MethodDeclaration method = n as MethodDeclaration;
-        return !method.isStatic;
+      if (node is MethodDeclaration) {
+        return !node.isStatic;
       }
     }
     return false;
   }
 
   /**
-   * Return a method representing the merge of the given elements. The type of the merged element is
-   * the component-wise union of the types of the given elements. If not all input elements have the
-   * same shape then [null] is returned.
-   *
-   * @param elements the `ExecutableElement`s to merge
-   * @return an `ExecutableElement` representing the merge of `elements`
+   * Return a method representing the merge of the given [elements]. The type of
+   * the merged element is the component-wise union of the types of the given
+   * elements. If not all input elements have the same shape then `null` is
+   * returned.
    */
   static ExecutableElement _maybeMergeExecutableElements(
       Set<ExecutableElement> elements) {
@@ -2959,11 +2854,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 }
 
 /**
- * A `SyntheticIdentifier` is an identifier that can be used to look up names in
- * the lexical scope when there is no identifier in the AST structure. There is
- * no identifier in the AST when the parser could not distinguish between a
- * method invocation and an invocation of a top-level function imported with a
- * prefix.
+ * An identifier that can be used to look up names in the lexical scope when
+ * there is no identifier in the AST structure. There is no identifier in the
+ * AST when the parser could not distinguish between a method invocation and an
+ * invocation of a top-level function imported with a prefix.
  */
 class SyntheticIdentifier extends Identifier {
   /**

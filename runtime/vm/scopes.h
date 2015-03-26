@@ -79,6 +79,11 @@ class LocalVariable : public ZoneAllocated {
     is_captured_parameter_ = value;
   }
 
+  // By convention, internal variables start with a colon.
+  bool IsInternal() const {
+    return name_.CharAt(0) == ':';
+  }
+
   bool IsConst() const {
     return const_value_ != NULL;
   }

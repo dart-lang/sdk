@@ -36,6 +36,7 @@ class _AsyncStarStreamController {
   bool isAdding = false;
   bool onListenReceived = false;
   bool isScheduled = false;
+  Completer cancellationCompleter = null;
 
   Stream get stream => controller.stream;
 
@@ -93,6 +94,12 @@ class _AsyncStarStreamController {
   }
 
   void addError(error, stackTrace) {
+    if ((cancellationCompleter != null) && !cancellationCompleter.isCompleted) {
+      // If the stream has been cancelled, complete the cancellation future
+      // with the error.
+      cancellationCompleter.completeError(error, stackTrace);
+      return;
+    }
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) return;
     controller.addError(error, stackTrace);
@@ -103,6 +110,11 @@ class _AsyncStarStreamController {
   }
 
   close() {
+    if ((cancellationCompleter != null) && !cancellationCompleter.isCompleted) {
+      // If the stream has been cancelled, complete the cancellation future
+      // with the error.
+      cancellationCompleter.complete();
+    }
     controller.close();
   }
 
@@ -123,7 +135,14 @@ class _AsyncStarStreamController {
   }
 
   onCancel() {
-    scheduleGenerator();
+    if (controller.isClosed) {
+      return null;
+    }
+    if (cancellationCompleter == null) {
+      cancellationCompleter = new Completer();
+      scheduleGenerator();
+    }
+    return cancellationCompleter.future;
   }
 }
 
@@ -177,7 +196,7 @@ class _SyncIterator implements Iterator {
         yieldEachIterator = (current as Iterable).iterator;
         continue;
       }
-      return true;    
+      return true;
     }
   }
 }

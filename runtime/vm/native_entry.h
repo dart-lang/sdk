@@ -39,6 +39,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 
 #define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
   static RawObject* DN_Helper##name(Isolate* isolate,                          \
+                                    Thread* thread,                            \
+                                    Zone* zone,                                \
                                     NativeArguments* arguments);               \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
     CHECK_STACK_ALIGNMENT;                                                     \
@@ -49,14 +51,23 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     TRACE_NATIVE_CALL("%s", ""#name);                                          \
     {                                                                          \
-      StackZone zone(arguments->isolate());                                    \
+      Isolate* isolate = arguments->isolate();                                 \
+      /* TODO(koda): Pivot from Isolate to Thread in NativeArguments. */       \
+      Thread* thread = isolate->mutator_thread();                              \
+      ASSERT(thread == Thread::Current());                                     \
+      StackZone zone(isolate);                                                 \
       SET_NATIVE_RETVAL(arguments,                                             \
-                        DN_Helper##name(arguments->isolate(), arguments));     \
+                        DN_Helper##name(isolate,                               \
+                                        thread,                                \
+                                        zone.GetZone(),                        \
+                                        arguments));                           \
       DEOPTIMIZE_ALOT;                                                         \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
   static RawObject* DN_Helper##name(Isolate* isolate,                          \
+                                    Thread* thread,                            \
+                                    Zone* zone,                                \
                                     NativeArguments* arguments)
 
 
@@ -64,7 +75,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 // type name = value.
 #define GET_NON_NULL_NATIVE_ARGUMENT(type, name, value)                        \
   const Instance& __##name##_instance__ =                                      \
-      Instance::CheckedHandle(isolate, value);                                 \
+      Instance::CheckedHandle(zone, value);                                    \
   if (!__##name##_instance__.Is##type()) {                                     \
     const Array& __args__ = Array::Handle(Array::New(1));                      \
     __args__.SetAt(0, __##name##_instance__);                                  \
@@ -77,7 +88,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 // type name = value.
 #define GET_NATIVE_ARGUMENT(type, name, value)                                 \
   const Instance& __##name##_instance__ =                                      \
-      Instance::CheckedHandle(isolate, value);                                 \
+      Instance::CheckedHandle(zone, value);                                    \
   type& name = type::Handle(isolate);                                          \
   if (!__##name##_instance__.IsNull()) {                                       \
     if (!__##name##_instance__.Is##type()) {                                   \

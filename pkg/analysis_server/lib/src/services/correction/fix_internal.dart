@@ -35,7 +35,7 @@ import 'package:path/path.dart';
 /**
  * A predicate is a one-argument function that returns a boolean value.
  */
-typedef bool Predicate<E>(E argument);
+typedef bool ElementPredicate(Element argument);
 
 /**
  * The computer for Dart fixes.
@@ -134,6 +134,7 @@ class FixProcessor {
     }
     if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
       _addFix_createImportUri();
+      _addFix_createPartUri();
       _addFix_replaceImportUri();
     }
     if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
@@ -145,8 +146,23 @@ class FixProcessor {
     if (errorCode == HintCode.TYPE_CHECK_IS_NULL) {
       _addFix_isNull();
     }
+    if (errorCode == HintCode.UNDEFINED_GETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
+      _addFix_createField();
+      _addFix_createGetter();
+    }
+    if (errorCode == HintCode.UNDEFINED_SETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
+      _addFix_createField();
+    }
     if (errorCode == HintCode.UNNECESSARY_CAST) {
       _addFix_removeUnnecessaryCast();
+    }
+    if (errorCode == HintCode.UNUSED_CATCH_CLAUSE) {
+      _addFix_removeUnusedCatchClause();
+    }
+    if (errorCode == HintCode.UNUSED_CATCH_STACK) {
+      _addFix_removeUnusedCatchStack();
     }
     if (errorCode == HintCode.UNUSED_IMPORT) {
       _addFix_removeUnusedImport();
@@ -198,9 +214,19 @@ class FixProcessor {
       _addFix_createClass();
       _addFix_undefinedClass_useSimilar();
     }
+    if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED) {
+      _addFix_createConstructor_forUninitializedFinalFields();
+    }
+    if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
+        errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
+        errorCode ==
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS) {
+      _addFix_updateConstructor_forUninitializedFinalFields();
+    }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
       bool isAsync = _addFix_addAsync();
       if (!isAsync) {
+        _addFix_undefinedClassAccessor_useSimilar();
         _addFix_createField();
         _addFix_createGetter();
         _addFix_createFunction_forFunctionType();
@@ -208,6 +234,9 @@ class FixProcessor {
         _addFix_importLibrary_withTopLevelVariable();
         _addFix_createLocalVariable();
       }
+    }
+    if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
+      _addFix_illegalAsyncReturnType();
     }
     if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
       _addFix_useStaticAccess_method();
@@ -226,6 +255,7 @@ class FixProcessor {
       _addFix_undefinedFunction_create();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
       _addFix_createGetter();
       _addFix_createFunction_forFunctionType();
@@ -238,6 +268,7 @@ class FixProcessor {
       _addFix_undefinedFunction_create();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
+      _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
     }
     // done
@@ -333,6 +364,49 @@ class FixProcessor {
       // add proposal
       _addFix(FixKind.CREATE_CLASS, [name]);
     }
+  }
+
+  /**
+   * Here we handle cases when there are no constructors in a class, and the
+   * class has uninitialized final fields.
+   */
+  void _addFix_createConstructor_forUninitializedFinalFields() {
+    if (node is! SimpleIdentifier || node.parent is! VariableDeclaration) {
+      return;
+    }
+    ClassDeclaration classDeclaration =
+        node.getAncestor((node) => node is ClassDeclaration);
+    // prepare names of uninitialized final fields
+    List<String> fieldNames = <String>[];
+    for (ClassMember member in classDeclaration.members) {
+      if (member is FieldDeclaration) {
+        VariableDeclarationList variableList = member.fields;
+        if (variableList.isFinal) {
+          fieldNames.addAll(variableList.variables
+              .where((v) => v.initializer == null)
+              .map((v) => v.name.name));
+        }
+      }
+    }
+    // prepare location for a new constructor
+    _ConstructorLocation targetLocation =
+        _prepareNewConstructorLocation(classDeclaration);
+    // build constructor source
+    SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
+    {
+      String indent = '  ';
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
+      sb.append(classDeclaration.name.name);
+      sb.append('(');
+      sb.append(fieldNames.map((name) => 'this.$name').join(', '));
+      sb.append(');');
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    _insertBuilder(sb, unitElement);
+    // add proposal
+    _addFix(FixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, []);
   }
 
   void _addFix_createConstructor_insteadOfSyntheticDefault() {
@@ -1013,6 +1087,39 @@ class FixProcessor {
     _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
   }
 
+  void _addFix_createPartUri() {
+    if (node is SimpleStringLiteral && node.parent is PartDirective) {
+      PartDirective partDirective = node.parent;
+      Source source = partDirective.source;
+      if (source != null) {
+        String file = source.fullName;
+        String libName = unitLibraryElement.name;
+        SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
+        change.addEdit(file, -1, edit);
+        doSourceChange_addSourceEdit(change, context, source, edit);
+        _addFix(FixKind.CREATE_FILE, [file]);
+      }
+    }
+  }
+
+  void _addFix_illegalAsyncReturnType() {
+    InterfaceType futureType = context.typeProvider.futureType;
+    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
+    // prepare the existing type
+    TypeName typeName = node.getAncestor((n) => n is TypeName);
+    String nodeCode = utils.getNodeText(typeName);
+    // wrap the existing type with Future
+    String returnTypeCode;
+    if (nodeCode == 'void') {
+      returnTypeCode = futureTypeCode;
+    } else {
+      returnTypeCode = '$futureTypeCode<$nodeCode>';
+    }
+    _addReplaceEdit(rf.rangeNode(typeName), returnTypeCode);
+    // add proposal
+    _addFix(FixKind.REPLACE_RETURN_TYPE_FUTURE, []);
+  }
+
   void _addFix_importLibrary(FixKind kind, String importPath) {
     CompilationUnitElement libraryUnitElement =
         unitLibraryElement.definingCompilationUnit;
@@ -1075,8 +1182,10 @@ class FixProcessor {
       if (prefix != null) {
         SourceRange range = rf.rangeStartLength(node, 0);
         _addReplaceEdit(range, '${prefix.displayName}.');
-        _addFix(FixKind.IMPORT_LIBRARY_PREFIX,
-            [libraryElement.displayName, prefix.displayName]);
+        _addFix(FixKind.IMPORT_LIBRARY_PREFIX, [
+          libraryElement.displayName,
+          prefix.displayName
+        ]);
         continue;
       }
       // may be update "show" directive
@@ -1274,6 +1383,30 @@ class FixProcessor {
     _addFix(FixKind.REMOVE_UNNECASSARY_CAST, []);
   }
 
+  void _addFix_removeUnusedCatchClause() {
+    if (node is SimpleIdentifier) {
+      AstNode catchClause = node.parent;
+      if (catchClause is CatchClause &&
+          catchClause.exceptionParameter == node) {
+        _addRemoveEdit(
+            rf.rangeStartStart(catchClause.catchKeyword, catchClause.body));
+        _addFix(FixKind.REMOVE_UNUSED_CATCH_CLAUSE, []);
+      }
+    }
+  }
+
+  void _addFix_removeUnusedCatchStack() {
+    if (node is SimpleIdentifier) {
+      AstNode catchClause = node.parent;
+      if (catchClause is CatchClause &&
+          catchClause.stackTraceParameter == node &&
+          catchClause.exceptionParameter != null) {
+        _addRemoveEdit(rf.rangeEndEnd(catchClause.exceptionParameter, node));
+        _addFix(FixKind.REMOVE_UNUSED_CATCH_STACK, []);
+      }
+    }
+  }
+
   void _addFix_removeUnusedImport() {
     // prepare ImportDirective
     ImportDirective importDirective =
@@ -1355,6 +1488,62 @@ class FixProcessor {
         if (closestName != null) {
           _addFix(FixKind.CHANGE_TO, [closestName]);
         }
+      }
+    }
+  }
+
+  void _addFix_undefinedClassAccessor_useSimilar() {
+    AstNode node = this.node;
+    if (node is SimpleIdentifier) {
+      // prepare target
+      Expression target = null;
+      if (node.parent is PrefixedIdentifier) {
+        PrefixedIdentifier invocation = node.parent as PrefixedIdentifier;
+        target = invocation.prefix;
+      }
+      // find getter
+      if (node.inGetterContext()) {
+        _addFix_undefinedClassMember_useSimilar(target, (Element element) {
+          return element is PropertyAccessorElement && element.isGetter ||
+              element is FieldElement && element.getter != null;
+        });
+      }
+      // find setter
+      if (node.inSetterContext()) {
+        _addFix_undefinedClassMember_useSimilar(target, (Element element) {
+          return element is PropertyAccessorElement && element.isSetter ||
+              element is FieldElement && element.setter != null;
+        });
+      }
+    }
+  }
+
+  void _addFix_undefinedClassMember_useSimilar(
+      Expression target, ElementPredicate predicate) {
+    if (node is SimpleIdentifier) {
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(name, predicate, MAX_LEVENSHTEIN_DISTANCE);
+      // unqualified invocation
+      if (target == null) {
+        ClassDeclaration clazz =
+            node.getAncestor((node) => node is ClassDeclaration);
+        if (clazz != null) {
+          ClassElement classElement = clazz.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      } else {
+        DartType type = target.bestType;
+        if (type is InterfaceType) {
+          ClassElement classElement = type.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      }
+      // if we have close enough element, suggest to use it
+      if (finder._element != null) {
+        String closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        _addFix(FixKind.CHANGE_TO, [closestName]);
       }
     }
   }
@@ -1549,34 +1738,50 @@ class FixProcessor {
   }
 
   void _addFix_undefinedMethod_useSimilar() {
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+    if (node.parent is MethodInvocation) {
       MethodInvocation invocation = node.parent as MethodInvocation;
-      String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder = new _ClosestElementFinder(name,
-          (Element element) => element is MethodElement && !element.isOperator,
-          MAX_LEVENSHTEIN_DISTANCE);
-      // unqualified invocation
-      Expression target = invocation.realTarget;
-      if (target == null) {
-        ClassDeclaration clazz =
-            invocation.getAncestor((node) => node is ClassDeclaration);
-        if (clazz != null) {
-          ClassElement classElement = clazz.element;
-          _updateFinderWithClassMembers(finder, classElement);
+      _addFix_undefinedClassMember_useSimilar(invocation.realTarget,
+          (Element element) => element is MethodElement && !element.isOperator);
+    }
+  }
+
+  /**
+   * Here we handle cases when a constructors does not initialize all of the
+   * final fields.
+   */
+  void _addFix_updateConstructor_forUninitializedFinalFields() {
+    if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
+      return;
+    }
+    ConstructorDeclaration constructor = node.parent;
+    // add these fields
+    List<FieldElement> fields =
+        error.getProperty(ErrorProperty.NOT_INITIALIZED_FIELDS);
+    if (fields != null) {
+      // prepare new parameters code
+      fields.sort((a, b) => a.nameOffset - b.nameOffset);
+      String fieldParametersCode =
+          fields.map((field) => 'this.${field.name}').join(', ');
+      // prepare the last required parameter
+      FormalParameter lastRequiredParameter;
+      List<FormalParameter> parameters = constructor.parameters.parameters;
+      for (FormalParameter parameter in parameters) {
+        if (parameter.kind == ParameterKind.REQUIRED) {
+          lastRequiredParameter = parameter;
         }
+      }
+      // append new field formal initializers
+      if (lastRequiredParameter != null) {
+        _addInsertEdit(lastRequiredParameter.end, ', $fieldParametersCode');
       } else {
-        DartType type = target.bestType;
-        if (type is InterfaceType) {
-          ClassElement classElement = type.element;
-          _updateFinderWithClassMembers(finder, classElement);
+        int offset = constructor.parameters.leftParenthesis.end;
+        if (parameters.isNotEmpty) {
+          fieldParametersCode += ', ';
         }
+        _addInsertEdit(offset, fieldParametersCode);
       }
-      // if we have close enough element, suggest to use it
-      if (finder._element != null) {
-        String closestName = finder._element.name;
-        _addReplaceEdit(rf.rangeNode(node), closestName);
-        _addFix(FixKind.CHANGE_TO, [closestName]);
-      }
+      // add proposal
+      _addFix(FixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
     }
   }
 
@@ -1585,8 +1790,7 @@ class FixProcessor {
       if (n is MethodInvocation &&
           n.offset == errorOffset &&
           n.length == errorLength) {
-        MethodInvocation invocation = n as MethodInvocation;
-        Expression target = invocation.target;
+        Expression target = n.target;
         while (target is ParenthesizedExpression) {
           target = (target as ParenthesizedExpression).expression;
         }
@@ -1594,8 +1798,8 @@ class FixProcessor {
         BinaryExpression binary = target as BinaryExpression;
         _addReplaceEdit(rf.rangeToken(binary.operator), '~/');
         // remove everything before and after
-        _addRemoveEdit(rf.rangeStartStart(invocation, binary.leftOperand));
-        _addRemoveEdit(rf.rangeEndEnd(binary.rightOperand, invocation));
+        _addRemoveEdit(rf.rangeStartStart(n, binary.leftOperand));
+        _addRemoveEdit(rf.rangeEndEnd(binary.rightOperand, n));
         // add proposal
         _addFix(FixKind.USE_EFFECTIVE_INTEGER_DIVISION, []);
         // done
@@ -1886,7 +2090,7 @@ class FixProcessor {
   }
 
   /**
-   * Returns the [Type] with given name from the `dart:core` library.
+   * Returns the [DartType] with given name from the `dart:core` library.
    */
   DartType _getCoreType(String name) {
     List<LibraryElement> libraries = unitLibraryElement.importedLibraries;
@@ -2234,7 +2438,7 @@ class FixProcessor {
  */
 class _ClosestElementFinder {
   final String _targetName;
-  final Predicate<Element> _predicate;
+  final ElementPredicate _predicate;
 
   Element _element = null;
   int _distance;

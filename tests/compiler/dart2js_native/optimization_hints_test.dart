@@ -40,6 +40,39 @@ baz() {
   throw 'in baz function';
 }
 
+@js.NoInline()
+geeNoInline() {
+ // Use `gee` several times, so `gee` isn't used only once (and thus inlinable
+ // independently of its size).
+ gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee();
+ gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee();
+ gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee();
+ gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee(); gee();
+}
+
+@js.ForceInline()
+// Big function that would normally not be inlinable.
+gee([c]) {
+  if (c != null) {
+    x = "in gee function";
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+    geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline(); geeNoInline();
+  }
+}
+
 main() {
   JS('', 'String("in main function")');
   var c;
@@ -58,6 +91,8 @@ main() {
   simple();
   noinline();
   baz(); // This call should be eliminated by the optimizer.
+  gee(new C());
+  print(x);
   check(JS('', 'arguments.callee'));
 }
 
@@ -82,6 +117,8 @@ check(func) {
                 "should contain r'\.c_field' exactly twice");
   Expect.isFalse(source.contains('.d_field'),
                  "should not contain r'\.d_field'");
+  Expect.isTrue(source.contains('"in gee function"'),
+                "must inline 'gee'");
 }
 
 simple() {

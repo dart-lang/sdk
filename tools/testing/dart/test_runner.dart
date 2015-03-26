@@ -1350,7 +1350,7 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
         // we will have more information and can remove this warning.
         stderr = "This test has not notified test.py that it started running. "
                  "This could be a bug in test.py! "
-                 "Please contact ricow/kustermann";
+                 "Please contact ricow/whesse";
       }
     }
 
@@ -2828,7 +2828,7 @@ class ProcessQueue {
         cancelDebugTimer();
         _debugTimer = new Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
-                " to ricow/kustermann and provide the following information:");
+                " to ricow/whesse and provide the following information:");
           print("");
           print("Graph is sealed: ${_graph.isSealed}");
           print("");

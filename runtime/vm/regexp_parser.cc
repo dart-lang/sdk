@@ -8,13 +8,13 @@
 
 namespace dart {
 
-#define I isolate()
+#define Z zone()
 
 // Enables possessive quantifier syntax for testing.
 static const bool FLAG_regexp_possessive_quantifier = false;
 
 RegExpBuilder::RegExpBuilder()
-    : isolate_(Isolate::Current()),
+    : zone_(Thread::Current()->zone()),
       pending_empty_(false),
       characters_(NULL),
       terms_(),
@@ -29,7 +29,7 @@ RegExpBuilder::RegExpBuilder()
 void RegExpBuilder::FlushCharacters() {
   pending_empty_ = false;
   if (characters_ != NULL) {
-    RegExpTree* atom = new(I) RegExpAtom(characters_);
+    RegExpTree* atom = new(Z) RegExpAtom(characters_);
     characters_ = NULL;
     text_.Add(atom);
     LAST(ADD_ATOM);
@@ -45,7 +45,7 @@ void RegExpBuilder::FlushText() {
   } else if (num_text == 1) {
     terms_.Add(text_.Last());
   } else {
-    RegExpText* text = new(I) RegExpText();
+    RegExpText* text = new(Z) RegExpText();
     for (intptr_t i = 0; i < num_text; i++)
       text_[i]->AppendToText(text);
     terms_.Add(text);
@@ -57,7 +57,7 @@ void RegExpBuilder::FlushText() {
 void RegExpBuilder::AddCharacter(uint16_t c) {
   pending_empty_ = false;
   if (characters_ == NULL) {
-    characters_ = new(I) ZoneGrowableArray<uint16_t>(4);
+    characters_ = new(Z) ZoneGrowableArray<uint16_t>(4);
   }
   characters_->Add(c);
   LAST(ADD_CHAR);
@@ -107,11 +107,11 @@ void RegExpBuilder::FlushTerms() {
     alternative = terms_.Last();
   } else {
     ZoneGrowableArray<RegExpTree*>* terms =
-        new(I) ZoneGrowableArray<RegExpTree*>();
+        new(Z) ZoneGrowableArray<RegExpTree*>();
     for (intptr_t i = 0; i < terms_.length(); i++) {
       terms->Add(terms_[i]);
     }
-    alternative = new(I) RegExpAlternative(terms);
+    alternative = new(Z) RegExpAlternative(terms);
   }
   alternatives_.Add(alternative);
   terms_.Clear();
@@ -129,11 +129,11 @@ RegExpTree* RegExpBuilder::ToRegExp() {
     return alternatives_.Last();
   }
   ZoneGrowableArray<RegExpTree*>* alternatives =
-      new(I) ZoneGrowableArray<RegExpTree*>();
+      new(Z) ZoneGrowableArray<RegExpTree*>();
   for (intptr_t i = 0; i < alternatives_.length(); i++) {
     alternatives->Add(alternatives_[i]);
   }
-  return new(I) RegExpDisjunction(alternatives);
+  return new(Z) RegExpDisjunction(alternatives);
 }
 
 
@@ -151,22 +151,22 @@ void RegExpBuilder::AddQuantifierToAtom(
     // Last atom was character.
 
     ZoneGrowableArray<uint16_t> *char_vector =
-        new(I) ZoneGrowableArray<uint16_t>();
+        new(Z) ZoneGrowableArray<uint16_t>();
     char_vector->AddArray(*characters_);
     intptr_t num_chars = char_vector->length();
     if (num_chars > 1) {
       ZoneGrowableArray<uint16_t> *prefix =
-          new(I) ZoneGrowableArray<uint16_t>();
+          new(Z) ZoneGrowableArray<uint16_t>();
       for (intptr_t i = 0; i < num_chars - 1; i++) {
         prefix->Add(char_vector->At(i));
       }
-      text_.Add(new(I) RegExpAtom(prefix));
-      ZoneGrowableArray<uint16_t> *tail = new(I) ZoneGrowableArray<uint16_t>();
+      text_.Add(new(Z) RegExpAtom(prefix));
+      ZoneGrowableArray<uint16_t> *tail = new(Z) ZoneGrowableArray<uint16_t>();
       tail->Add(char_vector->At(num_chars - 1));
       char_vector = tail;
     }
     characters_ = NULL;
-    atom = new(I) RegExpAtom(char_vector);
+    atom = new(Z) RegExpAtom(char_vector);
     FlushText();
   } else if (text_.length() > 0) {
     DEBUG_ASSERT(last_added_ == ADD_ATOM);
@@ -189,7 +189,7 @@ void RegExpBuilder::AddQuantifierToAtom(
     UNREACHABLE();
     return;
   }
-  terms_.Add(new(I) RegExpQuantifier(min, max, quantifier_type, atom));
+  terms_.Add(new(Z) RegExpQuantifier(min, max, quantifier_type, atom));
   LAST(ADD_TERM);
 }
 
@@ -199,7 +199,7 @@ void RegExpBuilder::AddQuantifierToAtom(
 RegExpParser::RegExpParser(const String& in,
                            String* error,
                            bool multiline)
-    : isolate_(Isolate::Current()),
+    : zone_(Thread::Current()->zone()),
       error_(error),
       captures_(NULL),
       in_(in),
@@ -217,13 +217,13 @@ RegExpParser::RegExpParser(const String& in,
 
 
 bool RegExpParser::ParseFunction(ParsedFunction *parsed_function) {
-  Isolate* isolate = parsed_function->isolate();
+  Zone* zone = parsed_function->zone();
   JSRegExp& regexp = JSRegExp::Handle(parsed_function->function().regexp());
 
   const String& pattern = String::Handle(regexp.pattern());
   const bool multiline = regexp.is_multi_line();
 
-  RegExpCompileData* compile_data = new(isolate) RegExpCompileData();
+  RegExpCompileData* compile_data = new(zone) RegExpCompileData();
   if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
     // Parsing failures are handled in the JSRegExp factory constructor.
     UNREACHABLE();
@@ -319,7 +319,7 @@ RegExpTree* RegExpParser::ParsePattern() {
 //   Atom Quantifier
 RegExpTree* RegExpParser::ParseDisjunction() {
   // Used to store current state while parsing subexpressions.
-  RegExpParserState initial_state(NULL, INITIAL, 0, I);
+  RegExpParserState initial_state(NULL, INITIAL, 0, Z);
   RegExpParserState* stored_state = &initial_state;
   // Cache the builder in a local variable for quick access.
   RegExpBuilder* builder = initial_state.builder();
@@ -357,14 +357,14 @@ RegExpTree* RegExpParser::ParseDisjunction() {
 
       // Build result of subexpression.
       if (group_type == CAPTURE) {
-        RegExpCapture* capture = new(I) RegExpCapture(body, capture_index);
+        RegExpCapture* capture = new(Z) RegExpCapture(body, capture_index);
         (*captures_)[capture_index - 1] = capture;
         body = capture;
       } else if (group_type != GROUPING) {
         ASSERT(group_type == POSITIVE_LOOKAHEAD ||
                group_type == NEGATIVE_LOOKAHEAD);
         bool is_positive = (group_type == POSITIVE_LOOKAHEAD);
-        body = new(I) RegExpLookahead(body,
+        body = new(Z) RegExpLookahead(body,
                                       is_positive,
                                       end_capture_index - capture_index,
                                       capture_index);
@@ -388,10 +388,10 @@ RegExpTree* RegExpParser::ParseDisjunction() {
       Advance();
       if (multiline_) {
         builder->AddAssertion(
-            new(I) RegExpAssertion(RegExpAssertion::START_OF_LINE));
+            new(Z) RegExpAssertion(RegExpAssertion::START_OF_LINE));
       } else {
         builder->AddAssertion(
-            new(I) RegExpAssertion(RegExpAssertion::START_OF_INPUT));
+            new(Z) RegExpAssertion(RegExpAssertion::START_OF_INPUT));
         set_contains_anchor();
       }
       continue;
@@ -445,7 +445,7 @@ RegExpTree* RegExpParser::ParseDisjunction() {
       }
       // Store current state and begin new disjunction parsing.
       stored_state = new RegExpParserState(stored_state, subexpr_type,
-                                           captures_started(), I);
+                                           captures_started(), Z);
       builder = stored_state->builder();
       continue;
     }
@@ -996,7 +996,7 @@ RegExpTree* RegExpParser::ParseCharacterClass() {
     Advance();
   }
   ZoneGrowableArray<CharacterRange>* ranges =
-      new(I) ZoneGrowableArray<CharacterRange>(2);
+      new(Z) ZoneGrowableArray<CharacterRange>(2);
   while (has_more() && current() != ']') {
     uint16_t char_class = kNoCharClass;
     CharacterRange first = ParseClassAtom(&char_class);
@@ -1038,7 +1038,7 @@ RegExpTree* RegExpParser::ParseCharacterClass() {
     ranges->Add(CharacterRange::Everything());
     is_negated = !is_negated;
   }
-  return new(I) RegExpCharacterClass(ranges, is_negated);
+  return new(Z) RegExpCharacterClass(ranges, is_negated);
 }
 
 

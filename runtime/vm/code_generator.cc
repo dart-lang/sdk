@@ -631,16 +631,16 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
   const Instance& exception =
-      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+      Instance::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::Throw(isolate, exception);
 }
 
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
   const Instance& exception =
-      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+      Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& stacktrace =
-      Instance::CheckedHandle(isolate, arguments.ArgAt(1));
+      Instance::CheckedHandle(zone, arguments.ArgAt(1));
   Exceptions::ReThrow(isolate, exception, stacktrace);
 }
 
@@ -658,7 +658,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
       caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
   if (!target_function.HasCode()) {
     const Error& error =
-        Error::Handle(Compiler::CompileFunction(isolate, target_function));
+        Error::Handle(Compiler::CompileFunction(thread, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -930,7 +930,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   ASSERT(ic_data.NumberOfChecks() == 1);
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+    const Error& error = Error::Handle(Compiler::CompileFunction(thread,
                                                                  target));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
@@ -963,7 +963,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   ASSERT(ic_data.NumberOfChecks() > 0);
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+    const Error& error = Error::Handle(Compiler::CompileFunction(thread,
                                                                  target));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
@@ -1224,12 +1224,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       }
     }
   }
-  if ((interrupt_bits & Isolate::kVmStatusInterrupt) != 0) {
-    Dart_IsolateInterruptCallback callback = isolate->VmStatsCallback();
-    if (callback) {
-      (*callback)();
-    }
-  }
 
   if ((stack_overflow_flags & Isolate::kOsrRequest) != 0) {
     ASSERT(FLAG_use_osr);
@@ -1262,7 +1256,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // it cannot have been removed from the function.
     ASSERT(!original_code.IsNull());
     const Error& error = Error::Handle(Compiler::CompileOptimizedFunction(
-        isolate, function, osr_id));
+        thread, function, osr_id));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1303,7 +1297,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
-  const Function& function = Function::CheckedHandle(isolate,
+  const Function& function = Function::CheckedHandle(zone,
                                                      arguments.ArgAt(0));
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
@@ -1313,7 +1307,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileOptimizedFunction(isolate, function));
+        isolate, Compiler::CompileOptimizedFunction(thread, function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1349,7 +1343,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(!target_code.IsNull());
   if (!target_function.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(isolate, target_function));
+        isolate, Compiler::CompileFunction(thread, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1399,7 +1393,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
   const uword target =
       CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code);
   const Code& stub = Code::Handle(isolate, Code::LookupCode(target));
-  Class& alloc_class = Class::ZoneHandle(isolate);
+  Class& alloc_class = Class::ZoneHandle(zone);
   alloc_class ^= stub.owner();
   Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {

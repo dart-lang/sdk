@@ -25,8 +25,7 @@ analysis_server/test/analysis_server_test: SkipSlow  # Times out
 analysis_server/test/completion_test: SkipSlow  # Times out
 analysis_server/test/domain_context_test: SkipSlow  # Times out
 analysis_server/test/domain_server_test: SkipSlow  # Times out
-analysis_server/test/integration/analysis/reanalyze_concurrent_test: SkipSlow # Times out
-analysis_server/test/integration/analysis/update_content_test: SkipSlow # Times out
+analysis_server/test/integration/*: SkipSlow # Times out
 analysis_server/tool/spec/check_all_test: SkipSlow # Times out
 analyzer/test/generated/element_test: SkipSlow  # Times out
 analyzer/test/generated/parser_test: SkipSlow  # Times out
@@ -176,14 +175,13 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
-analyzer2dart/test/driver_test: StaticWarning # Issue 22418
-analyzer2dart/test/sexpr_test: StaticWarning # Issue 22418
-analyzer2dart/test/tree_shaker_test: StaticWarning # Issue 22418
-analyzer2dart/test/end2end_test: StaticWarning # Issue 22418
 
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
+
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+third_party/di_tests/di_test: Pass, Slow # Issue 22896
 
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: SkipByDesign # Requires checked mode.

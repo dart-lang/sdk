@@ -131,47 +131,68 @@ class DartBackend extends Backend {
 
   void codegen(CodegenWorkItem work) { }
 
+  static bool checkTreeIntegrity(tree_ir.ExecutableDefinition node) {
+    new CheckTreeIntegrity().check(node);
+    return true; // So this can be used from assert().
+  }
+
+  static bool checkCpsIntegrity(cps_ir.ExecutableDefinition node) {
+    new CheckCpsIntegrity().check(node);
+    return true; // So this can be used from assert().
+  }
+
   /// Create an [ElementAst] from the CPS IR.
   static ElementAst createElementAst(
        ElementAstCreationContext context,
        Element element,
        cps_ir.ExecutableDefinition cpsDefinition) {
-    // Transformations on the CPS IR.
     context.traceCompilation(element.name);
+    context.traceGraph('CPS builder', cpsDefinition);
+    assert(checkCpsIntegrity(cpsDefinition));
+
+    // Transformations on the CPS IR.
+    void applyCpsPass(cps_opt.Pass pass) {
+      pass.rewrite(cpsDefinition);
+      context.traceGraph(pass.passName, cpsDefinition);
+      assert(checkCpsIntegrity(cpsDefinition));
+    }
 
     // TODO(karlklose): enable type propagation for dart2dart when constant
     // types are correctly marked as instantiated (Issue 21880).
-    new TypePropagator(context.dartTypes,
-                       context.constantSystem,
-                       new UnitTypeSystem(),
-                       context.internalError)
-        .rewrite(cpsDefinition);
-    context.traceGraph("Sparse constant propagation", cpsDefinition);
-    new RedundantPhiEliminator().rewrite(cpsDefinition);
-    context.traceGraph("Redundant phi elimination", cpsDefinition);
-    new ShrinkingReducer().rewrite(cpsDefinition);
-    context.traceGraph("Shrinking reductions", cpsDefinition);
+    TypePropagator typePropagator = new TypePropagator(
+        context.dartTypes,
+        context.constantSystem,
+        new UnitTypeSystem(),
+        context.internalError);
+    applyCpsPass(typePropagator);
+    applyCpsPass(new RedundantPhiEliminator());
+    applyCpsPass(new ShrinkingReducer());
 
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
     // ranges that can be invalidated by transforming the IR.
-    new cps_ir.RegisterAllocator().visit(cpsDefinition);
+    new cps_ir.RegisterAllocator(context.internalError).visit(cpsDefinition);
 
     tree_builder.Builder builder =
         new tree_builder.Builder(context.internalError);
     tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
     assert(treeDefinition != null);
     context.traceGraph('Tree builder', treeDefinition);
+    assert(checkTreeIntegrity(treeDefinition));
 
     // Transformations on the Tree IR.
-    new StatementRewriter().rewrite(treeDefinition);
-    context.traceGraph('Statement rewriter', treeDefinition);
-    new CopyPropagator().rewrite(treeDefinition);
-    context.traceGraph('Copy propagation', treeDefinition);
-    new LoopRewriter().rewrite(treeDefinition);
-    context.traceGraph('Loop rewriter', treeDefinition);
-    new LogicalRewriter().rewrite(treeDefinition);
-    context.traceGraph('Logical rewriter', treeDefinition);
+    void applyTreePass(tree_opt.Pass pass) {
+      pass.rewrite(treeDefinition);
+      context.traceGraph(pass.passName, treeDefinition);
+      assert(checkTreeIntegrity(treeDefinition));
+    }
+
+    applyTreePass(new StatementRewriter());
+    applyTreePass(new CopyPropagator());
+    applyTreePass(new LoopRewriter());
+    applyTreePass(new LogicalRewriter());
+
+    // Backend-specific transformations.
     new backend_ast_emitter.UnshadowParameters().unshadow(treeDefinition);
     context.traceGraph('Unshadow parameters', treeDefinition);
 

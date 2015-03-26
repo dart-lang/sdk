@@ -753,7 +753,13 @@ abstract class LocalElementMixin implements ElementY, dart2js.LocalElement {
   bool get isLocal => true;
 
   @override
+  bool get isInstanceMember => false;
+
+  @override
   bool get isStatic => false;
+
+  @override
+  bool get isTopLevel => false;
 
   @override
   get executableContext => unsupported('executableContext');

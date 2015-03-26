@@ -244,9 +244,6 @@ abstract class ElementX extends Element {
     _isNative = true;
     _fixedBackendName = name;
   }
-  void setFixedBackendName(String name) {
-    _fixedBackendName = name;
-  }
 
   FunctionElement asFunctionElement() => null;
 
@@ -2015,6 +2012,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
   bool get hasNode => constructor.hasNode;
 
   FunctionExpression get node => constructor.node;
+
+  Link<MetadataAnnotation> get metadata => constructor.metadata;
 
   bool get isInstanceMember => true;
 

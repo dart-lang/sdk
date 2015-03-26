@@ -28,6 +28,7 @@ part of tree_ir.optimization;
 /// Note that the above pattern needs no iteration since nested ifs
 /// have been collapsed previously in the [StatementRewriter] phase.
 class LoopRewriter extends RecursiveVisitor with PassMixin {
+  String get passName => 'Loop rewriter';
 
   Set<Label> usedContinueLabels = new Set<Label>();
 
@@ -43,13 +44,13 @@ class LoopRewriter extends RecursiveVisitor with PassMixin {
 
   Statement visitAssign(Assign node) {
     // Clean up redundant assignments left behind in the previous phase.
-    Expression def = node.definition;
-    if (def is VariableUse && node.variable == def.variable) {
+    Expression value = node.value;
+    if (value is VariableUse && node.variable == value.variable) {
       --node.variable.readCount;
       --node.variable.writeCount;
       return visitStatement(node.next);
     }
-    visitExpression(node.definition);
+    visitExpression(node.value);
     node.next = visitStatement(node.next);
     return node;
   }

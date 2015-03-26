@@ -95,7 +95,13 @@ class DartUnitHoverComputer {
         // description
         hover.elementDescription = element.toString();
         hover.elementKind = element.kind.displayName;
-        // library
+        // containing class
+        ClassElement containingClass =
+            element.getAncestor((e) => e is ClassElement);
+        if (containingClass != null) {
+          hover.containingClassDescription = containingClass.toString();
+        }
+        // containing library
         LibraryElement library = element.library;
         if (library != null) {
           hover.containingLibraryName = library.name;

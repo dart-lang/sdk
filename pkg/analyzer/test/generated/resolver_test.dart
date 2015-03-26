@@ -272,9 +272,9 @@ class AnalysisContextFactory {
       ElementFactory.classElement("SelectElement", elementType)
     ];
     htmlUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("query", elementElement, <ClassElement>[
-        provider.stringType.element
-      ], ClassElementImpl.EMPTY_ARRAY)
+      ElementFactory.functionElement3("query", elementElement,
+          <ClassElement>[provider.stringType.element],
+          ClassElementImpl.EMPTY_ARRAY)
     ];
     TopLevelVariableElementImpl document = ElementFactory
         .topLevelVariableElement3(
@@ -293,9 +293,8 @@ class AnalysisContextFactory {
     coreContext.setContents(mathSource, "");
     mathUnit.source = mathSource;
     FunctionElement cosElement = ElementFactory.functionElement3("cos",
-        provider.doubleType.element, <ClassElement>[
-      provider.numType.element
-    ], ClassElementImpl.EMPTY_ARRAY);
+        provider.doubleType.element, <ClassElement>[provider.numType.element],
+        ClassElementImpl.EMPTY_ARRAY);
     TopLevelVariableElement ln10Element = ElementFactory
         .topLevelVariableElement3("LN10", true, false, provider.doubleType);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
@@ -311,13 +310,11 @@ class AnalysisContextFactory {
     randomConstructor.parameters = <ParameterElement>[seedParam];
     randomElement.constructors = <ConstructorElement>[randomConstructor];
     FunctionElement sinElement = ElementFactory.functionElement3("sin",
-        provider.doubleType.element, <ClassElement>[
-      provider.numType.element
-    ], ClassElementImpl.EMPTY_ARRAY);
+        provider.doubleType.element, <ClassElement>[provider.numType.element],
+        ClassElementImpl.EMPTY_ARRAY);
     FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt",
-        provider.doubleType.element, <ClassElement>[
-      provider.numType.element
-    ], ClassElementImpl.EMPTY_ARRAY);
+        provider.doubleType.element, <ClassElement>[provider.numType.element],
+        ClassElementImpl.EMPTY_ARRAY);
     mathUnit.accessors = <PropertyAccessorElement>[
       ln10Element.getter,
       piElement.getter
@@ -367,7 +364,8 @@ class AnalysisContextForTests extends AnalysisContextImpl {
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
-        currentOptions.preserveComments != options.preserveComments;
+        currentOptions.preserveComments != options.preserveComments ||
+        currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
     if (needsRecompute) {
       fail(
           "Cannot set options that cause the sources to be reanalyzed in a test context");
@@ -1536,9 +1534,8 @@ class ElementResolverTest extends EngineTestCase {
         AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation = AstFactory.instanceCreationExpression(
-        Keyword.NEW, name, [
-      AstFactory.namedExpression2(parameterName, AstFactory.integer(0))
-    ]);
+        Keyword.NEW, name,
+        [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
     _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
     expect((creation.argumentList.arguments[
@@ -4158,11 +4155,38 @@ class B {}''');
     Source source = addSource(r'''
 main() {
   try {
+  } on String catch (exception) {
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_CATCH_CLAUSE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inCatch_exception_hasStack() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  try {
+  } catch (exception, stack) {
+    print(stack);
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inCatch_exception_noOnClause() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  try {
   } catch (exception) {
   }
 }''');
     resolve(source);
-    assertErrors(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -4175,7 +4199,7 @@ main() {
   }
 }''');
     resolve(source);
-    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    assertErrors(source, [HintCode.UNUSED_CATCH_STACK]);
     verify([source]);
   }
 
@@ -4658,9 +4682,8 @@ class InheritanceManagerTest extends EngineTestCase {
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
     expect(mapA.get(methodName), isNull);
-    _assertErrors(classA, [
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD
-    ]);
+    _assertErrors(classA,
+        [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
@@ -4705,9 +4728,8 @@ class InheritanceManagerTest extends EngineTestCase {
         _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
     expect(mapA.get(methodName), isNull);
-    _assertErrors(classA, [
-      StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD
-    ]);
+    _assertErrors(classA,
+        [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
@@ -7626,7 +7648,9 @@ class ResolverTestCase extends EngineTestCase {
         continue;
       }
       if (!enableUnusedLocalVariable &&
-          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+          (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+              errorCode == HintCode.UNUSED_CATCH_STACK ||
+              errorCode == HintCode.UNUSED_LOCAL_VARIABLE)) {
         continue;
       }
       errorListener.onError(error);
@@ -9547,6 +9571,50 @@ class StaticTypeAnalyzer2Test extends ResolverTestCase {
   Source testSource;
   CompilationUnit testUnit;
 
+  void test_FunctionExpressionInvocation_block() {
+    String code = r'''
+main() {
+  var foo = (() { return 1; })();
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.isDynamic, isTrue);
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_FunctionExpressionInvocation_curried() {
+    String code = r'''
+typedef int F();
+F f() => null;
+main() {
+  var foo = f()();
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_FunctionExpressionInvocation_expression() {
+    String code = r'''
+main() {
+  var foo = (() => 1)();
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
   void test_MethodInvocation_nameType_localVariable() {
     String code = r"""
 typedef Foo();
@@ -9653,6 +9721,126 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
     _analyzer = _createAnalyzer();
+  }
+
+  void test_flatten_derived() {
+    // class Derived<T> extends Future<T> { ... }
+    ClassElementImpl derivedClass =
+        ElementFactory.classElement2('Derived', ['T']);
+    derivedClass.supertype = _typeProvider.futureType
+        .substitute4([derivedClass.typeParameters[0].type]);
+    InterfaceType intType = _typeProvider.intType;
+    DartType dynamicType = _typeProvider.dynamicType;
+    InterfaceType derivedIntType = derivedClass.type.substitute4([intType]);
+    // flatten(Derived) = dynamic
+    InterfaceType derivedDynamicType =
+        derivedClass.type.substitute4([dynamicType]);
+    expect(_flatten(derivedDynamicType), dynamicType);
+    // flatten(Derived<int>) = int
+    expect(_flatten(derivedIntType), intType);
+    // flatten(Derived<Derived>) = Derived
+    expect(_flatten(derivedClass.type.substitute4([derivedDynamicType])),
+        derivedDynamicType);
+    // flatten(Derived<Derived<int>>) = Derived<int>
+    expect(_flatten(derivedClass.type.substitute4([derivedIntType])),
+        derivedIntType);
+  }
+
+  void test_flatten_inhibit_recursion() {
+    // class A extends B
+    // class B extends A
+    ClassElementImpl classA = ElementFactory.classElement2('A', []);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    classA.supertype = classB.type;
+    classB.supertype = classA.type;
+    // flatten(A) = A and flatten(B) = B, since neither class contains Future
+    // in its class hierarchy.  Even though there is a loop in the class
+    // hierarchy, flatten() should terminate.
+    expect(_flatten(classA.type), classA.type);
+    expect(_flatten(classB.type), classB.type);
+  }
+
+  void test_flatten_related_derived_types() {
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType numType = _typeProvider.numType;
+    // class Derived<T> extends Future<T>
+    ClassElementImpl derivedClass =
+        ElementFactory.classElement2('Derived', ['T']);
+    derivedClass.supertype = _typeProvider.futureType
+        .substitute4([derivedClass.typeParameters[0].type]);
+    InterfaceType derivedType = derivedClass.type;
+    // class A extends Derived<int> implements Derived<num> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', derivedType.substitute4([intType]));
+    classA.interfaces = <InterfaceType>[derivedType.substitute4([numType])];
+    // class B extends Future<num> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', derivedType.substitute4([numType]));
+    classB.interfaces = <InterfaceType>[derivedType.substitute4([intType])];
+    // flatten(A) = flatten(B) = int, since int is more specific than num.
+    // The code in flatten() that inhibits infinite recursion shouldn't be
+    // fooled by the fact that Derived appears twice in the type hierarchy.
+    expect(_flatten(classA.type), intType);
+    expect(_flatten(classB.type), intType);
+  }
+
+  void test_flatten_related_types() {
+    InterfaceType futureType = _typeProvider.futureType;
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType numType = _typeProvider.numType;
+    // class A extends Future<int> implements Future<num> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', futureType.substitute4([intType]));
+    classA.interfaces = <InterfaceType>[futureType.substitute4([numType])];
+    // class B extends Future<num> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', futureType.substitute4([numType]));
+    classB.interfaces = <InterfaceType>[futureType.substitute4([intType])];
+    // flatten(A) = flatten(B) = int, since int is more specific than num.
+    expect(_flatten(classA.type), intType);
+    expect(_flatten(classB.type), intType);
+  }
+
+  void test_flatten_simple() {
+    InterfaceType intType = _typeProvider.intType;
+    DartType dynamicType = _typeProvider.dynamicType;
+    InterfaceType futureDynamicType = _typeProvider.futureDynamicType;
+    InterfaceType futureIntType =
+        _typeProvider.futureType.substitute4([intType]);
+    InterfaceType futureFutureDynamicType =
+        _typeProvider.futureType.substitute4([futureDynamicType]);
+    InterfaceType futureFutureIntType =
+        _typeProvider.futureType.substitute4([futureIntType]);
+    // flatten(int) = int
+    expect(_flatten(intType), intType);
+    // flatten(dynamic) = dynamic
+    expect(_flatten(dynamicType), dynamicType);
+    // flatten(Future) = dynamic
+    expect(_flatten(futureDynamicType), dynamicType);
+    // flatten(Future<int>) = int
+    expect(_flatten(futureIntType), intType);
+    // flatten(Future<Future>) = dynamic
+    expect(_flatten(futureFutureDynamicType), dynamicType);
+    // flatten(Future<Future<int>>) = int
+    expect(_flatten(futureFutureIntType), intType);
+  }
+
+  void test_flatten_unrelated_types() {
+    InterfaceType futureType = _typeProvider.futureType;
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType stringType = _typeProvider.stringType;
+    // class A extends Future<int> implements Future<String> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', futureType.substitute4([intType]));
+    classA.interfaces = <InterfaceType>[futureType.substitute4([stringType])];
+    // class B extends Future<String> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', futureType.substitute4([stringType]));
+    classB.interfaces = <InterfaceType>[futureType.substitute4([intType])];
+    // flatten(A) = A and flatten(B) = B, since neither string nor int is more
+    // specific than the other.
+    expect(_flatten(classA.type), classA.type);
+    expect(_flatten(classB.type), classB.type);
   }
 
   void test_visitAdjacentStrings() {
@@ -9994,8 +10182,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(dynamicType,
-        <DartType>[dynamicType, dynamicType], null, null, resultType);
+    _assertFunctionType(dynamicType, <DartType>[
+      dynamicType,
+      dynamicType
+    ], null, null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10029,8 +10219,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     DartType resultType = _analyze(node);
     Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
-    _assertFunctionType(dynamicType,
-        <DartType>[dynamicType], null, expectedNamedTypes, resultType);
+    _assertFunctionType(dynamicType, <DartType>[dynamicType], null,
+        expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10049,8 +10239,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     DartType resultType = _analyze(node);
     Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
-    _assertFunctionType(_typeProvider.intType,
-        <DartType>[dynamicType], null, expectedNamedTypes, resultType);
+    _assertFunctionType(_typeProvider.intType, <DartType>[dynamicType], null,
+        expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10068,8 +10258,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(dynamicType,
-        <DartType>[dynamicType], <DartType>[dynamicType], null, resultType);
+    _assertFunctionType(dynamicType, <DartType>[dynamicType],
+        <DartType>[dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10087,8 +10277,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(_typeProvider.intType,
-        <DartType>[dynamicType], <DartType>[dynamicType], null, resultType);
+    _assertFunctionType(_typeProvider.intType, <DartType>[dynamicType],
+        <DartType>[dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10107,8 +10297,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(dynamicType,
-        null, <DartType>[dynamicType, dynamicType], null, resultType);
+    _assertFunctionType(dynamicType, null, <DartType>[
+      dynamicType,
+      dynamicType
+    ], null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10211,9 +10403,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
-        null, AstFactory.typeName(classElement), [
-      AstFactory.identifier3(constructorName)
-    ]);
+        null, AstFactory.typeName(classElement),
+        [AstFactory.identifier3(constructorName)]);
     node.staticElement = constructor;
     expect(_analyze(node), same(classElement.type));
     _listener.assertNoErrors();
@@ -10303,10 +10494,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // {}
     Expression node = AstFactory.mapLiteral2();
     DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.mapType.substitute4(<DartType>[
-      _typeProvider.dynamicType,
-      _typeProvider.dynamicType
-    ]), resultType);
+    _assertType2(_typeProvider.mapType.substitute4(
+            <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
+        resultType);
     _listener.assertNoErrors();
   }
 
@@ -10315,10 +10505,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     Expression node = AstFactory
         .mapLiteral2([AstFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.mapType.substitute4(<DartType>[
-      _typeProvider.dynamicType,
-      _typeProvider.dynamicType
-    ]), resultType);
+    _assertType2(_typeProvider.mapType.substitute4(
+            <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
+        resultType);
     _listener.assertNoErrors();
   }
 
@@ -10732,6 +10921,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
           "Could not create analyzer", exception);
     }
   }
+
+  DartType _flatten(DartType type) =>
+      StaticTypeAnalyzer.flattenFutures(_typeProvider, type);
 
   /**
    * Return an integer literal that has been resolved to the correct type.
@@ -11306,7 +11498,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
     try {
       manager.exitScope();
       fail("Expected IllegalStateException");
-    } on IllegalStateException catch (exception) {
+    } on IllegalStateException {
       // Expected
     }
   }
@@ -11318,7 +11510,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
     try {
       manager.exitScope();
       fail("Expected IllegalStateException");
-    } on IllegalStateException catch (exception) {
+    } on IllegalStateException {
       // Expected
     }
   }
@@ -11332,7 +11524,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
     try {
       manager.exitScope();
       fail("Expected IllegalStateException");
-    } on IllegalStateException catch (exception) {
+    } on IllegalStateException {
       // Expected
     }
   }
@@ -13032,8 +13224,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _typeProvider = new TestTypeProvider();
     _visitor =
         new TypeResolverVisitor.con1(_library, librarySource, _typeProvider);
-    _implicitConstructorBuilder = new ImplicitConstructorBuilder(librarySource,
-        _library.libraryElement, _library.libraryScope, _typeProvider,
+    _implicitConstructorBuilder = new ImplicitConstructorBuilder(_listener,
         (ClassElement classElement, ClassElement superclassElement,
             void computation()) {
       // For these tests, we assume the classes for which implicit
@@ -13195,7 +13386,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassElement classC = ElementFactory.classElement2('C', []);
+    ClassElement classC = ElementFactory.classTypeAlias2('C', []);
     ClassTypeAlias alias = AstFactory.classTypeAlias(
         'C', null, null, AstFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
@@ -13226,7 +13417,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassElement classC = ElementFactory.classElement2('C', []);
+    ClassElement classC = ElementFactory.classTypeAlias2('C', []);
     ClassTypeAlias alias = AstFactory.classTypeAlias(
         'C', null, null, AstFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
@@ -13257,7 +13448,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassElement classC = ElementFactory.classElement2('C', []);
+    ClassElement classC = ElementFactory.classTypeAlias2('C', []);
     ClassTypeAlias alias = AstFactory.classTypeAlias(
         'C', null, null, AstFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
@@ -13440,7 +13631,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
       }
     }
     node.accept(_visitor);
-    node.accept(_implicitConstructorBuilder);
+    if (node is Declaration) {
+      node.element.accept(_implicitConstructorBuilder);
+    }
   }
 }
 

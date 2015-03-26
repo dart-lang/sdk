@@ -48,6 +48,7 @@ class _Platform {
         path.startsWith('https:') ||
         path.startsWith('package:') ||
         path.startsWith('dart:') ||
+        path.startsWith('data:') ||
         path.startsWith('file:')) {
       script = Uri.parse(path);
     } else {

@@ -83,12 +83,13 @@ void ExtractTestsFromMultitest(Path filePath,
        'static type warning', 'dynamic type error',
        'checked mode compile-time error']);
 
-  List<String> testTemplate = new List<String>();
-  testTemplate.add(
-      '// Test created from multitest named ${filePath.toNativePath()}.');
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
   Map<String, List<String>> testsAsLines = new Map<String, List<String>>();
+
+  // Add the default case with key "none".
+  testsAsLines['none'] = new List<String>();
+  outcomes['none'] = new Set<String>();
 
   int lineCount = 0;
   for (String line in lines) {
@@ -96,12 +97,13 @@ void ExtractTestsFromMultitest(Path filePath,
     var annotation = new _Annotation.from(line);
     if (annotation != null) {
       testsAsLines.putIfAbsent(annotation.key,
-          () => new List<String>.from(testTemplate)).add(line);
-      outcomes.putIfAbsent(annotation.key,
-          () => new Set<String>());
-      if (annotation.rest == 'continued') {
-        continue;
-      } else {
+          () => new List<String>.from(testsAsLines["none"]));
+      // Add line to test with annotation.key as key, empty line to the rest.
+      for (var key in testsAsLines.keys) {
+        testsAsLines[key].add(annotation.key == key ? line : "");
+      }
+      outcomes.putIfAbsent(annotation.key, () => new Set<String>());
+      if (annotation.rest != 'continued') {
         for (String nextOutcome in annotation.outcomesList) {
           if (validMultitestOutcomes.contains(nextOutcome)) {
             outcomes[annotation.key].add(nextOutcome);
@@ -113,10 +115,15 @@ void ExtractTestsFromMultitest(Path filePath,
         }
       }
     } else {
-      testTemplate.add(line);
       for (var test in testsAsLines.values) test.add(line);
     }
   }
+  // End marker, has a final line separator so we don't need to add it after
+  // joining the lines.
+  var marker =
+      '// Test created from multitest named ${filePath.toNativePath()}.'
+      '$line_separator';
+  for (var test in testsAsLines.values) test.add(marker);
 
   var keysToDelete = [];
   // Check that every key (other than the none case) has at least one outcome
@@ -131,16 +138,12 @@ void ExtractTestsFromMultitest(Path filePath,
     }
   }
   // If a key/multitest was marked for deletion, do the necessary cleanup.
-  keysToDelete.forEach((key) => outcomes.remove(key));
-  keysToDelete.forEach((key) => testsAsLines.remove(key));
-
-  // Add the template, with no multitest lines, as a test with key 'none'.
-  testsAsLines['none'] = testTemplate;
-  outcomes['none'] = new Set<String>();
+  keysToDelete.forEach(outcomes.remove);
+  keysToDelete.forEach(testsAsLines.remove);
 
   // Copy all the tests into the output map tests, as multiline strings.
   for (String key in testsAsLines.keys) {
-    tests[key] = testsAsLines[key].join(line_separator) + line_separator;
+    tests[key] = testsAsLines[key].join(line_separator);
   }
 }
 
@@ -185,7 +188,7 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
       '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
       '(import|part)'
       '\\s+["\']'
-      '(?!(dart:|dart-ext:|package:|/))' // Look-ahead: not in package.
+      '(?!(dart:|dart-ext:|data:|package:|/))' // Look-ahead: not in package.
       '([^"\']*)' // The path to the imported file.
       '["\']');
   while (!toSearch.isEmpty) {

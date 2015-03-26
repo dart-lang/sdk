@@ -75,7 +75,7 @@ Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   var invocationResult = null;
   try {
     invocationResult = instanceMirror.invoke(symbol, []).reflectee;
-  } on NoSuchMethodError catch (e) {}
+  } on NoSuchMethodError {}
   if (invocationResult is Future) {
     return invocationResult;
   } else {

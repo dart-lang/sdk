@@ -6,6 +6,7 @@ part of vmservice;
 
 // These must be kept in sync with runtime/vm/service.cc.
 class Constants {
+  static const int SERVICE_EXIT_MESSAGE_ID = 0;
   static const int ISOLATE_STARTUP_MESSAGE_ID = 1;
   static const int ISOLATE_SHUTDOWN_MESSAGE_ID = 2;
 

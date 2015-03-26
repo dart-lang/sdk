@@ -410,11 +410,6 @@ interface SVGSVGElement {
 };
 
 [DartSupplemental]
-interface WorkerGlobalScope {
-    [DartSuppress] readonly attribute NotificationCenter webkitNotifications;
-};
-
-[DartSupplemental]
 interface AudioBuffer {
     [DartSuppress] attribute float gain;
 };

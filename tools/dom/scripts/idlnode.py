@@ -508,6 +508,7 @@ class IDLExtAttrs(IDLDictNode):
     return self.values()
 
 
+# IDLExtAttrFunctionValue is used for constructors defined in the IDL.
 class IDLExtAttrFunctionValue(IDLNode):
   """IDLExtAttrFunctionValue."""
   def __init__(self, func_value_ast, arg_list_ast, is_blink=False):

@@ -81,6 +81,7 @@ class AssistProcessor {
     _addProposal_assignToLocalVariable();
     _addProposal_convertToBlockFunctionBody();
     _addProposal_convertToExpressionFunctionBody();
+    _addProposal_convertToForIndexLoop();
     _addProposal_convertToIsNot_onIs();
     _addProposal_convertToIsNot_onNot();
     _addProposal_convertToIsNotEmpty();
@@ -203,6 +204,11 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    // type source might be null, if the type is private
+    if (typeSource == null) {
+      _coverageMarker();
+      return;
+    }
     // add edit
     Token keyword = declaredIdentifier.keyword;
     if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
@@ -211,6 +217,49 @@ class AssistProcessor {
     } else {
       _addInsertEdit(declaredIdentifier.identifier.offset, '$typeSource ');
     }
+    // add proposal
+    _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
+  }
+
+  void _addProposal_addTypeAnnotation_SimpleFormalParameter() {
+    AstNode node = this.node;
+    // should be the name of a simple parameter
+    if (node is! SimpleIdentifier || node.parent is! SimpleFormalParameter) {
+      _coverageMarker();
+      return;
+    }
+    SimpleIdentifier name = node;
+    SimpleFormalParameter parameter = node.parent;
+    // the parameter should not have a type
+    if (parameter.type != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare propagated type
+    DartType type = name.propagatedType;
+    // TODO(scheglov) If the parameter is in a method declaration, and if the
+    // method overrides a method that has a type for the corresponding
+    // parameter, it would be nice to copy down the type from the overridden
+    // method.
+    if (type is! InterfaceType) {
+      _coverageMarker();
+      return;
+    }
+    // prepare type source
+    String typeSource;
+    {
+      _configureTargetLocation(node);
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      typeSource = utils.getTypeSource(type, librariesToImport);
+      addLibraryImports(change, unitLibraryElement, librariesToImport);
+    }
+    // type source might be null, if the type is private
+    if (typeSource == null) {
+      _coverageMarker();
+      return;
+    }
+    // add edit
+    _addInsertEdit(name.offset, '$typeSource ');
     // add proposal
     _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
   }
@@ -258,6 +307,11 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    // type source might be null, if the type is private
+    if (typeSource == null) {
+      _coverageMarker();
+      return;
+    }
     // add edit
     Token keyword = declarationList.keyword;
     if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
@@ -266,44 +320,6 @@ class AssistProcessor {
     } else {
       _addInsertEdit(variable.offset, '$typeSource ');
     }
-    // add proposal
-    _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
-  }
-
-  void _addProposal_addTypeAnnotation_SimpleFormalParameter() {
-    AstNode node = this.node;
-    // should be the name of a simple parameter
-    if (node is! SimpleIdentifier || node.parent is! SimpleFormalParameter) {
-      _coverageMarker();
-      return;
-    }
-    SimpleIdentifier name = node;
-    SimpleFormalParameter parameter = node.parent;
-    // the parameter should not have a type
-    if (parameter.type != null) {
-      _coverageMarker();
-      return;
-    }
-    // prepare propagated type
-    DartType type = name.propagatedType;
-    // TODO(scheglov) If the parameter is in a method declaration, and if the
-    // method overrides a method that has a type for the corresponding
-    // parameter, it would be nice to copy down the type from the overridden
-    // method.
-    if (type is! InterfaceType) {
-      _coverageMarker();
-      return;
-    }
-    // prepare type source
-    String typeSource;
-    {
-      _configureTargetLocation(node);
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-      typeSource = utils.getTypeSource(type, librariesToImport);
-      addLibraryImports(change, unitLibraryElement, librariesToImport);
-    }
-    // add edit
-    _addInsertEdit(name.offset, '$typeSource ');
     // add proposal
     _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
   }
@@ -422,6 +438,81 @@ class AssistProcessor {
     _addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
     _addAssist(AssistKind.CONVERT_INTO_EXPRESSION_BODY, []);
+  }
+
+  void _addProposal_convertToForIndexLoop() {
+    // find enclosing ForEachStatement
+    ForEachStatement forEachStatement =
+        node.getAncestor((n) => n is ForEachStatement);
+    if (forEachStatement == null) {
+      _coverageMarker();
+      return;
+    }
+    if (selectionOffset < forEachStatement.offset ||
+        forEachStatement.rightParenthesis.end < selectionOffset) {
+      _coverageMarker();
+      return;
+    }
+    // loop should declare variable
+    DeclaredIdentifier loopVariable = forEachStatement.loopVariable;
+    if (loopVariable == null) {
+      _coverageMarker();
+      return;
+    }
+    // iterable should be VariableElement
+    String listName;
+    Expression iterable = forEachStatement.iterable;
+    if (iterable is SimpleIdentifier &&
+        iterable.staticElement is VariableElement) {
+      listName = iterable.name;
+    } else {
+      _coverageMarker();
+      return;
+    }
+    // iterable should be List
+    {
+      DartType iterableType = iterable.bestType;
+      InterfaceType listType = context.typeProvider.listType;
+      if (iterableType is! InterfaceType ||
+          iterableType.element != listType.element) {
+        _coverageMarker();
+        return;
+      }
+    }
+    // body should be Block
+    if (forEachStatement.body is! Block) {
+      _coverageMarker();
+      return;
+    }
+    Block body = forEachStatement.body;
+    // prepare a name for the index variable
+    String indexName;
+    {
+      Set<String> conflicts =
+          utils.findPossibleLocalVariableConflicts(forEachStatement.offset);
+      if (!conflicts.contains('i')) {
+        indexName = 'i';
+      } else if (!conflicts.contains('j')) {
+        indexName = 'j';
+      } else if (!conflicts.contains('k')) {
+        indexName = 'k';
+      } else {
+        _coverageMarker();
+        return;
+      }
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(forEachStatement);
+    String indent = utils.getIndent(1);
+    int firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
+    // add change
+    _addReplaceEdit(
+        rangeStartEnd(forEachStatement, forEachStatement.rightParenthesis),
+        'for (int $indexName = 0; $indexName < $listName.length; $indexName++)');
+    _addInsertEdit(firstBlockLine,
+        '$prefix$indent$loopVariable = $listName[$indexName];$eol');
+    // add proposal
+    _addAssist(AssistKind.CONVERT_INTO_FOR_INDEX, []);
   }
 
   void _addProposal_convertToIsNot_onIs() {
@@ -711,10 +802,19 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    // prepare location
+    int offset;
+    String statementPrefix;
+    if (isExpression.notOperator == null) {
+      offset = targetBlock.leftBracket.end;
+      statementPrefix = indent;
+    } else {
+      offset = targetBlock.rightBracket.end;
+      statementPrefix = '';
+    }
     // prepare source
-    int offset = targetBlock.leftBracket.end;
     SourceBuilder builder = new SourceBuilder(file, offset);
-    builder.append(eol + prefix + indent);
+    builder.append(eol + prefix + statementPrefix);
     builder.append(castTypeCode);
     // prepare excluded names
     Set<String> excluded = new Set<String>();

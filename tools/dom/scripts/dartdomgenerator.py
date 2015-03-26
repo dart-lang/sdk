@@ -233,6 +233,9 @@ def main():
   parser.add_option('--verbose', dest='logging_level',
                     action='store_false', default=logging.WARNING,
                     help='Output all informational messages')
+  parser.add_option('--examine', dest='examine_idls',
+                    action='store_true', default=None,
+                    help='Analyze IDL files')
   parser.add_option('--logging', dest='logging', type='int',
                     action='store', default=logging.NOTSET,
                     help='Level of logging 20 is Info, 30 is Warnings, 40 is Errors')
@@ -263,7 +266,7 @@ def main():
   UpdateCssProperties()
 
   # Parse the IDL and create the database.
-  database = fremontcutbuilder.main(options.parallel, logging_level=logging_level)
+  database = fremontcutbuilder.main(options.parallel, logging_level=logging_level, examine_idls=options.examine_idls)
 
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir,
       options.update_dom_metadata, logging_level)

@@ -657,6 +657,18 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_FunctionExpression() {
+    // BlockFunctionBody  FunctionExpression  FunctionDeclaration
+    addTestSource('main()^ { int b = 2; b++; b. }');
+    assertOpType();
+  }
+
+  test_FunctionExpressionInvocation() {
+    // ArgumentList  FunctionExpressionInvocation  ExpressionStatement
+    addTestSource('main() { ((x) => x + 7)^(2) }');
+    assertOpType();
+  }
+
   test_FunctionTypeAlias() {
     // SimpleIdentifier  FunctionTypeAlias  CompilationUnit
     addTestSource('typedef n^ ;');
@@ -982,6 +994,12 @@ class C2 {
     assertOpType(invocation: true);
   }
 
+  test_PostfixExpression() {
+    // SimpleIdentifier  PostfixExpression  ForStatement
+    addTestSource('int x = 0; main() {ax+^+;}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_PrefixedIdentifier_class_const() {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
     addTestSource('main() {A.^}');
@@ -1054,6 +1072,12 @@ class C2 {
         A() {this.^}
       }''');
     assertOpType(invocation: true);
+  }
+
+  test_ThrowExpression() {
+    // SimpleIdentifier  ThrowExpression  ExpressionStatement
+    addTestSource('main() {throw ^;}');
+    assertOpType(returnValue: true, typeNames: true);
   }
 
   test_TopLevelVariableDeclaration_typed_name() {

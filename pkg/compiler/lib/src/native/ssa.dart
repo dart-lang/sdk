@@ -85,7 +85,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     }
 
     builder.push(
-        new HForeign(
+        new HForeignCode(
             // TODO(sra): This could be cached.  The number of templates should
             // be proportional to the number of native methods, which is bounded
             // by the dart: libraries.
@@ -100,7 +100,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
           'functions with zero parameters.');
     }
     LiteralString jsCode = nativeBody.asLiteralString();
-    builder.push(new HForeign.statement(
+    builder.push(new HForeignCode.statement(
         js.js.statementTemplateYielding(
             new js.LiteralStatement(jsCode.dartString.slowToString())),
         <HInstruction>[],

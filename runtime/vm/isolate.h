@@ -16,6 +16,7 @@
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
+#include "vm/thread.h"
 #include "vm/os_thread.h"
 #include "vm/trace_buffer.h"
 #include "vm/timer.h"
@@ -118,9 +119,9 @@ class Isolate : public BaseIsolate {
   ~Isolate();
 
   static inline Isolate* Current() {
-    return reinterpret_cast<Isolate*>(OSThread::GetThreadLocal(isolate_key));
+    Thread* thread = Thread::Current();
+    return thread == NULL ? NULL : thread->isolate();
   }
-
   static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();
@@ -154,9 +155,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, class_table_);
   }
 
-  CHA* cha() const { return cha_; }
-  void set_cha(CHA* value) { cha_ = value; }
-
   MegamorphicCacheTable* megamorphic_cache_table() {
     return &megamorphic_cache_table_;
   }
@@ -168,7 +166,19 @@ class Isolate : public BaseIsolate {
     message_notify_callback_ = value;
   }
 
+  // A thread that operates on this isolate and may execute Dart code.
+  // No other threads operating on this isolate may execute Dart code.
+  // TODO(koda): Remove after caching current thread in generated code.
+  Thread* mutator_thread() {
+    DEBUG_ASSERT(IsIsolateOf(mutator_thread_));
+    return mutator_thread_;
+  }
+#if defined(DEBUG)
+  bool IsIsolateOf(Thread* thread);
+#endif  // DEBUG
+
   const char* name() const { return name_; }
+  // TODO(koda): Move to Thread.
   class Log* Log() const;
 
   int64_t start_time() const { return start_time_; }
@@ -304,13 +314,11 @@ class Isolate : public BaseIsolate {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
     kStoreBufferInterrupt = 0x4,  // An interrupt to process the store buffer.
-    kVmStatusInterrupt = 0x8,     // An interrupt to process a status request.
 
     kInterruptsMask =
         kApiInterrupt |
         kMessageInterrupt |
-        kStoreBufferInterrupt |
-        kVmStatusInterrupt,
+        kStoreBufferInterrupt,
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
@@ -457,13 +465,6 @@ class Isolate : public BaseIsolate {
     return interrupt_callback_;
   }
 
-  static void SetVmStatsCallback(Dart_IsolateInterruptCallback cb) {
-    vmstats_callback_ = cb;
-  }
-  static Dart_IsolateInterruptCallback VmStatsCallback() {
-    return vmstats_callback_;
-  }
-
   static void SetUnhandledExceptionCallback(
       Dart_IsolateUnhandledExceptionCallback cb) {
     unhandled_exception_callback_ = cb;
@@ -527,6 +528,15 @@ class Isolate : public BaseIsolate {
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
     deopt_context_ = value;
+  }
+
+  int32_t edge_counter_increment_size() const {
+    return edge_counter_increment_size_;
+  }
+  void set_edge_counter_increment_size(int32_t size) {
+    ASSERT(edge_counter_increment_size_ == -1);
+    ASSERT(size >= 0);
+    edge_counter_increment_size_ = size;
   }
 
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
@@ -670,11 +680,9 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
-
   template<class T> T* AllocateReusableHandle();
 
-  static ThreadLocalKey isolate_key;
-
+  Thread* mutator_thread_;
   uword vm_tag_;
   StoreBuffer store_buffer_;
   ClassTable class_table_;
@@ -718,6 +726,7 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
+  int32_t edge_counter_increment_size_;
 
   // Log.
   bool is_service_isolate_;
@@ -730,8 +739,6 @@ class Isolate : public BaseIsolate {
   // Timestamps of last operation via service.
   int64_t last_allocationprofile_accumulator_reset_timestamp_;
   int64_t last_allocationprofile_gc_timestamp_;
-
-  CHA* cha_;
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;
@@ -801,6 +808,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ServiceIsolate;
+  friend class Thread;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
@@ -906,8 +914,8 @@ class IsolateSpawnState {
   bool paused() const { return paused_; }
 
   RawObject* ResolveFunction();
-  RawInstance* BuildArgs();
-  RawInstance* BuildMessage();
+  RawInstance* BuildArgs(Zone* zone);
+  RawInstance* BuildMessage(Zone* zone);
   void Cleanup();
 
  private:

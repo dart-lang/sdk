@@ -7,6 +7,7 @@ library services.src.refactoring.sort_members;
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * Sorter for unit/class members.
@@ -41,20 +42,11 @@ class MemberSorter {
   final String initialCode;
   final CompilationUnit unit;
   String code;
+  String endOfLine;
 
   MemberSorter(this.initialCode, this.unit) {
     this.code = initialCode;
-  }
-
-  /**
-   * Return the EOL to use for [code].
-   */
-  String get endOfLine {
-    if (code.contains('\r\n')) {
-      return '\r\n';
-    } else {
-      return '\n';
-    }
+    this.endOfLine = getEOL(code);
   }
 
   /**
@@ -233,6 +225,29 @@ class MemberSorter {
       directivesCode = sb.toString();
       directivesCode = directivesCode.trimRight();
     }
+    // append comment tokens which otherwise would be removed completely
+    {
+      bool firstCommentToken = true;
+      Token token = unit.beginToken;
+      while (token != null &&
+          token.type != TokenType.EOF &&
+          token.end < lastDirectiveEnd) {
+        Token commentToken = token.precedingComments;
+        while (commentToken != null) {
+          int offset = commentToken.offset;
+          int end = commentToken.end;
+          if (offset > firstDirectiveOffset && offset < lastDirectiveEnd) {
+            if (firstCommentToken) {
+              directivesCode += endOfLine;
+              firstCommentToken = false;
+            }
+            directivesCode += code.substring(offset, end) + endOfLine;
+          }
+          commentToken = commentToken.next;
+        }
+        token = token.next;
+      }
+    }
     // prepare code
     String beforeDirectives = code.substring(0, firstDirectiveOffset);
     String afterDirectives = code.substring(lastDirectiveEnd);
@@ -295,6 +310,17 @@ class MemberSorter {
     }
     // do sort
     _sortAndReorderMembers(members);
+  }
+
+  /**
+   * Return the EOL to use for [code].
+   */
+  static String getEOL(String code) {
+    if (code.contains('\r\n')) {
+      return '\r\n';
+    } else {
+      return '\n';
+    }
   }
 
   static int _getPriority(_PriorityItem item) {

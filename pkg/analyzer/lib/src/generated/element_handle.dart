@@ -12,6 +12,7 @@ import 'element.dart';
 import 'engine.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
+import 'resolver.dart';
 import 'source.dart';
 import 'utilities_dart.dart';
 
@@ -79,9 +80,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   List<InterfaceType> get mixins => actualElement.mixins;
-
-  @override
-  ClassDeclaration get node => actualElement.node;
 
   @override
   InterfaceType get supertype => actualElement.supertype;
@@ -504,6 +502,9 @@ abstract class ExecutableElementHandle extends ElementHandle
   List<FunctionElement> get functions => actualElement.functions;
 
   @override
+  bool get isAbstract => actualElement.isAbstract;
+
+  @override
   bool get isAsynchronous => actualElement.isAsynchronous;
 
   @override
@@ -611,6 +612,9 @@ class FunctionElementHandle extends ExecutableElementHandle
 
   @override
   FunctionElement get actualElement => super.actualElement as FunctionElement;
+
+  @override
+  bool get isEntryPoint => actualElement.isEntryPoint;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
@@ -751,6 +755,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   List<LibraryElement> get exportedLibraries => actualElement.exportedLibraries;
 
   @override
+  Namespace get exportNamespace => actualElement.exportNamespace;
+
+  @override
   List<ExportElement> get exports => actualElement.exports;
 
   @override
@@ -785,6 +792,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   List<PrefixElement> get prefixes => actualElement.prefixes;
+
+  @override
+  Namespace get publicNamespace => actualElement.publicNamespace;
 
   @override
   List<CompilationUnitElement> get units => actualElement.units;
@@ -844,9 +854,6 @@ class MethodElementHandle extends ExecutableElementHandle
 
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
-
-  @override
-  bool get isAbstract => actualElement.isAbstract;
 
   @override
   bool get isStatic => actualElement.isStatic;
@@ -943,9 +950,6 @@ class PropertyAccessorElementHandle extends ExecutableElementHandle
   @override
   PropertyAccessorElement get correspondingSetter =>
       actualElement.correspondingSetter;
-
-  @override
-  bool get isAbstract => actualElement.isAbstract;
 
   @override
   bool get isGetter => actualElement.isGetter;

@@ -162,7 +162,7 @@ abstract class Enqueuer {
       FunctionElement function = member;
       function.computeSignature(compiler);
       if (function.name == Compiler.NO_SUCH_METHOD) {
-        enableNoSuchMethod(function);
+        registerNoSuchMethod(function);
       }
       if (function.name == Compiler.CALL_OPERATOR_NAME &&
           !cls.typeVariables.isEmpty) {
@@ -212,7 +212,8 @@ abstract class Enqueuer {
         .add(member);
   }
 
-  void enableNoSuchMethod(Element element) {}
+  void registerNoSuchMethod(Element noSuchMethod);
+
   void enableIsolateSupport() {}
 
   void processInstantiatedClass(ClassElement cls) {
@@ -736,17 +737,13 @@ class ResolutionEnqueuer extends Enqueuer {
     return true;
   }
 
+  void registerNoSuchMethod(Element element) {
+    compiler.backend.registerNoSuchMethod(element);
+  }
+
   void enableIsolateSupport() {
     compiler.hasIsolateSupport = true;
     compiler.backend.enableIsolateSupport(this);
-  }
-
-  void enableNoSuchMethod(Element element) {
-    if (compiler.enabledNoSuchMethod) return;
-    if (compiler.backend.isDefaultNoSuchMethodImplementation(element)) return;
-
-    compiler.enabledNoSuchMethod = true;
-    compiler.backend.enableNoSuchMethod(element, this);
   }
 
   /**
@@ -806,6 +803,8 @@ class CodegenEnqueuer extends Enqueuer {
 
   final Set<Selector> newlySeenSelectors;
 
+  bool enabledNoSuchMethod = false;
+
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator())
       : queue = new Queue<CodegenWorkItem>(),
@@ -853,6 +852,13 @@ class CodegenEnqueuer extends Enqueuer {
         element, itemCompilationContextCreator());
     queue.add(workItem);
     return true;
+  }
+
+  void registerNoSuchMethod(Element element) {
+    if (!enabledNoSuchMethod && compiler.backend.enabledNoSuchMethod) {
+      compiler.backend.enableNoSuchMethod(this);
+      enabledNoSuchMethod = true;
+    }
   }
 
   void _logSpecificSummary(log(message)) {

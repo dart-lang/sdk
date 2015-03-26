@@ -9,3 +9,4 @@ Force build after chrome-bot messup
 Testing svn server
 CIT outage
 Testing update steps
+Testing bots after GOLO <> gcs failures

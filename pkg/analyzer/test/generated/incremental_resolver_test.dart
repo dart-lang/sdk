@@ -910,6 +910,30 @@ main(int callback(int a, String b)) {
 ''');
   }
 
+  void test_false_getter_body_add() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  int get foo;
+}
+''', r'''
+class A {
+  int get foo => 0;
+}
+''');
+  }
+
+  void test_false_getter_body_remove() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  int get foo => 0;
+}
+''', r'''
+class A {
+  int get foo;
+}
+''');
+  }
+
   void test_false_implementsClause_add() {
     _assertDoesNotMatch(r'''
 class A {}
@@ -1084,6 +1108,30 @@ class A {
 ''', r'''
 class A {
   m() {}
+}
+''');
+  }
+
+  void test_false_method_body_add() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  void foo();
+}
+''', r'''
+class A {
+  void foo() {}
+}
+''');
+  }
+
+  void test_false_method_body_remove() {
+    _assertDoesNotMatchOK(r'''
+class A {
+  void foo() {}
+}
+''', r'''
+class A {
+  void foo();
 }
 ''');
   }
@@ -1619,6 +1667,30 @@ class B<T> = A<T> with M<T>;
 class M<T> {}
 class A<T> {}
 class B<T> = A<T> with M<T>;
+''');
+  }
+
+  void test_true_constructor_body_add() {
+    _assertMatches(r'''
+class A {
+  A(int p);
+}
+''', r'''
+class A {
+  A(int p) {}
+}
+''');
+  }
+
+  void test_true_constructor_body_remove() {
+    _assertMatches(r'''
+class A {
+  A(int p) {}
+}
+''', r'''
+class A {
+  A(int p);
+}
 ''');
   }
 
@@ -3807,7 +3879,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     try {
       _scopeFor(AstFactory.identifier3("x"));
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -3816,7 +3888,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     try {
       _scopeFor(null);
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -3825,7 +3897,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     try {
       _scopeFor(AstFactory.compilationUnit());
       fail("Expected AnalysisException");
-    } on AnalysisException catch (exception) {
+    } on AnalysisException {
       // Expected
     }
   }
@@ -3838,9 +3910,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     unit.declarations.add(classNode);
     ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
-    (unit.element as CompilationUnitElementImpl).types = <ClassElement>[
-      classElement
-    ];
+    (unit.element as CompilationUnitElementImpl).types =
+        <ClassElement>[classElement];
     return classNode;
   }
 
@@ -3852,9 +3923,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     unit.declarations.add(classNode);
     ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
-    (unit.element as CompilationUnitElementImpl).types = <ClassElement>[
-      classElement
-    ];
+    (unit.element as CompilationUnitElementImpl).types =
+        <ClassElement>[classElement];
     return classNode;
   }
 
@@ -3876,9 +3946,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     ConstructorElement constructorElement =
         ElementFactory.constructorElement2(classNode.element, null);
     constructorNode.element = constructorElement;
-    (classNode.element as ClassElementImpl).constructors = <ConstructorElement>[
-      constructorElement
-    ];
+    (classNode.element as ClassElementImpl).constructors =
+        <ConstructorElement>[constructorElement];
     return constructorNode;
   }
 
@@ -3891,9 +3960,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     FunctionElement functionElement =
         ElementFactory.functionElement(functionName);
     functionNode.name.staticElement = functionElement;
-    (unit.element as CompilationUnitElementImpl).functions = <FunctionElement>[
-      functionElement
-    ];
+    (unit.element as CompilationUnitElementImpl).functions =
+        <FunctionElement>[functionElement];
     return functionNode;
   }
 
@@ -3922,9 +3990,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     MethodElement methodElement =
         ElementFactory.methodElement(methodName, null);
     methodNode.name.staticElement = methodElement;
-    (classNode.element as ClassElementImpl).methods = <MethodElement>[
-      methodElement
-    ];
+    (classNode.element as ClassElementImpl).methods =
+        <MethodElement>[methodElement];
     return methodNode;
   }
 

@@ -10,9 +10,9 @@
 #include "vm/unibrow-inl.h"
 #include "vm/unicode.h"
 #include "vm/symbols.h"
+#include "vm/thread.h"
 
-#define I (isolate())
-#define CI (compiler->isolate())
+#define Z (zone())
 
 namespace dart {
 
@@ -334,7 +334,7 @@ class RegExpCompiler : public ValueObject {
     current_expansion_factor_ = value;
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
   static const intptr_t kNoRegister = -1;
 
@@ -349,7 +349,7 @@ class RegExpCompiler : public ValueObject {
   bool reg_exp_too_big_;
   intptr_t current_expansion_factor_;
   FrequencyCollator frequency_collator_;
-  Isolate* isolate_;
+  Zone* zone_;
 };
 
 
@@ -380,8 +380,8 @@ RegExpCompiler::RegExpCompiler(intptr_t capture_count, bool ignore_case,
       specialization_cid_(specialization_cid),
       reg_exp_too_big_(false),
       current_expansion_factor_(1),
-      isolate_(Isolate::Current()) {
-  accept_ = new(I) EndNode(EndNode::ACCEPT, I);
+      zone_(Thread::Current()->zone()) {
+  accept_ = new(Z) EndNode(EndNode::ACCEPT, Z);
 }
 
 
@@ -461,7 +461,7 @@ bool Trace::GetStoredPosition(intptr_t reg, intptr_t* cp_offset) {
 // nodes.  It normalizes the state of the code generator to ensure we can
 // generate generic code.
 intptr_t Trace::FindAffectedRegisters(OutSet* affected_registers,
-                                      Isolate* isolate) {
+                                      Zone* zone) {
   intptr_t max_register = RegExpCompiler::kNoRegister;
   for (DeferredAction* action = actions_;
        action != NULL;
@@ -469,10 +469,10 @@ intptr_t Trace::FindAffectedRegisters(OutSet* affected_registers,
     if (action->action_type() == ActionNode::CLEAR_CAPTURES) {
       Interval range = static_cast<DeferredClearCaptures*>(action)->range();
       for (intptr_t i = range.from(); i <= range.to(); i++)
-        affected_registers->Set(i, isolate);
+        affected_registers->Set(i, zone);
       if (range.to() > max_register) max_register = range.to();
     } else {
-      affected_registers->Set(action->reg(), isolate);
+      affected_registers->Set(action->reg(), zone);
       if (action->reg() > max_register) max_register = action->reg();
     }
   }
@@ -503,7 +503,7 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
                                    const OutSet& affected_registers,
                                    OutSet* registers_to_pop,
                                    OutSet* registers_to_clear,
-                                   Isolate* isolate) {
+                                   Zone* zone) {
   for (intptr_t reg = 0; reg <= max_register; reg++) {
     if (!affected_registers.Get(reg)) {
       continue;
@@ -595,9 +595,9 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
     // Prepare for the undo-action (e.g., push if it's going to be popped).
     if (undo_action == ACTION_RESTORE) {
       assembler->PushRegister(reg);
-      registers_to_pop->Set(reg, isolate);
+      registers_to_pop->Set(reg, zone);
     } else if (undo_action == ACTION_CLEAR) {
-      registers_to_clear->Set(reg, isolate);
+      registers_to_clear->Set(reg, zone);
     }
     // Perform the chronologically last action (or accumulated increment)
     // for the register.
@@ -642,8 +642,8 @@ void Trace::Flush(RegExpCompiler* compiler, RegExpNode* successor) {
     // position which we may need to emit here.
     assembler->PushCurrentPosition();
   }
-
-  intptr_t max_register = FindAffectedRegisters(&affected_registers, CI);
+  Zone* zone = successor->zone();
+  intptr_t max_register = FindAffectedRegisters(&affected_registers, zone);
   OutSet registers_to_pop;
   OutSet registers_to_clear;
   PerformDeferredActions(assembler,
@@ -651,7 +651,7 @@ void Trace::Flush(RegExpCompiler* compiler, RegExpNode* successor) {
                          affected_registers,
                          &registers_to_pop,
                          &registers_to_clear,
-                         CI);
+                         zone);
   if (cp_offset_ != 0) {
     assembler->AdvanceCurrentPosition(cp_offset_);
   }
@@ -728,9 +728,9 @@ void EndNode::Emit(RegExpCompiler* compiler, Trace* trace) {
 }
 
 
-void GuardedAlternative::AddGuard(Guard* guard, Isolate* isolate) {
+void GuardedAlternative::AddGuard(Guard* guard, Zone* zone) {
   if (guards_ == NULL)
-    guards_ = new(isolate) ZoneGrowableArray<Guard*>(1);
+    guards_ = new(zone) ZoneGrowableArray<Guard*>(1);
   guards_->Add(guard);
 }
 
@@ -739,7 +739,7 @@ ActionNode* ActionNode::SetRegister(intptr_t reg,
                                     intptr_t val,
                                     RegExpNode* on_success) {
   ActionNode* result =
-      new(on_success->isolate()) ActionNode(SET_REGISTER, on_success);
+      new(on_success->zone()) ActionNode(SET_REGISTER, on_success);
   result->data_.u_store_register.reg = reg;
   result->data_.u_store_register.value = val;
   return result;
@@ -749,7 +749,7 @@ ActionNode* ActionNode::SetRegister(intptr_t reg,
 ActionNode* ActionNode::IncrementRegister(intptr_t reg,
                                           RegExpNode* on_success) {
   ActionNode* result =
-      new(on_success->isolate()) ActionNode(INCREMENT_REGISTER, on_success);
+      new(on_success->zone()) ActionNode(INCREMENT_REGISTER, on_success);
   result->data_.u_increment_register.reg = reg;
   return result;
 }
@@ -759,7 +759,7 @@ ActionNode* ActionNode::StorePosition(intptr_t reg,
                                       bool is_capture,
                                       RegExpNode* on_success) {
   ActionNode* result =
-      new(on_success->isolate()) ActionNode(STORE_POSITION, on_success);
+      new(on_success->zone()) ActionNode(STORE_POSITION, on_success);
   result->data_.u_position_register.reg = reg;
   result->data_.u_position_register.is_capture = is_capture;
   return result;
@@ -769,7 +769,7 @@ ActionNode* ActionNode::StorePosition(intptr_t reg,
 ActionNode* ActionNode::ClearCaptures(Interval range,
                                       RegExpNode* on_success) {
   ActionNode* result =
-      new(on_success->isolate()) ActionNode(CLEAR_CAPTURES, on_success);
+      new(on_success->zone()) ActionNode(CLEAR_CAPTURES, on_success);
   result->data_.u_clear_captures.range_from = range.from();
   result->data_.u_clear_captures.range_to = range.to();
   return result;
@@ -780,7 +780,7 @@ ActionNode* ActionNode::BeginSubmatch(intptr_t stack_reg,
                                       intptr_t position_reg,
                                       RegExpNode* on_success) {
   ActionNode* result =
-      new(on_success->isolate()) ActionNode(BEGIN_SUBMATCH, on_success);
+      new(on_success->zone()) ActionNode(BEGIN_SUBMATCH, on_success);
   result->data_.u_submatch.stack_pointer_register = stack_reg;
   result->data_.u_submatch.current_position_register = position_reg;
   return result;
@@ -793,7 +793,7 @@ ActionNode* ActionNode::PositiveSubmatchSuccess(intptr_t stack_reg,
                                                 intptr_t clear_register_from,
                                                 RegExpNode* on_success) {
   ActionNode* result =
-      new(on_success->isolate()) ActionNode(POSITIVE_SUBMATCH_SUCCESS,
+      new(on_success->zone()) ActionNode(POSITIVE_SUBMATCH_SUCCESS,
                                             on_success);
   result->data_.u_submatch.stack_pointer_register = stack_reg;
   result->data_.u_submatch.current_position_register = position_reg;
@@ -808,7 +808,7 @@ ActionNode* ActionNode::EmptyMatchCheck(intptr_t start_register,
                                         intptr_t repetition_limit,
                                         RegExpNode* on_success) {
   ActionNode* result =
-      new(on_success->isolate()) ActionNode(EMPTY_MATCH_CHECK, on_success);
+      new(on_success->zone()) ActionNode(EMPTY_MATCH_CHECK, on_success);
   result->data_.u_empty_match_check.start_register = start_register;
   result->data_.u_empty_match_check.repetition_register = repetition_register;
   result->data_.u_empty_match_check.repetition_limit = repetition_limit;
@@ -878,7 +878,7 @@ static intptr_t GetCaseIndependentLetters(uint16_t character,
 }
 
 
-static inline bool EmitSimpleCharacter(Isolate* isolate,
+static inline bool EmitSimpleCharacter(Zone* zone,
                                        RegExpCompiler* compiler,
                                        uint16_t c,
                                        BlockLabel* on_failure,
@@ -901,7 +901,7 @@ static inline bool EmitSimpleCharacter(Isolate* isolate,
 
 // Only emits non-letters (things that don't have case).  Only used for case
 // independent matches.
-static inline bool EmitAtomNonLetter(Isolate* isolate,
+static inline bool EmitAtomNonLetter(Zone* zone,
                                      RegExpCompiler* compiler,
                                      uint16_t c,
                                      BlockLabel* on_failure,
@@ -974,7 +974,7 @@ static bool ShortCutEmitCharacterPair(RegExpMacroAssembler* macro_assembler,
 }
 
 
-typedef bool EmitCharacterFunction(Isolate* isolate,
+typedef bool EmitCharacterFunction(Zone* zone,
                                    RegExpCompiler* compiler,
                                    uint16_t c,
                                    BlockLabel* on_failure,
@@ -984,7 +984,7 @@ typedef bool EmitCharacterFunction(Isolate* isolate,
 
 // Only emits letters (things that have case).  Only used for case independent
 // matches.
-static inline bool EmitAtomLetter(Isolate* isolate,
+static inline bool EmitAtomLetter(Zone* zone,
                                   RegExpCompiler* compiler,
                                   uint16_t c,
                                   BlockLabel* on_failure,
@@ -1123,7 +1123,7 @@ static void EmitUseLookupTable(
   }
   // TODO(erikcorry): Cache these.
   const TypedData& ba = TypedData::ZoneHandle(
-        masm->isolate(),
+        masm->zone(),
         TypedData::New(kTypedDataUint8ArrayCid, kSize, Heap::kOld));
   for (intptr_t i = 0; i < kSize; i++) {
     ba.SetUint8(i, templ[i]);
@@ -1395,7 +1395,7 @@ static void EmitCharClass(RegExpMacroAssembler* macro_assembler,
                           intptr_t cp_offset,
                           bool check_offset,
                           bool preloaded,
-                          Isolate* isolate) {
+                          Zone* zone) {
   ZoneGrowableArray<CharacterRange>* ranges = cc->ranges();
   if (!CharacterRange::IsCanonical(ranges)) {
     CharacterRange::Canonicalize(ranges);
@@ -1469,7 +1469,7 @@ static void EmitCharClass(RegExpMacroAssembler* macro_assembler,
   // was already one there we fall through for success on that entry.
   // Subsequent entries have alternating meaning (success/failure).
   ZoneGrowableArray<int>* range_boundaries =
-      new(isolate) ZoneGrowableArray<int>(last_valid_range);
+      new(zone) ZoneGrowableArray<int>(last_valid_range);
 
   bool zeroth_entry_is_failure = !cc->is_negated();
 
@@ -2195,7 +2195,7 @@ RegExpNode* ChoiceNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   // Only some of the nodes survived the filtering.  We need to rebuild the
   // alternatives list.
   ZoneGrowableArray<GuardedAlternative>* new_alternatives =
-      new(I) ZoneGrowableArray<GuardedAlternative>(surviving);
+      new(Z) ZoneGrowableArray<GuardedAlternative>(surviving);
   for (intptr_t i = 0; i < choice_count; i++) {
     RegExpNode* replacement =
         (*alternatives_)[i].node()->FilterOneByte(depth - 1, ignore_case);
@@ -2357,7 +2357,7 @@ void AssertionNode::EmitBoundaryCheck(RegExpCompiler* compiler, Trace* trace) {
                                    not_at_start));
     if (eats_at_least >= 1) {
       BoyerMooreLookahead* bm =
-          new(I) BoyerMooreLookahead(eats_at_least, compiler, I);
+          new(Z) BoyerMooreLookahead(eats_at_least, compiler, Z);
       FillInBMInfo(0, kRecursionBudget, bm, not_at_start);
       if (bm->at(0)->is_non_word())
         next_is_word_character = Trace::FALSE_VALUE;
@@ -2569,7 +2569,7 @@ void TextNode::TextEmitPass(RegExpCompiler* compiler,
             break;
         }
         if (emit_function != NULL) {
-          bool bound_checked = emit_function(I,
+          bool bound_checked = emit_function(Z,
                                              compiler,
                                              quarks->At(j),
                                              backtrack,
@@ -2592,7 +2592,7 @@ void TextNode::TextEmitPass(RegExpCompiler* compiler,
                       cp_offset,
                       *checked_up_to < cp_offset,
                       preloaded,
-                      I);
+                      Z);
         UpdateBoundsCheck(cp_offset, checked_up_to);
       }
     }
@@ -2715,7 +2715,7 @@ void TextNode::MakeCaseIndependent(bool is_one_byte) {
       ZoneGrowableArray<CharacterRange>* ranges = cc->ranges();
       intptr_t range_count = ranges->length();
       for (intptr_t j = 0; j < range_count; j++) {
-        (*ranges)[j].AddCaseEquivalents(ranges, is_one_byte, I);
+        (*ranges)[j].AddCaseEquivalents(ranges, is_one_byte, Z);
       }
     }
   }
@@ -2946,7 +2946,7 @@ void BoyerMoorePositionInfo::SetAll() {
 
 
 BoyerMooreLookahead::BoyerMooreLookahead(
-    intptr_t length, RegExpCompiler* compiler, Isolate* isolate)
+    intptr_t length, RegExpCompiler* compiler, Zone* zone)
     : length_(length),
       compiler_(compiler) {
   if (compiler->one_byte()) {
@@ -2954,9 +2954,9 @@ BoyerMooreLookahead::BoyerMooreLookahead(
   } else {
     max_char_ = Utf16::kMaxCodeUnit;
   }
-  bitmaps_ = new(isolate) ZoneGrowableArray<BoyerMoorePositionInfo*>(length);
+  bitmaps_ = new(zone) ZoneGrowableArray<BoyerMoorePositionInfo*>(length);
   for (intptr_t i = 0; i < length; i++) {
-    bitmaps_->Add(new(isolate) BoyerMoorePositionInfo(isolate));
+    bitmaps_->Add(new(zone) BoyerMoorePositionInfo(zone));
   }
 }
 
@@ -3121,7 +3121,7 @@ void BoyerMooreLookahead::EmitSkipInstructions(RegExpMacroAssembler* masm) {
   }
 
   const TypedData& boolean_skip_table = TypedData::ZoneHandle(
-        compiler_->isolate(),
+        compiler_->zone(),
         TypedData::New(kTypedDataUint8ArrayCid, kSize, Heap::kOld));
   intptr_t skip_distance = GetSkipTable(
       min_lookahead, max_lookahead, boolean_skip_table);
@@ -3410,7 +3410,7 @@ intptr_t ChoiceNode::EmitOptimizedUnanchoredSearch(RegExpCompiler* compiler,
                                     kRecursionBudget,
                                     false));
     if (eats_at_least >= 1) {
-      bm = new(I) BoyerMooreLookahead(eats_at_least, compiler, I);
+      bm = new(Z) BoyerMooreLookahead(eats_at_least, compiler, Z);
       GuardedAlternative alt0 = alternatives_->At(0);
       alt0.node()->FillInBMInfo(0, kRecursionBudget, bm, false);
     }
@@ -3948,23 +3948,26 @@ void RegExpEngine::DotPrint(const char* label,
 // -------------------------------------------------------------------
 // Tree to graph conversion
 
+// The zone in which we allocate graph nodes.
+#define OZ (on_success->zone())
+
 RegExpNode* RegExpAtom::ToNode(RegExpCompiler* compiler,
                                RegExpNode* on_success) {
   ZoneGrowableArray<TextElement>* elms =
-      new(CI) ZoneGrowableArray<TextElement>(1);
+      new(OZ) ZoneGrowableArray<TextElement>(1);
   elms->Add(TextElement::Atom(this));
-  return new(CI) TextNode(elms, on_success);
+  return new(OZ) TextNode(elms, on_success);
 }
 
 
 RegExpNode* RegExpText::ToNode(RegExpCompiler* compiler,
                                RegExpNode* on_success) {
   ZoneGrowableArray<TextElement>* elms =
-      new(CI) ZoneGrowableArray<TextElement>(1);
+      new(OZ) ZoneGrowableArray<TextElement>(1);
   for (intptr_t  i = 0; i < elements()->length(); i++) {
     elms->Add(elements()->At(i));
   }
-  return new(CI) TextNode(elms, on_success);
+  return new(OZ) TextNode(elms, on_success);
 }
 
 
@@ -4061,7 +4064,7 @@ bool RegExpCharacterClass::is_standard() {
 
 RegExpNode* RegExpCharacterClass::ToNode(RegExpCompiler* compiler,
                                          RegExpNode* on_success) {
-  return new(CI) TextNode(this, on_success);
+  return new(OZ) TextNode(this, on_success);
 }
 
 
@@ -4070,7 +4073,7 @@ RegExpNode* RegExpDisjunction::ToNode(RegExpCompiler* compiler,
   ZoneGrowableArray<RegExpTree*>* alternatives = this->alternatives();
   intptr_t length = alternatives->length();
   ChoiceNode* result =
-      new(CI) ChoiceNode(length, CI);
+      new(OZ) ChoiceNode(length, OZ);
   for (intptr_t i = 0; i < length; i++) {
     GuardedAlternative alternative(alternatives->At(i)->ToNode(compiler,
                                                                on_success));
@@ -4165,7 +4168,7 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
   intptr_t body_start_reg = RegExpCompiler::kNoRegister;
   Interval capture_registers = body->CaptureRegisters();
   bool needs_capture_clearing = !capture_registers.is_empty();
-  Isolate* isolate = compiler->isolate();
+  Zone* zone = compiler->zone();
 
   if (body_can_be_empty) {
     body_start_reg = compiler->AllocateRegister();
@@ -4197,7 +4200,7 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
         // Unroll the optional matches up to max.
         RegExpNode* answer = on_success;
         for (intptr_t i = 0; i < max; i++) {
-          ChoiceNode* alternation = new(isolate) ChoiceNode(2, isolate);
+          ChoiceNode* alternation = new(zone) ChoiceNode(2, zone);
           if (is_greedy) {
             alternation->AddAlternative(
                 GuardedAlternative(body->ToNode(compiler, answer)));
@@ -4220,8 +4223,8 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
   intptr_t reg_ctr = needs_counter
       ? compiler->AllocateRegister()
       : RegExpCompiler::kNoRegister;
-  LoopChoiceNode* center = new(isolate) LoopChoiceNode(body->min_match() == 0,
-                                                       isolate);
+  LoopChoiceNode* center = new(zone) LoopChoiceNode(body->min_match() == 0,
+                                                       zone);
   if (not_at_start) center->set_not_at_start();
   RegExpNode* loop_return = needs_counter
       ? static_cast<RegExpNode*>(ActionNode::IncrementRegister(reg_ctr, center))
@@ -4247,13 +4250,13 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
   GuardedAlternative body_alt(body_node);
   if (has_max) {
     Guard* body_guard =
-        new(isolate) Guard(reg_ctr, Guard::LT, max);
-    body_alt.AddGuard(body_guard, isolate);
+        new(zone) Guard(reg_ctr, Guard::LT, max);
+    body_alt.AddGuard(body_guard, zone);
   }
   GuardedAlternative rest_alt(on_success);
   if (has_min) {
-    Guard* rest_guard = new(isolate) Guard(reg_ctr, Guard::GEQ, min);
-    rest_alt.AddGuard(rest_guard, isolate);
+    Guard* rest_guard = new(zone) Guard(reg_ctr, Guard::GEQ, min);
+    rest_alt.AddGuard(rest_guard, zone);
   }
   if (is_greedy) {
     center->AddLoopAlternative(body_alt);
@@ -4290,7 +4293,7 @@ RegExpNode* RegExpAssertion::ToNode(RegExpCompiler* compiler,
       intptr_t stack_pointer_register = compiler->AllocateRegister();
       intptr_t position_register = compiler->AllocateRegister();
       // The ChoiceNode to distinguish between a newline and end-of-input.
-      ChoiceNode* result = new ChoiceNode(2, on_success->isolate());
+      ChoiceNode* result = new ChoiceNode(2, on_success->zone());
       // Create a newline atom.
       ZoneGrowableArray<CharacterRange>* newline_ranges =
           new ZoneGrowableArray<CharacterRange>(3);
@@ -4324,7 +4327,7 @@ RegExpNode* RegExpAssertion::ToNode(RegExpCompiler* compiler,
 
 RegExpNode* RegExpBackReference::ToNode(RegExpCompiler* compiler,
                                         RegExpNode* on_success) {
-  return new(CI)
+  return new(OZ)
       BackReferenceNode(RegExpCapture::StartRegister(index()),
                         RegExpCapture::EndRegister(index()),
                         on_success);
@@ -4376,15 +4379,15 @@ RegExpNode* RegExpLookahead::ToNode(RegExpCompiler* compiler,
     GuardedAlternative body_alt(
         body()->ToNode(
             compiler,
-            success = new(CI) NegativeSubmatchSuccess(stack_pointer_register,
+            success = new(OZ) NegativeSubmatchSuccess(stack_pointer_register,
                                                       position_register,
                                                       register_count,
                                                       register_start,
-                                                      CI)));
+                                                      OZ)));
     ChoiceNode* choice_node =
-        new(CI) NegativeLookaheadChoiceNode(body_alt,
+        new(OZ) NegativeLookaheadChoiceNode(body_alt,
                                             GuardedAlternative(on_success),
-                                            CI);
+                                            OZ);
     return ActionNode::BeginSubmatch(stack_pointer_register,
                                      position_register,
                                      choice_node);
@@ -4499,7 +4502,7 @@ void CharacterRange::AddClassEscape(uint16_t type,
 void CharacterRange::AddCaseEquivalents(
                         ZoneGrowableArray<CharacterRange>* ranges,
                         bool is_one_byte,
-                        Isolate* isolate) {
+                        Zone* zone) {
   uint16_t bottom = from();
   uint16_t top = to();
   if (is_one_byte && !RangeContainsLatin1Equivalents(*this)) {
@@ -4753,12 +4756,12 @@ static bool ArrayContains(ZoneGrowableArray<unsigned>* array,
 }
 
 
-void OutSet::Set(unsigned value, Isolate* isolate) {
+void OutSet::Set(unsigned value, Zone* zone) {
   if (value < kFirstLimit) {
     first_ |= (1 << value);
   } else {
     if (remaining_ == NULL)
-      remaining_ = new(isolate) ZoneGrowableArray<unsigned>(1);
+      remaining_ = new(zone) ZoneGrowableArray<unsigned>(1);
 
     bool remaining_contains_value = ArrayContains(remaining_, value);
     if (remaining_->is_empty() || !remaining_contains_value) {
@@ -4977,14 +4980,14 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
     RegExpCompileData* data,
     const ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = Thread::Current()->zone();
 
   const Function& function = parsed_function->function();
   const intptr_t specialization_cid = function.regexp_cid();
   const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
                             specialization_cid == kExternalOneByteStringCid);
-  JSRegExp& regexp = JSRegExp::Handle(isolate, function.regexp());
-  const String& pattern = String::Handle(isolate, regexp.pattern());
+  JSRegExp& regexp = JSRegExp::Handle(zone, function.regexp());
+  const String& pattern = String::Handle(zone, regexp.pattern());
 
   ASSERT(!regexp.IsNull());
   ASSERT(!pattern.IsNull());
@@ -5020,7 +5023,7 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
         RegExpQuantifier::ToNode(0,
                                  RegExpTree::kInfinity,
                                  false,
-                                 new(isolate) RegExpCharacterClass('*'),
+                                 new(zone) RegExpCharacterClass('*'),
                                  &compiler,
                                  captured_body,
                                  data->contains_anchor);
@@ -5028,11 +5031,11 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
     if (data->contains_anchor) {
       // Unroll loop once, to take care of the case that might start
       // at the start of input.
-      ChoiceNode* first_step_node = new(isolate) ChoiceNode(2, isolate);
+      ChoiceNode* first_step_node = new(zone) ChoiceNode(2, zone);
       first_step_node->AddAlternative(GuardedAlternative(captured_body));
       first_step_node->AddAlternative(GuardedAlternative(
-          new(isolate) TextNode(
-              new(isolate) RegExpCharacterClass('*'), loop_node)));
+          new(zone) TextNode(
+              new(zone) RegExpCharacterClass('*'), loop_node)));
       node = first_step_node;
     } else {
       node = loop_node;
@@ -5047,7 +5050,7 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
     }
   }
 
-  if (node == NULL) node = new(isolate) EndNode(EndNode::BACKTRACK, isolate);
+  if (node == NULL) node = new(zone) EndNode(EndNode::BACKTRACK, zone);
   data->node = node;
   Analysis analysis(ignore_case, is_one_byte);
   analysis.EnsureAnalyzed(node);
@@ -5059,11 +5062,11 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
   // Native regexp implementation.
 
   IRRegExpMacroAssembler* macro_assembler =
-      new(isolate) IRRegExpMacroAssembler(specialization_cid,
+      new(zone) IRRegExpMacroAssembler(specialization_cid,
                                           data->capture_count,
                                           parsed_function,
                                           ic_data_array,
-                                          isolate);
+                                          zone);
 
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
@@ -5095,17 +5098,17 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
 }
 
 
-static void CreateSpecializedFunction(Isolate* isolate,
+static void CreateSpecializedFunction(Zone* zone,
                                       const JSRegExp& regexp,
                                       intptr_t specialization_cid,
                                       const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
 
-  Function& fn = Function::Handle(isolate, Function::New(
+  Function& fn = Function::Handle(zone, Function::New(
       // Append the regexp pattern to the function name.
-      String::Handle(isolate, Symbols::New(
-          String::Handle(isolate, String::Concat(
-              String::Handle(isolate, String::Concat(
+      String::Handle(zone, Symbols::New(
+          String::Handle(zone, String::Concat(
+              String::Handle(zone, String::Concat(
                   Symbols::Irregexp(),
                   Symbols::ColonSpace(), Heap::kOld)),
               String::Handle(regexp.pattern()), Heap::kOld)))),
@@ -5120,15 +5123,15 @@ static void CreateSpecializedFunction(Isolate* isolate,
 
   // TODO(zerny): Share these arrays between all irregexp functions.
   fn.set_num_fixed_parameters(kParamCount);
-  fn.set_parameter_types(Array::Handle(isolate, Array::New(kParamCount,
+  fn.set_parameter_types(Array::Handle(zone, Array::New(kParamCount,
                                                            Heap::kOld)));
-  fn.set_parameter_names(Array::Handle(isolate, Array::New(kParamCount,
+  fn.set_parameter_names(Array::Handle(zone, Array::New(kParamCount,
                                                            Heap::kOld)));
-  fn.SetParameterTypeAt(0, Type::Handle(isolate, Type::DynamicType()));
+  fn.SetParameterTypeAt(0, Type::Handle(zone, Type::DynamicType()));
   fn.SetParameterNameAt(0, Symbols::string_param());
-  fn.SetParameterTypeAt(1, Type::Handle(isolate, Type::DynamicType()));
+  fn.SetParameterTypeAt(1, Type::Handle(zone, Type::DynamicType()));
   fn.SetParameterNameAt(1, Symbols::start_index_param());
-  fn.set_result_type(Type::Handle(isolate, Type::ArrayType()));
+  fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
 
   // Cache the result.
   regexp.set_function(specialization_cid, fn);
@@ -5141,7 +5144,7 @@ static void CreateSpecializedFunction(Isolate* isolate,
 }
 
 
-RawJSRegExp* RegExpEngine::CreateJSRegExp(Isolate* isolate,
+RawJSRegExp* RegExpEngine::CreateJSRegExp(Zone* zone,
                                           const String& pattern,
                                           bool multi_line,
                                           bool ignore_case) {
@@ -5161,14 +5164,14 @@ RawJSRegExp* RegExpEngine::CreateJSRegExp(Isolate* isolate,
   regexp.set_is_complex();
   regexp.set_is_global();   // All dart regexps are global.
 
-  const Library& lib = Library::Handle(isolate, Library::CoreLibrary());
+  const Library& lib = Library::Handle(zone, Library::CoreLibrary());
   const Class& owner = Class::Handle(
-      isolate, lib.LookupClass(Symbols::RegExp()));
+      zone, lib.LookupClass(Symbols::RegExp()));
 
-  CreateSpecializedFunction(isolate, regexp, kOneByteStringCid, owner);
-  CreateSpecializedFunction(isolate, regexp, kTwoByteStringCid, owner);
-  CreateSpecializedFunction(isolate, regexp, kExternalOneByteStringCid, owner);
-  CreateSpecializedFunction(isolate, regexp, kExternalTwoByteStringCid, owner);
+  CreateSpecializedFunction(zone, regexp, kOneByteStringCid, owner);
+  CreateSpecializedFunction(zone, regexp, kTwoByteStringCid, owner);
+  CreateSpecializedFunction(zone, regexp, kExternalOneByteStringCid, owner);
+  CreateSpecializedFunction(zone, regexp, kExternalTwoByteStringCid, owner);
 
   return regexp.raw();
 }

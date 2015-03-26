@@ -81,6 +81,7 @@ List<String> fff(int a, String b) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
+      expect(hover.containingClassDescription, isNull);
       expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'fff(int a, String b) → List<String>');
       expect(hover.elementKind, 'function');
@@ -101,6 +102,7 @@ foo(Object myParameter) {}
 ''');
     return prepareHover('123').then((HoverInformation hover) {
       // literal, no Element
+      expect(hover.containingClassDescription, isNull);
       expect(hover.elementDescription, isNull);
       expect(hover.elementKind, isNull);
       // types
@@ -125,6 +127,7 @@ class A {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
+      expect(hover.containingClassDescription, 'A');
       expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'A.mmm(int a, String b) → List<String>');
       expect(hover.elementKind, 'method');
@@ -180,6 +183,7 @@ main(A a) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
+      expect(hover.containingClassDescription, 'A');
       expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'String fff');
       expect(hover.elementKind, 'field');

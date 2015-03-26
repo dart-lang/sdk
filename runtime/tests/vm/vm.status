@@ -9,15 +9,8 @@ cc/CodeImmutability: Crash
 
 cc/SNPrint_BadArgs: Skip
 
-# These tests are skipped because of the workaround to open issue 8594.
-cc/Debug_StackTraceDump1: Skip
-cc/Debug_StackTraceDump2: Skip
-
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
-
-[ $arch == x64 ]
-cc/IsolateInterrupt: Skip
 
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
@@ -64,10 +57,19 @@ dart/simd128float32_test: Skip # compilers not aware of Simd128
 # The source positions do not match with dart2js.
 dart/optimized_stacktrace_test: RuntimeError
 
-[ $compiler == dart2js ]
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
 dart/inline_stack_frame_test: RuntimeError # Issue 7953
+
+[ $compiler == dart2js || $compiler == dartanalyzer || $compiler == dart2analyzer ]
+# Data uri's not supported by dart2js or the analyzer.
+dart/data_uri*test: Skip
+
+[ $runtime == vm ]
+dart/data_uri_failures_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
+dart/data_uri_failures_test/nomime: RuntimeError, OK
+dart/data_uri_failures_test/nocharset: RuntimeError, OK
+dart/data_uri_failures_test/base64: RuntimeError, OK
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.

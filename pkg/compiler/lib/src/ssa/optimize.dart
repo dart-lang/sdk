@@ -12,30 +12,23 @@ abstract class OptimizationPhase {
 class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend backend;
   SsaOptimizerTask(JavaScriptBackend backend)
-    : this.backend = backend,
-      super(backend.compiler);
+      : this.backend = backend,
+        super(backend.compiler);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
-  void runPhases(HGraph graph, List<OptimizationPhase> phases) {
-    for (OptimizationPhase phase in phases) {
-      runPhase(graph, phase);
-    }
-  }
-
-  void runPhase(HGraph graph, OptimizationPhase phase) {
-    phase.visitGraph(graph);
-    compiler.tracer.traceGraph(phase.name, graph);
-    assert(graph.isValid());
-  }
-
   void optimize(CodegenWorkItem work, HGraph graph) {
+    void runPhase(OptimizationPhase phase) {
+      phase.visitGraph(graph);
+      compiler.tracer.traceGraph(phase.name, graph);
+      assert(graph.isValid());
+    }
+
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     bool trustPrimitives = compiler.trustPrimitives;
     measure(() {
-      SsaDeadCodeEliminator dce;
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial instruction simplification first to optimize
           // some patterns useful for type conversion.
@@ -70,12 +63,19 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(constantSystem, backend, this, work),
           new SsaCheckInserter(
               trustPrimitives, backend, work, context.boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          dce = new SsaDeadCodeEliminator(compiler, this),
-          new SsaTypePropagator(compiler)];
-      runPhases(graph, phases);
+      ];
+      phases.forEach(runPhase);
+
+      // Simplifying interceptors is not strictly just an optimization, it is
+      // required for implementation correctness because the code generator
+      // assumes it is always performed.
+      runPhase(new SsaSimplifyInterceptors(compiler, constantSystem, work));
+
+      SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
+      runPhase(dce);
       if (dce.eliminatedSideEffects) {
         phases = <OptimizationPhase>[
+            new SsaTypePropagator(compiler),
             new SsaGlobalValueNumberer(compiler),
             new SsaCodeMotion(),
             new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
@@ -83,14 +83,17 @@ class SsaOptimizerTask extends CompilerTask {
             new SsaCheckInserter(
                 trustPrimitives, backend, work, context.boundsChecked),
             new SsaSimplifyInterceptors(compiler, constantSystem, work),
-            new SsaDeadCodeEliminator(compiler, this)];
+            new SsaDeadCodeEliminator(compiler, this),
+        ];
       } else {
         phases = <OptimizationPhase>[
-            // Run the simplifier to remove unneeded type checks inserted
-            // by type propagation.
-            new SsaInstructionSimplifier(constantSystem, backend, this, work)];
+            new SsaTypePropagator(compiler),
+            // Run the simplifier to remove unneeded type checks inserted by
+            // type propagation.
+            new SsaInstructionSimplifier(constantSystem, backend, this, work),
+        ];
       }
-      runPhases(graph, phases);
+      phases.forEach(runPhase);
     });
   }
 }
@@ -998,6 +1001,33 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return zapInstructionCache;
   }
 
+  /// Returns true of [foreign] will throw an noSuchMethod error if
+  /// receiver is `null` before having any other side-effects.
+  bool templateThrowsNSMonNull(HForeignCode foreign, HInstruction receiver) {
+    // We look for a template of the form
+    //
+    // #.something -or- #.something()
+    //
+    // where # is substituted by receiver.
+    js.Template template = foreign.codeTemplate;
+    js.Node node = template.ast;
+    // #.something = ...
+    if (node is js.Assignment) {
+      js.Assignment assignment = node;
+      node = assignment.leftHandSide;
+    }
+
+    // #.something
+    if (node is js.PropertyAccess) {
+      js.PropertyAccess access = node;
+      if (access.receiver is js.InterpolatedExpression) {
+        js.InterpolatedExpression hole = access.receiver;
+        return hole.isPositional && foreign.inputs.first == receiver;
+      }
+    }
+    return false;
+  }
+
   /// Returns whether the next throwing instruction that may have side
   /// effects after [instruction], throws [NoSuchMethodError] on the
   /// same receiver of [instruction].
@@ -1009,17 +1039,34 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
           && current.canThrow()) {
         return true;
       }
+      if (current is HForeignCode &&
+          templateThrowsNSMonNull(current, receiver)) {
+        return true;
+      }
       if (current.canThrow() || current.sideEffects.hasSideEffects()) {
         return false;
       }
-      if (current.next == null && current is HGoto) {
-        // We do not merge blocks in our SSA graph, so if this block
-        // just jumps to a single predecessor, visit this predecessor.
-        assert(current.block.successors.length == 1);
-        current = current.block.successors[0].first;
-      } else {
-        current = current.next;
+      HInstruction next = current.next;
+      if (next == null) {
+        // We do not merge blocks in our SSA graph, so if this block just jumps
+        // to a single successor, visit the successor, avoiding back-edges.
+        HBasicBlock successor;
+        if (current is HGoto) {
+          successor = current.block.successors.single;
+        } else if (current is HIf) {
+          // We also leave HIf nodes in place when one branch is dead.
+          HInstruction condition = current.inputs.first;
+          if (condition is HConstant) {
+            bool isTrue = condition.constant.isTrue;
+            successor = isTrue ? current.thenBlock : current.elseBlock;
+            assert(!analyzer.isDeadBlock(successor));
+          }
+        }
+        if (successor != null && successor.id > current.block.id) {
+          next = successor.first;
+        }
       }
+      current = next;
     } while (current != null);
     return false;
   }

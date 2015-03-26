@@ -14,90 +14,74 @@ import 'engine.dart' show AnalysisContext;
 import 'source.dart' show ContentCache, Source, UriKind;
 
 /**
- * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
+ * A Dart SDK installed in a specified location.
  */
 abstract class DartSdk {
   /**
-   * The short name of the dart SDK async library.
+   * The short name of the dart SDK 'async' library.
    */
   static final String DART_ASYNC = "dart:async";
 
   /**
-   * The short name of the dart SDK core library.
+   * The short name of the dart SDK 'core' library.
    */
   static final String DART_CORE = "dart:core";
 
   /**
-   * The short name of the dart SDK html library.
+   * The short name of the dart SDK 'html' library.
    */
   static final String DART_HTML = "dart:html";
 
   /**
-   * The version number that is returned when the real version number could not be determined.
+   * The version number that is returned when the real version number could not
+   * be determined.
    */
   static final String DEFAULT_VERSION = "0";
 
   /**
-   * Return the [AnalysisContext] used for all of the sources in this [DartSdk].
-   *
-   * @return the [AnalysisContext] used for all of the sources in this [DartSdk]
+   * Return the analysis context used for all of the sources in this [DartSdk].
    */
   AnalysisContext get context;
 
   /**
-   * Return an array containing all of the libraries defined in this SDK.
-   *
-   * @return the libraries defined in this SDK
+   * Return a list containing all of the libraries defined in this SDK.
    */
   List<SdkLibrary> get sdkLibraries;
 
   /**
-   * Return the revision number of this SDK, or `"0"` if the revision number cannot be
-   * discovered.
-   *
-   * @return the revision number of this SDK
+   * Return the revision number of this SDK, or `"0"` if the revision number
+   * cannot be discovered.
    */
   String get sdkVersion;
 
   /**
-   * Return an array containing the library URI's for the libraries defined in this SDK.
-   *
-   * @return the library URI's for the libraries defined in this SDK
+   * Return a list containing the library URI's for the libraries defined in
+   * this SDK.
    */
   List<String> get uris;
 
   /**
-   * Return a source representing the given file: URI if the file is in this SDK, or `null` if
-   * the file is not in this SDK.
-   *
-   * @param uri the file URI for which a source is to be returned
-   * @return the source representing the given URI
-   * @throws
+   * Return a source representing the given 'file:' [uri] if the file is in this
+   * SDK, or `null` if the file is not in this SDK.
    */
   Source fromFileUri(Uri uri);
 
   /**
-   * Return the library representing the library with the given `dart:` URI, or `null`
-   * if the given URI does not denote a library in this SDK.
-   *
-   * @param dartUri the URI of the library to be returned
-   * @return the SDK library object
+   * Return the library representing the library with the given 'dart:' [uri],
+   * or `null` if the given URI does not denote a library in this SDK.
    */
-  SdkLibrary getSdkLibrary(String dartUri);
+  SdkLibrary getSdkLibrary(String uri);
 
   /**
-   * Return the source representing the library with the given `dart:` URI, or `null` if
-   * the given URI does not denote a library in this SDK.
-   *
-   * @param dartUri the URI of the library to be returned
-   * @return the source representing the specified library
+   * Return the source representing the library with the given 'dart:' [uri], or
+   * `null` if the given URI does not denote a library in this SDK.
    */
-  Source mapDartUri(String dartUri);
+  Source mapDartUri(String uri);
 }
 
 /**
- * Instances of the class `LibraryMap` map Dart library URI's to the [SdkLibraryImpl
- ].
+ * A map from Dart library URI's to the [SdkLibraryImpl] representing that
+ * library.
  */
 class LibraryMap {
   /**
@@ -107,32 +91,23 @@ class LibraryMap {
       new HashMap<String, SdkLibraryImpl>();
 
   /**
-   * Return an array containing all the sdk libraries [SdkLibraryImpl] in the mapping
-   *
-   * @return the sdk libraries in the mapping
+   * Return a list containing all of the sdk libraries in this mapping.
    */
   List<SdkLibrary> get sdkLibraries => new List.from(_libraryMap.values);
 
   /**
-   * Return an array containing the library URI's for which a mapping is available.
-   *
-   * @return the library URI's for which a mapping is available
+   * Return a list containing the library URI's for which a mapping is available.
    */
   List<String> get uris => new List.from(_libraryMap.keys.toSet());
 
   /**
-   * Return the library with the given URI, or `null` if the URI does not map to a library.
-   *
-   * @param dartUri the URI of the library to be returned
-   * @return the library with the given URI
+   * Return the library with the given 'dart:' [uri], or `null` if the URI does
+   * not map to a library.
    */
-  SdkLibrary getLibrary(String dartUri) => _libraryMap[dartUri];
+  SdkLibrary getLibrary(String uri) => _libraryMap[uri];
 
   /**
-   * Return the library with the given URI, or `null` if the URI does not map to a library.
-   *
-   * @param dartUri the URI of the library to be returned
-   * @param library the library with the given URI
+   * Set the library with the given 'dart:' [uri] to the given [library].
    */
   void setLibrary(String dartUri, SdkLibraryImpl library) {
     _libraryMap[dartUri] = library;
@@ -140,43 +115,44 @@ class LibraryMap {
 
   /**
    * Return the number of library URI's for which a mapping is available.
-   *
-   * @return the number of library URI's for which a mapping is available
    */
   int size() => _libraryMap.length;
 }
 
 class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   /**
-   * The prefix added to the name of a library to form the URI used in code to reference the
-   * library.
+   * The prefix added to the name of a library to form the URI used in code to
+   * reference the library.
    */
   static String _LIBRARY_PREFIX = "dart:";
 
   /**
-   * The name of the optional parameter used to indicate whether the library is an implementation
-   * library.
+   * The name of the optional parameter used to indicate whether the library is
+   * an implementation library.
    */
   static String _IMPLEMENTATION = "implementation";
 
   /**
-   * The name of the optional parameter used to specify the path used when compiling for dart2js.
+   * The name of the optional parameter used to specify the path used when
+   * compiling for dart2js.
    */
   static String _DART2JS_PATH = "dart2jsPath";
 
   /**
-   * The name of the optional parameter used to indicate whether the library is documented.
+   * The name of the optional parameter used to indicate whether the library is
+   * documented.
    */
   static String _DOCUMENTED = "documented";
 
   /**
-   * The name of the optional parameter used to specify the category of the library.
+   * The name of the optional parameter used to specify the category of the
+   * library.
    */
   static String _CATEGORY = "category";
 
   /**
-   * The name of the optional parameter used to specify the platforms on which the library can be
-   * used.
+   * The name of the optional parameter used to specify the platforms on which
+   * the library can be used.
    */
   static String _PLATFORMS = "platforms";
 
@@ -187,29 +163,26 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   static String _VM_PLATFORM = "VM_PLATFORM";
 
   /**
-   * A flag indicating whether the dart2js path should be used when it is available.
+   * A flag indicating whether the dart2js path should be used when it is
+   * available.
    */
   final bool _useDart2jsPaths;
 
   /**
-   * The library map that is populated by visiting the AST structure parsed from the contents of
-   * the libraries file.
+   * The library map that is populated by visiting the AST structure parsed from
+   * the contents of the libraries file.
    */
   LibraryMap _librariesMap = new LibraryMap();
 
   /**
-   * Initialize a newly created library builder to use the dart2js path if the given value is
-   * `true`.
-   *
-   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
+   * Initialize a newly created library builder to use the dart2js path if
+   * [_useDart2jsPaths] is `true`.
    */
   SdkLibrariesReader_LibraryBuilder(this._useDart2jsPaths);
 
   /**
-   * Return the library map that was populated by visiting the AST structure parsed from the
-   * contents of the libraries file.
-   *
-   * @return the library map describing the contents of the SDK
+   * Return the library map that was populated by visiting the AST structure
+   * parsed from the contents of the libraries file.
    */
   LibraryMap get librariesMap => _librariesMap;
 
@@ -264,100 +237,84 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
 abstract class SdkLibrary {
   /**
    * Return the name of the category containing the library.
-   *
-   * @return the name of the category containing the library
    */
   String get category;
 
   /**
    * Return `true` if this library can be compiled to JavaScript by dart2js.
-   *
-   * @return `true` if this library can be compiled to JavaScript by dart2js
    */
   bool get isDart2JsLibrary;
 
   /**
    * Return `true` if the library is documented.
-   *
-   * @return `true` if the library is documented
    */
   bool get isDocumented;
 
   /**
    * Return `true` if the library is an implementation library.
-   *
-   * @return `true` if the library is an implementation library
    */
   bool get isImplementation;
 
   /**
    * Return `true` if library is internal can be used only by other SDK libraries.
-   *
-   * @return `true` if library is internal can be used only by other SDK libraries
    */
   bool get isInternal;
 
   /**
-   * Return `true` if library can be used for both client and server.
-   *
-   * @return `true` if this library can be used for both client and server.
+   * Return `true` if this library can be used for both client and server.
    */
   bool get isShared;
 
   /**
    * Return `true` if this library can be run on the VM.
-   *
-   * @return `true` if this library can be run on the VM
    */
   bool get isVmLibrary;
 
   /**
-   * Return the path to the file defining the library. The path is relative to the `lib`
-   * directory within the SDK.
-   *
-   * @return the path to the file defining the library
+   * Return the path to the file defining the library. The path is relative to
+   * the `lib` directory within the SDK.
    */
   String get path;
 
   /**
-   * Return the short name of the library. This is the URI of the library, including `dart:`.
-   *
-   * @return the short name of the library
+   * Return the short name of the library. This is the URI of the library,
+   * including `dart:`.
    */
   String get shortName;
 }
 
 /**
- * Instances of the class `SdkLibrary` represent the information known about a single library
- * within the SDK.
+ * The information known about a single library within the SDK.
  */
 class SdkLibraryImpl implements SdkLibrary {
   /**
-   * The bit mask used to access the bit representing the flag indicating whether a library is
-   * intended to work on the dart2js platform.
+   * The bit mask used to access the bit representing the flag indicating
+   * whether a library is intended to work on the dart2js platform.
    */
   static int DART2JS_PLATFORM = 1;
 
   /**
-   * The bit mask used to access the bit representing the flag indicating whether a library is
-   * intended to work on the VM platform.
+   * The bit mask used to access the bit representing the flag indicating
+   * whether a library is intended to work on the VM platform.
    */
   static int VM_PLATFORM = 2;
 
   /**
-   * The short name of the library. This is the name used after `dart:` in a URI.
+   * The short name of the library. This is the name used after 'dart:' in a
+   * URI.
    */
   String _shortName = null;
 
   /**
-   * The path to the file defining the library. The path is relative to the `lib` directory
-   * within the SDK.
+   * The path to the file defining the library. The path is relative to the
+   * 'lib' directory within the SDK.
    */
   String path = null;
 
   /**
-   * The name of the category containing the library. Unless otherwise specified in the libraries
-   * file all libraries are assumed to be shared between server and client.
+   * The name of the category containing the library. Unless otherwise specified
+   * in the libraries file all libraries are assumed to be shared between server
+   * and client.
    */
   String category = "Shared";
 
@@ -377,27 +334,22 @@ class SdkLibraryImpl implements SdkLibrary {
   int _platforms = 0;
 
   /**
-   * Initialize a newly created library to represent the library with the given name.
-   *
-   * @param name the short name of the library
+   * Initialize a newly created library to represent the library with the given
+   * [name].
    */
   SdkLibraryImpl(String name) {
     this._shortName = name;
   }
 
   /**
-   * Set whether the library is documented to match the given value.
-   *
-   * @param documented `true` if the library is documented
+   * Set whether the library is documented.
    */
   void set documented(bool documented) {
     this._documented = documented;
   }
 
   /**
-   * Set whether the library is an implementation library to match the given value.
-   *
-   * @param implementation `true` if the library is an implementation library
+   * Set whether the library is an implementation library.
    */
   void set implementation(bool implementation) {
     this._implementation = implementation;
@@ -415,17 +367,9 @@ class SdkLibraryImpl implements SdkLibrary {
   @override
   bool get isInternal => "Internal" == category;
 
-  /**
-   * Return `true` if library can be used for both client and server
-   */
   @override
   bool get isShared => category == "Shared";
 
-  /**
-   * Return `true` if this library can be run on the VM.
-   *
-   * @return `true` if this library can be run on the VM
-   */
   @override
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
 

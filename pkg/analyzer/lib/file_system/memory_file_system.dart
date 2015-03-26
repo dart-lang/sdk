@@ -110,17 +110,6 @@ class MemoryResourceProvider implements ResourceProvider {
     return file;
   }
 
-  File updateFile(String path, String content, [int stamp]) {
-    path = posix.normalize(path);
-    newFolder(posix.dirname(path));
-    _MemoryFile file = new _MemoryFile(this, path);
-    _pathToResource[path] = file;
-    _pathToContent[path] = content;
-    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
-    _notifyWatchers(path, ChangeType.MODIFY);
-    return file;
-  }
-
   Folder newFolder(String path) {
     path = posix.normalize(path);
     if (!path.startsWith('/')) {
@@ -143,6 +132,17 @@ class MemoryResourceProvider implements ResourceProvider {
           'Folder expected at ' "'$path'" 'but ${resource.runtimeType} found';
       throw new ArgumentError(message);
     }
+  }
+
+  File updateFile(String path, String content, [int stamp]) {
+    path = posix.normalize(path);
+    newFolder(posix.dirname(path));
+    _MemoryFile file = new _MemoryFile(this, path);
+    _pathToResource[path] = file;
+    _pathToContent[path] = content;
+    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
+    _notifyWatchers(path, ChangeType.MODIFY);
+    return file;
   }
 
   void _checkFileAtPath(String path) {
@@ -206,6 +206,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   bool isOrContains(String path) {
     return path == this.path;
   }
+
+  @override
+  String readAsStringSync() {
+    throw new FileSystemException(path, 'File could not be read');
+  }
 }
 
 /**
@@ -221,7 +226,7 @@ class _MemoryFile extends _MemoryResource implements File {
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
-      throw new FileSystemException(path, 'File does not exist.');
+      throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return stamp;
   }
@@ -229,7 +234,7 @@ class _MemoryFile extends _MemoryResource implements File {
   String get _content {
     String content = _provider._pathToContent[path];
     if (content == null) {
-      throw new FileSystemException(path, "File does not exist");
+      throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return content;
   }
@@ -245,6 +250,15 @@ class _MemoryFile extends _MemoryResource implements File {
   @override
   bool isOrContains(String path) {
     return path == this.path;
+  }
+
+  @override
+  String readAsStringSync() {
+    String content = _provider._pathToContent[path];
+    if (content == null) {
+      throw new FileSystemException(path, 'File "$path" does not exist.');
+    }
+    return content;
   }
 }
 
@@ -298,7 +312,7 @@ class _MemoryFileSource extends Source {
   int get modificationStamp {
     try {
       return file.modificationStamp;
-    } on FileSystemException catch (e) {
+    } on FileSystemException {
       return -1;
     }
   }
@@ -398,6 +412,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   List<Resource> getChildren() {
+    if (!exists) {
+      throw new FileSystemException(path, 'Folder does not exist.');
+    }
     List<Resource> children = <Resource>[];
     _provider._pathToResource.forEach((resourcePath, resource) {
       if (posix.dirname(resourcePath) == path) {

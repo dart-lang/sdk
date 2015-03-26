@@ -111,7 +111,8 @@ Future<List<String>> testStringifier(String code,
         String withoutNullConstants = combined.replaceAll("Constant null", "");
         Expect.isFalse(withoutNullConstants.contains("null"));
         for (String token in expectedTokens) {
-          Expect.isTrue(combined.contains(token));
+          Expect.isTrue(combined.contains(token),
+              "'$combined' doesn't contain '$token' in test:\n$code");
         }
 
         return sexprs;
@@ -160,7 +161,10 @@ void main() {
           , "LiteralMap"
           // Parameters are encoded by name only and hence are not in this list.
           , "ReifyTypeVar"
-          , "This"
+
+          , "(this)"   // 'this' Parameter declarations
+          , "this"     // 'this' Parameter uses
+
           ];
 
   asyncTest(() => testStringifier(CODE, tokens).then((List<String> sexprs) {

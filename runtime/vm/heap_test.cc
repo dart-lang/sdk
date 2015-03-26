@@ -213,7 +213,7 @@ class FindOnly : public FindObjectVisitor {
  public:
   FindOnly(Isolate* isolate, RawObject* target)
       : FindObjectVisitor(isolate), target_(target) {
-    ASSERT(isolate->no_gc_scope_depth() != 0);
+    ASSERT(isolate->no_safepoint_scope_depth() != 0);
   }
   virtual ~FindOnly() { }
 
@@ -240,13 +240,13 @@ TEST_CASE(FindObject) {
   for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
     const String& obj = String::Handle(String::New("x", spaces[space]));
     {
-      NoGCScope no_gc;
+      NoSafepointScope no_safepoint;
       FindOnly find_only(isolate, obj.raw());
       EXPECT(obj.raw() == heap->FindObject(&find_only));
     }
   }
   {
-    NoGCScope no_gc;
+    NoSafepointScope no_safepoint;
     FindNothing find_nothing;
     EXPECT(Object::null() == heap->FindObject(&find_nothing));
   }

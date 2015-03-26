@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'dart_test.dart' as dart_test;
 import 'driver_test.dart' as driver_test;
+import 'general_test.dart' as general_test;
 import 'inputs_test.dart' as inputs_test;
 import 'manager_test.dart' as manager_test;
 import 'model_test.dart' as model_test;
@@ -18,6 +19,7 @@ main() {
   group('task tests', () {
     dart_test.main();
     driver_test.main();
+    general_test.main();
     inputs_test.main();
     manager_test.main();
     model_test.main();

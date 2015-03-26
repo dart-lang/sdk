@@ -1055,11 +1055,11 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     return socket.addStream(controller.stream)
         .then((_) {
           return outbound;
-        }, onError: (error) {
+        }, onError: (error, stackTrace) {
           // Be sure to close it in case of an error.
           if (_gzip) _gzipSink.close();
           _socketError = true;
-          _doneCompleter.completeError(error);
+          _doneCompleter.completeError(error, stackTrace);
           if (_ignoreError(error)) {
             return outbound;
           } else {
@@ -1133,8 +1133,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
         .then((_) {
           _doneCompleter.complete(socket);
           return outbound;
-        }, onError: (error) {
-          _doneCompleter.completeError(error);
+        }, onError: (error, stackTrace) {
+          _doneCompleter.completeError(error, stackTrace);
           if (_ignoreError(error)) {
             return outbound;
           } else {
@@ -2246,11 +2246,11 @@ class _HttpServer
           _HttpConnection connection = new _HttpConnection(socket, this);
           _idleConnections.add(connection);
         },
-        onError: (error) {
+        onError: (error, stackTrace) {
           // Ignore HandshakeExceptions as they are bound to a single request,
           // and are not fatal for the server.
           if (error is! HandshakeException) {
-            _controller.addError(error);
+            _controller.addError(error, stackTrace);
           }
         },
         onDone: _controller.close);
@@ -2313,10 +2313,6 @@ class _HttpServer
     } else {
       request._httpConnection.destroy();
     }
-  }
-
-  void _handleError(error) {
-    if (!closed) _controller.addError(error);
   }
 
   void _connectionClosed(_HttpConnection connection) {

@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
@@ -138,7 +139,9 @@ class AnalysisDriverTest extends EngineTestCase {
   test_createWorkOrderForResult_error() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
-    context.getCacheEntry(target).setState(result, CacheState.ERROR);
+    CaughtException exception = new CaughtException(null, null);
+    context.getCacheEntry(target).setErrorState(
+        exception, <ResultDescriptor>[result]);
 
     expect(driver.createWorkOrderForResult(target, result), isNull);
   }
@@ -220,6 +223,43 @@ class AnalysisDriverTest extends EngineTestCase {
     expect(driver.performAnalysisTask(), false);
   }
 
+  test_performAnalysisTask_inputsFirst() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
+    ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
+    // configure tasks
+    TestAnalysisTask task1;
+    TestAnalysisTask task2;
+    TaskDescriptor descriptor1 = new TaskDescriptor(
+        'task1', (context, target) => task1, (target) => {}, [resultA]);
+    TaskDescriptor descriptor2 = new TaskDescriptor('task2',
+        (context, target) => task2, (target) => {
+      'inputA': new SimpleTaskInput<int>(target, resultA)
+    }, [resultB]);
+    task1 = new TestAnalysisTask(context, target,
+        descriptor: descriptor1, results: [resultA], value: 10);
+    task2 = new TestAnalysisTask(context, target,
+        descriptor: descriptor2, value: 20);
+    manager.addTaskDescriptor(descriptor1);
+    manager.addTaskDescriptor(descriptor2);
+    context.explicitTargets.add(target);
+    manager.addGeneralResult(resultB);
+    // prepare work order
+    expect(driver.performAnalysisTask(), true);
+    expect(context.getCacheEntry(target).getValue(resultA), -1);
+    expect(context.getCacheEntry(target).getValue(resultB), -2);
+    // compute resultA
+    expect(driver.performAnalysisTask(), true);
+    expect(context.getCacheEntry(target).getValue(resultA), 10);
+    expect(context.getCacheEntry(target).getValue(resultB), -2);
+    // compute resultB
+    expect(driver.performAnalysisTask(), true);
+    expect(context.getCacheEntry(target).getValue(resultA), 10);
+    expect(context.getCacheEntry(target).getValue(resultB), 20);
+    // done
+    expect(driver.performAnalysisTask(), false);
+  }
+
   test_performWorkItem_exceptionInTask() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
@@ -274,9 +314,8 @@ class AnalysisDriverTest extends EngineTestCase {
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': inputResult.inputFor(target)}, [
-      new ResultDescriptor('output', null)
-    ]);
+        (target) => {'one': inputResult.of(target)},
+        [new ResultDescriptor('output', null)]);
     driver.currentWorkOrder =
         new WorkOrder(manager, new WorkItem(null, null, descriptor));
 
@@ -344,12 +383,11 @@ class WorkItemTest extends EngineTestCase {
     AnalysisContext context = new _TestContext();
     AnalysisTarget target = new TestSource();
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
-    List<ResultDescriptor> outputResults = <ResultDescriptor>[
-      new ResultDescriptor('output', null)
-    ];
+    List<ResultDescriptor> outputResults =
+        <ResultDescriptor>[new ResultDescriptor('output', null)];
     TaskDescriptor descriptor = new TaskDescriptor('task', (context, target) =>
             new TestAnalysisTask(context, target, results: outputResults),
-        (target) => {'one': inputResult.inputFor(target)}, outputResults);
+        (target) => {'one': inputResult.of(target)}, outputResults);
     WorkItem item = new WorkItem(context, target, descriptor);
     expect(() => item.buildTask(), throwsStateError);
   }
@@ -390,7 +428,7 @@ class WorkItemTest extends EngineTestCase {
         (target) => {}, [resultA]);
     TaskDescriptor task2 = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': resultA.inputFor(target)}, [resultB]);
+        (target) => {'one': resultA.of(target)}, [resultB]);
     manager.addTaskDescriptor(task1);
     manager.addTaskDescriptor(task2);
     WorkItem item = new WorkItem(context, target, task2);
@@ -404,9 +442,8 @@ class WorkItemTest extends EngineTestCase {
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': inputResult.inputFor(target)}, [
-      new ResultDescriptor('output', null)
-    ]);
+        (target) => {'one': inputResult.of(target)},
+        [new ResultDescriptor('output', null)]);
     WorkItem item = new WorkItem(context, target, descriptor);
     WorkItem result = item.gatherInputs(manager);
     expect(result, isNull);
@@ -434,8 +471,12 @@ class WorkOrderTest extends EngineTestCase {
         'task', null, (_) => {}, [new ResultDescriptor('result', null)]);
     WorkItem workItem = new WorkItem(null, null, descriptor);
     WorkOrder order = new WorkOrder(manager, workItem);
-    expect(order.moveNext(), true);
+    // "item" has no child items
+    expect(order.moveNext(), isTrue);
     expect(order.current, workItem);
+    // done
+    expect(order.moveNext(), isFalse);
+    expect(order.current, isNull);
   }
 }
 
@@ -521,6 +562,11 @@ class _TestContext implements ExtendedAnalysisContext {
 
   @override
   TypeProvider get typeProvider => baseContext.typeProvider;
+
+  @override
+  void set typeProvider(TypeProvider typeProvider) {
+    baseContext.typeProvider = typeProvider;
+  }
 
   @override
   TypeResolverVisitorFactory get typeResolverVisitorFactory =>

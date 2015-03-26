@@ -23,6 +23,13 @@ const Map<String, List<String>> WHITE_LIST = const {
 
   // Some things in dart_printer are not yet used
   "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
+
+  // Uncalled error methods in SemanticSendVisitor and subclasses.
+  "lib/src/resolution/semantic_visitor.dart": const [
+      "The method 'error"],
+  "lib/src/resolution/semantic_visitor_mixins.dart": const [
+      "The method 'error",
+      "Mixin' is never used."]
 };
 
 void main() {

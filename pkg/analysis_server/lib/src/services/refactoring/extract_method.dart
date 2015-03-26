@@ -179,7 +179,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _prepareOffsetsLengths();
     // getter
     canCreateGetter = _computeCanCreateGetter();
-    _initializeCreateGetter();
+    createGetter =
+        canCreateGetter && _isExpressionForGetter(_selectionExpression);
     // names
     _prepareExcludedNames();
     _prepareNames();
@@ -523,36 +524,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   /**
-   * Initializes [createGetter] flag.
-   */
-  void _initializeCreateGetter() {
-    createGetter = false;
-    // maybe we cannot at all
-    if (!canCreateGetter) {
-      return;
-    }
-    // OK, just expression
-    if (_selectionExpression != null) {
-      createGetter = !_hasMethodInvocation(_selectionExpression);
-      return;
-    }
-    // allow code blocks without cycles
-    if (_selectionStatements != null) {
-      createGetter = true;
-      for (Statement statement in _selectionStatements) {
-        // method invocation is something heavy,
-        // so we don't want to extract it as a part of a getter
-        if (_hasMethodInvocation(statement)) {
-          createGetter = false;
-          return;
-        }
-        // don't allow cycles
-        statement.accept(new _ResetCanCreateGetterVisitor(this));
-      }
-    }
-  }
-
-  /**
    * Fills [_occurrences] field.
    */
   void _initializeOccurrences() {
@@ -706,12 +677,29 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   /**
-   * Checks if [node] has a [MethodInvocation].
+   * Checks if the given [expression] is reasonable to extract as a getter.
    */
-  static bool _hasMethodInvocation(AstNode node) {
-    var visitor = new _HasMethodInvocationVisitor();
-    node.accept(visitor);
-    return visitor.result;
+  static bool _isExpressionForGetter(Expression expression) {
+    if (expression is BinaryExpression) {
+      return _isExpressionForGetter(expression.leftOperand) &&
+          _isExpressionForGetter(expression.rightOperand);
+    }
+    if (expression is Literal) {
+      return true;
+    }
+    if (expression is PrefixExpression) {
+      return _isExpressionForGetter(expression.operand);
+    }
+    if (expression is PrefixedIdentifier) {
+      return _isExpressionForGetter(expression.prefix);
+    }
+    if (expression is PropertyAccess) {
+      return _isExpressionForGetter(expression.target);
+    }
+    if (expression is SimpleIdentifier) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -867,15 +855,6 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
   }
 }
 
-class _HasMethodInvocationVisitor extends RecursiveAstVisitor {
-  bool result = false;
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    result = true;
-  }
-}
-
 class _HasReturnStatementVisitor extends RecursiveAstVisitor {
   bool hasReturn = false;
 
@@ -961,8 +940,8 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
           new _Occurrence(nodeRange, ref.selectionRange.intersects(nodeRange));
       ref._occurrences.add(occurrence);
       // prepare mapping of parameter names to the occurrence variables
-      nodePattern.originalToPatternNames.forEach(
-          (String originalName, String patternName) {
+      nodePattern.originalToPatternNames
+          .forEach((String originalName, String patternName) {
         String selectionName = patternToSelectionName[patternName];
         occurrence._parameterOldToOccurrenceName[selectionName] = originalName;
       });
@@ -1077,36 +1056,6 @@ class _Occurrence {
   Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
 
   _Occurrence(this.range, this.isSelection);
-}
-
-class _ResetCanCreateGetterVisitor extends RecursiveAstVisitor {
-  final ExtractMethodRefactoringImpl ref;
-
-  _ResetCanCreateGetterVisitor(this.ref);
-
-  @override
-  visitDoStatement(DoStatement node) {
-    ref.createGetter = false;
-    super.visitDoStatement(node);
-  }
-
-  @override
-  visitForEachStatement(ForEachStatement node) {
-    ref.createGetter = false;
-    super.visitForEachStatement(node);
-  }
-
-  @override
-  visitForStatement(ForStatement node) {
-    ref.createGetter = false;
-    super.visitForStatement(node);
-  }
-
-  @override
-  visitWhileStatement(WhileStatement node) {
-    ref.createGetter = false;
-    super.visitWhileStatement(node);
-  }
 }
 
 class _ReturnTypeComputer extends RecursiveAstVisitor {

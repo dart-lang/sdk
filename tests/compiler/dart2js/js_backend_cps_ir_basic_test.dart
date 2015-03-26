@@ -130,6 +130,52 @@ function() {
   P.print(P.DateTime$now().isBefore$1(P.DateTime$now()));
   return null;
 }"""),
+  // Static calls
+  const TestEntry("""
+foo() { print(42); }
+main() { foo(); }
+""", r"""
+function() {
+  V.foo();
+  return null;
+}"""),
+  // Static getters
+  const TestEntry("""
+var foo = 42;
+main() { print(foo); }
+""", r"""
+function() {
+  P.print($.foo);
+  return null;
+}"""),
+  const TestEntry("""
+get foo { print(42); }
+main() { foo; }
+""", r"""
+function() {
+  V.foo();
+  return null;
+}"""),
+  // Static setters
+  const TestEntry("""
+var foo = 0;
+main() { print(foo = 42); }
+""", r"""
+function() {
+  var v0;
+  v0 = 42;
+  $.foo = v0;
+  P.print(v0);
+  return null;
+}"""),
+  const TestEntry("""
+set foo(x) { print(x); }
+main() { foo = 42; }
+""", r"""
+function() {
+  V.foo(42);
+  return null;
+}""")
 ];
 
 

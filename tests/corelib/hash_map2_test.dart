@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // VMOptions=
-// VMOptions=--use_compact_hash=false
-// VMOptions=--use_internal_hash_map --use_compact_hash=false 
+// VMOptions=--use_internal_hash_map
 
 // Tests of hash map behavior, with focus in iteration and concurrent
 // modification errors.

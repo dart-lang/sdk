@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/plugin.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 
@@ -32,6 +33,11 @@ class SocketServer {
    * connection, or `null` if no such connection has yet been established.
    */
   AnalysisServer analysisServer;
+
+  /**
+   * The plugins that are defined outside the analysis_server package.
+   */
+  List<Plugin> userDefinedPlugins;
 
   SocketServer(this.analysisServerOptions, this.defaultSdk,
       this.instrumentationService, this.serverPlugin);
@@ -73,6 +79,7 @@ class SocketServer {
         analysisServerOptions, defaultSdk, instrumentationService,
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
+    analysisServer.userDefinedPlugins = userDefinedPlugins;
   }
 
   /**

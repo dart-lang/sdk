@@ -184,6 +184,9 @@ class BlockCollector extends StatementVisitor {
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
+  // TODO(asgerf): Fix visitors so we don't have to use PassMixin here.
+  String get passName => null;
+
   final EventSink<String> output;
 
   TreeTracer(this.output);
@@ -265,7 +268,7 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
 
   visitAssign(Assign node) {
     String name = names.varName(node.variable);
-    String rhs = expr(node.definition);
+    String rhs = expr(node.value);
     Variable v = node.variable;
     String extra = "(r=${v.readCount}, w=${v.writeCount})";
     printStatement(null, "assign $name = $rhs $extra");
@@ -489,6 +492,16 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return 'CreateInstance $className($arguments)';
   }
 
+
+  @override
+  String visitReadTypeVariable(ReadTypeVariable node) {
+    return 'read ${node.variable.element} ${visitExpression(node.target)}';
+  }
+
+  @override
+  String visitReifyRuntimeType(ReifyRuntimeType node) {
+    return 'reify ${node.value}';
+  }
 }
 
 /**

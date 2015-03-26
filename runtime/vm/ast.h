@@ -1856,7 +1856,7 @@ class TryCatchNode : public AstNode {
         try_index_(try_index) {
     ASSERT(try_block_ != NULL);
     ASSERT(context_var != NULL);
-    ASSERT(catch_block_ != NULL || finally_block_ != NULL);
+    ASSERT(catch_block_ != NULL);
   }
 
   SequenceNode* try_block() const { return try_block_; }

@@ -464,12 +464,7 @@ void confirmPublish(ScheduledProcess pub) {
   // TODO(rnystrom): This is overly specific and inflexible regarding different
   // test packages. Should validate this a little more loosely.
   pub.stdout.expect(startsWith('Publishing test_pkg 1.0.0 to '));
-  pub.stdout.expect(emitsLines(
-      "|-- LICENSE\n"
-      "|-- lib\n"
-      "|   '-- test_pkg.dart\n"
-      "'-- pubspec.yaml\n"
-      "\n"
+  pub.stdout.expect(consumeThrough(
       "Looks great! Are you ready to upload your package (y/n)?"));
   pub.writeLine("y");
 }

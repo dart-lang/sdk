@@ -315,39 +315,28 @@ LibTest/core/Stopwatch/start_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/Stopwatch/start_A01_t03: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Uri/Uri_A06_t03: Pass, Slow
-LibTest/core/double/roundToDouble_A01_t01: RuntimeError # co19-roll r706: Please triage this failure.
-LibTest/core/double/round_A01_t01: RuntimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/SendPort/send_A02_t05: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/isolate/SendPort/send_A02_t06: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/typed_data/Float32List/Float32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Float32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Float64List/Float64List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Float64List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/Int16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Int16List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/Int32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Int32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
-LibTest/typed_data/Int8List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int8List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/Uint16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Uint16List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/Uint32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Uint32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/toList_A01_t01: Skip # issue 16934, co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint8ClampedList/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint8List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js && $checked && $runtime == jsshell]
@@ -585,7 +574,6 @@ LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, Runt
 LayoutTests/fast/css/font-face-unicode-range-load_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/html-attr-case-sensitivity_t01: RuntimeError # Please triage this failure
@@ -1711,7 +1699,7 @@ LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Pleas
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -3209,7 +3197,7 @@ LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please tri
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -4471,7 +4459,7 @@ LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # Please triage this 
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class not defined for this browser
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -5526,6 +5514,12 @@ WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # Please triage t
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
+# This test is not flaky: IE10 on Windows 7 is different from IE10 on Windows 8.
+# The test fails on Windows 7's version, but it is currently not possible to test
+# for the OS version (see https://code.google.com/p/dart/issues/detail?id=22806).
+[ $compiler == dart2js && $runtime == ie10 ]
+LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: RuntimeError, Pass # Issue 22752. Please triage this failure.
+
 [ $compiler == dart2js && $runtime == ie10 ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A03_t02: Skip # Times out. Please triage this failure
@@ -5864,7 +5858,7 @@ LayoutTests/fast/css/font-family-initial-shorthand_t01: RuntimeError # Please tr
 LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
@@ -6803,7 +6797,7 @@ LayoutTests/fast/storage/disallowed-storage_t01: RuntimeError # Please triage th
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/shadows-computed-style_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/sub-pixel/table-cells-have-stable-width_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/sub-pixel/table-cells-have-stable-width_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/table-rows-have-stable-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/svg/getbbox_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/svg/tabindex-focus_t01: RuntimeError # Please triage this failure
@@ -7842,7 +7836,7 @@ LayoutTests/fast/css/border-width-large_t01: RuntimeError # Please triage this f
 LayoutTests/fast/css/box-sizing-backwards-compat-prefix_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/child-selector-implicit-tbody_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/comment-before-charset-external_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/comment-before-charset-external_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/computed-offset-with-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content-language-case-insensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content-language-dynamically-added_t01: RuntimeError # Please triage this failure
@@ -7885,7 +7879,7 @@ LayoutTests/fast/css/font-family-initial-shorthand_t01: RuntimeError # Please tr
 LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure

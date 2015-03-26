@@ -104,7 +104,7 @@ class FindAddrVisitor : public FindObjectVisitor {
 
 bool Disassembler::CanFindOldObject(uword addr) {
   FindAddrVisitor visitor(addr);
-  NoGCScope no_gc;
+  NoSafepointScope no_safepoint;
   return Isolate::Current()->heap()->FindOldObject(&visitor) != Object::null();
 }
 

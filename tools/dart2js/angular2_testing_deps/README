@@ -1,0 +1,3 @@
+This directory contains a single file, CURRENT_ANGULAR_DEPS that we
+use to validate that benchmarks running against angular2 repository is
+using the correct version.

@@ -51,12 +51,12 @@ class CharacterRange {
   bool IsSingleton() const { return (from_ == to_); }
   void AddCaseEquivalents(ZoneGrowableArray<CharacterRange>* ranges,
                           bool is_one_byte,
-                          Isolate* isolate);
+                          Zone* zone);
   static void Split(ZoneGrowableArray<CharacterRange>* base,
                     GrowableArray<const intptr_t> overlay,
                     ZoneGrowableArray<CharacterRange>** included,
                     ZoneGrowableArray<CharacterRange>** excluded,
-                    Isolate* isolate);
+                    Zone* zone);
   // Whether a range list is in canonical form: Ranges ordered by from value,
   // and ranges non-overlapping and non-adjacent.
   static bool IsCanonical(ZoneGrowableArray<CharacterRange>* ranges);
@@ -84,7 +84,7 @@ class CharacterRange {
 class OutSet: public ZoneAllocated {
  public:
   OutSet() : first_(0), remaining_(NULL), successors_(NULL) { }
-  OutSet* Extend(unsigned value, Isolate* isolate);
+  OutSet* Extend(unsigned value, Zone* zone);
   bool Get(unsigned value) const;
   static const unsigned kFirstLimit = 32;
 
@@ -92,7 +92,7 @@ class OutSet: public ZoneAllocated {
   // Destructively set a value in this set.  In most cases you want
   // to use Extend instead to ensure that only one instance exists
   // that contains the same values.
-  void Set(unsigned value, Isolate* isolate);
+  void Set(unsigned value, Zone* zone);
 
   // The successors are a list of sets that contain the same values
   // as this set and the one more value that is not present in this
@@ -300,8 +300,8 @@ class QuickCheckDetails {
 
 class RegExpNode: public ZoneAllocated {
  public:
-  explicit RegExpNode(Isolate* isolate)
-  : replacement_(NULL), trace_count_(0), isolate_(isolate) {
+  explicit RegExpNode(Zone* zone)
+  : replacement_(NULL), trace_count_(0), zone_(zone) {
     bm_info_[0] = bm_info_[1] = NULL;
   }
   virtual ~RegExpNode();
@@ -398,7 +398,7 @@ class RegExpNode: public ZoneAllocated {
     return bm_info_[not_at_start ? 1 : 0];
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
  protected:
   enum LimitResult { DONE, CONTINUE };
@@ -421,7 +421,7 @@ class RegExpNode: public ZoneAllocated {
   // deferred operations in the current trace and generating a goto.
   intptr_t trace_count_;
   BoyerMooreLookahead* bm_info_[2];
-  Isolate* isolate_;
+  Zone* zone_;
 };
 
 
@@ -460,7 +460,7 @@ class Interval {
 class SeqRegExpNode: public RegExpNode {
  public:
   explicit SeqRegExpNode(RegExpNode* on_success)
-      : RegExpNode(on_success->isolate()), on_success_(on_success) { }
+      : RegExpNode(on_success->zone()), on_success_(on_success) { }
   RegExpNode* on_success() { return on_success_; }
   void set_on_success(RegExpNode* node) { on_success_ = node; }
   virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
@@ -577,7 +577,7 @@ class TextNode: public SeqRegExpNode {
   TextNode(RegExpCharacterClass* that,
            RegExpNode* on_success)
       : SeqRegExpNode(on_success),
-        elms_(new(isolate()) ZoneGrowableArray<TextElement>(1)) {
+        elms_(new(zone()) ZoneGrowableArray<TextElement>(1)) {
     elms_->Add(TextElement::CharClass(that));
   }
   virtual void Accept(NodeVisitor* visitor);
@@ -632,20 +632,20 @@ class AssertionNode: public SeqRegExpNode {
     AFTER_NEWLINE
   };
   static AssertionNode* AtEnd(RegExpNode* on_success) {
-    return new(on_success->isolate()) AssertionNode(AT_END, on_success);
+    return new(on_success->zone()) AssertionNode(AT_END, on_success);
   }
   static AssertionNode* AtStart(RegExpNode* on_success) {
-    return new(on_success->isolate()) AssertionNode(AT_START, on_success);
+    return new(on_success->zone()) AssertionNode(AT_START, on_success);
   }
   static AssertionNode* AtBoundary(RegExpNode* on_success) {
-    return new(on_success->isolate()) AssertionNode(AT_BOUNDARY, on_success);
+    return new(on_success->zone()) AssertionNode(AT_BOUNDARY, on_success);
   }
   static AssertionNode* AtNonBoundary(RegExpNode* on_success) {
-    return new(on_success->isolate()) AssertionNode(AT_NON_BOUNDARY,
+    return new(on_success->zone()) AssertionNode(AT_NON_BOUNDARY,
                                                     on_success);
   }
   static AssertionNode* AfterNewline(RegExpNode* on_success) {
-    return new(on_success->isolate()) AssertionNode(AFTER_NEWLINE, on_success);
+    return new(on_success->zone()) AssertionNode(AFTER_NEWLINE, on_success);
   }
   virtual void Accept(NodeVisitor* visitor);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
@@ -708,8 +708,8 @@ class BackReferenceNode: public SeqRegExpNode {
 class EndNode: public RegExpNode {
  public:
   enum Action { ACCEPT, BACKTRACK, NEGATIVE_SUBMATCH_SUCCESS };
-  explicit EndNode(Action action, Isolate* isolate)
-      : RegExpNode(isolate), action_(action) { }
+  explicit EndNode(Action action, Zone* zone)
+      : RegExpNode(zone), action_(action) { }
   virtual void Accept(NodeVisitor* visitor);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
   virtual intptr_t EatsAtLeast(intptr_t still_to_find,
@@ -741,8 +741,8 @@ class NegativeSubmatchSuccess: public EndNode {
                           intptr_t position_reg,
                           intptr_t clear_capture_count,
                           intptr_t clear_capture_start,
-                          Isolate* isolate)
-      : EndNode(NEGATIVE_SUBMATCH_SUCCESS, isolate),
+                          Zone* zone)
+      : EndNode(NEGATIVE_SUBMATCH_SUCCESS, zone),
         stack_pointer_register_(stack_pointer_reg),
         current_position_register_(position_reg),
         clear_capture_count_(clear_capture_count),
@@ -778,7 +778,7 @@ class Guard: public ZoneAllocated {
 class GuardedAlternative {
  public:
   explicit GuardedAlternative(RegExpNode* node) : node_(node), guards_(NULL) { }
-  void AddGuard(Guard* guard, Isolate* isolate);
+  void AddGuard(Guard* guard, Zone* zone);
   RegExpNode* node() { return node_; }
   void set_node(RegExpNode* node) { node_ = node; }
   ZoneGrowableArray<Guard*>* guards() { return guards_; }
@@ -796,9 +796,9 @@ struct AlternativeGeneration;
 
 class ChoiceNode: public RegExpNode {
  public:
-  explicit ChoiceNode(intptr_t expected_size, Isolate* isolate)
-      : RegExpNode(isolate),
-        alternatives_(new(isolate)
+  explicit ChoiceNode(intptr_t expected_size, Zone* zone)
+      : RegExpNode(zone),
+        alternatives_(new(zone)
                       ZoneGrowableArray<GuardedAlternative>(expected_size)),
         not_at_start_(false),
         being_calculated_(false) { }
@@ -879,8 +879,8 @@ class NegativeLookaheadChoiceNode: public ChoiceNode {
  public:
   explicit NegativeLookaheadChoiceNode(GuardedAlternative this_must_fail,
                                        GuardedAlternative then_do_this,
-                                       Isolate* isolate)
-      : ChoiceNode(2, isolate) {
+                                       Zone* zone)
+      : ChoiceNode(2, zone) {
     AddAlternative(this_must_fail);
     AddAlternative(then_do_this);
   }
@@ -912,8 +912,8 @@ class NegativeLookaheadChoiceNode: public ChoiceNode {
 
 class LoopChoiceNode: public ChoiceNode {
  public:
-  explicit LoopChoiceNode(bool body_can_be_zero_length, Isolate* isolate)
-      : ChoiceNode(2, isolate),
+  explicit LoopChoiceNode(bool body_can_be_zero_length, Zone* zone)
+      : ChoiceNode(2, zone),
         loop_node_(NULL),
         continue_node_(NULL),
         body_can_be_zero_length_(body_can_be_zero_length) { }
@@ -996,8 +996,8 @@ ContainedInLattice AddRange(ContainedInLattice a,
 
 class BoyerMoorePositionInfo : public ZoneAllocated {
  public:
-  explicit BoyerMoorePositionInfo(Isolate* isolate)
-      : map_(new(isolate) ZoneGrowableArray<bool>(kMapSize)),
+  explicit BoyerMoorePositionInfo(Zone* zone)
+      : map_(new(zone) ZoneGrowableArray<bool>(kMapSize)),
         map_count_(0),
         w_(kNotYet),
         s_(kNotYet),
@@ -1034,7 +1034,7 @@ class BoyerMoorePositionInfo : public ZoneAllocated {
 class BoyerMooreLookahead : public ZoneAllocated{
  public:
   BoyerMooreLookahead(intptr_t length, RegExpCompiler* compiler,
-                      Isolate* Isolate);
+                      Zone* Zone);
 
   intptr_t length() { return length_; }
   intptr_t max_char() { return max_char_; }
@@ -1244,13 +1244,13 @@ class Trace {
   void AdvanceCurrentPositionInTrace(intptr_t by, RegExpCompiler* compiler);
 
  private:
-  intptr_t FindAffectedRegisters(OutSet* affected_registers, Isolate* isolate);
+  intptr_t FindAffectedRegisters(OutSet* affected_registers, Zone* zone);
   void PerformDeferredActions(RegExpMacroAssembler* macro,
                               intptr_t max_register,
                               const OutSet& affected_registers,
                               OutSet* registers_to_pop,
                               OutSet* registers_to_clear,
-                              Isolate* isolate);
+                              Zone* zone);
   void RestoreAffectedRegisters(RegExpMacroAssembler* macro,
                                 intptr_t max_register,
                                 const OutSet& registers_to_pop,
@@ -1402,7 +1402,7 @@ class RegExpEngine: public AllStatic {
       const ZoneGrowableArray<const ICData*>& ic_data_array);
 
   static RawJSRegExp* CreateJSRegExp(
-      Isolate* isolate,
+      Zone* zone,
       const String& pattern,
       bool multi_line,
       bool ignore_case);

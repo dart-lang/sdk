@@ -858,8 +858,15 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   SequenceNode* node_sequence = NULL;
   Array& default_parameter_values = Array::ZoneHandle(zone, Array::null());
   switch (func.kind()) {
-    case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
+      if (func.IsImplicitClosureFunction()) {
+        parser.SkipFunctionPreamble();
+        node_sequence =
+            parser.ParseImplicitClosure(func, &default_parameter_values);
+        break;
+      }
+      // Fall-through: Handle non-implicit closures.
+    case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -1297,6 +1304,59 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
       new StoreInstanceFieldNode(ident_pos, receiver, field, value);
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseImplicitClosure(const Function& func,
+                                           Array* default_values) {
+  TRACE_PARSER("ParseImplicitClosure");
+
+  intptr_t token_pos = func.token_pos();
+
+  OpenFunctionBlock(func);
+
+  ParamList params;
+
+  params.AddFinalParameter(
+      token_pos,
+      &Symbols::ClosureParameter(),
+      &Type::ZoneHandle(Type::DynamicType()));
+
+  const bool allow_explicit_default_values = true;
+  ParseFormalParameterList(allow_explicit_default_values, false, &params);
+  SetupDefaultsForOptionalParams(&params, default_values);
+
+  // Getters can't be closurized. If supported, they need special
+  // handling of the parameters as in ParseFunc.
+  const Function& parent = Function::ZoneHandle(func.parent_function());
+  ASSERT(!parent.IsGetterFunction());
+
+  // Populate function scope with the formal parameters.
+  LocalScope* scope = current_block_->scope;
+  AddFormalParamsToScope(&params, scope);
+
+  ArgumentListNode* func_args = new ArgumentListNode(token_pos);
+  if (!func.is_static()) {
+    func_args->Add(LoadReceiver(token_pos));
+  }
+  // Skip implicit parameter at 0.
+  for (intptr_t i = 1; i < func.NumParameters(); ++i) {
+    func_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+  }
+
+  if (func.HasOptionalNamedParameters()) {
+    const Array& arg_names =
+        Array::ZoneHandle(Array::New(func.NumOptionalParameters()));
+    for (intptr_t i = 0; i < arg_names.Length(); ++i) {
+      intptr_t index = func.num_fixed_parameters() + i;
+      arg_names.SetAt(i, String::Handle(func.ParameterNameAt(index)));
+    }
+    func_args->set_names(arg_names);
+  }
+  StaticCallNode* call = new StaticCallNode(token_pos, parent, func_args);
+  ReturnNode* return_node = new ReturnNode(token_pos, call);
+  current_block_->statements->Add(return_node);
   return CloseBlock();
 }
 
@@ -6795,6 +6855,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   TRACE_PARSER("CloseAsyncFunction");
   ASSERT(!closure.IsNull());
   ASSERT(closure_body != NULL);
+
   // The block for the async closure body has already been closed. Close the
   // corresponding function block.
   CloseBlock();
@@ -8275,7 +8336,10 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
 
+  // Open a block for the iterator variable and the try-finally
+  // statement that contains the loop.
   OpenBlock();
+  const Block* loop_block = current_block_;
 
   // Build creation of implicit StreamIterator.
   // var :for-in-iter = new StreamIterator(stream_expr).
@@ -8301,6 +8365,33 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       new(Z) StoreLocalNode(stream_pos, iterator_var, ctor_call);
   current_block_->statements->Add(iterator_init);
 
+  // We need to ensure that the stream is cancelled after the loop.
+  // Thus, wrap the loop in a try-finally that calls :for-in-iter.close()
+  // in the finally clause. It is harmless to call close() if the stream
+  // is already cancelled (when moveNext() returns false).
+  // Note: even though this is async code, we do not need to set up
+  // the closurized saved_exception_var and saved_stack_trace_var because
+  // there can not be a suspend/resume event before the exception is
+  // rethrown in the catch clause. The catch block of the implicit
+  // try-finally is empty.
+  LocalVariable* context_var = NULL;
+  LocalVariable* exception_var = NULL;
+  LocalVariable* stack_trace_var = NULL;
+  LocalVariable* saved_exception_var = NULL;
+  LocalVariable* saved_stack_trace_var = NULL;
+  SetupExceptionVariables(current_block_->scope,
+                          false,  // Do not create the saved_ vars.
+                          &context_var,
+                          &exception_var,
+                          &stack_trace_var,
+                          &saved_exception_var,
+                          &saved_stack_trace_var);
+  OpenBlock();  // try block.
+  PushTry(current_block_);
+  SetupSavedTryContext(context_var);
+
+  // Build while loop condition.
+  // while (await :for-in-iter.moveNext())
   LocalScope* try_scope;
   int16_t try_index;
   LocalScope* outer_try_scope;
@@ -8308,23 +8399,22 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   CheckAsyncOpInTryBlock(&try_scope, &try_index,
                          &outer_try_scope, &outer_try_index);
 
-  // Build while loop condition.
-  // while (await :for-in-iter.moveNext())
   ArgumentListNode* no_args = new(Z) ArgumentListNode(stream_pos);
   AstNode* iterator_moveNext = new(Z) InstanceCallNode(
       stream_pos,
       new(Z) LoadLocalNode(stream_pos, iterator_var),
                            Symbols::MoveNext(),
                            no_args);
-  AstNode* await_moveNext = new (Z) AwaitNode(stream_pos,
-                                              iterator_moveNext,
-                                              try_scope,
-                                              try_index,
-                                              outer_try_scope,
-                                              outer_try_index);
+  AstNode* await_moveNext =
+      new(Z) AwaitNode(stream_pos,
+                       iterator_moveNext,
+                       try_scope,
+                       try_index,
+                       outer_try_scope,
+                       outer_try_index);
   OpenBlock();
   AwaitTransformer at(current_block_->statements, async_temp_scope_);
-  AstNode* transformed_await = at.Transform(await_moveNext);
+  await_moveNext = at.Transform(await_moveNext);
   SequenceNode* await_preamble = CloseBlock();
 
   // Parse the for loop body. Ideally, we would use ParseNestedStatement()
@@ -8332,6 +8422,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   // variable assignment and potentially a variable declaration in the
   // loop body.
   OpenLoopBlock();
+
   SourceLabel* label =
       SourceLabel::New(await_for_pos, label_name, SourceLabel::kFor);
   current_block_->scope->AddLabel(label);
@@ -8369,6 +8460,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                                                loop_var_assignment_pos);
     ASSERT(loop_var_assignment != NULL);
   }
+
   current_block_->statements->Add(loop_var_assignment);
 
   // Now parse the for-in loop statement or block.
@@ -8382,14 +8474,97 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       current_block_->statements->Add(statement);
     }
   }
-  SequenceNode* for_loop_statement = CloseBlock();
+  SequenceNode* for_loop_block = CloseBlock();
 
   WhileNode* while_node = new (Z) WhileNode(await_for_pos,
                                             label,
-                                            transformed_await,
+                                            await_moveNext,
                                             await_preamble,
-                                            for_loop_statement);
+                                            for_loop_block);
+  // Add the while loop to the try block.
   current_block_->statements->Add(while_node);
+  SequenceNode* try_block = CloseBlock();
+
+  // Create an empty "catch all" block that rethrows the current
+  // exception and stacktrace.
+  try_stack_->enter_catch();
+  SequenceNode* catch_block = new(Z) SequenceNode(await_for_pos, NULL);
+
+  if (outer_try_scope != NULL) {
+    catch_block->Add(AwaitTransformer::RestoreSavedTryContext(
+        Z, outer_try_scope, outer_try_index));
+  }
+
+  // We don't need to copy the current exception and stack trace variables
+  // into :saved_exception_var and :saved_stack_trace_var here because there
+  // is no code in the catch clause that could suspend the function.
+
+  // Rethrow the exception.
+  catch_block->Add(new(Z) ThrowNode(
+      await_for_pos,
+      new(Z) LoadLocalNode(await_for_pos, exception_var),
+      new(Z) LoadLocalNode(await_for_pos, stack_trace_var)));
+
+  TryStack* try_statement = PopTry();
+  ASSERT(try_index == try_statement->try_index());
+
+  // The finally block contains a call to cancel the stream.
+  // :for-in-iter.cancel()
+
+  // Inline the finally block to the exit points in the try block.
+  intptr_t node_index = 0;
+  SequenceNode* finally_clause = NULL;
+  do {
+    OpenBlock();
+    ArgumentListNode* no_args =
+        new(Z) ArgumentListNode(Scanner::kNoSourcePos);
+    current_block_->statements->Add(
+        new(Z) InstanceCallNode(Scanner::kNoSourcePos,
+            new(Z) LoadLocalNode(Scanner::kNoSourcePos, iterator_var),
+            Symbols::Cancel(),
+            no_args));
+    finally_clause = CloseBlock();
+    AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
+    if (node_to_inline != NULL) {
+      InlinedFinallyNode* node =
+          new(Z) InlinedFinallyNode(Scanner::kNoSourcePos,
+                                    finally_clause,
+                                    context_var,
+                                    outer_try_index);
+      finally_clause = NULL;
+      AddFinallyBlockToNode(true, node_to_inline, node);
+      node_index++;
+    }
+  } while (finally_clause == NULL);
+
+  // Create the try-statement and add to the current sequence, which is
+  // the block around the loop statement.
+
+  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
+  const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
+  handler_types.SetAt(0, dynamic_type);  // Catch block handles all exceptions.
+
+  CatchClauseNode* catch_clause = new(Z) CatchClauseNode(await_for_pos,
+      catch_block,
+      handler_types,
+      context_var,
+      exception_var,
+      stack_trace_var,
+      exception_var,
+      stack_trace_var,
+      AllocateTryIndex(),
+      true);  // Needs stack trace.
+
+  AstNode* try_catch_node =
+      new(Z) TryCatchNode(await_for_pos,
+                         try_block,
+                         context_var,
+                         catch_clause,
+                         finally_clause,
+                         try_index);
+
+  ASSERT(current_block_ == loop_block);
+  loop_block->statements->Add(try_catch_node);
 
   return CloseBlock();  // Implicit block around while loop.
 }
@@ -10152,15 +10327,18 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     if (name.IsNull()) {
       ReportError(left_pos, "expression is not assignable");
     }
-    result = ThrowNoSuchMethodError(
-        original->token_pos(),
-        *target_cls,
-        String::Handle(Z, Field::SetterName(name)),
-        NULL,  // No arguments.
-        InvocationMirror::kStatic,
-        original->IsLoadLocalNode() ?
-            InvocationMirror::kLocalVar : InvocationMirror::kSetter,
-        NULL);  // No existing function.
+    LetNode* let_node = new(Z) LetNode(left_pos);
+    let_node->AddInitializer(rhs);
+    let_node->AddNode(ThrowNoSuchMethodError(
+         original->token_pos(),
+         *target_cls,
+         String::Handle(Z, Field::SetterName(name)),
+         NULL,  // No arguments.
+         InvocationMirror::kStatic,
+         original->IsLoadLocalNode() ?
+         InvocationMirror::kLocalVar : InvocationMirror::kSetter,
+         NULL));  // No existing function.
+    result = let_node;
   } else if (result->IsStoreIndexedNode() ||
              result->IsInstanceSetterNode() ||
              result->IsStaticSetterNode() ||
@@ -10549,16 +10727,17 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                    arguments->NodeAt(1));
     }
   }
-  return new(Z) StaticCallNode(call_pos, func, arguments);
+  return new(Z) StaticCallNode(ident_pos, func, arguments);
 }
 
 
-AstNode* Parser::ParseInstanceCall(AstNode* receiver, const String& func_name) {
+AstNode* Parser::ParseInstanceCall(AstNode* receiver,
+                                   const String& func_name,
+                                   intptr_t ident_pos) {
   TRACE_PARSER("ParseInstanceCall");
-  const intptr_t call_pos = TokenPos();
   CheckToken(Token::kLPAREN);
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
-  return new(Z) InstanceCallNode(call_pos, receiver, func_name, arguments);
+  return new(Z) InstanceCallNode(ident_pos, receiver, func_name, arguments);
 }
 
 
@@ -10758,7 +10937,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           const Class& cls = Class::Cast(left->AsPrimaryNode()->primary());
           selector = ParseStaticCall(cls, *ident, ident_pos);
         } else {
-          selector = ParseInstanceCall(left, *ident);
+          selector = ParseInstanceCall(left, *ident, ident_pos);
         }
       } else {
         // Field access.
@@ -10852,7 +11031,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                           "from static function",
                           func_name.ToCString());
             }
-            selector = ParseInstanceCall(LoadReceiver(primary_pos), func_name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos),
+                                         func_name,
+                                         primary_pos);
           }
         } else if (primary_node->primary().IsString()) {
           // Primary is an unresolved name.
@@ -10871,7 +11052,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                               NULL);  // No existing function.
           } else {
             // Treat as call to unresolved (instance) method.
-            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos),
+                                         name,
+                                         primary_pos);
           }
         } else if (primary_node->primary().IsTypeParameter()) {
           const String& name = String::ZoneHandle(Z,
@@ -10884,7 +11067,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                         name.ToCString());
           } else {
             // Treat as call to unresolved (instance) method.
-            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos),
+                                         name,
+                                         primary_pos);
           }
         } else if (primary_node->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary_node->primary());

@@ -114,6 +114,7 @@ void testFail(String source) {
       throw object;
     });
   }, (e) => identical(object, e), "Fail: '$source'");
+  Expect.equals(1.5, double.parse(source, (s) => 1.5));
 }
 
 void main() {

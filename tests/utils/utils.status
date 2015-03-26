@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $host_checked ]
+dummy_compiler_test: Crash # Issue 22809
+
 [ $compiler == dart2js ]
 dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
@@ -24,3 +27,7 @@ dummy_compiler_test: Slow, Pass
 dummy_compiler_test: Pass, RuntimeError # Issue 17662
 recursive_import_test: Pass, RuntimeError # Issue 17662
 source_mirrors_test: Pass, RuntimeError # Issue 17662
+
+[ $compiler == dart2dart && $builder_tag != new_backend ]
+source_mirrors_test: Slow, Pass
+dummy_compiler_test: Slow, Pass

@@ -84,7 +84,7 @@ class RegExpMacroAssembler : public ZoneAllocated {
     kIRImplementation
   };
 
-  explicit RegExpMacroAssembler(Isolate* isolate);
+  explicit RegExpMacroAssembler(Zone* zone);
   virtual ~RegExpMacroAssembler();
   // The maximal number of pushes between stack checks. Users must supply
   // kCheckStackLimit flag to push operations (instead of kNoStackLimitCheck)
@@ -209,12 +209,12 @@ class RegExpMacroAssembler : public ZoneAllocated {
     return global_mode_ == GLOBAL;
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
  private:
   bool slow_safe_compiler_;
   bool global_mode_;
-  Isolate* isolate_;
+  Zone* zone_;
 };
 
 
@@ -238,7 +238,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                          intptr_t capture_count,
                          const ParsedFunction* parsed_function,
                          const ZoneGrowableArray<const ICData*>& ic_data_array,
-                         Isolate* isolate);
+                         Zone* zone);
   virtual ~IRRegExpMacroAssembler();
 
   virtual bool CanReadUnaligned();
@@ -254,7 +254,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   static RawArray* Execute(const Function& function,
                            const String& input,
                            const Smi& start_offset,
-                           Isolate* isolate);
+                           Zone* zone);
 
   virtual bool IsClosed() const { return (current_instruction_ == NULL); }
 

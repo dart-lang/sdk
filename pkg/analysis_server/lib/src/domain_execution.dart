@@ -154,10 +154,7 @@ class ExecutionDomainHandler implements RequestHandler {
     ServerPerformanceStatistics.executionNotifications.makeCurrentWhile(() {
       Source source = notice.source;
       String filePath = source.fullName;
-      if (!_isInAnalysisRoot(filePath)) {
-        return;
-      }
-      AnalysisContext context = server.getAnalysisContext(filePath);
+      AnalysisContext context = server.getContainingContext(filePath);
       if (context == null) {
         return;
       }

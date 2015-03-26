@@ -1102,7 +1102,7 @@ void FlowGraphCompiler::CompileGraph() {
           __ StoreToOffset(kWord, CTX, FP, (slot_base - i) * kWordSize);
         } else {
           const Context& empty_context = Context::ZoneHandle(
-              isolate(), isolate()->object_store()->empty_context());
+              zone(), isolate()->object_store()->empty_context());
           __ LoadObject(R1, empty_context);
           __ StoreToOffset(kWord, R1, FP, (slot_base - i) * kWordSize);
         }
@@ -1196,49 +1196,29 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(R0, counter);
-#if defined(DEBUG)
   intptr_t increment_start = assembler_->CodeSize();
+#if defined(DEBUG)
   bool old_use_far_branches = assembler_->use_far_branches();
   assembler_->set_use_far_branches(true);
 #endif  // DEBUG
   __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
   __ add(IP, IP, Operand(Smi::RawValue(1)));
   __ StoreIntoSmiField(FieldAddress(R0, Array::element_offset(0)), IP);
+  int32_t size = assembler_->CodeSize() - increment_start;
+  if (isolate()->edge_counter_increment_size() == -1) {
+    isolate()->set_edge_counter_increment_size(size);
+  } else {
+    ASSERT(size == isolate()->edge_counter_increment_size());
+  }
 #if defined(DEBUG)
   assembler_->set_use_far_branches(old_use_far_branches);
-  // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
-  intptr_t expected = EdgeCounterIncrementSizeInBytes();
-  intptr_t actual = assembler_->CodeSize() - increment_start;
-  if (actual != expected) {
-    FATAL2("Edge counter increment length: %" Pd ", expected %" Pd "\n",
-           actual,
-           expected);
-  }
 #endif  // DEBUG
 }
 
 
 int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
-  // Used by CodePatcher; so must be constant across all code in an isolate.
-  int32_t size = 3 * Instr::kInstrSize;
-#if defined(DEBUG)
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    size += 35 * Instr::kInstrSize;
-  } else {
-    // To update this number for e.g. ARMv6, run a SIMARM build with
-    // --sim_use_armv6 on any Dart program.
-    size += 51 * Instr::kInstrSize;
-  }
-#endif  // DEBUG
-  if (VerifiedMemory::enabled()) {
-    if (TargetCPUFeatures::arm_version() == ARMv7) {
-      size += 20 * Instr::kInstrSize;
-    } else {
-      // To update this number for e.g. ARMv6, run a SIMARM build with
-      // --sim_use_armv6 --verified_mem on any Dart program.
-      size += 28 * Instr::kInstrSize;
-    }
-  }
+  const int32_t size = Isolate::Current()->edge_counter_increment_size();
+  ASSERT(size != -1);
   return size;
 }
 

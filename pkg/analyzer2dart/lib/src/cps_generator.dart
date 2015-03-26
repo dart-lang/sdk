@@ -15,6 +15,7 @@ import 'package:compiler/src/dart2jslib.dart'
     show DART_CONSTANT_SYSTEM;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/src/cps_ir/cps_ir_builder.dart';
+import 'package:compiler/src/cps_ir/cps_ir_builder_task.dart';
 import 'package:compiler/src/universe/universe.dart';
 
 import 'semantic_visitor.dart';
@@ -390,10 +391,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticSet(
-        target,
-        new Selector.setter(target.name, target.library),
-        build(node.rightHandSide));
+    return irBuilder.buildStaticSet(target, build(node.rightHandSide));
   }
 
   @override
@@ -413,8 +411,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticGet(target,
-        new Selector.getter(target.name, target.library));
+    return irBuilder.buildStaticGet(target);
   }
 
   ir.Primitive handleBinaryExpression(BinaryExpression node,
@@ -571,6 +568,22 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         visit(node.expression),
         converter.convertType(node.type.type),
         isTypeTest: false);
+  }
+
+  @override
+  visitTryStatement(TryStatement node) {
+    List<CatchClauseInfo> catchClauseInfos = <CatchClauseInfo>[];
+    for (CatchClause catchClause in node.catchClauses) {
+      catchClauseInfos.add(new CatchClauseInfo(
+          exceptionVariable: converter.convertElement(
+              catchClause.exceptionParameter.staticElement),
+          buildCatchBlock: subbuild(catchClause.body)));
+
+    }
+    irBuilder.buildTry(
+        tryStatementInfo: new TryStatementInfo(),
+        buildTryBlock: subbuild(node.body),
+        catchClauseInfos: catchClauseInfos);
   }
 }
 

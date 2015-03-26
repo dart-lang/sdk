@@ -601,7 +601,7 @@ class RangeAnalysis : public ValueObject {
 
   Range* ConstraintSmiRange(Token::Kind op, Definition* boundary);
 
-  Isolate* isolate() const { return flow_graph_->isolate(); }
+  Zone* zone() const { return flow_graph_->zone(); }
 
   FlowGraph* flow_graph_;
 
@@ -651,13 +651,13 @@ class IntegerInstructionSelector : public ValueObject {
   Definition* ConstructReplacementFor(Definition* def);
   void ReplaceInstructions();
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
   GrowableArray<Definition*> potential_uint32_defs_;
   BitVector* selected_uint32_defs_;
 
   FlowGraph* flow_graph_;
-  Isolate* isolate_;
+  Zone* zone_;
 };
 
 

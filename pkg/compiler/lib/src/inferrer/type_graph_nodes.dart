@@ -760,11 +760,12 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
-  bool get targetsIncludeNoSuchMethod {
+  bool targetsIncludeComplexNoSuchMethod(TypeGraphInferrerEngine inferrer) {
     return targets.any((Element e) {
       return e is FunctionElement &&
              e.isInstanceMember &&
-             e.name == Compiler.NO_SUCH_METHOD;
+             e.name == Compiler.NO_SUCH_METHOD &&
+             inferrer.backend.isComplexNoSuchMethod(e);
     });
   }
 

@@ -55,6 +55,7 @@ part of tree_ir.optimization;
 ///   x && y            (double negation removed by [putInBooleanContext])
 ///
 class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
+  String get passName => 'Logical rewriter';
 
   /// Statement to be executed next by natural fallthrough. Although fallthrough
   /// is not introduced in this phase, we need to reason about fallthrough when
@@ -97,7 +98,7 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
   }
 
   Statement visitAssign(Assign node) {
-    node.definition = visitExpression(node.definition);
+    node.value = visitExpression(node.value);
     node.next = visitStatement(node.next);
     return node;
   }
@@ -339,6 +340,16 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
 
   Expression visitCreateInstance(CreateInstance node) {
     _rewriteList(node.arguments);
+    return node;
+  }
+
+  Expression visitReifyRuntimeType(ReifyRuntimeType node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Expression visitReadTypeVariable(ReadTypeVariable node) {
+    node.target = visitExpression(node.target);
     return node;
   }
 
