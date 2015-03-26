@@ -15950,7 +15950,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   const bool is_smi = Smi::IsValid(value);
   if (!silent &&
       FLAG_throw_on_javascript_int_overflow &&
-      !Utils::IsJavascriptInt(value)) {
+      !Utils::IsJavascriptInt64(value)) {
     const Integer& i = is_smi ?
         Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
         Integer::Handle(Mint::New(value, space));
@@ -16048,7 +16048,7 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
       value = AsInt64Value();
     }
   }
-  return !Utils::IsJavascriptInt(value);
+  return !Utils::IsJavascriptInt64(value);
 }
 
 

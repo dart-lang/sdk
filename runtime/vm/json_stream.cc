@@ -281,7 +281,7 @@ void JSONStream::PrintProperty(const char* name, intptr_t i) {
 
 
 void JSONStream::PrintProperty64(const char* name, int64_t i) {
-  ASSERT(Utils::IsJavascriptInt(i));
+  ASSERT(Utils::IsJavascriptInt64(i));
   PrintPropertyName(name);
   PrintValue64(i);
 }
