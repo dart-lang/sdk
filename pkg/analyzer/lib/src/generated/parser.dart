@@ -3430,18 +3430,21 @@ class Parser {
 
   /**
    * Return the content of a string with the given literal representation. The
-   * [lexeme] is the literal representation of the string. The flag [first] is
-   * `true` if this is the first token in a string literal. The flag [last] is
+   * [lexeme] is the literal representation of the string. The flag [isFirst] is
+   * `true` if this is the first token in a string literal. The flag [isLast] is
    * `true` if this is the last token in a string literal.
    */
-  String _computeStringValue(String lexeme, bool first, bool last) {
+  String _computeStringValue(String lexeme, bool isFirst, bool isLast) {
     bool isRaw = false;
     int start = 0;
-    if (first) {
+    if (isFirst) {
       if (StringUtilities.startsWith4(lexeme, 0, 0x72, 0x22, 0x22, 0x22) ||
           StringUtilities.startsWith4(lexeme, 0, 0x72, 0x27, 0x27, 0x27)) {
         isRaw = true;
         start += 4;
+        if (isFirst) {
+          start = _trimInitialWhitespace(lexeme, start);
+        }
       } else if (StringUtilities.startsWith2(lexeme, 0, 0x72, 0x22) ||
           StringUtilities.startsWith2(lexeme, 0, 0x72, 0x27)) {
         isRaw = true;
@@ -3449,13 +3452,16 @@ class Parser {
       } else if (StringUtilities.startsWith3(lexeme, 0, 0x22, 0x22, 0x22) ||
           StringUtilities.startsWith3(lexeme, 0, 0x27, 0x27, 0x27)) {
         start += 3;
+        if (isFirst) {
+          start = _trimInitialWhitespace(lexeme, start);
+        }
       } else if (StringUtilities.startsWithChar(lexeme, 0x22) ||
           StringUtilities.startsWithChar(lexeme, 0x27)) {
         start += 1;
       }
     }
     int end = lexeme.length;
-    if (last) {
+    if (isLast) {
       if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
           StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
         end -= 3;
@@ -3466,7 +3472,7 @@ class Parser {
     }
     if (end - start + 1 < 0) {
       AnalysisEngine.instance.logger.logError(
-          "Internal error: computeStringValue($lexeme, $first, $last)");
+          "Internal error: computeStringValue($lexeme, $isFirst, $isLast)");
       return "";
     }
     if (isRaw) {
@@ -8247,6 +8253,46 @@ class Parser {
       buffer.writeCharCode(currentChar);
     }
     return currentIndex + 1;
+  }
+
+  /**
+   * Given the [lexeme] for a multi-line string whose content begins at the
+   * given [start] index, return the index of the first character that is
+   * included in the value of the string. According to the specification:
+   *
+   * If the first line of a multiline string consists solely of the whitespace
+   * characters defined by the production WHITESPACE 20.1), possibly prefixed
+   * by \, then that line is ignored, including the new line at its end.
+   */
+  int _trimInitialWhitespace(String lexeme, int start) {
+    int length = lexeme.length;
+    int index = start;
+    while (index < length) {
+      int currentChar = lexeme.codeUnitAt(index);
+      if (currentChar == 0x0D) {
+        if (index + 1 < length && lexeme.codeUnitAt(index + 1) == 0x0A) {
+          return index + 2;
+        }
+        return index + 1;
+      } else if (currentChar == 0x0A) {
+        return index + 1;
+      } else if (currentChar == 0x5C) {
+        if (index + 1 >= length) {
+          return start;
+        }
+        currentChar = lexeme.codeUnitAt(index + 1);
+        if (currentChar != 0x0D &&
+            currentChar != 0x0A &&
+            currentChar != 0x09 &&
+            currentChar != 0x20) {
+          return start;
+        }
+      } else if (currentChar != 0x09 && currentChar != 0x20) {
+        return start;
+      }
+      index++;
+    }
+    return start;
   }
 
   /**
