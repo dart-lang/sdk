@@ -7,17 +7,23 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 
+// TODO(johnniwinther): This value is some what arbitrary. With the old
+// [ResolvedVisitor] we could handle 2000, with the new [ResolvedVisitor] build
+// upon the [SemanticVisitor] we can handle <1300. Update (increase) the value
+// when the [SssBuilder] is no longer build upon the [ResolvedVisitor] .
+const int NUMBER_OF_PARAMETERS = 1250;
+
 main() {
   var buffer = new StringBuffer();
   buffer.write("foo(");
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < NUMBER_OF_PARAMETERS; i++) {
     buffer.write("x$i, ");
   }
   buffer.write("x) { int i = ");
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < NUMBER_OF_PARAMETERS; i++) {
     buffer.write("x$i+");
   }
-  buffer.write("2000; return i; }");
+  buffer.write("$NUMBER_OF_PARAMETERS; return i; }");
   String code = buffer.toString();
 
   asyncTest(() => compile(code, entry: 'foo', minify: true)

@@ -160,7 +160,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       : super(elements);
 
   @override
-  bulkHandleNode(ast.Node node, String message) => giveup(node, message);
+  bulkHandleNode(ast.Node node, String message, _) => giveup(node, message);
 
   @override
   ir.Primitive apply(ast.Node node, _) => node.accept(this);

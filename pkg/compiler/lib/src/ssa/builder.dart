@@ -980,7 +980,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 /**
  * This class builds SSA nodes for functions represented in AST.
  */
-class SsaBuilder extends ResolvedVisitor {
+class SsaBuilder extends NewResolvedVisitor {
   final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
@@ -3133,7 +3133,7 @@ class SsaBuilder extends ResolvedVisitor {
     pushWithPosition(not, node);
   }
 
-  void visitUnary(ast.Send node, ast.Operator op) {
+  void visitUnarySend(ast.Send node, ast.Operator op) {
     assert(node.argumentsNode is ast.Prefix);
     visit(node.receiver);
     assert(!identical(op.token.kind, PLUS_TOKEN));
@@ -3153,11 +3153,11 @@ class SsaBuilder extends ResolvedVisitor {
     pushInvokeDynamic(node, elements.getSelector(node), [operand]);
   }
 
-  void visitBinary(HInstruction left,
-                   ast.Operator op,
-                   HInstruction right,
-                   Selector selector,
-                   ast.Send send) {
+  void visitBinarySend(HInstruction left,
+                       ast.Operator op,
+                       HInstruction right,
+                       Selector selector,
+                       ast.Send send) {
     switch (op.source) {
       case "===":
         pushWithPosition(
@@ -3425,7 +3425,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if ("!" == op.source) {
       visitLogicalNot(node);
     } else if (node.argumentsNode is ast.Prefix) {
-      visitUnary(node, op);
+      visitUnarySend(node, op);
     } else if ("is" == op.source) {
       visitIsSend(node);
     } else if ("as" == op.source) {
@@ -3448,7 +3448,7 @@ class SsaBuilder extends ResolvedVisitor {
       visit(node.argumentsNode);
       var right = pop();
       var left = pop();
-      visitBinary(left, op, right, elements.getSelector(node), node);
+      visitBinarySend(left, op, right, elements.getSelector(node), node);
     }
   }
 
@@ -4537,7 +4537,7 @@ class SsaBuilder extends ResolvedVisitor {
     return false;
   }
 
-  visitAssert(node) {
+  visitAssertSend(node) {
     if (!compiler.enableUserAssertions) {
       stack.add(graph.addConstantNull(compiler));
       return;
@@ -4637,7 +4637,7 @@ class SsaBuilder extends ResolvedVisitor {
                        backend.getCreateRuntimeType(),
                        [pop()]);
     } else {
-      internalError('unexpected type kind ${type.kind}', node: node);
+      internalError(node, 'unexpected type kind ${type.kind}');
     }
     if (node.isCall) {
       // This send is of the form 'e(...)', where e is resolved to a type
@@ -4659,7 +4659,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   // TODO(antonm): migrate rest of SsaFromAstMixin to internalError.
-  internalError(String reason, {ast.Node node}) {
+  internalError(Spannable node, String reason) {
     compiler.internalError(node, reason);
   }
 
@@ -4924,8 +4924,8 @@ class SsaBuilder extends ResolvedVisitor {
       assert(arguments.tail.isEmpty);
       rhs = pop();
     }
-    visitBinary(receiver, node.assignmentOperator, rhs,
-                elements.getOperatorSelectorInComplexSendSet(node), node);
+    visitBinarySend(receiver, node.assignmentOperator, rhs,
+                    elements.getOperatorSelectorInComplexSendSet(node), node);
   }
 
   visitSendSet(ast.SendSet node) {

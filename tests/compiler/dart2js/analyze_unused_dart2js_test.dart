@@ -28,8 +28,7 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/resolution/semantic_visitor.dart": const [
       "The method 'error"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
-      "The method 'error",
-      "Mixin' is never used."]
+      "The method 'error"]
 };
 
 void main() {
