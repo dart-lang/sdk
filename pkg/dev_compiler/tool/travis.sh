@@ -4,7 +4,7 @@
 set -e
 
 function clean {
-  # This is a much more simple clean script, assuming git is available
+  # This is a much simpler clean script, assuming git is available
   pushd test
   git clean -fdx
   popd

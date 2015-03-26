@@ -35,11 +35,6 @@ cd $TEST_DIR/..
 
 ./tool/build_sdk.sh
 
-# Remove packages symlinks, and old codegen output
-find test/codegen -name packages -exec rm {} \;
-rm -r test/codegen/actual 2> /dev/null || true
-find test/dart_codegen -name packages -exec rm {} \;
-rm -r test/dart_codegen/actual 2> /dev/null || true
 dart -c test/all_tests.dart || fail
 
 # validate codegen_test output

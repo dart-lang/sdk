@@ -81,13 +81,13 @@ main(arguments) {
   }
   var realSdk = getSdkDir(arguments).path;
 
-  // Validate that old output is gone before running.
-  // TODO(jmesserly): it'd be nice to do all cleanup here, including removing
-  // pub's 'packages' symlinks which mess up the diff. That way this test
-  // can be self contained instead of depending on a shell script.
-  if (new Directory(actualDir).existsSync()) {
-    throw 'Old compiler output should be cleaned up first. Use ./test/test.sh';
-  }
+  // Remove old output, and `packages` symlinks which mess up the diff.
+  var dir = new Directory(actualDir);
+  if (dir.existsSync()) dir.deleteSync(recursive: true);
+  var packagesDirs = new Directory(inputDir)
+      .listSync(recursive: true)
+      .where((d) => d is Directory && path.basename(d.path) == 'packages');
+  packagesDirs.forEach((d) => d.deleteSync());
 
   for (var filePath in paths) {
     var filename = path.basenameWithoutExtension(filePath);
