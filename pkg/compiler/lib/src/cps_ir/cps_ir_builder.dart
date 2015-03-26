@@ -13,7 +13,8 @@ import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 import '../closure.dart' hide ClosureScope;
 import 'cps_ir_nodes.dart' as ir;
-import 'cps_ir_builder_task.dart' show DartCapturedVariables;
+import 'cps_ir_builder_task.dart' show DartCapturedVariables,
+    GlobalProgramInformation;
 
 /// A mapping from variable elements to their compile-time values.
 ///
@@ -308,7 +309,7 @@ abstract class IrBuilder {
 
   /// Add the given function parameter to the IR, and bind it in the environment
   /// or put it in its box, if necessary.
-  void _createFunctionParameter(ParameterElement parameterElement);
+  void _createFunctionParameter(Local parameterElement);
   void _createThisParameter();
 
   /// Creates an access to the receiver from the current (or enclosing) method.
@@ -416,7 +417,7 @@ abstract class IrBuilder {
     _enterScope(closureScope);
   }
 
-  List<ir.Primitive> buildFunctionHeader(Iterable<ParameterElement> parameters,
+  List<ir.Primitive> buildFunctionHeader(Iterable<Local> parameters,
                                         {ClosureScope closureScope,
                                          ClosureEnvironment env}) {
     _createThisParameter();
@@ -828,12 +829,8 @@ abstract class IrBuilder {
   /// argument values are defined by [arguments].
   ir.Primitive buildConstructorInvocation(FunctionElement element,
                                           Selector selector,
-                                          DartType type,
-                                          List<ir.Primitive> arguments) {
-    assert(isOpen);
-    return _continueWithExpression(
-        (k) => new ir.InvokeConstructor(type, element, selector, k, arguments));
-  }
+                                          InterfaceType type,
+                                          List<ir.Primitive> arguments);
 
   /// Create a string concatenation of the [arguments].
   ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments) {
@@ -2070,7 +2067,7 @@ class DartIrBuilder extends IrBuilder {
     }
   }
 
-  void _createFunctionParameter(ParameterElement parameterElement) {
+  void _createFunctionParameter(Local parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
     if (isInMutableVariable(parameterElement)) {
@@ -2169,6 +2166,16 @@ class DartIrBuilder extends IrBuilder {
     return _buildInvokeSuper(target, selector, arguments);
   }
 
+  @override
+  ir.Primitive buildConstructorInvocation(FunctionElement element,
+                                          Selector selector,
+                                          InterfaceType type,
+                                          List<ir.Primitive> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.InvokeConstructor(type, element, selector, k,
+            arguments));
+  }
 }
 
 /// State shared between JsIrBuilders within the same function.
@@ -2181,6 +2188,10 @@ class JsIrBuilderSharedState {
 
   /// If non-null, this refers to the receiver (`this`) in the enclosing method.
   ir.Primitive receiver;
+
+  /// `true` when we are currently building expressions inside the initializer
+  /// list of a constructor.
+  bool inInitializers = false;
 }
 
 /// JS-specific subclass of [IrBuilder].
@@ -2189,11 +2200,13 @@ class JsIrBuilderSharedState {
 /// variables are boxed as necessary using [CreateBox], [GetField], [SetField].
 class JsIrBuilder extends IrBuilder {
   final JsIrBuilderSharedState jsState;
+  final GlobalProgramInformation program;
 
-  IrBuilder _makeInstance() => new JsIrBuilder._blank(jsState);
-  JsIrBuilder._blank(this.jsState);
+  IrBuilder _makeInstance() => new JsIrBuilder._blank(program, jsState);
+  JsIrBuilder._blank(this.program, this.jsState);
 
-  JsIrBuilder(ConstantSystem constantSystem, ExecutableElement currentElement)
+  JsIrBuilder(this.program, ConstantSystem constantSystem,
+      ExecutableElement currentElement)
       : jsState = new JsIrBuilderSharedState() {
     _init(constantSystem, currentElement);
   }
@@ -2203,6 +2216,16 @@ class JsIrBuilder extends IrBuilder {
   bool isInMutableVariable(Local local) => false;
   void makeMutableVariable(Local local) {}
   void removeMutableVariable(Local local) {}
+
+  void enterInitializers() {
+    assert(jsState.inInitializers == false);
+    jsState.inInitializers = true;
+  }
+
+  void leaveInitializers() {
+    assert(jsState.inInitializers == true);
+    jsState.inInitializers = false;
+  }
 
   void _enterClosureEnvironment(ClosureEnvironment env) {
     if (env == null) return;
@@ -2255,7 +2278,7 @@ class JsIrBuilder extends IrBuilder {
     });
   }
 
-  void _createFunctionParameter(ParameterElement parameterElement) {
+  void _createFunctionParameter(Local parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
     state.functionParameters.add(parameter);
@@ -2310,7 +2333,8 @@ class JsIrBuilder extends IrBuilder {
           : environment.lookup(field.local);
       arguments.add(value);
     }
-    return addPrimitive(new ir.CreateInstance(classElement, arguments));
+    return addPrimitive(
+        new ir.CreateInstance(classElement, arguments, const <ir.Primitive>[]));
   }
 
   /// Create a read access of [local].
@@ -2430,6 +2454,63 @@ class JsIrBuilder extends IrBuilder {
       jsState.boxedVariables.addAll(closureScope.capturedVariables);
     }
   }
+
+  @override
+  ir.Primitive buildConstructorInvocation(ConstructorElement element,
+                                          Selector selector,
+                                          InterfaceType type,
+                                          List<ir.Primitive> arguments) {
+    assert(isOpen);
+
+    ClassElement cls = element.enclosingClass;
+    if (program.requiresRuntimeTypesFor(cls)) {
+      Iterable<ir.Primitive> typeArguments =
+          type.typeArguments.map((DartType argument) {
+        return type.treatAsRaw
+            ? buildNullLiteral()
+            : buildTypeExpression(argument);
+      });
+      arguments = new List<ir.Primitive>.from(arguments)
+          ..addAll(typeArguments);
+    }
+    return _continueWithExpression(
+        (k) => new ir.InvokeConstructor(type, element, selector, k,
+            arguments));
+  }
+
+  ir.Primitive buildTypeExpression(DartType type) {
+    if (type is TypeVariableType) {
+      return buildTypeVariableAccess(buildThis(), type);
+    } else {
+      assert(type is InterfaceType);
+      List<ir.Primitive> arguments = <ir.Primitive>[];
+      type.forEachTypeVariable((TypeVariableType variable) {
+        ir.Primitive value = buildTypeVariableAccess(buildThis(), variable);
+        arguments.add(value);
+      });
+      return addPrimitive(new ir.TypeExpression(type, arguments));
+    }
+  }
+
+  ir.Primitive buildTypeVariableAccess(ir.Primitive target,
+                                       TypeVariableType variable) {
+    ir.Parameter accessTypeArgumentParameter() {
+      for (int i = 0; i < environment.length; i++) {
+        Local local = environment.index2variable[i];
+        if (local is TypeInformationParameter &&
+            local.variable == variable.element) {
+          return environment.index2value[i];
+        }
+      }
+      throw 'unable to find constructor parameter for type variable $variable.';
+    }
+
+    if (jsState.inInitializers) {
+      return accessTypeArgumentParameter();
+    } else {
+      return addPrimitive(new ir.ReadTypeVariable(variable, target));
+    }
+  }
 }
 
 
@@ -2500,4 +2581,13 @@ class CatchClauseInfo {
   CatchClauseInfo({this.exceptionVariable,
                    this.stackTraceVariable,
                    this.buildCatchBlock});
+}
+
+/// Synthetic parameter to a JavaScript factory method that takes the type
+/// argument given for the type variable [variable].
+class TypeInformationParameter implements Local {
+  final TypeVariableElement variable;
+  final ExecutableElement executableContext;
+  TypeInformationParameter(this.variable, this.executableContext);
+  String get name => variable.name;
 }

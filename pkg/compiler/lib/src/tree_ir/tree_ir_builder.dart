@@ -519,8 +519,11 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Statement visitInvokeConstructor(cps_ir.InvokeConstructor node) {
     List<Expression> arguments = translateArguments(node.arguments);
-    Expression invoke =
-        new InvokeConstructor(node.type, node.target, node.selector, arguments);
+    Expression invoke = new InvokeConstructor(
+        node.type,
+        node.target,
+        node.selector,
+        arguments);
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -650,5 +653,12 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Expression visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     return new ReadTypeVariable(node.variable, getVariableUse(node.target));
+  }
+
+  @override
+  Node visitTypeExpression(cps_ir.TypeExpression node) {
+    return new TypeExpression(
+        node.dartType,
+        node.arguments.map(getVariableUse).toList());
   }
 }

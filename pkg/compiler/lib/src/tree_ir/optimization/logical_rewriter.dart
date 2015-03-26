@@ -504,5 +504,11 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
       l[i] = visitExpression(l[i]);
     }
   }
+
+  @override
+  Expression visitTypeExpression(TypeExpression node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
 }
 

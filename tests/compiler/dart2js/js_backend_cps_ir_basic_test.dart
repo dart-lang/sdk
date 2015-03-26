@@ -111,8 +111,8 @@ main() {
   print(new Set.from([1, 2, 3]));
 }""", r"""
 function() {
-  P.print(P.Set_Set());
-  P.print(P.Set_Set$from([1, 2, 3]));
+  P.print(P.Set_Set(null));
+  P.print(P.Set_Set$from([1, 2, 3], null));
   return null;
 }"""),
   // Call synthetic constructor.

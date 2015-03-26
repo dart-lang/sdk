@@ -775,7 +775,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       // Continuations on the other hand are local, and parameters can have
       // some other abstract value than non-constant.
     } else {
-      internalError(node.hint, "Unexpected parent of Parameter");
+      internalError(node.hint, "Unexpected parent of Parameter: ${node.parent}");
     }
   }
 
@@ -848,6 +848,13 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitReadTypeVariable(ReadTypeVariable node) {
+    // TODO(karlklose): come up with a type marker for JS entities or switch to
+    // real constants of type [Type].
+    setValue(node, nonConst());
+  }
+
+  @override
+  visitTypeExpression(TypeExpression node) {
     // TODO(karlklose): come up with a type marker for JS entities or switch to
     // real constants of type [Type].
     setValue(node, nonConst());

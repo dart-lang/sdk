@@ -6,7 +6,7 @@ library tree_ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values;
-import '../dart_types.dart' show DartType, GenericType, TypeVariableType;
+import '../dart_types.dart' show DartType, GenericType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart';
@@ -222,11 +222,14 @@ class InvokeConstructor extends Expression implements Invoke {
   final values.ConstantValue constant;
 
   InvokeConstructor(this.type, this.target, this.selector, this.arguments,
-      [this.constant]);
+                    [this.constant]);
 
   ClassElement get targetClass => target.enclosingElement;
 
-  accept(ExpressionVisitor visitor) => visitor.visitInvokeConstructor(this);
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitInvokeConstructor(this);
+  }
+
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitInvokeConstructor(this, arg);
   }
@@ -732,8 +735,9 @@ class CreateBox extends Expression implements JsSpecificNode {
 class CreateInstance extends Expression implements JsSpecificNode {
   ClassElement classElement;
   List<Expression> arguments;
+  List<Expression> typeInformation;
 
-  CreateInstance(this.classElement, this.arguments);
+  CreateInstance(this.classElement, this.arguments, this.typeInformation);
 
   accept(ExpressionVisitor visitor) => visitor.visitCreateInstance(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -792,6 +796,24 @@ class ReadTypeVariable extends Expression implements JsSpecificNode {
   }
 }
 
+/// Denotes the internal representation of [dartType], where all type variables
+/// are replaced by the values in [arguments].
+/// (See documentation on the TypeExpression CPS node for more details.)
+class TypeExpression extends Expression {
+  final DartType dartType;
+  final List<Expression> arguments;
+
+  TypeExpression(this.dartType, this.arguments);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitTypeExpression(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitTypeExpression(this, arg);
+  }
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression e) => e.accept(this);
   E visitVariableUse(VariableUse node);
@@ -817,6 +839,7 @@ abstract class ExpressionVisitor<E> {
   E visitCreateInstance(CreateInstance node);
   E visitReifyRuntimeType(ReifyRuntimeType node);
   E visitReadTypeVariable(ReadTypeVariable node);
+  E visitTypeExpression(TypeExpression node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -842,8 +865,9 @@ abstract class ExpressionVisitor1<E, A> {
   E visitGetField(GetField node, A arg);
   E visitCreateBox(CreateBox node, A arg);
   E visitCreateInstance(CreateInstance node, A arg);
-  E visitReifyRuntimeType(ReifyRuntimeType reifyRuntimeType, A arg);
-  E visitReadTypeVariable(ReadTypeVariable readTypeVariable, A arg);
+  E visitReifyRuntimeType(ReifyRuntimeType node, A arg);
+  E visitReadTypeVariable(ReadTypeVariable node, A arg);
+  E visitTypeExpression(TypeExpression node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -1065,6 +1089,7 @@ class RecursiveVisitor extends Visitor {
 
   visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitExpression);
+    node.typeInformation.forEach(visitExpression);
   }
 
   visitReifyRuntimeType(ReifyRuntimeType node) {
@@ -1073,5 +1098,10 @@ class RecursiveVisitor extends Visitor {
 
   visitReadTypeVariable(ReadTypeVariable node) {
     visitExpression(node.target);
+  }
+
+  @override
+  visitTypeExpression(TypeExpression node) {
+    node.arguments.forEach(visitExpression);
   }
 }

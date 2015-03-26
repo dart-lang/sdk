@@ -381,11 +381,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {
+    String className = node.target.enclosingClass.name;
     String callName;
     if (node.target.name.isEmpty) {
-      callName = '${node.type}';
+      callName = '${className}';
     } else {
-      callName = '${node.type}.${node.target.name}';
+      callName = '${className}.${node.target.name}';
     }
     String args = formatArguments(node);
     String keyword = node.constant != null ? 'const' : 'new';
@@ -495,12 +496,17 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   @override
   String visitReadTypeVariable(ReadTypeVariable node) {
-    return 'read ${node.variable.element} ${visitExpression(node.target)}';
+    return 'Read ${node.variable.element} ${visitExpression(node.target)}';
   }
 
   @override
   String visitReifyRuntimeType(ReifyRuntimeType node) {
-    return 'reify ${node.value}';
+    return 'Reify ${node.value}';
+  }
+
+  @override
+  String visitTypeExpression(TypeExpression node) {
+    return node.dartType.toString();
   }
 }
 

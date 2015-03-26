@@ -164,6 +164,56 @@ function() {
   v0.Bar$5$q$w$y$z("x", null, "w", "y", "z");
   return v0;
 }"""),
+  const TestEntry(r"""
+class C<T> {
+  foo() => T;
+}
+main() {
+  print(new C<int>().foo());
+}""", r"""
+function() {
+  P.print(V.C$(P.$int).foo$0());
+  return null;
+}"""),
+  const TestEntry(r"""
+class C<T> {
+  foo() => C;
+}
+main() {
+  print(new C<int>().foo());
+}""", r"""
+function() {
+  P.print(V.C$().foo$0());
+  return null;
+}"""),
+  const TestEntry.forMethod('generative_constructor(C#)', r"""
+class C<T> {
+  C() { print(T); }
+  foo() => print(T);
+}
+main() {
+  new C<int>();
+}""", r"""
+function($T) {
+  var v0;
+  v0 = H.setRuntimeTypeInfo(new V.C(), [$T]);
+  v0.C$0();
+  return v0;
+}"""),
+  const TestEntry.forMethod('generative_constructor(C#)', r"""
+class C<T> {
+  var x;
+  C() : x = new D<T>();
+}
+class D<T> {
+  foo() => T;
+}
+main() {
+  print(new C<int>().x.foo());
+}""", r"""
+function($T) {
+  return H.setRuntimeTypeInfo(new V.C(V.D$($T)), [$T]);
+}"""),
 ];
 
 void main() {

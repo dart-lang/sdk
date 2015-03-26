@@ -658,6 +658,7 @@ class ParentVisitor extends RecursiveVisitor {
 
   processCreateInstance(CreateInstance node) {
     node.arguments.forEach((Reference ref) => ref.parent = node);
+    node.typeInformation.forEach((Reference ref) => ref.parent = node);
   }
 
   processCreateBox(CreateBox node) {
@@ -669,6 +670,10 @@ class ParentVisitor extends RecursiveVisitor {
 
   processReadTypeVariable(ReadTypeVariable node) {
     node.target.parent = node;
+  }
+
+  processTypeExpression(TypeExpression node) {
+    node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 }
 

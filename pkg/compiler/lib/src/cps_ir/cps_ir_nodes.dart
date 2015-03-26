@@ -382,15 +382,11 @@ class InvokeConstructor extends Expression implements Invoke {
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(dart2js.invariant(target,
-        target.isErroneous || target.isConstructor,
-        message: "Constructor invocation target is not a constructor: "
-                 "$target."));
-    assert(dart2js.invariant(target,
         target.isErroneous ||
         type.isDynamic ||
         type.element == target.enclosingClass.declaration,
-        message: "Constructor invocation type ${type} does not match enclosing "
-                 "class of target ${target}."));
+        message: "Constructor invocation target is not a constructor: "
+                 "$target."));
   }
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
@@ -597,7 +593,8 @@ class CreateBox extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
 }
 
-/// Creates an instance of a class and initializes its fields.
+/// Creates an instance of a class and initializes its fields and runtime type
+/// information.
 class CreateInstance extends Primitive implements JsSpecificNode {
   final ClassElement classElement;
 
@@ -605,8 +602,17 @@ class CreateInstance extends Primitive implements JsSpecificNode {
   /// The order corresponds to the order of fields on the class.
   final List<Reference<Primitive>> arguments;
 
-  CreateInstance(this.classElement, List<Primitive> arguments)
-      : this.arguments = _referenceList(arguments);
+  /// The runtime type information structure which contains the type arguments.
+  ///
+  /// May be `null` to indicate that no type information is needed because the
+  /// compiler determined that the type information for instances of this class
+  /// is not needed at runtime.
+  final List<Reference<Primitive>> typeInformation;
+
+  CreateInstance(this.classElement, List<Primitive> arguments,
+      List<Primitive> typeInformation)
+      : this.arguments = _referenceList(arguments),
+        this.typeInformation = _referenceList(typeInformation);
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 }
@@ -898,6 +904,28 @@ class ReadTypeVariable extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
 }
 
+/// Representation of a closed type (that is, a type without type variables).
+///
+/// The resulting value is constructed from [dartType] by replacing the type
+/// variables with consecutive values from [arguments], in the order generated
+/// by [DartType.forEachTypeVariable].  The type variables in [dartType] are
+/// treated as 'holes' in the term, which means that it must be ensured at
+/// construction, that duplicate occurences of a type variable in [dartType]
+/// are assigned the same value.
+class TypeExpression extends Primitive implements JsSpecificNode {
+  final DartType dartType;
+  final List<Reference<Primitive>> arguments;
+
+  TypeExpression(this.dartType,
+                 [List<Primitive> arguments = const <Primitive>[]])
+      : this.arguments = _referenceList(arguments);
+
+  @override
+  accept(Visitor visitor) {
+    return visitor.visitTypeExpression(this);
+  }
+}
+
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
   return definitions.map((e) => new Reference<Primitive>(e)).toList();
 }
@@ -960,6 +988,7 @@ abstract class Visitor<T> {
   T visitCreateBox(CreateBox node);
   T visitReifyRuntimeType(ReifyRuntimeType node);
   T visitReadTypeVariable(ReadTypeVariable node);
+  T visitTypeExpression(TypeExpression node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -1199,6 +1228,7 @@ class RecursiveVisitor implements Visitor {
   visitCreateInstance(CreateInstance node) {
     processCreateInstance(node);
     node.arguments.forEach(processReference);
+    node.typeInformation.forEach(processReference);
   }
 
   processSetField(SetField node) {}
@@ -1230,6 +1260,13 @@ class RecursiveVisitor implements Visitor {
   visitReadTypeVariable(ReadTypeVariable node) {
     processReadTypeVariable(node);
     processReference(node.target);
+  }
+
+  processTypeExpression(TypeExpression node) {}
+  @override
+  visitTypeExpression(TypeExpression node) {
+    processTypeExpression(node);
+    node.arguments.forEach(processReference);
   }
 }
 
@@ -1482,6 +1519,7 @@ class RegisterAllocator implements Visitor {
 
   void visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitReference);
+    node.typeInformation.forEach(visitReference);
   }
 
   void visitIdentical(Identical node) {
@@ -1499,5 +1537,10 @@ class RegisterAllocator implements Visitor {
 
   void visitReadTypeVariable(ReadTypeVariable node) {
     visitReference(node.target);
+  }
+
+  @override
+  visitTypeExpression(TypeExpression node) {
+    node.arguments.forEach(visitReference);
   }
 }

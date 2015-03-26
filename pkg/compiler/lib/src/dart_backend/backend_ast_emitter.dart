@@ -937,6 +937,11 @@ class ASTEmitter
   }
 
   @override
+  Expression visitTypeExpression(tree.TypeExpression node, arg) {
+    throw '$node not supported by dart backend';
+  }
+
+  @override
   visitGetField(tree.GetField node, arg) => errorUnsupportedNode(node);
 
   @override
@@ -963,6 +968,7 @@ class ASTEmitter
   errorUnsupportedNode(tree.JsSpecificNode node) {
     throw '$node not supported by dart backend';
   }
+
 }
 
 class TypeGenerator {

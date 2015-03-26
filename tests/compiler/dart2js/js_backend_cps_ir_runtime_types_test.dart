@@ -43,6 +43,29 @@ main() {
 function() {
   return P.print($createType($typeToString($getSubstitutedTypeArgument(this, "\$asC", 1))));
 }"""),
+  const TestEntry.forMethod('function(C#foo)', r"""
+class C<T> {
+  foo() => new D<C<T>>();
+}
+class D<T> {
+  bar() => T;
+}
+main() {
+  print(new C<int>().foo().bar());
+}""", """
+function() {
+  return V.D\$([V.C, $getTypeArgument(this, 0)]);
+}"""),
+    const TestEntry.forMethod('generative_constructor(C#)', r"""
+class C<X, Y, Z> {
+  foo() => 'C<$X $Y, $Z>';
+}
+main() {
+  new C<C, int, String>().foo();
+}""", r"""
+function($X, $Y, $Z) {
+  return H.setRuntimeTypeInfo(new V.C(), [$X, $Y, $Z]);
+}"""),
 ];
 
 void main() {

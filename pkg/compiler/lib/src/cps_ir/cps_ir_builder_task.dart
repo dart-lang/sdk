@@ -2035,6 +2035,21 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   }
 }
 
+/// The [IrBuilder]s view on the information about the program that has been
+/// computed in resolution and and type interence.
+class GlobalProgramInformation {
+  final Compiler _compiler;
+  JavaScriptBackend get _backend => _compiler.backend;
+
+  GlobalProgramInformation(this._compiler);
+
+  /// Returns [true], if the analysis could not determine that the type
+  /// arguments for the class [cls] are never used in the program.
+  bool requiresRuntimeTypesFor(ClassElement cls) {
+    return cls.typeVariables.isNotEmpty && _backend.classNeedsRti(cls);
+  }
+}
+
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
 class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// Promote the type of [irBuilder] to [JsIrBuilder].
@@ -2180,6 +2195,13 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return visitor.withBuilder(irBuilder, () => visitor.translateConstant(exp));
   }
 
+  JsIrBuilder getBuilderFor(Element element) {
+    return new JsIrBuilder(
+        new GlobalProgramInformation(compiler),
+        compiler.backend.constantSystem,
+        element);
+  }
+
   /// Builds the IR for a given constructor.
   ///
   /// 1. Evaluates all own or inherited field initializers.
@@ -2190,20 +2212,47 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     constructor = constructor.implementation;
     ClassElement classElement = constructor.enclosingClass.implementation;
 
-    JsIrBuilder builder =
-        new JsIrBuilder(compiler.backend.constantSystem, constructor);
+    JsIrBuilder builder = getBuilderFor(constructor);
+
+    final bool requiresTypeInformation =
+        builder.program.requiresRuntimeTypesFor(classElement);
 
     return withBuilder(builder, () {
       // Setup parameters and create a box if anything is captured.
-      List<ParameterElement> parameters = [];
-      constructor.functionSignature.orderedForEachParameter(parameters.add);
-      builder.buildFunctionHeader(parameters,
+      List<Local> parameters = <Local>[];
+      constructor.functionSignature.orderedForEachParameter(
+          (ParameterElement p) => parameters.add(p));
+
+      int firstTypeArgumentParameterIndex;
+
+      // If instances of the class may need runtime type information, we add a
+      // synthetic parameter for each type parameter.
+      if (requiresTypeInformation) {
+        firstTypeArgumentParameterIndex = parameters.length;
+        classElement.typeVariables.forEach((TypeVariableType variable) {
+          parameters.add(
+              new TypeInformationParameter(variable.element, constructor));
+        });
+      }
+
+      // Create IR parameters and setup the environment.
+      List<ir.Parameter> irParameters = builder.buildFunctionHeader(parameters,
           closureScope: getClosureScopeForFunction(constructor));
+
+      // Create a list of the values of all type argument parameters, if any.
+      List<ir.Primitive> typeInformation;
+      if (requiresTypeInformation) {
+        typeInformation = irParameters.sublist(firstTypeArgumentParameterIndex);
+      } else {
+        typeInformation = const <ir.Primitive>[];
+      }
 
       // -- Step 1: evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.
+      irBuilder.enterInitializers();
       List<ConstructorElement> constructorList = <ConstructorElement>[];
       evaluateConstructorFieldInitializers(constructor, constructorList);
+      irBuilder.leaveInitializers();
 
       // All parameters in all constructors are now bound in the environment.
       // BoxLocals for captured parameters are also in the environment.
@@ -2221,8 +2270,10 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           // Native fields are initialized elsewhere.
         }
       }, includeSuperAndInjectedMembers: true);
-      ir.Primitive instance =
-          new ir.CreateInstance(classElement, instanceArguments);
+      ir.Primitive instance = new ir.CreateInstance(
+          classElement,
+          instanceArguments,
+          typeInformation);
       irBuilder.add(new ir.LetPrim(instance));
 
       // --- Step 3: call constructor bodies ---
@@ -2456,8 +2507,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         node,
         elements);
 
-    JsIrBuilder builder =
-        new JsIrBuilder(compiler.backend.constantSystem, body);
+    JsIrBuilder builder = getBuilderFor(body);
 
     return withBuilder(builder, () {
       irBuilder.buildConstructorBodyHeader(getConstructorBodyParameters(body),
@@ -2479,8 +2529,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         element,
         node,
         elements);
-    IrBuilder builder =
-        new JsIrBuilder(compiler.backend.constantSystem, element);
+    IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () => _makeFunctionBody(element, node));
   }
 
@@ -2562,8 +2611,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildReifyTypeVariable(ir.Primitive target,
                                       TypeVariableType variable) {
-    ir.Primitive typeArgument = new ir.ReadTypeVariable(variable, target);
-    irBuilder.add(new ir.LetPrim(typeArgument));
+    ir.Primitive typeArgument =
+        irBuilder.buildTypeVariableAccess(target, variable);
+
     ir.Primitive type = new ir.ReifyRuntimeType(typeArgument);
     irBuilder.add(new ir.LetPrim(type));
     return type;

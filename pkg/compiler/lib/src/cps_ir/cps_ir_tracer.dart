@@ -182,11 +182,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitInvokeConstructor(cps_ir.InvokeConstructor node) {
     String dummy = names.name(node);
+    String className = node.target.enclosingClass.name;
     String callName;
     if (node.target.name.isEmpty) {
-      callName = '${node.type}';
+      callName = '${className}';
     } else {
-      callName = '${node.type}.${node.target.name}';
+      callName = '${className}.${node.target.name}';
     }
     String args = node.arguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
@@ -308,7 +309,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitCreateInstance(cps_ir.CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(formatReference).join(', ');
-    return 'CreateInstance $className ($arguments)';
+    String typeInformation =
+        node.typeInformation.map(formatReference).join(', ');
+    return 'CreateInstance $className ($arguments) <$typeInformation>';
   }
 
   visitIdentical(cps_ir.Identical node) {
@@ -343,6 +346,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   @override
   visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     return "ReifyRuntimeType ${formatReference(node.value)}";
+  }
+
+  @override
+  visitTypeExpression(cps_ir.TypeExpression node) {
+    return "TypeExpression ${node.dartType} "
+        "${node.arguments.map(formatReference).join(', ')}";
   }
 }
 
@@ -586,6 +595,11 @@ class BlockCollector implements cps_ir.Visitor {
 
   @override
   visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
+    unexpectedNode(node);
+  }
+
+  @override
+  visitTypeExpression(cps_ir.TypeExpression node) {
     unexpectedNode(node);
   }
 }
