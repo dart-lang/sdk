@@ -253,8 +253,13 @@ class CompletionTest extends AbstractAnalysisTest {
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
 
-  String addTestFile(String content) {
+  String addTestFile(String content, {offset}) {
     completionOffset = content.indexOf('^');
+    if (offset != null) {
+      expect(completionOffset, -1, reason: 'cannot supply offset and ^');
+      completionOffset = offset;
+      return super.addTestFile(content);
+    }
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
     int nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
@@ -433,6 +438,16 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x',
           DART_RELEVANCE_LOCAL_METHOD);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime');
+    });
+  }
+
+  test_offset_past_eof() {
+    addTestFile('main() { }', offset: 300);
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(300));
+      expect(replacementLength, equals(0));
+      expect(suggestionsDone, true);
+      expect(suggestions.length, 0);
     });
   }
 

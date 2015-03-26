@@ -124,12 +124,13 @@ class DartCompletionManager extends CompletionManager {
       request.unit = unit;
       request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
       request.target = new CompletionTarget.forOffset(unit, request.offset);
+      request.replacementOffset = request.offset;
+      request.replacementLength = 0;
       if (request.node == null) {
+        sendResults(request, true);
         return [];
       }
 
-      request.replacementOffset = request.offset;
-      request.replacementLength = 0;
       var entity = request.target.entity;
       Token token = entity is AstNode ? entity.beginToken : entity;
       if (token != null &&
