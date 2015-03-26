@@ -24843,7 +24843,7 @@ class RtcIceCandidate extends Interceptor {
 @DomName('RTCIceCandidateEvent')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#rtcicecandidate-type
 @Experimental()
-@Native("RTCIceCandidateEvent")
+@Native("RTCIceCandidateEvent,RTCPeerConnectionIceEvent")
 class RtcIceCandidateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidateEvent._() { throw new UnsupportedError("Not supported"); }
