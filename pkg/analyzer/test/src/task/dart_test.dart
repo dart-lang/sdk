@@ -45,6 +45,7 @@ main() {
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
+  runReflectiveTests(ResolveVariableReferencesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
 }
 
@@ -1240,6 +1241,91 @@ NoSuchClass f() => null;
 }
 
 @reflectiveTest
+class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
+  test_perform_local() {
+    Source source = _newSource('/test.dart', '''
+main() {
+  var v1 = 1;
+  var v2 = 1;
+  var v3 = 1;
+  var v4 = 1;
+  v2 = 2;
+  v4 = 2;
+  localFunction() {
+    v3 = 3;
+    v4 = 3;
+  }
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, RESOLVED_UNIT5);
+    expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    FunctionElement main = unit.element.functions[0];
+    {
+      var v1 = main.localVariables[0] as VariableElementImpl;
+      expect(v1.isPotentiallyMutatedInClosure, isFalse);
+      expect(v1.isPotentiallyMutatedInScope, isFalse);
+    }
+    {
+      var v2 = main.localVariables[1] as VariableElementImpl;
+      expect(v2.isPotentiallyMutatedInClosure, isFalse);
+      expect(v2.isPotentiallyMutatedInScope, isTrue);
+    }
+    {
+      var v3 = main.localVariables[2] as VariableElementImpl;
+      expect(v3.isPotentiallyMutatedInClosure, isTrue);
+      expect(v3.isPotentiallyMutatedInScope, isTrue);
+    }
+    {
+      var v4 = main.localVariables[3] as VariableElementImpl;
+      expect(v4.isPotentiallyMutatedInClosure, isTrue);
+      expect(v4.isPotentiallyMutatedInScope, isTrue);
+    }
+  }
+
+  test_perform_parameter() {
+    Source source = _newSource('/test.dart', '''
+main(p1, p2, p3, p4) {
+  p2 = 2;
+  p4 = 2;
+  localFunction() {
+    p3 = 3;
+    p4 = 3;
+  }
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, RESOLVED_UNIT5);
+    expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    FunctionElement main = unit.element.functions[0];
+    {
+      var p1 = main.parameters[0] as VariableElementImpl;
+      expect(p1.isPotentiallyMutatedInClosure, isFalse);
+      expect(p1.isPotentiallyMutatedInScope, isFalse);
+    }
+    {
+      var p2 = main.parameters[1] as VariableElementImpl;
+      expect(p2.isPotentiallyMutatedInClosure, isFalse);
+      expect(p2.isPotentiallyMutatedInScope, isTrue);
+    }
+    {
+      var p3 = main.parameters[2] as VariableElementImpl;
+      expect(p3.isPotentiallyMutatedInClosure, isTrue);
+      expect(p3.isPotentiallyMutatedInScope, isTrue);
+    }
+    {
+      var p4 = main.parameters[3] as VariableElementImpl;
+      expect(p4.isPotentiallyMutatedInClosure, isTrue);
+      expect(p4.isPotentiallyMutatedInScope, isTrue);
+    }
+  }
+}
+
+@reflectiveTest
 class ScanDartTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
     Map<String, TaskInput> inputs = ScanDartTask.buildInputs(emptySource);
@@ -1337,6 +1423,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(ResolveVariableReferencesTask.DESCRIPTOR);
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
   }

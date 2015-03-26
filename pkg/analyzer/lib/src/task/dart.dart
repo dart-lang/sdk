@@ -210,6 +210,16 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT4', null);
 
 /**
+ * The partially resolved [CompilationUnit] associated with a unit.
+ *
+ * [RESOLVED_UNIT4] plus resolved local variables and formal parameters.
+ *
+ * The result is only available for targets representing a unit.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT5', null);
+
+/**
  * The [TypeProvider] of the context.
  */
 final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
@@ -1934,6 +1944,79 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
   static ResolveUnitTypeNamesTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ResolveUnitTypeNamesTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [RESOLVED_UNIT5] for a unit.
+ */
+class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [LIBRARY_ELEMENT6] input.
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The name of the [RESOLVED_UNIT4] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveVariableReferencesTask', createTask, buildInputs,
+      <ResultDescriptor>[RESOLVED_UNIT5]);
+
+  ResolveVariableReferencesTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    //
+    // Prepare inputs.
+    //
+    LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    CompilationUnitElement unitElement = unit.element;
+    //
+    // Resolve local variables.
+    //
+    TypeProvider typeProvider = unitElement.context.typeProvider;
+    Scope nameScope = new LibraryScope(libraryElement, errorListener);
+    AstVisitor visitor = new VariableResolverVisitor.con2(libraryElement,
+        unitElement.source, typeProvider, nameScope, errorListener);
+    unit.accept(visitor);
+    //
+    // Record outputs.
+    //
+    outputs[RESOLVED_UNIT5] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
+    return <String, TaskInput>{
+      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(target.library),
+      UNIT_INPUT: RESOLVED_UNIT4.of(target)
+    };
+  }
+
+  /**
+   * Create a [ResolveVariableReferencesTask] based on the given [target] in
+   * the given [context].
+   */
+  static ResolveVariableReferencesTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveVariableReferencesTask(context, target);
   }
 }
 
