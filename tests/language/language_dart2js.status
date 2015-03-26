@@ -148,6 +148,9 @@ const_switch_test/04: RuntimeError # Issue 17960
 
 enum_const_test/02: RuntimeError # Issue 21817
 
+const_dynamic_type_literal_test/02: CompileTimeError # Issue 23009
+const_dynamic_type_literal_test/03: CompileTimeError # Issue 23009
+
 # Compilation errors.
 method_override5_test: RuntimeError # Issue 12809
 external_test/10: CompileTimeError # Issue 12887

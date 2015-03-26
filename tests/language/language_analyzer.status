@@ -509,6 +509,8 @@ no_main_test/01: Fail # Issue 20030
 
 compile_time_constant10_test/none: CompileTimeError # Issue 21177
 
+const_dynamic_type_literal_test: CompileTimeError # Issue 22989
+
 # Issue 16391. These tests are supposed to produce a compile time
 # error in checked mode, but they don't:
 [ $compiler == dartanalyzer && $checked ]

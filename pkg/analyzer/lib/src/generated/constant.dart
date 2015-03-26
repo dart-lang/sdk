@@ -1628,7 +1628,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
         return new DartObjectImpl(functionType, new FunctionState(function));
       }
-    } else if (element is ClassElement || element is FunctionTypeAliasElement) {
+    } else if (element is ClassElement ||
+        element is FunctionTypeAliasElement ||
+        element is DynamicElementImpl) {
       return new DartObjectImpl(_typeProvider.typeType, new TypeState(element));
     }
     // TODO(brianwilkerson) Figure out which error to report.
@@ -5025,6 +5027,9 @@ class TypeState extends InstanceState {
 
   @override
   String get typeName => "Type";
+
+  @override
+  Element get value => _element;
 
   @override
   bool operator ==(Object object) =>

@@ -126,9 +126,8 @@ abstract class AbstractScannerTest {
   }
 
   void test_tokenize_directive_xml() {
-    _tokenize("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>", <Object>[
-      "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
-    ]);
+    _tokenize("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",
+        <Object>["<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"]);
   }
 
   void test_tokenize_directives_incomplete_with_newline() {
@@ -2282,6 +2281,26 @@ class ConstantVisitorTest extends ResolverTestCase {
     _assertValue(1, expression.accept(
         new ConstantVisitor.con1(new TestTypeProvider(), errorReporter)));
     errorListener.assertNoErrors();
+  }
+
+  void test_visitSimpleIdentifier_className() {
+    CompilationUnit compilationUnit = resolveSource('''
+const a = C;
+class C {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
+    expect(result.type, typeProvider.typeType);
+    ClassElement element = result.value;
+    expect(element.name, 'C');
+  }
+
+  void test_visitSimpleIdentifier_dynamic() {
+    CompilationUnit compilationUnit = resolveSource('''
+const a = dynamic;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
+    expect(result.type, typeProvider.typeType);
+    expect(result.value, typeProvider.dynamicType.element);
   }
 
   void test_visitSimpleIdentifier_inEnvironment() {
@@ -5706,10 +5725,9 @@ class ElementBuilderTest extends EngineTestCase {
     String firstTypeParameterName = "A";
     String secondTypeParameterName = "B";
     TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, AstFactory
-        .typeParameterList([
-      firstTypeParameterName,
-      secondTypeParameterName
-    ]), AstFactory.formalParameterList());
+            .typeParameterList(
+                [firstTypeParameterName, secondTypeParameterName]),
+        AstFactory.formalParameterList());
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
@@ -7394,9 +7412,8 @@ $scriptBody
 </html>""");
     _validate(htmlUnit, [
       _t4("html", [
-        _t4("body", [
-          _t("script", _a(["type", "'application/dart'"]), scriptBody)
-        ])
+        _t4("body",
+            [_t("script", _a(["type", "'application/dart'"]), scriptBody)])
       ])
     ]);
   }
@@ -7464,9 +7481,8 @@ $scriptBody
     // ht.XmlTagNode.getContent() does not include whitespace
     // between '<' and '>' at this time
     _validate(htmlUnit, [
-      _t3("html", "\n<pa=\"b\">blat \n </p>\n", [
-        _t("p", _a(["a", "\"b\""]), "blat \n ")
-      ])
+      _t3("html", "\n<pa=\"b\">blat \n </p>\n",
+          [_t("p", _a(["a", "\"b\""]), "blat \n ")])
     ]);
   }
   void test_parse_content_none() {

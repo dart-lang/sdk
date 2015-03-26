@@ -933,6 +933,15 @@ class A {
     verify([source]);
   }
 
+  void test_const_dynamic() {
+    Source source = addSource('''
+const Type d = dynamic;
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_constConstructorWithNonConstSuper_explicit() {
     Source source = addSource(r'''
 class A {
