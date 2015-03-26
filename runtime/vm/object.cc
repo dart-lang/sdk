@@ -8750,7 +8750,7 @@ static RawString* MakeFieldMetaName(const Field& field) {
 static RawString* MakeFunctionMetaName(const Function& func) {
   const String& cname =
       String::Handle(MakeClassMetaName(Class::Handle(func.origin())));
-  String& fname = String::Handle(func.name());
+  String& fname = String::Handle(func.QualifiedPrettyName());
   fname = String::Concat(Symbols::At(), fname);
   return String::Concat(cname, fname);
 }

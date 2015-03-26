@@ -29,7 +29,8 @@ const extern = const Tag("external");
   static String staticField;
 
   @Meta.Alien("ET") int foo(@meta1 bool fool, {@meta1 @Tag("opt") x: 100}) {
-    return x;
+    @meta2 @meta1 g() => 10;
+    return x * g();
   }
 
   @Tag(r"timewarp")

@@ -7306,10 +7306,12 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   result_type = Type::DynamicType();
 
   const intptr_t function_pos = TokenPos();
+  intptr_t metadata_pos = -1;
   if (is_literal) {
     ASSERT(CurrentToken() == Token::kLPAREN);
     function_name = &Symbols::AnonymousClosure();
   } else {
+    metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kVOID) {
       ConsumeToken();
       result_type = Type::VoidType();
@@ -7359,6 +7361,9 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                                             innermost_function(),
                                             function_pos);
     function.set_result_type(result_type);
+    if (metadata_pos >= 0) {
+      library_.AddFunctionMetadata(function, metadata_pos);
+    }
   }
 
   // The function type needs to be finalized at compile time, since the closure
@@ -7722,6 +7727,7 @@ bool Parser::IsVariableDeclaration() {
 bool Parser::IsFunctionDeclaration() {
   const intptr_t saved_pos = TokenPos();
   bool is_external = false;
+  SkipMetadata();
   if (is_top_level_) {
     if (is_patch_source() &&
         (CurrentToken() == Token::kIDENT) &&
