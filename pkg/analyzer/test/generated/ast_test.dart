@@ -264,14 +264,12 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_divide_double() {
     Object value = _getConstantValue("3.2 / 2.3");
-    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    expect(value as double, 3.2 / 2.3);
+    expect(value, 3.2 / 2.3);
   }
 
   void test_binary_divide_integer() {
     Object value = _getConstantValue("3 / 2");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 1);
+    expect(value, 1.5);
   }
 
   void test_binary_equal_boolean() {
@@ -337,14 +335,12 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_minus_double() {
     Object value = _getConstantValue("3.2 - 2.3");
-    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    expect(value as double, 3.2 - 2.3);
+    expect(value, 3.2 - 2.3);
   }
 
   void test_binary_minus_integer() {
     Object value = _getConstantValue("3 - 2");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 1);
+    expect(value, 1);
   }
 
   void test_binary_notEqual_boolean() {
@@ -374,26 +370,22 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_plus_double() {
     Object value = _getConstantValue("2.3 + 3.2");
-    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    expect(value as double, 2.3 + 3.2);
+    expect(value, 2.3 + 3.2);
   }
 
   void test_binary_plus_integer() {
     Object value = _getConstantValue("2 + 3");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 5);
+    expect(value, 5);
   }
 
   void test_binary_remainder_double() {
     Object value = _getConstantValue("3.2 % 2.3");
-    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    expect(value as double, 3.2 % 2.3);
+    expect(value, 3.2 % 2.3);
   }
 
   void test_binary_remainder_integer() {
     Object value = _getConstantValue("8 % 3");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 2);
+    expect(value, 2);
   }
 
   void test_binary_rightShift() {
@@ -404,14 +396,12 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_binary_times_double() {
     Object value = _getConstantValue("2.3 * 3.2");
-    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    expect(value as double, 2.3 * 3.2);
+    expect(value, 2.3 * 3.2);
   }
 
   void test_binary_times_integer() {
     Object value = _getConstantValue("2 * 3");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 6);
+    expect(value, 6);
   }
 
   void test_binary_truncatingDivide_double() {
@@ -463,14 +453,12 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_literal_number_double() {
     Object value = _getConstantValue("3.45");
-    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    expect(value as double, 3.45);
+    expect(value, 3.45);
   }
 
   void test_literal_number_integer() {
     Object value = _getConstantValue("42");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 42);
+    expect(value, 42);
   }
 
   void test_literal_string_adjacent() {
@@ -511,14 +499,12 @@ class ConstantEvaluatorTest extends ParserTestCase {
 
   void test_unary_negated_double() {
     Object value = _getConstantValue("-42.3");
-    EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    expect(value as double, -42.3);
+    expect(value, -42.3);
   }
 
   void test_unary_negated_integer() {
     Object value = _getConstantValue("-42");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, -42);
+    expect(value, -42);
   }
 
   Object _getConstantValue(String source) =>
@@ -1172,9 +1158,8 @@ class SimpleIdentifierTest extends ParserTestCase {
 
   void test_isQualified_inMethodInvocation_withTarget() {
     MethodInvocation invocation = AstFactory.methodInvocation(
-        AstFactory.identifier3("target"), "test", [
-      AstFactory.identifier3("arg0")
-    ]);
+        AstFactory.identifier3("target"), "test",
+        [AstFactory.identifier3("arg0")]);
     SimpleIdentifier identifier = invocation.methodName;
     expect(identifier.isQualified, isTrue);
   }
@@ -1880,9 +1865,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitCompilationUnit_directive_declaration() {
-    _assertSource("library l; var a;", AstFactory.compilationUnit4([
-      AstFactory.libraryDirective2("l")
-    ], [
+    _assertSource("library l; var a;", AstFactory.compilationUnit4(
+        [AstFactory.libraryDirective2("l")], [
       AstFactory.topLevelVariableDeclaration2(
           Keyword.VAR, [AstFactory.variableDeclaration("a")])
     ]));
@@ -1912,9 +1896,8 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitCompilationUnit_script_directives_declarations() {
     _assertSource("!#/bin/dartvm library l; var a;", AstFactory
-        .compilationUnit8("!#/bin/dartvm", [
-      AstFactory.libraryDirective2("l")
-    ], [
+        .compilationUnit8("!#/bin/dartvm", [AstFactory.libraryDirective2("l")],
+            [
       AstFactory.topLevelVariableDeclaration2(
           Keyword.VAR, [AstFactory.variableDeclaration("a")])
     ]));
@@ -2308,9 +2291,8 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitForStatement_cu() {
     _assertSource("for (; c; u) {}", AstFactory.forStatement(null,
-        AstFactory.identifier3("c"), [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+        AstFactory.identifier3("c"), [AstFactory.identifier3("u")],
+        AstFactory.block()));
   }
 
   void test_visitForStatement_e() {
@@ -2326,16 +2308,14 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitForStatement_ecu() {
     _assertSource("for (e; c; u) {}", AstFactory.forStatement(
-        AstFactory.identifier3("e"), AstFactory.identifier3("c"), [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+        AstFactory.identifier3("e"), AstFactory.identifier3("c"),
+        [AstFactory.identifier3("u")], AstFactory.block()));
   }
 
   void test_visitForStatement_eu() {
     _assertSource("for (e;; u) {}", AstFactory.forStatement(
-        AstFactory.identifier3("e"), null, [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+        AstFactory.identifier3("e"), null, [AstFactory.identifier3("u")],
+        AstFactory.block()));
   }
 
   void test_visitForStatement_i() {
@@ -2347,26 +2327,24 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitForStatement_ic() {
     _assertSource("for (var i; c;) {}", AstFactory.forStatement2(AstFactory
-        .variableDeclarationList2(Keyword.VAR, [
-      AstFactory.variableDeclaration("i")
-    ]), AstFactory.identifier3("c"), null, AstFactory.block()));
+            .variableDeclarationList2(
+                Keyword.VAR, [AstFactory.variableDeclaration("i")]),
+        AstFactory.identifier3("c"), null, AstFactory.block()));
   }
 
   void test_visitForStatement_icu() {
     _assertSource("for (var i; c; u) {}", AstFactory.forStatement2(AstFactory
-        .variableDeclarationList2(Keyword.VAR, [
-      AstFactory.variableDeclaration("i")
-    ]), AstFactory.identifier3("c"), [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+            .variableDeclarationList2(
+                Keyword.VAR, [AstFactory.variableDeclaration("i")]),
+        AstFactory.identifier3("c"), [AstFactory.identifier3("u")],
+        AstFactory.block()));
   }
 
   void test_visitForStatement_iu() {
     _assertSource("for (var i;; u) {}", AstFactory.forStatement2(AstFactory
-        .variableDeclarationList2(
-            Keyword.VAR, [AstFactory.variableDeclaration("i")]), null, [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+            .variableDeclarationList2(
+                Keyword.VAR, [AstFactory.variableDeclaration("i")]), null,
+        [AstFactory.identifier3("u")], AstFactory.block()));
   }
 
   void test_visitForStatement_u() {
@@ -2489,9 +2467,8 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitImportDirective_combinator() {
     _assertSource("import 'a.dart' show A;", AstFactory.importDirective3(
-        "a.dart", null, [
-      AstFactory.showCombinator([AstFactory.identifier3("A")])
-    ]));
+        "a.dart", null,
+        [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
   }
 
   void test_visitImportDirective_combinators() {
@@ -2519,9 +2496,8 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitImportDirective_prefix_combinator() {
     _assertSource("import 'a.dart' as p show A;", AstFactory.importDirective3(
-        "a.dart", "p", [
-      AstFactory.showCombinator([AstFactory.identifier3("A")])
-    ]));
+        "a.dart", "p",
+        [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
   }
 
   void test_visitImportDirective_prefix_combinators() {
@@ -2952,9 +2928,9 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitSwitchCase_singleLabel() {
-    _assertSource("l1: case a: {}", AstFactory.switchCase2([
-      AstFactory.label2("l1")
-    ], AstFactory.identifier3("a"), [AstFactory.block()]));
+    _assertSource("l1: case a: {}", AstFactory.switchCase2(
+        [AstFactory.label2("l1")], AstFactory.identifier3("a"),
+        [AstFactory.block()]));
   }
 
   void test_visitSwitchDefault_multipleLabels() {
@@ -3032,9 +3008,9 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitTryStatement_catchFinally() {
     _assertSource("try {} on E {} finally {}", AstFactory.tryStatement3(
-        AstFactory.block(), [
-      AstFactory.catchClause3(AstFactory.typeName4("E"))
-    ], AstFactory.block()));
+        AstFactory.block(),
+        [AstFactory.catchClause3(AstFactory.typeName4("E"))],
+        AstFactory.block()));
   }
 
   void test_visitTryStatement_finally() {

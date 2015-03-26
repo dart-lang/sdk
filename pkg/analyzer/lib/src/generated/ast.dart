@@ -5061,9 +5061,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand != rightOperand;
-        } else if (leftOperand is int && rightOperand is int) {
-          return leftOperand != rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        } else if (leftOperand is num && rightOperand is num) {
           return leftOperand != rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
           return leftOperand != rightOperand;
@@ -5087,25 +5085,19 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand == rightOperand;
-        } else if (leftOperand is int && rightOperand is int) {
-          return leftOperand == rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        } else if (leftOperand is num && rightOperand is num) {
           return leftOperand == rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
           return leftOperand == rightOperand;
         }
       } else if (node.operator.type == TokenType.GT) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) > 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) >= 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
@@ -5115,16 +5107,12 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.LT) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) < 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) <= 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
@@ -5134,52 +5122,32 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.MINUS) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand - rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand - rightOperand;
         }
       } else if (node.operator.type == TokenType.PERCENT) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.remainder(rightOperand);
-        } else if (leftOperand is double && rightOperand is double) {
-          return leftOperand % rightOperand;
         }
       } else if (node.operator.type == TokenType.PLUS) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand + rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand + rightOperand;
         }
       } else if (node.operator.type == TokenType.STAR) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand * rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand * rightOperand;
         }
       } else if (node.operator.type == TokenType.SLASH) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          if (rightOperand != 0) {
-            return leftOperand ~/ rightOperand;
-          } else {
-            return leftOperand.toDouble() / rightOperand.toDouble();
-          }
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand / rightOperand;
         }
       } else if (node.operator.type == TokenType.TILDE_SLASH) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          if (rightOperand != 0) {
-            return leftOperand ~/ rightOperand;
-          } else {
-            return 0;
-          }
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand ~/ rightOperand;
         }
       } else {}
@@ -5201,11 +5169,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   @override
   Object visitInterpolationExpression(InterpolationExpression node) {
     Object value = node.expression.accept(this);
-    if (value == null ||
-        value is bool ||
-        value is String ||
-        value is int ||
-        value is double) {
+    if (value == null || value is bool || value is String || value is num) {
       return value;
     }
     return NOT_A_CONSTANT;
@@ -5278,9 +5242,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
       } else if (node.operator.type == TokenType.MINUS) {
         if (operand == null) {
           return null;
-        } else if (operand is int) {
-          return -operand;
-        } else if (operand is double) {
+        } else if (operand is num) {
           return -operand;
         }
       } else {}
