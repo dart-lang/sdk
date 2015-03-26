@@ -1191,15 +1191,18 @@ static bool RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
     func ^= result.raw();
-    func = func.ImplicitClosureFunction();
 
     // TODO(turnidge): Currently we need a way to force a one-time
     // breakpoint for all spawned isolates to support isolate
     // debugging.  Remove this once the vmservice becomes the standard
-    // way to debug.
+    // way to debug. Set the breakpoint on the static function instead
+    // of its implicit closure function because that latter is merely
+    // a dispatcher that is marked as undebuggable.
     if (FLAG_break_at_isolate_spawn) {
       isolate->debugger()->OneTimeBreakAtEntry(func);
     }
+
+    func = func.ImplicitClosureFunction();
 
     const Array& capabilities = Array::Handle(Array::New(2));
     Capability& capability = Capability::Handle();
