@@ -361,12 +361,14 @@ class OldEmitter implements Emitter {
     if (elementOrSelector is Selector
         || elementOrSelector.isFunction
         || elementOrSelector.isConstructor) {
-      int positionalParameterCount;
+      int requiredParameterCount;
+      int optionalParameterCount;
       String namedArguments = '';
       bool isConstructor = false;
       if (elementOrSelector is Selector) {
         Selector selector = elementOrSelector;
-        positionalParameterCount = selector.positionalArgumentCount;
+        requiredParameterCount = selector.argumentCount;
+        optionalParameterCount = 0;
         namedArguments = namedParametersAsReflectionNames(selector);
       } else {
         FunctionElement function = elementOrSelector;
@@ -375,7 +377,8 @@ class OldEmitter implements Emitter {
           name = Elements.reconstructConstructorName(function);
         }
         FunctionSignature signature = function.functionSignature;
-        positionalParameterCount = signature.requiredParameterCount;
+        requiredParameterCount = signature.requiredParameterCount;
+        optionalParameterCount = signature.optionalParameterCount;
         if (signature.optionalParametersAreNamed) {
           var names = [];
           for (Element e in signature.optionalParameters) {
@@ -384,19 +387,24 @@ class OldEmitter implements Emitter {
           Selector selector = new Selector.call(
               function.name,
               function.library,
-              positionalParameterCount,
+              requiredParameterCount,
               names);
           namedArguments = namedParametersAsReflectionNames(selector);
         } else {
-          // Named parameters are handled differently by mirrors. For unnamed
+          // Named parameters are handled differently by mirrors.  For unnamed
           // parameters, they are actually required if invoked
           // reflectively. Also, if you have a method c(x) and c([x]) they both
           // get the same mangled name, so they must have the same reflection
           // name.
-          positionalParameterCount += signature.optionalParameterCount;
+          requiredParameterCount += optionalParameterCount;
+          optionalParameterCount = 0;
         }
       }
-      String suffix = '$name:$positionalParameterCount$namedArguments';
+      String suffix =
+          // TODO(ahe): We probably don't need optionalParameterCount in the
+          // reflection name.
+          '$name:$requiredParameterCount:$optionalParameterCount'
+          '$namedArguments';
       return (isConstructor) ? 'new $suffix' : suffix;
     }
     Element element = elementOrSelector;
