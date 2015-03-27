@@ -27,13 +27,37 @@ var try_catch;
     }
 
   }
+  // Function baz: () → dynamic
+  function baz() {
+    try {
+      throw "finally only";
+    } finally {
+      return true;
+    }
+  }
+  // Function qux: () → dynamic
+  function qux() {
+    try {
+      throw "on only";
+    } catch (e) {
+      if (dart.is(e, core.String)) {
+        let t = dart.stackTrace(e);
+        throw e;
+      }
+    }
+
+  }
   // Function main: () → dynamic
   function main() {
     foo();
     bar();
+    baz();
+    qux();
   }
   // Exports:
   exports.foo = foo;
   exports.bar = bar;
+  exports.baz = baz;
+  exports.qux = qux;
   exports.main = main;
 })(try_catch || (try_catch = {}));

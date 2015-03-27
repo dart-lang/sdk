@@ -1749,7 +1749,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.If visitIfStatement(IfStatement node) {
     return new JS.If(_visit(node.condition), _visit(node.thenStatement),
-        _visitOrEmpty(node.elseStatement));
+        _visit(node.elseStatement));
   }
 
   @override

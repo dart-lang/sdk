@@ -10,6 +10,7 @@ foo() {
     rethrow;
   }
 }
+
 bar() {
   try {
     throw "hi there";
@@ -19,7 +20,27 @@ bar() {
     rethrow;
   }
 }
+
+baz() {
+  try {
+    throw "finally only";
+  } finally {
+    return true;
+  }
+}
+
+qux() {
+  try {
+    throw "on only";
+  } on String catch (e, t) {
+    // unreachable
+    rethrow;
+  }
+}
+
 main() {
   foo();
   bar();
+  baz();
+  qux();
 }

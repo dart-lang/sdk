@@ -276,16 +276,16 @@ class If extends Statement {
   final Node otherwise;
 
   If(this.condition, this.then, this.otherwise);
-  If.noElse(this.condition, this.then) : this.otherwise = new EmptyStatement();
+  If.noElse(this.condition, this.then) : this.otherwise = null;
 
-  bool get hasElse => otherwise is !EmptyStatement;
+  bool get hasElse => otherwise != null;
 
   accept(NodeVisitor visitor) => visitor.visitIf(this);
 
   void visitChildren(NodeVisitor visitor) {
     condition.accept(visitor);
     then.accept(visitor);
-    otherwise.accept(visitor);
+    if (otherwise != null) otherwise.accept(visitor);
   }
 
   If _clone() => new If(condition, then, otherwise);
