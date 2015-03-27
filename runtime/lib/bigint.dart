@@ -171,13 +171,13 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Return this << n*_DIGIT_BITS.
   _Bigint _dlShift(int n) {
-    var used = _used;
+    final used = _used;
     if (used == 0) {
       return _ZERO;
     }
-    var r_used = used + n;
-    var digits = _digits;
-    var r_digits = new Uint32List(r_used + (r_used & 1));
+    final r_used = used + n;
+    final digits = _digits;
+    final r_digits = new Uint32List(r_used + (r_used & 1));
     var i = used;
     while (--i >= 0) {
       r_digits[i + n] = digits[i];
@@ -195,7 +195,7 @@ class _Bigint extends _IntegerImplementation implements int {
     if (n == 0 && r_digits == x_digits) {
       return x_used;
     }
-    var r_used = x_used + n;
+    final r_used = x_used + n;
     assert(r_digits.length >= r_used + (r_used & 1));
     var i = x_used;
     while (--i >= 0) {
@@ -213,20 +213,20 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Return this >> n*_DIGIT_BITS.
   _Bigint _drShift(int n) {
-    var used = _used;
+    final used = _used;
     if (used == 0) {
       return _ZERO;
     }
-    var r_used = used - n;
+    final r_used = used - n;
     if (r_used <= 0) {
       return _neg ? _MINUS_ONE : _ZERO;
     }
-    var digits = _digits;
-    var r_digits = new Uint32List(r_used + (r_used & 1));
+    final digits = _digits;
+    final r_digits = new Uint32List(r_used + (r_used & 1));
     for (var i = n; i < used; i++) {
       r_digits[i - n] = digits[i];
     }
-    var r = new _Bigint(_neg, r_used, r_digits);
+    final r = new _Bigint(_neg, r_used, r_digits);
     if (_neg) {
       // Round down if any bit was shifted out.
       for (var i = 0; i < n; i++) {
@@ -242,7 +242,7 @@ class _Bigint extends _IntegerImplementation implements int {
   // Return r_used.
   static int _drShiftDigits(Uint32List x_digits, int x_used, int n,
                             Uint32List r_digits) {
-    var r_used = x_used - n;
+    final r_used = x_used - n;
     if (r_used <= 0) {
       return 0;
     }
@@ -256,42 +256,13 @@ class _Bigint extends _IntegerImplementation implements int {
     return r_used;
   }
 
-  // Return this << n.
-  _Bigint _lShift(int n) {
-    var ds = n ~/ _DIGIT_BITS;
-    var bs = n % _DIGIT_BITS;
-    if (bs == 0) {
-      return _dlShift(ds);
-    }
-    var cbs = _DIGIT_BITS - bs;
-    var bm = (1 << cbs) - 1;
-    var r_used = _used + ds + 1;
-    var digits = _digits;
-    var r_digits = new Uint32List(r_used + (r_used & 1));
-    var c = 0;
-    var i = _used;
-    while (--i >= 0) {
-      final d = digits[i];
-      r_digits[i + ds + 1] = (d >> cbs) | c;
-      c = (d & bm) << bs;
-    }
-    r_digits[ds] = c;
-    return new _Bigint(_neg, r_used, r_digits);
-  }
-
   // r_digits[0..r_used-1] = x_digits[0..x_used-1] << n.
-  // Return r_used.
-  static int _lShiftDigits(Uint32List x_digits, int x_used, int n,
-                           Uint32List r_digits) {
-    var ds = n ~/ _DIGIT_BITS;
-    var bs = n % _DIGIT_BITS;
-    if (bs == 0) {
-      return _dlShiftDigits(x_digits, x_used, ds, r_digits);
-    }
-    var cbs = _DIGIT_BITS - bs;
-    var bm = (1 << cbs) - 1;
-    var r_used = x_used + ds + 1;
-    assert(r_digits.length >= r_used + (r_used & 1));
+  static void _lsh(Uint32List x_digits, int x_used, int n,
+                   Uint32List r_digits) {
+    final ds = n ~/ _DIGIT_BITS;
+    final bs = n % _DIGIT_BITS;
+    final cbs = _DIGIT_BITS - bs;
+    final bm = (1 << cbs) - 1;
     var c = 0;
     var i = x_used;
     while (--i >= 0) {
@@ -304,6 +275,33 @@ class _Bigint extends _IntegerImplementation implements int {
     while (--i >= 0) {
       r_digits[i] = 0;
     }
+  }
+
+  // Return this << n.
+  _Bigint _lShift(int n) {
+    final ds = n ~/ _DIGIT_BITS;
+    final bs = n % _DIGIT_BITS;
+    if (bs == 0) {
+      return _dlShift(ds);
+    }
+    var r_used = _used + ds + 1;
+    var r_digits = new Uint32List(r_used + (r_used & 1));
+    _lsh(_digits, _used, n, r_digits);
+    return new _Bigint(_neg, r_used, r_digits);
+  }
+
+  // r_digits[0..r_used-1] = x_digits[0..x_used-1] << n.
+  // Return r_used.
+  static int _lShiftDigits(Uint32List x_digits, int x_used, int n,
+                           Uint32List r_digits) {
+    final ds = n ~/ _DIGIT_BITS;
+    final bs = n % _DIGIT_BITS;
+    if (bs == 0) {
+      return _dlShiftDigits(x_digits, x_used, ds, r_digits);
+    }
+    var r_used = x_used + ds + 1;
+    assert(r_digits.length >= r_used + (r_used & 1));
+    _lsh(x_digits, x_used, n, r_digits);
     if (r_digits[r_used - 1] == 0) {
       r_used--;  // Clamp result.
     } else if (r_used.isOdd) {
@@ -312,32 +310,42 @@ class _Bigint extends _IntegerImplementation implements int {
     return r_used;
   }
 
+  // r_digits[0..r_used-1] = x_digits[0..x_used-1] >> n.
+  static void _rsh(Uint32List x_digits, int x_used, int n,
+                   Uint32List r_digits) {
+    final ds = n ~/ _DIGIT_BITS;
+    final bs = n % _DIGIT_BITS;
+    final cbs = _DIGIT_BITS - bs;
+    final bm = (1 << bs) - 1;
+    var c = x_digits[ds] >> bs;
+    final last = x_used - ds - 1;
+    for (var i = 0; i < last; i++) {
+      final d = x_digits[i + ds + 1];
+      r_digits[i] = ((d & bm) << cbs) | c;
+      c = d >> bs;
+    }
+    r_digits[last] = c;
+  }
+
   // Return this >> n.
   _Bigint _rShift(int n) {
-    var ds = n ~/ _DIGIT_BITS;
-    var bs = n % _DIGIT_BITS;
+    final ds = n ~/ _DIGIT_BITS;
+    final bs = n % _DIGIT_BITS;
     if (bs == 0) {
       return _drShift(ds);
     }
-    var r_used = _used - ds;
+    final used = _used;
+    final r_used = used - ds;
     if (r_used <= 0) {
       return _neg ? _MINUS_ONE : _ZERO;
     }
-    var cbs = _DIGIT_BITS - bs;
-    var bm = (1 << bs) - 1;
-    var digits = _digits;
-    var r_digits = new Uint32List(r_used + (r_used & 1));
-    r_digits[0] = digits[ds] >> bs;
-    var used = _used;
-    for (var i = ds + 1; i < used; i++) {
-      final d = digits[i];
-      r_digits[i - ds - 1] |= (d & bm) << cbs;
-      r_digits[i - ds] = d >> bs;
-    }
-    var r = new _Bigint(_neg, r_used, r_digits);
+    final digits = _digits;
+    final r_digits = new Uint32List(r_used + (r_used & 1));
+    _rsh(digits, used, n, r_digits);
+    final r = new _Bigint(_neg, r_used, r_digits);
     if (_neg) {
       // Round down if any bit was shifted out.
-      if ((digits[ds] & bm) != 0) {
+      if ((digits[ds] & ((1 << bs) - 1)) != 0) {
         return r._sub(_ONE);
       }
       for (var i = 0; i < ds; i++) {
@@ -353,8 +361,8 @@ class _Bigint extends _IntegerImplementation implements int {
   // Return r_used.
   static int _rShiftDigits(Uint32List x_digits, int x_used, int n,
                            Uint32List r_digits) {
-    var ds = n ~/ _DIGIT_BITS;
-    var bs = n % _DIGIT_BITS;
+    final ds = n ~/ _DIGIT_BITS;
+    final bs = n % _DIGIT_BITS;
     if (bs == 0) {
       return _drShiftDigits(x_digits, x_used, ds, r_digits);
     }
@@ -362,15 +370,8 @@ class _Bigint extends _IntegerImplementation implements int {
     if (r_used <= 0) {
       return 0;
     }
-    var cbs = _DIGIT_BITS - bs;
-    var bm = (1 << bs) - 1;
     assert(r_digits.length >= r_used + (r_used & 1));
-    r_digits[0] = x_digits[ds] >> bs;
-    for (var i = ds + 1; i < x_used; i++) {
-      final d = x_digits[i];
-      r_digits[i - ds - 1] |= (d & bm) << cbs;
-      r_digits[i - ds] = d >> bs;
-    }
+    _rsh(x_digits, x_used, n, r_digits);
     if (r_digits[r_used - 1] == 0) {
       r_used--;  // Clamp result.
     } else if (r_used.isOdd) {
