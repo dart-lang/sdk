@@ -31,7 +31,7 @@ Future<Server> serverFuture;
 
 _onShutdown() {
   if (server != null) {
-    server.close(true).catchError((e, st) => assert(e));
+    server.close(true).catchError((e, st) { assert(e); });
   }
   if (_signalSubscription != null) {
     _signalSubscription.cancel();
