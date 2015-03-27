@@ -829,7 +829,7 @@ abstract class IrBuilder {
   /// argument values are defined by [arguments].
   ir.Primitive buildConstructorInvocation(FunctionElement element,
                                           Selector selector,
-                                          InterfaceType type,
+                                          DartType type,
                                           List<ir.Primitive> arguments);
 
   /// Create a string concatenation of the [arguments].
@@ -2169,7 +2169,7 @@ class DartIrBuilder extends IrBuilder {
   @override
   ir.Primitive buildConstructorInvocation(FunctionElement element,
                                           Selector selector,
-                                          InterfaceType type,
+                                          DartType type,
                                           List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
@@ -2458,14 +2458,15 @@ class JsIrBuilder extends IrBuilder {
   @override
   ir.Primitive buildConstructorInvocation(ConstructorElement element,
                                           Selector selector,
-                                          InterfaceType type,
+                                          DartType type,
                                           List<ir.Primitive> arguments) {
     assert(isOpen);
 
     ClassElement cls = element.enclosingClass;
     if (program.requiresRuntimeTypesFor(cls)) {
+      InterfaceType interface = type;
       Iterable<ir.Primitive> typeArguments =
-          type.typeArguments.map((DartType argument) {
+          interface.typeArguments.map((DartType argument) {
         return type.treatAsRaw
             ? buildNullLiteral()
             : buildTypeExpression(argument);
