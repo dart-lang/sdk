@@ -323,8 +323,9 @@ class _PrefixedIdentifierSuggestionBuilder
           if (directive.prefix.name == element.name) {
             // Suggest elements from the imported library
             LibraryElement library = directive.uriElement;
-            LibraryElementSuggestionBuilder.suggestionsFor(
-                request, CompletionSuggestionKind.INVOCATION, library);
+            LibraryElementSuggestionBuilder.suggestionsFor(request,
+                CompletionSuggestionKind.INVOCATION, library,
+                request.target.containingNode.parent is TypeName);
             modified = true;
           }
         }

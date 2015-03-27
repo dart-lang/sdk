@@ -394,8 +394,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
   final DartCompletionRequest request;
   final CompletionSuggestionKind kind;
+  final bool typesOnly;
 
-  LibraryElementSuggestionBuilder(this.request, this.kind);
+  LibraryElementSuggestionBuilder(this.request, this.kind, this.typesOnly);
 
   @override
   visitClassElement(ClassElement element) {
@@ -414,7 +415,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   @override
   visitFunctionElement(FunctionElement element) {
-    addSuggestion(element);
+    if (!typesOnly) {
+      addSuggestion(element);
+    }
   }
 
   @override
@@ -424,16 +427,18 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   @override
   visitTopLevelVariableElement(TopLevelVariableElement element) {
-    addSuggestion(element);
+    if (!typesOnly) {
+      addSuggestion(element);
+    }
   }
 
   /**
    * Add suggestions for the visible members in the given library
    */
   static void suggestionsFor(DartCompletionRequest request,
-      CompletionSuggestionKind kind, LibraryElement library) {
+      CompletionSuggestionKind kind, LibraryElement library, bool typesOnly) {
     if (library != null) {
-      library.visitChildren(new LibraryElementSuggestionBuilder(request, kind));
+      library.visitChildren(new LibraryElementSuggestionBuilder(request, kind, typesOnly));
     }
   }
 }
