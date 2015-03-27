@@ -20,6 +20,7 @@ void testFunction() {
 class TestDebugger extends Debugger {
   TestDebugger(this.isolate, this.stack);
 
+  VM get vm => isolate.vm;
   Isolate isolate;
   ServiceMap stack;
   int currentFrame = 0;

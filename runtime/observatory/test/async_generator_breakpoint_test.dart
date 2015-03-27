@@ -66,7 +66,7 @@ testAsync(Isolate isolate) async {
   var hits = [];
 
   isolate.eval(isolate.rootLib, 'testerReady = true;')
-      .then((ServiceObject result) {
+      .then((Instance result) {
         expect(result.valueAsString, equals('true'));
       });
 
