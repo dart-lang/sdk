@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart && $builder_tag == new_backend ]
+Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # Issue 23015
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # issue 19953
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # issue 19953
 LibTest/core/List/List_class_A01_t02: Crash # issue 19953

@@ -190,6 +190,9 @@ override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2dart && $builder_tag == new_backend ]
 regress_13494_test: Pass # Issue 22370, passes for the wrong reason
+await_for_cancel_test: RuntimeError # Issue 23015
+regress_22936_test/01: RuntimeError # Issue 23015
+async_star_cancel_and_throw_in_finally_test: RuntimeError # Issue 23015
 
 [ $compiler == dart2dart && $builder_tag == new_backend && $host_checked ]
 large_implicit_getter_test: Crash # Stack overflow

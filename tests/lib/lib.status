@@ -288,6 +288,9 @@ mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 # Deferred loading is not supported by dart2dart.
 async/deferred/deferred_in_isolate_test: Skip # Issue 17523
 
+[ $compiler == dart2dart && $builder_tag == new_backend ]
+async/future_test: RuntimeError # Issue 23015
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # Dart vm does not support spawn from a dom-enabled isolate.
 async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16209
