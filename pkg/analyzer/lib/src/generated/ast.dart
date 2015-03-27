@@ -16494,7 +16494,10 @@ class SimpleStringLiteral extends SingleStringLiteral {
 
   @override
   int get contentsEnd {
-    return contentsOffset + value.length;
+    if (isMultiline) {
+      return end - 3;
+    }
+    return end - 1;
   }
 
   @override

@@ -1266,19 +1266,26 @@ class SimpleStringLiteralTest extends ParserTestCase {
     expect(new SimpleStringLiteral(
         TokenFactory.tokenFromString("'X'"), "X").contentsEnd, 2);
     expect(new SimpleStringLiteral(
-        TokenFactory.tokenFromString("\"X\""), "X").contentsEnd, 2);
+        TokenFactory.tokenFromString('"X"'), "X").contentsEnd, 2);
+
     expect(new SimpleStringLiteral(
-        TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").contentsEnd, 4);
+        TokenFactory.tokenFromString('"""X"""'), "X").contentsEnd, 4);
     expect(new SimpleStringLiteral(
         TokenFactory.tokenFromString("'''X'''"), "X").contentsEnd, 4);
     expect(new SimpleStringLiteral(
+        TokenFactory.tokenFromString("'''  \nX'''"), "X").contentsEnd, 7);
+
+    expect(new SimpleStringLiteral(
         TokenFactory.tokenFromString("r'X'"), "X").contentsEnd, 3);
     expect(new SimpleStringLiteral(
-        TokenFactory.tokenFromString("r\"X\""), "X").contentsEnd, 3);
+        TokenFactory.tokenFromString('r"X"'), "X").contentsEnd, 3);
+
     expect(new SimpleStringLiteral(
-        TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsEnd, 5);
+        TokenFactory.tokenFromString('r"""X"""'), "X").contentsEnd, 5);
     expect(new SimpleStringLiteral(
         TokenFactory.tokenFromString("r'''X'''"), "X").contentsEnd, 5);
+    expect(new SimpleStringLiteral(
+        TokenFactory.tokenFromString("r'''  \nX'''"), "X").contentsEnd, 8);
   }
 
   void test_contentsOffset() {
