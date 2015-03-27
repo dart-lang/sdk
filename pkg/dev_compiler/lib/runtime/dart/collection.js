@@ -166,7 +166,7 @@ var collection;
         }).bind(this)(new core.List()) : new core.List(this.length);
         let i = 0;
         for (let element of this)
-          result.set(((x) => i = dart.notNull(x$) + 1, x$)(i), element);
+          result.set(((x$) => i = dart.notNull(x$) + 1, x$)(i), element);
         return result;
       }
       map(f) {
@@ -1473,11 +1473,11 @@ var collection;
         return result;
       }
       add(element) {
-        this.set(((x) => this.length = dart.notNull(x$) + 1, x$).bind(this)(this.length), element);
+        this.set(((x$) => this.length = dart.notNull(x$) + 1, x$).bind(this)(this.length), element);
       }
       addAll(iterable) {
         for (let element of iterable) {
-          this.set(((x) => this.length = dart.notNull(x$) + 1, x$).bind(this)(this.length), element);
+          this.set(((x$) => this.length = dart.notNull(x$) + 1, x$).bind(this)(this.length), element);
         }
       }
       remove(element) {
@@ -1707,7 +1707,7 @@ var collection;
           this.setRange(index, dart.notNull(index) + dart.notNull(iterable.length), iterable);
         } else {
           for (let element of iterable) {
-            this.set(((x) => index = dart.notNull(x$) + 1, x$)(index), element);
+            this.set(((x$) => index = dart.notNull(x$) + 1, x$)(index), element);
           }
         }
       }

@@ -1156,13 +1156,13 @@ var _internal;
         list.length = insertionLength;
         list.setRange(dart.notNull(index) + dart.notNull(insertionLength), list.length, list, index);
         for (let element of iterable) {
-          list.set(((x) => index = dart.notNull(x$) + 1, x$)(index), element);
+          list.set(((x) => index = dart.notNull(x) + 1, x)(index), element);
         }
       }
       static setAllList(list, index, iterable) {
         core.RangeError.checkValueInInterval(index, 0, list.length, "index");
         for (let element of iterable) {
-          list.set(((x) => index = dart.notNull(x$) + 1, x$)(index), element);
+          list.set(((x) => index = dart.notNull(x) + 1, x)(index), element);
         }
       }
       asMapList(l) {
@@ -1660,12 +1660,12 @@ var _internal;
                 continue;
               } else if (dart.notNull(comp) < 0) {
                 a.set(k, a.get(less));
-                a.set(((x) => less = dart.notNull(x$) + 1, x$)(less), a.get(great));
-                a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
+                a.set(((x) => less = dart.notNull(x) + 1, x)(less), a.get(great));
+                a.set(((x) => great = dart.notNull(x) - 1, x)(great), ak);
                 break;
               } else {
                 a.set(k, a.get(great));
-                a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
+                a.set(((x) => great = dart.notNull(x) - 1, x)(great), ak);
                 break;
               }
             }
@@ -1695,11 +1695,11 @@ var _internal;
                   comp = dart.dinvokef(compare, a.get(great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a.set(k, a.get(less));
-                    a.set(((x) => less = dart.notNull(x$) + 1, x$)(less), a.get(great));
-                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
+                    a.set(((x) => less = dart.notNull(x) + 1, x)(less), a.get(great));
+                    a.set(((x) => great = dart.notNull(x) - 1, x)(great), ak);
                   } else {
                     a.set(k, a.get(great));
-                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
+                    a.set(((x) => great = dart.notNull(x) - 1, x)(great), ak);
                   }
                   break;
                 }
@@ -1747,11 +1747,11 @@ var _internal;
                   comp = dart.dinvokef(compare, a.get(great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a.set(k, a.get(less));
-                    a.set(((x) => less = dart.notNull(x$) + 1, x$)(less), a.get(great));
-                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
+                    a.set(((x) => less = dart.notNull(x) + 1, x)(less), a.get(great));
+                    a.set(((x) => great = dart.notNull(x) - 1, x)(great), ak);
                   } else {
                     a.set(k, a.get(great));
-                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
+                    a.set(((x) => great = dart.notNull(x) - 1, x)(great), ak);
                   }
                   break;
                 }

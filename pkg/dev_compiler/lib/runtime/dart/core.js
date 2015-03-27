@@ -996,7 +996,7 @@ var core;
       [_getKey]() {
         let key = dart.as(_js_helper.Primitives.getProperty(this, Expando._KEY_PROPERTY_NAME), String);
         if (key === null) {
-          key = `expando$key$${((x) => _keyCount = dart.notNull(x$) + 1, x$)(_keyCount)}`;
+          key = `expando$key$${((x) => _keyCount = dart.notNull(x) + 1, x)(_keyCount)}`;
           _js_helper.Primitives.setProperty(this, Expando._KEY_PROPERTY_NAME, key);
         }
         return key;

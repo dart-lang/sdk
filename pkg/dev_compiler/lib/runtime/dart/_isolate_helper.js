@@ -449,7 +449,7 @@ var _isolate_helper;
   let _addRegistration = Symbol('_addRegistration');
   class _IsolateContext extends core.Object {
     _IsolateContext() {
-      this.id = ((x) => exports._globalState.nextIsolateId = dart.notNull(x$) + 1, x$).bind(this)(exports._globalState.nextIsolateId);
+      this.id = ((x$) => exports._globalState.nextIsolateId = dart.notNull(x$) + 1, x$).bind(this)(exports._globalState.nextIsolateId);
       this.ports = new core.Map();
       this.weakPorts = new core.Set();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
@@ -1025,7 +1025,7 @@ var _isolate_helper;
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(_processWorkerMessage), worker);
       worker.onmessage = processWorkerMessageTrampoline;
-      let workerId = ((x) => exports._globalState.nextManagerId = dart.notNull(x$) + 1, x$).bind(this)(exports._globalState.nextManagerId);
+      let workerId = ((x$) => exports._globalState.nextManagerId = dart.notNull(x$) + 1, x$).bind(this)(exports._globalState.nextManagerId);
       workerIds.set(worker, workerId);
       exports._globalState.managers.set(workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
@@ -1123,13 +1123,13 @@ var _isolate_helper;
   class RawReceivePortImpl extends core.Object {
     RawReceivePortImpl(handler) {
       this[_handler] = handler;
-      this[_id] = ((x) => _nextFreeId = dart.notNull(x$) + 1, x$)(_nextFreeId);
+      this[_id] = ((x$) => _nextFreeId = dart.notNull(x$) + 1, x$)(_nextFreeId);
       this[_isClosed] = false;
       exports._globalState.currentContext.register(this[_id], this);
     }
     RawReceivePortImpl$weak(handler) {
       this[_handler] = handler;
-      this[_id] = ((x) => _nextFreeId = dart.notNull(x$) + 1, x$)(_nextFreeId);
+      this[_id] = ((x$) => _nextFreeId = dart.notNull(x$) + 1, x$)(_nextFreeId);
       this[_isClosed] = false;
       exports._globalState.currentContext.registerWeak(this[_id], this);
     }

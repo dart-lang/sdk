@@ -1520,7 +1520,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var bindThis = _maybeBindThis(expr);
     return js.call("((#) => (#, #))$bindThis(#)", [
-      tmp.name,
+      _visit(tmp),
       write,
       _visit(tmp),
       _visit(expr)

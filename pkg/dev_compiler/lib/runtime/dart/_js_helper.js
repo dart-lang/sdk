@@ -1674,7 +1674,7 @@ var _js_helper;
           _$.sort();
           return _$;
         }).bind(this)(positions.keys.toList()).forEach(((name) => {
-          this.cachedSortedIndices.set(((x) => index = dart.notNull(x$) + 1, x$)(index), positions.get(name));
+          this.cachedSortedIndices.set(((x$) => index = dart.notNull(x$) + 1, x$)(index), positions.get(name));
         }).bind(this));
       }
       return dart.as(this.cachedSortedIndices.get(unsortedIndex), core.int);
@@ -2518,8 +2518,8 @@ var _js_helper;
     let index = 0;
     let length = getLength(keyValuePairs);
     while (dart.notNull(index) < dart.notNull(length)) {
-      let key = getIndex(keyValuePairs, ((x) => index = dart.notNull(x$) + 1, x$)(index));
-      let value = getIndex(keyValuePairs, ((x) => index = dart.notNull(x$) + 1, x$)(index));
+      let key = getIndex(keyValuePairs, ((x$) => index = dart.notNull(x$) + 1, x$)(index));
+      let value = getIndex(keyValuePairs, ((x$) => index = dart.notNull(x$) + 1, x$)(index));
       result.set(key, value);
     }
     return result;
@@ -2575,7 +2575,7 @@ var _js_helper;
         this.$initialize();
       } : isCsp ? function(a, b, c, d) {
         this.$initialize(a, b, c, d);
-      } : new Function("a", "b", "c", "d", "this.$initialize(a,b,c,d);" + ((x) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter));
+      } : new Function("a", "b", "c", "d", "this.$initialize(a,b,c,d);" + ((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter));
       prototype.constructor = constructor;
       constructor.prototype = prototype;
       let trampoline = func;
@@ -2682,11 +2682,11 @@ var _js_helper;
         return cspForwardCall(arity, isSuperCall, stubName, func);
       }
       if (arity === 0) {
-        return new Function('return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${((x) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+        return new Function('return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
       }
       dart.assert(1 <= dart.notNull(arity) && dart.notNull(arity) < 27);
       let arguments = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, arity).join(",");
-      return new Function(`return function(${arguments}){` + `return this.${BoundClosure.selfFieldName()}.${stubName}(${arguments});` + `${((x) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+      return new Function(`return function(${arguments}){` + `return this.${BoundClosure.selfFieldName()}.${stubName}(${arguments});` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
     }
     static cspForwardInterceptedCall(arity, isSuperCall, name, func) {
       let getSelf = _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
@@ -2754,11 +2754,11 @@ var _js_helper;
         return cspForwardInterceptedCall(arity, isSuperCall, stubName, func);
       }
       if (arity === 1) {
-        return new Function('return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${((x) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+        return new Function('return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
       }
       dart.assert(1 < dart.notNull(arity) && dart.notNull(arity) < 28);
       let arguments = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, dart.notNull(arity) - 1).join(",");
-      return new Function(`return function(${arguments}){` + `return this.${selfField}.${stubName}(this.${receiverField}, ${arguments});` + `${((x) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+      return new Function(`return function(${arguments}){` + `return this.${selfField}.${stubName}(this.${receiverField}, ${arguments});` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
     }
     toString() {
       return "Closure";

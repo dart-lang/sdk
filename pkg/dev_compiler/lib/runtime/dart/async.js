@@ -84,7 +84,7 @@ var async;
         // Function sendEvent: () → void
         function sendEvent() {
           watch.reset();
-          let data = computation(((x) => computationCount = dart.notNull(x$) + 1, x$)(computationCount));
+          let data = computation(((x) => computationCount = dart.notNull(x) + 1, x)(computationCount));
           controller.add(data);
         }
         // Function startPeriodicTimer: () → void
@@ -1654,7 +1654,7 @@ var async;
           }
         }
         for (let future of futures) {
-          let pos = ((x) => remaining = dart.notNull(x$) + 1, x$)(remaining);
+          let pos = ((x) => remaining = dart.notNull(x) + 1, x)(remaining);
           future.then(((value) => {
             remaining = dart.notNull(remaining) - 1;
             if (values !== null) {
