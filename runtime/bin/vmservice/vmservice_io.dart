@@ -31,7 +31,9 @@ Future<Server> serverFuture;
 
 _onShutdown() {
   if (server != null) {
-    server.close(true).catchError((e, st) { assert(e); });
+    server.close(true).catchError((e, st) {
+      print("Error in vm-service shutdown: $e\n$st\n");
+    });
   }
   if (_signalSubscription != null) {
     _signalSubscription.cancel();

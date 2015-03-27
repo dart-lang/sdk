@@ -61,15 +61,15 @@ class _TestLauncher {
         print(line);
       });
       process.exitCode.then((exitCode) {
-        expect(exitCode, equals(0));
+        print("** Process exited");
       });
       return completer.future;
     });
   }
 
   void requestExit() {
-    print('** Requesting script to exit.');
-    process.stdin.add([32, 13, 10]);
+    print('** Killing script');
+    process.kill();
   }
 }
 
@@ -93,7 +93,7 @@ void runIsolateTests(List<String> mainArgs,
     if (testeeConcurrent != null) {
       testeeConcurrent();
     }
-    // Wait until signaled from spawning test.
+    // Wait around for the process to be killed.
     stdin.first.then((_) => exit(0));
   } else {
     var process = new _TestLauncher();
@@ -108,7 +108,7 @@ void runIsolateTests(List<String> mainArgs,
             print('Running $name [$testIndex/$totalTests]');
             testIndex++;
             return test(isolate);
-          })).then((_) => exit(0));
+          })).then((_) => process.requestExit());
     });
   }
 }
@@ -147,7 +147,7 @@ Future runVMTests(List<String> mainArgs,
     if (testeeConcurrent != null) {
       await testeeConcurrent();
     }
-    // Wait until signaled from spawning test.
+    // Wait around for the process to be killed.
     stdin.first.then((_) => exit(0));
   } else {
     var process = new _TestLauncher();
@@ -161,7 +161,7 @@ Future runVMTests(List<String> mainArgs,
             print('Running $name [$testIndex/$totalTests]');
             testIndex++;
             return test(vm);
-          })).then((_) => exit(0));
+          })).then((_) => process.requestExit());
     });
   }
 }
