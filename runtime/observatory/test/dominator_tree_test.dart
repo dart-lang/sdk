@@ -1,6 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --checked
 
 import 'package:observatory/dominator_tree.dart';
 import 'package:unittest/unittest.dart';
@@ -39,7 +40,7 @@ void smallTest() {
   expect(d.dominator('A'), equals('R'));
   expect(d.dominator('D'), equals('R'));
   expect(d.dominator('B'), equals('R'));
-  
+
   expect(d.dominator('F'), equals('C'));
   expect(d.dominator('G'), equals('C'));
   expect(d.dominator('J'), equals('G'));

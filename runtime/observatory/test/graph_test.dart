@@ -1,6 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --checked
 
 import 'dart:async';
 import 'package:observatory/object_graph.dart';
@@ -25,7 +26,7 @@ void script() {
   r.left = a;
   r.right = b;
   a.left = b;
-  
+
   lst = new List(2);
   lst[0] = lst;  // Self-loop.
   // Larger than any other fixed-size list in a fresh heap.
@@ -52,14 +53,14 @@ var tests = [
           (ObjectVertex obj) => obj.succ.length == 1).length, equals(1));
       expect(foos.where(
           (ObjectVertex obj) => obj.succ.length == 2).length, equals(1));
-      
+
       ObjectVertex bVertex = foos.where(
           (ObjectVertex obj) => obj.succ.length == 0).first;
       ObjectVertex aVertex = foos.where(
           (ObjectVertex obj) => obj.succ.length == 1).first;
       ObjectVertex rVertex = foos.where(
           (ObjectVertex obj) => obj.succ.length == 2).first;
-      
+
       // TODO(koda): Check actual byte sizes.
 
       expect(aVertex.retainedSize, equals(aVertex.shallowSize));
@@ -67,7 +68,7 @@ var tests = [
       expect(rVertex.retainedSize, equals(aVertex.shallowSize +
                                           bVertex.shallowSize +
                                           rVertex.shallowSize));
-      
+
       const int fixedSizeListCid = 62;
       List<ObjectVertex> lists = new List.from(graph.vertices.where(
           (ObjectVertex obj) => obj.classId == fixedSizeListCid));

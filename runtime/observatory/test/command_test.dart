@@ -1,6 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --checked
 
 import 'dart:async';
 
@@ -63,7 +64,7 @@ void testCommandComplete() {
   cmd.completeCommand('alpha').then((result) {
     expect(result, equals(['alpha ']));
   });
-                      
+
   // Extra space, no subcommands.
   cmd.completeCommand('alpha ').then((result) {
     expect(result, equals(['alpha ']));
@@ -168,7 +169,7 @@ void testCommandRunSubcommand() {
           new TestCommand(out, 'alpha', [
               new TestCommand(out, 'beta', []),
               new TestCommand(out, 'gamma', [])])]);
-      
+
   cmd.runCommand('a b').then(expectAsync((_) {
       expect(out.toString(), equals('executing beta([])\n'));
       out.clear();

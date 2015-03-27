@@ -1,6 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --checked
 
 import 'package:observatory/service_io.dart';
 import 'package:observatory/debugger.dart';
@@ -11,7 +12,7 @@ import 'dart:async';
 void testFunction() {
   int i = 0;
   while (true) {
-    if (++i % 100000000 == 0) {  // line 14
+    if (++i % 100000000 == 0) {  // line 15
       print(i);
     }
   }
@@ -50,7 +51,7 @@ Future<Debugger> initDebugger(Isolate isolate) {
 
 var tests = [
 
-// Bring the isolate to a breakpoint at line 14.
+// Bring the isolate to a breakpoint at line 15.
 (Isolate isolate) {
   return isolate.rootLib.load().then((_) {
       // Listen for breakpoint event.
@@ -63,7 +64,7 @@ var tests = [
 
       // Add the breakpoint.
       var script = isolate.rootLib.scripts[0];
-      return isolate.addBreakpoint(script, 14).then((ServiceObject bpt) {
+      return isolate.addBreakpoint(script, 15).then((ServiceObject bpt) {
           return completer.future;  // Wait for breakpoint events.
       });
     });
@@ -74,7 +75,7 @@ var tests = [
   return initDebugger(isolate).then((debugger) {
     return SourceLocation.parse(debugger, '').then((SourceLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('source_location_test.dart:14'));
+      expect(loc.toString(), equals('source_location_test.dart:15'));
     });
   });
 },
@@ -82,9 +83,9 @@ var tests = [
 // Parse line
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, '15').then((SourceLocation loc) {
+    return SourceLocation.parse(debugger, '16').then((SourceLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('source_location_test.dart:15'));
+      expect(loc.toString(), equals('source_location_test.dart:16'));
     });
   });
 },
@@ -92,9 +93,9 @@ var tests = [
 // Parse line + col
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, '15:11').then((SourceLocation loc) {
+    return SourceLocation.parse(debugger, '16:11').then((SourceLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('source_location_test.dart:15:11'));
+      expect(loc.toString(), equals('source_location_test.dart:16:11'));
     });
   });
 },

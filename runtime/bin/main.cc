@@ -611,6 +611,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       return NULL;
     }
     Dart_ExitScope();
+    if (has_compile_all) {
+      result = Dart_CompileAll();
+      CHECK_RESULT(result);
+    }
     Dart_ExitIsolate();
     return isolate;
   }
