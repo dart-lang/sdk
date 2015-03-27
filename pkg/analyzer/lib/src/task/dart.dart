@@ -67,6 +67,15 @@ final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
     new ListResultDescriptor<ClassElement>('CLASS_ELEMENTS', null);
 
 /**
+ * The element model associated with a single compilation unit.
+ *
+ * The result is only available for targets representing a Dart compilation unit.
+ */
+final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
+    new ResultDescriptor<CompilationUnitElement>(
+        'COMPILATION_UNIT_ELEMENT', null);
+
+/**
  * The [ConstructorElement]s of a [ClassElement].
  */
 final ResultDescriptor<List<ConstructorElement>> CONSTRUCTORS =
@@ -158,6 +167,17 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT6 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT6', null);
 
 /**
+ * The errors produced while parsing a compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart compilation unit.
+ */
+final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'PARSE_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
+
+/**
  * The errors produced while resolving references.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -230,6 +250,17 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT5', null);
+
+/**
+ * The errors produced while scanning a compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart compilation unit.
+ */
+final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'SCAN_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
 
 /**
  * The [TypeProvider] of the context.

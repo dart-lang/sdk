@@ -12,15 +12,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
- * The element model associated with a single compilation unit.
- *
- * The result is only available for targets representing a Dart compilation unit.
- */
-final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
-    new ResultDescriptor<CompilationUnitElement>(
-        'COMPILATION_UNIT_ELEMENT', null);
-
-/**
  * The analysis errors associated with a target.
  *
  * The value combines errors represented by multiple other results.
@@ -82,17 +73,6 @@ final ResultDescriptor<bool> IS_LAUNCHABLE =
     new ResultDescriptor<bool>('IS_LAUNCHABLE', false);
 
 /**
- * The errors produced while parsing a compilation unit.
- *
- * The list will be empty if there were no errors, but will not be `null`.
- *
- * The result is only available for targets representing a Dart compilation unit.
- */
-final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
-        'PARSE_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
-
-/**
  * The compilation unit AST produced while parsing a compilation unit.
  *
  * The AST structure will not have resolution information associated with it.
@@ -109,17 +89,6 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null);
-
-/**
- * The errors produced while scanning a compilation unit.
- *
- * The list will be empty if there were no errors, but will not be `null`.
- *
- * The result is only available for targets representing a Dart compilation unit.
- */
-final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
-        'SCAN_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
 
 /**
  * The token stream produced while scanning a compilation unit.
