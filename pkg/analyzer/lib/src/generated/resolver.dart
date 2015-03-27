@@ -10969,12 +10969,14 @@ class ResolverVisitor extends ScopedVisitor {
       _propagateFalseState(condition);
       _overrideManager.applyOverrides(elseOverrides);
     } else if (!thenIsAbrupt && !elseIsAbrupt) {
+      List<Map<VariableElement, DartType>> perBranchOverrides =
+          new List<Map<VariableElement, DartType>>();
+      perBranchOverrides.add(thenOverrides);
+      perBranchOverrides.add(elseOverrides);
       if (AnalysisEngine.instance.enableUnionTypes) {
-        List<Map<VariableElement, DartType>> perBranchOverrides =
-            new List<Map<VariableElement, DartType>>();
-        perBranchOverrides.add(thenOverrides);
-        perBranchOverrides.add(elseOverrides);
         _overrideManager.joinOverrides(perBranchOverrides);
+      } else {
+        _overrideManager.mergeOverrides(perBranchOverrides);
       }
     }
     return null;
@@ -12776,6 +12778,24 @@ class TypeOverrideManager {
   }
 
   /**
+   * Update overrides assuming [perBranchOverrides] is the collection of
+   * per-branch overrides for *all* branches flowing into a join point.
+   *
+   * If a variable type in any of branches is not the same as its type before
+   * the branching, then its propagated type is reset to `null`.
+   */
+  void mergeOverrides(List<Map<VariableElement, DartType>> perBranchOverrides) {
+    for (Map<VariableElement, DartType> branch in perBranchOverrides) {
+      branch.forEach((VariableElement variable, DartType branchType) {
+        DartType currentType = _currentScope.getType(variable);
+        if (currentType != branchType) {
+          _currentScope.resetType(variable);
+        }
+      });
+    }
+  }
+
+  /**
    * Set the overridden type of the given element to the given type
    *
    * @param element the element whose type might have been overridden
@@ -12862,9 +12882,12 @@ class TypeOverrideManager_TypeOverrideScope {
    * @return the overridden type of the given element
    */
   DartType getType(Element element) {
+    if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
     DartType type = _overridenTypes[element];
-    if (type == null && element is PropertyAccessorElement) {
-      type = _overridenTypes[element.variable];
+    if (_overridenTypes.containsKey(element)) {
+      return type;
     }
     if (type != null) {
       return type;
@@ -12872,6 +12895,13 @@ class TypeOverrideManager_TypeOverrideScope {
       return _outerScope.getType(element);
     }
     return null;
+  }
+
+  /**
+   * Clears the overridden type of the given [element].
+   */
+  void resetType(VariableElement element) {
+    _overridenTypes[element] = null;
   }
 
   /**

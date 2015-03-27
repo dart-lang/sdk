@@ -12749,6 +12749,54 @@ f() {
     expect(typeArguments[1], same(typeProvider.dynamicType));
   }
 
+  void test_mergePropagatedTypes_afterIfThen_different() {
+    _assertTypeOfMarkedExpression(r'''
+main() {
+  var v = 0;
+  if (v != null) {
+    v = '';
+  }
+  return v; // marker
+}''', null, null);
+  }
+
+  void test_mergePropagatedTypes_afterIfThen_same() {
+    _assertTypeOfMarkedExpression(r'''
+main() {
+  var v = 1;
+  if (v != null) {
+    v = 2;
+  }
+  return v; // marker
+}''', null, typeProvider.intType);
+  }
+
+  void test_mergePropagatedTypes_afterIfThenElse_different() {
+    _assertTypeOfMarkedExpression(r'''
+main() {
+  var v = 1;
+  if (v != null) {
+    v = 2;
+  } else {
+    v = '3';
+  }
+  return v; // marker
+}''', null, null);
+  }
+
+  void test_mergePropagatedTypes_afterIfThenElse_same() {
+    _assertTypeOfMarkedExpression(r'''
+main() {
+  var v = 1;
+  if (v != null) {
+    v = 2;
+  } else {
+    v = 3;
+  }
+  return v; // marker
+}''', null, typeProvider.intType);
+  }
+
   void test_mergePropagatedTypesAtJoinPoint_4() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(r'''
@@ -13007,9 +13055,7 @@ main() {
     if (expectedStaticType != null) {
       expect(identifier.staticType, expectedStaticType);
     }
-    if (expectedPropagatedType != null) {
-      expect(identifier.propagatedType, expectedPropagatedType);
-    }
+    expect(identifier.propagatedType, expectedPropagatedType);
   }
 
   /**
