@@ -606,7 +606,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   @override
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitTypeLiteralSend(node);
   }
@@ -614,7 +614,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   @override
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitTypeLiteralSend(node);
   }
@@ -622,7 +622,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   @override
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitTypeLiteralSend(node);
   }
@@ -638,7 +638,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   @override
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       ResolvedKindVisitor<R> visitor) {
@@ -648,7 +648,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   @override
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       ResolvedKindVisitor<R> visitor) {
@@ -658,7 +658,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   @override
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       ResolvedKindVisitor<R> visitor) {

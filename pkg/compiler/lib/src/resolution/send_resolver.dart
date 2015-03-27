@@ -309,7 +309,10 @@ abstract class SendResolverMixin {
     Element getter = isCompound ? elements[node.selector] : null;
     if (elements.isTypeLiteral(node)) {
       DartType dartType = elements.getTypeLiteralType(node);
-      TypeConstantExpression constant = elements.getConstant(
+      // TODO(johnniwinther): Handle deferred constants. There are runtime
+      // but not compile-time constants and should have their own
+      // [DeferredConstantExpression] class.
+      ConstantExpression constant = elements.getConstant(
           isInvoke ? node.selector : node);
       switch (dartType.kind) {
         case TypeKind.INTERFACE:

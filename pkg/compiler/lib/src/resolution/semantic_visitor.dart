@@ -900,7 +900,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg);
 
   /// Invocation of the type literal for class [element] with [arguments].
@@ -911,7 +911,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg);
@@ -924,7 +924,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorClassTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg);
 
@@ -936,7 +936,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg);
 
   /// Invocation of the type literal for typedef [element] with [arguments].
@@ -947,7 +947,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg);
@@ -960,7 +960,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorTypedefTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg);
 
@@ -1011,7 +1011,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg);
 
   /// Invocation of the type literal for `dynamic` with [arguments].
@@ -1021,7 +1021,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg);
@@ -1033,7 +1033,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorDynamicTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg);
 
@@ -1794,7 +1794,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorClassTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg);
@@ -1808,7 +1808,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorTypedefTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg);
@@ -1836,7 +1836,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorDynamicTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg);
@@ -2169,7 +2169,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorClassTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg);
 
@@ -2182,7 +2182,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorTypedefTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg);
 
@@ -2207,7 +2207,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorDynamicTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg);
 
@@ -2504,7 +2504,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorClassTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg);
 
@@ -2517,7 +2517,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorTypedefTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg);
 
@@ -2542,7 +2542,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R errorDynamicTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg);
 

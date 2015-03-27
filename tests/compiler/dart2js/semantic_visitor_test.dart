@@ -2145,7 +2145,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_GET,
         constant: constant.getText()));
@@ -2154,7 +2154,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       arg) {
@@ -2166,7 +2166,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorClassTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
@@ -2250,7 +2250,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_GET,
         constant: constant.getText()));
@@ -2259,7 +2259,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       arg) {
@@ -2270,7 +2270,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorDynamicTypeLiteralSet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
@@ -2702,7 +2702,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_GET,
         constant: constant.getText()));
@@ -2711,7 +2711,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       arg) {
@@ -2723,7 +2723,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorTypedefTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
@@ -3344,7 +3344,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorClassTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       arg) {
@@ -3356,7 +3356,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorDynamicTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       arg) {
@@ -3380,7 +3380,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorTypedefTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       arg) {
@@ -3401,7 +3401,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorClassTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.ERROR_CLASS_TYPE_LITERAL_PREFIX,
@@ -3411,7 +3411,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorDynamicTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.ERROR_DYNAMIC_TYPE_LITERAL_PREFIX,
@@ -3588,7 +3588,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorTypedefTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.ERROR_TYPEDEF_TYPE_LITERAL_PREFIX,
@@ -3607,7 +3607,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorClassTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.ERROR_CLASS_TYPE_LITERAL_POSTFIX,
@@ -3617,7 +3617,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorDynamicTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.ERROR_DYNAMIC_TYPE_LITERAL_POSTFIX,
@@ -3794,7 +3794,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   @override
   errorTypedefTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.ERROR_TYPEDEF_TYPE_LITERAL_POSTFIX,

@@ -26,7 +26,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -36,7 +36,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return bulkHandleError(node, arg);
@@ -45,7 +45,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return bulkHandleError(node, arg);
@@ -54,7 +54,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     return bulkHandleError(node, arg);
@@ -63,7 +63,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -73,7 +73,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return bulkHandleError(node, arg);
@@ -82,7 +82,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return bulkHandleError(node, arg);
@@ -91,7 +91,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     return bulkHandleError(node, arg);
@@ -378,7 +378,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -388,7 +388,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return bulkHandleError(node, arg);
@@ -397,7 +397,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return bulkHandleError(node, arg);
@@ -406,7 +406,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     return bulkHandleError(node, arg);
@@ -1125,7 +1125,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -1145,7 +1145,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -1313,7 +1313,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -1346,7 +1346,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -1363,7 +1363,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -1488,7 +1488,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -1496,7 +1496,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitConstantGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -2210,7 +2210,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     apply(rhs, arg);
@@ -2220,7 +2220,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     apply(rhs, arg);
@@ -2501,7 +2501,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     apply(rhs, arg);
@@ -2552,7 +2552,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -2563,7 +2563,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return null;
   }
@@ -2571,7 +2571,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -2582,7 +2582,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -2591,7 +2591,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -2704,7 +2704,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -2715,7 +2715,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return null;
   }
@@ -2723,7 +2723,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -2734,7 +2734,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -2743,7 +2743,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -3788,7 +3788,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -3799,7 +3799,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return null;
   }
@@ -3807,7 +3807,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -3818,7 +3818,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -3827,7 +3827,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -4728,7 +4728,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return handleConstantGet(node, constant, arg);
   }
@@ -4736,7 +4736,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -4764,7 +4764,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return handleConstantGet(node, constant, arg);
   }
@@ -4772,7 +4772,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -4782,7 +4782,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return handleConstantGet(node, constant, arg);
   }
@@ -4790,7 +4790,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
