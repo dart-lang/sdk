@@ -14,7 +14,7 @@ import "runtime_configuration.dart" show RuntimeConfiguration;
 const List<String> defaultTestSelectors =
     const ['samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'benchmark_smoke',
-           'utils', 'lib', 'pkg', 'analyze_library', 'observatory',
+           'utils', 'lib', 'pkg', 'analyze_library',
            'pkg_tested'];
 
 /**
