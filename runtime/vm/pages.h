@@ -10,6 +10,7 @@
 #include "vm/lockers.h"
 #include "vm/ring_buffer.h"
 #include "vm/spaces.h"
+#include "vm/thread.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -226,7 +227,7 @@ class PageSpace {
      IncreaseCapacityInWordsLocked(increase_in_words);
   }
   void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
-    DEBUG_ASSERT(pages_lock_->Owner() == Isolate::Current());
+    DEBUG_ASSERT(pages_lock_->IsOwnedByCurrentThread());
     usage_.capacity_in_words += increase_in_words;
   }
   intptr_t ExternalInWords() const {

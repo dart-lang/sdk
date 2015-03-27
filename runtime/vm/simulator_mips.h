@@ -24,6 +24,7 @@ class Isolate;
 class Mutex;
 class RawObject;
 class SimulatorSetjmpBuffer;
+class Thread;
 
 class Simulator {
  public:
@@ -197,19 +198,18 @@ class Simulator {
   inline double ReadD(uword addr, Instr* instr);
   inline void WriteD(uword addr, double value, Instr* instr);
 
-  // In Dart, there is at most one thread per isolate.
-  // We keep track of 16 exclusive access address tags across all isolates.
+  // We keep track of 16 exclusive access address tags across all threads.
   // Since we cannot simulate a native context switch, which clears
-  // the exclusive access state of the local monitor, we associate the isolate
+  // the exclusive access state of the local monitor, we associate the thread
   // requesting exclusive access to the address tag.
-  // Multiple isolates requesting exclusive access (using the LL instruction)
+  // Multiple threads requesting exclusive access (using the LL instruction)
   // to the same address will result in multiple address tags being created for
-  // the same address, one per isolate.
-  // At any given time, each isolate is associated to at most one address tag.
+  // the same address, one per thread.
+  // At any given time, each thread is associated to at most one address tag.
   static Mutex* exclusive_access_lock_;
   static const int kNumAddressTags = 16;
   static struct AddressTag {
-    Isolate* isolate;
+    Thread* thread;
     uword addr;
   } exclusive_access_state_[kNumAddressTags];
   static int next_address_tag_;
@@ -219,14 +219,14 @@ class Simulator {
   intptr_t ReadExclusiveW(uword addr, Instr* instr);
   intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
 
-  // Set access to given address to 'exclusive state' for current isolate.
+  // Set access to given address to 'exclusive state' for current thread.
   static void SetExclusiveAccess(uword addr);
 
-  // Returns true if the current isolate has exclusive access to given address,
+  // Returns true if the current thread has exclusive access to given address,
   // returns false otherwise. In either case, set access to given address to
-  // 'open state' for all isolates.
+  // 'open state' for all threads.
   // If given addr is NULL, set access to 'open state' for current
-  // isolate (CLREX).
+  // thread (CLREX).
   static bool HasExclusiveAccessAndOpen(uword addr);
 
   void DoBranch(Instr* instr, bool taken, bool likely);

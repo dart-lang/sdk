@@ -19,7 +19,6 @@
 #include <mach/thread_act.h>  // NOLINT
 
 #include "platform/assert.h"
-#include "vm/isolate.h"
 
 namespace dart {
 
@@ -203,7 +202,7 @@ Mutex::Mutex() {
 
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  owner_ = NULL;
+  owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
 }
 
@@ -215,7 +214,7 @@ Mutex::~Mutex() {
 
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  ASSERT(owner_ == NULL);
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
 
@@ -227,7 +226,7 @@ void Mutex::Lock() {
   ASSERT(result == 0);  // Verify no other errors.
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  owner_ = Isolate::Current();
+  owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
 
@@ -241,7 +240,7 @@ bool Mutex::TryLock() {
   ASSERT(result == 0);  // Verify no other errors.
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  owner_ = Isolate::Current();
+  owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
   return true;
 }
@@ -250,8 +249,8 @@ bool Mutex::TryLock() {
 void Mutex::Unlock() {
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  ASSERT(owner_ == Isolate::Current());
-  owner_ = NULL;
+  ASSERT(IsOwnedByCurrentThread());
+  owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
   int result = pthread_mutex_unlock(data_.mutex());
   // Specifically check for wrong thread unlocking to aid debugging.
