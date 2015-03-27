@@ -4539,6 +4539,13 @@ class LintGeneratorTest_Linter_Null_Visitor extends Linter {
   AstVisitor getVisitor() => null;
 }
 
+class MockSourceFactory extends SourceFactory {
+  MockSourceFactory() : super([]);
+  Source resolveUri(Source containingSource, String containedUri) {
+    throw new JavaIOException();
+  }
+}
+
 @reflectiveTest
 class ParseDartTaskTest extends EngineTestCase {
   void test_accept() {
@@ -4625,6 +4632,26 @@ class A {}''';
     ParseDartTask task = _createParseTask(context, source, content);
     task.perform(
         new ParseDartTaskTestTV_perform_validateDirectives(context, source));
+  }
+
+  void test_resolveDirective_dartUri() {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ImportDirective directive = AstFactory.importDirective3('dart:core', null);
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    Source source =
+        ParseDartTask.resolveDirective(context, null, directive, listener);
+    expect(source, isNotNull);
+  }
+
+  void test_resolveDirective_exception() {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ImportDirective directive = AstFactory.importDirective3('dart:core', null);
+    AnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new MockSourceFactory();
+    Source source =
+        ParseDartTask.resolveDirective(context, null, directive, listener);
+    expect(source, isNull);
+    expect(listener.errors, hasLength(1));
   }
 
   /**

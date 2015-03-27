@@ -13,6 +13,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
+import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 
@@ -35,7 +36,6 @@ import 'sdk.dart' show DartSdk;
 import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_general.dart';
-import 'package:analyzer/src/plugin/engine_plugin.dart';
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -9402,10 +9402,14 @@ class ParseDartTask extends AnalysisTask {
     UriValidationCode code = directive.validate();
     if (code == null) {
       String encodedUriContent = Uri.encodeFull(uriContent);
-      Source source =
-          context.sourceFactory.resolveUri(librarySource, encodedUriContent);
-      directive.source = source;
-      return source;
+      try {
+        Source source =
+            context.sourceFactory.resolveUri(librarySource, encodedUriContent);
+        directive.source = source;
+        return source;
+      } on JavaIOException {
+        code = UriValidationCode.INVALID_URI;
+      }
     }
     if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
       return null;
