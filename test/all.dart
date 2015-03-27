@@ -18,9 +18,11 @@ main() {
   // Tidy up the unittest output.
   filterStacks = true;
   formatStacks = true;
-  // useCompactVMConfiguration();
 
-  // Redirect output
+  // useCompactVMConfiguration();
+  // useTimingConfig();
+
+  // Redirect output.
   outSink = new MockIOSink();
 
   linter_test.main();
@@ -30,4 +32,22 @@ main() {
   config_test.main();
   project_test.main();
   integration_test.main();
+}
+
+void useTimingConfig() {
+  unittestConfiguration = new TimingTestConfig();
+}
+
+class TimingTestConfig extends SimpleConfiguration {
+  final stopwatch = new Stopwatch();
+
+  @override
+  void onDone(bool success) {
+    stopwatch.stop();
+    super.onDone(success);
+    print('Total time = ${stopwatch.elapsedMilliseconds / 1000} seconds.');
+  }
+
+  @override
+  void onStart() => stopwatch.start();
 }
