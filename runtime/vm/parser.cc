@@ -11910,15 +11910,28 @@ RawAbstractType* Parser::ParseType(
           "using '%s' in this context is invalid",
           type_name.ToCString());
     }
-    if (!prefix.IsNull() && prefix.is_deferred_load() && !allow_deferred_type) {
-      ParseTypeArguments(ClassFinalizer::kIgnore);
-      return ClassFinalizer::NewFinalizedMalformedType(
-          Error::Handle(Z),  // No previous error.
-          script_,
-          ident_pos,
-          "using deferred type '%s.%s' is invalid",
-          String::Handle(Z, prefix.name()).ToCString(),
-          type_name.ToCString());
+    if (!prefix.IsNull() && prefix.is_deferred_load()) {
+      // If deferred prefixes are allowed but it is not yet loaded,
+      // remember that this function depends on the prefix.
+      if (allow_deferred_type && !prefix.is_loaded()) {
+        ASSERT(parsed_function() != NULL);
+        parsed_function()->AddDeferredPrefix(prefix);
+      }
+      // If the deferred prefixes are not allowed, or if the prefix
+      // is not yet loaded, return a malformed type. Otherwise, handle
+      // resolution below, as needed.
+      if (!prefix.is_loaded() || !allow_deferred_type) {
+        ParseTypeArguments(ClassFinalizer::kIgnore);
+        return ClassFinalizer::NewFinalizedMalformedType(
+            Error::Handle(Z),  // No previous error.
+            script_,
+            ident_pos,
+            !prefix.is_loaded()
+                ? "deferred type '%s.%s' is not yet loaded"
+                : "using deferred type '%s.%s' is invalid",
+            String::Handle(Z, prefix.name()).ToCString(),
+            type_name.ToCString());
+      }
     }
   }
   Object& type_class = Object::Handle(Z);
