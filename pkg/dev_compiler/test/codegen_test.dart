@@ -116,7 +116,7 @@ main(arguments) {
     });
   }
 
-  if (dartGen) {
+  if (dartGen || Platform.environment.containsKey('COVERALLS_TOKEN')) {
     group('sdk', () {
       // The analyzer does not bubble exception messages for certain internal
       // dart:* library failures, such as failing to find
@@ -135,10 +135,13 @@ main(arguments) {
       test('devc dart:core', () {
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
-        var testSdk = path.join(testDir, '..', 'tool', 'input_sdk');
+        var testSdk = dartGen
+            ? path.join(testDir, '..', 'tool', 'input_sdk')
+            : path.join(testDir, 'generated_sdk');
         var result = compile('dart:core', testSdk, checkSdk: true);
         var outputDir = new Directory(path.join(actualDir, 'core'));
-        var outFile = new File(path.join(actualDir, 'core/core'));
+        var outFile = new File(
+            path.join(actualDir, dartGen ? 'core/core' : 'dart/core.js'));
         expect(outFile.existsSync(), true,
             reason: '${outFile.path} was created for dart:core');
       });
