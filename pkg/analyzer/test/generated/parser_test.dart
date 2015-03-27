@@ -4996,7 +4996,7 @@ class SimpleParserTest extends ParserTestCase {
     MethodInvocation section = parse4("parseCascadeSection", "..a(b).c(d)");
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodInvocation, MethodInvocation, section.target);
-    expect(section.period, isNotNull);
+    expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
@@ -5037,7 +5037,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCascadeSection_pa() {
     MethodInvocation section = parse4("parseCascadeSection", "..a(b)");
     expect(section.target, isNull);
-    expect(section.period, isNotNull);
+    expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));

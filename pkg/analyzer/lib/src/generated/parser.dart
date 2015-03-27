@@ -9983,7 +9983,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation toNode = this._toNode as MethodInvocation;
     if (_and(_isEqualNodes(node.target, toNode.target),
-        _isEqualTokens(node.period, toNode.period),
+        _isEqualTokens(node.operator, toNode.operator),
         _isEqualNodes(node.methodName, toNode.methodName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedType = node.propagatedType;

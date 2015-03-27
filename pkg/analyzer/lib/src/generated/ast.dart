@@ -1432,7 +1432,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) =>
-      new MethodInvocation(cloneNode(node.target), cloneToken(node.period),
+      new MethodInvocation(cloneNode(node.target), cloneToken(node.operator),
           cloneNode(node.methodName), cloneNode(node.argumentList));
 
   @override
@@ -2323,7 +2323,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation other = _other as MethodInvocation;
     return isEqualNodes(node.target, other.target) &&
-        isEqualTokens(node.period, other.period) &&
+        isEqualTokens(node.operator, other.operator) &&
         isEqualNodes(node.methodName, other.methodName) &&
         isEqualNodes(node.argumentList, other.argumentList);
   }
@@ -9969,7 +9969,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) {
     MethodInvocation copy = new MethodInvocation(_cloneNode(node.target),
-        _mapToken(node.period), _cloneNode(node.methodName),
+        _mapToken(node.operator), _cloneNode(node.methodName),
         _cloneNode(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -11760,10 +11760,12 @@ class MethodInvocation extends Expression {
   Expression _target;
 
   /**
-   * The period that separates the target from the method name, or `null` if
-   * there is no target.
+   * The operator that separates the target from the method name, or `null`
+   * if there is no target. In an ordinary method invocation this will be a
+   * period ('.'). In a cascade section this will be the cascade operator
+   * ('..').
    */
-  Token period;
+  Token operator;
 
   /**
    * The name of the method being invoked.
@@ -11776,11 +11778,11 @@ class MethodInvocation extends Expression {
   ArgumentList _argumentList;
 
   /**
-   * Initialize a newly created method invocation. The [target] and [period] can
-   * be `null` if there is no target.
+   * Initialize a newly created method invocation. The [target] and [operator]
+   * can be `null` if there is no target.
    */
-  MethodInvocation(Expression target, this.period, SimpleIdentifier methodName,
-      ArgumentList argumentList) {
+  MethodInvocation(Expression target, this.operator,
+      SimpleIdentifier methodName, ArgumentList argumentList) {
     _target = _becomeParentOf(target);
     _methodName = _becomeParentOf(methodName);
     _argumentList = _becomeParentOf(argumentList);
@@ -11802,8 +11804,8 @@ class MethodInvocation extends Expression {
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
-    } else if (period != null) {
-      return period;
+    } else if (operator != null) {
+      return operator;
     }
     return _methodName.beginToken;
   }
@@ -11811,7 +11813,7 @@ class MethodInvocation extends Expression {
   @override
   Iterable get childEntities => new ChildEntities()
     ..add(_target)
-    ..add(period)
+    ..add(operator)
     ..add(_methodName)
     ..add(_argumentList);
 
@@ -11824,7 +11826,7 @@ class MethodInvocation extends Expression {
    * that is a [CascadeExpression].
    */
   bool get isCascaded =>
-      period != null && period.type == TokenType.PERIOD_PERIOD;
+      operator != null && operator.type == TokenType.PERIOD_PERIOD;
 
   /**
    * Return the name of the method being invoked.
@@ -11836,6 +11838,30 @@ class MethodInvocation extends Expression {
    */
   void set methodName(SimpleIdentifier identifier) {
     _methodName = _becomeParentOf(identifier);
+  }
+
+  /**
+   * The operator that separates the target from the method name, or `null`
+   * if there is no target. In an ordinary method invocation this will be a
+   * period ('.'). In a cascade section this will be the cascade operator
+   * ('..').
+   *
+   * Deprecated: use [operator] instead.
+   */
+  @deprecated
+  Token get period => operator;
+
+  /**
+   * The operator that separates the target from the method name, or `null`
+   * if there is no target. In an ordinary method invocation this will be a
+   * period ('.'). In a cascade section this will be the cascade operator
+   * ('..').
+   *
+   * Deprecated: use [operator] instead.
+   */
+  @deprecated
+  void set period(Token value) {
+    operator = value;
   }
 
   @override
