@@ -2474,8 +2474,16 @@ class ErrorReporter {
    */
   void reportErrorForElement(
       ErrorCode errorCode, Element element, List<Object> arguments) {
-    reportErrorForOffset(
-        errorCode, element.nameOffset, element.displayName.length, arguments);
+    String displayName = element.displayName;
+    int length = 0;
+    if (displayName != null) {
+      length = displayName.length;
+    } else if (element is ImportElement) {
+      length = 6; // 'import'.length
+    } else if (element is ExportElement) {
+      length = 6; // 'export'.length
+    }
+    reportErrorForOffset(errorCode, element.nameOffset, length, arguments);
   }
 
   /**

@@ -6439,6 +6439,31 @@ class ErrorReporterTest extends EngineTestCase {
     expect(new ErrorReporter(listener, source), isNotNull);
   }
 
+  void test_reportErrorForElement_named() {
+    DartType type = createType("/test1.dart", "A");
+    ClassElement element = type.element;
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter = new ErrorReporter(listener, element.source);
+    reporter.reportErrorForElement(
+        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
+        element, ['A']);
+    AnalysisError error = listener.errors[0];
+    expect(error.offset, element.nameOffset);
+  }
+
+  void test_reportErrorForElement_unnamed() {
+    ImportElementImpl element =
+        ElementFactory.importFor(ElementFactory.library(null, ''), null);
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter = new ErrorReporter(
+        listener, new NonExistingSource("/test.dart", UriKind.FILE_URI));
+    reporter.reportErrorForElement(
+        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
+        element, ['A']);
+    AnalysisError error = listener.errors[0];
+    expect(error.offset, element.nameOffset);
+  }
+
   void test_reportTypeErrorForNode_differentNames() {
     DartType firstType = createType("/test1.dart", "A");
     DartType secondType = createType("/test2.dart", "B");
