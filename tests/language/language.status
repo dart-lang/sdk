@@ -45,11 +45,9 @@ async_star_test/02: RuntimeError
 async_star_test/05: Timeout, RuntimeError
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
-language/multiline_strings_test: Fail # Issue 23020
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
-multiline_strings_test: Fail # Issue 23020
 unicode_bom_test: Fail # Issue 16067
 
 [ $compiler == none && $checked ]
@@ -57,6 +55,7 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 
 [ $compiler == none ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+language/multiline_strings_test: Fail # Issue 23020
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
