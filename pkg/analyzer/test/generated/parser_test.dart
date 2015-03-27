@@ -7154,6 +7154,44 @@ void''');
     expect(parameterList.rightParenthesis, isNotNull);
   }
 
+  void test_parseFormalParameterList_prefixedType() {
+    FormalParameterList parameterList =
+        parse4("parseFormalParameterList", "(io.File f)");
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
+    expect(parameterList.parameters, hasLength(1));
+    expect(parameterList.parameters[0].toSource(), 'io.File f');
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_prefixedType_partial() {
+    FormalParameterList parameterList =
+        parse4("parseFormalParameterList", "(io.)", [
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.MISSING_IDENTIFIER]);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
+    expect(parameterList.parameters, hasLength(1));
+    expect(parameterList.parameters[0].toSource(), 'io. ');
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_prefixedType_partial2() {
+    FormalParameterList parameterList =
+        parse4("parseFormalParameterList", "(io.,a)", [
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.MISSING_IDENTIFIER]);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
+    expect(parameterList.parameters, hasLength(2));
+    expect(parameterList.parameters[0].toSource(), 'io. ');
+    expect(parameterList.parameters[1].toSource(), 'a');
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
   void test_parseForStatement_each_await() {
     ForEachStatement statement =
         parse4("parseForStatement", "await for (element in list) {}");

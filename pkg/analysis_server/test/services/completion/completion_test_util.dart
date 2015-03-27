@@ -3265,6 +3265,33 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_PrefixedIdentifier_library_typesOnly2() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    addSource('/testB.dart', '''
+      lib B;
+      var T1;
+      class X { }
+      class Y { }''');
+    addTestSource('''
+      import "/testB.dart" as b;
+      var T2;
+      class A { }
+      foo(b.^) {}''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestInvocationClass('X');
+      assertSuggestInvocationClass('Y');
+      assertNotSuggested('T1');
+      assertNotSuggested('T2');
+      assertNotSuggested('Object');
+      assertNotSuggested('b');
+      assertNotSuggested('A');
+      assertNotSuggested('==');
+    });
+  }
+
   test_PrefixedIdentifier_parameter() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testB.dart', '''

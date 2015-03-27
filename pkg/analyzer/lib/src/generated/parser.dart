@@ -7863,7 +7863,18 @@ class Parser {
     } else if (!_tokenMatches(token, TokenType.PERIOD)) {
       return token;
     }
-    return _skipSimpleIdentifier(token.next);
+    token = token.next;
+    Token nextToken = _skipSimpleIdentifier(token);
+    if (nextToken != null) {
+      return nextToken;
+    } else if (_tokenMatches(token, TokenType.CLOSE_PAREN)
+            || _tokenMatches(token, TokenType.COMMA)) {
+      // If the `id.` is followed by something that cannot produce a valid
+      // structure then assume this is a prefixed identifier but missing the
+      // trailing identifier
+      return token;
+    }
+    return null;
   }
 
   /**

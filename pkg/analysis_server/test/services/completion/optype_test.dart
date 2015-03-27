@@ -475,6 +475,24 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_FormalParameter_partialType() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('class A {a(b.^ f) { }}');
+    assertOpType(invocation: true);
+  }
+
+  test_FormalParameter_partialType2() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('class A {a(b.z^ f) { }}');
+    assertOpType(invocation: true);
+  }
+
+  test_FormalParameter_partialType3() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('class A {a(b.^) { }}');
+    assertOpType(invocation: true);
+  }
+
   test_FormalParameterList() {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(^) { }}');
