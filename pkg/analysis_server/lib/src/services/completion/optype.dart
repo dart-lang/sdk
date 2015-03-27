@@ -297,7 +297,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
 

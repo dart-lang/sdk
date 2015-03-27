@@ -478,7 +478,7 @@ class OpTypeTest {
   test_FormalParameterList() {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(^) { }}');
-    assertOpType(returnValue: true, typeNames: true);
+    assertOpType(typeNames: true);
   }
 
   test_ForStatement_condition() {
@@ -1039,7 +1039,7 @@ class C2 {
   test_SimpleFormalParameter() {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('mth() { PNGS.sort((String a, Str^) => a.compareTo(b)); }');
-    assertOpType(returnValue: true, typeNames: true);
+    assertOpType(typeNames: true);
   }
 
   test_SwitchCase() {

@@ -2060,11 +2060,11 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestLocalFunction('foo', null);
-      assertSuggestLocalMethod('a', 'A', null);
+      assertNotSuggested('foo');
+      assertNotSuggested('a');
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('String');
-      assertSuggestImportedFunction('identical', 'bool');
+      assertNotSuggested('identical');
       assertNotSuggested('bar');
     });
   }
