@@ -10087,12 +10087,12 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * The object used to resolve the element associated with the current node.
    */
-  ElementResolver _elementResolver;
+  ElementResolver elementResolver;
 
   /**
    * The object used to compute the type associated with the current node.
    */
-  StaticTypeAnalyzer _typeAnalyzer;
+  StaticTypeAnalyzer typeAnalyzer;
 
   /**
    * The class element representing the class containing the current node,
@@ -10157,8 +10157,8 @@ class ResolverVisitor extends ScopedVisitor {
       StaticTypeAnalyzerFactory typeAnalyzerFactory})
       : super.con1(library, source, typeProvider) {
     this._inheritanceManager = library.inheritanceManager;
-    this._elementResolver = new ElementResolver(this);
-    this._typeAnalyzer = typeAnalyzer != null
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = typeAnalyzer != null
         ? typeAnalyzer
         : (typeAnalyzerFactory != null
             ? typeAnalyzerFactory(this)
@@ -10180,8 +10180,8 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener)
       : super.con2(definingLibrary, source, typeProvider, errorListener) {
     this._inheritanceManager = inheritanceManager;
-    this._elementResolver = new ElementResolver(this);
-    this._typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 
   /**
@@ -10200,8 +10200,8 @@ class ResolverVisitor extends ScopedVisitor {
       : super.con3(
           definingLibrary, source, typeProvider, nameScope, errorListener) {
     this._inheritanceManager = new InheritanceManager(definingLibrary);
-    this._elementResolver = new ElementResolver(this);
-    this._typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 
   /**
@@ -10215,13 +10215,9 @@ class ResolverVisitor extends ScopedVisitor {
       ResolvableLibrary library, Source source, TypeProvider typeProvider)
       : super.con4(library, source, typeProvider) {
     this._inheritanceManager = library.inheritanceManager;
-    this._elementResolver = new ElementResolver(this);
-    this._typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
-
-  get elementResolver_J2DAccessor => _elementResolver;
-
-  set elementResolver_J2DAccessor(__v) => _elementResolver = __v;
 
   /**
    * Return the element representing the function containing the current node, or `null` if
@@ -10230,14 +10226,6 @@ class ResolverVisitor extends ScopedVisitor {
    * @return the element representing the function containing the current node
    */
   ExecutableElement get enclosingFunction => _enclosingFunction;
-
-  get labelScope_J2DAccessor => _labelScope;
-
-  set labelScope_J2DAccessor(__v) => _labelScope = __v;
-
-  get nameScope_J2DAccessor => _nameScope;
-
-  set nameScope_J2DAccessor(__v) => _nameScope = __v;
 
   /**
    * Return the object keeping track of which elements have had their types overridden.
@@ -10252,10 +10240,6 @@ class ResolverVisitor extends ScopedVisitor {
    * @return the object keeping track of which elements have had their types promoted
    */
   TypePromotionManager get promoteManager => _promoteManager;
-
-  get typeAnalyzer_J2DAccessor => _typeAnalyzer;
-
-  set typeAnalyzer_J2DAccessor(__v) => _typeAnalyzer = __v;
 
   /**
    * Return the propagated element associated with the given expression whose type can be
@@ -10488,8 +10472,8 @@ class ResolverVisitor extends ScopedVisitor {
       safelyVisit(leftOperand);
       safelyVisit(rightOperand);
     }
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10511,8 +10495,8 @@ class ResolverVisitor extends ScopedVisitor {
     // We do not visit the label because it needs to be visited in the context
     // of the statement.
     //
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10531,13 +10515,13 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.element;
-      _typeAnalyzer.thisType =
+      typeAnalyzer.thisType =
           enclosingClass == null ? null : enclosingClass.type;
       super.visitClassDeclaration(node);
-      node.accept(_elementResolver);
-      node.accept(_typeAnalyzer);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
     } finally {
-      _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
+      typeAnalyzer.thisType = outerType == null ? null : outerType.type;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -10560,10 +10544,9 @@ class ResolverVisitor extends ScopedVisitor {
     // Continue the class resolution.
     //
     enclosingClass = node.element;
-    _typeAnalyzer.thisType =
-        enclosingClass == null ? null : enclosingClass.type;
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    typeAnalyzer.thisType = enclosingClass == null ? null : enclosingClass.type;
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
   }
 
   @override
@@ -10587,8 +10570,8 @@ class ResolverVisitor extends ScopedVisitor {
     // We do not visit the identifier because it needs to be visited in the
     // context of the reference.
     //
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10628,8 +10611,8 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       _overrideManager.exitScope();
     }
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10668,8 +10651,8 @@ class ResolverVisitor extends ScopedVisitor {
         _overrideManager.exitScope();
       }
     }
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     bool thenIsAbrupt = _isAbruptTerminationExpression(thenExpression);
     bool elseIsAbrupt = _isAbruptTerminationExpression(elseExpression);
     if (elseIsAbrupt && !thenIsAbrupt) {
@@ -10701,8 +10684,8 @@ class ResolverVisitor extends ScopedVisitor {
     // to be visited in the context of the constructor field initializer node.
     //
     safelyVisit(node.expression);
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10713,8 +10696,8 @@ class ResolverVisitor extends ScopedVisitor {
     // or the name, because it needs to be visited in the context of the
     // constructor name.
     //
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10724,8 +10707,8 @@ class ResolverVisitor extends ScopedVisitor {
     // We do not visit the label because it needs to be visited in the context
     // of the statement.
     //
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10842,8 +10825,8 @@ class ResolverVisitor extends ScopedVisitor {
         _overrideManager.exitScope();
       }
     }
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
   }
 
   @override
@@ -10907,10 +10890,10 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     safelyVisit(node.function);
-    node.accept(_elementResolver);
+    node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
     safelyVisit(node.argumentList);
-    node.accept(_typeAnalyzer);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -10974,8 +10957,8 @@ class ResolverVisitor extends ScopedVisitor {
         _overrideManager.exitScope();
       }
     }
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     // Join overrides.
     bool thenIsAbrupt = _isAbruptTerminationStatement(thenStatement);
     bool elseIsAbrupt = _isAbruptTerminationStatement(elseStatement);
@@ -11022,18 +11005,18 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the invocation.
     //
     safelyVisit(node.target);
-    node.accept(_elementResolver);
+    node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
     safelyVisit(node.argumentList);
-    node.accept(_typeAnalyzer);
+    node.accept(typeAnalyzer);
     return null;
   }
 
   @override
   Object visitNode(AstNode node) {
     node.visitChildren(this);
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -11044,8 +11027,8 @@ class ResolverVisitor extends ScopedVisitor {
     // be visited in the context of the prefix.
     //
     safelyVisit(node.prefix);
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -11056,8 +11039,8 @@ class ResolverVisitor extends ScopedVisitor {
     // to be visited in the context of the property access node.
     //
     safelyVisit(node.target);
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -11070,8 +11053,8 @@ class ResolverVisitor extends ScopedVisitor {
     // invocation.
     //
     safelyVisit(node.argumentList);
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -11086,8 +11069,8 @@ class ResolverVisitor extends ScopedVisitor {
     // invocation.
     //
     safelyVisit(node.argumentList);
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -11154,8 +11137,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // TODO(brianwilkerson) If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
-    node.accept(_elementResolver);
-    node.accept(_typeAnalyzer);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -11748,7 +11731,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The scope used to resolve identifiers.
    */
-  Scope _nameScope;
+  Scope nameScope;
 
   /**
    * The object used to access the types from the core library.
@@ -11764,7 +11747,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * The scope used to resolve labels for `break` and `continue` statements, or
    * `null` if no labels have been defined in the current context.
    */
-  LabelScope _labelScope;
+  LabelScope labelScope;
 
   /**
    * The class containing the AST nodes being visited,
@@ -11783,7 +11766,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     this._definingLibrary = library.libraryElement;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
-    this._nameScope = libraryScope;
+    this.nameScope = libraryScope;
   }
 
   /**
@@ -11800,7 +11783,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       this.typeProvider, AnalysisErrorListener errorListener) {
     this._definingLibrary = definingLibrary;
     this._errorListener = errorListener;
-    this._nameScope = new LibraryScope(definingLibrary, errorListener);
+    this.nameScope = new LibraryScope(definingLibrary, errorListener);
   }
 
   /**
@@ -11818,7 +11801,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       this.typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
     this._definingLibrary = definingLibrary;
     this._errorListener = errorListener;
-    this._nameScope = nameScope;
+    this.nameScope = nameScope;
   }
 
   /**
@@ -11833,7 +11816,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     this._definingLibrary = library.libraryElement;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
-    this._nameScope = libraryScope;
+    this.nameScope = libraryScope;
   }
 
   /**
@@ -11850,27 +11833,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   ImplicitLabelScope get implicitLabelScope => _implicitLabelScope;
 
   /**
-   * Return the label scope in which the current node is being resolved.
-   *
-   * @return the label scope in which the current node is being resolved
-   */
-  LabelScope get labelScope => _labelScope;
-
-  /**
-   * Return the name scope in which the current node is being resolved.
-   *
-   * @return the name scope in which the current node is being resolved
-   */
-  Scope get nameScope => _nameScope;
-
-  /**
    * Replaces the current [Scope] with the enclosing [Scope].
    *
    * @return the enclosing [Scope].
    */
   Scope popNameScope() {
-    _nameScope = _nameScope.enclosingScope;
-    return _nameScope;
+    nameScope = nameScope.enclosingScope;
+    return nameScope;
   }
 
   /**
@@ -11879,9 +11848,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @return the new [Scope].
    */
   Scope pushNameScope() {
-    Scope newScope = new EnclosedScope(_nameScope);
-    _nameScope = newScope;
-    return _nameScope;
+    Scope newScope = new EnclosedScope(nameScope);
+    nameScope = newScope;
+    return nameScope;
   }
 
   /**
@@ -11937,14 +11906,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitBlock(Block node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      EnclosedScope enclosedScope = new EnclosedScope(_nameScope);
+      EnclosedScope enclosedScope = new EnclosedScope(nameScope);
       _hideNamesDefinedInBlock(enclosedScope, node);
-      _nameScope = enclosedScope;
+      nameScope = enclosedScope;
       super.visitBlock(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -11965,17 +11934,17 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exception = node.exceptionParameter;
     if (exception != null) {
-      Scope outerScope = _nameScope;
+      Scope outerScope = nameScope;
       try {
-        _nameScope = new EnclosedScope(_nameScope);
-        _nameScope.define(exception.staticElement);
+        nameScope = new EnclosedScope(nameScope);
+        nameScope.define(exception.staticElement);
         SimpleIdentifier stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          _nameScope.define(stackTrace.staticElement);
+          nameScope.define(stackTrace.staticElement);
         }
         super.visitCatchClause(node);
       } finally {
-        _nameScope = outerScope;
+        nameScope = outerScope;
       }
     } else {
       super.visitCatchClause(node);
@@ -11986,7 +11955,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement classElement = node.element;
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
       if (classElement == null) {
         AnalysisEngine.instance.logger.logInformation(
@@ -11997,16 +11966,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
         ClassElement outerClass = enclosingClass;
         try {
           enclosingClass = node.element;
-          _nameScope = new TypeParameterScope(_nameScope, classElement);
+          nameScope = new TypeParameterScope(nameScope, classElement);
           visitClassDeclarationInScope(node);
-          _nameScope = new ClassScope(_nameScope, classElement);
+          nameScope = new ClassScope(nameScope, classElement);
           visitClassMembersInScope(node);
         } finally {
           enclosingClass = outerClass;
         }
       }
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -12028,14 +11997,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
       ClassElement element = node.element;
-      _nameScope =
-          new ClassScope(new TypeParameterScope(_nameScope, element), element);
+      nameScope =
+          new ClassScope(new TypeParameterScope(nameScope, element), element);
       super.visitClassTypeAlias(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -12043,7 +12012,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement constructorElement = node.element;
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
       if (constructorElement == null) {
         StringBuffer buffer = new StringBuffer();
@@ -12058,11 +12027,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
         AnalysisEngine.instance.logger.logInformation(buffer.toString(),
             new CaughtException(new AnalysisException(), null));
       } else {
-        _nameScope = new FunctionScope(_nameScope, constructorElement);
+        nameScope = new FunctionScope(nameScope, constructorElement);
       }
       super.visitConstructorDeclaration(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -12071,7 +12040,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     VariableElement element = node.element;
     if (element != null) {
-      _nameScope.define(element);
+      nameScope.define(element);
     }
     super.visitDeclaredIdentifier(node);
     return null;
@@ -12092,14 +12061,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
-    Scope outerNameScope = _nameScope;
+    Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
+      nameScope = new EnclosedScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
       visitForEachStatementInScope(node);
     } finally {
-      _nameScope = outerNameScope;
+      nameScope = outerNameScope;
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
@@ -12130,26 +12099,26 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     // scope.  Note: we must not do this if the parent is a
     // FunctionTypedFormalParameter, because in that case we aren't finished
     // resolving the full function signature, just a part of it.
-    if (_nameScope is FunctionScope &&
+    if (nameScope is FunctionScope &&
         node.parent is! FunctionTypedFormalParameter) {
-      (_nameScope as FunctionScope).defineParameters();
+      (nameScope as FunctionScope).defineParameters();
     }
-    if (_nameScope is FunctionTypeScope) {
-      (_nameScope as FunctionTypeScope).defineParameters();
+    if (nameScope is FunctionTypeScope) {
+      (nameScope as FunctionTypeScope).defineParameters();
     }
     return null;
   }
 
   @override
   Object visitForStatement(ForStatement node) {
-    Scope outerNameScope = _nameScope;
+    Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
+      nameScope = new EnclosedScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
       visitForStatementInScope(node);
     } finally {
-      _nameScope = outerNameScope;
+      nameScope = outerNameScope;
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
@@ -12175,20 +12144,20 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     ExecutableElement functionElement = node.element;
     if (functionElement != null &&
         functionElement.enclosingElement is! CompilationUnitElement) {
-      _nameScope.define(functionElement);
+      nameScope.define(functionElement);
     }
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
       if (functionElement == null) {
         AnalysisEngine.instance.logger.logInformation(
             "Missing element for top-level function ${node.name.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
       } else {
-        _nameScope = new FunctionScope(_nameScope, functionElement);
+        nameScope = new FunctionScope(nameScope, functionElement);
       }
       super.visitFunctionDeclaration(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -12199,7 +12168,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       // We have already created a function scope and don't need to do so again.
       super.visitFunctionExpression(node);
     } else {
-      Scope outerScope = _nameScope;
+      Scope outerScope = nameScope;
       try {
         ExecutableElement functionElement = node.element;
         if (functionElement == null) {
@@ -12220,11 +12189,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
           AnalysisEngine.instance.logger.logInformation(buffer.toString(),
               new CaughtException(new AnalysisException(), null));
         } else {
-          _nameScope = new FunctionScope(_nameScope, functionElement);
+          nameScope = new FunctionScope(nameScope, functionElement);
         }
         super.visitFunctionExpression(node);
       } finally {
-        _nameScope = outerScope;
+        nameScope = outerScope;
       }
     }
     return null;
@@ -12232,12 +12201,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      _nameScope = new FunctionTypeScope(_nameScope, node.element);
+      nameScope = new FunctionTypeScope(nameScope, node.element);
       super.visitFunctionTypeAlias(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -12256,14 +12225,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       super.visitLabeledStatement(node);
     } finally {
-      _labelScope = outerScope;
+      labelScope = outerScope;
     }
     return null;
   }
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
       ExecutableElement methodElement = node.element;
       if (methodElement == null) {
@@ -12271,11 +12240,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
             "Missing element for method ${node.name.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
       } else {
-        _nameScope = new FunctionScope(_nameScope, methodElement);
+        nameScope = new FunctionScope(nameScope, methodElement);
       }
       super.visitMethodDeclaration(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -12292,12 +12261,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       // own scope.
       visitBlock(node);
     } else if (node != null) {
-      Scope outerNameScope = _nameScope;
+      Scope outerNameScope = nameScope;
       try {
-        _nameScope = new EnclosedScope(_nameScope);
+        nameScope = new EnclosedScope(nameScope);
         node.accept(this);
       } finally {
-        _nameScope = outerNameScope;
+        nameScope = outerNameScope;
       }
     }
   }
@@ -12305,31 +12274,31 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitSwitchCase(SwitchCase node) {
     node.expression.accept(this);
-    Scope outerNameScope = _nameScope;
+    Scope outerNameScope = nameScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
+      nameScope = new EnclosedScope(nameScope);
       node.statements.accept(this);
     } finally {
-      _nameScope = outerNameScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
-    Scope outerNameScope = _nameScope;
+    Scope outerNameScope = nameScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
+      nameScope = new EnclosedScope(nameScope);
       node.statements.accept(this);
     } finally {
-      _nameScope = outerNameScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
 
   @override
   Object visitSwitchStatement(SwitchStatement node) {
-    LabelScope outerScope = _labelScope;
+    LabelScope outerScope = labelScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
@@ -12337,13 +12306,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
         for (Label label in member.labels) {
           SimpleIdentifier labelName = label.label;
           LabelElement labelElement = labelName.staticElement as LabelElement;
-          _labelScope =
-              new LabelScope(_labelScope, labelName.name, member, labelElement);
+          labelScope =
+              new LabelScope(labelScope, labelName.name, member, labelElement);
         }
       }
       super.visitSwitchStatement(node);
     } finally {
-      _labelScope = outerScope;
+      labelScope = outerScope;
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
@@ -12356,7 +12325,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
         node.parent.parent is! FieldDeclaration) {
       VariableElement element = node.element;
       if (element != null) {
-        _nameScope.define(element);
+        nameScope.define(element);
       }
     }
     return null;
@@ -12382,12 +12351,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @return the scope that was in effect before the new scopes were added
    */
   LabelScope _addScopesFor(NodeList<Label> labels, AstNode node) {
-    LabelScope outerScope = _labelScope;
+    LabelScope outerScope = labelScope;
     for (Label label in labels) {
       SimpleIdentifier labelNameNode = label.label;
       String labelName = labelNameNode.name;
       LabelElement labelElement = labelNameNode.staticElement as LabelElement;
-      _labelScope = new LabelScope(_labelScope, labelName, node, labelElement);
+      labelScope = new LabelScope(labelScope, labelName, node, labelElement);
     }
     return outerScope;
   }

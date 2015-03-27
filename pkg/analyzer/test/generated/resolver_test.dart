@@ -1857,7 +1857,7 @@ class ElementResolverTest extends EngineTestCase {
     library.libraryElement = _definingLibrary;
     _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
     try {
-      return _visitor.elementResolver_J2DAccessor as ElementResolver;
+      return _visitor.elementResolver;
     } catch (exception) {
       throw new IllegalArgumentException(
           "Could not create resolver", exception);
@@ -1916,16 +1916,16 @@ class ElementResolverTest extends EngineTestCase {
    */
   void _resolveInClass(AstNode node, ClassElement enclosingClass) {
     try {
-      Scope outerScope = _visitor.nameScope_J2DAccessor as Scope;
+      Scope outerScope = _visitor.nameScope;
       try {
         _visitor.enclosingClass = enclosingClass;
         EnclosedScope innerScope = new ClassScope(
             new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
-        _visitor.nameScope_J2DAccessor = innerScope;
+        _visitor.nameScope = innerScope;
         node.accept(_resolver);
       } finally {
         _visitor.enclosingClass = null;
-        _visitor.nameScope_J2DAccessor = outerScope;
+        _visitor.nameScope = outerScope;
       }
     } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
@@ -1958,7 +1958,7 @@ class ElementResolverTest extends EngineTestCase {
    */
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     try {
-      Scope outerScope = _visitor.nameScope_J2DAccessor as Scope;
+      Scope outerScope = _visitor.nameScope;
       try {
         EnclosedScope innerScope = new EnclosedScope(outerScope);
         if (definedElements != null) {
@@ -1966,10 +1966,10 @@ class ElementResolverTest extends EngineTestCase {
             innerScope.define(element);
           }
         }
-        _visitor.nameScope_J2DAccessor = innerScope;
+        _visitor.nameScope = innerScope;
         node.accept(_resolver);
       } finally {
-        _visitor.nameScope_J2DAccessor = outerScope;
+        _visitor.nameScope = outerScope;
       }
     } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
@@ -1987,7 +1987,7 @@ class ElementResolverTest extends EngineTestCase {
   void _resolveStatement(
       Statement statement, LabelElementImpl labelElement, AstNode labelTarget) {
     try {
-      LabelScope outerScope = _visitor.labelScope_J2DAccessor as LabelScope;
+      LabelScope outerScope = _visitor.labelScope;
       try {
         LabelScope innerScope;
         if (labelElement == null) {
@@ -1996,10 +1996,10 @@ class ElementResolverTest extends EngineTestCase {
           innerScope = new LabelScope(
               outerScope, labelElement.name, labelTarget, labelElement);
         }
-        _visitor.labelScope_J2DAccessor = innerScope;
+        _visitor.labelScope = innerScope;
         statement.accept(_resolver);
       } finally {
-        _visitor.labelScope_J2DAccessor = outerScope;
+        _visitor.labelScope = outerScope;
       }
     } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
@@ -10915,7 +10915,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
     _visitor.overrideManager.enterScope();
     try {
-      return _visitor.typeAnalyzer_J2DAccessor as StaticTypeAnalyzer;
+      return _visitor.typeAnalyzer;
     } catch (exception) {
       throw new IllegalArgumentException(
           "Could not create analyzer", exception);
