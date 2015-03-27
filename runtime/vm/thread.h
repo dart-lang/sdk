@@ -25,7 +25,7 @@ class Thread {
   static void InitOnce();
 
   static Thread* Current() {
-    return reinterpret_cast<Thread*>(OSThread::GetThreadLocal(thread_key));
+    return reinterpret_cast<Thread*>(OSThread::GetThreadLocal(thread_key_));
   }
   static void SetCurrent(Thread* current);
 
@@ -42,7 +42,7 @@ class Thread {
   void set_cha(CHA* value) { cha_ = value; }
 
  private:
-  static ThreadLocalKey thread_key;
+  static ThreadLocalKey thread_key_;
 
   Isolate* isolate_;
   CHA* cha_;

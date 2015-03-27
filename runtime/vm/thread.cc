@@ -13,18 +13,18 @@ namespace dart {
 // The single thread local key which stores all the thread local data
 // for a thread.
 // TODO(koda): Can we merge this with ThreadInterrupter::thread_state_key_?
-ThreadLocalKey Thread::thread_key = OSThread::kUnsetThreadLocalKey;
+ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
 
 
 void Thread::InitOnce() {
-  ASSERT(thread_key == OSThread::kUnsetThreadLocalKey);
-  thread_key = OSThread::CreateThreadLocal();
-  ASSERT(thread_key != OSThread::kUnsetThreadLocalKey);
+  ASSERT(thread_key_ == OSThread::kUnsetThreadLocalKey);
+  thread_key_ = OSThread::CreateThreadLocal();
+  ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
 }
 
 
 void Thread::SetCurrent(Thread* current) {
-  OSThread::SetThreadLocal(thread_key, reinterpret_cast<uword>(current));
+  OSThread::SetThreadLocal(thread_key_, reinterpret_cast<uword>(current));
 }
 
 }  // namespace dart
