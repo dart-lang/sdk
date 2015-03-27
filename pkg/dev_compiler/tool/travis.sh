@@ -3,6 +3,9 @@
 # Fast fail the script on failures.
 set -e
 
+# Build first
+./tool/build_sdk.sh
+
 dart --checked test/all_tests.dart
 
 # Install dart_coveralls; gather and send coverage data.
