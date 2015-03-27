@@ -19,10 +19,14 @@ import 'utils.dart';
 /// The maximum number of bytes in an entire path.
 ///
 /// This is [Windows's number][MAX_PATH], which is a much tighter constraint
-/// than OS X or Linux. We use it everywhere for consistency.
+/// than OS X or Linux. We subtract one because Windows counts it as the number
+/// of bytes in a path C string including the terminating NUL but we only count
+/// characters here.
+///
+/// We use this limit on all platforms for consistency.
 ///
 /// [MAX_PATH]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa383130(v=vs.85).aspx
-const _pathMax = 260;
+const _pathMax = 260 - 1;
 
 main() {
   initConfig();
