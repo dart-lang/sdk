@@ -67,6 +67,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 
   @override
+  // TODO(karlklose): Do not base this on containsMask.
   bool areAssignable(TypeMask a, TypeMask b) {
     return a.containsMask(b, classWorld) || b.containsMask(a, classWorld);
   }

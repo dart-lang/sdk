@@ -9,6 +9,11 @@ class UnionTypeMask implements TypeMask {
 
   static const int MAX_UNION_LENGTH = 4;
 
+  // Set this flag to `true` to perform a set-membership based containment check
+  // instead of relying on normalized types. This is quite slow but can be
+  // helpful in debugging.
+  static const bool PERFORM_EXTRA_CONTAINS_CHECK = false;
+
   UnionTypeMask._internal(this.disjointMasks) {
     assert(disjointMasks.length > 1);
     assert(disjointMasks.every((TypeMask mask) => !mask.isUnion));
@@ -231,7 +236,11 @@ class UnionTypeMask implements TypeMask {
       }
       return disjointMasks.every((FlatTypeMask disjointMask) {
         bool contained = containedInAnyOf(disjointMask, union.disjointMasks);
-        assert(contained || !union.slowContainsCheck(disjointMask, classWorld));
+        if (PERFORM_EXTRA_CONTAINS_CHECK &&
+            !contained &&
+            union.slowContainsCheck(disjointMask, classWorld)) {
+          throw "TypeMask based containment check failed for $this and $other.";
+        }
         return contained;
       });
     }
@@ -245,7 +254,11 @@ class UnionTypeMask implements TypeMask {
     other = other.nonNullable(); // nullable is not canonicalized, so drop it.
     bool contained =
         disjointMasks.any((mask) => mask.containsMask(other, classWorld));
-    assert(contained || !slowContainsCheck(other, classWorld));
+    if (PERFORM_EXTRA_CONTAINS_CHECK &&
+        !contained &&
+        slowContainsCheck(other, classWorld)) {
+      throw "TypeMask based containment check failed for $this and $other.";
+    }
     return contained;
   }
 
