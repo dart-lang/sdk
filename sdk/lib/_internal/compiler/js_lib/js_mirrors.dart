@@ -991,7 +991,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
       case JSInvocationMirror.METHOD:
         if (namedArguments.isNotEmpty) return '$name*';
         int nbArgs = positionalArguments.length as int;
-        return "$name:$nbArgs:0";
+        return "$name:$nbArgs";
     }
     throw new RuntimeError("Could not compute reflective name for $name");
   }
@@ -1685,7 +1685,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       // reflection with metadata.
       if (simpleName == null) continue;
       var function = JS('', '#[#]', prototype, key);
-      if (isNoSuchMethodStub(function)) continue;
+      if (isStubMethod(function)) continue;
       if (isAliasedSuperMethod(function, key)) continue;
       var mirror =
           new JsMethodMirror.fromUnmangledName(
@@ -2331,8 +2331,11 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
         requiredParameterCount = 0;
       }
     } else {
-      requiredParameterCount = int.parse(info[1]);
-      optionalParameterCount = int.parse(info[2]);
+      ReflectionInfo reflectionInfo = new ReflectionInfo(jsFunction);
+      requiredParameterCount = reflectionInfo.requiredParameterCount;
+      optionalParameterCount = reflectionInfo.optionalParameterCount;
+      assert(int.parse(info[1]) == requiredParameterCount
+          + optionalParameterCount);
     }
     return new JsMethodMirror(
         s(name), jsFunction, requiredParameterCount, optionalParameterCount,
@@ -2959,7 +2962,7 @@ bool isReflectiveDataInPrototype(String key) {
   return firstChar == '*' || firstChar == '+';
 }
 
-bool isNoSuchMethodStub(var jsFunction) {
+bool isStubMethod(var jsFunction) {
   return JS('bool', r'#.$reflectable == 2', jsFunction);
 }
 

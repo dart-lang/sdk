@@ -683,8 +683,10 @@ function $setupProgramName(programData) {
       if (#usesMangledNames) {
         var isReflectable = array.length > unmangledNameIndex;
         if (isReflectable) {
-          for (var i = 0; i < funcs.length; i++) {
-            funcs[i].$reflectableField = 1;
+          funcs[0].$reflectableField = 1;
+          funcs[0].$reflectionInfoField = array;
+          for (var i = 1; i < funcs.length; i++) {
+            funcs[i].$reflectableField = 2;
             funcs[i].$reflectionInfoField = array;
           }
           var mangledNames = isStatic ? #mangledGlobalNames : #mangledNames;
@@ -697,8 +699,8 @@ function $setupProgramName(programData) {
           if (isSetter) {
             reflectionName += "=";
           } else if (!isGetter) {
-            reflectionName += ":" + requiredParameterCount +
-              ":" + optionalParameterCount;
+            reflectionName += ":" + 
+                (requiredParameterCount + optionalParameterCount);
           }
           mangledNames[name] = reflectionName;
           funcs[0].$reflectionNameField = reflectionName;
