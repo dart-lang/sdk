@@ -2396,6 +2396,17 @@ abstract class B extends A {
 ''');
   }
 
+  void test_noException_1() {
+    resolveTestUnit('''
+main(p) {
+  p i s Null;
+}''');
+    List<AnalysisError> errors = context.computeErrors(testSource);
+    for (var error in errors) {
+      computeFixes(testUnit, error);
+    }
+  }
+
   void test_removeParentheses_inGetterDeclaration() {
     resolveTestUnit('''
 class A {

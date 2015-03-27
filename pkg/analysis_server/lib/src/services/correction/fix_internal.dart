@@ -675,6 +675,9 @@ class FixProcessor {
   }
 
   void _addFix_createField() {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
     SimpleIdentifier nameNode = node;
     String name = nameNode.name;
     // prepare target Expression
@@ -802,6 +805,9 @@ class FixProcessor {
   }
 
   void _addFix_createGetter() {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
     SimpleIdentifier nameNode = node;
     String name = nameNode.name;
     if (!nameNode.inGetterContext()) {
@@ -902,6 +908,9 @@ class FixProcessor {
   }
 
   void _addFix_createLocalVariable() {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
     SimpleIdentifier nameNode = node;
     String name = nameNode.name;
     // if variable is assigned, convert assignment into declaration
