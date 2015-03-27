@@ -1238,6 +1238,17 @@ DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
+
+  // Because we currently only use this native for building field extractors and
+  // setters, assume the result is a closure and mark its function as invisible,
+  // so it will not appear in stack traces. Whenever we support
+  // ObjectMirror.evaluate this will need to be separated.
+  ASSERT(Instance::Cast(result).IsClosure());
+  const Function& func =
+      Function::Handle(Closure::function(Instance::Cast(result)));
+  func.set_is_visible(false);
+  func.set_is_debuggable(false);
+
   return result.raw();
 }
 
