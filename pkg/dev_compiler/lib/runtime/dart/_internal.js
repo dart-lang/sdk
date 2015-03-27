@@ -73,8 +73,8 @@ var _internal;
         }
         return false;
       }
-      firstWhere(test, opt$) {
-        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
+      firstWhere(test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.elementAt(i);
@@ -88,8 +88,8 @@ var _internal;
           return orElse();
         throw IterableElementError.noElement();
       }
-      lastWhere(test, opt$) {
-        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
+      lastWhere(test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = this.elementAt(i);
@@ -197,8 +197,8 @@ var _internal;
       takeWhile(test) {
         return super.takeWhile(test);
       }
-      toList(opt$) {
-        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
           result = ((_) => {
@@ -231,10 +231,10 @@ var _internal;
   let _startIndex = Symbol('_startIndex');
   let SubListIterable$ = dart.generic(function(E) {
     class SubListIterable extends ListIterable$(E) {
-      SubListIterable($_iterable, $_start, $_endOrLength) {
-        this[_iterable] = $_iterable;
-        this[_start] = $_start;
-        this[_endOrLength] = $_endOrLength;
+      SubListIterable(iterable$, start$, endOrLength) {
+        this[_iterable] = iterable$;
+        this[_start] = start$;
+        this[_endOrLength] = endOrLength;
         super.ListIterable();
         core.RangeError.checkNotNegative(this[_start], "start");
         if (this[_endOrLength] !== null) {
@@ -291,8 +291,8 @@ var _internal;
           return new SubListIterable(this[_iterable], this[_start], newEnd);
         }
       }
-      toList(opt$) {
-        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         let start = this[_start];
         let end = this[_iterable].length;
         if (this[_endOrLength] !== null && dart.notNull(this[_endOrLength]) < dart.notNull(end))
@@ -349,15 +349,15 @@ var _internal;
   let _f = Symbol('_f');
   let MappedIterable$ = dart.generic(function(S, T) {
     class MappedIterable extends collection.IterableBase$(T) {
-      MappedIterable(iterable, function) {
+      MappedIterable(iterable, func) {
         if (dart.is(iterable, EfficientLength)) {
-          return new EfficientLengthMappedIterable(iterable, function);
+          return new EfficientLengthMappedIterable(iterable, func);
         }
-        return new MappedIterable._(dart.as(iterable, core.Iterable$(S)), function);
+        return new MappedIterable._(dart.as(iterable, core.Iterable$(S)), func);
       }
-      MappedIterable$_($_iterable, $_f) {
-        this[_iterable] = $_iterable;
-        this[_f] = $_f;
+      MappedIterable$_(iterable$, f$) {
+        this[_iterable] = iterable$;
+        this[_f] = f$;
         super.IterableBase();
       }
       get iterator() {
@@ -388,8 +388,8 @@ var _internal;
   let MappedIterable = MappedIterable$(dart.dynamic, dart.dynamic);
   let EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
     class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
-      EfficientLengthMappedIterable(iterable, function) {
-        super.MappedIterable$_(dart.as(iterable, core.Iterable$(S)), function);
+      EfficientLengthMappedIterable(iterable, func) {
+        super.MappedIterable$_(dart.as(iterable, core.Iterable$(S)), func);
       }
     }
     return EfficientLengthMappedIterable;
@@ -398,9 +398,9 @@ var _internal;
   let _iterator = Symbol('_iterator');
   let MappedIterator$ = dart.generic(function(S, T) {
     class MappedIterator extends core.Iterator$(T) {
-      MappedIterator($_iterator, $_f) {
-        this[_iterator] = $_iterator;
-        this[_f] = $_f;
+      MappedIterator(iterator$, f$) {
+        this[_iterator] = iterator$;
+        this[_f] = f$;
         this[_current] = null;
         super.Iterator();
       }
@@ -422,9 +422,9 @@ var _internal;
   let _source = Symbol('_source');
   let MappedListIterable$ = dart.generic(function(S, T) {
     class MappedListIterable extends ListIterable$(T) {
-      MappedListIterable($_source, $_f) {
-        this[_source] = $_source;
-        this[_f] = $_f;
+      MappedListIterable(source, f$) {
+        this[_source] = source;
+        this[_f] = f$;
         super.ListIterable();
       }
       get length() {
@@ -439,9 +439,9 @@ var _internal;
   let MappedListIterable = MappedListIterable$(dart.dynamic, dart.dynamic);
   let WhereIterable$ = dart.generic(function(E) {
     class WhereIterable extends collection.IterableBase$(E) {
-      WhereIterable($_iterable, $_f) {
-        this[_iterable] = $_iterable;
-        this[_f] = $_f;
+      WhereIterable(iterable$, f$) {
+        this[_iterable] = iterable$;
+        this[_f] = f$;
         super.IterableBase();
       }
       get iterator() {
@@ -453,9 +453,9 @@ var _internal;
   let WhereIterable = WhereIterable$(dart.dynamic);
   let WhereIterator$ = dart.generic(function(E) {
     class WhereIterator extends core.Iterator$(E) {
-      WhereIterator($_iterator, $_f) {
-        this[_iterator] = $_iterator;
-        this[_f] = $_f;
+      WhereIterator(iterator$, f$) {
+        this[_iterator] = iterator$;
+        this[_f] = f$;
         super.Iterator();
       }
       moveNext() {
@@ -475,9 +475,9 @@ var _internal;
   let WhereIterator = WhereIterator$(dart.dynamic);
   let ExpandIterable$ = dart.generic(function(S, T) {
     class ExpandIterable extends collection.IterableBase$(T) {
-      ExpandIterable($_iterable, $_f) {
-        this[_iterable] = $_iterable;
-        this[_f] = $_f;
+      ExpandIterable(iterable$, f$) {
+        this[_iterable] = iterable$;
+        this[_f] = f$;
         super.IterableBase();
       }
       get iterator() {
@@ -491,9 +491,9 @@ var _internal;
   let _nextExpansion = Symbol('_nextExpansion');
   let ExpandIterator$ = dart.generic(function(S, T) {
     class ExpandIterator extends core.Object {
-      ExpandIterator($_iterator, $_f) {
-        this[_iterator] = $_iterator;
-        this[_f] = $_f;
+      ExpandIterator(iterator$, f$) {
+        this[_iterator] = iterator$;
+        this[_f] = f$;
         this[_currentExpansion] = dart.as(new EmptyIterator(), core.Iterator$(T));
         this[_current] = null;
       }
@@ -532,9 +532,9 @@ var _internal;
         }
         return new TakeIterable._(iterable, takeCount);
       }
-      TakeIterable$_($_iterable, $_takeCount) {
-        this[_iterable] = $_iterable;
-        this[_takeCount] = $_takeCount;
+      TakeIterable$_(iterable$, takeCount$) {
+        this[_iterable] = iterable$;
+        this[_takeCount] = takeCount$;
         super.IterableBase();
       }
       get iterator() {
@@ -563,9 +563,9 @@ var _internal;
   let _remaining = Symbol('_remaining');
   let TakeIterator$ = dart.generic(function(E) {
     class TakeIterator extends core.Iterator$(E) {
-      TakeIterator($_iterator, $_remaining) {
-        this[_iterator] = $_iterator;
-        this[_remaining] = $_remaining;
+      TakeIterator(iterator$, remaining) {
+        this[_iterator] = iterator$;
+        this[_remaining] = remaining;
         super.Iterator();
         dart.assert(dart.notNull(typeof this[_remaining] == number) && dart.notNull(this[_remaining]) >= 0);
       }
@@ -588,9 +588,9 @@ var _internal;
   let TakeIterator = TakeIterator$(dart.dynamic);
   let TakeWhileIterable$ = dart.generic(function(E) {
     class TakeWhileIterable extends collection.IterableBase$(E) {
-      TakeWhileIterable($_iterable, $_f) {
-        this[_iterable] = $_iterable;
-        this[_f] = $_f;
+      TakeWhileIterable(iterable$, f$) {
+        this[_iterable] = iterable$;
+        this[_f] = f$;
         super.IterableBase();
       }
       get iterator() {
@@ -603,9 +603,9 @@ var _internal;
   let _isFinished = Symbol('_isFinished');
   let TakeWhileIterator$ = dart.generic(function(E) {
     class TakeWhileIterator extends core.Iterator$(E) {
-      TakeWhileIterator($_iterator, $_f) {
-        this[_iterator] = $_iterator;
-        this[_f] = $_f;
+      TakeWhileIterator(iterator$, f$) {
+        this[_iterator] = iterator$;
+        this[_f] = f$;
         this[_isFinished] = false;
         super.Iterator();
       }
@@ -636,9 +636,9 @@ var _internal;
         }
         return new SkipIterable._(iterable, count);
       }
-      SkipIterable$_($_iterable, $_skipCount) {
-        this[_iterable] = $_iterable;
-        this[_skipCount] = $_skipCount;
+      SkipIterable$_(iterable$, skipCount$) {
+        this[_iterable] = iterable$;
+        this[_skipCount] = skipCount$;
         super.IterableBase();
         if (!(typeof this[_skipCount] == number)) {
           throw new core.ArgumentError.value(this[_skipCount], "count is not an integer");
@@ -677,9 +677,9 @@ var _internal;
   let EfficientLengthSkipIterable = EfficientLengthSkipIterable$(dart.dynamic);
   let SkipIterator$ = dart.generic(function(E) {
     class SkipIterator extends core.Iterator$(E) {
-      SkipIterator($_iterator, $_skipCount) {
-        this[_iterator] = $_iterator;
-        this[_skipCount] = $_skipCount;
+      SkipIterator(iterator$, skipCount$) {
+        this[_iterator] = iterator$;
+        this[_skipCount] = skipCount$;
         super.Iterator();
         dart.assert(dart.notNull(typeof this[_skipCount] == number) && dart.notNull(this[_skipCount]) >= 0);
       }
@@ -698,9 +698,9 @@ var _internal;
   let SkipIterator = SkipIterator$(dart.dynamic);
   let SkipWhileIterable$ = dart.generic(function(E) {
     class SkipWhileIterable extends collection.IterableBase$(E) {
-      SkipWhileIterable($_iterable, $_f) {
-        this[_iterable] = $_iterable;
-        this[_f] = $_f;
+      SkipWhileIterable(iterable$, f$) {
+        this[_iterable] = iterable$;
+        this[_f] = f$;
         super.IterableBase();
       }
       get iterator() {
@@ -713,9 +713,9 @@ var _internal;
   let _hasSkipped = Symbol('_hasSkipped');
   let SkipWhileIterator$ = dart.generic(function(E) {
     class SkipWhileIterator extends core.Iterator$(E) {
-      SkipWhileIterator($_iterator, $_f) {
-        this[_iterator] = $_iterator;
-        this[_f] = $_f;
+      SkipWhileIterator(iterator$, f$) {
+        this[_iterator] = iterator$;
+        this[_f] = f$;
         this[_hasSkipped] = false;
         super.Iterator();
       }
@@ -772,20 +772,20 @@ var _internal;
       any(test) {
         return false;
       }
-      firstWhere(test, opt$) {
-        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
+      firstWhere(test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         if (orElse !== null)
           return orElse();
         throw IterableElementError.noElement();
       }
-      lastWhere(test, opt$) {
-        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
+      lastWhere(test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         if (orElse !== null)
           return orElse();
         throw IterableElementError.noElement();
       }
-      singleWhere(test, opt$) {
-        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
+      singleWhere(test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         if (orElse !== null)
           return orElse();
         throw IterableElementError.noElement();
@@ -821,8 +821,8 @@ var _internal;
       takeWhile(test) {
         return this;
       }
-      toList(opt$) {
-        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         return growable ? new List.from([]) : new core.List(0);
       }
       toSet() {
@@ -852,7 +852,7 @@ var _internal;
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$(dart.dynamic);
-  let _rangeCheck = Symbol('_rangeCheck');
+  let _rangeCheck$ = Symbol('_rangeCheck');
   let IterableMixinWorkaround$ = dart.generic(function(T) {
     class IterableMixinWorkaround extends core.Object {
       static contains(iterable, element) {
@@ -1088,7 +1088,7 @@ var _internal;
           start = dart.notNull(list.length) - 1;
         return Lists.lastIndexOf(list, element, start);
       }
-      static [_rangeCheck](list, start, end) {
+      static [_rangeCheck$](list, start, end) {
         core.RangeError.checkValidRange(start, end, list.length);
       }
       getRangeList(list, start, end) {
@@ -1156,13 +1156,13 @@ var _internal;
         list.length = insertionLength;
         list.setRange(dart.notNull(index) + dart.notNull(insertionLength), list.length, list, index);
         for (let element of iterable) {
-          list.set((($tmp) => index = dart.notNull($tmp) + 1, $tmp)(index), element);
+          list.set(((x) => index = dart.notNull(x$) + 1, x$)(index), element);
         }
       }
       static setAllList(list, index, iterable) {
         core.RangeError.checkValueInInterval(index, 0, list.length, "index");
         for (let element of iterable) {
-          list.set((($tmp) => index = dart.notNull($tmp) + 1, $tmp)(index), element);
+          list.set(((x) => index = dart.notNull(x$) + 1, x$)(index), element);
         }
       }
       asMapList(l) {
@@ -1350,8 +1350,8 @@ var _internal;
   let UnmodifiableListBase = UnmodifiableListBase$(dart.dynamic);
   let _backedList = Symbol('_backedList');
   class _ListIndicesIterable extends ListIterable$(core.int) {
-    _ListIndicesIterable($_backedList) {
-      this[_backedList] = $_backedList;
+    _ListIndicesIterable(backedList) {
+      this[_backedList] = backedList;
       super.ListIterable();
     }
     get length() {
@@ -1365,8 +1365,8 @@ var _internal;
   let _values = Symbol('_values');
   let ListMapView$ = dart.generic(function(E) {
     class ListMapView extends core.Object {
-      ListMapView($_values) {
-        this[_values] = $_values;
+      ListMapView(values) {
+        this[_values] = values;
       }
       get(key) {
         return this.containsKey(key) ? this[_values].get(key) : null;
@@ -1425,8 +1425,8 @@ var _internal;
   let ListMapView = ListMapView$(dart.dynamic);
   let ReversedListIterable$ = dart.generic(function(E) {
     class ReversedListIterable extends ListIterable$(E) {
-      ReversedListIterable($_source) {
-        this[_source] = $_source;
+      ReversedListIterable(source) {
+        this[_source] = source;
         super.ListIterable();
       }
       get length() {
@@ -1540,9 +1540,9 @@ var _internal;
   function printToConsole(line) {
     _js_primitives.printString(`${line}`);
   }
-  let _doSort = Symbol('_doSort');
-  let _insertionSort = Symbol('_insertionSort');
-  let _dualPivotQuicksort = Symbol('_dualPivotQuicksort');
+  let _doSort$ = Symbol('_doSort');
+  let _insertionSort$ = Symbol('_insertionSort');
+  let _dualPivotQuicksort$ = Symbol('_dualPivotQuicksort');
   class Sort extends core.Object {
     static sort(a, compare) {
       _doSort(a, 0, dart.notNull(a.length) - 1, compare);
@@ -1553,14 +1553,14 @@ var _internal;
       }
       _doSort(a, from, dart.notNull(to) - 1, compare);
     }
-    static [_doSort](a, left, right, compare) {
+    static [_doSort$](a, left, right, compare) {
       if (dart.notNull(right) - dart.notNull(left) <= dart.notNull(Sort._INSERTION_SORT_THRESHOLD)) {
         _insertionSort(a, left, right, compare);
       } else {
         _dualPivotQuicksort(a, left, right, compare);
       }
     }
-    static [_insertionSort](a, left, right, compare) {
+    static [_insertionSort$](a, left, right, compare) {
       for (let i = dart.notNull(left) + 1; dart.notNull(i) <= dart.notNull(right); i = dart.notNull(i) + 1) {
         let el = a.get(i);
         let j = i;
@@ -1571,7 +1571,7 @@ var _internal;
         a.set(j, el);
       }
     }
-    static [_dualPivotQuicksort](a, left, right, compare) {
+    static [_dualPivotQuicksort$](a, left, right, compare) {
       dart.assert(dart.notNull(right) - dart.notNull(left) > dart.notNull(Sort._INSERTION_SORT_THRESHOLD));
       let sixth = ((dart.notNull(right) - dart.notNull(left) + 1) / 6).truncate();
       let index1 = dart.notNull(left) + dart.notNull(sixth);
@@ -1660,12 +1660,12 @@ var _internal;
                 continue;
               } else if (dart.notNull(comp) < 0) {
                 a.set(k, a.get(less));
-                a.set((($tmp) => less = dart.notNull($tmp) + 1, $tmp)(less), a.get(great));
-                a.set((($tmp) => great = dart.notNull($tmp) - 1, $tmp)(great), ak);
+                a.set(((x) => less = dart.notNull(x$) + 1, x$)(less), a.get(great));
+                a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
                 break;
               } else {
                 a.set(k, a.get(great));
-                a.set((($tmp) => great = dart.notNull($tmp) - 1, $tmp)(great), ak);
+                a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
                 break;
               }
             }
@@ -1695,11 +1695,11 @@ var _internal;
                   comp = dart.dinvokef(compare, a.get(great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a.set(k, a.get(less));
-                    a.set((($tmp) => less = dart.notNull($tmp) + 1, $tmp)(less), a.get(great));
-                    a.set((($tmp) => great = dart.notNull($tmp) - 1, $tmp)(great), ak);
+                    a.set(((x) => less = dart.notNull(x$) + 1, x$)(less), a.get(great));
+                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
                   } else {
                     a.set(k, a.get(great));
-                    a.set((($tmp) => great = dart.notNull($tmp) - 1, $tmp)(great), ak);
+                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
                   }
                   break;
                 }
@@ -1747,11 +1747,11 @@ var _internal;
                   comp = dart.dinvokef(compare, a.get(great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a.set(k, a.get(less));
-                    a.set((($tmp) => less = dart.notNull($tmp) + 1, $tmp)(less), a.get(great));
-                    a.set((($tmp) => great = dart.notNull($tmp) - 1, $tmp)(great), ak);
+                    a.set(((x) => less = dart.notNull(x$) + 1, x$)(less), a.get(great));
+                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
                   } else {
                     a.set(k, a.get(great));
-                    a.set((($tmp) => great = dart.notNull($tmp) - 1, $tmp)(great), ak);
+                    a.set(((x) => great = dart.notNull(x$) - 1, x$)(great), ak);
                   }
                   break;
                 }
@@ -1771,8 +1771,8 @@ var _internal;
     Symbol(name) {
       this[_name] = name;
     }
-    Symbol$unvalidated($_name) {
-      this[_name] = $_name;
+    Symbol$unvalidated(name$) {
+      this[_name] = name$;
     }
     Symbol$validated(name) {
       this[_name] = validatePublicSymbol(name);

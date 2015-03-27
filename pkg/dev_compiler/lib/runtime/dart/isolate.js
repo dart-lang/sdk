@@ -16,9 +16,9 @@ var isolate;
   }
   let _pause = Symbol('_pause');
   class Isolate extends core.Object {
-    Isolate(controlPort, opt$) {
-      let pauseCapability = opt$ && 'pauseCapability' in opt$ ? opt$.pauseCapability : null;
-      let terminateCapability = opt$ && 'terminateCapability' in opt$ ? opt$.terminateCapability : null;
+    Isolate(controlPort, opts) {
+      let pauseCapability = opts && 'pauseCapability' in opts ? opts.pauseCapability : null;
+      let terminateCapability = opts && 'terminateCapability' in opts ? opts.terminateCapability : null;
       this.controlPort = controlPort;
       this.pauseCapability = pauseCapability;
       this.terminateCapability = terminateCapability;
@@ -26,8 +26,8 @@ var isolate;
     static get current() {
       return _currentIsolateCache;
     }
-    static spawn(entryPoint, message, opt$) {
-      let paused = opt$ && 'paused' in opt$ ? opt$.paused : false;
+    static spawn(entryPoint, message, opts) {
+      let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
         return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.closureWrap((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), "(List<dynamic>) → dynamic")), async.Future$(Isolate));
       } catch (e) {
@@ -36,9 +36,9 @@ var isolate;
       }
 
     }
-    static spawnUri(uri, args, message, opt$) {
-      let paused = opt$ && 'paused' in opt$ ? opt$.paused : false;
-      let packageRoot = opt$ && 'packageRoot' in opt$ ? opt$.packageRoot : null;
+    static spawnUri(uri, args, message, opts) {
+      let paused = opts && 'paused' in opts ? opts.paused : false;
+      let packageRoot = opts && 'packageRoot' in opts ? opts.packageRoot : null;
       if (packageRoot !== null)
         throw new core.UnimplementedError("packageRoot");
       try {
@@ -193,8 +193,8 @@ var isolate;
   }
   let _trace = Symbol('_trace');
   class _RemoteStackTrace extends core.Object {
-    _RemoteStackTrace($_trace) {
-      this[_trace] = $_trace;
+    _RemoteStackTrace(trace) {
+      this[_trace] = trace;
     }
     toString() {
       return this[_trace];

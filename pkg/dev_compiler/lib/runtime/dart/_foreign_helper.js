@@ -34,13 +34,13 @@ var _foreign_helper;
   class IsolateContext extends core.Object {
   }
   // Function JS_CALL_IN_ISOLATE: (dynamic, Function) → dynamic
-  function JS_CALL_IN_ISOLATE(isolate, function) {
+  function JS_CALL_IN_ISOLATE(isolate, func) {
   }
   // Function DART_CLOSURE_TO_JS: (Function) → dynamic
-  function DART_CLOSURE_TO_JS(function) {
+  function DART_CLOSURE_TO_JS(func) {
   }
   // Function RAW_DART_FUNCTION_REF: (Function) → dynamic
-  function RAW_DART_FUNCTION_REF(function) {
+  function RAW_DART_FUNCTION_REF(func) {
   }
   // Function JS_SET_CURRENT_ISOLATE: (dynamic) → void
   function JS_SET_CURRENT_ISOLATE(isolate) {

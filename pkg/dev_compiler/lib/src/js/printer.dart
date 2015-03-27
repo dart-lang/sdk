@@ -9,13 +9,17 @@ class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
-  final bool avoidKeywordsInIdentifiers;
+
+
+  /// True to allow keywords in properties, such as `obj.var` or `obj.function`
+  /// Modern JS engines support this.
+  final bool allowKeywordsInProperties;
 
   JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
-       this.avoidKeywordsInIdentifiers: false});
+       this.allowKeywordsInProperties: false});
 }
 
 
@@ -68,17 +72,18 @@ class Printer implements NodeVisitor {
   static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
 
   Printer(JavaScriptPrintingOptions options,
-          JavaScriptPrintingContext context)
+          JavaScriptPrintingContext context,
+          {LocalNamer localNamer})
       : options = options,
         context = context,
         shouldCompressOutput = options.shouldCompressOutput,
         danglingElseVisitor = new DanglingElseVisitor(context),
-        localNamer = determineRenamer(options.shouldCompressOutput,
-                                      options.minifyLocalVariables);
+        localNamer = determineRenamer(localNamer, options);
 
-  static LocalNamer determineRenamer(bool shouldCompressOutput,
-                                     bool allowVariableMinification) {
-    return (shouldCompressOutput && allowVariableMinification)
+  static LocalNamer determineRenamer(LocalNamer localNamer,
+                                     JavaScriptPrintingOptions options) {
+    if (localNamer != null) return localNamer;
+    return (options.shouldCompressOutput && options.minifyLocalVariables)
         ? new MinifyRenamer() : new IdentityNamer();
   }
 
@@ -778,8 +783,8 @@ class Printer implements NodeVisitor {
     out("super");
   }
 
-  visitIdentifier(Identifier param) {
-    out(localNamer.getName(param.name));
+  visitIdentifier(Identifier node) {
+    out(localNamer.getName(node));
   }
 
   bool isDigit(int charCode) {
@@ -801,14 +806,10 @@ class Printer implements NodeVisitor {
       }
     }
 
-    if (options.avoidKeywordsInIdentifiers) {
-      return !isJsKeyword(field.substring(1, field.length - 1));
-    } else {
-      // TODO(floitsch): normally we should also check that the field is not a
-      // reserved word.  We don't generate fields with reserved word names except
-      // for 'super'.
-      return field != '"super"';
-    }
+    // TODO(floitsch): normally we should also check that the field is not a
+    // reserved word.  We don't generate fields with reserved word names except
+    // for 'super'.
+    return options.allowKeywordsInProperties || field != '"super"';
   }
 
   visitAccess(PropertyAccess access) {
@@ -1241,14 +1242,14 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
 
 abstract class LocalNamer {
-  String getName(String oldName);
+  String getName(Identifier node);
   void enterScope(Node node);
   void leaveScope();
 }
 
 
 class IdentityNamer implements LocalNamer {
-  String getName(String oldName) => oldName;
+  String getName(Identifier node) => node.name;
   void enterScope(Node node) {}
   void leaveScope() {}
 }
@@ -1277,7 +1278,8 @@ class MinifyRenamer implements LocalNamer {
     parameterNumber = parameterNumberStack.removeLast();
   }
 
-  String getName(String oldName) {
+  String getName(Identifier node) {
+    String oldName = node.name;
     // Go from inner scope to outer looking for mapping of name.
     for (int i = maps.length - 1; i >= 0; i--) {
       var map = maps[i];

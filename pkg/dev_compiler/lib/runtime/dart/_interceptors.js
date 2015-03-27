@@ -168,12 +168,12 @@ var _interceptors;
       fold(initialValue, combine) {
         return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
       }
-      firstWhere(test, opt$) {
-        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
+      firstWhere(test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
       }
-      lastWhere(test, opt$) {
-        let orElse = opt$ && 'orElse' in opt$ ? opt$.orElse : null;
+      lastWhere(test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
       }
       singleWhere(test) {
@@ -298,8 +298,8 @@ var _interceptors;
       toString() {
         return collection.ListBase.listToString(this);
       }
-      toList(opt$) {
-        let growable = opt$ && 'growable' in opt$ ? opt$.growable : true;
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         if (growable) {
           return new JSArray.markGrowable(this.slice());
         } else {
@@ -372,7 +372,7 @@ var _interceptors;
     return JSExtendableArray;
   });
   let JSExtendableArray = JSExtendableArray$(dart.dynamic);
-  let _handleIEtoString = Symbol('_handleIEtoString');
+  let _handleIEtoString$ = Symbol('_handleIEtoString');
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
   let _tdivSlow = Symbol('_tdivSlow');
@@ -536,7 +536,7 @@ var _interceptors;
       }
       return _handleIEtoString(result);
     }
-    static [_handleIEtoString](result) {
+    static [_handleIEtoString$](result) {
       let match = /^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(result);
       if (match === null) {
         throw new core.UnsupportedError(`Unexpected toString result: ${result}`);
@@ -687,11 +687,11 @@ var _interceptors;
   }
   JSNumber._MIN_INT32 = -2147483648;
   JSNumber._MAX_INT32 = 2147483647;
-  let _bitCount = Symbol('_bitCount');
-  let _shru = Symbol('_shru');
-  let _shrs = Symbol('_shrs');
-  let _ors = Symbol('_ors');
-  let _spread = Symbol('_spread');
+  let _bitCount$ = Symbol('_bitCount');
+  let _shru$ = Symbol('_shru');
+  let _shrs$ = Symbol('_shrs');
+  let _ors$ = Symbol('_ors');
+  let _spread$ = Symbol('_spread');
   class JSInt extends JSNumber {
     JSInt() {
       super.JSNumber();
@@ -717,7 +717,7 @@ var _interceptors;
       }
       return _bitCount(_spread(nonneg));
     }
-    static [_bitCount](i) {
+    static [_bitCount$](i) {
       i = dart.as(dart.dbinary(_shru(i, 0), '-', dart.dbinary(_shru(i, 1), '&', 1431655765)), core.int);
       i = (dart.notNull(i) & 858993459)['+'](dart.dbinary(_shru(i, 2), '&', 858993459));
       i = 252645135 & i['+'](_shru(i, 4));
@@ -725,16 +725,16 @@ var _interceptors;
       i = dart.as(_shru(i, 16), core.int);
       return dart.notNull(i) & 63;
     }
-    static [_shru](value, shift) {
+    static [_shru$](value, shift) {
       return value >>> shift;
     }
-    static [_shrs](value, shift) {
+    static [_shrs$](value, shift) {
       return value >> shift;
     }
-    static [_ors](a, b) {
+    static [_ors$](a, b) {
       return a | b;
     }
-    static [_spread](i) {
+    static [_spread$](i) {
       i = dart.as(_ors(i, dart.as(_shrs(i, 1), core.int)), core.int);
       i = dart.as(_ors(i, dart.as(_shrs(i, 2), core.int)), core.int);
       i = dart.as(_ors(i, dart.as(_shrs(i, 4), core.int)), core.int);
@@ -764,9 +764,9 @@ var _interceptors;
   class JSUInt31 extends JSUInt32 {
   }
   let _defaultSplit = Symbol('_defaultSplit');
-  let _isWhitespace = Symbol('_isWhitespace');
-  let _skipLeadingWhitespace = Symbol('_skipLeadingWhitespace');
-  let _skipTrailingWhitespace = Symbol('_skipTrailingWhitespace');
+  let _isWhitespace$ = Symbol('_isWhitespace');
+  let _skipLeadingWhitespace$ = Symbol('_skipLeadingWhitespace');
+  let _skipTrailingWhitespace$ = Symbol('_skipTrailingWhitespace');
   class JSString extends Interceptor {
     JSString() {
       super.Interceptor();
@@ -824,9 +824,9 @@ var _interceptors;
     replaceAllMapped(from, convert) {
       return this.splitMapJoin(from, {onMatch: convert});
     }
-    splitMapJoin(from, opt$) {
-      let onMatch = opt$ && 'onMatch' in opt$ ? opt$.onMatch : null;
-      let onNonMatch = opt$ && 'onNonMatch' in opt$ ? opt$.onNonMatch : null;
+    splitMapJoin(from, opts) {
+      let onMatch = opts && 'onMatch' in opts ? opts.onMatch : null;
+      let onNonMatch = opts && 'onNonMatch' in opts ? opts.onNonMatch : null;
       return dart.as(_js_helper.stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch), core.String);
     }
     replaceFirst(from, to, startIndex) {
@@ -908,7 +908,7 @@ var _interceptors;
     toUpperCase() {
       return this.toUpperCase();
     }
-    static [_isWhitespace](codeUnit) {
+    static [_isWhitespace$](codeUnit) {
       if (dart.notNull(codeUnit) < 256) {
         switch (codeUnit) {
           case 9:
@@ -949,7 +949,7 @@ var _interceptors;
           return false;
       }
     }
-    static [_skipLeadingWhitespace](string, index) {
+    static [_skipLeadingWhitespace$](string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (dart.notNull(index) < dart.notNull(string.length)) {
@@ -961,7 +961,7 @@ var _interceptors;
       }
       return index;
     }
-    static [_skipTrailingWhitespace](string, index) {
+    static [_skipTrailingWhitespace$](string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (dart.notNull(index) > 0) {
@@ -1178,8 +1178,8 @@ var _interceptors;
   }
   let _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
-    _CodeUnits($_string) {
-      this[_string] = $_string;
+    _CodeUnits(string$) {
+      this[_string] = string$;
       super.UnmodifiableListBase();
     }
     get length() {

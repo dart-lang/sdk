@@ -42,8 +42,8 @@ var constructors;
     }
   }
   class H extends core.Object {
-    H(opt$) {
-      let p1 = opt$ && 'p1' in opt$ ? opt$.p1 : null;
+    H(opts) {
+      let p1 = opts && 'p1' in opts ? opts.p1 : null;
     }
   }
   class I extends core.Object {

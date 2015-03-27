@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_ast;
+var exports = 42;
 
-import 'precedence.dart';
-import 'characters.dart' as charCodes;
+class Foo {
+  _foo() => 123;
+}
 
-part 'nodes.dart';
-part 'builder.dart';
-part 'printer.dart';
-part 'template.dart';
+_foo() => 456;
+
+main() {
+  print(exports);
+  print(new Foo()._foo());
+  print(_foo());
+}

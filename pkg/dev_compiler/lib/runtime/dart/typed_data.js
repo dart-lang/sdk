@@ -7,8 +7,8 @@ var typed_data;
   }
   let _littleEndian = Symbol('_littleEndian');
   class Endianness extends core.Object {
-    Endianness$_($_littleEndian) {
-      this[_littleEndian] = $_littleEndian;
+    Endianness$_(littleEndian) {
+      this[_littleEndian] = littleEndian;
     }
   }
   dart.defineNamedConstructor(Endianness, '_');

@@ -125,8 +125,8 @@ var _native_typed_data;
     NativeFloat32x4List(length) {
       this[_storage] = new NativeFloat32List(dart.notNull(length) * 4);
     }
-    NativeFloat32x4List$_externalStorage($_storage) {
-      this[_storage] = $_storage;
+    NativeFloat32x4List$_externalStorage(storage$) {
+      this[_storage] = storage$;
     }
     NativeFloat32x4List$_slowFromList(list) {
       this[_storage] = new NativeFloat32List(dart.notNull(list.length) * 4);
@@ -307,8 +307,8 @@ var _native_typed_data;
     NativeFloat64x2List(length) {
       this[_storage] = new NativeFloat64List(dart.notNull(length) * 2);
     }
-    NativeFloat64x2List$_externalStorage($_storage) {
-      this[_storage] = $_storage;
+    NativeFloat64x2List$_externalStorage(storage$) {
+      this[_storage] = storage$;
     }
     NativeFloat64x2List$_slowFromList(list) {
       this[_storage] = new NativeFloat64List(dart.notNull(list.length) * 2);
@@ -463,9 +463,9 @@ var _native_typed_data;
   let _setInt32 = Symbol('_setInt32');
   let _setUint16 = Symbol('_setUint16');
   let _setUint32 = Symbol('_setUint32');
-  let _create1 = Symbol('_create1');
-  let _create2 = Symbol('_create2');
-  let _create3 = Symbol('_create3');
+  let _create1$ = Symbol('_create1');
+  let _create2$ = Symbol('_create2');
+  let _create3$ = Symbol('_create3');
   class NativeByteData extends NativeTypedData {
     NativeByteData(length) {
       return _create1(_checkLength(length));
@@ -560,13 +560,13 @@ var _native_typed_data;
         endian = typed_data.Endianness.BIG_ENDIAN;
       throw new core.UnsupportedError('Uint64 accessor not supported by dart2js.');
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new DataView(new ArrayBuffer(arg)), NativeByteData);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new DataView(arg1, arg2), NativeByteData);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new DataView(arg1, arg2, arg3), NativeByteData);
     }
   }
@@ -650,13 +650,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Float32Array(arg), NativeFloat32List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Float32Array(arg1, arg2), NativeFloat32List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Float32Array(arg1, arg2, arg3), NativeFloat32List);
     }
   }
@@ -683,13 +683,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Float64Array(arg), NativeFloat64List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Float64Array(arg1, arg2), NativeFloat64List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Float64Array(arg1, arg2, arg3), NativeFloat64List);
     }
   }
@@ -720,13 +720,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Int16Array(arg), NativeInt16List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Int16Array(arg1, arg2), NativeInt16List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Int16Array(arg1, arg2, arg3), NativeInt16List);
     }
   }
@@ -757,13 +757,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Int32Array(arg), NativeInt32List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Int32Array(arg1, arg2), NativeInt32List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Int32Array(arg1, arg2, arg3), NativeInt32List);
     }
   }
@@ -794,13 +794,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Int8Array(arg), NativeInt8List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Int8Array(arg1, arg2), NativeInt8List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Int8Array(arg1, arg2, arg3), typed_data.Int8List);
     }
   }
@@ -831,13 +831,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Uint16Array(arg), NativeUint16List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Uint16Array(arg1, arg2), NativeUint16List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Uint16Array(arg1, arg2, arg3), NativeUint16List);
     }
   }
@@ -868,13 +868,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Uint32Array(arg), NativeUint32List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Uint32Array(arg1, arg2), NativeUint32List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Uint32Array(arg1, arg2, arg3), NativeUint32List);
     }
   }
@@ -908,13 +908,13 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Uint8ClampedArray(arg), NativeUint8ClampedList);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Uint8ClampedArray(arg1, arg2), NativeUint8ClampedList);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Uint8ClampedArray(arg1, arg2, arg3), NativeUint8ClampedList);
     }
   }
@@ -948,21 +948,21 @@ var _native_typed_data;
       let source = this.subarray(start, end);
       return _create1(source);
     }
-    static [_create1](arg) {
+    static [_create1$](arg) {
       return dart.as(new Uint8Array(arg), NativeUint8List);
     }
-    static [_create2](arg1, arg2) {
+    static [_create2$](arg1, arg2) {
       return dart.as(new Uint8Array(arg1, arg2), NativeUint8List);
     }
-    static [_create3](arg1, arg2, arg3) {
+    static [_create3$](arg1, arg2, arg3) {
       return dart.as(new Uint8Array(arg1, arg2, arg3), NativeUint8List);
     }
   }
   dart.defineNamedConstructor(NativeUint8List, 'fromList');
   dart.defineNamedConstructor(NativeUint8List, 'view');
-  let _truncate = Symbol('_truncate');
+  let _truncate$ = Symbol('_truncate');
   class NativeFloat32x4 extends core.Object {
-    static [_truncate](x) {
+    static [_truncate$](x) {
       _list.set(0, dart.as(x, core.num));
       return _list.get(0);
     }
@@ -1228,10 +1228,10 @@ var _native_typed_data;
       return _list.buffer.asUint32List();
     }
   });
-  let _list = Symbol('_list');
-  let _uint32view = Symbol('_uint32view');
+  let _list$ = Symbol('_list');
+  let _uint32view$ = Symbol('_uint32view');
   class NativeInt32x4 extends core.Object {
-    static [_truncate](x) {
+    static [_truncate$](x) {
       _list.set(0, dart.as(x, core.int));
       return _list.get(0);
     }
@@ -1256,7 +1256,7 @@ var _native_typed_data;
       this.w = w ? -1 : 0;
     }
     NativeInt32x4$fromFloat32x4Bits(f) {
-      let floatList = NativeFloat32x4[_list];
+      let floatList = NativeFloat32x4[_list$];
       floatList.set(0, f.x);
       floatList.set(1, f.y);
       floatList.set(2, f.z);
@@ -1375,8 +1375,8 @@ var _native_typed_data;
       return new NativeInt32x4._truncated(this.x, this.y, this.z, _w);
     }
     select(trueValue, falseValue) {
-      let floatList = NativeFloat32x4[_list];
-      let intView = NativeFloat32x4[_uint32view];
+      let floatList = NativeFloat32x4[_list$];
+      let intView = NativeFloat32x4[_uint32view$];
       floatList.set(0, trueValue.x);
       floatList.set(1, trueValue.y);
       floatList.set(2, trueValue.z);

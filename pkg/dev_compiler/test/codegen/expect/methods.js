@@ -22,12 +22,12 @@ var methods;
         b = 0;
       return b;
     }
-    w(a, opt$) {
-      let b = opt$ && 'b' in opt$ ? opt$.b : null;
+    w(a, opts) {
+      let b = opts && 'b' in opts ? opts.b : null;
       return dart.notNull(a) + dart.notNull(b);
     }
-    ww(a, opt$) {
-      let b = opt$ && 'b' in opt$ ? opt$.b : 0;
+    ww(a, opts) {
+      let b = opts && 'b' in opts ? opts.b : 0;
       return dart.notNull(a) + dart.notNull(b);
     }
     get a() {

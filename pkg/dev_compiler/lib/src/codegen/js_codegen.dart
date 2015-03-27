@@ -29,7 +29,9 @@ import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart';
+
 import 'code_generator.dart';
+import 'js_names.dart';
 
 bool _isAnnotationType(Annotation m, String name) => m.name.name == name;
 
@@ -53,7 +55,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
   /// The variable for the current catch clause
-  String _catchParameter;
+  SimpleIdentifier _catchParameter;
 
   ClassDeclaration currentClass;
   ConstantEvaluator _constEvaluator;
@@ -77,6 +79,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JSCodegenVisitor(this.libraryInfo, this.rules, this._checkerReporter);
 
   LibraryElement get currentLibrary => libraryInfo.library;
+
+  /// The name for the library's exports inside itself.
+  /// This much be a constant because we interpolate it into template strings,
+  /// and otherwise it would break caching for them.
+  /// `exports` was chosen as the most similar to ES module patterns.
+  final JSTemporary _exportsVar = new JSTemporary('exports');
+  final JSTemporary _namedArgTemp = new JSTemporary('opts');
 
   JS.Program emitLibrary(LibraryUnit library) {
     var jsDefaultValue = '{}';
@@ -113,7 +122,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     // TODO(jmesserly): make these immutable in JS?
     for (var name in _exports) {
-      body.add(js.statement('$_EXPORTS.# = #;', [name, name]));
+      body.add(js.statement('#.# = #;', [_exportsVar, name, name]));
     }
 
     var name = jsLibraryName(libraryInfo.library);
@@ -121,13 +130,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var defaultValue = js.call(jsDefaultValue);
     return new JS.Program([
       js.statement('var #;', name),
-      js.statement("(function($_EXPORTS) { 'use strict'; #; })(# || (# = #));",
-          [body, name, name, defaultValue])
+      js.statement("(function(#) { 'use strict'; #; })(# || (# = #));", [
+        _exportsVar,
+        body,
+        name,
+        name,
+        defaultValue
+      ])
     ]);
   }
 
-  JS.Statement _initPrivateSymbol(String name) =>
-      js.statement('let # = $_SYMBOL(#);', [name, js.string(name, "'")]);
+  JS.Statement _initPrivateSymbol(String name) => js.statement(
+      'let # = $_SYMBOL(#);', [new JSTemporary(name), js.string(name, "'")]);
 
   // TODO(jmesserly): this is a temporary workaround for `Symbol` in core,
   // until we have better name tracking.
@@ -315,7 +329,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
       var target = genericName;
       if (_needQualifiedName(classElem)) {
-        target = js.call('#.#', [_EXPORTS, genericName]);
+        target = js.call('#.#', [_exportsVar, genericName]);
       }
       genericInst = js.call('#(#)', [target, dynamicArgs]);
     }
@@ -329,7 +343,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         return js.statement(
             '{ #; dart.defineLazyClassGeneric(#, #, { get: # }); }', [
           genericDef,
-          _EXPORTS,
+          _exportsVar,
           js.string(name, "'"),
           genericName
         ]);
@@ -337,7 +351,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
       return js.statement(
           'dart.defineLazyClass(#, { get #() { #; return #; } });', [
-        _EXPORTS,
+        _exportsVar,
         _propertyName(name),
         body,
         name
@@ -561,7 +575,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         }
       }
     }
-    var lazy = _emitLazyFields(name, lazyStatics);
+    var lazy = _emitLazyFields(new JS.Identifier(name), lazyStatics);
     if (lazy != null) body.add(lazy);
     return _statement(body);
   }
@@ -801,9 +815,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var name = param.identifier.name;
 
       if (param.kind == ParameterKind.NAMED) {
-        body.add(js.statement('let # = opt\$ && # in opt\$ ? opt\$.# : #;', [
+        body.add(js.statement('let # = # && # in # ? #.# : #;', [
           name,
+          _namedArgTemp,
           js.string(name, "'"),
+          _namedArgTemp,
+          _namedArgTemp,
           name,
           _defaultParamValue(param),
         ]));
@@ -934,8 +951,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     } else if (variable is ConstFieldElementImpl) {
       var className = (variable.enclosingElement as ClassElement).name;
       return js.call('#.#', [className, name]);
-    } else if (e is ParameterElement && e.isInitializingFormal) {
-      name = _fieldParameterName(name);
+    } else if (e is ParameterElement && e.isInitializingFormal && e.isPrivate) {
+      /// Rename private names so they don't shadow the private field symbol.
+      /// The renamer would handle this, but it would prefer to rename the
+      /// temporary used for the private symbol. Instead rename the parameter.
+      return new JSTemporary('${name.substring(1)}');
+    } else if (_isTemporary(e)) {
+      return new JSTemporary(e.name);
     }
     return new JS.Identifier(name);
   }
@@ -1162,7 +1184,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var result = <JS.Identifier>[];
     for (FormalParameter param in node.parameters) {
       if (param.kind == ParameterKind.NAMED) {
-        result.add(new JS.Identifier(r'opt$'));
+        result.add(_namedArgTemp);
         break;
       }
       result.add(_visit(param));
@@ -1265,13 +1287,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   void _flushLazyFields(List<JS.Statement> body) {
-    var code = _emitLazyFields(_EXPORTS, _lazyFields);
+    var code = _emitLazyFields(_exportsVar, _lazyFields);
     if (code != null) body.add(code);
     _lazyFields.clear();
   }
 
   JS.Statement _emitLazyFields(
-      String objExpr, List<VariableDeclaration> fields) {
+      JS.Expression objExpr, List<VariableDeclaration> fields) {
     if (fields.isEmpty) return null;
 
     var methods = [];
@@ -1294,8 +1316,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   void _flushLibraryProperties(List<JS.Statement> body) {
     if (_properties.isEmpty) return;
-    body.add(js.statement('dart.copyProperties($_EXPORTS, { # });',
-        [_properties.map(_emitTopLevelProperty)]));
+    body.add(js.statement('dart.copyProperties(#, { # });', [
+      _exportsVar,
+      _properties.map(_emitTopLevelProperty)
+    ]));
     _properties.clear();
   }
 
@@ -1466,17 +1490,26 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   // TODO(jmesserly, vsm): Refactor this logic.
   SimpleIdentifier _createTemporary(String name, DartType type) {
+    // We use an invalid source location to signal that this is a temporary.
+    // See [_isTemporary].
+    // TODO(jmesserly): alternatives are
+    // * (ab)use Element.isSynthetic, which isn't currently used for
+    //   LocalVariableElementImpl, so we could repurpose to mean "temp".
+    // * add a new property to LocalVariableElementImpl.
+    // * create a new subtype of LocalVariableElementImpl to mark a temp.
     var id =
-        new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
+        new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, -1));
     id.staticElement = new LocalVariableElementImpl.forNode(id);
     id.staticType = type;
     return id;
   }
 
+  bool _isTemporary(Element node) => node.nameOffset == -1;
+
   JS.Expression _emitPostfixIncrement(Expression expr, Token op) {
     var type = rules.getStaticType(expr);
     assert(type != null);
-    var tmp = _createTemporary('\$tmp', type);
+    var tmp = _createTemporary('x', type);
 
     // Increment and write
     var one = AstBuilder.integerLiteral(1);
@@ -1588,20 +1621,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // remains valid in an expression context.
       // TODO(jmesserly): need a better way to handle temps.
       // TODO(jmesserly): special case for parent is ExpressionStatement?
-      _cascadeTarget =
-          new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, '_', 0));
-      _cascadeTarget.staticElement =
-          new LocalVariableElementImpl.forNode(_cascadeTarget);
-      _cascadeTarget.staticType = node.target.staticType;
+      _cascadeTarget = _createTemporary('_', node.target.staticType);
 
       var body = _visitList(node.cascadeSections);
       if (node.parent is! ExpressionStatement) {
-        body.add(js.statement('return #;', _cascadeTarget.name));
+        body.add(js.statement('return #;', _visit(_cascadeTarget)));
       }
 
       var bindThis = _maybeBindThis(node.cascadeSections);
       result = js.call('((#) => { # })$bindThis(#)', [
-        _cascadeTarget.name,
+        _visit(_cascadeTarget),
         body,
         _visit(node.target)
       ]);
@@ -1638,15 +1667,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitFormalParameter(FormalParameter node) =>
-      new JS.Identifier(node.identifier.name);
-
-  @override
-  visitFieldFormalParameter(FieldFormalParameter node) =>
-      new JS.Identifier(_fieldParameterName(node.identifier.name));
-
-  /// Rename private names so they don't shadow the private field symbol.
-  // TODO(jmesserly): replace this ad-hoc rename with a general strategy.
-  _fieldParameterName(name) => name.startsWith('_') ? '\$$name' : name;
+      visitSimpleIdentifier(node.identifier);
 
   @override
   JS.This visitThisExpression(ThisExpression node) => new JS.This();
@@ -1719,9 +1740,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitRethrowExpression(RethrowExpression node) {
     if (node.parent is ExpressionStatement) {
-      return js.statement('throw #;', _catchParameter);
+      return js.statement('throw #;', _visit(_catchParameter));
     } else {
-      return js.call('dart.throw_(#)', _catchParameter);
+      return js.call('dart.throw_(#)', _visit(_catchParameter));
     }
   }
 
@@ -1782,21 +1803,34 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // TODO(jmesserly): need a better way to get a temporary variable.
     // This could incorrectly shadow a user's name.
     var savedCatch = _catchParameter;
-    _catchParameter = '\$e';
 
     if (clauses.length == 1) {
       // Special case for a single catch.
-      var clause = clauses.single;
-      if (clause.exceptionParameter != null) {
-        _catchParameter = clause.exceptionParameter.name;
-      }
+      _catchParameter = clauses.single.exceptionParameter;
+    } else {
+      _catchParameter = _createTemporary('e', rules.provider.dynamicType);
     }
 
-    var catchVarDecl = new JS.Identifier(_catchParameter);
-    var catchBody = new JS.Block(_visitList(clauses));
-    _catchParameter = savedCatch;
+    JS.Statement catchBody = null;
+    for (var clause in clauses.reversed) {
+      catchBody = _catchClauseGuard(clause, catchBody);
+    }
 
-    return new JS.Catch(catchVarDecl, catchBody);
+    var catchVarDecl = _visit(_catchParameter);
+    _catchParameter = savedCatch;
+    return new JS.Catch(catchVarDecl, new JS.Block([catchBody]));
+  }
+
+  JS.Statement _catchClauseGuard(CatchClause clause, JS.Statement otherwise) {
+    var then = visitCatchClause(clause);
+
+    // Discard following clauses, if any, as they are unreachable.
+    if (clause.exceptionType == null) return then;
+
+    return new JS.If(js.call('dart.is(#, #)', [
+      _visit(_catchParameter),
+      _emitTypeName(clause.exceptionType.type),
+    ]), then, otherwise);
   }
 
   JS.Statement _statement(Iterable stmts) {
@@ -1807,6 +1841,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return new JS.Block(s);
   }
 
+  /// Visits the catch clause body. This skips the exception type guard, if any.
+  /// That is handled in [_visitCatch].
   @override
   JS.Statement visitCatchClause(CatchClause node) {
     var body = [];
@@ -1814,11 +1850,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var savedCatch = _catchParameter;
     if (node.catchKeyword != null) {
       var name = node.exceptionParameter;
-      if (name != null && name.name != _catchParameter) {
-        var decl = new JS.Identifier(name.name);
-        decl.sourceInformation = name;
-        body.add(js.statement('let # = #;', [decl, _catchParameter]));
-        _catchParameter = name.name;
+      if (name != null && name != _catchParameter) {
+        body.add(js.statement(
+            'let # = #;', [_visit(name), _visit(_catchParameter)]));
+        _catchParameter = name;
       }
       if (node.stackTraceParameter != null) {
         var stackVar = node.stackTraceParameter.name;
@@ -1829,15 +1864,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     body.add(_visit(node.body));
     _catchParameter = savedCatch;
-
-    if (node.exceptionType != null) {
-      return js.statement('if (dart.is(#, #)) #;', [
-        _catchParameter,
-        _emitTypeName(node.exceptionType.type),
-        _statement(body)
-      ]);
-    }
-
     return _statement(body);
   }
 
@@ -2071,7 +2097,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Expression _jsMemberName(String name, {bool unary: false}) {
     if (name.startsWith('_')) {
       if (_privateNames.add(name)) _pendingPrivateNames.add(name);
-      return new JS.Identifier(name);
+      return new JSTemporary(name);
     }
     if (name == '[]') {
       name = 'get';
@@ -2092,9 +2118,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Choose a canonical name from the library element.
   /// This never uses the library's name (the identifier in the `library`
   /// declaration) as it doesn't have any meaningful rules enforced.
-  String _libraryName(LibraryElement library) {
-    if (library == libraryInfo.library) return _EXPORTS;
-    return jsLibraryName(library);
+  JS.Identifier _libraryName(LibraryElement library) {
+    if (library == libraryInfo.library) return _exportsVar;
+    return new JS.Identifier(jsLibraryName(library));
   }
 
   String _maybeBindThis(node) {
@@ -2104,12 +2130,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     node.accept(visitor);
     return visitor._bindThis ? '.bind(this)' : '';
   }
-
-  /// The name for the library's exports inside itself.
-  /// This much be a constant because we interpolate it into template strings,
-  /// and otherwise it would break caching for them.
-  /// `exports` was chosen as the most similar to ES module patterns.
-  static const String _EXPORTS = 'exports';
 
   static bool _needsImplicitThis(Element e) =>
       e is PropertyAccessorElement && !e.variable.isStatic ||
@@ -2218,8 +2238,8 @@ class JSGenerator extends CodeGenerator {
 }
 
 void _writeNode(JS.JavaScriptPrintingContext context, JS.Node node) {
-  var opts = new JS.JavaScriptPrintingOptions(avoidKeywordsInIdentifiers: true);
-  node.accept(new JS.Printer(opts, context));
+  var opts = new JS.JavaScriptPrintingOptions(allowKeywordsInProperties: true);
+  node.accept(new JS.Printer(opts, context, localNamer: new JSNamer(node)));
 }
 
 /// This is a debugging helper to print a JS node.

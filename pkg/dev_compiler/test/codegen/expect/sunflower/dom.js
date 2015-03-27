@@ -2,8 +2,8 @@ var dom;
 (function(exports) {
   'use strict';
   class JsName extends core.Object {
-    JsName(opt$) {
-      let name = opt$ && 'name' in opt$ ? opt$.name : null;
+    JsName(opts) {
+      let name = opts && 'name' in opts ? opts.name : null;
       this.name = name;
     }
   }
