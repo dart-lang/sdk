@@ -2810,6 +2810,23 @@ class A {
     _resetWithIncremental(true);
   }
 
+  void test_computeConstants() {
+    _resolveUnit(r'''
+int f() => 0;
+main() {
+  const x = f();
+  print(x + 1);
+}
+''');
+    _updateAndValidate(r'''
+int f() => 0;
+main() {
+  const x = f();
+  print(x + 2);
+}
+''');
+  }
+
   void test_dartDoc_beforeField() {
     _resolveUnit(r'''
 class A {

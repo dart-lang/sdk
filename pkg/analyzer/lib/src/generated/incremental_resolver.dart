@@ -7,6 +7,7 @@ library engine.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/services/lint.dart';
 
 import 'ast.dart';
@@ -883,6 +884,8 @@ class IncrementalResolver {
       }
       // resolve
       _resolveReferences(rootNode);
+      _computeConstants(rootNode);
+      _resolveErrors = errorListener.getErrorsForSource(_source);
       // verify
       _verify(rootNode);
       _context.invalidateLibraryHints(_librarySource);
@@ -956,6 +959,27 @@ class IncrementalResolver {
       node is FunctionTypeAlias ||
       node is MethodDeclaration ||
       node is TopLevelVariableDeclaration;
+
+  /**
+   * Compute a value for all of the constants in the given [node].
+   */
+  void _computeConstants(AstNode node) {
+    // compute values
+    {
+      CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+      ConstantValueComputer computer =
+          new ConstantValueComputer(_typeProvider, _context.declaredVariables);
+      computer.add(unit);
+      computer.computeValues();
+    }
+    // validate
+    {
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
+      ConstantVerifier constantVerifier =
+          new ConstantVerifier(errorReporter, _definingLibrary, _typeProvider);
+      node.accept(constantVerifier);
+    }
+  }
 
   /**
    * Starting at [node], find the smallest AST node that can be resolved
@@ -1041,8 +1065,6 @@ class IncrementalResolver {
         visitor.initForIncrementalResolution();
         node.accept(visitor);
       }
-      // remember errors
-      _resolveErrors = errorListener.getErrorsForSource(_source);
     } finally {
       timer.stop('resolve references');
     }
