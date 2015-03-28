@@ -1,12 +1,7 @@
 #!/bin/bash
+set -e # bail on error
 
-# Fast fail the script on failures.
-set -e
-
-# Build first
-./tool/build_sdk.sh
-
-dart --checked test/all_tests.dart
+# Prerequisite: ./tool/build_sdk.sh has been run.
 
 # Install dart_coveralls; gather and send coverage data.
 if [ "$COVERALLS_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "stable" ]; then

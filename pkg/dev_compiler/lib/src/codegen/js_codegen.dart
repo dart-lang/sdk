@@ -2025,11 +2025,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return result;
   }
 
-  JS.Statement _visitOrEmpty(Statement node) {
-    if (node == null) return new JS.EmptyStatement();
-    return _visit(node);
-  }
-
   List _visitList(Iterable<AstNode> nodes) {
     if (nodes == null) return null;
     var result = [];
