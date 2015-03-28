@@ -610,11 +610,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
-    Dart_ExitScope();
     if (has_compile_all) {
       result = Dart_CompileAll();
       CHECK_RESULT(result);
     }
+    Dart_ExitScope();
     Dart_ExitIsolate();
     return isolate;
   }
