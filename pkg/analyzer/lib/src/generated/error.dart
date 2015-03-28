@@ -704,8 +704,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * value.
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL', "An expression of type 'bool' was expected");
+      const CompileTimeErrorCode('CONST_EVAL_TYPE_BOOL',
+          "In constant expressions, operand(s) of this operator must be of type 'bool'");
 
   /**
    * 12.11.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
@@ -714,7 +714,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
       const CompileTimeErrorCode('CONST_EVAL_TYPE_BOOL_NUM_STRING',
-          "An expression of type 'bool', 'num', 'String' or 'null' was expected");
+          "In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'");
 
   /**
    * 12.11.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
@@ -722,8 +722,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * that evaluate to an integer value or to null.
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_INT =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_INT', "An expression of type 'int' was expected");
+      const CompileTimeErrorCode('CONST_EVAL_TYPE_INT',
+          "In constant expressions, operand(s) of this operator must be of type 'int'");
 
   /**
    * 12.11.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 *
@@ -732,8 +732,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * value or to null.
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_NUM', "An expression of type 'num' was expected");
+      const CompileTimeErrorCode('CONST_EVAL_TYPE_NUM',
+          "In constant expressions, operand(s) of this operator must be of type 'num'");
 
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
