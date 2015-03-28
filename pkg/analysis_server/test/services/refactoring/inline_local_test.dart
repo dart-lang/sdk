@@ -257,6 +257,29 @@ main() {
 ''');
   }
 
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_leadingSpaces() {
+    indexTestUnit(r"""
+main() {
+  String a = '''\ \
+a
+a''';
+  String b = '''
+$a
+bbb''';
+}
+""");
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r"""
+main() {
+  String b = '''
+a
+a
+bbb''';
+}
+""");
+  }
+
   test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() {
     indexTestUnit(r"""
 main() {

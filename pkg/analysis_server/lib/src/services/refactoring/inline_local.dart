@@ -145,14 +145,6 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
           int initOffset = initializer.contentsOffset;
           int initLength = initializer.contentsEnd - initOffset;
           codeForReference = utils.getText(initOffset, initLength);
-          // drop leading multiline EOL
-          if (initializer.isMultiline) {
-            if (codeForReference.startsWith('\n')) {
-              codeForReference = codeForReference.substring(1);
-            } else if (codeForReference.startsWith('\r\n')) {
-              codeForReference = codeForReference.substring(2);
-            }
-          }
         } else if (_shouldBeExpressionInterpolation(parent, initializer)) {
           codeForReference = '{$initializerCode}';
         } else {

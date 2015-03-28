@@ -10860,15 +10860,8 @@ class InterpolationString extends InterpolationElement {
    * Return the offset of the after-last contents character.
    */
   int get contentsEnd {
-    int end = contents.end;
     String lexeme = contents.lexeme;
-    if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
-        StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
-      end -= 3;
-    } else {
-      end -= 1;
-    }
-    return end;
+    return offset + new StringLexemeHelper(lexeme, true, true).end;
   }
 
   /**
@@ -10877,16 +10870,7 @@ class InterpolationString extends InterpolationElement {
   int get contentsOffset {
     int offset = contents.offset;
     String lexeme = contents.lexeme;
-    if (lexeme.codeUnitAt(0) == 0x72) {
-      offset += 1;
-    }
-    if (StringUtilities.startsWith3(lexeme, offset, 0x22, 0x22, 0x22) ||
-        StringUtilities.startsWith3(lexeme, offset, 0x27, 0x27, 0x27)) {
-      offset += 3;
-    } else {
-      offset += 1;
-    }
-    return offset;
+    return offset + new StringLexemeHelper(lexeme, true, true).start;
   }
 
   @override
@@ -16493,61 +16477,22 @@ class SimpleStringLiteral extends SingleStringLiteral {
   Iterable get childEntities => new ChildEntities()..add(literal);
 
   @override
-  int get contentsEnd {
-    if (isMultiline) {
-      return end - 3;
-    }
-    return end - 1;
-  }
+  int get contentsEnd => offset + _helper.end;
 
   @override
-  int get contentsOffset {
-    int contentsOffset = 0;
-    if (isRaw) {
-      contentsOffset += 1;
-    }
-    if (isMultiline) {
-      contentsOffset += 3;
-    } else {
-      contentsOffset += 1;
-    }
-    return offset + contentsOffset;
-  }
+  int get contentsOffset => offset + _helper.start;
 
   @override
   Token get endToken => literal;
 
   @override
-  bool get isMultiline {
-    String lexeme = literal.lexeme;
-    if (lexeme.length < 3) {
-      return false;
-    }
-    // skip 'r'
-    int offset = 0;
-    if (isRaw) {
-      offset = 1;
-    }
-    // check prefix
-    return StringUtilities.startsWith3(lexeme, offset, 0x22, 0x22, 0x22) ||
-        StringUtilities.startsWith3(lexeme, offset, 0x27, 0x27, 0x27);
-  }
+  bool get isMultiline => _helper.isMultiline;
 
   @override
-  bool get isRaw => literal.lexeme.codeUnitAt(0) == 0x72;
+  bool get isRaw => _helper.isRaw;
 
   @override
-  bool get isSingleQuoted {
-    String lexeme = literal.lexeme;
-    if (lexeme.isEmpty) {
-      return false;
-    }
-    int codeZero = lexeme.codeUnitAt(0);
-    if (codeZero == 0x72) {
-      return lexeme.length > 1 && lexeme.codeUnitAt(1) == 0x27;
-    }
-    return codeZero == 0x27;
-  }
+  bool get isSingleQuoted => _helper.isSingleQuoted;
 
   @override
   bool get isSynthetic => literal.isSynthetic;
@@ -16562,6 +16507,10 @@ class SimpleStringLiteral extends SingleStringLiteral {
    */
   void set value(String string) {
     _value = StringUtilities.intern(_value);
+  }
+
+  StringLexemeHelper get _helper {
+    return new StringLexemeHelper(literal.lexeme, true, true);
   }
 
   @override
@@ -16593,6 +16542,7 @@ abstract class SingleStringLiteral extends StringLiteral {
 
   /**
    * Return the offset of the first contents character.
+   * If the string is multiline, then leading whitespaces are skipped.
    */
   int get contentsOffset;
 
@@ -16687,24 +16637,18 @@ class StringInterpolation extends SingleStringLiteral {
   Token get endToken => _elements.endToken;
 
   @override
-  bool get isMultiline {
-    InterpolationString element = _elements.first;
-    String lexeme = element.contents.lexeme;
-    if (lexeme.length < 3) {
-      return false;
-    }
-    return StringUtilities.startsWith3(lexeme, 0, 0x22, 0x22, 0x22) ||
-        StringUtilities.startsWith3(lexeme, 0, 0x27, 0x27, 0x27);
-  }
+  bool get isMultiline => _firstHelper.isMultiline;
 
   @override
   bool get isRaw => false;
 
   @override
-  bool get isSingleQuoted {
+  bool get isSingleQuoted => _firstHelper.isSingleQuoted;
+
+  StringLexemeHelper get _firstHelper {
     InterpolationString lastString = _elements.first;
     String lexeme = lastString.contents.lexeme;
-    return StringUtilities.startsWithChar(lexeme, 0x27);
+    return new StringLexemeHelper(lexeme, true, false);
   }
 
   @override
@@ -16718,6 +16662,97 @@ class StringInterpolation extends SingleStringLiteral {
   @override
   void _appendStringValue(StringBuffer buffer) {
     throw new IllegalArgumentException();
+  }
+}
+
+/**
+ * A helper for analyzing string lexemes.
+ */
+class StringLexemeHelper {
+  final String lexeme;
+  final bool isFirst;
+  final bool isLast;
+
+  bool isRaw = false;
+  bool isSingleQuoted = false;
+  bool isMultiline = false;
+  int start = 0;
+  int end;
+
+  StringLexemeHelper(this.lexeme, this.isFirst, this.isLast) {
+    isRaw = StringUtilities.startsWithChar(lexeme, 0x72);
+    if (isRaw) {
+      start++;
+    }
+    if (StringUtilities.startsWith3(lexeme, start, 0x27, 0x27, 0x27)) {
+      isSingleQuoted = true;
+      isMultiline = true;
+      start += 3;
+      start = _trimInitialWhitespace(start);
+    } else if (StringUtilities.startsWith3(lexeme, start, 0x22, 0x22, 0x22)) {
+      isSingleQuoted = false;
+      isMultiline = true;
+      start += 3;
+      start = _trimInitialWhitespace(start);
+    } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x27) {
+      isSingleQuoted = true;
+      isMultiline = false;
+      start++;
+    } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x22) {
+      isSingleQuoted = false;
+      isMultiline = false;
+      start++;
+    }
+    end = lexeme.length;
+    if (isLast) {
+      if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
+          StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
+        end -= 3;
+      } else if (StringUtilities.endsWithChar(lexeme, 0x22) ||
+          StringUtilities.endsWithChar(lexeme, 0x27)) {
+        end -= 1;
+      }
+    }
+  }
+
+  /**
+   * Given the [lexeme] for a multi-line string whose content begins at the
+   * given [start] index, return the index of the first character that is
+   * included in the value of the string. According to the specification:
+   *
+   * If the first line of a multiline string consists solely of the whitespace
+   * characters defined by the production WHITESPACE 20.1), possibly prefixed
+   * by \, then that line is ignored, including the new line at its end.
+   */
+  int _trimInitialWhitespace(int start) {
+    int length = lexeme.length;
+    int index = start;
+    while (index < length) {
+      int currentChar = lexeme.codeUnitAt(index);
+      if (currentChar == 0x0D) {
+        if (index + 1 < length && lexeme.codeUnitAt(index + 1) == 0x0A) {
+          return index + 2;
+        }
+        return index + 1;
+      } else if (currentChar == 0x0A) {
+        return index + 1;
+      } else if (currentChar == 0x5C) {
+        if (index + 1 >= length) {
+          return start;
+        }
+        currentChar = lexeme.codeUnitAt(index + 1);
+        if (currentChar != 0x0D &&
+            currentChar != 0x0A &&
+            currentChar != 0x09 &&
+            currentChar != 0x20) {
+          return start;
+        }
+      } else if (currentChar != 0x09 && currentChar != 0x20) {
+        return start;
+      }
+      index++;
+    }
+    return start;
   }
 }
 

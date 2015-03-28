@@ -1305,6 +1305,11 @@ class SimpleStringLiteralTest extends ParserTestCase {
         TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsOffset, 4);
     expect(new SimpleStringLiteral(
         TokenFactory.tokenFromString("r'''X'''"), "X").contentsOffset, 4);
+    // leading whitespace
+    expect(new SimpleStringLiteral(
+        TokenFactory.tokenFromString("''' \ \nX''"), "X").contentsOffset, 6);
+    expect(new SimpleStringLiteral(
+        TokenFactory.tokenFromString('r""" \ \nX"""'), "X").contentsOffset, 7);
   }
 
   void test_isMultiline() {
