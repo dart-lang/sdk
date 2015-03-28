@@ -696,9 +696,9 @@ class AstFactory {
       Expression target, SimpleIdentifier propertyName) => new PropertyAccess(
       target, TokenFactory.tokenFromType(TokenType.PERIOD), propertyName);
 
-  static PropertyAccess propertyAccess2(
-      Expression target, String propertyName) => new PropertyAccess(target,
-      TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(propertyName));
+  static PropertyAccess propertyAccess2(Expression target, String propertyName,
+      [TokenType operator = TokenType.PERIOD]) => new PropertyAccess(
+      target, TokenFactory.tokenFromType(operator), identifier3(propertyName));
 
   static RedirectingConstructorInvocation redirectingConstructorInvocation(
           [List<Expression> arguments]) =>

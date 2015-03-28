@@ -2848,6 +2848,11 @@ class ToSourceVisitorTest extends EngineTestCase {
         "a.b", AstFactory.propertyAccess2(AstFactory.identifier3("a"), "b"));
   }
 
+  void test_visitPropertyAccess_conditional() {
+    _assertSource("a?.b", AstFactory.propertyAccess2(
+        AstFactory.identifier3("a"), "b", TokenType.QUESTION_PERIOD));
+  }
+
   void test_visitRedirectingConstructorInvocation_named() {
     _assertSource(
         "this.c()", AstFactory.redirectingConstructorInvocation2("c"));

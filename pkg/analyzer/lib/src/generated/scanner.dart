@@ -723,6 +723,12 @@ class Scanner {
   bool _hasUnmatchedGroups = false;
 
   /**
+   * A flag indicating whether null-aware operators ('?.', '??', and '??=')
+   * should be tokenized.
+   */
+  bool enableNullAwareOperators = false;
+
+  /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [_reader] will be used to read the characters
    * in the source. The given [_errorListener] will be informed of any errors
@@ -777,140 +783,179 @@ class Scanner {
   int bigSwitch(int next) {
     _beginToken();
     if (next == 0xD) {
+      // '\r'
       next = _reader.advance();
       if (next == 0xA) {
+        // '\n'
         next = _reader.advance();
       }
       recordStartOfLine();
       return next;
     } else if (next == 0xA) {
+      // '\n'
       next = _reader.advance();
       recordStartOfLine();
       return next;
     } else if (next == 0x9 || next == 0x20) {
+      // '\t' || ' '
       return _reader.advance();
     }
     if (next == 0x72) {
+      // 'r'
       int peek = _reader.peek();
       if (peek == 0x22 || peek == 0x27) {
+        // '"' || "'"
         int start = _reader.offset;
         return _tokenizeString(_reader.advance(), start, true);
       }
     }
     if (0x61 <= next && next <= 0x7A) {
+      // 'a'-'z'
       return _tokenizeKeywordOrIdentifier(next, true);
     }
     if ((0x41 <= next && next <= 0x5A) || next == 0x5F || next == 0x24) {
+      // 'A'-'Z' || '_' || '$'
       return _tokenizeIdentifier(next, _reader.offset, true);
     }
     if (next == 0x3C) {
+      // '<'
       return _tokenizeLessThan(next);
     }
     if (next == 0x3E) {
+      // '>'
       return _tokenizeGreaterThan(next);
     }
     if (next == 0x3D) {
+      // '='
       return _tokenizeEquals(next);
     }
     if (next == 0x21) {
+      // '!'
       return _tokenizeExclamation(next);
     }
     if (next == 0x2B) {
+      // '+'
       return _tokenizePlus(next);
     }
     if (next == 0x2D) {
+      // '-'
       return _tokenizeMinus(next);
     }
     if (next == 0x2A) {
+      // '*'
       return _tokenizeMultiply(next);
     }
     if (next == 0x25) {
+      // '%'
       return _tokenizePercent(next);
     }
     if (next == 0x26) {
+      // '&'
       return _tokenizeAmpersand(next);
     }
     if (next == 0x7C) {
+      // '|'
       return _tokenizeBar(next);
     }
     if (next == 0x5E) {
+      // '^'
       return _tokenizeCaret(next);
     }
     if (next == 0x5B) {
+      // '['
       return _tokenizeOpenSquareBracket(next);
     }
     if (next == 0x7E) {
+      // '~'
       return _tokenizeTilde(next);
     }
     if (next == 0x5C) {
+      // '\\'
       _appendTokenOfType(TokenType.BACKSLASH);
       return _reader.advance();
     }
     if (next == 0x23) {
+      // '#'
       return _tokenizeTag(next);
     }
     if (next == 0x28) {
+      // '('
       _appendBeginToken(TokenType.OPEN_PAREN);
       return _reader.advance();
     }
     if (next == 0x29) {
+      // ')'
       _appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
       return _reader.advance();
     }
     if (next == 0x2C) {
+      // ','
       _appendTokenOfType(TokenType.COMMA);
       return _reader.advance();
     }
     if (next == 0x3A) {
+      // ':'
       _appendTokenOfType(TokenType.COLON);
       return _reader.advance();
     }
     if (next == 0x3B) {
+      // ';'
       _appendTokenOfType(TokenType.SEMICOLON);
       return _reader.advance();
     }
     if (next == 0x3F) {
-      _appendTokenOfType(TokenType.QUESTION);
-      return _reader.advance();
+      // '?'
+      return _tokenizeQuestion();
     }
     if (next == 0x5D) {
+      // ']'
       _appendEndToken(
           TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
       return _reader.advance();
     }
     if (next == 0x60) {
+      // '`'
       _appendTokenOfType(TokenType.BACKPING);
       return _reader.advance();
     }
     if (next == 0x7B) {
+      // '{'
       _appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
       return _reader.advance();
     }
     if (next == 0x7D) {
+      // '}'
       _appendEndToken(
           TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
       return _reader.advance();
     }
     if (next == 0x2F) {
+      // '/'
       return _tokenizeSlashOrComment(next);
     }
     if (next == 0x40) {
+      // '@'
       _appendTokenOfType(TokenType.AT);
       return _reader.advance();
     }
     if (next == 0x22 || next == 0x27) {
+      // '"' || "'"
       return _tokenizeString(next, _reader.offset, false);
     }
     if (next == 0x2E) {
+      // '.'
       return _tokenizeDotOrNumber(next);
     }
     if (next == 0x30) {
+      // '0'
       return _tokenizeHexOrNumber(next);
     }
     if (0x31 <= next && next <= 0x39) {
+      // '1'-'9'
       return _tokenizeNumber(next);
     }
     if (next == -1) {
+      // EOF
       return -1;
     }
     _reportError(ScannerErrorCode.ILLEGAL_CHARACTER, [next]);
@@ -1616,6 +1661,30 @@ class Scanner {
     }
   }
 
+  int _tokenizeQuestion() {
+    // ? ?. ?? ??=
+    int next = _reader.advance();
+    if (enableNullAwareOperators && next == 0x2E) {
+      // '.'
+      _appendTokenOfType(TokenType.QUESTION_PERIOD);
+      return _reader.advance();
+    } else if (enableNullAwareOperators && next == 0x3F) {
+      // '?'
+      next = _reader.advance();
+      if (next == 0x3D) {
+        // '='
+        _appendTokenOfType(TokenType.QUESTION_QUESTION_EQ);
+        return _reader.advance();
+      } else {
+        _appendTokenOfType(TokenType.QUESTION_QUESTION);
+        return next;
+      }
+    } else {
+      _appendTokenOfType(TokenType.QUESTION);
+      return next;
+    }
+  }
+
   int _tokenizeSingleLineComment(int next) {
     while (true) {
       next = _reader.advance();
@@ -2120,7 +2189,7 @@ class TokenClass {
    * A value used to indicate that the token type is an additive operator.
    */
   static const TokenClass ADDITIVE_OPERATOR =
-      const TokenClass('ADDITIVE_OPERATOR', 12);
+      const TokenClass('ADDITIVE_OPERATOR', 13);
 
   /**
    * A value used to indicate that the token type is an assignment operator.
@@ -2132,19 +2201,19 @@ class TokenClass {
    * A value used to indicate that the token type is a bitwise-and operator.
    */
   static const TokenClass BITWISE_AND_OPERATOR =
-      const TokenClass('BITWISE_AND_OPERATOR', 10);
+      const TokenClass('BITWISE_AND_OPERATOR', 11);
 
   /**
    * A value used to indicate that the token type is a bitwise-or operator.
    */
   static const TokenClass BITWISE_OR_OPERATOR =
-      const TokenClass('BITWISE_OR_OPERATOR', 8);
+      const TokenClass('BITWISE_OR_OPERATOR', 9);
 
   /**
    * A value used to indicate that the token type is a bitwise-xor operator.
    */
   static const TokenClass BITWISE_XOR_OPERATOR =
-      const TokenClass('BITWISE_XOR_OPERATOR', 9);
+      const TokenClass('BITWISE_XOR_OPERATOR', 10);
 
   /**
    * A value used to indicate that the token type is a cascade operator.
@@ -2162,49 +2231,55 @@ class TokenClass {
    * A value used to indicate that the token type is an equality operator.
    */
   static const TokenClass EQUALITY_OPERATOR =
-      const TokenClass('EQUALITY_OPERATOR', 6);
+      const TokenClass('EQUALITY_OPERATOR', 7);
+
+  /**
+   * A value used to indicate that the token type is an if-null operator.
+   */
+  static const TokenClass IF_NULL_OPERATOR =
+      const TokenClass('IF_NULL_OPERATOR', 4);
 
   /**
    * A value used to indicate that the token type is a logical-and operator.
    */
   static const TokenClass LOGICAL_AND_OPERATOR =
-      const TokenClass('LOGICAL_AND_OPERATOR', 5);
+      const TokenClass('LOGICAL_AND_OPERATOR', 6);
 
   /**
    * A value used to indicate that the token type is a logical-or operator.
    */
   static const TokenClass LOGICAL_OR_OPERATOR =
-      const TokenClass('LOGICAL_OR_OPERATOR', 4);
+      const TokenClass('LOGICAL_OR_OPERATOR', 5);
 
   /**
    * A value used to indicate that the token type is a multiplicative operator.
    */
   static const TokenClass MULTIPLICATIVE_OPERATOR =
-      const TokenClass('MULTIPLICATIVE_OPERATOR', 13);
+      const TokenClass('MULTIPLICATIVE_OPERATOR', 14);
 
   /**
    * A value used to indicate that the token type is a relational operator.
    */
   static const TokenClass RELATIONAL_OPERATOR =
-      const TokenClass('RELATIONAL_OPERATOR', 7);
+      const TokenClass('RELATIONAL_OPERATOR', 8);
 
   /**
    * A value used to indicate that the token type is a shift operator.
    */
   static const TokenClass SHIFT_OPERATOR =
-      const TokenClass('SHIFT_OPERATOR', 11);
+      const TokenClass('SHIFT_OPERATOR', 12);
 
   /**
    * A value used to indicate that the token type is a unary operator.
    */
   static const TokenClass UNARY_POSTFIX_OPERATOR =
-      const TokenClass('UNARY_POSTFIX_OPERATOR', 15);
+      const TokenClass('UNARY_POSTFIX_OPERATOR', 16);
 
   /**
    * A value used to indicate that the token type is a unary operator.
    */
   static const TokenClass UNARY_PREFIX_OPERATOR =
-      const TokenClass('UNARY_PREFIX_OPERATOR', 14);
+      const TokenClass('UNARY_PREFIX_OPERATOR', 15);
 
   /**
    * The name of the token class.
@@ -2385,6 +2460,15 @@ class TokenType {
 
   static const TokenType QUESTION =
       const TokenType('QUESTION', TokenClass.CONDITIONAL_OPERATOR, "?");
+
+  static const TokenType QUESTION_PERIOD = const TokenType(
+      'QUESTION_PERIOD', TokenClass.UNARY_POSTFIX_OPERATOR, '?.');
+
+  static const TokenType QUESTION_QUESTION =
+      const TokenType('QUESTION_QUESTION', TokenClass.IF_NULL_OPERATOR, '??');
+
+  static const TokenType QUESTION_QUESTION_EQ = const TokenType(
+      'QUESTION_QUESTION_EQ', TokenClass.ASSIGNMENT_OPERATOR, '??=');
 
   static const TokenType SEMICOLON =
       const TokenType('SEMICOLON', TokenClass.NO_CLASS, ";");

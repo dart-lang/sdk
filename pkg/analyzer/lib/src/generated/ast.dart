@@ -18185,7 +18185,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
       _writer.print("..");
     } else {
       _visitNode(node.target);
-      _writer.print('.');
+      _writer.print(node.operator.lexeme);
     }
     _visitNode(node.propertyName);
     return null;

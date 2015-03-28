@@ -694,7 +694,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitConditionalExpression(ConditionalExpression node) {
     if (identical(_oldNode, node.condition)) {
-      return _parser.parseLogicalOrExpression();
+      return _parser.parseIfNullExpression();
     } else if (identical(_oldNode, node.thenExpression)) {
       return _parser.parseExpressionWithoutCascade();
     } else if (identical(_oldNode, node.elseExpression)) {
@@ -2715,10 +2715,10 @@ class Parser {
    * parsed.
    *
    *     conditionalExpression ::=
-   *         logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
+   *         ifNullExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
    */
   Expression parseConditionalExpression() {
-    Expression condition = parseLogicalOrExpression();
+    Expression condition = parseIfNullExpression();
     if (!_matches(TokenType.QUESTION)) {
       return condition;
     }
@@ -3042,6 +3042,22 @@ class Parser {
     FunctionBody body =
         _parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
     return new FunctionExpression(parameters, body);
+  }
+
+  /**
+   * Parse an if-null expression.  Return the if-null expression that was
+   * parsed.
+   *
+   *     ifNullExpression ::= logicalOrExpression ('??' logicalOrExpression)*
+   */
+  Expression parseIfNullExpression() {
+    Expression expression = parseLogicalOrExpression();
+    while (_matches(TokenType.QUESTION_QUESTION)) {
+      Token operator = getAndAdvance();
+      expression = new BinaryExpression(
+          expression, operator, parseLogicalOrExpression());
+    }
+    return expression;
   }
 
   /**
@@ -4278,9 +4294,9 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.PERIOD)) {
-      Token period = getAndAdvance();
-      return new PropertyAccess(prefix, period, parseSimpleIdentifier());
+    } else if (_matches(TokenType.PERIOD) || _matches(TokenType.QUESTION_PERIOD)) {
+      Token operator = getAndAdvance();
+      return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
     } else {
       if (!optional) {
         // Report the missing selector.
@@ -6715,6 +6731,7 @@ class Parser {
     Expression operand = _parseAssignableExpression(true);
     if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
         _matches(TokenType.PERIOD) ||
+        _matches(TokenType.QUESTION_PERIOD) ||
         _matches(TokenType.OPEN_PAREN)) {
       do {
         if (_matches(TokenType.OPEN_PAREN)) {
@@ -6731,6 +6748,7 @@ class Parser {
         }
       } while (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
           _matches(TokenType.PERIOD) ||
+          _matches(TokenType.QUESTION_PERIOD) ||
           _matches(TokenType.OPEN_PAREN));
       return operand;
     }
