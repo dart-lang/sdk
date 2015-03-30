@@ -35,7 +35,7 @@ class NonConstantIdentifierNames extends LintRule {
           name: 'non_constant_identifier_names',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.AVOID);
 
   @override

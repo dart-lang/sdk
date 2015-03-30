@@ -37,7 +37,7 @@ class LibraryPrefixes extends LintRule {
           name: 'library_prefixes',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.AVOID);
 
   @override

@@ -37,7 +37,7 @@ class CamelCaseTypes extends LintRule {
           name: 'camel_case_types',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.DO);
 
   @override

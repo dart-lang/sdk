@@ -50,7 +50,7 @@ class SuperGoesLast extends LintRule {
           name: 'super_goes_last',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.DO);
 
   @override

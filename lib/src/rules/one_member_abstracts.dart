@@ -39,7 +39,7 @@ class OneMemberAbstracts extends LintRule {
           name: 'one_member_abstracts',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.AVOID);
 
   @override

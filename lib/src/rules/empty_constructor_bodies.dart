@@ -45,7 +45,7 @@ class EmptyConstructorBodies extends LintRule {
           name: 'empty_constructor_bodies',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.DO);
 
   @override

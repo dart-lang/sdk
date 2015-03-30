@@ -89,10 +89,10 @@ class FileGlobFilter extends LintFilter {
 class Group {
 
   /// Defined rule groups.
-  static const Group PUB = const Group._('Pub',
+  static const Group pub = const Group._('pub',
       link: const Hyperlink('See the <strong>Pubspec Format</strong>',
           'https://www.dartlang.org/tools/pub/pubspec.html'));
-  static const Group STYLE_GUIDE = const Group._('Style Guide',
+  static const Group style = const Group._('style',
       link: const Hyperlink('See the <strong>Style Guide</strong>',
           'https://www.dartlang.org/articles/style-guide/'));
 
@@ -102,12 +102,11 @@ class Group {
   final Hyperlink link;
 
   factory Group(String name, {String description, Hyperlink link}) {
-    switch (name) {
-      case 'Styleguide':
-      case 'Style Guide':
-        return STYLE_GUIDE;
-      case 'Pub':
-        return PUB;
+    switch (name.toLowerCase()) {
+      case 'style':
+        return style;
+      case 'pub':
+        return pub;
       default:
         return new Group._(name,
             custom: true, description: description, link: link);
@@ -247,7 +246,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
   LintRule({this.name, this.group, this.kind, this.description, this.details,
-      this.maturity: Maturity.STABLE});
+      this.maturity: Maturity.stable});
 
   @override
   int compareTo(LintRule other) {
@@ -292,20 +291,19 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 }
 
 class Maturity implements Comparable<Maturity> {
-  static const Maturity STABLE = const Maturity._('STABLE', ordinal: 0);
-  static const Maturity EXPERIMENTAL =
-      const Maturity._('EXPERIMENTAL', ordinal: 1);
+  static const Maturity stable = const Maturity._('stable', ordinal: 0);
+  static const Maturity experimental =
+      const Maturity._('stable', ordinal: 1);
 
   final String name;
   final int ordinal;
 
   factory Maturity(String name, {int ordinal}) {
-    var normalized = name.toUpperCase();
-    switch (normalized) {
-      case 'STABLE':
-        return STABLE;
-      case 'EXPERIMENTAL':
-        return EXPERIMENTAL;
+    switch (name.toLowerCase()) {
+      case 'stable':
+        return stable;
+      case 'experimental':
+        return experimental;
       default:
         return new Maturity._(name, ordinal: ordinal);
     }
