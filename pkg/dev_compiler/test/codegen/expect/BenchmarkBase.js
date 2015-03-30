@@ -8,7 +8,7 @@ var BenchmarkBase;
       }
     }
     static listEquals(expected, actual) {
-      if (expected.length !== actual.length) {
+      if (expected.length != actual.length) {
         throw `Lists have different lengths: ${expected.length} vs ${actual.length}`;
       }
       for (let i = 0; dart.notNull(i) < dart.notNull(actual.length); i = dart.notNull(i) + 1) {

@@ -40,7 +40,7 @@ var isolate;
     static spawnUri(uri, args, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       let packageRoot = opts && 'packageRoot' in opts ? opts.packageRoot : null;
-      if (packageRoot !== null)
+      if (packageRoot != null)
         throw new core.UnimplementedError("packageRoot");
       try {
         if (dart.is(args, core.List$(core.String))) {
@@ -49,7 +49,7 @@ var isolate;
               throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
             }
           }
-        } else if (args !== null) {
+        } else if (args != null) {
           throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
         }
         return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.closureWrap((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), "(List<dynamic>) → dynamic")), async.Future$(Isolate));
@@ -62,7 +62,7 @@ var isolate;
     pause(resumeCapability) {
       if (resumeCapability === void 0)
         resumeCapability = null;
-      if (resumeCapability === null)
+      if (resumeCapability == null)
         resumeCapability = new Capability();
       this[_pause](resumeCapability);
       return resumeCapability;

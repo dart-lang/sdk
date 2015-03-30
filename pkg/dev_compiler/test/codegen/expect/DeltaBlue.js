@@ -61,7 +61,7 @@ var DeltaBlue;
       this.markInputs(dart.as(mark, core.int));
       let out = this.output();
       let overridden = out.determinedBy;
-      if (overridden !== null)
+      if (overridden != null)
         overridden.markUnsatisfied();
       out.determinedBy = this;
       if (!dart.notNull(exports.planner.addPropagate(this, dart.as(mark, core.int))))
@@ -90,7 +90,7 @@ var DeltaBlue;
       this.satisfied = false;
     }
     chooseMethod(mark) {
-      this.satisfied = this.myOutput.mark !== mark && dart.notNull(Strength.stronger(this.strength, this.myOutput.walkStrength));
+      this.satisfied = this.myOutput.mark != mark && dart.notNull(Strength.stronger(this.strength, this.myOutput.walkStrength));
     }
     isSatisfied() {
       return this.satisfied;
@@ -112,7 +112,7 @@ var DeltaBlue;
       return true;
     }
     removeFromGraph() {
-      if (this.myOutput !== null)
+      if (this.myOutput != null)
         this.myOutput.removeConstraint(this);
       this.satisfied = false;
     }
@@ -144,11 +144,11 @@ var DeltaBlue;
       this.addConstraint();
     }
     chooseMethod(mark) {
-      if (this.v1.mark === mark) {
-        this.direction = this.v2.mark !== mark && dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
+      if (this.v1.mark == mark) {
+        this.direction = this.v2.mark != mark && dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
       }
-      if (this.v2.mark === mark) {
-        this.direction = this.v1.mark !== mark && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
+      if (this.v2.mark == mark) {
+        this.direction = this.v1.mark != mark && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
       }
       if (Strength.weaker(this.v1.walkStrength, this.v2.walkStrength)) {
         this.direction = Strength.stronger(this.strength, this.v1.walkStrength) ? BACKWARD : NONE;
@@ -162,16 +162,16 @@ var DeltaBlue;
       this.direction = NONE;
     }
     isSatisfied() {
-      return this.direction !== NONE;
+      return this.direction != NONE;
     }
     markInputs(mark) {
       this.input().mark = mark;
     }
     input() {
-      return this.direction === FORWARD ? this.v1 : this.v2;
+      return this.direction == FORWARD ? this.v1 : this.v2;
     }
     output() {
-      return this.direction === FORWARD ? this.v2 : this.v1;
+      return this.direction == FORWARD ? this.v2 : this.v1;
     }
     recalculate() {
       let ihn = this.input(), out = this.output();
@@ -185,12 +185,12 @@ var DeltaBlue;
     }
     inputsKnown(mark) {
       let i = this.input();
-      return i.mark === mark || dart.notNull(i.stay) || dart.notNull(i.determinedBy === null);
+      return i.mark == mark || dart.notNull(i.stay) || dart.notNull(i.determinedBy == null);
     }
     removeFromGraph() {
-      if (this.v1 !== null)
+      if (this.v1 != null)
         this.v1.removeConstraint(this);
-      if (this.v2 !== null)
+      if (this.v2 != null)
         this.v2.removeConstraint(this);
       this.direction = NONE;
     }
@@ -208,9 +208,9 @@ var DeltaBlue;
     }
     removeFromGraph() {
       super.removeFromGraph();
-      if (this.scale !== null)
+      if (this.scale != null)
         this.scale.removeConstraint(this);
-      if (this.offset !== null)
+      if (this.offset != null)
         this.offset.removeConstraint(this);
     }
     markInputs(mark) {
@@ -218,7 +218,7 @@ var DeltaBlue;
       this.scale.mark = this.offset.mark = mark;
     }
     execute() {
-      if (this.direction === FORWARD) {
+      if (this.direction == FORWARD) {
         this.v2.value = dart.notNull(this.v1.value) * dart.notNull(this.scale.value) + dart.notNull(this.offset.value);
       } else {
         this.v1.value = ((dart.notNull(this.v2.value) - dart.notNull(this.offset.value)) / dart.notNull(this.scale.value)).truncate();
@@ -265,7 +265,7 @@ var DeltaBlue;
     }
     incrementalAdd(c) {
       let mark = this.newMark();
-      for (let overridden = c.satisfy(mark); overridden !== null; overridden = overridden.satisfy(mark))
+      for (let overridden = c.satisfy(mark); overridden != null; overridden = overridden.satisfy(mark))
         ;
     }
     incrementalRemove(c) {
@@ -292,7 +292,7 @@ var DeltaBlue;
       let todo = sources;
       while (dart.notNull(todo.length) > 0) {
         let c = todo.removeLast();
-        if (c.output().mark !== mark && dart.notNull(c.inputsKnown(mark))) {
+        if (c.output().mark != mark && dart.notNull(c.inputsKnown(mark))) {
           plan.addConstraint(c);
           c.output().mark = mark;
           this.addConstraintsConsumingTo(c.output(), todo);
@@ -313,7 +313,7 @@ var DeltaBlue;
       let todo = new core.List$(Constraint).from([c]);
       while (dart.notNull(todo.length) > 0) {
         let d = todo.removeLast();
-        if (d.output().mark === mark) {
+        if (d.output().mark == mark) {
           this.incrementalRemove(c);
           return false;
         }
@@ -377,11 +377,11 @@ var DeltaBlue;
     let prev = null, first = null, last = null;
     for (let i = 0; dart.notNull(i) <= dart.notNull(n); i = dart.notNull(i) + 1) {
       let v = new Variable("v", 0);
-      if (prev !== null)
+      if (prev != null)
         new EqualityConstraint(prev, v, REQUIRED);
-      if (i === 0)
+      if (i == 0)
         first = v;
-      if (i === n)
+      if (i == n)
         last = v;
       prev = v;
     }
@@ -391,7 +391,7 @@ var DeltaBlue;
     for (let i = 0; dart.notNull(i) < 100; i = dart.notNull(i) + 1) {
       first.value = i;
       plan.execute();
-      if (last.value !== i) {
+      if (last.value != i) {
         core.print("Chain test failed:");
         core.print(`Expected last value to be ${i} but it was ${last.value}.`);
       }
@@ -412,19 +412,19 @@ var DeltaBlue;
       new ScaleConstraint(src, scale, offset, dst, REQUIRED);
     }
     change(src, 17);
-    if (dst.value !== 1170)
+    if (dst.value != 1170)
       core.print("Projection 1 failed");
     change(dst, 1050);
-    if (src.value !== 5)
+    if (src.value != 5)
       core.print("Projection 2 failed");
     change(scale, 5);
     for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
-      if (dests.get(i).value !== dart.notNull(i) * 5 + 1000)
+      if (dests.get(i).value != dart.notNull(i) * 5 + 1000)
         core.print("Projection 3 failed");
     }
     change(offset, 2000);
     for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
-      if (dests.get(i).value !== dart.notNull(i) * 5 + 2000)
+      if (dests.get(i).value != dart.notNull(i) * 5 + 2000)
         core.print("Projection 4 failed");
     }
   }

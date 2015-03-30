@@ -30,7 +30,7 @@ var _js_helper;
       [_$]() {
       }
       get isEmpty() {
-        return this.length === 0;
+        return this.length == 0;
       }
       get isNotEmpty() {
         return !dart.notNull(this.isEmpty);
@@ -189,7 +189,7 @@ var _js_helper;
   let GeneralConstantMap = GeneralConstantMap$(dart.dynamic, dart.dynamic);
   // Function contains: (String, String) → bool
   function contains(userAgent, name) {
-    return userAgent.indexOf(name) !== -1;
+    return userAgent.indexOf(name) != -1;
   }
   // Function arrayLength: (List<dynamic>) → int
   function arrayLength(array) {
@@ -224,7 +224,7 @@ var _js_helper;
   exports.prototypeForTagFunction = null;
   // Function toStringForNativeObject: (dynamic) → String
   function toStringForNativeObject(obj) {
-    let name = exports.getTagFunction === null ? '<Unknown>' : dart.dinvokef(exports.getTagFunction, obj);
+    let name = exports.getTagFunction == null ? '<Unknown>' : dart.dinvokef(exports.getTagFunction, obj);
     return `Instance of ${name}`;
   }
   // Function hashCodeForNativeObject: (dynamic) → int
@@ -267,25 +267,25 @@ var _js_helper;
     dart.assert(!dart.notNull(isDartObject(obj)));
     let tag = dart.as(dart.dinvokef(exports.getTagFunction, obj), core.String);
     let record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
-    if (record !== null)
+    if (record != null)
       return patchInstance(obj, record);
     let interceptor = propertyGet(exports.interceptorsForUncacheableTags, tag);
-    if (interceptor !== null)
+    if (interceptor != null)
       return interceptor;
     let interceptorClass = lookupInterceptor(tag);
-    if (interceptorClass === null) {
+    if (interceptorClass == null) {
       tag = dart.as(dart.dinvokef(exports.alternateTagFunction, obj, tag), core.String);
-      if (tag !== null) {
+      if (tag != null) {
         record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
-        if (record !== null)
+        if (record != null)
           return patchInstance(obj, record);
         interceptor = propertyGet(exports.interceptorsForUncacheableTags, tag);
-        if (interceptor !== null)
+        if (interceptor != null)
           return interceptor;
         interceptorClass = lookupInterceptor(tag);
       }
     }
-    if (interceptorClass === null) {
+    if (interceptorClass == null) {
       return null;
     }
     interceptor = interceptorClass.prototype;
@@ -359,7 +359,7 @@ var _js_helper;
   exports.initNativeDispatchFlag = null;
   // Function initNativeDispatch: () → void
   function initNativeDispatch() {
-    if (true === exports.initNativeDispatchFlag)
+    if (dart.equals(true, exports.initNativeDispatchFlag))
       return;
     exports.initNativeDispatchFlag = true;
     initNativeDispatchContinue();
@@ -378,10 +378,10 @@ var _js_helper;
       for (let i = 0; i['<'](dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
         let tag = dart.dindex(tags, i);
         let proto = dart.dinvokef(exports.prototypeForTagFunction, tag);
-        if (proto !== null) {
+        if (proto != null) {
           let interceptorClass = map[tag];
           let record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
-          if (record !== null) {
+          if (record != null) {
             _interceptors.setDispatchProperty(proto, record);
             fun.prototype = proto;
           }
@@ -484,12 +484,12 @@ var _js_helper;
       this[_nativeAnchoredRegExp] = null;
     }
     get [_nativeGlobalVersion]() {
-      if (this[_nativeGlobalRegExp] !== null)
+      if (this[_nativeGlobalRegExp] != null)
         return this[_nativeGlobalRegExp];
       return this[_nativeGlobalRegExp] = JSSyntaxRegExp.makeNative(this.pattern, this[_isMultiLine], this[_isCaseSensitive], true);
     }
     get [_nativeAnchoredVersion]() {
-      if (this[_nativeAnchoredRegExp] !== null)
+      if (this[_nativeAnchoredRegExp] != null)
         return this[_nativeAnchoredRegExp];
       return this[_nativeAnchoredRegExp] = JSSyntaxRegExp.makeNative(`${this.pattern}|()`, this[_isMultiLine], this[_isCaseSensitive], true);
     }
@@ -519,7 +519,7 @@ var _js_helper;
     }
     firstMatch(string) {
       let m = dart.as(this[_nativeRegExp].exec(checkString(string)), core.List$(core.String));
-      if (m === null)
+      if (m == null)
         return null;
       return new _MatchImplementation(this, m);
     }
@@ -528,7 +528,7 @@ var _js_helper;
     }
     stringMatch(string) {
       let match = this.firstMatch(string);
-      if (match !== null)
+      if (match != null)
         return match.group(0);
       return null;
     }
@@ -546,7 +546,7 @@ var _js_helper;
       let regexp = this[_nativeGlobalVersion];
       regexp.lastIndex = start;
       let match = dart.as(regexp.exec(string), core.List);
-      if (match === null)
+      if (match == null)
         return null;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
@@ -554,9 +554,9 @@ var _js_helper;
       let regexp = this[_nativeAnchoredVersion];
       regexp.lastIndex = start;
       let match = dart.as(regexp.exec(string), core.List);
-      if (match === null)
+      if (match == null)
         return null;
-      if (match.get(dart.notNull(match.length) - 1) !== null)
+      if (match.get(dart.notNull(match.length) - 1) != null)
         return null;
       match.length = 1;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
@@ -638,14 +638,14 @@ var _js_helper;
       return this[_current];
     }
     moveNext() {
-      if (this[_string] === null)
+      if (this[_string] == null)
         return false;
       if (dart.notNull(this[_nextIndex]) <= dart.notNull(this[_string].length)) {
         let match = this[_regExp]._execGlobal(this[_string], this[_nextIndex]);
-        if (match !== null) {
+        if (match != null) {
           this[_current] = match;
           let nextIndex = match.end;
-          if (match.start === nextIndex) {
+          if (match.start == nextIndex) {
             nextIndex = dart.notNull(nextIndex) + 1;
           }
           this[_nextIndex] = nextIndex;
@@ -677,7 +677,7 @@ var _js_helper;
       return 0;
     }
     group(group_) {
-      if (group_ !== 0) {
+      if (group_ != 0) {
         throw new core.RangeError.value(group_);
       }
       return this.pattern;
@@ -697,14 +697,14 @@ var _js_helper;
     let patternLength = needle.length;
     while (true) {
       let position = haystack.indexOf(needle, startIndex);
-      if (position === -1) {
+      if (position == -1) {
         break;
       }
       result.add(new StringMatch(position, haystack, needle));
       let endIndex = dart.notNull(position) + dart.notNull(patternLength);
-      if (endIndex === length) {
+      if (endIndex == length) {
         break;
-      } else if (position === endIndex) {
+      } else if (position == endIndex) {
         startIndex = dart.notNull(startIndex) + 1;
       } else {
         startIndex = endIndex;
@@ -731,7 +731,7 @@ var _js_helper;
   // Function stringReplaceFirstRE: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function stringReplaceFirstRE(receiver, regexp, to, startIndex) {
     let match = dart.dinvoke(regexp, '_execGlobal', receiver, startIndex);
-    if (match === null)
+    if (match == null)
       return receiver;
     let start = dart.dload(match, 'start');
     let end = dart.dload(match, 'end');
@@ -782,9 +782,9 @@ var _js_helper;
     if (!dart.is(pattern, core.Pattern)) {
       throw new core.ArgumentError(`${pattern} is not a Pattern`);
     }
-    if (onMatch === null)
+    if (onMatch == null)
       onMatch = _matchString;
-    if (onNonMatch === null)
+    if (onNonMatch == null)
       onNonMatch = _stringIdentity;
     if (typeof pattern == 'string') {
       return stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch);
@@ -808,9 +808,9 @@ var _js_helper;
     while (dart.notNull(i) < dart.notNull(length)) {
       buffer.write(dart.dinvokef(onMatch, new StringMatch(i, dart.as(receiver, core.String), "")));
       let code = dart.as(dart.dinvoke(receiver, 'codeUnitAt', i), core.int);
-      if ((dart.notNull(code) & ~1023) === 55296 && dart.notNull(length) > dart.notNull(i) + 1) {
+      if ((dart.notNull(code) & ~1023) == 55296 && dart.notNull(length) > dart.notNull(i) + 1) {
         code = dart.as(dart.dinvoke(receiver, 'codeUnitAt', dart.notNull(i) + 1), core.int);
-        if ((dart.notNull(code) & ~1023) === 56320) {
+        if ((dart.notNull(code) & ~1023) == 56320) {
           buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', i, dart.notNull(i) + 2)));
           i = 2;
           continue;
@@ -826,7 +826,7 @@ var _js_helper;
   // Function stringReplaceAllStringFuncUnchecked: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     let patternLength = dart.as(dart.dload(pattern, 'length'), core.int);
-    if (patternLength === 0) {
+    if (patternLength == 0) {
       return stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch);
     }
     let length = dart.as(dart.dload(receiver, 'length'), core.int);
@@ -834,7 +834,7 @@ var _js_helper;
     let startIndex = 0;
     while (dart.notNull(startIndex) < dart.notNull(length)) {
       let position = dart.as(dart.dinvoke(receiver, 'indexOf', pattern, startIndex), core.int);
-      if (position === -1) {
+      if (position == -1) {
         break;
       }
       buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', startIndex, position)));
@@ -854,7 +854,7 @@ var _js_helper;
         return receiver;
       return `${dart.dinvoke(receiver, 'substring', 0, index)}${to}` + `${dart.dinvoke(receiver, 'substring', dart.dbinary(index, '+', dart.dload(from, 'length')))}`;
     } else if (dart.is(from, JSSyntaxRegExp)) {
-      return startIndex === 0 ? stringReplaceJS(receiver, regExpGetNative(dart.as(from, JSSyntaxRegExp)), to) : stringReplaceFirstRE(receiver, from, to, startIndex);
+      return startIndex == 0 ? stringReplaceJS(receiver, regExpGetNative(dart.as(from, JSSyntaxRegExp)), to) : stringReplaceFirstRE(receiver, from, to, startIndex);
     } else {
       checkNull(from);
       throw "String.replace(Pattern) UNIMPLEMENTED";
@@ -876,7 +876,7 @@ var _js_helper;
       this[_unmangledName] = null;
     }
     toString() {
-      if (this[_unmangledName] !== null)
+      if (this[_unmangledName] != null)
         return this[_unmangledName];
       let unmangledName = _js_names.unmangleAllIdentifiersIfPreservedAnyways(this[_typeName]);
       return this[_unmangledName] = unmangledName;
@@ -901,14 +901,14 @@ var _js_helper;
   }
   // Function setRuntimeTypeInfo: (Object, dynamic) → Object
   function setRuntimeTypeInfo(target, typeInfo) {
-    dart.assert(dart.notNull(typeInfo === null) || dart.notNull(isJsArray(typeInfo)));
-    if (target !== null)
+    dart.assert(dart.notNull(typeInfo == null) || dart.notNull(isJsArray(typeInfo)));
+    if (target != null)
       target.$builtinTypeInfo = typeInfo;
     return target;
   }
   // Function getRuntimeTypeInfo: (Object) → dynamic
   function getRuntimeTypeInfo(target) {
-    if (target === null)
+    if (target == null)
       return null;
     return target.$builtinTypeInfo;
   }
@@ -920,12 +920,12 @@ var _js_helper;
   // Function getRuntimeTypeArgument: (Object, String, int) → dynamic
   function getRuntimeTypeArgument(target, substitutionName, index) {
     let arguments$ = getRuntimeTypeArguments(target, substitutionName);
-    return arguments$ === null ? null : getIndex(arguments$, index);
+    return arguments$ == null ? null : getIndex(arguments$, index);
   }
   // Function getTypeArgumentByIndex: (Object, int) → dynamic
   function getTypeArgumentByIndex(target, index) {
     let rti = getRuntimeTypeInfo(target);
-    return rti === null ? null : getIndex(rti, index);
+    return rti == null ? null : getIndex(rti, index);
   }
   // Function copyTypeArguments: (Object, Object) → void
   function copyTypeArguments(source, target) {
@@ -949,14 +949,14 @@ var _js_helper;
   // Function runtimeTypeToString: (dynamic, {onTypeVariable: (int) → String}) → String
   function runtimeTypeToString(type, opts) {
     let onTypeVariable = opts && 'onTypeVariable' in opts ? opts.onTypeVariable : null;
-    if (type === null) {
+    if (type == null) {
       return 'dynamic';
     } else if (isJsArray(type)) {
       return getRuntimeTypeAsString(type, {onTypeVariable: onTypeVariable});
     } else if (isJsFunction(type)) {
       return getConstructorName(type);
     } else if (typeof type == 'number') {
-      if (onTypeVariable === null) {
+      if (onTypeVariable == null) {
         return dart.as(dart.dinvoke(type, 'toString'), core.String);
       } else {
         return onTypeVariable(dart.as(type, core.int));
@@ -968,7 +968,7 @@ var _js_helper;
   // Function joinArguments: (dynamic, int, {onTypeVariable: (int) → String}) → String
   function joinArguments(types, startIndex, opts) {
     let onTypeVariable = opts && 'onTypeVariable' in opts ? opts.onTypeVariable : null;
-    if (types === null)
+    if (types == null)
       return '';
     dart.assert(isJsArray(types));
     let firstArgument = true;
@@ -981,7 +981,7 @@ var _js_helper;
         buffer.write(', ');
       }
       let argument = getIndex(types, index);
-      if (argument !== null) {
+      if (argument != null) {
         allDynamic = false;
       }
       buffer.write(runtimeTypeToString(argument, {onTypeVariable: onTypeVariable}));
@@ -991,7 +991,7 @@ var _js_helper;
   // Function getRuntimeTypeString: (dynamic) → String
   function getRuntimeTypeString(object) {
     let className = getClassName(object);
-    if (object === null)
+    if (object == null)
       return className;
     let typeInfo = object.$builtinTypeInfo;
     return `${className}${joinArguments(typeInfo, 0)}`;
@@ -1003,8 +1003,8 @@ var _js_helper;
   }
   // Function substitute: (dynamic, dynamic) → dynamic
   function substitute(substitution, arguments$) {
-    dart.assert(dart.notNull(substitution === null) || dart.notNull(isJsFunction(substitution)));
-    dart.assert(dart.notNull(arguments$ === null) || dart.notNull(isJsArray(arguments$)));
+    dart.assert(dart.notNull(substitution == null) || dart.notNull(isJsFunction(substitution)));
+    dart.assert(dart.notNull(arguments$ == null) || dart.notNull(isJsArray(arguments$)));
     if (isJsFunction(substitution)) {
       substitution = invoke(substitution, arguments$);
       if (isJsArray(substitution)) {
@@ -1017,12 +1017,12 @@ var _js_helper;
   }
   // Function checkSubtype: (Object, String, List<dynamic>, String) → bool
   function checkSubtype(object, isField, checks, asField) {
-    if (object === null)
+    if (object == null)
       return false;
     let arguments$ = getRuntimeTypeInfo(object);
     let interceptor = _interceptors.getInterceptor(object);
     let isSubclass = getField(interceptor, isField);
-    if (isSubclass === null)
+    if (isSubclass == null)
       return false;
     let substitution = getField(interceptor, asField);
     return checkArguments(substitution, arguments$, checks);
@@ -1034,7 +1034,7 @@ var _js_helper;
   }
   // Function subtypeCast: (Object, String, List<dynamic>, String) → Object
   function subtypeCast(object, isField, checks, asField) {
-    if (dart.notNull(object !== null) && !dart.notNull(checkSubtype(object, isField, checks, asField))) {
+    if (dart.notNull(object != null) && !dart.notNull(checkSubtype(object, isField, checks, asField))) {
       let actualType = Primitives.objectTypeName(object);
       let typeName = computeTypeName(isField, checks);
       throw new CastErrorImplementation(actualType, typeName);
@@ -1043,7 +1043,7 @@ var _js_helper;
   }
   // Function assertSubtype: (Object, String, List<dynamic>, String) → Object
   function assertSubtype(object, isField, checks, asField) {
-    if (dart.notNull(object !== null) && !dart.notNull(checkSubtype(object, isField, checks, asField))) {
+    if (dart.notNull(object != null) && !dart.notNull(checkSubtype(object, isField, checks, asField))) {
       let typeName = computeTypeName(isField, checks);
       throw new TypeErrorImplementation(object, typeName);
     }
@@ -1065,11 +1065,11 @@ var _js_helper;
   }
   // Function areSubtypes: (dynamic, dynamic) → bool
   function areSubtypes(s, t) {
-    if (dart.notNull(s === null) || dart.notNull(t === null))
+    if (dart.notNull(s == null) || dart.notNull(t == null))
       return true;
     dart.assert(isJsArray(s));
     dart.assert(isJsArray(t));
-    dart.assert(getLength(s) === getLength(t));
+    dart.assert(getLength(s) == getLength(t));
     let len = getLength(s);
     for (let i = 0; dart.notNull(i) < dart.notNull(len); i = dart.notNull(i) + 1) {
       if (!dart.notNull(isSubtype(getIndex(s, i), getIndex(t, i)))) {
@@ -1085,18 +1085,18 @@ var _js_helper;
   }
   // Function isSupertypeOfNull: (dynamic) → bool
   function isSupertypeOfNull(type) {
-    return dart.notNull(type === null) || dart.notNull(dart.equals(getConstructorName(type), _foreign_helper.JS_OBJECT_CLASS_NAME())) || dart.notNull(dart.equals(getConstructorName(type), _foreign_helper.JS_NULL_CLASS_NAME()));
+    return dart.notNull(type == null) || dart.notNull(getConstructorName(type) == _foreign_helper.JS_OBJECT_CLASS_NAME()) || dart.notNull(getConstructorName(type) == _foreign_helper.JS_NULL_CLASS_NAME());
   }
   // Function checkSubtypeOfRuntimeType: (dynamic, dynamic) → bool
   function checkSubtypeOfRuntimeType(o, t) {
-    if (o === null)
+    if (o == null)
       return isSupertypeOfNull(t);
-    if (t === null)
+    if (t == null)
       return true;
     let rti = getRuntimeTypeInfo(o);
     o = _interceptors.getInterceptor(o);
     let type = o.constructor;
-    if (rti !== null) {
+    if (rti != null) {
       rti = rti.slice();
       rti.splice(0, 0, type);
       type = rti;
@@ -1105,7 +1105,7 @@ var _js_helper;
       if (hasField(o, signatureName))
         return true;
       let targetSignatureFunction = getField(o, `${_foreign_helper.JS_SIGNATURE_NAME()}`);
-      if (targetSignatureFunction === null)
+      if (targetSignatureFunction == null)
         return false;
       type = invokeOn(targetSignatureFunction, o, null);
       return isFunctionSubtype(type, t);
@@ -1114,7 +1114,7 @@ var _js_helper;
   }
   // Function subtypeOfRuntimeTypeCast: (Object, dynamic) → Object
   function subtypeOfRuntimeTypeCast(object, type) {
-    if (dart.notNull(object !== null) && !dart.notNull(checkSubtypeOfRuntimeType(object, type))) {
+    if (dart.notNull(object != null) && !dart.notNull(checkSubtypeOfRuntimeType(object, type))) {
       let actualType = Primitives.objectTypeName(object);
       throw new CastErrorImplementation(actualType, runtimeTypeToString(type));
     }
@@ -1122,7 +1122,7 @@ var _js_helper;
   }
   // Function assertSubtypeOfRuntimeType: (Object, dynamic) → Object
   function assertSubtypeOfRuntimeType(object, type) {
-    if (dart.notNull(object !== null) && !dart.notNull(checkSubtypeOfRuntimeType(object, type))) {
+    if (dart.notNull(object != null) && !dart.notNull(checkSubtypeOfRuntimeType(object, type))) {
       throw new TypeErrorImplementation(object, runtimeTypeToString(type));
     }
     return object;
@@ -1135,13 +1135,13 @@ var _js_helper;
   function isSubtype(s, t) {
     if (isIdentical(s, t))
       return true;
-    if (dart.notNull(s === null) || dart.notNull(t === null))
+    if (dart.notNull(s == null) || dart.notNull(t == null))
       return true;
     if (hasField(t, `${_foreign_helper.JS_FUNCTION_TYPE_TAG()}`)) {
       return isFunctionSubtype(s, t);
     }
     if (hasField(s, `${_foreign_helper.JS_FUNCTION_TYPE_TAG()}`)) {
-      return dart.equals(getConstructorName(t), _foreign_helper.JS_FUNCTION_CLASS_NAME());
+      return getConstructorName(t) == _foreign_helper.JS_FUNCTION_CLASS_NAME();
     }
     let typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
     let typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
@@ -1155,7 +1155,7 @@ var _js_helper;
       let field = `${_foreign_helper.JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}`;
       substitution = getField(typeOfSPrototype, field);
     }
-    if (!dart.notNull(isJsArray(s)) && dart.notNull(substitution === null) || !dart.notNull(isJsArray(t))) {
+    if (!dart.notNull(isJsArray(s)) && dart.notNull(substitution == null) || !dart.notNull(isJsArray(t))) {
       return true;
     }
     return checkArguments(substitution, getArguments(s), getArguments(t));
@@ -1166,11 +1166,11 @@ var _js_helper;
   }
   // Function areAssignable: (List<dynamic>, List, bool) → bool
   function areAssignable(s, t, allowShorter) {
-    if (dart.notNull(t === null) && dart.notNull(s === null))
+    if (dart.notNull(t == null) && dart.notNull(s == null))
       return true;
-    if (t === null)
+    if (t == null)
       return allowShorter;
-    if (s === null)
+    if (s == null)
       return false;
     dart.assert(isJsArray(s));
     dart.assert(isJsArray(t));
@@ -1180,7 +1180,7 @@ var _js_helper;
       if (dart.notNull(sLength) < dart.notNull(tLength))
         return false;
     } else {
-      if (sLength !== tLength)
+      if (sLength != tLength)
         return false;
     }
     for (let i = 0; dart.notNull(i) < dart.notNull(tLength); i = dart.notNull(i) + 1) {
@@ -1192,9 +1192,9 @@ var _js_helper;
   }
   // Function areAssignableMaps: (dynamic, dynamic) → bool
   function areAssignableMaps(s, t) {
-    if (t === null)
+    if (t == null)
       return true;
-    if (s === null)
+    if (s == null)
       return false;
     dart.assert(isJsObject(s));
     dart.assert(isJsObject(t));
@@ -1230,17 +1230,17 @@ var _js_helper;
     let tParameterTypes = getField(t, `${_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()}`);
     let sOptionalParameterTypes = getField(s, `${_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()}`);
     let tOptionalParameterTypes = getField(t, `${_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()}`);
-    let sParametersLen = sParameterTypes !== null ? getLength(sParameterTypes) : 0;
-    let tParametersLen = tParameterTypes !== null ? getLength(tParameterTypes) : 0;
-    let sOptionalParametersLen = sOptionalParameterTypes !== null ? getLength(sOptionalParameterTypes) : 0;
-    let tOptionalParametersLen = tOptionalParameterTypes !== null ? getLength(tOptionalParameterTypes) : 0;
+    let sParametersLen = sParameterTypes != null ? getLength(sParameterTypes) : 0;
+    let tParametersLen = tParameterTypes != null ? getLength(tParameterTypes) : 0;
+    let sOptionalParametersLen = sOptionalParameterTypes != null ? getLength(sOptionalParameterTypes) : 0;
+    let tOptionalParametersLen = tOptionalParameterTypes != null ? getLength(tOptionalParameterTypes) : 0;
     if (dart.notNull(sParametersLen) > dart.notNull(tParametersLen)) {
       return false;
     }
     if (dart.notNull(sParametersLen) + dart.notNull(sOptionalParametersLen) < dart.notNull(tParametersLen) + dart.notNull(tOptionalParametersLen)) {
       return false;
     }
-    if (sParametersLen === tParametersLen) {
+    if (sParametersLen == tParametersLen) {
       if (!dart.notNull(areAssignable(dart.as(sParameterTypes, core.List), dart.as(tParameterTypes, core.List), false)))
         return false;
       if (!dart.notNull(areAssignable(dart.as(sOptionalParameterTypes, core.List), dart.as(tOptionalParameterTypes, core.List), true))) {
@@ -1278,7 +1278,7 @@ var _js_helper;
   // Function invokeOn: (dynamic, dynamic, dynamic) → Object
   function invokeOn(func, receiver, arguments$) {
     dart.assert(isJsFunction(func));
-    dart.assert(dart.notNull(arguments$ === null) || dart.notNull(isJsArray(arguments$)));
+    dart.assert(dart.notNull(arguments$ == null) || dart.notNull(isJsArray(arguments$)));
     return func.apply(receiver, arguments$);
   }
   // Function call: (dynamic, String) → dynamic
@@ -1339,9 +1339,9 @@ var _js_helper;
   }
   // Function isJsIndexable: (dynamic, dynamic) → bool
   function isJsIndexable(object, record) {
-    if (record !== null) {
+    if (record != null) {
       let result = _interceptors.dispatchRecordIndexability(record);
-      if (result !== null)
+      if (result != null)
         return dart.as(result, core.bool);
     }
     return dart.is(object, exports.JavaScriptIndexingBehavior);
@@ -1354,11 +1354,11 @@ var _js_helper;
       if (!dart.equals(value, 0)) {
         return "" + value;
       }
-    } else if (true === value) {
+    } else if (dart.equals(true, value)) {
       return 'true';
-    } else if (false === value) {
+    } else if (dart.equals(false, value)) {
       return 'false';
-    } else if (value === null) {
+    } else if (value == null) {
       return 'null';
     }
     let res = dart.dinvoke(value, 'toString');
@@ -1409,10 +1409,10 @@ var _js_helper;
         return dart.as(this[_memberName], core.Symbol);
       let name = dart.as(this[_memberName], core.String);
       let unmangledName = _js_names.mangledNames.get(name);
-      if (unmangledName !== null) {
+      if (unmangledName != null) {
         name = unmangledName.split(':').get(0);
       } else {
-        if (_js_names.mangledNames.get(this[_internalName]) === null) {
+        if (_js_names.mangledNames.get(this[_internalName]) == null) {
           core.print(`Warning: '${name}' is used reflectively but not in MirrorsUsed. ` + "This will break minified code.");
         }
       }
@@ -1420,22 +1420,22 @@ var _js_helper;
       return dart.as(this[_memberName], core.Symbol);
     }
     get isMethod() {
-      return this[_kind] === JSInvocationMirror.METHOD;
+      return this[_kind] == JSInvocationMirror.METHOD;
     }
     get isGetter() {
-      return this[_kind] === JSInvocationMirror.GETTER;
+      return this[_kind] == JSInvocationMirror.GETTER;
     }
     get isSetter() {
-      return this[_kind] === JSInvocationMirror.SETTER;
+      return this[_kind] == JSInvocationMirror.SETTER;
     }
     get isAccessor() {
-      return this[_kind] !== JSInvocationMirror.METHOD;
+      return this[_kind] != JSInvocationMirror.METHOD;
     }
     get positionalArguments() {
       if (this.isGetter)
         return /* Unimplemented const */new core.List.from([]);
       let argumentCount = dart.notNull(this[_arguments].length) - dart.notNull(this[_namedArgumentNames].length);
-      if (argumentCount === 0)
+      if (argumentCount == 0)
         return /* Unimplemented const */new core.List.from([]);
       let list = new core.List.from([]);
       for (let index = 0; dart.notNull(index) < dart.notNull(argumentCount); index = dart.notNull(index) + 1) {
@@ -1448,7 +1448,7 @@ var _js_helper;
         return dart.map();
       let namedArgumentCount = this[_namedArgumentNames].length;
       let namedArgumentsStartIndex = dart.notNull(this[_arguments].length) - dart.notNull(namedArgumentCount);
-      if (namedArgumentCount === 0)
+      if (namedArgumentCount == 0)
         return dart.map();
       let map = new core.Map();
       for (let i = 0; dart.notNull(i) < dart.notNull(namedArgumentCount); i = dart.notNull(i) + 1) {
@@ -1476,10 +1476,10 @@ var _js_helper;
       if (typeof method != "function") {
         let baseName = _internal.Symbol.getName(dart.as(this.memberName, _internal.Symbol));
         method = receiver[baseName + "*"];
-        if (method === null) {
+        if (method == null) {
           interceptor = _interceptors.getInterceptor(object);
           method = interceptor[baseName + "*"];
-          if (method !== null) {
+          if (method != null) {
             isIntercepted = true;
             receiver = interceptor;
           } else {
@@ -1534,7 +1534,7 @@ var _js_helper;
       } else {
         arguments$ = new core.List.from([victim]);
         arguments$.addAll(arguments$);
-        if (this.cachedInterceptor !== null)
+        if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
       }
       return this.jsFunction.apply(receiver, arguments$);
@@ -1565,7 +1565,7 @@ var _js_helper;
       } else {
         arguments$ = new core.List.from([victim]);
         arguments$.addAll(arguments$);
-        if (this.cachedInterceptor !== null)
+        if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
         providedArgumentCount = dart.notNull(arguments$.length) - 1;
       }
@@ -1593,7 +1593,7 @@ var _js_helper;
       return false;
     }
     invokeOn(victim, invocation) {
-      let receiver = this.interceptor === null ? victim : this.interceptor;
+      let receiver = this.interceptor == null ? victim : this.interceptor;
       return dart.dinvoke(receiver, 'noSuchMethod', invocation);
     }
   }
@@ -1610,15 +1610,15 @@ var _js_helper;
     }
     ReflectionInfo(jsFunction) {
       let data = dart.as(jsFunction.$reflectionInfo, core.List);
-      if (data === null)
+      if (data == null)
         return null;
       data = _interceptors.JSArray.markFixedList(data);
       let requiredParametersInfo = data[ReflectionInfo.REQUIRED_PARAMETERS_INFO];
       let requiredParameterCount = requiredParametersInfo >> 1;
-      let isAccessor = (dart.notNull(requiredParametersInfo) & 1) === 1;
+      let isAccessor = (dart.notNull(requiredParametersInfo) & 1) == 1;
       let optionalParametersInfo = data[ReflectionInfo.OPTIONAL_PARAMETERS_INFO];
       let optionalParameterCount = optionalParametersInfo >> 1;
-      let areOptionalParametersNamed = (dart.notNull(optionalParametersInfo) & 1) === 1;
+      let areOptionalParametersNamed = (dart.notNull(optionalParametersInfo) & 1) == 1;
       let functionType = data[ReflectionInfo.FUNCTION_TYPE_INDEX];
       return new ReflectionInfo.internal(jsFunction, data, isAccessor, requiredParameterCount, optionalParameterCount, areOptionalParametersNamed, functionType);
     }
@@ -1647,7 +1647,7 @@ var _js_helper;
     defaultValueInOrder(parameter) {
       if (dart.notNull(parameter) < dart.notNull(this.requiredParameterCount))
         return null;
-      if (!dart.notNull(this.areOptionalParametersNamed) || this.optionalParameterCount === 1) {
+      if (!dart.notNull(this.areOptionalParametersNamed) || this.optionalParameterCount == 1) {
         return this.defaultValue(parameter);
       }
       let index = this.sortedIndex(dart.notNull(parameter) - dart.notNull(this.requiredParameterCount));
@@ -1656,14 +1656,14 @@ var _js_helper;
     parameterNameInOrder(parameter) {
       if (dart.notNull(parameter) < dart.notNull(this.requiredParameterCount))
         return null;
-      if (!dart.notNull(this.areOptionalParametersNamed) || this.optionalParameterCount === 1) {
+      if (!dart.notNull(this.areOptionalParametersNamed) || this.optionalParameterCount == 1) {
         return this.parameterName(parameter);
       }
       let index = this.sortedIndex(dart.notNull(parameter) - dart.notNull(this.requiredParameterCount));
       return this.parameterName(index);
     }
     sortedIndex(unsortedIndex) {
-      if (this.cachedSortedIndices === null) {
+      if (this.cachedSortedIndices == null) {
         this.cachedSortedIndices = new core.List(this.optionalParameterCount);
         let positions = dart.map();
         for (let i = 0; dart.notNull(i) < dart.notNull(this.optionalParameterCount); i = dart.notNull(i) + 1) {
@@ -1715,7 +1715,7 @@ var _js_helper;
     }
     static objectHashCode(object) {
       let hash = dart.as(object.$identityHash, core.int);
-      if (hash === null) {
+      if (hash == null) {
         hash = Math.random() * 0x3fffffff | 0;
         object.$identityHash = hash;
       }
@@ -1725,7 +1725,7 @@ var _js_helper;
       throw new core.FormatException(string);
     }
     static parseInt(source, radix, handleError) {
-      if (handleError === null)
+      if (handleError == null)
         handleError = dart.closureWrap(Primitives[_throwFormatException], "(String) → int");
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
@@ -1733,13 +1733,13 @@ var _js_helper;
       let hexIndex = 2;
       let decimalIndex = 3;
       let nonDecimalHexIndex = 4;
-      if (radix === null) {
+      if (radix == null) {
         radix = 10;
-        if (match !== null) {
-          if (dart.dindex(match, hexIndex) !== null) {
+        if (match != null) {
+          if (dart.dindex(match, hexIndex) != null) {
             return parseInt(source, 16);
           }
-          if (dart.dindex(match, decimalIndex) !== null) {
+          if (dart.dindex(match, decimalIndex) != null) {
             return parseInt(source, 10);
           }
           return handleError(source);
@@ -1750,11 +1750,11 @@ var _js_helper;
         if (dart.notNull(radix) < 2 || dart.notNull(radix) > 36) {
           throw new core.RangeError(`Radix ${radix} not in range 2..36`);
         }
-        if (match !== null) {
-          if (radix === 10 && dart.notNull(dart.dindex(match, decimalIndex) !== null)) {
+        if (match != null) {
+          if (radix == 10 && dart.notNull(dart.dindex(match, decimalIndex) != null)) {
             return parseInt(source, 10);
           }
-          if (dart.notNull(radix) < 10 || dart.notNull(dart.dindex(match, decimalIndex) === null)) {
+          if (dart.notNull(radix) < 10 || dart.notNull(dart.dindex(match, decimalIndex) == null)) {
             let maxCharCode = null;
             if (dart.notNull(radix) <= 10) {
               maxCharCode = 48 + dart.notNull(radix) - 1;
@@ -1771,13 +1771,13 @@ var _js_helper;
           }
         }
       }
-      if (match === null)
+      if (match == null)
         return handleError(source);
       return parseInt(source, radix);
     }
     static parseDouble(source, handleError) {
       checkString(source);
-      if (handleError === null)
+      if (handleError == null)
         handleError = dart.closureWrap(Primitives[_throwFormatException], "(String) → double");
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
@@ -1785,7 +1785,7 @@ var _js_helper;
       let result = parseFloat(source);
       if (result.isNaN) {
         let trimmed = source.trim();
-        if (dart.notNull(dart.equals(trimmed, 'NaN')) || dart.notNull(dart.equals(trimmed, '+NaN')) || dart.notNull(dart.equals(trimmed, '-NaN'))) {
+        if (dart.notNull(trimmed == 'NaN') || dart.notNull(trimmed == '+NaN') || dart.notNull(trimmed == '-NaN')) {
           return result;
         }
         return handleError(source);
@@ -1797,7 +1797,7 @@ var _js_helper;
     }
     static objectTypeName(object) {
       let name = constructorNameFallback(_interceptors.getInterceptor(object));
-      if (dart.equals(name, 'Object')) {
+      if (name == 'Object') {
         let decompiled = String(object.constructor).match(/^\s*function\s*(\S*)\s*\(/)[1];
         if (typeof decompiled == 'string')
           if (/^\w+$/.test(decompiled))
@@ -1816,17 +1816,17 @@ var _js_helper;
       return Date.now();
     }
     static initTicker() {
-      if (Primitives.timerFrequency !== null)
+      if (Primitives.timerFrequency != null)
         return;
       Primitives.timerFrequency = 1000;
       Primitives.timerTicks = Primitives.dateNow;
       if (typeof window == "undefined")
         return;
       let window = window;
-      if (window === null)
+      if (window == null)
         return;
       let performance = window.performance;
-      if (performance === null)
+      if (performance == null)
         return;
       if (typeof performance.now != "function")
         return;
@@ -1911,13 +1911,13 @@ var _js_helper;
     static getTimeZoneName(receiver) {
       let d = Primitives.lazyAsJsDate(receiver);
       let match = dart.as(/\((.*)\)/.exec(d.toString()), core.List);
-      if (match !== null)
+      if (match != null)
         return dart.as(match.get(1), core.String);
       match = dart.as(/^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString()), core.List);
-      if (match !== null)
+      if (match != null)
         return dart.as(match.get(1), core.String);
       match = dart.as(/(?:GMT|UTC)[+-]\d{4}/.exec(d.toString()), core.List);
-      if (match !== null)
+      if (match != null)
         return dart.as(match.get(0), core.String);
       return "";
     }
@@ -1997,13 +1997,13 @@ var _js_helper;
       return value;
     }
     static getProperty(object, key) {
-      if (dart.notNull(object === null) || dart.notNull(typeof object == 'boolean') || dart.notNull(dart.is(object, core.num)) || dart.notNull(typeof object == 'string')) {
+      if (dart.notNull(object == null) || dart.notNull(typeof object == 'boolean') || dart.notNull(dart.is(object, core.num)) || dart.notNull(typeof object == 'string')) {
         throw new core.ArgumentError(object);
       }
       return object[key];
     }
     static setProperty(object, key, value) {
-      if (dart.notNull(object === null) || dart.notNull(typeof object == 'boolean') || dart.notNull(dart.is(object, core.num)) || dart.notNull(typeof object == 'string')) {
+      if (dart.notNull(object == null) || dart.notNull(typeof object == 'boolean') || dart.notNull(dart.is(object, core.num)) || dart.notNull(typeof object == 'string')) {
         throw new core.ArgumentError(object);
       }
       object[key] = value;
@@ -2012,12 +2012,12 @@ var _js_helper;
       let argumentCount = 0;
       let arguments$ = new core.List.from([]);
       let namedArgumentList = new core.List.from([]);
-      if (positionalArguments !== null) {
+      if (positionalArguments != null) {
         argumentCount = positionalArguments.length;
         arguments$.addAll(positionalArguments);
       }
       let names = '';
-      if (dart.notNull(namedArguments !== null) && !dart.notNull(namedArguments.isEmpty)) {
+      if (dart.notNull(namedArguments != null) && !dart.notNull(namedArguments.isEmpty)) {
         namedArguments.forEach(((name, argument) => {
           names = `${names}$${name}`;
           namedArgumentList.add(name);
@@ -2029,12 +2029,12 @@ var _js_helper;
       return dart.dinvoke(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.throw_("Unimplemented SymbolLiteral: #call"), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
     }
     static applyFunction(func, positionalArguments, namedArguments) {
-      return namedArguments === null ? Primitives.applyFunctionWithPositionalArguments(func, positionalArguments) : Primitives.applyFunctionWithNamedArguments(func, positionalArguments, namedArguments);
+      return namedArguments == null ? Primitives.applyFunctionWithPositionalArguments(func, positionalArguments) : Primitives.applyFunctionWithNamedArguments(func, positionalArguments, namedArguments);
     }
     static applyFunctionWithPositionalArguments(func, positionalArguments) {
       let argumentCount = 0;
       let arguments$ = null;
-      if (positionalArguments !== null) {
+      if (positionalArguments != null) {
         if (positionalArguments instanceof Array) {
           arguments$ = positionalArguments;
         } else {
@@ -2046,7 +2046,7 @@ var _js_helper;
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}`;
       let jsFunction = func[selectorName];
-      if (jsFunction === null) {
+      if (jsFunction == null) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, null);
       }
       return jsFunction.apply(func, arguments$);
@@ -2057,19 +2057,19 @@ var _js_helper;
       }
       let interceptor = _interceptors.getInterceptor(func);
       let jsFunction = interceptor["call*"];
-      if (jsFunction === null) {
+      if (jsFunction == null) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       let info = new ReflectionInfo(jsFunction);
-      if (dart.notNull(info === null) || !dart.notNull(info.areOptionalParametersNamed)) {
+      if (dart.notNull(info == null) || !dart.notNull(info.areOptionalParametersNamed)) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
-      if (positionalArguments !== null) {
+      if (positionalArguments != null) {
         positionalArguments = new core.List.from(positionalArguments);
       } else {
         positionalArguments = new core.List.from([]);
       }
-      if (info.requiredParameterCount !== positionalArguments.length) {
+      if (info.requiredParameterCount != positionalArguments.length) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       let defaultArguments = new core.Map();
@@ -2129,7 +2129,7 @@ var _js_helper;
   }
   // Function ioore: (dynamic, dynamic) → dynamic
   function ioore(receiver, index) {
-    if (receiver === null)
+    if (receiver == null)
       dart.dload(receiver, 'length');
     if (!(typeof index == 'number'))
       iae(index);
@@ -2141,7 +2141,7 @@ var _js_helper;
   }
   // Function checkNull: (dynamic) → dynamic
   function checkNull(object) {
-    if (object === null)
+    if (object == null)
       throw new core.ArgumentError(null);
     return object;
   }
@@ -2175,7 +2175,7 @@ var _js_helper;
   }
   // Function wrapException: (dynamic) → dynamic
   function wrapException(ex) {
-    if (ex === null)
+    if (ex == null)
       ex = new core.NullThrownError();
     let wrapper = new Error();
     wrapper.dartException = ex;
@@ -2225,22 +2225,22 @@ var _js_helper;
     }
     matchTypeError(message) {
       let match = new RegExp(this[_pattern]).exec(message);
-      if (match === null)
+      if (match == null)
         return null;
       let result = Object.create(null);
-      if (this[_arguments] !== -1) {
+      if (this[_arguments] != -1) {
         result.arguments = match[this[_arguments] + 1];
       }
-      if (this[_argumentsExpr] !== -1) {
+      if (this[_argumentsExpr] != -1) {
         result.argumentsExpr = match[this[_argumentsExpr] + 1];
       }
-      if (this[_expr] !== -1) {
+      if (this[_expr] != -1) {
         result.expr = match[this[_expr] + 1];
       }
-      if (this[_method] !== -1) {
+      if (this[_method] != -1) {
         result.method = match[this[_method] + 1];
       }
-      if (this[_receiver] !== -1) {
+      if (this[_receiver] != -1) {
         result.receiver = match[this[_receiver] + 1];
       }
       return result;
@@ -2264,7 +2264,7 @@ var _js_helper;
       message = message.replace(String({}), '$receiver$');
       message = message.replace(new RegExp(ESCAPE_REGEXP, 'g'), '\\$&');
       let match = dart.as(message.match(/\\\$[a-zA-Z]+\\\$/g), core.List$(core.String));
-      if (match === null)
+      if (match == null)
         match = dart.as(new core.List.from([]), core.List$(core.String));
       let arguments$ = match.indexOf('\\$arguments\\$');
       let argumentsExpr = match.indexOf('\\$argumentsExpr\\$');
@@ -2380,11 +2380,11 @@ var _js_helper;
   class NullError extends core.Error {
     NullError(message$, match) {
       this[_message] = message$;
-      this[_method] = dart.as(match === null ? null : match.method, core.String);
+      this[_method] = dart.as(match == null ? null : match.method, core.String);
       super.Error();
     }
     toString() {
-      if (this[_method] === null)
+      if (this[_method] == null)
         return `NullError: ${this[_message]}`;
       return `NullError: Cannot call "${this[_method]}" on null`;
     }
@@ -2392,14 +2392,14 @@ var _js_helper;
   class JsNoSuchMethodError extends core.Error {
     JsNoSuchMethodError(message$, match) {
       this[_message] = message$;
-      this[_method] = dart.as(match === null ? null : match.method, core.String);
-      this[_receiver] = dart.as(match === null ? null : match.receiver, core.String);
+      this[_method] = dart.as(match == null ? null : match.method, core.String);
+      this[_receiver] = dart.as(match == null ? null : match.receiver, core.String);
       super.Error();
     }
     toString() {
-      if (this[_method] === null)
+      if (this[_method] == null)
         return `NoSuchMethodError: ${this[_message]}`;
-      if (this[_receiver] === null) {
+      if (this[_receiver] == null) {
         return `NoSuchMethodError: Cannot call "${this[_method]}" (${this[_message]})`;
       }
       return `NoSuchMethodError: Cannot call "${this[_method]}" on "${this[_receiver]}" ` + `(${this[_message]})`;
@@ -2420,13 +2420,13 @@ var _js_helper;
     function saveStackTrace(error) {
       if (dart.is(error, core.Error)) {
         let thrownStackTrace = error.$thrownJsError;
-        if (thrownStackTrace === null) {
+        if (thrownStackTrace == null) {
           error.$thrownJsError = ex;
         }
       }
       return error;
     }
-    if (ex === null)
+    if (ex == null)
       return null;
     if (typeof ex !== "object")
       return ex;
@@ -2440,7 +2440,7 @@ var _js_helper;
       let number = ex.number;
       let ieErrorCode = dart.notNull(number) & 65535;
       let ieFacilityNumber = dart.notNull(number) >> 16 & 8191;
-      if (ieFacilityNumber === 10) {
+      if (ieFacilityNumber == 10) {
         switch (ieErrorCode) {
           case 438:
           {
@@ -2466,12 +2466,12 @@ var _js_helper;
       let nullLiteralProperty = TypeErrorDecoder.nullLiteralPropertyPattern;
       let undefProperty = TypeErrorDecoder.undefinedPropertyPattern;
       let undefLiteralProperty = TypeErrorDecoder.undefinedLiteralPropertyPattern;
-      if ((match = dart.dinvoke(nsme, 'matchTypeError', message)) !== null) {
+      if ((match = dart.dinvoke(nsme, 'matchTypeError', message)) != null) {
         return saveStackTrace(new JsNoSuchMethodError(dart.as(message, core.String), match));
-      } else if ((match = dart.dinvoke(notClosure, 'matchTypeError', message)) !== null) {
+      } else if ((match = dart.dinvoke(notClosure, 'matchTypeError', message)) != null) {
         match.method = "call";
         return saveStackTrace(new JsNoSuchMethodError(dart.as(message, core.String), match));
-      } else if (dart.notNull((match = dart.dinvoke(nullCall, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(undefCall, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(undefLiteralCall, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(nullProperty, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(undefProperty, 'matchTypeError', message)) !== null) || dart.notNull((match = dart.dinvoke(undefLiteralProperty, 'matchTypeError', message)) !== null)) {
+      } else if (dart.notNull((match = dart.dinvoke(nullCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(nullProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefLiteralProperty, 'matchTypeError', message)) != null)) {
         return saveStackTrace(new NullError(dart.as(message, core.String), match));
       }
       return saveStackTrace(new UnknownJsTypeError(dart.as(typeof message == 'string' ? message : '', core.String)));
@@ -2501,18 +2501,18 @@ var _js_helper;
       this[_trace] = null;
     }
     toString() {
-      if (this[_trace] !== null)
+      if (this[_trace] != null)
         return this[_trace];
       let trace = null;
       if (typeof this[_exception] === "object") {
         trace = dart.as(this[_exception].stack, core.String);
       }
-      return this[_trace] = trace === null ? '' : trace;
+      return this[_trace] = trace == null ? '' : trace;
     }
   }
   // Function objectHashCode: (dynamic) → int
   function objectHashCode(object) {
-    if (dart.notNull(object === null) || typeof object != 'object') {
+    if (dart.notNull(object == null) || typeof object != 'object') {
       return dart.as(dart.dload(object, 'hashCode'), core.int);
     } else {
       return Primitives.objectHashCode(object);
@@ -2531,15 +2531,15 @@ var _js_helper;
   }
   // Function invokeClosure: (Function, dynamic, int, dynamic, dynamic, dynamic, dynamic) → dynamic
   function invokeClosure(closure, isolate, numberOfArguments, arg1, arg2, arg3, arg4) {
-    if (numberOfArguments === 0) {
+    if (numberOfArguments == 0) {
       return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure));
-    } else if (numberOfArguments === 1) {
+    } else if (numberOfArguments == 1) {
       return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1));
-    } else if (numberOfArguments === 2) {
+    } else if (numberOfArguments == 2) {
       return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1, arg2));
-    } else if (numberOfArguments === 3) {
+    } else if (numberOfArguments == 3) {
       return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1, arg2, arg3));
-    } else if (numberOfArguments === 4) {
+    } else if (numberOfArguments == 4) {
       return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1, arg2, arg3, arg4));
     } else {
       throw new core.Exception('Unsupported number of arguments for wrapped closure');
@@ -2547,7 +2547,7 @@ var _js_helper;
   }
   // Function convertDartClosureToJS: (dynamic, int) → dynamic
   function convertDartClosureToJS(closure, arity) {
-    if (closure === null)
+    if (closure == null)
       return null;
     let func = closure.$identity;
     if (!!func)
@@ -2617,7 +2617,7 @@ var _js_helper;
       for (let i = 1; dart.notNull(i) < dart.notNull(functions.length); i = dart.notNull(i) + 1) {
         let stub = functions.get(i);
         let stubCallName = stub.$callName;
-        if (stubCallName !== null) {
+        if (stubCallName != null) {
           prototype[stubCallName] = isStatic ? stub : Closure.forwardCallTo(receiver, stub, isIntercepted);
         }
       }
@@ -2700,7 +2700,7 @@ var _js_helper;
       if (dart.notNull(Closure.isCsp) || dart.notNull(isSuperCall) || dart.notNull(arity) >= 27) {
         return Closure.cspForwardCall(arity, isSuperCall, stubName, func);
       }
-      if (arity === 0) {
+      if (arity == 0) {
         return new Function('return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${((x$) => Closure.functionCounter = dart.notNull(x$) + 1, x$)(Closure.functionCounter)}` + '}')();
       }
       dart.assert(1 <= dart.notNull(arity) && dart.notNull(arity) < 27);
@@ -2788,7 +2788,7 @@ var _js_helper;
       if (dart.notNull(isCsp) || dart.notNull(isSuperCall) || dart.notNull(arity) >= 28) {
         return Closure.cspForwardInterceptedCall(arity, isSuperCall, stubName, func);
       }
-      if (arity === 1) {
+      if (arity == 1) {
         return new Function('return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${((x$) => Closure.functionCounter = dart.notNull(x$) + 1, x$)(Closure.functionCounter)}` + '}')();
       }
       dart.assert(1 < dart.notNull(arity) && dart.notNull(arity) < 28);
@@ -2832,9 +2832,9 @@ var _js_helper;
     }
     get hashCode() {
       let receiverHashCode = null;
-      if (this[_receiver] === null) {
+      if (this[_receiver] == null) {
         receiverHashCode = Primitives.objectHashCode(this[_self]);
-      } else if (!dart.equals(typeof this[_receiver], 'object')) {
+      } else if (typeof this[_receiver] != 'object') {
         receiverHashCode = dart.as(dart.dload(this[_receiver], 'hashCode'), core.int);
       } else {
         receiverHashCode = Primitives.objectHashCode(this[_receiver]);
@@ -2854,13 +2854,13 @@ var _js_helper;
       return closure[_name];
     }
     static selfFieldName() {
-      if (BoundClosure.selfFieldNameCache === null) {
+      if (BoundClosure.selfFieldNameCache == null) {
         BoundClosure.selfFieldNameCache = BoundClosure.computeFieldNamed('self');
       }
       return BoundClosure.selfFieldNameCache;
     }
     static receiverFieldName() {
-      if (BoundClosure.receiverFieldNameCache === null) {
+      if (BoundClosure.receiverFieldNameCache == null) {
         BoundClosure.receiverFieldNameCache = BoundClosure.computeFieldNamed('receiver');
       }
       return BoundClosure.receiverFieldNameCache;
@@ -2910,12 +2910,12 @@ var _js_helper;
     if (typeof value == 'boolean')
       return value;
     boolTypeCheck(value);
-    dart.assert(value !== null);
+    dart.assert(value != null);
     return false;
   }
   // Function stringTypeCheck: (dynamic) → dynamic
   function stringTypeCheck(value) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'string')
       return value;
@@ -2923,13 +2923,13 @@ var _js_helper;
   }
   // Function stringTypeCast: (dynamic) → dynamic
   function stringTypeCast(value) {
-    if (dart.notNull(typeof value == 'string') || dart.notNull(value === null))
+    if (dart.notNull(typeof value == 'string') || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'String');
   }
   // Function doubleTypeCheck: (dynamic) → dynamic
   function doubleTypeCheck(value) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'number')
       return value;
@@ -2937,13 +2937,13 @@ var _js_helper;
   }
   // Function doubleTypeCast: (dynamic) → dynamic
   function doubleTypeCast(value) {
-    if (dart.notNull(typeof value == 'number') || dart.notNull(value === null))
+    if (dart.notNull(typeof value == 'number') || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'double');
   }
   // Function numTypeCheck: (dynamic) → dynamic
   function numTypeCheck(value) {
-    if (value === null)
+    if (value == null)
       return value;
     if (dart.is(value, core.num))
       return value;
@@ -2951,13 +2951,13 @@ var _js_helper;
   }
   // Function numTypeCast: (dynamic) → dynamic
   function numTypeCast(value) {
-    if (dart.notNull(dart.is(value, core.num)) || dart.notNull(value === null))
+    if (dart.notNull(dart.is(value, core.num)) || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'num');
   }
   // Function boolTypeCheck: (dynamic) → dynamic
   function boolTypeCheck(value) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'boolean')
       return value;
@@ -2965,13 +2965,13 @@ var _js_helper;
   }
   // Function boolTypeCast: (dynamic) → dynamic
   function boolTypeCast(value) {
-    if (dart.notNull(typeof value == 'boolean') || dart.notNull(value === null))
+    if (dart.notNull(typeof value == 'boolean') || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'bool');
   }
   // Function intTypeCheck: (dynamic) → dynamic
   function intTypeCheck(value) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'number')
       return value;
@@ -2979,7 +2979,7 @@ var _js_helper;
   }
   // Function intTypeCast: (dynamic) → dynamic
   function intTypeCast(value) {
-    if (dart.notNull(typeof value == 'number') || dart.notNull(value === null))
+    if (dart.notNull(typeof value == 'number') || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'int');
   }
@@ -2996,7 +2996,7 @@ var _js_helper;
   }
   // Function propertyTypeCheck: (dynamic, dynamic) → dynamic
   function propertyTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (!!value[property])
       return value;
@@ -3004,13 +3004,13 @@ var _js_helper;
   }
   // Function propertyTypeCast: (dynamic, dynamic) → dynamic
   function propertyTypeCast(value, property) {
-    if (dart.notNull(value === null) || !!value[property])
+    if (dart.notNull(value == null) || !!value[property])
       return value;
     propertyTypeCastError(value, property);
   }
   // Function interceptedTypeCheck: (dynamic, dynamic) → dynamic
   function interceptedTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (dart.notNull(core.identical(typeof value, 'object')) && _interceptors.getInterceptor(value)[property]) {
       return value;
@@ -3019,14 +3019,14 @@ var _js_helper;
   }
   // Function interceptedTypeCast: (dynamic, dynamic) → dynamic
   function interceptedTypeCast(value, property) {
-    if (dart.notNull(value === null) || typeof value === "object" && _interceptors.getInterceptor(value)[property]) {
+    if (dart.notNull(value == null) || typeof value === "object" && _interceptors.getInterceptor(value)[property]) {
       return value;
     }
     propertyTypeCastError(value, property);
   }
   // Function numberOrStringSuperTypeCheck: (dynamic, dynamic) → dynamic
   function numberOrStringSuperTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'string')
       return value;
@@ -3046,7 +3046,7 @@ var _js_helper;
   }
   // Function numberOrStringSuperNativeTypeCheck: (dynamic, dynamic) → dynamic
   function numberOrStringSuperNativeTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'string')
       return value;
@@ -3058,7 +3058,7 @@ var _js_helper;
   }
   // Function numberOrStringSuperNativeTypeCast: (dynamic, dynamic) → dynamic
   function numberOrStringSuperNativeTypeCast(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'string')
       return value;
@@ -3070,7 +3070,7 @@ var _js_helper;
   }
   // Function stringSuperTypeCheck: (dynamic, dynamic) → dynamic
   function stringSuperTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'string')
       return value;
@@ -3086,7 +3086,7 @@ var _js_helper;
   }
   // Function stringSuperNativeTypeCheck: (dynamic, dynamic) → dynamic
   function stringSuperNativeTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (typeof value == 'string')
       return value;
@@ -3096,7 +3096,7 @@ var _js_helper;
   }
   // Function stringSuperNativeTypeCast: (dynamic, dynamic) → dynamic
   function stringSuperNativeTypeCast(value, property) {
-    if (dart.notNull(typeof value == 'string') || dart.notNull(value === null))
+    if (dart.notNull(typeof value == 'string') || dart.notNull(value == null))
       return value;
     if (_interceptors.getInterceptor(value)[property])
       return value;
@@ -3104,7 +3104,7 @@ var _js_helper;
   }
   // Function listTypeCheck: (dynamic) → dynamic
   function listTypeCheck(value) {
-    if (value === null)
+    if (value == null)
       return value;
     if (dart.is(value, core.List))
       return value;
@@ -3112,13 +3112,13 @@ var _js_helper;
   }
   // Function listTypeCast: (dynamic) → dynamic
   function listTypeCast(value) {
-    if (dart.notNull(dart.is(value, core.List)) || dart.notNull(value === null))
+    if (dart.notNull(dart.is(value, core.List)) || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'List');
   }
   // Function listSuperTypeCheck: (dynamic, dynamic) → dynamic
   function listSuperTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (dart.is(value, core.List))
       return value;
@@ -3134,7 +3134,7 @@ var _js_helper;
   }
   // Function listSuperNativeTypeCheck: (dynamic, dynamic) → dynamic
   function listSuperNativeTypeCheck(value, property) {
-    if (value === null)
+    if (value == null)
       return value;
     if (dart.is(value, core.List))
       return value;
@@ -3144,7 +3144,7 @@ var _js_helper;
   }
   // Function listSuperNativeTypeCast: (dynamic, dynamic) → dynamic
   function listSuperNativeTypeCast(value, property) {
-    if (dart.notNull(dart.is(value, core.List)) || dart.notNull(value === null))
+    if (dart.notNull(dart.is(value, core.List)) || dart.notNull(value == null))
       return value;
     if (_interceptors.getInterceptor(value)[property])
       return value;
@@ -3152,13 +3152,13 @@ var _js_helper;
   }
   // Function voidTypeCheck: (dynamic) → dynamic
   function voidTypeCheck(value) {
-    if (value === null)
+    if (value == null)
       return value;
     throw new TypeErrorImplementation(value, 'void');
   }
   // Function checkMalformedType: (dynamic, dynamic) → dynamic
   function checkMalformedType(value, message) {
-    if (value === null)
+    if (value == null)
       return value;
     throw new TypeErrorImplementation.fromMessage(dart.as(message, core.String));
   }
@@ -3215,7 +3215,7 @@ var _js_helper;
         throw new TypeErrorImplementation(condition, 'bool');
       }
     }
-    if (true !== condition)
+    if (!dart.equals(true, condition))
       throw new core.AssertionError();
   }
   // Function throwNoSuchMethod: (dynamic, dynamic, dynamic, dynamic) → void
@@ -3267,7 +3267,7 @@ var _js_helper;
     }
     [_isTest](expression) {
       let functionTypeObject = this[_extractFunctionTypeObjectFrom](expression);
-      return functionTypeObject === null ? false : isFunctionSubtype(functionTypeObject, this.toRti());
+      return functionTypeObject == null ? false : isFunctionSubtype(functionTypeObject, this.toRti());
     }
     [_asCheck](expression) {
       return this[_check](expression, true);
@@ -3283,7 +3283,7 @@ var _js_helper;
       }
     }
     [_check](expression, isCast) {
-      if (expression === null)
+      if (expression == null)
         return null;
       if (this[_isTest](expression))
         return expression;
@@ -3291,7 +3291,7 @@ var _js_helper;
       if (isCast) {
         let functionTypeObject = this[_extractFunctionTypeObjectFrom](expression);
         let pretty = null;
-        if (functionTypeObject !== null) {
+        if (functionTypeObject != null) {
           pretty = new FunctionTypeInfoDecoderRing(functionTypeObject).toString();
         } else {
           pretty = Primitives.objectTypeName(expression);
@@ -3314,13 +3314,13 @@ var _js_helper;
           result[_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()] = this.returnType.toRti();
         }
       }
-      if (dart.notNull(this.parameterTypes !== null) && !dart.notNull(this.parameterTypes.isEmpty)) {
+      if (dart.notNull(this.parameterTypes != null) && !dart.notNull(this.parameterTypes.isEmpty)) {
         result[_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.parameterTypes);
       }
-      if (dart.notNull(this.optionalParameterTypes !== null) && !dart.notNull(this.optionalParameterTypes.isEmpty)) {
+      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes.isEmpty)) {
         result[_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.optionalParameterTypes);
       }
-      if (this.namedParameters !== null) {
+      if (this.namedParameters != null) {
         let namedRti = Object.create(null);
         let keys = _js_names.extractKeys(this.namedParameters);
         for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
@@ -3343,7 +3343,7 @@ var _js_helper;
     toString() {
       let result = '(';
       let needsComma = false;
-      if (this.parameterTypes !== null) {
+      if (this.parameterTypes != null) {
         for (let i = 0; dart.notNull(i) < dart.notNull(this.parameterTypes.length); i = dart.notNull(i) + 1) {
           let type = this.parameterTypes.get(i);
           if (needsComma)
@@ -3352,7 +3352,7 @@ var _js_helper;
           needsComma = true;
         }
       }
-      if (dart.notNull(this.optionalParameterTypes !== null) && !dart.notNull(this.optionalParameterTypes.isEmpty)) {
+      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes.isEmpty)) {
         if (needsComma)
           result = ', ';
         needsComma = false;
@@ -3365,7 +3365,7 @@ var _js_helper;
           needsComma = true;
         }
         result = ']';
-      } else if (this.namedParameters !== null) {
+      } else if (this.namedParameters != null) {
         if (needsComma)
           result = ', ';
         needsComma = false;
@@ -3397,7 +3397,7 @@ var _js_helper;
   // Function buildInterfaceType: (dynamic, dynamic) → RuntimeType
   function buildInterfaceType(rti, typeArguments) {
     let name = dart.as(rti.name, core.String);
-    if (core.bool['||'](typeArguments === null, dart.dload(typeArguments, 'isEmpty'))) {
+    if (core.bool['||'](typeArguments == null, dart.dload(typeArguments, 'isEmpty'))) {
       return new RuntimeTypePlain(name);
     }
     return new RuntimeTypeGeneric(name, dart.as(typeArguments, core.List$(RuntimeType)), null);
@@ -3452,7 +3452,7 @@ var _js_helper;
   }
   // Function convertRtiToRuntimeType: (dynamic) → RuntimeType
   function convertRtiToRuntimeType(rti) {
-    if (rti === null) {
+    if (rti == null) {
       return getDynamicRuntimeType();
     } else if (typeof rti == "function") {
       return new RuntimeTypePlain(rti.name);
@@ -3478,7 +3478,7 @@ var _js_helper;
     toRti() {
       let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.ALL_CLASSES);
       let rti = allClasses[this.name];
-      if (rti === null)
+      if (rti == null)
         throw `no type for '${this.name}'`;
       return rti;
     }
@@ -3494,11 +3494,11 @@ var _js_helper;
       super.RuntimeType();
     }
     toRti() {
-      if (this.rti !== null)
+      if (this.rti != null)
         return this.rti;
       let allClasses = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.ALL_CLASSES);
       let result = [allClasses[this.name]];
-      if (dart.dindex(result, 0) === null) {
+      if (dart.dindex(result, 0) == null) {
         throw `no type for '${this.name}<...>'`;
       }
       for (let argument of this.arguments) {
@@ -3558,7 +3558,7 @@ var _js_helper;
     }
     [_convert](type) {
       let result = runtimeTypeToString(type);
-      if (result !== null)
+      if (result != null)
         return result;
       if ("func" in type) {
         return new FunctionTypeInfoDecoderRing(type).toString();
@@ -3567,7 +3567,7 @@ var _js_helper;
       }
     }
     toString() {
-      if (this[_cachedToString] !== null)
+      if (this[_cachedToString] != null)
         return this[_cachedToString];
       let s = "(";
       let sep = '';
@@ -3653,7 +3653,7 @@ var _js_helper;
     let uris = dart.as(urisMap[loadId], core.List$(core.String));
     let hashesMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.DEFERRED_LIBRARY_HASHES);
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
-    if (uris === null)
+    if (uris == null)
       return dart.as(new async.Future.value(null), async.Future$(core.Null));
     let indices = dart.as(new core.List.generate(uris.length, dart.closureWrap((i) => i, "(int) → dynamic")), core.List$(core.int));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
@@ -3666,7 +3666,7 @@ var _js_helper;
         initializer(hashes.get(i));
       }
       let updated = exports._loadedLibraries.add(loadId);
-      if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook !== null)) {
+      if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook != null)) {
         exports.deferredLoadHook();
       }
     }, "(List<dynamic>) → dynamic")), async.Future$(core.Null));
@@ -3674,7 +3674,7 @@ var _js_helper;
   // Function _loadHunk: (String) → Future<Null>
   function _loadHunk(hunkName) {
     let future = exports._loadingLibraries.get(hunkName);
-    if (future !== null) {
+    if (future != null) {
       return dart.as(future.then(dart.closureWrap((_) => null, "(Null) → dynamic")), async.Future$(core.Null));
     }
     let uri = _isolate_helper.IsolateNatives.thisScript;
@@ -3703,7 +3703,7 @@ var _js_helper;
         let xhr = new XMLHttpRequest();
         xhr.open("GET", uri);
         xhr.addEventListener("load", convertDartClosureToJS((event) => {
-          if (xhr.status !== 200) {
+          if (xhr.status != 200) {
             completer.completeError(new async.DeferredLoadException(`Loading ${uri} failed.`));
             return;
           }

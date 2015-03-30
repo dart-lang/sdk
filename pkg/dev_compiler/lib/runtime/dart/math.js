@@ -66,7 +66,7 @@ var math;
     Random(seed) {
       if (seed === void 0)
         seed = null;
-      return seed === null ? new _JSRandom() : new _Random(seed);
+      return seed == null ? new _JSRandom() : new _Random(seed);
     }
   }
   let _RectangleBase$ = dart.generic(function(T) {
@@ -219,11 +219,11 @@ var math;
       return a;
     if (typeof b == 'number') {
       if (typeof a == 'number') {
-        if (a === 0.0) {
+        if (a == 0.0) {
           return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
         }
       }
-      if (a === 0 && dart.notNull(b.isNegative) || dart.notNull(b.isNaN))
+      if (a == 0 && dart.notNull(b.isNegative) || dart.notNull(b.isNaN))
         return b;
       return a;
     }
@@ -241,7 +241,7 @@ var math;
       return b;
     if (typeof b == 'number') {
       if (typeof a == 'number') {
-        if (a === 0.0) {
+        if (a == 0.0) {
           return dart.notNull(a) + dart.notNull(b);
         }
       }
@@ -249,7 +249,7 @@ var math;
         return b;
       return a;
     }
-    if (b === 0 && dart.notNull(a.isNegative))
+    if (b == 0 && dart.notNull(a.isNegative))
       return b;
     return a;
   }
@@ -368,8 +368,8 @@ var math;
         this[_hi] = dart.notNull(this[_hi]) * 1037 + ((dart.notNull(tmplow) - dart.notNull(this[_lo])) / 4294967296).truncate() & dart.notNull(_Random[_MASK32]);
         this[_lo] = low;
         this[_hi] = high;
-      } while (seed !== empty_seed);
-      if (this[_hi] === 0 && this[_lo] === 0) {
+      } while (seed != empty_seed);
+      if (this[_hi] == 0 && this[_lo] == 0) {
         this[_lo] = 23063;
       }
       this[_nextState]();
@@ -395,7 +395,7 @@ var math;
       if (dart.notNull(max) <= 0 || dart.notNull(max) > dart.notNull(_POW2_32)) {
         throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
       }
-      if ((dart.notNull(max) & dart.notNull(max) - 1) === 0) {
+      if ((dart.notNull(max) & dart.notNull(max) - 1) == 0) {
         this[_nextState]();
         return dart.notNull(this[_lo]) & dart.notNull(max) - 1;
       }
@@ -417,7 +417,7 @@ var math;
     }
     nextBool() {
       this[_nextState]();
-      return (dart.notNull(this[_lo]) & 1) === 0;
+      return (dart.notNull(this[_lo]) & 1) == 0;
     }
   }
   _Random._POW2_53_D = 1.0 * 9007199254740992;

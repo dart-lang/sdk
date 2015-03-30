@@ -1447,11 +1447,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var code;
     if (op.type.isEqualityOperator) {
       // If we statically know LHS or RHS is null we can generate a clean check.
-      // We can also do this if the left hand side is a primitive type, because
-      // we know then it doesn't have an overridden.
-      if (_isNull(left) || _isNull(right) || typeIsPrimitiveInJS(leftType)) {
-        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-strict-equality-comparison
-        code = op.type == TokenType.EQ_EQ ? '# === #' : '# !== #';
+      // We can also do this if both sides are the same primitive type.
+      if (_canUsePrimitiveEquality(left, right)) {
+        code = op.type == TokenType.EQ_EQ ? '# == #' : '# != #';
       } else {
         var bang = op.type == TokenType.BANG_EQ ? '!' : '';
         code = '${bang}dart.equals(#, #)';
@@ -1498,6 +1496,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         return js.call('#.#(#)', [_visit(left), opString, _visit(right)]);
       }
     }
+  }
+
+  /// If the type [t] is [int] or [double], returns [num].
+  /// Otherwise returns [t].
+  DartType _canonicalizeNumTypes(DartType t) {
+    var numType = rules.provider.numType;
+    if (t is InterfaceType && t.superclass == numType) return numType;
+    return t;
+  }
+
+  bool _canUsePrimitiveEquality(Expression left, Expression right) {
+    if (_isNull(left) || _isNull(right)) return true;
+
+    var leftType = _canonicalizeNumTypes(rules.getStaticType(left));
+    var rightType = _canonicalizeNumTypes(rules.getStaticType(right));
+    return _isJSBuiltinType(leftType) && leftType == rightType;
   }
 
   bool _isNull(Expression expr) => expr is NullLiteral;

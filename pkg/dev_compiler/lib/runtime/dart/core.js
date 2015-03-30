@@ -109,16 +109,16 @@ var core;
     static parse(formattedString) {
       let re = new RegExp('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
       let match = re.firstMatch(formattedString);
-      if (match !== null) {
+      if (match != null) {
         // Function parseIntOrZero: (String) → int
         function parseIntOrZero(matched) {
-          if (matched === null)
+          if (matched == null)
             return 0;
           return int.parse(matched);
         }
         // Function parseDoubleOrZero: (String) → double
         function parseDoubleOrZero(matched) {
-          if (matched === null)
+          if (matched == null)
             return 0.0;
           return double.parse(matched);
         }
@@ -130,15 +130,15 @@ var core;
         let second = parseIntOrZero(match.get(6));
         let addOneMillisecond = false;
         let millisecond = (dart.notNull(parseDoubleOrZero(match.get(7))) * 1000).round();
-        if (millisecond === 1000) {
+        if (millisecond == 1000) {
           addOneMillisecond = true;
           millisecond = 999;
         }
         let isUtc = false;
-        if (match.get(8) !== null) {
+        if (match.get(8) != null) {
           isUtc = true;
-          if (match.get(9) !== null) {
-            let sign = dart.equals(match.get(9), '-') ? -1 : 1;
+          if (match.get(9) != null) {
+            let sign = match.get(9) == '-' ? -1 : 1;
             let hourDifference = int.parse(match.get(10));
             let minuteDifference = parseIntOrZero(match.get(11));
             minuteDifference = 60 * dart.notNull(hourDifference);
@@ -146,7 +146,7 @@ var core;
           }
         }
         let millisecondsSinceEpoch = DateTime[_brokenDownDateToMillisecondsSinceEpoch](years, month, day, hour, minute, second, millisecond, isUtc);
-        if (millisecondsSinceEpoch === null) {
+        if (millisecondsSinceEpoch == null) {
           throw new FormatException("Time out of range", formattedString);
         }
         if (addOneMillisecond)
@@ -163,13 +163,13 @@ var core;
       if (dart.notNull(millisecondsSinceEpoch.abs()) > dart.notNull(DateTime[_MAX_MILLISECONDS_SINCE_EPOCH])) {
         throw new ArgumentError(millisecondsSinceEpoch);
       }
-      if (isUtc === null)
+      if (isUtc == null)
         throw new ArgumentError(isUtc);
     }
     ['=='](other) {
       if (!dart.notNull(dart.is(other, DateTime)))
         return false;
-      return this.millisecondsSinceEpoch === dart.dload(other, 'millisecondsSinceEpoch') && this.isUtc === dart.dload(other, 'isUtc');
+      return dart.equals(this.millisecondsSinceEpoch, dart.dload(other, 'millisecondsSinceEpoch')) && dart.equals(this.isUtc, dart.dload(other, 'isUtc'));
     }
     isBefore(other) {
       return dart.notNull(this.millisecondsSinceEpoch) < dart.notNull(other.millisecondsSinceEpoch);
@@ -178,7 +178,7 @@ var core;
       return dart.notNull(this.millisecondsSinceEpoch) > dart.notNull(other.millisecondsSinceEpoch);
     }
     isAtSameMomentAs(other) {
-      return this.millisecondsSinceEpoch === other.millisecondsSinceEpoch;
+      return this.millisecondsSinceEpoch == other.millisecondsSinceEpoch;
     }
     compareTo(other) {
       return this.millisecondsSinceEpoch.compareTo(other.millisecondsSinceEpoch);
@@ -358,7 +358,7 @@ var core;
       result = double.parse(source, num[_onParseErrorDouble]);
       if (!dart.notNull(num[_parseError]))
         return result;
-      if (onError === null)
+      if (onError == null)
         throw new FormatException(input);
       return onError(input);
     }
@@ -409,7 +409,7 @@ var core;
       return new Duration[_microseconds]((dart.notNull(this[_duration]) * dart.notNull(factor)).round());
     }
     ['~/'](quotient) {
-      if (quotient === 0)
+      if (quotient == 0)
         throw new IntegerDivisionByZeroException();
       return new Duration[_microseconds]((dart.notNull(this[_duration]) / dart.notNull(quotient)).truncate());
     }
@@ -446,7 +446,7 @@ var core;
     ['=='](other) {
       if (!dart.is(other, Duration))
         return false;
-      return this[_duration] === dart.dload(other, '_duration');
+      return dart.equals(this[_duration], dart.dload(other, '_duration'));
     }
     get hashCode() {
       return this[_duration].hashCode;
@@ -516,7 +516,7 @@ var core;
     Error() {
     }
     static safeToString(object) {
-      if (dart.notNull(dart.is(object, num)) || dart.notNull(typeof object == 'boolean') || dart.notNull(null === object)) {
+      if (dart.notNull(dart.is(object, num)) || dart.notNull(typeof object == 'boolean') || dart.notNull(null == object)) {
         return object.toString();
       }
       if (typeof object == 'string') {
@@ -575,13 +575,13 @@ var core;
     toString() {
       if (!dart.notNull(this[_hasValue])) {
         let result = "Invalid arguments(s)";
-        if (this.message !== null) {
+        if (this.message != null) {
           result = `${result}: ${this.message}`;
         }
         return result;
       }
       let nameString = "";
-      if (this.name !== null) {
+      if (this.name != null) {
         nameString = ` (${this.name})`;
       }
       return `${this.message}${nameString}: ${Error.safeToString(this.invalidValue)}`;
@@ -602,7 +602,7 @@ var core;
         message = null;
       this.start = null;
       this.end = null;
-      super.value(value, name, message !== null ? message : "Value not in range");
+      super.value(value, name, message != null ? message : "Value not in range");
     }
     range(invalidValue, minValue, maxValue, name, message) {
       if (name === void 0)
@@ -611,7 +611,7 @@ var core;
         message = null;
       this.start = minValue;
       this.end = maxValue;
-      super.value(invalidValue, name, message !== null ? message : "Invalid value");
+      super.value(invalidValue, name, message != null ? message : "Invalid value");
     }
     index(index, indexable, name, message, length) {
       return new IndexError(index, indexable, name, message, length);
@@ -632,10 +632,10 @@ var core;
         length = null;
       if (message === void 0)
         message = null;
-      if (length === null)
+      if (length == null)
         length = dart.as(dart.dload(indexable, 'length'), int);
       if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
-        if (name === null)
+        if (name == null)
           name = "index";
         throw new RangeError.index(index, indexable, name, message, length);
       }
@@ -648,12 +648,12 @@ var core;
       if (message === void 0)
         message = null;
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(length)) {
-        if (startName === null)
+        if (startName == null)
           startName = "start";
         throw new RangeError.range(start, 0, length, startName, message);
       }
-      if (end !== null && (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(length))) {
-        if (endName === null)
+      if (end != null && (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(length))) {
+        if (endName == null)
           endName = "end";
         throw new RangeError.range(end, start, length, endName, message);
       }
@@ -671,11 +671,11 @@ var core;
         return `RangeError: ${this.message}`;
       let value = Error.safeToString(this.invalidValue);
       let explanation = "";
-      if (this.start === null) {
-        if (this.end !== null) {
+      if (this.start == null) {
+        if (this.end != null) {
           explanation = `: Not less than or equal to ${this.end}`;
         }
-      } else if (this.end === null) {
+      } else if (this.end == null) {
         explanation = `: Not greater than or equal to ${this.start}`;
       } else if (dart.notNull(this.end) > dart.notNull(this.start)) {
         explanation = `: Not in range ${this.start}..${this.end}, inclusive.`;
@@ -699,8 +699,8 @@ var core;
       if (length === void 0)
         length = null;
       this.indexable = indexable;
-      this.length = dart.as(length !== null ? length : dart.dload(indexable, 'length'), int);
-      super.value(invalidValue, name, message !== null ? message : "Index out of range");
+      this.length = dart.as(length != null ? length : dart.dload(indexable, 'length'), int);
+      super.value(invalidValue, name, message != null ? message : "Index out of range");
     }
     get start() {
       return 0;
@@ -752,7 +752,7 @@ var core;
     toString() {
       let sb = new StringBuffer();
       let i = 0;
-      if (this[_arguments] !== null) {
+      if (this[_arguments] != null) {
         for (; dart.notNull(i) < dart.notNull(this[_arguments].length); i = dart.notNull(i) + 1) {
           if (dart.notNull(i) > 0) {
             sb.write(", ");
@@ -760,7 +760,7 @@ var core;
           sb.write(Error.safeToString(this[_arguments].get(i)));
         }
       }
-      if (this[_namedArguments] !== null) {
+      if (this[_namedArguments] != null) {
         this[_namedArguments].forEach(((key, value) => {
           if (dart.notNull(i) > 0) {
             sb.write(", ");
@@ -771,7 +771,7 @@ var core;
           i = dart.notNull(i) + 1;
         }).bind(this));
       }
-      if (this[_existingArgumentNames] === null) {
+      if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
       } else {
         let actualParameters = sb.toString();
@@ -804,7 +804,7 @@ var core;
       super.Error();
     }
     toString() {
-      return this.message !== null ? `UnimplementedError: ${this.message}` : "UnimplementedError";
+      return this.message != null ? `UnimplementedError: ${this.message}` : "UnimplementedError";
     }
   }
   class StateError extends Error {
@@ -824,7 +824,7 @@ var core;
       super.Error();
     }
     toString() {
-      if (this.modifiedObject === null) {
+      if (this.modifiedObject == null) {
         return "Concurrent modification during iteration.";
       }
       return "Concurrent modification during iteration: " + `${Error.safeToString(this.modifiedObject)}.`;
@@ -858,7 +858,7 @@ var core;
       super.Error();
     }
     toString() {
-      return this.variableName === null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
+      return this.variableName == null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
     }
   }
   class Exception extends Object {
@@ -875,7 +875,7 @@ var core;
       this.message = message;
     }
     toString() {
-      if (this.message === null)
+      if (this.message == null)
         return "Exception";
       return `Exception: ${this.message}`;
     }
@@ -894,20 +894,20 @@ var core;
     }
     toString() {
       let report = "FormatException";
-      if (dart.notNull(this.message !== null) && dart.notNull(!dart.equals("", this.message))) {
+      if (dart.notNull(this.message != null) && dart.notNull("" != this.message)) {
         report = `${report}: ${this.message}`;
       }
       let offset = this.offset;
       if (!(typeof this.source == 'string')) {
-        if (offset !== -1) {
+        if (offset != -1) {
           report = ` (at offset ${offset})`;
         }
         return report;
       }
-      if (offset !== -1 && (dart.notNull(offset) < 0 || offset['>'](dart.dload(this.source, 'length')))) {
+      if (offset != -1 && (dart.notNull(offset) < 0 || offset['>'](dart.dload(this.source, 'length')))) {
         offset = -1;
       }
-      if (offset === -1) {
+      if (offset == -1) {
         let source = dart.as(this.source, String);
         if (dart.notNull(source.length) > 78) {
           source = String['+'](source.substring(0, 75), "...");
@@ -919,13 +919,13 @@ var core;
       let lastWasCR = null;
       for (let i = 0; dart.notNull(i) < dart.notNull(offset); i = dart.notNull(i) + 1) {
         let char = dart.as(dart.dinvoke(this.source, 'codeUnitAt', i), int);
-        if (char === 10) {
-          if (lineStart !== i || !dart.notNull(lastWasCR)) {
+        if (char == 10) {
+          if (lineStart != i || !dart.notNull(lastWasCR)) {
             lineNum = dart.notNull(lineNum) + 1;
           }
           lineStart = dart.notNull(i) + 1;
           lastWasCR = false;
-        } else if (char === 13) {
+        } else if (char == 13) {
           lineNum = dart.notNull(lineNum) + 1;
           lineStart = dart.notNull(i) + 1;
           lastWasCR = true;
@@ -939,7 +939,7 @@ var core;
       let lineEnd = dart.as(dart.dload(this.source, 'length'), int);
       for (let i = offset; i['<'](dart.dload(this.source, 'length')); i = dart.notNull(i) + 1) {
         let char = dart.as(dart.dinvoke(this.source, 'codeUnitAt', i), int);
-        if (char === 10 || char === 13) {
+        if (char == 10 || char == 13) {
           lineEnd = i;
           break;
         }
@@ -991,11 +991,11 @@ var core;
       }
       get(object) {
         let values = _js_helper.Primitives.getProperty(object, Expando[_EXPANDO_PROPERTY_NAME]);
-        return dart.as(values === null ? null : _js_helper.Primitives.getProperty(values, this[_getKey]()), T);
+        return dart.as(values == null ? null : _js_helper.Primitives.getProperty(values, this[_getKey]()), T);
       }
       set(object, value) {
         let values = _js_helper.Primitives.getProperty(object, Expando[_EXPANDO_PROPERTY_NAME]);
-        if (values === null) {
+        if (values == null) {
           values = new Object();
           _js_helper.Primitives.setProperty(object, Expando[_EXPANDO_PROPERTY_NAME], values);
         }
@@ -1003,7 +1003,7 @@ var core;
       }
       [_getKey]() {
         let key = dart.as(_js_helper.Primitives.getProperty(this, Expando[_KEY_PROPERTY_NAME]), String);
-        if (key === null) {
+        if (key == null) {
           key = `expando$key$${((x) => Expando[_keyCount] = dart.notNull(x) + 1, x)(Expando[_keyCount])}`;
           _js_helper.Primitives.setProperty(this, Expando[_KEY_PROPERTY_NAME], key);
         }
@@ -1021,7 +1021,7 @@ var core;
     static apply(f, positionalArguments, namedArguments) {
       if (namedArguments === void 0)
         namedArguments = null;
-      return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments === null ? null : Function[_toMangledNames](namedArguments));
+      return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function[_toMangledNames](namedArguments));
     }
     static [_toMangledNames](namedArguments) {
       let result = dart.as(dart.map(), Map$(String, dynamic));
@@ -1097,7 +1097,7 @@ var core;
       _GeneratorIterable(end$, generator) {
         this[_end] = end$;
         this[_start] = 0;
-        this[_generator] = dart.as(generator !== null ? generator : _GeneratorIterable[_id], _Generator);
+        this[_generator] = dart.as(generator != null ? generator : _GeneratorIterable[_id], _Generator);
         super.IterableBase();
       }
       slice(start$, end$, generator$) {
@@ -1114,7 +1114,7 @@ var core;
       }
       skip(count) {
         RangeError.checkNotNegative(count, "count");
-        if (count === 0)
+        if (count == 0)
           return this;
         let newStart = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newStart) >= dart.notNull(this[_end]))
@@ -1123,7 +1123,7 @@ var core;
       }
       take(count) {
         RangeError.checkNotNegative(count, "count");
-        if (count === 0)
+        if (count == 0)
           return new _internal.EmptyIterable();
         let newEnd = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newEnd) >= dart.notNull(this[_end]))
@@ -1182,14 +1182,14 @@ var core;
       List(length) {
         if (length === void 0)
           length = new _ListConstructorSentinel();
-        if (length === new _ListConstructorSentinel()) {
+        if (dart.equals(length, new _ListConstructorSentinel())) {
           return new _interceptors.JSArray.emptyGrowable();
         }
         return new _interceptors.JSArray.fixed(length);
       }
       filled(length, fill) {
         let result = new _interceptors.JSArray.fixed(length);
-        if (length !== 0 && dart.notNull(fill !== null)) {
+        if (length != 0 && dart.notNull(fill != null)) {
           for (let i = 0; dart.notNull(i) < dart.notNull(result.length); i = dart.notNull(i) + 1) {
             result.set(i, fill);
           }
@@ -1263,7 +1263,7 @@ var core;
   // Function print: (Object) → void
   function print(object) {
     let line = `${object}`;
-    if (_internal.printToZone === null) {
+    if (_internal.printToZone == null) {
       _internal.printToConsole(line);
     } else {
       dart.dinvokef(_internal.printToZone, line);
@@ -1318,7 +1318,7 @@ var core;
     start() {
       if (this.isRunning)
         return;
-      if (this[_start] === null) {
+      if (this[_start] == null) {
         this[_start] = Stopwatch[_now]();
       } else {
         this[_start] = dart.notNull(Stopwatch[_now]()) - (dart.notNull(this[_stop]) - dart.notNull(this[_start]));
@@ -1331,18 +1331,18 @@ var core;
       this[_stop] = Stopwatch[_now]();
     }
     reset() {
-      if (this[_start] === null)
+      if (this[_start] == null)
         return;
       this[_start] = Stopwatch[_now]();
-      if (this[_stop] !== null) {
+      if (this[_stop] != null) {
         this[_stop] = this[_start];
       }
     }
     get elapsedTicks() {
-      if (this[_start] === null) {
+      if (this[_start] == null) {
         return 0;
       }
-      return this[_stop] === null ? dart.notNull(Stopwatch[_now]()) - dart.notNull(this[_start]) : dart.notNull(this[_stop]) - dart.notNull(this[_start]);
+      return this[_stop] == null ? dart.notNull(Stopwatch[_now]()) - dart.notNull(this[_start]) : dart.notNull(this[_stop]) - dart.notNull(this[_start]);
     }
     get elapsed() {
       return new Duration({microseconds: this.elapsedMicroseconds});
@@ -1354,7 +1354,7 @@ var core;
       return (dart.notNull(this.elapsedTicks) * 1000 / dart.notNull(this.frequency)).truncate();
     }
     get isRunning() {
-      return this[_start] !== null && this[_stop] === null;
+      return this[_start] != null && this[_stop] == null;
     }
     static [_initTicker]() {
       _js_helper.Primitives.initTicker();
@@ -1380,7 +1380,7 @@ var core;
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(len)) {
         throw new RangeError.range(start, 0, len);
       }
-      if (end === null) {
+      if (end == null) {
         end = len;
       } else if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(len)) {
         throw new RangeError.range(end, start, len);
@@ -1400,7 +1400,7 @@ var core;
     static [_stringFromIterable](charCodes, start, end) {
       if (dart.notNull(start) < 0)
         throw new RangeError.range(start, 0, charCodes.length);
-      if (end !== null && dart.notNull(end) < dart.notNull(start)) {
+      if (end != null && dart.notNull(end) < dart.notNull(start)) {
         throw new RangeError.range(end, start, charCodes.length);
       }
       let it = charCodes.iterator;
@@ -1410,7 +1410,7 @@ var core;
         }
       }
       let list = new List.from([]);
-      if (end === null) {
+      if (end == null) {
         while (it.moveNext())
           list.add(it.current);
       } else {
@@ -1438,7 +1438,7 @@ var core;
           return new RuneIterator(this.string);
         }
         get last() {
-          if (this.string.length === 0) {
+          if (this.string.length == 0) {
             throw new StateError('No elements.');
           }
           let length = this.string.length;
@@ -1457,11 +1457,11 @@ var core;
   });
   // Function _isLeadSurrogate: (int) → bool
   function _isLeadSurrogate(code) {
-    return (dart.notNull(code) & 64512) === 55296;
+    return (dart.notNull(code) & 64512) == 55296;
   }
   // Function _isTrailSurrogate: (int) → bool
   function _isTrailSurrogate(code) {
-    return (dart.notNull(code) & 64512) === 56320;
+    return (dart.notNull(code) & 64512) == 56320;
   }
   // Function _combineSurrogatePair: (int, int) → int
   function _combineSurrogatePair(start, end) {
@@ -1492,7 +1492,7 @@ var core;
       }
     }
     get rawIndex() {
-      return this[_position] !== this[_nextPosition] ? this[_position] : null;
+      return this[_position] != this[_nextPosition] ? this[_position] : null;
     }
     set rawIndex(rawIndex) {
       RangeError.checkValidIndex(rawIndex, this.string, "rawIndex");
@@ -1514,15 +1514,15 @@ var core;
       return dart.notNull(this[_nextPosition]) - dart.notNull(this[_position]);
     }
     get currentAsString() {
-      if (this[_position] === this[_nextPosition])
+      if (this[_position] == this[_nextPosition])
         return null;
-      if (dart.notNull(this[_position]) + 1 === this[_nextPosition])
+      if (dart.notNull(this[_position]) + 1 == this[_nextPosition])
         return this.string.get(this[_position]);
       return this.string.substring(this[_position], this[_nextPosition]);
     }
     moveNext() {
       this[_position] = this[_nextPosition];
-      if (this[_position] === this.string.length) {
+      if (this[_position] == this.string.length) {
         this[_currentCodePoint] = null;
         return false;
       }
@@ -1542,7 +1542,7 @@ var core;
     }
     movePrevious() {
       this[_nextPosition] = this[_position];
-      if (this[_position] === 0) {
+      if (this[_position] == 0) {
         this[_currentCodePoint] = null;
         return false;
       }
@@ -1574,7 +1574,7 @@ var core;
       return this[_contents].length;
     }
     get isEmpty() {
-      return this.length === 0;
+      return this.length == 0;
     }
     get isNotEmpty() {
       return !dart.notNull(this.isEmpty);
@@ -1716,7 +1716,7 @@ var core;
       return this[_userInfo];
     }
     get host() {
-      if (this[_host] === null)
+      if (this[_host] == null)
         return "";
       if (this[_host].startsWith('[')) {
         return this[_host].substring(1, dart.notNull(this[_host].length) - 1);
@@ -1724,14 +1724,14 @@ var core;
       return this[_host];
     }
     get port() {
-      if (this[_port] === null)
+      if (this[_port] == null)
         return Uri[_defaultPort](this.scheme);
       return this[_port];
     }
     static [_defaultPort](scheme) {
-      if (dart.equals(scheme, "http"))
+      if (scheme == "http")
         return 80;
-      if (dart.equals(scheme, "https"))
+      if (scheme == "https")
         return 443;
       return 0;
     }
@@ -1739,10 +1739,10 @@ var core;
       return this[_path];
     }
     get query() {
-      return this[_query] === null ? "" : this[_query];
+      return this[_query] == null ? "" : this[_query];
     }
     get fragment() {
-      return this[_fragment] === null ? "" : this[_fragment];
+      return this[_fragment] == null ? "" : this[_fragment];
     }
     static parse(uri) {
       // Function isRegName: (int) → bool
@@ -1762,7 +1762,7 @@ var core;
       let char = EOI;
       // Function parseAuth: () → void
       function parseAuth() {
-        if (index === uri.length) {
+        if (index == uri.length) {
           char = EOI;
           return;
         }
@@ -1772,18 +1772,18 @@ var core;
         char = uri.codeUnitAt(index);
         while (dart.notNull(index) < dart.notNull(uri.length)) {
           char = uri.codeUnitAt(index);
-          if (char === Uri[_SLASH] || char === Uri[_QUESTION] || char === Uri[_NUMBER_SIGN]) {
+          if (char == Uri[_SLASH] || char == Uri[_QUESTION] || char == Uri[_NUMBER_SIGN]) {
             break;
           }
-          if (char === Uri[_AT_SIGN]) {
+          if (char == Uri[_AT_SIGN]) {
             lastAt = index;
             lastColon = -1;
-          } else if (char === Uri[_COLON]) {
+          } else if (char == Uri[_COLON]) {
             lastColon = index;
-          } else if (char === Uri[_LEFT_BRACKET]) {
+          } else if (char == Uri[_LEFT_BRACKET]) {
             lastColon = -1;
             let endBracket = uri.indexOf(']', dart.notNull(index) + 1);
-            if (endBracket === -1) {
+            if (endBracket == -1) {
               index = uri.length;
               char = EOI;
               break;
@@ -1827,28 +1827,28 @@ var core;
       let i = index;
       while (dart.notNull(i) < dart.notNull(uri.length)) {
         char = uri.codeUnitAt(i);
-        if (char === Uri[_QUESTION] || char === Uri[_NUMBER_SIGN]) {
+        if (char == Uri[_QUESTION] || char == Uri[_NUMBER_SIGN]) {
           state = NOT_IN_PATH;
           break;
         }
-        if (char === Uri[_SLASH]) {
-          state = i === 0 ? ALLOW_AUTH : IN_PATH;
+        if (char == Uri[_SLASH]) {
+          state = i == 0 ? ALLOW_AUTH : IN_PATH;
           break;
         }
-        if (char === Uri[_COLON]) {
-          if (i === 0)
+        if (char == Uri[_COLON]) {
+          if (i == 0)
             Uri[_fail](uri, 0, "Invalid empty scheme");
           scheme = Uri[_makeScheme](uri, i);
           i = dart.notNull(i) + 1;
           pathStart = i;
-          if (i === uri.length) {
+          if (i == uri.length) {
             char = EOI;
             state = NOT_IN_PATH;
           } else {
             char = uri.codeUnitAt(i);
-            if (char === Uri[_QUESTION] || char === Uri[_NUMBER_SIGN]) {
+            if (char == Uri[_QUESTION] || char == Uri[_NUMBER_SIGN]) {
               state = NOT_IN_PATH;
-            } else if (char === Uri[_SLASH]) {
+            } else if (char == Uri[_SLASH]) {
               state = ALLOW_AUTH;
             } else {
               state = IN_PATH;
@@ -1860,42 +1860,42 @@ var core;
         char = EOI;
       }
       index = i;
-      if (state === ALLOW_AUTH) {
-        dart.assert(char === Uri[_SLASH]);
+      if (state == ALLOW_AUTH) {
+        dart.assert(char == Uri[_SLASH]);
         index = dart.notNull(index) + 1;
-        if (index === uri.length) {
+        if (index == uri.length) {
           char = EOI;
           state = NOT_IN_PATH;
         } else {
           char = uri.codeUnitAt(index);
-          if (char === Uri[_SLASH]) {
+          if (char == Uri[_SLASH]) {
             index = dart.notNull(index) + 1;
             parseAuth();
             pathStart = index;
           }
-          if (char === Uri[_QUESTION] || char === Uri[_NUMBER_SIGN] || char === EOI) {
+          if (char == Uri[_QUESTION] || char == Uri[_NUMBER_SIGN] || char == EOI) {
             state = NOT_IN_PATH;
           } else {
             state = IN_PATH;
           }
         }
       }
-      dart.assert(state === IN_PATH || state === NOT_IN_PATH);
-      if (state === IN_PATH) {
+      dart.assert(state == IN_PATH || state == NOT_IN_PATH);
+      if (state == IN_PATH) {
         while ((index = dart.notNull(index) + 1) < dart.notNull(uri.length)) {
           char = uri.codeUnitAt(index);
-          if (char === Uri[_QUESTION] || char === Uri[_NUMBER_SIGN]) {
+          if (char == Uri[_QUESTION] || char == Uri[_NUMBER_SIGN]) {
             break;
           }
           char = EOI;
         }
         state = NOT_IN_PATH;
       }
-      dart.assert(state === NOT_IN_PATH);
-      let isFile = dart.equals(scheme, "file");
-      let ensureLeadingSlash = host !== null;
+      dart.assert(state == NOT_IN_PATH);
+      let isFile = scheme == "file";
+      let ensureLeadingSlash = host != null;
       path = Uri[_makePath](uri, pathStart, index, null, ensureLeadingSlash, isFile);
-      if (char === Uri[_QUESTION]) {
+      if (char == Uri[_QUESTION]) {
         let numberSignIndex = uri.indexOf('#', dart.notNull(index) + 1);
         if (dart.notNull(numberSignIndex) < 0) {
           query = Uri[_makeQuery](uri, dart.notNull(index) + 1, uri.length, null);
@@ -1903,7 +1903,7 @@ var core;
           query = Uri[_makeQuery](uri, dart.notNull(index) + 1, numberSignIndex, null);
           fragment = Uri[_makeFragment](uri, dart.notNull(numberSignIndex) + 1, uri.length);
         }
-      } else if (char === Uri[_NUMBER_SIGN]) {
+      } else if (char == Uri[_NUMBER_SIGN]) {
         fragment = Uri[_makeFragment](uri, dart.notNull(index) + 1, uri.length);
       }
       return new Uri[_internal$](scheme, userinfo, host, port, path, query, fragment);
@@ -1935,16 +1935,16 @@ var core;
       scheme = Uri[_makeScheme](scheme, Uri[_stringOrNullLength](scheme));
       userInfo = Uri[_makeUserInfo](userInfo, 0, Uri[_stringOrNullLength](userInfo));
       host = Uri[_makeHost](host, 0, Uri[_stringOrNullLength](host), false);
-      if (dart.equals(query, ""))
+      if (query == "")
         query = null;
       query = Uri[_makeQuery](query, 0, Uri[_stringOrNullLength](query), queryParameters);
       fragment = Uri[_makeFragment](fragment, 0, Uri[_stringOrNullLength](fragment));
       port = Uri[_makePort](port, scheme);
-      let isFile = dart.equals(scheme, "file");
-      if (dart.notNull(host === null) && (dart.notNull(userInfo.isNotEmpty) || port !== null || dart.notNull(isFile))) {
+      let isFile = scheme == "file";
+      if (dart.notNull(host == null) && (dart.notNull(userInfo.isNotEmpty) || port != null || dart.notNull(isFile))) {
         host = "";
       }
-      let ensureLeadingSlash = host !== null;
+      let ensureLeadingSlash = host != null;
       path = Uri[_makePath](path, 0, Uri[_stringOrNullLength](path), pathSegments, ensureLeadingSlash, isFile);
       return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
     }
@@ -1962,11 +1962,11 @@ var core;
       let userInfo = "";
       let host = null;
       let port = null;
-      if (dart.notNull(authority !== null) && dart.notNull(authority.isNotEmpty)) {
+      if (dart.notNull(authority != null) && dart.notNull(authority.isNotEmpty)) {
         let hostStart = 0;
         let hasUserInfo = false;
         for (let i = 0; dart.notNull(i) < dart.notNull(authority.length); i = dart.notNull(i) + 1) {
-          if (authority.codeUnitAt(i) === Uri[_AT_SIGN]) {
+          if (authority.codeUnitAt(i) == Uri[_AT_SIGN]) {
             hasUserInfo = true;
             userInfo = authority.substring(0, i);
             hostStart = dart.notNull(i) + 1;
@@ -1974,23 +1974,23 @@ var core;
           }
         }
         let hostEnd = hostStart;
-        if (dart.notNull(hostStart) < dart.notNull(authority.length) && authority.codeUnitAt(hostStart) === Uri[_LEFT_BRACKET]) {
+        if (dart.notNull(hostStart) < dart.notNull(authority.length) && authority.codeUnitAt(hostStart) == Uri[_LEFT_BRACKET]) {
           for (; dart.notNull(hostEnd) < dart.notNull(authority.length); hostEnd = dart.notNull(hostEnd) + 1) {
-            if (authority.codeUnitAt(hostEnd) === Uri[_RIGHT_BRACKET])
+            if (authority.codeUnitAt(hostEnd) == Uri[_RIGHT_BRACKET])
               break;
           }
-          if (hostEnd === authority.length) {
+          if (hostEnd == authority.length) {
             throw new FormatException("Invalid IPv6 host entry.", authority, hostStart);
           }
           Uri.parseIPv6Address(authority, dart.notNull(hostStart) + 1, hostEnd);
           hostEnd = dart.notNull(hostEnd) + 1;
-          if (hostEnd !== authority.length && authority.codeUnitAt(hostEnd) !== Uri[_COLON]) {
+          if (hostEnd != authority.length && authority.codeUnitAt(hostEnd) != Uri[_COLON]) {
             throw new FormatException("Invalid end of authority", authority, hostEnd);
           }
         }
         let hasPort = false;
         for (; dart.notNull(hostEnd) < dart.notNull(authority.length); hostEnd = dart.notNull(hostEnd) + 1) {
-          if (authority.codeUnitAt(hostEnd) === Uri[_COLON]) {
+          if (authority.codeUnitAt(hostEnd) == Uri[_COLON]) {
             let portString = authority.substring(dart.notNull(hostEnd) + 1);
             if (portString.isNotEmpty)
               port = int.parse(portString);
@@ -2003,12 +2003,12 @@ var core;
     }
     file(path, opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
-      windows = windows === null ? Uri[_isWindows] : windows;
+      windows = windows == null ? Uri[_isWindows] : windows;
       return dart.as(windows ? Uri[_makeWindowsFileUrl](path) : Uri[_makeFileUri](path), Uri);
     }
     static get base() {
       let uri = _js_helper.Primitives.currentUri();
-      if (uri !== null)
+      if (uri != null)
         return Uri.parse(uri);
       throw new UnsupportedError("'Uri.base' is not supported");
     }
@@ -2063,7 +2063,7 @@ var core;
           path = `\\${path.substring(7)}`;
         } else {
           path = path.substring(4);
-          if (dart.notNull(path.length) < 3 || path.codeUnitAt(1) !== Uri[_COLON] || path.codeUnitAt(2) !== Uri[_BACKSLASH]) {
+          if (dart.notNull(path.length) < 3 || path.codeUnitAt(1) != Uri[_COLON] || path.codeUnitAt(2) != Uri[_BACKSLASH]) {
             throw new ArgumentError("Windows paths with \\\\?\\ prefix must be absolute");
           }
         }
@@ -2071,20 +2071,20 @@ var core;
         path = path.replaceAll("/", "\\");
       }
       let sep = "\\";
-      if (dart.notNull(path.length) > 1 && dart.notNull(dart.equals(path.get(1), ":"))) {
+      if (dart.notNull(path.length) > 1 && dart.notNull(path.get(1) == ":")) {
         Uri[_checkWindowsDriveLetter](path.codeUnitAt(0), true);
-        if (path.length === 2 || path.codeUnitAt(2) !== Uri[_BACKSLASH]) {
+        if (path.length == 2 || path.codeUnitAt(2) != Uri[_BACKSLASH]) {
           throw new ArgumentError("Windows paths with drive letter must be absolute");
         }
         let pathSegments = path.split(sep);
         Uri[_checkWindowsPathReservedCharacters](pathSegments, true, 1);
         return new Uri({scheme: "file", pathSegments: pathSegments});
       }
-      if (dart.notNull(path.length) > 0 && dart.notNull(dart.equals(path.get(0), sep))) {
-        if (dart.notNull(path.length) > 1 && dart.notNull(dart.equals(path.get(1), sep))) {
+      if (dart.notNull(path.length) > 0 && dart.notNull(path.get(0) == sep)) {
+        if (dart.notNull(path.length) > 1 && dart.notNull(path.get(1) == sep)) {
           let pathStart = path.indexOf("\\", 2);
-          let hostPart = pathStart === -1 ? path.substring(2) : path.substring(2, pathStart);
-          let pathPart = pathStart === -1 ? "" : path.substring(dart.notNull(pathStart) + 1);
+          let hostPart = pathStart == -1 ? path.substring(2) : path.substring(2, pathStart);
+          let pathPart = pathStart == -1 ? "" : path.substring(dart.notNull(pathStart) + 1);
           let pathSegments = pathPart.split(sep);
           Uri[_checkWindowsPathReservedCharacters](pathSegments, true);
           return new Uri({scheme: "file", host: hostPart, pathSegments: pathSegments});
@@ -2110,19 +2110,19 @@ var core;
       let queryParameters = opts && 'queryParameters' in opts ? opts.queryParameters : null;
       let fragment = opts && 'fragment' in opts ? opts.fragment : null;
       let schemeChanged = false;
-      if (scheme !== null) {
+      if (scheme != null) {
         scheme = Uri[_makeScheme](scheme, scheme.length);
         schemeChanged = true;
       } else {
         scheme = this.scheme;
       }
-      let isFile = dart.equals(scheme, "file");
-      if (userInfo !== null) {
+      let isFile = scheme == "file";
+      if (userInfo != null) {
         userInfo = Uri[_makeUserInfo](userInfo, 0, userInfo.length);
       } else {
         userInfo = this.userInfo;
       }
-      if (port !== null) {
+      if (port != null) {
         port = Uri[_makePort](port, scheme);
       } else {
         port = this[_port];
@@ -2130,15 +2130,15 @@ var core;
           port = Uri[_makePort](port, scheme);
         }
       }
-      if (host !== null) {
+      if (host != null) {
         host = Uri[_makeHost](host, 0, host.length, false);
       } else if (this.hasAuthority) {
         host = this.host;
-      } else if (dart.notNull(userInfo.isNotEmpty) || port !== null || dart.notNull(isFile)) {
+      } else if (dart.notNull(userInfo.isNotEmpty) || port != null || dart.notNull(isFile)) {
         host = "";
       }
-      let ensureLeadingSlash = host !== null;
-      if (dart.notNull(path !== null) || dart.notNull(pathSegments !== null)) {
+      let ensureLeadingSlash = host != null;
+      if (dart.notNull(path != null) || dart.notNull(pathSegments != null)) {
         path = Uri[_makePath](path, 0, Uri[_stringOrNullLength](path), pathSegments, ensureLeadingSlash, isFile);
       } else {
         path = this.path;
@@ -2146,12 +2146,12 @@ var core;
           path = `/${path}`;
         }
       }
-      if (dart.notNull(query !== null) || dart.notNull(queryParameters !== null)) {
+      if (dart.notNull(query != null) || dart.notNull(queryParameters != null)) {
         query = Uri[_makeQuery](query, 0, Uri[_stringOrNullLength](query), queryParameters);
       } else if (this.hasQuery) {
         query = this.query;
       }
-      if (fragment !== null) {
+      if (fragment != null) {
         fragment = Uri[_makeFragment](fragment, 0, fragment.length);
       } else if (this.hasFragment) {
         fragment = this.fragment;
@@ -2159,30 +2159,30 @@ var core;
       return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
     }
     get pathSegments() {
-      if (this[_pathSegments] === null) {
-        let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) === Uri[_SLASH] ? this.path.substring(1) : this.path;
-        this[_pathSegments] = dart.as(new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const */new List$(String).from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List$(String));
+      if (this[_pathSegments] == null) {
+        let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri[_SLASH] ? this.path.substring(1) : this.path;
+        this[_pathSegments] = dart.as(new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */new List$(String).from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List$(String));
       }
       return this[_pathSegments];
     }
     get queryParameters() {
-      if (this[_queryParameters] === null) {
+      if (this[_queryParameters] == null) {
         this[_queryParameters] = dart.as(new collection.UnmodifiableMapView(Uri.splitQueryString(this.query)), Map$(String, String));
       }
       return this[_queryParameters];
     }
     static [_makePort](port, scheme) {
-      if (port !== null && port === Uri[_defaultPort](scheme))
+      if (port != null && port == Uri[_defaultPort](scheme))
         return null;
       return port;
     }
     static [_makeHost](host, start, end, strictIPv6) {
-      if (host === null)
+      if (host == null)
         return null;
-      if (start === end)
+      if (start == end)
         return "";
-      if (host.codeUnitAt(start) === Uri[_LEFT_BRACKET]) {
-        if (host.codeUnitAt(dart.notNull(end) - 1) !== Uri[_RIGHT_BRACKET]) {
+      if (host.codeUnitAt(start) == Uri[_LEFT_BRACKET]) {
+        if (host.codeUnitAt(dart.notNull(end) - 1) != Uri[_RIGHT_BRACKET]) {
           Uri[_fail](host, start, 'Missing end `]` to match `[` in host');
         }
         Uri.parseIPv6Address(host, dart.notNull(start) + 1, dart.notNull(end) - 1);
@@ -2190,7 +2190,7 @@ var core;
       }
       if (!dart.notNull(strictIPv6)) {
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-          if (host.codeUnitAt(i) === Uri[_COLON]) {
+          if (host.codeUnitAt(i) == Uri[_COLON]) {
             Uri.parseIPv6Address(host, start, end);
             return `[${host}]`;
           }
@@ -2208,22 +2208,22 @@ var core;
       let isNormalized = true;
       while (dart.notNull(index) < dart.notNull(end)) {
         let char = host.codeUnitAt(index);
-        if (char === Uri[_PERCENT]) {
+        if (char == Uri[_PERCENT]) {
           let replacement = Uri[_normalizeEscape](host, index, true);
-          if (dart.notNull(replacement === null) && dart.notNull(isNormalized)) {
+          if (dart.notNull(replacement == null) && dart.notNull(isNormalized)) {
             index = 3;
             continue;
           }
-          if (buffer === null)
+          if (buffer == null)
             buffer = new StringBuffer();
           let slice = host.substring(sectionStart, index);
           if (!dart.notNull(isNormalized))
             slice = slice.toLowerCase();
           buffer.write(slice);
           let sourceLength = 3;
-          if (replacement === null) {
+          if (replacement == null) {
             replacement = host.substring(index, dart.notNull(index) + 3);
-          } else if (dart.equals(replacement, "%")) {
+          } else if (replacement == "%") {
             replacement = "%25";
             sourceLength = 1;
           }
@@ -2233,7 +2233,7 @@ var core;
           isNormalized = true;
         } else if (Uri[_isRegNameChar](char)) {
           if (dart.notNull(isNormalized) && dart.notNull(Uri[_UPPER_CASE_A]) <= dart.notNull(char) && dart.notNull(Uri[_UPPER_CASE_Z]) >= dart.notNull(char)) {
-            if (buffer === null)
+            if (buffer == null)
               buffer = new StringBuffer();
             if (dart.notNull(sectionStart) < dart.notNull(index)) {
               buffer.write(host.substring(sectionStart, index));
@@ -2246,14 +2246,14 @@ var core;
           Uri[_fail](host, index, "Invalid character");
         } else {
           let sourceLength = 1;
-          if ((dart.notNull(char) & 64512) === 55296 && dart.notNull(index) + 1 < dart.notNull(end)) {
+          if ((dart.notNull(char) & 64512) == 55296 && dart.notNull(index) + 1 < dart.notNull(end)) {
             let tail = host.codeUnitAt(dart.notNull(index) + 1);
-            if ((dart.notNull(tail) & 64512) === 56320) {
+            if ((dart.notNull(tail) & 64512) == 56320) {
               char = 65536 | (dart.notNull(char) & 1023) << 10 | dart.notNull(tail) & 1023;
               sourceLength = 2;
             }
           }
-          if (buffer === null)
+          if (buffer == null)
             buffer = new StringBuffer();
           let slice = host.substring(sectionStart, index);
           if (!dart.notNull(isNormalized))
@@ -2264,7 +2264,7 @@ var core;
           sectionStart = index;
         }
       }
-      if (buffer === null)
+      if (buffer == null)
         return host.substring(start, end);
       if (dart.notNull(sectionStart) < dart.notNull(end)) {
         let slice = host.substring(sectionStart, end);
@@ -2275,7 +2275,7 @@ var core;
       return buffer.toString();
     }
     static [_makeScheme](scheme, end) {
-      if (end === 0)
+      if (end == 0)
         return "";
       let firstCodeUnit = scheme.codeUnitAt(0);
       if (!dart.notNull(Uri[_isAlphabeticCharacter](firstCodeUnit))) {
@@ -2297,18 +2297,18 @@ var core;
       return scheme;
     }
     static [_makeUserInfo](userInfo, start, end) {
-      if (userInfo === null)
+      if (userInfo == null)
         return "";
       return Uri[_normalize](userInfo, start, end, dart.as(Uri[_userinfoTable], List$(int)));
     }
     static [_makePath](path, start, end, pathSegments, ensureLeadingSlash, isFile) {
-      if (dart.notNull(path === null) && dart.notNull(pathSegments === null))
+      if (dart.notNull(path == null) && dart.notNull(pathSegments == null))
         return isFile ? "/" : "";
-      if (dart.notNull(path !== null) && dart.notNull(pathSegments !== null)) {
+      if (dart.notNull(path != null) && dart.notNull(pathSegments != null)) {
         throw new ArgumentError('Both path and pathSegments specified');
       }
       let result = null;
-      if (path !== null) {
+      if (path != null) {
         result = Uri[_normalize](path, start, end, dart.as(Uri[_pathCharOrSlashTable], List$(int)));
       } else {
         result = pathSegments.map(dart.closureWrap((s) => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)), "(String) → dynamic")).join("/");
@@ -2322,12 +2322,12 @@ var core;
       return dart.as(result, String);
     }
     static [_makeQuery](query, start, end, queryParameters) {
-      if (dart.notNull(query === null) && dart.notNull(queryParameters === null))
+      if (dart.notNull(query == null) && dart.notNull(queryParameters == null))
         return null;
-      if (dart.notNull(query !== null) && dart.notNull(queryParameters !== null)) {
+      if (dart.notNull(query != null) && dart.notNull(queryParameters != null)) {
         throw new ArgumentError('Both query and queryParameters specified');
       }
-      if (query !== null)
+      if (query != null)
         return Uri[_normalize](query, start, end, dart.as(Uri[_queryCharTable], List$(int)));
       let result = new StringBuffer();
       let first = true;
@@ -2337,7 +2337,7 @@ var core;
         }
         first = false;
         result.write(Uri.encodeQueryComponent(dart.as(key, String)));
-        if (dart.notNull(value !== null) && dart.notNull(dart.dunary('!', dart.dload(value, 'isEmpty')))) {
+        if (dart.notNull(value != null) && dart.notNull(dart.dunary('!', dart.dload(value, 'isEmpty')))) {
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
@@ -2345,12 +2345,12 @@ var core;
       return result.toString();
     }
     static [_makeFragment](fragment, start, end) {
-      if (fragment === null)
+      if (fragment == null)
         return null;
       return Uri[_normalize](fragment, start, end, dart.as(Uri[_queryCharTable], List$(int)));
     }
     static [_stringOrNullLength](s) {
-      return s === null ? 0 : s.length;
+      return s == null ? 0 : s.length;
     }
     static [_isHexDigit](char) {
       if (dart.notNull(Uri[_NINE]) >= dart.notNull(char))
@@ -2366,7 +2366,7 @@ var core;
       return dart.notNull(char) - (dart.notNull(Uri[_LOWER_CASE_A]) - 10);
     }
     static [_normalizeEscape](source, index, lowerCase) {
-      dart.assert(source.codeUnitAt(index) === Uri[_PERCENT]);
+      dart.assert(source.codeUnitAt(index) == Uri[_PERCENT]);
       if (dart.notNull(index) + 2 >= dart.notNull(source.length)) {
         return "%";
       }
@@ -2429,18 +2429,18 @@ var core;
       let index = start;
       while (dart.notNull(index) < dart.notNull(end)) {
         let char = component.codeUnitAt(index);
-        if (dart.notNull(char) < 127 && (dart.notNull(charTable.get(dart.notNull(char) >> 4)) & 1 << (dart.notNull(char) & 15)) !== 0) {
+        if (dart.notNull(char) < 127 && (dart.notNull(charTable.get(dart.notNull(char) >> 4)) & 1 << (dart.notNull(char) & 15)) != 0) {
           index = dart.notNull(index) + 1;
         } else {
           let replacement = null;
           let sourceLength = null;
-          if (char === Uri[_PERCENT]) {
+          if (char == Uri[_PERCENT]) {
             replacement = Uri[_normalizeEscape](component, index, false);
-            if (replacement === null) {
+            if (replacement == null) {
               index = 3;
               continue;
             }
-            if (dart.equals("%", replacement)) {
+            if ("%" == replacement) {
               replacement = "%25";
               sourceLength = 1;
             } else {
@@ -2450,10 +2450,10 @@ var core;
             Uri[_fail](component, index, "Invalid character");
           } else {
             sourceLength = 1;
-            if ((dart.notNull(char) & 64512) === 55296) {
+            if ((dart.notNull(char) & 64512) == 55296) {
               if (dart.notNull(index) + 1 < dart.notNull(end)) {
                 let tail = component.codeUnitAt(dart.notNull(index) + 1);
-                if ((dart.notNull(tail) & 64512) === 56320) {
+                if ((dart.notNull(tail) & 64512) == 56320) {
                   sourceLength = 2;
                   char = 65536 | (dart.notNull(char) & 1023) << 10 | dart.notNull(tail) & 1023;
                 }
@@ -2461,7 +2461,7 @@ var core;
             }
             replacement = Uri[_escapeChar](char);
           }
-          if (buffer === null)
+          if (buffer == null)
             buffer = new StringBuffer();
           buffer.write(component.substring(sectionStart, index));
           buffer.write(replacement);
@@ -2469,7 +2469,7 @@ var core;
           sectionStart = index;
         }
       }
-      if (buffer === null) {
+      if (buffer == null) {
         return component.substring(start, end);
       }
       if (dart.notNull(sectionStart) < dart.notNull(end)) {
@@ -2484,7 +2484,7 @@ var core;
       return dart.notNull(ch) <= dart.notNull(Uri[_RIGHT_BRACKET]) && dart.notNull(!dart.equals(dart.dbinary(Uri[_genDelimitersTable].get(dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     get isAbsolute() {
-      return dart.notNull(!dart.equals(this.scheme, "")) && dart.notNull(dart.equals(this.fragment, ""));
+      return dart.notNull(this.scheme != "") && dart.notNull(this.fragment == "");
     }
     [_merge](base, reference) {
       if (base.isEmpty)
@@ -2502,7 +2502,7 @@ var core;
           break;
         }
         let delta = dart.notNull(baseEnd) - dart.notNull(newEnd);
-        if ((delta === 2 || delta === 3) && base.codeUnitAt(dart.notNull(newEnd) + 1) === Uri[_DOT] && (delta === 2 || base.codeUnitAt(dart.notNull(newEnd) + 2) === Uri[_DOT])) {
+        if ((delta == 2 || delta == 3) && base.codeUnitAt(dart.notNull(newEnd) + 1) == Uri[_DOT] && (delta == 2 || base.codeUnitAt(dart.notNull(newEnd) + 2) == Uri[_DOT])) {
           break;
         }
         baseEnd = newEnd;
@@ -2511,10 +2511,10 @@ var core;
       return String['+'](base.substring(0, dart.notNull(baseEnd) + 1), reference.substring(dart.notNull(refStart) - 3 * dart.notNull(backCount)));
     }
     [_hasDotSegments](path) {
-      if (dart.notNull(path.length) > 0 && path.codeUnitAt(0) === Uri[_DOT])
+      if (dart.notNull(path.length) > 0 && path.codeUnitAt(0) == Uri[_DOT])
         return true;
       let index = path.indexOf("/.");
-      return index !== -1;
+      return index != -1;
     }
     [_removeDotSegments](path) {
       if (!dart.notNull(this[_hasDotSegments](path)))
@@ -2523,11 +2523,11 @@ var core;
       let appendSlash = false;
       for (let segment of path.split("/")) {
         appendSlash = false;
-        if (dart.equals(segment, "..")) {
-          if (!dart.notNull(output.isEmpty) && (output.length !== 1 || dart.notNull(!dart.equals(output.get(0), ""))))
+        if (segment == "..") {
+          if (!dart.notNull(output.isEmpty) && (output.length != 1 || dart.notNull(output.get(0) != "")))
             output.removeLast();
           appendSlash = true;
-        } else if (dart.equals(".", segment)) {
+        } else if ("." == segment) {
           appendSlash = true;
         } else {
           output.add(segment);
@@ -2568,7 +2568,7 @@ var core;
           if (reference.hasQuery)
             targetQuery = reference.query;
         } else {
-          if (dart.equals(reference.path, "")) {
+          if (reference.path == "") {
             targetPath = this[_path];
             if (reference.hasQuery) {
               targetQuery = reference.query;
@@ -2593,45 +2593,45 @@ var core;
       return new Uri[_internal$](targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
     }
     get hasAuthority() {
-      return this[_host] !== null;
+      return this[_host] != null;
     }
     get hasPort() {
-      return this[_port] !== null;
+      return this[_port] != null;
     }
     get hasQuery() {
-      return this[_query] !== null;
+      return this[_query] != null;
     }
     get hasFragment() {
-      return this[_fragment] !== null;
+      return this[_fragment] != null;
     }
     get origin() {
-      if (dart.notNull(dart.equals(this.scheme, "")) || dart.notNull(this[_host] === null) || dart.notNull(dart.equals(this[_host], ""))) {
+      if (dart.notNull(this.scheme == "") || dart.notNull(this[_host] == null) || dart.notNull(this[_host] == "")) {
         throw new StateError(`Cannot use origin without a scheme: ${this}`);
       }
-      if (dart.notNull(!dart.equals(this.scheme, "http")) && dart.notNull(!dart.equals(this.scheme, "https"))) {
+      if (dart.notNull(this.scheme != "http") && dart.notNull(this.scheme != "https")) {
         throw new StateError(`Origin is only applicable schemes http and https: ${this}`);
       }
-      if (this[_port] === null)
+      if (this[_port] == null)
         return `${this.scheme}://${this[_host]}`;
       return `${this.scheme}://${this[_host]}:${this[_port]}`;
     }
     toFilePath(opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
-      if (dart.notNull(!dart.equals(this.scheme, "")) && dart.notNull(!dart.equals(this.scheme, "file"))) {
+      if (dart.notNull(this.scheme != "") && dart.notNull(this.scheme != "file")) {
         throw new UnsupportedError(`Cannot extract a file path from a ${this.scheme} URI`);
       }
-      if (!dart.equals(this.query, "")) {
+      if (this.query != "") {
         throw new UnsupportedError("Cannot extract a file path from a URI with a query component");
       }
-      if (!dart.equals(this.fragment, "")) {
+      if (this.fragment != "") {
         throw new UnsupportedError("Cannot extract a file path from a URI with a fragment component");
       }
-      if (windows === null)
+      if (windows == null)
         windows = Uri[_isWindows];
       return windows ? this[_toWindowsFilePath]() : this[_toFilePath]();
     }
     [_toFilePath]() {
-      if (!dart.equals(this.host, "")) {
+      if (this.host != "") {
         throw new UnsupportedError("Cannot extract a non-Windows file path from a file URI " + "with an authority");
       }
       Uri[_checkNonWindowsPathReservedCharacters](this.pathSegments, false);
@@ -2644,7 +2644,7 @@ var core;
     [_toWindowsFilePath]() {
       let hasDriveLetter = false;
       let segments = this.pathSegments;
-      if (dart.notNull(segments.length) > 0 && segments.get(0).length === 2 && segments.get(0).codeUnitAt(1) === Uri[_COLON]) {
+      if (dart.notNull(segments.length) > 0 && segments.get(0).length == 2 && segments.get(0).codeUnitAt(1) == Uri[_COLON]) {
         Uri[_checkWindowsDriveLetter](segments.get(0).codeUnitAt(0), false);
         Uri[_checkWindowsPathReservedCharacters](segments, false, 1);
         hasDriveLetter = true;
@@ -2654,18 +2654,18 @@ var core;
       let result = new StringBuffer();
       if (dart.notNull(this[_isPathAbsolute]) && !dart.notNull(hasDriveLetter))
         result.write("\\");
-      if (!dart.equals(this.host, "")) {
+      if (this.host != "") {
         result.write("\\");
         result.write(this.host);
         result.write("\\");
       }
       result.writeAll(segments, "\\");
-      if (dart.notNull(hasDriveLetter) && segments.length === 1)
+      if (dart.notNull(hasDriveLetter) && segments.length == 1)
         result.write("\\");
       return result.toString();
     }
     get [_isPathAbsolute]() {
-      if (dart.notNull(this.path === null) || dart.notNull(this.path.isEmpty))
+      if (dart.notNull(this.path == null) || dart.notNull(this.path.isEmpty))
         return false;
       return this.path.startsWith('/');
     }
@@ -2674,9 +2674,9 @@ var core;
         ss.write(this[_userInfo]);
         ss.write("@");
       }
-      if (this[_host] !== null)
+      if (this[_host] != null)
         ss.write(this[_host]);
-      if (this[_port] !== null) {
+      if (this[_port] != null) {
         ss.write(":");
         ss.write(this[_port]);
       }
@@ -2684,16 +2684,16 @@ var core;
     toString() {
       let sb = new StringBuffer();
       Uri[_addIfNonEmpty](sb, this.scheme, this.scheme, ':');
-      if (dart.notNull(this.hasAuthority) || dart.notNull(this.path.startsWith("//")) || dart.notNull(dart.equals(this.scheme, "file"))) {
+      if (dart.notNull(this.hasAuthority) || dart.notNull(this.path.startsWith("//")) || dart.notNull(this.scheme == "file")) {
         sb.write("//");
         this[_writeAuthority](sb);
       }
       sb.write(this.path);
-      if (this[_query] !== null) {
+      if (this[_query] != null) {
         sb.write("?");
         sb.write(this[_query]);
       }
-      if (this[_fragment] !== null) {
+      if (this[_fragment] != null) {
         sb.write("#");
         sb.write(this[_fragment]);
       }
@@ -2703,7 +2703,7 @@ var core;
       if (!dart.is(other, Uri))
         return false;
       let uri = dart.as(other, Uri);
-      return dart.notNull(dart.equals(this.scheme, uri.scheme)) && this.hasAuthority === uri.hasAuthority && dart.notNull(dart.equals(this.userInfo, uri.userInfo)) && dart.notNull(dart.equals(this.host, uri.host)) && this.port === uri.port && dart.notNull(dart.equals(this.path, uri.path)) && this.hasQuery === uri.hasQuery && dart.notNull(dart.equals(this.query, uri.query)) && this.hasFragment === uri.hasFragment && dart.notNull(dart.equals(this.fragment, uri.fragment));
+      return dart.notNull(this.scheme == uri.scheme) && this.hasAuthority == uri.hasAuthority && dart.notNull(this.userInfo == uri.userInfo) && dart.notNull(this.host == uri.host) && this.port == uri.port && dart.notNull(this.path == uri.path) && this.hasQuery == uri.hasQuery && dart.notNull(this.query == uri.query) && this.hasFragment == uri.hasFragment && dart.notNull(this.fragment == uri.fragment);
     }
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
@@ -2713,7 +2713,7 @@ var core;
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
     static [_addIfNonEmpty](sb, test, first, second) {
-      if (!dart.equals("", test)) {
+      if ("" != test) {
         sb.write(first);
         sb.write(second);
       }
@@ -2742,11 +2742,11 @@ var core;
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
       return dart.as(query.split("&").fold(dart.map(), dart.closureWrap((map, element) => {
         let index = dart.as(dart.dinvoke(element, 'indexOf', "="), int);
-        if (index === -1) {
+        if (index == -1) {
           if (!dart.equals(element, "")) {
             dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(element, String), {encoding: encoding}), "");
           }
-        } else if (index !== 0) {
+        } else if (index != 0) {
           let key = dart.dinvoke(element, 'substring', 0, index);
           let value = dart.dinvoke(element, 'substring', dart.notNull(index) + 1);
           dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), Uri.decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
@@ -2760,7 +2760,7 @@ var core;
         throw new FormatException(`Illegal IPv4 address, ${msg}`);
       }
       let bytes = host.split('.');
-      if (bytes.length !== 4) {
+      if (bytes.length != 4) {
         error('IPv4 address should contain exactly 4 parts');
       }
       return dart.as(bytes.map(dart.closureWrap((byteString) => {
@@ -2776,7 +2776,7 @@ var core;
         start = 0;
       if (end === void 0)
         end = null;
-      if (end === null)
+      if (end == null)
         end = host.length;
       // Function error: (String, [dynamic]) → void
       function error(msg, position) {
@@ -2801,15 +2801,15 @@ var core;
       let wildcardSeen = false;
       let partStart = start;
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-        if (host.codeUnitAt(i) === Uri[_COLON]) {
-          if (i === start) {
+        if (host.codeUnitAt(i) == Uri[_COLON]) {
+          if (i == start) {
             i = dart.notNull(i) + 1;
-            if (host.codeUnitAt(i) !== Uri[_COLON]) {
+            if (host.codeUnitAt(i) != Uri[_COLON]) {
               error('invalid start colon.', i);
             }
             partStart = i;
           }
-          if (i === partStart) {
+          if (i == partStart) {
             if (wildcardSeen) {
               error('only one wildcard `::` is allowed', i);
             }
@@ -2821,10 +2821,10 @@ var core;
           partStart = dart.notNull(i) + 1;
         }
       }
-      if (parts.length === 0)
+      if (parts.length == 0)
         error('too few parts');
-      let atEnd = partStart === end;
-      let isLastWildcard = parts.last === -1;
+      let atEnd = partStart == end;
+      let isLastWildcard = parts.last == -1;
       if (dart.notNull(atEnd) && !dart.notNull(isLastWildcard)) {
         error('expected a part after last `:`', end);
       }
@@ -2847,13 +2847,13 @@ var core;
         if (dart.notNull(parts.length) > 7) {
           error('an address with a wildcard must have less than 7 parts');
         }
-      } else if (parts.length !== 8) {
+      } else if (parts.length != 8) {
         error('an address without a wildcard must contain exactly 8 parts');
       }
       let bytes = new List(16);
       for (let i = 0, index = 0; dart.notNull(i) < dart.notNull(parts.length); i = dart.notNull(i) + 1) {
         let value = parts.get(i);
-        if (value === -1) {
+        if (value == -1) {
           let wildCardLength = 9 - dart.notNull(parts.length);
           for (let j = 0; dart.notNull(j) < dart.notNull(wildCardLength); j = dart.notNull(j) + 1) {
             bytes.set(index, 0);
@@ -2881,9 +2881,9 @@ var core;
       let bytes = encoding.encode(text);
       for (let i = 0; dart.notNull(i) < dart.notNull(bytes.length); i = dart.notNull(i) + 1) {
         let byte = bytes.get(i);
-        if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable.get(dart.notNull(byte) >> 4)) & 1 << (dart.notNull(byte) & 15)) !== 0) {
+        if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable.get(dart.notNull(byte) >> 4)) & 1 << (dart.notNull(byte) & 15)) != 0) {
           result.writeCharCode(byte);
-        } else if (dart.notNull(spaceToPlus) && byte === Uri[_SPACE]) {
+        } else if (dart.notNull(spaceToPlus) && byte == Uri[_SPACE]) {
           result.writeCharCode(Uri[_PLUS]);
         } else {
           result.writeCharCode(Uri[_PERCENT]);
@@ -2915,7 +2915,7 @@ var core;
       let simple = true;
       for (let i = 0; dart.notNull(i) < dart.notNull(text.length) && dart.notNull(simple); i = dart.notNull(i) + 1) {
         let codeUnit = text.codeUnitAt(i);
-        simple = codeUnit !== Uri[_PERCENT] && codeUnit !== Uri[_PLUS];
+        simple = codeUnit != Uri[_PERCENT] && codeUnit != Uri[_PLUS];
       }
       let bytes = null;
       if (simple) {
@@ -2931,13 +2931,13 @@ var core;
           if (dart.notNull(codeUnit) > 127) {
             throw new ArgumentError("Illegal percent encoding in URI");
           }
-          if (codeUnit === Uri[_PERCENT]) {
+          if (codeUnit == Uri[_PERCENT]) {
             if (dart.notNull(i) + 3 > dart.notNull(text.length)) {
               throw new ArgumentError('Truncated URI');
             }
             bytes.add(Uri[_hexCharPairToByte](text, dart.notNull(i) + 1));
             i = 2;
-          } else if (dart.notNull(plusToSpace) && codeUnit === Uri[_PLUS]) {
+          } else if (dart.notNull(plusToSpace) && codeUnit == Uri[_PLUS]) {
             bytes.add(Uri[_SPACE]);
           } else {
             bytes.add(codeUnit);
@@ -2997,7 +2997,7 @@ var core;
   }
   // Function _symbolMapToStringMap: (Map<Symbol, dynamic>) → dynamic
   function _symbolMapToStringMap(map) {
-    if (map === null)
+    if (map == null)
       return null;
     let result = new Map();
     map.forEach((key, value) => {

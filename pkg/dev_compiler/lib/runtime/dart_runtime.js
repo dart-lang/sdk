@@ -128,9 +128,9 @@ var dart, _js_helper;
   dart.arity = arity;
 
   function equals(x, y) {
-    if (x === null || y === null) return x === y;
+    if (x == null || y == null) return x == y;
     var eq = x['=='];
-    return eq ? eq.call(x, y) : x === y;
+    return eq ? eq.call(x, y) : x == y;
   }
   dart.equals = equals;
 

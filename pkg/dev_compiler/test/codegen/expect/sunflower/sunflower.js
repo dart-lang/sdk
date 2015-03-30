@@ -72,7 +72,7 @@ var sunflower;
       if (color === void 0)
         color = null;
       super.Circle(x, y, radius);
-      if (color !== null)
+      if (color != null)
         this.color = color;
     }
   }
