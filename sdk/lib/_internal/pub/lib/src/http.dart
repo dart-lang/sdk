@@ -11,6 +11,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http_throttle/http_throttle.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'io.dart';
 import 'log.dart' as log;
