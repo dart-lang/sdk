@@ -636,9 +636,8 @@ f() {
   void test_builtInIdentifierAsTypeParameterName() {
     Source source = addSource("class A<as> {}");
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME]);
     verify([source]);
   }
 
@@ -984,9 +983,8 @@ class A {
 }
 const a = new A();''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
@@ -1012,9 +1010,8 @@ class A {
 final a = const A();
 const C = a.m;''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
@@ -1147,27 +1144,24 @@ f(p) {
   const C = p;
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
   void test_constInitializedWithNonConstValue_missingConstInListLiteral() {
     Source source = addSource("const List L = [0];");
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
   void test_constInitializedWithNonConstValue_missingConstInMapLiteral() {
     Source source = addSource("const Map M = {'a' : 0};");
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
@@ -1219,9 +1213,8 @@ main() {
   const {const A() : 0};
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -1241,9 +1234,8 @@ main() {
   const {B.a : 0};
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -1261,9 +1253,8 @@ main() {
   var m = const { const A(): 42 };
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -1280,9 +1271,8 @@ main() {
   const {const B() : 0};
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -1441,9 +1431,8 @@ f() {
   return const A();
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
     verify([source]);
   }
 
@@ -1458,18 +1447,16 @@ f() {
   void test_defaultValueInFunctionTypedParameter_named() {
     Source source = addSource("f(g({p: null})) {}");
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
   void test_defaultValueInFunctionTypedParameter_optional() {
     Source source = addSource("f(g([p = null])) {}");
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
@@ -1911,9 +1898,8 @@ class A {
   A() : x = 0, x = 1 {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
     verify([source]);
   }
 
@@ -1953,9 +1939,8 @@ class A {
   A(this.x) : x = 1 {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
     verify([source]);
   }
 
@@ -2006,9 +1991,8 @@ class A {
   A() : this.named(), x = 42;
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -2020,9 +2004,8 @@ class A {
   A() : x = 42, this.named();
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -2034,9 +2017,8 @@ class A {
   A(this.x) : this.named();
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -2047,9 +2029,8 @@ class A {
   A() : x = 0, x = 0 {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
     verify([source]);
   }
 
@@ -2068,9 +2049,8 @@ class A {
   A(this.x) : x = 0 {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
     verify([source]);
   }
 
@@ -2603,9 +2583,8 @@ class A {
   A(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -2618,9 +2597,8 @@ class B extends A {
   B(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -2630,9 +2608,8 @@ class A {
   A([this.x]) {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -2643,9 +2620,8 @@ class A {
   A(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -3673,9 +3649,8 @@ class A {
   A.b() {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS]);
     verify([source]);
   }
 
@@ -3766,9 +3741,8 @@ class C extends Mixed {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -3785,9 +3759,8 @@ class C extends Mixed {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -3822,9 +3795,8 @@ class C extends Mixed {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -3840,9 +3812,8 @@ class C extends B with M {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -4714,6 +4685,23 @@ class A {
     verify([source]);
   }
 
+  void test_recursiveFactoryRedirect_diverging() {
+    // Analysis should terminate even though the redirections don't reach a
+    // fixed point.  (C<int> redirects to C<C<int>>, then to C<C<C<int>>>, and
+    // so on).
+    Source source = addSource('''
+class C<T> {
+  const factory C() = C<C<T>>;
+}
+main() {
+  const C<int>();
+}
+''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT]);
+    verify([source]);
+  }
+
   void test_recursiveFactoryRedirect_generic() {
     Source source = addSource(r'''
 class A<T> implements B<T> {
@@ -4905,9 +4893,8 @@ class B = A with M implements B;''');
   void test_recursiveInterfaceInheritanceBaseCaseWith() {
     Source source = addSource("class M = Object with M;");
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH]);
     verify([source]);
   }
 
@@ -4917,9 +4904,8 @@ class A {
   A() : this.noSuchConstructor();
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_redirectGenerativeToNonGenerativeConstructor() {
@@ -5405,9 +5391,8 @@ class B extends A {
   B() : super();
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -5420,9 +5405,8 @@ class B extends A {
   B();
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -5501,9 +5485,8 @@ class A {
   operator -(a, b) {}
 }''');
     resolve(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS]);
     verify([source]);
     reset();
   }

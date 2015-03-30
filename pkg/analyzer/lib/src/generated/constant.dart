@@ -995,7 +995,8 @@ class ConstantValueComputer {
         // let [evaluateInstanceCreationExpression] handle it specially.
         break;
       }
-      constructorsVisited.add(constructor);
+      ConstructorElement constructorBase = _getConstructorBase(constructor);
+      constructorsVisited.add(constructorBase);
       ConstructorElement redirectedConstructor =
           constructor.redirectedConstructor;
       if (redirectedConstructor == null) {
@@ -1008,7 +1009,9 @@ class ConstantValueComputer {
         // [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
         break;
       }
-      if (constructorsVisited.contains(redirectedConstructor)) {
+      ConstructorElement redirectedConstructorBase =
+          _getConstructorBase(redirectedConstructor);
+      if (constructorsVisited.contains(redirectedConstructorBase)) {
         // Cycle in redirecting factory constructors--this is not allowed
         // and is checked elsewhere--see
         // [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
