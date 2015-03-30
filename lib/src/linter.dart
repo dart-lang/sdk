@@ -86,22 +86,27 @@ class FileGlobFilter extends LintFilter {
   }
 }
 
-class Group {
+class Group implements Comparable<Group> {
 
   /// Defined rule groups.
   static const Group pub = const Group._('pub',
+      description: 'Pub-related rules.',
       link: const Hyperlink('See the <strong>Pubspec Format</strong>',
           'https://www.dartlang.org/tools/pub/pubspec.html'));
   static const Group style = const Group._('style',
+      description: 'Matters of style, largely derived from the official Dart Style Guide.',
       link: const Hyperlink('See the <strong>Style Guide</strong>',
           'https://www.dartlang.org/articles/style-guide/'));
+
+  /// List of builtin groups in presentation order.
+  static Iterable<Group> get builtin => [style, pub];
 
   final String name;
   final bool custom;
   final String description;
   final Hyperlink link;
 
-  factory Group(String name, {String description, Hyperlink link}) {
+  factory Group(String name, {String description: '', Hyperlink link}) {
     switch (name.toLowerCase()) {
       case 'style':
         return style;
@@ -113,6 +118,9 @@ class Group {
     }
   }
 
+  @override
+  int compareTo(Group other) => name.compareTo(other.name);
+
   const Group._(this.name, {this.custom: false, this.description, this.link});
 }
 
@@ -123,70 +131,6 @@ class Hyperlink {
   const Hyperlink(this.label, this.href, {this.bold: false});
   String get html => '<a href="$href">${_emph(label)}</a>';
   String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
-}
-
-class Kind implements Comparable<Kind> {
-
-  /// Defined rule kinds.
-  static const Kind DO = const Kind._('Do', ordinal: 0, description: '''
-**DO** guidelines describe practices that should always be followed. 
-There will almost never be a valid reason to stray from them.
-''');
-  static const Kind DONT = const Kind._("Don't", ordinal: 1, description: '''
-**DON'T** guidelines are the converse: things that are almost never a good idea. 
-You'll note there are few of these here. Guidelines like these in other 
-languages help to avoid the pitfalls that appear over time. Dart is new enough 
-that we can just fix those pitfalls directly instead of putting up ropes around 
-them.
-''');
-  static const Kind PREFER = const Kind._('Prefer', ordinal: 2, description: '''
-**PREFER** guidelines are practices that you should follow. However, there 
-may be circumstances where it makes sense to do otherwise. Just make sure you 
-understand the full implications of ignoring the guideline when you do.
-''');
-  static const Kind AVOID = const Kind._('Avoid', ordinal: 3, description: '''
-**AVOID** guidelines are the dual to "prefer": stuff you shouldn't do but where 
-there may be good reasons to on rare occasions.
-''');
-  static const Kind CONSIDER = const Kind._('Consider',
-      ordinal: 4, description: '''
-**CONSIDER** guidelines are practices that you might or might not want to 
-follow, depending on circumstances, precedents, and your own preference.
-''');
-
-  /// List of supported kinds in priority order.
-  static Iterable<Kind> get supported => [DO, DONT, PREFER, AVOID, CONSIDER];
-  final String name;
-  final bool custom;
-  /// Description (in markdown).
-  final String description;
-
-  final int ordinal;
-
-  factory Kind(String name, {String description, int ordinal}) {
-    var label = name.toUpperCase();
-    switch (label) {
-      case 'DO':
-        return DO;
-      case 'DONT':
-      case "DON'T":
-        return DONT;
-      case 'PREFER':
-        return PREFER;
-      case 'AVOID':
-        return AVOID;
-      case 'CONSIDER':
-        return CONSIDER;
-      default:
-        return new Kind._(label,
-            custom: true, description: description, ordinal: ordinal);
-    }
-  }
-
-  const Kind._(this.name, {this.custom: false, this.description, this.ordinal});
-
-  @override
-  int compareTo(Kind other) => this.ordinal - other.ordinal;
 }
 
 /// Thrown when an error occurs in linting.
@@ -231,11 +175,9 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   final String details;
   /// Short description suitable for display in console output.
   final String description;
-  /// Lint group (for example, 'Style Guide')
+  /// Lint group (for example, 'style').
   final Group group;
-  /// Lint kind (DO|DON'T|PREFER|AVOID|CONSIDER).
-  final Kind kind;
-  /// Lint maturity (STABLE|EXPERIMENTAL).
+  /// Lint maturity (stable|experimental).
   final Maturity maturity;
   /// Lint name.
   final String name;
@@ -245,14 +187,14 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// constitute AnalysisErrorInfos.
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
-  LintRule({this.name, this.group, this.kind, this.description, this.details,
+  LintRule({this.name, this.group, this.description, this.details,
       this.maturity: Maturity.stable});
 
   @override
   int compareTo(LintRule other) {
-    var k = kind.compareTo(other.kind);
-    if (k != 0) {
-      return k;
+    var g = group.compareTo(other.group);
+    if (g != 0) {
+      return g;
     }
     return name.compareTo(other.name);
   }
@@ -292,8 +234,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
 class Maturity implements Comparable<Maturity> {
   static const Maturity stable = const Maturity._('stable', ordinal: 0);
-  static const Maturity experimental =
-      const Maturity._('stable', ordinal: 1);
+  static const Maturity experimental = const Maturity._('stable', ordinal: 1);
 
   final String name;
   final int ordinal;

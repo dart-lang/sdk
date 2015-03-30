@@ -37,8 +37,7 @@ class LibraryPrefixes extends LintRule {
           name: 'library_prefixes',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.AVOID);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

@@ -50,8 +50,7 @@ class SuperGoesLast extends LintRule {
           name: 'super_goes_last',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.DO);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

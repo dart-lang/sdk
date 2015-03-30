@@ -5,7 +5,6 @@
 library linter.src.rules.package_api_docs;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:linter/src/analysis.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/project.dart';
@@ -68,8 +67,7 @@ class PackageApiDocs extends LintRule implements ProjectVisitor {
           name: 'package_api_docs',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.DO);
+          group: Group.style);
 
   @override
   ProjectVisitor getProjectVisitor() => this;

@@ -39,8 +39,7 @@ class OneMemberAbstracts extends LintRule {
           name: 'one_member_abstracts',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.AVOID);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
