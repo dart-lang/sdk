@@ -66,6 +66,16 @@ class GetContentTaskTest extends EngineTestCase {
     expect(task.outputs[CONTENT], 'foo');
     expect(task.outputs[MODIFICATION_TIME], 42);
   }
+
+  void test_perform_exception() {
+    AnalysisContext context = new _MockContext();
+    Source target = new TestSource();
+    GetContentTask task = new GetContentTask(context, target);
+    when(context.getContents(target)).thenThrow('My exception!');
+    task.perform();
+    expect(task.caughtException, isNotNull);
+    expect(task.outputs, isEmpty);
+  }
 }
 
 class _MockContext extends TypedMock implements AnalysisContext {
