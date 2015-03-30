@@ -48,6 +48,7 @@ main() {
   runReflectiveTests(ResolveReferencesTaskTest);
   runReflectiveTests(ResolveVariableReferencesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
+  runReflectiveTests(VerifyUnitTaskTest);
 }
 
 @reflectiveTest
@@ -1435,6 +1436,42 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
   }
 }
 
+@reflectiveTest
+class VerifyUnitTaskTest extends _AbstractDartTaskTest {
+  test_perform_directiveError() {
+    // TODO(scheglov) uncomment when GetContentTask handles not
+    // existing sources correctly.
+//    Source source = _newSource('/test.dart', '''
+//library lib;
+//part '/does/not/exist.dart';
+//''');
+//    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+//    _computeResult(target, VERIFY_ERRORS);
+//    expect(task, new isInstanceOf<VerifyUnitTask>());
+//    // validate
+//    _fillErrorListener(VERIFY_ERRORS);
+//    errorListener.assertErrorsWithCodes(
+//        <ErrorCode>[StaticTypeWarningCode.NON_BOOL_CONDITION]);
+  }
+
+  test_perform_verifyError() {
+    Source source = _newSource('/test.dart', '''
+main() {
+  if (42) {
+    print('Not bool!');
+  }
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, VERIFY_ERRORS);
+    expect(task, new isInstanceOf<VerifyUnitTask>());
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[StaticTypeWarningCode.NON_BOOL_CONDITION]);
+  }
+}
+
 class _AbstractDartTaskTest extends EngineTestCase {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
   Source emptySource;
@@ -1480,6 +1517,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveReferencesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveVariableReferencesTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(VerifyUnitTask.DESCRIPTOR);
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
   }

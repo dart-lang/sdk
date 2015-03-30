@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -267,6 +268,17 @@ final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
  */
 final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
     new ResultDescriptor<TypeProvider>('TYPE_PROVIDER', null);
+
+/**
+ * The errors produced while verifying a compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart compilation unit.
+ */
+final ResultDescriptor<List<AnalysisError>> VERIFY_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'VERIFY_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
 
 /**
  * A task that builds implicit constructors for a [ClassElement], or keeps
@@ -2195,5 +2207,111 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static ScanDartTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ScanDartTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [VERIFY_ERRORS] for a unit.
+ */
+class VerifyUnitTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('VerifyUnitTask',
+      createTask, buildInputs, <ResultDescriptor>[VERIFY_ERRORS]);
+
+  /**
+   * The [ErrorReporter] to report errors to.
+   */
+  ErrorReporter errorReporter;
+
+  VerifyUnitTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    Source source = getRequiredSource();
+    errorReporter = new ErrorReporter(errorListener, source);
+    TypeProvider typeProvider = context.typeProvider;
+    //
+    // Prepare inputs. TODO
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    CompilationUnitElement unitElement = unit.element;
+    LibraryElement libraryElement = unitElement.library;
+    //
+    // Validate the directives
+    //
+    _validateDirectives(unit);
+    //
+    // Use the ErrorVerifier to compute the rest of the errors.
+    //
+    ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
+        libraryElement, typeProvider, new InheritanceManager(libraryElement));
+    unit.accept(errorVerifier);
+    //
+    // Record outputs.
+    //
+    outputs[VERIFY_ERRORS] = errorListener.errors;
+  }
+
+  /**
+   * Check each directive in the given [unit] to see if the referenced source
+   * exists and report an error if it does not.
+   */
+  void _validateDirectives(CompilationUnit unit) {
+    for (Directive directive in unit.directives) {
+      if (directive is UriBasedDirective) {
+        _validateReferencedSource(directive);
+      }
+    }
+  }
+
+  /**
+   * Check the given [directive] to see if the referenced source exists and
+   * report an error if it does not.
+   */
+  void _validateReferencedSource(UriBasedDirective directive) {
+    Source source = directive.source;
+    if (source != null) {
+      if (context.exists(source)) {
+        return;
+      }
+    } else {
+      // Don't report errors already reported by ParseDartTask.resolveDirective
+      if (directive.validate() != null) {
+        return;
+      }
+    }
+    StringLiteral uriLiteral = directive.uri;
+    errorReporter.reportErrorForNode(CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        uriLiteral, [directive.uriContent]);
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(target)};
+  }
+
+  /**
+   * Create a [VerifyUnitTask] based on the given [target] in
+   * the given [context].
+   */
+  static VerifyUnitTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new VerifyUnitTask(context, target);
   }
 }
