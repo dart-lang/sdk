@@ -401,7 +401,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (identical(entity, node.period) && offset > node.period.offset) {
+    if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
       optype.includeInvocationSuggestions = true;

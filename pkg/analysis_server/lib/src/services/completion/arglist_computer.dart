@@ -55,7 +55,7 @@ class _ArgListAstVisitor
         if (selector != null) {
           String name = selector.name;
           if (name != null && name.length > 0) {
-            if (parent.period == null) {
+            if (parent.operator == null) {
               /*
                * If a local declaration is found, then return null
                * indicating that suggestions were added

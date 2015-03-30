@@ -152,7 +152,7 @@ ImportElementInfo internal_getImportElementInfo(SimpleIdentifier prefixNode) {
     MethodInvocation invocation = parent;
     if (invocation.target == prefixNode) {
       usedElement = invocation.methodName.staticElement;
-      info.periodEnd = invocation.period.end;
+      info.periodEnd = invocation.operator.end;
     }
   }
   // we need used Element
