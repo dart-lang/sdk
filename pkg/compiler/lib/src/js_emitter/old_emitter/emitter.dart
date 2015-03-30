@@ -522,7 +522,7 @@ class OldEmitter implements Emitter {
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
         jsAst.Expression init =
-            buildLazilyInitializedStaticField(element, isolateProperties);
+            buildLazilyInitializedStaticField(element);
         if (init == null) continue;
         output.addBuffer(
             jsAst.prettyPrint(init, compiler, monitor: compiler.dumpInfoTask));
@@ -532,7 +532,7 @@ class OldEmitter implements Emitter {
   }
 
   jsAst.Expression buildLazilyInitializedStaticField(
-      VariableElement element, String isolateProperties) {
+      VariableElement element, {String isolateProperties}) {
     jsAst.Expression code = backend.generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -543,13 +543,22 @@ class OldEmitter implements Emitter {
     //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
     // The name is used for error reporting. The 'initial' must be a
     // closure that constructs the initial value.
-    return js('#(#,#,#,#,#)',
+    if (isolateProperties != null) {
+      return js('#(#,#,#,#,#)',
+          [js(lazyInitializerName),
+           js.string(element.name),
+           js.string(namer.globalPropertyName(element)),
+           js.string(namer.lazyInitializerName(element)),
+           code,
+           isolateProperties]);
+    }
+
+    return js('#(#,#,#,#)',
         [js(lazyInitializerName),
-            js(isolateProperties),
-            js.string(element.name),
-            js.string(namer.globalPropertyName(element)),
-            js.string(namer.lazyInitializerName(element)),
-            code]);
+         js.string(element.name),
+         js.string(namer.globalPropertyName(element)),
+         js.string(namer.lazyInitializerName(element)),
+         code]);
   }
 
   void emitMetadata(Program program, CodeOutput output) {
@@ -666,7 +675,6 @@ class OldEmitter implements Emitter {
   }
 
   void emitInitFunction(CodeOutput output) {
-    String isolate = namer.currentIsolate;
     jsAst.Expression allClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression getTypeFromNameAccess =
@@ -692,28 +700,32 @@ class OldEmitter implements Emitter {
         #finishedClasses = Object.create(null);
 
         if (#needsLazyInitializer) {
-          $lazyInitializerName = function (prototype, staticName, fieldName,
-                                           getterName, lazyValue) {
+          $lazyInitializerName = function (staticName, fieldName, getterName,
+                                           lazyValue, prototype) {
             if (!#lazies) #lazies = Object.create(null);
             #lazies[fieldName] = getterName;
 
+            // 'prototype' will be undefined except if we are doing an update
+            // during incremental compilation. In this case we put the lazy
+            // field directly on the isolate instead of the isolateProperties.
+            prototype = prototype || $isolateProperties;
             var sentinelUndefined = {};
             var sentinelInProgress = {};
             prototype[fieldName] = sentinelUndefined;
 
             prototype[getterName] = function () {
-              var result = $isolate[fieldName];
+              var result = this[fieldName];
               try {
                 if (result === sentinelUndefined) {
-                  $isolate[fieldName] = sentinelInProgress;
+                  this[fieldName] = sentinelInProgress;
 
                   try {
-                    result = $isolate[fieldName] = lazyValue();
+                    result = this[fieldName] = lazyValue();
                   } finally {
                     // Use try-finally, not try-catch/throw as it destroys the
                     // stack trace.
                     if (result === sentinelUndefined)
-                      $isolate[fieldName] = null;
+                      this[fieldName] = null;
                   }
                 } else {
                   if (result === sentinelInProgress)
@@ -722,7 +734,7 @@ class OldEmitter implements Emitter {
 
                 return result;
               } finally {
-                $isolate[getterName] = function() { return this[fieldName]; };
+                this[getterName] = function() { return this[fieldName]; };
               }
             }
           }
