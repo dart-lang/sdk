@@ -12,7 +12,7 @@ var BenchmarkBase;
         throw `Lists have different lengths: ${expected.length} vs ${actual.length}`;
       }
       for (let i = 0; dart.notNull(i) < dart.notNull(actual.length); i = dart.notNull(i) + 1) {
-        equals(expected.get(i), actual.get(i));
+        Expect.equals(expected.get(i), actual.get(i));
       }
     }
     fail(message) {
@@ -49,10 +49,10 @@ var BenchmarkBase;
     }
     measure() {
       this.setup();
-      measureFor((() => {
+      BenchmarkBase.measureFor((() => {
         this.warmup();
       }).bind(this), 100);
-      let result = measureFor((() => {
+      let result = BenchmarkBase.measureFor((() => {
         this.exercise();
       }).bind(this), 2000);
       this.teardown();

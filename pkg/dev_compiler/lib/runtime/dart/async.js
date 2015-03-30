@@ -17,7 +17,7 @@ var async;
       return zone.registerUnaryCallback(dart.as(errorHandler, dart.throw_("Unimplemented type (dynamic) → dynamic")));
     }
   }
-  let _getBestStackTrace$ = Symbol('_getBestStackTrace');
+  let _getBestStackTrace = Symbol('_getBestStackTrace');
   class AsyncError extends core.Object {
     AsyncError(error, stackTrace) {
       this.error = error;
@@ -29,9 +29,9 @@ var async;
   }
   class _UncaughtAsyncError extends AsyncError {
     _UncaughtAsyncError(error, stackTrace) {
-      super.AsyncError(error, _getBestStackTrace(error, stackTrace));
+      super.AsyncError(error, _UncaughtAsyncError[_getBestStackTrace](error, stackTrace));
     }
-    static [_getBestStackTrace$](error, stackTrace) {
+    static [_getBestStackTrace](error, stackTrace) {
       if (stackTrace !== null)
         return stackTrace;
       if (dart.is(error, core.Error)) {
@@ -733,33 +733,44 @@ var async;
   }
   let _eventState = Symbol('_eventState');
   let _expectsEvent = Symbol('_expectsEvent');
+  let _STATE_EVENT_ID = Symbol('_STATE_EVENT_ID');
   let _toggleEventId = Symbol('_toggleEventId');
   let _isFiring = Symbol('_isFiring');
+  let _STATE_FIRING = Symbol('_STATE_FIRING');
   let _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
+  let _STATE_REMOVE_AFTER_FIRING = Symbol('_STATE_REMOVE_AFTER_FIRING');
   let _removeAfterFiring = Symbol('_removeAfterFiring');
   let _onPause = Symbol('_onPause');
   let _onResume = Symbol('_onResume');
   let _onCancel = Symbol('_onCancel');
   let _zone = Symbol('_zone');
   let _state = Symbol('_state');
+  let _STATE_CANCEL_ON_ERROR = Symbol('_STATE_CANCEL_ON_ERROR');
   let _onData = Symbol('_onData');
   let _onError = Symbol('_onError');
   let _onDone = Symbol('_onDone');
   let _cancelFuture = Symbol('_cancelFuture');
   let _pending = Symbol('_pending');
   let _setPendingEvents = Symbol('_setPendingEvents');
+  let _STATE_HAS_PENDING = Symbol('_STATE_HAS_PENDING');
   let _extractPending = Symbol('_extractPending');
   let _isCanceled = Symbol('_isCanceled');
   let _isPaused = Symbol('_isPaused');
   let _isInputPaused = Symbol('_isInputPaused');
+  let _STATE_PAUSE_COUNT = Symbol('_STATE_PAUSE_COUNT');
+  let _STATE_INPUT_PAUSED = Symbol('_STATE_INPUT_PAUSED');
   let _inCallback = Symbol('_inCallback');
   let _guardCallback = Symbol('_guardCallback');
   let _decrementPauseCount = Symbol('_decrementPauseCount');
   let _hasPending = Symbol('_hasPending');
   let _mayResumeInput = Symbol('_mayResumeInput');
+  let _STATE_WAIT_FOR_CANCEL = Symbol('_STATE_WAIT_FOR_CANCEL');
   let _cancel = Symbol('_cancel');
   let _isClosed = Symbol('_isClosed');
+  let _STATE_CLOSED = Symbol('_STATE_CLOSED');
+  let _STATE_CANCELED = Symbol('_STATE_CANCELED');
   let _waitsForCancel = Symbol('_waitsForCancel');
+  let _STATE_IN_CALLBACK = Symbol('_STATE_IN_CALLBACK');
   let _canFire = Symbol('_canFire');
   let _cancelOnError = Symbol('_cancelOnError');
   let _incrementPauseCount = Symbol('_incrementPauseCount');
@@ -774,7 +785,7 @@ var async;
     class _BufferingStreamSubscription extends core.Object {
       _BufferingStreamSubscription(onData, onError, onDone, cancelOnError) {
         this[_zone] = Zone.current;
-        this[_state] = cancelOnError ? _BufferingStreamSubscription._STATE_CANCEL_ON_ERROR : 0;
+        this[_state] = cancelOnError ? _BufferingStreamSubscription[_STATE_CANCEL_ON_ERROR] : 0;
         this[_onData] = null;
         this[_onError] = null;
         this[_onDone] = null;
@@ -790,7 +801,7 @@ var async;
           return;
         this[_pending] = pendingEvents;
         if (!dart.notNull(pendingEvents.isEmpty)) {
-          this[_state] = _BufferingStreamSubscription._STATE_HAS_PENDING;
+          this[_state] = _BufferingStreamSubscription[_STATE_HAS_PENDING];
           this[_pending].schedule(this);
         }
       }
@@ -822,7 +833,7 @@ var async;
           return;
         let wasPaused = this[_isPaused];
         let wasInputPaused = this[_isInputPaused];
-        this[_state] = dart.notNull(this[_state]) + dart.notNull(_BufferingStreamSubscription._STATE_PAUSE_COUNT) | dart.notNull(_BufferingStreamSubscription._STATE_INPUT_PAUSED);
+        this[_state] = dart.notNull(this[_state]) + dart.notNull(_BufferingStreamSubscription[_STATE_PAUSE_COUNT]) | dart.notNull(_BufferingStreamSubscription[_STATE_INPUT_PAUSED]);
         if (resumeSignal !== null)
           resumeSignal.whenComplete(this.resume);
         if (!dart.notNull(wasPaused) && dart.notNull(this[_pending] !== null))
@@ -840,7 +851,7 @@ var async;
               this[_pending].schedule(this);
             } else {
               dart.assert(this[_mayResumeInput]);
-              this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_INPUT_PAUSED);
+              this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_INPUT_PAUSED]);
               if (!dart.notNull(this[_inCallback]))
                 this[_guardCallback](this[_onResume]);
             }
@@ -848,7 +859,7 @@ var async;
         }
       }
       cancel() {
-        this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_WAIT_FOR_CANCEL);
+        this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_WAIT_FOR_CANCEL]);
         if (this[_isCanceled])
           return this[_cancelFuture];
         this[_cancel]();
@@ -868,40 +879,40 @@ var async;
         return result;
       }
       get [_isInputPaused]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription._STATE_INPUT_PAUSED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription[_STATE_INPUT_PAUSED])) !== 0;
       }
       get [_isClosed]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription._STATE_CLOSED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription[_STATE_CLOSED])) !== 0;
       }
       get [_isCanceled]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription._STATE_CANCELED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription[_STATE_CANCELED])) !== 0;
       }
       get [_waitsForCancel]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription._STATE_WAIT_FOR_CANCEL)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription[_STATE_WAIT_FOR_CANCEL])) !== 0;
       }
       get [_inCallback]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK])) !== 0;
       }
       get [_hasPending]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription._STATE_HAS_PENDING)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription[_STATE_HAS_PENDING])) !== 0;
       }
       get [_isPaused]() {
-        return dart.notNull(this[_state]) >= dart.notNull(_BufferingStreamSubscription._STATE_PAUSE_COUNT);
+        return dart.notNull(this[_state]) >= dart.notNull(_BufferingStreamSubscription[_STATE_PAUSE_COUNT]);
       }
       get [_canFire]() {
-        return dart.notNull(this[_state]) < dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
+        return dart.notNull(this[_state]) < dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
       }
       get [_mayResumeInput]() {
         return !dart.notNull(this[_isPaused]) && (dart.notNull(this[_pending] === null) || dart.notNull(this[_pending].isEmpty));
       }
       get [_cancelOnError]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription._STATE_CANCEL_ON_ERROR)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BufferingStreamSubscription[_STATE_CANCEL_ON_ERROR])) !== 0;
       }
       get isPaused() {
         return this[_isPaused];
       }
       [_cancel]() {
-        this[_state] = _BufferingStreamSubscription._STATE_CANCELED;
+        this[_state] = _BufferingStreamSubscription[_STATE_CANCELED];
         if (this[_hasPending]) {
           this[_pending].cancelSchedule();
         }
@@ -910,11 +921,11 @@ var async;
         this[_cancelFuture] = this[_onCancel]();
       }
       [_incrementPauseCount]() {
-        this[_state] = dart.notNull(this[_state]) + dart.notNull(_BufferingStreamSubscription._STATE_PAUSE_COUNT) | dart.notNull(_BufferingStreamSubscription._STATE_INPUT_PAUSED);
+        this[_state] = dart.notNull(this[_state]) + dart.notNull(_BufferingStreamSubscription[_STATE_PAUSE_COUNT]) | dart.notNull(_BufferingStreamSubscription[_STATE_INPUT_PAUSED]);
       }
       [_decrementPauseCount]() {
         dart.assert(this[_isPaused]);
-        this[_state] = _BufferingStreamSubscription._STATE_PAUSE_COUNT;
+        this[_state] = _BufferingStreamSubscription[_STATE_PAUSE_COUNT];
       }
       [_add](data) {
         dart.assert(!dart.notNull(this[_isClosed]));
@@ -939,7 +950,7 @@ var async;
         dart.assert(!dart.notNull(this[_isClosed]));
         if (this[_isCanceled])
           return;
-        this[_state] = _BufferingStreamSubscription._STATE_CLOSED;
+        this[_state] = _BufferingStreamSubscription[_STATE_CLOSED];
         if (this[_canFire]) {
           this[_sendDone]();
         } else {
@@ -962,7 +973,7 @@ var async;
           pending = this[_pending] = new _StreamImplEvents();
         pending.add(event);
         if (!dart.notNull(this[_hasPending])) {
-          this[_state] = _BufferingStreamSubscription._STATE_HAS_PENDING;
+          this[_state] = _BufferingStreamSubscription[_STATE_HAS_PENDING];
           if (!dart.notNull(this[_isPaused])) {
             this[_pending].schedule(this);
           }
@@ -973,9 +984,9 @@ var async;
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
-        this[_state] = _BufferingStreamSubscription._STATE_IN_CALLBACK;
+        this[_state] = _BufferingStreamSubscription[_STATE_IN_CALLBACK];
         this[_zone].runUnaryGuarded(this[_onData], data);
-        this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
+        this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
         this[_checkState](wasInputPaused);
       }
       [_sendError](error, stackTrace) {
@@ -987,16 +998,16 @@ var async;
         function sendError() {
           if (dart.notNull(this[_isCanceled]) && !dart.notNull(this[_waitsForCancel]))
             return;
-          this[_state] = _BufferingStreamSubscription._STATE_IN_CALLBACK;
+          this[_state] = _BufferingStreamSubscription[_STATE_IN_CALLBACK];
           if (dart.is(this[_onError], ZoneBinaryCallback)) {
             this[_zone].runBinaryGuarded(dart.as(this[_onError], dart.throw_("Unimplemented type (dynamic, dynamic) → dynamic")), error, stackTrace);
           } else {
             this[_zone].runUnaryGuarded(dart.as(this[_onError], dart.throw_("Unimplemented type (dynamic) → dynamic")), error);
           }
-          this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
+          this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
         }
         if (this[_cancelOnError]) {
-          this[_state] = _BufferingStreamSubscription._STATE_WAIT_FOR_CANCEL;
+          this[_state] = _BufferingStreamSubscription[_STATE_WAIT_FOR_CANCEL];
           this[_cancel]();
           if (dart.is(this[_cancelFuture], Future)) {
             this[_cancelFuture].whenComplete(sendError);
@@ -1016,12 +1027,12 @@ var async;
         function sendDone() {
           if (!dart.notNull(this[_waitsForCancel]))
             return;
-          this[_state] = dart.notNull(_BufferingStreamSubscription._STATE_CANCELED) | dart.notNull(_BufferingStreamSubscription._STATE_CLOSED) | dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
+          this[_state] = dart.notNull(_BufferingStreamSubscription[_STATE_CANCELED]) | dart.notNull(_BufferingStreamSubscription[_STATE_CLOSED]) | dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
           this[_zone].runGuarded(this[_onDone]);
-          this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
+          this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
         }
         this[_cancel]();
-        this[_state] = _BufferingStreamSubscription._STATE_WAIT_FOR_CANCEL;
+        this[_state] = _BufferingStreamSubscription[_STATE_WAIT_FOR_CANCEL];
         if (dart.is(this[_cancelFuture], Future)) {
           this[_cancelFuture].whenComplete(sendDone);
         } else {
@@ -1031,17 +1042,17 @@ var async;
       [_guardCallback](callback) {
         dart.assert(!dart.notNull(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
-        this[_state] = _BufferingStreamSubscription._STATE_IN_CALLBACK;
+        this[_state] = _BufferingStreamSubscription[_STATE_IN_CALLBACK];
         dart.dinvokef(callback);
-        this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
+        this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
         this[_checkState](wasInputPaused);
       }
       [_checkState](wasInputPaused) {
         dart.assert(!dart.notNull(this[_inCallback]));
         if (dart.notNull(this[_hasPending]) && dart.notNull(this[_pending].isEmpty)) {
-          this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_HAS_PENDING);
+          this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_HAS_PENDING]);
           if (dart.notNull(this[_isInputPaused]) && dart.notNull(this[_mayResumeInput])) {
-            this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_INPUT_PAUSED);
+            this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_INPUT_PAUSED]);
           }
         }
         while (true) {
@@ -1052,13 +1063,13 @@ var async;
           let isInputPaused = this[_isInputPaused];
           if (wasInputPaused === isInputPaused)
             break;
-          this[_state] = _BufferingStreamSubscription._STATE_IN_CALLBACK;
+          this[_state] = _BufferingStreamSubscription[_STATE_IN_CALLBACK];
           if (isInputPaused) {
             this[_onPause]();
           } else {
             this[_onResume]();
           }
-          this[_state] = ~dart.notNull(_BufferingStreamSubscription._STATE_IN_CALLBACK);
+          this[_state] = ~dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
           wasInputPaused = isInputPaused;
         }
         if (dart.notNull(this[_hasPending]) && !dart.notNull(this[_isPaused])) {
@@ -1110,20 +1121,20 @@ var async;
         return dart.as(super[_controller], _BroadcastStreamController);
       }
       [_expectsEvent](eventId) {
-        return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription._STATE_EVENT_ID)) === eventId;
+        return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription[_STATE_EVENT_ID])) === eventId;
       }
       [_toggleEventId]() {
-        this[_eventState] = _BroadcastSubscription._STATE_EVENT_ID;
+        this[_eventState] = _BroadcastSubscription[_STATE_EVENT_ID];
       }
       get [_isFiring]() {
-        return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription._STATE_FIRING)) !== 0;
+        return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription[_STATE_FIRING])) !== 0;
       }
       [_setRemoveAfterFiring]() {
         dart.assert(this[_isFiring]);
-        this[_eventState] = _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING;
+        this[_eventState] = _BroadcastSubscription[_STATE_REMOVE_AFTER_FIRING];
       }
       get [_removeAfterFiring]() {
-        return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription._STATE_REMOVE_AFTER_FIRING)) !== 0;
+        return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription[_STATE_REMOVE_AFTER_FIRING])) !== 0;
       }
       [_onPause]() {}
       [_onResume]() {}
@@ -1134,11 +1145,13 @@ var async;
     return _BroadcastSubscription;
   });
   let _BroadcastSubscription = _BroadcastSubscription$(dart.dynamic);
+  let _STATE_INITIAL = Symbol('_STATE_INITIAL');
   let _addStreamState = Symbol('_addStreamState');
   let _doneFuture = Symbol('_doneFuture');
   let _isEmpty = Symbol('_isEmpty');
   let _hasOneListener = Symbol('_hasOneListener');
   let _isAddingStream = Symbol('_isAddingStream');
+  let _STATE_ADDSTREAM = Symbol('_STATE_ADDSTREAM');
   let _mayAddEvent = Symbol('_mayAddEvent');
   let _ensureDoneFuture = Symbol('_ensureDoneFuture');
   let _addListener = Symbol('_addListener');
@@ -1150,14 +1163,13 @@ var async;
   let _recordResume = Symbol('_recordResume');
   let _addEventError = Symbol('_addEventError');
   let _forEachListener = Symbol('_forEachListener');
-  let _STATE_FIRING = Symbol('_STATE_FIRING');
   let _mayComplete = Symbol('_mayComplete');
   let _BroadcastStreamController$ = dart.generic(function(T) {
     class _BroadcastStreamController extends core.Object {
       _BroadcastStreamController(onListen$, onCancel$) {
         this[_onListen] = onListen$;
         this[_onCancel] = onCancel$;
-        this[_state] = _BroadcastStreamController._STATE_INITIAL;
+        this[_state] = _BroadcastStreamController[_STATE_INITIAL];
         this[_next] = null;
         this[_previous] = null;
         this[_addStreamState] = null;
@@ -1171,7 +1183,7 @@ var async;
         return new _StreamSinkWrapper(this);
       }
       get isClosed() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController._STATE_CLOSED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController[_STATE_CLOSED])) !== 0;
       }
       get isPaused() {
         return false;
@@ -1184,13 +1196,13 @@ var async;
         return core.identical(this[_next][_next], this);
       }
       get [_isFiring]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController._STATE_FIRING)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController[_STATE_FIRING])) !== 0;
       }
       get [_isAddingStream]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController._STATE_ADDSTREAM)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController[_STATE_ADDSTREAM])) !== 0;
       }
       get [_mayAddEvent]() {
-        return dart.notNull(this[_state]) < dart.notNull(_BroadcastStreamController._STATE_CLOSED);
+        return dart.notNull(this[_state]) < dart.notNull(_BroadcastStreamController[_STATE_CLOSED]);
       }
       [_ensureDoneFuture]() {
         if (this[_doneFuture] !== null)
@@ -1206,7 +1218,7 @@ var async;
         subscription[_next] = this;
         this[_previous][_next] = subscription;
         this[_previous] = subscription;
-        subscription[_eventState] = dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController._STATE_EVENT_ID);
+        subscription[_eventState] = dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController[_STATE_EVENT_ID]);
       }
       [_removeListener](subscription) {
         dart.assert(core.identical(subscription[_controller], this));
@@ -1279,7 +1291,7 @@ var async;
         }
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_addEventError]();
-        this[_state] = _BroadcastStreamController._STATE_CLOSED;
+        this[_state] = _BroadcastStreamController[_STATE_CLOSED];
         let doneFuture = this[_ensureDoneFuture]();
         this[_sendDone]();
         return doneFuture;
@@ -1291,7 +1303,7 @@ var async;
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_addEventError]();
-        this[_state] = _BroadcastStreamController._STATE_ADDSTREAM;
+        this[_state] = _BroadcastStreamController[_STATE_ADDSTREAM];
         this[_addStreamState] = dart.as(new _AddStreamState(this, stream, cancelOnError), _AddStreamState$(T));
         return this[_addStreamState].addStreamFuture;
       }
@@ -1305,7 +1317,7 @@ var async;
         dart.assert(this[_isAddingStream]);
         let addState = this[_addStreamState];
         this[_addStreamState] = null;
-        this[_state] = ~dart.notNull(_BroadcastStreamController._STATE_ADDSTREAM);
+        this[_state] = ~dart.notNull(_BroadcastStreamController[_STATE_ADDSTREAM]);
         addState.complete();
       }
       [_forEachListener](action) {
@@ -1314,8 +1326,8 @@ var async;
         }
         if (this[_isEmpty])
           return;
-        let id = dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController._STATE_EVENT_ID);
-        this[_state] = dart.notNull(_BroadcastStreamController._STATE_EVENT_ID) | dart.notNull(_BroadcastStreamController._STATE_FIRING);
+        let id = dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController[_STATE_EVENT_ID]);
+        this[_state] = dart.notNull(_BroadcastStreamController[_STATE_EVENT_ID]) | dart.notNull(_BroadcastStreamController[_STATE_FIRING]);
         let link = this[_next];
         while (!dart.notNull(core.identical(link, this))) {
           let subscription = dart.as(link, _BroadcastSubscription$(T));
@@ -1332,7 +1344,7 @@ var async;
             link = subscription[_next];
           }
         }
-        this[_state] = ~dart.notNull(_BroadcastStreamController._STATE_FIRING);
+        this[_state] = ~dart.notNull(_BroadcastStreamController[_STATE_FIRING]);
         if (this[_isEmpty]) {
           this[_callOnCancel]();
         }
@@ -1431,7 +1443,6 @@ var async;
   });
   let _AsyncBroadcastStreamController = _AsyncBroadcastStreamController$(dart.dynamic);
   let _addPendingEvent = Symbol('_addPendingEvent');
-  let _STATE_CLOSED = Symbol('_STATE_CLOSED');
   let _AsBroadcastStreamController$ = dart.generic(function(T) {
     class _AsBroadcastStreamController extends _SyncBroadcastStreamController$(T) {
       _AsBroadcastStreamController(onListen, onCancel) {
@@ -1682,7 +1693,7 @@ var async;
       }
       static forEach(input, f) {
         let iterator = input.iterator;
-        return doWhile((() => {
+        return Future.doWhile((() => {
           if (!dart.notNull(iterator.moveNext()))
             return false;
           return new Future.sync((() => dart.dinvokef(f, iterator.current)).bind(this)).then((_) => true);
@@ -1892,34 +1903,39 @@ var async;
   _FutureListener.STATE_CATCHERROR = _FutureListener.MASK_ERROR;
   _FutureListener.STATE_CATCHERROR_TEST = dart.notNull(_FutureListener.MASK_ERROR) | dart.notNull(_FutureListener.MASK_TEST_ERROR);
   _FutureListener.STATE_WHENCOMPLETE = _FutureListener.MASK_WHENCOMPLETE;
+  let _INCOMPLETE = Symbol('_INCOMPLETE');
   let _resultOrListeners = Symbol('_resultOrListeners');
   let _asyncComplete = Symbol('_asyncComplete');
   let _asyncCompleteError = Symbol('_asyncCompleteError');
   let _isChained = Symbol('_isChained');
+  let _CHAINED = Symbol('_CHAINED');
   let _isComplete = Symbol('_isComplete');
+  let _VALUE = Symbol('_VALUE');
   let _hasValue = Symbol('_hasValue');
   let _hasError = Symbol('_hasError');
+  let _ERROR = Symbol('_ERROR');
   let _markPendingCompletion = Symbol('_markPendingCompletion');
+  let _PENDING_COMPLETE = Symbol('_PENDING_COMPLETE');
   let _value = Symbol('_value');
   let _error = Symbol('_error');
   let _setValue = Symbol('_setValue');
   let _setErrorObject = Symbol('_setErrorObject');
   let _setError = Symbol('_setError');
+  let _propagateToListeners = Symbol('_propagateToListeners');
   let _removeListeners = Symbol('_removeListeners');
-  let _chainForeignFuture$ = Symbol('_chainForeignFuture');
-  let _chainCoreFuture$ = Symbol('_chainCoreFuture');
+  let _chainForeignFuture = Symbol('_chainForeignFuture');
+  let _chainCoreFuture = Symbol('_chainCoreFuture');
   let _completeWithValue = Symbol('_completeWithValue');
-  let _propagateToListeners$ = Symbol('_propagateToListeners');
   let _Future$ = dart.generic(function(T) {
     class _Future extends core.Object {
       _Future() {
         this[_zone] = Zone.current;
-        this[_state] = _Future._INCOMPLETE;
+        this[_state] = _Future[_INCOMPLETE];
         this[_resultOrListeners] = null;
       }
       _Future$immediate(value) {
         this[_zone] = Zone.current;
-        this[_state] = _Future._INCOMPLETE;
+        this[_state] = _Future[_INCOMPLETE];
         this[_resultOrListeners] = null;
         this[_asyncComplete](value);
       }
@@ -1927,32 +1943,32 @@ var async;
         if (stackTrace === void 0)
           stackTrace = null;
         this[_zone] = Zone.current;
-        this[_state] = _Future._INCOMPLETE;
+        this[_state] = _Future[_INCOMPLETE];
         this[_resultOrListeners] = null;
         this[_asyncCompleteError](error, stackTrace);
       }
       get [_mayComplete]() {
-        return this[_state] === _Future._INCOMPLETE;
+        return this[_state] === _Future[_INCOMPLETE];
       }
       get [_isChained]() {
-        return this[_state] === _Future._CHAINED;
+        return this[_state] === _Future[_CHAINED];
       }
       get [_isComplete]() {
-        return dart.notNull(this[_state]) >= dart.notNull(_Future._VALUE);
+        return dart.notNull(this[_state]) >= dart.notNull(_Future[_VALUE]);
       }
       get [_hasValue]() {
-        return this[_state] === _Future._VALUE;
+        return this[_state] === _Future[_VALUE];
       }
       get [_hasError]() {
-        return this[_state] === _Future._ERROR;
+        return this[_state] === _Future[_ERROR];
       }
       set [_isChained](value) {
         if (value) {
           dart.assert(!dart.notNull(this[_isComplete]));
-          this[_state] = _Future._CHAINED;
+          this[_state] = _Future[_CHAINED];
         } else {
           dart.assert(this[_isChained]);
-          this[_state] = _Future._INCOMPLETE;
+          this[_state] = _Future[_INCOMPLETE];
         }
       }
       then(f, opts) {
@@ -1992,7 +2008,7 @@ var async;
       [_markPendingCompletion]() {
         if (!dart.notNull(this[_mayComplete]))
           throw new core.StateError("Future already completed");
-        this[_state] = _Future._PENDING_COMPLETE;
+        this[_state] = _Future[_PENDING_COMPLETE];
       }
       get [_value]() {
         dart.assert(dart.notNull(this[_isComplete]) && dart.notNull(this[_hasValue]));
@@ -2004,12 +2020,12 @@ var async;
       }
       [_setValue](value) {
         dart.assert(!dart.notNull(this[_isComplete]));
-        this[_state] = _Future._VALUE;
+        this[_state] = _Future[_VALUE];
         this[_resultOrListeners] = value;
       }
       [_setErrorObject](error) {
         dart.assert(!dart.notNull(this[_isComplete]));
-        this[_state] = _Future._ERROR;
+        this[_state] = _Future[_ERROR];
         this[_resultOrListeners] = error;
       }
       [_setError](error, stackTrace) {
@@ -2019,7 +2035,7 @@ var async;
         dart.assert(listener[_nextListener] === null);
         if (this[_isComplete]) {
           this[_zone].scheduleMicrotask((() => {
-            _propagateToListeners(this, listener);
+            _Future[_propagateToListeners](this, listener);
           }).bind(this));
         } else {
           listener[_nextListener] = dart.as(this[_resultOrListeners], _FutureListener);
@@ -2039,7 +2055,7 @@ var async;
         }
         return prev;
       }
-      static [_chainForeignFuture$](source, target) {
+      static [_chainForeignFuture](source, target) {
         dart.assert(!dart.notNull(target[_isComplete]));
         dart.assert(!dart.is(source, _Future));
         target[_isChained] = true;
@@ -2053,13 +2069,13 @@ var async;
             target._completeError(error, dart.as(stackTrace, core.StackTrace));
           }).bind(this)});
       }
-      static [_chainCoreFuture$](source, target) {
+      static [_chainCoreFuture](source, target) {
         dart.assert(!dart.notNull(target[_isComplete]));
         dart.assert(dart.is(source, _Future));
         target[_isChained] = true;
         let listener = new _FutureListener.chain(target);
         if (source[_isComplete]) {
-          _propagateToListeners(source, listener);
+          _Future[_propagateToListeners](source, listener);
         } else {
           source._addListener(listener);
         }
@@ -2068,14 +2084,14 @@ var async;
         dart.assert(!dart.notNull(this[_isComplete]));
         if (dart.is(value, Future)) {
           if (dart.is(value, _Future)) {
-            _chainCoreFuture(dart.as(value, _Future), this);
+            _Future[_chainCoreFuture](dart.as(value, _Future), this);
           } else {
-            _chainForeignFuture(dart.as(value, Future), this);
+            _Future[_chainForeignFuture](dart.as(value, Future), this);
           }
         } else {
           let listeners = this[_removeListeners]();
           this[_setValue](dart.as(value, T));
-          _propagateToListeners(this, listeners);
+          _Future[_propagateToListeners](this, listeners);
         }
       }
       [_completeWithValue](value) {
@@ -2083,7 +2099,7 @@ var async;
         dart.assert(!dart.is(value, Future));
         let listeners = this[_removeListeners]();
         this[_setValue](dart.as(value, T));
-        _propagateToListeners(this, listeners);
+        _Future[_propagateToListeners](this, listeners);
       }
       [_completeError](error, stackTrace) {
         if (stackTrace === void 0)
@@ -2091,7 +2107,7 @@ var async;
         dart.assert(!dart.notNull(this[_isComplete]));
         let listeners = this[_removeListeners]();
         this[_setError](error, stackTrace);
-        _propagateToListeners(this, listeners);
+        _Future[_propagateToListeners](this, listeners);
       }
       [_asyncComplete](value) {
         dart.assert(!dart.notNull(this[_isComplete]));
@@ -2103,13 +2119,13 @@ var async;
             if (dart.notNull(coreFuture[_isComplete]) && dart.notNull(coreFuture[_hasError])) {
               this[_markPendingCompletion]();
               this[_zone].scheduleMicrotask((() => {
-                _chainCoreFuture(coreFuture, this);
+                _Future[_chainCoreFuture](coreFuture, this);
               }).bind(this));
             } else {
-              _chainCoreFuture(coreFuture, this);
+              _Future[_chainCoreFuture](coreFuture, this);
             }
           } else {
-            _chainForeignFuture(typedFuture, this);
+            _Future[_chainForeignFuture](typedFuture, this);
           }
           return;
         } else {
@@ -2127,7 +2143,7 @@ var async;
           this[_completeError](error, stackTrace);
         }).bind(this));
       }
-      static [_propagateToListeners$](source, listeners) {
+      static [_propagateToListeners](source, listeners) {
         while (true) {
           dart.assert(source[_isComplete]);
           let hasError = source[_hasError];
@@ -2142,7 +2158,7 @@ var async;
             let listener = listeners;
             listeners = listener[_nextListener];
             listener[_nextListener] = null;
-            _propagateToListeners(source, listener);
+            _Future[_propagateToListeners](source, listener);
           }
           let listener = listeners;
           let listenerHasValue = true;
@@ -2230,7 +2246,7 @@ var async;
                 result[_isChained] = true;
                 isPropagationAborted = true;
                 dart.dinvoke(completeResult, 'then', (ignored) => {
-                  _propagateToListeners(source, new _FutureListener.chain(result));
+                  _Future[_propagateToListeners](source, new _FutureListener.chain(result));
                 }, {
                   onError: (error, stackTrace) => {
                     if (stackTrace === void 0)
@@ -2239,7 +2255,7 @@ var async;
                       completeResult = new _Future();
                       dart.dinvoke(completeResult, '_setError', error, stackTrace);
                     }
-                    _propagateToListeners(dart.as(completeResult, _Future), new _FutureListener.chain(result));
+                    _Future[_propagateToListeners](dart.as(completeResult, _Future), new _FutureListener.chain(result));
                   }
                 });
               }
@@ -2268,10 +2284,10 @@ var async;
                   listeners = new _FutureListener.chain(result);
                   continue;
                 } else {
-                  _chainCoreFuture(chainSource, result);
+                  _Future[_chainCoreFuture](chainSource, result);
                 }
               } else {
-                _chainForeignFuture(chainSource, result);
+                _Future[_chainForeignFuture](chainSource, result);
               }
               return;
             }
@@ -2407,18 +2423,18 @@ var async;
     Zone.current.scheduleMicrotask(Zone.current.bindCallback(callback, {runGuarded: true}));
   }
   let _scheduleImmediate = Symbol('_scheduleImmediate');
-  let _initializeScheduleImmediate$ = Symbol('_initializeScheduleImmediate');
-  let _scheduleImmediateJsOverride$ = Symbol('_scheduleImmediateJsOverride');
-  let _scheduleImmediateWithSetImmediate$ = Symbol('_scheduleImmediateWithSetImmediate');
-  let _scheduleImmediateWithTimer$ = Symbol('_scheduleImmediateWithTimer');
+  let _initializeScheduleImmediate = Symbol('_initializeScheduleImmediate');
+  let _scheduleImmediateJsOverride = Symbol('_scheduleImmediateJsOverride');
+  let _scheduleImmediateWithSetImmediate = Symbol('_scheduleImmediateWithSetImmediate');
+  let _scheduleImmediateWithTimer = Symbol('_scheduleImmediateWithTimer');
   class _AsyncRun extends core.Object {
     static [_scheduleImmediate](callback) {
-      dart.dinvokef(scheduleImmediateClosure, callback);
+      dart.dinvokef(_AsyncRun.scheduleImmediateClosure, callback);
     }
-    static [_initializeScheduleImmediate$]() {
+    static [_initializeScheduleImmediate]() {
       _js_helper.requiresPreamble();
       if (self.scheduleImmediate !== null) {
-        return _scheduleImmediateJsOverride;
+        return _AsyncRun[_scheduleImmediateJsOverride];
       }
       if (dart.notNull(self.MutationObserver !== null) && dart.notNull(self.document !== null)) {
         let div = self.document.createElement("div");
@@ -2441,11 +2457,11 @@ var async;
           div.firstChild ? div.removeChild(span) : div.appendChild(span);
         };
       } else if (self.setImmediate !== null) {
-        return _scheduleImmediateWithSetImmediate;
+        return _AsyncRun[_scheduleImmediateWithSetImmediate];
       }
-      return _scheduleImmediateWithTimer;
+      return _AsyncRun[_scheduleImmediateWithTimer];
     }
-    static [_scheduleImmediateJsOverride$](callback) {
+    static [_scheduleImmediateJsOverride](callback) {
       // Function internalCallback: () → dynamic
       function internalCallback() {
         _isolate_helper.leaveJsAsync();
@@ -2455,7 +2471,7 @@ var async;
       _isolate_helper.enterJsAsync();
       self.scheduleImmediate(_js_helper.convertDartClosureToJS(internalCallback, 0));
     }
-    static [_scheduleImmediateWithSetImmediate$](callback) {
+    static [_scheduleImmediateWithSetImmediate](callback) {
       // Function internalCallback: () → dynamic
       function internalCallback() {
         _isolate_helper.leaveJsAsync();
@@ -2465,13 +2481,13 @@ var async;
       _isolate_helper.enterJsAsync();
       self.setImmediate(_js_helper.convertDartClosureToJS(internalCallback, 0));
     }
-    static [_scheduleImmediateWithTimer$](callback) {
+    static [_scheduleImmediateWithTimer](callback) {
       Timer._createTimer(core.Duration.ZERO, callback);
     }
   }
   dart.defineLazyProperties(_AsyncRun, {
     get scheduleImmediateClosure() {
-      return _initializeScheduleImmediate();
+      return _AsyncRun[_initializeScheduleImmediate]();
     }
   });
   let StreamSubscription$ = dart.generic(function(T) {
@@ -2601,7 +2617,9 @@ var async;
   });
   let _StreamControllerLifecycle = _StreamControllerLifecycle$(dart.dynamic);
   let _varData = Symbol('_varData');
+  let _STATE_SUBSCRIBED = Symbol('_STATE_SUBSCRIBED');
   let _isInitialState = Symbol('_isInitialState');
+  let _STATE_SUBSCRIPTION_MASK = Symbol('_STATE_SUBSCRIPTION_MASK');
   let _subscription = Symbol('_subscription');
   let _pendingEvents = Symbol('_pendingEvents');
   let _ensurePendingEvents = Symbol('_ensurePendingEvents');
@@ -2612,7 +2630,7 @@ var async;
     class _StreamController extends core.Object {
       _StreamController() {
         this[_varData] = null;
-        this[_state] = _StreamController._STATE_INITIAL;
+        this[_state] = _StreamController[_STATE_INITIAL];
         this[_doneFuture] = null;
       }
       get stream() {
@@ -2622,25 +2640,25 @@ var async;
         return new _StreamSinkWrapper(this);
       }
       get [_isCanceled]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_StreamController._STATE_CANCELED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_StreamController[_STATE_CANCELED])) !== 0;
       }
       get hasListener() {
-        return (dart.notNull(this[_state]) & dart.notNull(_StreamController._STATE_SUBSCRIBED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_StreamController[_STATE_SUBSCRIBED])) !== 0;
       }
       get [_isInitialState]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_StreamController._STATE_SUBSCRIPTION_MASK)) === _StreamController._STATE_INITIAL;
+        return (dart.notNull(this[_state]) & dart.notNull(_StreamController[_STATE_SUBSCRIPTION_MASK])) === _StreamController[_STATE_INITIAL];
       }
       get isClosed() {
-        return (dart.notNull(this[_state]) & dart.notNull(_StreamController._STATE_CLOSED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_StreamController[_STATE_CLOSED])) !== 0;
       }
       get isPaused() {
         return this.hasListener ? this[_subscription][_isInputPaused] : !dart.notNull(this[_isCanceled]);
       }
       get [_isAddingStream]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_StreamController._STATE_ADDSTREAM)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_StreamController[_STATE_ADDSTREAM])) !== 0;
       }
       get [_mayAddEvent]() {
-        return dart.notNull(this[_state]) < dart.notNull(_StreamController._STATE_CLOSED);
+        return dart.notNull(this[_state]) < dart.notNull(_StreamController[_STATE_CLOSED]);
       }
       get [_pendingEvents]() {
         dart.assert(this[_isInitialState]);
@@ -2685,7 +2703,7 @@ var async;
           return new _Future.immediate(null);
         let addState = new _StreamControllerAddStreamState(this, this[_varData], source, cancelOnError);
         this[_varData] = addState;
-        this[_state] = _StreamController._STATE_ADDSTREAM;
+        this[_state] = _StreamController[_STATE_ADDSTREAM];
         return addState.addStreamFuture;
       }
       get done() {
@@ -2725,7 +2743,7 @@ var async;
         return this[_ensureDoneFuture]();
       }
       [_closeUnchecked]() {
-        this[_state] = _StreamController._STATE_CLOSED;
+        this[_state] = _StreamController[_STATE_CLOSED];
         if (this.hasListener) {
           this[_sendDone]();
         } else if (this[_isInitialState]) {
@@ -2750,7 +2768,7 @@ var async;
         dart.assert(this[_isAddingStream]);
         let addState = dart.as(this[_varData], _StreamControllerAddStreamState);
         this[_varData] = addState.varData;
-        this[_state] = ~dart.notNull(_StreamController._STATE_ADDSTREAM);
+        this[_state] = ~dart.notNull(_StreamController[_STATE_ADDSTREAM]);
         addState.complete();
       }
       [_subscribe](onData, onError, onDone, cancelOnError) {
@@ -2759,7 +2777,7 @@ var async;
         }
         let subscription = new _ControllerSubscription(this, onData, onError, onDone, cancelOnError);
         let pendingEvents = this[_pendingEvents];
-        this[_state] = _StreamController._STATE_SUBSCRIBED;
+        this[_state] = _StreamController[_STATE_SUBSCRIBED];
         if (this[_isAddingStream]) {
           let addState = dart.as(this[_varData], _StreamControllerAddStreamState);
           addState.varData = subscription;
@@ -2780,7 +2798,7 @@ var async;
           result = addState.cancel();
         }
         this[_varData] = null;
-        this[_state] = dart.notNull(this[_state]) & ~(dart.notNull(_StreamController._STATE_SUBSCRIBED) | dart.notNull(_StreamController._STATE_ADDSTREAM)) | dart.notNull(_StreamController._STATE_CANCELED);
+        this[_state] = dart.notNull(this[_state]) & ~(dart.notNull(_StreamController[_STATE_SUBSCRIBED]) | dart.notNull(_StreamController[_STATE_ADDSTREAM])) | dart.notNull(_StreamController[_STATE_CANCELED]);
         if (this[_onCancel] !== null) {
           if (result === null) {
             try {
@@ -2955,7 +2973,7 @@ var async;
     class _AddStreamState extends core.Object {
       _AddStreamState(controller, source, cancelOnError) {
         this.addStreamFuture = new _Future();
-        this.addSubscription = source.listen(controller[_add], {onError: dart.as(cancelOnError ? makeErrorHandler(controller) : controller[_addError], core.Function), onDone: controller[_close], cancelOnError: cancelOnError});
+        this.addSubscription = source.listen(controller[_add], {onError: dart.as(cancelOnError ? _AddStreamState.makeErrorHandler(controller) : controller[_addError], core.Function), onDone: controller[_close], cancelOnError: cancelOnError});
       }
       static makeErrorHandler(controller) {
         return ((e, s) => {
@@ -3033,38 +3051,40 @@ var async;
   });
   let _GeneratedStreamImpl = _GeneratedStreamImpl$(dart.dynamic);
   let _iterator = Symbol('_iterator');
+  let _STATE_UNSCHEDULED = Symbol('_STATE_UNSCHEDULED');
+  let _STATE_SCHEDULED = Symbol('_STATE_SCHEDULED');
   let _eventScheduled = Symbol('_eventScheduled');
   class _PendingEvents extends core.Object {
     _PendingEvents() {
-      this[_state] = _PendingEvents._STATE_UNSCHEDULED;
+      this[_state] = _PendingEvents[_STATE_UNSCHEDULED];
     }
     get isScheduled() {
-      return this[_state] === _PendingEvents._STATE_SCHEDULED;
+      return this[_state] === _PendingEvents[_STATE_SCHEDULED];
     }
     get [_eventScheduled]() {
-      return dart.notNull(this[_state]) >= dart.notNull(_PendingEvents._STATE_SCHEDULED);
+      return dart.notNull(this[_state]) >= dart.notNull(_PendingEvents[_STATE_SCHEDULED]);
     }
     schedule(dispatch) {
       if (this.isScheduled)
         return;
       dart.assert(!dart.notNull(this.isEmpty));
       if (this[_eventScheduled]) {
-        dart.assert(this[_state] === _PendingEvents._STATE_CANCELED);
-        this[_state] = _PendingEvents._STATE_SCHEDULED;
+        dart.assert(this[_state] === _PendingEvents[_STATE_CANCELED]);
+        this[_state] = _PendingEvents[_STATE_SCHEDULED];
         return;
       }
       scheduleMicrotask((() => {
         let oldState = this[_state];
-        this[_state] = _PendingEvents._STATE_UNSCHEDULED;
-        if (oldState === _PendingEvents._STATE_CANCELED)
+        this[_state] = _PendingEvents[_STATE_UNSCHEDULED];
+        if (oldState === _PendingEvents[_STATE_CANCELED])
           return;
         this.handleNext(dispatch);
       }).bind(this));
-      this[_state] = _PendingEvents._STATE_SCHEDULED;
+      this[_state] = _PendingEvents[_STATE_SCHEDULED];
     }
     cancelSchedule() {
       if (this.isScheduled)
-        this[_state] = _PendingEvents._STATE_CANCELED;
+        this[_state] = _PendingEvents[_STATE_CANCELED];
     }
   }
   _PendingEvents._STATE_UNSCHEDULED = 0;
@@ -3215,7 +3235,10 @@ var async;
   }
   let _schedule = Symbol('_schedule');
   let _isSent = Symbol('_isSent');
+  let _DONE_SENT = Symbol('_DONE_SENT');
   let _isScheduled = Symbol('_isScheduled');
+  let _SCHEDULED = Symbol('_SCHEDULED');
+  let _PAUSED = Symbol('_PAUSED');
   let _DoneStreamSubscription$ = dart.generic(function(T) {
     class _DoneStreamSubscription extends core.Object {
       _DoneStreamSubscription(onDone$) {
@@ -3225,19 +3248,19 @@ var async;
         this[_schedule]();
       }
       get [_isSent]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_DoneStreamSubscription._DONE_SENT)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_DoneStreamSubscription[_DONE_SENT])) !== 0;
       }
       get [_isScheduled]() {
-        return (dart.notNull(this[_state]) & dart.notNull(_DoneStreamSubscription._SCHEDULED)) !== 0;
+        return (dart.notNull(this[_state]) & dart.notNull(_DoneStreamSubscription[_SCHEDULED])) !== 0;
       }
       get isPaused() {
-        return dart.notNull(this[_state]) >= dart.notNull(_DoneStreamSubscription._PAUSED);
+        return dart.notNull(this[_state]) >= dart.notNull(_DoneStreamSubscription[_PAUSED]);
       }
       [_schedule]() {
         if (this[_isScheduled])
           return;
         this[_zone].scheduleMicrotask(this[_sendDone]);
-        this[_state] = _DoneStreamSubscription._SCHEDULED;
+        this[_state] = _DoneStreamSubscription[_SCHEDULED];
       }
       onData(handleData) {}
       onError(handleError) {}
@@ -3247,13 +3270,13 @@ var async;
       pause(resumeSignal) {
         if (resumeSignal === void 0)
           resumeSignal = null;
-        this[_state] = _DoneStreamSubscription._PAUSED;
+        this[_state] = _DoneStreamSubscription[_PAUSED];
         if (resumeSignal !== null)
           resumeSignal.whenComplete(this.resume);
       }
       resume() {
         if (this.isPaused) {
-          this[_state] = _DoneStreamSubscription._PAUSED;
+          this[_state] = _DoneStreamSubscription[_PAUSED];
           if (!dart.notNull(this.isPaused) && !dart.notNull(this[_isSent])) {
             this[_schedule]();
           }
@@ -3272,10 +3295,10 @@ var async;
         return result;
       }
       [_sendDone]() {
-        this[_state] = ~dart.notNull(_DoneStreamSubscription._SCHEDULED);
+        this[_state] = ~dart.notNull(_DoneStreamSubscription[_SCHEDULED]);
         if (this.isPaused)
           return;
-        this[_state] = _DoneStreamSubscription._DONE_SENT;
+        this[_state] = _DoneStreamSubscription[_DONE_SENT];
         if (this[_onDone] !== null)
           this[_zone].runGuarded(this[_onDone]);
       }
@@ -3403,51 +3426,57 @@ var async;
     return _BroadcastSubscriptionWrapper;
   });
   let _BroadcastSubscriptionWrapper = _BroadcastSubscriptionWrapper$(dart.dynamic);
-  let _current$ = Symbol('_current');
+  let _current = Symbol('_current');
   let _futureOrPrefetch = Symbol('_futureOrPrefetch');
+  let _STATE_FOUND = Symbol('_STATE_FOUND');
+  let _STATE_DONE = Symbol('_STATE_DONE');
+  let _STATE_MOVING = Symbol('_STATE_MOVING');
+  let _STATE_EXTRA_DATA = Symbol('_STATE_EXTRA_DATA');
+  let _STATE_EXTRA_ERROR = Symbol('_STATE_EXTRA_ERROR');
   let _clear = Symbol('_clear');
+  let _STATE_EXTRA_DONE = Symbol('_STATE_EXTRA_DONE');
   let _StreamIteratorImpl$ = dart.generic(function(T) {
     class _StreamIteratorImpl extends core.Object {
       _StreamIteratorImpl(stream) {
         this[_subscription] = null;
-        this[_current$] = null;
+        this[_current] = null;
         this[_futureOrPrefetch] = null;
-        this[_state] = _StreamIteratorImpl._STATE_FOUND;
+        this[_state] = _StreamIteratorImpl[_STATE_FOUND];
         this[_subscription] = stream.listen(this[_onData], {onError: this[_onError], onDone: this[_onDone], cancelOnError: true});
       }
       get current() {
-        return this[_current$];
+        return this[_current];
       }
       moveNext() {
-        if (this[_state] === _StreamIteratorImpl._STATE_DONE) {
+        if (this[_state] === _StreamIteratorImpl[_STATE_DONE]) {
           return new _Future.immediate(false);
         }
-        if (this[_state] === _StreamIteratorImpl._STATE_MOVING) {
+        if (this[_state] === _StreamIteratorImpl[_STATE_MOVING]) {
           throw new core.StateError("Already waiting for next.");
         }
-        if (this[_state] === _StreamIteratorImpl._STATE_FOUND) {
-          this[_state] = _StreamIteratorImpl._STATE_MOVING;
-          this[_current$] = null;
+        if (this[_state] === _StreamIteratorImpl[_STATE_FOUND]) {
+          this[_state] = _StreamIteratorImpl[_STATE_MOVING];
+          this[_current] = null;
           this[_futureOrPrefetch] = new _Future();
           return dart.as(this[_futureOrPrefetch], Future$(core.bool));
         } else {
-          dart.assert(dart.notNull(this[_state]) >= dart.notNull(_StreamIteratorImpl._STATE_EXTRA_DATA));
+          dart.assert(dart.notNull(this[_state]) >= dart.notNull(_StreamIteratorImpl[_STATE_EXTRA_DATA]));
           switch (this[_state]) {
-            case _StreamIteratorImpl._STATE_EXTRA_DATA:
+            case _StreamIteratorImpl[_STATE_EXTRA_DATA]:
             {
-              this[_state] = _StreamIteratorImpl._STATE_FOUND;
-              this[_current$] = dart.as(this[_futureOrPrefetch], T);
+              this[_state] = _StreamIteratorImpl[_STATE_FOUND];
+              this[_current] = dart.as(this[_futureOrPrefetch], T);
               this[_futureOrPrefetch] = null;
               this[_subscription].resume();
               return new _Future.immediate(true);
             }
-            case _StreamIteratorImpl._STATE_EXTRA_ERROR:
+            case _StreamIteratorImpl[_STATE_EXTRA_ERROR]:
             {
               let prefetch = dart.as(this[_futureOrPrefetch], AsyncError);
               this[_clear]();
               return new _Future.immediateError(prefetch.error, prefetch.stackTrace);
             }
-            case _StreamIteratorImpl._STATE_EXTRA_DONE:
+            case _StreamIteratorImpl[_STATE_EXTRA_DONE]:
             {
               this[_clear]();
               return new _Future.immediate(false);
@@ -3458,12 +3487,12 @@ var async;
       [_clear]() {
         this[_subscription] = null;
         this[_futureOrPrefetch] = null;
-        this[_current$] = null;
-        this[_state] = _StreamIteratorImpl._STATE_DONE;
+        this[_current] = null;
+        this[_state] = _StreamIteratorImpl[_STATE_DONE];
       }
       cancel() {
         let subscription = this[_subscription];
-        if (this[_state] === _StreamIteratorImpl._STATE_MOVING) {
+        if (this[_state] === _StreamIteratorImpl[_STATE_MOVING]) {
           let hasNext = dart.as(this[_futureOrPrefetch], _Future$(core.bool));
           this[_clear]();
           hasNext._complete(false);
@@ -3473,23 +3502,23 @@ var async;
         return subscription.cancel();
       }
       [_onData](data) {
-        if (this[_state] === _StreamIteratorImpl._STATE_MOVING) {
-          this[_current$] = data;
+        if (this[_state] === _StreamIteratorImpl[_STATE_MOVING]) {
+          this[_current] = data;
           let hasNext = dart.as(this[_futureOrPrefetch], _Future$(core.bool));
           this[_futureOrPrefetch] = null;
-          this[_state] = _StreamIteratorImpl._STATE_FOUND;
+          this[_state] = _StreamIteratorImpl[_STATE_FOUND];
           hasNext._complete(true);
           return;
         }
         this[_subscription].pause();
         dart.assert(this[_futureOrPrefetch] === null);
         this[_futureOrPrefetch] = data;
-        this[_state] = _StreamIteratorImpl._STATE_EXTRA_DATA;
+        this[_state] = _StreamIteratorImpl[_STATE_EXTRA_DATA];
       }
       [_onError](error, stackTrace) {
         if (stackTrace === void 0)
           stackTrace = null;
-        if (this[_state] === _StreamIteratorImpl._STATE_MOVING) {
+        if (this[_state] === _StreamIteratorImpl[_STATE_MOVING]) {
           let hasNext = dart.as(this[_futureOrPrefetch], _Future$(core.bool));
           this[_clear]();
           hasNext._completeError(error, stackTrace);
@@ -3498,10 +3527,10 @@ var async;
         this[_subscription].pause();
         dart.assert(this[_futureOrPrefetch] === null);
         this[_futureOrPrefetch] = new AsyncError(error, stackTrace);
-        this[_state] = _StreamIteratorImpl._STATE_EXTRA_ERROR;
+        this[_state] = _StreamIteratorImpl[_STATE_EXTRA_ERROR];
       }
       [_onDone]() {
-        if (this[_state] === _StreamIteratorImpl._STATE_MOVING) {
+        if (this[_state] === _StreamIteratorImpl[_STATE_MOVING]) {
           let hasNext = dart.as(this[_futureOrPrefetch], _Future$(core.bool));
           this[_clear]();
           hasNext._complete(false);
@@ -3509,7 +3538,7 @@ var async;
         }
         this[_subscription].pause();
         this[_futureOrPrefetch] = null;
-        this[_state] = _StreamIteratorImpl._STATE_EXTRA_DONE;
+        this[_state] = _StreamIteratorImpl[_STATE_EXTRA_DONE];
       }
     }
     _StreamIteratorImpl._STATE_FOUND = 0;
@@ -3873,16 +3902,17 @@ var async;
     return _SkipWhileStream;
   });
   let _SkipWhileStream = _SkipWhileStream$(dart.dynamic);
+  let _SENTINEL = Symbol('_SENTINEL');
   let _equals = Symbol('_equals');
   let _DistinctStream$ = dart.generic(function(T) {
     class _DistinctStream extends _ForwardingStream$(T, T) {
       _DistinctStream(source, equals) {
-        this[_previous] = _SENTINEL;
+        this[_previous] = _DistinctStream[_SENTINEL];
         this[_equals] = equals;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
-        if (core.identical(this[_previous], _SENTINEL)) {
+        if (core.identical(this[_previous], _DistinctStream[_SENTINEL])) {
           this[_previous] = inputEvent;
           return sink._add(inputEvent);
         } else {
@@ -4080,9 +4110,9 @@ var async;
     return _HandlerEventSink;
   });
   let _HandlerEventSink = _HandlerEventSink$(dart.dynamic, dart.dynamic);
-  let _defaultHandleData$ = Symbol('_defaultHandleData');
-  let _defaultHandleError$ = Symbol('_defaultHandleError');
-  let _defaultHandleDone$ = Symbol('_defaultHandleDone');
+  let _defaultHandleData = Symbol('_defaultHandleData');
+  let _defaultHandleError = Symbol('_defaultHandleError');
+  let _defaultHandleDone = Symbol('_defaultHandleDone');
   let _StreamHandlerTransformer$ = dart.generic(function(S, T) {
     class _StreamHandlerTransformer extends _StreamSinkTransformer$(S, T) {
       _StreamHandlerTransformer(opts) {
@@ -4091,24 +4121,24 @@ var async;
         let handleDone = opts && 'handleDone' in opts ? opts.handleDone : null;
         super._StreamSinkTransformer(dart.closureWrap((outputSink) => {
           if (handleData === null)
-            handleData = dart.closureWrap(_defaultHandleData, "(S, EventSink<T>) → void");
+            handleData = dart.closureWrap(_StreamHandlerTransformer[_defaultHandleData], "(S, EventSink<T>) → void");
           if (handleError === null)
-            handleError = dart.closureWrap(_defaultHandleError, "(Object, StackTrace, EventSink<T>) → void");
+            handleError = dart.closureWrap(_StreamHandlerTransformer[_defaultHandleError], "(Object, StackTrace, EventSink<T>) → void");
           if (handleDone === null)
-            handleDone = _defaultHandleDone;
+            handleDone = _StreamHandlerTransformer[_defaultHandleDone];
           return new _HandlerEventSink(handleData, handleError, handleDone, outputSink);
         }, "(EventSink<T>) → EventSink<S>"));
       }
       bind(stream) {
         return super.bind(stream);
       }
-      static [_defaultHandleData$](data, sink) {
+      static [_defaultHandleData](data, sink) {
         sink.add(data);
       }
-      static [_defaultHandleError$](error, stackTrace, sink) {
+      static [_defaultHandleError](error, stackTrace, sink) {
         sink.addError(error);
       }
-      static [_defaultHandleDone$](sink) {
+      static [_defaultHandleDone](sink) {
         sink.close();
       }
     }
@@ -4244,25 +4274,26 @@ var async;
   }
   let _enter = Symbol('_enter');
   let _leave = Symbol('_leave');
+  let _$ = Symbol('_');
   class Zone extends core.Object {
     Zone$_() {
     }
     static get current() {
-      return _current;
+      return Zone[_current];
     }
     static [_enter](zone) {
       dart.assert(zone !== null);
-      dart.assert(!dart.notNull(core.identical(zone, _current)));
-      let previous = _current;
-      _current = zone;
+      dart.assert(!dart.notNull(core.identical(zone, Zone[_current])));
+      let previous = Zone[_current];
+      Zone[_current] = zone;
       return previous;
     }
     static [_leave](previous) {
       dart.assert(previous !== null);
-      Zone[_current$] = previous;
+      Zone[_current] = previous;
     }
   }
-  dart.defineNamedConstructor(Zone, '_');
+  dart.defineNamedConstructor(Zone, _$);
   Zone.ROOT = _ROOT_ZONE;
   Zone._current = _ROOT_ZONE;
   let _delegate = Symbol('_delegate');
@@ -4567,7 +4598,7 @@ var async;
   }
   // Function _rootRun: (Zone, ZoneDelegate, Zone, () → dynamic) → dynamic
   function _rootRun(self, parent, zone, f) {
-    if (dart.equals(Zone[_current$], zone))
+    if (dart.equals(Zone[_current], zone))
       return f();
     let old = Zone._enter(zone);
     try {
@@ -4578,7 +4609,7 @@ var async;
   }
   // Function _rootRunUnary: (Zone, ZoneDelegate, Zone, (dynamic) → dynamic, dynamic) → dynamic
   function _rootRunUnary(self, parent, zone, f, arg) {
-    if (dart.equals(Zone[_current$], zone))
+    if (dart.equals(Zone[_current], zone))
       return dart.dinvokef(f, arg);
     let old = Zone._enter(zone);
     try {
@@ -4589,7 +4620,7 @@ var async;
   }
   // Function _rootRunBinary: (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic, dynamic, dynamic) → dynamic
   function _rootRunBinary(self, parent, zone, f, arg1, arg2) {
-    if (dart.equals(Zone[_current$], zone))
+    if (dart.equals(Zone[_current], zone))
       return dart.dinvokef(f, arg1, arg2);
     let old = Zone._enter(zone);
     try {
@@ -4705,6 +4736,8 @@ var async;
       return _rootFork;
     }
   }
+  let _rootMap = Symbol('_rootMap');
+  let _rootDelegate = Symbol('_rootDelegate');
   class _RootZone extends _Zone {
     _RootZone() {
       super._Zone();
@@ -4752,19 +4785,19 @@ var async;
       return null;
     }
     get [_map]() {
-      return _rootMap;
+      return _RootZone[_rootMap];
     }
     get [_delegate]() {
-      if (_rootDelegate !== null)
-        return _rootDelegate;
-      return _rootDelegate = new _ZoneDelegate(this);
+      if (_RootZone[_rootDelegate] !== null)
+        return _RootZone[_rootDelegate];
+      return _RootZone[_rootDelegate] = new _ZoneDelegate(this);
     }
     get errorZone() {
       return this;
     }
     runGuarded(f) {
       try {
-        if (core.identical(_ROOT_ZONE, Zone[_current$])) {
+        if (core.identical(_ROOT_ZONE, Zone[_current])) {
           return f();
         }
         return _rootRun(null, null, this, f);
@@ -4776,7 +4809,7 @@ var async;
     }
     runUnaryGuarded(f, arg) {
       try {
-        if (core.identical(_ROOT_ZONE, Zone[_current$])) {
+        if (core.identical(_ROOT_ZONE, Zone[_current])) {
           return dart.dinvokef(f, arg);
         }
         return _rootRunUnary(null, null, this, f, arg);
@@ -4788,7 +4821,7 @@ var async;
     }
     runBinaryGuarded(f, arg1, arg2) {
       try {
-        if (core.identical(_ROOT_ZONE, Zone[_current$])) {
+        if (core.identical(_ROOT_ZONE, Zone[_current])) {
           return dart.dinvokef(f, arg1, arg2);
         }
         return _rootRunBinary(null, null, this, f, arg1, arg2);
@@ -4834,17 +4867,17 @@ var async;
       return _rootFork(null, null, this, specification, zoneValues);
     }
     run(f) {
-      if (core.identical(Zone[_current$], _ROOT_ZONE))
+      if (core.identical(Zone[_current], _ROOT_ZONE))
         return f();
       return _rootRun(null, null, this, f);
     }
     runUnary(f, arg) {
-      if (core.identical(Zone[_current$], _ROOT_ZONE))
+      if (core.identical(Zone[_current], _ROOT_ZONE))
         return dart.dinvokef(f, arg);
       return _rootRunUnary(null, null, this, f, arg);
     }
     runBinary(f, arg1, arg2) {
-      if (core.identical(Zone[_current$], _ROOT_ZONE))
+      if (core.identical(Zone[_current], _ROOT_ZONE))
         return dart.dinvokef(f, arg1, arg2);
       return _rootRunBinary(null, null, this, f, arg1, arg2);
     }

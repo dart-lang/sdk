@@ -24,6 +24,7 @@ var _js_helper;
     }
   }
   let _throwUnmodifiable = Symbol('_throwUnmodifiable');
+  let _$ = Symbol('_');
   let ConstantMap$ = dart.generic(function(K, V) {
     class ConstantMap extends core.Object {
       ConstantMap$_() {
@@ -56,7 +57,7 @@ var _js_helper;
         return this[_throwUnmodifiable]();
       }
     }
-    dart.defineNamedConstructor(ConstantMap, '_');
+    dart.defineNamedConstructor(ConstantMap, _$);
     return ConstantMap;
   });
   let ConstantMap = ConstantMap$(dart.dynamic, dart.dynamic);
@@ -103,7 +104,7 @@ var _js_helper;
         return new _internal.MappedIterable(this[_keys], dart.closureWrap(((key) => this[_fetch](key)).bind(this), "(K) → V"));
       }
     }
-    dart.defineNamedConstructor(ConstantStringMap, '_');
+    dart.defineNamedConstructor(ConstantStringMap, _$);
     return ConstantStringMap;
   });
   let ConstantStringMap = ConstantStringMap$(dart.dynamic, dart.dynamic);
@@ -125,7 +126,7 @@ var _js_helper;
         return dart.equals('__proto__', key) ? this[_protoValue] : jsPropertyAccess(this[_jsObject], dart.as(key, core.String));
       }
     }
-    dart.defineNamedConstructor(ConstantProtoMap, '_');
+    dart.defineNamedConstructor(ConstantProtoMap, _$);
     return ConstantProtoMap;
   });
   let ConstantProtoMap = ConstantProtoMap$(dart.dynamic, dart.dynamic);
@@ -478,19 +479,19 @@ var _js_helper;
       let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
       let caseSensitive = opts && 'caseSensitive' in opts ? opts.caseSensitive : true;
       this.pattern = source;
-      this[_nativeRegExp] = makeNative(source, multiLine, caseSensitive, false);
+      this[_nativeRegExp] = JSSyntaxRegExp.makeNative(source, multiLine, caseSensitive, false);
       this[_nativeGlobalRegExp] = null;
       this[_nativeAnchoredRegExp] = null;
     }
     get [_nativeGlobalVersion]() {
       if (this[_nativeGlobalRegExp] !== null)
         return this[_nativeGlobalRegExp];
-      return this[_nativeGlobalRegExp] = makeNative(this.pattern, this[_isMultiLine], this[_isCaseSensitive], true);
+      return this[_nativeGlobalRegExp] = JSSyntaxRegExp.makeNative(this.pattern, this[_isMultiLine], this[_isCaseSensitive], true);
     }
     get [_nativeAnchoredVersion]() {
       if (this[_nativeAnchoredRegExp] !== null)
         return this[_nativeAnchoredRegExp];
-      return this[_nativeAnchoredRegExp] = makeNative(`${this.pattern}|()`, this[_isMultiLine], this[_isCaseSensitive], true);
+      return this[_nativeAnchoredRegExp] = JSSyntaxRegExp.makeNative(`${this.pattern}|()`, this[_isMultiLine], this[_isCaseSensitive], true);
     }
     get [_isMultiLine]() {
       return this[_nativeRegExp].multiline;
@@ -918,8 +919,8 @@ var _js_helper;
   }
   // Function getRuntimeTypeArgument: (Object, String, int) → dynamic
   function getRuntimeTypeArgument(target, substitutionName, index) {
-    let arguments = getRuntimeTypeArguments(target, substitutionName);
-    return arguments === null ? null : getIndex(arguments, index);
+    let arguments$ = getRuntimeTypeArguments(target, substitutionName);
+    return arguments$ === null ? null : getIndex(arguments$, index);
   }
   // Function getTypeArgumentByIndex: (Object, int) → dynamic
   function getTypeArgumentByIndex(target, index) {
@@ -1001,35 +1002,35 @@ var _js_helper;
     return new TypeImpl(type);
   }
   // Function substitute: (dynamic, dynamic) → dynamic
-  function substitute(substitution, arguments) {
+  function substitute(substitution, arguments$) {
     dart.assert(dart.notNull(substitution === null) || dart.notNull(isJsFunction(substitution)));
-    dart.assert(dart.notNull(arguments === null) || dart.notNull(isJsArray(arguments)));
+    dart.assert(dart.notNull(arguments$ === null) || dart.notNull(isJsArray(arguments$)));
     if (isJsFunction(substitution)) {
-      substitution = invoke(substitution, arguments);
+      substitution = invoke(substitution, arguments$);
       if (isJsArray(substitution)) {
-        arguments = substitution;
+        arguments$ = substitution;
       } else if (isJsFunction(substitution)) {
-        arguments = invoke(substitution, arguments);
+        arguments$ = invoke(substitution, arguments$);
       }
     }
-    return arguments;
+    return arguments$;
   }
   // Function checkSubtype: (Object, String, List<dynamic>, String) → bool
   function checkSubtype(object, isField, checks, asField) {
     if (object === null)
       return false;
-    let arguments = getRuntimeTypeInfo(object);
+    let arguments$ = getRuntimeTypeInfo(object);
     let interceptor = _interceptors.getInterceptor(object);
     let isSubclass = getField(interceptor, isField);
     if (isSubclass === null)
       return false;
     let substitution = getField(interceptor, asField);
-    return checkArguments(substitution, arguments, checks);
+    return checkArguments(substitution, arguments$, checks);
   }
   // Function computeTypeName: (String, List<dynamic>) → String
-  function computeTypeName(isField, arguments) {
+  function computeTypeName(isField, arguments$) {
     let prefixLength = _foreign_helper.JS_OPERATOR_IS_PREFIX().length;
-    return Primitives.formatType(isField.substring(prefixLength, isField.length), arguments);
+    return Primitives.formatType(isField.substring(prefixLength, isField.length), arguments$);
   }
   // Function subtypeCast: (Object, String, List<dynamic>, String) → Object
   function subtypeCast(object, isField, checks, asField) {
@@ -1059,8 +1060,8 @@ var _js_helper;
     throw new TypeErrorImplementation.fromMessage(dart.as(message, core.String));
   }
   // Function checkArguments: (dynamic, dynamic, dynamic) → bool
-  function checkArguments(substitution, arguments, checks) {
-    return areSubtypes(substitute(substitution, arguments), checks);
+  function checkArguments(substitution, arguments$, checks) {
+    return areSubtypes(substitute(substitution, arguments$), checks);
   }
   // Function areSubtypes: (dynamic, dynamic) → bool
   function areSubtypes(s, t) {
@@ -1271,14 +1272,14 @@ var _js_helper;
     return areAssignableMaps(sNamedParameters, tNamedParameters);
   }
   // Function invoke: (dynamic, dynamic) → dynamic
-  function invoke(func, arguments) {
-    return invokeOn(func, null, arguments);
+  function invoke(func, arguments$) {
+    return invokeOn(func, null, arguments$);
   }
   // Function invokeOn: (dynamic, dynamic, dynamic) → Object
-  function invokeOn(func, receiver, arguments) {
+  function invokeOn(func, receiver, arguments$) {
     dart.assert(isJsFunction(func));
-    dart.assert(dart.notNull(arguments === null) || dart.notNull(isJsArray(arguments)));
-    return func.apply(receiver, arguments);
+    dart.assert(dart.notNull(arguments$ === null) || dart.notNull(isJsArray(arguments$)));
+    return func.apply(receiver, arguments$);
   }
   // Function call: (dynamic, String) → dynamic
   function call(object, name) {
@@ -1366,12 +1367,12 @@ var _js_helper;
     return dart.as(res, core.String);
   }
   // Function createInvocationMirror: (String, dynamic, dynamic, dynamic, dynamic) → dynamic
-  function createInvocationMirror(name, internalName, kind, arguments, argumentNames) {
-    return new JSInvocationMirror(name, dart.as(internalName, core.String), dart.as(kind, core.int), dart.as(arguments, core.List), dart.as(argumentNames, core.List));
+  function createInvocationMirror(name, internalName, kind, arguments$, argumentNames) {
+    return new JSInvocationMirror(name, dart.as(internalName, core.String), dart.as(kind, core.int), dart.as(arguments$, core.List), dart.as(argumentNames, core.List));
   }
   // Function createUnmangledInvocationMirror: (Symbol, dynamic, dynamic, dynamic, dynamic) → dynamic
-  function createUnmangledInvocationMirror(symbol, internalName, kind, arguments, argumentNames) {
-    return new JSInvocationMirror(symbol, dart.as(internalName, core.String), dart.as(kind, core.int), dart.as(arguments, core.List), dart.as(argumentNames, core.List));
+  function createUnmangledInvocationMirror(symbol, internalName, kind, arguments$, argumentNames) {
+    return new JSInvocationMirror(symbol, dart.as(internalName, core.String), dart.as(kind, core.int), dart.as(arguments$, core.List), dart.as(argumentNames, core.List));
   }
   // Function throwInvalidReflectionError: (String) → void
   function throwInvalidReflectionError(memberName) {
@@ -1459,7 +1460,7 @@ var _js_helper;
       let interceptor = _interceptors.getInterceptor(object);
       let receiver = object;
       let name = this[_internalName];
-      let arguments = this[_arguments];
+      let arguments$ = this[_arguments];
       let interceptedNames = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INTERCEPTED_NAMES);
       let isIntercepted = Object.prototype.hasOwnProperty.call(interceptedNames, name);
       if (isIntercepted) {
@@ -1525,18 +1526,18 @@ var _js_helper;
     get isGetterStub() {
       return !!this.jsFunction.$getterStub;
     }
-    invokeOn(victim, arguments) {
+    invokeOn(victim, arguments$) {
       let receiver = victim;
       if (!dart.notNull(this.isIntercepted)) {
-        if (!dart.is(arguments, _interceptors.JSArray))
-          arguments = new core.List.from(arguments);
+        if (!dart.is(arguments$, _interceptors.JSArray))
+          arguments$ = new core.List.from(arguments$);
       } else {
-        arguments = new core.List.from([victim]);
-        arguments.addAll(arguments);
+        arguments$ = new core.List.from([victim]);
+        arguments$.addAll(arguments$);
         if (this.cachedInterceptor !== null)
           receiver = this.cachedInterceptor;
       }
-      return this.jsFunction.apply(receiver, arguments);
+      return this.jsFunction.apply(receiver, arguments$);
     }
   }
   class CachedCatchAllInvocation extends CachedInvocation {
@@ -1547,38 +1548,38 @@ var _js_helper;
     get isGetterStub() {
       return false;
     }
-    invokeOn(victim, arguments) {
+    invokeOn(victim, arguments$) {
       let receiver = victim;
       let providedArgumentCount = null;
       let fullParameterCount = dart.notNull(this.info.requiredParameterCount) + dart.notNull(this.info.optionalParameterCount);
       if (!dart.notNull(this.isIntercepted)) {
-        if (dart.is(arguments, _interceptors.JSArray)) {
-          providedArgumentCount = arguments.length;
+        if (dart.is(arguments$, _interceptors.JSArray)) {
+          providedArgumentCount = arguments$.length;
           if (dart.notNull(providedArgumentCount) < dart.notNull(fullParameterCount)) {
-            arguments = new core.List.from(arguments);
+            arguments$ = new core.List.from(arguments$);
           }
         } else {
-          arguments = new core.List.from(arguments);
-          providedArgumentCount = arguments.length;
+          arguments$ = new core.List.from(arguments$);
+          providedArgumentCount = arguments$.length;
         }
       } else {
-        arguments = new core.List.from([victim]);
-        arguments.addAll(arguments);
+        arguments$ = new core.List.from([victim]);
+        arguments$.addAll(arguments$);
         if (this.cachedInterceptor !== null)
           receiver = this.cachedInterceptor;
-        providedArgumentCount = dart.notNull(arguments.length) - 1;
+        providedArgumentCount = dart.notNull(arguments$.length) - 1;
       }
       if (dart.notNull(this.info.areOptionalParametersNamed) && dart.notNull(providedArgumentCount) > dart.notNull(this.info.requiredParameterCount)) {
-        throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${arguments.length} arguments.`);
+        throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${arguments$.length} arguments.`);
       } else if (dart.notNull(providedArgumentCount) < dart.notNull(this.info.requiredParameterCount)) {
         throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${providedArgumentCount} arguments (too few).`);
       } else if (dart.notNull(providedArgumentCount) > dart.notNull(fullParameterCount)) {
         throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${providedArgumentCount} arguments (too many).`);
       }
       for (let i = providedArgumentCount; dart.notNull(i) < dart.notNull(fullParameterCount); i = dart.notNull(i) + 1) {
-        arguments.add(getMetadata(this.info.defaultValue(i)));
+        arguments$.add(getMetadata(this.info.defaultValue(i)));
       }
-      return this.jsFunction.apply(receiver, arguments);
+      return this.jsFunction.apply(receiver, arguments$);
     }
   }
   class CachedNoSuchMethodInvocation extends core.Object {
@@ -1704,13 +1705,13 @@ var _js_helper;
     let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.METADATA);
     return metadata[index];
   }
-  let _throwFormatException$ = Symbol('_throwFormatException');
-  let _fromCharCodeApply$ = Symbol('_fromCharCodeApply');
+  let _throwFormatException = Symbol('_throwFormatException');
+  let _fromCharCodeApply = Symbol('_fromCharCodeApply');
   let _mangledNameMatchesType = Symbol('_mangledNameMatchesType');
   class Primitives extends core.Object {
     static initializeStatics(id) {
-      mirrorFunctionCacheName = `_${id}`;
-      mirrorInvokeCacheName = `_${id}`;
+      Primitives.mirrorFunctionCacheName = `_${id}`;
+      Primitives.mirrorInvokeCacheName = `_${id}`;
     }
     static objectHashCode(object) {
       let hash = dart.as(object.$identityHash, core.int);
@@ -1720,12 +1721,12 @@ var _js_helper;
       }
       return hash;
     }
-    static [_throwFormatException$](string) {
+    static [_throwFormatException](string) {
       throw new core.FormatException(string);
     }
     static parseInt(source, radix, handleError) {
       if (handleError === null)
-        handleError = dart.closureWrap(_throwFormatException, "(String) → int");
+        handleError = dart.closureWrap(Primitives[_throwFormatException], "(String) → int");
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -1777,7 +1778,7 @@ var _js_helper;
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError === null)
-        handleError = dart.closureWrap(_throwFormatException, "(String) → double");
+        handleError = dart.closureWrap(Primitives[_throwFormatException], "(String) → double");
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -1805,20 +1806,20 @@ var _js_helper;
       if (dart.notNull(name.length) > 1 && dart.notNull(core.identical(name.codeUnitAt(0), Primitives.DOLLAR_CHAR_VALUE))) {
         name = name.substring(1);
       }
-      return formatType(name, dart.as(getRuntimeTypeInfo(object), core.List));
+      return Primitives.formatType(name, dart.as(getRuntimeTypeInfo(object), core.List));
     }
     static objectToString(object) {
-      let name = objectTypeName(object);
+      let name = Primitives.objectTypeName(object);
       return `Instance of '${name}'`;
     }
     static dateNow() {
       return Date.now();
     }
     static initTicker() {
-      if (timerFrequency !== null)
+      if (Primitives.timerFrequency !== null)
         return;
-      timerFrequency = 1000;
-      timerTicks = dateNow;
+      Primitives.timerFrequency = 1000;
+      Primitives.timerTicks = Primitives.dateNow;
       if (typeof window == "undefined")
         return;
       let window = window;
@@ -1829,8 +1830,8 @@ var _js_helper;
         return;
       if (typeof performance.now != "function")
         return;
-      timerFrequency = 1000000;
-      timerTicks = (() => (1000 * performance.now()).floor()).bind(this);
+      Primitives.timerFrequency = 1000000;
+      Primitives.timerTicks = (() => (1000 * performance.now()).floor()).bind(this);
     }
     static get isD8() {
       return typeof version == "function" && typeof os == "object" && "system" in os;
@@ -1845,7 +1846,7 @@ var _js_helper;
       }
       return null;
     }
-    static [_fromCharCodeApply$](array) {
+    static [_fromCharCodeApply](array) {
       let result = "";
       let kMaxApply = 500;
       let end = array.length;
@@ -1874,7 +1875,7 @@ var _js_helper;
           throw new core.ArgumentError(i);
         }
       }
-      return _fromCharCodeApply(a);
+      return Primitives[_fromCharCodeApply](a);
     }
     static stringFromCharCodes(charCodes) {
       for (let i of charCodes) {
@@ -1883,9 +1884,9 @@ var _js_helper;
         if (dart.dbinary(i, '<', 0))
           throw new core.ArgumentError(i);
         if (dart.dbinary(i, '>', 65535))
-          return stringFromCodePoints(charCodes);
+          return Primitives.stringFromCodePoints(charCodes);
       }
-      return _fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
+      return Primitives[_fromCharCodeApply](dart.as(charCodes, core.List$(core.int)));
     }
     static stringFromCharCode(charCode) {
       if (0['<='](charCode)) {
@@ -1908,7 +1909,7 @@ var _js_helper;
       return str.charCodeAt(0) == 0 ? str : str;
     }
     static getTimeZoneName(receiver) {
-      let d = lazyAsJsDate(receiver);
+      let d = Primitives.lazyAsJsDate(receiver);
       let match = dart.as(/\((.*)\)/.exec(d.toString()), core.List);
       if (match !== null)
         return dart.as(match.get(1), core.String);
@@ -1921,7 +1922,7 @@ var _js_helper;
       return "";
     }
     static getTimeZoneOffsetInMinutes(receiver) {
-      return -lazyAsJsDate(receiver).getTimezoneOffset();
+      return -Primitives.lazyAsJsDate(receiver).getTimezoneOffset();
     }
     static valueFromDecomposedDate(years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
       let MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
@@ -1944,7 +1945,7 @@ var _js_helper;
         return null;
       }
       if (dart.dbinary(dart.dbinary(years, '<=', 0), '||', dart.dbinary(years, '<', 100)))
-        return patchUpY2K(value, years, isUtc);
+        return Primitives.patchUpY2K(value, years, isUtc);
       return value;
     }
     static patchUpY2K(value, years, isUtc) {
@@ -1963,28 +1964,28 @@ var _js_helper;
       return receiver.date;
     }
     static getYear(receiver) {
-      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCFullYear() + 0 : lazyAsJsDate(receiver).getFullYear() + 0;
+      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCFullYear() + 0 : Primitives.lazyAsJsDate(receiver).getFullYear() + 0;
     }
     static getMonth(receiver) {
-      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCMonth() + 1 : lazyAsJsDate(receiver).getMonth() + 1;
+      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCMonth() + 1 : Primitives.lazyAsJsDate(receiver).getMonth() + 1;
     }
     static getDay(receiver) {
-      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCDate() + 0 : lazyAsJsDate(receiver).getDate() + 0;
+      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCDate() + 0 : Primitives.lazyAsJsDate(receiver).getDate() + 0;
     }
     static getHours(receiver) {
-      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCHours() + 0 : lazyAsJsDate(receiver).getHours() + 0;
+      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCHours() + 0 : Primitives.lazyAsJsDate(receiver).getHours() + 0;
     }
     static getMinutes(receiver) {
-      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCMinutes() + 0 : lazyAsJsDate(receiver).getMinutes() + 0;
+      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCMinutes() + 0 : Primitives.lazyAsJsDate(receiver).getMinutes() + 0;
     }
     static getSeconds(receiver) {
-      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCSeconds() + 0 : lazyAsJsDate(receiver).getSeconds() + 0;
+      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCSeconds() + 0 : Primitives.lazyAsJsDate(receiver).getSeconds() + 0;
     }
     static getMilliseconds(receiver) {
-      return dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCMilliseconds() + 0 : lazyAsJsDate(receiver).getMilliseconds() + 0;
+      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCMilliseconds() + 0 : Primitives.lazyAsJsDate(receiver).getMilliseconds() + 0;
     }
     static getWeekday(receiver) {
-      let weekday = dart.dload(receiver, 'isUtc') ? lazyAsJsDate(receiver).getUTCDay() + 0 : lazyAsJsDate(receiver).getDay() + 0;
+      let weekday = dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCDay() + 0 : Primitives.lazyAsJsDate(receiver).getDay() + 0;
       return (dart.notNull(weekday) + 6) % 7 + 1;
     }
     static valueFromDateString(str) {
@@ -2009,59 +2010,59 @@ var _js_helper;
     }
     static functionNoSuchMethod(func, positionalArguments, namedArguments) {
       let argumentCount = 0;
-      let arguments = new core.List.from([]);
+      let arguments$ = new core.List.from([]);
       let namedArgumentList = new core.List.from([]);
       if (positionalArguments !== null) {
         argumentCount = positionalArguments.length;
-        arguments.addAll(positionalArguments);
+        arguments$.addAll(positionalArguments);
       }
       let names = '';
       if (dart.notNull(namedArguments !== null) && !dart.notNull(namedArguments.isEmpty)) {
         namedArguments.forEach(((name, argument) => {
           names = `${names}$${name}`;
           namedArgumentList.add(name);
-          arguments.add(argument);
+          arguments$.add(argument);
           argumentCount = dart.notNull(argumentCount) + 1;
         }).bind(this));
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}${names}`;
-      return dart.dinvoke(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.throw_("Unimplemented SymbolLiteral: #call"), selectorName, JSInvocationMirror.METHOD, arguments, namedArgumentList));
+      return dart.dinvoke(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.throw_("Unimplemented SymbolLiteral: #call"), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
     }
     static applyFunction(func, positionalArguments, namedArguments) {
-      return namedArguments === null ? applyFunctionWithPositionalArguments(func, positionalArguments) : applyFunctionWithNamedArguments(func, positionalArguments, namedArguments);
+      return namedArguments === null ? Primitives.applyFunctionWithPositionalArguments(func, positionalArguments) : Primitives.applyFunctionWithNamedArguments(func, positionalArguments, namedArguments);
     }
     static applyFunctionWithPositionalArguments(func, positionalArguments) {
       let argumentCount = 0;
-      let arguments = null;
+      let arguments$ = null;
       if (positionalArguments !== null) {
         if (positionalArguments instanceof Array) {
-          arguments = positionalArguments;
+          arguments$ = positionalArguments;
         } else {
-          arguments = new core.List.from(positionalArguments);
+          arguments$ = new core.List.from(positionalArguments);
         }
-        argumentCount = arguments.length;
+        argumentCount = arguments$.length;
       } else {
-        arguments = new core.List.from([]);
+        arguments$ = new core.List.from([]);
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}`;
       let jsFunction = func[selectorName];
       if (jsFunction === null) {
-        return functionNoSuchMethod(func, positionalArguments, null);
+        return Primitives.functionNoSuchMethod(func, positionalArguments, null);
       }
-      return jsFunction.apply(func, arguments);
+      return jsFunction.apply(func, arguments$);
     }
     static applyFunctionWithNamedArguments(func, positionalArguments, namedArguments) {
       if (namedArguments.isEmpty) {
-        return applyFunctionWithPositionalArguments(func, positionalArguments);
+        return Primitives.applyFunctionWithPositionalArguments(func, positionalArguments);
       }
       let interceptor = _interceptors.getInterceptor(func);
       let jsFunction = interceptor["call*"];
       if (jsFunction === null) {
-        return functionNoSuchMethod(func, positionalArguments, namedArguments);
+        return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       let info = new ReflectionInfo(jsFunction);
       if (dart.notNull(info === null) || !dart.notNull(info.areOptionalParametersNamed)) {
-        return functionNoSuchMethod(func, positionalArguments, namedArguments);
+        return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       if (positionalArguments !== null) {
         positionalArguments = new core.List.from(positionalArguments);
@@ -2069,7 +2070,7 @@ var _js_helper;
         positionalArguments = new core.List.from([]);
       }
       if (info.requiredParameterCount !== positionalArguments.length) {
-        return functionNoSuchMethod(func, positionalArguments, namedArguments);
+        return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       let defaultArguments = new core.Map();
       for (let i = 0; dart.notNull(i) < dart.notNull(info.optionalParameterCount); i = dart.notNull(i) + 1) {
@@ -2088,7 +2089,7 @@ var _js_helper;
         }
       }).bind(this));
       if (bad) {
-        return functionNoSuchMethod(func, positionalArguments, namedArguments);
+        return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       positionalArguments.addAll(defaultArguments.values);
       return jsFunction.apply(func, positionalArguments);
@@ -2265,13 +2266,13 @@ var _js_helper;
       let match = dart.as(message.match(/\\\$[a-zA-Z]+\\\$/g), core.List$(core.String));
       if (match === null)
         match = dart.as(new core.List.from([]), core.List$(core.String));
-      let arguments = match.indexOf('\\$arguments\\$');
+      let arguments$ = match.indexOf('\\$arguments\\$');
       let argumentsExpr = match.indexOf('\\$argumentsExpr\\$');
       let expr = match.indexOf('\\$expr\\$');
       let method = match.indexOf('\\$method\\$');
       let receiver = match.indexOf('\\$receiver\\$');
       let pattern = message.replace('\\$arguments\\$', '((?:x|[^x])*)').replace('\\$argumentsExpr\\$', '((?:x|[^x])*)').replace('\\$expr\\$', '((?:x|[^x])*)').replace('\\$method\\$', '((?:x|[^x])*)').replace('\\$receiver\\$', '((?:x|[^x])*)');
-      return new TypeErrorDecoder(arguments, argumentsExpr, expr, method, receiver, pattern);
+      return new TypeErrorDecoder(arguments$, argumentsExpr, expr, method, receiver, pattern);
     }
     static provokeCallErrorOn(expression) {
       let func = function($expr$) {
@@ -2345,34 +2346,34 @@ var _js_helper;
   }
   dart.defineLazyProperties(TypeErrorDecoder, {
     get noSuchMethodPattern() {
-      return dart.as(extractPattern(provokeCallErrorOn(buildJavaScriptObject())), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokeCallErrorOn(TypeErrorDecoder.buildJavaScriptObject())), TypeErrorDecoder);
     },
     get notClosurePattern() {
-      return dart.as(extractPattern(provokeCallErrorOn(buildJavaScriptObjectWithNonClosure())), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokeCallErrorOn(TypeErrorDecoder.buildJavaScriptObjectWithNonClosure())), TypeErrorDecoder);
     },
     get nullCallPattern() {
-      return dart.as(extractPattern(provokeCallErrorOn(null)), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokeCallErrorOn(null)), TypeErrorDecoder);
     },
     get nullLiteralCallPattern() {
-      return dart.as(extractPattern(provokeCallErrorOnNull()), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokeCallErrorOnNull()), TypeErrorDecoder);
     },
     get undefinedCallPattern() {
-      return dart.as(extractPattern(provokeCallErrorOn(void 0)), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokeCallErrorOn(void 0)), TypeErrorDecoder);
     },
     get undefinedLiteralCallPattern() {
-      return dart.as(extractPattern(provokeCallErrorOnUndefined()), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokeCallErrorOnUndefined()), TypeErrorDecoder);
     },
     get nullPropertyPattern() {
-      return dart.as(extractPattern(provokePropertyErrorOn(null)), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokePropertyErrorOn(null)), TypeErrorDecoder);
     },
     get nullLiteralPropertyPattern() {
-      return dart.as(extractPattern(provokePropertyErrorOnNull()), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokePropertyErrorOnNull()), TypeErrorDecoder);
     },
     get undefinedPropertyPattern() {
-      return dart.as(extractPattern(provokePropertyErrorOn(void 0)), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokePropertyErrorOn(void 0)), TypeErrorDecoder);
     },
     get undefinedLiteralPropertyPattern() {
-      return dart.as(extractPattern(provokePropertyErrorOnUndefined()), TypeErrorDecoder);
+      return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokePropertyErrorOnUndefined()), TypeErrorDecoder);
     }
   });
   let _message = Symbol('_message');
@@ -2577,9 +2578,9 @@ var _js_helper;
       prototype.$initialize = prototype.constructor;
       let constructor = isStatic ? function() {
         this.$initialize();
-      } : isCsp ? function(a, b, c, d) {
+      } : Closure.isCsp ? function(a, b, c, d) {
         this.$initialize(a, b, c, d);
-      } : new Function("a", "b", "c", "d", "this.$initialize(a,b,c,d);" + ((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter));
+      } : new Function("a", "b", "c", "d", "this.$initialize(a,b,c,d);" + ((x$) => Closure.functionCounter = dart.notNull(x$) + 1, x$)(Closure.functionCounter));
       prototype.constructor = constructor;
       constructor.prototype = prototype;
       let trampoline = func;
@@ -2588,7 +2589,7 @@ var _js_helper;
         if (jsArguments.length == 1) {
           isIntercepted = true;
         }
-        trampoline = forwardCallTo(receiver, func, isIntercepted);
+        trampoline = Closure.forwardCallTo(receiver, func, isIntercepted);
         trampoline.$reflectionInfo = reflectionInfo;
       } else {
         prototype.$name = propertyName;
@@ -2605,7 +2606,7 @@ var _js_helper;
         let getReceiver = isIntercepted ? _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.receiverOf) : _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
         signatureFunction = function(f, r) {
           return function() {
-            return f.apply({$receiver: r(this)}, arguments);
+            return f.apply({$receiver: r(this)}, arguments$);
           };
         }(functionType, getReceiver);
       } else {
@@ -2617,7 +2618,7 @@ var _js_helper;
         let stub = functions.get(i);
         let stubCallName = stub.$callName;
         if (stubCallName !== null) {
-          prototype[stubCallName] = isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted);
+          prototype[stubCallName] = isStatic ? stub : Closure.forwardCallTo(receiver, stub, isIntercepted);
         }
       }
       prototype["call*"] = trampoline;
@@ -2680,7 +2681,7 @@ var _js_helper;
         {
           return function(f, s) {
             return function() {
-              return f.apply(s(this), arguments);
+              return f.apply(s(this), arguments$);
             };
           }(func, getSelf);
         }
@@ -2691,20 +2692,20 @@ var _js_helper;
     }
     static forwardCallTo(receiver, func, isIntercepted) {
       if (isIntercepted)
-        return forwardInterceptedCallTo(receiver, func);
+        return Closure.forwardInterceptedCallTo(receiver, func);
       let stubName = dart.as(func.$stubName, core.String);
       let arity = func.length;
       let lookedUpFunction = receiver[stubName];
       let isSuperCall = !dart.notNull(core.identical(func, lookedUpFunction));
-      if (dart.notNull(isCsp) || dart.notNull(isSuperCall) || dart.notNull(arity) >= 27) {
-        return cspForwardCall(arity, isSuperCall, stubName, func);
+      if (dart.notNull(Closure.isCsp) || dart.notNull(isSuperCall) || dart.notNull(arity) >= 27) {
+        return Closure.cspForwardCall(arity, isSuperCall, stubName, func);
       }
       if (arity === 0) {
-        return new Function('return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+        return new Function('return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${((x$) => Closure.functionCounter = dart.notNull(x$) + 1, x$)(Closure.functionCounter)}` + '}')();
       }
       dart.assert(1 <= dart.notNull(arity) && dart.notNull(arity) < 27);
-      let arguments = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, arity).join(",");
-      return new Function(`return function(${arguments}){` + `return this.${BoundClosure.selfFieldName()}.${stubName}(${arguments});` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+      let arguments$ = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, arity).join(",");
+      return new Function(`return function(${arguments$}){` + `return this.${BoundClosure.selfFieldName()}.${stubName}(${arguments$});` + `${((x$) => Closure.functionCounter = dart.notNull(x$) + 1, x$)(Closure.functionCounter)}` + '}')();
     }
     static cspForwardInterceptedCall(arity, isSuperCall, name, func) {
       let getSelf = _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
@@ -2769,7 +2770,7 @@ var _js_helper;
           return function(f, s, r, a) {
             return function() {
               a = [r(this)];
-              Array.prototype.push.apply(a, arguments);
+              Array.prototype.push.apply(a, arguments$);
               return f.apply(s(this), a);
             };
           }(func, getSelf, getReceiver);
@@ -2785,14 +2786,14 @@ var _js_helper;
       let lookedUpFunction = receiver[stubName];
       let isSuperCall = !dart.notNull(core.identical(func, lookedUpFunction));
       if (dart.notNull(isCsp) || dart.notNull(isSuperCall) || dart.notNull(arity) >= 28) {
-        return cspForwardInterceptedCall(arity, isSuperCall, stubName, func);
+        return Closure.cspForwardInterceptedCall(arity, isSuperCall, stubName, func);
       }
       if (arity === 1) {
-        return new Function('return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+        return new Function('return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${((x$) => Closure.functionCounter = dart.notNull(x$) + 1, x$)(Closure.functionCounter)}` + '}')();
       }
       dart.assert(1 < dart.notNull(arity) && dart.notNull(arity) < 28);
-      let arguments = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, dart.notNull(arity) - 1).join(",");
-      return new Function(`return function(${arguments}){` + `return this.${selfField}.${stubName}(this.${receiverField}, ${arguments});` + `${((x$) => functionCounter = dart.notNull(x$) + 1, x$)(functionCounter)}` + '}')();
+      let arguments$ = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, dart.notNull(arity) - 1).join(",");
+      return new Function(`return function(${arguments$}){` + `return this.${selfField}.${stubName}(this.${receiverField}, ${arguments$});` + `${((x$) => Closure.functionCounter = dart.notNull(x$) + 1, x$)(Closure.functionCounter)}` + '}')();
     }
     toString() {
       return "Closure";
@@ -2853,16 +2854,16 @@ var _js_helper;
       return closure[_name];
     }
     static selfFieldName() {
-      if (selfFieldNameCache === null) {
-        selfFieldNameCache = computeFieldNamed('self');
+      if (BoundClosure.selfFieldNameCache === null) {
+        BoundClosure.selfFieldNameCache = BoundClosure.computeFieldNamed('self');
       }
-      return selfFieldNameCache;
+      return BoundClosure.selfFieldNameCache;
     }
     static receiverFieldName() {
-      if (receiverFieldNameCache === null) {
-        receiverFieldNameCache = computeFieldNamed('receiver');
+      if (BoundClosure.receiverFieldNameCache === null) {
+        BoundClosure.receiverFieldNameCache = BoundClosure.computeFieldNamed('receiver');
       }
-      return receiverFieldNameCache;
+      return BoundClosure.receiverFieldNameCache;
     }
     static computeFieldNamed(fieldName) {
       let template = new BoundClosure('self', 'target', 'receiver', 'name');
@@ -3218,9 +3219,9 @@ var _js_helper;
       throw new core.AssertionError();
   }
   // Function throwNoSuchMethod: (dynamic, dynamic, dynamic, dynamic) → void
-  function throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
+  function throwNoSuchMethod(obj, name, arguments$, expectedArgumentNames) {
     let memberName = new _internal.Symbol.unvalidated(dart.as(name, core.String));
-    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments, core.List), new core.Map(), dart.as(expectedArgumentNames, core.List));
+    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), new core.Map(), dart.as(expectedArgumentNames, core.List));
   }
   // Function throwCyclicInit: (String) → void
   function throwCyclicInit(staticName) {
@@ -3272,13 +3273,13 @@ var _js_helper;
       return this[_check](expression, true);
     }
     [_assertCheck](expression) {
-      if (inAssert)
+      if (RuntimeFunctionType.inAssert)
         return null;
-      inAssert = true;
+      RuntimeFunctionType.inAssert = true;
       try {
         return this[_check](expression, false);
       } finally {
-        inAssert = false;
+        RuntimeFunctionType.inAssert = false;
       }
     }
     [_check](expression, isCast) {
@@ -3314,10 +3315,10 @@ var _js_helper;
         }
       }
       if (dart.notNull(this.parameterTypes !== null) && !dart.notNull(this.parameterTypes.isEmpty)) {
-        result[_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()] = listToRti(this.parameterTypes);
+        result[_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.parameterTypes);
       }
       if (dart.notNull(this.optionalParameterTypes !== null) && !dart.notNull(this.optionalParameterTypes.isEmpty)) {
-        result[_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()] = listToRti(this.optionalParameterTypes);
+        result[_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.optionalParameterTypes);
       }
       if (this.namedParameters !== null) {
         let namedRti = Object.create(null);
@@ -3458,11 +3459,11 @@ var _js_helper;
     } else if (rti.constructor == Array) {
       let list = dart.as(rti, core.List);
       let name = list.get(0).name;
-      let arguments = new core.List.from([]);
+      let arguments$ = new core.List.from([]);
       for (let i = 1; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
-        arguments.add(convertRtiToRuntimeType(list.get(i)));
+        arguments$.add(convertRtiToRuntimeType(list.get(i)));
       }
-      return new RuntimeTypeGeneric(name, dart.as(arguments, core.List$(RuntimeType)), rti);
+      return new RuntimeTypeGeneric(name, dart.as(arguments$, core.List$(RuntimeType)), rti);
     } else if ("func" in rti) {
       return new FunctionTypeInfoDecoderRing(rti).toRuntimeType();
     } else {
@@ -3486,9 +3487,9 @@ var _js_helper;
     }
   }
   class RuntimeTypeGeneric extends RuntimeType {
-    RuntimeTypeGeneric(name, arguments, rti) {
+    RuntimeTypeGeneric(name, arguments$, rti) {
       this.name = name;
-      this.arguments = arguments;
+      this.arguments = arguments$;
       this.rti = rti;
       super.RuntimeType();
     }

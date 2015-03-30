@@ -26,7 +26,7 @@ import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-import 'js/keywords.dart';
+import 'codegen/js_names.dart' show invalidJSVariableName;
 
 bool isDartPrivateLibrary(LibraryElement library) {
   var uri = library.source.uri;
@@ -62,9 +62,9 @@ String _toIdentifier(String name) {
   }
 
   var result = buffer != null ? '$buffer' : name;
-  // Ensure the idenifier first character is not numeric and that the whole
+  // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
-  if (result.startsWith(new RegExp('[0-9]')) || isJsKeyword(result)) {
+  if (result.startsWith(new RegExp('[0-9]')) || invalidJSVariableName(result)) {
     return '\$$result';
   }
   return result;

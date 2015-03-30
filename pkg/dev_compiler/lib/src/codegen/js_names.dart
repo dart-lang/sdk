@@ -5,7 +5,6 @@
 library dev_compiler.src.codegen.js_names;
 
 import 'package:dev_compiler/src/js/js_ast.dart';
-import 'package:dev_compiler/src/js/keywords.dart';
 
 /// Marker subclass for temporary variables.
 /// We treat these as being in a different scope from other identifiers, and
@@ -41,7 +40,7 @@ class JSNamer extends LocalNamer {
     var name = node.name;
     if (node is JSTemporary) {
       return _rename(name, valid: true);
-    } else if (isJsKeyword(name)) {
+    } else if (invalidJSVariableName(name)) {
       return _rename(name, valid: false);
     }
     return name;
@@ -78,4 +77,63 @@ class _NameCollector extends BaseVisitor {
   visitIdentifier(Identifier node) {
     if (node is! JSTemporary) names.add(node.name);
   }
+}
+
+/// Returns true for invalid JS variable names, such as keywords.
+/// Also handles invalid variable names in strict mode, like "arguments".
+bool invalidJSVariableName(String keyword, {bool strictMode: true}) {
+  switch (keyword) {
+    case "break":
+    case "case":
+    case "catch":
+    case "class":
+    case "const":
+    case "continue":
+    case "debugger":
+    case "default":
+    case "delete":
+    case "do":
+    case "else":
+    case "export":
+    case "extends":
+    case "finally":
+    case "for":
+    case "function":
+    case "if":
+    case "import":
+    case "in":
+    case "instanceof":
+    case "let":
+    case "new":
+    case "return":
+    case "static":
+    case "super":
+    case "switch":
+    case "this":
+    case "throw":
+    case "try":
+    case "typeof":
+    case "var":
+    case "void":
+    case "while":
+    case "with":
+    case "yield":
+      return true;
+    case "arguments":
+    case "eval":
+      return strictMode;
+  }
+  return false;
+}
+
+/// Returns true for invalid static method names in strict mode.
+/// In particular, "caller" "callee" and "arguments" cannot be used.
+bool invalidJSStaticMethodName(String name) {
+  switch (name) {
+    case "arguments":
+    case "caller":
+    case "callee":
+      return true;
+  }
+  return false;
 }

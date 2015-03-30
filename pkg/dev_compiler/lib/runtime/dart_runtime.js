@@ -281,8 +281,9 @@ var dart, _js_helper;
    * function with the same name. For example `new SomeClass.name(args)`.
    */
   function defineNamedConstructor(clazz, name) {
+    var shortName = name.startsWith('::') ? name.substring(2) : name;
     var proto = clazz.prototype;
-    var initMethod = proto[clazz.name + '$' + name];
+    var initMethod = proto[clazz.name + '$' + shortName];
     var ctor = function() { return initMethod.apply(this, arguments); }
     ctor.prototype = proto;
     clazz[name] = ctor;

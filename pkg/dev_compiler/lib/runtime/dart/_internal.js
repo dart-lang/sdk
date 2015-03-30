@@ -347,6 +347,7 @@ var _internal;
   });
   let ListIterator = ListIterator$(dart.dynamic);
   let _f = Symbol('_f');
+  let _ = Symbol('_');
   let MappedIterable$ = dart.generic(function(S, T) {
     class MappedIterable extends collection.IterableBase$(T) {
       MappedIterable(iterable, func) {
@@ -382,7 +383,7 @@ var _internal;
         return this[_f](this[_iterable].elementAt(index));
       }
     }
-    dart.defineNamedConstructor(MappedIterable, '_');
+    dart.defineNamedConstructor(MappedIterable, _);
     return MappedIterable;
   });
   let MappedIterable = MappedIterable$(dart.dynamic, dart.dynamic);
@@ -541,7 +542,7 @@ var _internal;
         return new TakeIterator(this[_iterable].iterator, this[_takeCount]);
       }
     }
-    dart.defineNamedConstructor(TakeIterable, '_');
+    dart.defineNamedConstructor(TakeIterable, _);
     return TakeIterable;
   });
   let TakeIterable = TakeIterable$(dart.dynamic);
@@ -656,7 +657,7 @@ var _internal;
         return new SkipIterator(this[_iterable].iterator, this[_skipCount]);
       }
     }
-    dart.defineNamedConstructor(SkipIterable, '_');
+    dart.defineNamedConstructor(SkipIterable, _);
     return SkipIterable;
   });
   let SkipIterable = SkipIterable$(dart.dynamic);
@@ -852,7 +853,7 @@ var _internal;
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$(dart.dynamic);
-  let _rangeCheck$ = Symbol('_rangeCheck');
+  let _rangeCheck = Symbol('_rangeCheck');
   let IterableMixinWorkaround$ = dart.generic(function(T) {
     class IterableMixinWorkaround extends core.Object {
       static contains(iterable, element) {
@@ -1088,15 +1089,15 @@ var _internal;
           start = dart.notNull(list.length) - 1;
         return Lists.lastIndexOf(list, element, start);
       }
-      static [_rangeCheck$](list, start, end) {
+      static [_rangeCheck](list, start, end) {
         core.RangeError.checkValidRange(start, end, list.length);
       }
       getRangeList(list, start, end) {
-        _rangeCheck(list, start, end);
+        IterableMixinWorkaround[_rangeCheck](list, start, end);
         return new SubListIterable(dart.as(list, core.Iterable$(T)), start, end);
       }
       static setRangeList(list, start, end, from, skipCount) {
-        _rangeCheck(list, start, end);
+        IterableMixinWorkaround[_rangeCheck](list, start, end);
         let length = dart.notNull(end) - dart.notNull(start);
         if (length === 0)
           return;
@@ -1117,7 +1118,7 @@ var _internal;
         Lists.copy(otherList, otherStart, list, start, length);
       }
       static replaceRangeList(list, start, end, iterable) {
-        _rangeCheck(list, start, end);
+        IterableMixinWorkaround[_rangeCheck](list, start, end);
         if (!dart.is(iterable, EfficientLength)) {
           iterable = iterable.toList();
         }
@@ -1142,7 +1143,7 @@ var _internal;
         }
       }
       static fillRangeList(list, start, end, fillValue) {
-        _rangeCheck(list, start, end);
+        IterableMixinWorkaround[_rangeCheck](list, start, end);
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
           list.set(i, fillValue);
         }
@@ -1540,27 +1541,28 @@ var _internal;
   function printToConsole(line) {
     _js_primitives.printString(`${line}`);
   }
-  let _doSort$ = Symbol('_doSort');
-  let _insertionSort$ = Symbol('_insertionSort');
-  let _dualPivotQuicksort$ = Symbol('_dualPivotQuicksort');
+  let _doSort = Symbol('_doSort');
+  let _INSERTION_SORT_THRESHOLD = Symbol('_INSERTION_SORT_THRESHOLD');
+  let _insertionSort = Symbol('_insertionSort');
+  let _dualPivotQuicksort = Symbol('_dualPivotQuicksort');
   class Sort extends core.Object {
     static sort(a, compare) {
-      _doSort(a, 0, dart.notNull(a.length) - 1, compare);
+      Sort[_doSort](a, 0, dart.notNull(a.length) - 1, compare);
     }
     static sortRange(a, from, to, compare) {
       if (dart.notNull(from) < 0 || dart.notNull(to) > dart.notNull(a.length) || dart.notNull(to) < dart.notNull(from)) {
         throw "OutOfRange";
       }
-      _doSort(a, from, dart.notNull(to) - 1, compare);
+      Sort[_doSort](a, from, dart.notNull(to) - 1, compare);
     }
-    static [_doSort$](a, left, right, compare) {
-      if (dart.notNull(right) - dart.notNull(left) <= dart.notNull(Sort._INSERTION_SORT_THRESHOLD)) {
-        _insertionSort(a, left, right, compare);
+    static [_doSort](a, left, right, compare) {
+      if (dart.notNull(right) - dart.notNull(left) <= dart.notNull(Sort[_INSERTION_SORT_THRESHOLD])) {
+        Sort[_insertionSort](a, left, right, compare);
       } else {
-        _dualPivotQuicksort(a, left, right, compare);
+        Sort[_dualPivotQuicksort](a, left, right, compare);
       }
     }
-    static [_insertionSort$](a, left, right, compare) {
+    static [_insertionSort](a, left, right, compare) {
       for (let i = dart.notNull(left) + 1; dart.notNull(i) <= dart.notNull(right); i = dart.notNull(i) + 1) {
         let el = a.get(i);
         let j = i;
@@ -1571,8 +1573,8 @@ var _internal;
         a.set(j, el);
       }
     }
-    static [_dualPivotQuicksort$](a, left, right, compare) {
-      dart.assert(dart.notNull(right) - dart.notNull(left) > dart.notNull(Sort._INSERTION_SORT_THRESHOLD));
+    static [_dualPivotQuicksort](a, left, right, compare) {
+      dart.assert(dart.notNull(right) - dart.notNull(left) > dart.notNull(Sort[_INSERTION_SORT_THRESHOLD]));
       let sixth = ((dart.notNull(right) - dart.notNull(left) + 1) / 6).truncate();
       let index1 = dart.notNull(left) + dart.notNull(sixth);
       let index5 = dart.notNull(right) - dart.notNull(sixth);
@@ -1712,8 +1714,8 @@ var _internal;
       a.set(dart.notNull(less) - 1, pivot1);
       a.set(right, a.get(dart.notNull(great) + 1));
       a.set(dart.notNull(great) + 1, pivot2);
-      _doSort(a, left, dart.notNull(less) - 2, compare);
-      _doSort(a, dart.notNull(great) + 2, right, compare);
+      Sort[_doSort](a, left, dart.notNull(less) - 2, compare);
+      Sort[_doSort](a, dart.notNull(great) + 2, right, compare);
       if (pivots_are_equal) {
         return;
       }
@@ -1759,9 +1761,9 @@ var _internal;
             }
           }
         }
-        _doSort(a, less, great, compare);
+        Sort[_doSort](a, less, great, compare);
       } else {
-        _doSort(a, less, great, compare);
+        Sort[_doSort](a, less, great, compare);
       }
     }
   }
@@ -1775,7 +1777,7 @@ var _internal;
       this[_name] = name$;
     }
     Symbol$validated(name) {
-      this[_name] = validatePublicSymbol(name);
+      this[_name] = Symbol.validatePublicSymbol(name);
     }
     ['=='](other) {
       return dart.notNull(dart.is(other, Symbol)) && dart.notNull(dart.equals(this[_name], dart.dload(other, '_name')));
@@ -1791,7 +1793,7 @@ var _internal;
       return symbol[_name];
     }
     static validatePublicSymbol(name) {
-      if (dart.notNull(name.isEmpty) || dart.notNull(publicSymbolPattern.hasMatch(name)))
+      if (dart.notNull(name.isEmpty) || dart.notNull(Symbol.publicSymbolPattern.hasMatch(name)))
         return name;
       if (name.startsWith('_')) {
         throw new core.ArgumentError(`"${name}" is a private identifier`);
@@ -1799,7 +1801,7 @@ var _internal;
       throw new core.ArgumentError(`"${name}" is not a valid (qualified) symbol name`);
     }
     static isValidSymbol(name) {
-      return dart.notNull(name.isEmpty) || dart.notNull(symbolPattern.hasMatch(name));
+      return dart.notNull(name.isEmpty) || dart.notNull(Symbol.symbolPattern.hasMatch(name));
     }
   }
   dart.defineNamedConstructor(Symbol, 'unvalidated');

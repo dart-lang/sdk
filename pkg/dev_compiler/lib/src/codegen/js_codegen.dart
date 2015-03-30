@@ -556,7 +556,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (member.name != null) {
         body.add(js.statement('dart.defineNamedConstructor(#, #);', [
           name,
-          js.string(member.name.name, "'")
+          _jsMemberName(member.name.name, isStatic: true)
         ]));
       }
     }
@@ -852,8 +852,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var params = _visit(node.parameters);
     if (params == null) params = [];
 
-    return new JS.Method(
-        _jsMemberName(node.name.name), new JS.Fun(params, _visit(node.body)),
+    return new JS.Method(_jsMemberName(node.name.name, isStatic: node.isStatic),
+        new JS.Fun(params, _visit(node.body)),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -942,23 +942,36 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = node.name;
     var variable = e is PropertyAccessorElement ? e.variable : e;
 
+    // library member
     if (e.enclosingElement is CompilationUnitElement &&
         (e.library != libraryInfo.library ||
             variable is TopLevelVariableElement && !variable.isConst)) {
       return js.call('#.#', [_libraryName(e.library), name]);
-    } else if (currentClass != null && _needsImplicitThis(e)) {
+    }
+
+    // instance member
+    if (currentClass != null && _needsImplicitThis(e)) {
       return js.call('this.#', _jsMemberName(name));
-    } else if (variable is ConstFieldElementImpl) {
+    }
+
+    // static member
+    if (e is ExecutableElement &&
+        e.isStatic &&
+        variable.enclosingElement is ClassElement) {
       var className = (variable.enclosingElement as ClassElement).name;
-      return js.call('#.#', [className, name]);
-    } else if (e is ParameterElement && e.isInitializingFormal && e.isPrivate) {
+      return js.call('#.#', [className, _jsMemberName(name, isStatic: true)]);
+    }
+
+    // initializing formal parameter, e.g. `Point(this.x)`
+    if (e is ParameterElement && e.isInitializingFormal && e.isPrivate) {
       /// Rename private names so they don't shadow the private field symbol.
       /// The renamer would handle this, but it would prefer to rename the
       /// temporary used for the private symbol. Instead rename the parameter.
       return new JSTemporary('${name.substring(1)}');
-    } else if (_isTemporary(e)) {
-      return new JSTemporary(e.name);
     }
+
+    if (_isTemporary(e)) return new JSTemporary(e.name);
+
     return new JS.Identifier(name);
   }
 
@@ -1694,7 +1707,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.call(
           'dart.dload(#, #)', [_visit(target), js.string(name.name, "'")]);
     } else {
-      return js.call('#.#', [_visit(target), _jsMemberName(name.name)]);
+      var e = name.staticElement;
+      return js.call('#.#', [
+        _visit(target),
+        _jsMemberName(name.name, isStatic: e is ExecutableElement && e.isStatic)
+      ]);
     }
   }
 
@@ -2091,7 +2108,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Equality is a bit special, it is generated via the Dart `equals` runtime
   /// helper, that checks for null. The user defined method is called '=='.
   ///
-  JS.Expression _jsMemberName(String name, {bool unary: false}) {
+  JS.Expression _jsMemberName(String name,
+      {bool unary: false, bool isStatic: false}) {
     if (name.startsWith('_')) {
       if (_privateNames.add(name)) _pendingPrivateNames.add(name);
       return new JSTemporary(name);
@@ -2102,6 +2120,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       name = 'set';
     } else if (unary && name == '-') {
       name = 'unary-';
+    } else if (isStatic && invalidJSStaticMethodName(name)) {
+      // Choose an string name. Use an invalid identifier so it won't conflict
+      // with any valid member names.
+      // TODO(jmesserly): this works around the problem, but I'm pretty sure we
+      // don't need it, as static methods seemed to work. The only concrete
+      // issue we saw was in the defineNamedConstructor helper function.
+      name = '$name*';
     }
     return _propertyName(name);
   }
@@ -2184,6 +2209,7 @@ class _AssignmentFinder extends RecursiveAstVisitor {
 
 /// This is a workaround for V8 arrow function bindings being not yet
 /// implemented. See issue #43
+// TODO(jmesserly): cleaner to handle this workaround on the JS side.
 class _BindThisVisitor extends RecursiveAstVisitor {
   static _BindThisVisitor _instance = new _BindThisVisitor();
   bool _bindThis = false;

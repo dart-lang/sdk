@@ -6,12 +6,13 @@ var typed_data;
   class TypedData extends core.Object {
   }
   let _littleEndian = Symbol('_littleEndian');
+  let _ = Symbol('_');
   class Endianness extends core.Object {
     Endianness$_(littleEndian) {
       this[_littleEndian] = littleEndian;
     }
   }
-  dart.defineNamedConstructor(Endianness, '_');
+  dart.defineNamedConstructor(Endianness, _);
   Endianness.BIG_ENDIAN = new Endianness._(false);
   Endianness.LITTLE_ENDIAN = new Endianness._(true);
   dart.defineLazyProperties(Endianness, {

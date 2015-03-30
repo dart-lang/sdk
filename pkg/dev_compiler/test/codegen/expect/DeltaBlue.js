@@ -29,10 +29,10 @@ var DeltaBlue;
       return dart.notNull(s1.value) > dart.notNull(s2.value);
     }
     static weakest(s1, s2) {
-      return weaker(s1, s2) ? s1 : s2;
+      return Strength.weaker(s1, s2) ? s1 : s2;
     }
     static strongest(s1, s2) {
-      return stronger(s1, s2) ? s1 : s2;
+      return Strength.stronger(s1, s2) ? s1 : s2;
     }
   }
   let REQUIRED = new Strength(0, "required");

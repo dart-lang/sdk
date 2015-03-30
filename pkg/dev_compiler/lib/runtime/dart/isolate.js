@@ -14,6 +14,7 @@ var isolate;
       return `IsolateSpawnException: ${this.message}`;
     }
   }
+  let _currentIsolateCache = Symbol('_currentIsolateCache');
   let _pause = Symbol('_pause');
   class Isolate extends core.Object {
     Isolate(controlPort, opts) {
@@ -24,7 +25,7 @@ var isolate;
       this.terminateCapability = terminateCapability;
     }
     static get current() {
-      return _currentIsolateCache;
+      return Isolate[_currentIsolateCache];
     }
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;

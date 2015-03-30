@@ -4,6 +4,7 @@ var convert;
   let ASCII = new AsciiCodec();
   let _ASCII_MASK = 127;
   let _allowInvalid = Symbol('_allowInvalid');
+  let _nameToEncoding = Symbol('_nameToEncoding');
   let Codec$ = dart.generic(function(S, T) {
     class Codec extends core.Object {
       Codec() {
@@ -35,7 +36,7 @@ var convert;
       if (name === null)
         return null;
       name = name.toLowerCase();
-      return _nameToEncoding.get(name);
+      return Encoding[_nameToEncoding].get(name);
     }
   }
   dart.defineLazyProperties(Encoding, {
@@ -329,12 +330,13 @@ var convert;
     }
   }
   let _buffer = Symbol('_buffer');
+  let _INITIAL_BUFFER_SIZE = Symbol('_INITIAL_BUFFER_SIZE');
   let _callback = Symbol('_callback');
   let _bufferIndex = Symbol('_bufferIndex');
-  let _roundToPowerOf2$ = Symbol('_roundToPowerOf2');
+  let _roundToPowerOf2 = Symbol('_roundToPowerOf2');
   class _ByteCallbackSink extends ByteConversionSinkBase {
     _ByteCallbackSink(callback) {
-      this[_buffer] = new typed_data.Uint8List(_ByteCallbackSink._INITIAL_BUFFER_SIZE);
+      this[_buffer] = new typed_data.Uint8List(_ByteCallbackSink[_INITIAL_BUFFER_SIZE]);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
       super.ByteConversionSinkBase();
@@ -343,7 +345,7 @@ var convert;
       let freeCount = dart.notNull(this[_buffer].length) - dart.notNull(this[_bufferIndex]);
       if (dart.notNull(chunk.length) > dart.notNull(freeCount)) {
         let oldLength = this[_buffer].length;
-        let newLength = dart.notNull(_roundToPowerOf2(dart.notNull(chunk.length) + dart.notNull(oldLength))) * 2;
+        let newLength = dart.notNull(_ByteCallbackSink[_roundToPowerOf2](dart.notNull(chunk.length) + dart.notNull(oldLength))) * 2;
         let grown = new typed_data.Uint8List(newLength);
         grown.setRange(0, this[_buffer].length, this[_buffer]);
         this[_buffer] = grown;
@@ -351,7 +353,7 @@ var convert;
       this[_buffer].setRange(this[_bufferIndex], dart.notNull(this[_bufferIndex]) + dart.notNull(chunk.length), chunk);
       this[_bufferIndex] = chunk.length;
     }
-    static [_roundToPowerOf2$](v) {
+    static [_roundToPowerOf2](v) {
       dart.assert(dart.notNull(v) > 0);
       v = dart.notNull(v) - 1;
       v = dart.notNull(v) >> 1;
@@ -481,6 +483,7 @@ var convert;
   let _FusedConverter = _FusedConverter$(dart.dynamic, dart.dynamic, dart.dynamic);
   let HTML_ESCAPE = new HtmlEscape();
   let _name = Symbol('_name');
+  let _$ = Symbol('_');
   class HtmlEscapeMode extends core.Object {
     HtmlEscapeMode$_(name$, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
       this[_name] = name$;
@@ -493,7 +496,7 @@ var convert;
       return this[_name];
     }
   }
-  dart.defineNamedConstructor(HtmlEscapeMode, '_');
+  dart.defineNamedConstructor(HtmlEscapeMode, _$);
   HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode._('unknown', true, true, true, true);
   HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode._('attribute', false, true, false, false);
   HtmlEscapeMode.ELEMENT = new HtmlEscapeMode._('element', true, false, false, true);
@@ -697,8 +700,8 @@ var convert;
   }
   dart.defineNamedConstructor(JsonEncoder, 'withIndent');
   let _indent = Symbol('_indent');
+  let _utf8Encode = Symbol('_utf8Encode');
   let _bufferSize = Symbol('_bufferSize');
-  let _utf8Encode$ = Symbol('_utf8Encode');
   class JsonUtf8Encoder extends Converter$(core.Object, core.List$(core.int)) {
     JsonUtf8Encoder(indent, toEncodable, bufferSize) {
       if (indent === void 0)
@@ -707,12 +710,12 @@ var convert;
         toEncodable = null;
       if (bufferSize === void 0)
         bufferSize = JsonUtf8Encoder.DEFAULT_BUFFER_SIZE;
-      this[_indent] = _utf8Encode(indent);
+      this[_indent] = JsonUtf8Encoder[_utf8Encode](indent);
       this[_toEncodable$] = toEncodable;
       this[_bufferSize] = bufferSize;
       super.Converter();
     }
-    static [_utf8Encode$](string) {
+    static [_utf8Encode](string) {
       if (string === null)
         return null;
       if (string.isEmpty)
@@ -909,8 +912,8 @@ var convert;
               this.writeCharCode(_JsonStringifier.CHAR_u);
               this.writeCharCode(_JsonStringifier.CHAR_0);
               this.writeCharCode(_JsonStringifier.CHAR_0);
-              this.writeCharCode(hexDigit(dart.notNull(charCode) >> 4 & 15));
-              this.writeCharCode(hexDigit(dart.notNull(charCode) & 15));
+              this.writeCharCode(_JsonStringifier.hexDigit(dart.notNull(charCode) >> 4 & 15));
+              this.writeCharCode(_JsonStringifier.hexDigit(dart.notNull(charCode) & 15));
               break;
             }
           }
@@ -1084,7 +1087,7 @@ var convert;
     }
     static stringify(object, toEncodable, indent) {
       let output = new core.StringBuffer();
-      printOn(object, output, toEncodable, indent);
+      _JsonStringStringifier.printOn(object, output, toEncodable, indent);
       return output.toString();
     }
     static printOn(object, output, toEncodable, indent) {
@@ -1367,7 +1370,9 @@ var convert;
     }
   }
   let _carry = Symbol('_carry');
-  let _addSlice$ = Symbol('_addSlice');
+  let _addSlice = Symbol('_addSlice');
+  let _LF = Symbol('_LF');
+  let _CR = Symbol('_CR');
   class _LineSplitterSink extends StringConversionSinkBase {
     _LineSplitterSink(sink$) {
       this[_sink] = sink$;
@@ -1381,24 +1386,24 @@ var convert;
         end = chunk.length;
         this[_carry] = null;
       }
-      this[_carry] = _addSlice(chunk, start, end, isLast, this[_sink].add);
+      this[_carry] = _LineSplitterSink[_addSlice](chunk, start, end, isLast, this[_sink].add);
       if (isLast)
         this[_sink].close();
     }
     close() {
       this.addSlice('', 0, 0, true);
     }
-    static [_addSlice$](chunk, start, end, isLast, adder) {
+    static [_addSlice](chunk, start, end, isLast, adder) {
       let pos = start;
       while (dart.notNull(pos) < dart.notNull(end)) {
         let skip = 0;
         let char = chunk.codeUnitAt(pos);
-        if (char === _LineSplitterSink._LF) {
+        if (char === _LineSplitterSink[_LF]) {
           skip = 1;
-        } else if (char === _LineSplitterSink._CR) {
+        } else if (char === _LineSplitterSink[_CR]) {
           skip = 1;
           if (dart.notNull(pos) + 1 < dart.notNull(end)) {
-            if (chunk.codeUnitAt(dart.notNull(pos) + 1) === _LineSplitterSink._LF) {
+            if (chunk.codeUnitAt(dart.notNull(pos) + 1) === _LineSplitterSink[_LF]) {
               skip = 2;
             }
           } else if (!dart.notNull(isLast)) {
@@ -1474,6 +1479,7 @@ var convert;
     }
   }
   let _flush = Symbol('_flush');
+  let _MIN_STRING_SIZE = Symbol('_MIN_STRING_SIZE');
   class _StringConversionSinkAsStringSinkAdapter extends core.Object {
     _StringConversionSinkAsStringSinkAdapter(chunkedSink) {
       this[_chunkedSink] = chunkedSink;
@@ -1486,7 +1492,7 @@ var convert;
     }
     writeCharCode(charCode) {
       this[_buffer].writeCharCode(charCode);
-      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
+      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter[_MIN_STRING_SIZE]))
         this[_flush]();
     }
     write(o) {
@@ -1499,7 +1505,7 @@ var convert;
       if (o === void 0)
         o = "";
       this[_buffer].writeln(o);
-      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
+      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter[_MIN_STRING_SIZE]))
         this[_flush]();
     }
     writeAll(objects, separator) {
@@ -1650,7 +1656,7 @@ var convert;
         this.close();
     }
   }
-  dart.defineNamedConstructor(_Utf8ConversionSink, '_');
+  dart.defineNamedConstructor(_Utf8ConversionSink, _$);
   let UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
   let UNICODE_BOM_CHARACTER_RUNE = 65279;
   let UTF8 = new Utf8Codec();
@@ -1715,19 +1721,20 @@ var convert;
     }
   }
   let _Utf8Encoder$withBufferSize = Symbol('_Utf8Encoder$withBufferSize');
-  let _createBuffer$ = Symbol('_createBuffer');
+  let _DEFAULT_BYTE_BUFFER_SIZE = Symbol('_DEFAULT_BYTE_BUFFER_SIZE');
+  let _createBuffer = Symbol('_createBuffer');
   let _writeSurrogate = Symbol('_writeSurrogate');
   let _fillBuffer = Symbol('_fillBuffer');
   class _Utf8Encoder extends core.Object {
     _Utf8Encoder() {
-      this[_Utf8Encoder$withBufferSize](_Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE);
+      this[_Utf8Encoder$withBufferSize](_Utf8Encoder[_DEFAULT_BYTE_BUFFER_SIZE]);
     }
     _Utf8Encoder$withBufferSize(bufferSize) {
-      this[_buffer] = _createBuffer(bufferSize);
+      this[_buffer] = _Utf8Encoder[_createBuffer](bufferSize);
       this[_carry] = 0;
       this[_bufferIndex] = 0;
     }
-    static [_createBuffer$](size) {
+    static [_createBuffer](size) {
       return new typed_data.Uint8List(size);
     }
     [_writeSurrogate](leadingSurrogate, nextCodeUnit) {
@@ -1902,6 +1909,7 @@ var convert;
   let _value = Symbol('_value');
   let _expectedUnits = Symbol('_expectedUnits');
   let _extraUnits = Symbol('_extraUnits');
+  let _LIMITS = Symbol('_LIMITS');
   class _Utf8Decoder extends core.Object {
     _Utf8Decoder(stringSink$, allowMalformed$) {
       this[_stringSink] = stringSink$;
@@ -1976,7 +1984,7 @@ var convert;
                   i = dart.notNull(i) + 1;
                 }
               } while (dart.notNull(expectedUnits) > 0);
-              if (dart.notNull(value) <= dart.notNull(_Utf8Decoder._LIMITS.get(dart.notNull(extraUnits) - 1))) {
+              if (dart.notNull(value) <= dart.notNull(_Utf8Decoder[_LIMITS].get(dart.notNull(extraUnits) - 1))) {
                 if (!dart.notNull(this[_allowMalformed])) {
                   throw new core.FormatException(`Overlong encoding of 0x${value.toRadixString(16)}`);
                 }
@@ -2091,21 +2099,21 @@ var convert;
     }
     return object;
   }
+  let _newJavaScriptObject = Symbol('_newJavaScriptObject');
   let _data = Symbol('_data');
   let _isUpgraded = Symbol('_isUpgraded');
   let _upgradedMap = Symbol('_upgradedMap');
+  let _getProperty = Symbol('_getProperty');
+  let _isUnprocessed = Symbol('_isUnprocessed');
   let _process = Symbol('_process');
   let _computeKeys = Symbol('_computeKeys');
+  let _setProperty = Symbol('_setProperty');
   let _upgrade = Symbol('_upgrade');
-  let _hasProperty$ = Symbol('_hasProperty');
-  let _getProperty$ = Symbol('_getProperty');
-  let _setProperty$ = Symbol('_setProperty');
-  let _getPropertyNames$ = Symbol('_getPropertyNames');
-  let _isUnprocessed$ = Symbol('_isUnprocessed');
-  let _newJavaScriptObject$ = Symbol('_newJavaScriptObject');
+  let _hasProperty = Symbol('_hasProperty');
+  let _getPropertyNames = Symbol('_getPropertyNames');
   class _JsonMap extends core.Object {
     _JsonMap(original$) {
-      this[_processed] = _newJavaScriptObject();
+      this[_processed] = _JsonMap[_newJavaScriptObject]();
       this[_original] = original$;
       this[_data] = null;
     }
@@ -2115,8 +2123,8 @@ var convert;
       } else if (!(typeof key == 'string')) {
         return null;
       } else {
-        let result = _getProperty(this[_processed], dart.as(key, core.String));
-        if (_isUnprocessed(result))
+        let result = _JsonMap[_getProperty](this[_processed], dart.as(key, core.String));
+        if (_JsonMap[_isUnprocessed](result))
           result = this[_process](dart.as(key, core.String));
         return result;
       }
@@ -2145,10 +2153,10 @@ var convert;
         this[_upgradedMap].set(key, value);
       } else if (this.containsKey(key)) {
         let processed = this[_processed];
-        _setProperty(processed, dart.as(key, core.String), value);
+        _JsonMap[_setProperty](processed, dart.as(key, core.String), value);
         let original = this[_original];
         if (!dart.notNull(core.identical(original, processed))) {
-          _setProperty(original, dart.as(key, core.String), null);
+          _JsonMap[_setProperty](original, dart.as(key, core.String), null);
         }
       } else {
         this[_upgrade]().set(key, value);
@@ -2175,7 +2183,7 @@ var convert;
         return this[_upgradedMap].containsKey(key);
       if (!(typeof key == 'string'))
         return false;
-      return _hasProperty(this[_original], dart.as(key, core.String));
+      return _JsonMap[_hasProperty](this[_original], dart.as(key, core.String));
     }
     putIfAbsent(key, ifAbsent) {
       if (this.containsKey(key))
@@ -2206,10 +2214,10 @@ var convert;
       let keys = this[_computeKeys]();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
         let key = keys.get(i);
-        let value = _getProperty(this[_processed], key);
-        if (_isUnprocessed(value)) {
-          value = _convertJsonToDartLazy(_getProperty(this[_original], key));
-          _setProperty(this[_processed], key, value);
+        let value = _JsonMap[_getProperty](this[_processed], key);
+        if (_JsonMap[_isUnprocessed](value)) {
+          value = _convertJsonToDartLazy(_JsonMap[_getProperty](this[_original], key));
+          _JsonMap[_setProperty](this[_processed], key, value);
         }
         dart.dinvokef(f, key, value);
         if (!dart.notNull(core.identical(keys, this[_data]))) {
@@ -2231,7 +2239,7 @@ var convert;
       dart.assert(!dart.notNull(this[_isUpgraded]));
       let keys = dart.as(this[_data], core.List);
       if (keys === null) {
-        keys = this[_data] = _getPropertyNames(this[_original]);
+        keys = this[_data] = _JsonMap[_getPropertyNames](this[_original]);
       }
       return dart.as(keys, core.List$(core.String));
     }
@@ -2255,27 +2263,27 @@ var convert;
       return result;
     }
     [_process](key) {
-      if (!dart.notNull(_hasProperty(this[_original], key)))
+      if (!dart.notNull(_JsonMap[_hasProperty](this[_original], key)))
         return null;
-      let result = _convertJsonToDartLazy(_getProperty(this[_original], key));
-      return _setProperty(this[_processed], key, result);
+      let result = _convertJsonToDartLazy(_JsonMap[_getProperty](this[_original], key));
+      return _JsonMap[_setProperty](this[_processed], key, result);
     }
-    static [_hasProperty$](object, key) {
+    static [_hasProperty](object, key) {
       return Object.prototype.hasOwnProperty.call(object, key);
     }
-    static [_getProperty$](object, key) {
+    static [_getProperty](object, key) {
       return object[key];
     }
-    static [_setProperty$](object, key, value) {
+    static [_setProperty](object, key, value) {
       return object[key] = value;
     }
-    static [_getPropertyNames$](object) {
+    static [_getPropertyNames](object) {
       return dart.as(Object.keys(object), core.List);
     }
-    static [_isUnprocessed$](object) {
+    static [_isUnprocessed](object) {
       return typeof object == "undefined";
     }
-    static [_newJavaScriptObject$]() {
+    static [_newJavaScriptObject]() {
       return Object.create(null);
     }
   }
