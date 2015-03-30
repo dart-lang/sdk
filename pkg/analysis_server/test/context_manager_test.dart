@@ -32,10 +32,17 @@ class ContextManagerTest {
    * The name of the 'bin' directory.
    */
   static const String BIN_NAME = 'bin';
+
+  /**
+   * The name of the 'example' directory.
+   */
+  static const String EXAMPLE_NAME = 'example';
+
   /**
    * The name of the 'lib' directory.
    */
   static const String LIB_NAME = 'lib';
+
   /**
    * The name of the 'src' directory.
    */
@@ -184,6 +191,34 @@ class ContextManagerTest {
     expect(filePaths, isEmpty);
   }
 
+  void test_setRoots_addFolderWithNestedPubspec() {
+    String examplePath = newFolder([projPath, EXAMPLE_NAME]);
+    String libPath = newFolder([projPath, LIB_NAME]);
+
+    newFile([projPath, PUBSPEC_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([examplePath, PUBSPEC_NAME]);
+    newFile([examplePath, 'example.dart']);
+
+    packageMapProvider.packageMap['proj'] =
+        [resourceProvider.getResource(libPath)];
+
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    expect(manager.currentContextPaths, hasLength(2));
+
+    expect(manager.currentContextPaths, contains(projPath));
+    Set<Source> projSources = manager.currentContextSources[projPath];
+    expect(projSources, hasLength(1));
+    expect(projSources.first.uri.toString(), 'package:proj/main.dart');
+
+    expect(manager.currentContextPaths, contains(examplePath));
+    Set<Source> exampleSources = manager.currentContextSources[examplePath];
+    expect(exampleSources, hasLength(1));
+    expect(exampleSources.first.uri.toString(),
+        'file:///my/proj/example/example.dart');
+  }
+
   void test_setRoots_addFolderWithoutPubspec() {
     packageMapProvider.packageMap = null;
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -215,9 +250,8 @@ class ContextManagerTest {
     newFile([srcPath, 'internal.dart']);
     String testFilePath = newFile([testPath, 'main_test.dart']);
 
-    packageMapProvider.packageMap['proj'] = [
-      resourceProvider.getResource(libPath)
-    ];
+    packageMapProvider.packageMap['proj'] =
+        [resourceProvider.getResource(libPath)];
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     Set<Source> sources = manager.currentContextSources[projPath];
@@ -276,8 +310,9 @@ class ContextManagerTest {
     List<String> excludedPaths = <String>[];
     manager.setRoots(includedPaths, excludedPaths, <String, String>{});
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
-    manager.setRoots(includedPaths,
-        excludedPaths, <String, String>{projPath: packageRootPath});
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{
+      projPath: packageRootPath
+    });
     _checkPackageRoot(projPath, equals(packageRootPath));
   }
 
@@ -290,8 +325,9 @@ class ContextManagerTest {
       projPath: packageRootPath1
     });
     _checkPackageRoot(projPath, equals(packageRootPath1));
-    manager.setRoots(includedPaths,
-        excludedPaths, <String, String>{projPath: packageRootPath2});
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{
+      projPath: packageRootPath2
+    });
     _checkPackageRoot(projPath, equals(packageRootPath2));
   }
 
@@ -417,26 +453,6 @@ class ContextManagerTest {
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [fileA, fileB]);
-  }
-
-  void test_setRoots_ignoreSubContext_ofSubContext() {
-    // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub';
-    String subPubspec = '$subProject/pubspec.yaml';
-    String subFile = '$subProject/bin/sub.dart';
-    String subSubPubspec = '$subProject/subsub/pubspec.yaml';
-    // create files
-    resourceProvider.newFile(rootFile, 'library root;');
-    resourceProvider.newFile(subPubspec, 'pubspec');
-    resourceProvider.newFile(subFile, 'library sub;');
-    resourceProvider.newFile(subSubPubspec, 'pubspec');
-    // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
-    manager.assertContextPaths([root, subProject]);
-    manager.assertContextFiles(root, [rootFile]);
-    manager.assertContextFiles(subProject, [subFile]);
   }
 
   void test_setRoots_newFolderWithPackageRoot() {

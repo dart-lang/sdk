@@ -335,7 +335,7 @@ abstract class ContextManager {
     for (Resource child in children) {
       String path = child.path;
       // ignore excluded files or folders
-      if (_isExcluded(path)) {
+      if (_isExcluded(path) || info.excludes(path)) {
         continue;
       }
       // add files, recurse into folders
@@ -400,47 +400,45 @@ abstract class ContextManager {
   }
 
   /**
-   * Creates a new context associated with [folder].
+   * Potentially create a new context associated with the given [folder].
    *
-   * If there are subfolders with 'pubspec.yaml' files, separate contexts
-   * are created for them, and excluded from the context associated with
+   * If there are subfolders with 'pubspec.yaml' files, separate contexts are
+   * created for them and excluded from the context associated with the
    * [folder].
    *
-   * If [folder] itself contains a 'pubspec.yaml' file, subfolders are ignored.
-   *
    * If [withPubspecOnly] is `true`, a context will be created only if there
-   * is a 'pubspec.yaml' file in [folder].
+   * is a 'pubspec.yaml' file in the [folder].
    *
    * Returns create pubspec-based contexts.
    */
   List<_ContextInfo> _createContexts(Folder folder, bool withPubspecOnly) {
-    // check whether there is a pubspec in the folder
-    File pubspecFile = folder.getChild(PUBSPEC_NAME);
-    if (pubspecFile.exists) {
-      _ContextInfo info =
-          _createContextWithSources(folder, pubspecFile, <_ContextInfo>[]);
-      return [info];
-    }
     // try to find subfolders with pubspec files
     List<_ContextInfo> children = <_ContextInfo>[];
     try {
       for (Resource child in folder.getChildren()) {
         if (child is Folder) {
-          List<_ContextInfo> childContexts = _createContexts(child, true);
-          children.addAll(childContexts);
+          children.addAll(_createContexts(child, true));
         }
       }
     } on FileSystemException {
       // The directory either doesn't exist or cannot be read. Either way, there
       // are no subfolders that need to be added.
     }
+    // check whether there is a pubspec in the folder
+    File pubspecFile = folder.getChild(PUBSPEC_NAME);
+    if (pubspecFile.exists) {
+      return <_ContextInfo>[
+        _createContextWithSources(folder, pubspecFile, children)
+      ];
+    }
     // no pubspec, done
     if (withPubspecOnly) {
       return children;
     }
     // OK, create a context without a pubspec
-    _createContextWithSources(folder, pubspecFile, children);
-    return children;
+    return <_ContextInfo>[
+      _createContextWithSources(folder, pubspecFile, children)
+    ];
   }
 
   /**
