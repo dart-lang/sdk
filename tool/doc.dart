@@ -42,34 +42,30 @@ void main([args]) {
 
 const ruleFootMatter = '''
 In addition, rules can be further distinguished by *maturity*.  Unqualified
-rules are considered stable, while others may be marked **EXPERIMENTAL** 
+rules are considered stable, while others may be marked **experimental** 
 to indicate that they are under review.
 
 These rules are under active development.  Feedback is 
 [welcome](https://github.com/dart-lang/linter/issues)!
 ''';
 
-const ruleLeadMatter = '''
-Lint rules are grouped by imperatives inline with the Dart 
-[style guide] (https://www.dartlang.org/articles/style-guide/).
-
-In summary:
-''';
+const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
     new List<LintRule>.from(ruleRegistry, growable: false)..sort();
-
-String get enumerateKinds => Kind.supported
-    .map((Kind k) => '<li>${markdownToHtml(k.description)}</li>')
-    .join('\n');
 
 String get enumeratePubRules => rules
     .where((r) => r.group == Group.pub)
     .map((r) => '${toDescription(r)}')
     .join('\n\n');
 
-String get enumerateStyleGuideRules => rules
+String get enumerateGroups => Group.builtin
+    .map((Group g) =>
+        '<li><strong>${g.name}</strong> - ${markdownToHtml(g.description)}</li>')
+    .join('\n');
+
+String get enumerateStyleRules => rules
     .where((r) => r.group == Group.style)
     .map((r) => '${toDescription(r)}')
     .join('\n\n');
@@ -99,7 +95,6 @@ class Generator {
   String get details => rule.details != null ? rule.details : '';
   String get group => rule.group.name;
   String get humanReadableName => rule.name;
-  String get kind => rule.kind.name;
   String get maturity => rule.maturity.name;
   String get name => rule.name;
 
@@ -134,7 +129,6 @@ class Generator {
          <header>
             <h1>$humanReadableName</h1>
             <p>Group: $group</p>
-            <p>Kind: $kind</p>
             <p>Maturity: $maturity</p>
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
@@ -211,16 +205,16 @@ class Indexer {
             </p>
             <ul>
                <p>
-                  $enumerateKinds
+                  $enumerateGroups
                </p>
             </ul>
             <p>
                ${markdownToHtml(ruleFootMatter)}
             </p>
 
-            <h2 id="styleguide-rules">Style Guide Rules</h2>
+            <h2 id="styleguide-rules">Style Rules</h2>
 
-               $enumerateStyleGuideRules
+               $enumerateStyleRules
 
             <h2 id="styleguide-rules">Pub Rules</h2>
 

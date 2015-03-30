@@ -39,8 +39,7 @@ class TypeInitFormals extends LintRule {
           name: 'type_init_formals',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.DONT);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

@@ -44,8 +44,7 @@ class UnnecessaryGetters extends LintRule {
           name: 'unnecessary_getters',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.PREFER);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

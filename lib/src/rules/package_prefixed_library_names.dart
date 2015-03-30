@@ -55,8 +55,7 @@ class PackagePrefixedLibraryNames extends LintRule {
           name: 'package_prefixed_library_names',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.DO);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

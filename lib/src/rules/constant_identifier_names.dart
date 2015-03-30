@@ -47,8 +47,7 @@ class ConstantIdentifierNames extends LintRule {
           name: 'constant_identifier_names',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.PREFER);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

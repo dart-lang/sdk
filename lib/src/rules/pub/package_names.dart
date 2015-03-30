@@ -31,8 +31,7 @@ class PubPackageNames extends LintRule {
           name: 'package_names',
           description: desc,
           details: details,
-          group: Group.pub,
-          kind: Kind.DO);
+          group: Group.pub);
 
   @override
   PubspecVisitor getPubspecVisitor() => new Visitor(this);

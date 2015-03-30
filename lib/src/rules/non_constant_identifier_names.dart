@@ -35,8 +35,7 @@ class NonConstantIdentifierNames extends LintRule {
           name: 'non_constant_identifier_names',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.AVOID);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);

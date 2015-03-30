@@ -129,14 +129,6 @@ void defineLinterEngineTests() {
       });
     });
 
-    group('kinds', () {
-      test('factory', () {
-        var kinds = ['DO', 'DONT', "DON'T", 'AVOID', 'PREFER', 'CONSIDER'];
-        kinds.map((n) => new Kind(n)).forEach((k) => expect(k.custom, isFalse));
-        expect(new Kind('Kustom').custom, isTrue);
-      });
-    });
-
     group('lint driver', () {
       test('pubspec', () {
         bool visited;
@@ -232,27 +224,15 @@ void defineLinterEngineTests() {
               '<a href="http://dartlang.org"><strong>dart</strong></a>'));
         });
       });
-      group('kind', () {
-        test('priority', () {
-          expect(Kind.supported, orderedEquals(
-              [Kind.DO, Kind.DONT, Kind.PREFER, Kind.AVOID, Kind.CONSIDER]));
-        });
-        test('comparing', () {
-          expect(Kind.DO.compareTo(Kind.DONT), equals(-1));
-        });
-        test('synonmyms', () {
-          expect(new Kind("DONT"), equals(new Kind("DON'T")));
-        });
-      });
+
       group('rule', () {
-        test('sorting', () {
-          expect(Kind.supported, orderedEquals(
-              [Kind.DO, Kind.DONT, Kind.PREFER, Kind.AVOID, Kind.CONSIDER]));
-        });
         test('comparing', () {
-          LintRule r1 = new MockLintRule('Bar', Kind.DO);
-          LintRule r2 = new MockLintRule('Foo', Kind.DO);
+          LintRule r1 = new MockLintRule('Bar', new Group('acme'));
+          LintRule r2 = new MockLintRule('Foo', new Group('acme'));
           expect(r1.compareTo(r2), equals(-1));
+          LintRule r3 = new MockLintRule('Bar', new Group('acme'));
+          LintRule r4 = new MockLintRule('Bar', new Group('woody'));
+          expect(r3.compareTo(r4), equals(-1));
         });
       });
       group('maturity', () {
@@ -596,7 +576,6 @@ class MockLinter extends LintRule {
   MockLinter([nodeVisitor v]) : super(
           name: 'MockLint',
           group: Group.style,
-          kind: Kind.AVOID,
           description: 'Desc',
           details: 'And so on...') {
     visitorCallback = () => new MockVisitor(v);
@@ -610,7 +589,7 @@ class MockLinter extends LintRule {
 }
 
 class MockLintRule extends LintRule {
-  MockLintRule(String name, Kind kind) : super(name: name, kind: kind);
+  MockLintRule(String name, Group group) : super(name: name, group: group);
 
   @override
   AstVisitor getVisitor() => new MockVisitor(null);

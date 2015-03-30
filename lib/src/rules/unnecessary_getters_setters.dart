@@ -53,8 +53,7 @@ class UnnecessaryGettersSetters extends LintRule {
           name: 'unnecessary_getters_setters',
           description: desc,
           details: details,
-          group: Group.style,
-          kind: Kind.AVOID);
+          group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
