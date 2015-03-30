@@ -540,25 +540,35 @@ class OldEmitter implements Emitter {
     if (code == null) return null;
     // The code only computes the initial value. We build the lazy-check
     // here:
-    //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
+    //   lazyInitializer(fieldName, getterName, initial, name, prototype);
     // The name is used for error reporting. The 'initial' must be a
     // closure that constructs the initial value.
     if (isolateProperties != null) {
+      // This is currently only used in incremental compilation to patch
+      // in new lazy values.
       return js('#(#,#,#,#,#)',
           [js(lazyInitializerName),
-           js.string(element.name),
            js.string(namer.globalPropertyName(element)),
            js.string(namer.lazyInitializerName(element)),
            code,
+           js.string(element.name),
            isolateProperties]);
     }
 
-    return js('#(#,#,#,#)',
-        [js(lazyInitializerName),
-         js.string(element.name),
-         js.string(namer.globalPropertyName(element)),
-         js.string(namer.lazyInitializerName(element)),
-         code]);
+    if (compiler.enableMinification) {
+      return js('#(#,#,#)',
+          [js(lazyInitializerName),
+              js.string(namer.globalPropertyName(element)),
+              js.string(namer.lazyInitializerName(element)),
+              code]);
+    } else {
+      return js('#(#,#,#,#)',
+          [js(lazyInitializerName),
+              js.string(namer.globalPropertyName(element)),
+              js.string(namer.lazyInitializerName(element)),
+              code,
+              js.string(element.name)]);
+    }
   }
 
   void emitMetadata(Program program, CodeOutput output) {
@@ -700,8 +710,11 @@ class OldEmitter implements Emitter {
         #finishedClasses = Object.create(null);
 
         if (#needsLazyInitializer) {
-          $lazyInitializerName = function (staticName, fieldName, getterName,
-                                           lazyValue, prototype) {
+          // [staticName] is only provided in non-minified mode. If missing, we 
+          // fall back to [fieldName]. Likewise, [prototype] is optional and 
+          // defaults to the isolateProperties object.
+          $lazyInitializerName = function (fieldName, getterName, lazyValue,
+                                           staticName, prototype) {
             if (!#lazies) #lazies = Object.create(null);
             #lazies[fieldName] = getterName;
 
@@ -729,7 +742,9 @@ class OldEmitter implements Emitter {
                   }
                 } else {
                   if (result === sentinelInProgress)
-                    #cyclicThrow(staticName);
+                    // In minified mode, static name might not have been
+                    // provided, so fall back to the minified fieldName.
+                    #cyclicThrow(staticName || fieldName);
                 }
 
                 return result;
