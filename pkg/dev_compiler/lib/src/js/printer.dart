@@ -490,18 +490,14 @@ class Printer implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
     outLn(":");
     if (!node.body.statements.isEmpty) {
-      indentMore();
-      blockOutWithoutBraces(node.body);
-      indentLess();
+      blockOut(node.body, true, true);
     }
   }
 
   visitDefault(Default node) {
     outIndentLn("default:");
     if (!node.body.statements.isEmpty) {
-      indentMore();
-      blockOutWithoutBraces(node.body);
-      indentLess();
+      blockOut(node.body, true, true);
     }
   }
 

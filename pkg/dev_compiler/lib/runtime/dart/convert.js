@@ -276,7 +276,7 @@ var convert;
         if ((dart.notNull(source.get(i)) & ~dart.notNull(_ASCII_MASK)) !== 0) {
           if (dart.notNull(i) > dart.notNull(start))
             this[_utf8Sink].addSlice(source, start, i, false);
-          this[_utf8Sink].add(/* Unimplemented const */new List.from([239, 191, 189]));
+          this[_utf8Sink].add(/* Unimplemented const */new core.List$(core.int).from([239, 191, 189]));
           start = dart.notNull(i) + 1;
         }
       }
@@ -371,7 +371,7 @@ var convert;
   let _SimpleCallbackSink$ = dart.generic(function(T) {
     class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
       _SimpleCallbackSink(callback$) {
-        this[_accumulated] = new List.from([]);
+        this[_accumulated] = new core.List$(T).from([]);
         this[_callback] = callback$;
         super.ChunkedConversionSink();
       }
@@ -516,31 +516,45 @@ var convert;
         let replace = null;
         switch (ch) {
           case '&':
+          {
             replace = '&amp;';
             break;
+          }
           case ' ':
+          {
             replace = '&nbsp;';
             break;
+          }
           case '"':
+          {
             if (this.mode.escapeQuot)
               replace = '&quot;';
             break;
+          }
           case "'":
+          {
             if (this.mode.escapeApos)
               replace = '&#x27;';
             break;
+          }
           case '<':
+          {
             if (this.mode.escapeLtGt)
               replace = '&lt;';
             break;
+          }
           case '>':
+          {
             if (this.mode.escapeLtGt)
               replace = '&gt;';
             break;
+          }
           case '/':
+          {
             if (this.mode.escapeSlash)
               replace = '&#x2F;';
             break;
+          }
         }
         if (replace !== null) {
           if (result === null)
@@ -713,7 +727,7 @@ var convert;
       return UTF8.encode(string);
     }
     convert(object) {
-      let bytes = dart.as(new List.from([]), core.List$(core.List$(core.int)));
+      let bytes = dart.as(new core.List.from([]), core.List$(core.List$(core.int)));
       // Function addChunk: (Uint8List, int, int) → void
       function addChunk(chunk, start, end) {
         if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk.length)) {
@@ -822,7 +836,7 @@ var convert;
   }
   // Function _parseJson: (String, (dynamic, dynamic) → dynamic) → dynamic
   function _parseJson(source, reviver) {
-    if (!(typeof source == string))
+    if (!(typeof source == 'string'))
       throw new core.ArgumentError(source);
     let parsed = null;
     try {
@@ -866,27 +880,39 @@ var convert;
           this.writeCharCode(_JsonStringifier.BACKSLASH);
           switch (charCode) {
             case _JsonStringifier.BACKSPACE:
+            {
               this.writeCharCode(_JsonStringifier.CHAR_b);
               break;
+            }
             case _JsonStringifier.TAB:
+            {
               this.writeCharCode(_JsonStringifier.CHAR_t);
               break;
+            }
             case _JsonStringifier.NEWLINE:
+            {
               this.writeCharCode(_JsonStringifier.CHAR_n);
               break;
+            }
             case _JsonStringifier.FORM_FEED:
+            {
               this.writeCharCode(_JsonStringifier.CHAR_f);
               break;
+            }
             case _JsonStringifier.CARRIAGE_RETURN:
+            {
               this.writeCharCode(_JsonStringifier.CHAR_r);
               break;
+            }
             default:
+            {
               this.writeCharCode(_JsonStringifier.CHAR_u);
               this.writeCharCode(_JsonStringifier.CHAR_0);
               this.writeCharCode(_JsonStringifier.CHAR_0);
               this.writeCharCode(hexDigit(dart.notNull(charCode) >> 4 & 15));
               this.writeCharCode(hexDigit(dart.notNull(charCode) & 15));
               break;
+            }
           }
         } else if (charCode === _JsonStringifier.QUOTE || charCode === _JsonStringifier.BACKSLASH) {
           if (dart.notNull(i) > dart.notNull(offset))
@@ -945,7 +971,7 @@ var convert;
       } else if (object === null) {
         this.writeString('null');
         return true;
-      } else if (typeof object == string) {
+      } else if (typeof object == 'string') {
         this.writeString('"');
         this.writeStringContent(dart.as(object, core.String));
         this.writeString('"');
@@ -1312,7 +1338,7 @@ var convert;
         if (dart.notNull(char) > dart.notNull(_LATIN1_MASK) || dart.notNull(char) < 0) {
           if (dart.notNull(i) > dart.notNull(start))
             this[_addSliceToSink](source, start, i, false);
-          this[_addSliceToSink](dart.as(/* Unimplemented const */new List.from([65533]), core.List$(core.int)), 0, 1, false);
+          this[_addSliceToSink](dart.as(/* Unimplemented const */new core.List.from([65533]), core.List$(core.int)), 0, 1, false);
           start = dart.notNull(i) + 1;
         }
       }
@@ -2018,7 +2044,7 @@ var convert;
       }
     }
   }
-  _Utf8Decoder._LIMITS = /* Unimplemented const */new List.from([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT]);
+  _Utf8Decoder._LIMITS = /* Unimplemented const */new core.List$(core.int).from([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT]);
   let _processed = Symbol('_processed');
   let _original = Symbol('_original');
   // Function _convertJsonToDart: (dynamic, (dynamic, dynamic) → dynamic) → dynamic
@@ -2086,7 +2112,7 @@ var convert;
     get(key) {
       if (this[_isUpgraded]) {
         return this[_upgradedMap].get(key);
-      } else if (!(typeof key == string)) {
+      } else if (!(typeof key == 'string')) {
         return null;
       } else {
         let result = _getProperty(this[_processed], dart.as(key, core.String));
@@ -2147,7 +2173,7 @@ var convert;
     containsKey(key) {
       if (this[_isUpgraded])
         return this[_upgradedMap].containsKey(key);
-      if (!(typeof key == string))
+      if (!(typeof key == 'string'))
         return false;
       return _hasProperty(this[_original], dart.as(key, core.String));
     }

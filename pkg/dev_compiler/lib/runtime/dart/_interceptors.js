@@ -26,7 +26,7 @@ var _interceptors;
         super.Interceptor();
       }
       JSArray$fixed(length) {
-        if (dart.notNull(!(typeof length == number)) || dart.notNull(length) < 0) {
+        if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
         return new JSArray.markFixed(new Array(length));
@@ -35,7 +35,7 @@ var _interceptors;
         return new JSArray.markGrowable([]);
       }
       JSArray$growable(length) {
-        if (dart.notNull(!(typeof length == number)) || dart.notNull(length) < 0) {
+        if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
         return new JSArray.markGrowable(new Array(length));
@@ -68,7 +68,7 @@ var _interceptors;
         this.push(value);
       }
       removeAt(index) {
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
         if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length)) {
           throw new core.RangeError.value(index);
@@ -77,7 +77,7 @@ var _interceptors;
         return dart.as(this.splice(index, 1)[0], E);
       }
       insert(index, value) {
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
         if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this.length)) {
           throw new core.RangeError.value(index);
@@ -186,7 +186,7 @@ var _interceptors;
         if (end === void 0)
           end = null;
         _js_helper.checkNull(start);
-        if (!(typeof start == number))
+        if (!(typeof start == 'number'))
           throw new core.ArgumentError(start);
         if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
           throw new core.RangeError.range(start, 0, this.length);
@@ -194,14 +194,14 @@ var _interceptors;
         if (end === null) {
           end = this.length;
         } else {
-          if (!(typeof end == number))
+          if (!(typeof end == 'number'))
             throw new core.ArgumentError(end);
           if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(this.length)) {
             throw new core.RangeError.range(end, start, this.length);
           }
         }
         if (start === end)
-          return new List.from([]);
+          return new core.List$(E).from([]);
         return new JSArray.markGrowable(this.slice(start, end));
       }
       getRange(start, end) {
@@ -319,7 +319,7 @@ var _interceptors;
         return dart.as(this.length, core.int);
       }
       set length(newLength) {
-        if (!(typeof newLength == number))
+        if (!(typeof newLength == 'number'))
           throw new core.ArgumentError(newLength);
         if (dart.notNull(newLength) < 0)
           throw new core.RangeError.value(newLength);
@@ -327,7 +327,7 @@ var _interceptors;
         this.length = newLength;
       }
       get(index) {
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
         if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
           throw new core.RangeError.value(index);
@@ -335,7 +335,7 @@ var _interceptors;
       }
       set(index, value) {
         this.checkMutable('indexed set');
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
         if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
           throw new core.RangeError.value(index);
@@ -772,7 +772,7 @@ var _interceptors;
       super.Interceptor();
     }
     codeUnitAt(index) {
-      if (!(typeof index == number))
+      if (!(typeof index == 'number'))
         throw new core.ArgumentError(index);
       if (dart.notNull(index) < 0)
         throw new core.RangeError.value(index);
@@ -806,7 +806,7 @@ var _interceptors;
       return new _js_helper.StringMatch(start, string, this);
     }
     ['+'](other) {
-      if (!(typeof other == string))
+      if (!(typeof other == 'string'))
         throw new core.ArgumentError(other);
       return this + other;
     }
@@ -841,7 +841,7 @@ var _interceptors;
     }
     split(pattern) {
       _js_helper.checkNull(pattern);
-      if (typeof pattern == string) {
+      if (typeof pattern == 'string') {
         return dart.as(this.split(pattern), core.List$(core.String));
       } else if (dart.notNull(dart.is(pattern, _js_helper.JSSyntaxRegExp)) && _js_helper.regExpCaptureCount(pattern) === 0) {
         let re = _js_helper.regExpGetNative(pattern);
@@ -851,7 +851,7 @@ var _interceptors;
       }
     }
     [_defaultSplit](pattern) {
-      let result = new List.from([]);
+      let result = new core.List$(core.String).from([]);
       let start = 0;
       let length = 1;
       for (let match of pattern.allMatches(this)) {
@@ -877,7 +877,7 @@ var _interceptors;
       if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this.length)) {
         throw new core.RangeError.range(index, 0, this.length);
       }
-      if (typeof pattern == string) {
+      if (typeof pattern == 'string') {
         let other = pattern;
         let otherLength = other.length;
         let endIndex = dart.notNull(index) + dart.notNull(otherLength);
@@ -919,9 +919,13 @@ var _interceptors;
           case 32:
           case 133:
           case 160:
+          {
             return true;
+          }
           default:
+          {
             return false;
+          }
         }
       }
       switch (codeUnit) {
@@ -944,9 +948,13 @@ var _interceptors;
         case 8287:
         case 12288:
         case 65279:
+        {
           return true;
+        }
         default:
+        {
           return false;
+        }
       }
     }
     static [_skipLeadingWhitespace$](string, index) {
@@ -1085,12 +1093,12 @@ var _interceptors;
       if (start === void 0)
         start = 0;
       _js_helper.checkNull(pattern);
-      if (!(typeof start == number))
+      if (!(typeof start == 'number'))
         throw new core.ArgumentError(start);
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
         throw new core.RangeError.range(start, 0, this.length);
       }
-      if (typeof pattern == string) {
+      if (typeof pattern == 'string') {
         return this.indexOf(pattern, start);
       }
       if (dart.is(pattern, _js_helper.JSSyntaxRegExp)) {
@@ -1110,12 +1118,12 @@ var _interceptors;
       _js_helper.checkNull(pattern);
       if (start === null) {
         start = this.length;
-      } else if (!(typeof start == number)) {
+      } else if (!(typeof start == 'number')) {
         throw new core.ArgumentError(start);
       } else if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
         throw new core.RangeError.range(start, 0, this.length);
       }
-      if (typeof pattern == string) {
+      if (typeof pattern == 'string') {
         let other = pattern;
         if (dart.notNull(start) + dart.notNull(other.length) > dart.notNull(this.length)) {
           start = dart.notNull(this.length) - dart.notNull(other.length);
@@ -1144,7 +1152,7 @@ var _interceptors;
       return !dart.notNull(this.isEmpty);
     }
     compareTo(other) {
-      if (!(typeof other == string))
+      if (!(typeof other == 'string'))
         throw new core.ArgumentError(other);
       return dart.equals(this, other) ? 0 : this < other ? -1 : 1;
     }
@@ -1169,7 +1177,7 @@ var _interceptors;
       return this.length;
     }
     get(index) {
-      if (!(typeof index == number))
+      if (!(typeof index == 'number'))
         throw new core.ArgumentError(index);
       if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
         throw new core.RangeError.value(index);

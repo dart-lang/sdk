@@ -265,6 +265,7 @@ var dart, _js_helper;
     }
     return map;
   }
+  dart.map = map;
 
   function assert(condition) {
     // TODO(jmesserly): throw assertion error.

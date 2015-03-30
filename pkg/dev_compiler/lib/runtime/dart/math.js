@@ -217,8 +217,8 @@ var math;
       return b;
     if (dart.notNull(a) < dart.notNull(b))
       return a;
-    if (typeof b == number) {
-      if (typeof a == number) {
+    if (typeof b == 'number') {
+      if (typeof a == 'number') {
         if (a === 0.0) {
           return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
         }
@@ -239,8 +239,8 @@ var math;
       return a;
     if (dart.notNull(a) < dart.notNull(b))
       return b;
-    if (typeof b == number) {
-      if (typeof a == number) {
+    if (typeof b == 'number') {
+      if (typeof a == 'number') {
         if (a === 0.0) {
           return dart.notNull(a) + dart.notNull(b);
         }

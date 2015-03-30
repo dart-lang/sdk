@@ -114,7 +114,7 @@ var collection;
         this.removeAll(toRemove);
       }
       removeWhere(test) {
-        let toRemove = new List.from([]);
+        let toRemove = new core.List.from([]);
         for (let element of this) {
           if (test(element))
             toRemove.add(element);
@@ -122,7 +122,7 @@ var collection;
         this.removeAll(toRemove);
       }
       retainWhere(test) {
-        let toRemove = new List.from([]);
+        let toRemove = new core.List.from([]);
         for (let element of this) {
           if (!dart.notNull(test(element)))
             toRemove.add(element);
@@ -318,7 +318,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       elementAt(index) {
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError.notNull("index");
         core.RangeError.checkNotNegative(index, "index");
         let elementIndex = 0;
@@ -592,7 +592,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       elementAt(index) {
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError.notNull("index");
         core.RangeError.checkNotNegative(index, "index");
         let elementIndex = 0;
@@ -791,7 +791,7 @@ var collection;
         throw _internal.IterableElementError.noElement();
       }
       elementAt(index) {
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError.notNull("index");
         core.RangeError.checkNotNegative(index, "index");
         let elementIndex = 0;
@@ -816,7 +816,7 @@ var collection;
           }
           return `${leftDelimiter}...${rightDelimiter}`;
         }
-        let parts = new List.from([]);
+        let parts = new core.List.from([]);
         _toStringVisiting.add(iterable);
         try {
           _iterablePartsToStrings(iterable, parts);
@@ -937,7 +937,7 @@ var collection;
     }
     dart.defineLazyProperties(IterableBase, {
       get _toStringVisiting() {
-        return new List.from([]);
+        return new core.List.from([]);
       }
     });
     return IterableBase;
@@ -1497,7 +1497,7 @@ var collection;
         _filter(this, test, true);
       }
       static [_filter$](source, test, retainMatching) {
-        let retained = new List.from([]);
+        let retained = new core.List.from([]);
         let length = source.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = source.get(i);
@@ -1680,7 +1680,7 @@ var collection;
           this.add(element);
           return;
         }
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
         this.length = dart.notNull(this.length) + 1;
         this.setRange(dart.notNull(index) + 1, this.length, this, index);
@@ -2979,7 +2979,7 @@ var collection;
   let _SplayTreeIterator$ = dart.generic(function(T) {
     class _SplayTreeIterator extends core.Object {
       _SplayTreeIterator(tree) {
-        this[_workList] = new List.from([]);
+        this[_workList] = new core.List$(_SplayTreeNode).from([]);
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
         this[_splayCount] = tree[_splayCount];
@@ -2987,7 +2987,7 @@ var collection;
         this[_findLeftMostDescendent](tree[_root]);
       }
       _SplayTreeIterator$startAt(tree, startKey) {
-        this[_workList] = new List.from([]);
+        this[_workList] = new core.List$(_SplayTreeNode).from([]);
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
         this[_splayCount] = null;
@@ -3519,7 +3519,7 @@ var collection;
         }
       }
       static [_isStringKey$](key) {
-        return dart.notNull(typeof key == string) && dart.notNull(!dart.equals(key, '__proto__'));
+        return dart.notNull(typeof key == 'string') && dart.notNull(!dart.equals(key, '__proto__'));
       }
       static [_isNumericKey$](key) {
         return dart.notNull(dart.is(key, core.num)) && (key & 0x3ffffff) === key;
@@ -3924,7 +3924,7 @@ var collection;
         this[_modified]();
       }
       static [_isStringKey$](key) {
-        return dart.notNull(typeof key == string) && dart.notNull(!dart.equals(key, '__proto__'));
+        return dart.notNull(typeof key == 'string') && dart.notNull(!dart.equals(key, '__proto__'));
       }
       static [_isNumericKey$](key) {
         return dart.notNull(dart.is(key, core.num)) && (key & 0x3ffffff) === key;
@@ -4297,7 +4297,7 @@ var collection;
         }
       }
       static [_isStringElement$](element) {
-        return dart.notNull(typeof element == string) && dart.notNull(!dart.equals(element, '__proto__'));
+        return dart.notNull(typeof element == 'string') && dart.notNull(!dart.equals(element, '__proto__'));
       }
       static [_isNumericElement$](element) {
         return dart.notNull(dart.is(element, core.num)) && (element & 0x3ffffff) === element;
@@ -4667,7 +4667,7 @@ var collection;
         this[_modified]();
       }
       static [_isStringElement$](element) {
-        return dart.notNull(typeof element == string) && dart.notNull(!dart.equals(element, '__proto__'));
+        return dart.notNull(typeof element == 'string') && dart.notNull(!dart.equals(element, '__proto__'));
       }
       static [_isNumericElement$](element) {
         return dart.notNull(dart.is(element, core.num)) && (element & 0x3ffffff) === element;

@@ -371,7 +371,7 @@ var async;
         return future;
       }
       toList() {
-        let result = new List.from([]);
+        let result = new core.List$(T).from([]);
         let future = new _Future();
         this.listen(((data) => {
           result.add(data);
@@ -583,7 +583,7 @@ var async;
         return future;
       }
       elementAt(index) {
-        if (dart.notNull(!(typeof index == number)) || dart.notNull(index) < 0)
+        if (dart.notNull(!(typeof index == 'number')) || dart.notNull(index) < 0)
           throw new core.ArgumentError(index);
         let future = new _Future();
         let subscription = null;
@@ -1675,7 +1675,7 @@ var async;
           }).bind(this), {onError: handleError});
         }
         if (remaining === 0) {
-          return dart.as(new Future.value(/* Unimplemented const */new List.from([])), Future$(core.List));
+          return dart.as(new Future.value(/* Unimplemented const */new core.List.from([])), Future$(core.List));
         }
         values = new core.List(remaining);
         return result;
@@ -3434,18 +3434,24 @@ var async;
           dart.assert(dart.notNull(this[_state]) >= dart.notNull(_StreamIteratorImpl._STATE_EXTRA_DATA));
           switch (this[_state]) {
             case _StreamIteratorImpl._STATE_EXTRA_DATA:
+            {
               this[_state] = _StreamIteratorImpl._STATE_FOUND;
               this[_current$] = dart.as(this[_futureOrPrefetch], T);
               this[_futureOrPrefetch] = null;
               this[_subscription].resume();
               return new _Future.immediate(true);
+            }
             case _StreamIteratorImpl._STATE_EXTRA_ERROR:
+            {
               let prefetch = dart.as(this[_futureOrPrefetch], AsyncError);
               this[_clear]();
               return new _Future.immediateError(prefetch.error, prefetch.stackTrace);
+            }
             case _StreamIteratorImpl._STATE_EXTRA_DONE:
+            {
               this[_clear]();
               return new _Future.immediate(false);
+            }
           }
         }
       }
@@ -3773,7 +3779,7 @@ var async;
       _TakeStream(source, count) {
         this[_remaining] = count;
         super._ForwardingStream(source);
-        if (!(typeof count == number))
+        if (!(typeof count == 'number'))
           throw new core.ArgumentError(count);
       }
       [_handleData](inputEvent, sink) {
@@ -3821,7 +3827,7 @@ var async;
       _SkipStream(source, count) {
         this[_remaining] = count;
         super._ForwardingStream(source);
-        if (dart.notNull(!(typeof count == number)) || dart.notNull(count) < 0)
+        if (dart.notNull(!(typeof count == 'number')) || dart.notNull(count) < 0)
           throw new core.ArgumentError(count);
       }
       [_handleData](inputEvent, sink) {

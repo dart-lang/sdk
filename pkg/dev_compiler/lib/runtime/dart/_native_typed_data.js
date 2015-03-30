@@ -425,7 +425,7 @@ var _native_typed_data;
   }
   // Function _checkLength: (dynamic) → int
   function _checkLength(length) {
-    if (!(typeof length == number))
+    if (!(typeof length == 'number'))
       throw new core.ArgumentError(`Invalid length ${length}`);
     return dart.as(length, core.int);
   }
@@ -434,10 +434,10 @@ var _native_typed_data;
     if (!dart.is(buffer, NativeByteBuffer)) {
       throw new core.ArgumentError('Invalid view buffer');
     }
-    if (!(typeof offsetInBytes == number)) {
+    if (!(typeof offsetInBytes == 'number')) {
       throw new core.ArgumentError(`Invalid view offsetInBytes ${offsetInBytes}`);
     }
-    if (dart.notNull(length !== null) && dart.notNull(!(typeof length == number))) {
+    if (dart.notNull(length !== null) && dart.notNull(!(typeof length == 'number'))) {
       throw new core.ArgumentError(`Invalid view length ${length}`);
     }
   }
@@ -1240,13 +1240,13 @@ var _native_typed_data;
       this.y = dart.as(_truncate(y), core.int);
       this.z = dart.as(_truncate(z), core.int);
       this.w = dart.as(_truncate(w), core.int);
-      if (x !== this.x && dart.notNull(!(typeof x == number)))
+      if (x !== this.x && dart.notNull(!(typeof x == 'number')))
         throw new core.ArgumentError(x);
-      if (y !== this.y && dart.notNull(!(typeof y == number)))
+      if (y !== this.y && dart.notNull(!(typeof y == 'number')))
         throw new core.ArgumentError(y);
-      if (z !== this.z && dart.notNull(!(typeof z == number)))
+      if (z !== this.z && dart.notNull(!(typeof z == 'number')))
         throw new core.ArgumentError(z);
-      if (w !== this.w && dart.notNull(!(typeof w == number)))
+      if (w !== this.w && dart.notNull(!(typeof w == 'number')))
         throw new core.ArgumentError(w);
     }
     NativeInt32x4$bool(x, y, z, w) {

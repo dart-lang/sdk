@@ -44,7 +44,7 @@ var isolate;
       try {
         if (dart.is(args, core.List$(core.String))) {
           for (let i = 0; dart.notNull(i) < dart.notNull(args.length); i = dart.notNull(i) + 1) {
-            if (!(typeof args.get(i) == string)) {
+            if (!(typeof args.get(i) == 'string')) {
               throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
             }
           }
@@ -101,7 +101,7 @@ var isolate;
     kill(priority) {
       if (priority === void 0)
         priority = Isolate.BEFORE_NEXT_EVENT;
-      this.controlPort.send(new List.from(["kill", this.terminateCapability, priority]));
+      this.controlPort.send(new core.List.from(["kill", this.terminateCapability, priority]));
     }
     ping(responsePort, pingType) {
       if (pingType === void 0)

@@ -20,7 +20,7 @@ var DeltaBlue;
       this.name = name;
     }
     nextWeaker() {
-      return /* Unimplemented const */new List.from([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST]).get(this.value);
+      return /* Unimplemented const */new core.List$(Strength).from([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST]).get(this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
@@ -242,7 +242,7 @@ var DeltaBlue;
   }
   class Variable extends core.Object {
     Variable(name, value) {
-      this.constraints = new List.from([]);
+      this.constraints = new core.List$(Constraint).from([]);
       this.name = name;
       this.value = value;
       this.determinedBy = null;
@@ -301,7 +301,7 @@ var DeltaBlue;
       return plan;
     }
     extractPlanFromConstraints(constraints) {
-      let sources = new List.from([]);
+      let sources = new core.List$(Constraint).from([]);
       for (let i = 0; dart.notNull(i) < dart.notNull(constraints.length); i = dart.notNull(i) + 1) {
         let c = constraints.get(i);
         if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied()))
@@ -310,7 +310,7 @@ var DeltaBlue;
       return this.makePlan(sources);
     }
     addPropagate(c, mark) {
-      let todo = new List.from([c]);
+      let todo = new core.List$(Constraint).from([c]);
       while (dart.notNull(todo.length) > 0) {
         let d = todo.removeLast();
         if (d.output().mark === mark) {
@@ -326,8 +326,8 @@ var DeltaBlue;
       out.determinedBy = null;
       out.walkStrength = WEAKEST;
       out.stay = true;
-      let unsatisfied = new List.from([]);
-      let todo = new List.from([out]);
+      let unsatisfied = new core.List$(Constraint).from([]);
+      let todo = new core.List$(Variable).from([out]);
       while (dart.notNull(todo.length) > 0) {
         let v = todo.removeLast();
         for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
@@ -357,7 +357,7 @@ var DeltaBlue;
   }
   class Plan extends core.Object {
     Plan() {
-      this.list = new List.from([]);
+      this.list = new core.List$(Constraint).from([]);
     }
     addConstraint(c) {
       this.list.add(c);
@@ -387,7 +387,7 @@ var DeltaBlue;
     }
     new StayConstraint(last, STRONG_DEFAULT);
     let edit = new EditConstraint(first, PREFERRED);
-    let plan = exports.planner.extractPlanFromConstraints(new List.from([edit]));
+    let plan = exports.planner.extractPlanFromConstraints(new core.List$(Constraint).from([edit]));
     for (let i = 0; dart.notNull(i) < 100; i = dart.notNull(i) + 1) {
       first.value = i;
       plan.execute();
@@ -403,7 +403,7 @@ var DeltaBlue;
     let scale = new Variable("scale", 10);
     let offset = new Variable("offset", 1000);
     let src = null, dst = null;
-    let dests = new List.from([]);
+    let dests = new core.List$(Variable).from([]);
     for (let i = 0; dart.notNull(i) < dart.notNull(n); i = dart.notNull(i) + 1) {
       src = new Variable("src", i);
       dst = new Variable("dst", i);
@@ -431,7 +431,7 @@ var DeltaBlue;
   // Function change: (Variable, int) → void
   function change(v, newValue) {
     let edit = new EditConstraint(v, PREFERRED);
-    let plan = exports.planner.extractPlanFromConstraints(new List.from([edit]));
+    let plan = exports.planner.extractPlanFromConstraints(new core.List$(EditConstraint).from([edit]));
     for (let i = 0; dart.notNull(i) < 10; i = dart.notNull(i) + 1) {
       v.value = newValue;
       plan.execute();

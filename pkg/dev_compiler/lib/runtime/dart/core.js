@@ -267,7 +267,7 @@ var core;
       return new Duration({milliseconds: dart.notNull(ms) - dart.notNull(otherMs)});
     }
     DateTime$_internal(year, month, day, hour, minute, second, millisecond, isUtc) {
-      this.isUtc = typeof isUtc == boolean ? isUtc : dart.throw_(new ArgumentError(isUtc));
+      this.isUtc = typeof isUtc == 'boolean' ? isUtc : dart.throw_(new ArgumentError(isUtc));
       this.millisecondsSinceEpoch = dart.as(_js_helper.checkInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc)), int);
     }
     DateTime$_now() {
@@ -511,10 +511,10 @@ var core;
     Error() {
     }
     static safeToString(object) {
-      if (dart.notNull(dart.is(object, num)) || dart.notNull(typeof object == boolean) || dart.notNull(null === object)) {
+      if (dart.notNull(dart.is(object, num)) || dart.notNull(typeof object == 'boolean') || dart.notNull(null === object)) {
         return object.toString();
       }
-      if (typeof object == string) {
+      if (typeof object == 'string') {
         return _stringToSafeString(object);
       }
       return _objectToString(object);
@@ -893,7 +893,7 @@ var core;
         report = `${report}: ${this.message}`;
       }
       let offset = this.offset;
-      if (!(typeof this.source == string)) {
+      if (!(typeof this.source == 'string')) {
         if (offset !== -1) {
           report = ` (at offset ${offset})`;
         }
@@ -1199,7 +1199,7 @@ var core;
           result = ((_$) => {
             _$.length = length;
             return _$;
-          }).bind(this)(new List.from([]));
+          }).bind(this)(new List$(E).from([]));
         } else {
           result = new List(length);
         }
@@ -2123,7 +2123,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] === null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) === Uri._SLASH ? this.path.substring(1) : this.path;
-        this[_pathSegments] = dart.as(new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const */new List.from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List$(String));
+        this[_pathSegments] = dart.as(new collection.UnmodifiableListView(dart.equals(pathToSplit, "") ? /* Unimplemented const */new List$(String).from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List$(String));
       }
       return this[_pathSegments];
     }

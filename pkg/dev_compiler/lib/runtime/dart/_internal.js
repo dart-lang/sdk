@@ -524,7 +524,7 @@ var _internal;
   let TakeIterable$ = dart.generic(function(E) {
     class TakeIterable extends collection.IterableBase$(E) {
       TakeIterable(iterable, takeCount) {
-        if (dart.notNull(!(typeof takeCount == number)) || dart.notNull(takeCount) < 0) {
+        if (dart.notNull(!(typeof takeCount == 'number')) || dart.notNull(takeCount) < 0) {
           throw new core.ArgumentError(takeCount);
         }
         if (dart.is(iterable, EfficientLength)) {
@@ -567,7 +567,7 @@ var _internal;
         this[_iterator] = iterator$;
         this[_remaining] = remaining;
         super.Iterator();
-        dart.assert(dart.notNull(typeof this[_remaining] == number) && dart.notNull(this[_remaining]) >= 0);
+        dart.assert(dart.notNull(typeof this[_remaining] == 'number') && dart.notNull(this[_remaining]) >= 0);
       }
       moveNext() {
         this[_remaining] = dart.notNull(this[_remaining]) - 1;
@@ -640,13 +640,13 @@ var _internal;
         this[_iterable] = iterable$;
         this[_skipCount] = skipCount$;
         super.IterableBase();
-        if (!(typeof this[_skipCount] == number)) {
+        if (!(typeof this[_skipCount] == 'number')) {
           throw new core.ArgumentError.value(this[_skipCount], "count is not an integer");
         }
         core.RangeError.checkNotNegative(this[_skipCount], "count");
       }
       skip(count) {
-        if (!(typeof this[_skipCount] == number)) {
+        if (!(typeof this[_skipCount] == 'number')) {
           throw new core.ArgumentError.value(this[_skipCount], "count is not an integer");
         }
         core.RangeError.checkNotNegative(this[_skipCount], "count");
@@ -681,7 +681,7 @@ var _internal;
         this[_iterator] = iterator$;
         this[_skipCount] = skipCount$;
         super.Iterator();
-        dart.assert(dart.notNull(typeof this[_skipCount] == number) && dart.notNull(this[_skipCount]) >= 0);
+        dart.assert(dart.notNull(typeof this[_skipCount] == 'number') && dart.notNull(this[_skipCount]) >= 0);
       }
       moveNext() {
         for (let i = 0; dart.notNull(i) < dart.notNull(this[_skipCount]); i = dart.notNull(i) + 1)
@@ -823,7 +823,7 @@ var _internal;
       }
       toList(opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return growable ? new List.from([]) : new core.List(0);
+        return growable ? new core.List$(E).from([]) : new core.List(0);
       }
       toSet() {
         return new core.Set();
@@ -898,7 +898,7 @@ var _internal;
         return initialValue;
       }
       static removeWhereList(list, test) {
-        let retained = new List.from([]);
+        let retained = new core.List.from([]);
         let length = list.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = list.get(i);
@@ -997,7 +997,7 @@ var _internal;
         throw IterableElementError.noElement();
       }
       static elementAt(iterable, index) {
-        if (!(typeof index == number))
+        if (!(typeof index == 'number'))
           throw new core.ArgumentError.notNull("index");
         core.RangeError.checkNotNegative(index, "index");
         let elementIndex = 0;
@@ -1390,7 +1390,7 @@ var _internal;
         return this[_values].contains(value);
       }
       containsKey(key) {
-        return dart.notNull(typeof key == number) && dart.notNull(key) >= 0 && dart.notNull(key) < dart.notNull(this.length);
+        return dart.notNull(typeof key == 'number') && dart.notNull(key) >= 0 && dart.notNull(key) < dart.notNull(this.length);
       }
       forEach(f) {
         let length = this[_values].length;
@@ -1816,7 +1816,7 @@ var _internal;
       return new core.RegExp(`^(?:${Symbol.operatorRE}$|${Symbol.identifierRE}(?:=?$|[.](?!$)))+?$`);
     }
   });
-  let POWERS_OF_TEN = /* Unimplemented const */new List.from([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
+  let POWERS_OF_TEN = /* Unimplemented const */new core.List.from([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   // Exports:
   exports.EfficientLength = EfficientLength;
   exports.ListIterable = ListIterable;

@@ -50,14 +50,14 @@ var cascade;
   }
   // Function test_VariableDeclaration_single: () → void
   function test_VariableDeclaration_single() {
-    let a = new List.from([]);
+    let a = new core.List.from([]);
     dart.dput(a, 'length', 2);
     a.add(42);
     core.print(a);
   }
   // Function test_VariableDeclaration_last: () → void
   function test_VariableDeclaration_last() {
-    let a = 42, b = new List.from([]);
+    let a = 42, b = new core.List.from([]);
     dart.dput(b, 'length', 2);
     b.add(a);
     core.print(b);
@@ -68,7 +68,7 @@ var cascade;
       _.length = 2;
       _.add(3);
       return _;
-    })(new List.from([])), b = 2;
+    })(new core.List.from([])), b = 2;
     core.print(a);
   }
   // Exports:

@@ -466,6 +466,7 @@ const defaultRuntimeFiles = const [
   'harmony_feature_check.js',
   'dart_runtime.js',
   'dart/core.js',
+  'dart/collection.js',
   'dart/math.js'
 ];
 

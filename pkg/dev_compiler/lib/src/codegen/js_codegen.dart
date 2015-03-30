@@ -235,7 +235,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var lhs = _visit(node.expression);
     var typeofName = _jsTypeofName(type);
     if (typeofName != null) {
-      result = js.call('typeof # == #', [lhs, typeofName]);
+      result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       // Always go through a runtime helper, because implicit interfaces.
       result = js.call('dart.is(#, #)', [lhs, _emitTypeName(type)]);
@@ -1913,8 +1913,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitListLiteral(ListLiteral node) {
     // TODO(jmesserly): make this faster. We're wasting an array.
-    var list = js.call('new List.from(#)',
-        [new JS.ArrayInitializer(_visitList(node.elements))]);
+    var list = js.call('new #.from(#)', [
+      _emitTypeName(node.staticType),
+      new JS.ArrayInitializer(_visitList(node.elements))
+    ]);
     if (node.constKeyword != null) {
       list = js.commentExpression('Unimplemented const', list);
     }
@@ -2023,11 +2025,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var result = node.accept(this);
     if (result is JS.Node) result.sourceInformation = node;
     return result;
-  }
-
-  JS.Statement _visitOrEmpty(Statement node) {
-    if (node == null) return new JS.EmptyStatement();
-    return _visit(node);
   }
 
   List _visitList(Iterable<AstNode> nodes) {
