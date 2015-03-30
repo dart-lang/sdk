@@ -27,6 +27,7 @@ var async;
       return dart.as(dart.dinvoke(this.error, 'toString'), core.String);
     }
   }
+  AsyncError[dart.implements] = [core.Error];
   class _UncaughtAsyncError extends AsyncError {
     _UncaughtAsyncError(error, stackTrace) {
       super.AsyncError(error, _UncaughtAsyncError[_getBestStackTrace](error, stackTrace));
@@ -1077,6 +1078,7 @@ var async;
         }
       }
     }
+    _BufferingStreamSubscription[dart.implements] = [StreamSubscription$(T), _EventSink$(T), _EventDispatch$(T)];
     _BufferingStreamSubscription._STATE_CANCEL_ON_ERROR = 1;
     _BufferingStreamSubscription._STATE_CLOSED = 2;
     _BufferingStreamSubscription._STATE_INPUT_PAUSED = 4;
@@ -1139,6 +1141,7 @@ var async;
       [_onPause]() {}
       [_onResume]() {}
     }
+    _BroadcastSubscription[dart.implements] = [_BroadcastSubscriptionLink];
     _BroadcastSubscription._STATE_EVENT_ID = 1;
     _BroadcastSubscription._STATE_FIRING = 2;
     _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING = 4;
@@ -1357,6 +1360,7 @@ var async;
         _runGuarded(this[_onCancel]);
       }
     }
+    _BroadcastStreamController[dart.implements] = [StreamController$(T), _StreamControllerLifecycle$(T), _BroadcastSubscriptionLink, _EventSink$(T), _EventDispatch$(T)];
     _BroadcastStreamController._STATE_INITIAL = 0;
     _BroadcastStreamController._STATE_EVENT_ID = 1;
     _BroadcastStreamController._STATE_FIRING = 2;
@@ -1500,6 +1504,7 @@ var async;
         super._callOnCancel();
       }
     }
+    _AsBroadcastStreamController[dart.implements] = [_EventDispatch$(T)];
     return _AsBroadcastStreamController;
   });
   let _AsBroadcastStreamController = _AsBroadcastStreamController$(dart.dynamic);
@@ -1539,6 +1544,7 @@ var async;
         return new _Future();
       }
     }
+    _DoneSubscription[dart.implements] = [StreamSubscription$(T)];
     return _DoneSubscription;
   });
   let _DoneSubscription = _DoneSubscription$(dart.dynamic);
@@ -1561,6 +1567,7 @@ var async;
       return `DeferredLoadException: '${this[_s]}'`;
     }
   }
+  DeferredLoadException[dart.implements] = [core.Exception];
   let Future$ = dart.generic(function(T) {
     class Future extends core.Object {
       Future(computation) {
@@ -1742,6 +1749,7 @@ var async;
       return result;
     }
   }
+  TimeoutException[dart.implements] = [core.Exception];
   let Completer$ = dart.generic(function(T) {
     class Completer extends core.Object {
       Completer() {
@@ -1790,6 +1798,7 @@ var async;
         return !dart.notNull(this.future[_mayComplete]);
       }
     }
+    _Completer[dart.implements] = [Completer$(T)];
     return _Completer;
   });
   let _Completer = _Completer$(dart.dynamic);
@@ -2340,6 +2349,7 @@ var async;
         return result;
       }
     }
+    _Future[dart.implements] = [Future$(T)];
     dart.defineNamedConstructor(_Future, 'immediate');
     dart.defineNamedConstructor(_Future, 'immediateError');
     _Future._INCOMPLETE = 0;
@@ -2499,6 +2509,7 @@ var async;
   let EventSink$ = dart.generic(function(T) {
     class EventSink extends core.Object {
     }
+    EventSink[dart.implements] = [core.Sink$(T)];
     return EventSink;
   });
   let EventSink = EventSink$(dart.dynamic);
@@ -2536,6 +2547,7 @@ var async;
   let StreamSink$ = dart.generic(function(S) {
     class StreamSink extends core.Object {
     }
+    StreamSink[dart.implements] = [StreamConsumer$(S), EventSink$(S)];
     return StreamSink;
   });
   let StreamSink = StreamSink$(dart.dynamic);
@@ -2578,6 +2590,7 @@ var async;
         this[_sink].close();
       }
     }
+    _ControllerEventSinkWrapper[dart.implements] = [EventSink$(T)];
     return _ControllerEventSinkWrapper;
   });
   let _ControllerEventSinkWrapper = _ControllerEventSinkWrapper$(dart.dynamic);
@@ -2601,6 +2614,7 @@ var async;
         return sync ? new _SyncBroadcastStreamController(onListen, onCancel) : new _AsyncBroadcastStreamController(onListen, onCancel);
       }
     }
+    StreamController[dart.implements] = [StreamSink$(T)];
     dart.defineNamedConstructor(StreamController, 'broadcast');
     return StreamController;
   });
@@ -2843,6 +2857,7 @@ var async;
         _runGuarded(this[_onResume]);
       }
     }
+    _StreamController[dart.implements] = [StreamController$(T), _StreamControllerLifecycle$(T), _EventSink$(T), _EventDispatch$(T)];
     _StreamController._STATE_INITIAL = 0;
     _StreamController._STATE_SUBSCRIBED = 1;
     _StreamController._STATE_CANCELED = 2;
@@ -2864,6 +2879,7 @@ var async;
         this[_subscription]._close();
       }
     }
+    _SyncStreamControllerDispatch[dart.implements] = [_StreamController$(T)];
     return _SyncStreamControllerDispatch;
   });
   let _SyncStreamControllerDispatch = _SyncStreamControllerDispatch$(dart.dynamic);
@@ -2879,6 +2895,7 @@ var async;
         this[_subscription]._addPending(new _DelayedDone());
       }
     }
+    _AsyncStreamControllerDispatch[dart.implements] = [_StreamController$(T)];
     return _AsyncStreamControllerDispatch;
   });
   let _AsyncStreamControllerDispatch = _AsyncStreamControllerDispatch$(dart.dynamic);
@@ -2966,6 +2983,7 @@ var async;
         return this[_target].done;
       }
     }
+    _StreamSinkWrapper[dart.implements] = [StreamSink$(T)];
     return _StreamSinkWrapper;
   });
   let _StreamSinkWrapper = _StreamSinkWrapper$(dart.dynamic);
@@ -3182,6 +3200,7 @@ var async;
       throw new core.StateError("No events after a done.");
     }
   }
+  _DelayedDone[dart.implements] = [_DelayedEvent];
   class _StreamImplEvents extends _PendingEvents {
     _StreamImplEvents() {
       this.firstPendingEvent = null;
@@ -3303,6 +3322,7 @@ var async;
           this[_zone].runGuarded(this[_onDone]);
       }
     }
+    _DoneStreamSubscription[dart.implements] = [StreamSubscription$(T)];
     _DoneStreamSubscription._DONE_SENT = 1;
     _DoneStreamSubscription._SCHEDULED = 2;
     _DoneStreamSubscription._PAUSED = 4;
@@ -3423,6 +3443,7 @@ var async;
         throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
       }
     }
+    _BroadcastSubscriptionWrapper[dart.implements] = [StreamSubscription$(T)];
     return _BroadcastSubscriptionWrapper;
   });
   let _BroadcastSubscriptionWrapper = _BroadcastSubscriptionWrapper$(dart.dynamic);
@@ -3541,6 +3562,7 @@ var async;
         this[_state] = _StreamIteratorImpl[_STATE_EXTRA_DONE];
       }
     }
+    _StreamIteratorImpl[dart.implements] = [StreamIterator$(T)];
     _StreamIteratorImpl._STATE_FOUND = 0;
     _StreamIteratorImpl._STATE_DONE = 1;
     _StreamIteratorImpl._STATE_MOVING = 2;
@@ -3962,6 +3984,7 @@ var async;
         this[_sink]._close();
       }
     }
+    _EventSinkWrapper[dart.implements] = [EventSink$(T)];
     return _EventSinkWrapper;
   });
   let _EventSinkWrapper = _EventSinkWrapper$(dart.dynamic);
@@ -4062,6 +4085,7 @@ var async;
         return new _BoundSinkStream(stream, this[_sinkMapper]);
       }
     }
+    _StreamSinkTransformer[dart.implements] = [StreamTransformer$(S, T)];
     return _StreamSinkTransformer;
   });
   let _StreamSinkTransformer = _StreamSinkTransformer$(dart.dynamic, dart.dynamic);
@@ -4107,6 +4131,7 @@ var async;
         return this[_handleDone](this[_sink]);
       }
     }
+    _HandlerEventSink[dart.implements] = [EventSink$(S)];
     return _HandlerEventSink;
   });
   let _HandlerEventSink = _HandlerEventSink$(dart.dynamic, dart.dynamic);
@@ -4155,6 +4180,7 @@ var async;
         return new _BoundSubscriptionStream(stream, this[_transformer]);
       }
     }
+    _StreamSubscriptionTransformer[dart.implements] = [StreamTransformer$(S, T)];
     return _StreamSubscriptionTransformer;
   });
   let _StreamSubscriptionTransformer = _StreamSubscriptionTransformer$(dart.dynamic, dart.dynamic);
@@ -4270,6 +4296,7 @@ var async;
       this.fork = fork;
     }
   }
+  _ZoneSpecification[dart.implements] = [ZoneSpecification];
   class ZoneDelegate extends core.Object {
   }
   let _$ = Symbol('_');
@@ -4387,6 +4414,7 @@ var async;
       return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, specification, zoneValues), Zone);
     }
   }
+  _ZoneDelegate[dart.implements] = [ZoneDelegate];
   class _Zone extends core.Object {
     _Zone() {
     }
@@ -4394,6 +4422,7 @@ var async;
       return dart.notNull(core.identical(this, otherZone)) || dart.notNull(core.identical(this.errorZone, otherZone.errorZone));
     }
   }
+  _Zone[dart.implements] = [Zone];
   let _delegateCache = Symbol('_delegateCache');
   let _map = Symbol('_map');
   class _CustomZone extends _Zone {
@@ -4736,6 +4765,7 @@ var async;
       return _rootFork;
     }
   }
+  _RootZoneSpecification[dart.implements] = [ZoneSpecification];
   let _rootMap = Symbol('_rootMap');
   let _rootDelegate = Symbol('_rootDelegate');
   class _RootZone extends _Zone {

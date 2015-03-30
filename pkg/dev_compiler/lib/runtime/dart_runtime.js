@@ -197,6 +197,11 @@ var dart, _js_helper;
   }
   dart.copyProperties = copyProperties;
 
+
+  /** The Symbol for storing type arguments on a specialized generic type. */
+  dart.mixins = Symbol('mixins');
+  dart.implements = Symbol('implements')
+
   /**
    * Returns a new type that mixes members from base and all mixins.
    *
@@ -229,6 +234,8 @@ var dart, _js_helper;
     for (var i = 0; i < mixins.length; i++) {
       copyProperties(Mixin.prototype, mixins[i].prototype);
     }
+    // Save mixins for reflection
+    Mixin[dart.mixins] = mixins;
     return Mixin;
   }
   dart.mixin = mixin;

@@ -221,6 +221,7 @@ var _internal;
         return result;
       }
     }
+    ListIterable[dart.implements] = [EfficientLength];
     return ListIterable;
   });
   let ListIterable = ListIterable$(dart.dynamic);
@@ -343,6 +344,7 @@ var _internal;
         return true;
       }
     }
+    ListIterator[dart.implements] = [core.Iterator$(E)];
     return ListIterator;
   });
   let ListIterator = ListIterator$(dart.dynamic);
@@ -393,6 +395,7 @@ var _internal;
         super[_](dart.as(iterable, core.Iterable$(S)), func);
       }
     }
+    EfficientLengthMappedIterable[dart.implements] = [EfficientLength];
     return EfficientLengthMappedIterable;
   });
   let EfficientLengthMappedIterable = EfficientLengthMappedIterable$(dart.dynamic, dart.dynamic);
@@ -435,6 +438,7 @@ var _internal;
         return this[_f](this[_source].elementAt(index));
       }
     }
+    MappedListIterable[dart.implements] = [EfficientLength];
     return MappedListIterable;
   });
   let MappedListIterable = MappedListIterable$(dart.dynamic, dart.dynamic);
@@ -518,6 +522,7 @@ var _internal;
         return true;
       }
     }
+    ExpandIterator[dart.implements] = [core.Iterator$(T)];
     return ExpandIterator;
   });
   let ExpandIterator = ExpandIterator$(dart.dynamic, dart.dynamic);
@@ -558,6 +563,7 @@ var _internal;
         return iterableLength;
       }
     }
+    EfficientLengthTakeIterable[dart.implements] = [EfficientLength];
     return EfficientLengthTakeIterable;
   });
   let EfficientLengthTakeIterable = EfficientLengthTakeIterable$(dart.dynamic);
@@ -673,6 +679,7 @@ var _internal;
         return 0;
       }
     }
+    EfficientLengthSkipIterable[dart.implements] = [EfficientLength];
     return EfficientLengthSkipIterable;
   });
   let EfficientLengthSkipIterable = EfficientLengthSkipIterable$(dart.dynamic);
@@ -830,6 +837,7 @@ var _internal;
         return new core.Set();
       }
     }
+    EmptyIterable[dart.implements] = [EfficientLength];
     return EmptyIterable;
   });
   let EmptyIterable = EmptyIterable$(dart.dynamic);
@@ -844,12 +852,14 @@ var _internal;
         return null;
       }
     }
+    EmptyIterator[dart.implements] = [core.Iterator$(E)];
     return EmptyIterator;
   });
   let EmptyIterator = EmptyIterator$(dart.dynamic);
   let BidirectionalIterator$ = dart.generic(function(T) {
     class BidirectionalIterator extends core.Object {
     }
+    BidirectionalIterator[dart.implements] = [core.Iterator$(T)];
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$(dart.dynamic);
@@ -1334,6 +1344,7 @@ var _internal;
         throw new core.UnsupportedError("Cannot modify an unmodifiable list");
       }
     }
+    UnmodifiableListMixin[dart.implements] = [core.List$(E)];
     return UnmodifiableListMixin;
   });
   let UnmodifiableListMixin = UnmodifiableListMixin$(dart.dynamic);
@@ -1421,6 +1432,7 @@ var _internal;
         return collection.Maps.mapToString(this);
       }
     }
+    ListMapView[dart.implements] = [core.Map$(core.int, E)];
     return ListMapView;
   });
   let ListMapView = ListMapView$(dart.dynamic);
@@ -1804,6 +1816,7 @@ var _internal;
       return dart.notNull(name.isEmpty) || dart.notNull(Symbol.symbolPattern.hasMatch(name));
     }
   }
+  Symbol[dart.implements] = [core.Symbol];
   dart.defineNamedConstructor(Symbol, 'unvalidated');
   dart.defineNamedConstructor(Symbol, 'validated');
   Symbol.reservedWordRE = '(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|' + 'e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|' + 'ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|' + 'v(?:ar|oid)|w(?:hile|ith))';

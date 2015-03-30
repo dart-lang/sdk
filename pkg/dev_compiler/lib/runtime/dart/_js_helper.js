@@ -57,6 +57,7 @@ var _js_helper;
         return this[_throwUnmodifiable]();
       }
     }
+    ConstantMap[dart.implements] = [core.Map$(K, V)];
     dart.defineNamedConstructor(ConstantMap, _$);
     return ConstantMap;
   });
@@ -104,6 +105,7 @@ var _js_helper;
         return new _internal.MappedIterable(this[_keys], dart.closureWrap(((key) => this[_fetch](key)).bind(this), "(K) → V"));
       }
     }
+    ConstantStringMap[dart.implements] = [_internal.EfficientLength];
     dart.defineNamedConstructor(ConstantStringMap, _$);
     return ConstantStringMap;
   });
@@ -576,6 +578,7 @@ var _js_helper;
       return this[_isCaseSensitive];
     }
   }
+  JSSyntaxRegExp[dart.implements] = [core.RegExp];
   let _match = Symbol('_match');
   class _MatchImplementation extends core.Object {
     _MatchImplementation(pattern, match$) {
@@ -610,6 +613,7 @@ var _js_helper;
       return out;
     }
   }
+  _MatchImplementation[dart.implements] = [core.Match];
   let _re = Symbol('_re');
   let _string = Symbol('_string');
   let _start = Symbol('_start');
@@ -657,6 +661,7 @@ var _js_helper;
       return false;
     }
   }
+  _AllMatchesIterator[dart.implements] = [core.Iterator$(core.Match)];
   // Function firstMatchAfter: (JSSyntaxRegExp, String, int) → Match
   function firstMatchAfter(regExp, string, start) {
     return regExp._execGlobal(string, start);
@@ -690,6 +695,7 @@ var _js_helper;
       return result;
     }
   }
+  StringMatch[dart.implements] = [core.Match];
   // Function allMatchesInStringUnchecked: (String, String, int) → List<Match>
   function allMatchesInStringUnchecked(needle, haystack, startIndex) {
     let result = new core.List();
@@ -888,6 +894,7 @@ var _js_helper;
       return dart.notNull(dart.is(other, TypeImpl)) && dart.notNull(dart.equals(this[_typeName], dart.dload(other, '_typeName')));
     }
   }
+  TypeImpl[dart.implements] = [core.Type];
   class TypeVariable extends core.Object {
     TypeVariable(owner, name, bound) {
       this.owner = owner;
@@ -1510,6 +1517,7 @@ var _js_helper;
       return invocation._getCachedInvocation(victim);
     }
   }
+  JSInvocationMirror[dart.implements] = [core.Invocation];
   JSInvocationMirror.METHOD = 0;
   JSInvocationMirror.GETTER = 1;
   JSInvocationMirror.SETTER = 2;
@@ -2389,6 +2397,7 @@ var _js_helper;
       return `NullError: Cannot call "${this[_method]}" on null`;
     }
   }
+  NullError[dart.implements] = [core.NoSuchMethodError];
   class JsNoSuchMethodError extends core.Error {
     JsNoSuchMethodError(message$, match) {
       this[_message] = message$;
@@ -2405,6 +2414,7 @@ var _js_helper;
       return `NoSuchMethodError: Cannot call "${this[_method]}" on "${this[_receiver]}" ` + `(${this[_message]})`;
     }
   }
+  JsNoSuchMethodError[dart.implements] = [core.NoSuchMethodError];
   class UnknownJsTypeError extends core.Error {
     UnknownJsTypeError(message$) {
       this[_message] = message$;
@@ -2510,6 +2520,7 @@ var _js_helper;
       return this[_trace] = trace == null ? '' : trace;
     }
   }
+  _StackTrace[dart.implements] = [core.StackTrace];
   // Function objectHashCode: (dynamic) → int
   function objectHashCode(object) {
     if (dart.notNull(object == null) || typeof object != 'object') {
@@ -2799,6 +2810,7 @@ var _js_helper;
       return "Closure";
     }
   }
+  Closure[dart.implements] = [core.Function];
   Closure.FUNCTION_INDEX = 0;
   Closure.NAME_INDEX = 1;
   Closure.CALL_NAME_INDEX = 2;
@@ -3188,6 +3200,7 @@ var _js_helper;
       return this.message;
     }
   }
+  TypeErrorImplementation[dart.implements] = [core.TypeError];
   dart.defineNamedConstructor(TypeErrorImplementation, 'fromMessage');
   class CastErrorImplementation extends core.Error {
     CastErrorImplementation(actualType, expectedType) {
@@ -3198,6 +3211,7 @@ var _js_helper;
       return this.message;
     }
   }
+  CastErrorImplementation[dart.implements] = [core.CastError];
   class FallThroughErrorImplementation extends core.FallThroughError {
     FallThroughErrorImplementation() {
       super.FallThroughError();
@@ -3245,6 +3259,7 @@ var _js_helper;
       return `Deferred library ${this.libraryName} was not loaded.`;
     }
   }
+  DeferredNotLoadedError[dart.implements] = [core.NoSuchMethodError];
   class RuntimeType extends core.Object {
     RuntimeType() {
     }
@@ -3619,6 +3634,7 @@ var _js_helper;
       return `Unsupported operation: ${this[_message]}`;
     }
   }
+  UnimplementedNoSuchMethodError[dart.implements] = [core.NoSuchMethodError];
   // Function random64: () → int
   function random64() {
     let int32a = Math.random() * 0x100000000 >>> 0;
@@ -3751,6 +3767,7 @@ var _js_helper;
       return `NoSuchMethodError: ${this[_message]}`;
     }
   }
+  MainError[dart.implements] = [core.NoSuchMethodError];
   // Function missingMain: () → void
   function missingMain() {
     throw new MainError("No top-level function named 'main'.");

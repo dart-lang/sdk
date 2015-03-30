@@ -287,8 +287,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     currentClass = node;
 
-    var name = classElem.name;
-
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
     var staticFields = <FieldDeclaration>[];
@@ -300,10 +298,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
     }
 
-    var classExpr = new JS.ClassExpression(new JS.Identifier(name),
+    var classExpr = new JS.ClassExpression(new JS.Identifier(classElem.name),
         _classHeritage(node), _emitClassMethods(node, ctors, fields));
 
-    var body = _finishClassMembers(name, classExpr, ctors, staticFields);
+    var body = _finishClassMembers(classElem, classExpr, ctors, staticFields);
     currentClass = null;
 
     return _finishClassDef(classElem, body);
@@ -546,10 +544,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Emit class members that need to come after the class declaration, such
   /// as static fields. See [_emitClassMethods] for things that are emitted
   /// insite the ES6 `class { ... }` node.
-  JS.Statement _finishClassMembers(String name, JS.ClassExpression cls,
-      List<ConstructorDeclaration> ctors, List<FieldDeclaration> staticFields) {
+  JS.Statement _finishClassMembers(ClassElement classElem,
+      JS.ClassExpression cls, List<ConstructorDeclaration> ctors,
+      List<FieldDeclaration> staticFields) {
+    var name = classElem.name;
+
     var body = <JS.Statement>[];
     body.add(new JS.ClassDeclaration(cls));
+
+    // Interfaces
+    if (classElem.interfaces.isNotEmpty) {
+      body.add(js.statement('#[dart.implements] = #;', [
+        name,
+        new JS.ArrayInitializer(
+            classElem.interfaces.map(_emitTypeName).toList())
+      ]));
+    }
 
     // Named constructors
     for (ConstructorDeclaration member in ctors) {
@@ -577,6 +587,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
     var lazy = _emitLazyFields(new JS.Identifier(name), lazyStatics);
     if (lazy != null) body.add(lazy);
+
     return _statement(body);
   }
 

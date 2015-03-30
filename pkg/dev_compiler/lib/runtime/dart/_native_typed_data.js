@@ -118,6 +118,7 @@ var _native_typed_data;
       return new NativeByteData.view(this, offsetInBytes, length);
     }
   }
+  NativeByteBuffer[dart.implements] = [typed_data.ByteBuffer];
   let _storage = Symbol('_storage');
   let _slowFromList = Symbol('_slowFromList');
   let _invalidIndex = Symbol('_invalidIndex');
@@ -212,6 +213,7 @@ var _native_typed_data;
       return new NativeFloat32x4List[_externalStorage](dart.as(this[_storage].sublist(dart.notNull(start) * 4, dart.notNull(end) * 4), NativeFloat32List));
     }
   }
+  NativeFloat32x4List[dart.implements] = [typed_data.Float32x4List];
   dart.defineNamedConstructor(NativeFloat32x4List, _externalStorage);
   dart.defineNamedConstructor(NativeFloat32x4List, _slowFromList);
   dart.defineNamedConstructor(NativeFloat32x4List, 'fromList');
@@ -303,6 +305,7 @@ var _native_typed_data;
       return new NativeInt32x4List[_externalStorage](dart.as(this[_storage].sublist(dart.notNull(start) * 4, dart.notNull(end) * 4), typed_data.Int32List));
     }
   }
+  NativeInt32x4List[dart.implements] = [typed_data.Int32x4List];
   dart.defineNamedConstructor(NativeInt32x4List, _externalStorage);
   dart.defineNamedConstructor(NativeInt32x4List, _slowFromList);
   dart.defineNamedConstructor(NativeInt32x4List, 'fromList');
@@ -388,6 +391,7 @@ var _native_typed_data;
       return new NativeFloat64x2List[_externalStorage](dart.as(this[_storage].sublist(dart.notNull(start) * 2, dart.notNull(end) * 2), NativeFloat64List));
     }
   }
+  NativeFloat64x2List[dart.implements] = [typed_data.Float64x2List];
   dart.defineNamedConstructor(NativeFloat64x2List, _externalStorage);
   dart.defineNamedConstructor(NativeFloat64x2List, _slowFromList);
   dart.defineNamedConstructor(NativeFloat64x2List, 'fromList');
@@ -426,6 +430,7 @@ var _native_typed_data;
       return end;
     }
   }
+  NativeTypedData[dart.implements] = [typed_data.TypedData];
   // Function _checkLength: (dynamic) → int
   function _checkLength(length) {
     if (!(typeof length == 'number'))
@@ -573,6 +578,7 @@ var _native_typed_data;
       return dart.as(new DataView(arg1, arg2, arg3), NativeByteData);
     }
   }
+  NativeByteData[dart.implements] = [typed_data.ByteData];
   dart.defineNamedConstructor(NativeByteData, 'view');
   let _setRangeFast = Symbol('_setRangeFast');
   class NativeTypedArray extends NativeTypedData {
@@ -598,6 +604,7 @@ var _native_typed_data;
       this.set(source, start);
     }
   }
+  NativeTypedArray[dart.implements] = [_js_helper.JavaScriptIndexingBehavior];
   class NativeTypedArrayOfDouble extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
     get(index) {
       this[_checkIndex](index, this.length);
@@ -632,6 +639,7 @@ var _native_typed_data;
       super.setRange(start, end, iterable, skipCount);
     }
   }
+  NativeTypedArrayOfInt[dart.implements] = [core.List$(core.int)];
   class NativeFloat32List extends NativeTypedArrayOfDouble {
     NativeFloat32List(length) {
       return NativeFloat32List[_create1](_checkLength(length));
@@ -663,6 +671,7 @@ var _native_typed_data;
       return dart.as(new Float32Array(arg1, arg2, arg3), NativeFloat32List);
     }
   }
+  NativeFloat32List[dart.implements] = [typed_data.Float32List];
   dart.defineNamedConstructor(NativeFloat32List, 'fromList');
   dart.defineNamedConstructor(NativeFloat32List, 'view');
   class NativeFloat64List extends NativeTypedArrayOfDouble {
@@ -696,6 +705,7 @@ var _native_typed_data;
       return dart.as(new Float64Array(arg1, arg2, arg3), NativeFloat64List);
     }
   }
+  NativeFloat64List[dart.implements] = [typed_data.Float64List];
   dart.defineNamedConstructor(NativeFloat64List, 'fromList');
   dart.defineNamedConstructor(NativeFloat64List, 'view');
   class NativeInt16List extends NativeTypedArrayOfInt {
@@ -733,6 +743,7 @@ var _native_typed_data;
       return dart.as(new Int16Array(arg1, arg2, arg3), NativeInt16List);
     }
   }
+  NativeInt16List[dart.implements] = [typed_data.Int16List];
   dart.defineNamedConstructor(NativeInt16List, 'fromList');
   dart.defineNamedConstructor(NativeInt16List, 'view');
   class NativeInt32List extends NativeTypedArrayOfInt {
@@ -770,6 +781,7 @@ var _native_typed_data;
       return dart.as(new Int32Array(arg1, arg2, arg3), NativeInt32List);
     }
   }
+  NativeInt32List[dart.implements] = [typed_data.Int32List];
   dart.defineNamedConstructor(NativeInt32List, 'fromList');
   dart.defineNamedConstructor(NativeInt32List, 'view');
   class NativeInt8List extends NativeTypedArrayOfInt {
@@ -807,6 +819,7 @@ var _native_typed_data;
       return dart.as(new Int8Array(arg1, arg2, arg3), typed_data.Int8List);
     }
   }
+  NativeInt8List[dart.implements] = [typed_data.Int8List];
   dart.defineNamedConstructor(NativeInt8List, 'fromList');
   dart.defineNamedConstructor(NativeInt8List, 'view');
   class NativeUint16List extends NativeTypedArrayOfInt {
@@ -844,6 +857,7 @@ var _native_typed_data;
       return dart.as(new Uint16Array(arg1, arg2, arg3), NativeUint16List);
     }
   }
+  NativeUint16List[dart.implements] = [typed_data.Uint16List];
   dart.defineNamedConstructor(NativeUint16List, 'fromList');
   dart.defineNamedConstructor(NativeUint16List, 'view');
   class NativeUint32List extends NativeTypedArrayOfInt {
@@ -881,6 +895,7 @@ var _native_typed_data;
       return dart.as(new Uint32Array(arg1, arg2, arg3), NativeUint32List);
     }
   }
+  NativeUint32List[dart.implements] = [typed_data.Uint32List];
   dart.defineNamedConstructor(NativeUint32List, 'fromList');
   dart.defineNamedConstructor(NativeUint32List, 'view');
   class NativeUint8ClampedList extends NativeTypedArrayOfInt {
@@ -921,6 +936,7 @@ var _native_typed_data;
       return dart.as(new Uint8ClampedArray(arg1, arg2, arg3), NativeUint8ClampedList);
     }
   }
+  NativeUint8ClampedList[dart.implements] = [typed_data.Uint8ClampedList];
   dart.defineNamedConstructor(NativeUint8ClampedList, 'fromList');
   dart.defineNamedConstructor(NativeUint8ClampedList, 'view');
   class NativeUint8List extends NativeTypedArrayOfInt {
@@ -961,6 +977,7 @@ var _native_typed_data;
       return dart.as(new Uint8Array(arg1, arg2, arg3), NativeUint8List);
     }
   }
+  NativeUint8List[dart.implements] = [typed_data.Uint8List];
   dart.defineNamedConstructor(NativeUint8List, 'fromList');
   dart.defineNamedConstructor(NativeUint8List, 'view');
   let _truncate = Symbol('_truncate');
@@ -1220,6 +1237,7 @@ var _native_typed_data;
       return new NativeFloat32x4[_doubles](_x, _y, _z, _w);
     }
   }
+  NativeFloat32x4[dart.implements] = [typed_data.Float32x4];
   dart.defineNamedConstructor(NativeFloat32x4, 'splat');
   dart.defineNamedConstructor(NativeFloat32x4, 'zero');
   dart.defineNamedConstructor(NativeFloat32x4, 'fromInt32x4Bits');
@@ -1408,6 +1426,7 @@ var _native_typed_data;
       return new NativeFloat32x4[_truncated](floatList.get(0), floatList.get(1), floatList.get(2), floatList.get(3));
     }
   }
+  NativeInt32x4[dart.implements] = [typed_data.Int32x4];
   dart.defineNamedConstructor(NativeInt32x4, 'bool');
   dart.defineNamedConstructor(NativeInt32x4, 'fromFloat32x4Bits');
   dart.defineNamedConstructor(NativeInt32x4, _truncated);
@@ -1504,6 +1523,7 @@ var _native_typed_data;
       return new NativeFloat64x2[_doubles](Math.sqrt(this.x), Math.sqrt(this.y));
     }
   }
+  NativeFloat64x2[dart.implements] = [typed_data.Float64x2];
   dart.defineNamedConstructor(NativeFloat64x2, 'splat');
   dart.defineNamedConstructor(NativeFloat64x2, 'zero');
   dart.defineNamedConstructor(NativeFloat64x2, 'fromFloat32x4');

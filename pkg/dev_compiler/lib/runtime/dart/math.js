@@ -190,6 +190,7 @@ var math;
         this[_height] = height;
       }
     }
+    MutableRectangle[dart.implements] = [Rectangle$(T)];
     dart.defineNamedConstructor(MutableRectangle, 'fromPoints');
     return MutableRectangle;
   });
@@ -316,6 +317,7 @@ var math;
       return Math.random() < 0.5;
     }
   }
+  _JSRandom[dart.implements] = [Random];
   let _lo = Symbol('_lo');
   let _hi = Symbol('_hi');
   let _MASK32 = Symbol('_MASK32');
@@ -420,6 +422,7 @@ var math;
       return (dart.notNull(this[_lo]) & 1) == 0;
     }
   }
+  _Random[dart.implements] = [Random];
   _Random._POW2_53_D = 1.0 * 9007199254740992;
   _Random._POW2_27_D = 1.0 * (1 << 27);
   _Random._MASK32 = 4294967295;
