@@ -5,4 +5,6 @@ dart:
   - stable
 before_install:
   - pub global activate dart_coveralls
-script: ./tool/travis.sh
+script:
+  - ./tool/build_and_test.sh
+  - ./tool/coveralls.sh
