@@ -1438,22 +1438,6 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class VerifyUnitTaskTest extends _AbstractDartTaskTest {
-  test_perform_directiveError() {
-    // TODO(scheglov) uncomment when GetContentTask handles not
-    // existing sources correctly.
-//    Source source = _newSource('/test.dart', '''
-//library lib;
-//part '/does/not/exist.dart';
-//''');
-//    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
-//    _computeResult(target, VERIFY_ERRORS);
-//    expect(task, new isInstanceOf<VerifyUnitTask>());
-//    // validate
-//    _fillErrorListener(VERIFY_ERRORS);
-//    errorListener.assertErrorsWithCodes(
-//        <ErrorCode>[StaticTypeWarningCode.NON_BOOL_CONDITION]);
-  }
-
   test_perform_verifyError() {
     Source source = _newSource('/test.dart', '''
 main() {
