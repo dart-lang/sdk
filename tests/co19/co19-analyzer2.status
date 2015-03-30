@@ -6,6 +6,7 @@
 
 WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
 LayoutTests/fast/forms/checkValidity-001_t01: fail
+Language/12_Expressions/29_Assignable_Expressions_A01_t08: StaticWarning
 
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
@@ -67,7 +68,6 @@ LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
 
 
 Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: MissingStaticWarning
-Language/12_Expressions/29_Assignable_Expressions_A01_t09: MissingStaticWarning
 Language/13_Statements/06_For/1_For_Loop_A01_t07: MissingStaticWarning
 Language/13_Statements/06_For/1_For_Loop_A01_t08: MissingStaticWarning
 Language/13_Statements/09_Switch_A10_t03: MissingStaticWarning
