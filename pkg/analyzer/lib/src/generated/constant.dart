@@ -442,6 +442,16 @@ class ConstantValueComputer {
     });
     constructorDeclarationMap.forEach((ConstructorElement element,
         ConstructorDeclaration declaration) {
+      ConstructorElement redirectedConstructor =
+          _getConstRedirectedConstructor(element);
+      if (redirectedConstructor != null) {
+        ConstructorElement redirectedConstructorBase =
+            _getConstructorBase(redirectedConstructor);
+        ConstructorDeclaration redirectedConstructorDeclaration =
+            findConstructorDeclaration(redirectedConstructorBase);
+        referenceGraph.addEdge(declaration, redirectedConstructorDeclaration);
+        return;
+      }
       ReferenceFinder referenceFinder = new ReferenceFinder(declaration,
           referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
       referenceGraph.addNode(declaration);
@@ -488,7 +498,6 @@ class ConstantValueComputer {
       if (constructor == null) {
         continue;
       }
-      constructor = _followConstantRedirectionChain(constructor);
       ConstructorDeclaration declaration =
           findConstructorDeclaration(constructor);
       // An instance creation expression depends both on the constructor and
@@ -985,37 +994,22 @@ class ConstantValueComputer {
       ConstructorElement constructor) {
     HashSet<ConstructorElement> constructorsVisited =
         new HashSet<ConstructorElement>();
-    while (constructor.isFactory) {
-      if (identical(
-          constructor.enclosingElement.type, typeProvider.symbolType)) {
-        // The dart:core.Symbol has a const factory constructor that redirects
-        // to dart:_internal.Symbol.  That in turn redirects to an external
-        // const constructor, which we won't be able to evaluate.
-        // So stop following the chain of redirections at dart:core.Symbol, and
-        // let [evaluateInstanceCreationExpression] handle it specially.
-        break;
-      }
-      ConstructorElement constructorBase = _getConstructorBase(constructor);
-      constructorsVisited.add(constructorBase);
+    while (true) {
       ConstructorElement redirectedConstructor =
-          constructor.redirectedConstructor;
+          _getConstRedirectedConstructor(constructor);
       if (redirectedConstructor == null) {
-        // This can happen if constructor is an external factory constructor.
         break;
-      }
-      if (!redirectedConstructor.isConst) {
-        // Delegating to a non-const constructor--this is not allowed (and
-        // is checked elsewhere--see
-        // [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
-        break;
-      }
-      ConstructorElement redirectedConstructorBase =
-          _getConstructorBase(redirectedConstructor);
-      if (constructorsVisited.contains(redirectedConstructorBase)) {
-        // Cycle in redirecting factory constructors--this is not allowed
-        // and is checked elsewhere--see
-        // [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
-        break;
+      } else {
+        ConstructorElement constructorBase = _getConstructorBase(constructor);
+        constructorsVisited.add(constructorBase);
+        ConstructorElement redirectedConstructorBase =
+            _getConstructorBase(redirectedConstructor);
+        if (constructorsVisited.contains(redirectedConstructorBase)) {
+          // Cycle in redirecting factory constructors--this is not allowed
+          // and is checked elsewhere--see
+          // [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
+          break;
+        }
       }
       constructor = redirectedConstructor;
     }
@@ -1030,6 +1024,38 @@ class ConstantValueComputer {
    */
   void _generateCycleError(List<AstNode> cycle, AstNode constant) {
     // TODO(brianwilkerson) Implement this.
+  }
+
+  /**
+   * If [constructor] redirects to another const constructor, return the
+   * const constructor it redirects to.  Otherwise return `null`.
+   */
+  ConstructorElement _getConstRedirectedConstructor(
+      ConstructorElement constructor) {
+    if (!constructor.isFactory) {
+      return null;
+    }
+    if (identical(constructor.enclosingElement.type, typeProvider.symbolType)) {
+      // The dart:core.Symbol has a const factory constructor that redirects
+      // to dart:_internal.Symbol.  That in turn redirects to an external
+      // const constructor, which we won't be able to evaluate.
+      // So stop following the chain of redirections at dart:core.Symbol, and
+      // let [evaluateInstanceCreationExpression] handle it specially.
+      return null;
+    }
+    ConstructorElement redirectedConstructor =
+        constructor.redirectedConstructor;
+    if (redirectedConstructor == null) {
+      // This can happen if constructor is an external factory constructor.
+      return null;
+    }
+    if (!redirectedConstructor.isConst) {
+      // Delegating to a non-const constructor--this is not allowed (and
+      // is checked elsewhere--see
+      // [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
+      return null;
+    }
+    return redirectedConstructor;
   }
 
   ConstructorElement _getConstructorBase(ConstructorElement constructor) {
