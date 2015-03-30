@@ -1833,6 +1833,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   SORT_MEMBERS_PARSE_ERRORS
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
+ *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  */
@@ -1852,6 +1853,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "SORT_MEMBERS_PARSE_ERRORS",
   "UNANALYZED_PRIORITY_FILES",
   "UNKNOWN_REQUEST",
+  "UNKNOWN_SOURCE",
   "UNSUPPORTED_FEATURE"
 ]);
 

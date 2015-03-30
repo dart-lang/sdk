@@ -9350,6 +9350,7 @@ class RequestError implements HasToJson {
  *   SORT_MEMBERS_PARSE_ERRORS
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
+ *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  */
@@ -9450,6 +9451,12 @@ class RequestErrorCode implements Enum {
   static const UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
 
   /**
+   * The analysis server was requested to perform an action on a source that
+   * does not exist.
+   */
+  static const UNKNOWN_SOURCE = const RequestErrorCode._("UNKNOWN_SOURCE");
+
+  /**
    * The analysis server was requested to perform an action which is not
    * supported.
    *
@@ -9461,7 +9468,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -9499,6 +9506,8 @@ class RequestErrorCode implements Enum {
         return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":
         return UNKNOWN_REQUEST;
+      case "UNKNOWN_SOURCE":
+        return UNKNOWN_SOURCE;
       case "UNSUPPORTED_FEATURE":
         return UNSUPPORTED_FEATURE;
     }
