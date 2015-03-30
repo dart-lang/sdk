@@ -733,6 +733,16 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent an error condition caused
+   * by an analysis.reanalyze [request] that specifies an analysis root that is
+   * not in the current list of analysis roots.
+   */
+  Response.invalidAnalysisRoot(Request request, String rootPath) : this(
+          request.id,
+          error: new RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
+              "Invalid analysis root: $rootPath"));
+
+  /**
+   * Initialize a newly created instance to represent an error condition caused
    * by a [request] that specifies an execution context whose context root does
    * not exist.
    */

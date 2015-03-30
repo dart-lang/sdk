@@ -741,14 +741,21 @@ class AnalysisServer {
   }
 
   /**
-   * Trigger reanalysis of all files from disk.
+   * Trigger reanalysis of all files in the given list of analysis [roots], or
+   * everything if the analysis roots is `null`.
    */
-  void reanalyze() {
+  void reanalyze(List<Resource> roots) {
     // Clear any operations that are pending.
-    operationQueue.clear();
+    if (roots == null) {
+      operationQueue.clear();
+    } else {
+      for (AnalysisContext context in _getContexts(roots)) {
+        operationQueue.contextRemoved(context);
+      }
+    }
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
-    contextDirectoryManager.refresh();
+    contextDirectoryManager.refresh(roots);
   }
 
   /**
@@ -1142,6 +1149,20 @@ class AnalysisServer {
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(options);
     });
+  }
+
+  /**
+   * Return a set of contexts containing all of the resources in the given list
+   * of [resources].
+   */
+  Set<AnalysisContext> _getContexts(List<Resource> resources) {
+    Set<AnalysisContext> contexts = new HashSet<AnalysisContext>();
+    resources.forEach((Resource resource) {
+      if (resource is Folder) {
+        contexts.addAll(contextDirectoryManager.contextsInAnalysisRoot(resource));
+      }
+    });
+    return contexts;
   }
 
   /**

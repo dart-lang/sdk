@@ -163,13 +163,39 @@ abstract class ContextManager {
   }
 
   /**
-   * Rebuild the set of contexts from scratch based on the data last sent to
-   * setRoots().
+   * Return a list containing all of the contexts contained in the given
+   * [analysisRoot].
    */
-  void refresh() {
+  List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
+    List<AnalysisContext> contexts = <AnalysisContext>[];
+    _contexts.forEach((Folder contextFolder, _ContextInfo info) {
+      if (analysisRoot.isOrContains(contextFolder.path)) {
+        contexts.add(info.context);
+      }
+    });
+    return contexts;
+  }
+
+  /**
+   * Rebuild the set of contexts from scratch based on the data last sent to
+   * setRoots(). Only contexts contained in the given list of analysis [roots]
+   * will be rebuilt, unless the list is `null`, in which case every context
+   * will be rebuilt.
+   */
+  void refresh(List<Resource> roots) {
     // Destroy old contexts
     List<Folder> contextFolders = _contexts.keys.toList();
-    contextFolders.forEach(_destroyContext);
+    if (roots == null) {
+      contextFolders.forEach(_destroyContext);
+    } else {
+      roots.forEach((Resource resource) {
+        contextFolders.forEach((Folder contextFolder) {
+          if (resource is Folder && resource.isOrContains(contextFolder.path)) {
+            _destroyContext(contextFolder);
+          }
+        });
+      });
+    }
 
     // Rebuild contexts based on the data last sent to setRoots().
     setRoots(includedPaths, excludedPaths, packageRoots);

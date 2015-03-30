@@ -129,7 +129,7 @@ class ContextManagerTest {
     return pumpEventQueue().then((_) {
       expect(manager.currentContextPaths.toList(), [projPath]);
       manager.now++;
-      manager.refresh();
+      manager.refresh(null);
       return pumpEventQueue().then((_) {
         expect(manager.currentContextPaths.toList(), [projPath]);
         expect(manager.currentContextTimestamps[projPath], manager.now);
@@ -151,13 +151,38 @@ class ContextManagerTest {
       expect(manager.currentContextPaths.toSet(),
           [subdir1Path, subdir2Path, projPath].toSet());
       manager.now++;
-      manager.refresh();
+      manager.refresh(null);
       return pumpEventQueue().then((_) {
         expect(manager.currentContextPaths.toSet(),
             [subdir1Path, subdir2Path, projPath].toSet());
         expect(manager.currentContextTimestamps[projPath], manager.now);
         expect(manager.currentContextTimestamps[subdir1Path], manager.now);
         expect(manager.currentContextTimestamps[subdir2Path], manager.now);
+      });
+    });
+  }
+
+  test_refresh_oneContext() {
+    // create two contexts with pubspec.yaml files
+    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+    resourceProvider.newFile(pubspecPath, 'pubspec1');
+
+    String proj2Path = '/my/proj2';
+    resourceProvider.newFolder(proj2Path);
+    String pubspec2Path = posix.join(proj2Path, 'pubspec.yaml');
+    resourceProvider.newFile(pubspec2Path, 'pubspec2');
+
+    List<String> roots = <String>[projPath, proj2Path];
+    manager.setRoots(roots, <String>[], <String, String>{});
+    return pumpEventQueue().then((_) {
+      expect(manager.currentContextPaths.toList(), unorderedEquals(roots));
+      int then = manager.now;
+      manager.now++;
+      manager.refresh([resourceProvider.getResource(proj2Path)]);
+      return pumpEventQueue().then((_) {
+        expect(manager.currentContextPaths.toList(), unorderedEquals(roots));
+        expect(manager.currentContextTimestamps[projPath], then);
+        expect(manager.currentContextTimestamps[proj2Path], manager.now);
       });
     });
   }
