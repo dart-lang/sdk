@@ -107,6 +107,9 @@ class _PubHttpClient extends http.BaseClient {
         throw new PubHttpException(response);
       });
     }).catchError((error, stackTrace) {
+      // Work around issue 23008.
+      if (stackTrace == null) stackTrace = new Chain.current();
+
       if (error is SocketException &&
           error.osError != null) {
         if (error.osError.errorCode == 8 ||
