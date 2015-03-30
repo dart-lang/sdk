@@ -1105,6 +1105,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       for (int i = 0; i < count; i++) {
         _priorityOrder[i] = sources[i];
       }
+      // Ensure entries for every priority source.
+      for (var source in _priorityOrder) {
+        SourceEntry entry = _getReadableSourceEntry(source);
+        if (entry == null) {
+          _createSourceEntry(source, false);
+        }
+      }
     }
   }
 
