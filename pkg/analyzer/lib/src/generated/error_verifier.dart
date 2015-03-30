@@ -2003,6 +2003,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticWarningCode.ASSIGNMENT_TO_METHOD, expression);
       return true;
     }
+    if (element is ClassElement ||
+        element is FunctionTypeAliasElement ||
+        element is TypeParameterElement) {
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.ASSIGNMENT_TO_TYPE, expression);
+      return true;
+    }
     return false;
   }
 

@@ -35,6 +35,11 @@ async_await_syntax_test/b10a: MissingStaticWarning
 async_await_syntax_test/c10a: MissingStaticWarning
 async_await_syntax_test/d10a: MissingStaticWarning
 
+assign_to_type_test/01: MissingStaticWarning
+assign_to_type_test/02: MissingStaticWarning
+assign_to_type_test/03: MissingStaticWarning
+assign_to_type_test/04: MissingStaticWarning
+
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 

@@ -598,6 +598,17 @@ main() {
     verify([source]);
   }
 
+  void test_assignmentToClass() {
+    Source source = addSource('''
+class C {}
+main() {
+  C = null;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
+  }
+
   void test_assignmentToConst_instanceVariable() {
     Source source = addSource(r'''
 class A {
@@ -644,6 +655,17 @@ f() {
     resolve(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
+  }
+
+  void test_assignmentToEnumType() {
+    Source source = addSource('''
+enum E { e }
+main() {
+  E = null;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
   void test_assignmentToFinal_instanceVariable() {
@@ -823,6 +845,29 @@ f(A a) {
     resolve(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_METHOD]);
     verify([source]);
+  }
+
+  void test_assignmentToTypedef() {
+    Source source = addSource('''
+typedef void F();
+main() {
+  F = null;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
+  }
+
+  void test_assignmentToTypeParameter() {
+    Source source = addSource('''
+class C<T> {
+  f() {
+    T = null;
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
   void test_caseBlockNotTerminated() {

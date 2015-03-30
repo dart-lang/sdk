@@ -3742,6 +3742,16 @@ class StaticWarningCode extends ErrorCode {
       'ASSIGNMENT_TO_METHOD', "Methods cannot be assigned a value");
 
   /**
+   * 12.18 Assignment: It is as static warning if an assignment of the form
+   * <i>v = e</i> occurs inside a top level or static function (be it function,
+   * method, getter, or setter) or variable initializer and there is neither a
+   * local variable declaration with name <i>v</i> nor setter declaration with
+   * name <i>v=</i> in the lexical scope enclosing the assignment.
+   */
+  static const StaticWarningCode ASSIGNMENT_TO_TYPE = const StaticWarningCode(
+      'ASSIGNMENT_TO_TYPE', "Types cannot be assigned a value");
+
+  /**
    * 13.9 Switch: It is a static warning if the last statement of the statement
    * sequence <i>s<sub>k</sub></i> is not a break, continue, return or throw
    * statement.
