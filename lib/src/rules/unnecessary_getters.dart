@@ -44,7 +44,7 @@ class UnnecessaryGetters extends LintRule {
           name: 'unnecessary_getters',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.PREFER);
 
   @override

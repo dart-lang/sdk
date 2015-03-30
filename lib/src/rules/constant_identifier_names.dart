@@ -47,7 +47,7 @@ class ConstantIdentifierNames extends LintRule {
           name: 'constant_identifier_names',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.PREFER);
 
   @override

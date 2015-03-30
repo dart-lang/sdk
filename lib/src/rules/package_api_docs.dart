@@ -68,7 +68,7 @@ class PackageApiDocs extends LintRule implements ProjectVisitor {
           name: 'package_api_docs',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.DO);
 
   @override

@@ -39,7 +39,7 @@ class TypeInitFormals extends LintRule {
           name: 'type_init_formals',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.DONT);
 
   @override

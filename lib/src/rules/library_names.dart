@@ -38,7 +38,7 @@ class LibraryNames extends LintRule {
           name: 'library_names',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.DO);
 
   @override

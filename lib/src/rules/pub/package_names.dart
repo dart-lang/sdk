@@ -31,7 +31,7 @@ class PubPackageNames extends LintRule {
           name: 'package_names',
           description: desc,
           details: details,
-          group: Group.PUB,
+          group: Group.pub,
           kind: Kind.DO);
 
   @override

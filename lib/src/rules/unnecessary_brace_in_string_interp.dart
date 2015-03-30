@@ -37,7 +37,7 @@ class UnnecessaryBraceInStringInterp extends LintRule {
           name: 'unnecessary_brace_in_string_interp',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.AVOID);
 
   @override

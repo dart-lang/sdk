@@ -55,7 +55,7 @@ class PackagePrefixedLibraryNames extends LintRule {
           name: 'package_prefixed_library_names',
           description: desc,
           details: details,
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.DO);
 
   @override

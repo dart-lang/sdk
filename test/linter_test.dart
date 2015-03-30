@@ -123,8 +123,7 @@ void defineLinterEngineTests() {
 
     group('groups', () {
       test('factory', () {
-        expect(new Group('Style Guide').custom, isFalse);
-        expect(new Group('Styleguide').custom, isFalse);
+        expect(new Group('Style').custom, isFalse);
         expect(new Group('Pub').custom, isFalse);
         expect(new Group('Kustom').custom, isTrue);
       });
@@ -259,11 +258,11 @@ void defineLinterEngineTests() {
       group('maturity', () {
         test('comparing', () {
           // Custom
-          Maturity m1 = new Maturity('Foo', ordinal: 0);
-          Maturity m2 = new Maturity('Bar', ordinal: 1);
+          Maturity m1 = new Maturity('foo', ordinal: 0);
+          Maturity m2 = new Maturity('bar', ordinal: 1);
           expect(m1.compareTo(m2), equals(-1));
           // Builtin
-          expect(Maturity.STABLE.compareTo(Maturity.EXPERIMENTAL), equals(-1));
+          expect(Maturity.stable.compareTo(Maturity.experimental), equals(-1));
         });
       });
     });
@@ -596,7 +595,7 @@ class MockLinter extends LintRule {
 
   MockLinter([nodeVisitor v]) : super(
           name: 'MockLint',
-          group: Group.STYLE_GUIDE,
+          group: Group.style,
           kind: Kind.AVOID,
           description: 'Desc',
           details: 'And so on...') {

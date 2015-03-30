@@ -65,12 +65,12 @@ String get enumerateKinds => Kind.supported
     .join('\n');
 
 String get enumeratePubRules => rules
-    .where((r) => r.group == Group.PUB)
+    .where((r) => r.group == Group.pub)
     .map((r) => '${toDescription(r)}')
     .join('\n\n');
 
 String get enumerateStyleGuideRules => rules
-    .where((r) => r.group == Group.STYLE_GUIDE)
+    .where((r) => r.group == Group.style)
     .map((r) => '${toDescription(r)}')
     .join('\n\n');
 
@@ -87,7 +87,7 @@ ${parser.usage}
 }
 
 String qualify(LintRule r) => r.name.toString() +
-    (r.maturity == Maturity.STABLE ? '' : ' (${r.maturity.name})');
+    (r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})');
 
 String toDescription(LintRule r) =>
     '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/>${markdownToHtml(r.description)}';
