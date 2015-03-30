@@ -346,7 +346,7 @@ static bool ProcessObserveOption(const char* option_value,
 }
 
 
-bool trace_debug_protocol = false;
+extern bool trace_debug_protocol;
 static bool ProcessTraceDebugProtocolOption(const char* arg,
                                             CommandLineOptions* vm_options) {
   if (*arg != '\0') {
