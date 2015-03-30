@@ -836,6 +836,14 @@ class Response {
           error: new RequestError(
               RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
 
+  /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a [request] referencing a source that does not exist.
+   */
+  Response.unknownSource(Request request) : this(request.id,
+          error: new RequestError(
+              RequestErrorCode.UNKNOWN_SOURCE, 'Unknown source'));
+
   Response.unsupportedFeature(String requestId, String message) : this(
           requestId,
           error: new RequestError(

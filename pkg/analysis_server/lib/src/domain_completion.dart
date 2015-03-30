@@ -177,6 +177,9 @@ class CompletionDomainHandler implements RequestHandler {
     ContextSourcePair contextSource = server.getContextSourcePair(params.file);
     AnalysisContext context = contextSource.context;
     Source source = contextSource.source;
+    if (context == null || !context.exists(source)) {
+      return new Response.unknownSource(request);
+    }
     recordRequest(performance, context, source, params.offset);
     if (manager == null) {
       manager = completionManagerFor(context, source);

@@ -602,6 +602,11 @@ class MockContext implements AnalysisContext {
     return source.contents;
   }
 
+  @override
+  bool exists(Source source) {
+    return source != null && source.exists();
+  }
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
