@@ -616,15 +616,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // settles. See <https://github.com/dart-lang/dev_compiler/issues/51>.
       // Performance of this pattern is likely to be bad.
       name = 'constructor';
+      // Mark the parameter as no-rename.
+      var args = new JS.Identifier('arguments', allowRename: false);
       body = js.statement('''{
         // Get the class name for this instance.
         var name = this.constructor.name;
         // Call the default constructor.
         var init = this[name];
         var result = void 0;
-        if (init) result = init.apply(this, arguments);
+        if (init) result = init.apply(this, #);
         return result === void 0 ? this : result;
-      }''');
+      }''', args);
     } else {
       body = _emitConstructorBody(node, fields);
     }

@@ -40,7 +40,7 @@ class JSNamer extends LocalNamer {
     var name = node.name;
     if (node is JSTemporary) {
       return _rename(name, valid: true);
-    } else if (invalidJSVariableName(name)) {
+    } else if (node.allowRename && invalidJSVariableName(name)) {
       return _rename(name, valid: false);
     }
     return name;

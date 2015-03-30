@@ -7,7 +7,7 @@ var core;
       var init = this[name];
       var result = void 0;
       if (init)
-        result = init.apply(this, arguments$);
+        result = init.apply(this, arguments);
       return result === void 0 ? this : result;
     }
     ['=='](other) {
