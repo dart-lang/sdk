@@ -1038,10 +1038,24 @@ class AnalysisServer {
         throw new AnalysisException('Illegal change type');
       }
       overlayState.setContents(source, newContents);
+      // If the source does not exist, then it was an overlay-only one.
+      // Remove it from contexts.
+      if (newContents == null && !source.exists()) {
+        for (InternalAnalysisContext context in folderMap.values) {
+          List<Source> sources = context.getSourcesWithFullName(file);
+          ChangeSet changeSet = new ChangeSet();
+          sources.forEach(changeSet.removedSource);
+          context.applyChanges(changeSet);
+          schedulePerformAnalysisOperation(context);
+        }
+        return;
+      }
       // Update all contexts.
+      bool anyContextUpdated = false;
       for (InternalAnalysisContext context in folderMap.values) {
         List<Source> sources = context.getSourcesWithFullName(file);
         sources.forEach((Source source) {
+          anyContextUpdated = true;
           if (context.handleContentsChanged(
               source, oldContents, newContents, true)) {
             schedulePerformAnalysisOperation(context);
@@ -1066,6 +1080,16 @@ class AnalysisServer {
             }
           }
         });
+      }
+      // The source is not analyzed by any context, add to the containing one.
+      if (!anyContextUpdated) {
+        AnalysisContext context = contextSource.context;
+        if (context != null && source != null) {
+          ChangeSet changeSet = new ChangeSet();
+          changeSet.addedSource(source);
+          context.applyChanges(changeSet);
+          schedulePerformAnalysisOperation(context);
+        }
       }
     });
   }
