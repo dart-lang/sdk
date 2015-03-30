@@ -49,8 +49,8 @@ CastRecord _lookupInCache(Type runtimeType, Type staticType) {
 
 var _successCache = <Type, Set<Type>>{};
 
-dynamic cast(dynamic obj, Type fromType, Type staticType, String kind,
-    String key, bool dartIs, bool isGround) {
+dynamic cast(dynamic obj, Type fromType, Type staticType,
+    [String kind, String key, bool dartIs, bool isGround]) {
   var runtimeType = obj.runtimeType;
   // Short-circuit uninteresting cases.
   if (_skipSuccess && _successCache.containsKey(staticType)) {

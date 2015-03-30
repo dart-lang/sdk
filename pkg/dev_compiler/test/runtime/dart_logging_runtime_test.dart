@@ -19,7 +19,7 @@ void runTest() {
   var l = [new A<String>("hello"), new A("world"), new B(), 42];
   for (var item in l) {
     try {
-      devc.cast(item, astring);
+      devc.cast(item, dynamic, astring);
     } catch (e) {
       // Do nothing
     }
@@ -27,10 +27,12 @@ void runTest() {
 }
 
 final expected = '''
-Key dart_logging_runtime_test.dart 18:15 in runTest:
- - success: 2 (0.5)
- - failure: 1 (0.25)
- - mismatch: 1 (0.25)
+Key test/runtime/dart_logging_runtime_test.dart 22:16 in runTest:
+ - static type: A<String>
+ - runtime types: {A, int}
+ - success: 0 (0.0)
+ - failure: 1 (0.5)
+ - mismatch: 1 (0.5)
  - error: 0 (0.0)
 ''';
 
