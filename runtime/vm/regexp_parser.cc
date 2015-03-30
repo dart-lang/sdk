@@ -673,7 +673,7 @@ void RegExpParser::ScanForCaptures() {
   // Start with captures started previous to current position
   intptr_t capture_count = captures_started();
   // Add count of captures after this position.
-  intptr_t n;
+  uintptr_t n;
   while ((n = current()) != kEndMarker) {
     Advance();
     switch (n) {
@@ -681,7 +681,7 @@ void RegExpParser::ScanForCaptures() {
         Advance();
         break;
       case '[': {
-        intptr_t c;
+        uintptr_t c;
         while ((c = current()) != kEndMarker) {
           Advance();
           if (c == '\\') {

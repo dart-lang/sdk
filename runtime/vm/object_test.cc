@@ -2645,6 +2645,7 @@ TEST_CASE(CodeImmutability) {
   if (!FLAG_write_protect_code) {
     // Since this test is expected to crash, crash if write protection of code
     // is switched off.
+    // TODO(regis, fschneider): Should this be FATAL() instead?
     OS::DebugBreak();
   }
 }

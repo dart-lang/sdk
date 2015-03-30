@@ -261,7 +261,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ Bind(&init_loop);                                                         \
   __ AddImmediate(R3, 2 * kWordSize);                                          \
   __ cmp(R3, Operand(R1));                                                     \
-  __ strd(R6, Address(R3, -2 * kWordSize), LS);                                \
+  __ strd(R6, R3, -2 * kWordSize, LS);                                         \
   __ b(&init_loop, CC);                                                        \
   __ str(R6, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
@@ -348,23 +348,13 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    Label fall_through;
-    TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-    __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
-    __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
-    __ cmp(IP, Operand(R0, ASR, 31));
-    __ bx(LR, EQ);
-    __ Bind(&fall_through);  // Fall through on overflow.
-  } else if (TargetCPUFeatures::can_divide()) {
-    Label fall_through;
-    TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-    __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
-    __ CheckMultSignedOverflow(R0, R1, IP, D0, D1, &fall_through);
-    __ mul(R0, R0, R1);
-    __ Ret();
-    __ Bind(&fall_through);  // Fall through on overflow.
-  }
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
+  __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
+  __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
+  __ cmp(IP, Operand(R0, ASR, 31));
+  __ bx(LR, EQ);
+  __ Bind(&fall_through);  // Fall through on overflow.
 }
 
 
@@ -806,12 +796,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   //                     Uint32List r_digits)
 
   // R2 = used, R3 = digits
-  __ ldrd(R2, Address(SP, 3 * kWordSize));
+  __ ldrd(R2, SP, 3 * kWordSize);
   // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
-  __ ldrd(R4, Address(SP, 1 * kWordSize));
+  __ ldrd(R4, SP, 1 * kWordSize);
   // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -866,12 +856,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   //                     Uint32List r_digits)
 
   // R2 = used, R3 = digits
-  __ ldrd(R2, Address(SP, 3 * kWordSize));
+  __ ldrd(R2, SP, 3 * kWordSize);
   // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
-  __ ldrd(R4, Address(SP, 1 * kWordSize));
+  __ ldrd(R4, SP, 1 * kWordSize);
   // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -949,7 +939,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   Label done;
   // R3 = x, no_op if x == 0
-  __ ldrd(R0, Address(SP, 5 * kWordSize));  // R0 = xi as Smi, R1 = x_digits.
+  __ ldrd(R0, SP, 5 * kWordSize);  // R0 = xi as Smi, R1 = x_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R3, FieldAddress(R1, TypedData::data_offset()));
   __ tst(R3, Operand(R3));
@@ -961,12 +951,12 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ b(&done, EQ);
 
   // R4 = mip = &m_digits[i >> 1]
-  __ ldrd(R0, Address(SP, 3 * kWordSize));  // R0 = i as Smi, R1 = m_digits.
+  __ ldrd(R0, SP, 3 * kWordSize);  // R0 = i as Smi, R1 = m_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R4, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R5 = ajp = &a_digits[j >> 1]
-  __ ldrd(R0, Address(SP, 1 * kWordSize));  // R0 = j as Smi, R1 = a_digits.
+  __ ldrd(R0, SP, 1 * kWordSize);  // R0 = j as Smi, R1 = a_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R5, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -1052,7 +1042,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // }
 
   // R4 = xip = &x_digits[i >> 1]
-  __ ldrd(R2, Address(SP, 2 * kWordSize));  // R2 = i as Smi, R3 = x_digits
+  __ ldrd(R2, SP, 2 * kWordSize);  // R2 = i as Smi, R3 = x_digits
   __ add(R3, R3, Operand(R2, LSL, 1));
   __ add(R4, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -1130,7 +1120,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // *ajp = low32(t) = R6
   // *(ajp + 1) = high32(t) = R7
-  __ strd(R6, Address(R5, 0));
+  __ strd(R6, R5, 0);
 
   __ Bind(&x_zero);
   __ mov(R0, Operand(Smi::RawValue(1)));  // One digit processed.
@@ -1164,7 +1154,7 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
                           TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
   // R2 = digits[i >> 1]
-  __ ldrd(R0, Address(SP, 0 * kWordSize));  // R0 = i as Smi, R1 = digits
+  __ ldrd(R0, SP, 0 * kWordSize);  // R0 = i as Smi, R1 = digits
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(R1, TypedData::data_offset()));
 

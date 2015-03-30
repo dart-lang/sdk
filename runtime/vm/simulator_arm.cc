@@ -1713,12 +1713,6 @@ void Simulator::DecodeType01(Instr* instr) {
       }
     } else if (instr->IsMultiplyOrSyncPrimitive()) {
       if (instr->Bit(24) == 0) {
-        if ((TargetCPUFeatures::arm_version() != ARMv7) &&
-            (instr->Bits(21, 3) != 0)) {
-          // mla ... smlal only supported on armv7.
-          UnimplementedInstruction(instr);
-          return;
-        }
         // multiply instructions.
         Register rn = instr->RnField();
         Register rd = instr->RdField();

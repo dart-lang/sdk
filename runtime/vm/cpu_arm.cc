@@ -101,7 +101,6 @@ void HostCPUFeatures::InitOnce() {
     // This is for the DGBox. For the time-being, assume it is similar to the
     // Lego Mindstorm.
     arm_version_ = ARMv5TE;
-    // TODO(zra): Verify with DGLogik that this is correct.
     store_pc_read_offset_ = 12;
   } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
              CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {

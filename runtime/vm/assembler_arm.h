@@ -458,8 +458,11 @@ class Assembler : public ValueObject {
   void ldrsb(Register rd, Address ad, Condition cond = AL);
   void ldrsh(Register rd, Address ad, Condition cond = AL);
 
-  void ldrd(Register rd, Address ad, Condition cond = AL);
-  void strd(Register rd, Address ad, Condition cond = AL);
+  // ldrd and strd actually support the full range of addressing modes, but
+  // we don't use them, and we need to split them up into two instructions for
+  // ARMv5TE, so we only support the base + offset mode.
+  void ldrd(Register rd, Register rn, int32_t offset, Condition cond = AL);
+  void strd(Register rd, Register rn, int32_t offset, Condition cond = AL);
 
   void ldm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
@@ -634,13 +637,6 @@ class Assembler : public ValueObject {
   // registers.
   void IntegerDivide(Register result, Register left, Register right,
                      DRegister tmpl, DRegister tmpr);
-
-  // If we aren't on ARMv7, there is no smull.
-  void CheckMultSignedOverflow(Register left,
-                               Register right,
-                               Register tmp,
-                               DRegister dtmp0, DRegister dtmp1,
-                               Label* overflow);
 
   // Load and Store.
   // These three do not clobber IP.

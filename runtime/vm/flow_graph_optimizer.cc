@@ -2035,6 +2035,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kDIV:
+      if (!FlowGraphCompiler::SupportsHardwareDivision()) return false;
       if (ShouldSpecializeForDouble(ic_data) ||
           HasOnlyTwoOf(ic_data, kSmiCid)) {
         operands_type = kDoubleCid;
@@ -2087,6 +2088,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       break;
     case Token::kMOD:
     case Token::kTRUNCDIV:
+      if (!FlowGraphCompiler::SupportsHardwareDivision()) return false;
       if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         if (ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)) {
           return false;

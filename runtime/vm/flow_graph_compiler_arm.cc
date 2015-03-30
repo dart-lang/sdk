@@ -59,6 +59,11 @@ bool FlowGraphCompiler::SupportsSinCos() {
 }
 
 
+bool FlowGraphCompiler::SupportsHardwareDivision() {
+  return TargetCPUFeatures::can_divide();
+}
+
+
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;

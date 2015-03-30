@@ -3054,9 +3054,6 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   } else if (((op_kind() == Token::kSHL) && can_overflow()) ||
              (op_kind() == Token::kSHR)) {
     num_temps = 1;
-  } else if ((op_kind() == Token::kMUL) &&
-             (TargetCPUFeatures::arm_version() != ARMv7)) {
-    num_temps = 1;
   }
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, num_temps, LocationSummary::kNoCall);
@@ -3087,11 +3084,6 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
-  }
-  if (op_kind() == Token::kMUL) {
-    if (TargetCPUFeatures::arm_version() != ARMv7) {
-      summary->set_temp(0, Location::RequiresFpuRegister());
-    }
   }
   // We make use of 3-operand instructions by not requiring result register
   // to be identical to first input register as on Intel.
@@ -3145,24 +3137,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ LoadImmediate(IP, value);
           __ mul(result, left, IP);
         } else {
-          if (TargetCPUFeatures::arm_version() == ARMv7) {
-            __ LoadImmediate(IP, value);
-            __ smull(result, IP, left, IP);
-            // IP: result bits 32..63.
-            __ cmp(IP, Operand(result, ASR, 31));
-            __ b(deopt, NE);
-          } else if (TargetCPUFeatures::can_divide()) {
-            const QRegister qtmp = locs()->temp(0).fpu_reg();
-            const DRegister dtmp0 = EvenDRegisterOf(qtmp);
-            const DRegister dtmp1 = OddDRegisterOf(qtmp);
-            __ LoadImmediate(IP, value);
-            __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
-            __ mul(result, left, IP);
-          } else {
-           // TODO(vegorov): never emit this instruction if hardware does not
-           // support it! This will lead to deopt cycle penalizing the code.
-            __ b(deopt);
-          }
+          __ LoadImmediate(IP, value);
+          __ smull(result, IP, left, IP);
+          // IP: result bits 32..63.
+          __ cmp(IP, Operand(result, ASR, 31));
+          __ b(deopt, NE);
         }
         break;
       }
@@ -3262,22 +3241,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (deopt == NULL) {
         __ mul(result, IP, right);
       } else {
-        if (TargetCPUFeatures::arm_version() == ARMv7) {
-          __ smull(result, IP, IP, right);
-          // IP: result bits 32..63.
-          __ cmp(IP, Operand(result, ASR, 31));
-          __ b(deopt, NE);
-        } else if (TargetCPUFeatures::can_divide()) {
-          const QRegister qtmp = locs()->temp(0).fpu_reg();
-          const DRegister dtmp0 = EvenDRegisterOf(qtmp);
-          const DRegister dtmp1 = OddDRegisterOf(qtmp);
-          __ CheckMultSignedOverflow(IP, right, result, dtmp0, dtmp1, deopt);
-          __ mul(result, IP, right);
-        } else {
-          // TODO(vegorov): never emit this instruction if hardware does not
-          // support it! This will lead to deopt cycle penalizing the code.
-          __ b(deopt);
-        }
+        __ smull(result, IP, IP, right);
+        // IP: result bits 32..63.
+        __ cmp(IP, Operand(result, ASR, 31));
+        __ b(deopt, NE);
       }
       break;
     }
@@ -3297,22 +3264,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
+      ASSERT(TargetCPUFeatures::can_divide());
       if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
         // Handle divide by zero in runtime.
         __ cmp(right, Operand(0));
         __ b(deopt, EQ);
       }
       const Register temp = locs()->temp(0).reg();
-      if (TargetCPUFeatures::can_divide()) {
-        const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
-        __ SmiUntag(temp, left);
-        __ SmiUntag(IP, right);
-        __ IntegerDivide(result, temp, IP, dtemp, DTMP);
-      } else {
-        // TODO(vegorov): never emit this instruction if hardware does not
-        // support it! This will lead to deopt cycle penalizing the code.
-        __ b(deopt);
-      }
+      const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+      __ SmiUntag(temp, left);
+      __ SmiUntag(IP, right);
+      __ IntegerDivide(result, temp, IP, dtemp, DTMP);
 
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
@@ -3322,22 +3284,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
+      ASSERT(TargetCPUFeatures::can_divide());
       if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
         // Handle divide by zero in runtime.
         __ cmp(right, Operand(0));
         __ b(deopt, EQ);
       }
       const Register temp = locs()->temp(0).reg();
-      if (TargetCPUFeatures::can_divide()) {
-        const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
-        __ SmiUntag(temp, left);
-        __ SmiUntag(IP, right);
-        __ IntegerDivide(result, temp, IP, dtemp, DTMP);
-      } else {
-        // TODO(vegorov): never emit this instruction if hardware does not
-        // support it! This will lead to deopt cycle penalizing the code.
-        __ b(deopt);
-      }
+      const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+      __ SmiUntag(temp, left);
+      __ SmiUntag(IP, right);
+      __ IntegerDivide(result, temp, IP, dtemp, DTMP);
       __ SmiUntag(IP, right);
       __ mls(result, IP, result, temp);  // result <- left - right * result
       __ SmiTag(result);
@@ -3432,9 +3389,6 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     num_temps = 1;
-  } else if ((op_kind() == Token::kMUL) &&
-             (TargetCPUFeatures::arm_version() != ARMv7)) {
-    num_temps = 1;
   }
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, num_temps, LocationSummary::kNoCall);
@@ -3443,11 +3397,6 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
-  }
-  if (op_kind() == Token::kMUL) {
-    if (TargetCPUFeatures::arm_version() != ARMv7) {
-      summary->set_temp(0, Location::RequiresFpuRegister());
-    }
   }
   // We make use of 3-operand instructions by not requiring result register
   // to be identical to first input register as on Intel.
@@ -3499,24 +3448,11 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ LoadImmediate(IP, value);
           __ mul(result, left, IP);
         } else {
-          if (TargetCPUFeatures::arm_version() == ARMv7) {
-            __ LoadImmediate(IP, value);
-            __ smull(result, IP, left, IP);
-            // IP: result bits 32..63.
-            __ cmp(IP, Operand(result, ASR, 31));
-            __ b(deopt, NE);
-          } else if (TargetCPUFeatures::can_divide()) {
-            const QRegister qtmp = locs()->temp(0).fpu_reg();
-            const DRegister dtmp0 = EvenDRegisterOf(qtmp);
-            const DRegister dtmp1 = OddDRegisterOf(qtmp);
-            __ LoadImmediate(IP, value);
-            __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
-            __ mul(result, left, IP);
-          } else {
-            // TODO(vegorov): never emit this instruction if hardware does not
-            // support it! This will lead to deopt cycle penalizing the code.
-            __ b(deopt);
-          }
+          __ LoadImmediate(IP, value);
+          __ smull(result, IP, left, IP);
+          // IP: result bits 32..63.
+          __ cmp(IP, Operand(result, ASR, 31));
+          __ b(deopt, NE);
         }
         break;
       }
@@ -3593,22 +3529,10 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (deopt == NULL) {
         __ mul(result, left, right);
       } else {
-        if (TargetCPUFeatures::arm_version() == ARMv7) {
-          __ smull(result, IP, left, right);
-          // IP: result bits 32..63.
-          __ cmp(IP, Operand(result, ASR, 31));
-          __ b(deopt, NE);
-        } else if (TargetCPUFeatures::can_divide()) {
-          const QRegister qtmp = locs()->temp(0).fpu_reg();
-          const DRegister dtmp0 = EvenDRegisterOf(qtmp);
-          const DRegister dtmp1 = OddDRegisterOf(qtmp);
-          __ CheckMultSignedOverflow(left, right, result, dtmp0, dtmp1, deopt);
-          __ mul(result, left, right);
-        } else {
-          // TODO(vegorov): never emit this instruction if hardware does not
-          // support it! This will lead to deopt cycle penalizing the code.
-          __ b(deopt);
-        }
+        __ smull(result, IP, left, right);
+        // IP: result bits 32..63.
+        __ cmp(IP, Operand(result, ASR, 31));
+        __ b(deopt, NE);
       }
       break;
     }
@@ -5880,6 +5804,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
   }
   if (kind() == MergedMathInstr::kTruncDivMod) {
+    ASSERT(TargetCPUFeatures::can_divide());
     const Register left = locs()->in(0).reg();
     const Register right = locs()->in(1).reg();
     ASSERT(locs()->out(0).IsPairLocation());
@@ -5893,16 +5818,10 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(deopt, EQ);
     }
     const Register temp = locs()->temp(0).reg();
-    if (TargetCPUFeatures::can_divide()) {
-      const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
-      __ SmiUntag(temp, left);
-      __ SmiUntag(IP, right);
-      __ IntegerDivide(result_div, temp, IP, dtemp, DTMP);
-    } else {
-      // TODO(vegorov): never emit this instruction if hardware does not
-      // support it! This will lead to deopt cycle penalizing the code.
-      __ b(deopt);
-    }
+    const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+    __ SmiUntag(temp, left);
+    __ SmiUntag(IP, right);
+    __ IntegerDivide(result_div, temp, IP, dtemp, DTMP);
 
     // Check the corner case of dividing the 'MIN_SMI' with -1, in which
     // case we cannot tag the result.
@@ -6261,16 +6180,10 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // result without causing overflow.
       // We deopt on larger inputs.
       // TODO(regis): Range analysis may eliminate the deopt check.
-      if (TargetCPUFeatures::arm_version() == ARMv7) {
-        __ cmp(left_hi, Operand(left_lo, ASR, 31));
-        __ cmp(right_hi, Operand(right_lo, ASR, 31), EQ);
-        __ b(deopt, NE);
-        __ smull(out_lo, out_hi, left_lo, right_lo);
-      } else {
-        // TODO(vegorov): never emit this instruction if hardware does not
-        // support it! This will lead to deopt cycle penalizing the code.
-        __ b(deopt);
-      }
+      __ cmp(left_hi, Operand(left_lo, ASR, 31));
+      __ cmp(right_hi, Operand(right_lo, ASR, 31), EQ);
+      __ b(deopt, NE);
+      __ smull(out_lo, out_hi, left_lo, right_lo);
       break;
     }
     default:
