@@ -11046,16 +11046,11 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (primary_node->IsSuper()) {
             ReportError(primary_pos, "illegal use of super");
           }
-          String& name = String::CheckedZoneHandle(
-              primary_node->primary().raw());
+          String& name =
+              String::CheckedZoneHandle(primary_node->primary().raw());
           if (current_function().is_static()) {
-            selector = ThrowNoSuchMethodError(primary_pos,
-                                              current_class(),
-                                              name,
-                                              NULL,  // No arguments.
-                                              InvocationMirror::kStatic,
-                                              InvocationMirror::kMethod,
-                                              NULL);  // No existing function.
+            // The static call will be converted to throwing a NSM error.
+            selector = ParseStaticCall(current_class(), name, primary_pos);
           } else {
             // Treat as call to unresolved (instance) method.
             selector = ParseInstanceCall(LoadReceiver(primary_pos),
