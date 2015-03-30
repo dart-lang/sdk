@@ -346,17 +346,17 @@ var _internal;
     return ListIterator;
   });
   let ListIterator = ListIterator$(dart.dynamic);
-  let _f = Symbol('_f');
   let _ = Symbol('_');
+  let _f = Symbol('_f');
   let MappedIterable$ = dart.generic(function(S, T) {
     class MappedIterable extends collection.IterableBase$(T) {
       MappedIterable(iterable, func) {
         if (dart.is(iterable, EfficientLength)) {
           return new EfficientLengthMappedIterable(iterable, func);
         }
-        return new MappedIterable._(dart.as(iterable, core.Iterable$(S)), func);
+        return new MappedIterable[_](dart.as(iterable, core.Iterable$(S)), func);
       }
-      MappedIterable$_(iterable$, f$) {
+      [_](iterable$, f$) {
         this[_iterable] = iterable$;
         this[_f] = f$;
         super.IterableBase();
@@ -390,7 +390,7 @@ var _internal;
   let EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
     class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
       EfficientLengthMappedIterable(iterable, func) {
-        super.MappedIterable$_(dart.as(iterable, core.Iterable$(S)), func);
+        super[_](dart.as(iterable, core.Iterable$(S)), func);
       }
     }
     return EfficientLengthMappedIterable;
@@ -531,9 +531,9 @@ var _internal;
         if (dart.is(iterable, EfficientLength)) {
           return new EfficientLengthTakeIterable(iterable, takeCount);
         }
-        return new TakeIterable._(iterable, takeCount);
+        return new TakeIterable[_](iterable, takeCount);
       }
-      TakeIterable$_(iterable$, takeCount$) {
+      [_](iterable$, takeCount$) {
         this[_iterable] = iterable$;
         this[_takeCount] = takeCount$;
         super.IterableBase();
@@ -549,7 +549,7 @@ var _internal;
   let EfficientLengthTakeIterable$ = dart.generic(function(E) {
     class EfficientLengthTakeIterable extends TakeIterable$(E) {
       EfficientLengthTakeIterable(iterable, takeCount) {
-        super.TakeIterable$_(iterable, takeCount);
+        super[_](iterable, takeCount);
       }
       get length() {
         let iterableLength = this[_iterable].length;
@@ -635,9 +635,9 @@ var _internal;
         if (dart.is(iterable, EfficientLength)) {
           return new EfficientLengthSkipIterable(iterable, count);
         }
-        return new SkipIterable._(iterable, count);
+        return new SkipIterable[_](iterable, count);
       }
-      SkipIterable$_(iterable$, skipCount$) {
+      [_](iterable$, skipCount$) {
         this[_iterable] = iterable$;
         this[_skipCount] = skipCount$;
         super.IterableBase();
@@ -651,7 +651,7 @@ var _internal;
           throw new core.ArgumentError.value(this[_skipCount], "count is not an integer");
         }
         core.RangeError.checkNotNegative(this[_skipCount], "count");
-        return new SkipIterable._(this[_iterable], dart.notNull(this[_skipCount]) + dart.notNull(count));
+        return new SkipIterable[_](this[_iterable], dart.notNull(this[_skipCount]) + dart.notNull(count));
       }
       get iterator() {
         return new SkipIterator(this[_iterable].iterator, this[_skipCount]);
@@ -664,7 +664,7 @@ var _internal;
   let EfficientLengthSkipIterable$ = dart.generic(function(E) {
     class EfficientLengthSkipIterable extends SkipIterable$(E) {
       EfficientLengthSkipIterable(iterable, skipCount) {
-        super.SkipIterable$_(iterable, skipCount);
+        super[_](iterable, skipCount);
       }
       get length() {
         let length = dart.notNull(this[_iterable].length) - dart.notNull(this[_skipCount]);
@@ -1773,10 +1773,10 @@ var _internal;
     Symbol(name) {
       this[_name] = name;
     }
-    Symbol$unvalidated(name$) {
+    unvalidated(name$) {
       this[_name] = name$;
     }
-    Symbol$validated(name) {
+    validated(name) {
       this[_name] = Symbol.validatePublicSymbol(name);
     }
     ['=='](other) {

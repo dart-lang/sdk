@@ -232,7 +232,7 @@ var convert;
     class ChunkedConversionSink extends core.Object {
       ChunkedConversionSink() {
       }
-      ChunkedConversionSink$withCallback(callback) {
+      withCallback(callback) {
         return new _SimpleCallbackSink(callback);
       }
     }
@@ -244,10 +244,10 @@ var convert;
     ByteConversionSink() {
       super.ChunkedConversionSink();
     }
-    ByteConversionSink$withCallback(callback) {
+    withCallback(callback) {
       return new _ByteCallbackSink(callback);
     }
-    ByteConversionSink$from(sink) {
+    from(sink) {
       return new _ByteAdapterSink(sink);
     }
   }
@@ -482,10 +482,10 @@ var convert;
   });
   let _FusedConverter = _FusedConverter$(dart.dynamic, dart.dynamic, dart.dynamic);
   let HTML_ESCAPE = new HtmlEscape();
-  let _name = Symbol('_name');
   let _$ = Symbol('_');
+  let _name = Symbol('_name');
   class HtmlEscapeMode extends core.Object {
-    HtmlEscapeMode$_(name$, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
+    [_$](name$, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
       this[_name] = name$;
       this.escapeLtGt = escapeLtGt;
       this.escapeQuot = escapeQuot;
@@ -497,9 +497,9 @@ var convert;
     }
   }
   dart.defineNamedConstructor(HtmlEscapeMode, _$);
-  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode._('unknown', true, true, true, true);
-  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode._('attribute', false, true, false, false);
-  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode._('element', true, false, false, true);
+  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode[_$]('unknown', true, true, true, true);
+  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode[_$]('attribute', false, true, false, false);
+  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode[_$]('element', true, false, false, true);
   let _convert = Symbol('_convert');
   class HtmlEscape extends Converter$(core.String, core.String) {
     HtmlEscape(mode) {
@@ -631,7 +631,7 @@ var convert;
       this[_toEncodable$] = toEncodable;
       super.Codec();
     }
-    JsonCodec$withReviver(reviver) {
+    withReviver(reviver) {
       this.JsonCodec({reviver: reviver});
     }
     decode(source, opts) {
@@ -670,7 +670,7 @@ var convert;
       this[_toEncodable$] = toEncodable;
       super.Converter();
     }
-    JsonEncoder$withIndent(indent, toEncodable) {
+    withIndent(indent, toEncodable) {
       if (toEncodable === void 0)
         toEncodable = null;
       this.indent = indent;
@@ -1434,13 +1434,13 @@ var convert;
     StringConversionSink() {
       super.ChunkedConversionSink();
     }
-    StringConversionSink$withCallback(callback) {
+    withCallback(callback) {
       return new _StringCallbackSink(callback);
     }
-    StringConversionSink$from(sink) {
+    from(sink) {
       return new _StringAdapterSink(sink);
     }
-    StringConversionSink$fromStringSink(sink) {
+    fromStringSink(sink) {
       return new _StringSinkConversionSink(sink);
     }
   }
@@ -1448,7 +1448,7 @@ var convert;
   dart.defineNamedConstructor(StringConversionSink, 'from');
   dart.defineNamedConstructor(StringConversionSink, 'fromStringSink');
   class ClosableStringSink extends core.StringSink {
-    ClosableStringSink$fromStringSink(sink, onClose) {
+    fromStringSink(sink, onClose) {
       return new _ClosableStringSink(sink, onClose);
     }
   }
@@ -1620,12 +1620,11 @@ var convert;
         this.close();
     }
   }
-  let _Utf8ConversionSink$_ = Symbol('_Utf8ConversionSink$_');
   class _Utf8ConversionSink extends ByteConversionSink {
     _Utf8ConversionSink(sink, allowMalformed) {
-      this[_Utf8ConversionSink$_](sink, new core.StringBuffer(), allowMalformed);
+      this[_$](sink, new core.StringBuffer(), allowMalformed);
     }
-    _Utf8ConversionSink$_(chunkedSink, stringBuffer, allowMalformed) {
+    [_$](chunkedSink, stringBuffer, allowMalformed) {
       this[_chunkedSink] = chunkedSink;
       this[_decoder] = new _Utf8Decoder(stringBuffer, allowMalformed);
       this[_buffer] = stringBuffer;
@@ -1720,16 +1719,15 @@ var convert;
       return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));
     }
   }
-  let _Utf8Encoder$withBufferSize = Symbol('_Utf8Encoder$withBufferSize');
   let _DEFAULT_BYTE_BUFFER_SIZE = Symbol('_DEFAULT_BYTE_BUFFER_SIZE');
   let _createBuffer = Symbol('_createBuffer');
   let _writeSurrogate = Symbol('_writeSurrogate');
   let _fillBuffer = Symbol('_fillBuffer');
   class _Utf8Encoder extends core.Object {
     _Utf8Encoder() {
-      this[_Utf8Encoder$withBufferSize](_Utf8Encoder[_DEFAULT_BYTE_BUFFER_SIZE]);
+      this.withBufferSize(_Utf8Encoder[_DEFAULT_BYTE_BUFFER_SIZE]);
     }
-    _Utf8Encoder$withBufferSize(bufferSize) {
+    withBufferSize(bufferSize) {
       this[_buffer] = _Utf8Encoder[_createBuffer](bufferSize);
       this[_carry] = 0;
       this[_bufferIndex] = 0;

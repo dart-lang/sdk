@@ -5,16 +5,16 @@ var typed_data;
   }
   class TypedData extends core.Object {
   }
-  let _littleEndian = Symbol('_littleEndian');
   let _ = Symbol('_');
+  let _littleEndian = Symbol('_littleEndian');
   class Endianness extends core.Object {
-    Endianness$_(littleEndian) {
+    [_](littleEndian) {
       this[_littleEndian] = littleEndian;
     }
   }
   dart.defineNamedConstructor(Endianness, _);
-  Endianness.BIG_ENDIAN = new Endianness._(false);
-  Endianness.LITTLE_ENDIAN = new Endianness._(true);
+  Endianness.BIG_ENDIAN = new Endianness[_](false);
+  Endianness.LITTLE_ENDIAN = new Endianness[_](true);
   dart.defineLazyProperties(Endianness, {
     get HOST_ENDIAN() {
       return new ByteData.view(new Uint16List.fromList(dart.as(new core.List.from([1]), core.List$(core.int))).buffer).getInt8(0) === 1 ? Endianness.LITTLE_ENDIAN : Endianness.BIG_ENDIAN;
@@ -24,7 +24,7 @@ var typed_data;
     ByteData(length) {
       return new _native_typed_data.NativeByteData(length);
     }
-    ByteData$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -37,10 +37,10 @@ var typed_data;
     Int8List(length) {
       return new _native_typed_data.NativeInt8List(length);
     }
-    Int8List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeInt8List.fromList(elements);
     }
-    Int8List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -55,10 +55,10 @@ var typed_data;
     Uint8List(length) {
       return new _native_typed_data.NativeUint8List(length);
     }
-    Uint8List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeUint8List.fromList(elements);
     }
-    Uint8List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -73,10 +73,10 @@ var typed_data;
     Uint8ClampedList(length) {
       return new _native_typed_data.NativeUint8ClampedList(length);
     }
-    Uint8ClampedList$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeUint8ClampedList.fromList(elements);
     }
-    Uint8ClampedList$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -91,10 +91,10 @@ var typed_data;
     Int16List(length) {
       return new _native_typed_data.NativeInt16List(length);
     }
-    Int16List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeInt16List.fromList(elements);
     }
-    Int16List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -109,10 +109,10 @@ var typed_data;
     Uint16List(length) {
       return new _native_typed_data.NativeUint16List(length);
     }
-    Uint16List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeUint16List.fromList(elements);
     }
-    Uint16List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -127,10 +127,10 @@ var typed_data;
     Int32List(length) {
       return new _native_typed_data.NativeInt32List(length);
     }
-    Int32List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeInt32List.fromList(elements);
     }
-    Int32List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -145,10 +145,10 @@ var typed_data;
     Uint32List(length) {
       return new _native_typed_data.NativeUint32List(length);
     }
-    Uint32List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeUint32List.fromList(elements);
     }
-    Uint32List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -163,10 +163,10 @@ var typed_data;
     Int64List(length) {
       throw new core.UnsupportedError("Int64List not supported by dart2js.");
     }
-    Int64List$fromList(elements) {
+    fromList(elements) {
       throw new core.UnsupportedError("Int64List not supported by dart2js.");
     }
-    Int64List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -181,10 +181,10 @@ var typed_data;
     Uint64List(length) {
       throw new core.UnsupportedError("Uint64List not supported by dart2js.");
     }
-    Uint64List$fromList(elements) {
+    fromList(elements) {
       throw new core.UnsupportedError("Uint64List not supported by dart2js.");
     }
-    Uint64List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -199,10 +199,10 @@ var typed_data;
     Float32List(length) {
       return new _native_typed_data.NativeFloat32List(length);
     }
-    Float32List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeFloat32List.fromList(elements);
     }
-    Float32List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -217,10 +217,10 @@ var typed_data;
     Float64List(length) {
       return new _native_typed_data.NativeFloat64List(length);
     }
-    Float64List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeFloat64List.fromList(elements);
     }
-    Float64List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -235,10 +235,10 @@ var typed_data;
     Float32x4List(length) {
       return new _native_typed_data.NativeFloat32x4List(length);
     }
-    Float32x4List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeFloat32x4List.fromList(elements);
     }
-    Float32x4List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -253,10 +253,10 @@ var typed_data;
     Int32x4List(length) {
       return new _native_typed_data.NativeInt32x4List(length);
     }
-    Int32x4List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeInt32x4List.fromList(elements);
     }
-    Int32x4List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -271,10 +271,10 @@ var typed_data;
     Float64x2List(length) {
       return new _native_typed_data.NativeFloat64x2List(length);
     }
-    Float64x2List$fromList(elements) {
+    fromList(elements) {
       return new _native_typed_data.NativeFloat64x2List.fromList(elements);
     }
-    Float64x2List$view(buffer, offsetInBytes, length) {
+    view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
@@ -289,16 +289,16 @@ var typed_data;
     Float32x4(x, y, z, w) {
       return new _native_typed_data.NativeFloat32x4(x, y, z, w);
     }
-    Float32x4$splat(v) {
+    splat(v) {
       return new _native_typed_data.NativeFloat32x4.splat(v);
     }
-    Float32x4$zero() {
+    zero() {
       return new _native_typed_data.NativeFloat32x4.zero();
     }
-    Float32x4$fromInt32x4Bits(x) {
+    fromInt32x4Bits(x) {
       return new _native_typed_data.NativeFloat32x4.fromInt32x4Bits(x);
     }
-    Float32x4$fromFloat64x2(v) {
+    fromFloat64x2(v) {
       return new _native_typed_data.NativeFloat32x4.fromFloat64x2(v);
     }
   }
@@ -566,10 +566,10 @@ var typed_data;
     Int32x4(x, y, z, w) {
       return new _native_typed_data.NativeInt32x4(x, y, z, w);
     }
-    Int32x4$bool(x, y, z, w) {
+    bool(x, y, z, w) {
       return new _native_typed_data.NativeInt32x4.bool(x, y, z, w);
     }
-    Int32x4$fromFloat32x4Bits(x) {
+    fromFloat32x4Bits(x) {
       return new _native_typed_data.NativeInt32x4.fromFloat32x4Bits(x);
     }
   }
@@ -835,13 +835,13 @@ var typed_data;
     Float64x2(x, y) {
       return new _native_typed_data.NativeFloat64x2(x, y);
     }
-    Float64x2$splat(v) {
+    splat(v) {
       return new _native_typed_data.NativeFloat64x2.splat(v);
     }
-    Float64x2$zero() {
+    zero() {
       return new _native_typed_data.NativeFloat64x2.zero();
     }
-    Float64x2$fromFloat32x4(v) {
+    fromFloat32x4(v) {
       return new _native_typed_data.NativeFloat64x2.fromFloat32x4(v);
     }
   }

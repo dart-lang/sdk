@@ -58,7 +58,7 @@ var async;
     class Stream extends core.Object {
       Stream() {
       }
-      Stream$fromFuture(future) {
+      fromFuture(future) {
         let controller = dart.as(new StreamController({sync: true}), _StreamController$(T));
         future.then(dart.closureWrap(((value) => {
           controller._add(dart.as(value, T));
@@ -69,10 +69,10 @@ var async;
           }).bind(this)});
         return controller.stream;
       }
-      Stream$fromIterable(data) {
+      fromIterable(data) {
         return new _GeneratedStreamImpl(() => new _IterablePendingEvents(data));
       }
-      Stream$periodic(period, computation) {
+      periodic(period, computation) {
         if (computation === void 0)
           computation = null;
         if (computation === null)
@@ -117,7 +117,7 @@ var async;
           }).bind(this)});
         return controller.stream;
       }
-      Stream$eventTransformed(source, mapSink) {
+      eventTransformed(source, mapSink) {
         return dart.as(new _BoundSinkStream(source, dart.closureWrap(mapSink, "(EventSink<dynamic>) → EventSink")), Stream$(T));
       }
       get isBroadcast() {
@@ -1576,7 +1576,7 @@ var async;
         }).bind(this));
         return dart.as(result, Future$(T));
       }
-      Future$microtask(computation) {
+      microtask(computation) {
         let result = new _Future();
         scheduleMicrotask((() => {
           try {
@@ -1589,7 +1589,7 @@ var async;
         }).bind(this));
         return dart.as(result, Future$(T));
       }
-      Future$sync(computation) {
+      sync(computation) {
         try {
           let result = computation();
           return new Future.value(result);
@@ -1599,12 +1599,12 @@ var async;
         }
 
       }
-      Future$value(value) {
+      value(value) {
         if (value === void 0)
           value = null;
         return new _Future.immediate(value);
       }
-      Future$error(error, stackTrace) {
+      error(error, stackTrace) {
         if (stackTrace === void 0)
           stackTrace = null;
         error = _nonNullError(error);
@@ -1617,7 +1617,7 @@ var async;
         }
         return new _Future.immediateError(error, stackTrace);
       }
-      Future$delayed(duration, computation) {
+      delayed(duration, computation) {
         if (computation === void 0)
           computation = null;
         let result = new _Future();
@@ -1747,7 +1747,7 @@ var async;
       Completer() {
         return new _AsyncCompleter();
       }
-      Completer$sync() {
+      sync() {
         return new _SyncCompleter();
       }
     }
@@ -1830,28 +1830,28 @@ var async;
   let _errorTest = Symbol('_errorTest');
   let _whenCompleteAction = Symbol('_whenCompleteAction');
   class _FutureListener extends core.Object {
-    _FutureListener$then(result, onValue, errorCallback) {
+    then(result, onValue, errorCallback) {
       this.result = result;
       this.callback = onValue;
       this.errorCallback = errorCallback;
       this.state = errorCallback === null ? _FutureListener.STATE_THEN : _FutureListener.STATE_THEN_ONERROR;
       this[_nextListener] = null;
     }
-    _FutureListener$catchError(result, errorCallback, test) {
+    catchError(result, errorCallback, test) {
       this.result = result;
       this.errorCallback = errorCallback;
       this.callback = test;
       this.state = test === null ? _FutureListener.STATE_CATCHERROR : _FutureListener.STATE_CATCHERROR_TEST;
       this[_nextListener] = null;
     }
-    _FutureListener$whenComplete(result, onComplete) {
+    whenComplete(result, onComplete) {
       this.result = result;
       this.callback = onComplete;
       this.errorCallback = null;
       this.state = _FutureListener.STATE_WHENCOMPLETE;
       this[_nextListener] = null;
     }
-    _FutureListener$chain(result) {
+    chain(result) {
       this.result = result;
       this.callback = null;
       this.errorCallback = null;
@@ -1933,13 +1933,13 @@ var async;
         this[_state] = _Future[_INCOMPLETE];
         this[_resultOrListeners] = null;
       }
-      _Future$immediate(value) {
+      immediate(value) {
         this[_zone] = Zone.current;
         this[_state] = _Future[_INCOMPLETE];
         this[_resultOrListeners] = null;
         this[_asyncComplete](value);
       }
-      _Future$immediateError(error, stackTrace) {
+      immediateError(error, stackTrace) {
         if (stackTrace === void 0)
           stackTrace = null;
         this[_zone] = Zone.current;
@@ -2544,7 +2544,7 @@ var async;
       StreamTransformer(transformer) {
         return new _StreamSubscriptionTransformer(transformer);
       }
-      StreamTransformer$fromHandlers(opts) {
+      fromHandlers(opts) {
         return new _StreamHandlerTransformer(opts);
       }
     }
@@ -2594,7 +2594,7 @@ var async;
         }
         return sync ? new _SyncStreamController(onListen, onPause, onResume, onCancel) : new _AsyncStreamController(onListen, onPause, onResume, onCancel);
       }
-      StreamController$broadcast(opts) {
+      broadcast(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
         let sync = opts && 'sync' in opts ? opts.sync : false;
@@ -4189,7 +4189,7 @@ var async;
       }
       return Zone.current.createTimer(duration, Zone.current.bindCallback(callback, {runGuarded: true}));
     }
-    Timer$periodic(duration, callback) {
+    periodic(duration, callback) {
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createPeriodicTimer(duration, callback);
       }
@@ -4222,7 +4222,7 @@ var async;
     ZoneSpecification(opts) {
       return new _ZoneSpecification(opts);
     }
-    ZoneSpecification$from(other, opts) {
+    from(other, opts) {
       let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
       let run = opts && 'run' in opts ? opts.run : null;
       let runUnary = opts && 'runUnary' in opts ? opts.runUnary : null;
@@ -4272,11 +4272,11 @@ var async;
   }
   class ZoneDelegate extends core.Object {
   }
+  let _$ = Symbol('_');
   let _enter = Symbol('_enter');
   let _leave = Symbol('_leave');
-  let _$ = Symbol('_');
   class Zone extends core.Object {
-    Zone$_() {
+    [_$]() {
     }
     static get current() {
       return Zone[_current];

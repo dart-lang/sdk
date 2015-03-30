@@ -46,7 +46,7 @@ var core;
   }
   let proxy = new _Proxy();
   class bool extends Object {
-    bool$fromEnvironment(name, opts) {
+    fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : false;
       throw new UnsupportedError('bool.fromEnvironment can only be used as a const constructor');
     }
@@ -64,14 +64,14 @@ var core;
     return Comparable;
   });
   let Comparable = Comparable$(dart.dynamic);
+  let _internal$ = dart.JsSymbol('_internal');
+  let _now = dart.JsSymbol('_now');
   let _brokenDownDateToMillisecondsSinceEpoch = dart.JsSymbol('_brokenDownDateToMillisecondsSinceEpoch');
   let _MAX_MILLISECONDS_SINCE_EPOCH = dart.JsSymbol('_MAX_MILLISECONDS_SINCE_EPOCH');
   let _fourDigits = dart.JsSymbol('_fourDigits');
   let _sixDigits = dart.JsSymbol('_sixDigits');
   let _threeDigits = dart.JsSymbol('_threeDigits');
   let _twoDigits = dart.JsSymbol('_twoDigits');
-  let _internal$ = dart.JsSymbol('_internal');
-  let _now = dart.JsSymbol('_now');
   class DateTime extends Object {
     DateTime(year, month, day, hour, minute, second, millisecond) {
       if (month === void 0)
@@ -86,9 +86,9 @@ var core;
         second = 0;
       if (millisecond === void 0)
         millisecond = 0;
-      this.DateTime$_internal(year, month, day, hour, minute, second, millisecond, false);
+      this[_internal$](year, month, day, hour, minute, second, millisecond, false);
     }
-    DateTime$utc(year, month, day, hour, minute, second, millisecond) {
+    utc(year, month, day, hour, minute, second, millisecond) {
       if (month === void 0)
         month = 1;
       if (day === void 0)
@@ -101,10 +101,10 @@ var core;
         second = 0;
       if (millisecond === void 0)
         millisecond = 0;
-      this.DateTime$_internal(year, month, day, hour, minute, second, millisecond, true);
+      this[_internal$](year, month, day, hour, minute, second, millisecond, true);
     }
-    DateTime$now() {
-      this.DateTime$_now();
+    now() {
+      this[_now]();
     }
     static parse(formattedString) {
       let re = new RegExp('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
@@ -156,7 +156,7 @@ var core;
         throw new FormatException("Invalid date format", formattedString);
       }
     }
-    DateTime$fromMillisecondsSinceEpoch(millisecondsSinceEpoch, opts) {
+    fromMillisecondsSinceEpoch(millisecondsSinceEpoch, opts) {
       let isUtc = opts && 'isUtc' in opts ? opts.isUtc : false;
       this.millisecondsSinceEpoch = millisecondsSinceEpoch;
       this.isUtc = isUtc;
@@ -269,11 +269,11 @@ var core;
       let otherMs = other.millisecondsSinceEpoch;
       return new Duration({milliseconds: dart.notNull(ms) - dart.notNull(otherMs)});
     }
-    DateTime$_internal(year, month, day, hour, minute, second, millisecond, isUtc) {
+    [_internal$](year, month, day, hour, minute, second, millisecond, isUtc) {
       this.isUtc = typeof isUtc == 'boolean' ? isUtc : dart.throw_(new ArgumentError(isUtc));
       this.millisecondsSinceEpoch = dart.as(_js_helper.checkInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc)), int);
     }
-    DateTime$_now() {
+    [_now]() {
       this.isUtc = false;
       this.millisecondsSinceEpoch = _js_helper.Primitives.dateNow();
     }
@@ -384,8 +384,8 @@ var core;
   double.NEGATIVE_INFINITY = -dart.notNull(double.INFINITY);
   double.MIN_POSITIVE = 5e-324;
   double.MAX_FINITE = 1.7976931348623157e+308;
-  let _duration = dart.JsSymbol('_duration');
   let _microseconds = dart.JsSymbol('_microseconds');
+  let _duration = dart.JsSymbol('_duration');
   class Duration extends Object {
     Duration(opts) {
       let days = opts && 'days' in opts ? opts.days : 0;
@@ -394,24 +394,24 @@ var core;
       let seconds = opts && 'seconds' in opts ? opts.seconds : 0;
       let milliseconds = opts && 'milliseconds' in opts ? opts.milliseconds : 0;
       let microseconds = opts && 'microseconds' in opts ? opts.microseconds : 0;
-      this.Duration$_microseconds(dart.notNull(days) * dart.notNull(Duration.MICROSECONDS_PER_DAY) + dart.notNull(hours) * dart.notNull(Duration.MICROSECONDS_PER_HOUR) + dart.notNull(minutes) * dart.notNull(Duration.MICROSECONDS_PER_MINUTE) + dart.notNull(seconds) * dart.notNull(Duration.MICROSECONDS_PER_SECOND) + dart.notNull(milliseconds) * dart.notNull(Duration.MICROSECONDS_PER_MILLISECOND) + dart.notNull(microseconds));
+      this[_microseconds](dart.notNull(days) * dart.notNull(Duration.MICROSECONDS_PER_DAY) + dart.notNull(hours) * dart.notNull(Duration.MICROSECONDS_PER_HOUR) + dart.notNull(minutes) * dart.notNull(Duration.MICROSECONDS_PER_MINUTE) + dart.notNull(seconds) * dart.notNull(Duration.MICROSECONDS_PER_SECOND) + dart.notNull(milliseconds) * dart.notNull(Duration.MICROSECONDS_PER_MILLISECOND) + dart.notNull(microseconds));
     }
-    Duration$_microseconds(duration$) {
+    [_microseconds](duration$) {
       this[_duration] = duration$;
     }
     ['+'](other) {
-      return new Duration._microseconds(dart.notNull(this[_duration]) + dart.notNull(other[_duration]));
+      return new Duration[_microseconds](dart.notNull(this[_duration]) + dart.notNull(other[_duration]));
     }
     ['-'](other) {
-      return new Duration._microseconds(dart.notNull(this[_duration]) - dart.notNull(other[_duration]));
+      return new Duration[_microseconds](dart.notNull(this[_duration]) - dart.notNull(other[_duration]));
     }
     ['*'](factor) {
-      return new Duration._microseconds((dart.notNull(this[_duration]) * dart.notNull(factor)).round());
+      return new Duration[_microseconds]((dart.notNull(this[_duration]) * dart.notNull(factor)).round());
     }
     ['~/'](quotient) {
       if (quotient === 0)
         throw new IntegerDivisionByZeroException();
-      return new Duration._microseconds((dart.notNull(this[_duration]) / dart.notNull(quotient)).truncate());
+      return new Duration[_microseconds]((dart.notNull(this[_duration]) / dart.notNull(quotient)).truncate());
     }
     ['<'](other) {
       return dart.notNull(this[_duration]) < dart.notNull(other[_duration]);
@@ -487,10 +487,10 @@ var core;
       return dart.notNull(this[_duration]) < 0;
     }
     abs() {
-      return new Duration._microseconds(this[_duration].abs());
+      return new Duration[_microseconds](this[_duration].abs());
     }
     ['-']() {
-      return new Duration._microseconds(-dart.notNull(this[_duration]));
+      return new Duration[_microseconds](-dart.notNull(this[_duration]));
     }
   }
   dart.defineNamedConstructor(Duration, _microseconds);
@@ -556,7 +556,7 @@ var core;
       this.name = null;
       super.Error();
     }
-    ArgumentError$value(value, name, message) {
+    value(value, name, message) {
       if (name === void 0)
         name = null;
       if (message === void 0)
@@ -567,10 +567,10 @@ var core;
       this[_hasValue] = true;
       super.Error();
     }
-    ArgumentError$notNull(name) {
+    notNull(name) {
       if (name === void 0)
         name = null;
-      this.ArgumentError$value(null, name, "Must not be null");
+      this.value(null, name, "Must not be null");
     }
     toString() {
       if (!dart.notNull(this[_hasValue])) {
@@ -595,25 +595,25 @@ var core;
       this.end = null;
       super.ArgumentError(message);
     }
-    RangeError$value(value, name, message) {
+    value(value, name, message) {
       if (name === void 0)
         name = null;
       if (message === void 0)
         message = null;
       this.start = null;
       this.end = null;
-      super.ArgumentError$value(value, name, message !== null ? message : "Value not in range");
+      super.value(value, name, message !== null ? message : "Value not in range");
     }
-    RangeError$range(invalidValue, minValue, maxValue, name, message) {
+    range(invalidValue, minValue, maxValue, name, message) {
       if (name === void 0)
         name = null;
       if (message === void 0)
         message = null;
       this.start = minValue;
       this.end = maxValue;
-      super.ArgumentError$value(invalidValue, name, message !== null ? message : "Invalid value");
+      super.value(invalidValue, name, message !== null ? message : "Invalid value");
     }
-    RangeError$index(index, indexable, name, message, length) {
+    index(index, indexable, name, message, length) {
       return new IndexError(index, indexable, name, message, length);
     }
     static checkValueInInterval(value, minValue, maxValue, name, message) {
@@ -700,7 +700,7 @@ var core;
         length = null;
       this.indexable = indexable;
       this.length = dart.as(length !== null ? length : dart.dload(indexable, 'length'), int);
-      super.ArgumentError$value(invalidValue, name, message !== null ? message : "Index out of range");
+      super.value(invalidValue, name, message !== null ? message : "Index out of range");
     }
     get start() {
       return 0;
@@ -1040,7 +1040,7 @@ var core;
     return _js_helper.objectHashCode(object);
   }
   class int extends num {
-    int$fromEnvironment(name, opts) {
+    fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
       throw new UnsupportedError('int.fromEnvironment can only be used as a const constructor');
     }
@@ -1060,7 +1060,7 @@ var core;
     class Iterable extends Object {
       Iterable() {
       }
-      Iterable$generate(count, generator) {
+      generate(count, generator) {
         if (generator === void 0)
           generator = null;
         if (dart.notNull(count) <= 0)
@@ -1100,7 +1100,7 @@ var core;
         this[_generator] = dart.as(generator !== null ? generator : _GeneratorIterable[_id], _Generator);
         super.IterableBase();
       }
-      _GeneratorIterable$slice(start$, end$, generator$) {
+      slice(start$, end$, generator$) {
         this[_start] = start$;
         this[_end] = end$;
         this[_generator] = generator$;
@@ -1187,7 +1187,7 @@ var core;
         }
         return new _interceptors.JSArray.fixed(length);
       }
-      List$filled(length, fill) {
+      filled(length, fill) {
         let result = new _interceptors.JSArray.fixed(length);
         if (length !== 0 && dart.notNull(fill !== null)) {
           for (let i = 0; dart.notNull(i) < dart.notNull(result.length); i = dart.notNull(i) + 1) {
@@ -1196,11 +1196,11 @@ var core;
         }
         return dart.as(result, List$(E));
       }
-      List$from(elements, opts) {
+      from(elements, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         return null;
       }
-      List$generate(length, generator, opts) {
+      generate(length, generator, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
@@ -1228,16 +1228,16 @@ var core;
       Map() {
         return new collection.LinkedHashMap();
       }
-      Map$from(other) {
+      from(other) {
         return new collection.LinkedHashMap.from(other);
       }
-      Map$identity() {
+      identity() {
         return new collection.LinkedHashMap.identity();
       }
-      Map$fromIterable(iterable, opts) {
+      fromIterable(iterable, opts) {
         return new collection.LinkedHashMap.fromIterable(iterable, opts);
       }
-      Map$fromIterables(keys, values) {
+      fromIterables(keys, values) {
         return new collection.LinkedHashMap.fromIterables(keys, values);
       }
     }
@@ -1250,7 +1250,7 @@ var core;
   let Map = Map$(dart.dynamic, dart.dynamic);
   let _uninstantiable = dart.JsSymbol('_uninstantiable');
   class Null extends Object {
-    Null$_uninstantiable() {
+    [_uninstantiable]() {
       throw new UnsupportedError('class Null cannot be instantiated');
     }
     toString() {
@@ -1283,10 +1283,10 @@ var core;
       Set() {
         return new collection.LinkedHashSet();
       }
-      Set$identity() {
+      identity() {
         return new collection.LinkedHashSet.identity();
       }
-      Set$from(elements) {
+      from(elements) {
         return new collection.LinkedHashSet.from(elements);
       }
     }
@@ -1367,7 +1367,7 @@ var core;
   Stopwatch._frequency = null;
   let _stringFromIterable = dart.JsSymbol('_stringFromIterable');
   class String extends Object {
-    String$fromCharCodes(charCodes, start, end) {
+    fromCharCodes(charCodes, start, end) {
       if (start === void 0)
         start = 0;
       if (end === void 0)
@@ -1390,10 +1390,10 @@ var core;
       }
       return _js_helper.Primitives.stringFromCharCodes(list);
     }
-    String$fromCharCode(charCode) {
+    fromCharCode(charCode) {
       return _js_helper.Primitives.stringFromCharCode(charCode);
     }
-    String$fromEnvironment(name, opts) {
+    fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
       throw new UnsupportedError('String.fromEnvironment can only be used as a const constructor');
     }
@@ -1478,7 +1478,7 @@ var core;
       this[_nextPosition] = 0;
       this[_currentCodePoint] = null;
     }
-    RuneIterator$at(string, index) {
+    at(string, index) {
       this.string = string;
       this[_position] = index;
       this[_nextPosition] = index;
@@ -1906,12 +1906,12 @@ var core;
       } else if (char === Uri[_NUMBER_SIGN]) {
         fragment = Uri[_makeFragment](uri, dart.notNull(index) + 1, uri.length);
       }
-      return new Uri._internal(scheme, userinfo, host, port, path, query, fragment);
+      return new Uri[_internal$](scheme, userinfo, host, port, path, query, fragment);
     }
     static [_fail](uri, index, message) {
       throw new FormatException(message, uri, index);
     }
-    Uri$_internal(scheme, userInfo$, host$, port$, path$, query$, fragment$) {
+    [_internal$](scheme, userInfo$, host$, port$, path$, query$, fragment$) {
       this.scheme = scheme;
       this[_userInfo] = userInfo$;
       this[_host] = host$;
@@ -1946,14 +1946,14 @@ var core;
       }
       let ensureLeadingSlash = host !== null;
       path = Uri[_makePath](path, 0, Uri[_stringOrNullLength](path), pathSegments, ensureLeadingSlash, isFile);
-      return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
+      return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
     }
-    Uri$http(authority, unencodedPath, queryParameters) {
+    http(authority, unencodedPath, queryParameters) {
       if (queryParameters === void 0)
         queryParameters = null;
       return Uri[_makeHttpUri]("http", authority, unencodedPath, queryParameters);
     }
-    Uri$https(authority, unencodedPath, queryParameters) {
+    https(authority, unencodedPath, queryParameters) {
       if (queryParameters === void 0)
         queryParameters = null;
       return Uri[_makeHttpUri]("https", authority, unencodedPath, queryParameters);
@@ -2001,7 +2001,7 @@ var core;
       }
       return new Uri({scheme: scheme, userInfo: userInfo, host: dart.as(host, String), port: dart.as(port, int), pathSegments: unencodedPath.split("/"), queryParameters: queryParameters});
     }
-    Uri$file(path, opts) {
+    file(path, opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
       windows = windows === null ? Uri[_isWindows] : windows;
       return dart.as(windows ? Uri[_makeWindowsFileUrl](path) : Uri[_makeFileUri](path), Uri);
@@ -2156,7 +2156,7 @@ var core;
       } else if (this.hasFragment) {
         fragment = this.fragment;
       }
-      return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
+      return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
     }
     get pathSegments() {
       if (this[_pathSegments] === null) {
@@ -2590,7 +2590,7 @@ var core;
         }
       }
       let fragment = reference.hasFragment ? reference.fragment : null;
-      return new Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
+      return new Uri[_internal$](targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
     }
     get hasAuthority() {
       return this[_host] !== null;

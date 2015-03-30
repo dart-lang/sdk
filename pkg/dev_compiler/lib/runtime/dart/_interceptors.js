@@ -25,28 +25,28 @@ var _interceptors;
       JSArray() {
         super.Interceptor();
       }
-      JSArray$fixed(length) {
+      fixed(length) {
         if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
         return new JSArray.markFixed(new Array(length));
       }
-      JSArray$emptyGrowable() {
+      emptyGrowable() {
         return new JSArray.markGrowable([]);
       }
-      JSArray$growable(length) {
+      growable(length) {
         if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
         return new JSArray.markGrowable(new Array(length));
       }
-      JSArray$typed(allocation) {
+      typed(allocation) {
         return dart.as(allocation, JSArray$(E));
       }
-      JSArray$markFixed(allocation) {
+      markFixed(allocation) {
         return dart.as(JSArray.markFixedList(new JSArray.typed(allocation)), JSArray$(E));
       }
-      JSArray$markGrowable(allocation) {
+      markGrowable(allocation) {
         return dart.as(new JSArray.typed(allocation), JSArray$(E));
       }
       static markFixedList(list) {

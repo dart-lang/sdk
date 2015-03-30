@@ -56,24 +56,24 @@ var collection;
         }
         return new _CustomHashMap(equals, hashCode, isValidKey);
       }
-      HashMap$identity() {
+      identity() {
         return new _IdentityHashMap();
       }
-      HashMap$from(other) {
+      from(other) {
         let result = new HashMap();
         other.forEach((k, v) => {
           result.set(k, dart.as(v, V));
         });
         return result;
       }
-      HashMap$fromIterable(iterable, opts) {
+      fromIterable(iterable, opts) {
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
         let map = new HashMap();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      HashMap$fromIterables(keys, values) {
+      fromIterables(keys, values) {
         let map = new HashMap();
         Maps._fillMapWithIterables(map, keys, values);
         return map;
@@ -400,10 +400,10 @@ var collection;
         }
         return new _CustomHashSet(equals, hashCode, isValidKey);
       }
-      HashSet$identity() {
+      identity() {
         return new _IdentityHashSet();
       }
-      HashSet$from(elements) {
+      from(elements) {
         let result = new HashSet();
         for (let e of elements)
           result.add(e);
@@ -1015,32 +1015,32 @@ var collection;
         }
         return new _LinkedCustomHashMap(equals, hashCode, isValidKey);
       }
-      LinkedHashMap$identity() {
+      identity() {
         return new _LinkedIdentityHashMap();
       }
-      LinkedHashMap$from(other) {
+      from(other) {
         let result = new LinkedHashMap();
         other.forEach((k, v) => {
           result.set(k, dart.as(v, V));
         });
         return result;
       }
-      LinkedHashMap$fromIterable(iterable, opts) {
+      fromIterable(iterable, opts) {
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
         let map = new LinkedHashMap();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      LinkedHashMap$fromIterables(keys, values) {
+      fromIterables(keys, values) {
         let map = new LinkedHashMap();
         Maps._fillMapWithIterables(map, keys, values);
         return map;
       }
-      LinkedHashMap$_literal(keyValuePairs) {
+      [_literal](keyValuePairs) {
         return dart.as(_js_helper.fillLiteralMap(keyValuePairs, new _LinkedHashMap()), LinkedHashMap$(K, V));
       }
-      LinkedHashMap$_empty() {
+      [_empty]() {
         return new _LinkedHashMap();
       }
     }
@@ -1083,10 +1083,10 @@ var collection;
         }
         return new _LinkedCustomHashSet(equals, hashCode, isValidKey);
       }
-      LinkedHashSet$identity() {
+      identity() {
         return new _LinkedIdentityHashSet();
       }
-      LinkedHashSet$from(elements) {
+      from(elements) {
         let result = new LinkedHashSet();
         for (let element of elements) {
           result.add(element);
@@ -2038,7 +2038,7 @@ var collection;
       Queue() {
         return new ListQueue();
       }
-      Queue$from(elements) {
+      from(elements) {
         return new ListQueue.from(elements);
       }
     }
@@ -2126,7 +2126,7 @@ var collection;
         super.IterableBase();
         this[_sentinel] = new _DoubleLinkedQueueEntrySentinel();
       }
-      DoubleLinkedQueue$from(elements) {
+      from(elements) {
         let list = dart.as(new DoubleLinkedQueue(), Queue$(E));
         for (let e of elements) {
           list.addLast(e);
@@ -2294,7 +2294,7 @@ var collection;
         dart.assert(ListQueue[_isPowerOf2](initialCapacity));
         this[_table] = new core.List(initialCapacity);
       }
-      ListQueue$from(elements) {
+      from(elements) {
         if (dart.is(elements, core.List)) {
           let length = elements.length;
           let queue = dart.as(new ListQueue(dart.notNull(length) + 1), ListQueue$(E));
@@ -2781,7 +2781,7 @@ var collection;
         this[_validKey] = dart.as(isValidKey !== null ? isValidKey : (v) => dart.is(v, K), _Predicate);
         super._SplayTree();
       }
-      SplayTreeMap$from(other, compare, isValidKey) {
+      from(other, compare, isValidKey) {
         if (compare === void 0)
           compare = null;
         if (isValidKey === void 0)
@@ -2792,7 +2792,7 @@ var collection;
         });
         return result;
       }
-      SplayTreeMap$fromIterable(iterable, opts) {
+      fromIterable(iterable, opts) {
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
         let compare = opts && 'compare' in opts ? opts.compare : null;
@@ -2801,7 +2801,7 @@ var collection;
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      SplayTreeMap$fromIterables(keys, values, compare, isValidKey) {
+      fromIterables(keys, values, compare, isValidKey) {
         if (compare === void 0)
           compare = null;
         if (isValidKey === void 0)
@@ -2813,7 +2813,7 @@ var collection;
       [_compare](key1, key2) {
         return this[_comparator](key1, key2);
       }
-      SplayTreeMap$_internal() {
+      [_internal$]() {
         this[_comparator] = null;
         this[_validKey] = null;
         super._SplayTree();
@@ -2993,7 +2993,7 @@ var collection;
         this[_currentNode] = null;
         this[_findLeftMostDescendent](tree[_root]);
       }
-      _SplayTreeIterator$startAt(tree, startKey) {
+      startAt(tree, startKey) {
         this[_workList] = new core.List$(_SplayTreeNode).from([]);
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
@@ -3125,8 +3125,8 @@ var collection;
       _SplayTreeNodeIterator(tree) {
         super._SplayTreeIterator(tree);
       }
-      _SplayTreeNodeIterator$startAt(tree, startKey) {
-        super._SplayTreeIterator$startAt(tree, startKey);
+      startAt(tree, startKey) {
+        super.startAt(tree, startKey);
       }
       [_getValue](node) {
         return dart.as(node, _SplayTreeNode$(K));
@@ -3149,7 +3149,7 @@ var collection;
         this[_validKey] = dart.as(isValidKey !== null ? isValidKey : (v) => dart.is(v, E), _Predicate);
         super._SplayTree();
       }
-      SplayTreeSet$from(elements, compare, isValidKey) {
+      from(elements, compare, isValidKey) {
         if (compare === void 0)
           compare = null;
         if (isValidKey === void 0)

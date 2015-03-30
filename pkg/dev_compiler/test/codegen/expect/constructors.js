@@ -8,20 +8,20 @@ var constructors;
     }
   }
   class C extends core.Object {
-    C$named() {
+    named() {
     }
   }
   dart.defineNamedConstructor(C, 'named');
   class C2 extends C {
-    C2$named() {
-      super.C$named();
+    named() {
+      super.named();
     }
   }
   dart.defineNamedConstructor(C2, 'named');
   class D extends core.Object {
     D() {
     }
-    D$named() {
+    named() {
     }
   }
   dart.defineNamedConstructor(D, 'named');
@@ -50,7 +50,7 @@ var constructors;
     I() {
       this.name = 'default';
     }
-    I$named(name) {
+    named(name) {
       this.name = name;
     }
   }
@@ -65,7 +65,7 @@ var constructors;
     K() {
       this.s = 'a';
     }
-    K$withS(s) {
+    withS(s) {
       this.s = s;
     }
   }
@@ -76,26 +76,26 @@ var constructors;
     }
   }
   class M extends L {
-    M$named(x) {
+    named(x) {
       super.L(dart.notNull(x) + 42);
     }
   }
   dart.defineNamedConstructor(M, 'named');
   class N extends M {
-    N$named(y) {
-      super.M$named(dart.notNull(y) + 100);
+    named(y) {
+      super.named(dart.notNull(y) + 100);
     }
   }
   dart.defineNamedConstructor(N, 'named');
   class P extends N {
     P(z) {
-      super.N$named(dart.notNull(z) + 9000);
+      super.named(dart.notNull(z) + 9000);
     }
-    P$foo(x) {
+    foo(x) {
       this.P(dart.notNull(x) + 42);
     }
-    P$bar() {
-      this.P$foo(1);
+    bar() {
+      this.foo(1);
     }
   }
   dart.defineNamedConstructor(P, 'foo');

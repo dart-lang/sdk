@@ -160,7 +160,7 @@ var isolate;
     ReceivePort() {
       return new _isolate_helper.ReceivePortImpl();
     }
-    ReceivePort$fromRawReceivePort(rawPort) {
+    fromRawReceivePort(rawPort) {
       return new _isolate_helper.ReceivePortImpl.fromRawReceivePort(rawPort);
     }
   }

@@ -23,11 +23,11 @@ var _js_helper;
       this.name = name;
     }
   }
-  let _throwUnmodifiable = Symbol('_throwUnmodifiable');
   let _$ = Symbol('_');
+  let _throwUnmodifiable = Symbol('_throwUnmodifiable');
   let ConstantMap$ = dart.generic(function(K, V) {
     class ConstantMap extends core.Object {
-      ConstantMap$_() {
+      [_$]() {
       }
       get isEmpty() {
         return this.length === 0;
@@ -66,11 +66,11 @@ var _js_helper;
   let _fetch = Symbol('_fetch');
   let ConstantStringMap$ = dart.generic(function(K, V) {
     class ConstantStringMap extends ConstantMap$(K, V) {
-      ConstantStringMap$_(length, jsObject$, keys$) {
+      [_$](length, jsObject$, keys$) {
         this.length = length;
         this[_jsObject] = jsObject$;
         this[_keys] = keys$;
-        super.ConstantMap$_();
+        super[_$]();
       }
       containsValue(needle) {
         return this.values.any((value) => dart.equals(value, needle));
@@ -111,9 +111,9 @@ var _js_helper;
   let _protoValue = Symbol('_protoValue');
   let ConstantProtoMap$ = dart.generic(function(K, V) {
     class ConstantProtoMap extends ConstantStringMap$(K, V) {
-      ConstantProtoMap$_(length, jsObject, keys, protoValue) {
+      [_$](length, jsObject, keys, protoValue) {
         this[_protoValue] = protoValue;
-        super.ConstantStringMap$_(dart.as(length, core.int), jsObject, dart.as(keys, core.List$(K)));
+        super[_$](dart.as(length, core.int), jsObject, dart.as(keys, core.List$(K)));
       }
       containsKey(key) {
         if (!(typeof key == 'string'))
@@ -153,7 +153,7 @@ var _js_helper;
     class GeneralConstantMap extends ConstantMap$(K, V) {
       GeneralConstantMap(jsData) {
         this[_jsData] = jsData;
-        super.ConstantMap$_();
+        super[_$]();
       }
       [_getMap]() {
         if (!this.$map) {
@@ -1598,7 +1598,7 @@ var _js_helper;
     }
   }
   class ReflectionInfo extends core.Object {
-    ReflectionInfo$internal(jsFunction, data, isAccessor, requiredParameterCount, optionalParameterCount, areOptionalParametersNamed, functionType) {
+    internal(jsFunction, data, isAccessor, requiredParameterCount, optionalParameterCount, areOptionalParametersNamed, functionType) {
       this.jsFunction = jsFunction;
       this.data = data;
       this.isAccessor = isAccessor;
@@ -3180,7 +3180,7 @@ var _js_helper;
       this.message = `type '${Primitives.objectTypeName(value)}' is not a subtype ` + `of type '${type}'`;
       super.Error();
     }
-    TypeErrorImplementation$fromMessage(message) {
+    fromMessage(message) {
       this.message = message;
       super.Error();
     }

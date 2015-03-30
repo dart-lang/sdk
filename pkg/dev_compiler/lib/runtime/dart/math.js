@@ -143,7 +143,7 @@ var math;
         this.height = dart.as(height['<'](0) ? dart.notNull(height['unary-']()) * 0 : height, T);
         super._RectangleBase();
       }
-      Rectangle$fromPoints(a, b) {
+      fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
         let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
         let top = dart.as(min(a.y, b.y), T);
@@ -166,7 +166,7 @@ var math;
         this[_height] = dart.as(height['<'](0) ? _clampToZero(height) : height, T);
         super._RectangleBase();
       }
-      MutableRectangle$fromPoints(a, b) {
+      fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
         let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
         let top = dart.as(min(a.y, b.y), T);

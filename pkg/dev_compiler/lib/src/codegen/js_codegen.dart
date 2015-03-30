@@ -615,7 +615,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // TODO(jmesserly): we'll need to rethink this once the ES6 spec and V8
       // settles. See <https://github.com/dart-lang/dev_compiler/issues/51>.
       // Performance of this pattern is likely to be bad.
-      name = 'constructor';
+      name = js.string('constructor', "'");
       // Mark the parameter as no-rename.
       var args = new JS.Identifier('arguments', allowRename: false);
       body = js.statement('''{
@@ -634,14 +634,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // We generate constructors as initializer methods in the class;
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
-    return new JS.Method(
-        _propertyName(name), new JS.Fun(_visit(node.parameters), body))
+    return new JS.Method(name, new JS.Fun(_visit(node.parameters), body))
       ..sourceInformation = node;
   }
 
-  String _constructorName(String className, SimpleIdentifier name) {
-    if (name == null) return className;
-    return '$className\$${name.name}';
+  JS.Expression _constructorName(String className, SimpleIdentifier name) {
+    if (name == null) return js.string(className, "'");
+    return _jsMemberName(name.name, isStatic: true);
   }
 
   JS.Block _emitConstructorBody(
@@ -701,8 +700,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var className = classDecl.name.name;
 
     var name = _constructorName(className, node.constructorName);
-    return js.statement(
-        'this.#(#);', [_jsMemberName(name), _visit(node.argumentList)]);
+    return js.statement('this.#(#);', [name, _visit(node.argumentList)]);
   }
 
   JS.Statement _superConstructorCall(ClassDeclaration clazz,
@@ -1347,7 +1345,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   visitConstructorName(ConstructorName node) {
     var typeName = _visit(node.type.name);
     if (node.name != null) {
-      return js.call('#.#', [typeName, node.name.name]);
+      return js.call(
+          '#.#', [typeName, _jsMemberName(node.name.name, isStatic: true)]);
     }
     return typeName;
   }

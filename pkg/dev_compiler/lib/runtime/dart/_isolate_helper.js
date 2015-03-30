@@ -470,6 +470,7 @@ var _isolate_helper;
       }
     }
   }
+  let _controlPort = Symbol('_controlPort');
   let _scheduledControlEvents = Symbol('_scheduledControlEvents');
   let _isExecutingEvent = Symbol('_isExecutingEvent');
   let _updateGlobalState = Symbol('_updateGlobalState');
@@ -481,7 +482,7 @@ var _isolate_helper;
       this.ports = new core.Map();
       this.weakPorts = new core.Set();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
-      this.controlPort = new RawReceivePortImpl._controlPort();
+      this.controlPort = new RawReceivePortImpl[_controlPort]();
       this.pauseCapability = new isolate.Capability();
       this.terminateCapability = new isolate.Capability();
       this.delayedEvents = dart.as(new core.List.from([]), core.List$(_IsolateEvent));
@@ -1181,7 +1182,6 @@ var _isolate_helper;
   let _nextFreeId = Symbol('_nextFreeId');
   let _close = Symbol('_close');
   let _add = Symbol('_add');
-  let _controlPort = Symbol('_controlPort');
   class RawReceivePortImpl extends core.Object {
     RawReceivePortImpl(handler) {
       this[_handler] = handler;
@@ -1189,13 +1189,13 @@ var _isolate_helper;
       this[_isClosed] = false;
       exports._globalState.currentContext.register(this[_id], this);
     }
-    RawReceivePortImpl$weak(handler) {
+    weak(handler) {
       this[_handler] = handler;
       this[_id] = ((x$) => RawReceivePortImpl[_nextFreeId] = dart.notNull(x$) + 1, x$)(RawReceivePortImpl[_nextFreeId]);
       this[_isClosed] = false;
       exports._globalState.currentContext.registerWeak(this[_id], this);
     }
-    RawReceivePortImpl$_controlPort() {
+    [_controlPort]() {
       this[_handler] = null;
       this[_id] = 0;
       this[_isClosed] = false;
@@ -1230,12 +1230,12 @@ var _isolate_helper;
   let _controller = Symbol('_controller');
   class ReceivePortImpl extends async.Stream {
     ReceivePortImpl() {
-      this.ReceivePortImpl$fromRawReceivePort(new RawReceivePortImpl(null));
+      this.fromRawReceivePort(new RawReceivePortImpl(null));
     }
-    ReceivePortImpl$weak() {
-      this.ReceivePortImpl$fromRawReceivePort(new RawReceivePortImpl.weak(null));
+    weak() {
+      this.fromRawReceivePort(new RawReceivePortImpl.weak(null));
     }
-    ReceivePortImpl$fromRawReceivePort(rawPort) {
+    fromRawReceivePort(rawPort) {
       this[_rawPort] = rawPort;
       this[_controller] = null;
       super.Stream();
@@ -1289,7 +1289,7 @@ var _isolate_helper;
         throw new core.UnsupportedError("Timer greater than 0.");
       }
     }
-    TimerImpl$periodic(milliseconds, callback) {
+    periodic(milliseconds, callback) {
       this[_once] = false;
       this[_inEventLoop] = false;
       this[_handle] = null;
@@ -1333,9 +1333,9 @@ var _isolate_helper;
   let _internal = Symbol('_internal');
   class CapabilityImpl extends core.Object {
     CapabilityImpl() {
-      this.CapabilityImpl$_internal(_js_helper.random64());
+      this[_internal](_js_helper.random64());
     }
-    CapabilityImpl$_internal(id) {
+    [_internal](id) {
       this[_id] = id;
     }
     get hashCode() {
