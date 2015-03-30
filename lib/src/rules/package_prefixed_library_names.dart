@@ -6,8 +6,8 @@ library linter.src.rules.package_prefixed_library_names;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/project.dart';
 import 'package:linter/src/util.dart';
 
 const desc =
@@ -50,7 +50,10 @@ library my_package.src.private;
 bool matchesOrIsPrefixedBy(String name, String prefix) =>
     name == prefix || name.startsWith('$prefix.');
 
-class PackagePrefixedLibraryNames extends LintRule {
+class PackagePrefixedLibraryNames extends LintRule implements ProjectVisitor {
+
+  DartProject project;
+
   PackagePrefixedLibraryNames() : super(
           name: 'package_prefixed_library_names',
           description: desc,
@@ -58,20 +61,30 @@ class PackagePrefixedLibraryNames extends LintRule {
           group: Group.style);
 
   @override
+  ProjectVisitor getProjectVisitor() => this;
+
+  @override
   AstVisitor getVisitor() => new Visitor(this);
+
+  @override
+  visit(DartProject project) {
+    this.project = project;
+  }
 }
 
 class Visitor extends SimpleAstVisitor {
-  LintRule rule;
+  PackagePrefixedLibraryNames rule;
   Visitor(this.rule);
+
+  DartProject get project => rule.project;
 
   @override
   visitLibraryDirective(LibraryDirective node) {
     Source source = node.element.source;
     var prefix = createLibraryNamePrefix(
         libraryPath: source.fullName,
-        projectRoot: getProjectRoot(source.fullName),
-        packageName: getProjectPackageName(source.fullName));
+        projectRoot: project.root.absolute.path,
+        packageName: project.name);
 
     var libraryName = node.element.name;
     if (!matchesOrIsPrefixedBy(libraryName, prefix)) {
