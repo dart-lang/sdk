@@ -221,6 +221,7 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
       assertNotCached('e1');
       assertNotCached('i2');
       assertNotCached('m1');
+      assertNotCached('_pf');
     });
   }
 

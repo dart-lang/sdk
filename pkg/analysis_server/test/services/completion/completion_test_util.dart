@@ -1385,7 +1385,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addSource('/testB.dart', '''
       lib B;
-      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
+      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
       class E extends F { var e1; e2() { } }
       class I { int i1; i2() { } }
       class M { var m1; int m2() { } }''');

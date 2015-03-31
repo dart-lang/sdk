@@ -180,7 +180,11 @@ abstract class ElementSuggestionBuilder {
   void addSuggestion(Element element, {int relevance: DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       LibraryElement elementLibrary = element.library;
-      LibraryElement unitLibrary = request.unit.element.library;
+      CompilationUnitElement unitElem = request.unit.element;
+      if (unitElem == null) {
+        return;
+      }
+      LibraryElement unitLibrary = unitElem.library;
       if (elementLibrary != unitLibrary) {
         return;
       }

@@ -143,7 +143,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
    */
   void _addElementSuggestions(List<Element> elements,
       {int relevance: DART_RELEVANCE_DEFAULT}) {
-    elements.forEach((Element elem) {
+    for (Element elem in elements) {
       if (elem is! ClassElement) {
         if (optype.includeOnlyTypeNameSuggestions) {
           return;
@@ -158,7 +158,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
         }
       }
       addSuggestion(elem, relevance: relevance);
-    });
+    };
   }
 
   /**
