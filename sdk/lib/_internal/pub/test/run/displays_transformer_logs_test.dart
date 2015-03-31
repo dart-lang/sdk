@@ -66,7 +66,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["script"]);
+      var pub = pubRun(args: ["bin/script"]);
 
       // Note that the info log is only displayed here because the test
       // harness runs pub in verbose mode. By default, only the warning would

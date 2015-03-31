@@ -7,6 +7,8 @@ library pub.preprocess;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+import 'utils.dart';
+
 /// Runs a simple preprocessor over [input] to remove sections that are
 /// incompatible with the available barback version.
 ///
@@ -102,7 +104,7 @@ class _Preprocessor {
   /// Handle an `if` operator.
   void _if() {
     _scanner.expect(new RegExp(r"if[ \t]+"), name: "if statement");
-    _scanner.expect(new RegExp(r"[a-zA-Z0-9_]+"), name: "package name");
+    _scanner.expect(identifierRegExp, name: "package name");
     var package = _scanner.lastMatch[0];
 
     _scanner.scan(new RegExp(r"[ \t]*"));

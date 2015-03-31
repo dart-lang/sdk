@@ -15,7 +15,7 @@ main() {
       d.appPubspec()
     ]).create();
 
-    var pub = pubRun(args: ["script"]);
+    var pub = pubRun(args: ["bin/script"]);
     pub.stderr.expect("Could not find ${p.join("bin", "script.dart")}.");
     pub.shouldExit(exit_codes.NO_INPUT);
   });

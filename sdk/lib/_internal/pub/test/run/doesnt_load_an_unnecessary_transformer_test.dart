@@ -47,7 +47,7 @@ main() {
       // This shouldn't load the transformer, since it doesn't transform
       // anything that the entrypoint imports. If it did load the transformer,
       // we'd know since it would throw an exception.
-      var pub = pubRun(args: ["hi"]);
+      var pub = pubRun(args: ["bin/hi"]);
       pub.stdout.expect("Hello!");
       pub.shouldExit();
     });

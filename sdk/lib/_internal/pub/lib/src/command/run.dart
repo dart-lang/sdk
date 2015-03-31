@@ -12,6 +12,7 @@ import 'package:path/path.dart' as p;
 import '../command.dart';
 import '../executable.dart';
 import '../io.dart';
+import '../log.dart' as log;
 import '../utils.dart';
 
 /// Handles the `run` pub command.
@@ -50,6 +51,21 @@ class RunCommand extends PubCommand {
       // lands.
         usageException("Cannot run an executable in a subdirectory of a " +
             "dependency.");
+      }
+    } else if (onlyIdentifierRegExp.hasMatch(executable)) {
+      // "pub run foo" means the same thing as "pub run foo:foo" as long as
+      // "foo" is a valid Dart identifier (and thus package name).
+
+      // TODO(nweiz): Remove this after Dart 1.10 ships.
+      var localPath = p.join("bin", "$executable.dart");
+      if (fileExists(localPath) && executable != entrypoint.root.name) {
+        log.warning(
+            'In future releases, "pub run $executable" will mean the same '
+                'thing as "pub run $executable:$executable".\n'
+            'Run "pub run ${p.join("bin", executable)}" explicitly to run the '
+                'local executable.');
+      } else {
+        package = executable;
       }
     }
 

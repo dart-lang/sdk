@@ -32,7 +32,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["hi"]);
+      var pub = pubRun(args: ["bin/hi"]);
 
       pub.stdout.expect("(hi, transformed)");
       pub.shouldExit();

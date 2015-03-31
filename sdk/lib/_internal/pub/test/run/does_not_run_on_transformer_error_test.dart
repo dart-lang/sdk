@@ -50,7 +50,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["script"]);
+      var pub = pubRun(args: ["bin/script"]);
 
       pub.stderr.expect("[Error from Failing]:");
       pub.stderr.expect("myapp|bin/script.dart.");

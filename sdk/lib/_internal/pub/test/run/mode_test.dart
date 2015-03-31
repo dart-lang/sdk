@@ -43,12 +43,12 @@ main() {
       createLockFile('myapp', pkg: ['barback']);
 
       // By default it should run in debug mode.
-      var pub = pubRun(args: ["script"]);
+      var pub = pubRun(args: ["bin/script"]);
       pub.stdout.expect("debug");
       pub.shouldExit();
 
       // A custom mode should be specifiable.
-      pub = pubRun(args: ["--mode", "custom-mode", "script"]);
+      pub = pubRun(args: ["--mode", "custom-mode", "bin/script"]);
       pub.stdout.expect("custom-mode");
       pub.shouldExit();
     });
