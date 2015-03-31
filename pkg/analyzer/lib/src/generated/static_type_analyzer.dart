@@ -6,6 +6,8 @@ library engine.resolver.static_type_analyzer;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/scanner.dart';
+
 import 'ast.dart';
 import 'element.dart';
 import 'java_engine.dart';
@@ -230,6 +232,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitBinaryExpression(BinaryExpression node) {
+    if (node.operator.type == TokenType.QUESTION_QUESTION) {
+      // Evaluation of an if-null expresion e of the form e1 ?? e2 is
+      // equivalent to the evaluation of the expression
+      // ((x) => x == null ? e2 : x)(e1).  The static type of e is the least
+      // upper bound of the static type of e1 and the static type of e2.
+      _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
+      return null;
+    }
     ExecutableElement staticMethodElement = node.staticElement;
     DartType staticType = _computeStaticReturnType(staticMethodElement);
     staticType = _refineBinaryExpressionType(node, staticType);
@@ -276,34 +286,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitConditionalExpression(ConditionalExpression node) {
-    DartType staticThenType = _getStaticType(node.thenExpression);
-    DartType staticElseType = _getStaticType(node.elseExpression);
-    if (staticThenType == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticThenType = _dynamicType;
-    }
-    if (staticElseType == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticElseType = _dynamicType;
-    }
-    DartType staticType = staticThenType.getLeastUpperBound(staticElseType);
-    if (staticType == null) {
-      staticType = _dynamicType;
-    }
-    _recordStaticType(node, staticType);
-    DartType propagatedThenType = node.thenExpression.propagatedType;
-    DartType propagatedElseType = node.elseExpression.propagatedType;
-    if (propagatedThenType != null || propagatedElseType != null) {
-      if (propagatedThenType == null) {
-        propagatedThenType = staticThenType;
-      }
-      if (propagatedElseType == null) {
-        propagatedElseType = staticElseType;
-      }
-      DartType propagatedType =
-          propagatedThenType.getLeastUpperBound(propagatedElseType);
-      _recordPropagatedTypeIfBetter(node, propagatedType);
-    }
+    _analyzeLeastUpperBound(node, node.thenExpression, node.elseExpression);
     return null;
   }
 
@@ -1195,6 +1178,42 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     }
     return null;
+  }
+
+  /**
+   * Set the static (propagated) type of [node] to be the least upper bound
+   * of the static (propagated) types of subexpressions [expr1] and [expr2].
+   */
+  void _analyzeLeastUpperBound(
+      Expression node, Expression expr1, Expression expr2) {
+    DartType staticType1 = _getStaticType(expr1);
+    DartType staticType2 = _getStaticType(expr2);
+    if (staticType1 == null) {
+      // TODO(brianwilkerson) Determine whether this can still happen.
+      staticType1 = _dynamicType;
+    }
+    if (staticType2 == null) {
+      // TODO(brianwilkerson) Determine whether this can still happen.
+      staticType2 = _dynamicType;
+    }
+    DartType staticType = staticType1.getLeastUpperBound(staticType2);
+    if (staticType == null) {
+      staticType = _dynamicType;
+    }
+    _recordStaticType(node, staticType);
+    DartType propagatedType1 = expr1.propagatedType;
+    DartType propagatedType2 = expr2.propagatedType;
+    if (propagatedType1 != null || propagatedType2 != null) {
+      if (propagatedType1 == null) {
+        propagatedType1 = staticType1;
+      }
+      if (propagatedType2 == null) {
+        propagatedType2 = staticType2;
+      }
+      DartType propagatedType =
+          propagatedType1.getLeastUpperBound(propagatedType2);
+      _recordPropagatedTypeIfBetter(node, propagatedType);
+    }
   }
 
   /**

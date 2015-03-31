@@ -1043,6 +1043,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments ||
+        this._options.enableNullAwareOperators !=
+            options.enableNullAwareOperators ||
         this._options.enableStrictCallChecks != options.enableStrictCallChecks;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -1068,6 +1070,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
+    this._options.enableNullAwareOperators = options.enableNullAwareOperators;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -4670,7 +4673,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       Stopwatch perfCounter = new Stopwatch()..start();
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
           typeProvider, unitSource, dartEntry, oldUnit,
-          analysisOptions.incrementalApi);
+          analysisOptions.incrementalApi, analysisOptions);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL, perfCounter,
@@ -6001,6 +6004,11 @@ abstract class AnalysisOptions {
   bool get enableEnum;
 
   /**
+   * Return `true` to enable null-aware operators (DEP 9).
+   */
+  bool get enableNullAwareOperators;
+
+  /**
    * Return `true` to strictly follow the specification when generating
    * warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -6094,6 +6102,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool dart2jsHint = true;
 
   /**
+   * A flag indicating whether null-aware operators should be parsed (DEP 9).
+   */
+  bool enableNullAwareOperators = false;
+
+  /**
    * A flag indicating whether analysis is to strictly follow the specification
    * when generating warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -6158,6 +6171,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableNullAwareOperators = options.enableNullAwareOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
@@ -8961,8 +8975,8 @@ class IncrementalAnalysisTask extends AnalysisTask {
     // Produce an updated token stream
     CharacterReader reader = new CharSequenceReader(cache.newContents);
     BooleanErrorListener errorListener = new BooleanErrorListener();
-    IncrementalScanner scanner =
-        new IncrementalScanner(cache.source, reader, errorListener);
+    IncrementalScanner scanner = new IncrementalScanner(
+        cache.source, reader, errorListener, context.analysisOptions);
     scanner.rescan(cache.resolvedUnit.beginToken, cache.offset, cache.oldLength,
         cache.newLength);
     if (errorListener.errorReported) {
@@ -9555,7 +9569,8 @@ class ParseHtmlTask extends AnalysisTask {
       ht.Token token = scanner.tokenize();
       _lineInfo = new LineInfo(scanner.lineStarts);
       RecordingErrorListener errorListener = new RecordingErrorListener();
-      _unit = new ht.HtmlParser(source, errorListener).parse(token, _lineInfo);
+      _unit = new ht.HtmlParser(source, errorListener, context.analysisOptions)
+          .parse(token, _lineInfo);
       _unit.accept(new RecursiveXmlVisitor_ParseHtmlTask_internalPerform(
           this, errorListener));
       _errors = errorListener.getErrorsForSource(source);
@@ -10788,6 +10803,8 @@ class ScanDartTask extends AnalysisTask {
         Scanner scanner = new Scanner(
             source, new CharSequenceReader(_content), errorListener);
         scanner.preserveComments = context.analysisOptions.preserveComments;
+        scanner.enableNullAwareOperators =
+            context.analysisOptions.enableNullAwareOperators;
         _tokenStream = scanner.tokenize();
         _lineInfo = new LineInfo(scanner.lineStarts);
         _errors = errorListener.getErrorsForSource(source);

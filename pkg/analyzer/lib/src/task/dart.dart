@@ -2187,6 +2187,8 @@ class ScanDartTask extends SourceBasedAnalysisTask {
     Scanner scanner =
         new Scanner(source, new CharSequenceReader(content), errorListener);
     scanner.preserveComments = context.analysisOptions.preserveComments;
+    scanner.enableNullAwareOperators =
+        context.analysisOptions.enableNullAwareOperators;
     outputs[TOKEN_STREAM] = scanner.tokenize();
     outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
     outputs[SCAN_ERRORS] = errorListener.getErrorsForSource(source);

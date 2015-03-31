@@ -27,6 +27,11 @@ class CommandLineOptions {
   final bool displayVersion;
 
   /**
+   * Whether to enable null-aware operators (DEP 9).
+   */
+  final bool enableNullAwareOperators;
+
+  /**
    * Whether to strictly follow the specification when generating warnings on
    * "call" methods (fixes dartbug.com/21938).
    */
@@ -86,6 +91,7 @@ class CommandLineOptions {
         this.definedVariables = definedVariables,
         disableHints = args['no-hints'],
         displayVersion = args['version'],
+        enableNullAwareOperators = args['enable-null-aware-operators'],
         enableStrictCallChecks = args['enable-strict-call-checks'],
         enableTypeChecks = args['enable_type_checks'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
@@ -210,6 +216,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('enable-enum',
           help: 'Enable support for the proposed enum feature',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('enable-null-aware-operators',
+          help: 'Enable support for null-aware operators (DEP 9)',
           defaultsTo: false,
           negatable: false,
           hide: true)

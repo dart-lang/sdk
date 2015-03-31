@@ -365,6 +365,8 @@ class AnalysisContextForTests extends AnalysisContextImpl {
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments ||
+        currentOptions.enableNullAwareOperators !=
+            options.enableNullAwareOperators ||
         currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
     if (needsRecompute) {
       fail(
@@ -9913,6 +9915,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     Expression node = AstFactory.binaryExpression(
         _resolvedInteger(2), TokenType.EQ_EQ, _resolvedInteger(3));
     expect(_analyze(node), same(_typeProvider.boolType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitBinaryExpression_ifNull() {
+    // 1 ?? 1.5
+    Expression node = AstFactory.binaryExpression(
+        _resolvedInteger(1), TokenType.QUESTION_QUESTION, _resolvedDouble(1.5));
+    expect(_analyze(node), same(_typeProvider.numType));
     _listener.assertNoErrors();
   }
 

@@ -518,6 +518,11 @@ compile_time_constant10_test/none: CompileTimeError # Issue 21177
 
 const_dynamic_type_literal_test: CompileTimeError # Issue 22989
 
+# Null-aware operators aren't implemented in the Java-based analyzer.
+if_null_evaluation_order_test: CompileTimeError
+if_null_precedence_test: CompileTimeError
+if_null_behavior_test: CompileTimeError
+
 # Issue 16391. These tests are supposed to produce a compile time
 # error in checked mode, but they don't:
 [ $compiler == dartanalyzer && $checked ]

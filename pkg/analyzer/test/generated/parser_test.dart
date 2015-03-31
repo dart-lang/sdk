@@ -6,6 +6,7 @@ library engine.parser_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -2388,8 +2389,9 @@ class C {
     // Incrementally parse the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    IncrementalScanner incrementalScanner = new IncrementalScanner(
-        source, new CharSequenceReader(modifiedContents), incrementalListener);
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    IncrementalScanner incrementalScanner = new IncrementalScanner(source,
+        new CharSequenceReader(modifiedContents), incrementalListener, options);
     Token incrementalTokens = incrementalScanner.rescan(
         originalTokens, replaceStart, removed.length, added.length);
     expect(incrementalTokens, isNotNull);
@@ -7233,10 +7235,11 @@ void''');
   }
 
   void test_parseFormalParameterList_prefixedType_partial() {
-    FormalParameterList parameterList =
-        parse4("parseFormalParameterList", "(io.)", [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_IDENTIFIER]);
+    FormalParameterList parameterList = parse4("parseFormalParameterList",
+        "(io.)", [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
     expect(parameterList.parameters, hasLength(1));
@@ -7246,10 +7249,11 @@ void''');
   }
 
   void test_parseFormalParameterList_prefixedType_partial2() {
-    FormalParameterList parameterList =
-        parse4("parseFormalParameterList", "(io.,a)", [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_IDENTIFIER]);
+    FormalParameterList parameterList = parse4("parseFormalParameterList",
+        "(io.,a)", [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
     expect(parameterList.parameters, hasLength(2));

@@ -7450,8 +7450,9 @@ $scriptBody
     ht.Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     GatheringErrorListener errorListener = new GatheringErrorListener();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     ht.HtmlUnit unit =
-        new ht.HtmlParser(null, errorListener).parse(token, lineInfo);
+        new ht.HtmlParser(null, errorListener, options).parse(token, lineInfo);
     errorListener.assertNoErrors();
     return unit;
   }
