@@ -35,7 +35,7 @@ main() {
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
   runReflectiveTests(BuildDirectiveElementsTaskTest);
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
-  runReflectiveTests(BuildExportSourceClosureTaskTest);
+  runReflectiveTests(BuildSourceClosuresTaskTest);
   runReflectiveTests(BuildExportNamespaceTaskTest);
   runReflectiveTests(BuildFunctionTypeAliasesTaskTest);
   runReflectiveTests(BuildLibraryConstructorsTaskTest);
@@ -618,48 +618,6 @@ int topLevelB;
 }
 
 @reflectiveTest
-class BuildExportSourceClosureTaskTest extends _AbstractDartTaskTest {
-  test_perform() {
-    Source sourceA = _newSource('/a.dart', '''
-library lib_a;
-export 'b.dart';
-''');
-    Source sourceB = _newSource('/b.dart', '''
-library lib_b;
-export 'b.dart';
-''');
-    Source sourceC = _newSource('/c.dart', '''
-library lib_c;
-export 'a.dart';
-''');
-    Source sourceD = _newSource('/d.dart', '''
-library lib_d;
-''');
-    // a.dart
-    {
-      _computeResult(sourceA, EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildExportSourceClosureTask>());
-      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
-      expect(closure, unorderedEquals([sourceA, sourceB]));
-    }
-    // c.dart
-    {
-      _computeResult(sourceC, EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildExportSourceClosureTask>());
-      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
-      expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
-    }
-    // d.dart
-    {
-      _computeResult(sourceD, EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildExportSourceClosureTask>());
-      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
-      expect(closure, unorderedEquals([sourceD]));
-    }
-  }
-}
-
-@reflectiveTest
 class BuildFunctionTypeAliasesTaskTest extends _AbstractDartTaskTest {
   test_perform() {
     Source source = _newSource('/test.dart', '''
@@ -1057,6 +1015,95 @@ d() {}
     LibraryElement library = outputs[LIBRARY_ELEMENT3];
     Namespace namespace = library.publicNamespace;
     expect(namespace.definedNames.keys, unorderedEquals(['a', 'd']));
+  }
+}
+
+@reflectiveTest
+class BuildSourceClosuresTaskTest extends _AbstractDartTaskTest {
+  test_perform_exportClosure() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+export 'b.dart';
+''');
+    Source sourceB = _newSource('/b.dart', '''
+library lib_b;
+export 'c.dart';
+''');
+    Source sourceC = _newSource('/c.dart', '''
+library lib_c;
+export 'a.dart';
+''');
+    Source sourceD = _newSource('/d.dart', '''
+library lib_d;
+''');
+    // a.dart
+    {
+      _computeResult(sourceA, EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
+    }
+    // c.dart
+    {
+      _computeResult(sourceC, EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
+    }
+    // d.dart
+    {
+      _computeResult(sourceD, EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      expect(closure, unorderedEquals([sourceD]));
+    }
+  }
+
+  test_perform_importClosure() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+import 'b.dart';
+''');
+    Source sourceB = _newSource('/b.dart', '''
+library lib_b;
+import 'c.dart';
+''');
+    Source sourceC = _newSource('/c.dart', '''
+library lib_c;
+import 'a.dart';
+''');
+    Source sourceD = _newSource('/d.dart', '''
+library lib_d;
+''');
+    Source coreSource = context.sourceFactory.resolveUri(null, 'dart:core');
+    // a.dart
+    {
+      _computeResult(sourceA, IMPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[IMPORT_SOURCE_CLOSURE];
+      expect(closure, contains(sourceA));
+      expect(closure, contains(sourceB));
+      expect(closure, contains(sourceC));
+      expect(closure, contains(coreSource));
+    }
+    // c.dart
+    {
+      _computeResult(sourceC, IMPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[IMPORT_SOURCE_CLOSURE];
+      expect(closure, contains(sourceA));
+      expect(closure, contains(sourceB));
+      expect(closure, contains(sourceC));
+      expect(closure, contains(coreSource));
+    }
+    // d.dart
+    {
+      _computeResult(sourceD, IMPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[IMPORT_SOURCE_CLOSURE];
+      expect(closure, contains(sourceD));
+      expect(closure, contains(coreSource));
+    }
   }
 }
 
@@ -1574,7 +1621,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildExportSourceClosureTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildSourceClosuresTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);

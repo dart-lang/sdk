@@ -95,6 +95,7 @@ final ResultDescriptor<List<AnalysisError>> CONSTRUCTORS_ERRORS =
 
 /**
  * The sources representing the export closure of a library.
+ * The [Source]s include only library sources, not their units.
  *
  * The result is only available for targets representing a Dart library.
  */
@@ -111,6 +112,15 @@ final ListResultDescriptor<Source> EXPORT_SOURCE_CLOSURE =
 final ResultDescriptor<List<AnalysisError>> HINTS =
     new ResultDescriptor<List<AnalysisError>>(
         'HINT_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
+
+/**
+ * The sources representing the import closure of a library.
+ * The [Source]s include only library sources, not their units.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ListResultDescriptor<Source> IMPORT_SOURCE_CLOSURE =
+    new ListResultDescriptor<Source>('IMPORT_SOURCE_CLOSURE', null);
 
 /**
  * The partial [LibraryElement] associated with a library.
@@ -965,77 +975,6 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [EXPORT_SOURCE_CLOSURE] of a library.
- */
-class BuildExportSourceClosureTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the input for [LIBRARY_ELEMENT3] of a library.
-   */
-  static const String LIBRARY2_ELEMENT_INPUT = 'LIBRARY2_ELEMENT_INPUT';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildExportSourceClosureTask', createTask, buildInputs,
-      <ResultDescriptor>[EXPORT_SOURCE_CLOSURE]);
-
-  BuildExportSourceClosureTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    LibraryElement library = getRequiredInput(LIBRARY2_ELEMENT_INPUT);
-    //
-    // Compute export closure.
-    //
-    Set<LibraryElement> libraries = new Set<LibraryElement>();
-    _buildExportClosure(libraries, library);
-    List<Source> sources = libraries.map((lib) => lib.source).toList();
-    //
-    // Record outputs.
-    //
-    outputs[EXPORT_SOURCE_CLOSURE] = sources;
-  }
-
-  /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given library [libSource].
-   */
-  static Map<String, TaskInput> buildInputs(Source libSource) {
-    return <String, TaskInput>{
-      LIBRARY2_ELEMENT_INPUT: LIBRARY_ELEMENT2.of(libSource)
-    };
-  }
-
-  /**
-   * Create a [BuildExportSourceClosureTask] based on the given [target] in
-   * the given [context].
-   */
-  static BuildExportSourceClosureTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new BuildExportSourceClosureTask(context, target);
-  }
-
-  /**
-   * Create a set representing the export closure of the given [library].
-   */
-  static void _buildExportClosure(
-      Set<LibraryElement> libraries, LibraryElement library) {
-    if (library != null && libraries.add(library)) {
-      for (ExportElement exportElement in library.exports) {
-        _buildExportClosure(libraries, exportElement.exportedLibrary);
-      }
-    }
-  }
-}
-
-/**
  * A task that builds [RESOLVED_UNIT3] for a unit.
  */
 class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
@@ -1493,6 +1432,68 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
   static BuildPublicNamespaceTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new BuildPublicNamespaceTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [IMPORT_SOURCE_CLOSURE] and [EXPORT_SOURCE_CLOSURE] of
+ * a library.
+ */
+class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the import closure.
+   */
+  static const String IMPORT_CLOSURE_INPUT = 'IMPORT_CLOSURE_INPUT';
+
+  /**
+   * The name of the export closure.
+   */
+  static const String EXPORT_CLOSURE_INPUT = 'EXPORT_CLOSURE_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildExportSourceClosureTask', createTask, buildInputs,
+      <ResultDescriptor>[IMPORT_SOURCE_CLOSURE, EXPORT_SOURCE_CLOSURE]);
+
+  BuildSourceClosuresTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    List<Source> importClosure = getRequiredInput(IMPORT_CLOSURE_INPUT);
+    List<Source> exportClosure = getRequiredInput(EXPORT_CLOSURE_INPUT);
+    //
+    // Record outputs.
+    //
+    outputs[IMPORT_SOURCE_CLOSURE] = importClosure;
+    outputs[EXPORT_SOURCE_CLOSURE] = exportClosure;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given library [libSource].
+   */
+  static Map<String, TaskInput> buildInputs(Source libSource) {
+    return <String, TaskInput>{
+      IMPORT_CLOSURE_INPUT: new _ImportSourceClosureTaskInput(libSource),
+      EXPORT_CLOSURE_INPUT: new _ExportSourceClosureTaskInput(libSource)
+    };
+  }
+
+  /**
+   * Create a [BuildSourceClosuresTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildSourceClosuresTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildSourceClosuresTask(context, target);
   }
 }
 
@@ -2367,5 +2368,88 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
   static VerifyUnitTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new VerifyUnitTask(context, target);
+  }
+}
+
+/**
+ * A [TaskInput] whose value is a list of library sources exported directly
+ * or indirectly by the target [Source].
+ */
+class _ExportSourceClosureTaskInput implements TaskInput<List<Source>> {
+  final Source target;
+
+  _ExportSourceClosureTaskInput(this.target);
+
+  @override
+  TaskInputBuilder<List<Source>> createBuilder() =>
+      new _SourceClosureTaskInputBuilder(target, _SourceClosureKind.EXPORT);
+}
+
+/**
+ * A [TaskInput] whose value is a list of library sources imported directly
+ * or indirectly by the target [Source].
+ */
+class _ImportSourceClosureTaskInput implements TaskInput<List<Source>> {
+  final Source target;
+
+  _ImportSourceClosureTaskInput(this.target);
+
+  @override
+  TaskInputBuilder<List<Source>> createBuilder() =>
+      new _SourceClosureTaskInputBuilder(target, _SourceClosureKind.IMPORT);
+}
+
+/**
+ * The kind of the source closure to build.
+ */
+enum _SourceClosureKind { IMPORT, EXPORT }
+
+/**
+ * A [TaskInputBuilder] to build values for [_ImportSourceClosureTaskInput].
+ */
+class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
+  final _SourceClosureKind kind;
+  final Set<LibraryElement> _libraries = new HashSet<LibraryElement>();
+  final Set<Source> _newSources = new HashSet<Source>();
+
+  Source currentTarget;
+
+  _SourceClosureTaskInputBuilder(Source librarySource, this.kind) {
+    _newSources.add(librarySource);
+  }
+
+  @override
+  ResultDescriptor get currentResult => LIBRARY_ELEMENT2;
+
+  @override
+  void set currentValue(LibraryElement library) {
+    if (_libraries.add(library)) {
+      if (kind == _SourceClosureKind.IMPORT) {
+        for (ImportElement importElement in library.imports) {
+          Source importedSource = importElement.importedLibrary.source;
+          _newSources.add(importedSource);
+        }
+      } else {
+        for (ExportElement exportElement in library.exports) {
+          Source importedSource = exportElement.exportedLibrary.source;
+          _newSources.add(importedSource);
+        }
+      }
+    }
+  }
+
+  @override
+  List<Source> get inputValue {
+    return _libraries.map((LibraryElement library) => library.source).toList();
+  }
+
+  @override
+  bool moveNext() {
+    if (_newSources.isEmpty) {
+      return false;
+    }
+    currentTarget = _newSources.first;
+    _newSources.remove(currentTarget);
+    return true;
   }
 }

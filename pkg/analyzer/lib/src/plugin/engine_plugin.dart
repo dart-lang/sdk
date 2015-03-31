@@ -67,7 +67,7 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, BuildDirectiveElementsTask.DESCRIPTOR);
     registerExtension(taskId, BuildEnumMemberElementsTask.DESCRIPTOR);
     registerExtension(taskId, BuildExportNamespaceTask.DESCRIPTOR);
-    registerExtension(taskId, BuildExportSourceClosureTask.DESCRIPTOR);
+    registerExtension(taskId, BuildSourceClosuresTask.DESCRIPTOR);
     registerExtension(taskId, BuildFunctionTypeAliasesTask.DESCRIPTOR);
     registerExtension(taskId, BuildLibraryElementTask.DESCRIPTOR);
     registerExtension(taskId, BuildPublicNamespaceTask.DESCRIPTOR);
