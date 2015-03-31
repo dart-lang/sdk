@@ -42,10 +42,15 @@ class NoSuchMethodRegistry {
   /// The implementations that fall into category B, described above.
   final Set<FunctionElement> throwingImpls = new Set<FunctionElement>();
   /// The implementations that fall into category C, described above.
-  final Set<Element> otherImpls = new Set<Element>();
+  final Set<FunctionElement> otherImpls = new Set<FunctionElement>();
+
+  /// The implementations that fall into category C1
+  final Set<FunctionElement> complexNoReturnImpls = new Set<FunctionElement>();
+  /// The implementations that fall into category C2
+  final Set<FunctionElement> complexReturningImpls = new Set<FunctionElement>();
 
   /// The implementations that have not yet been categorized.
-  final Set<Element> _uncategorizedImpls = new Set<Element>();
+  final Set<FunctionElement> _uncategorizedImpls = new Set<FunctionElement>();
 
   final JavaScriptBackend _backend;
   final Compiler _compiler;
@@ -57,13 +62,42 @@ class NoSuchMethodRegistry {
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
 
-  void registerNoSuchMethod(Element noSuchMethodElement) {
+  void registerNoSuchMethod(FunctionElement noSuchMethodElement) {
     _uncategorizedImpls.add(noSuchMethodElement);
   }
 
   void onQueueEmpty() {
     _uncategorizedImpls.forEach(_categorizeImpl);
     _uncategorizedImpls.clear();
+  }
+
+  /// Now that type inference is complete, split category C into two
+  /// subcategories: C1, those that have no return type, and C2, those
+  /// that have a return type.
+  void onTypeInferenceComplete() {
+    otherImpls.forEach(_subcategorizeOther);
+  }
+
+  /// Emits a diagnostic
+  void emitDiagnostic() {
+    throwingImpls.forEach((e) {
+        if (!_hasForwardingSyntax(e)) {
+          _compiler.reportHint(e,
+                               MessageKind.DIRECTLY_THROWING_NSM);
+        }
+      });
+    complexNoReturnImpls.forEach((e) {
+        if (!_hasForwardingSyntax(e)) {
+          _compiler.reportHint(e,
+                               MessageKind.COMPLEX_THROWING_NSM);
+        }
+      });
+    complexReturningImpls.forEach((e) {
+        if (!_hasForwardingSyntax(e)) {
+          _compiler.reportHint(e,
+                               MessageKind.COMPLEX_RETURNING_NSM);
+        }
+      });
   }
 
   /// Returns [true] if the given element is a complex [noSuchMethod]
@@ -74,54 +108,62 @@ class NoSuchMethodRegistry {
     return otherImpls.contains(element);
   }
 
-  NsmCategory _categorizeImpl(Element noSuchMethodElement) {
-    assert(noSuchMethodElement.name == Compiler.NO_SUCH_METHOD);
-    if (defaultImpls.contains(noSuchMethodElement)) {
+  _subcategorizeOther(FunctionElement element) {
+    TypeMask returnType =
+        _compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
+    if (returnType == const TypeMask.nonNullEmpty()) {
+      complexNoReturnImpls.add(element);
+    } else {
+      complexReturningImpls.add(element);
+    }
+  }
+
+  NsmCategory _categorizeImpl(FunctionElement element) {
+    assert(element.name == Compiler.NO_SUCH_METHOD);
+    if (defaultImpls.contains(element)) {
       return NsmCategory.DEFAULT;
     }
-    if (throwingImpls.contains(noSuchMethodElement)) {
+    if (throwingImpls.contains(element)) {
       return NsmCategory.THROWING;
     }
-    if (otherImpls.contains(noSuchMethodElement)) {
+    if (otherImpls.contains(element)) {
       return NsmCategory.OTHER;
     }
-    if (noSuchMethodElement is! FunctionElement ||
-        !_compiler.noSuchMethodSelector.signatureApplies(noSuchMethodElement)) {
-      otherImpls.add(noSuchMethodElement);
+    if (!_compiler.noSuchMethodSelector.signatureApplies(element)) {
+      otherImpls.add(element);
       return NsmCategory.OTHER;
     }
-    FunctionElement noSuchMethodFunc = noSuchMethodElement as FunctionElement;
-    if (_isDefaultNoSuchMethodImplementation(noSuchMethodFunc)) {
-      defaultImpls.add(noSuchMethodFunc);
+    if (_isDefaultNoSuchMethodImplementation(element)) {
+      defaultImpls.add(element);
       return NsmCategory.DEFAULT;
-    } else if (_hasForwardingSyntax(noSuchMethodFunc)) {
+    } else if (_hasForwardingSyntax(element)) {
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
-      Element superCall = noSuchMethodFunc.enclosingClass
+      Element superCall = element.enclosingClass
           .lookupSuperSelector(_compiler.noSuchMethodSelector);
       NsmCategory category = _categorizeImpl(superCall);
       switch(category) {
         case NsmCategory.DEFAULT:
-          defaultImpls.add(noSuchMethodFunc);
+          defaultImpls.add(element);
           break;
         case NsmCategory.THROWING:
-          throwingImpls.add(noSuchMethodFunc);
+          throwingImpls.add(element);
           break;
         case NsmCategory.OTHER:
-          otherImpls.add(noSuchMethodFunc);
+          otherImpls.add(element);
           break;
       }
       return category;
-    } else if (_hasThrowingSyntax(noSuchMethodFunc)) {
-      throwingImpls.add(noSuchMethodFunc);
+    } else if (_hasThrowingSyntax(element)) {
+      throwingImpls.add(element);
       return NsmCategory.THROWING;
     } else {
-      otherImpls.add(noSuchMethodFunc);
+      otherImpls.add(element);
       return NsmCategory.OTHER;
     }
   }
 
-  bool _isDefaultNoSuchMethodImplementation(Element element) {
+  bool _isDefaultNoSuchMethodImplementation(FunctionElement element) {
     ClassElement classElement = element.enclosingClass;
     return classElement == _compiler.objectClass
         || classElement == _backend.jsInterceptorClass

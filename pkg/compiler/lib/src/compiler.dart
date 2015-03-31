@@ -291,6 +291,7 @@ abstract class Backend {
   bool get canHandleCompilationFailed;
 
   void onResolutionComplete() {}
+  void onTypeInferenceComplete() {}
 
   ItemCompilationContext createItemCompilationContext() {
     return new ItemCompilationContext();
@@ -362,7 +363,7 @@ abstract class Backend {
   void registerRuntimeType(Enqueuer enqueuer, Registry registry) {}
 
   /// Call this to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(Element noSuchMethodElement) {}
+  void registerNoSuchMethod(FunctionElement noSuchMethodElement) {}
 
   /// Call this method to enable support for `noSuchMethod`.
   void enableNoSuchMethod(Enqueuer enqueuer) {}
@@ -1610,6 +1611,8 @@ abstract class Compiler implements DiagnosticListener {
     typesTask.onResolutionComplete(mainFunction);
 
     if (stopAfterTypeInference) return;
+
+    backend.onTypeInferenceComplete();
 
     log('Compiling...');
     phase = PHASE_COMPILING;

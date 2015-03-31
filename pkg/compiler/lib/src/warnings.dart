@@ -2410,6 +2410,28 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
           "Non-supported 'call' member on a native class, or a "
           "subclass of a native class.");
 
+  static const MessageKind DIRECTLY_THROWING_NSM =
+      const MessageKind(
+          "This 'noSuchMethod' implementation is guaranteed to throw an "
+          "exception. The generated code will be smaller if it is "
+          "rewritten.",
+          howToFix: "Rewrite to "
+                    "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'.");
+
+  static const MessageKind COMPLEX_THROWING_NSM =
+      const MessageKind(
+          "This 'noSuchMethod' implementation is guaranteed to throw an "
+          "exception. The generated code will be smaller and the compiler "
+          "will be able to perform more optimizations if it is rewritten.",
+          howToFix: "Rewrite to "
+                    "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'.");
+
+  static const MessageKind COMPLEX_RETURNING_NSM =
+      const MessageKind(
+          "Overriding 'noSuchMethod' causes the compiler to generate "
+          "more code and prevents the compiler from doing some optimizations.",
+          howToFix: "Consider removing this 'noSuchMethod' implementation.");
+
   toString() => template;
 
   Message message([Map arguments = const {}, bool terse = false]) {
