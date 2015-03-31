@@ -450,7 +450,7 @@ class FixProcessor {
     }
     ClassElement targetElement = targetType.element as ClassElement;
     String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = targetElement.node;
+    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
     _ConstructorLocation targetLocation =
         _prepareNewConstructorLocation(targetClass);
     // build method source
@@ -504,7 +504,7 @@ class FixProcessor {
     }
     ClassElement targetElement = targetType.element as ClassElement;
     String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = targetElement.node;
+    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
     _ConstructorLocation targetLocation =
         _prepareNewConstructorLocation(targetClass);
     // build method source
@@ -716,7 +716,7 @@ class FixProcessor {
     }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
-    AstNode targetTypeNode = targetClassElement.node;
+    AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
@@ -849,7 +849,7 @@ class FixProcessor {
     }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
-    AstNode targetTypeNode = targetClassElement.node;
+    AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
@@ -1132,7 +1132,7 @@ class FixProcessor {
   void _addFix_importLibrary(FixKind kind, String importPath) {
     CompilationUnitElement libraryUnitElement =
         unitLibraryElement.definingCompilationUnit;
-    CompilationUnit libraryUnit = libraryUnitElement.node;
+    CompilationUnit libraryUnit = getParsedUnit(libraryUnitElement);
     // prepare new import location
     int offset = 0;
     String prefix;
@@ -1664,7 +1664,8 @@ class FixProcessor {
           staticModifier = target.bestElement.kind == ElementKind.CLASS;
         }
         // prepare insert offset
-        ClassDeclaration targetClassNode = targetClassElement.node;
+        ClassDeclaration targetClassNode =
+            getParsedClassElementNode(targetClassElement);
         prefix = '  ';
         insertOffset = targetClassNode.end - 1;
         if (targetClassNode.members.isEmpty) {
@@ -1976,7 +1977,8 @@ class FixProcessor {
     // prepare environment
     Source targetSource = targetClassElement.source;
     // prepare insert offset
-    ClassDeclaration targetClassNode = targetClassElement.node;
+    ClassDeclaration targetClassNode =
+        getParsedClassElementNode(targetClassElement);
     int insertOffset = targetClassNode.end - 1;
     // prepare prefix
     String prefix = '  ';
