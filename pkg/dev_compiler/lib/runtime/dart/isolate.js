@@ -14,7 +14,7 @@ var isolate;
       return `IsolateSpawnException: ${this.message}`;
     }
   }
-  IsolateSpawnException[dart.implements] = [core.Exception];
+  IsolateSpawnException[dart.implements] = () => [core.Exception];
   let _currentIsolateCache = Symbol('_currentIsolateCache');
   let _pause = Symbol('_pause');
   class Isolate extends core.Object {
@@ -157,7 +157,7 @@ var isolate;
   });
   class SendPort extends core.Object {
   }
-  SendPort[dart.implements] = [Capability];
+  SendPort[dart.implements] = () => [Capability];
   class ReceivePort extends core.Object {
     ReceivePort() {
       return new _isolate_helper.ReceivePortImpl();
@@ -166,7 +166,7 @@ var isolate;
       return new _isolate_helper.ReceivePortImpl.fromRawReceivePort(rawPort);
     }
   }
-  ReceivePort[dart.implements] = [async.Stream];
+  ReceivePort[dart.implements] = () => [async.Stream];
   dart.defineNamedConstructor(ReceivePort, 'fromRawReceivePort');
   class RawReceivePort extends core.Object {
     RawReceivePort(handler) {
@@ -185,7 +185,7 @@ var isolate;
       return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${dart.dinvoke(dart.dinvoke(this.source, 'toString'), 'replaceAll', "\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${this.stackTrace.toString().replaceAll("\n", "\n  ")}`;
     }
   }
-  _IsolateUnhandledException[dart.implements] = [core.Exception];
+  _IsolateUnhandledException[dart.implements] = () => [core.Exception];
   let _description = Symbol('_description');
   class RemoteError extends core.Object {
     RemoteError(description, stackDescription) {
@@ -196,7 +196,7 @@ var isolate;
       return this[_description];
     }
   }
-  RemoteError[dart.implements] = [core.Error];
+  RemoteError[dart.implements] = () => [core.Error];
   let _trace = Symbol('_trace');
   class _RemoteStackTrace extends core.Object {
     _RemoteStackTrace(trace) {
@@ -206,7 +206,7 @@ var isolate;
       return this[_trace];
     }
   }
-  _RemoteStackTrace[dart.implements] = [core.StackTrace];
+  _RemoteStackTrace[dart.implements] = () => [core.StackTrace];
   // Exports:
   exports.Capability = Capability;
   exports.IsolateSpawnException = IsolateSpawnException;

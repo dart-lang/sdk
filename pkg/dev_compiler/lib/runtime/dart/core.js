@@ -315,7 +315,7 @@ var core;
       return dart.as(_js_helper.Primitives.getWeekday(this), int);
     }
   }
-  DateTime[dart.implements] = [Comparable];
+  DateTime[dart.implements] = () => [Comparable];
   dart.defineNamedConstructor(DateTime, 'utc');
   dart.defineNamedConstructor(DateTime, 'now');
   dart.defineNamedConstructor(DateTime, 'fromMillisecondsSinceEpoch');
@@ -372,7 +372,7 @@ var core;
       return 0.0;
     }
   }
-  num[dart.implements] = [Comparable$(num)];
+  num[dart.implements] = () => [Comparable$(num)];
   num._parseError = false;
   class double extends num {
     static parse(source, onError) {
@@ -495,7 +495,7 @@ var core;
       return new Duration[_microseconds](-dart.notNull(this[_duration]));
     }
   }
-  Duration[dart.implements] = [Comparable$(Duration)];
+  Duration[dart.implements] = () => [Comparable$(Duration)];
   dart.defineNamedConstructor(Duration, _microseconds);
   Duration.MICROSECONDS_PER_MILLISECOND = 1000;
   Duration.MILLISECONDS_PER_SECOND = 1000;
@@ -721,7 +721,7 @@ var core;
       return `RangeError: ${this.message} (${target}[${this.invalidValue}]): ${explanation}`;
     }
   }
-  IndexError[dart.implements] = [RangeError];
+  IndexError[dart.implements] = () => [RangeError];
   class FallThroughError extends Error {
     FallThroughError() {
       super.Error();
@@ -811,7 +811,7 @@ var core;
       return this.message != null ? `UnimplementedError: ${this.message}` : "UnimplementedError";
     }
   }
-  UnimplementedError[dart.implements] = [UnsupportedError];
+  UnimplementedError[dart.implements] = () => [UnsupportedError];
   class StateError extends Error {
     StateError(message) {
       this.message = message;
@@ -845,7 +845,7 @@ var core;
       return null;
     }
   }
-  OutOfMemoryError[dart.implements] = [Error];
+  OutOfMemoryError[dart.implements] = () => [Error];
   class StackOverflowError extends Object {
     StackOverflowError() {
     }
@@ -856,7 +856,7 @@ var core;
       return null;
     }
   }
-  StackOverflowError[dart.implements] = [Error];
+  StackOverflowError[dart.implements] = () => [Error];
   class CyclicInitializationError extends Error {
     CyclicInitializationError(variableName) {
       if (variableName === void 0)
@@ -887,7 +887,7 @@ var core;
       return `Exception: ${this.message}`;
     }
   }
-  _ExceptionImplementation[dart.implements] = [Exception];
+  _ExceptionImplementation[dart.implements] = () => [Exception];
   class FormatException extends Object {
     FormatException(message, source, offset) {
       if (message === void 0)
@@ -976,7 +976,7 @@ var core;
       return `${report}${prefix}${slice}${postfix}\n${String['*'](" ", markOffset)}^\n`;
     }
   }
-  FormatException[dart.implements] = [Exception];
+  FormatException[dart.implements] = () => [Exception];
   class IntegerDivisionByZeroException extends Object {
     IntegerDivisionByZeroException() {
     }
@@ -984,7 +984,7 @@ var core;
       return "IntegerDivisionByZeroException";
     }
   }
-  IntegerDivisionByZeroException[dart.implements] = [Exception];
+  IntegerDivisionByZeroException[dart.implements] = () => [Exception];
   let _EXPANDO_PROPERTY_NAME = dart.JsSymbol('_EXPANDO_PROPERTY_NAME');
   let _getKey = dart.JsSymbol('_getKey');
   let _KEY_PROPERTY_NAME = dart.JsSymbol('_KEY_PROPERTY_NAME');
@@ -1144,7 +1144,7 @@ var core;
         return n;
       }
     }
-    _GeneratorIterable[dart.implements] = [_internal.EfficientLength];
+    _GeneratorIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(_GeneratorIterable, 'slice');
     return _GeneratorIterable;
   });
@@ -1173,14 +1173,14 @@ var core;
         return this[_current];
       }
     }
-    _GeneratorIterator[dart.implements] = [Iterator$(E)];
+    _GeneratorIterator[dart.implements] = () => [Iterator$(E)];
     return _GeneratorIterator;
   });
   let _GeneratorIterator = _GeneratorIterator$(dart.dynamic);
   let BidirectionalIterator$ = dart.generic(function(E) {
     class BidirectionalIterator extends Object {
     }
-    BidirectionalIterator[dart.implements] = [Iterator$(E)];
+    BidirectionalIterator[dart.implements] = () => [Iterator$(E)];
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$(dart.dynamic);
@@ -1230,7 +1230,7 @@ var core;
         return result;
       }
     }
-    List[dart.implements] = [Iterable$(E), _internal.EfficientLength];
+    List[dart.implements] = () => [Iterable$(E), _internal.EfficientLength];
     dart.defineNamedConstructor(List, 'filled');
     dart.defineNamedConstructor(List, 'from');
     dart.defineNamedConstructor(List, 'generate');
@@ -1292,7 +1292,7 @@ var core;
       return new _js_helper.JSSyntaxRegExp(source, {multiLine: multiLine, caseSensitive: caseSensitive});
     }
   }
-  RegExp[dart.implements] = [Pattern];
+  RegExp[dart.implements] = () => [Pattern];
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
       Set() {
@@ -1305,7 +1305,7 @@ var core;
         return new collection.LinkedHashSet.from(elements);
       }
     }
-    Set[dart.implements] = [_internal.EfficientLength];
+    Set[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(Set, 'identity');
     dart.defineNamedConstructor(Set, 'from');
     return Set;
@@ -1440,7 +1440,7 @@ var core;
       return _js_helper.Primitives.stringFromCharCodes(list);
     }
   }
-  String[dart.implements] = [Comparable$(String), Pattern];
+  String[dart.implements] = () => [Comparable$(String), Pattern];
   dart.defineNamedConstructor(String, 'fromCharCodes');
   dart.defineNamedConstructor(String, 'fromCharCode');
   dart.defineNamedConstructor(String, 'fromEnvironment');
@@ -1578,7 +1578,7 @@ var core;
       return true;
     }
   }
-  RuneIterator[dart.implements] = [BidirectionalIterator$(int)];
+  RuneIterator[dart.implements] = () => [BidirectionalIterator$(int)];
   dart.defineNamedConstructor(RuneIterator, 'at');
   let _contents = dart.JsSymbol('_contents');
   let _writeString = dart.JsSymbol('_writeString');
@@ -1637,7 +1637,7 @@ var core;
       this[_contents] = _js_helper.Primitives.stringConcatUnchecked(this[_contents], dart.as(str, String));
     }
   }
-  StringBuffer[dart.implements] = [StringSink];
+  StringBuffer[dart.implements] = () => [StringSink];
   class StringSink extends Object {
   }
   class Symbol extends Object {

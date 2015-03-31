@@ -86,7 +86,7 @@ var convert;
         return new async.Stream.eventTransformed(source, ((sink) => new _ConverterStreamEventSink(this, sink)).bind(this));
       }
     }
-    Converter[dart.implements] = [async.StreamTransformer];
+    Converter[dart.implements] = () => [async.StreamTransformer];
     return Converter;
   });
   let Converter = Converter$(dart.dynamic, dart.dynamic);
@@ -142,7 +142,7 @@ var convert;
       return new _StringConversionSinkAsStringSinkAdapter(this);
     }
   }
-  StringConversionSinkMixin[dart.implements] = [StringConversionSink];
+  StringConversionSinkMixin[dart.implements] = () => [StringConversionSink];
   class StringConversionSinkBase extends StringConversionSinkMixin {
   }
   class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
@@ -238,7 +238,7 @@ var convert;
         return new _SimpleCallbackSink(callback);
       }
     }
-    ChunkedConversionSink[dart.implements] = [core.Sink$(T)];
+    ChunkedConversionSink[dart.implements] = () => [core.Sink$(T)];
     dart.defineNamedConstructor(ChunkedConversionSink, 'withCallback');
     return ChunkedConversionSink;
   });
@@ -402,7 +402,7 @@ var convert;
         return this[_sink].close();
       }
     }
-    _EventSinkAdapter[dart.implements] = [ChunkedConversionSink$(T)];
+    _EventSinkAdapter[dart.implements] = () => [ChunkedConversionSink$(T)];
     return _EventSinkAdapter;
   });
   let _EventSinkAdapter = _EventSinkAdapter$(dart.dynamic);
@@ -426,7 +426,7 @@ var convert;
         return this[_chunkedSink].close();
       }
     }
-    _ConverterStreamEventSink[dart.implements] = [async.EventSink$(S)];
+    _ConverterStreamEventSink[dart.implements] = () => [async.EventSink$(S)];
     return _ConverterStreamEventSink;
   });
   let _ConverterStreamEventSink = _ConverterStreamEventSink$(dart.dynamic, dart.dynamic);
@@ -1085,7 +1085,7 @@ var convert;
       }
     }
   }
-  _JsonPrettyPrintMixin[dart.implements] = [_JsonStringifier];
+  _JsonPrettyPrintMixin[dart.implements] = () => [_JsonStringifier];
   class _JsonStringStringifier extends _JsonStringifier {
     _JsonStringStringifier(sink$, _toEncodable) {
       this[_sink] = sink$;
@@ -1484,7 +1484,7 @@ var convert;
       return this[_sink].writeAll(objects, separator);
     }
   }
-  _ClosableStringSink[dart.implements] = [ClosableStringSink];
+  _ClosableStringSink[dart.implements] = () => [ClosableStringSink];
   let _flush = Symbol('_flush');
   let _MIN_STRING_SIZE = Symbol('_MIN_STRING_SIZE');
   class _StringConversionSinkAsStringSinkAdapter extends core.Object {
@@ -1541,7 +1541,7 @@ var convert;
       this[_chunkedSink].add(accumulated);
     }
   }
-  _StringConversionSinkAsStringSinkAdapter[dart.implements] = [ClosableStringSink];
+  _StringConversionSinkAsStringSinkAdapter[dart.implements] = () => [ClosableStringSink];
   _StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE = 16;
   let _stringSink = Symbol('_stringSink');
   class _StringSinkConversionSink extends StringConversionSinkBase {
@@ -2293,7 +2293,7 @@ var convert;
       return Object.create(null);
     }
   }
-  _JsonMap[dart.implements] = [collection.LinkedHashMap];
+  _JsonMap[dart.implements] = () => [collection.LinkedHashMap];
   let _parent = Symbol('_parent');
   class _JsonMapKeyIterable extends _internal.ListIterable {
     _JsonMapKeyIterable(parent) {

@@ -67,7 +67,7 @@ var sunflower;
       exports.context.stroke();
     }
   }
-  CirclePainter[dart.implements] = [Circle];
+  CirclePainter[dart.implements] = () => [Circle];
   class SunflowerSeed extends dart.mixin(Circle, CirclePainter) {
     SunflowerSeed(x, y, radius, color) {
       if (color === void 0)

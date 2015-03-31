@@ -554,7 +554,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     // Interfaces
     if (classElem.interfaces.isNotEmpty) {
-      body.add(js.statement('#[dart.implements] = #;', [
+      body.add(js.statement('#[dart.implements] = () => #;', [
         name,
         new JS.ArrayInitializer(
             classElem.interfaces.map(_emitTypeName).toList())

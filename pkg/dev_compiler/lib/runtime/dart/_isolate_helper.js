@@ -729,7 +729,7 @@ var _isolate_helper;
       this[_updateGlobalState]();
     }
   }
-  _IsolateContext[dart.implements] = [_foreign_helper.IsolateContext];
+  _IsolateContext[dart.implements] = () => [_foreign_helper.IsolateContext];
   let _runHelper = Symbol('_runHelper');
   class _EventLoop extends core.Object {
     _EventLoop() {
@@ -1125,7 +1125,7 @@ var _isolate_helper;
       }
     }
   }
-  _BaseSendPort[dart.implements] = [isolate.SendPort];
+  _BaseSendPort[dart.implements] = () => [isolate.SendPort];
   let _isClosed = Symbol('_isClosed');
   class _NativeJsSendPort extends _BaseSendPort {
     _NativeJsSendPort(receivePort$, isolateId) {
@@ -1156,7 +1156,7 @@ var _isolate_helper;
       return this[_receivePort][_id];
     }
   }
-  _NativeJsSendPort[dart.implements] = [isolate.SendPort];
+  _NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
   class _WorkerSendPort extends _BaseSendPort {
     _WorkerSendPort(workerId$, isolateId, receivePortId$) {
       this[_workerId] = workerId$;
@@ -1181,7 +1181,7 @@ var _isolate_helper;
       return dart.notNull(this[_workerId]) << 16 ^ dart.notNull(this[_isolateId]) << 8 ^ dart.notNull(this[_receivePortId]);
     }
   }
-  _WorkerSendPort[dart.implements] = [isolate.SendPort];
+  _WorkerSendPort[dart.implements] = () => [isolate.SendPort];
   let _handler = Symbol('_handler');
   let _nextFreeId = Symbol('_nextFreeId');
   let _close = Symbol('_close');
@@ -1227,7 +1227,7 @@ var _isolate_helper;
       return new _NativeJsSendPort(this, exports._globalState.currentContext.id);
     }
   }
-  RawReceivePortImpl[dart.implements] = [isolate.RawReceivePort];
+  RawReceivePortImpl[dart.implements] = () => [isolate.RawReceivePort];
   dart.defineNamedConstructor(RawReceivePortImpl, 'weak');
   dart.defineNamedConstructor(RawReceivePortImpl, _controlPort);
   RawReceivePortImpl._nextFreeId = 1;
@@ -1261,7 +1261,7 @@ var _isolate_helper;
       return this[_rawPort].sendPort;
     }
   }
-  ReceivePortImpl[dart.implements] = [isolate.ReceivePort];
+  ReceivePortImpl[dart.implements] = () => [isolate.ReceivePort];
   dart.defineNamedConstructor(ReceivePortImpl, 'weak');
   dart.defineNamedConstructor(ReceivePortImpl, 'fromRawReceivePort');
   let _once = Symbol('_once');
@@ -1330,7 +1330,7 @@ var _isolate_helper;
       return this[_handle] != null;
     }
   }
-  TimerImpl[dart.implements] = [async.Timer];
+  TimerImpl[dart.implements] = () => [async.Timer];
   dart.defineNamedConstructor(TimerImpl, 'periodic');
   // Function hasTimer: () → bool
   function hasTimer() {
@@ -1365,7 +1365,7 @@ var _isolate_helper;
       return false;
     }
   }
-  CapabilityImpl[dart.implements] = [isolate.Capability];
+  CapabilityImpl[dart.implements] = () => [isolate.Capability];
   dart.defineNamedConstructor(CapabilityImpl, _internal);
   // Exports:
   exports.enterJsAsync = enterJsAsync;

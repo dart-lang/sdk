@@ -32,7 +32,7 @@ var typed_data;
       return buffer.asByteData(offsetInBytes, length);
     }
   }
-  ByteData[dart.implements] = [TypedData];
+  ByteData[dart.implements] = () => [TypedData];
   dart.defineNamedConstructor(ByteData, 'view');
   class Int8List extends core.Object {
     Int8List(length) {
@@ -49,7 +49,7 @@ var typed_data;
       return buffer.asInt8List(offsetInBytes, length);
     }
   }
-  Int8List[dart.implements] = [core.List$(core.int), TypedData];
+  Int8List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int8List, 'fromList');
   dart.defineNamedConstructor(Int8List, 'view');
   Int8List.BYTES_PER_ELEMENT = 1;
@@ -68,7 +68,7 @@ var typed_data;
       return buffer.asUint8List(offsetInBytes, length);
     }
   }
-  Uint8List[dart.implements] = [core.List$(core.int), TypedData];
+  Uint8List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint8List, 'fromList');
   dart.defineNamedConstructor(Uint8List, 'view');
   Uint8List.BYTES_PER_ELEMENT = 1;
@@ -87,7 +87,7 @@ var typed_data;
       return buffer.asUint8ClampedList(offsetInBytes, length);
     }
   }
-  Uint8ClampedList[dart.implements] = [core.List$(core.int), TypedData];
+  Uint8ClampedList[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint8ClampedList, 'fromList');
   dart.defineNamedConstructor(Uint8ClampedList, 'view');
   Uint8ClampedList.BYTES_PER_ELEMENT = 1;
@@ -106,7 +106,7 @@ var typed_data;
       return buffer.asInt16List(offsetInBytes, length);
     }
   }
-  Int16List[dart.implements] = [core.List$(core.int), TypedData];
+  Int16List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int16List, 'fromList');
   dart.defineNamedConstructor(Int16List, 'view');
   Int16List.BYTES_PER_ELEMENT = 2;
@@ -125,7 +125,7 @@ var typed_data;
       return buffer.asUint16List(offsetInBytes, length);
     }
   }
-  Uint16List[dart.implements] = [core.List$(core.int), TypedData];
+  Uint16List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint16List, 'fromList');
   dart.defineNamedConstructor(Uint16List, 'view');
   Uint16List.BYTES_PER_ELEMENT = 2;
@@ -144,7 +144,7 @@ var typed_data;
       return buffer.asInt32List(offsetInBytes, length);
     }
   }
-  Int32List[dart.implements] = [core.List$(core.int), TypedData];
+  Int32List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int32List, 'fromList');
   dart.defineNamedConstructor(Int32List, 'view');
   Int32List.BYTES_PER_ELEMENT = 4;
@@ -163,7 +163,7 @@ var typed_data;
       return buffer.asUint32List(offsetInBytes, length);
     }
   }
-  Uint32List[dart.implements] = [core.List$(core.int), TypedData];
+  Uint32List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint32List, 'fromList');
   dart.defineNamedConstructor(Uint32List, 'view');
   Uint32List.BYTES_PER_ELEMENT = 4;
@@ -182,7 +182,7 @@ var typed_data;
       return buffer.asInt64List(offsetInBytes, length);
     }
   }
-  Int64List[dart.implements] = [core.List$(core.int), TypedData];
+  Int64List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int64List, 'fromList');
   dart.defineNamedConstructor(Int64List, 'view');
   Int64List.BYTES_PER_ELEMENT = 8;
@@ -201,7 +201,7 @@ var typed_data;
       return buffer.asUint64List(offsetInBytes, length);
     }
   }
-  Uint64List[dart.implements] = [core.List$(core.int), TypedData];
+  Uint64List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint64List, 'fromList');
   dart.defineNamedConstructor(Uint64List, 'view');
   Uint64List.BYTES_PER_ELEMENT = 8;
@@ -220,7 +220,7 @@ var typed_data;
       return buffer.asFloat32List(offsetInBytes, length);
     }
   }
-  Float32List[dart.implements] = [core.List$(core.double), TypedData];
+  Float32List[dart.implements] = () => [core.List$(core.double), TypedData];
   dart.defineNamedConstructor(Float32List, 'fromList');
   dart.defineNamedConstructor(Float32List, 'view');
   Float32List.BYTES_PER_ELEMENT = 4;
@@ -239,7 +239,7 @@ var typed_data;
       return buffer.asFloat64List(offsetInBytes, length);
     }
   }
-  Float64List[dart.implements] = [core.List$(core.double), TypedData];
+  Float64List[dart.implements] = () => [core.List$(core.double), TypedData];
   dart.defineNamedConstructor(Float64List, 'fromList');
   dart.defineNamedConstructor(Float64List, 'view');
   Float64List.BYTES_PER_ELEMENT = 8;
@@ -258,7 +258,7 @@ var typed_data;
       return buffer.asFloat32x4List(offsetInBytes, length);
     }
   }
-  Float32x4List[dart.implements] = [core.List$(Float32x4), TypedData];
+  Float32x4List[dart.implements] = () => [core.List$(Float32x4), TypedData];
   dart.defineNamedConstructor(Float32x4List, 'fromList');
   dart.defineNamedConstructor(Float32x4List, 'view');
   Float32x4List.BYTES_PER_ELEMENT = 16;
@@ -277,7 +277,7 @@ var typed_data;
       return buffer.asInt32x4List(offsetInBytes, length);
     }
   }
-  Int32x4List[dart.implements] = [core.List$(Int32x4), TypedData];
+  Int32x4List[dart.implements] = () => [core.List$(Int32x4), TypedData];
   dart.defineNamedConstructor(Int32x4List, 'fromList');
   dart.defineNamedConstructor(Int32x4List, 'view');
   Int32x4List.BYTES_PER_ELEMENT = 16;
@@ -296,7 +296,7 @@ var typed_data;
       return buffer.asFloat64x2List(offsetInBytes, length);
     }
   }
-  Float64x2List[dart.implements] = [core.List$(Float64x2), TypedData];
+  Float64x2List[dart.implements] = () => [core.List$(Float64x2), TypedData];
   dart.defineNamedConstructor(Float64x2List, 'fromList');
   dart.defineNamedConstructor(Float64x2List, 'view');
   Float64x2List.BYTES_PER_ELEMENT = 16;

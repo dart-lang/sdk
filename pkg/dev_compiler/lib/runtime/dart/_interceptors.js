@@ -345,7 +345,7 @@ var _interceptors;
         return new _internal.IterableMixinWorkaround().asMapList(this);
       }
     }
-    JSArray[dart.implements] = [core.List$(E), JSIndexable];
+    JSArray[dart.implements] = () => [core.List$(E), JSIndexable];
     dart.defineNamedConstructor(JSArray, 'fixed');
     dart.defineNamedConstructor(JSArray, 'emptyGrowable');
     dart.defineNamedConstructor(JSArray, 'growable');
@@ -358,7 +358,7 @@ var _interceptors;
   let JSMutableArray$ = dart.generic(function(E) {
     class JSMutableArray extends JSArray$(E) {
     }
-    JSMutableArray[dart.implements] = [JSMutableIndexable];
+    JSMutableArray[dart.implements] = () => [JSMutableIndexable];
     return JSMutableArray;
   });
   let JSMutableArray = JSMutableArray$(dart.dynamic);
@@ -689,7 +689,7 @@ var _interceptors;
       return core.num;
     }
   }
-  JSNumber[dart.implements] = [core.num];
+  JSNumber[dart.implements] = () => [core.num];
   JSNumber._MIN_INT32 = -2147483648;
   JSNumber._MAX_INT32 = 2147483647;
   let _bitCount = Symbol('_bitCount');
@@ -754,7 +754,7 @@ var _interceptors;
       return dart.as(~this >>> 0, core.int);
     }
   }
-  JSInt[dart.implements] = [core.int, core.double];
+  JSInt[dart.implements] = () => [core.int, core.double];
   class JSDouble extends JSNumber {
     JSDouble() {
       super.JSNumber();
@@ -763,7 +763,7 @@ var _interceptors;
       return core.double;
     }
   }
-  JSDouble[dart.implements] = [core.double];
+  JSDouble[dart.implements] = () => [core.double];
   class JSPositiveInt extends JSInt {
   }
   class JSUInt32 extends JSPositiveInt {
@@ -1191,7 +1191,7 @@ var _interceptors;
       return this[index];
     }
   }
-  JSString[dart.implements] = [core.String, JSIndexable];
+  JSString[dart.implements] = () => [core.String, JSIndexable];
   let _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
     _CodeUnits(string$) {
@@ -1343,7 +1343,7 @@ var _interceptors;
       return core.bool;
     }
   }
-  JSBool[dart.implements] = [core.bool];
+  JSBool[dart.implements] = () => [core.bool];
   class JSNull extends Interceptor {
     JSNull() {
       super.Interceptor();
@@ -1364,7 +1364,7 @@ var _interceptors;
       return super.noSuchMethod(invocation);
     }
   }
-  JSNull[dart.implements] = [core.Null];
+  JSNull[dart.implements] = () => [core.Null];
   class JSIndexable extends core.Object {
   }
   class JSMutableIndexable extends JSIndexable {
@@ -1382,7 +1382,7 @@ var _interceptors;
       return JSObject;
     }
   }
-  JavaScriptObject[dart.implements] = [JSObject];
+  JavaScriptObject[dart.implements] = () => [JSObject];
   class PlainJavaScriptObject extends JavaScriptObject {
     PlainJavaScriptObject() {
       super.JavaScriptObject();
