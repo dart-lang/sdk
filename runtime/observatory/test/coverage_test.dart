@@ -100,7 +100,7 @@ var tests = [
                     expect(coverage['type'], equals('CodeCoverage'));
                     expect(coverage['coverage'].length, equals(1));
                     expect(normalize(coverage['coverage'][0]['hits']),
-                           equals([14, 1, 15, 1, 16, 0, 18, 1]));
+                           equals([15, 1, 16, 1, 17, 0, 19, 1]));
                 }));
       // Class
       tests.add(isolate.invokeRpcNoUpgrade('getCoverage',
@@ -109,8 +109,8 @@ var tests = [
                     expect(coverage['type'], equals('CodeCoverage'));
                     expect(coverage['coverage'].length, equals(1));
                     expect(normalize(coverage['coverage'][0]['hits']),
-                           equals([14, 1, 15, 1, 16, 0, 18, 1,
-                                   23, 1, 24, 1, 26, 0]));
+                           equals([15, 1, 16, 1, 17, 0, 19, 1,
+                                   24, 1, 25, 1, 27, 0]));
                 }));
       // Library
       tests.add(isolate.invokeRpcNoUpgrade('getCoverage',
@@ -119,10 +119,10 @@ var tests = [
                     expect(coverage['type'], equals('CodeCoverage'));
                     expect(coverage['coverage'].length, equals(3));
                     expect(normalize(coverage['coverage'][0]['hits']),
-                           equals([14, 1, 15, 1, 16, 0, 18, 1,
-                                   23, 1, 24, 1, 26, 0]));
+                           equals([15, 1, 16, 1, 17, 0, 19, 1,
+                                   24, 1, 25, 1, 27, 0]));
                     expect(normalize(coverage['coverage'][1]['hits']).take(12),
-                           equals([32, 1, 35, 1, 36, 0, 31, 1, 44, 0, 45, 0]));
+                           equals([33, 1, 36, 1, 37, 0, 32, 1, 45, 0, 46, 0]));
                 }));
       // Script
       tests.add(cls.load().then((_) {
@@ -132,10 +132,10 @@ var tests = [
                     expect(coverage['type'], equals('CodeCoverage'));
                     expect(coverage['coverage'].length, equals(3));
                     expect(normalize(coverage['coverage'][0]['hits']),
-                           equals([14, 1, 15, 1, 16, 0, 18, 1,
-                                   23, 1, 24, 1, 26, 0]));
+                           equals([15, 1, 16, 1, 17, 0, 19, 1,
+                                   24, 1, 25, 1, 27, 0]));
                     expect(normalize(coverage['coverage'][1]['hits']).take(12),
-                           equals([32, 1, 35, 1, 36, 0, 31, 1, 44, 0, 45, 0]));
+                           equals([33, 1, 36, 1, 37, 0, 32, 1, 45, 0, 46, 0]));
                 });
           }));
       // Isolate

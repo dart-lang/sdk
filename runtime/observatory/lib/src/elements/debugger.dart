@@ -7,6 +7,7 @@ library debugger_page_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/service.dart';

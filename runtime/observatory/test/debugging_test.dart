@@ -73,7 +73,7 @@ var tests = [
           Breakpoint bpt = result;
           expect(bpt.type, equals('Breakpoint'));
           expect(bpt.script.id, equals(script.id));
-          expect(bpt.tokenPos, equals(66));
+          expect(bpt.tokenPos, equals(58));
           expect(isolate.breakpoints.length, equals(1));
           return completer.future;  // Wait for breakpoint events.
       });
@@ -86,6 +86,7 @@ var tests = [
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(1));
       expect(stack['frames'][0]['function'].name, equals('testFunction'));
+      expect(stack['frames'][0]['tokenPos'], equals(58));
   });
 },
 
@@ -108,12 +109,13 @@ var tests = [
   });
 },
 
-// Get the stack trace again.  We are in 'helper'.
+// Get the stack trace again.  Our position has updated.
 (Isolate isolate) {
   return isolate.getStack().then((ServiceMap stack) {
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(2));
-      expect(stack['frames'][0]['function'].name, equals('helper'));
+      expect(stack['frames'][0]['function'].name, equals('testFunction'));
+      expect(stack['frames'][0]['tokenPos'], equals(60));
   });
 },
 
@@ -178,7 +180,7 @@ var tests = [
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.script.name, equals('debugging_test.dart'));
-    expect(bpt.tokenPos, equals(28));
+    expect(bpt.tokenPos, equals(29));
     expect(isolate.breakpoints.length, equals(1));
     return completer.future;  // Wait for breakpoint events.
   });
