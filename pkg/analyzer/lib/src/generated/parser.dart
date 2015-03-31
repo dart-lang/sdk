@@ -5738,6 +5738,9 @@ class Parser {
       } else {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+        parameters = new FormalParameterList(
+            _createSyntheticToken(TokenType.OPEN_PAREN), null, null, null,
+            _createSyntheticToken(TokenType.CLOSE_PAREN));
       }
     } else if (_matches(TokenType.OPEN_PAREN)) {
       _reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS);

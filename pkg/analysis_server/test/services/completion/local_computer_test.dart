@@ -149,6 +149,21 @@ class C extends B with M1, M2 {
     computer = new LocalComputer();
   }
 
+  test_missing_params_function() {
+    addTestSource('int f1{} main(){f^}');
+    expect(computeFast(), isTrue);
+  }
+
+  test_missing_params_method() {
+    addTestSource('class C1{int f1{} main(){f^}}');
+    expect(computeFast(), isTrue);
+  }
+
+  test_missing_params_constructor() {
+    addTestSource('class C1{C1{} main(){C^}}');
+    expect(computeFast(), isTrue);
+  }
+
   test_break_ignores_outer_functions_using_closure() {
     addTestSource('''
 void main() {

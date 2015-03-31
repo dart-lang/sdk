@@ -1195,8 +1195,9 @@ class Foo {
   }
 
   void test_getterInFunction_block_noReturnType() {
-    ParserTestCase.parseStatement(
+    FunctionDeclarationStatement statement = ParserTestCase.parseStatement(
         "get x { return _x; }", [ParserErrorCode.GETTER_IN_FUNCTION]);
+    expect(statement.functionDeclaration.functionExpression.parameters, isNull);
   }
 
   void test_getterInFunction_block_returnType() {
@@ -1485,13 +1486,17 @@ class Foo {
   }
 
   void test_missingFunctionParameters_topLevel_void_block() {
-    ParserTestCase.parseCompilationUnit(
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
         "void f { return x;}", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    FunctionDeclaration funct = unit.declarations[0];
+    expect(funct.functionExpression.parameters, hasLength(0));
   }
 
   void test_missingFunctionParameters_topLevel_void_expression() {
-    ParserTestCase.parseCompilationUnit(
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
         "void f => x;", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    FunctionDeclaration funct = unit.declarations[0];
+    expect(funct.functionExpression.parameters, hasLength(0));
   }
 
   void test_missingIdentifier_afterOperator() {
@@ -1554,8 +1559,10 @@ class Foo {
   }
 
   void test_missingMethodParameters_void_block() {
-    parse3("parseClassMember", <Object>["C"], "void m {} }",
+    MethodDeclaration method = parse3("parseClassMember",
+        <Object>["C"], "void m {} }",
         [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+    expect(method.parameters, hasLength(0));
   }
 
   void test_missingMethodParameters_void_expression() {
@@ -1855,6 +1862,13 @@ class Foo {
       ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
       ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
     ]);
+  }
+
+  void test_topLevel_getter() {
+    FunctionDeclaration funct = parse3("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()],
+        "get x => 7;");
+    expect(funct.functionExpression.parameters, isNull);
   }
 
   void test_topLevelOperator_withoutType() {
@@ -5434,6 +5448,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.body, isNotNull);
+    expect(method.parameters, isNull);
   }
 
   void test_parseClassMember_method_external() {
