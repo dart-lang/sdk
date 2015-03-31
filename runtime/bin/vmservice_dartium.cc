@@ -24,9 +24,9 @@ namespace bin {
 
 
 
-// snapshot_buffer points to a snapshot if we link in a snapshot otherwise
-// it is initialized to NULL.
-extern const uint8_t* snapshot_buffer;
+// isolate_snapshot_buffer points to a snapshot if we link in a snapshot
+// otherwise it is initialized to NULL.
+extern const uint8_t* isolate_snapshot_buffer;
 
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 0;
@@ -42,12 +42,12 @@ void VmServiceServer::Bootstrap() {
 
 
 Dart_Isolate VmServiceServer::CreateIsolate() {
-  ASSERT(snapshot_buffer != NULL);
+  ASSERT(isolate_snapshot_buffer != NULL);
   // Create the isolate.
   char* error = 0;
   Dart_Isolate isolate = Dart_CreateIsolate(DART_VM_SERVICE_ISOLATE_NAME,
                                             "main",
-                                            dart::bin::snapshot_buffer,
+                                            dart::bin::isolate_snapshot_buffer,
                                             NULL,
                                             &error);
   if (!isolate) {
