@@ -623,8 +623,8 @@ void main() {
 
         // We're not properly inferring that map.keys is an Iterable<String>
         // and that x is a String.
-        for (var x in /*info:DynamicCast should be pass*/map.keys) {
-          String y = /*info:DynamicCast should be pass*/x;
+        for (var x in map.keys) {
+          String y = x;
         }
       }
       '''

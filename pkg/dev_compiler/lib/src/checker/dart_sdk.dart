@@ -144,7 +144,9 @@ final Map<String, String> mockSdkSources = {
           List([int length]);
           List.filled(int length, E fill);
         }
-        class Map<K, V> {}
+        class Map<K, V> {
+          Iterable<K> get keys {}
+        }
         ''',
   'dart:async': '''
         class Future<T> {
