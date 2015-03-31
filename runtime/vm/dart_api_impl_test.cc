@@ -3619,7 +3619,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::snapshot_buffer,
+      Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer,
                          reinterpret_cast<void*>(mydata),
                          &err);
   EXPECT(isolate != NULL);
@@ -7378,7 +7378,7 @@ void BusyLoop_start(uword unused) {
     MonitorLocker ml(sync);
     char* error = NULL;
     shared_isolate = Dart_CreateIsolate(NULL, NULL,
-                                        bin::snapshot_buffer,
+                                        bin::isolate_snapshot_buffer,
                                         NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
@@ -7506,7 +7506,7 @@ UNIT_TEST_CASE(IsolateShutdown) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
-                                            bin::snapshot_buffer,
+                                            bin::isolate_snapshot_buffer,
                                             my_data, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
@@ -7556,7 +7556,7 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
-                                            bin::snapshot_buffer,
+                                            bin::isolate_snapshot_buffer,
                                             NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);

@@ -28,9 +28,13 @@
 namespace dart {
 namespace bin {
 
-// snapshot_buffer points to a snapshot if we link in a snapshot otherwise
-// it is initialized to NULL.
-extern const uint8_t* snapshot_buffer;
+// vm_isolate_snapshot_buffer points to a snapshot for the vm isolate if we
+// link in a snapshot otherwise it is initialized to NULL.
+extern const uint8_t* vm_isolate_snapshot_buffer;
+
+// isolate_snapshot_buffer points to a snapshot for an isolate if we link in a
+// snapshot otherwise it is initialized to NULL.
+extern const uint8_t* isolate_snapshot_buffer;
 
 // Global state that stores a pointer to the application script snapshot.
 static bool generate_script_snapshot = false;
@@ -293,7 +297,7 @@ static bool ProcessGenScriptSnapshotOption(const char* filename,
                                            CommandLineOptions* vm_options) {
   if (filename != NULL && strlen(filename) != 0) {
     // Ensure that are already running using a full snapshot.
-    if (snapshot_buffer == NULL) {
+    if (isolate_snapshot_buffer == NULL) {
       Log::PrintErr("Script snapshots cannot be generated in this version of"
                     " dart\n");
       return false;
@@ -584,7 +588,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   isolate = Dart_CreateIsolate(script_uri,
                                main,
-                               snapshot_buffer,
+                               isolate_snapshot_buffer,
                                isolate_data,
                                error);
 
@@ -594,7 +598,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   Dart_EnterScope();
 
-  if (snapshot_buffer != NULL) {
+  if (isolate_snapshot_buffer != NULL) {
     // Setup the native resolver as the snapshot does not carry it.
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
@@ -964,7 +968,8 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  if (!Dart_Initialize(CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
+  if (!Dart_Initialize(vm_isolate_snapshot_buffer,
+                       CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,
                        DartUtils::WriteFile,

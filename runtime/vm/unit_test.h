@@ -217,10 +217,14 @@ class CodeGenerator;
 class VirtualMemory;
 
 
-// snapshot_buffer points to a snapshot if we link in a snapshot otherwise
-// it is initialized to NULL.
 namespace bin {
-extern const uint8_t* snapshot_buffer;
+// vm_isolate_snapshot_buffer points to a snapshot for the vm isolate if we
+// link in a snapshot otherwise it is initialized to NULL.
+extern const uint8_t* vm_isolate_snapshot_buffer;
+
+// isolate_snapshot_buffer points to a snapshot for an isolate if we link in a
+// snapshot otherwise it is initialized to NULL.
+extern const uint8_t* isolate_snapshot_buffer;
 }
 
 
@@ -269,7 +273,7 @@ class TestCase : TestCaseBase {
     return CreateIsolate(buffer, name);
   }
   static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
-    return CreateIsolate(bin::snapshot_buffer, name);
+    return CreateIsolate(bin::isolate_snapshot_buffer, name);
   }
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
