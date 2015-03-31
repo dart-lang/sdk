@@ -710,14 +710,14 @@ var _isolate_helper;
         dart.dinvoke(this[_scheduledControlEvents], 'clear');
       }
       for (let port of this.ports.values) {
-        dart.dinvoke(port, '_close');
+        port._close();
       }
       this.ports.clear();
       this.weakPorts.clear();
       exports._globalState.isolates.remove(this.id);
       this.errorPorts.clear();
       if (this.doneHandlers != null) {
-        for (let port of this.doneHandlers) {
+        for (let port of dart.as(this.doneHandlers, core.Iterable$(isolate.SendPort))) {
           port.send(null);
         }
         this.doneHandlers = null;

@@ -620,6 +620,50 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     }
   }
 
+  // TODO(vsm): Use leafp's matchType here?
+  DartType _findIteratedType(InterfaceType type) {
+    if (type.element == _typeProvider.iterableType.element) {
+      var typeArguments = type.typeArguments;
+      assert(typeArguments.length == 1);
+      return typeArguments[0];
+    }
+
+    if (type == _typeProvider.objectType) return null;
+
+    var result = _findIteratedType(type.superclass);
+    if (result != null) return result;
+
+    for (final parent in type.interfaces) {
+      result = _findIteratedType(parent);
+      if (result != null) return result;
+    }
+
+    for (final parent in type.mixins) {
+      result = _findIteratedType(parent);
+      if (result != null) return result;
+    }
+
+    return null;
+  }
+
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+    if (node.type != null) return;
+
+    var parent = node.parent;
+    assert(parent is ForEachStatement);
+    var expr = parent.iterable;
+    var element = node.element as LocalVariableElementImpl;
+    var exprType = expr.staticType;
+    if (exprType is InterfaceType) {
+      var iteratedType = _findIteratedType(exprType);
+      if (iteratedType != null) {
+        element.type = iteratedType;
+      }
+    }
+  }
+
   @override // to propagate types to identifiers
   visitMethodInvocation(MethodInvocation node) {
     // TODO(sigmund): follow up with analyzer team - why is this needed?

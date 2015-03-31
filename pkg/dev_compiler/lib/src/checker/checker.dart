@@ -411,6 +411,20 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
+  @override
+  visitForEachStatement(ForEachStatement node) {
+    // Check that the expression is an Iterable.
+    var expr = node.iterable;
+    var iterableType = _rules.provider.iterableType;
+    var loopVariable = node.identifier != null
+        ? node.identifier
+        : node.loopVariable.identifier;
+    var iteratorType = loopVariable.staticType;
+    var checkedType = iterableType.substitute4([iteratorType]);
+    node.iterable = checkAssignment(expr, checkedType);
+    node.visitChildren(this);
+  }
+
   @override visitListLiteral(ListLiteral node) {
     var type = _rules.provider.dynamicType;
     if (node.typeArguments != null) {

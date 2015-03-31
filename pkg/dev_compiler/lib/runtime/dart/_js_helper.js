@@ -797,7 +797,7 @@ var _js_helper;
     }
     let buffer = new core.StringBuffer();
     let startIndex = 0;
-    for (let match of dart.dinvoke(pattern, 'allMatches', receiver)) {
+    for (let match of dart.as(dart.dinvoke(pattern, 'allMatches', receiver), core.Iterable$(core.Match))) {
       buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', startIndex, match.start)));
       buffer.write(dart.dinvokef(onMatch, match));
       startIndex = match.end;
@@ -1871,7 +1871,7 @@ var _js_helper;
     }
     static stringFromCodePoints(codePoints) {
       let a = new core.List$(core.int).from([]);
-      for (let i of codePoints) {
+      for (let i of dart.as(codePoints, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
         if (dart.dbinary(i, '<=', 65535)) {
@@ -1886,7 +1886,7 @@ var _js_helper;
       return Primitives[_fromCharCodeApply](a);
     }
     static stringFromCharCodes(charCodes) {
-      for (let i of charCodes) {
+      for (let i of dart.as(charCodes, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
         if (dart.dbinary(i, '<', 0))

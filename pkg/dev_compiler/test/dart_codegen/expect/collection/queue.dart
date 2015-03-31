@@ -77,7 +77,11 @@ Queue<E> list = ((__x17) => DEVC$RT.cast(__x17, DEVC$RT.type((DoubleLinkedQueue<
 ), DEVC$RT.type((Queue<E> _) {
 }
 ), "InferableAllocation", """line 207, column 21 of dart:collection/queue.dart: """, __x17 is Queue<E>, false))(new DoubleLinkedQueue());
- for (final E e in elements) {
+ for (final E e in DEVC$RT.cast(elements, DEVC$RT.type((Iterable<dynamic> _) {
+}
+), DEVC$RT.type((Iterable<E> _) {
+}
+), "CompositeCast", """line 208, column 23 of dart:collection/queue.dart: """, elements is Iterable<E>, false)) {
 list.addLast(e);
 }
  return DEVC$RT.cast(list, DEVC$RT.type((Queue<E> _) {
@@ -236,7 +240,11 @@ int capacity = _INITIAL_CAPACITY;
 capacity = elements.length;
 }
  ListQueue<E> result = new ListQueue<E>(capacity);
- for (final E element in elements) {
+ for (final E element in DEVC$RT.cast(elements, DEVC$RT.type((Iterable<dynamic> _) {
+}
+), DEVC$RT.type((Iterable<E> _) {
+}
+), "CompositeCast", """line 411, column 31 of dart:collection/queue.dart: """, elements is Iterable<E>, false)) {
 result.addLast(element);
 }
  return result;

@@ -587,9 +587,44 @@ void main() {
       }
 
       test() {
-        var l = List<Foo>();
+        var list = <Foo>[];
         for (var x in list) {
-          String y = /*info:DynamicCast should be severe:StaticTypeError*/x;
+          String y = /*severe:StaticTypeError*/x;
+        }
+
+        for (dynamic x in list) {
+          String y = /*info:DynamicCast*/x;
+        }
+
+        for (String x in /*severe:StaticTypeError*/list) {
+          String y = x;
+        }
+
+        var z;
+        for(z in list) {
+          String y = /*info:DynamicCast*/z;
+        }
+
+        Iterable iter = list;
+        for (Foo x in /*warning:DownCastComposite*/iter) {
+          var y = x;
+        }
+
+        dynamic iter2 = list;
+        for (Foo x in /*warning:DownCastComposite*/iter2) {
+          var y = x;
+        }
+
+        var map = <String, Foo>{};
+        // Error: map must be an Iterable.
+        for (var x in /*severe:StaticTypeError*/map) {
+          String y = /*info:DynamicCast*/x;
+        }
+
+        // We're not properly inferring that map.keys is an Iterable<String>
+        // and that x is a String.
+        for (var x in /*info:DynamicCast should be pass*/map.keys) {
+          String y = /*info:DynamicCast should be pass*/x;
         }
       }
       '''

@@ -350,7 +350,7 @@ var collection;
         let result = this[_newSet]();
         for (let element of this) {
           if (!dart.notNull(other.contains(element)))
-            result.add(dart.as(element, E));
+            result.add(element);
         }
         return result;
       }
@@ -358,7 +358,7 @@ var collection;
         let result = this[_newSet]();
         for (let element of this) {
           if (other.contains(element))
-            result.add(dart.as(element, E));
+            result.add(element);
         }
         return result;
       }
@@ -407,7 +407,7 @@ var collection;
       }
       from(elements) {
         let result = new HashSet();
-        for (let e of elements)
+        for (let e of dart.as(elements, core.Iterable$(E)))
           result.add(e);
         return result;
       }
@@ -2145,7 +2145,7 @@ var collection;
       }
       from(elements) {
         let list = dart.as(new DoubleLinkedQueue(), Queue$(E));
-        for (let e of elements) {
+        for (let e of dart.as(elements, core.Iterable$(E))) {
           list.addLast(e);
         }
         return dart.as(list, DoubleLinkedQueue$(E));
@@ -2328,7 +2328,7 @@ var collection;
             capacity = elements.length;
           }
           let result = new ListQueue(capacity);
-          for (let element of elements) {
+          for (let element of dart.as(elements, core.Iterable$(E))) {
             result.addLast(element);
           }
           return result;
@@ -3180,7 +3180,7 @@ var collection;
         if (isValidKey === void 0)
           isValidKey = null;
         let result = new SplayTreeSet(compare, isValidKey);
-        for (let element of elements) {
+        for (let element of dart.as(elements, core.Iterable$(E))) {
           result.add(element);
         }
         return result;

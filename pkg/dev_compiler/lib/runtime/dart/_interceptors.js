@@ -862,8 +862,8 @@ var _interceptors;
       let start = 0;
       let length = 1;
       for (let match of pattern.allMatches(this)) {
-        let matchStart = dart.as(dart.dload(match, 'start'), core.int);
-        let matchEnd = dart.as(dart.dload(match, 'end'), core.int);
+        let matchStart = match.start;
+        let matchEnd = match.end;
         length = dart.notNull(matchEnd) - dart.notNull(matchStart);
         if (length == 0 && start == matchStart) {
           continue;

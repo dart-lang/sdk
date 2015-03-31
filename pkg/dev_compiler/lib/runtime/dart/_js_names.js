@@ -26,7 +26,7 @@ var _js_names;
     let getterPrefix = _foreign_helper.JS_GET_NAME('GETTER_PREFIX');
     let getterPrefixLength = getterPrefix.length;
     let setterPrefix = _foreign_helper.JS_GET_NAME('SETTER_PREFIX');
-    for (let key of keys) {
+    for (let key of dart.as(keys, core.Iterable$(core.String))) {
       let value = jsMangledNames[key];
       result.set(key, value);
       if (!dart.notNull(isGlobal)) {

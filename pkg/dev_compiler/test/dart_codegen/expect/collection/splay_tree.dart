@@ -433,7 +433,11 @@ var setOrMap = _tree;
  SplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)]) : _comparator = ((__x36) => DEVC$RT.cast(__x36, dynamic, __t33, "CompositeCast", """line 693, column 23 of dart:collection/splay_tree.dart: """, __x36 is __t33, false))((compare == null) ? Comparable.compare : compare), _validKey = ((__x37) => DEVC$RT.cast(__x37, dynamic, __t24, "CompositeCast", """line 694, column 21 of dart:collection/splay_tree.dart: """, __x37 is __t24, false))((isValidKey != null) ? isValidKey : ((v) => v is E));
  factory SplayTreeSet.from(Iterable elements, [int compare(E key1, E key2), bool isValidKey(potentialKey)]) {
 SplayTreeSet<E> result = new SplayTreeSet<E>(compare, isValidKey);
- for (final E element in elements) {
+ for (final E element in DEVC$RT.cast(elements, DEVC$RT.type((Iterable<dynamic> _) {
+}
+), DEVC$RT.type((Iterable<E> _) {
+}
+), "CompositeCast", """line 707, column 29 of dart:collection/splay_tree.dart: """, elements is Iterable<E>, false)) {
 result.add(element);
 }
  return result;
