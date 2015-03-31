@@ -102,6 +102,17 @@ final ListResultDescriptor<Source> EXPORT_SOURCE_CLOSURE =
     new ListResultDescriptor<Source>('EXPORT_SOURCE_CLOSURE', null);
 
 /**
+ * The errors produced while generating hints a compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for targets representing a Dart compilation unit.
+ */
+final ResultDescriptor<List<AnalysisError>> HINTS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'HINT_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
+
+/**
  * The partial [LibraryElement] associated with a library.
  *
  * The [LibraryElement] and its [CompilationUnitElement]s are attached to each
@@ -1647,6 +1658,84 @@ class ExportNamespaceBuilder {
       }
     }
     return newNames;
+  }
+}
+
+/**
+ * A task that generates [HINTS] for a unit.
+ */
+class GenerateHintsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'GenerateHintsTask', createTask, buildInputs, <ResultDescriptor>[HINTS]);
+
+  GenerateHintsTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    Source source = getRequiredSource();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    CompilationUnitElement unitElement = unit.element;
+    LibraryElement libraryElement = unitElement.library;
+    //
+    // Use the HintGenerator to generate errors.
+    //
+    // TODO(scheglov) move collecting used imports into a separate task
+//      unit.accept(_importsVerifier);
+    // Dead code analysis.
+    unit.accept(new DeadCodeVerifier(errorReporter));
+    // TODO(scheglov) move collecting used elements into a separate task
+//      unit.accept(_usedElementsVisitor);
+    // Dart2js analysis.
+    if (context.analysisOptions.dart2jsHint) {
+      unit.accept(new Dart2JSVerifier(errorReporter));
+    }
+    // Dart best practices.
+    InheritanceManager inheritanceManager =
+        new InheritanceManager(libraryElement);
+    TypeProvider typeProvider = context.typeProvider;
+    unit.accept(new BestPracticesVerifier(errorReporter, typeProvider));
+    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
+    // Find to-do comments.
+    new ToDoFinder(errorReporter).findIn(unit);
+    //
+    // Record outputs.
+    //
+    outputs[HINTS] = errorListener.errors;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(target)};
+  }
+
+  /**
+   * Create a [GenerateHintsTask] based on the given [target] in
+   * the given [context].
+   */
+  static GenerateHintsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new GenerateHintsTask(context, target);
   }
 }
 

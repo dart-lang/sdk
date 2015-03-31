@@ -98,6 +98,11 @@ abstract class Map<K, V> extends Object {
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+class _Override {
+  const _Override();
+}
+const Object override = const _Override();
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC = const _MockSdkLibrary('dart:async',

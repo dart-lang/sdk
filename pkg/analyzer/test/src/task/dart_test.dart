@@ -42,6 +42,7 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(GenerateHintsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
@@ -1074,6 +1075,87 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 }
 
 @reflectiveTest
+class GenerateHintsTaskTest extends _AbstractDartTaskTest {
+  test_perform_bestPractices_missingReturn() {
+    Source source = _newSource('/test.dart', '''
+int main() {
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.MISSING_RETURN]);
+  }
+
+  test_perform_dart2js() {
+    // TODO(scheglov) There is a bug - we need to finish building
+    // TypeProvider hierarchies before validating "expr is CoreType".
+//    Source source = _newSource('/test.dart', '''
+//main(p) {
+//  if (p is double) {
+//    print('double');
+//  }
+//}
+//''');
+//    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+//    _computeResult(target, HINTS);
+//    expect(task, new isInstanceOf<GenerateHintsTask>());
+//    // validate
+//    _fillErrorListener(HINTS);
+//    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.IS_DOUBLE]);
+  }
+
+  test_perform_deadCode() {
+    Source source = _newSource('/test.dart', '''
+main() {
+  if (false) {
+    print('how?');
+  }
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.DEAD_CODE]);
+  }
+
+  test_perform_overrideVerifier() {
+    Source source = _newSource('/test.dart', '''
+class A {}
+class B {
+  @override
+  m() {}
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD]);
+  }
+
+  test_perform_todo() {
+    Source source = _newSource('/test.dart', '''
+main() {
+  // TODO(developer) foo bar
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[TodoCode.TODO]);
+  }
+}
+
+@reflectiveTest
 class ParseDartTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
     Map<String, TaskInput> inputs = ParseDartTask.buildInputs(emptySource);
@@ -1494,9 +1576,10 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildExportSourceClosureTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveReferencesTask.DESCRIPTOR);

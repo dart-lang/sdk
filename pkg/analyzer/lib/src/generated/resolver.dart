@@ -4415,7 +4415,7 @@ class HintGenerator {
     // Dart best practices
     unit.accept(
         new BestPracticesVerifier(errorReporter, _context.typeProvider));
-    unit.accept(new OverrideVerifier(_manager, errorReporter));
+    unit.accept(new OverrideVerifier(errorReporter, _manager));
     // Find to-do comments
     new ToDoFinder(errorReporter).findIn(unit);
     // pub analysis
@@ -9494,22 +9494,22 @@ class NamespaceBuilder {
  */
 class OverrideVerifier extends RecursiveAstVisitor<Object> {
   /**
-   * The inheritance manager used to find overridden methods.
-   */
-  final InheritanceManager _manager;
-
-  /**
    * The error reporter used to report errors.
    */
   final ErrorReporter _errorReporter;
 
   /**
+   * The inheritance manager used to find overridden methods.
+   */
+  final InheritanceManager _manager;
+
+  /**
    * Initialize a newly created verifier to look for inappropriate uses of the override annotation.
    *
-   * @param manager the inheritance manager used to find overridden methods
    * @param errorReporter the error reporter used to report errors
+   * @param manager the inheritance manager used to find overridden methods
    */
-  OverrideVerifier(this._manager, this._errorReporter);
+  OverrideVerifier(this._errorReporter, this._manager);
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
