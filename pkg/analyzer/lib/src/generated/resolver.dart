@@ -10335,7 +10335,9 @@ class ResolverVisitor extends ScopedVisitor {
       Expression expression, DartType potentialType, bool allowPrecisionLoss) {
     VariableElement element = getOverridableStaticElement(expression);
     if (element != null) {
-      overrideVariable(element, potentialType, allowPrecisionLoss);
+      DartType newBestType =
+          overrideVariable(element, potentialType, allowPrecisionLoss);
+      recordPropagatedTypeIfBetter(expression, newBestType);
     }
     element = getOverridablePropagatedElement(expression);
     if (element != null) {
@@ -10351,16 +10353,19 @@ class ResolverVisitor extends ScopedVisitor {
    * @param potentialType the potential type of the element
    * @param allowPrecisionLoss true if `potentialType` is allowed to be less precise than the
    *          current best type
+   *
+   * Return a new better [DartType], or `null` if [potentialType] is not better
+   * than the current [element] type.
    */
-  void overrideVariable(VariableElement element, DartType potentialType,
+  DartType overrideVariable(VariableElement element, DartType potentialType,
       bool allowPrecisionLoss) {
     if (potentialType == null || potentialType.isBottom) {
-      return;
+      return null;
     }
     DartType currentType = _overrideManager.getBestType(element);
 
     if (potentialType == currentType) {
-      return;
+      return null;
     }
 
     // If we aren't allowing precision loss then the third and fourth conditions
@@ -10399,7 +10404,44 @@ class ResolverVisitor extends ScopedVisitor {
 //            potentialType;
 //      }
       _overrideManager.setType(element, potentialType);
+      return potentialType;
     }
+    return null;
+  }
+
+  /**
+   * If the given [type] is valid, strongly more specific than the
+   * existing static type of the given [expression], record it as a propagated
+   * type of the given [expression]. Otherwise, reset it to `null`.
+   *
+   * If [hasOldPropagatedType] is `true` then the existing propagated type
+   * should also is checked.
+   */
+  void recordPropagatedTypeIfBetter(Expression expression, DartType type,
+      [bool hasOldPropagatedType = false]) {
+    // Ensure that propagated type invalid.
+    if (type == null || type.isDynamic || type.isBottom) {
+      if (!hasOldPropagatedType) {
+        expression.propagatedType = null;
+      }
+      return;
+    }
+    // Ensure that propagated type is more specific than the static type.
+    DartType staticType = expression.staticType;
+    if (type == staticType || !type.isMoreSpecificThan(staticType)) {
+      expression.propagatedType = null;
+      return;
+    }
+    // Ensure that the new propagated type is more specific than the old one.
+    if (hasOldPropagatedType) {
+      DartType oldPropagatedType = expression.propagatedType;
+      if (oldPropagatedType != null &&
+          !type.isMoreSpecificThan(oldPropagatedType)) {
+        return;
+      }
+    }
+    // OK
+    expression.propagatedType = type;
   }
 
   @override

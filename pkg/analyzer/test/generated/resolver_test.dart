@@ -12760,14 +12760,22 @@ f() {
   }
 
   void test_mergePropagatedTypes_afterIfThen_different() {
-    _assertTypeOfMarkedExpression(r'''
+    String code = r'''
 main() {
   var v = 0;
   if (v != null) {
     v = '';
   }
-  return v; // marker
-}''', null, null);
+  return v;
+}''';
+    {
+      SimpleIdentifier identifier = _findMarkedIdentifier(code, "v;");
+      expect(identifier.propagatedType, null);
+    }
+    {
+      SimpleIdentifier identifier = _findMarkedIdentifier(code, "v = '';");
+      expect(identifier.propagatedType, typeProvider.stringType);
+    }
   }
 
   void test_mergePropagatedTypes_afterIfThen_same() {
