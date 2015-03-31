@@ -169,9 +169,6 @@ class ElementY extends dart2js.Element {
   }
 
   @override
-  void setFixedBackendName(String name) => unsupported('setFixedBackendName');
-
-  @override
   void setNative(String name) => unsupported('setNative');
 
   String toString() => '$kind($name)';
@@ -829,6 +826,10 @@ class ConstructorElementY extends ElementY
   // TODO(johnniwinther): Support redirecting factory constructors.
   @override
   bool get isRedirectingFactory => false;
+
+  // TODO(johnniwinther): Support redirecting generative constructors.
+  @override
+  bool get isRedirectingGenerative => false;
 
   @override
   bool get isStatic => false;

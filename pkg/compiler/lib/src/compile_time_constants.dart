@@ -732,7 +732,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
       AstConstant createEvaluatedConstant(ConstantValue value) {
         return new AstConstant(
-            context, node, new ConstructedConstantExpresssion(
+            context, node, new ConstructedConstantExpression(
                 value,
                 type,
                 constructor,
@@ -850,7 +850,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         evaluator.buildFieldConstants(classElement);
 
     return new AstConstant(
-        context, node, new ConstructedConstantExpresssion(
+        context, node, new ConstructedConstantExpression(
             new ConstructedConstantValue(
                 constructedType,
                 fieldConstants.map((e) => e.value).toList()),

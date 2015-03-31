@@ -4,6 +4,7 @@
 
 library dart2js.semantics_visitor_test;
 
+import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/expressions.dart';
@@ -34,6 +35,11 @@ class Visit {
   final setter;
   final constant;
   final selector;
+  final parameters;
+  final body;
+  final target;
+  final targetType;
+  final initializers;
 
   const Visit(this.method,
               {this.element,
@@ -50,7 +56,12 @@ class Visit {
                this.getter,
                this.setter,
                this.constant,
-               this.selector});
+               this.selector,
+               this.parameters,
+               this.body,
+               this.target,
+               this.targetType,
+               this.initializers});
 
   int get hashCode => toString().hashCode;
 
@@ -104,6 +115,21 @@ class Visit {
     if (selector != null) {
       sb.write(',selector=$selector');
     }
+    if (parameters != null) {
+      sb.write(',parameters=$parameters');
+    }
+    if (body != null) {
+      sb.write(',body=$body');
+    }
+    if (target != null) {
+      sb.write(',target=$target');
+    }
+    if (targetType != null) {
+      sb.write(',targetType=$targetType');
+    }
+    if (initializers != null) {
+      sb.write(',initializers=$initializers');
+    }
     return sb.toString();
   }
 }
@@ -113,15 +139,15 @@ class Test {
   final String code;
   final /*Visit | List<Visit>*/ expectedVisits;
   final String cls;
+  final String method;
 
   const Test(this.code, this.expectedVisits)
-      : cls = null, codeByPrefix = null;
-  const Test.clazz(this.code, this.expectedVisits)
-      : cls = 'C', codeByPrefix = null;
+      : cls = null, method = 'm', codeByPrefix = null;
+  const Test.clazz(this.code, this.expectedVisits,
+                   {this.cls: 'C', this.method: 'm'})
+      : codeByPrefix = null;
   const Test.prefix(this.codeByPrefix, this.code, this.expectedVisits)
-      : cls = null;
-
-  String get method => 'm';
+      : cls = null, method = 'm';
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -135,7 +161,8 @@ class Test {
   }
 }
 
-const List<Test> TESTS = const [
+const Map<String, List<Test>> SEND_TESTS = const {
+  'Parameters': const [
     // Parameters
     const Test('m(o) => o;',
         const Visit(VisitKind.VISIT_PARAMETER_GET,
@@ -149,7 +176,8 @@ const List<Test> TESTS = const [
                     element: 'parameter(m#o)',
                     arguments: '(null,42)',
                     selector: 'Selector(call, call, arity=2)')),
-
+  ],
+  'Local variables': const [
     // Local variables
     const Test('m() { var o; return o; }',
         const Visit(VisitKind.VISIT_LOCAL_VARIABLE_GET,
@@ -163,7 +191,8 @@ const List<Test> TESTS = const [
                     element: 'variable(m#o)',
                     arguments: '(null,42)',
                     selector: 'Selector(call, call, arity=2)')),
-
+  ],
+  'Local functions': const [
     // Local functions
     const Test('m() { o(a, b) {}; return o; }',
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_GET,
@@ -173,7 +202,8 @@ const List<Test> TESTS = const [
                     element: 'function(m#o)',
                     arguments: '(null,42)',
                     selector: 'Selector(call, call, arity=2)')),
-
+  ],
+  'Static fields': const [
     // Static fields
     const Test(
         '''
@@ -285,7 +315,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
                     element: 'field(C#o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Static properties': const [
     // Static properties
     const Test(
         '''
@@ -399,7 +430,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
                     element: 'getter(C#o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Static functions': const [
     // Static functions
     const Test(
         '''
@@ -473,7 +505,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
                     element: 'function(C#o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Top level fields': const [
     // Top level fields
     const Test(
         '''
@@ -521,7 +554,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
                     element: 'field(o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Top level properties': const [
     // Top level properties
     const Test(
         '''
@@ -571,7 +605,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
                     element: 'getter(o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Top level functions': const [
     // Top level functions
     const Test(
         '''
@@ -596,23 +631,37 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
                     element: 'function(o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Dynamic properties': const [
     // Dynamic properties
     const Test('m(o) => o.foo;',
-        const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
-                    receiver: 'o',
-                    name: 'foo')),
+        const [
+          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
+                      receiver: 'o',
+                      name: 'foo'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET,
+                      element: 'parameter(m#o)'),
+        ]),
     const Test('m(o) { o.foo = 42; }',
-        const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET,
-                    receiver: 'o',
-                    name: 'foo',
-                    rhs: '42')),
+        const [
+          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET,
+                      receiver: 'o',
+                      name: 'foo',
+                      rhs: '42'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET,
+                      element: 'parameter(m#o)'),
+        ]),
     const Test('m(o) { o.foo(null, 42); }',
-        const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_INVOKE,
-                    receiver: 'o',
-                    name: 'foo',
-                    arguments: '(null,42)')),
-
+        const [
+          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_INVOKE,
+                      receiver: 'o',
+                      name: 'foo',
+                      arguments: '(null,42)'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET,
+                      element: 'parameter(m#o)'),
+        ]),
+  ],
+  'This access': const [
     // This access
     const Test.clazz(
         '''
@@ -630,7 +679,8 @@ const List<Test> TESTS = const [
         ''',
         const Visit(VisitKind.VISIT_THIS_INVOKE,
                     arguments: '(null,42)')),
-
+  ],
+  'This properties': const [
     // This properties
     const Test.clazz(
         '''
@@ -728,7 +778,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_THIS_PROPERTY_INVOKE,
                     name: 'foo',
                     arguments: '(null,42)')),
-
+  ],
+  'Super fields': const [
     // Super fields
     const Test.clazz(
         '''
@@ -765,7 +816,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_FIELD_INVOKE,
                     element: 'field(B#o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Super properties': const [
     // Super properties
     const Test.clazz(
         '''
@@ -802,7 +854,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_GETTER_INVOKE,
                     element: 'getter(B#o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Super methods': const [
     // Super methods
     const Test.clazz(
         '''
@@ -827,13 +880,15 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_METHOD_INVOKE,
                     element: 'function(B#o)',
                     arguments: '(null,42)')),
-
+  ],
+  'Expression invoke': const [
     // Expression invoke
     const Test('m() => (a, b){}(null, 42);',
         const Visit(VisitKind.VISIT_EXPRESSION_INVOKE,
                     receiver: '(a,b){}',
                     arguments: '(null,42)')),
-
+  ],
+  'Class type literals': const [
     // Class type literals
     const Test(
         '''
@@ -850,7 +905,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
                     constant: 'C',
                     arguments: '(null,42)')),
-
+  ],
+  'Typedef type literals': const [
     // Typedef type literals
     const Test(
         '''
@@ -867,7 +923,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_INVOKE,
                     constant: 'F',
                     arguments: '(null,42)')),
-
+  ],
+  'Type variable type literals': const [
     // Type variable type literals
     const Test.clazz(
         '''
@@ -887,6 +944,8 @@ const List<Test> TESTS = const [
                     element: 'type_variable(C#T)',
                     arguments: '(null,42)')),
 
+  ],
+  'Dynamic type literals': const [
     // Dynamic type literals
     const Test(
         '''
@@ -903,28 +962,32 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
                     constant: 'dynamic',
                     arguments: '(null,42)')),*/
-
+  ],
+  'Assert': const [
     // Assert
     const Test(
         '''
         m() { assert(false); }
         ''',
         const Visit(VisitKind.VISIT_ASSERT, expression: 'false')),
-
+  ],
+  'Logical and': const [
     // Logical and
     const Test(
         '''
         m() => true && false;
         ''',
         const Visit(VisitKind.VISIT_LOGICAL_AND, left: 'true', right: 'false')),
-
+  ],
+  'Logical or': const [
     // Logical or
     const Test(
         '''
         m() => true || false;
         ''',
         const Visit(VisitKind.VISIT_LOGICAL_OR, left: 'true', right: 'false')),
-
+  ],
+  'Is test': const [
     // Is test
     const Test(
         '''
@@ -932,7 +995,8 @@ const List<Test> TESTS = const [
         m() => 0 is C;
         ''',
         const Visit(VisitKind.VISIT_IS, expression: '0', type: 'C')),
-
+  ],
+  'Is not test': const [
     // Is not test
     const Test(
         '''
@@ -940,15 +1004,17 @@ const List<Test> TESTS = const [
         m() => 0 is! C;
         ''',
         const Visit(VisitKind.VISIT_IS_NOT, expression: '0', type: 'C')),
-
-    // Is test
+  ],
+  'As test': const [
+    // As test
     const Test(
         '''
         class C {}
         m() => 0 as C;
         ''',
         const Visit(VisitKind.VISIT_AS, expression: '0', type: 'C')),
-
+  ],
+  'Binary operators': const [
     // Binary operators
     const Test(
         '''
@@ -1053,6 +1119,8 @@ const List<Test> TESTS = const [
                     element: 'function(B#+)',
                     operator: '+',
                     right: '42')),
+  ],
+  'Index': const [
     // Index
     const Test(
         '''
@@ -1114,7 +1182,8 @@ const List<Test> TESTS = const [
                     setter: 'function(B#[]=)',
                     index: '42',
                     operator: '--')),
-
+  ],
+  'Equals': const [
     // Equals
     const Test(
         '''
@@ -1134,7 +1203,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_EQUALS,
                     element: 'function(B#==)',
                     right: '42')),
-
+  ],
+  'Not equals': const [
     // Not equals
     const Test(
         '''
@@ -1155,7 +1225,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_NOT_EQUALS,
                     element: 'function(B#==)',
                     right: '42')),*/
-
+  ],
+  'Unary expression': const [
     // Unary expression
     const Test(
         '''
@@ -1196,7 +1267,8 @@ const List<Test> TESTS = const [
         m() => !0;
         ''',
         const Visit(VisitKind.VISIT_NOT, expression: '0')),
-
+  ],
+  'Index set': const [
     // Index set
     const Test(
         '''
@@ -1215,7 +1287,8 @@ const List<Test> TESTS = const [
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX_SET,
             element: 'function(B#[]=)', index: '1', rhs: '2')),
-
+  ],
+  'Compound assignment': const [
     // Compound assignment
     const Test(
         '''
@@ -1533,7 +1606,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_FIELD_FIELD_COMPOUND,
             getter: 'field(B#a)', setter: 'field(A#a)',
             operator: '+=', rhs: '42')),*/
-
+  ],
+  'Compound index assignment': const [
     // Compound index assignment
     const Test(
         '''
@@ -1555,7 +1629,8 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_COMPOUND_INDEX_SET,
             getter: 'function(B#[])', setter: 'function(B#[]=)',
             index: '1', operator: '+=', rhs: '42')),*/
-
+  ],
+  'Prefix expression': const [
     // Prefix expression
     const Test(
         '''
@@ -1777,8 +1852,9 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_PREFIX,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             operator: '++')),
-
-    // Prefix expression
+  ],
+  'Postfix expression': const [
+    // Postfix expression
     const Test(
         '''
         m(a) => a.b--;
@@ -1999,79 +2075,266 @@ const List<Test> TESTS = const [
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_POSTFIX,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             operator: '++')),
+  ],
+  'Constructor invocations': const [
+    const Test(
+        '''
+        class Class {
+          const Class(a, b);
+        }
+        m() => const Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_CONST_CONSTRUCTOR_INVOKE,
+            constant: 'const Class(true, 42)')),
+    const Test(
+        '''
+        class Class {}
+        m() => new Class();
+        ''',
+        const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '()',
+            type: 'Class',
+            selector: 'Selector(call, , arity=0)')),
+    const Test(
+        '''
+        class Class {
+          Class(a, b);
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, , arity=2)')),
+    const Test(
+        '''
+        class Class {
+          Class.named(a, b);
+        }
+        m() => new Class.named(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#named)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, named, arity=2)')),
+    const Test(
+        '''
+        class Class {
+          Class(a, b) : this._(a, b);
+          Class._(a, b);
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, , arity=2)')),
+    const Test(
+        '''
+        class Class {
+          factory Class(a, b) => new Class._(a, b);
+          Class._(a, b);
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, , arity=2)')),
+    const Test(
+        '''
+        class Class<T> {
+          factory Class(a, b) = Class<int>.a;
+          factory Class.a(a, b) = Class<Class<T>>.b;
+          Class.b(a, b);
+        }
+        m() => new Class<double>(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class<double>',
+            target: 'generative_constructor(Class#b)',
+            targetType: 'Class<Class<int>>',
+            selector: 'Selector(call, , arity=2)')),
+    const Test(
+        '''
+        class Class {
+          Class(a, b);
+        }
+        m() => new Class.unresolved(true, 42);
+        ''',
+        const Visit(
+            VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+            arguments: '(true,42)')),
+    const Test(
+        '''
+        m() => new Unresolved(true, 42);
+        ''',
+        const Visit(
+            // TODO(johnniwinther): Update this to
+            // `VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE`.
+            VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+            arguments: '(true,42)')),
+    const Test(
+        '''
+        abstract class AbstractClass {}
+        m() => new AbstractClass();
+        ''',
+        const Visit(
+            VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(AbstractClass#)',
+            type: 'AbstractClass',
+            arguments: '()',
+            selector: 'Selector(call, , arity=0)')),
+    const Test(
+        '''
+        class Class {
+          factory Class(a, b) = Unresolved;
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(
+            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, , arity=2)')),
+    const Test(
+        '''
+        class Class {
+          factory Class(a, b) = Class.named;
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(
+            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, , arity=2)')),
+    const Test(
+        '''
+        class Class {
+          factory Class(a, b) = Class.named;
+          factory Class.named(a, b) = Class.unresolved;
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(
+            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, , arity=2)')),
+    const Test(
+        '''
+        abstract class AbstractClass {
+          AbstractClass(a, b);
+        }
+        class Class {
+          factory Class(a, b) = AbstractClass;
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(
+            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'Selector(call, , arity=2)')),
+  ],
+};
 
-];
+main(List<String> arguments) {
+  asyncTest(() => Future.forEach([
+    () {
+      return test(
+          arguments,
+          SEND_TESTS,
+          (elements) => new SemanticSendTestVisitor(elements));
+    },
+  ], (f) => f()));
+}
 
-main() {
+Future test(List<String> arguments,
+            Map<String, List<Test>> TESTS,
+            SemanticTestVisitor createVisitor(TreeElements elements)) {
   Map<String, String> sourceFiles = {};
   Map<String, Test> testMap = {};
   StringBuffer mainSource = new StringBuffer();
   int index = 0;
-  TESTS.forEach((Test test) {
-    StringBuffer testSource = new StringBuffer();
-    if (test.codeByPrefix != null) {
-      String prefixFilename = 'pre$index.dart';
-      sourceFiles[prefixFilename] = test.codeByPrefix;
-      testSource.writeln("import '$prefixFilename' as p;");
-    }
+  TESTS.forEach((String group, List<Test> tests) {
+    if (arguments.isNotEmpty && !arguments.contains(group)) return;
 
-    String filename = 'lib$index.dart';
-    testSource.writeln(test.code);
-    sourceFiles[filename] = testSource.toString();
-    mainSource.writeln("import '$filename';");
-    testMap[filename] = test;
-    index++;
+    tests.forEach((Test test) {
+      StringBuffer testSource = new StringBuffer();
+      if (test.codeByPrefix != null) {
+        String prefixFilename = 'pre$index.dart';
+        sourceFiles[prefixFilename] = test.codeByPrefix;
+        testSource.writeln("import '$prefixFilename' as p;");
+      }
+
+      String filename = 'lib$index.dart';
+      testSource.writeln(test.code);
+      sourceFiles[filename] = testSource.toString();
+      mainSource.writeln("import '$filename';");
+      testMap[filename] = test;
+      index++;
+    });
   });
   mainSource.writeln("main() {}");
   sourceFiles['main.dart'] = mainSource.toString();
 
-  asyncTest(() {
-    Compiler compiler = compilerFor(sourceFiles,
-        options: ['--analyze-all', '--analyze-only']);
-    return compiler.run(Uri.parse('memory:main.dart')).then((_) {
-      testMap.forEach((String filename, Test test) {
-        LibraryElement library = compiler.libraryLoader.lookupLibrary(
-            Uri.parse('memory:$filename'));
-        var expectedVisits = test.expectedVisits;
-        if (expectedVisits is! List) {
-          expectedVisits = [expectedVisits];
-        }
-        AstElement element;
-        String cls = test.cls;
-        String method = test.method;
-        if (cls == null) {
-          element = library.find(method);
-        } else {
-          ClassElement classElement = library.find(cls);
-          Expect.isNotNull(classElement,
-                           "Class '$cls' not found in:\n"
-                           "${library.compilationUnit.script.text}");
-          element = classElement.localLookup(method);
-        }
-        Expect.isNotNull(element, "Element '$method' not found in:\n"
-                                  "${library.compilationUnit.script.text}");
-        ResolvedAst resolvedAst = element.resolvedAst;
-        SemanticTestVisitor visitor =
-            new SemanticTestVisitor(resolvedAst.elements);
-        try {
-          compiler.withCurrentElement(resolvedAst.element, () {
-            //print(resolvedAst.node.toDebugString());
-            resolvedAst.node.accept(visitor);
-          });
-        } catch (e, s) {
-          Expect.fail("$e:\n$s\nIn test:\n"
-                      "${library.compilationUnit.script.text}");
-        }
-        Expect.listEquals(expectedVisits, visitor.visits,
-            "In test:\n"
-            "${library.compilationUnit.script.text}");
-      });
+  Compiler compiler = compilerFor(sourceFiles,
+      options: ['--analyze-all', '--analyze-only']);
+  return compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    testMap.forEach((String filename, Test test) {
+      LibraryElement library = compiler.libraryLoader.lookupLibrary(
+          Uri.parse('memory:$filename'));
+      var expectedVisits = test.expectedVisits;
+      if (expectedVisits is! List) {
+        expectedVisits = [expectedVisits];
+      }
+      AstElement element;
+      String cls = test.cls;
+      String method = test.method;
+      if (cls == null) {
+        element = library.find(method);
+      } else {
+        ClassElement classElement = library.find(cls);
+        Expect.isNotNull(classElement,
+                         "Class '$cls' not found in:\n"
+                         "${library.compilationUnit.script.text}");
+        element = classElement.localLookup(method);
+      }
+      Expect.isNotNull(element, "Element '$method' not found in:\n"
+                                "${library.compilationUnit.script.text}");
+      ResolvedAst resolvedAst = element.resolvedAst;
+      SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
+      try {
+        compiler.withCurrentElement(resolvedAst.element, () {
+          //print(resolvedAst.node.toDebugString());
+          resolvedAst.node.accept(visitor);
+        });
+      } catch (e, s) {
+        Expect.fail("$e:\n$s\nIn test:\n"
+                    "${library.compilationUnit.script.text}");
+      }
+      Expect.listEquals(expectedVisits, visitor.visits,
+          "In test:\n"
+          "${library.compilationUnit.script.text}");
     });
   });
 }
 
 
-class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
+abstract class SemanticTestVisitor extends TraversalVisitor {
   List<Visit> visits = <Visit>[];
 
   SemanticTestVisitor(TreeElements elements) : super(elements);
@@ -2081,13 +2344,11 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
   internalError(Spannable spannable, String message) {
     throw new SpannableAssertionFailure(spannable, message);
   }
+}
 
-  SemanticSendVisitor get sendVisitor => this;
+class SemanticSendTestVisitor extends SemanticTestVisitor {
 
-  @override
-  visitNode(Node node) {
-    node.visitChildren(this);
-  }
+  SemanticSendTestVisitor(TreeElements elements) : super(elements);
 
   @override
   visitAs(
@@ -2222,6 +2483,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
         receiver: receiver, name: selector.name));
+    apply(receiver, arg);
   }
 
   @override
@@ -2233,6 +2495,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_INVOKE,
         receiver: receiver, name: selector.name, arguments: arguments));
+    apply(receiver, arg);
     apply(arguments, arg);
   }
 
@@ -2245,6 +2508,7 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET,
         receiver: receiver, name: selector.name, rhs: rhs));
+    apply(receiver, arg);
   }
 
   @override
@@ -4015,6 +4279,151 @@ class SemanticTestVisitor extends SemanticVisitor with SemanticSendVisitor {
         index: index, operator: operator));
     apply(index, arg);
   }
+
+  @override
+  errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO(johnniwinther): Test [type] and [selector].
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+        arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO(johnniwinther): Test [type] and [selector].
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+        arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_CONST_CONSTRUCTOR_INVOKE,
+                         constant: constant.getText()));
+  }
+
+  @override
+  visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: selector));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: selector));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        target: effectiveTarget,
+        targetType: effectiveTargetType,
+        arguments: arguments,
+        selector: selector));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: selector));
+    apply(arguments, arg);
+  }
+
+  @override
+  errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: selector));
+    apply(arguments, arg);
+  }
+
+  @override
+  errorUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: selector));
+    apply(arguments, arg);
+  }
 }
 
 enum VisitKind {
@@ -4173,6 +4582,17 @@ enum VisitKind {
   VISIT_IS,
   VISIT_IS_NOT,
   VISIT_AS,
+
+  VISIT_CONST_CONSTRUCTOR_INVOKE,
+  VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
+  VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
+  VISIT_FACTORY_CONSTRUCTOR_INVOKE,
+  VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+
+  ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+  ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+  ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+  ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
 
   // TODO(johnniwinther): Add tests for error cases.
 }

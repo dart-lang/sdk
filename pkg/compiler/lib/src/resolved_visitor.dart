@@ -144,7 +144,8 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
          BaseBulkMixin<R, dynamic>,
          BinaryBulkMixin<R, dynamic>,
          PrefixBulkMixin<R, dynamic>,
-         PostfixBulkMixin<R, dynamic> {
+         PostfixBulkMixin<R, dynamic>,
+         NewBulkMixin<R, dynamic> {
 
   final ResolvedSemanticDispatcher<R> _semanticDispatcher =
       new ResolvedSemanticDispatcher<R>();
@@ -221,6 +222,7 @@ class ResolvedSemanticDispatcher<R> extends Object
          SuperBulkMixin<R, ResolvedKindVisitor<R>>,
          CompoundBulkMixin<R, ResolvedKindVisitor<R>>,
          IndexSetBulkMixin<R, ResolvedKindVisitor<R>>,
+         NewBulkMixin<R, ResolvedKindVisitor<R>>,
          ErrorBulkMixin<R, ResolvedKindVisitor<R>>
     implements SemanticSendVisitor<R, ResolvedKindVisitor<R>> {
 
@@ -237,7 +239,8 @@ class ResolvedSemanticDispatcher<R> extends Object
       Node node,
       String message,
       ResolvedKindVisitor<R> visitor) {
-    // Set, Compound and IndexSet are not handled by [ResolvedVisitor].
+    // Set, Compound, IndexSet, and NewExpression are not handled by
+    // [ResolvedVisitor].
     return bulkHandleError(node, visitor);
   }
 

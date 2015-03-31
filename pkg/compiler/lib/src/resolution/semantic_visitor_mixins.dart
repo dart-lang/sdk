@@ -11,7 +11,7 @@ part of dart2js.semantics_visitor;
 abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleError(Send node, A arg) {
+  R bulkHandleError(Node node, A arg) {
     return bulkHandleNode(node, "Error expression `$node` unhandled.", arg);
   }
 
@@ -19,6 +19,17 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   R errorInvalidAssert(
       Send node,
       NodeList arguments,
+      A arg) {
+    return bulkHandleError(node, arg);
+  }
+
+  @override
+  R errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement element,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -423,6 +434,28 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  R errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element element,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleError(node, arg);
+  }
+
+  @override
+  R errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleError(node, arg);
+  }
+
+  @override
   R errorUnresolvedGet(
       Send node,
       Element element,
@@ -455,6 +488,17 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Element element,
       IncDecOperator operator,
       A arg) {
+    return bulkHandleError(node, arg);
+  }
+
+  @override
+  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+       NewExpression node,
+       ConstructorElement constructor,
+       InterfaceType type,
+       NodeList arguments,
+       Selector selector,
+       A arg) {
     return bulkHandleError(node, arg);
   }
 
@@ -2163,6 +2207,65 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 }
 
+abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
+  R bulkHandleNode(Node node, String message, A arg);
+
+  R bulkHandleNew(NewExpression node, A arg) {
+    return bulkHandleNode(
+        node, "Constructor invocation `$node` unhandled.", arg);
+  }
+
+  @override
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+}
+
 /// Visitor that implements [SemanticSendVisitor] by the use of `BulkX` mixins.
 ///
 /// This class is useful in itself, but shows how to use the `BulkX` mixins and
@@ -2179,7 +2282,8 @@ class BulkVisitor<R, A> extends SemanticSendVisitor<R, A>
          BaseBulkMixin<R, A>,
          BinaryBulkMixin<R, A>,
          PrefixBulkMixin<R, A>,
-         PostfixBulkMixin<R, A> {
+         PostfixBulkMixin<R, A>,
+         NewBulkMixin<R, A> {
   @override
   R apply(Node node, A arg) {
     throw new UnimplementedError("BulkVisitor.apply unimplemented");
@@ -4037,6 +4141,110 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
     apply(index, arg);
     return null;
   }
+
+  @override
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement element,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
 }
 
 /// AST visitor that visits all normal [Send] and [SendSet] nodes using the
@@ -4061,12 +4269,6 @@ class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
   R visitNode(Node node) {
     node.visitChildren(this);
     return null;
-  }
-
-  @override
-  R visitNewExpression(NewExpression node) {
-    // Bypass the [Send] holding the class/constructor name.
-    return apply(node.send.argumentsNode, null);
   }
 
   void visitParameters(NodeList parameters) {
@@ -4714,7 +4916,7 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
 abstract class BaseImplementationOfConstantsMixin<R, A>
     implements SemanticSendVisitor<R, A> {
   R handleConstantGet(
-      Send node,
+      Node node,
       ConstantExpression constant,
       A arg);
 
@@ -4741,6 +4943,14 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
       Selector selector,
       A arg) {
     return handleConstantInvoke(node, constant, arguments, selector, arg);
+  }
+
+  @override
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg) {
+    return handleConstantGet(node, constant, arg);
   }
 
   @override
@@ -5005,8 +5215,8 @@ abstract class BaseImplementationOfDynamicsMixin<R, A>
   }
 }
 
-/// Mixin that groups all `visitSuperXPrefix`, `visitSuperXPostfix` methods for
-/// by delegating calls to `handleSuperXPostfixPrefix` methods.
+/// Mixin that groups all `visitSuperXPrefix`, `visitSuperXPostfix` methods by
+/// delegating calls to `handleSuperXPostfixPrefix` methods.
 ///
 /// This mixin is useful for the cases where super prefix/postfix expression are
 /// handled uniformly.
@@ -5215,5 +5425,68 @@ abstract class BaseImplementationOfSuperIncDecsMixin<R, A>
     return handleSuperIndexPostfixPrefix(
         node, indexFunction, indexSetFunction,
         index, operator, arg, isPrefix: true);
+  }
+}
+
+/// Mixin that groups the non-constant `visitXConstructorInvoke` methods by
+/// delegating calls to the `handleConstructorInvoke` method.
+///
+/// This mixin is useful for the cases where all constructor invocations are
+/// handled uniformly.
+abstract class BaseImplementationOfNewMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
+
+  R handleConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
+  }
+
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
+  }
+
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
+  }
+
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
   }
 }

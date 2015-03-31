@@ -130,6 +130,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
          BaseImplementationOfDynamicsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfConstantsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfSuperIncDecsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfNewMixin<ir.Primitive, dynamic>,
          ErrorBulkMixin<ir.Primitive, dynamic>
     implements SemanticSendVisitor<ir.Primitive, dynamic> {
   final Compiler compiler;
@@ -641,8 +642,9 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
   }
 
   @override
-  ir.Primitive handleConstantGet(ast.Send node,
-                                 ConstantExpression constant, _) {
+  ir.Primitive handleConstantGet(
+      ast.Node node,
+      ConstantExpression constant, _) {
     return irBuilder.buildConstantLiteral(constant);
   }
 
@@ -1703,19 +1705,18 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
         });
   }
 
-  ir.Primitive visitNewExpression(ast.NewExpression node) {
-    if (node.isConst) {
-      return translateConstant(node);
-    }
-    FunctionElement element = elements[node.send];
-    Selector selector = elements.getSelector(node.send);
-    DartType type = elements.getType(node);
-    ast.Node selectorNode = node.send.selector;
+  @override
+  ir.Primitive handleConstructorInvoke(
+      ast.NewExpression node,
+      ConstructorElement constructor,
+      DartType type,
+      ast.NodeList arguments,
+      Selector selector, _) {
     List<ir.Primitive> arguments =
         node.send.arguments.mapToList(visit, growable:false);
-    arguments = normalizeStaticArguments(selector, element, arguments);
+    arguments = normalizeStaticArguments(selector, constructor, arguments);
     return irBuilder.buildConstructorInvocation(
-        element, selector, type, arguments);
+        constructor, selector, type, arguments);
   }
 
   ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {

@@ -1159,7 +1159,7 @@ class ConstantEmitter
   }
 
   @override
-  Expression visitConstructed(ConstructedConstantExpresssion exp,
+  Expression visitConstructed(ConstructedConstantExpression exp,
                               BuilderContext<Statement> context) {
     int positionalArgumentCount = exp.selector.positionalArgumentCount;
     List<Argument> args = new List<Argument>.generate(

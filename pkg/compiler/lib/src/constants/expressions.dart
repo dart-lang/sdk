@@ -97,14 +97,14 @@ class MapConstantExpression extends ConstantExpression {
 }
 
 /// Invocation of a const constructor.
-class ConstructedConstantExpresssion extends ConstantExpression {
+class ConstructedConstantExpression extends ConstantExpression {
   final ConstantValue value;
   final InterfaceType type;
   final FunctionElement target;
   final Selector selector;
   final List<ConstantExpression> arguments;
 
-  ConstructedConstantExpresssion(this.value,
+  ConstructedConstantExpression(this.value,
                       this.type,
                       this.target,
                       this.selector,
@@ -274,7 +274,7 @@ abstract class ConstantExpressionVisitor<C, R> {
   R visitPrimitive(PrimitiveConstantExpression exp, C context);
   R visitList(ListConstantExpression exp, C context);
   R visitMap(MapConstantExpression exp, C context);
-  R visitConstructed(ConstructedConstantExpresssion exp, C context);
+  R visitConstructed(ConstructedConstantExpression exp, C context);
   R visitConcatenate(ConcatenateConstantExpression exp, C context);
   R visitSymbol(SymbolConstantExpression exp, C context);
   R visitType(TypeConstantExpression exp, C context);
@@ -367,7 +367,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   }
 
   @override
-  void visitConstructed(ConstructedConstantExpresssion exp, [_]) {
+  void visitConstructed(ConstructedConstantExpression exp, [_]) {
     sb.write('const ');
     sb.write(exp.target.enclosingClass.name);
     if (exp.target.name != '') {

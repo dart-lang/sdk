@@ -8,6 +8,7 @@ import '../constants/expressions.dart';
 import '../dart2jslib.dart' show invariant;
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart' show Spannable, SpannableAssertionFailure;
@@ -55,6 +56,19 @@ abstract class SemanticVisitor<R, A> extends Visitor<R>
   @override
   R visitSendSet(SendSet node) {
     return visitSend(node);
+  }
+
+  @override
+  R visitNewExpression(NewExpression node) {
+    // TODO(johnniwinther): Support argument.
+    A arg = null;
+
+    NewStructure structure = computeNewStructure(node);
+    if (structure == null) {
+      return internalError(node, 'No structure for $node');
+    } else {
+      return structure.dispatch(sendVisitor, node, arg);
+    }
   }
 }
 
@@ -2764,5 +2778,170 @@ abstract class SemanticSendVisitor<R, A> {
       Node left,
       Operator operator,
       Node right,
+      A arg);
+
+  /// Const invocation of a [constructor].
+  ///
+  /// For instance
+  ///   class C<T> {
+  ///     const C(a, b);
+  ///   }
+  ///   m() => const C<int>(true, 42);
+  ///
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg);
+
+  /// Invocation of a generative [constructor] on [type] with [arguments].
+  ///
+  /// For instance
+  ///   class C<T> {
+  ///     C(a, b);
+  ///   }
+  ///   m() => new C<int>(true, 42);
+  ///
+  /// where [type] is `C<int>`.
+  ///
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of a redirecting generative [constructor] on [type] with
+  /// [arguments].
+  ///
+  /// For instance
+  ///   class C<T> {
+  ///     C(a, b) : this._(b, a);
+  ///     C._(b, a);
+  ///   }
+  ///   m() => new C<int>(true, 42);
+  ///
+  /// where [type] is `C<int>`.
+  ///
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of a factory [constructor] on [type] with [arguments].
+  ///
+  /// For instance
+  ///   class C<T> {
+  ///     factory C(a, b) => new C<T>._(b, a);
+  ///     C._(b, a);
+  ///   }
+  ///   m() => new C<int>(true, 42);
+  ///
+  /// where [type] is `C<int>`.
+  ///
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of a factory [constructor] on [type] with [arguments] where
+  /// [effectiveTarget] and [effectiveTargetType] are the constructor effective
+  /// invoked and its type, respectively.
+  ///
+  /// For instance
+  ///   class C<T> {
+  ///     factory C(a, b) = C<int>.a;
+  ///     factory C.a(a, b) = C<C<T>>.b;
+  ///     C.b(a, b);
+  ///   }
+  ///   m() => new C<double>(true, 42);
+  ///
+  /// where [type] is `C<double>`, [effectiveTarget] is `C.b` and
+  /// [effectiveTargetType] is `C<C<int>>`.
+  ///
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of an unresolved [constructor] on [type] with [arguments].
+  ///
+  /// For instance
+  ///   class C<T> {
+  ///     C();
+  ///   }
+  ///   m() => new C<int>.unresolved(true, 42);
+  ///
+  /// where [type] is `C<int>`.
+  ///
+  // TODO(johnniwinther): Update [type] to be [InterfaceType] when this is no
+  // longer a catch-all clause for the erroneous constructor invocations.
+  R errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of a constructor on an unresolved [type] with [arguments].
+  ///
+  /// For instance
+  ///   m() => new Unresolved(true, 42);
+  ///
+  /// where [type] is the malformed type `Unresolved`.
+  ///
+  R errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element element,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of a constructor on an abstract [type] with [arguments].
+  ///
+  /// For instance
+  ///   m() => new Unresolved(true, 42);
+  ///
+  /// where [type] is the malformed type `Unresolved`.
+  ///
+  R errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement element,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of a factory [constructor] on [type] with [arguments] where
+  /// [effectiveTarget] and [effectiveTargetType] are the constructor effective
+  /// invoked and its type, respectively.
+  ///
+  /// For instance
+  ///   class C {
+  ///     factory C(a, b) = Unresolved;
+  ///     factory C.a(a, b) = C.unresolved;
+  ///   }
+  ///   m1() => new C(true, 42);
+  ///   m2() => new C.a(true, 42);
+  ///
+  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
       A arg);
 }

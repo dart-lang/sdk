@@ -1223,6 +1223,9 @@ abstract class ConstructorElement extends FunctionElement
   /// constructor so its immediate redirection target is `null`.
   ConstructorElement get immediateRedirectionTarget;
 
+  /// Is `true` if this constructor is a redirecting generative constructor.
+  bool get isRedirectingGenerative;
+
   /// Is `true` if this constructor is a redirecting factory constructor.
   bool get isRedirectingFactory;
 
