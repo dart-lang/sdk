@@ -22,6 +22,7 @@ namespace bin {
 // This string forms the content of a vm isolate snapshot which is loaded
 // into the vm isolate.
 static const uint8_t vm_isolate_snapshot_buffer_[] = {
+  0,
   %s
 };
 const uint8_t* vm_isolate_snapshot_buffer = vm_isolate_snapshot_buffer_;
