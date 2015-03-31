@@ -4220,6 +4220,21 @@ print(x) {}''');
     verify([source]);
   }
 
+  void test_unusedLocalVariable_inFor_underscore_ignored() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  for (var _ in [1,2,3]) {
+    for (var __ in [4,5,6]) {
+      // do something
+    }
+  }
+}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
   void test_unusedLocalVariable_inFunction() {
     enableUnusedLocalVariable = true;
     Source source = addSource(r'''

@@ -15320,7 +15320,7 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
 
   @override
   visitLocalVariableElement(LocalVariableElement element) {
-    if (!_isUsedElement(element)) {
+    if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
       HintCode errorCode;
       if (_usedElements.isCatchException(element)) {
         errorCode = HintCode.UNUSED_CATCH_CLAUSE;
@@ -15353,6 +15353,19 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
       ]);
     }
     super.visitPropertyAccessorElement(element);
+  }
+
+  bool _isNamedUnderscore(LocalVariableElement element) {
+    String name = element.name;
+    if (name != null) {
+      for (int index = name.length - 1; index >= 0; --index) {
+        if (name.codeUnitAt(index) != 0x5F) { // 0x5F => '_'
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   bool _isReadMember(Element element) {
