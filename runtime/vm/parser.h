@@ -533,6 +533,7 @@ class Parser : public ValueObject {
                             const ArgumentsDescriptor& desc,
                             Array* default_values);
 
+  void EnsureHasReturnStatement(SequenceNode* seq, intptr_t return_pos);
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();
   void OpenLoopBlock();

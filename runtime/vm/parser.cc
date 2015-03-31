@@ -764,18 +764,6 @@ struct TopLevel {
 };
 
 
-static bool HasReturnNode(SequenceNode* seq) {
-  if (seq->length() == 0) {
-    return false;
-  } else if ((seq->length()) == 1 &&
-             (seq->NodeAt(seq->length() - 1)->IsSequenceNode())) {
-    return HasReturnNode(seq->NodeAt(seq->length() - 1)->AsSequenceNode());
-  } else {
-    return seq->NodeAt(seq->length() - 1)->IsReturnNode();
-  }
-}
-
-
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
     Isolate* isolate = Isolate::Current();
@@ -906,16 +894,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       UNREACHABLE();
   }
 
-  if (!HasReturnNode(node_sequence)) {
-    // Add implicit return node. The implicit return value of synchronous
-    // generator closures is false, to indicate that there are no more
-    // elements in the iterable. In other cases the implicit return value
-    // is null.
-    AstNode* return_value = func.IsSyncGenClosure()
-        ? new LiteralNode(func.end_token_pos(), Bool::False())
-        : new LiteralNode(func.end_token_pos(), Instance::ZoneHandle());
-    node_sequence->Add(new ReturnNode(func.end_token_pos(), return_value));
-  }
   if (parsed_function->has_expression_temp_var()) {
     node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
   }
@@ -3346,6 +3324,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else if (func.IsAsyncGenClosure()) {
     body = CloseAsyncGeneratorClosure(body);
   }
+  EnsureHasReturnStatement(body, end_token_pos);
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
@@ -6834,6 +6813,22 @@ SequenceNode* Parser::CloseAsyncGeneratorClosure(SequenceNode* body) {
       Symbols::AsyncOperationStackTraceParam(), false);
   new_body->scope()->RecursivelyCaptureAllVariables();
   return new_body;
+}
+
+
+// Add a return node to the sequence if necessary.
+void Parser::EnsureHasReturnStatement(SequenceNode* seq, intptr_t return_pos) {
+  if ((seq->length() == 0) ||
+      !seq->NodeAt(seq->length() - 1)->IsReturnNode()) {
+    const Function& func = innermost_function();
+    // The implicit return value of synchronous generator closures is false,
+    // to indicate that there are no more elements in the iterable.
+    // In other cases the implicit return value is null.
+    AstNode* return_value = func.IsSyncGenClosure()
+        ? new LiteralNode(return_pos, Bool::False())
+        : new LiteralNode(return_pos, Instance::ZoneHandle());
+    seq->Add(new ReturnNode(return_pos, return_value));
+  }
 }
 
 
