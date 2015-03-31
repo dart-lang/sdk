@@ -18,6 +18,18 @@ import 'io.dart';
 import 'log.dart' as log;
 import 'utils.dart';
 
+/// All signals that can be caught by a Dart process.
+final _catchableSignals = Platform.isWindows
+    ? [ProcessSignal.SIGHUP, ProcessSignal.SIGINT]
+    : [
+        ProcessSignal.SIGHUP,
+        ProcessSignal.SIGINT,
+        ProcessSignal.SIGTERM,
+        ProcessSignal.SIGUSR1,
+        ProcessSignal.SIGUSR2,
+        ProcessSignal.SIGWINCH,
+      ];
+
 /// Runs [executable] from [package] reachable from [entrypoint].
 ///
 /// The executable string is a relative Dart file path using native path
@@ -132,6 +144,9 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
   vmArgs.addAll(args);
 
   var process = await Process.start(Platform.executable, vmArgs);
+
+  _ignoreSignals();
+
   // Note: we're not using process.std___.pipe(std___) here because
   // that prevents pub from also writing to the output streams.
   process.stderr.listen(stderr.add);
@@ -176,6 +191,8 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
   runProcess(input) async {
     var process = await Process.start(Platform.executable, vmArgs);
 
+    _ignoreSignals();
+
     // Note: we're not using process.std___.pipe(std___) here because
     // that prevents pub from also writing to the output streams.
     process.stderr.listen(stderr.add);
@@ -192,6 +209,17 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
   // can recompile, do so.
   await recompile();
   return runProcess(stdin2);
+}
+
+/// Ignore all catchable signals.
+///
+/// All signals are automatically sent to all processes in the tree, so this
+/// makes the child process responsible for dealing with the signals as it sees
+/// fit.
+void _ignoreSignals() {
+  for (var signal in _catchableSignals) {
+    signal.watch().listen((_) => log.fine("Ignoring $signal in pub."));
+  }
 }
 
 /// Runs the executable snapshot at [snapshotPath].
