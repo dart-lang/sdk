@@ -82,6 +82,7 @@ class RestrictedRules extends TypeRules {
   final CheckerReporter _reporter;
   final RulesOptions options;
   final List<DartType> _nonnullableTypes;
+  DownwardsInference inferrer;
 
   DartType _typeFromName(String name) {
     switch (name) {
@@ -105,6 +106,7 @@ class RestrictedRules extends TypeRules {
         super(provider) {
     var types = options.nonnullableTypes;
     _nonnullableTypes.addAll(types.map(_typeFromName));
+    inferrer = new DownwardsInference(this);
   }
 
   DartType getStaticType(Expression expr) {
@@ -491,6 +493,9 @@ class RestrictedRules extends TypeRules {
     final Coercion c = _coerceTo(fromT, toT, options.wrapClosures);
     if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
+    if (options.inferDownwards && inferrer.inferExpression(expr, toT)) {
+      return InferredType.create(this, expr, toT);
+    }
     if (constContext && !options.allowConstCasts) {
       return new StaticTypeError(this, expr, toT);
     }
@@ -543,5 +548,221 @@ class RestrictedRules extends TypeRules {
 
     var ft = t as FunctionType;
     return _anyParameterType(ft, (pt) => pt.isDynamic);
+  }
+}
+
+class DownwardsInference {
+  final TypeRules rules;
+
+  DownwardsInference(this.rules);
+
+  /// Called for each list literal which gets inferred
+  void annotateListLiteral(ListLiteral e, List<DartType> targs) {}
+
+  /// Called for each map literal which gets inferred
+  void annotateMapLiteral(MapLiteral e, List<DartType> targs) {}
+
+  /// Called for each new/const which gets inferred
+  void annotateInstanceCreationExpression(
+      InstanceCreationExpression e, List<DartType> targs) {}
+
+  /// Downward inference
+  bool inferExpression(Expression e, DartType t) {
+    if (e is Conversion) return inferExpression(e.node, t);
+    if (rules.isSubTypeOf(rules.getStaticType(e), t)) return true;
+    if (e is ListLiteral) return _inferListLiteral(e, t);
+    if (e is MapLiteral) return _inferMapLiteral(e, t);
+    if (e is NamedExpression) return _inferNamedExpression(e, t);
+    if (e is InstanceCreationExpression) return _inferInstanceCreationExpression(
+        e, t);
+    return false;
+  }
+
+  /// If t1 = I<dynamic, ..., dynamic>, then look for a supertype
+  /// of t1 of the form K<S0, ..., Sm> where t2 = K<S0', ..., Sm'>
+  /// If the supertype exists, use the constraints S0 <: S0', ... Sm <: Sm'
+  /// to derive a concrete instantation for I of the form <T0, ..., Tn>,
+  /// such that I<T0, .., Tn> <: t2
+  List<DartType> _matchTypes(InterfaceType t1, InterfaceType t2) {
+    if (t1 == t2) return t2.typeArguments;
+    var tArgs1 = t1.typeArguments;
+    var tArgs2 = t2.typeArguments;
+    // If t1 isn't a raw type, bail out
+    if (tArgs1 != null && tArgs1.any((t) => !t.isDynamic)) return null;
+
+    // This is our inferred type argument list.  We start at all dynamic,
+    // and fill in with inferred types when we reach a match.
+    var actuals =
+        new List<DartType>.filled(tArgs1.length, rules.provider.dynamicType);
+
+    // When we find the supertype of t1 with the same
+    // classname as t2 (see below), we have the following:
+    // If t1 is an instantiation of a class T1<X0, ..., Xn>
+    // and t2 is an instantiation of a class T2<Y0, ...., Ym>
+    // of the form t2 = T2<S0, ..., Sm>
+    // then we want to choose instantiations for the Xi
+    // T0, ..., Tn such that T1<T0, ..., Tn> <: t2 .
+    // To find this, we simply instantate T1 with
+    // X0, ..., Xn, and then find its superclass
+    // T2<T0', ..., Tn'>.  We then solve the constraint
+    // set T0' <: S0, ..., Tn' <: Sn for the Xi.
+    // Currently, we only handle constraints where
+    // the Ti' is one of the Xi'.  If there are multiple
+    // constraints on some Xi, we choose the lower of the
+    // two (if it exists).
+    bool permute(List<DartType> permutedArgs) {
+      if (permutedArgs == null) return false;
+      var ps = t1.typeParameters;
+      var ts = ps.map((p) => p.type).toList();
+      for (int i = 0; i < permutedArgs.length; i++) {
+        var tVar = permutedArgs[i];
+        var tActual = tArgs2[i];
+        var index = ts.indexOf(tVar);
+        if (index >= 0 && rules.isSubTypeOf(tActual, actuals[index])) {
+          actuals[index] = tActual;
+        }
+      }
+      return actuals.any((x) => !x.isDynamic);
+    }
+
+    // Look for the first supertype of t1 with the same class name as t2.
+    bool match(InterfaceType t1) {
+      if (t1.element == t2.element) {
+        return permute(t1.typeArguments);
+      }
+
+      if (t1 == rules.provider.objectType) return false;
+
+      if (match(t1.superclass)) return true;
+
+      for (final parent in t1.interfaces) {
+        if (match(parent)) return true;
+      }
+
+      for (final parent in t1.mixins) {
+        if (match(parent)) return true;
+      }
+      return false;
+    }
+
+    // We have that t1 = T1<dynamic, ..., dynamic>.
+    // To match t1 against t2, we use the uninstantiated version
+    // of t1, essentially treating it as an instantiation with
+    // fresh variables, and solve for the variables.
+    // t1.element.type will be of the form T1<X0, ..., Xn>
+    if (!match(t1.element.type)) return null;
+    var newT1 = t1.element.type.substitute4(actuals);
+    // If we found a solution, return it.
+    if (rules.isSubTypeOf(newT1, t2)) return actuals;
+    return null;
+  }
+
+  /// These assume that e is not already a subtype of t
+
+  bool _inferInstanceCreationExpression(
+      InstanceCreationExpression e, DartType t) {
+    var arguments = e.argumentList.arguments;
+    var rawType = rules.getStaticType(e);
+    // rawType is the instantiated type of the instance
+    if (rawType is! InterfaceType) return false;
+    var type = (rawType as InterfaceType);
+    if (type.typeParameters == null ||
+        type.typeParameters.length == 0) return false;
+    if (e.constructorName.type == null) return false;
+    // classTypeName is the type name of the class being instantiated
+    var classTypeName = e.constructorName.type;
+    // Check that we were not passed any type arguments
+    if (classTypeName.typeArguments != null) return false;
+    // Infer type arguments
+    var targs = _matchTypes(type, t);
+    if (targs == null) return false;
+    if (e.staticElement == null) return false;
+    var constructorElement = e.staticElement;
+    // From the constructor element get:
+    //  the instantiated type of the constructor, then
+    //     the uninstantiated element for the constructor, then
+    //        the uninstantiated type for the constructor
+    var baseType = constructorElement.type.element.type;
+    if (baseType == null) return false;
+    // From the interface type (instantiated), get:
+    //  the uninstantiated element, then
+    //    the uninstantiated type, then
+    //      the type arguments (aka the type parameters)
+    var tparams = type.element.type.typeArguments;
+    // Take the uninstantiated constructor type, and replace the type
+    // parameters with the inferred arguments.
+    var fType = baseType.substitute2(targs, tparams);
+    {
+      var rTypes = fType.normalParameterTypes;
+      var oTypes = fType.optionalParameterTypes;
+      var pTypes = new List.from(rTypes)..addAll(oTypes);
+      var pArgs = arguments.where((x) => x is! NamedExpression);
+      var pi = 0;
+      for (var arg in pArgs) {
+        if (pi >= pTypes.length) return false;
+        var argType = pTypes[pi];
+        if (!inferExpression(arg, argType)) return false;
+        pi++;
+      }
+      var nTypes = fType.namedParameterTypes;
+      for (var arg0 in arguments) {
+        if (arg0 is! NamedExpression) continue;
+        var arg = arg0 as NamedExpression;
+        SimpleIdentifier nameNode = arg.name.label;
+        String name = nameNode.name;
+        var argType = nTypes[name];
+        if (argType == null) return false;
+        if (!inferExpression(arg, argType)) return false;
+      }
+    }
+    annotateInstanceCreationExpression(e, targs);
+    return true;
+  }
+
+  bool _inferNamedExpression(NamedExpression e, DartType t) {
+    return inferExpression(e.expression, t);
+  }
+
+  bool _inferListLiteral(ListLiteral e, DartType t) {
+    var dyn = rules.provider.dynamicType;
+    var listT = rules.provider.listType.substitute4([dyn]);
+    // List <: t (using dart rules) must be true
+    if (!listT.isSubtypeOf(t)) return false;
+    // The list literal must have no type arguments
+    if (e.typeArguments != null) return false;
+    if (t is! InterfaceType) return false;
+    var targs = _matchTypes(listT, t);
+    if (targs == null) return false;
+    assert(targs.length == 1);
+    var etype = targs[0];
+    assert(!etype.isDynamic);
+    var elements = e.elements;
+    var b = elements.every((e) => inferExpression(e, etype));
+    if (b) annotateListLiteral(e, targs);
+    return b;
+  }
+
+  bool _inferMapLiteral(MapLiteral e, DartType t) {
+    var dyn = rules.provider.dynamicType;
+    var mapT = rules.provider.mapType.substitute4([dyn, dyn]);
+    // Map <: t (using dart rules) must be true
+    if (!mapT.isSubtypeOf(t)) return false;
+    // The map literal must have no type arguments
+    if (e.typeArguments != null) return false;
+    if (t is! InterfaceType) return false;
+    var targs = _matchTypes(mapT, t);
+    if (targs == null) return false;
+    assert(targs.length == 2);
+    var kType = targs[0];
+    var vType = targs[1];
+    assert(!(kType.isDynamic && vType.isDynamic));
+    var entries = e.entries;
+    bool inferEntry(MapLiteralEntry entry) {
+      return inferExpression(entry.key, kType) &&
+          inferExpression(entry.value, vType);
+    }
+    var b = entries.every(inferEntry);
+    if (b) annotateMapLiteral(e, targs);
+    return b;
   }
 }

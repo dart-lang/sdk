@@ -2180,7 +2180,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri[_SLASH] ? this.path.substring(1) : this.path;
-        this[_pathSegments] = dart.as(new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */new List$(String).from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false})), List$(String));
+        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */new List$(String).from([]) : pathToSplit.split("/").map(Uri.decodeComponent).toList({growable: false}));
       }
       return this[_pathSegments];
     }

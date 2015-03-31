@@ -4,11 +4,11 @@ part of dart.async;
   void onListen(), void onPause(), void onResume(), onCancel(), bool sync : false}
 ) {
   if (onListen == null && onPause == null && onResume == null && onCancel == null) {
-    return ((__x82) => DEVC$RT.cast(__x82, DEVC$RT.type((_StreamController<dynamic> _) {
+    return ((__x71) => DEVC$RT.cast(__x71, DEVC$RT.type((_StreamController<dynamic> _) {
       }
     ), DEVC$RT.type((StreamController<T> _) {
       }
-    ), "CompositeCast", """line 83, column 14 of dart:async/stream_controller.dart: """, __x82 is StreamController<T>, false))(sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController());
+    ), "CompositeCast", """line 83, column 14 of dart:async/stream_controller.dart: """, __x71 is StreamController<T>, false))(sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController());
     }
    return sync ? new _SyncStreamController<T>(onListen, onPause, onResume, onCancel) : new _AsyncStreamController<T>(onListen, onPause, onResume, onCancel);
   }
@@ -47,11 +47,7 @@ part of dart.async;
  _NotificationHandler get _onPause;
  _NotificationHandler get _onResume;
  _NotificationHandler get _onCancel;
- Stream<T> get stream => ((__x83) => DEVC$RT.cast(__x83, DEVC$RT.type((_ControllerStream<dynamic> _) {
-}
-), DEVC$RT.type((Stream<T> _) {
-}
-), "InferableAllocation", """line 293, column 27 of dart:async/stream_controller.dart: """, __x83 is Stream<T>, false))(new _ControllerStream(this));
+ Stream<T> get stream => new _ControllerStream<T>(this);
  StreamSink<T> get sink => new _StreamSinkWrapper<T>(this);
  bool get _isCanceled => (_state & _STATE_CANCELED) != 0;
  bool get hasListener => (_state & _STATE_SUBSCRIBED) != 0;
@@ -212,9 +208,9 @@ _StreamControllerAddStreamState addState = DEVC$RT.cast(_varData, dynamic, DEVC$
  if (_onCancel != null) {
 if (result == null) {
   try {
-    result = ((__x84) => DEVC$RT.cast(__x84, dynamic, DEVC$RT.type((Future<dynamic> _) {
+    result = ((__x72) => DEVC$RT.cast(__x72, dynamic, DEVC$RT.type((Future<dynamic> _) {
       }
-    ), "DynamicCast", """line 542, column 20 of dart:async/stream_controller.dart: """, __x84 is Future<dynamic>, true))(_onCancel());
+    ), "DynamicCast", """line 542, column 20 of dart:async/stream_controller.dart: """, __x72 is Future<dynamic>, true))(_onCancel());
     }
    catch (e, s) {
     result = new _Future().._asyncCompleteError(e, s);
@@ -350,7 +346,7 @@ bool cancelOnError : true}
 }
  class _AddStreamState<T> {final _Future addStreamFuture;
  final StreamSubscription addSubscription;
- _AddStreamState(_EventSink<T> controller, Stream source, bool cancelOnError) : addStreamFuture = new _Future(), addSubscription = source.listen(controller._add, onError: ((__x85) => DEVC$RT.cast(__x85, dynamic, Function, "DynamicCast", """line 746, column 50 of dart:async/stream_controller.dart: """, __x85 is Function, true))(cancelOnError ? makeErrorHandler(controller) : controller._addError), onDone: controller._close, cancelOnError: cancelOnError);
+ _AddStreamState(_EventSink<T> controller, Stream source, bool cancelOnError) : addStreamFuture = new _Future(), addSubscription = source.listen(controller._add, onError: ((__x73) => DEVC$RT.cast(__x73, dynamic, Function, "DynamicCast", """line 746, column 50 of dart:async/stream_controller.dart: """, __x73 is Function, true))(cancelOnError ? makeErrorHandler(controller) : controller._addError), onDone: controller._close, cancelOnError: cancelOnError);
  static makeErrorHandler(_EventSink controller) => (e, StackTrace s) {
 controller._addError(e, s);
  controller._close();

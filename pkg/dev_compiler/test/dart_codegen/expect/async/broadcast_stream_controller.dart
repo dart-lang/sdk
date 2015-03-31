@@ -159,11 +159,7 @@ bool cancelOnError : true}
 ) {
 if (!_mayAddEvent) throw _addEventError();
  _state |= _STATE_ADDSTREAM;
- _addStreamState = ((__x3) => DEVC$RT.cast(__x3, DEVC$RT.type((_AddStreamState<dynamic> _) {
-}
-), DEVC$RT.type((_AddStreamState<T> _) {
-}
-), "InferableAllocation", """line 268, column 23 of dart:async/broadcast_stream_controller.dart: """, __x3 is _AddStreamState<T>, false))(new _AddStreamState(this, stream, cancelOnError));
+ _addStreamState = new _AddStreamState<T>(this, stream, cancelOnError);
  return _addStreamState.addStreamFuture;
 }
  void _add(T data) {
@@ -241,7 +237,7 @@ subscription._addError(error, stackTrace);
 }
  void _sendDone() {
 if (!_isEmpty) {
-_forEachListener(((__x9) => DEVC$RT.wrap((dynamic f(_BroadcastSubscription<T> __u4)) {
+_forEachListener(((__x8) => DEVC$RT.wrap((dynamic f(_BroadcastSubscription<T> __u3)) {
 dynamic c(_BroadcastSubscription<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((_BufferingStreamSubscription<T> _) {
 }
 ), DEVC$RT.type((_BroadcastSubscription<T> _) {
@@ -249,11 +245,11 @@ dynamic c(_BroadcastSubscription<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((_Buf
 ), "CastParam", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, x0 is _BroadcastSubscription<T>, false));
  return f == null ? null : c;
 }
-, __x9, DEVC$RT.type((__t7<T> _) {
+, __x8, DEVC$RT.type((__t6<T> _) {
 }
-), DEVC$RT.type((__t5<T> _) {
+), DEVC$RT.type((__t4<T> _) {
 }
-), "WrapLiteral", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, __x9 is __t5<T>))((_BroadcastSubscription<T> subscription) {
+), "WrapLiteral", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, __x8 is __t4<T>))((_BroadcastSubscription<T> subscription) {
 subscription._close();
 }
 ));
@@ -362,5 +358,5 @@ return new _Future.immediate(null);
  bool get isPaused => _pauseCount > 0;
  Future asFuture([Object value]) => new _Future();
 }
- typedef void __t5<T>(_BufferingStreamSubscription<T> __u6);
- typedef dynamic __t7<T>(_BroadcastSubscription<T> __u8);
+ typedef void __t4<T>(_BufferingStreamSubscription<T> __u5);
+ typedef dynamic __t6<T>(_BroadcastSubscription<T> __u7);

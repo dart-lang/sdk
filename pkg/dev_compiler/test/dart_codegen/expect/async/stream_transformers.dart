@@ -95,11 +95,7 @@ try {
 Function onError, void onDone(), bool cancelOnError}
 ) {
 cancelOnError = identical(true, cancelOnError);
- StreamSubscription<T> subscription = ((__x105) => DEVC$RT.cast(__x105, DEVC$RT.type((_SinkTransformerStreamSubscription<dynamic, dynamic> _) {
-}
-), DEVC$RT.type((StreamSubscription<T> _) {
-}
-), "InferableAllocation", """line 186, column 42 of dart:async/stream_transformers.dart: """, __x105 is StreamSubscription<T>, false))(new _SinkTransformerStreamSubscription(_stream, DEVC$RT.wrap((EventSink<S> f(EventSink<T> __u106)) {
+ StreamSubscription<T> subscription = new _SinkTransformerStreamSubscription(_stream, DEVC$RT.wrap((EventSink<S> f(EventSink<T> __u93)) {
 EventSink<S> c(EventSink<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((EventSink<dynamic> _) {
 }
 ), DEVC$RT.type((EventSink<T> _) {
@@ -107,9 +103,9 @@ EventSink<S> c(EventSink<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((EventSink<dy
 ), "CastParam", """line 187, column 18 of dart:async/stream_transformers.dart: """, x0 is EventSink<T>, false));
  return f == null ? null : c;
 }
-, _sinkMapper, DEVC$RT.type((__t109<T, S> _) {
+, _sinkMapper, DEVC$RT.type((__t96<T, S> _) {
 }
-), __t107, "Wrap", """line 187, column 18 of dart:async/stream_transformers.dart: """, _sinkMapper is __t107), onData, onError, onDone, cancelOnError));
+), __t94, "Wrap", """line 187, column 18 of dart:async/stream_transformers.dart: """, _sinkMapper is __t94), onData, onError, onDone, cancelOnError);
  return subscription;
 }
 }
@@ -127,31 +123,31 @@ EventSink<S> c(EventSink<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((EventSink<dy
 }
  class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {_StreamHandlerTransformer({
 void handleData(S data, EventSink<T> sink), void handleError(Object error, StackTrace stackTrace, EventSink<T> sink), void handleDone(EventSink<T> sink)}
-) : super(((__x117) => DEVC$RT.wrap((dynamic f(EventSink<T> __u112)) {
-dynamic c(EventSink<T> x0) => ((__x111) => DEVC$RT.cast(__x111, dynamic, DEVC$RT.type((EventSink<S> _) {
+) : super(((__x104) => DEVC$RT.wrap((dynamic f(EventSink<T> __u99)) {
+dynamic c(EventSink<T> x0) => ((__x98) => DEVC$RT.cast(__x98, dynamic, DEVC$RT.type((EventSink<S> _) {
 }
-), "CastResult", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x111 is EventSink<S>, false))(f(x0));
+), "CastResult", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x98 is EventSink<S>, false))(f(x0));
  return f == null ? null : c;
 }
-, __x117, DEVC$RT.type((__t115<T> _) {
+, __x104, DEVC$RT.type((__t102<T> _) {
 }
-), DEVC$RT.type((__t113<T, S> _) {
+), DEVC$RT.type((__t100<T, S> _) {
 }
-), "WrapLiteral", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x117 is __t113<T, S>))((EventSink<T> outputSink) {
-if (handleData == null) handleData = DEVC$RT.wrap((void f(dynamic __u118, EventSink<dynamic> __u119)) {
+), "WrapLiteral", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x104 is __t100<T, S>))((EventSink<T> outputSink) {
+if (handleData == null) handleData = DEVC$RT.wrap((void f(dynamic __u105, EventSink<dynamic> __u106)) {
 void c(dynamic x0, EventSink<dynamic> x1) => f(x0, x1);
  return f == null ? null : c;
 }
-, _defaultHandleData, __t123, DEVC$RT.type((__t120<S, T> _) {
+, _defaultHandleData, __t110, DEVC$RT.type((__t107<S, T> _) {
 }
-), "Wrap", """line 234, column 48 of dart:async/stream_transformers.dart: """, _defaultHandleData is __t120<S, T>);
- if (handleError == null) handleError = DEVC$RT.wrap((void f(dynamic __u126, StackTrace __u127, EventSink<dynamic> __u128)) {
+), "Wrap", """line 234, column 48 of dart:async/stream_transformers.dart: """, _defaultHandleData is __t107<S, T>);
+ if (handleError == null) handleError = DEVC$RT.wrap((void f(dynamic __u113, StackTrace __u114, EventSink<dynamic> __u115)) {
 void c(dynamic x0, StackTrace x1, EventSink<dynamic> x2) => f(x0, x1, x2);
  return f == null ? null : c;
 }
-, _defaultHandleError, __t133, DEVC$RT.type((__t129<T> _) {
+, _defaultHandleError, __t120, DEVC$RT.type((__t116<T> _) {
 }
-), "Wrap", """line 235, column 50 of dart:async/stream_transformers.dart: """, _defaultHandleError is __t129<T>);
+), "Wrap", """line 235, column 50 of dart:async/stream_transformers.dart: """, _defaultHandleError is __t116<T>);
  if (handleDone == null) handleDone = _defaultHandleDone;
  return new _HandlerEventSink<S, T>(handleData, handleError, handleDone, outputSink);
 }
@@ -188,11 +184,11 @@ cancelOnError = identical(true, cancelOnError);
  return result;
 }
 }
- typedef EventSink<dynamic> __t107(EventSink<dynamic> __u108);
- typedef EventSink<S> __t109<T, S>(EventSink<T> __u110);
- typedef EventSink<S> __t113<T, S>(EventSink<T> __u114);
- typedef dynamic __t115<T>(EventSink<T> __u116);
- typedef void __t120<S, T>(S __u121, EventSink<T> __u122);
- typedef void __t123(dynamic __u124, EventSink<dynamic> __u125);
- typedef void __t129<T>(Object __u130, StackTrace __u131, EventSink<T> __u132);
- typedef void __t133(dynamic __u134, StackTrace __u135, EventSink<dynamic> __u136);
+ typedef EventSink<dynamic> __t94(EventSink<dynamic> __u95);
+ typedef EventSink<S> __t96<T, S>(EventSink<T> __u97);
+ typedef EventSink<S> __t100<T, S>(EventSink<T> __u101);
+ typedef dynamic __t102<T>(EventSink<T> __u103);
+ typedef void __t107<S, T>(S __u108, EventSink<T> __u109);
+ typedef void __t110(dynamic __u111, EventSink<dynamic> __u112);
+ typedef void __t116<T>(Object __u117, StackTrace __u118, EventSink<T> __u119);
+ typedef void __t120(dynamic __u121, StackTrace __u122, EventSink<dynamic> __u123);

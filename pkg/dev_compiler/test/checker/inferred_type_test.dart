@@ -1214,4 +1214,244 @@ void main() {
     '''
     }, inferFromOverrides: true, inferTransitively: true);
   });
+
+  test('downwards inference: miscellaneous', () {
+    testChecker({
+      '/main.dart': '''
+      typedef (T x);
+      class A<T> {
+        Function2<T> x;
+        A(this.x);
+      }
+      void main() {
+          {  // Variables, nested literals
+            var x = "hello";
+            var y = 3;
+            void f(List<Map<int, String>> l) {};
+            f(/*info:InferredTypeLiteral*/[{y: x}]);
+          }
+          {
+            int f(int x) {};
+            A<int> = new A(f);
+          }
+      }
+      '''
+    }, inferDownwards: true);
+  });
+
+  test('downwards inference on instance creations', () {
+    String mk(String error) => '''
+      class A<S, T> {
+        S x;
+        T y;
+        A(this.x, this.y);
+        A.named(this.x, this.y);
+      }
+
+      class B<S, T> extends A<T, S> {
+        B(S y, T x) : super(x, y);
+        B.named(S y, T x) : super.named(x, y);
+      }
+
+      class C<S> extends B<S, S> {
+        C(S a) : super(a, a);
+        C.named(S a) : super.named(a, a);
+      }
+
+      class D<S, T> extends B<T, int> {
+        D(T a) : super(a, 3);
+        D.named(T a) : super.named(a, 3);
+      }
+
+      class E<S, T> extends A<C<S>, T> {
+        E(T a) : super(null, a);
+      }
+
+      class F<S, T> extends A<S, T> {
+        F(S x, T y, {List<S> a, List<T> b}) : super(x, y);
+        F.named(S x, T y, [S a, T b]) : super(a, b);
+      }
+
+      void main() {
+        {
+          A<int, String> a0 = /*$error*/new A(3, "hello");
+          A<int, String> a1 = /*$error*/new A.named(3, "hello");
+          A<int, String> a2 = new A<int, String>(3, "hello");
+          A<int, String> a3 = new A<int, String>.named(3, "hello");
+          A<int, String> a4 = /*severe:StaticTypeError*/new A<int, dynamic>(3, "hello");
+          A<int, String> a5 = /*severe:StaticTypeError*/new A<dynamic, dynamic>.named(3, "hello");
+        }
+        {
+          A<int, String> a0 = /*severe:StaticTypeError*/new A("hello", 3);
+          A<int, String> a1 = /*severe:StaticTypeError*/new A.named("hello", 3);
+        }
+        {
+          A<int, String> a0 = /*$error*/new B("hello", 3);
+          A<int, String> a1 = /*$error*/new B.named("hello", 3);
+          A<int, String> a2 = new B<String, int>("hello", 3);
+          A<int, String> a3 = new B<String, int>.named("hello", 3);
+          A<int, String> a4 = /*severe:StaticTypeError*/new B<String, dynamic>("hello", 3);
+          A<int, String> a5 = /*severe:StaticTypeError*/new B<dynamic, dynamic>.named("hello", 3);
+        }
+        {
+          A<int, String> a0 = /*severe:StaticTypeError*/new B(3, "hello");
+          A<int, String> a1 = /*severe:StaticTypeError*/new B.named(3, "hello");
+        }
+        {
+          A<int, int> a0 = /*$error*/new C(3);
+          A<int, int> a1 = /*$error*/new C.named(3);
+          A<int, int> a2 = new C<int>(3);
+          A<int, int> a3 = new C<int>.named(3);
+          A<int, int> a4 = /*severe:StaticTypeError*/new C<dynamic>(3);
+          A<int, int> a5 = /*severe:StaticTypeError*/new C<dynamic>.named(3);
+        }
+        {
+          A<int, int> a0 = /*severe:StaticTypeError*/new C("hello");
+          A<int, int> a1 = /*severe:StaticTypeError*/new C.named("hello");
+        }
+        {
+          A<int, String> a0 = /*$error*/new D("hello");
+          A<int, String> a1 = /*$error*/new D.named("hello");
+          A<int, String> a2 = new D<int, String>("hello");
+          A<int, String> a3 = new D<String, String>.named("hello");
+          A<int, String> a4 = /*severe:StaticTypeError*/new D<num, dynamic>("hello");
+          A<int, String> a5 = /*severe:StaticTypeError*/new D<dynamic, dynamic>.named("hello");
+        }
+        {
+          A<int, String> a0 = /*severe:StaticTypeError*/new D(3);
+          A<int, String> a1 = /*severe:StaticTypeError*/new D.named(3);
+        }
+        { // Currently we only allow variable constraints.  Test that we reject.
+          A<C<int>, String> a0 = /*severe:StaticTypeError*/new E("hello");
+        }
+        { // Check named and optional arguments
+          A<int, String> a0 = /*$error*/new F(3, "hello", a: [3], b: ["hello"]);
+          A<int, String> a1 = /*severe:StaticTypeError*/new F(3, "hello", a: ["hello"], b:[3]);
+          A<int, String> a2 = /*$error*/new F.named(3, "hello", 3, "hello");
+          A<int, String> a3 = /*$error*/new F.named(3, "hello");
+          A<int, String> a4 = /*severe:StaticTypeError*/new F.named(3, "hello", "hello", 3);
+          A<int, String> a5 = /*severe:StaticTypeError*/new F.named(3, "hello", "hello");
+        }
+      }
+        ''';
+    testChecker({'/main.dart': mk("info:InferredTypeAllocation")},
+        inferDownwards: true);
+    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+        inferDownwards: false);
+  });
+
+  test('downwards inference on list literals', () {
+    String mk(String error) => '''
+      List<int> l0 = /*$error*/[];
+      List<int> l1 = /*$error*/[3];
+      List<int> l2 = /*severe:StaticTypeError*/["hello"];
+      List<int> l3 = /*severe:StaticTypeError*/["hello", 3];
+
+      List<dynamic> l0 = [];
+      List<dynamic> l1 = [3];
+      List<dynamic> l2 = ["hello"];
+      List<dynamic> l3 = ["hello", 3];
+
+      List<int> l0 = /*severe:StaticTypeError*/<num>[];
+      List<int> l1 = /*severe:StaticTypeError*/<num>[3];
+      List<int> l2 = /*severe:StaticTypeError*/<num>[/*severe:StaticTypeError*/"hello"];
+      List<int> l3 = /*severe:StaticTypeError*/<num>[/*severe:StaticTypeError*/"hello", 3];
+
+      Iterable<int> i0 = /*$error*/[];
+      Iterable<int> i1 = /*$error*/[3];
+      Iterable<int> i2 = /*severe:StaticTypeError*/["hello"];
+      Iterable<int> i3 = /*severe:StaticTypeError*/["hello", 3];
+
+      const List<int> c0 = /*$error*/const [];
+      const List<int> c1 = /*$error*/const [3];
+      const List<int> c2 = /*severe:StaticTypeError*/const ["hello"];
+      const List<int> c3 = /*severe:StaticTypeError*/const ["hello", 3];
+        ''';
+    testChecker({'/main.dart': mk("info:InferredTypeLiteral")},
+        inferDownwards: true);
+    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+        inferDownwards: false);
+  });
+
+  test('downwards inference on function arguments', () {
+    String mk(String error) => '''
+      void f0(List<int> a) {};
+      void f1({List<int> a}) {};
+      void f2(Iterable<int> a) {};
+      void f3(Iterable<Iterable<int>> a) {};
+      void f4({Iterable<Iterable<int>> a}) {};
+      void main() {
+        f0(/*$error*/[]);
+        f0(/*$error*/[3]);
+        f0(/*severe:StaticTypeError*/["hello"]);
+        f0(/*severe:StaticTypeError*/["hello", 3]);
+
+        f1(a: /*$error*/[]);
+        f1(a: /*$error*/[3]);
+        f1(a: /*severe:StaticTypeError*/["hello"]);
+        f1(a: /*severe:StaticTypeError*/["hello", 3]);
+
+        f2(/*$error*/[]);
+        f2(/*$error*/[3]);
+        f2(/*severe:StaticTypeError*/["hello"]);
+        f2(/*severe:StaticTypeError*/["hello", 3]);
+
+        f3(/*$error*/[]);
+        f3(/*$error*/[[3]]);
+        f3(/*severe:StaticTypeError*/[["hello"]]);
+        f3(/*severe:StaticTypeError*/[["hello"], [3]]);
+
+        f4(a: /*$error*/[]);
+        f4(a: /*$error*/[[3]]);
+        f4(a: /*severe:StaticTypeError*/[["hello"]]);
+        f4(a: /*severe:StaticTypeError*/[["hello"], [3]]);
+      }
+      ''';
+    testChecker({'/main.dart': mk("info:InferredTypeLiteral")},
+        inferDownwards: true);
+    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+        inferDownwards: false);
+  });
+
+  test('downwards inference on map literals', () {
+    String mk(String error) => '''
+      Map<int, String> l0 = /*$error*/{};
+      Map<int, String> l1 = /*$error*/{3: "hello"};
+      Map<int, String> l2 = /*severe:StaticTypeError*/{"hello": "hello"};
+      Map<int, String> l3 = /*severe:StaticTypeError*/{3: 3};
+      Map<int, String> l4 = /*severe:StaticTypeError*/{3:"hello", "hello": 3};
+
+      Map<dynamic, dynamic> l0 = {};
+      Map<dynamic, dynamic> l1 = {3: "hello"};
+      Map<dynamic, dynamic> l2 = {"hello": "hello"};
+      Map<dynamic, dynamic> l3 = {3: 3};
+      Map<dynamic, dynamic> l4 = {3:"hello", "hello": 3};
+
+      Map<dynamic, String> l0 = /*$error*/{};
+      Map<dynamic, String> l1 = /*$error*/{3: "hello"};
+      Map<dynamic, String> l2 = /*$error*/{"hello": "hello"};
+      Map<dynamic, String> l3 = /*severe:StaticTypeError*/{3: 3};
+      Map<dynamic, String> l4 = /*severe:StaticTypeError*/{3:"hello", "hello": 3};
+
+      Map<int, dynamic> l0 = /*$error*/{};
+      Map<int, dynamic> l1 = /*$error*/{3: "hello"};
+      Map<int, dynamic> l2 = /*severe:StaticTypeError*/{"hello": "hello"};
+      Map<int, dynamic> l3 = /*$error*/{3: 3};
+      Map<int, dynamic> l3 = /*severe:StaticTypeError*/{3:"hello", "hello": 3};
+
+      Map<int, String> l0 = /*severe:StaticTypeError*/<num, dynamic>{};
+      Map<int, String> l1 = /*severe:StaticTypeError*/<num, dynamic>{3: "hello"};
+      Map<int, String> l3 = /*severe:StaticTypeError*/<num, dynamic>{3: 3};
+
+      const Map<int, String> l0 = /*$error*/const {};
+      const Map<int, String> l1 = /*$error*/const {3: "hello"};
+      const Map<int, String> l2 = /*severe:StaticTypeError*/const {"hello": "hello"};
+      const Map<int, String> l3 = /*severe:StaticTypeError*/const {3: 3};
+      const Map<int, String> l4 = /*severe:StaticTypeError*/const {3:"hello", "hello": 3};
+      ''';
+    testChecker({'/main.dart': mk("info:InferredTypeLiteral")},
+        inferDownwards: true);
+    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+        inferDownwards: false);
+  });
 }

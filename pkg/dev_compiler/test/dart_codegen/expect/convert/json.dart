@@ -101,11 +101,7 @@ if (string.codeUnitAt(i) >= 0x80) break checkAscii;
  return UTF8.encode(string);
 }
  List<int> convert(Object object) {
-List<List<int>> bytes = ((__x15) => DEVC$RT.cast(__x15, DEVC$RT.type((List<dynamic> _) {
-}
-), DEVC$RT.type((List<List<int>> _) {
-}
-), "InferableLiteral", """line 338, column 29 of dart:convert/json.dart: """, __x15 is List<List<int>>, false))([]);
+List<List<int>> bytes = <List<int>> [];
  void addChunk(Uint8List chunk, int start, int end) {
 if (start > 0 || end < chunk.length) {
 int length = end - start;
@@ -139,11 +135,11 @@ byteSink = new ByteConversionSink.from(sink);
  return new _JsonUtf8EncoderSink(byteSink, _toEncodable, _indent, _bufferSize);
 }
  Stream<List<int>> bind(Stream<Object> stream) {
-return ((__x16) => DEVC$RT.cast(__x16, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
+return ((__x15) => DEVC$RT.cast(__x15, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
 }
 ), DEVC$RT.type((DDC$async$.Stream<List<int>> _) {
 }
-), "CompositeCast", """line 391, column 12 of dart:convert/json.dart: """, __x16 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
+), "CompositeCast", """line 391, column 12 of dart:convert/json.dart: """, __x15 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
 }
  Converter<Object, dynamic> fuse(Converter<List<int>, dynamic> other) {
 return super.fuse(other);
@@ -214,7 +210,7 @@ _isDone = true;
  static const int CHAR_u = 0x75;
  final List _seen = new List();
  final Function _toEncodable;
- _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = ((__x17) => DEVC$RT.cast(__x17, dynamic, Function, "DynamicCast", """line 547, column 24 of dart:convert/json.dart: """, __x17 is Function, true))((_toEncodable != null) ? _toEncodable : _defaultToEncodable);
+ _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = ((__x16) => DEVC$RT.cast(__x16, dynamic, Function, "DynamicCast", """line 547, column 24 of dart:convert/json.dart: """, __x16 is Function, true))((_toEncodable != null) ? _toEncodable : _defaultToEncodable);
  void writeString(String characters);
  void writeStringSlice(String characters, int start, int end);
  void writeCharCode(int charCode);
@@ -344,11 +340,11 @@ writeString(',');
  void writeMap(Map<String, Object> map) {
 writeString('{');
  String separator = '"';
- map.forEach(((__x26) => DEVC$RT.wrap((dynamic f(String __u18, dynamic __u19)) {
+ map.forEach(((__x25) => DEVC$RT.wrap((dynamic f(String __u17, dynamic __u18)) {
 dynamic c(String x0, dynamic x1) => f(x0, x1);
  return f == null ? null : c;
 }
-, __x26, __t23, __t20, "WrapLiteral", """line 721, column 17 of dart:convert/json.dart: """, __x26 is __t20))((String key, value) {
+, __x25, __t22, __t19, "WrapLiteral", """line 721, column 17 of dart:convert/json.dart: """, __x25 is __t19))((String key, value) {
 writeString(separator);
  separator = ',"';
  writeStringContent(key);
@@ -562,5 +558,5 @@ writeByte(indent[i]);
  typedef Object __t7(Object __u8);
  typedef dynamic __t9(dynamic __u10);
  typedef dynamic __t13(Object __u14);
- typedef void __t20(String __u21, Object __u22);
- typedef dynamic __t23(String __u24, dynamic __u25);
+ typedef void __t19(String __u20, Object __u21);
+ typedef dynamic __t22(String __u23, dynamic __u24);

@@ -1,18 +1,14 @@
 part of dart.async;
  abstract class Stream<T> {Stream();
  factory Stream.fromFuture(Future<T> future) {
-  _StreamController<T> controller = ((__x29) => DEVC$RT.cast(__x29, DEVC$RT.type((StreamController<T> _) {
-    }
-  ), DEVC$RT.type((_StreamController<T> _) {
-    }
-  ), "InferableAllocation", """line 87, column 39 of dart:async/stream.dart: """, __x29 is _StreamController<T>, false))(new StreamController<T>(sync: true));
-   future.then(((__x35) => DEVC$RT.wrap((dynamic f(dynamic __u30)) {
+  _StreamController<T> controller = new StreamController<T>(sync: true);
+   future.then(((__x30) => DEVC$RT.wrap((dynamic f(dynamic __u25)) {
     dynamic c(dynamic x0) => f(x0);
      return f == null ? null : c;
     }
-  , __x35, __t33, DEVC$RT.type((__t31<T> _) {
+  , __x30, __t28, DEVC$RT.type((__t26<T> _) {
     }
-  ), "WrapLiteral", """line 88, column 17 of dart:async/stream.dart: """, __x35 is __t31<T>))((value) {
+  ), "WrapLiteral", """line 88, column 17 of dart:async/stream.dart: """, __x30 is __t26<T>))((value) {
     controller._add(DEVC$RT.cast(value, dynamic, T, "CompositeCast", """line 89, column 25 of dart:async/stream.dart: """, value is T, false));
      controller._closeUnchecked();
     }
@@ -27,13 +23,13 @@ part of dart.async;
   return new _GeneratedStreamImpl<T>(() => new _IterablePendingEvents<T>(data));
   }
  factory Stream.periodic(Duration period, [T computation(int computationCount)]) {
-  if (computation == null) computation = ((__x41) => DEVC$RT.wrap((dynamic f(dynamic __u36)) {
+  if (computation == null) computation = ((__x36) => DEVC$RT.wrap((dynamic f(dynamic __u31)) {
     dynamic c(dynamic x0) => f(x0);
      return f == null ? null : c;
     }
-  , __x41, __t39, DEVC$RT.type((__t37<T> _) {
+  , __x36, __t34, DEVC$RT.type((__t32<T> _) {
     }
-  ), "Wrap", """line 126, column 44 of dart:async/stream.dart: """, __x41 is __t37<T>))(((i) => null));
+  ), "Wrap", """line 126, column 44 of dart:async/stream.dart: """, __x36 is __t32<T>))(((i) => null));
    Timer timer;
    int computationCount = 0;
    StreamController<T> controller;
@@ -76,11 +72,7 @@ part of dart.async;
    return controller.stream;
   }
  factory Stream.eventTransformed(Stream source, EventSink mapSink(EventSink<T> sink)) {
-  return ((__x42) => DEVC$RT.cast(__x42, DEVC$RT.type((_BoundSinkStream<dynamic, dynamic> _) {
-    }
-  ), DEVC$RT.type((Stream<T> _) {
-    }
-  ), "InferableAllocation", """line 216, column 12 of dart:async/stream.dart: """, __x42 is Stream<T>, false))(new _BoundSinkStream(source, DEVC$RT.wrap((EventSink<dynamic> f(EventSink<T> __u43)) {
+  return new _BoundSinkStream<dynamic, T>(source, DEVC$RT.wrap((EventSink<dynamic> f(EventSink<T> __u37)) {
     EventSink<dynamic> c(EventSink<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((EventSink<dynamic> _) {
       }
     ), DEVC$RT.type((EventSink<T> _) {
@@ -88,15 +80,15 @@ part of dart.async;
     ), "CastParam", """line 216, column 41 of dart:async/stream.dart: """, x0 is EventSink<T>, false));
      return f == null ? null : c;
     }
-  , mapSink, DEVC$RT.type((__t46<T> _) {
+  , mapSink, DEVC$RT.type((__t40<T> _) {
     }
-  ), __t44, "Wrap", """line 216, column 41 of dart:async/stream.dart: """, mapSink is __t44)));
+  ), __t38, "Wrap", """line 216, column 41 of dart:async/stream.dart: """, mapSink is __t38));
   }
  bool get isBroadcast => false;
  Stream<T> asBroadcastStream({
   void onListen(StreamSubscription<T> subscription), void onCancel(StreamSubscription<T> subscription)}
 ) {
-  return new _AsBroadcastStream<T>(this, DEVC$RT.wrap((void f(StreamSubscription<T> __u48)) {
+  return new _AsBroadcastStream<T>(this, DEVC$RT.wrap((void f(StreamSubscription<T> __u42)) {
     void c(StreamSubscription<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((StreamSubscription<dynamic> _) {
       }
     ), DEVC$RT.type((StreamSubscription<T> _) {
@@ -104,9 +96,9 @@ part of dart.async;
     ), "CastParam", """line 248, column 44 of dart:async/stream.dart: """, x0 is StreamSubscription<T>, false));
      return f == null ? null : c;
     }
-  , onListen, DEVC$RT.type((__t51<T> _) {
+  , onListen, DEVC$RT.type((__t45<T> _) {
     }
-  ), __t49, "Wrap", """line 248, column 44 of dart:async/stream.dart: """, onListen is __t49), DEVC$RT.wrap((void f(StreamSubscription<T> __u53)) {
+  ), __t43, "Wrap", """line 248, column 44 of dart:async/stream.dart: """, onListen is __t43), DEVC$RT.wrap((void f(StreamSubscription<T> __u47)) {
     void c(StreamSubscription<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((StreamSubscription<dynamic> _) {
       }
     ), DEVC$RT.type((StreamSubscription<T> _) {
@@ -114,9 +106,9 @@ part of dart.async;
     ), "CastParam", """line 248, column 54 of dart:async/stream.dart: """, x0 is StreamSubscription<T>, false));
      return f == null ? null : c;
     }
-  , onCancel, DEVC$RT.type((__t51<T> _) {
+  , onCancel, DEVC$RT.type((__t45<T> _) {
     }
-  ), __t49, "Wrap", """line 248, column 54 of dart:async/stream.dart: """, onCancel is __t49));
+  ), __t43, "Wrap", """line 248, column 54 of dart:async/stream.dart: """, onCancel is __t43));
   }
  StreamSubscription<T> listen(void onData(T event), {
   Function onError, void onDone(), bool cancelOnError}
@@ -236,7 +228,7 @@ part of dart.async;
       _runUserCode(() => combine(value, element), (T newValue) {
         value = newValue;
         }
-      , ((__x57) => DEVC$RT.cast(__x57, dynamic, __t54, "CompositeCast", """line 501, column 24 of dart:async/stream.dart: """, __x57 is __t54, false))(_cancelAndErrorClosure(subscription, result)));
+      , ((__x51) => DEVC$RT.cast(__x51, dynamic, __t48, "CompositeCast", """line 501, column 24 of dart:async/stream.dart: """, __x51 is __t48, false))(_cancelAndErrorClosure(subscription, result)));
       }
      else {
       value = element;
@@ -267,7 +259,7 @@ part of dart.async;
     _runUserCode(() => combine(value, element), (newValue) {
       value = newValue;
       }
-    , ((__x58) => DEVC$RT.cast(__x58, dynamic, __t54, "CompositeCast", """line 534, column 11 of dart:async/stream.dart: """, __x58 is __t54, false))(_cancelAndErrorClosure(subscription, result)));
+    , ((__x52) => DEVC$RT.cast(__x52, dynamic, __t48, "CompositeCast", """line 534, column 11 of dart:async/stream.dart: """, __x52 is __t48, false))(_cancelAndErrorClosure(subscription, result)));
     }
   , onError: (e, st) {
     result._completeError(e, DEVC$RT.cast(st, dynamic, StackTrace, "DynamicCast", """line 538, column 34 of dart:async/stream.dart: """, st is StackTrace, true));
@@ -313,7 +305,7 @@ part of dart.async;
         _cancelAndValue(subscription, future, true);
         }
       }
-    , ((__x59) => DEVC$RT.cast(__x59, dynamic, __t54, "CompositeCast", """line 602, column 13 of dart:async/stream.dart: """, __x59 is __t54, false))(_cancelAndErrorClosure(subscription, future)));
+    , ((__x53) => DEVC$RT.cast(__x53, dynamic, __t48, "CompositeCast", """line 602, column 13 of dart:async/stream.dart: """, __x53 is __t48, false))(_cancelAndErrorClosure(subscription, future)));
     }
   , onError: future._completeError, onDone: () {
     future._complete(false);
@@ -327,7 +319,7 @@ part of dart.async;
    subscription = this.listen((T element) {
     _runUserCode(() => action(element), (_) {
       }
-    , ((__x60) => DEVC$RT.cast(__x60, dynamic, __t54, "CompositeCast", """line 628, column 13 of dart:async/stream.dart: """, __x60 is __t54, false))(_cancelAndErrorClosure(subscription, future)));
+    , ((__x54) => DEVC$RT.cast(__x54, dynamic, __t48, "CompositeCast", """line 628, column 13 of dart:async/stream.dart: """, __x54 is __t48, false))(_cancelAndErrorClosure(subscription, future)));
     }
   , onError: future._completeError, onDone: () {
     future._complete(null);
@@ -344,7 +336,7 @@ part of dart.async;
         _cancelAndValue(subscription, future, false);
         }
       }
-    , ((__x61) => DEVC$RT.cast(__x61, dynamic, __t54, "CompositeCast", """line 657, column 13 of dart:async/stream.dart: """, __x61 is __t54, false))(_cancelAndErrorClosure(subscription, future)));
+    , ((__x55) => DEVC$RT.cast(__x55, dynamic, __t48, "CompositeCast", """line 657, column 13 of dart:async/stream.dart: """, __x55 is __t48, false))(_cancelAndErrorClosure(subscription, future)));
     }
   , onError: future._completeError, onDone: () {
     future._complete(true);
@@ -361,7 +353,7 @@ part of dart.async;
         _cancelAndValue(subscription, future, true);
         }
       }
-    , ((__x62) => DEVC$RT.cast(__x62, dynamic, __t54, "CompositeCast", """line 694, column 13 of dart:async/stream.dart: """, __x62 is __t54, false))(_cancelAndErrorClosure(subscription, future)));
+    , ((__x56) => DEVC$RT.cast(__x56, dynamic, __t48, "CompositeCast", """line 694, column 13 of dart:async/stream.dart: """, __x56 is __t48, false))(_cancelAndErrorClosure(subscription, future)));
     }
   , onError: future._completeError, onDone: () {
     future._complete(false);
@@ -372,13 +364,13 @@ part of dart.async;
  Future<int> get length {
   _Future<int> future = new _Future<int>();
    int count = 0;
-   this.listen(((__x66) => DEVC$RT.wrap((dynamic f(dynamic __u63)) {
+   this.listen(((__x60) => DEVC$RT.wrap((dynamic f(dynamic __u57)) {
     dynamic c(dynamic x0) => f(x0);
      return f == null ? null : c;
     }
-  , __x66, __t33, DEVC$RT.type((__t64<T> _) {
+  , __x60, __t28, DEVC$RT.type((__t58<T> _) {
     }
-  ), "WrapLiteral", """line 711, column 7 of dart:async/stream.dart: """, __x66 is __t64<T>))((_) {
+  ), "WrapLiteral", """line 711, column 7 of dart:async/stream.dart: """, __x60 is __t58<T>))((_) {
     count++;
     }
   ), onError: future._completeError, onDone: () {
@@ -390,13 +382,13 @@ part of dart.async;
  Future<bool> get isEmpty {
   _Future<bool> future = new _Future<bool>();
    StreamSubscription subscription;
-   subscription = this.listen(((__x68) => DEVC$RT.wrap((dynamic f(dynamic __u67)) {
+   subscription = this.listen(((__x62) => DEVC$RT.wrap((dynamic f(dynamic __u61)) {
     dynamic c(dynamic x0) => f(x0);
      return f == null ? null : c;
     }
-  , __x68, __t33, DEVC$RT.type((__t64<T> _) {
+  , __x62, __t28, DEVC$RT.type((__t58<T> _) {
     }
-  ), "WrapLiteral", """line 733, column 7 of dart:async/stream.dart: """, __x68 is __t64<T>))((_) {
+  ), "WrapLiteral", """line 733, column 7 of dart:async/stream.dart: """, __x62 is __t58<T>))((_) {
     _cancelAndValue(subscription, future, false);
     }
   ), onError: future._completeError, onDone: () {
@@ -431,39 +423,19 @@ part of dart.async;
   }
  Future drain([var futureValue]) => listen(null, cancelOnError: true).asFuture(futureValue);
  Stream<T> take(int count) {
-  return ((__x69) => DEVC$RT.cast(__x69, DEVC$RT.type((_TakeStream<dynamic> _) {
-    }
-  ), DEVC$RT.type((Stream<T> _) {
-    }
-  ), "InferableAllocation", """line 819, column 12 of dart:async/stream.dart: """, __x69 is Stream<T>, false))(new _TakeStream(this, count));
+  return new _TakeStream<T>(this, count);
   }
  Stream<T> takeWhile(bool test(T element)) {
-  return ((__x70) => DEVC$RT.cast(__x70, DEVC$RT.type((_TakeWhileStream<dynamic> _) {
-    }
-  ), DEVC$RT.type((Stream<T> _) {
-    }
-  ), "InferableAllocation", """line 841, column 12 of dart:async/stream.dart: """, __x70 is Stream<T>, false))(new _TakeWhileStream(this, test));
+  return new _TakeWhileStream<T>(this, test);
   }
  Stream<T> skip(int count) {
-  return ((__x71) => DEVC$RT.cast(__x71, DEVC$RT.type((_SkipStream<dynamic> _) {
-    }
-  ), DEVC$RT.type((Stream<T> _) {
-    }
-  ), "InferableAllocation", """line 852, column 12 of dart:async/stream.dart: """, __x71 is Stream<T>, false))(new _SkipStream(this, count));
+  return new _SkipStream<T>(this, count);
   }
  Stream<T> skipWhile(bool test(T element)) {
-  return ((__x72) => DEVC$RT.cast(__x72, DEVC$RT.type((_SkipWhileStream<dynamic> _) {
-    }
-  ), DEVC$RT.type((Stream<T> _) {
-    }
-  ), "InferableAllocation", """line 868, column 12 of dart:async/stream.dart: """, __x72 is Stream<T>, false))(new _SkipWhileStream(this, test));
+  return new _SkipWhileStream<T>(this, test);
   }
  Stream<T> distinct([bool equals(T previous, T next)]) {
-  return ((__x73) => DEVC$RT.cast(__x73, DEVC$RT.type((_DistinctStream<dynamic> _) {
-    }
-  ), DEVC$RT.type((Stream<T> _) {
-    }
-  ), "InferableAllocation", """line 885, column 12 of dart:async/stream.dart: """, __x73 is Stream<T>, false))(new _DistinctStream(this, equals));
+  return new _DistinctStream<T>(this, equals);
   }
  Future<T> get first {
   _Future<T> future = new _Future<T>();
@@ -547,7 +519,7 @@ part of dart.async;
         _cancelAndValue(subscription, future, value);
         }
       }
-    , ((__x74) => DEVC$RT.cast(__x74, dynamic, __t54, "CompositeCast", """line 1036, column 11 of dart:async/stream.dart: """, __x74 is __t54, false))(_cancelAndErrorClosure(subscription, future)));
+    , ((__x63) => DEVC$RT.cast(__x63, dynamic, __t48, "CompositeCast", """line 1036, column 11 of dart:async/stream.dart: """, __x63 is __t48, false))(_cancelAndErrorClosure(subscription, future)));
     }
   , onError: future._completeError, onDone: () {
     if (defaultValue != null) {
@@ -577,7 +549,7 @@ part of dart.async;
          result = value;
         }
       }
-    , ((__x75) => DEVC$RT.cast(__x75, dynamic, __t54, "CompositeCast", """line 1077, column 11 of dart:async/stream.dart: """, __x75 is __t54, false))(_cancelAndErrorClosure(subscription, future)));
+    , ((__x64) => DEVC$RT.cast(__x64, dynamic, __t48, "CompositeCast", """line 1077, column 11 of dart:async/stream.dart: """, __x64 is __t48, false))(_cancelAndErrorClosure(subscription, future)));
     }
   , onError: future._completeError, onDone: () {
     if (foundResult) {
@@ -616,7 +588,7 @@ part of dart.async;
          result = value;
         }
       }
-    , ((__x76) => DEVC$RT.cast(__x76, dynamic, __t54, "CompositeCast", """line 1129, column 11 of dart:async/stream.dart: """, __x76 is __t54, false))(_cancelAndErrorClosure(subscription, future)));
+    , ((__x65) => DEVC$RT.cast(__x65, dynamic, __t48, "CompositeCast", """line 1129, column 11 of dart:async/stream.dart: """, __x65 is __t48, false))(_cancelAndErrorClosure(subscription, future)));
     }
   , onError: future._completeError, onDone: () {
     if (foundResult) {
@@ -660,13 +632,13 @@ part of dart.async;
    void onData(T event) {
     timer.cancel();
      controller.add(event);
-     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t77, "CompositeCast", """line 1219, column 43 of dart:async/stream.dart: """, timeout is __t77, false));
+     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t66, "CompositeCast", """line 1219, column 43 of dart:async/stream.dart: """, timeout is __t66, false));
     }
    void onError(error, StackTrace stackTrace) {
     timer.cancel();
      assert (controller is _StreamController || controller is _BroadcastStreamController); var eventSink = controller;
      eventSink._addError(error, stackTrace);
-     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t77, "CompositeCast", """line 1227, column 43 of dart:async/stream.dart: """, timeout is __t77, false));
+     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t66, "CompositeCast", """line 1227, column 43 of dart:async/stream.dart: """, timeout is __t66, false));
     }
    void onDone() {
     timer.cancel();
@@ -681,11 +653,11 @@ part of dart.async;
       ;
       }
      else {
-      onTimeout = ((__x81) => DEVC$RT.wrap((dynamic f(dynamic __u78)) {
+      onTimeout = ((__x70) => DEVC$RT.wrap((dynamic f(dynamic __u67)) {
         dynamic c(dynamic x0) => f(x0);
          return f == null ? null : c;
         }
-      , __x81, __t33, __t79, "Wrap", """line 1245, column 21 of dart:async/stream.dart: """, __x81 is __t79))(zone.registerUnaryCallback(onTimeout));
+      , __x70, __t28, __t68, "Wrap", """line 1245, column 21 of dart:async/stream.dart: """, __x70 is __t68))(zone.registerUnaryCallback(onTimeout));
        _ControllerEventSinkWrapper wrapper = new _ControllerEventSinkWrapper(null);
        timeout = () {
         wrapper._sink = controller;
@@ -695,7 +667,7 @@ part of dart.async;
       ;
       }
      subscription = this.listen(onData, onError: onError, onDone: onDone);
-     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t77, "CompositeCast", """line 1256, column 43 of dart:async/stream.dart: """, timeout is __t77, false));
+     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t66, "CompositeCast", """line 1256, column 43 of dart:async/stream.dart: """, timeout is __t66, false));
     }
    Future onCancel() {
     timer.cancel();
@@ -709,7 +681,7 @@ part of dart.async;
     }
   , () {
     subscription.resume();
-     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t77, "CompositeCast", """line 1275, column 53 of dart:async/stream.dart: """, timeout is __t77, false));
+     timer = zone.createTimer(timeLimit, DEVC$RT.cast(timeout, Function, __t66, "CompositeCast", """line 1275, column 53 of dart:async/stream.dart: """, timeout is __t66, false));
     }
   , onCancel);
    return controller.stream;
@@ -769,15 +741,15 @@ _sink.addError(error, stackTrace);
 _sink.close();
 }
 }
- typedef dynamic __t31<T>(T __u32);
- typedef dynamic __t33(dynamic __u34);
- typedef T __t37<T>(int __u38);
- typedef dynamic __t39(dynamic __u40);
- typedef EventSink<dynamic> __t44(EventSink<dynamic> __u45);
- typedef EventSink<dynamic> __t46<T>(EventSink<T> __u47);
- typedef void __t49(StreamSubscription<dynamic> __u50);
- typedef void __t51<T>(StreamSubscription<T> __u52);
- typedef dynamic __t54(dynamic __u55, StackTrace __u56);
- typedef void __t64<T>(T __u65);
- typedef void __t77();
- typedef void __t79(EventSink<dynamic> __u80);
+ typedef dynamic __t26<T>(T __u27);
+ typedef dynamic __t28(dynamic __u29);
+ typedef T __t32<T>(int __u33);
+ typedef dynamic __t34(dynamic __u35);
+ typedef EventSink<dynamic> __t38(EventSink<dynamic> __u39);
+ typedef EventSink<dynamic> __t40<T>(EventSink<T> __u41);
+ typedef void __t43(StreamSubscription<dynamic> __u44);
+ typedef void __t45<T>(StreamSubscription<T> __u46);
+ typedef dynamic __t48(dynamic __u49, StackTrace __u50);
+ typedef void __t58<T>(T __u59);
+ typedef void __t66();
+ typedef void __t68(EventSink<dynamic> __u69);

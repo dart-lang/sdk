@@ -72,11 +72,7 @@ RangeError.checkValidRange(start, end, source.length);
 int char = source[i];
  if (char > _LATIN1_MASK || char < 0) {
 if (i > start) _addSliceToSink(source, start, i, false);
- _addSliceToSink(((__x27) => DEVC$RT.cast(__x27, DEVC$RT.type((List<dynamic> _) {
-}
-), DEVC$RT.type((List<int> _) {
-}
-), "InferableLiteral", """line 161, column 25 of dart:convert/latin1.dart: """, __x27 is List<int>, false))(const [0xFFFD]), 0, 1, false);
+ _addSliceToSink(const <int> [0xFFFD], 0, 1, false);
  start = i + 1;
 }
 }

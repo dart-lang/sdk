@@ -33,6 +33,40 @@ class _LocatedWrapper {
   _LocatedWrapper(this.wrapper, this.loc);
 }
 
+class _Inference extends DownwardsInference {
+  TypeManager _tm;
+
+  _Inference(TypeRules rules, this._tm) : super(rules);
+
+  @override
+  void annotateListLiteral(ListLiteral e, List<DartType> targs) {
+    var tNames = targs.map(_tm.typeNameFromDartType).toList();
+    e.typeArguments = AstBuilder.typeArgumentList(tNames);
+    var listT = rules.provider.listType.substitute4(targs);
+    e.staticType = listT;
+  }
+
+  @override
+  void annotateMapLiteral(MapLiteral e, List<DartType> targs) {
+    var tNames = targs.map(_tm.typeNameFromDartType).toList();
+    e.typeArguments = AstBuilder.typeArgumentList(tNames);
+    var mapT = rules.provider.mapType.substitute4(targs);
+    e.staticType = mapT;
+  }
+
+  @override
+  void annotateInstanceCreationExpression(
+      InstanceCreationExpression e, List<DartType> targs) {
+    var tNames = targs.map(_tm.typeNameFromDartType).toList();
+    var cName = e.constructorName;
+    var id = cName.type.name;
+    var typeName = AstBuilder.typeName(id, tNames);
+    cName.type = typeName;
+    var rawType = (e.staticType.element as ClassElement).type;
+    e.staticType = rawType.substitute4(targs);
+  }
+}
+
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
 class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
@@ -43,9 +77,11 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   SourceFile _file;
   bool _skipCoercions = false;
   final TypeRules _rules;
+  _Inference _inferrer;
 
   UnitCoercionReifier(this._tm, this._vm, this._rules) {
     _cm = new CoercionManager(_vm, _tm, _rules);
+    _inferrer = new _Inference(_rules, _tm);
   }
 
   // This should be the entry point for this class.  Entering via the
@@ -78,9 +114,7 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
     if (node is ClosureWrap) return "Wrap";
     if (node is DynamicCast) return "DynamicCast";
     if (node is AssignmentCast) return "AssignmentCast";
-    if (node is InferableLiteral) return "InferableLiteral";
     if (node is InferableClosure) return "InferableClosure";
-    if (node is InferableAllocation) return "InferableAllocation";
     if (node is DownCastComposite) return "CompositeCast";
     if (node is DownCastImplicit) return "ImplicitCast";
     assert(false);
@@ -97,6 +131,18 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
       _log.severe("Failed to replace node for DownCast");
     }
     castNode.accept(this);
+    return null;
+  }
+
+  @override
+  Object visitInferredTypeBase(InferredTypeBase node) {
+    var expr = node.node;
+    var b = _inferrer.inferExpression(expr, node.type);
+    assert(b);
+    if (!NodeReplacer.replace(node, expr)) {
+      _log.severe("Failed to replace node for InferredType");
+    }
+    expr.accept(this);
     return null;
   }
 

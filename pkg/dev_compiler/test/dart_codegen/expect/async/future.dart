@@ -1,9 +1,5 @@
 part of dart.async;
- abstract class Future<T> {static final _Future _nullFuture = ((__x10) => DEVC$RT.cast(__x10, DEVC$RT.type((Future<dynamic> _) {
-  }
-), DEVC$RT.type((_Future<dynamic> _) {
-  }
-), "InferableAllocation", """line 98, column 38 of dart:async/future.dart: """, __x10 is _Future<dynamic>, true))(new Future.value(null));
+ abstract class Future<T> {static final _Future _nullFuture = new Future.value(null);
  factory Future(computation()) {
   _Future result = new _Future<T>();
    Timer.run(() {
@@ -137,11 +133,7 @@ part of dart.async;
     , onError: handleError);
     }
    if (remaining == 0) {
-    return ((__x11) => DEVC$RT.cast(__x11, DEVC$RT.type((Future<dynamic> _) {
-      }
-    ), DEVC$RT.type((Future<List<dynamic>> _) {
-      }
-    ), "InferableAllocation", """line 313, column 14 of dart:async/future.dart: """, __x11 is Future<List<dynamic>>, false))(new Future.value(const []));
+    return new Future<List<dynamic>>.value(const []);
     }
    values = new List(remaining);
    return result;
@@ -159,7 +151,7 @@ part of dart.async;
    var nextIteration;
    nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
     if (keepGoing) {
-      new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __t12, "DynamicCast", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t12, true), onError: doneSignal._completeError);
+      new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __t9, "DynamicCast", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t9, true), onError: doneSignal._completeError);
       }
      else {
       doneSignal._complete(null);
@@ -207,4 +199,4 @@ error = _nonNullError(replacement.error);
  result._completeError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 724, column 32 of dart:async/future.dart: """, stackTrace is StackTrace, true));
 }
  Object _nonNullError(Object error) => (error != null) ? error : new NullThrownError();
- typedef dynamic __t12(dynamic __u13);
+ typedef dynamic __t9(dynamic __u10);

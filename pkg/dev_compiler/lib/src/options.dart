@@ -67,6 +67,10 @@ class RulesOptions extends TypeOptions {
   /// Whether to use covariant generics
   final bool covariantGenerics;
 
+  /// Whether to infer types downwards from local context
+  final bool inferDownwards;
+  static const inferDownwardsDefault = true;
+
   /// Whether to inject casts between Dart assignable types.
   final bool relaxedCasts;
 
@@ -77,8 +81,8 @@ class RulesOptions extends TypeOptions {
   final bool wrapClosures;
 
   RulesOptions({this.allowConstCasts: true, this.covariantGenerics: true,
-      this.relaxedCasts: true, this.ignoreTypes: false,
-      this.wrapClosures: true});
+      this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true,
+      this.ignoreTypes: false, this.wrapClosures: true});
 }
 
 class JSCodeOptions {
@@ -172,6 +176,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final List<String> packagePaths;
 
+  /// Whether to infer types downwards from local context
+  @override
+  final bool inferDownwards;
+
   /// Whether to infer return types and field types from overriden members.
   @override
   final bool inferFromOverrides;
@@ -215,6 +223,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.useColors: true, this.covariantGenerics: true,
       this.relaxedCasts: true, this.useMultiPackage: false,
       this.packageRoot: 'packages/', this.packagePaths: const <String>[],
+      this.inferDownwards: RulesOptions.inferDownwardsDefault,
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
       this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: ResolverOptions.onlyInferConstAndFinalFieldsDefault,
@@ -270,6 +279,7 @@ CompilerOptions parseOptions(List<String> argv) {
       useMultiPackage: args['use-multi-package'],
       packageRoot: args['package-root'],
       packagePaths: args['package-paths'].split(','),
+      inferDownwards: args['infer-downwards'],
       inferFromOverrides: args['infer-from-overrides'],
       inferTransitively: args['infer-transitively'],
       onlyInferConstsAndFinalFields: args['infer-only-finals'],
@@ -306,6 +316,9 @@ final ArgParser argParser = new ArgParser()
       abbr: 'n',
       help: 'Comma separated string of non-nullable types',
       defaultsTo: null)
+  ..addFlag('infer-downwards',
+      help: 'Infer types downwards from local context',
+      defaultsTo: RulesOptions.inferDownwardsDefault)
   ..addFlag('infer-from-overrides',
       help: 'Infer unspecified types of fields and return types from\n'
       'definitions in supertypes',

@@ -237,7 +237,7 @@ abstract class DownCast extends Conversion {
     if (expression is Literal) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new InferableLiteral(rules, expression, cast);
+      return new StaticTypeError(rules, expression, toT);
     }
     if (expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
@@ -247,7 +247,7 @@ abstract class DownCast extends Conversion {
     if (expression is InstanceCreationExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new InferableAllocation(rules, expression, cast);
+      return new StaticTypeError(rules, expression, toT);
     }
 
     // Composite cast: these are more likely to fail.
@@ -314,26 +314,9 @@ class AssignmentCast extends DownCast {
 // We're marking all as warnings for now.
 //
 
-// A "down cast" on a literal expression.
-class InferableLiteral extends DownCast {
-  InferableLiteral(TypeRules rules, Literal expression, Cast cast)
-      : super._internal(rules, expression, cast);
-
-  final Level level = Level.WARNING;
-}
-
 // A "down cast" on a closure literal.
 class InferableClosure extends DownCast {
   InferableClosure(TypeRules rules, FunctionExpression expression, Cast cast)
-      : super._internal(rules, expression, cast);
-
-  final Level level = Level.WARNING;
-}
-
-// A "down cast" on a non-literal allocation site.
-class InferableAllocation extends DownCast {
-  InferableAllocation(
-      TypeRules rules, InstanceCreationExpression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
@@ -359,6 +342,63 @@ class DownCastImplicit extends DownCast {
       : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
+}
+
+// An inferred type for the wrapped expression, which may need to be
+// reified into the term
+abstract class InferredTypeBase extends Conversion {
+  DartType _type;
+
+  InferredTypeBase._internal(TypeRules rules, Expression expression, this._type)
+      : super(rules, expression);
+
+  DartType get type => _type;
+
+  DartType _getConvertedType() => type;
+
+  String get message => '$expression has inferred type $type';
+
+  Level get level => Level.INFO;
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitInferredTypeBase(this);
+    } else {
+      return expression.accept(visitor);
+    }
+  }
+}
+
+// Standard / unspecialized inferred type
+class InferredType extends InferredTypeBase {
+  InferredType(TypeRules rules, Expression expression, DartType type)
+      : super._internal(rules, expression, type);
+
+  // Factory to create correct InferredType variant.
+  static InferredTypeBase create(
+      TypeRules rules, Expression expression, DartType type) {
+
+    // Specialized inference:
+    if (expression is Literal) {
+      return new InferredTypeLiteral(rules, expression, type);
+    }
+    if (expression is InstanceCreationExpression) {
+      return new InferredTypeAllocation(rules, expression, type);
+    }
+    return new InferredType(rules, expression, type);
+  }
+}
+
+// An infered type for a literal expression.
+class InferredTypeLiteral extends InferredTypeBase {
+  InferredTypeLiteral(TypeRules rules, Expression expression, DartType type)
+      : super._internal(rules, expression, type);
+}
+
+// An inferred type for a non-literal allocation site.
+class InferredTypeAllocation extends InferredTypeBase {
+  InferredTypeAllocation(TypeRules rules, Expression expression, DartType type)
+      : super._internal(rules, expression, type);
 }
 
 // TODO(vsm): Remove these.
@@ -657,6 +697,7 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
   R visitClosureWrapBase(ClosureWrapBase node) => visitConversion(node);
   R visitClosureWrap(ClosureWrap node) => visitClosureWrapBase(node);
   R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);
+  R visitInferredTypeBase(InferredTypeBase node) => visitConversion(node);
 }
 
 /// Automatically infer list of types by scanning this library using mirrors.

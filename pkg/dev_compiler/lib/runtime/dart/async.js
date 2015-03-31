@@ -60,7 +60,7 @@ var async;
       Stream() {
       }
       fromFuture(future) {
-        let controller = dart.as(new StreamController({sync: true}), _StreamController$(T));
+        let controller = new StreamController({sync: true});
         future.then(dart.closureWrap(((value) => {
           controller._add(dart.as(value, T));
           controller._closeUnchecked();
@@ -1727,7 +1727,7 @@ var async;
     dart.defineNamedConstructor(Future, 'delayed');
     dart.defineLazyProperties(Future, {
       get _nullFuture() {
-        return dart.as(new Future.value(null), _Future);
+        return new Future.value(null);
       }
     });
     return Future;
@@ -4104,7 +4104,7 @@ var async;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
-        let subscription = dart.as(new _SinkTransformerStreamSubscription(this[_stream], dart.closureWrap(this[_sinkMapper], "(EventSink<dynamic>) → EventSink"), onData, onError, onDone, cancelOnError), StreamSubscription$(T));
+        let subscription = new _SinkTransformerStreamSubscription(this[_stream], dart.closureWrap(this[_sinkMapper], "(EventSink<dynamic>) → EventSink"), onData, onError, onDone, cancelOnError);
         return subscription;
       }
     }

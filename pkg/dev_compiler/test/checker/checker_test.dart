@@ -1489,21 +1489,21 @@ void main() {
             List l1 = [1, 2, 3];
             l1 = <int>[1, 2, 3];
 
-            Iterable<int> i2 = /*warning:InferableLiteral*/[1, 2, 3];
+            Iterable<int> i2 = /*severe:StaticTypeError*/[1, 2, 3];
             i2 = /*warning:DownCastComposite*/i1;
             i2 = /*warning:DownCastComposite*/l1;
             i2 = <int>[1, 2, 3];
 
-            List<int> l2 = /*warning:InferableLiteral*/[1, 2, 3];
+            List<int> l2 = /*severe:StaticTypeError*/[1, 2, 3];
             l2 = /*warning:DownCastComposite*/i1;
             l2 = /*warning:DownCastComposite*/l1;
 
-            l2 = /*warning:InferableAllocation*/new List();
-            l2 = /*warning:InferableAllocation*/new List(10);
-            l2 = /*warning:InferableAllocation*/new List.filled(10, 42);
+            l2 = /*severe:StaticTypeError*/new List();
+            l2 = /*severe:StaticTypeError*/new List(10);
+            l2 = /*severe:StaticTypeError*/new List.filled(10, 42);
           }
    '''
-    });
+    }, inferDownwards: false);
   });
 
   test('Type checking literals', () {
